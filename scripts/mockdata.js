@@ -55,6 +55,75 @@ const mockCards = [
         internalName: 'moff-gideon#cold-calling'
     }),
     buildMockCard({
+        title: 'Admiral Holdo',
+        subtitle: 'We Are The Spark',
+        cost: 5,
+        power: 3,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['resistance', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 38
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'admiral-holdo#we-are-the-spark'
+    }),
+    buildMockCard({
+        title: 'Grand Inquisitor',
+        subtitle: 'How The Mighty Will Fall',
+        cost: 4,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        traits: ['force', 'imperial', 'inquisitor'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 103
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'grand-inquisitor#how-the-mighty-will-fall'
+    }),
+    buildMockCard({
+        title: 'Captain Rex',
+        subtitle: 'Staunch Advocate',
+        cost: 7,
+        power: 7,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['republic', 'clone', 'trooper'],
+        keywords: ['sentinel', 'shielded', 'restore 3'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 41
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'captain-rex#staunch-advocate'
+    }),
+    buildMockCard({
+        title: 'I\'ve Got A Bad Feeling',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['innate'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 166
+        },
+        unique: false,
+        internalName: 'ive-got-a-bad-feeling'
+    }),
+    buildMockCard({
         title: 'Darth Sidious',
         subtitle: 'Move Against the Jedi',
         cost: 7,
@@ -476,7 +545,7 @@ const mockCards = [
         types: ['base'],
         setId: {
             set: 'HMW',
-            number: 27
+            number: 29
         },
         unique: false,
         internalName: 'dendroid-wilds'
@@ -691,7 +760,6 @@ const mockCards = [
         cost: 6,
         power: 5,
         hp: 5,
-        text: 'As an additional cost to play this unit, put up to 2 units that each cost 5 or less from your discard pile on the bottom of your deck. This unit gains those units\' "When Played" abilities for this phase.',
         hasNonKeywordAbility: true,
         aspects: ['command', 'cunning'],
         traits: ['force', 'jedi'],
@@ -1985,7 +2053,1339 @@ const mockCards = [
         arena: 'ground',
         internalName: 'fennec-shand#a-ship-for-a-life',
     }),
-
+    buildMockCard({
+        title: 'Ty Yorrick',
+        subtitle: 'Monster Hunter',
+        cost: 5,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        traits: ['force', 'bounty hunter'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 185
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'ty-yorrick#monster-hunter',
+    }),
+    buildMockCard({
+        title: 'Numa',
+        subtitle: 'Still Fighting',
+        cost: 4,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['rebel', 'twi\'lek'],
+        keywords: ['restore 1'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 88
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'numa#still-fighting',
+    }),
+    buildMockCard({
+        title: 'Cham Syndulla',
+        subtitle: 'Hammer of Ryloth',
+        cost: 6,
+        power: 3,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['twi\'lek'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 13
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'cham-syndulla#hammer-of-ryloth'
+    }),
+    buildMockCard({
+        title: 'Twi\'lek Kalikori',
+        cost: 4,
+        power: 2,
+        hp: 2,
+        upgradePower: 2,
+        upgradeHp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        traits: ['item'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 265
+        },
+        unique: false,
+        internalName: 'twilek-kalikori',
+    }),
+    buildMockCard({
+        title: 'Origin Tree Shyyyo',
+        cost: 6,
+        power: 4,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        traits: ['creature'],
+        keywords: ['restore 1'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 145
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'origin-tree-shyyyo'
+    }),
+    buildMockCard({
+        title: 'Maul',
+        subtitle: 'Only Revenge Remains',
+        cost: 4,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: false,
+        aspects: ['aggression', 'aggression'],
+        traits: ['force', 'underworld'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 174
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'maul#only-revenge-remains',
+    }),
+    buildMockCard({
+        title: 'Sandtrooper Squad',
+        cost: 4,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning', 'villainy'],
+        traits: ['imperial', 'trooper'],
+        keywords: ['ambush', 'raid 1'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 201
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'sandtrooper-squad',
+    }),
+    buildMockCard({
+        title: 'Kelnacca',
+        subtitle: 'Solitary Master',
+        cost: 4,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'command'],
+        traits: ['force', 'jedi', 'wookiee'],
+        keywords: ['restore 2'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 36
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'kelnacca#solitary-master',
+    }),
+    buildMockCard({
+        title: 'Bestial Bond',
+        cost: 3,
+        power: 2,
+        hp: 2,
+        upgradePower: 2,
+        upgradeHp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'command'],
+        traits: ['innate'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 38
+        },
+        unique: false,
+        internalName: 'bestial-bond',
+    }),
+    buildMockCard({
+        title: 'Dragon\'s Might',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['innate'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 102
+        },
+        unique: false,
+        internalName: 'dragons-might'
+    }),
+    buildMockCard({
+        title: 'Crosshair',
+        subtitle: 'I\'ve Changed',
+        cost: 5,
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['clone'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 169
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'crosshair#ive-changed',
+    }),
+    buildMockCard({
+        title: 'Wrecker',
+        subtitle: 'Wrecking the Empire',
+        cost: 6,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        traits: ['clone'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 263
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'wrecker#wrecking-the-empire',
+    }),
+    buildMockCard({
+        title: 'Tech',
+        subtitle: 'I Thought It Was Obvious',
+        cost: 3,
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['clone'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 211
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'tech#i-thought-it-was-obvious',
+    }),
+    buildMockCard({
+        title: 'The Marauder',
+        subtitle: 'A New Home',
+        cost: 7,
+        power: 5,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 125
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'the-marauder#a-new-home',
+    }),
+    buildMockCard({
+        title: 'Maul',
+        subtitle: 'Old Master',
+        cost: 7,
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        keywords: ['shielded'],
+        traits: ['force', 'fringe'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 16
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'maul#old-master'
+    }),
+    buildMockCard({
+        title: 'Nightbrother',
+        subtitle: 'Maul\'s Gauntlet',
+        cost: 7,
+        power: 6,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 204
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'nightbrother#mauls-gauntlet',
+    }),
+    buildMockCard({
+        title: 'Sun Fac',
+        subtitle: 'Poggle\'s Second',
+        cost: 2,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['villainy'],
+        traits: ['separatist'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 243
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'sun-fac#poggles-second',
+    }),
+    buildMockCard({
+        title: 'Exploit Confidence',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        traits: ['tactic'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 238
+        },
+        unique: false,
+        internalName: 'exploit-confidence'
+    }),
+    buildMockCard({
+        title: 'Jar Jar Binks',
+        subtitle: 'Bombad General',
+        cost: 6,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['shielded'],
+        traits: ['gungan'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 5
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'jar-jar-binks#bombad-general'
+    }),
+    buildMockCard({
+        title: 'Peppi Bow',
+        subtitle: 'Shaak Herder',
+        cost: 2,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['gungan'],
+        keywords: ['restore 1'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 73
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'peppi-bow#shaak-herder',
+    }),
+    buildMockCard({
+        title: 'Captain Tarpals',
+        subtitle: 'Grand Army Captain',
+        cost: 1,
+        power: 0,
+        hp: 2,
+        hasNonKeywordAbility: false,
+        aspects: ['heroism'],
+        traits: ['gungan', 'trooper'],
+        keywords: ['shielded', 'raid 2'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 254
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'captain-tarpals#grand-army-captain',
+    }),
+    buildMockCard({
+        title: 'Torrent',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['disaster'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 100
+        },
+        unique: false,
+        internalName: 'torrent'
+    }),
+    buildMockCard({
+        title: 'Don\'t Touch Anything',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['trick'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 217
+        },
+        unique: false,
+        internalName: 'dont-touch-anything'
+    }),
+    buildMockCard({
+        title: 'Qui-Gon Jinn',
+        subtitle: 'We\'ll Handle This',
+        cost: 5,
+        power: 2,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['force', 'jedi', 'republic'],
+        keywords: ['grit'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 78
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'quigon-jinn#well-handle-this',
+    }),
+    buildMockCard({
+        title: 'Phee Genoa',
+        subtitle: 'Liberator of Ancient Wonders',
+        cost: 4,
+        power: 5,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['underworld'],
+        keywords: ['hidden'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 214
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'phee-genoa#liberator-of-ancient-wonders',
+    }),
+    buildMockCard({
+        title: 'Queen Amidala',
+        subtitle: 'Retaking Theed',
+        cost: 4,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        traits: ['naboo', 'official'],
+        keywords: ['restore 2'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 260
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'queen-amidala#retaking-theed',
+    }),
+    buildMockCard({
+        title: 'Bossk',
+        subtitle: 'Cruel Hunter',
+        cost: 5,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['underworld', 'bounty hunter'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 15
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'bossk#cruel-hunter'
+    }),
+    buildMockCard({
+        title: 'Maim',
+        cost: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['tactic'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 207
+        },
+        unique: false,
+        internalName: 'maim'
+    }),
+    buildMockCard({
+        title: 'Cid Scaleback',
+        subtitle: 'Can\'t be Trusted',
+        cost: 2,
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['underworld'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 197
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'cid-scaleback#cant-be-trusted',
+    }),
+    buildMockCard({
+        title: 'Victor Squadron',
+        subtitle: 'In Attack Formation',
+        cost: 6,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['imperial', 'vehicle', 'fighter'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 203
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'victor-squadron#in-attack-formation',
+    }),
+    buildMockCard({
+        title: 'Dragonboat Freighter',
+        cost: 6,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 231
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'dragonboat-freighter',
+    }),
+    buildMockCard({
+        title: 'Wookiee Protector',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['sentinel'],
+        traits: ['wookiee'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 75
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'wookiee-protector',
+    }),
+    buildMockCard({
+        title: 'Tribubble Bongo Sub',
+        cost: 3,
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['shielded', 'raid 3'],
+        traits: ['vehicle'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 213
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'tribubble-bongo-sub',
+    }),
+    buildMockCard({
+        title: 'Yanna',
+        subtitle: 'Sanctuary Elder',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['grit', 'restore 1'],
+        traits: ['wookiee'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 76
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'yanna#sanctuary-elder',
+    }),
+    buildMockCard({
+        title: 'The First Legion',
+        subtitle: 'Vader\'s Fist',
+        cost: 4,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['imperial', 'trooper'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 108
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-first-legion#vaders-fist',
+    }),
+    buildMockCard({
+        title: 'Noxious Refinery',
+        cost: 4,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        traits: ['fortification'],
+        keywords: ['fortify'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 160
+        },
+        unique: false,
+        internalName: 'noxious-refinery',
+    }),
+    buildMockCard({
+        title: 'Military Academy',
+        cost: 1,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['fortification'],
+        keywords: ['fortify'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 112
+        },
+        unique: false,
+        internalName: 'military-academy',
+    }),
+    buildMockCard({
+        title: 'Blockade Ship',
+        cost: 8,
+        power: 5,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['villainy'],
+        keywords: ['sentinel'],
+        traits: ['separatist', 'vehicle', 'capital ship'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 251
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'blockade-ship',
+    }),
+    buildMockCard({
+        title: 'Imperial Venator',
+        cost: 7,
+        power: 7,
+        hp: 6,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'villainy'],
+        keywords: ['sentinel', 'grit'],
+        traits: ['imperial', 'vehicle', 'capital ship'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 69
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'imperial-venator',
+    }),
+    buildMockCard({
+        title: 'Assault Frigate',
+        cost: 5,
+        power: 2,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['command'],
+        keywords: ['raid 4'],
+        traits: ['rebel', 'vehicle', 'capital ship'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 140
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'assault-frigate',
+    }),
+    buildMockCard({
+        title: 'Banking Clan Warship',
+        cost: 6,
+        power: 6,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['command'],
+        keywords: ['ambush'],
+        traits: ['separatist', 'vehicle', 'capital ship'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 143
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'banking-clan-warship',
+    }),
+    buildMockCard({
+        title: 'Surveillance Cruiser',
+        cost: 4,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['villainy'],
+        traits: ['imperial', 'vehicle', 'capital ship'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 247
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'surveillance-cruiser',
+    }),
+    buildMockCard({
+        title: 'Grand Army Marine',
+        cost: 2,
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['gungan', 'trooper'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 72
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'grand-army-marine',
+    }),
+    buildMockCard({
+        title: 'Fambaa Shield Team',
+        cost: 7,
+        power: 4,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['creature', 'gungan'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 80
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'fambaa-shield-team',
+    }),
+    buildMockCard({
+        title: 'Gungan Battle Wagon',
+        cost: 3,
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning'],
+        keywords: ['sentinel'],
+        traits: ['creature', 'gungan'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 226
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'gungan-battle-wagon',
+    }),
+    buildMockCard({
+        title: 'Battle-Scarred Destroyer',
+        cost: 6,
+        power: 7,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        traits: ['imperial', 'vehicle', 'capital ship'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 158
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'battlescarred-destroyer',
+    }),
+    buildMockCard({
+        title: 'Jaxxon',
+        subtitle: 'I Can Hear you Breathing!',
+        cost: 1,
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning', 'cunning'],
+        traits: ['underworld'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 219
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'jaxxon#i-can-hear-you-breathing'
+    }),
+    buildMockCard({
+        title: 'Krrsantan',
+        subtitle: 'Santo',
+        cost: 4,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'aggression'],
+        traits: ['underworld', 'wookiee'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 46
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'krrsantan#santo'
+    }),
+    buildMockCard({
+        title: 'Ima-Gun Di',
+        subtitle: 'Holding Out For Resupply',
+        cost: 3,
+        power: 5,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'aggression', 'heroism'],
+        traits: ['force', 'jedi', 'republic'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 44
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'imagun-di#holding-out-for-resupply'
+    }),
+    buildMockCard({
+        title: 'L3-37',
+        subtitle: 'We\'re Programmed To Learn',
+        cost: 6,
+        power: 5,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['underworld', 'droid'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 215
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'l337#were-programmed-to-learn'
+    }),
+    buildMockCard({
+        title: 'Heavy Ion Cannon',
+        cost: 3,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['fortification'],
+        keywords: ['fortify'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 172
+        },
+        unique: false,
+        internalName: 'heavy-ion-cannon',
+    }),
+    buildMockCard({
+        title: 'General Grievous',
+        subtitle: 'Separatist Warlord',
+        cost: 5,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        traits: ['separatist', 'official'],
+        aspects: ['command', 'villainy'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 8
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'general-grievous#separatist-warlord'
+    }),
+    buildMockCard({
+        title: 'Disposable B1',
+        cost: 1,
+        power: 2,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        traits: ['separatist', 'droid', 'trooper'],
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 103
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'disposable-b1'
+    }),
+    buildMockCard({
+        title: 'Tireless Magnaguard',
+        cost: 4,
+        power: 5,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        traits: ['separatist', 'droid'],
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 109
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'tireless-magnaguard'
+    }),
+    buildMockCard({
+        title: 'Nute Gunray',
+        subtitle: 'Perfectly Legal',
+        cost: 2,
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        traits: ['separatist', 'official'],
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 105
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'nute-gunray#perfectly-legal'
+    }),
+    buildMockCard({
+        title: 'Mother Talzin',
+        subtitle: 'Pledged to the Sisterhood',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression'],
+        keywords: ['raid 1'],
+        traits: ['force', 'night'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 39
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'mother-talzin#pledged-to-the-sisterhood'
+    }),
+    buildMockCard({
+        title: 'Talzin\'s Shuttle',
+        subtitle: 'Mysterious Arrival',
+        cost: 3,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression'],
+        keywords: ['raid 1'],
+        traits: ['night', 'vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 40
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'talzins-shuttle#mysterious-arrival'
+    }),
+    buildMockCard({
+        title: 'Keeper of Skara Nal',
+        subtitle: 'Awoken',
+        cost: 6,
+        power: 5,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression'],
+        keywords: ['restore 2'],
+        traits: ['droid', 'vehicle', 'walker'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 41
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'keeper-of-skara-nal#awoken'
+    }),
+    buildMockCard({
+        title: 'Asajj Ventress',
+        subtitle: 'No Time For Regret',
+        cost: 5,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression'],
+        keywords: ['restore 2'],
+        traits: ['force', 'night'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 1
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'asajj-ventress#no-time-for-regret'
+    }),
+    buildMockCard({
+        title: 'Mace Windu',
+        subtitle: 'Austere Centrist',
+        cost: 3,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['command', 'command'],
+        traits: ['force', 'jedi'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 128
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'mace-windu#austere-centrist'
+    }),
+    buildMockCard({
+        title: 'A\'Koba',
+        subtitle: 'Restless Raider',
+        cost: 2,
+        power: 1,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning'],
+        keywords: ['raid 1'],
+        traits: ['tusken'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 52
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'akoba#restless-raider'
+    }),
+    buildMockCard({
+        title: 'Fett\'s Firespray',
+        subtitle: 'Settling the Score',
+        cost: 6,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 53
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'fetts-firespray#settling-the-score'
+    }),
+    buildMockCard({
+        title: 'Seismic Detonation',
+        cost: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'cunning'],
+        traits: ['tactic'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 54
+        },
+        unique: false,
+        internalName: 'seismic-detonation'
+    }),
+    buildMockCard({
+        title: 'Nala Se',
+        subtitle: 'Silent Survivor',
+        cost: 2,
+        power: 1,
+        hp: 7,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'vigilance'],
+        traits: ['kaminoan'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 82
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'nala-se#silent-survivor'
+    }),
+    buildMockCard({
+        title: 'Verdant Fortress',
+        cost: 2,
+        power: 0,
+        hp: 0,
+        upgradePower: 0,
+        upgradeHp: 0,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['fortification'],
+        keywords: ['fortify'],
+        types: ['upgrade'],
+        setId: {
+            set: 'HMW',
+            number: 126
+        },
+        unique: false,
+        internalName: 'verdant-fortress',
+    }),
+    buildMockCard({
+        title: 'Garnac',
+        subtitle: 'Let The Hunt Begin!',
+        cost: 1,
+        power: 3,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['underworld'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 104
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'garnac#let-the-hunt-begin'
+    }),
+    buildMockCard({
+        title: 'Low Altitude Combat',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'cunning'],
+        traits: ['tactic'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 50
+        },
+        unique: false,
+        internalName: 'low-altitude-combat'
+    }),
+    buildMockCard({
+        title: 'Greater Sarlacc',
+        cost: 9,
+        power: 9,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'cunning'],
+        keywords: ['overwhelm'],
+        traits: ['creature'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 49
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'greater-sarlacc'
+    }),
+    buildMockCard({
+        title: 'Eravana',
+        subtitle: 'Hauling Rathtars',
+        cost: 5,
+        power: 1,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'cunning'],
+        traits: ['underworld', 'vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 47
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'eravana#hauling-rathtars'
+    }),
+    buildMockCard({
+        title: 'Maz Kanata',
+        subtitle: 'Eclectic Pirate Queen',
+        cost: 6,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'cunning'],
+        keywords: ['hidden'],
+        traits: ['underworld'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 2
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'maz-kanata#eclectic-pirate-queen'
+    }),
+    buildMockCard({
+        title: 'Lurking Wampa',
+        cost: 5,
+        power: 6,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning'],
+        traits: ['creature'],
+        keywords: ['hidden'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 229
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'lurking-wampa'
+    }),
+    buildMockCard({
+        title: 'Boss Lyonie',
+        subtitle: 'Hypnotized',
+        cost: 5,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'vigilance'],
+        traits: ['gungan', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 57
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'boss-lyonie#hypnotized'
+    }),
+    buildMockCard({
+        title: 'Yoda',
+        subtitle: 'Trickster In Exile',
+        cost: 3,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'vigilance', 'heroism'],
+        keywords: ['hidden'],
+        traits: ['force', 'fringe', 'jedi'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 56
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'yoda#trickster-in-exile'
+    }),
+    buildMockCard({
+        title: 'Dooku',
+        subtitle: 'Corruption Must Be Eradicated',
+        cost: 8,
+        power: 8,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression'],
+        keywords: ['overwhelm'],
+        traits: ['force', 'jedi', 'republic'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 42
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'dooku#corruption-must-be-eradicated'
+    }),
+    buildMockCard({
+        title: 'Mysterious Disappearance',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'vigilance'],
+        traits: ['trick'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 58
+        },
+        unique: false,
+        internalName: 'mysterious-disappearance'
+    }),
     // -------- End Mock Cards --------
 ];
 

@@ -5,15 +5,15 @@ import type { UnwrapRef } from '../core/GameObjectBase';
 import { type GameObjectId, registerState } from '../core/GameObjectUtils';
 import type { Player } from '../core/Player';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
+import type { IStateWatcherLKIEntry } from '../core/stateWatcher/StateWatcher';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
-import type { IStateWatcherLKIEntry } from './CardsDefeatedThisPhaseWatcher';
 
 export interface CardLeftPlayEntry {
     card: GameObjectId<IInPlayCard>;
     controlledBy: GameObjectId<Player>;
-    inPlayId: number;
     lastKnownInformation: IStateWatcherLKIEntry;
+    inPlayId?: number;
 }
 
 @registerState()
@@ -25,9 +25,9 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
     protected override mapCurrentValue(stateValue: CardLeftPlayEntry[]): UnwrapRef<CardLeftPlayEntry[]> {
         return stateValue.map((x) => ({
             card: this.game.getFromId(x.card),
-            inPlayId: x.inPlayId,
             controlledBy: this.game.getFromId(x.controlledBy),
-            lastKnownInformation: x.lastKnownInformation
+            lastKnownInformation: x.lastKnownInformation,
+            inPlayId: x.inPlayId
         }));
     }
 
@@ -49,6 +49,15 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
 
         return this.getCurrentValue().filter(playerFilter)
             .map((entry) => entry.card);
+    }
+
+    public getLeftPlayEntry(card: IInPlayCard, inPlayId?: number): UnwrapRef<CardLeftPlayEntry> | undefined {
+        const inPlayIdToCheck = inPlayId ?? card.mostRecentInPlayId;
+        if (inPlayIdToCheck == null) {
+            return undefined;
+        }
+
+        return this.getCurrentValue().find((entry) => entry.card === card && entry.inPlayId === inPlayIdToCheck);
     }
 
     public someCardLeftPlay({ controller, filter }: {
@@ -102,7 +111,8 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
                 lastKnownInformation: {
                     traits: event.lastKnownInformation.traits,
                     type: event.lastKnownInformation.type,
-                    power: event.lastKnownInformation.power
+                    power: event.lastKnownInformation.power,
+                    arena: event.lastKnownInformation.arena
                 }
             })
         });

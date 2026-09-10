@@ -102,16 +102,10 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     }
 
     /**
-     * If the card is in a non-hidden, non-arena zone, this property is the most recent value of {@link inPlayId} for the card.
+     * The most recent value of {@link inPlayId} for this card, or `-1` if it has never been played.
      * This is used to determine e.g. if a card in the discard pile was defeated this phase.
      */
     public get mostRecentInPlayId() {
-        // TODO PR COMMENT
-        this.assertPropertyEnabledForZoneBoolean(
-            !this.isInPlay() && this.zone.hiddenForPlayers == null,
-            'mostRecentInPlayId'
-        );
-
         return this._mostRecentInPlayId;
     }
 

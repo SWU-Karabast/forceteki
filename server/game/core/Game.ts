@@ -37,11 +37,12 @@ import {
     TokenCardName,
     TokenUpgradeName,
     TokenUnitName,
+    Trait,
     WildcardCardType,
     WildcardZoneName,
     ZoneName
 } from './Constants';
-import type { TokenName, Trait } from './Constants';
+import type { TokenName } from './Constants';
 import { StateWatcherRegistrar } from './stateWatcher/StateWatcherRegistrar';
 import { DistributeAmongTargetsPrompt } from './gameSteps/prompts/DistributeAmongTargetsPrompt';
 import HandlerMenuMultipleSelectionPrompt from './gameSteps/prompts/HandlerMenuMultipleSelectionPrompt';
@@ -55,7 +56,6 @@ import { GroundArenaZone } from './zone/GroundArenaZone';
 import { SpaceArenaZone } from './zone/SpaceArenaZone';
 import { AllArenasZone } from './zone/AllArenasZone';
 import type { IAllArenasZoneCardFilterProperties, IAllArenasSpecificTypeCardFilterProperties } from './zone/AllArenasZone';
-import { EnumHelpers } from './utils/EnumHelpers';
 import { SelectCardPrompt } from './gameSteps/prompts/SelectCardPrompt';
 import { DisplayCardsWithButtonsPrompt } from './gameSteps/prompts/DisplayCardsWithButtonsPrompt';
 import { DisplayCardsForSelectionPrompt } from './gameSteps/prompts/DisplayCardsForSelectionPrompt';
@@ -317,6 +317,11 @@ export class Game extends EventEmitter {
     public cardDataGetter: CardDataGetter;
     public playableCardTitles: string[];
     public allNonLeaderCardTitles: string[];
+
+    /** Title Case display name of every {@link Trait}, sorted alphabetically, for "name a trait" abilities */
+    public readonly traitNames: string[] = Object.values(Trait).map((trait) => Helpers.titleCase(trait))
+        .sort();
+
     public readonly statsTracker: IGameStatisticsTracker;
     public clientUIProperties: IClientUIProperties;
     public spaceArena: SpaceArenaZone;
@@ -1539,14 +1544,14 @@ export class Game extends EventEmitter {
         const checkedCards: Card[] = [];
 
         for (const movedCard of this.state.movedCards.map((id) => this.getFromId(id))) {
-            if (EnumHelpers.isArena(movedCard.zoneName) && movedCard.unique) {
+            if (movedCard.unique && movedCard.canBeInPlay() && movedCard.isInPlay()) {
                 const existingCard = checkedCards.find((otherCard) =>
                     otherCard.title === movedCard.title &&
                     otherCard.subtitle === movedCard.subtitle &&
                     otherCard.controller === movedCard.controller
                 );
 
-                if (!existingCard && movedCard.canBeInPlay()) {
+                if (!existingCard) {
                     checkedCards.push(movedCard);
                     movedCard.checkUnique();
                 }

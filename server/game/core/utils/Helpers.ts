@@ -380,6 +380,12 @@ export namespace Helpers {
         return value.charAt(0).toUpperCase() + value.slice(1);
     }
 
+    /** Capitalize each space-separated word of a value, e.g. 'bounty hunter' -> 'Bounty Hunter' */
+    export function titleCase(value: string): string {
+        return value.split(' ').map(capitalize)
+            .join(' ');
+    }
+
     export function pluralize(count: number, singular: string, plural: string): string {
         if (count === 1) {
             return singular;

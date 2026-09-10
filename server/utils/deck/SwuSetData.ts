@@ -21,10 +21,30 @@ export enum BlockId {
     B = 'B'
 }
 
+/**
+ * Where a set sits in the release timeline. Drives which card pools include it:
+ * - `Released`: in play now — legal under the Current pool (and every later pool).
+ * - `Next`: the single upcoming set that releases next — added under the NextSet pool so players can
+ *   test the post-release meta, but not yet legal under Current.
+ * - `Future`: a set previewing further out than `Next` (e.g. a second, overlapping preview season). Not
+ *   part of any constructed pool yet — excluded from Current and NextSet alike so a NextSet meta reflects
+ *   only the immediately-upcoming set.
+ */
+export enum ReleaseStage {
+    Released = 'released',
+    Next = 'next',
+    Future = 'future',
+}
+
 export interface ISwuSet {
     id: SwuSetId;
-    released: boolean;
+    releaseStage: ReleaseStage;
     mainline: boolean;
+}
+
+/** True if the set is released and therefore legal under the Current card pool. */
+export function isReleased(set: ISwuSet): boolean {
+    return set.releaseStage === ReleaseStage.Released;
 }
 
 export interface INonRotatingSet extends ISwuSet {
@@ -40,27 +60,27 @@ export const rotationBlocks: IRotationBlock[] = [
     {
         id: BlockId.Zero,
         sets: [
-            { id: SwuSetId.SOR, released: true, mainline: true },
-            { id: SwuSetId.SHD, released: true, mainline: true },
-            { id: SwuSetId.TWI, released: true, mainline: true }
+            { id: SwuSetId.SOR, releaseStage: ReleaseStage.Released, mainline: true },
+            { id: SwuSetId.SHD, releaseStage: ReleaseStage.Released, mainline: true },
+            { id: SwuSetId.TWI, releaseStage: ReleaseStage.Released, mainline: true }
         ]
     },
     {
         id: BlockId.A,
         sets: [
-            { id: SwuSetId.JTL, released: true, mainline: true },
-            { id: SwuSetId.LOF, released: true, mainline: true },
-            { id: SwuSetId.IBH, released: true, mainline: false },
-            { id: SwuSetId.SEC, released: true, mainline: true }
+            { id: SwuSetId.JTL, releaseStage: ReleaseStage.Released, mainline: true },
+            { id: SwuSetId.LOF, releaseStage: ReleaseStage.Released, mainline: true },
+            { id: SwuSetId.IBH, releaseStage: ReleaseStage.Released, mainline: false },
+            { id: SwuSetId.SEC, releaseStage: ReleaseStage.Released, mainline: true }
         ]
     },
     {
         id: BlockId.B,
         sets: [
-            { id: SwuSetId.LAW, released: true, mainline: true },
-            { id: SwuSetId.ASH, released: true, mainline: true },
-            { id: SwuSetId.HMW, released: false, mainline: true },
-            { id: SwuSetId.IC27, released: false, mainline: false }
+            { id: SwuSetId.LAW, releaseStage: ReleaseStage.Released, mainline: true },
+            { id: SwuSetId.ASH, releaseStage: ReleaseStage.Released, mainline: true },
+            { id: SwuSetId.HMW, releaseStage: ReleaseStage.Next, mainline: true },
+            { id: SwuSetId.IC27, releaseStage: ReleaseStage.Future, mainline: false }
         ]
     },
 ];
@@ -69,23 +89,36 @@ export const nonRotatingSets: INonRotatingSet[] = [
     {
         id: SwuSetId.TS26,
         legalFormats: new Set([SwuGameFormat.Eternal]),
-        released: true,
+        releaseStage: ReleaseStage.Released,
         mainline: false
     },
 ];
 
+/**
+ * A card suspended in a format. `name` is the card's internal name (also used as a human-readable label).
+ * `expiresWith`, if set, lifts the suspension once that set is in the validated card pool — so a ban that
+ * the publisher has said ends with a set's release passes under NextSet immediately, and under Current
+ * automatically once that set actually releases (its stage flips to Released), with no further code change.
+ */
+export interface IBannedCard {
+    name: string;
+    expiresWith?: SwuSetId;
+}
+
 export interface IFormatRules {
     minDeckSize: number;
     maxCardCopies?: number;
-    bannedCards: Map<string, string>;
+    bannedCards: Map<string, IBannedCard>;
     rotationBlockCount?: number;
 }
 
-const bannedPremierCards = new Map<string, string>();
+const bannedPremierCards = new Map<string, IBannedCard>([
+    ['5648009238', { name: 'cad-bane#still-faster-than-you' }]
+]);
 
-const bannedEternalCards = new Map([
-    ['4203363893', 'war-juggernaut'],
-    ['3722493191', 'ig2000#assassins-aggressor'],
+const bannedEternalCards = new Map<string, IBannedCard>([
+    ['4203363893', { name: 'war-juggernaut', expiresWith: SwuSetId.HMW }],
+    ['3722493191', { name: 'ig2000#assassins-aggressor', expiresWith: SwuSetId.HMW }],
 ]);
 
 export const formatRules = new Map<SwuGameFormat, IFormatRules>([

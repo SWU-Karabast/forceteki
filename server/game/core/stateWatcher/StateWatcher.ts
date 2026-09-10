@@ -1,5 +1,5 @@
 import type { IStateListenerResetProperties, IStateListenerProperties } from '../../Interfaces';
-import type { StateWatcherName } from '../Constants';
+import type { CardType, StateWatcherName, Trait, ZoneName } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type { Game } from '../Game';
 import type { IGameObjectBaseState, UnwrapRef } from '../GameObjectBase';
@@ -13,6 +13,17 @@ import { CopyMode, registerStateBase } from '../GameObjectUtils';
 
 export interface IStateWatcherState<TState> extends IGameObjectBaseState {
     entries: TState[];
+}
+
+/**
+ * Simplified last known information for state watcher implementations
+ */
+export interface IStateWatcherLKIEntry {
+    traits: Set<Trait>;
+    type: CardType;
+    power?: number;
+    arena?: ZoneName;
+    // TODO: Add more fields if needed
 }
 
 /**

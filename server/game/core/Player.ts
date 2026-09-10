@@ -628,7 +628,8 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * @returns {import('./card/baseClasses/InPlayCard').IInPlayCard[]} Duplicates of passed card (does not check unique status)
      */
     public getDuplicatesInPlay(card: IInPlayCard): IInPlayCard[] {
-        return this.getArenaCards().filter((otherCard) =>
+        return this.getInPlayCards().filter((otherCard): otherCard is IInPlayCard =>
+            otherCard.canBeInPlay() &&
             otherCard.title === card.title &&
             otherCard.subtitle === card.subtitle &&
             otherCard !== card

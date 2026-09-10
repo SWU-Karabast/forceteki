@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import type { MoveZoneDestination } from '../core/Constants';
+import type { MoveZoneDestination, ZoneFilter } from '../core/Constants';
 import { AbilityRestriction, EffectName, RelativePlayer } from '../core/Constants';
 import {
     CardType,
@@ -56,7 +56,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         }
 
         // Check if the card is leaving play
-        if (EnumHelpers.isArena(card.zoneName) && !EnumHelpers.isArena(event.destination)) {
+        if (this.isLeavingPlay(card, event.destination)) {
             this.leavesPlayEventHandler(card, event.destination, event.context, () => card.moveTo(event.destination));
         } else {
             card.moveTo(event.destination);
@@ -132,9 +132,27 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         const { attachedUpgradeOverrideHandler } = this.generatePropertiesFromContext(context, additionalProperties);
 
         // Check if the card is leaving play
-        if (EnumHelpers.isArena(card.zoneName) && !EnumHelpers.isArena(event.destination)) {
+        if (this.isLeavingPlay(card, event.destination)) {
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties, attachedUpgradeOverrideHandler);
         }
+    }
+
+    /**
+     * A card is leaving play when it is currently in play and is being moved to a non-arena zone. `isInPlay()` accounts
+     * for base-attached (Fortify) upgrades, which live in the base zone rather than an arena (`SWU 4.9.1`).
+     */
+    private isLeavingPlay(card: Card, destination: MoveZoneDestination): boolean {
+        // A leader is leaving play if it is in play and is being moved to a non-arena zone (because they flip when they leave the arenas)
+        if (card.isLeader()) {
+            return card.canBeInPlay() &&
+              card.isInPlay() &&
+              !EnumHelpers.isArena(destination as ZoneFilter);
+        }
+
+        // Other cards are leaving play if they are in play and are moving to an out-of-play zone
+        return card.canBeInPlay() &&
+          card.isInPlay() &&
+          !EnumHelpers.isInPlayZone(destination as ZoneFilter);
     }
 
     public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IMoveCardProperties>): void {
@@ -165,10 +183,11 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
             }
         }
 
-        // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource
+        // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource.
+        // Note that `isInPlay()` covers base-attached (Fortify) upgrades, which live in the base zone rather than an arena.
         if (destination === ZoneName.Hand) {
             if (
-                !([ZoneName.Discard, ZoneName.Resource].includes(card.zoneName)) && !EnumHelpers.isArena(card.zoneName)
+                !([ZoneName.Discard, ZoneName.Resource].includes(card.zoneName)) && !(card.canBeInPlay() && card.isInPlay())
             ) {
                 return false;
             }

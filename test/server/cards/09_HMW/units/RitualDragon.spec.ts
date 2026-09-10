@@ -125,6 +125,32 @@ describe('Ritual Dragon', function() {
                 context.player1.clickCard(context.ritualDragon);
                 expect(context.ritualDragon.exhausted).toBeTrue();
             });
+
+            it('friendly units should not enter play ready when Ritual Dragon is out of play', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'the-warrior#deft-duelist',
+                        hand: ['ritual-dragon', 'wookiee-guerilla'],
+                        deck: ['ritual-dragon'],
+                        resources: [
+                            'ritual-dragon',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                        ],
+                        base: 'dune-sea'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.wookieeGuerilla);
+                expect(context.wookieeGuerilla.exhausted).toBeTrue();
+
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });
