@@ -1,7 +1,7 @@
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class LowAltitudeCombat extends EventCard {
     protected override getImplementationId() {
@@ -16,7 +16,6 @@ export default class LowAltitudeCombat extends EventCard {
             title: 'Move a space unit to the ground arena. If you do, you may attack with a ground unit. It gets +2/+0 for this attack.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                controller: RelativePlayer.Self,
                 cardCondition: (card) => card.zoneName === ZoneName.SpaceArena,
                 immediateEffect: abilityHelper.immediateEffects.moveUnitFromSpaceToGround()
             },
