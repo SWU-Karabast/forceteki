@@ -230,13 +230,13 @@ describe('Maz Kanata, Eclectic Pirate Queen', function() {
                 context.player1.clickPrompt(abilityTitle);
                 context.player1.clickCard(context.criminalMuscle);
 
-                // Criminal Muscle should bounce the shield
+                // Criminal Muscle defeated and should bounce the shield
+                expect(context.criminalMuscle).toBeInZone('discard', context.player1);
                 const shield = context.wampa.upgrades[0];
                 expect(context.player1).toBeAbleToSelectExactly([shield]);
                 context.player1.clickCard(shield);
 
                 expect(context.wampa).toHaveExactUpgradeNames([]);
-                expect(context.criminalMuscle).toBeInZone('discard', context.player1);
                 expect(context.player2).toBeActivePlayer();
 
                 expect(context.getChatLogs(4)).toEqual([
