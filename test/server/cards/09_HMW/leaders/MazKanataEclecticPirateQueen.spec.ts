@@ -11,8 +11,7 @@ describe('Maz Kanata, Eclectic Pirate Queen', function() {
                         hand: ['moisture-farmer', 'jaxxon#i-can-hear-you-breathing', 'wampa', 'surprise-strike'],
                         base: 'lake-country',
                         resources: 10
-                    },
-                    player2: {}
+                    }
                 });
             });
 
@@ -94,8 +93,7 @@ describe('Maz Kanata, Eclectic Pirate Queen', function() {
                             hand: ['jaxxon#i-can-hear-you-breathing', 'moisture-farmer', 'wampa'],
                             base: 'lake-country',
                             resources: 10
-                        },
-                        player2: {}
+                        }
                     });
                 });
 
@@ -173,8 +171,7 @@ describe('Maz Kanata, Eclectic Pirate Queen', function() {
                         hand: ['wampa', 'surprise-strike'],
                         base: 'lake-country',
                         resources: 10
-                    },
-                    player2: {}
+                    }
                 });
 
                 const { context } = contextRef;
@@ -193,8 +190,7 @@ describe('Maz Kanata, Eclectic Pirate Queen', function() {
                         hand: ['jaxxon#i-can-hear-you-breathing', 'hylobon-enforcer'],
                         base: 'lake-country',
                         resources: 2
-                    },
-                    player2: {}
+                    }
                 });
 
                 const { context } = contextRef;
@@ -220,8 +216,7 @@ describe('Maz Kanata, Eclectic Pirate Queen', function() {
                         groundArena: [{ card: 'wampa', upgrades: ['shield'] }],
                         base: 'lake-country',
                         resources: 10
-                    },
-                    player2: {}
+                    }
                 });
 
                 const { context } = contextRef;
