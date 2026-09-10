@@ -32,8 +32,9 @@ export class AmbushAbility extends TriggeredAbilityBase {
                     isAmbush: true,
                     allowExhaustedAttacker: true,
                     attacker: context.source,
-                    // bases are excluded unless the attacker can attack bases while using Ambush (e.g. via Fett's Firespray)
-                    targetCondition: (card) => !card.isBase() || context.source.hasOngoingEffect(EffectName.CanAttackBaseWhileUsingAmbush),
+                    targetCondition: (card) =>
+                        !card.isBase() ||
+                        context.source.hasOngoingEffect(EffectName.CanAttackBaseWhileUsingAmbush),
                     optional: false     // override the default optional behavior - once we've triggered ambush, the attack is no longer optional
                 })),
                 onFalse: new NoActionSystem({})
