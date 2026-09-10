@@ -237,7 +237,7 @@ describe('Nute Gunray, Perfectly Legal', function() {
                         groundArena: ['wampa']
                     },
                     player2: {
-                        groundArena: ['offworld-jawa', 'disposable-b1']
+                        groundArena: ['oomseries-officer', 'lothcat']
                     }
                 });
 
@@ -250,17 +250,35 @@ describe('Nute Gunray, Perfectly Legal', function() {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickDone();
 
-                // Nute Gunray deals damage to Offworld Jawa
+                // Nute Gunray deals damage to Oomseries Officer
                 expect(context.player1).toHavePrompt(dealDamagePrompt('Nute Gunray'));
-                context.player1.clickCard(context.offworldJawa);
+                context.player1.clickCard(context.oomseriesOfficer);
 
-                // Wampa deals damage to Disposable B1
+                // Wampa deals damage to Loth-Cat
                 expect(context.player1).toHavePrompt(dealDamagePrompt('Wampa'));
-                context.player1.clickCard(context.disposableB1);
+                context.player1.clickCard(context.lothcat);
 
                 // Both 1 HP units are simultaneously defeated
-                expect(context.offworldJawa).toBeInZone('discard');
-                expect(context.disposableB1).toBeInZone('discard');
+                expect(context.oomseriesOfficer).toBeInZone('discard');
+                expect(context.lothcat).toBeInZone('discard');
+
+                // Both units' When Defeated abilities are triggered simultaneously
+                expect(context.player2).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                expect(context.player2).toHaveExactPromptButtons([
+                    'Deal 2 damage to a base.',
+                    'Exhaust a ground unit'
+                ]);
+
+                // Resolve Loth-Cat's exhaust first
+                context.player2.clickPrompt('Exhaust a ground unit');
+                context.player2.clickCard(context.wampa);
+                expect(context.wampa.exhausted).toBeTrue();
+
+                // Resolve Oomseries Officer's damage to a base next
+                expect(context.player2).toHavePrompt('Deal 2 damage to a base.');
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+                context.player2.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(2);
             });
         });
     });
