@@ -3298,6 +3298,94 @@ const mockCards = [
         arena: 'ground',
         internalName: 'maz-kanata#eclectic-pirate-queen'
     }),
+    buildMockCard({
+        title: 'Lurking Wampa',
+        cost: 5,
+        power: 6,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning'],
+        traits: ['creature'],
+        keywords: ['hidden'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 229
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'lurking-wampa'
+    }),
+    buildMockCard({
+        title: 'Boss Lyonie',
+        subtitle: 'Hypnotized',
+        cost: 5,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'vigilance'],
+        traits: ['gungan', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 57
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'boss-lyonie#hypnotized'
+    }),
+    buildMockCard({
+        title: 'Yoda',
+        subtitle: 'Trickster In Exile',
+        cost: 3,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'vigilance', 'heroism'],
+        keywords: ['hidden'],
+        traits: ['force', 'fringe', 'jedi'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 56
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'yoda#trickster-in-exile'
+    }),
+    buildMockCard({
+        title: 'Dooku',
+        subtitle: 'Corruption Must Be Eradicated',
+        cost: 8,
+        power: 8,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'aggression'],
+        keywords: ['overwhelm'],
+        traits: ['force', 'jedi', 'republic'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 42
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'dooku#corruption-must-be-eradicated'
+    }),
+    buildMockCard({
+        title: 'Mysterious Disappearance',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'vigilance'],
+        traits: ['trick'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 58
+        },
+        unique: false,
+        internalName: 'mysterious-disappearance'
+    }),
     // -------- End Mock Cards --------
 ];
 
