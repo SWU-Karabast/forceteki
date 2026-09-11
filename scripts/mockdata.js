@@ -3386,6 +3386,79 @@ const mockCards = [
         unique: false,
         internalName: 'mysterious-disappearance'
     }),
+    buildMockCard({
+        title: 'Omega',
+        subtitle: 'Close Your Eyes And Focus',
+        cost: 5,
+        power: 2,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['clone'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 6
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'omega#close-your-eyes-and-focus'
+    }),
+    buildMockCard({
+        title: 'Radiant VII',
+        subtitle: 'Negotiating For Naboo',
+        cost: 6,
+        power: 5,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['republic', 'vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 79
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'radiant-vii#negotiating-for-naboo'
+    }),
+    buildMockCard({
+        title: 'Batcher',
+        subtitle: 'Loyal Hound',
+        cost: 2,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        keywords: ['restore 1'],
+        traits: ['creature'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 83
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'batcher#loyal-hound'
+    }),
+    buildMockCard({
+        title: 'Boga',
+        subtitle: 'Loyal Varactyl',
+        cost: 6,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['creature'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 122
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'boga#loyal-varactyl'
+    }),
     // -------- End Mock Cards --------
 ];
 
