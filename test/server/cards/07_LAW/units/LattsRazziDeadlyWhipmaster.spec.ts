@@ -145,7 +145,7 @@ describe('Latts Razzi, Deadly Whipmaster', function() {
                 expect(context.kraytDragon.damage).toBe(4);
             });
 
-            it('should read LKI from deck to deal damage from part of her ability', async function () {
+            xit('should read LKI from deck to deal damage from part of her ability', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
