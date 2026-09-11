@@ -1,5 +1,6 @@
 import type { SwuPgnDocument, Header } from '../../../../swupgn/src/types';
 import { checkKeyframes } from '../../../../swupgn/src/integrity';
+import { linkActionSteps } from '../../../../swupgn/src/actionLinks';
 import { logger } from '../../../logger';
 
 /** Cap on how many mismatches are logged, so a systematically broken stream can't flood the log. */
@@ -12,6 +13,7 @@ const HEADER_TAG_ORDER: [keyof Header, string][] = [
     ['p1Id', 'P1Id'], ['p2Id', 'P2Id'], ['p1', 'P1'], ['p2', 'P2'],
     ['p1Leader', 'P1Leader'], ['p1Base', 'P1Base'], ['p2Leader', 'P2Leader'], ['p2Base', 'P2Base'],
     ['result', 'Result'], ['reason', 'Reason'], ['rounds', 'Rounds'],
+    ['endDate', 'EndDate'], ['match', 'Match'], ['gameNumber', 'GameNumber'],
     ['recorderErrors', 'RecorderErrors'],
 ];
 
@@ -24,6 +26,12 @@ function escapeTag(value: string): string {
 
 export class SwuPgnWriter {
     public write(doc: SwuPgnDocument): string {
+        // File each pre-announcement record under the action it belongs to (spec §9.1). This is
+        // the writer's job rather than the recorder's: when those records arrive the recorder
+        // cannot know an action is about to follow, but by now the whole list is in hand.
+        // Non-mutating, so the caller's document is untouched.
+        doc = { ...doc, events: linkActionSteps(doc.events) };
+
         this.verifyKeyframes(doc);
 
         const lines: string[] = [];

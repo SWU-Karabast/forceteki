@@ -115,6 +115,10 @@ There are four jobs. You might do one, or all of them.
 - MUST write an `EXHAUST` for a unit that enters play exhausted — the normal case, which no
   attack or ability announces — and nothing for one that enters ready
   ([§10.1](#101-events-that-carry-board-detail)).
+- SHOULD stamp `for` on every record that belongs to an action announced after it, so no reader
+  has to implement §9.1's heuristic ([§9.1](#91-how-seq-is-built)).
+- MUST record the resource row's membership as well as its two counts, and a base's spent Epic
+  Action as `baseEpicActionUsed` ([§11](#11-the-board-you-build-reducedstate)).
 - MUST name the destination arena in a `CREATE_TOKEN`'s `zone`, and MUST omit `power`/`hp`
   rather than invent them when the token cannot yet report its live stats
   ([§10.1](#101-events-that-carry-board-detail)).
@@ -274,6 +278,9 @@ banner.
 |---|---|
 | `Format` | The tournament format, e.g. `"premier"`. Case is **not** standardised — accept any case. |
 | `Perspective` | `"P1"` or `"P2"`. If it's there, the file was recorded through that player's eyes, so the other player's hidden cards MAY be missing. If it's absent, the file sees everything. |
+| `EndDate` | When the game **ended**, ISO-8601 UTC. With `Date` (when it started) this gives the game's duration — the one thing per-event timestamps would have been for. Absent for an unfinished game, or a writer that cannot tell. |
+| `Match` | An opaque id for the **match** this game belongs to, stable across the games of one Bo3. Lets a file that travels on its own — shared, archived, attached to a bug report — still say which match it came from, the way chess PGN's `Round` does. A writer MUST NOT put a host-internal lobby id here; the reference writer emits `sha256:<hex>` of it. |
+| `GameNumber` | Which game of that match this is, 1-based, as digits. Meaningless without `Match`. The reference writer never sets it — a game does not know its own place in a series — so it is for whatever delivers the file. |
 | `RecorderErrors` | How many of the writer's event handlers failed while recording, as digits, e.g. `"2"`. **Absent means none.** Present means some events were never written: the keyframes are still exact (they are read from the engine, not folded), but the deltas between them are incomplete, so `checkKeyframes()` will report mismatches and `stateAt()` between keyframes may be wrong. A reader SHOULD surface it. |
 
 Unknown tags MUST be accepted and ignored.
@@ -409,7 +416,13 @@ Only `ground` and `space` count as "in play". That matters a lot in
 
 A base is written `base@N`, where N is the seat number: `base@1`, `base@2`.
 
-Anything that is **not** `base@N` in a `tgt` / `def` / `CHOICE.offered` field is a card id.
+A base **activating its own ability** is `base@N` too, in `ABILITY_ACTIVATE.card`. That one is
+load-bearing rather than cosmetic: a base's Epic Action and a leader's are separate abilities on
+separate cards, and the folded board holds no base *card* id to match a `SET#NUM` against — the
+seat ref is what lets a reader tell them apart ([§10.1](#101-events-that-carry-board-detail)).
+
+Anything that is **not** `base@N` in a `tgt` / `def` / `CHOICE.offered` / `ABILITY_ACTIVATE.card`
+field is a card id.
 A base is `base@N` **everywhere** it is pointed at, including when a target prompt offered it —
 never its `SET#NUM` card id. (The header's `P1Base`/`P2Base` and the `%%% CARDS` index name
 the base *card*; a `base@N` ref names the *thing being hit*.)
@@ -609,10 +622,30 @@ R2.A.1   ATTACK
 R2.A.1a  DAMAGE
 ```
 
-So "everything action `N` did" is the `Na…` records *after* it, **plus** any trailing
-`MOVE` / `CHOICE` / `EXHAUST` immediately *before* it that name the same card. The writer does
-not re-number them: when they arrive it cannot know that an action is about to follow, and
-guessing would mis-file a previous action's genuine consequences.
+**A writer SHOULD file these with `for`, so no reader has to implement that sentence.** `for`
+names the action a record belongs to:
+
+```json
+{"seq":"R2.A.5a","t":"CHOICE","p":1,"prompt":"Phoenix Squadron A-Wing","offered":["base@2"],"chose":0,"for":"R2.A.6"}
+{"seq":"R2.A.5b","t":"EXHAUST","card":"JTL#095","for":"R2.A.6"}
+{"seq":"R2.A.6","t":"ATTACK","p":1,"atk":"JTL#095","def":"base@2","defenderType":"base"}
+```
+
+It is legal on **any** record, and OPTIONAL: a reader that ignores it loses the grouping and
+nothing else. The *recorder* genuinely cannot produce it — when those records arrive it does not
+yet know an action is about to follow, and guessing would mis-file a previous action's genuine
+consequences — but the **writer** holds the whole event list before serialising, so it fills them
+in then. The reference writer does this in `linkActionSteps()`.
+
+Its rule, and a writer MUST NOT be looser: walk back from an action over the contiguous run of
+records that could precede it — `MOVE`, `CHOICE`, `MODAL_CHOICE`, `EXHAUST`, `STATS`,
+`EXHAUST_RESOURCES` — stopping at the first top-level step or any other record type. File the
+whole run **only if something in it names the action's card**. Without that anchor the run is
+just as likely to be the previous action's tail, and a wrong link is worse than none.
+
+So "everything action `N` did" is the `Na…` records *after* it, plus every record carrying
+`for: "R<n>.<phase>.N"` — and, in a file whose writer did not stamp them, the trailing
+`MOVE` / `CHOICE` / `EXHAUST` before it that name the same card.
 
 `R1.A.start` / `R1.A.end` mark the edges of a phase. `GAME_END` takes its own step,
 `.game-end`, in the phase it happened in — `R7.A.game-end` for a base destroyed in the action
@@ -803,8 +836,19 @@ to `base`, with an `EXHAUST` beside it (a defeated Leader Unit comes back exhaus
 **`ABILITY_ACTIVATE` — a player used an ability.**
 
 Fields: `p`, `card`, optional `ability` (the engine's identifier), optional `epic`.
-Changes nothing — except that `epic: true` marks the leader's Epic Action as used when `card`
-is the leader. Everything an ability *did* is recorded by the records that follow it.
+Changes nothing — except that `epic: true` marks an **Epic Action** as used. Everything an
+ability *did* is recorded by the records that follow it.
+
+**Epic Actions come from two places, and they are separate.** `card` says which:
+
+| `card` | What `epic: true` marks |
+|---|---|
+| `base@N` ([§6.3](#63-pointing-at-a-base)) | that seat's `baseEpicActionUsed`. A base may carry an Epic Action — 12 do, Tarkintown among them |
+| a leader's card id | that leader's `epicActionUsed` |
+
+A leader has exactly **one** Epic Action, its deploy, and both forms of it — deploying as a unit
+and deploying as a pilot — share the same limit, so one flag covers it. A base's is a different
+ability on a different card and gets its own. Do not collapse the two.
 
 ---
 
@@ -897,9 +941,15 @@ and `MOVE`, and the captor's entry disappears with its list.
 | `p` | 1 or 2 | yes | Whose row. |
 | `amount` | integer | yes | How many. |
 
-Resources are **counted, never named**: a reader never knows which card in the row is which,
-so the row is two numbers, `resourcesReady` and `resourcesExhausted`, and these two records
-move them. `EXHAUST_RESOURCES` moves `min(amount, resourcesReady)` from ready to exhausted;
+**The row's READY STATE is counted; its MEMBERSHIP is named.** Two different questions:
+
+- *Which cards are in the row* is fully recoverable — every `MOVE` in and out names its card —
+  and the fold keeps it in `resources[]` ([§11](#11-the-board-you-build-reducedstate)).
+- *Which of them are exhausted* is not: no record names the individual card that exhausted, so
+  that stays two numbers, `resourcesReady` and `resourcesExhausted`, and these two records move
+  them.
+
+A reader that draws the resource row needs both. `EXHAUST_RESOURCES` moves `min(amount, resourcesReady)` from ready to exhausted;
 `READY_RESOURCES` moves `min(amount, resourcesExhausted)` back. The clamp is the engine's own
 behaviour, not leniency: it exhausts as many as it can find.
 
@@ -1212,6 +1262,7 @@ interface ReducedState {
     phase: 'setup' | 'action' | 'regroup';
     initiative: 1 | 2 | null;                 // who holds the initiative counter
     initiativeTaken?: boolean;                // it was taken this round (back to false each round)
+    active?: 1 | 2;                           // whose turn it is — KEYFRAME-SUPPLIED, see below
     players: Partial<Record<1 | 2, PlayerState>>;
 }
 
@@ -1224,6 +1275,8 @@ interface PlayerState {
     deckSize?: number;          // cards left in the deck
     resourcesReady: number;     // ready resources
     resourcesExhausted: number; // spent resources
+    resources?: string[];       // WHICH cards are in the row (the split above stays counted)
+    baseEpicActionUsed?: boolean; // the BASE's Epic Action is spent (a base may have one)
     credits: number;
     hasForce: boolean;
     discard: string[];          // discard pile, in order
@@ -1263,9 +1316,21 @@ files written before it existed; a reader treats absent as `[]`.
 (older files never do), and a reader never computes them: it is told.
 
 The optional fields marked `?` — `initiativeTaken`, `deckSize`, `leader`, `power`, `hp`,
-`keywords` — are optional only because files written before they existed lack them. A
-current writer fills every one, and the integrity check compares each whenever the keyframe
-carries it.
+`keywords`, `resources`, `baseEpicActionUsed`, `onStartingSide` — are optional only because files
+written before they existed lack them. A current writer fills every one that applies, and the
+integrity check compares each whenever the keyframe carries it.
+
+**`active` is the one exception, and it is a real one.** It is **keyframe-supplied**: no event
+states it, and the fold never reconstructs it. Two reasons, and both matter. Deriving whose turn
+it is from the action stream means modelling passing and priority — exactly the rules knowledge
+this format exists to spare a reader ([§11](#what-the-board-covers-against-the-rules)). And the
+engine has not chosen an action-phase active player at the moment `PHASE_START` fires, so the
+deltas could not carry it honestly even if a reader wanted them to.
+
+So `active` is **exact at every keyframe** — a round boundary, which is where a scrubber jumps —
+and **stale between them**. It is not part of the integrity gate for that reason
+([§14](#14-checking-a-file-is-honest)). A reader that shows whose turn it is should show it at a
+keyframe and treat it as unknown after the first action of the phase.
 
 <a id="what-the-board-covers-against-the-rules"></a>
 ### What the board covers, against the rules
@@ -1288,7 +1353,7 @@ already applied the rules, and the file records what it decided. Where each part
 | **Open and hidden information** | the archive is omniscient ([§17](#17-privacy)): `DRAW`, `RESOURCE`, `SEARCH`, `REVEAL` and the keyframe's `hand` name the hidden cards; `Perspective` in the header says when a file is not |
 | **Lasting effects** | by their observable consequences: `STATS` (a unit given +3/+0 for an attack shows it and shows it going away), `keywords` (Sentinel for a phase), and the records they cause. The effect's text is not recorded — the card is named, and card data has the text |
 | **Delayed effects** | by the records they produce when they fire (a Change of Heart return is a `TAKE_CONTROL` at regroup); they are invisible until then, as they are on a table |
-| **Epic Actions** used/unused | `epic: true` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`; the leader's `epicActionUsed` |
+| **Epic Actions** used/unused | `epic: true` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`; the leader's `epicActionUsed`, and the seat's `baseEpicActionUsed` — a **base** may carry an Epic Action too (Tarkintown, Security Complex, Jedha City and 9 others), and it is a separate ability on a separate card from the leader's ([§10.1](#101-events-that-carry-board-detail)) |
 
 What the file deliberately does **not** encode is the rulebook itself: why a cost was 4 and
 not 5, what Sentinel means, that a unit dies at 0 remaining HP. Those are derivations, and
@@ -1375,11 +1440,15 @@ are no-ops beside their own move.
 
 **2. Resource row** — two counts, `resourcesReady` and `resourcesExhausted`
 
-- moving *into* `resource` from somewhere else → `resourcesReady + 1`. A card enters the
-  row ready; if an ability put it there exhausted, an `EXHAUST_RESOURCES` beside the move
-  says so ([§10.1](#101-events-that-carry-board-detail)).
+- moving *into* `resource` from somewhere else → `resourcesReady + 1`, and add `card` to
+  `resources` (once by id). A card enters the row ready; if an ability put it there exhausted,
+  an `EXHAUST_RESOURCES` beside the move says so ([§10.1](#101-events-that-carry-board-detail)).
 - moving *out of* `resource` to somewhere else → `resourcesExhausted - 1` if the move
-  carries `exhausted: true`, else `resourcesReady - 1` (never below 0).
+  carries `exhausted: true`, else `resourcesReady - 1` (never below 0); and remove `card` from
+  `resources`.
+
+`resources` stays **absent** until a move or a keyframe supplies one, so a file written before it
+existed folds to a state with no `resources` rather than a misleading empty row.
 
 **2b. Credits and the Force** — the two reserved token names
 ([§6.1](#two-reserved-token-names))
@@ -1421,7 +1490,7 @@ twice.
 | `PLAY_EVENT` | add `card` to `players[p].discard`, **once by id** — its own hand→discard `MOVE` files the same card |
 | `PLAY_UPGRADE` | if `target` is set → `attach(state, target, card)` (nothing if the host isn't tracked); otherwise **nothing**. An upgrade is never an arena card, so there is no fallback placement |
 | `DEPLOY_LEADER` | `players[p].leader = { id: card, deployed: true, exhausted: false, epicActionUsed: (was already used) or epic === true }`; then if `kind` is `"upgrade"` → `attach(state, target, card)`; else place `card` in `zone ?? "ground"`, idempotent by id |
-| `ABILITY_ACTIVATE` | if `epic` and `card` is a seat's `leader.id` → that leader's `epicActionUsed = true`; otherwise nothing |
+| `ABILITY_ACTIVATE` | if `epic`: `card` of `base@N` → `players[N].baseEpicActionUsed = true`; else if `card` is a seat's `leader.id` → that leader's `epicActionUsed = true`. Otherwise nothing |
 | `LEADER_FLIP` | that seat's `leader.onStartingSide = event.onStartingSide` — the stated face, so applying it twice is the same as once. Find the leader by `card`, falling back to the record's `p` (these leaders never deploy, so early in a file no `DEPLOY_LEADER` has named the id) |
 | `STATS` | if `card` is tracked → set its `power`, `hp`, and `keywords` (sorted) when given |
 | `TAKE_CONTROL` | arena `zone` → move the card entry from the other seat's `cards` to `players[p].cards`; `resource` with `from` → shift one resource from `from` to `p`, in the exhausted bucket if `exhausted` else the ready one; `base` with `from` → shift one credit (or the Force) from `from` to `p`; otherwise nothing ([§10.1](#take_control)) |
@@ -1549,6 +1618,9 @@ problem. A writer that has no such cost SHOULD treat `ok: false` as fatal.
   starting deck is not in the stream.
 - `handSize`, and `hand` **as a set** — a hand is unordered
 - `discard` **in order** — the pile is ordered ([§11](#11-the-board-you-build-reducedstate))
+- `resources` **as a set** whenever the keyframe carries it — the row's order is not part of the
+  model, and its ready/exhausted split is the two counts, not this list
+- `baseEpicActionUsed` whenever the keyframe carries it
 - `resourcesReady` and `resourcesExhausted`
 - `credits` and `hasForce`
 - the leader's `id`, `deployed`, `exhausted` and `epicActionUsed`, and `onStartingSide`
@@ -1568,6 +1640,10 @@ passes: absent means "not recorded", never "zero".
 **Everything in [§11](#11-the-board-you-build-reducedstate) is checked.** There is no
 carve-out: a passing check means the deltas between two keyframes add up to the whole board
 the engine reported.
+
+**`active` is the one field deliberately NOT compared**, because it is keyframe-supplied rather
+than reconstructed — see [§11](#11-the-board-you-build-reducedstate). Comparing the fold against
+the keyframe would only restate that.
 
 > **This changed.** Earlier text said `hand` and `discard` **contents** were not checked,
 > because "only the counts are reconstructable". That was wrong. Every `MOVE` names its card,
@@ -1798,10 +1874,19 @@ What a `GameId`-salted hash gives you, and what it does not:
   are low-entropy: anyone holding the file and a candidate list can confirm a player by
   re-hashing `"<GameId>:<candidate>"`.
 
-A writer whose files are **published** SHOULD salt with a server-side secret instead (an HMAC
-keyed by an environment variable). That flips the first property — the same player then hashes
-the *same* across that server's games — and makes the id genuinely non-reversible. It costs one
-env var, and a reader cannot tell the two schemes apart, so it needs no format change.
+A writer whose files are **published** SHOULD key an HMAC with a server-side secret instead.
+That flips the first property — the same player then hashes the *same* across that server's
+games, so a consumer can group one player's history without ever learning who they are — and
+makes the id genuinely non-reversible. A reader cannot tell the two schemes apart (both are
+`sha256:<hex>`), so this needs no format change and no version bump.
+
+The reference writer implements both: setting `SWUPGN_ID_SECRET` switches it to the keyed
+scheme, and leaving it unset keeps the `GameId` salt. **A deployment that publishes files MUST
+set it.**
+
+Either way, a consumer that attributes a file to an account MUST take the seat from the
+authenticated delivery rather than by re-hashing candidate usernames against the file. Under the
+keyed scheme that is not merely discouraged, it is impossible.
 
 A writer MUST have a PII gate. The reference writer's gate is structural plus CI: no field is
 ever built from a username except the salted id, and
@@ -1925,10 +2010,9 @@ card, so both lists are exact; the fold simply discarded the information — `DR
 mismatches** against their own keyframes before the fix and **none** after. Both are now
 `MOVE`-driven and gated at every keyframe.
 
-That leaves nothing carved out: every field of
-[§11](#11-the-board-you-build-reducedstate) is compared, the whole of CR 1.16's definition of
-the game state ([§11](#what-the-board-covers-against-the-rules)) is reconstructed and gated,
-and the four real-game vectors — Raid, Grit, Sentinel, tokens, upgrades, a pilot, a capture,
+That leaves one field carved out, and deliberately: `active`, which is keyframe-supplied rather
+than reconstructed ([§11](#11-the-board-you-build-reducedstate)). Every other field of §11 is
+compared, and the four real-game vectors — Raid, Grit, Sentinel, tokens, upgrades, a pilot, a capture,
 leaders in and out of the base zone — pass with nothing to report.
 
 One caveat on `hand`, and it is about a test harness rather than the format: the integration
@@ -1945,6 +2029,18 @@ carries `exhausted: true`), a resource a friendly effect returns to hand (swappe
 the way out, same flag), and a resource stolen while exhausted (`TAKE_CONTROL` with
 `exhausted`). Each is exercised by unit tests of the recorder against the engine's documented
 behaviour, not by a played game.
+
+The **base Epic Action** was the one genuine hole in [§11](#what-the-board-covers-against-the-rules)'s
+claim to cover CR 1.16's definition of the game state, and it was found the same way the hand and
+discard bugs were: by an implementer reading the document against a real client, not by the gate.
+§11 tracked Epic Actions only on the leader, while 12 bases carry one of their own. It is now
+`baseEpicActionUsed`, gated, with a real-game spec against Tarkintown.
+
+That leaves the leader's own flag, which one implementer reasonably asked about: a leader has
+exactly **one** Epic Action, its deploy, and both forms of it — as a unit and as a pilot — share
+a single limit, so one boolean is right by construction rather than by luck. It would stop being
+right only if the engine let a leader register a second Epic Action, which today it structurally
+cannot.
 
 `baseHp`/`baseMaxHp` are still absent from the SETUP `INIT` record. A reader that ships card
 data can derive a base's starting HP itself, and the first keyframe supplies it either way,
@@ -2018,6 +2114,12 @@ but each is detectable from the file, so a reader that meets an early 1.0 file c
 | Nothing carried a unit's live stats between keyframes; keyframes carried none at all | `STATS` after every change; `power`/`hp`/`keywords` on keyframe cards, gated ([§10.1](#stats)) | any `STATS` record |
 | The leader in the base zone, the deck count and the initiative counter's status were not in the board | `leader`, `deckSize`, `initiativeTaken` in every keyframe; `epic` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`; a returning Leader Unit's `EXHAUST` ([§11](#11-the-board-you-build-reducedstate)) | a keyframe carrying `leader` |
 | The `minimal` vector attacked with a unit the turn it was played | rules-legal two-round game ([§20](#20-test-vectors)) | not a file change |
+| The resource row was counted only, so a reader could not draw the cards in it | `resources[]` membership alongside the two counts ([§10.1](#101-events-that-carry-board-detail)) | a keyframe carrying `resources` |
+| A base's Epic Action was not tracked at all, though 12 bases carry one | `baseEpicActionUsed`, set by an `ABILITY_ACTIVATE` whose `card` is `base@N` ([§10.1](#101-events-that-carry-board-detail)) | an `ABILITY_ACTIVATE` whose `card` matches `^base@[12]$` |
+| A base activating its own ability named itself by card id | `base@N`, like every other reference to a base ([§6.3](#63-pointing-at-a-base)) | the same |
+| Nothing linked a pre-announcement record to its action; readers had to implement §9.1's prose | `for` on each such record, stamped by the writer ([§9.1](#91-how-seq-is-built)) | any `for` field |
+| Whose turn it is was not recorded | `active` in keyframes ([§11](#11-the-board-you-build-reducedstate)) | a keyframe carrying `active` |
+| No game duration, no match grouping | `EndDate`, `Match`, `GameNumber` header tags ([§5.2](#52-you-may-have-these)) | the tags' presence |
 | A token unit's `CREATE_TOKEN` was dropped and `RecorderErrors` set, because the writer read the token's live stats while it was still outside the game | stats guarded and omitted when unreadable; `zone` names the destination arena ([§10.1](#101-events-that-carry-board-detail)) | a game containing a token unit but no `CREATE_TOKEN`, and a `RecorderErrors` tag |
 | A double-sided leader's face was not recorded, so a flipped leader replayed as its starting side for the whole game | `LEADER_FLIP` + `leader.onStartingSide` ([§10.1](#101-events-that-carry-board-detail)) | any `LEADER_FLIP` record, or a keyframe leader carrying `onStartingSide` |
 | `hand[]` grew from `DRAW` and nothing removed, so a folded "hand" was a cumulative draw log; `discard` was filed by `DEFEAT`, which fires after the `MOVE` that already removed the card, so no defeated unit reached the pile | both are folded from `MOVE` and gated ([§12.1](#121-the-move-rule-the-big-one), [§14](#14-checking-a-file-is-honest)) | not a file change; a reader's fold. Fold any vector's deltas to a keyframe and compare `hand`/`discard` — 45 mismatches before, 0 after |

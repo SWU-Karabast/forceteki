@@ -76,7 +76,7 @@ describe('SWU-PGN/1.0 keyframe completeness (real game)', function () {
             // keyframe. `hand` CONTENTS share handSize's cause exactly: the bootstrap tears
             // down the natural opening hand without emitting a MOVE, so those cards stay in
             // the folded list. `discard` is NOT here -- it reconstructs cleanly even so.
-            const DEFERRED_SUFFIXES = ['.handSize', '.resourcesReady', '.deckSize', '.hand'];
+            const DEFERRED_SUFFIXES = ['.handSize', '.resourcesReady', '.deckSize', '.hand', '.resources'];
             const isCountFieldPastFirstKeyframe = (m: { seq: string; path: string }) =>
                 m.seq !== 'R1.start' && DEFERRED_SUFFIXES.some((f) => m.path.endsWith(f));
 

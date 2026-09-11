@@ -78,7 +78,7 @@ describe('SWU-PGN/1.0 generator — double-sided leader (real game)', function (
             expect(keyframes.length).toBeGreaterThan(1);
             expect(keyframes.every((k) => typeof k.keyframe.players[1].leader.onStartingSide === 'boolean')).toBe(true);
 
-            const deferred = ['.handSize', '.resourcesReady', '.deckSize', '.hand'];
+            const deferred = ['.handSize', '.resourcesReady', '.deckSize', '.hand', '.resources'];
             const real = checkKeyframes(doc.events).mismatches
                 .filter((m) => !(m.seq !== 'R1.start' && deferred.some((f) => m.path.endsWith(f))));
             expect(real).toEqual([]);

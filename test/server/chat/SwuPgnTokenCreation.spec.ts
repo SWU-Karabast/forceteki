@@ -58,7 +58,7 @@ describe('SWU-PGN/1.0 generator — token creation (real game)', function () {
             // And no phantom: nothing in `cards[]` sits outside an arena.
             expect(arena.every((c) => c.zone === 'ground' || c.zone === 'space')).toBe(true);
 
-            const deferred = ['.handSize', '.resourcesReady', '.deckSize', '.hand'];
+            const deferred = ['.handSize', '.resourcesReady', '.deckSize', '.hand', '.resources'];
             const real = checkKeyframes(doc.events).mismatches
                 .filter((m) => !(m.seq !== 'R1.start' && deferred.some((f) => m.path.endsWith(f))));
             expect(real).toEqual([]);

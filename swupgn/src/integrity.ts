@@ -102,6 +102,17 @@ function diffSeat(seq: string, seat: 1 | 2, e: PlayerState, g: PlayerState, chec
     if (JSON.stringify(e.discard ?? []) !== JSON.stringify(g.discard ?? [])) {
         out.push({ seq, path: `players.${seat}.discard`, expected: e.discard, got: g.discard });
     }
+    // Resource-row MEMBERSHIP, as a set -- the row's order is not part of the model, and the
+    // ready/exhausted split is carried by the two counts, not by this list. Compared only when
+    // the keyframe carries it, so a file written before `resources` existed still passes.
+    if (Array.isArray(e.resources) && !sameSet(e.resources, g.resources)) {
+        out.push({ seq, path: `players.${seat}.resources`, expected: e.resources, got: g.resources });
+    }
+    // The BASE's Epic Action. Compared only when the keyframe states it -- a base without one
+    // carries no flag, and neither does a file written before this existed.
+    if (typeof e.baseEpicActionUsed === 'boolean' && e.baseEpicActionUsed !== (g.baseEpicActionUsed ?? false)) {
+        out.push({ seq, path: `players.${seat}.baseEpicActionUsed`, expected: e.baseEpicActionUsed, got: g.baseEpicActionUsed ?? false });
+    }
     // Like baseHp, the starting deck is not in the stream, so the first keyframe supplies it.
     if (checkBaseHp && typeof e.deckSize === 'number' && e.deckSize !== g.deckSize) {
         out.push({ seq, path: `players.${seat}.deckSize`, expected: e.deckSize, got: g.deckSize });
@@ -146,6 +157,12 @@ function diff(seq: string, expected: ReducedState, got: ReducedState, checkBaseH
     if (typeof expected.initiativeTaken === 'boolean' && expected.initiativeTaken !== (got.initiativeTaken ?? false)) {
         out.push({ seq, path: 'initiativeTaken', expected: expected.initiativeTaken, got: got.initiativeTaken ?? false });
     }
+    // `active` is deliberately NOT compared. It is supplied by keyframes, not reconstructed:
+    // the engine has not yet chosen an action-phase active player when PHASE_START fires, so the
+    // event stream cannot state it, and deriving it from the actions would mean modelling passing
+    // and priority -- the rules knowledge this format exists to spare a reader. A keyframe is
+    // therefore the only authority, and comparing the fold against it would only ever restate
+    // that. See spec §11 and §14.
     for (const seat of [1, 2] as const) {
         const e = expected.players[seat];
         const g = got.players[seat];

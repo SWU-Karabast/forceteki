@@ -252,6 +252,18 @@ function addOnce(list: string[], id: string): void {
     }
 }
 
+/**
+ * The seat's resource-row membership list, created on first use. It stays ABSENT until a MOVE
+ * or a keyframe supplies one, so a file written before `resources` existed folds to a state
+ * with no `resources` at all rather than to a misleading empty row.
+ */
+function resourceList(ps: PlayerState): string[] {
+    if (!Array.isArray(ps.resources)) {
+        ps.resources = [];
+    }
+    return ps.resources;
+}
+
 function removeOne(list: string[], id: string): void {
     const i = list.indexOf(id);
     if (i >= 0) {
@@ -333,12 +345,17 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
         }
     }
 
-    // Resource row. A card enters ready (an EXHAUST_RESOURCES beside the move says otherwise);
-    // it leaves from whichever bucket `exhausted` names.
+    // Resource row: the two COUNTS and the MEMBERSHIP. A card enters ready (an
+    // EXHAUST_RESOURCES beside the move says otherwise); it leaves from whichever bucket
+    // `exhausted` names. Which cards are in the row is a separate question from which of them
+    // are exhausted -- the row's ready state stays counted, because no record names the
+    // individual card that exhausted.
     if (e.to === 'resource' && e.from !== 'resource') {
         countResource(ps, 1, false);
+        addOnce(resourceList(ps), e.card);
     } else if (e.from === 'resource' && e.to !== 'resource') {
         countResource(ps, -1, e.exhausted === true);
+        removeOne(resourceList(ps), e.card);
     }
 
     // Credits and the Force: the only two things that live in `base` and are counted.
@@ -382,8 +399,22 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
 /** Apply a single event to state, mutating and returning it. */
 export function reduce(s: ReducedState, e: GameEvent): ReducedState {
     switch (e.t) {
-        case 'ROUND_START': s.round = e.round; s.initiativeTaken = false; break;
-        case 'PHASE_START': s.phase = (e.phase as ReducedState['phase']); break;
+        // `active` is stated rather than derived: working out whose turn it is from the last
+        // action means modelling passing and priority, which is exactly the rules knowledge the
+        // format exists to spare a reader. Absent leaves the previous value alone.
+        case 'ROUND_START':
+            s.round = e.round;
+            s.initiativeTaken = false;
+            if (e.active != null) {
+                s.active = e.active;
+            }
+            break;
+        case 'PHASE_START':
+            s.phase = (e.phase as ReducedState['phase']);
+            if (e.active != null) {
+                s.active = e.active;
+            }
+            break;
         case 'CLAIM_INITIATIVE': s.initiative = e.p; s.initiativeTaken = true; break;
         // handSize/resourcesReady are driven by MOVE (the engine's source of truth for
         // zone transitions); see applyMoveCounts. PLAY only places the card in its zone —
@@ -434,6 +465,18 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         }
         case 'ABILITY_ACTIVATE': {
             if (e.epic === true) {
+                // A base's Epic Action and a leader's are separate abilities on separate cards.
+                // The record tells them apart by its `card`: a base is `base@N` everywhere it is
+                // pointed at (§6.3), so a base ref resolves straight to a seat, and anything else
+                // is a card id matched against that seat's leader.
+                const baseSeat = seatOfBaseRef(e.card);
+                if (baseSeat != null) {
+                    const ps = player(s, baseSeat);
+                    if (ps) {
+                        ps.baseEpicActionUsed = true;
+                    }
+                    break;
+                }
                 const owner = leaderOwner(s, e.card);
                 if (owner?.leader) {
                     owner.leader.epicActionUsed = true;

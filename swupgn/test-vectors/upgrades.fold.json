@@ -16,6 +16,14 @@
       ],
       "resourcesReady": 6,
       "resourcesExhausted": 0,
+      "resources": [
+        "LAW#253",
+        "ASH#251",
+        "SOR#095",
+        "LOF#215",
+        "SOR#095:2",
+        "LAW#253:2"
+      ],
       "credits": 0,
       "hasForce": false,
       "discard": [
@@ -71,6 +79,15 @@
       ],
       "resourcesReady": 6,
       "resourcesExhausted": 0,
+      "resources": [
+        "SOR#128",
+        "SOR#128:2",
+        "SOR#128:5",
+        "SOR#128:7",
+        "SOR#128:9",
+        "SOR#128:10"
+      ],
+      "baseEpicActionUsed": false,
       "credits": 0,
       "hasForce": false,
       "discard": [
@@ -144,5 +161,6 @@
       }
     }
   },
-  "initiativeTaken": false
+  "initiativeTaken": false,
+  "active": 1
 }

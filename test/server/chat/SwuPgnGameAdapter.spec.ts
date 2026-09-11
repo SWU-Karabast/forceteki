@@ -142,4 +142,23 @@ describe('SwuPgnGameAdapter header Date', function () {
     it('omits RecorderErrors when no handler failed', function () {
         expect(headerFor({ createdAt: new Date() }).recorderErrors).toBeUndefined();
     });
+
+    // EndDate (spec §5.2). With Date this gives the game's duration, which is the only thing
+    // per-event timestamps would have bought -- see the SWU-PGN/SWUForge exchange.
+    it('reports EndDate from finishedAt, and omits it while the game is still running', function () {
+        const finished = new Date('2026-01-01T11:30:00Z');
+        expect(headerFor({ createdAt: new Date(), finishedAt: finished }).endDate).toBe(finished.toISOString());
+        expect(headerFor({ createdAt: new Date() }).endDate).toBeUndefined();
+    });
+
+    // Match grouping. The LOBBY id is what identifies a Bo3, but it is a host-internal id and
+    // must not reach a shareable file, so the context carries it raw and buildHeader anonymizes.
+    it('carries the lobby id for anonymization, and omits it when there is no lobby', function () {
+        expect(headerFor({ createdAt: new Date() }).lobbyId).toBeUndefined();
+    });
+
+    // GameNumber is never set by the game: it does not know which game of a match it is.
+    it('never sets GameNumber itself', function () {
+        expect(headerFor({ createdAt: new Date() }).gameNumber).toBeUndefined();
+    });
 });

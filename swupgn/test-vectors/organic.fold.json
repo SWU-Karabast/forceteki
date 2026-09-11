@@ -16,6 +16,14 @@
       ],
       "resourcesReady": 6,
       "resourcesExhausted": 0,
+      "resources": [
+        "SOR#095:6",
+        "LOF#164:3",
+        "SOR#095:4",
+        "SOR#095:3",
+        "SOR#095",
+        "SOR#095:2"
+      ],
       "credits": 0,
       "hasForce": false,
       "discard": [],
@@ -100,6 +108,14 @@
       ],
       "resourcesReady": 6,
       "resourcesExhausted": 0,
+      "resources": [
+        "SOR#128:5",
+        "LAW#253:5",
+        "SOR#095:7",
+        "SOR#232:3",
+        "SOR#128:6",
+        "LOF#164:5"
+      ],
       "credits": 0,
       "hasForce": false,
       "discard": [],
@@ -170,5 +186,6 @@
       }
     }
   },
-  "initiativeTaken": false
+  "initiativeTaken": false,
+  "active": 1
 }

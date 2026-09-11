@@ -349,6 +349,15 @@ export class SwuPgnGameAdapter {
         }
         // CR 1.16: the counter's taken/available status is game state.
         state.initiativeTaken = read(() => this.game.isInitiativeClaimed === true, false);
+        // Whose turn it is. Only meaningful in the action phase, and only while a player is
+        // actually to act; omitted otherwise so a reader never shows a stale seat.
+        const activePlayer = read<any>(() => this.game.actionPhaseActivePlayer, null);
+        if (activePlayer) {
+            const activeSeat = read(() => this.swuPgnSeat(activePlayer.id), undefined);
+            if (activeSeat) {
+                state.active = activeSeat;
+            }
+        }
 
         // A keyframe REPLACES the reader's whole running state (spec §13), so a keyframe
         // missing a seat silently ERASES that player's board. Both seats are therefore
@@ -436,6 +445,14 @@ export class SwuPgnGameAdapter {
             hand: cardIds(handCards),
             resourcesReady: read(() => player.readyResourceCount ?? 0, 0),
             resourcesExhausted: read(() => player.exhaustedResourceCount ?? 0, 0),
+            // WHICH cards are in the row. The two counts above stay the authority on how many
+            // are ready vs exhausted -- no record names the individual card that exhausted.
+            resources: cardIds(read<any[]>(() => player.resources ?? [], [])),
+            // Only a base that HAS an Epic Action reports one; `epicActionSpent` throws on a base
+            // without the ability, so the absence of the field means "this base has none".
+            ...(read(() => typeof base?.epicActionSpent === 'boolean', false)
+                ? { baseEpicActionUsed: read(() => base.epicActionSpent === true, false) }
+                : {}),
             credits: read(() => player.creditTokenCount ?? 0, 0),
             hasForce: read(() => player.hasTheForce ?? false, false),
             discard: cardIds(discardCards),
@@ -630,6 +647,13 @@ export class SwuPgnGameAdapter {
             p2: { username: player2.user.username, leader: leaderId(player2), base: baseId(player2) },
             // Handler failures drop events silently past the logging cap; say so in the file.
             recorderErrors: this.recorder.getErrorCount() || undefined,
+            // Spec §5.2. `EndDate` with `Date` gives the game's duration -- the one thing
+            // per-event timestamps would have bought. Absent while the game is still running.
+            endDate: read(() => this.game.finishedAt?.toISOString(), undefined),
+            // Anonymized into `Match` by buildHeader, so the games of one Bo3 group together
+            // without the lobby id itself reaching the file. `GameNumber` is deliberately not set
+            // here: the game does not know which game of a match it is.
+            lobbyId: read(() => this.game.lobbyId ?? undefined, undefined),
         };
     }
 

@@ -1,21 +1,47 @@
-import { createHash } from 'crypto';
+import { createHash, createHmac } from 'crypto';
 import type { Seat } from '../../../../swupgn/src/types';
 
 /**
- * Salted player id. Never emit a raw username anywhere.
+ * Pseudonymous player id. A raw username is never emitted anywhere (spec §17).
  *
- * What this gives you: the same user gets a different id in every game (the salt is per-game),
- * so ids cannot be joined across files, and nobody reading a file casually sees a username.
+ * TWO schemes, and which one is in force depends on one environment variable:
  *
- * What it does NOT give you: resistance to a targeted guess. The salt in use is the gameId,
- * which is printed in the same header two lines above the id, and usernames are low-entropy.
- * Anyone holding the file and a candidate list (a scraped leaderboard, say) can confirm a
- * player by re-hashing `gameId:candidate`. If these files are ever published, swap the salt
- * for a server-side secret (HMAC) -- that is the change that makes the id genuinely
- * non-reversible, and it costs one env var.
+ * - `SWUPGN_ID_SECRET` set (PREFERRED, and what a server publishing files should use): an HMAC
+ *   keyed by that secret. The id is genuinely non-reversible -- an attacker without the key
+ *   cannot confirm a guess -- and the same player hashes the SAME across that server's games,
+ *   so a consumer can group a player's history without ever learning who they are.
+ *
+ * - Unset (fallback): salted with the `GameId`. Ids cannot be joined across files, and nobody
+ *   reading one casually sees a username -- but it is NOT resistant to a targeted guess. The
+ *   salt is printed two lines above the id in the same header and usernames are low-entropy, so
+ *   anyone holding the file and a candidate list can confirm a player by re-hashing.
+ *
+ * A reader cannot tell the two apart -- both are `sha256:<hex>` -- so this needs no format
+ * change and no version bump. Consumers that attribute a file to an account should take the
+ * seat from the authenticated delivery rather than from this id under either scheme.
  */
 export function saltedPlayerId(username: string, salt: string): string {
-    const digest = createHash('sha256').update(`${salt}:${username}`).digest('hex');
+    const secret = process.env.SWUPGN_ID_SECRET;
+    const hash = secret
+        ? createHmac('sha256', secret).update(username)
+        : createHash('sha256').update(`${salt}:${username}`);
+    const digest = hash.digest('hex');
+    return `sha256:${digest}`;
+}
+
+/**
+ * Opaque, stable id for the MATCH a game belongs to.
+ *
+ * Derived from the lobby id rather than carrying it, for the same reason player names are
+ * hashed: a replay is a shareable artifact and should not export the host's internal
+ * identifiers. It is deliberately NOT salted per game -- the whole point is that every game of
+ * one Bo3 produces the SAME value, so a file that travels on its own can still say which match
+ * it came from. Lobby ids are UUIDs, so an unsalted hash is not meaningfully guessable.
+ */
+export function anonymizedMatchId(lobbyId: string): string {
+    const digest = createHash('sha256')
+        .update(`swupgn-match:${lobbyId}`)
+        .digest('hex');
     return `sha256:${digest}`;
 }
 

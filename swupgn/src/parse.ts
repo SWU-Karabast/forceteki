@@ -42,6 +42,9 @@ function buildHeader(raw: Record<string, string>): Header {
         result: req('Result') as Header['result'], reason: req('Reason'),
         rounds: finiteOr(req('Rounds'), 0),
         ...(raw['RecorderErrors'] != null ? { recorderErrors: finiteOr(raw['RecorderErrors'], 0) } : {}),
+        ...(raw['EndDate'] != null ? { endDate: raw['EndDate'] } : {}),
+        ...(raw['Match'] != null ? { match: raw['Match'] } : {}),
+        ...(raw['GameNumber'] != null ? { gameNumber: finiteOr(raw['GameNumber'], 0) } : {}),
     };
 }
 

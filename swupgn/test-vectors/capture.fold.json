@@ -15,6 +15,13 @@
       ],
       "resourcesReady": 5,
       "resourcesExhausted": 0,
+      "resources": [
+        "LAW#253",
+        "LAW#253:2",
+        "LAW#253:3",
+        "LAW#253:4",
+        "LAW#253:5"
+      ],
       "credits": 0,
       "hasForce": false,
       "discard": [
@@ -69,6 +76,13 @@
       ],
       "resourcesReady": 5,
       "resourcesExhausted": 0,
+      "resources": [
+        "SHD#238",
+        "SHD#238:2",
+        "TWI#174",
+        "SOR#128:3",
+        "SHD#238:3"
+      ],
       "credits": 0,
       "hasForce": false,
       "discard": [
@@ -155,5 +169,6 @@
       }
     }
   },
-  "initiativeTaken": false
+  "initiativeTaken": false,
+  "active": 1
 }

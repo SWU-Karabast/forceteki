@@ -3,7 +3,7 @@ import { CardType, DeployType, EventName, PhaseName, PlayType, ZoneName } from '
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 import { logger } from '../../../logger';
 import type { Header, GameEvent, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
-import { saltedPlayerId, anonymizePlayerLabel } from './swuPgnIdentity';
+import { anonymizedMatchId, saltedPlayerId, anonymizePlayerLabel } from './swuPgnIdentity';
 
 export interface HeaderContext {
     gameId: string;
@@ -21,6 +21,17 @@ export interface HeaderContext {
 
     /** Handler failures during recording; omitted from the header when zero. */
     recorderErrors?: number;
+
+    /** When the game ended (ISO-8601 UTC); with `date` this gives its duration. */
+    endDate?: string;
+
+    /** The lobby this game was played in. Anonymized into the `Match` tag by buildHeader -- the
+     *  raw id never reaches the file, exactly as a username never does. */
+    lobbyId?: string;
+
+    /** Which game of the match this is. The game itself does not know, so this is for a caller
+     *  that does (a delivery that knows the series); omitted otherwise. */
+    gameNumber?: number;
 }
 
 export function buildHeader(ctx: HeaderContext): Header {
@@ -33,6 +44,9 @@ export function buildHeader(ctx: HeaderContext): Header {
         engine: ctx.engineVersion,
         seed: ctx.seed,
         perspective: ctx.perspective,
+        ...(ctx.endDate ? { endDate: ctx.endDate } : {}),
+        ...(ctx.lobbyId ? { match: anonymizedMatchId(ctx.lobbyId) } : {}),
+        ...(ctx.gameNumber ? { gameNumber: ctx.gameNumber } : {}),
         p1Id: saltedPlayerId(ctx.p1.username, ctx.gameId),
         p2Id: saltedPlayerId(ctx.p2.username, ctx.gameId),
         p1: anonymizePlayerLabel(1),
@@ -505,6 +519,15 @@ export class SwuPgnRecorder {
         return this.resolver.seat(player.id);
     }
 
+    /**
+     * Whose turn it is to act, when the engine says. Undefined outside the action phase, so the
+     * field is simply omitted rather than reporting a stale seat.
+     */
+    private activeSeat(): Seat | undefined {
+        const player = readOr<any>(() => this.game.actionPhaseActivePlayer, null);
+        return player?.id != null ? this.resolver.seat(player.id) : undefined;
+    }
+
     /** Resolve a card-like engine object to its stable SET#NUM[:copy] id. */
     private idOf(card: any): string {
         if (card?.uuid == null) {
@@ -757,6 +780,7 @@ export class SwuPgnRecorder {
             seq: `R${this.currentRound}.start`,
             t: 'ROUND_START',
             round: this.currentRound,
+            ...(this.activeSeat() != null ? { active: this.activeSeat() } : {}),
         };
         const keyframe = this.projectKeyframe();
         if (keyframe) {
@@ -903,6 +927,7 @@ export class SwuPgnRecorder {
                 seq: `R${this.currentRound}.${this.currentPhase}.start`,
                 t: 'PHASE_START',
                 phase: this.phaseVocab(phaseName),
+                ...(this.activeSeat() != null ? { active: this.activeSeat() } : {}),
             });
         });
 
@@ -1514,7 +1539,11 @@ export class SwuPgnRecorder {
 
         this.on(EventName.OnCardAbilityInitiated, (event: any) => {
             const card = event?.card ?? event?.context?.source;
-            const cardId = this.idOf(card);
+            // A base is `base@N` everywhere it is pointed at (§6.3), and here that is load-bearing
+            // rather than cosmetic: a base's Epic Action and a leader's are separate abilities on
+            // separate cards, and the folded board has no base CARD id to match a SET#NUM against.
+            // The seat ref is what lets a reader tell the two apart.
+            const cardId = this.targetRef(card);
             const player = card?.controller ?? card?.owner;
             const ability = event?.ability?.abilityIdentifier;
             // Drop a just-recorded paired TRIGGER for the same card; this single record subsumes

@@ -32,6 +32,19 @@ export interface Header {
      *  file is complete. Present means events were dropped and the keyframes are the only
      *  fully trustworthy boundaries. */
     recorderErrors?: number;
+
+    /** When the game ENDED, ISO-8601 UTC. With `date` (when it started) this gives the game's
+     *  duration, which is the only thing per-event timestamps would have bought. Absent when the
+     *  writer could not tell -- an unfinished game, or a file written before this existed. */
+    endDate?: string;
+
+    /** The match this game belongs to: an opaque id, stable across the games of one Bo3. Lets a
+     *  file that travels on its own -- shared, archived, attached to a bug report -- still say it
+     *  was part of a match. Chess PGN carries `Round` for the same reason. */
+    match?: string;
+
+    /** Which game of that match this is, 1-based. Meaningless without `match`. */
+    gameNumber?: number;
 }
 
 export interface DeckRecord {
@@ -76,7 +89,17 @@ export interface SetupInitRecord {
  * - `epic` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`: the ability used was an Epic Action, which
  *   the rules track as used/unused game state (CR 1.16).
  */
-export type GameEvent =
+/**
+ * `for` is legal on ANY record and is written by the writer, not the recorder: it names the
+ * top-level action a record belongs to when that record was numbered BEFORE the action was
+ * announced (spec §9.1). A reader groups an action with its steps on it; one that ignores it
+ * loses nothing but the grouping.
+ */
+export interface ActionLink {
+    for?: string;
+}
+
+export type GameEvent = ActionLink & (
   | { seq: string; t: 'PLAY' | 'PLAY_EVENT' | 'PLAY_UPGRADE' | 'PLAY_SMUGGLE'; p: Seat; card: string; zone?: string; cost?: number; target?: string }
   | { seq: string; t: 'DEPLOY_LEADER'; p: Seat; card: string; zone?: string; cost?: number; kind?: CardKind; target?: string; epic?: boolean }
   | { seq: string; t: 'ATTACK'; p: Seat; atk: string; def: string; defenderType: 'unit' | 'base' }
@@ -110,8 +133,8 @@ export type GameEvent =
   | { seq: string; t: 'SEARCH'; p: Seat; found?: string[]; zone?: string }
   | { seq: string; t: 'REVEAL'; p: Seat; zone: string; cards: string[] }
   | { seq: string; t: 'TRIGGER'; p?: Seat; card: string }
-  | { seq: string; t: 'PHASE_START' | 'PHASE_END'; phase: string }
-  | { seq: string; t: 'ROUND_START' | 'ROUND_END'; round: number; keyframe?: ReducedState }
+  | { seq: string; t: 'PHASE_START' | 'PHASE_END'; phase: string; active?: Seat }
+  | { seq: string; t: 'ROUND_START' | 'ROUND_END'; round: number; keyframe?: ReducedState; active?: Seat }
   | { seq: string; t: 'GAME_END'; winner: Seat | 'Draw'; reason: string }
   | {
       seq: string; t: 'MOVE'; card: string; from: string; to: string; p?: Seat;
@@ -135,7 +158,7 @@ export type GameEvent =
        * token upgrade is printed. Absent: the fold treats the move as a unit move.
        */
       kind?: CardKind;
-    };
+  });
 
 export interface Annotation {
     ref: string;                    // seq this annotates
@@ -239,6 +262,22 @@ export interface PlayerState {
     hand: string[];                 // known post-game (omniscient archive)
     resourcesReady: number;
     resourcesExhausted: number;
+
+    /**
+     * WHICH cards are in the resource row, in the order they were resourced. Reconstructable
+     * because every MOVE names its card; the ready/exhausted SPLIT is not, which is why the two
+     * counts above stay the authority on ready state. A reader showing the row needs both.
+     * Absent on files written before this existed; absent means "not recorded", not "empty".
+     */
+    resources?: string[];
+
+    /**
+     * The BASE's Epic Action, spent or not. CR 1.16 counts Epic Action status as game state, and
+     * a base can carry one as well as a leader -- 12 do (Tarkintown, Security Complex, Jedha City,
+     * Dooku's Palace, ...). The leader's own is `LeaderState.epicActionUsed`; they are separate
+     * abilities on separate cards and are tracked separately. Absent means "not recorded".
+     */
+    baseEpicActionUsed?: boolean;
     credits: number;
     hasForce: boolean;
     discard: string[];
@@ -261,6 +300,19 @@ export interface ReducedState {
     /** The initiative counter's status (CR 1.16): `true` once a player has taken it this round,
      *  back to `false` when a round starts. Absent in older files. */
     initiativeTaken?: boolean;
+
+    /**
+     * Whose turn it is to act in the action phase.
+     *
+     * KEYFRAME-SUPPLIED, and the only field of this state that is. Deriving it from the action
+     * stream means modelling passing and priority, which is exactly the rules knowledge the
+     * format exists to spare a reader; and the engine has not chosen one yet when PHASE_START
+     * fires, so the deltas cannot state it either. It is therefore exact at every keyframe -- a
+     * round boundary, which is where a scrubber jumps -- and stale between them. It is not part
+     * of the integrity gate for that reason (§14). Absent outside the action phase, and in files
+     * written before it existed.
+     */
+    active?: Seat;
     players: Partial<Record<Seat, PlayerState>>;
 }
 
