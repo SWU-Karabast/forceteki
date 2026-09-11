@@ -82,6 +82,7 @@ export = {
     //        unapply: () => true
     //    }),
 
+    canAttackBaseWhileUsingAmbush: () => OngoingEffectBuilder.card.static(EffectName.CanAttackBaseWhileUsingAmbush),
     canAttackMultipleUnitsSimultaneously: (effectImpl: CanAttackMultipleUnitsSimultaneously) => OngoingEffectBuilder.card.static(EffectName.CanAttackMultipleUnitsSimultaneously, effectImpl),
     canPlayFromDiscard: (properties: PlayFromDiscardProperties = {}) => OngoingEffectBuilder.card
         .static(EffectName.CanPlayFromDiscard, properties),
