@@ -100,6 +100,7 @@ export enum EffectName {
     Blank = 'blank',
     BlankExceptKeyword = 'blankExceptKeyword',
     BlankExceptFromSourceCard = 'blankExceptFromSourceCard',
+    CanAttackBaseWhileUsingAmbush = 'canAttackBaseWhileUsingAmbush',
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
     CanAttackMultipleUnitsSimultaneously = 'canAttackMultipleUnitsSimultaneously',
