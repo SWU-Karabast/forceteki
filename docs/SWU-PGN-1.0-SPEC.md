@@ -638,10 +638,24 @@ consequences — but the **writer** holds the whole event list before serialisin
 in then. The reference writer does this in `linkActionSteps()`.
 
 Its rule, and a writer MUST NOT be looser: walk back from an action over the contiguous run of
-records that could precede it — `MOVE`, `CHOICE`, `MODAL_CHOICE`, `EXHAUST`, `STATS`,
-`EXHAUST_RESOURCES` — stopping at the first top-level step or any other record type. File the
-whole run **only if something in it names the action's card**. Without that anchor the run is
-just as likely to be the previous action's tail, and a wrong link is worse than none.
+records that could precede it, stopping at the first top-level step or any other record type.
+File the whole run **only if something in it names the action's card**. Without that anchor the
+run is just as likely to be the previous action's tail, and a wrong link is worse than none.
+
+**Which types can precede depends on the action**, and a writer MUST NOT use one shared list:
+
+| Action | May be preceded by |
+|---|---|
+| `ATTACK` | `CHOICE`, `MODAL_CHOICE`, `EXHAUST` |
+| every other top-level action (the plays, `DEPLOY_LEADER`, `PASS`, `CLAIM_INITIATIVE`) | `MOVE`, `CHOICE`, `MODAL_CHOICE`, `EXHAUST`, `STATS`, `EXHAUST_RESOURCES` |
+
+An attack announces itself after picking a target and exhausting the attacker, and that is all:
+it never moves a card or restates its stats. A play does the opposite — the card arrives, gets
+its stats, enters exhausted, and the cost is paid — before the `PLAY` is announced. One shared
+list gets an **Ambush** unit wrong: it is played and attacks in the same phase, so the play's own
+`MOVE` and `STATS` sit immediately before the `ATTACK` and name the same card, and the card-name
+anchor does not save you. Those records belong to the play, which already owns them through its
+own step number.
 
 So "everything action `N` did" is the `Na…` records *after* it, plus every record carrying
 `for: "R<n>.<phase>.N"` — and, in a file whose writer did not stamp them, the trailing
