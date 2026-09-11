@@ -344,6 +344,41 @@ describe('fold attachments', function () {
         expect(s.players[1]?.discard).toEqual(['LOF#215', 'JTL#058']);
     });
 
+    // A stolen resource must move in the MEMBERSHIP list as well as the counts. Missing this,
+    // every keyframe after the steal mismatches on both seats, because the adapter puts
+    // `resources` in every keyframe and the gate compares it as a set.
+    it('TAKE_CONTROL of a resource moves it between the seats\' resource lists', function () {
+        const s = fold([
+            { seq: 'R1.A.1a', t: 'MOVE', card: 'SOR#001', from: 'hand', to: 'resource', p: 1 },
+            { seq: 'R1.A.1b', t: 'MOVE', card: 'SOR#002', from: 'hand', to: 'resource', p: 2 },
+            { seq: 'R1.A.2', t: 'TAKE_CONTROL', p: 2, card: 'SOR#001', zone: 'resource', from: 1 },
+        ] as any);
+        expect(s.players[1]?.resources).toEqual([]);
+        expect(s.players[2]?.resources).toEqual(['SOR#002', 'SOR#001']);
+        expect(s.players[1]?.resourcesReady).toBe(0);
+        expect(s.players[2]?.resourcesReady).toBe(2);
+    });
+
+    // `active` is seat-typed, and a .swupgn is untrusted input: a reader doing the obvious
+    // `players[state.active]` must never be handed "__proto__".
+    it('ignores a non-seat `active` rather than storing it', function () {
+        const ok = fold([{ seq: 'R1.start', t: 'ROUND_START', round: 1, active: 2 }] as any);
+        expect(ok.active).toBe(2);
+        const hostile = fold([{ seq: 'R1.start', t: 'ROUND_START', round: 1, active: '__proto__' }] as any);
+        expect(hostile.active).toBeUndefined();
+        expect(({} as any).polluted).toBeUndefined();
+    });
+
+    // A double-sided leader never deploys, so before any keyframe nothing has named the seat's
+    // leader. The flip has to seed one or the face is dropped.
+    it('records a LEADER_FLIP even when no keyframe has named the leader yet', function () {
+        const s = fold([
+            { seq: 'R1.A.1a', t: 'LEADER_FLIP', p: 1, card: 'TWI#017', onStartingSide: false },
+        ] as any);
+        expect(s.players[1]?.leader?.id).toBe('TWI#017');
+        expect(s.players[1]?.leader?.onStartingSide).toBe(false);
+    });
+
     it('a DEFEAT alone (no MOVE seen) still detaches', function () {
         const s = fold([
             host,

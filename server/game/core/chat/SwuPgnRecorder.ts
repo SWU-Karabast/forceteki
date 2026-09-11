@@ -1028,6 +1028,12 @@ export class SwuPgnRecorder {
         // changed, and a replay shows the starting face for the whole game.
         this.on(EventName.OnLeaderFlipped, (event: any) => {
             const card = event?.card;
+            // FlipAndAttachPilotLeaderSystem raises this event too, for a pilot leader that has no
+            // second face at all. `card.onStartingSide` is undefined there, which would record a
+            // confident `false` and make a reader show a back side that does not exist.
+            if (readOr(() => card.isDoubleSidedLeader?.() === true, false) !== true) {
+                return;
+            }
             const player = card?.owner ?? event?.player;
             this.push({
                 seq: this.nextSeq(false),
@@ -1527,7 +1533,10 @@ export class SwuPgnRecorder {
         // standalone TRIGGER (no adjacent ABILITY_ACTIVATE for the same card) is still recorded.
         this.on(EventName.OnCardAbilityTriggered, (event: any) => {
             const card = event?.card ?? event?.context?.source;
-            const cardId = this.idOf(card);
+            // MUST match the ref ABILITY_ACTIVATE uses below, or the pair never collapses: a base
+            // is `base@N` there and would be `SET#NUM` here, so every base ability would emit a
+            // duplicate TRIGGER beside its ABILITY_ACTIVATE.
+            const cardId = this.targetRef(card);
             const last = this.events[this.events.length - 1];
             if (last && last.t === 'ABILITY_ACTIVATE' && (last as any).card === cardId) {
                 return; // ABILITY_ACTIVATE for this card already recorded the activation

@@ -21,7 +21,11 @@ import type { Seat } from '../../../../swupgn/src/types';
  * seat from the authenticated delivery rather than from this id under either scheme.
  */
 export function saltedPlayerId(username: string, salt: string): string {
-    const secret = process.env.SWUPGN_ID_SECRET;
+    // An empty value is NOT a secret. `SWUPGN_ID_SECRET=` in a deploy config would otherwise be
+    // falsy and silently fall back to the per-game salt, publishing confirmable ids from a
+    // deployment that believes it is publishing HMACs -- and both schemes emit `sha256:`, so
+    // nothing downstream could tell.
+    const secret = process.env.SWUPGN_ID_SECRET || undefined;
     const hash = secret
         ? createHmac('sha256', secret).update(username)
         : createHash('sha256').update(`${salt}:${username}`);

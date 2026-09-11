@@ -436,6 +436,53 @@ describe('SwuPgnRecorder gap events: counters + upgrades', function () {
         expect((events.find((e: any) => e.t === 'EXHAUST') as any).seq).toBe('R1.A.0b');
     });
 
+    // A BASE names itself `base@N` on ABILITY_ACTIVATE (spec §6.3) so a reader can tell a base's
+    // Epic Action from a leader's. Both halves of the pair must use that same ref, or the collapse
+    // silently stops firing for every base ability -- which is exactly the base Epic Action the
+    // ref was introduced for. The tests above use a UNIT, so they cannot catch this.
+    it('collapses the pair for a BASE ability, whose ref is base@N not SET#NUM', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const base = fakeCard({ uuid: 'SOR#029', zoneName: 'base', owner: p1, controller: p1 });
+        (base as any).isBase = () => true;
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnCardAbilityTriggered, { card: base });
+        game.emit(EventName.OnCardAbilityInitiated, { card: base, ability: { abilityIdentifier: 'tarkintown_epic' } });
+
+        const events = rec.getEvents();
+        expect(events.filter((e: any) => e.t === 'TRIGGER').length).toBe(0);
+        const acts = events.filter((e: any) => e.t === 'ABILITY_ACTIVATE');
+        expect(acts.length).toBe(1);
+        expect((acts[0] as any).card).toBe('base@1');
+    });
+
+    // OnLeaderFlipped is raised by FlipAndAttachPilotLeaderSystem too (Poe Dameron, I Can Fly
+    // Anything), for a leader with no second face. Recording that as onStartingSide:false would
+    // make a reader show a back side that does not exist.
+    it('emits LEADER_FLIP only for a leader that actually has two sides', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const pilotLeader = fakeCard({ uuid: 'JTL#010', zoneName: 'base', owner: p1, controller: p1 });
+        const doubleSided = fakeCard({ uuid: 'TWI#017', zoneName: 'base', owner: p1, controller: p1 });
+        (doubleSided as any).isDoubleSidedLeader = () => true;
+        (doubleSided as any).onStartingSide = false;
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnLeaderFlipped, { card: pilotLeader });
+        game.emit(EventName.OnLeaderFlipped, { card: doubleSided });
+
+        const flips = rec.getEvents().filter((e: any) => e.t === 'LEADER_FLIP');
+        expect(flips.length).toBe(1);
+        expect((flips[0] as any).card).toBe('TWI#017');
+        expect((flips[0] as any).onStartingSide).toBe(false);
+        expect(rec.getErrorCount()).toBe(0);
+    });
+
     it('collapses the pair regardless of emission order (ABILITY_ACTIVATE before TRIGGER)', function () {
         const game = new FakeEmitter();
         const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });

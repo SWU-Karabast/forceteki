@@ -246,7 +246,19 @@ const isArena = (z: string): boolean => ARENA_ZONES.has(z);
  * a MOVE and the summary record beside it (DRAW, DISCARD, DEFEAT, PLAY_EVENT) both name the same
  * card without the card landing in the pile twice.
  */
+/**
+ * Zone lists are bounded by the size of a deck, so a list longer than this cannot be a real game.
+ * The cap exists because this parses UNTRUSTED files in a browser: `addOnce` scans the list, so a
+ * single `{"t":"DRAW","cards":[...200k unique strings...]}` would otherwise cost ~2e10 string
+ * comparisons and hang the tab. Past the cap the id is dropped rather than the file rejected --
+ * degrading is the fold's contract, and no honest file reaches it.
+ */
+const MAX_ZONE_LIST = 1000;
+
 function addOnce(list: string[], id: string): void {
+    if (list.length >= MAX_ZONE_LIST) {
+        return;
+    }
     if (!list.includes(id)) {
         list.push(id);
     }
@@ -262,6 +274,17 @@ function resourceList(ps: PlayerState): string[] {
         ps.resources = [];
     }
     return ps.resources;
+}
+
+/**
+ * Store the active seat only when the file actually names a seat. `Seat` is erased at runtime, so
+ * an unguarded write puts arbitrary JSON in a field a reader will reasonably use as
+ * `players[state.active]` -- the same prototype-pollution shape `isSeat` exists to stop.
+ */
+function setActive(s: ReducedState, active: unknown): void {
+    if (isSeat(active)) {
+        s.active = active;
+    }
 }
 
 function removeOne(list: string[], id: string): void {
@@ -405,15 +428,11 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         case 'ROUND_START':
             s.round = e.round;
             s.initiativeTaken = false;
-            if (e.active != null) {
-                s.active = e.active;
-            }
+            setActive(s, e.active);
             break;
         case 'PHASE_START':
             s.phase = (e.phase as ReducedState['phase']);
-            if (e.active != null) {
-                s.active = e.active;
-            }
+            setActive(s, e.active);
             break;
         case 'CLAIM_INITIATIVE': s.initiative = e.p; s.initiativeTaken = true; break;
         // handSize/resourcesReady are driven by MOVE (the engine's source of truth for
@@ -492,7 +511,12 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             // leader's id is not yet known (no keyframe seen, no DEPLOY_LEADER -- these leaders
             // never deploy, so that is the normal case early in a file).
             const owner = leaderOwner(s, e.card) ?? player(s, e.p);
-            if (owner?.leader) {
+            if (owner) {
+                // A double-sided leader NEVER deploys, so in a file with no keyframe yet nothing
+                // has named the seat's leader and there is no record to update. Seed one from the
+                // flip itself rather than dropping the face on the floor: the id is right there,
+                // and a later keyframe overwrites the whole entry anyway.
+                owner.leader ??= { id: e.card, deployed: false, exhausted: false, epicActionUsed: false };
                 owner.leader.onStartingSide = e.onStartingSide;
             }
             break;
@@ -529,6 +553,12 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
                 if (e.zone === 'resource') {
                     countResource(fromPs, -1, e.exhausted === true);
                     countResource(ps, 1, e.exhausted === true);
+                    // The row's MEMBERSHIP moves with the count. Without this the card stays in
+                    // the losing seat's `resources` and never joins the winner's, and since every
+                    // keyframe now carries `resources` the gate reports a mismatch on BOTH seats
+                    // for the rest of the game.
+                    removeOne(resourceList(fromPs), e.card);
+                    addOnce(resourceList(ps), e.card);
                 } else {
                     countBaseToken(fromPs, e.card, -1);
                     countBaseToken(ps, e.card, 1);

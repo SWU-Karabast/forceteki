@@ -21,10 +21,14 @@ import type { GameEvent } from './types';
  * Returns a new array; the input is not mutated. Re-running it is harmless.
  */
 
-/** Actions a sub-record can be filed under -- the same set the renderer numbers (§16). */
+/**
+ * Actions a sub-record can be filed under. Matches `render.ts`'s `isTopLevelAction`, and notably
+ * EXCLUDES `ABILITY_ACTIVATE`: the recorder allocates it with `nextSeq(false)`, so it never takes
+ * a top-level step number and could never be matched here anyway.
+ */
 const TOP_LEVEL_ACTIONS = new Set([
     'PLAY', 'PLAY_EVENT', 'PLAY_UPGRADE', 'PLAY_SMUGGLE', 'DEPLOY_LEADER',
-    'ATTACK', 'PASS', 'CLAIM_INITIATIVE', 'ABILITY_ACTIVATE',
+    'ATTACK', 'PASS', 'CLAIM_INITIATIVE',
 ]);
 
 /**
