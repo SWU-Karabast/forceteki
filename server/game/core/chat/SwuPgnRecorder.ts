@@ -114,6 +114,23 @@ export function cardKind(card: any): 'unit' | 'upgrade' | undefined {
     return undefined;
 }
 
+/**
+ * Read an engine property that is only valid in some zones, falling back rather than throwing.
+ *
+ * The engine guards zone-specific properties with Contract assertions: reading `upgrades` (and
+ * so any computed stat) on a card in `outsideTheGame` throws. A recorder handler that throws is
+ * caught, counted into `RecorderErrors`, and its whole record is dropped -- so one unguarded
+ * read costs the file an event AND tells every reader the file is under-recorded.
+ */
+function readOr<T>(get: () => T, fallback: T): T {
+    try {
+        const v = get();
+        return v === undefined ? fallback : v;
+    } catch {
+        return fallback;
+    }
+}
+
 /** Spec §6.2 arena zones -- the destinations a reader turns into arena membership. */
 const ARENA_ZONE_NAMES = new Set(['ground', 'space']);
 
@@ -980,6 +997,25 @@ export class SwuPgnRecorder {
             });
         });
 
+        // A double-sided leader (Chancellor Palpatine, TWI#017) never deploys: its Action flips
+        // it IN PLACE in the base zone, which changes its title, aspects and traits. No MOVE, no
+        // deploy, no zone change -- so without this record nothing in the stream says the leader
+        // changed, and a replay shows the starting face for the whole game.
+        this.on(EventName.OnLeaderFlipped, (event: any) => {
+            const card = event?.card;
+            const player = card?.owner ?? event?.player;
+            this.push({
+                seq: this.nextSeq(false),
+                t: 'LEADER_FLIP',
+                p: this.seatOf(player),
+                card: this.idOf(card),
+                // The face AFTER the flip, stated rather than toggled: a reader that joined at a
+                // keyframe has an absolute value to apply, and a dropped record cannot invert
+                // every later face the way a toggle would.
+                onStartingSide: card?.onStartingSide === true,
+            });
+        });
+
         this.on(EventName.OnAttackDeclared, (event: any) => {
             const attack = event?.attack;
             const attacker = attack?.attacker;
@@ -1376,9 +1412,18 @@ export class SwuPgnRecorder {
                     // display title here instead would alias same-name tokens and orphan every
                     // subsequent token event from this card in the fold.
                     token: this.idOf(token),
-                    zone: this.normalizeZone(token?.zoneName),
-                    power: typeof token?.getPower === 'function' ? token.getPower() : undefined,
-                    hp: typeof token?.getHp === 'function' ? token.getHp() : undefined,
+                    // The token is NOT in play yet. `generateToken` puts it in `outsideTheGame`
+                    // and a CONTINGENT PutIntoPlaySystem moves it to its arena afterwards, so
+                    // `zoneName` here is `outsideTheGame` -- a zone the fold would place as a
+                    // phantom arena card. Name the arena it is entering instead; the token's own
+                    // MOVE is the authority either way.
+                    zone: this.normalizeZone(readOr(() => token.defaultArena, token?.zoneName)),
+                    // Same reason these are guarded: a unit's live stats are computed from its
+                    // upgrades, and reading `upgrades` on a card in `outsideTheGame` trips a
+                    // Contract assertion. Unreadable here means "not in play yet", so omit them --
+                    // the STATS record emitted after the token's MOVE carries the real values.
+                    power: readOr(() => token.getPower(), undefined),
+                    hp: readOr(() => token.getHp(), undefined),
                     // Always 'unit' here (the guard above skips non-units), but stated
                     // explicitly so a reader never has to infer it from the event type.
                     kind: cardKind(token),

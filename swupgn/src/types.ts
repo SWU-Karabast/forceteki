@@ -85,6 +85,10 @@ export type GameEvent =
   | { seq: string; t: 'MULLIGAN' | 'KEEP_HAND'; p: Seat }
   | { seq: string; t: 'MODAL_CHOICE'; p: Seat; offered: string[]; chose: number }
   | { seq: string; t: 'ABILITY_ACTIVATE'; p: Seat; card: string; ability?: string; epic?: boolean }
+  // A double-sided leader flipped in place (it never deploys). `onStartingSide` is the face
+  // AFTER the flip -- an absolute value, not a toggle, so a dropped record cannot invert
+  // every later face and a reader joining at a keyframe has something to apply.
+  | { seq: string; t: 'LEADER_FLIP'; p: Seat; card: string; onStartingSide: boolean }
   | { seq: string; t: 'STATS'; card: string; power: number; hp: number; keywords?: string[] }
   | { seq: string; t: 'DAMAGE'; src: string; tgt: string; amt: number; damageType: string; hp: number }
   | { seq: string; t: 'HEAL'; tgt: string; amt: number; hp: number }
@@ -219,6 +223,12 @@ export interface LeaderState {
     deployed: boolean;              // Leader Unit side in play (as a unit or a pilot upgrade)
     exhausted: boolean;             // the card's ready/exhausted flag, wherever it is
     epicActionUsed: boolean;        // CR 1.16: Epic Action status is game state
+    // Double-sided leaders only (Chancellor Palpatine, TWI#017). Such a leader never deploys --
+    // its Action flips it IN PLACE in the base zone, changing its title, aspects and traits --
+    // so nothing else in the stream says which face is up. Absent on every other leader, and on
+    // files written before LEADER_FLIP existed; absent means "not a double-sided leader, or not
+    // recorded", never "back side".
+    onStartingSide?: boolean;
 }
 
 export interface PlayerState {

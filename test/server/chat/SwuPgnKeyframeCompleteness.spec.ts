@@ -72,9 +72,13 @@ describe('SWU-PGN/1.0 keyframe completeness (real game)', function () {
             // file header for the test-harness double-setup rationale. This is an explicit,
             // documented scope decision, NOT a weakening of integrity.diff (which still
             // compares all fields); the artifact lives entirely in the integration bootstrap.
+            // Fields the double-setup bootstrap makes unreconstructable past the first
+            // keyframe. `hand` CONTENTS share handSize's cause exactly: the bootstrap tears
+            // down the natural opening hand without emitting a MOVE, so those cards stay in
+            // the folded list. `discard` is NOT here -- it reconstructs cleanly even so.
+            const DEFERRED_SUFFIXES = ['.handSize', '.resourcesReady', '.deckSize', '.hand'];
             const isCountFieldPastFirstKeyframe = (m: { seq: string; path: string }) =>
-                m.seq !== 'R1.start'
-                && (m.path.endsWith('.handSize') || m.path.endsWith('.resourcesReady') || m.path.endsWith('.deckSize'));
+                m.seq !== 'R1.start' && DEFERRED_SUFFIXES.some((f) => m.path.endsWith(f));
 
             const gatedMismatches = r.mismatches.filter((m) => !isCountFieldPastFirstKeyframe(m));
             const deferred = r.mismatches.filter(isCountFieldPastFirstKeyframe);

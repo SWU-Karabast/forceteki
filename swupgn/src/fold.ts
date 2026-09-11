@@ -241,6 +241,25 @@ const ARENA_ZONES = new Set(['ground', 'space']);
 const isArena = (z: string): boolean => ARENA_ZONES.has(z);
 
 /**
+ * Zone-list membership. Every card id is unique for the whole game (the `:N` copy suffix, spec
+ * §6.1), so a list can hold an id at most once and adding is idempotent by id. That is what lets
+ * a MOVE and the summary record beside it (DRAW, DISCARD, DEFEAT, PLAY_EVENT) both name the same
+ * card without the card landing in the pile twice.
+ */
+function addOnce(list: string[], id: string): void {
+    if (!list.includes(id)) {
+        list.push(id);
+    }
+}
+
+function removeOne(list: string[], id: string): void {
+    const i = list.indexOf(id);
+    if (i >= 0) {
+        list.splice(i, 1);
+    }
+}
+
+/**
  * Engine truth: every zone transition is an OnCardMoved → MOVE event. handSize, the resource
  * counts, credits, the Force and the in-play `cards[]` set are therefore reconstructed from
  * MOVE (the single source of truth), NOT from DRAW/RESOURCE/PLAY, which are higher-level
@@ -274,11 +293,26 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
         return;
     }
 
-    // Hand membership count.
+    // Hand: the COUNT and the CONTENTS. Every MOVE names its card, so `hand[]` is exact at
+    // every moment, not just at a keyframe — DRAW is only a summary of the deck→hand MOVEs
+    // beside it. Before this, DRAW appended and nothing ever removed, so the "hand" was a
+    // cumulative draw log that disagreed with every keyframe in every vector.
     if (e.to === 'hand' && e.from !== 'hand') {
         ps.handSize += 1;
+        addOnce(ps.hand, e.card);
     } else if (e.from === 'hand' && e.to !== 'hand') {
         ps.handSize = Math.max(0, ps.handSize - 1);
+        removeOne(ps.hand, e.card);
+    }
+
+    // Discard: likewise the pile's CONTENTS, in engine order. DEFEAT cannot be the author —
+    // a defeated unit's MOVE to discard is emitted BEFORE its DEFEAT (R2.A.3c then R2.A.3d in
+    // every vector), so by the time DEFEAT ran the card was already out of `cards[]` and the
+    // pile stayed empty. The MOVE owns the pile; DEFEAT/DISCARD/PLAY_EVENT are summaries.
+    if (e.to === 'discard' && e.from !== 'discard') {
+        addOnce(ps.discard, e.card);
+    } else if (e.from === 'discard' && e.to !== 'discard') {
+        removeOne(ps.discard, e.card);
     }
 
     // Deck count, once a keyframe has told us where it started.
@@ -356,8 +390,14 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         // the matching hand->zone MOVE accounts for the hand decrement.
         case 'PLAY': case 'PLAY_SMUGGLE':
             placeCard(s, e.p, e.card, e.zone ?? 'ground'); break;
-        case 'PLAY_EVENT':
-            player(s, e.p)?.discard.push(e.card); break;
+        case 'PLAY_EVENT': {
+            // Idempotent beside its own hand->discard MOVE, which is the pile's author.
+            const ps = player(s, e.p);
+            if (ps) {
+                addOnce(ps.discard, e.card);
+            }
+            break;
+        }
         case 'PLAY_UPGRADE': {
             // An upgrade is NEVER an arena card, so there is no fallback placement: if the
             // host isn't tracked the attachment is simply not modelled. Placing it instead
@@ -398,6 +438,19 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
                 if (owner?.leader) {
                     owner.leader.epicActionUsed = true;
                 }
+            }
+            break;
+        }
+        case 'LEADER_FLIP': {
+            // A double-sided leader flips IN PLACE in the base zone -- no MOVE, no deploy -- and
+            // the flip changes its title, aspects and traits. `onStartingSide` is stated, not
+            // toggled, so applying it is idempotent and a reader that snapped to a keyframe mid-
+            // game still lands on the right face. Falls back to the seat on the record when the
+            // leader's id is not yet known (no keyframe seen, no DEPLOY_LEADER -- these leaders
+            // never deploy, so that is the normal case early in a file).
+            const owner = leaderOwner(s, e.card) ?? player(s, e.p);
+            if (owner?.leader) {
+                owner.leader.onStartingSide = e.onStartingSide;
             }
             break;
         }
@@ -476,7 +529,13 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             detach(s, e.card);
             break;
         case 'CREATE_TOKEN':
-            if (e.kind !== 'upgrade') { placeCard(s, e.p, e.token, e.zone); }
+            // Arena zones only. An `upgrade` token attaches and is never an arena card, and a
+            // token named in any other zone is not in play yet -- placing it would put a card in
+            // `cards[]` with a non-arena zone, which no keyframe agrees with. Its MOVE into the
+            // arena is what puts it in play, exactly as for a printed card (§12.1 step 3).
+            if (e.kind !== 'upgrade' && ARENA_ZONES.has(e.zone)) {
+                placeCard(s, e.p, e.token, e.zone);
+            }
             break;
         case 'EXHAUST_RESOURCES': case 'READY_RESOURCES': {
             // `amount | 0` turns a hostile non-number into 0 rather than NaN.
@@ -537,7 +596,10 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
                 }
                 const idx = ps.cards.findIndex((c) => c.id === e.card);
                 if (idx >= 0) {
-                    ps.discard.push(ps.cards[idx].id);
+                    // Idempotent: in a real stream the MOVE to discard already filed it, and
+                    // already took it out of `cards`, so this loop finds nothing. It still runs
+                    // for a fold driven by DEFEAT with no paired MOVE (unit-level tests).
+                    addOnce(ps.discard, ps.cards[idx].id);
                     ps.cards.splice(idx, 1);
                 }
             }
@@ -549,8 +611,24 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         // membership (see applyMoveCounts). DRAW/DISCARD/RESOURCE no longer mutate those
         // counts — they coincide with the underlying MOVEs and would double-count.
         case 'MOVE': applyMoveCounts(s, e); break;
-        case 'DRAW': { player(s, e.p)?.hand.push(...arr<string>(e.cards)); break; }
-        case 'DISCARD': { player(s, e.p)?.discard.push(...arr<string>(e.cards)); break; }
+        case 'DRAW': {
+            const ps = player(s, e.p);
+            if (ps) {
+                for (const c of arr<string>(e.cards)) {
+                    addOnce(ps.hand, c);
+                }
+            }
+            break;
+        }
+        case 'DISCARD': {
+            const ps = player(s, e.p);
+            if (ps) {
+                for (const c of arr<string>(e.cards)) {
+                    addOnce(ps.discard, c);
+                }
+            }
+            break;
+        }
         case 'RESOURCE': break;
         case 'SHIELD_GAIN': { const c = findCard(s, e.card); if (c) { c.shields += e.count ?? 1; } break; }
         case 'SHIELD_USE': { const c = findCard(s, e.card); if (c) { c.shields = Math.max(0, c.shields - (e.count ?? 1)); } break; }

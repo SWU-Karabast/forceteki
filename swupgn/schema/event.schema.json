@@ -49,6 +49,10 @@
       "then": { "properties": { "card": { "type": "string" }, "power": { "type": "integer" }, "hp": { "type": "integer" }, "keywords": { "type": "array", "items": { "type": "string" } } }, "required": ["card","power","hp"] }
     },
     {
+      "if": { "properties": { "t": { "const": "LEADER_FLIP" } }, "required": ["t"] },
+      "then": { "properties": { "card": { "type": "string" }, "onStartingSide": { "type": "boolean" } }, "required": ["card","onStartingSide"] }
+    },
+    {
       "if": { "properties": { "t": { "const": "CAPTURE" } }, "required": ["t"] },
       "then": { "properties": { "by": { "type": "string" } } }
     },
@@ -99,7 +103,7 @@
         "credits": { "type": "integer" },
         "hasForce": { "type": "boolean" },
         "deckSize": { "type": "integer" },
-        "leader": { "type": "object", "properties": { "id": { "type": "string" }, "deployed": { "type": "boolean" }, "exhausted": { "type": "boolean" }, "epicActionUsed": { "type": "boolean" } } }
+        "leader": { "type": "object", "properties": { "id": { "type": "string" }, "deployed": { "type": "boolean" }, "exhausted": { "type": "boolean" }, "epicActionUsed": { "type": "boolean" }, "onStartingSide": { "type": "boolean" } } }
       }
     },
     "cardState": {

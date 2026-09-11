@@ -47,6 +47,9 @@ function line(e: GameEvent, n: NameResolver): string | null {
             return `${who(e.p)} plays ${nm(e.card)}${e.target ? ` on ${nm(e.target)}` : e.zone ? ` to ${e.zone}` : ''}${e.cost != null ? ` (cost ${e.cost})` : ''}`;
         case 'PLAY_EVENT': return `${who(e.p)} plays ${nm(e.card)}${e.cost != null ? ` (cost ${e.cost})` : ''}`;
         case 'DEPLOY_LEADER': return `${who(e.p)} deploys ${nm(e.card)}${e.target ? ` as a pilot on ${nm(e.target)}` : ''}`;
+        // A double-sided leader flipping is a real, visible beat -- its title, aspects and
+        // traits all change -- and no other line implies it, so it is story, not mechanism.
+        case 'LEADER_FLIP': return `${who(e.p)} flips ${nm(e.card)}`;
         case 'ATTACK': return `${who(e.p)} attacks ${e.defenderType === 'base' ? `${who(e.p === 1 ? 2 : 1)}'s base` : nm(e.def)} with ${nm(e.atk)}`;
         case 'PASS': return `${who(e.p)} passes`;
         case 'CLAIM_INITIATIVE': return `${who(e.p)} claims initiative`;

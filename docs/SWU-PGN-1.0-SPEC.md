@@ -115,6 +115,12 @@ There are four jobs. You might do one, or all of them.
 - MUST write an `EXHAUST` for a unit that enters play exhausted — the normal case, which no
   attack or ability announces — and nothing for one that enters ready
   ([§10.1](#101-events-that-carry-board-detail)).
+- MUST name the destination arena in a `CREATE_TOKEN`'s `zone`, and MUST omit `power`/`hp`
+  rather than invent them when the token cannot yet report its live stats
+  ([§10.1](#101-events-that-carry-board-detail)).
+- MUST write a `LEADER_FLIP` whenever a double-sided leader turns over, carrying the face it
+  landed on, and MUST carry `onStartingSide` in every keyframe for that leader — the flip is not
+  a zone change, so nothing else records it ([§10.1](#101-events-that-carry-board-detail)).
 - MUST write a `STATS` record whenever an in-play unit's live power, HP or keywords change,
   with the values the engine computed — a reader has no rules engine to derive them
   ([§10.1](#stats)).
@@ -802,6 +808,33 @@ is the leader. Everything an ability *did* is recorded by the records that follo
 
 ---
 
+**`LEADER_FLIP` — a double-sided leader turned over.**
+
+| Field | Type | Required | Means |
+|---|---|---|---|
+| `p` | 1 or 2 | yes | Whose leader. |
+| `card` | string | yes | The leader's card id. |
+| `onStartingSide` | boolean | yes | The face **after** the flip. `true` is the printed front. |
+
+A **double-sided leader** (Chancellor Palpatine, Playing Both Sides — `TWI#017`) never deploys.
+Its Action turns the card over **in place in the base zone**, and the card that comes back up
+has a different **title, aspects and traits**. That is not a zone change, so there is no `MOVE`;
+it is not a deploy, so there is no `DEPLOY_LEADER`. Without this record nothing in the file says
+the leader changed at all, and a reader shows the starting face for the whole game.
+
+Sets the seat's `leader.onStartingSide` ([§11](#11-the-board-you-build-reducedstate)).
+
+**`onStartingSide` is stated, never toggled.** The record carries the resulting face, not "it
+flipped", for two reasons: a reader that snapped to a keyframe mid-game can apply it without
+knowing the history, and a single dropped record cannot invert every face after it. Applying
+the same record twice is therefore harmless.
+
+A writer MUST emit one of these per flip, and MUST carry `onStartingSide` in every keyframe's
+`leader` for a double-sided leader ([§13](#13-keyframes)). For any other leader the field is
+**absent** — its presence is what tells a reader this leader has a second face at all.
+
+---
+
 <a id="take_control"></a>
 **`TAKE_CONTROL` — `p` took control of `card`.**
 
@@ -888,15 +921,30 @@ flag names ([`MOVE`](#101-events-that-carry-board-detail)).
 
 | Field | Type | Required |
 |---|---|---|
-| `p` | 1 or 2 | yes |
-| `token` | string | yes |
-| `zone` | string | yes |
-| `power` | integer | no |
-| `hp` | integer | no |
-| `kind` | `"unit"` or `"upgrade"` | no |
+| Field | Type | Required | Means |
+|---|---|---|---|
+| `p` | 1 or 2 | yes | Whose token. |
+| `token` | string | yes | The token's id. |
+| `zone` | string | yes | The arena the token is **entering**. |
+| `power` | integer | no | Its power, if the writer could read it at creation. |
+| `hp` | integer | no | Likewise its HP. |
+| `kind` | `"unit"` or `"upgrade"` | no | What this event did. |
 
 Puts the token in play in `zone` — unless `kind` is `"upgrade"`, in which case it attaches to
-a unit and is not an arena card at all.
+a unit and is not an arena card at all, or `zone` is not an arena, in which case it places
+nothing ([§12.2](#122-every-other-rule-in-one-table)).
+
+**`zone` is the arena the token is entering, not wherever the writer found it.** An engine may
+well create a token outside the game and move it into play as a separate step — the reference
+writer's does — so the token's *current* zone at creation time is `outsideTheGame`. Writing that
+would put a card in the folded `cards[]` with a non-arena zone, which no keyframe agrees with. A
+reader is defended against it anyway (the fold places arena zones only), but a writer MUST name
+the destination.
+
+**`power` and `hp` are optional for the same reason.** A unit's live stats are computed from its
+upgrades, which a not-yet-in-play token may not be able to report. Omit them rather than invent
+them: the token's `STATS` record after its `MOVE` carries the real values
+([§10.1](#stats)).
 
 ---
 
@@ -990,14 +1038,15 @@ ability text is not recorded — it is card data, and the `%%% CARDS` index name
 | `count` | integer | yes | How many. |
 | `cards` | string[] | yes | Which ones. MAY be empty if hidden. |
 
-Adds those ids to the known `hand` list. **It does not change `handSize`** — the
-matching deck→hand `MOVE` lines already did that.
+Adds those ids to the known `hand` list, **once by id**. **It does not change `handSize`**,
+and it is not the authority on the hand's contents either — the matching deck→hand `MOVE`
+lines already did both. `DRAW` is a summary, exactly like `RESOURCE`.
 
 ---
 
 **`DISCARD` — a player discarded cards.**
 
-Fields: `p`, `cards`. Adds those ids to the discard pile. **Does not change `handSize`.**
+Fields: `p`, `cards`. Adds those ids to the discard pile, **once by id**. **Does not change `handSize`.** The paired `MOVE` into `discard` is the pile's authority.
 
 ---
 
@@ -1171,7 +1220,7 @@ interface PlayerState {
     baseHp: number;             // base HP right now
     baseMaxHp: number;          // the base card's printed HP
     handSize: number;           // how many cards in hand
-    hand: string[];             // which cards, if we're allowed to know
+    hand: string[];             // which cards, if we're allowed to know — exact, from MOVE
     deckSize?: number;          // cards left in the deck
     resourcesReady: number;     // ready resources
     resourcesExhausted: number; // spent resources
@@ -1187,6 +1236,7 @@ interface LeaderState {
     deployed: boolean;          // Leader Unit side in play (as a unit, or as a pilot upgrade)
     exhausted: boolean;         // its ready/exhausted flag
     epicActionUsed: boolean;    // its Epic Action is spent for the game
+    onStartingSide?: boolean;   // DOUBLE-SIDED leaders only: which face is up. Absent otherwise
 }
 
 interface CardInstanceState {
@@ -1233,7 +1283,7 @@ already applied the rules, and the file records what it decided. Where each part
 | Each card's **controller** | the seat whose lists hold it; `TAKE_CONTROL` re-seats a unit, a resource, a Credit token or the Force; an upgrade's controller is the `p` of its `PLAY_UPGRADE` |
 | Each card's **attributes** — power, HP, keywords, modifiers | `STATS` after every change ([§10.1](#stats)), snapshotted in keyframes; `damage`, `upgrades`, `shields`, `experience`, `statusTokens` |
 | Each card's **status** — ready/exhausted | `EXHAUST` / `READY` for arena cards and the leader, including the `EXHAUST` a unit gets on entering play; `EXHAUST_RESOURCES` / `READY_RESOURCES` and the `MOVE.exhausted` flag for the resource row |
-| Each card's **status** — faceup/facedown | the leader's `deployed` (Leader Unit side up); resources are always facedown, and `RESOURCE` names the card for the omniscient reader |
+| Each card's **status** — faceup/facedown | the leader's `deployed` (Leader Unit side up) and, for a double-sided leader, `onStartingSide` — set by `LEADER_FLIP` ([§10.1](#101-events-that-carry-board-detail)); resources are always facedown, and `RESOURCE` names the card for the omniscient reader |
 | The **initiative counter**: controller and taken/available | `initiative` and `initiativeTaken`; `CLAIM_INITIATIVE`, reset at `ROUND_START` |
 | **Open and hidden information** | the archive is omniscient ([§17](#17-privacy)): `DRAW`, `RESOURCE`, `SEARCH`, `REVEAL` and the keyframe's `hand` name the hidden cards; `Perspective` in the header says when a file is not |
 | **Lasting effects** | by their observable consequences: `STATS` (a unit given +3/+0 for an attack shows it and shows it going away), `keywords` (Sentinel for a phase), and the records they cause. The effect's text is not recorded — the card is named, and card data has the text |
@@ -1294,10 +1344,26 @@ if you already track it, and stop.
 
 If `p` is there, do all of these:
 
-**1. Hand count**
+**1. The hand — count AND contents**
 
-- moving *into* `hand` from somewhere else → `handSize + 1`
-- moving *out of* `hand` to somewhere else → `handSize - 1` (never below 0)
+- moving *into* `hand` from somewhere else → `handSize + 1`, and add `card` to `hand`
+- moving *out of* `hand` to somewhere else → `handSize - 1` (never below 0), and remove
+  `card` from `hand`
+
+Adding is **once by id**: every id is unique for the whole game ([§6.1](#61-card-ids)), so a
+list holds it at most once, and the `DRAW` beside the move naming the same card is harmless.
+`hand` is exact at every moment, not only at a keyframe — the move names the card both ways.
+
+**1a. The discard pile**
+
+- moving *into* `discard` from somewhere else → add `card` to `discard` (once by id)
+- moving *out of* `discard` to somewhere else → remove `card` from `discard`
+
+**The `MOVE` is the pile's author, not `DEFEAT`.** A defeated unit's `MOVE` to `discard` is
+emitted *before* its `DEFEAT` — `R2.A.3c` then `R2.A.3d`, in every test vector. A reader that
+files the card on `DEFEAT` alone finds it already gone from `cards` and files nothing, so no
+defeated unit ever reaches the pile. `DEFEAT`, `DISCARD` and `PLAY_EVENT` add once by id and
+are no-ops beside their own move.
 
 **1b. Deck count**, once a keyframe has supplied it (before that, leave it absent)
 
@@ -1352,26 +1418,27 @@ twice.
 | `PHASE_START` | `phase = event.phase` |
 | `CLAIM_INITIATIVE` | `initiative = event.p`; `initiativeTaken = true` |
 | `PLAY`, `PLAY_SMUGGLE` | place `card` in `zone ?? "ground"` — **idempotent by id**: if already tracked, just set its zone. The paired `MOVE` reports the same arrival, and pushing on both duplicates every unit in play |
-| `PLAY_EVENT` | push `card` onto `players[p].discard` |
+| `PLAY_EVENT` | add `card` to `players[p].discard`, **once by id** — its own hand→discard `MOVE` files the same card |
 | `PLAY_UPGRADE` | if `target` is set → `attach(state, target, card)` (nothing if the host isn't tracked); otherwise **nothing**. An upgrade is never an arena card, so there is no fallback placement |
 | `DEPLOY_LEADER` | `players[p].leader = { id: card, deployed: true, exhausted: false, epicActionUsed: (was already used) or epic === true }`; then if `kind` is `"upgrade"` → `attach(state, target, card)`; else place `card` in `zone ?? "ground"`, idempotent by id |
 | `ABILITY_ACTIVATE` | if `epic` and `card` is a seat's `leader.id` → that leader's `epicActionUsed = true`; otherwise nothing |
+| `LEADER_FLIP` | that seat's `leader.onStartingSide = event.onStartingSide` — the stated face, so applying it twice is the same as once. Find the leader by `card`, falling back to the record's `p` (these leaders never deploy, so early in a file no `DEPLOY_LEADER` has named the id) |
 | `STATS` | if `card` is tracked → set its `power`, `hp`, and `keywords` (sorted) when given |
 | `TAKE_CONTROL` | arena `zone` → move the card entry from the other seat's `cards` to `players[p].cards`; `resource` with `from` → shift one resource from `from` to `p`, in the exhausted bucket if `exhausted` else the ready one; `base` with `from` → shift one credit (or the Force) from `from` to `p`; otherwise nothing ([§10.1](#take_control)) |
 | `CAPTURE` | remove `card` from every seat's `cards` (its `MOVE` already did); if `by` names a tracked card, push `card` onto its `captured`, idempotently |
 | `RESCUE` | `detach(state, card)` — the `MOVE` out of `capture` beside it places the card |
 | `EXHAUST_RESOURCES` | `n = min(amount, resourcesReady)`; `resourcesReady -= n`; `resourcesExhausted += n` |
 | `READY_RESOURCES` | `n = min(amount, resourcesExhausted)`; `resourcesExhausted -= n`; `resourcesReady += n` |
-| `CREATE_TOKEN` | place `token` in `zone`, idempotent by id — unless `kind` is `"upgrade"`, then nothing |
+| `CREATE_TOKEN` | place `token` in `zone`, idempotent by id — unless `kind` is `"upgrade"`, or `zone` is not `ground`/`space`, then **nothing**. A token named outside an arena is not in play yet; its `MOVE` into the arena is what places it, exactly as for a printed card |
 | `MOVE` | see [§12.1](#121-the-move-rule-the-big-one) |
 | `DAMAGE` | `base@N` → `players[N].baseHp = hp`; else `card.damage = max(0, damage + amt)` |
 | `OVERWHELM` | `base@N` → `players[N].baseHp = hp`; anything else → nothing |
 | `HEAL` | `base@N` → `players[N].baseHp = hp`; else `card.damage = max(0, damage - amt)` |
-| `DEFEAT` | `detach(state, card)`; then, if the card is in someone's `cards`, remove it and push its id onto that player's `discard` |
+| `DEFEAT` | `detach(state, card)`; then, if the card is in someone's `cards`, remove it and add its id to that player's `discard`, **once by id**. In a real stream the `MOVE` to `discard` arrived first and already did both, so this does nothing — see the note under [§12.1](#121-the-move-rule-the-big-one) |
 | `EXHAUST` | `exhausted = true` on the arena card of that id, and on `leader` if it is the leader's id |
 | `READY` | `exhausted = false`, likewise |
-| `DRAW` | push each id in `cards` onto `players[p].hand`. **Nothing else.** |
-| `DISCARD` | push each id in `cards` onto `players[p].discard`. **Nothing else.** |
+| `DRAW` | add each id in `cards` to `players[p].hand`, **once by id**. **Nothing else** — the paired deck→hand `MOVE`s own both the count and the contents |
+| `DISCARD` | add each id in `cards` to `players[p].discard`, **once by id**. **Nothing else.** |
 | `RESOURCE` | **nothing** — the paired `MOVE` into `resource` carries the change ([§10.1](#101-events-that-carry-board-detail)) |
 | `SHIELD_GAIN` | `card.shields += count ?? 1` |
 | `SHIELD_USE` | `card.shields = max(0, shields - (count ?? 1))` |
@@ -1480,10 +1547,12 @@ problem. A writer that has no such cost SHOULD treat `ok: false` as fatal.
   *supplies* the real number; every keyframe after it is compared normally.
 - `deckSize` — **except at the very first keyframe**, for the same reason as `baseHp`: the
   starting deck is not in the stream.
-- `handSize`
+- `handSize`, and `hand` **as a set** — a hand is unordered
+- `discard` **in order** — the pile is ordered ([§11](#11-the-board-you-build-reducedstate))
 - `resourcesReady` and `resourcesExhausted`
 - `credits` and `hasForce`
-- the leader's `id`, `deployed`, `exhausted` and `epicActionUsed`
+- the leader's `id`, `deployed`, `exhausted` and `epicActionUsed`, and `onStartingSide`
+  whenever the keyframe states it (absent means "not a double-sided leader", never `false`)
 - `initiativeTaken`
 - for each in-play card matched by `id`: `zone`, `damage`, `exhausted`, `shields`,
   `experience`, `statusTokens`, `upgrades` and `captured` **as sets** (attachment order
@@ -1496,13 +1565,15 @@ included. A field the keyframe does not carry — `deckSize`, `leader`, `initiat
 card's `power`/`hp`/`keywords` — is skipped, so a file written before the field existed still
 passes: absent means "not recorded", never "zero".
 
-**Not checked, and why:**
+**Everything in [§11](#11-the-board-you-build-reducedstate) is checked.** There is no
+carve-out: a passing check means the deltas between two keyframes add up to the whole board
+the engine reported.
 
-| Field | Why not |
-|---|---|
-| `hand` / `discard` **contents** | Only the counts are reconstructable: `DRAW` appends to `hand`, nothing removes from it. |
-
-Do not assume a passing check proves that one.
+> **This changed.** Earlier text said `hand` and `discard` **contents** were not checked,
+> because "only the counts are reconstructable". That was wrong. Every `MOVE` names its card,
+> so both lists are exact at every moment, and both are now folded from `MOVE` and gated here.
+> See [§22](#10-writer-changes-before-first-release) for how to spot a reader that
+> still has the old behaviour.
 
 A mismatch looks like:
 
@@ -1648,6 +1719,7 @@ read.
 | `PLAY_UPGRADE` | `{who(p)} plays {nm(card)}` + ` on {nm(target)}` if `target`, else ` to {zone}` if `zone`; + ` (cost {cost})` if `cost` |
 | `PLAY_EVENT` | `{who(p)} plays {nm(card)}` + ` (cost {cost})` if `cost` — no zone |
 | `DEPLOY_LEADER` | `{who(p)} deploys {nm(card)}` + ` as a pilot on {nm(target)}` if `target` |
+| `LEADER_FLIP` | `{who(p)} flips {nm(card)}` |
 | `ATTACK` | base: `{who(p)} attacks {who(other)}'s base with {nm(atk)}` · unit: `{who(p)} attacks {nm(def)} with {nm(atk)}` |
 | `PASS` | `{who(p)} passes` |
 | `CLAIM_INITIATIVE` | `{who(p)} claims initiative` |
@@ -1844,12 +1916,27 @@ hand and resource counts past `R1.start`.) The credit rule was additionally chec
 real 10-round export in which one Credit token was created, held across two rounds and spent:
 0 mismatches under the widened gate.
 
-What remains genuinely unverified is the one un-gated field in
-[§14](#14-checking-a-file-is-honest): the **contents** of `hand` and `discard`. A passing
-integrity check says nothing about those. Everything else in CR 1.16's definition of the game
-state ([§11](#what-the-board-covers-against-the-rules)) is reconstructed and gated, and the
-four real-game vectors — Raid, Grit, Sentinel, tokens, upgrades, a pilot, a capture, leaders
-in and out of the base zone — pass with nothing to report.
+`hand` and `discard` **contents** used to be the one un-gated pair here, on the grounds that
+only the counts were reconstructable. That was wrong, and it was found by an implementer
+building a replay client against this document rather than by the gate. Every `MOVE` names its
+card, so both lists are exact; the fold simply discarded the information — `DRAW` appended to
+`hand` and nothing ever removed, and `discard` was left to `DEFEAT`, which fires *after* the
+`MOVE` that already emptied `cards`. Folding the five vectors' deltas produced **45
+mismatches** against their own keyframes before the fix and **none** after. Both are now
+`MOVE`-driven and gated at every keyframe.
+
+That leaves nothing carved out: every field of
+[§11](#11-the-board-you-build-reducedstate) is compared, the whole of CR 1.16's definition of
+the game state ([§11](#what-the-board-covers-against-the-rules)) is reconstructed and gated,
+and the four real-game vectors — Raid, Grit, Sentinel, tokens, upgrades, a pilot, a capture,
+leaders in and out of the base zone — pass with nothing to report.
+
+One caveat on `hand`, and it is about a test harness rather than the format: the integration
+specs that bootstrap a game directly at the action phase tear down the natural opening hand
+without emitting a `MOVE` for it, so the folded hand keeps those cards. Those two specs defer
+`hand` past the first keyframe exactly as they already defer `handSize`. An organic game —
+natural setup, one bootstrap — reconstructs both exactly, which is what
+`SwuPgnOrganicGame.spec.ts` gates.
 
 Three engine paths the resource rule covers by construction have no dedicated real-game gate
 yet, and a reader should treat their split (not their total, which every regroup re-syncs) as
@@ -1931,6 +2018,9 @@ but each is detectable from the file, so a reader that meets an early 1.0 file c
 | Nothing carried a unit's live stats between keyframes; keyframes carried none at all | `STATS` after every change; `power`/`hp`/`keywords` on keyframe cards, gated ([§10.1](#stats)) | any `STATS` record |
 | The leader in the base zone, the deck count and the initiative counter's status were not in the board | `leader`, `deckSize`, `initiativeTaken` in every keyframe; `epic` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`; a returning Leader Unit's `EXHAUST` ([§11](#11-the-board-you-build-reducedstate)) | a keyframe carrying `leader` |
 | The `minimal` vector attacked with a unit the turn it was played | rules-legal two-round game ([§20](#20-test-vectors)) | not a file change |
+| A token unit's `CREATE_TOKEN` was dropped and `RecorderErrors` set, because the writer read the token's live stats while it was still outside the game | stats guarded and omitted when unreadable; `zone` names the destination arena ([§10.1](#101-events-that-carry-board-detail)) | a game containing a token unit but no `CREATE_TOKEN`, and a `RecorderErrors` tag |
+| A double-sided leader's face was not recorded, so a flipped leader replayed as its starting side for the whole game | `LEADER_FLIP` + `leader.onStartingSide` ([§10.1](#101-events-that-carry-board-detail)) | any `LEADER_FLIP` record, or a keyframe leader carrying `onStartingSide` |
+| `hand[]` grew from `DRAW` and nothing removed, so a folded "hand" was a cumulative draw log; `discard` was filed by `DEFEAT`, which fires after the `MOVE` that already removed the card, so no defeated unit reached the pile | both are folded from `MOVE` and gated ([§12.1](#121-the-move-rule-the-big-one), [§14](#14-checking-a-file-is-honest)) | not a file change; a reader's fold. Fold any vector's deltas to a keyframe and compare `hand`/`discard` — 45 mismatches before, 0 after |
 
 ### 22.1 Files that say `SWU-PGN/1.1`
 

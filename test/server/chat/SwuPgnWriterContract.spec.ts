@@ -83,9 +83,13 @@ describe('SWU-PGN/1.0 writer contract (real game)', function () {
             // the fold can't see those cards leave and its counts stay high by the remnant. A
             // production game has exactly one setup. See SwuPgnKeyframeCompleteness.spec.ts.
             const integrity = checkKeyframes(doc.events);
+            // Fields the double-setup bootstrap makes unreconstructable past the first
+            // keyframe. `hand` CONTENTS share handSize's cause exactly: the bootstrap tears
+            // down the natural opening hand without emitting a MOVE, so those cards stay in
+            // the folded list. `discard` is NOT here -- it reconstructs cleanly even so.
+            const DEFERRED_SUFFIXES = ['.handSize', '.resourcesReady', '.deckSize', '.hand'];
             const isHarnessCountArtifact = (m: { seq: string; path: string }) =>
-                m.seq !== 'R1.start' &&
-                (m.path.endsWith('.handSize') || m.path.endsWith('.resourcesReady') || m.path.endsWith('.deckSize'));
+                m.seq !== 'R1.start' && DEFERRED_SUFFIXES.some((f) => m.path.endsWith(f));
             const real = integrity.mismatches.filter((m) => !isHarnessCountArtifact(m));
             const deferred = integrity.mismatches.filter(isHarnessCountArtifact);
 

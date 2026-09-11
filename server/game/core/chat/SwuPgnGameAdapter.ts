@@ -420,6 +420,11 @@ export class SwuPgnGameAdapter {
                 exhausted: read(() => leaderCard.exhausted === true, false),
                 epicActionUsed: read(() => (leaderCard.getActionAbilities?.() ?? [])
                     .some((a: any) => a?.isEpicAction === true && a?.limit?.isAtMax?.(player) === true), false),
+                // Only a double-sided leader has a face to report. Omitted for every other
+                // leader, so the field's presence is itself the "this one flips" signal.
+                ...(read(() => leaderCard.isDoubleSidedLeader?.() === true, false)
+                    ? { onStartingSide: read(() => leaderCard.onStartingSide === true, true) }
+                    : {}),
             }
             : undefined;
 

@@ -215,7 +215,23 @@ describe('SwuPgnRecorder: token creation and play cost', function () {
         const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
 
         const p1 = { id: 'p1' };
-        const cloneToken = { uuid: 'TOKEN:Clone', owner: p1, controller: p1, zoneName: 'groundArena', isUnit: () => true, getPower: () => 0, getHp: () => 0 };
+        // MODELLED ON THE REAL ENGINE, and this is the whole point of the test. `generateToken`
+        // puts a token in `outsideTheGame`, and only a CONTINGENT PutIntoPlaySystem moves it to
+        // its arena afterwards. So at OnTokensCreated the token reports `outsideTheGame`, and its
+        // live stats -- computed from `upgrades` -- THROW a Contract assertion for that zone.
+        // A stub that answered `groundArena` and `getPower: () => 0` kept this test green while
+        // the handler threw on every token in production, dropping every CREATE_TOKEN and setting
+        // RecorderErrors on any game with a token.
+        const outOfPlay = () => {
+            // What the engine's Contract actually throws for a stat read in this zone.
+            throw new Error('Contract assertion failure: Attempting to read property upgrades '
+              + 'on clone-trooper but it is in zone outsideTheGame where the property does not apply');
+        };
+        const cloneToken = {
+            uuid: 'TOKEN:Clone', owner: p1, controller: p1,
+            zoneName: 'outsideTheGame', defaultArena: 'groundArena',
+            isUnit: () => true, getPower: outOfPlay, getHp: outOfPlay,
+        };
         const shieldToken = { uuid: 'shield-1', owner: p1, controller: p1, isUnit: () => false };
 
         game.emit(EventName.OnPhaseStarted, { phase: 'action' });
@@ -224,7 +240,15 @@ describe('SwuPgnRecorder: token creation and play cost', function () {
         const creates = rec.getEvents().filter((e: any) => e.t === 'CREATE_TOKEN');
         expect(creates.length).toBe(1);                        // only the unit token
         expect((creates[0] as any).token).toBe('TOKEN:Clone'); // stable id, consistent with later refs
+        // The arena it is ENTERING, not the `outsideTheGame` it is sitting in: a non-arena zone
+        // would fold to a phantom card in `cards[]` that no keyframe agrees with.
         expect((creates[0] as any).zone).toBe('ground');
+        // Unreadable stats are omitted, not invented -- the STATS record after the token's MOVE
+        // carries the real values.
+        expect((creates[0] as any).power).toBeUndefined();
+        expect((creates[0] as any).hp).toBeUndefined();
+        // And above all: the handler did not throw, so nothing was counted into RecorderErrors.
+        expect(rec.getErrorCount()).toBe(0);
     });
 
     it('records the play cost from card.cost (the event has no numeric cost field)', function () {

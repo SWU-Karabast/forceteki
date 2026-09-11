@@ -109,14 +109,16 @@ describe('checkKeyframes — organic multi-round count reconstruction (no double
         const events: GameEvent[] = [
             // ── R1: clean start (empty board) ──
             { seq: 'R1.start', t: 'ROUND_START', round: 1, keyframe: keyframe(1, playerState(1), playerState(2)) },
-            // Opening draws: deck -> hand (handSize 0 -> 6 each).
-            ...(['d1', 'd2', 'd3', 'd4', 'd5', 'd6'].map((c, i) => mv(`R1.S.${i}`, `P1#${c}`, 'deck', 'hand', 1))),
-            ...(['e1', 'e2', 'e3', 'e4', 'e5', 'e6'].map((c, i) => mv(`R1.S.${i + 6}`, `P2#${c}`, 'deck', 'hand', 2))),
+            // Opening draws: deck -> hand (handSize 0 -> 7 each). Each seat draws the unit it
+            // later plays: a card can only leave a hand it was in, and now that `hand` CONTENTS
+            // are gated the stream has to be coherent, not just arithmetically right.
+            ...(['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'unit'].map((c, i) => mv(`R1.S.${i}`, `P1#${c}`, 'deck', 'hand', 1))),
+            ...(['e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'unit'].map((c, i) => mv(`R1.S.${i + 7}`, `P2#${c}`, 'deck', 'hand', 2))),
             // Resource step: hand -> resource (resourcesReady +2, handSize -2 each).
-            mv('R1.S.12', 'P1#d1', 'hand', 'resource', 1),
-            mv('R1.S.13', 'P1#d2', 'hand', 'resource', 1),
-            mv('R1.S.14', 'P2#e1', 'hand', 'resource', 2),
-            mv('R1.S.15', 'P2#e2', 'hand', 'resource', 2),
+            mv('R1.S.14', 'P1#d1', 'hand', 'resource', 1),
+            mv('R1.S.15', 'P1#d2', 'hand', 'resource', 1),
+            mv('R1.S.16', 'P2#e1', 'hand', 'resource', 2),
+            mv('R1.S.17', 'P2#e2', 'hand', 'resource', 2),
             // P1 plays a unit (PLAY places it; the paired hand->ground MOVE decrements handSize).
             { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'P1#unit', zone: 'ground', cost: 2 },
             mv('R1.A.1a', 'P1#unit', 'hand', 'ground', 1),
@@ -124,10 +126,12 @@ describe('checkKeyframes — organic multi-round count reconstruction (no double
             { seq: 'R1.A.2', t: 'ATTACK', p: 1, atk: 'P1#unit', def: 'base@2', defenderType: 'base' },
             { seq: 'R1.A.2a', t: 'DAMAGE', src: 'P1#unit', tgt: 'base@2', amt: 2, damageType: 'combat', hp: 28 },
 
-            // ── R2: counts must match (handSize P1 3 / P2 4, resourcesReady 2 / 2, P2 base 28) ──
+            // ── R2: counts AND hand contents must match (P1 4 / P2 5, resourcesReady 2 / 2, P2 base 28) ──
             { seq: 'R2.start', t: 'ROUND_START', round: 2, keyframe: keyframe(2,
-                playerState(1, { handSize: 3, resourcesReady: 2, cards: [cardState('P1#unit')] }),
-                playerState(2, { handSize: 4, resourcesReady: 2, baseHp: 28 })) },
+                playerState(1, { handSize: 4, resourcesReady: 2, hand: ['P1#d3', 'P1#d4', 'P1#d5', 'P1#d6'],
+                    cards: [cardState('P1#unit')] }),
+                playerState(2, { handSize: 5, resourcesReady: 2, baseHp: 28,
+                    hand: ['P2#e3', 'P2#e4', 'P2#e5', 'P2#e6', 'P2#unit'] })) },
             // P2 plays a unit.
             { seq: 'R2.A.1', t: 'PLAY', p: 2, card: 'P2#unit', zone: 'ground', cost: 2 },
             mv('R2.A.1a', 'P2#unit', 'hand', 'ground', 2),
@@ -140,13 +144,16 @@ describe('checkKeyframes — organic multi-round count reconstruction (no double
 
             // ── R3: counts AND per-card state must match ──
             { seq: 'R3.start', t: 'ROUND_START', round: 3, keyframe: keyframe(3,
-                playerState(1, { handSize: 2, resourcesReady: 3, cards: [cardState('P1#unit', { damage: 3 })] }),
-                playerState(2, { handSize: 3, resourcesReady: 2, baseHp: 28, cards: [cardState('P2#unit', { exhausted: true })] })) },
+                playerState(1, { handSize: 3, resourcesReady: 3, hand: ['P1#d4', 'P1#d5', 'P1#d6'],
+                    cards: [cardState('P1#unit', { damage: 3 })] }),
+                playerState(2, { handSize: 4, resourcesReady: 2, baseHp: 28,
+                    hand: ['P2#e3', 'P2#e4', 'P2#e5', 'P2#e6'],
+                    cards: [cardState('P2#unit', { exhausted: true })] })) },
         ];
 
         const r = checkKeyframes(events);
-        // Includes handSize/resourcesReady at R2.start and R3.start — the fields the integration
-        // harness must defer. A clean MOVE stream reconstructs them exactly.
+        // Includes handSize/resourcesReady AND hand contents at R2.start and R3.start — the
+        // fields the integration harness must defer. A clean MOVE stream reconstructs them exactly.
         expect(r.mismatches).toEqual([]);
         expect(r.ok).toBe(true);
     });
@@ -252,10 +259,10 @@ describe('checkKeyframes — the resource, credit, Force and attachment fields',
             { seq: 'R1.A.2', t: 'CLAIM_INITIATIVE', p: 2 },
             { seq: 'R1.A.2a', t: 'EXHAUST', card: 'SOR#005' },
             { seq: 'R1.G.1', t: 'MOVE', card: 'X', from: 'deck', to: 'hand', p: 1 },
-            { seq: 'R1.end', t: 'ROUND_END', round: 1, keyframe: { round: 1, phase: 'regroup', initiative: 2, initiativeTaken: true, players: { 1: seat(1, { handSize: 1, deckSize: 39, leader: leader({ deployed: true, epicActionUsed: true }), cards: [card('SOR#010')] }),
+            { seq: 'R1.end', t: 'ROUND_END', round: 1, keyframe: { round: 1, phase: 'regroup', initiative: 2, initiativeTaken: true, players: { 1: seat(1, { handSize: 1, hand: ['X'], deckSize: 39, leader: leader({ deployed: true, epicActionUsed: true }), cards: [card('SOR#010')] }),
                 2: seat(2, { deckSize: 40, leader: leader({ id: 'SOR#005', exhausted: true }) }) } } },
             // Round 2 opens: the counter is available again, and the deck count is now compared.
-            { seq: 'R2.start', t: 'ROUND_START', round: 2, keyframe: { round: 2, phase: 'action', initiative: 2, initiativeTaken: false, players: { 1: seat(1, { handSize: 1, deckSize: 39, leader: leader({ deployed: true, epicActionUsed: true }), cards: [card('SOR#010')] }),
+            { seq: 'R2.start', t: 'ROUND_START', round: 2, keyframe: { round: 2, phase: 'action', initiative: 2, initiativeTaken: false, players: { 1: seat(1, { handSize: 1, hand: ['X'], deckSize: 39, leader: leader({ deployed: true, epicActionUsed: true }), cards: [card('SOR#010')] }),
                 2: seat(2, { deckSize: 40, leader: leader({ id: 'SOR#005', exhausted: true }) }) } } },
         ];
         expect(checkKeyframes(events).mismatches).toEqual([]);

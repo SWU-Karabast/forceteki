@@ -337,7 +337,11 @@ describe('fold attachments', function () {
         ] as any);
         expect(s.players[1]?.cards.map((c) => c.id)).toEqual(['LOF#164']);   // the pilot never became a body
         expect(s.players[1]?.cards[0].upgrades).toEqual([]);
-        expect(s.players[1]?.discard).toEqual([]);   // an upgrade was never an arena card, so DEFEAT files nothing
+        // Both exits are a MOVE into `discard`, and the MOVE is what files the pile — so a
+        // defeated upgrade and a departing pilot both land there, in the order they left.
+        // (This previously expected `[]`: DEFEAT was the pile's only author and it fires after
+        // the MOVE that already removed the card, so nothing ever reached the discard.)
+        expect(s.players[1]?.discard).toEqual(['LOF#215', 'JTL#058']);
     });
 
     it('a DEFEAT alone (no MOVE seen) still detaches', function () {

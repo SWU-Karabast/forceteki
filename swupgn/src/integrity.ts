@@ -16,16 +16,22 @@ function sameSet(a: unknown, b: unknown): boolean {
  * GATED (reconstructable from the event model, single source of truth = the event stream):
  * `initiativeTaken`; per seat `baseHp`, `handSize`, `deckSize`, `resourcesReady`,
  * `resourcesExhausted`, `credits`, `hasForce`, the leader's `id`/`deployed`/`exhausted`/
- * `epicActionUsed`; and per in-play card matched by id: `zone`, `damage`, `exhausted`,
- * `shields`, `experience`, `statusTokens`, `upgrades` and `captured` (both as sets — attachment
- * order is not part of the model), `power`, `hp` and `keywords` (the live values `STATS`
- * records carry). `baseHp` and `deckSize` are exempt at the first keyframe only — see
- * checkKeyframes. Fields an older file's keyframe lacks (`deckSize`, `leader`, `power`,
- * `hp`, `keywords`, `initiativeTaken`) are skipped: absent is "not recorded", not "zero".
+ * `epicActionUsed`; `hand` (as a set — a hand is unordered) and `discard` (in order — the pile
+ * is); and per in-play card matched by id: `zone`, `damage`, `exhausted`, `shields`,
+ * `experience`, `statusTokens`, `upgrades` and `captured` (both as sets — attachment order is
+ * not part of the model), `power`, `hp` and `keywords` (the live values `STATS` records carry).
+ * `baseHp` and `deckSize` are exempt at the first keyframe only — see checkKeyframes. Fields an
+ * older file's keyframe lacks (`deckSize`, `leader`, `power`, `hp`, `keywords`,
+ * `initiativeTaken`) are skipped: absent is "not recorded", not "zero".
  *
- * NOT GATED (and why): `hand`/`discard` CONTENTS (only the counts are reconstructed: DRAW
- * appends to `hand[]` but nothing removes from it). The keyframe's
- * `cards` array only contains ground/space arena cards (see
+ * `hand`/`discard` CONTENTS were previously ungated, on the belief that only the counts were
+ * reconstructable. They are not: every MOVE names its card, so both lists are exact. The fold
+ * used to grow `hand[]` from DRAW and never remove, and to leave `discard` to DEFEAT — which
+ * fires AFTER the MOVE that already emptied `cards`, so no defeated unit ever reached the pile.
+ * Both are now MOVE-driven and gated here; the five vectors produced 45 mismatches before the
+ * fix and none after.
+ *
+ * The keyframe's `cards` array only contains ground/space arena cards (see
  * SwuPgnGameAdapter.buildSwuPgnPlayerState), so card-level checks are scoped to arena cards
  * by construction.
  *
@@ -87,6 +93,15 @@ function diffSeat(seq: string, seat: 1 | 2, e: PlayerState, g: PlayerState, chec
             out.push({ seq, path: `players.${seat}.${field}`, expected: e[field], got: g[field] });
         }
     }
+    // Hand and discard CONTENTS. Every MOVE names its card, so both are reconstructable and
+    // both are gated (see fold.applyMoveCounts). A hand is unordered, so it compares as a set;
+    // a discard pile is ordered (spec §11) and compares in order.
+    if (!sameSet(e.hand, g.hand)) {
+        out.push({ seq, path: `players.${seat}.hand`, expected: e.hand, got: g.hand });
+    }
+    if (JSON.stringify(e.discard ?? []) !== JSON.stringify(g.discard ?? [])) {
+        out.push({ seq, path: `players.${seat}.discard`, expected: e.discard, got: g.discard });
+    }
     // Like baseHp, the starting deck is not in the stream, so the first keyframe supplies it.
     if (checkBaseHp && typeof e.deckSize === 'number' && e.deckSize !== g.deckSize) {
         out.push({ seq, path: `players.${seat}.deckSize`, expected: e.deckSize, got: g.deckSize });
@@ -94,6 +109,11 @@ function diffSeat(seq: string, seat: 1 | 2, e: PlayerState, g: PlayerState, chec
     // The leader is compared once a keyframe has named it (its id comes from the keyframe or
     // a DEPLOY_LEADER; before either the fold has no leader to be wrong about).
     if (e.leader && g.leader) {
+        // `onStartingSide` is only carried for a double-sided leader, so it is compared only
+        // when the keyframe states it -- absent means "not a flipping leader", not `false`.
+        if (typeof e.leader.onStartingSide === 'boolean' && e.leader.onStartingSide !== g.leader.onStartingSide) {
+            out.push({ seq, path: `players.${seat}.leader.onStartingSide`, expected: e.leader.onStartingSide, got: g.leader.onStartingSide });
+        }
         for (const field of ['id', 'deployed', 'exhausted', 'epicActionUsed'] as const) {
             if (e.leader[field] !== g.leader[field]) {
                 out.push({ seq, path: `players.${seat}.leader.${field}`, expected: e.leader[field], got: g.leader[field] });
