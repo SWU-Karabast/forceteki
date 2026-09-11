@@ -214,6 +214,35 @@ describe('Fett\'s Firespray: Settling the Score', function() {
                 expect(context.p2Base.damage).toBe(2);
                 expect(context.x34Landspeeder.exhausted).toBeTrue();
             });
+
+            it('does not grant the base-attack permission to an opponent\'s Ambush unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['fetts-firespray#settling-the-score']
+                    },
+                    player2: {
+                        hand: ['banking-clan-warship']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P1 passes so P2 can play their own Ambush unit
+                context.player1.passAction();
+                context.player2.clickCard(context.bankingClanWarship);
+                expect(context.player2).toHavePassAbilityPrompt('Ambush');
+                context.player2.clickPrompt('Trigger');
+
+                // The effect is friendly-only, so P2's Ambush unit cannot target P1's base -
+                // only the enemy unit (Fett's Firespray) is a legal target
+                expect(context.player2).toBeAbleToSelectExactly([context.fettsFirespray]);
+                context.player2.clickCard(context.fettsFirespray);
+
+                // The base is untouched; combat resolves against the unit as normal
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.fettsFirespray).toBeInZone('discard');
+            });
         });
     });
 });
