@@ -57,6 +57,24 @@ describe('linkActionSteps', function () {
         expect(forOf(events)).toEqual([undefined, undefined, undefined]);
     });
 
+    // An AMBUSH unit is played and attacks in the same phase, so the play's own MOVE and STATS
+    // sit immediately before the ATTACK and name the same card. They belong to the PLAY, which
+    // already owns them through its step number; only the target choice and the attacker's
+    // exhaust belong to the attack. A shared precursor set filed all four under the attack.
+    it('does not steal a play\'s own records when the same card attacks next (Ambush)', function () {
+        const events: GameEvent[] = [
+            { seq: 'R2.A.3', t: 'PLAY', p: 1, card: 'SOR#095', zone: 'ground', cost: 2 },
+            { seq: 'R2.A.3a', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1 },
+            { seq: 'R2.A.3b', t: 'STATS', card: 'SOR#095', power: 3, hp: 3 },
+            { seq: 'R2.A.3c', t: 'CHOICE', p: 1, prompt: 'Wampa', offered: ['base@2'], chose: 0 },
+            { seq: 'R2.A.3d', t: 'EXHAUST', card: 'SOR#095' },
+            { seq: 'R2.A.4', t: 'ATTACK', p: 1, atk: 'SOR#095', def: 'base@2', defenderType: 'base' },
+        ];
+        expect(forOf(events)).toEqual([
+            undefined, undefined, undefined, 'R2.A.4', 'R2.A.4', undefined,
+        ]);
+    });
+
     it('does not mutate its input, and is idempotent', function () {
         const events: GameEvent[] = [
             { seq: 'R1.A.0b', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1 },

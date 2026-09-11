@@ -70,4 +70,18 @@ describe('validate edge cases', function () {
         expect(report.valid).toBe(false);
         expect(report.issues.some((i) => (/R1\.A\.1z/).test(i.message))).toBe(true);
     });
+
+    // Every event type the writer can emit must be in KNOWN_EVENT_TYPES, or the validator calls
+    // our own output "unknown ... tolerated for forward compatibility" -- which tells a consumer
+    // the file came from a NEWER writer than their reader. LEADER_FLIP shipped without being
+    // added, so every Chancellor Palpatine game validated with a spurious warning. No vector
+    // contains a double-sided leader, so nothing caught it.
+    it('recognises every event type the writer emits (no spurious forward-compat warning)', function () {
+        const withFlip = good.replace(
+            '{"seq":"R1.A.1a","t":"EXHAUST","card":"SOR#108"}',
+            '{"seq":"R1.A.1a","t":"EXHAUST","card":"SOR#108"}\n' +
+            '{"seq":"R1.A.1y","t":"LEADER_FLIP","p":1,"card":"TWI#017","onStartingSide":false}');
+        expect(withFlip).not.toBe(good);
+        expect(validate(withFlip).issues).toEqual([]);
+    });
 });

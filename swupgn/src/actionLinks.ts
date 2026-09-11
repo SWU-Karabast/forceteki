@@ -28,14 +28,28 @@ const TOP_LEVEL_ACTIONS = new Set([
 ]);
 
 /**
- * Record types that can legitimately arrive before the action they belong to: the card's arrival
- * and readiness, the prompt that chose its target, and the cost paid for it. Deliberately NARROW
- * -- a `DAMAGE` or a `DEFEAT` is always a CONSEQUENCE, never a precursor, so meeting one ends the
- * run and a previous action's consequences can never be swept into the next action.
+ * Which record types can precede an action DEPENDS ON THE ACTION.
+ *
+ * An attack announces itself after picking a target and exhausting the attacker, and that is all:
+ * it never moves a card or restates its stats. A play does the opposite -- the card arrives, gets
+ * its stats, enters exhausted, and the cost is paid -- before the `PLAY` is announced.
+ *
+ * Keeping one shared set gets an AMBUSH unit wrong: it is played and attacks in the same phase, so
+ * the play's own `MOVE` and `STATS` sit immediately before the `ATTACK` and name the same card,
+ * and a shared set files them under the attack. They belong to the play, which already owns them
+ * through its own step number.
+ *
+ * Both sets are deliberately narrow: a `DAMAGE` or `DEFEAT` is always a CONSEQUENCE, never a
+ * precursor, so meeting one ends the run.
  */
-const PRECURSOR_TYPES = new Set([
+const ATTACK_PRECURSORS = new Set(['CHOICE', 'MODAL_CHOICE', 'EXHAUST']);
+const PLAY_PRECURSORS = new Set([
     'MOVE', 'CHOICE', 'MODAL_CHOICE', 'EXHAUST', 'STATS', 'EXHAUST_RESOURCES',
 ]);
+
+function precursorsFor(t: string): Set<string> {
+    return t === 'ATTACK' ? ATTACK_PRECURSORS : PLAY_PRECURSORS;
+}
 
 /** A top-level step (`R2.A.6`), as opposed to one of its sub-steps (`R2.A.6a`). */
 function isTopLevelStep(seq: string): boolean {
@@ -71,10 +85,11 @@ export function linkActionSteps(events: GameEvent[]): GameEvent[] {
         }
 
         // Walk back over the contiguous run of precursor records immediately before the action.
+        const precursors = precursorsFor(action.t);
         let start = i;
         while (start > 0) {
             const prev = out[start - 1];
-            if (isTopLevelStep(prev.seq) || !PRECURSOR_TYPES.has(prev.t)) {
+            if (isTopLevelStep(prev.seq) || !precursors.has(prev.t)) {
                 break;
             }
             start--;
