@@ -21,11 +21,46 @@ describe('Garnac, Let The Hunt Begin', function() {
                 context.player2.clickCard(context.p1Base);
             });
 
-            it('should not have Hidden while an opponent does not control a unique unit', async function() {
+            it('should gains Hidden when opponent plays a unique unit', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['garnac#let-the-hunt-begin']
+                    },
+                    player2: {
+                        hand: ['rey#skywalker'],
+                        groundArena: ['porg', 'wampa'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.garnac);
+
+
+                // Garnac does not have Hidden
+                context.player2.clickCard(context.porg);
+                expect(context.player2).toBeAbleToSelectExactly([context.garnac, context.p1Base]);
+                context.player2.clickCard(context.p1Base);
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.rey);
+
+                context.player1.passAction();
+
+                // Garnac gained Hidden, not attackable anymore
+                context.player2.clickCard(context.wampa);
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base]);
+                context.player2.clickCard(context.p1Base);
+            });
+
+            it('should not have Hidden while an opponent does not control a unique unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['garnac#let-the-hunt-begin'],
+                        groundArena: ['rey#skywalker']
                     },
                     player2: {
                         groundArena: ['wampa']
@@ -37,7 +72,7 @@ describe('Garnac, Let The Hunt Begin', function() {
                 context.player1.clickCard(context.garnac);
 
                 context.player2.clickCard(context.wampa);
-                expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.garnac]);
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.garnac, context.rey]);
                 context.player2.clickCard(context.p1Base);
             });
         });
