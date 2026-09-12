@@ -53,6 +53,13 @@ land.
    every prior capture that used it. Add a new scenario instead.
 2. **Compare captures from the same machine and Node version.** Both are recorded
    in each report's environment table. Cross-machine deltas are directional only.
+   Note that `initial-performance` was captured on this branch at `ca6c30b1`,
+   not at the plans' survey anchor `7a0526549`, and the branch has since
+   absorbed further `main` merges. The baseline stays valid because none of
+   those merges touched the snapshot path (`GameObjectUtils.ts`,
+   `GameObjectBase.ts`, `snapshot/*`); the comparability claim is "same
+   snapshot-path code", not "same commit" — re-check that before trusting a
+   comparison across a large merge.
 3. **Do not hand-edit the markdown.** Regenerate it from the JSON.
 4. **Do not read a sub-20% timing delta on a single row as a result.** Two
    back-to-back captures of identical code produced timing swings of up to ±20%

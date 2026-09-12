@@ -31,15 +31,17 @@ plan's recreation path must be reconciled explicitly; A2 does so.
    `Card_N`). Only cards (`server/game/cards/Index.ts`), tokens
    (`Game.initialiseTokens`), and state watchers (`StateWatcherRegistrar`,
    idempotent by enum — the best in-repo model) have id→constructor maps. The
-   ~85 `@registerState()` classes across 80 files have no factory registry —
-   and two distinct gap sets must not be conflated: (i) three classes live
-   under `server/game/cards/**` (`Bamboozle.ts`,
-   `FirstLightHeadquartersOfTheCrimsonDawn.ts`, `Advantage.ts`), territory
-   Plan 3's static generator explicitly treats as unresolvable; (ii) three
+   ~85 `@registerState()` classes across ~79 files have no factory registry —
+   and two distinct gap sets must not be conflated: (i) two classes live
+   under `server/game/cards/**`
+   (`FirstLightHeadquartersOfTheCrimsonDawn.ts`, `Advantage.ts`;
+   `Bamboozle.ts` had a third until #2694 removed it — re-grep at
+   implementation time), territory
+   Plan 3's static generator explicitly treats as unresolvable; (ii) two
    classes are **non-exported** (module-local), so no generated registry can
-   import them: `PlayBamboozleAction` (`Bamboozle.ts:55`),
-   `FirstLightSmuggleAction` (`FirstLightHeadquartersOfTheCrimsonDawn.ts:40`),
-   and `CustomDurationEvent` (`OngoingEffectEngine.ts:20` — in core, not
+   import them:
+   `FirstLightSmuggleAction` (`FirstLightHeadquartersOfTheCrimsonDawn.ts:40`)
+   and `CustomDurationEvent` (`OngoingEffectEngine.ts:195` — in core, not
    cards; `AdvantageAbility` by contrast is exported, `Advantage.ts:26`).
    The factory registry must miss neither set; A1 records the decided
    handling.
@@ -100,15 +102,15 @@ entries: `classTag → (game, record, links) => instance`. Handle the
 `@registerState` anonymous wrapper class (registry keys on the declared class
 name, as `buildAutoInitializingCardClass` already does for cards) and both
 gap sets from blocker 2. **Decided (resolves the open decision flagged in
-`03-codegen-serializers.md`, "Plan 5 handoff"):** the three non-exported
-`@registerState` classes — `PlayBamboozleAction`, `FirstLightSmuggleAction`,
-`CustomDurationEvent` — are **exported** so the generated factory registry
+`03-codegen-serializers.md`, "Plan 5 handoff"):** the non-exported
+`@registerState` classes — `FirstLightSmuggleAction` and
+`CustomDurationEvent` at the time of writing — are **exported** so the generated factory registry
 can import them, and the generator **hard-forbids new module-local
 `@registerState` classes** going forward (a non-exported `@registerState`
 class is a generation-time failure, same enforcement tier as Plan 3's
 coverage cross-check). No self-registration hook. The cards-directory
-classes the static resolver can't traverse (`Bamboozle.ts`,
-`FirstLightHeadquartersOfTheCrimsonDawn.ts`, `Advantage.ts`) get explicit
+classes the static resolver can't traverse
+(`FirstLightHeadquartersOfTheCrimsonDawn.ts`, `Advantage.ts`) get explicit
 registry entries per Plan 3's coverage cross-check.
 Cards use the card constructor map keyed by `cardData` id — but note
 card construction today is **async** (`server/utils/deck/Deck.ts:207-228`

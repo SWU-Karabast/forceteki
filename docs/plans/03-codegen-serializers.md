@@ -164,10 +164,12 @@ change and lands first as its own PR.
    `CopyMode.UseBulkCopy` and `copyState`'s `bulkCopyMetadata` branch
    (`GameObjectUtils.ts:222-227, 731-733`) — `StateWatcher` is their only
    user. Watcher entries are near-flat `TState[]` structs of `GameObjectId`
-   strings and primitives — plus `Set<Trait>` in two watchers
-   (`AttacksThisPhaseWatcher.ts:17` `attackerAttributes`,
-   `CardsDefeatedThisPhaseWatcher.ts:18-22` `lastKnownInformation`; same
-   survey as Plan 2's watcher section) — so the **recursive** `stateValue`
+   strings and primitives — plus `Set<Trait>` in three watchers
+   (`AttacksThisPhaseWatcher.ts:17` `attackerAttributes`, and the shared
+   `IStateWatcherLKIEntry` (`StateWatcher.ts:21-27`) stored as
+   `lastKnownInformation` by `CardsDefeatedThisPhaseWatcher` and
+   `CardsLeftPlayThisPhaseWatcher`; same survey as Plan 2's watcher
+   section) — so the **recursive** `stateValue`
    encoder handles them, Sets via the `$set` tag. Note that
    `StateWatcher.addUpdater`'s dev check (lines 90-114) inspects the
    listener *config* object (`when`/`update` — `IStateListenerProperties`,
@@ -277,7 +279,7 @@ change and lands first as its own PR.
    containing a registered class (reuse the card-loading path
    `validate-cards` exercises — decorator metadata materializes at module
    load; instantiation adds nothing and needs a live `Game`; card-file
-   classes like `Bamboozle.ts`'s load only via dynamic card import, so a
+   classes like `FirstLightHeadquartersOfTheCrimsonDawn.ts`'s load only via dynamic card import, so a
    dev-startup check alone never sees them), compare the runtime metadata
    field set **and per-field kind** (the metadata already buckets by
    decorator symbol — `stateSimpleMetadata`/array/map/set/record/object)
@@ -372,9 +374,8 @@ change and lands first as its own PR.
 6. **Registry key policy** (the contract handed to Plan 5): registry keys
    are the names of concrete `@registerState`-decorated classes — exported
    or module-local (serialization is name-keyed and structurally typed, so
-   no import of the class is needed; two of the three required card-file
-   registrations below, `PlayBamboozleAction` and `FirstLightSmuggleAction`,
-   are module-local). Mixin factories mint a new class per call with the
+   no import of the class is needed; one of the two required card-file
+   registrations below, `FirstLightSmuggleAction`, is module-local). Mixin factories mint a new class per call with the
    same name (`AsUnit` at `UnitProperties.ts:116`, `WithDamage` at
    `Damage.ts:30`) and
    different flattened ancestor chains — mixin fragments are an internal
@@ -385,18 +386,19 @@ change and lands first as its own PR.
    ambiguous for Plan 5's name→constructor lookup).
    Lookup walks `constructor.name` up the prototype chain (as `-morph`'s
    `StateSerializers.ts:96-110`) — safe because the auto-init wrapper copies
-   the target class's `name`. **The registry must cover the three
-   card-file-local `@registerState` classes under `server/game/cards/**`**
-   (`Bamboozle.ts`, `FirstLightHeadquartersOfTheCrimsonDawn.ts`,
-   `Advantage.ts`) — the same territory Phase A step 5 flags as a
+   the target class's `name`. **The registry must cover the
+   card-file-local `@registerState` classes under `server/game/cards/**`** —
+   two at the time of writing (`FirstLightHeadquartersOfTheCrimsonDawn.ts`,
+   `Advantage.ts`; `Bamboozle.ts` lost its `PlayBamboozleAction` in #2694,
+   so re-grep rather than trusting this list) — the same territory Phase A step 5 flags as a
    static-resolver blind spot. The generator's scan must include them (or
    they must be covered by explicit entries); the coverage cross-check
    treats them as required registrations, never acceptable misses. Plan 5's
    A1 factory registry extends these same entries. **Plan 5 handoff
    (resolved — decision recorded in Plan 5 A1):** a module-local class
-   cannot be imported for name→constructor recreation. Decided: the three
-   non-exported `@registerState` classes (`PlayBamboozleAction`,
-   `FirstLightSmuggleAction`, `CustomDurationEvent` — note the last is in
+   cannot be imported for name→constructor recreation. Decided: the two
+   non-exported `@registerState` classes
+   (`FirstLightSmuggleAction`, `CustomDurationEvent` — note the last is in
    core, `OngoingEffectEngine.ts`, not under `cards/**`) are exported so the
    generated registry can import them, and the generator hard-forbids new
    module-local `@registerState` classes going forward (generation-time

@@ -81,7 +81,10 @@ GameObject-bearing values into decorated state would violate Invariant 1
    of target-uuid → value) and stop making the wrapper a GameObject — same
    value-type restriction, and only for the `:64` wrap path (the subclass path
    must keep returning GameObjects). Check what depends on wrapper object
-   identity (`setContext`, effect description plumbing) before choosing this.
+   identity (`setContext`, effect description plumbing, and the client-state
+   ongoing-effect summary — `OngoingEffectEngine.summarizeOngoingEffectsForState`
+   reads `impl.valueWrapper.targetStates` on every state serialization) before
+   choosing this.
 
 Prefer option 1 unless validation rules it out: Plan 5's stage 5b builds its
 `OngoingEffectValueWrapper` recreation recipe on exactly the JSON-safe
@@ -133,7 +136,11 @@ the wrong source and player, silently. Instead:
   `source`/`player` changes; with in-place mutation every retainer observes
   post-rollback values retroactively. Audit retainers of
   `OngoingEffect.context` / `impl.context` across rollback boundaries before
-  landing.
+  landing. Include the client-state summary in that audit:
+  `OngoingEffectEngine.summarizeOngoingEffectsForState` reads
+  `effect.context` and `effect.ongoingEffect` for every active effect on
+  every state serialization (a per-call reader, not a retainer, but it runs
+  immediately after rollback and must see the refreshed values).
 - The remaining throwaway allocation — the `OngoingEffectSource` created when
   `AbilityContext` is constructed without a source (`AbilityContext.ts:63`) —
   should be handled **in the OngoingEffect path only**: pass an explicit
@@ -150,10 +157,11 @@ the wrong source and player, silently. Instead:
   after construction.
 
 **Acceptance.**
-- Heap benchmark before/after over a scripted long game (port or adapt the
-  benchmark harness from `feature/quick-undo-deltas-morph`'s
-  `test/scenarios/undo/Performance.spec.ts` / `scripts/card-memory-benchmark.js`
-  if useful).
+- Heap and allocation numbers before/after from the Plan 0 harness
+  (`npm run benchmark`; the plan-level capture is owned by item B, but a
+  local `--compare initial-performance` run is the cheap way to confirm the
+  `sustained/*` allocation and GC-share movement this item is supposed to
+  produce).
 - GameObject count after N rounds is bounded for a game using a dynamic ongoing
   effect **whose value actually changes every round** (e.g. a `calculate`-based
   buff of "+1 per friendly unit" over a changing board). A stable dynamic value
@@ -243,7 +251,12 @@ review gate should keep new dynamic builders from reintroducing the pattern.
   identifiers: `Card.getSummary` sends `uuid` to the client (`Card.ts:1420`,
   `:1435`) and client actions come back keyed by it
   (`Game.cardClicked(sourcePlayerId, cardId)`, `Game.ts:797`;
-  `findAnyCardInPlayByUuid`, `:677`). Today, a stale client message racing an
+  `findAnyCardInPlayByUuid`, `:677`). The ongoing-effect summary in game
+  state is a second uuid-bearing client payload
+  (`OngoingEffectEngine.summarizeOngoingEffectsForState` emits
+  `sourceCardUuid` and target uuids per active effect; it landed on main
+  after this plan's survey) — the audit must enumerate every such payload,
+  not just the card summary. Today, a stale client message racing an
   undo either resolves to the same object or fails lookup loudly; with reuse, a
   stale uuid can silently bind to a *different* card that recycled the id
   post-rollback. Require either action-sequence guards on inbound messages
@@ -399,9 +412,6 @@ this plan targets memory, not speed.
 rollback path (uuid counter restore), so a small `manager/rollbackTo(Manual)`
 increase is acceptable — quantify it rather than waving it through.
 
-**While you are in here (item E territory).** `test/helpers/IntegrationHelper.js:78`
-passes `UndoMode.Full`, which is not a member of the `UndoMode` enum
-(`Disabled | Request | Free`), leaving every undo-mode test game with
-`undoMode === undefined`. It works only because each guard tests for
-`Disabled` specifically. The benchmark spec pins the mode explicitly to work
-around it; the helper itself should be fixed here.
+Note that the benchmark spec pins the undo mode explicitly to work around the
+`UndoMode.Full` helper bug that item E fixes; once item E lands, the
+workaround in the spec is harmless but no longer necessary.

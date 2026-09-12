@@ -7,6 +7,13 @@ and delta snapshots.
 All plans are grounded in a code survey performed against `main` at commit
 `7a0526549` (2026-07-25). File and line references throughout the plans are
 accurate as of that commit and may drift; treat them as pointers, not gospel.
+The branch was re-synced with `main` at `e78afcd2d` (2026-09-12) and the plans
+were patched for the drift that mattered (base upgrades/captures in the Plan 2
+schema, a third `Set<Trait>` watcher and the new `mostRecentInPlayId` stint
+field, the `Bamboozle.ts` `@registerState` removal, and the client-state
+ongoing-effect summary as a new uuid-bearing payload); line numbers were
+**not** re-anchored, and `OngoingEffectEngine.ts` in particular shifted by
+roughly 175 lines.
 
 These are **design docs, not implementation handoffs.**
 [`IMPLEMENTATION-ORDER.md`](IMPLEMENTATION-ORDER.md) breaks them into

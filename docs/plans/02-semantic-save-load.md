@@ -66,8 +66,9 @@ degraded positions are acceptable to load at all.
   a non-initiative active player).
 - **RNG:** `seedrandom` state is a plain serializable object, already captured
   per snapshot (`Randomness.ts:19-29`, `SnapshotFactory.ts:157`).
-- The empty directory `server/game/core/stateSerialization/` exists and is the
-  natural home for this code.
+- `server/game/core/stateSerialization/` is the natural home for this code
+  (the directory is reserved but empty, so it does not exist in a fresh
+  checkout — create it).
 
 ## Schema (v1)
 
@@ -99,7 +100,8 @@ A versioned top-level document, `ISavedMatch`:
       "seat": "p1",                       // abstract seat label; binding to real users happens at load (D)
       "name": "...",                      // display name at save time, informational only
       "decklist": { /* ISwuDbFormatDecklist as provided at lobby time */ },
-      "base": { "card": "<internalName>", "damage": 4, "limits": [ ... ] },
+      "base": { "card": "<internalName>", "damage": 4, "limits": [ ... ],
+                "upgrades": [ ... ], "capturedCards": [ ... ] },   // same shapes as an arena entry — see schema rules
       "leader": { "card": "...", "deployed": true, "exhausted": false,
                   "damage": 2, "epicDeployUsed": true, "upgrades": [...], "limits": [ ... ] },
       "hand": ["<internalName>", ...],                  // ordered
@@ -168,6 +170,15 @@ Schema rules (these are the load-bearing decisions):
   `{ "useCount": n, "currentUserSeat": "p1" | null }`, and the writer must
   read the undecorated `currentUser` field directly.
 - Ordered zones (deck, discard, hand, resources) preserve order.
+- **Bases are attachment parents too.** `BaseCard` has a `@stateRef` capture
+  zone (`BaseCard.ts:57-66`; Detention Block Rescue and Libertine capture to
+  base) and, since Fortify landed, a `@stateRefArray` upgrades list
+  (`BaseCard.ts:69-77`; Grand Moff Tarkin's leader). The base entry therefore
+  carries `upgrades` and `capturedCards` with exactly the arena-entry shapes,
+  and the test helper's `setBaseStatus` already accepts both
+  (`PlayerInteractionWrapper.ts:168`), so the C.4 port covers them for free.
+  A2's `ISavedCardRef` sub-position form must accept `base` as a parent for
+  the same reason.
 - **Leader deploy limit:** "leader in base but deploy already used" is a real
   position — `EpicActionLimit.reset()` is deliberately a no-op so defeat does
   not refund the deploy (`AbilityLimit.ts:263-265`). The leader entry
@@ -251,6 +262,16 @@ how far the saved position sits past the reported behavior (invariant 4 —
 enumerated, not silent). A deferred save that never fires — game ends, player
 disconnects, game halts — submits the report with no save attached; the
 existing `captureGameState` Discord summary is unaffected and still goes out.
+
+**Requests outside the action phase are refused, not armed.** A request
+arriving during setup or regroup has no same-round boundary to fire at: the
+next action window is in the following round, so arming it would cross a
+round boundary and violate the one-action drift bound stated above — and
+the "clear on phase exit to regroup" rule exists precisely to keep a flag
+from firing into a later round. The response is a player-visible "save
+unavailable until the next action"; the report still submits with the
+`captureGameState` summary. This is a v1 restriction (regroup-phase save
+points are Plan 6 territory, and Plan 6 rules them out of scope too).
 
 **This mechanism deliberately does not cover the automated error paths.**
 `Lobby.handleError` (`Lobby.ts:1652`) and `handleSerializationFailure`
@@ -396,13 +417,15 @@ would degrade essentially every save past the first action of a phase for
 most decks (any play/attack/action populates a registered watcher); whereas
 the encoding work is mechanical — the ~15 watchers in
 `server/game/stateWatchers/` have near-flat entry structs of GameObjectIds +
-primitives. Two exceptions carry a `Set<Trait>` captured at event time
+primitives. Three exceptions carry a `Set<Trait>` captured at event time
 (`AttacksThisPhaseWatcher`'s `attackerAttributes: ICardAttributes`,
-`AttacksThisPhaseWatcher.ts:17` / `Interfaces.ts:639-642`, and
-`CardsDefeatedThisPhaseWatcher`'s `lastKnownInformation`,
-`CardsDefeatedThisPhaseWatcher.ts:18-22`) — captured-at-event-time semantic
-data that cannot be re-derived post-load, so it is serialized with the same
-tagged-Set JSON encoding that B names for `Set` state, not dropped.
+`AttacksThisPhaseWatcher.ts:17` / `Interfaces.ts:639-642`, and the shared
+`IStateWatcherLKIEntry` (`StateWatcher.ts:21-27`: `traits`, `type`, `power`,
+`arena`) stored as `lastKnownInformation` by both
+`CardsDefeatedThisPhaseWatcher` and `CardsLeftPlayThisPhaseWatcher`) —
+captured-at-event-time semantic data that cannot be re-derived post-load, so
+it is serialized with the same tagged-Set JSON encoding that B names for
+`Set` state, not dropped.
 
 - Define one shared reference encoding used by all watcher serializers:
   `ISavedCardRef = { card: internalName, controllerSeat, zone, ordinal }`
@@ -414,9 +437,10 @@ tagged-Set JSON encoding that B names for `Set` state, not dropped.
   `BasesHealedThisPhaseWatcher.ts:9-11`) — without them, every save in the
   phase after a leader deploy or base heal would degrade spuriously under the
   unresolvable-referent rule below. It also includes a sub-position form for
-  cards nested inside an arena entry's `upgrades`/`capturedCards` arrays,
-  since a card referenced by `CardsLeftPlayThisPhaseWatcher` or
-  `CardsDefeatedThisPhaseWatcher` may now sit in a capture zone.
+  cards nested inside an arena entry's **or the base entry's**
+  `upgrades`/`capturedCards` arrays, since a card referenced by
+  `CardsLeftPlayThisPhaseWatcher` or `CardsDefeatedThisPhaseWatcher` may now
+  sit in a capture zone, and bases hold both captures and Fortify upgrades.
 - **Unresolvable-referent rule:** if an entry references an object that no
   longer exists in any saved zone (a defeated token unit — tokens cease to
   exist; anything else outside the save's zones), the writer **drops that
@@ -442,7 +466,16 @@ tagged-Set JSON encoding that B names for `Set` state, not dropped.
   - *Stint flags* (`inPlayId`/`parentCardInPlayId`/…) are saved as a "refers
     to the referent's current stint in play" flag and rehydrated against the
     loaded card's fresh `inPlayId` (current stint) or a sentinel non-current
-    value.
+    value. The sentinel is not free to choose: `InPlayCard` keeps a
+    `@statePrimitive` `_mostRecentInPlayId` (`InPlayCard.ts:91-115`) that
+    cards read as `mostRecentInPlayId` once they have left play, and
+    `CardsLeftPlayThisPhaseWatcher.getLeftPlayEntry` matches a saved
+    `inPlayId` against exactly that field for cards in discard
+    (`CardsLeftPlayThisPhaseWatcher.ts:54-69`). Injected cards never entered
+    play, so the loaded value is `-1` unless the loader sets it. The loader
+    must therefore write the non-current sentinel into the entry **and** set
+    the referent's `_mostRecentInPlayId` to the same value (C.4 exposes the
+    setter), or the entry silently never matches after load.
   - *Live-comparison counters* additionally need a **disjointness rule**:
     some saved counters are compared post-load against ids the live game
     generates — Ki-Adi-Mundi compares a saved `playEventId` to the live
@@ -477,7 +510,13 @@ elements, `GameObjectId`). Model: the existing `StateWatcher` dev check
 entries. This does not change runtime behavior; it prevents new state from
 violating the invariant that Plan 6 depends on. (Note the distinction from
 A2: `GameObjectId`s are legal *in engine state* — invariant 2 only bans them
-from *save files*.)
+from *save files*.) Known coverage gap, stated rather than closed here:
+`StateWatcher` writes its entries straight into the state bag with no
+`@stateValue` accessor (`StateWatcher.ts:51,66,142`) until Plan 3 Phase A
+step 0 migrates it, so this assertion never sees watcher payloads — their
+`Set<Trait>` members included. Plan 3's step 2 encoder is deliberately the
+first enforcement for entries; do not extend this check into the bag to
+compensate.
 
 ### C. Loader
 
@@ -510,11 +549,16 @@ from *save files*.)
      (`moveAllNonBaseZonesToRemoved`, `setGroundArenaUnits`, `setHand`,
      `setDeck`, `setLeaderStatus`, `setBaseStatus`, `setResourceCards`,
      `setDiscard`, `setHasTheForce`, `setCreditTokenCount`
-     (`PlayerInteractionWrapper.ts:967,995`), upgrade/capture attachment,
+     (`PlayerInteractionWrapper.ts:967,995`), upgrade/capture attachment
+     (for units **and** bases — `setBaseStatus` already takes `upgrades` and
+     `capturedUnits`),
      damage/exhaust state, and explicit `outsideTheGame` placement — the
      helpers only ever use that zone as staging, but it is a real schema
      zone the loader must populate deliberately)
-     from `test/helpers/PlayerInteractionWrapper.ts` into engine-side code.
+     from `test/helpers/PlayerInteractionWrapper.ts` into engine-side code,
+     plus one operation the helpers lack: setting a non-in-play card's
+     `_mostRecentInPlayId`, which A2's stint-flag rehydration needs for
+     cards in discard.
      The test helpers then become thin wrappers over the engine
      implementation (large incidental win: state injection becomes a
      supported engine feature instead of test-only code). Two mandatory
@@ -571,9 +615,18 @@ Saves go to the dev team via bug reports, not between players, so v1 needs
 no lobby consent or sharing flow — only artifact production and a dev-facing
 load path.
 
-- Save: expose on the lobby/game socket surface. Output: JSON document to
-  the client (download / bug-report attachment) — server-side storage is
-  optional and out of scope for v1.
+- Save: expose the *request* on the lobby/game socket surface; deliver the
+  *artifact* server-side. The completed `ISavedMatch` is attached to the
+  player's bug report through the existing `formatAndSendReportAsync`
+  Discord path (`Lobby.ts:2424-2426`), and the client keeps receiving only
+  the success boolean it gets today (`:2476-2480`). **The file is never sent
+  to the client.** This is forced, not a preference: the file carries
+  `rng.seed` and `rng.state`, and Plan 1 item C makes "the seed never
+  appears in any client-bound payload" a tested hard requirement — a client
+  download would fail that test the day it shipped. (It also makes the
+  hidden-information note below moot for v1: the dev team is the only
+  recipient.) Server-side storage beyond the Discord attachment is out of
+  scope.
 - **The armed one-shot trigger** (per "Requesting a save from a non-quiescent
   moment"): a request arriving at a boundary saves inline; otherwise the
   lobby stores `{ requestedAtActionNumber, requestedAtPhase }` and arms a
@@ -582,11 +635,15 @@ load path.
   submits on completion. Bound the armed state to the current game instance
   and clear it on game end, phase exit to regroup, or disconnect — a stale
   flag firing into a later round would produce an artifact that silently
-  misrepresents the reported moment.
+  misrepresents the reported moment. Requests arriving outside the action
+  phase are refused, per "Requesting a save from a non-quiescent moment".
 - Load: dev-facing flow accepting an `ISavedMatch`, binding users to seats
   (each user picks or is assigned a seat; the seat determines their decklist
   and all seat-keyed state), constructing the game via `MatchLoader`, and
-  surfacing the `engineOnlyFacts` manifest.
+  surfacing the `engineOnlyFacts` manifest. It constructs a game, so it
+  respects the server-wide `gamesEnabled` maintenance setting
+  (`ServerSettingsCache`, checked by every game-creation route in
+  `GameServer.ts`) the same way normal game creation does.
 - **Hidden information — decided: documentation-only for v1.** Deck order
   and hands are in the file in cleartext. For the bug-report customer this
   is a feature, not a leak: the hidden information is exactly what makes a
@@ -641,7 +698,8 @@ load path.
   drift of exactly one action; a request in an **undo-disabled** game still
   fires (guards the `SnapshotManager.ts:116,134` early-return); an armed flag
   is cleared by game end and by phase exit rather than firing into a later
-  round.
+  round; a request issued during regroup (and during setup) is refused with
+  the player-visible response and never arms.
 - Writer hard-refusal test for the remaining refusal case
   (`Card.nextAbilityIdx` coordinate drift), plus load-side rejection tests
   for untrustworthy files (unknown coordinates, schema violations,
@@ -675,6 +733,11 @@ load path.
   reserves the extension point, not built in v1).
 - A scrubbing writer mode for hidden information (documentation-only in v1;
   required only when player-to-player sharing ships — see D).
+- A client-side download of the save file (the artifact goes server-side to
+  the bug-report channel; a client download would violate Plan 1 item C's
+  seed-secrecy requirement — see D).
+- Save requests outside the action phase (refused in v1 — see the armed
+  one-shot section).
 - Preserving undo history across a load (snapshot history restarts).
 - Schema migration between format versions (fail loudly instead; Plan 6).
 - Server-side save storage/persistence infrastructure.
