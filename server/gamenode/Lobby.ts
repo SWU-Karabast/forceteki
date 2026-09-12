@@ -1260,7 +1260,7 @@ export class Lobby {
             const game = new Game(this.buildGameSettings(), { router: this });
             this.game = game;
 
-            logger.info(`Lobby: starting game id: ${game.id}`, { lobbyId: this.id });
+            logger.info(`Lobby: starting game id: ${game.id}`, { lobbyId: this.id, seed: game.randomSeed });
 
             // Initialize playerNames for Bo3 when game 1 starts (captures players before anyone can leave)
             if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfThree && this.winHistory.currentGameNumber === 1) {

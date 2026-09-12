@@ -481,6 +481,12 @@ export interface ISerializedGameState {
     player1?: ISafeSerializedType<IPlayerSerializedState>;
     player2?: ISafeSerializedType<IPlayerSerializedState>;
     error?: string;
+
+    /**
+     * RNG seed for this game, included for bug-report repro. This type is only ever used for
+     * server-side sinks (Discord dispatch, server logs) — never sent to a client socket.
+     */
+    seed?: string;
 }
 
 export type MessageText = string | (string | number)[];

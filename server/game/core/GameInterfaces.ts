@@ -29,6 +29,13 @@ export interface GameConfiguration {
 
     /** Callback to forfeit a Bo3 set when a player times out during a game. Only provided for Bo3 matches. */
     onBo3SetForfeit?: (losingPlayerId: string) => void;
+
+    /**
+     * Optional explicit RNG seed, for repro runs only. Production lobby flows must leave this
+     * unset so each `Game` instance mints its own fresh seed (see `Game.randomSeed`); passing the
+     * same seed into two live games would make one game's shuffles predictable from the other's.
+     */
+    seed?: string;
 }
 
 export interface ICurrentlyResolving {

@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
 
 import { GameChat } from './chat/GameChat';
@@ -257,6 +258,15 @@ export class Game extends EventEmitter {
         return this._randomGenerator;
     }
 
+    /**
+     * Server-side-only secret for the duration of the match: seed + message history reveals deck
+     * order, so this must never be included in any client-bound payload (lobby state, game state,
+     * undo messages). It is only surfaced to server logs and Discord bug-report dispatch.
+     */
+    public get randomSeed(): string {
+        return this._randomSeed;
+    }
+
     public get lobbyId() {
         return this._router.id;
     }
@@ -283,6 +293,7 @@ export class Game extends EventEmitter {
 
     private readonly _snapshotManager: SnapshotManager;
     private readonly _randomGenerator: IRandomness;
+    private _randomSeed: string;
     private readonly _router: Lobby;
 
     public ongoingEffectEngine: OngoingEffectEngine;
@@ -343,7 +354,8 @@ export class Game extends EventEmitter {
         validateGameOptions(options);
 
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
-        this._randomGenerator = new Randomness();
+        this._randomSeed = details.seed || randomBytes(16).toString('hex');
+        this._randomGenerator = new Randomness(this._randomSeed);
         this._router = options.router;
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
@@ -670,6 +682,7 @@ export class Game extends EventEmitter {
     }
 
     public setRandomSeed(seed: string): void {
+        this._randomSeed = seed;
         this._randomGenerator.reseed(seed);
     }
 
@@ -2059,6 +2072,7 @@ export class Game extends EventEmitter {
             phase: this.currentPhase,
             player1: Helpers.safeSerialize(this, () => player1.capturePlayerState('player1'), null),
             player2: Helpers.safeSerialize(this, () => player2.capturePlayerState('player2'), null),
+            seed: this._randomSeed,
         };
     }
 }
