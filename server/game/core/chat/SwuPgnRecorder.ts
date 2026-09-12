@@ -161,6 +161,30 @@ function readOr<T>(get: () => T, fallback: T): T {
  *
  * A source the engine did not supply at all falls through to `unknown` at the call site.
  */
+/**
+ * The engine's ability types, mapped to the format's `ABILITY_ACTIVATE.kind` vocabulary.
+ *
+ * Typed as `Record<AbilityType, AbilityKind>` for the reason the switch it replaced was not:
+ * that switch ended in `default: return undefined`, so an engine type nobody had mapped fell
+ * silently out of the file with no `kind` at all. Two did -- `Event` (every event card's own
+ * ability) and `DelayedEffect` -- and the first of them reached a real export before anyone
+ * noticed. A Record makes the compiler name the next one instead.
+ *
+ * `keyword` and `epic` are NOT here: neither is an `AbilityType`. A keyword ability is built as
+ * an ordinary TriggeredAbility and only its identifier's `keyword_<name>` descriptor says
+ * otherwise; an Epic Action is an ActionAbility with an epic limit. Both are decided before
+ * this map is consulted.
+ */
+const ABILITY_KIND_OF: Record<AbilityType, AbilityKind> = {
+    [AbilityType.Action]: 'action',
+    [AbilityType.Triggered]: 'triggered',
+    [AbilityType.ReplacementEffect]: 'replacement',
+    [AbilityType.DamageModification]: 'replacement',
+    [AbilityType.Constant]: 'constant',
+    [AbilityType.Event]: 'event',
+    [AbilityType.DelayedEffect]: 'delayed',
+};
+
 const DEFEAT_REASON_OF: Record<DefeatSourceType, DefeatReason> = {
     [DefeatSourceType.Attack]: 'attack',
     [DefeatSourceType.Ability]: 'ability',
@@ -868,14 +892,7 @@ export class SwuPgnRecorder {
         if (typeof id === 'string' && (/_keyword_/).test(id)) {
             return 'keyword';
         }
-        switch (readOr<unknown>(() => ability.type, undefined)) {
-            case AbilityType.Action: return 'action';
-            case AbilityType.Triggered: return 'triggered';
-            case AbilityType.ReplacementEffect:
-            case AbilityType.DamageModification: return 'replacement';
-            case AbilityType.Constant: return 'constant';
-            default: return undefined;
-        }
+        return ABILITY_KIND_OF[readOr<AbilityType>(() => ability.type, undefined)];
     }
 
     /** Engine PhaseName → 1.1 reader vocabulary ('setup'|'action'|'regroup'). */

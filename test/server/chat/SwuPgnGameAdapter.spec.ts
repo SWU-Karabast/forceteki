@@ -102,6 +102,17 @@ describe('SwuPgnGameAdapter.engineVersion', function () {
         expect(Adapter.engineVersion()).toBe('forceteki@abc1234');
     });
 
+    // A bare HEAD SHA names the last COMMIT, not the code that ran: a day of writer changes on
+    // one commit stamps every file identically, and a replay client holding a defective file and
+    // a fixed one could not tell them apart from the header. It had to infer the writer
+    // generation from the records instead.
+    it('marks an uncommitted tree so two builds on one commit are distinguishable', function () {
+        delete process.env.FORCETEKI_VERSION;
+        spyOn(Adapter, 'gitSha').and.returnValue('abc1234-dirty');
+
+        expect(Adapter.engineVersion()).toBe('forceteki@abc1234-dirty');
+    });
+
     it('falls back to the package version only when there is no git sha', function () {
         delete process.env.FORCETEKI_VERSION;
         process.env.npm_package_version = '0.0.1';

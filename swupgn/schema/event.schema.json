@@ -64,7 +64,7 @@
     },
     {
       "if": { "properties": { "t": { "const": "ABILITY_ACTIVATE" } }, "required": ["t"] },
-      "then": { "properties": { "ability": { "type": "string" }, "kind": { "enum": ["action","epic","triggered","keyword","replacement","constant"] }, "title": { "type": "string" }, "epic": { "type": "boolean" } } }
+      "then": { "properties": { "ability": { "type": "string" }, "kind": { "enum": ["action","epic","triggered","keyword","replacement","constant","event","delayed"] }, "title": { "type": "string" }, "epic": { "type": "boolean" } } }
     },
     {
       "if": { "properties": { "t": { "const": "CAPTURE" } }, "required": ["t"] },

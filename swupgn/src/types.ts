@@ -17,14 +17,17 @@ export type CardKind = 'unit' | 'upgrade';
  * `CardKind`, which shares the field name on other record types.
  *
  * `action` and `epic` are the player's own action for the turn and take their own step number;
- * every other kind is a consequence of something else and is a sub-step.
+ * every other kind is a consequence of something else and is a sub-step. `event` is an event
+ * card's own ability, which follows the `PLAY_EVENT` that paid for it; `delayed` is an effect
+ * set up earlier that comes due now.
  *
  * This alias is the ONE definition. The JSON Schema enum in `schema/event.schema.json` and the
  * §10.1 table in the spec must list exactly these values -- `types.spec.ts` asserts the schema
  * and this type agree, so a new kind cannot be added in only one of the two.
  */
 export type AbilityKind =
-  | 'action' | 'epic' | 'triggered' | 'keyword' | 'replacement' | 'constant';
+  | 'action' | 'epic' | 'triggered' | 'keyword' | 'replacement' | 'constant'
+  | 'event' | 'delayed';
 
 /**
  * Why a card was defeated (spec §6.4). The one CLOSED vocabulary in the format: these are the

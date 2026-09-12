@@ -39,7 +39,8 @@ describe('swupgn closed vocabularies stay in lockstep', function () {
         // The compiler enforces this list is exhaustive over AbilityKind: drop a member and
         // the Record below stops type-checking.
         const exhaustive: Record<AbilityKind, true> = {
-            action: true, epic: true, triggered: true, keyword: true, replacement: true, constant: true,
+            action: true, epic: true, triggered: true, keyword: true, replacement: true,
+            constant: true, event: true, delayed: true,
         };
         expect(Object.keys(exhaustive).sort()).toEqual(enumFor('ABILITY_ACTIVATE', 'kind').sort());
     });

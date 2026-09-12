@@ -346,6 +346,17 @@ carry real values in both.**
   between deploys (`package.json` has said `0.1.0` for the project's whole life, so every
   production file once read `forceteki@0.1.0` and identified nothing). A deployed image has
   no `.git`, so **production MUST set `FORCETEKI_VERSION` from the commit CI built**.
+
+  **A build identifier names the CODE THAT RAN, not the last commit.** A bare HEAD SHA does
+  not: a day of writer changes on one commit stamps every file identically, and a reader
+  holding a defective file and a fixed one cannot tell them apart from the header. So a writer
+  resolving its own SHA MUST mark an uncommitted tree — the reference writer appends `-dirty`
+  (`forceteki@7dd39a09-dirty`), the convention `git describe --dirty` uses. A reader SHOULD
+  treat a `-dirty` build as a development build and not attribute it to the named commit.
+
+  A writer that caches this value for its process lifetime (the reference writer does, because
+  shelling out to git on a game-end path would block every concurrent game) MUST re-resolve it
+  on restart. A long-running development server keeps stamping the SHA it started with.
 - **`Seed`** MUST be the seed the game's RNG actually ran on. A writer whose RNG self-seeds
   from entropy MUST generate and record a seed instead, otherwise the seed is unrecoverable
   and [§8.1](#81-determinism)'s deterministic replay is impossible.
@@ -935,7 +946,7 @@ to `base`, with an `EXHAUST` beside it (a defeated Leader Unit comes back exhaus
 |---|---|---|---|
 | `p` | 1 or 2 | yes | Who used it. |
 | `card` | string | yes | The card whose ability it is (`base@N` for a base's, [§6.3](#63-pointing-at-a-base)). |
-| `kind` | string | no | What sort of ability: `action`, `epic`, `triggered`, `keyword`, `replacement`, `constant`. |
+| `kind` | string | no | What sort of ability: `action`, `epic`, `triggered`, `keyword`, `replacement`, `constant`, `event`, `delayed`. |
 | `title` | string | no | The ability's printable name, as the card menu shows it. |
 | `ability` | string | no | The engine's own identifier. Debugging aid; **not** a stable key. |
 | `epic` | boolean | no | The ability was an Epic Action. Equivalent to `kind: "epic"`. |
@@ -948,6 +959,28 @@ ability *did* is recorded by the records that follow it.
 `shield_replacement_0`, `reforge_anonymous`) — an engine-internal string this format does not
 promise to keep stable, so every reader ends up with its own regex for it. A writer knows the
 answer from the ability itself and SHOULD state it.
+
+| `kind` | What fired |
+|---|---|
+| `action` | A card's "Action:" ability, used as the player's action for the turn. |
+| `epic` | An Epic Action. Its own kind because the rules track used/unused as game state (CR 1.16). |
+| `triggered` | A "When played" / "On attack" / "When defeated" ability, fired by something else. |
+| `keyword` | A keyword's ability (Shielded, Ambush, Restore, …). |
+| `replacement` | An ability that replaces an effect before it happens, or modifies incoming damage. |
+| `constant` | A continuous ability, active while the card is in play. |
+| `event` | An **event card's** own ability. It follows the `PLAY_EVENT` that paid for it. |
+| `delayed` | An effect set up earlier in the game that comes due now. |
+
+A writer MUST NOT omit `kind` for an ability it can classify. The reference writer maps the
+engine's ability types exhaustively, so a type nobody has mapped is a compile error rather than
+a record that quietly ships without the field — which is how `event` reached a published export
+missing its `kind` in the first place.
+
+**`title` is the ability's full printed text, not a short caption.** It is whatever the card's
+menu entry says, which for most cards is the entire rules text ("Choose a friendly unit and
+give it +2/+2 for this phase. Then, …" — 140 characters). The engine has no shorter name to
+offer, so a reader wanting a caption should build one from `kind` plus the card name and keep
+`title` for a tooltip or detail line.
 
 **`kind: "action"` and `kind: "epic"` are TOP-LEVEL ACTIONS** and take their own step number
 ([§9](#9-the-events-section-and-seq-numbers)): CR 6.1 lists "use an action ability" among the six things a player

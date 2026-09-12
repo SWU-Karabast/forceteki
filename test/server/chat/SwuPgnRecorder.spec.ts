@@ -4,7 +4,7 @@ import { saltedPlayerId } from '../../../server/game/core/chat/swuPgnIdentity';
 import { fold } from '../../../swupgn/src/index';
 import type { GameEvent, ReducedState } from '../../../swupgn/src/types';
 import { checkKeyframes } from '../../../swupgn/src/integrity';
-import { EventName } from '../../../server/game/core/Constants';
+import { AbilityType, EventName } from '../../../server/game/core/Constants';
 import { logger } from '../../../server/logger';
 
 describe('SwuPgnRecorder.buildHeader', function () {
@@ -614,6 +614,46 @@ describe('SwuPgnRecorder keyframes + INIT', function () {
 // real-game contract specs, but the fallback is only reachable when the engine hands over a
 // defeat with no source at all -- which is exactly the case that used to write an empty string,
 // a value outside the enum and outside the schema.
+// An event card's ability reached a published export with NO `kind` at all: abilityKind()'s
+// switch ended in `default: return undefined`, and AbilityType.Event was never a case. The map
+// that replaced it is exhaustive over AbilityType, so this asserts the whole engine vocabulary
+// lands somewhere rather than re-testing the one type that escaped.
+describe('SwuPgnRecorder classifies every engine ability type', function () {
+    it('gives an ABILITY_ACTIVATE a kind for each AbilityType the engine can raise', function () {
+        const expected: Record<string, string> = {
+            action: 'action',
+            triggered: 'triggered',
+            replacementEffect: 'replacement',
+            damageModification: 'replacement',
+            constant: 'constant',
+            event: 'event',
+            delayedEffect: 'delayed',
+        };
+        // Every member of the engine enum is covered above; a new one added there without a
+        // mapping is already a compile error in the recorder's Record.
+        expect(Object.keys(expected).sort()).toEqual(Object.values(AbilityType).sort());
+
+        for (const [engineType, kind] of Object.entries(expected)) {
+            const game = new FakeEmitter();
+            const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: () => 1 as const });
+            game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+            const p1 = { id: 'p1' };
+            const card = fakeCard({ uuid: `SOR#${engineType}`, zoneName: 'groundArena', owner: p1, controller: p1 });
+            game.emit(EventName.OnCardAbilityInitiated, {
+                card,
+                // The shape an event card's ability actually has: no explicit identifier, so
+                // CardAbility falls back to `<internalName>_anonymous`.
+                ability: { type: engineType, abilityIdentifier: 'some-card_anonymous', getTitle: () => 'T' },
+            });
+            const act = rec.getEvents().find((e: any) => e.t === 'ABILITY_ACTIVATE') as any;
+            expect(act).withContext(`${engineType} produced no record`)
+                .toBeDefined();
+            expect(act.kind).withContext(`${engineType} -> kind`)
+                .toBe(kind);
+        }
+    });
+});
+
 describe('SwuPgnRecorder closed-vocabulary fallbacks', function () {
     const recorder = () => {
         const game = new FakeEmitter();

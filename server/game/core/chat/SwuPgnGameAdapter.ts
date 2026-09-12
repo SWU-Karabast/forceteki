@@ -590,16 +590,38 @@ export class SwuPgnGameAdapter {
         return SwuPgnGameAdapter.cachedEngineVersion;
     }
 
-    /** Short git SHA of the working tree, or undefined when git or the repo isn't available. */
+    /**
+     * Short git SHA of the working tree, suffixed `-dirty` when the tree has uncommitted
+     * changes, or undefined when git or the repo isn't available.
+     *
+     * The suffix is the point. A bare HEAD SHA names the last COMMIT, not the code that ran, so
+     * a whole day of writer changes on one commit stamps every file identically -- and a reader
+     * holding a defective file and a fixed one cannot tell them apart from the header. That
+     * happened: a replay client had to infer the writer generation from the records instead.
+     * `git describe --dirty` uses the same convention.
+     *
+     * Note this cannot fix a running server: the value is cached for the process lifetime (see
+     * `engineVersion`), deliberately, because `execFileSync` blocks the event loop and this
+     * process runs many concurrent games. A deploy restarts the process; a dev server must be
+     * restarted to re-read it.
+     */
     private static gitSha(): string | undefined {
-        try {
-            const sha = execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
-                cwd: __dirname, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 2000,
-            }).trim();
-            return sha || undefined;
-        } catch {
-            return undefined;   // deployed without .git, or no git binary
+        const git = (args: string[]): string | undefined => {
+            try {
+                return execFileSync('git', args, {
+                    cwd: __dirname, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 2000,
+                }).trim();
+            } catch {
+                return undefined;   // deployed without .git, or no git binary
+            }
+        };
+        const sha = git(['rev-parse', '--short', 'HEAD']);
+        if (!sha) {
+            return undefined;
         }
+        // `--quiet` exits non-zero (throwing, so `undefined`) exactly when the tree is dirty.
+        const clean = git(['diff', '--quiet', 'HEAD']) !== undefined;
+        return clean ? sha : `${sha}-dirty`;
     }
 
     /** Maps a GameEndReason to a human-readable string for PGN output. */
