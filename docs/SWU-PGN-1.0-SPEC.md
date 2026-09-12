@@ -105,8 +105,9 @@ There are four jobs. You might do one, or all of them.
   ([§5.2](#52-you-may-have-these)); a silently under-recorded file must not look complete.
 - MUST record the resource row as counts: an `EXHAUST_RESOURCES` for every resource that
   becomes exhausted (a cost paid, an ability, a card resourced exhausted), a `READY_RESOURCES`
-  for every one that readies, and `exhausted: true` on a `MOVE` out of `resource` when the
-  card left exhausted ([§10.1](#101-events-that-carry-board-detail)).
+  accounting for every one that readies — one record per unbroken run, not one per resource —
+  and `exhausted: true` on a `MOVE` out of `resource` when the card left exhausted
+  ([§10.1](#101-events-that-carry-board-detail)).
 - MUST name the host with `attachedTo` on the `MOVE` that attaches a card, and MUST NOT name
   one on any `MOVE` out of an arena — exits are host-less
   ([§10.1](#binding-an-attachment-to-its-host)).
@@ -131,6 +132,25 @@ There are four jobs. You might do one, or all of them.
 - MUST mark a `DEPLOY_LEADER` or `ABILITY_ACTIVATE` that spends an Epic Action with `epic: true`,
   and MUST carry the leader's status, the deck count and the initiative counter's status in
   every keyframe ([§11](#11-the-board-you-build-reducedstate)).
+- MUST take a keyframe's snapshot at the moment its `seq` names, **before** the engine cleans up
+  after that moment. A `ROUND_END` snapshot taken a step late reports the between-rounds state —
+  `initiativeTaken: false` for a round that claimed, `phase: "setup"` for a round that just
+  finished its regroup — and fails [§14](#14-checking-a-file-is-honest) every time
+  ([§13](#13-keyframes)).
+- SHOULD say what KIND of ability an `ABILITY_ACTIVATE` was, and MUST give an action or Epic one
+  its own step number rather than filing it under the last action — which for an ability used
+  after the opponent's turn is the opponent's `PASS`
+  ([§10.1](#101-events-that-carry-board-detail), [§9](#9-the-events-section-and-seq-numbers)).
+- MUST write a `DEFEAT`'s `reason` from the closed set, and MUST NOT invent a value outside it
+  ([§6.4](#64-small-vocabularies)).
+- SHOULD name what healed with `src` on a `HEAL`: nothing later in the file can supply it
+  ([§10.1](#101-events-that-carry-board-detail)).
+- MUST NOT silently discard an undo. A writer that drops the retracted records MUST count them
+  in `Undos` and SHOULD leave an `UNDO` note where the truncation happened
+  ([§5.2](#52-you-may-have-these), [§10.2](#102-events-that-are-just-notes)).
+- MUST NOT put `ms` on anything but a numbered action, a `ROUND_START` or a `PHASE_START`, and
+  MUST write it as a duration from `Date` rather than a wall-clock time
+  ([§5.2.1](#521-timing-ms)).
 
 ### The Folder (rebuilds the board)
 
@@ -278,12 +298,40 @@ banner.
 |---|---|
 | `Format` | The tournament format, e.g. `"premier"`. Case is **not** standardised — accept any case. |
 | `Perspective` | `"P1"` or `"P2"`. If it's there, the file was recorded through that player's eyes, so the other player's hidden cards MAY be missing. If it's absent, the file sees everything. |
-| `EndDate` | When the game **ended**, ISO-8601 UTC. With `Date` (when it started) this gives the game's duration — the one thing per-event timestamps would have been for. Absent for an unfinished game, or a writer that cannot tell. |
+| `EndDate` | When the game **ended**, ISO-8601 UTC. With `Date` (when it started) this gives the game's duration. Absent for an unfinished game, or a writer that cannot tell. |
 | `Match` | An opaque id for the **match** this game belongs to, stable across the games of one Bo3. Lets a file that travels on its own — shared, archived, attached to a bug report — still say which match it came from, the way chess PGN's `Round` does. A writer MUST NOT put a host-internal lobby id here; the reference writer emits `sha256:<hex>` of it. |
 | `GameNumber` | Which game of that match this is, 1-based, as digits. Meaningless without `Match`. The reference writer never sets it — a game does not know its own place in a series — so it is for whatever delivers the file. |
+| `Undos` | How many times a player took a decision back, as digits. **Absent means none.** An undo removes the records it retracted, so a file with no tag and a file whose players undid six times are otherwise indistinguishable — and "was this line of play rehearsed" is a review question. The matching `UNDO` notes say WHERE ([§10.2](#102-events-that-are-just-notes)); this tag is the authoritative count. |
 | `RecorderErrors` | How many of the writer's event handlers failed while recording, as digits, e.g. `"2"`. **Absent means none.** Present means some events were never written: the keyframes are still exact (they are read from the engine, not folded), but the deltas between them are incomplete, so `checkKeyframes()` will report mismatches and `stateAt()` between keyframes may be wrong. A reader SHOULD surface it. |
 
 Unknown tags MUST be accepted and ignored.
+
+### 5.2.1 Timing: `ms`
+
+There are **no per-event timestamps**. There is one optional integer, `ms`, and it is a
+**duration, not a clock**: milliseconds from the header's `Date` to that record.
+
+A writer MAY put it on:
+
+- every **numbered action** ([§16](#16-turning-a-file-into-a-story)) — the plays,
+  `DEPLOY_LEADER`, `ATTACK`, `PASS`, `CLAIM_INITIATIVE`, an action or Epic `ABILITY_ACTIVATE`;
+- `ROUND_START` and `PHASE_START`.
+
+Nowhere else. A lettered consequence MUST NOT carry one: the engine resolves a play's damage,
+defeats and triggers in the same instant as the play, so a number there measures the engine
+rather than the player, and stamping every record would put a timing field on two thirds of the
+file to say nothing.
+
+The fold ignores it entirely, and so does the story. `Date` and `EndDate` give a game's total
+duration and nothing else; "how long did this decision take" is a review question in exactly the
+way chess PGN's `%clk` is, and no arrangement of the two header tags reaches it.
+
+**What this costs, and it is not nothing.** Inter-action timing is a behavioural fingerprint.
+[§17](#17-privacy) goes to some trouble to make a player unlinkable across files — the reference
+salt is per-game, and a publishing deployment is required to switch to a keyed one — and a
+corpus carrying `ms` can be clustered by playing rhythm even though every id in it differs. A
+deployment publishing files at scale SHOULD weigh that; a writer MAY omit `ms` and stays
+conformant, since it is optional everywhere.
 
 ### 5.3 Provenance: `Engine` and `Seed`
 
@@ -433,13 +481,35 @@ the base *card*; a `base@N` ref names the *thing being hit*.)
 |---|---|
 | `damageType` | `combat`, `ability`, `excess`. Overwhelm onto a base is written as its own `OVERWHELM` record, never as a `DAMAGE` with `damageType: "overwhelm"`. |
 | `defenderType` | `unit`, `base` |
-| `DEFEAT.reason` | `attack`, `ability`, `nonCombatDamage`, `frameworkEffect`, `uniqueRule` |
+| `DEFEAT.reason` | **Closed — see below.** |
 | `CHOICE.prompt` | The prompt's title as the engine built it. For an attack-target choice this is the attacking card's name. |
 | `STATUS_TOKEN.token` | `advantage`, `weakness` — the internal name of any token upgrade that is not a Shield or an Experience, so a token upgrade printed tomorrow needs no format change |
 | `PHASE_START.phase` | `setup`, `action`, `regroup` |
-| `ABILITY_ACTIVATE.ability` | `card-slug#subtitle_triggered_N`, `card-slug_action_N`, `name_anonymous` |
+| `ABILITY_ACTIVATE.ability` | `card-slug#subtitle_triggered_N`, `card-slug_action_N`, `name_anonymous`. An engine-internal slug: useful in a bug report, **never** something to branch on. Its `kind` is the field for that ([§10.1](#101-events-that-carry-board-detail)). |
 
 Treat all of these as **open lists**. A reader MUST NOT crash on a value it hasn't seen.
+
+**`DEFEAT.reason` is the exception: it is CLOSED.** It is the only vocabulary a reader is meant
+to branch on — "did this unit die in combat or to an effect" changes what a replay shows — so it
+is pinned here and in the schema rather than left open:
+
+| Value | What it means |
+|---|---|
+| `attack` | Combat damage from an attack killed it. `defeatedBy` names the attacker. |
+| `ability` | A card ability defeated it outright, or dealt the damage that did. `defeatedBy` names that card. |
+| `nonCombatDamage` | Damage from something that is not an attack — an event, an ongoing effect. |
+| `uniqueRule` | The uniqueness rule: a second copy of a unique card that its controller already has in play. |
+| `frameworkEffect` | The rules engine, with no card to blame. Three causes, and they are the whole set: an **upgrade whose host left play**, a unit whose **remaining HP fell to its damage** when an effect expired or was removed, and a **leader unit that would have changed control** (it is defeated instead). |
+| `unknown` | The writer could not resolve a cause. A reader SHOULD surface this the way it surfaces `RecorderErrors`; it should not appear in a healthy file. |
+
+`frameworkEffect` is deliberately not split further. Its three causes are one thing from the
+reader's side — nobody's card did it — and the split a reader would actually want (was this an
+upgrade falling off its host?) is already answerable from the record itself: the defeated card
+is an upgrade, and its host's own `DEFEAT` sits beside it.
+
+Adding a value here is a **spec revision**: writer, schema and this table move together. A
+reader still MUST NOT crash on a value from a newer writer ([§18](#18-versions-and-unknown-things));
+treat one as `unknown`.
 
 ### 6.5 The CARDS index
 
@@ -480,7 +550,7 @@ needs none.
 
 Note that this index reports what a card **is** (its printed type), while the same field on an
 event reports what that **event did**. They disagree for pilots, deliberately — see
-[§10.1](#kind-on-an-event-is-a-role-kind-in--cards-is-an-identity).
+[§10.1](#kind-on-an-event-is-a-role-kind-in-cards-is-an-identity).
 
 In `%%% CARDS`, a reader MUST therefore treat an absent `kind` as **not an upgrade** (it never
 attaches) and equally as **not a unit** (it never joins arena membership). Do not guess from
@@ -490,8 +560,8 @@ be handled.
 
 On an **event** the fold never consults identity: a `MOVE` or `CREATE_TOKEN` whose `kind` is
 absent is folded as a unit move ([§12.1](#121-the-move-rule-the-big-one) step 3), because
-only `"upgrade"` switches that step off. That is deliberate — every pre-release 1.1 file
-consists of kind-less `MOVE`s ([§22.1](#221-files-that-say-swu-pgn11)), and they fold.
+only `"upgrade"` switches that step off. That is deliberate: a writer that cannot report the
+role omits `kind`, and the move still folds as the common case rather than being dropped.
 
 Rules:
 
@@ -602,7 +672,8 @@ And two special ones per round: `R3.start` and `R3.end`.
 
 The numbers-and-letters rule is the useful part:
 
-- **`R2.A.3`** — a *thing a player chose to do*. Play a card. Attack. Pass.
+- **`R2.A.3`** — a *thing a player chose to do*. Play a card. Attack. Pass. Use a card's
+  action ability (`ABILITY_ACTIVATE` with `kind: "action"` or `"epic"`).
 - **`R2.A.3a`, `R2.A.3b`, `R2.A.3c`** — everything that *happened because of it*.
   The damage. The exhaust. The ability that triggered. In order.
 
@@ -632,7 +703,13 @@ names the action a record belongs to:
 ```
 
 It is legal on **any** record, and OPTIONAL: a reader that ignores it loses the grouping and
-nothing else. The *recorder* genuinely cannot produce it — when those records arrive it does not
+nothing else. Nor does what it names have to be an action: **a resourcing is announced the same
+way round** — the card's hand->`resource` `MOVE` lands first and the `RESOURCE` that summarises
+it follows — so a writer SHOULD stamp that `MOVE` with the `RESOURCE`'s seq. Left unstamped it
+carries the previous beat's number (the draw burst, or the other seat's commit) and a reader
+that trusts `for` files the card under the wrong player.
+
+The *recorder* genuinely cannot produce `for` — when those records arrive it does not
 yet know an action is about to follow, and guessing would mis-file a previous action's genuine
 consequences — but the **writer** holds the whole event list before serialising, so it fills them
 in then. The reference writer does this in `linkActionSteps()`.
@@ -647,7 +724,7 @@ run is just as likely to be the previous action's tail, and a wrong link is wors
 | Action | May be preceded by |
 |---|---|
 | `ATTACK` | `CHOICE`, `MODAL_CHOICE`, `EXHAUST` |
-| every other top-level action (the plays, `DEPLOY_LEADER`, `PASS`, `CLAIM_INITIATIVE`) | `MOVE`, `CHOICE`, `MODAL_CHOICE`, `EXHAUST`, `STATS`, `EXHAUST_RESOURCES` |
+| every other top-level action (the plays, `DEPLOY_LEADER`, `PASS`, `CLAIM_INITIATIVE`, an action `ABILITY_ACTIVATE`) | `MOVE`, `CHOICE`, `MODAL_CHOICE`, `EXHAUST`, `STATS`, `EXHAUST_RESOURCES` |
 
 An attack announces itself after picking a target and exhausting the attacker, and that is all:
 it never moves a card or restates its stats. A play does the opposite — the card arrives, gets
@@ -660,6 +737,11 @@ own step number.
 So "everything action `N` did" is the `Na…` records *after* it, plus every record carrying
 `for: "R<n>.<phase>.N"` — and, in a file whose writer did not stamp them, the trailing
 `MOVE` / `CHOICE` / `EXHAUST` before it that name the same card.
+
+An `UNDO` note ([§10.2](#102-events-that-are-just-notes)) takes the seq it reached back to plus
+`-undo`: `R2.A.3-undo`. It MUST NOT reuse that seq bare — the writer's counters were rewound
+along with the game, so the replay re-issues the very same number and the file would carry two
+records claiming to be `R2.A.3`.
 
 `R1.A.start` / `R1.A.end` mark the edges of a phase. `GAME_END` takes its own step,
 `.game-end`, in the phase it happened in — `R7.A.game-end` for a base destroyed in the action
@@ -849,9 +931,31 @@ to `base`, with an `EXHAUST` beside it (a defeated Leader Unit comes back exhaus
 
 **`ABILITY_ACTIVATE` — a player used an ability.**
 
-Fields: `p`, `card`, optional `ability` (the engine's identifier), optional `epic`.
+| Field | Type | Required | Means |
+|---|---|---|---|
+| `p` | 1 or 2 | yes | Who used it. |
+| `card` | string | yes | The card whose ability it is (`base@N` for a base's, [§6.3](#63-pointing-at-a-base)). |
+| `kind` | string | no | What sort of ability: `action`, `epic`, `triggered`, `keyword`, `replacement`, `constant`. |
+| `title` | string | no | The ability's printable name, as the card menu shows it. |
+| `ability` | string | no | The engine's own identifier. Debugging aid; **not** a stable key. |
+| `epic` | boolean | no | The ability was an Epic Action. Equivalent to `kind: "epic"`. |
+
 Changes nothing — except that `epic: true` marks an **Epic Action** as used. Everything an
 ability *did* is recorded by the records that follow it.
+
+**`kind` is what a reader should branch on.** Without it the only signal is the shape of
+`ability` (`…_action_1`, `…_triggered_0`, `mandalorian_keyword_shielded_0`,
+`shield_replacement_0`, `reforge_anonymous`) — an engine-internal string this format does not
+promise to keep stable, so every reader ends up with its own regex for it. A writer knows the
+answer from the ability itself and SHOULD state it.
+
+**`kind: "action"` and `kind: "epic"` are TOP-LEVEL ACTIONS** and take their own step number
+([§9](#9-the-events-section-and-seq-numbers)): CR 6.1 lists "use an action ability" among the six things a player
+may spend their action on, so it is the player's turn, not a consequence of anyone else's. A
+writer that numbers it as a sub-event files it under whatever was numbered last — which for a
+leader ability used after the opponent's turn is the **opponent's `PASS`**, and the ability's
+own consequences then hang off the wrong player's action. Every other kind IS a consequence of
+the action that caused it and stays a sub-step.
 
 **Epic Actions come from two places, and they are separate.** `card` says which:
 
@@ -972,9 +1076,16 @@ paid (the `amount` is what was actually paid, after aspect penalties, discounts 
 `cost` on the play record stays the printed cost), an ability exhausting resources, a single
 resource card exhausted by name, and a card an ability puts into the row exhausted (its `MOVE`
 into `resource` counted it ready, so it is one more exhaustion). It emits `READY_RESOURCES` the
-same way: the regroup step readies the exhausted resources one record at a time (a reader
-MUST tolerate a record for a resource that was already ready — it finds nothing to move), and
-an ability that readies several says how many.
+same way, and an ability that readies several says how many. A reader MUST tolerate an `amount`
+larger than the number actually exhausted — it moves what it finds and no more.
+
+**One record per run, not one per resource.** The engine readies the regroup row a card at a
+time, but the row's ready state is a COUNT: there is no per-resource identity for a second
+record to be about, and the fold does nothing with these but add `amount` up. A writer SHOULD
+therefore fold each unbroken run of same-seat `READY_RESOURCES` into a single `amount: N`
+(a seven-round game carried 54 of them, every one `amount: 1`). Anything at all between two
+readyings breaks the run and they stay two records. Per-card `READY` is untouched — those name
+a card, so each one says something.
 
 A card that **leaves** the row is counted by its `MOVE`, in the bucket the move's `exhausted`
 flag names ([`MOVE`](#101-events-that-carry-board-detail)).
@@ -1036,8 +1147,19 @@ Only `base@N` targets do anything: set that base's `baseHp` to `hp`.
 
 **`HEAL` — damage was removed.**
 
-Fields: `tgt`, `amt`, `hp`.
+| Field | Type | Required | Means |
+|---|---|---|---|
+| `src` | string | no | What healed it, on the same terms as `DAMAGE.src`. |
+| `tgt` | string | yes | `base@N` or a card id. |
+| `amt` | integer | yes | How much. |
+| `hp` | integer | yes | HP left **after** the heal. |
+
 Base: set `baseHp` to `hp`. Card: subtract `amt` from `damage` (never below 0).
+
+**Write `src` whenever you can.** A heal is always somebody's effect, and nothing else in the
+file can supply it afterwards: `OVERWHELM` omits its source and a reader still recovers it from
+the beat's `ATTACK`, but a heal has no attack to fall back on, so an unsourced `HEAL` says a base
+gained 2 HP and nothing at all about why.
 
 ---
 
@@ -1046,7 +1168,7 @@ Base: set `baseHp` to `hp`. Card: subtract `amt` from `damage` (never below 0).
 | Field | Type | Required |
 |---|---|---|
 | `card` | string | yes |
-| `reason` | string | yes |
+| `reason` | string (closed set, [§6.4](#64-small-vocabularies)) | yes |
 | `defeatedBy` | string | no |
 
 Take the card out of play and push its id onto that player's discard pile — and take it off
@@ -1244,6 +1366,22 @@ These never change the board. A folder MUST read them and do nothing.
 | `PHASE_END` | `phase` | A phase ended. |
 | `ROUND_END` | `round`, `keyframe` (optional) | A round ended. |
 | `GAME_END` | `winner` (1, 2, or `"Draw"`), `reason` | The game is over. |
+| `UNDO` | `at`, `by` (optional seat) | A player took a decision back. See the rule below. |
+
+> **`UNDO` — the one record about the FILE rather than the game.** An undo deletes the records
+> it retracted, so folding is already right without it: there is nothing left to undo. But
+> without a note, a file that had six retractions reads exactly like one that had none, and a
+> reader reviewing the game cannot tell a clean line of play from a rehearsed one. So the writer
+> leaves a mark where the truncation happened.
+>
+> `at` is the seq of the first record that was dropped. This record's own seq is that value plus
+> `-undo` (`R2.A.3-undo`), the same hyphen form `game-end` uses — it MUST NOT simply reuse `at`,
+> because the writer's counters were rewound too and the replay re-issues that very number.
+> `by` is the seat that asked for the undo, when the writer knows it.
+>
+> The header's `Undos` count is AUTHORITATIVE and these records are best-effort: an `UNDO` note
+> is an ordinary record, so a later, deeper undo can truncate one away. `Undos` MAY therefore
+> exceed the number of `UNDO` records in the file. It never goes the other way.
 
 > `ROUND_END` is in this list because it has no delta of its own — but if it carries a
 > `keyframe`, the fold still snaps to it. Same rule as `ROUND_START`.
@@ -1589,6 +1727,14 @@ state is thrown away and the keyframe takes its place. Everything below follows 
 - Emit a keyframe on `ROUND_END` as well as `ROUND_START` when you can. It halves the
   window between checkpoints, so a round's worth of fold drift is caught a round earlier,
   and costs one snapshot.
+- A keyframe describes the state **at its own seq**, so take the snapshot before the engine
+  cleans up after that moment. A `ROUND_END` keyframe is the trap: an engine typically
+  clears the initiative counter and leaves the current phase as it tears the round down, so
+  a snapshot taken a step too late reports `"initiativeTaken": false` for a round that did
+  claim, and `"phase": "setup"` for a round that just finished its regroup. Round-scoped
+  fields that the engine has already reset are best recovered from the records you just
+  wrote for that round (`CLAIM_INITIATIVE`, the last `PHASE_START`) — those are exactly what
+  the reader folds, so the keyframe agrees with the fold by construction.
 
 **Readers, on meeting a keyframe that is missing a seat, or malformed** (a `cards`, `hand`
 or `discard` that is not an array, or a `cards` entry that is not an object)**:** do NOT snap to it — snapping
@@ -1748,7 +1894,12 @@ Some events are **things a player chose to do**. Those get a number. Everything 
 The numbered ones are exactly:
 
 `PLAY`, `PLAY_EVENT`, `PLAY_UPGRADE`, `PLAY_SMUGGLE`, `DEPLOY_LEADER`, `ATTACK`,
-`PASS`, `CLAIM_INITIATIVE`
+`PASS`, `CLAIM_INITIATIVE`, and an `ABILITY_ACTIVATE` whose `kind` is `action` or `epic`
+
+That last one is a whole action, not a consequence: CR 6.1 lets a player spend their action on
+using a card's action ability, so it is their turn the same way a play or an attack is. An
+`ABILITY_ACTIVATE` of any other `kind` — `triggered`, `keyword`, `replacement`, `constant` —
+happened *because of* something else, and is indented under it.
 
 This mirrors the `seq` scheme ([§9.1](#91-how-seq-is-built)), where an action is `R2.A.3`
 and its consequences are `R2.A.3a`, `R2.A.3b`, … The grouping is already in the data;
@@ -1816,8 +1967,9 @@ read.
 | `DAMAGE` | `{amt} damage to {nm(tgt)} — {hp} HP left` |
 | `OVERWHELM` | `{amt} Overwhelm damage to {who(other)}'s base — {hp} HP left` |
 | `HEAL` | `{amt} healed on {nm(tgt)} — {hp} HP left` |
+| `UNDO` | Its own marker line, neither numbered nor indented: `    ·· {who(by)} undid back to {at} ··` (`A player` when `by` is absent) |
 | `DEFEAT` | `{nm(card)} is defeated` + ` by {nm(defeatedBy)}` if present |
-| `ABILITY_ACTIVATE` | `{nm(card)} uses an ability` |
+| `ABILITY_ACTIVATE` | `kind` `action`/`epic`: `{who(p)} uses {nm(card)}` (Epic Action: `…'s Epic Action`) — and it takes an action NUMBER. Otherwise `{nm(card)} uses an ability` |
 | `TRIGGER` | `{nm(card)} triggers` |
 | `STATUS_TOKEN` | `{nm(card)} gains\|loses {abs(count)} {token}` — `loses` when `count` is negative |
 | `SHIELD_GAIN` | `{nm(card)} gains {count ?? 1} shield` |
@@ -1908,6 +2060,10 @@ ever built from a username except the salted id, and
 if any of them survive into the file. A writer that builds strings from user data SHOULD also
 scan the finished file, and MUST NOT write one the scan rejects.
 
+`ms` ([§5.2.1](#521-timing-ms)) is the one field that works against all of this: a timing
+fingerprint survives any id scheme. It is optional everywhere, and a deployment that publishes a
+corpus SHOULD decide deliberately whether to emit it.
+
 When `Perspective` is `P1` or `P2`, the other player's hidden cards SHOULD be missing or
 blanked. Files that see everything MUST only be produced by a trusted server.
 
@@ -1922,13 +2078,7 @@ The version lives in the `Game` tag: `"SWU-PGN/MAJOR.MINOR"`.
 - **MINOR** goes up for additions that don't break anything — a new optional tag, a new
   optional field, a new event type. Readers MUST accept a **higher** minor version.
 
-> **One exception, and it is a real one.** Pre-release files exist that declare
-> `SWU-PGN/1.1` and are **older** than 1.0 — the number was corrected downward at
-> publication. Version numbers therefore do NOT order this format: a reader MUST match the
-> version string **exactly** rather than comparing it numerically.
-> See [§22.1](#221-files-that-say-swu-pgn11).
-
-To make that work, a reader:
+To accept a higher minor version, a reader:
 
 - MUST accept and ignore header tags it doesn't know;
 - MUST accept event types it doesn't know, treat them as "do nothing", and warn;
@@ -2009,7 +2159,13 @@ vectors ([§20](#20-test-vectors)). In every one, every keyframe field reproduce
 `%%% CARDS` covers every leader, base and deck id; and `GAME_END` takes the `.game-end` step of
 the phase it happened in. Two further real-game gates cover the cases that first broke the
 fold: a Change of Heart steal and return (`TAKE_CONTROL` re-seating), and Kazuda Xiono
-deploying as a pilot (`DEPLOY_LEADER` with `target`). (The other real-game specs bootstrap at
+deploying as a pilot (`DEPLOY_LEADER` with `target`). Six more cover what a second reading of
+that export turned up: the `ROUND_END` keyframe taken at the seq it names, an action ability
+numbered as its own action with the opponent's `PASS` left childless, `for` on every resourcing
+`MOVE` with the regroup row readied in one record, `HEAL.src` with each `DEFEAT` under its
+closed-set reason, `kind` on every activation, and `ms` on the numbered actions and nowhere
+else. The undo trace is gated separately, against a real rollback
+(`test/scenarios/undo/SwuPgnUndoRetention.spec.ts`). (The other real-game specs bootstrap at
 the action phase, which discards the natural hand without a `MOVE`, so they cannot assert the
 hand and resource counts past `R1.start`.) The credit rule was additionally checked against a
 real 10-round export in which one Credit token was created, held across two rounds and spent:
@@ -2106,7 +2262,7 @@ but each is detectable from the file, so a reader that meets an early 1.0 file c
 | Story wrote `(2 resources)` after a play | `(cost 2)` — it is the printed cost ([§10.1](#101-events-that-carry-board-detail)) | a story line containing `resources)` |
 | `CHOICE.offered` named a base by its card id (`SOR#029`) | `base@N` ([§6.3](#63-pointing-at-a-base)) | `offered` entry matching `^base@[12]$` |
 | Deck construction emitted 40 `MOVE`s `outsideTheGame` → `deck` | not recorded ([§10.1](#101-events-that-carry-board-detail)) | any `MOVE` with `from: "outsideTheGame"`, `to: "deck"` |
-| `%%% CARDS.kind` followed the live role (a pilot said `upgrade` while attached) | the printed identity ([§10.1](#kind-on-an-event-is-a-role-kind-in--cards-is-an-identity)) | not detectable from the index alone; a pilot's `MOVE` `kind` disagreeing with its index `kind` shows the current writer |
+| `%%% CARDS.kind` followed the live role (a pilot said `upgrade` while attached) | the printed identity ([§10.1](#kind-on-an-event-is-a-role-kind-in-cards-is-an-identity)) | not detectable from the index alone; a pilot's `MOVE` `kind` disagreeing with its index `kind` shows the current writer |
 | `%%% CARDS` covered only ids that events mentioned | also the header's leaders/bases and every deck id ([§6.5](#65-the-cards-index)) | an undeployed leader (`P1Leader`) absent from the index |
 | `GAME_END` seq was `R<n>.A.end`, shared with that phase's `PHASE_END` | `R<n>.<phase>.game-end`, its own step ([§9.1](#91-how-seq-is-built)) | a `GAME_END` whose seq ends in `.game-end` |
 | A control change (`TAKE_CONTROL`) was a note with no fold effect, so a stolen unit stayed under its old seat | it re-seats the card ([§10.1](#101-events-that-carry-board-detail)) | a `TAKE_CONTROL` carrying `zone` |
@@ -2124,6 +2280,15 @@ but each is detectable from the file, so a reader that meets an early 1.0 file c
 | Keyframe cards carried no stats and no captives | `power`, `hp` and `captured` ([§11](#11-the-board-you-build-reducedstate)) | the fields' presence |
 | `Engine` preferred the package version, so every production file said `forceteki@0.1.0` | git SHA before package version ([§5.3](#53-provenance-engine-and-seed)) | an `Engine` that is a SHA |
 | The `minimal` vector began at the `R1.start` keyframe and failed its own gate | a setup prologue; four real-game vectors added ([§20](#20-test-vectors)) | not a file change |
+| A `ROUND_END` keyframe was snapshotted after the engine tore the round down, so it reported `phase: "setup"` and `initiativeTaken: false` for a round that claimed | snapshotted at the seq it names ([§13](#13-keyframes)) | a `ROUND_END` keyframe whose `phase` is `regroup` |
+| An action ability was a sub-event, so it was filed under the last numbered action — the opponent's `PASS` — along with everything it did | its own numbered action ([§9](#9-the-events-section-and-seq-numbers), [§16](#16-turning-a-file-into-a-story)) | an `ABILITY_ACTIVATE` on a top-level step, or carrying `kind` |
+| The only clue to what sort of ability fired was the shape of `ability` | `kind`, and `title` ([§10.1](#101-events-that-carry-board-detail)) | the fields' presence |
+| The hand→`resource` `MOVE` carried the previous beat's number and no `for`, so a reader filed the card under the wrong player | stamped with its `RESOURCE`'s seq ([§9.1](#91-how-seq-is-built)) | a `MOVE` to `resource` carrying `for` |
+| The regroup wrote one `READY_RESOURCES` per resource — 54 in a 7-round game, every one `amount: 1` | one per unbroken run ([§10.1](#101-events-that-carry-board-detail)) | a `READY_RESOURCES` whose `amount` is above 1 |
+| `HEAL` said HP went up and nothing about what healed | optional `src`, on `DAMAGE.src`'s terms ([§10.1](#101-events-that-carry-board-detail)) | a `HEAL` carrying `src` |
+| `DEFEAT.reason` was an open list, so a reader could not switch on it, and an unresolved cause wrote `""` | a closed set, `unknown` included ([§6.4](#64-small-vocabularies)) | a `DEFEAT` whose `reason` is `unknown`, or `validate()` rejecting one outside the set |
+| An undo left no trace: a file where six decisions were retracted read like one where none were | `Undos` and `UNDO` notes ([§5.2](#52-you-may-have-these), [§10.2](#102-events-that-are-just-notes)) | the tag, or any `UNDO` record |
+| Nothing in a file said how long a decision took; `Date` and `EndDate` give only the whole game | optional `ms` on numbered actions and round/phase starts ([§5.2.1](#521-timing-ms)) | any record carrying `ms` |
 | A unit entering play exhausted was never written, so every replay showed a just-played unit ready | an `EXHAUST` right after its arrival ([§10.1](#101-events-that-carry-board-detail)) | an `EXHAUST` for a card in the same action as its `PLAY` |
 | Nothing carried a unit's live stats between keyframes; keyframes carried none at all | `STATS` after every change; `power`/`hp`/`keywords` on keyframe cards, gated ([§10.1](#stats)) | any `STATS` record |
 | The leader in the base zone, the deck count and the initiative counter's status were not in the board | `leader`, `deckSize`, `initiativeTaken` in every keyframe; `epic` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`; a returning Leader Unit's `EXHAUST` ([§11](#11-the-board-you-build-reducedstate)) | a keyframe carrying `leader` |
@@ -2137,49 +2302,6 @@ but each is detectable from the file, so a reader that meets an early 1.0 file c
 | A token unit's `CREATE_TOKEN` was dropped and `RecorderErrors` set, because the writer read the token's live stats while it was still outside the game | stats guarded and omitted when unreadable; `zone` names the destination arena ([§10.1](#101-events-that-carry-board-detail)) | a game containing a token unit but no `CREATE_TOKEN`, and a `RecorderErrors` tag |
 | A double-sided leader's face was not recorded, so a flipped leader replayed as its starting side for the whole game | `LEADER_FLIP` + `leader.onStartingSide` ([§10.1](#101-events-that-carry-board-detail)) | any `LEADER_FLIP` record, or a keyframe leader carrying `onStartingSide` |
 | `hand[]` grew from `DRAW` and nothing removed, so a folded "hand" was a cumulative draw log; `discard` was filed by `DEFEAT`, which fires after the `MOVE` that already removed the card, so no defeated unit reached the pile | both are folded from `MOVE` and gated ([§12.1](#121-the-move-rule-the-big-one), [§14](#14-checking-a-file-is-honest)) | not a file change; a reader's fold. Fold any vector's deltas to a keyframe and compare `hand`/`discard` — 45 mismatches before, 0 after |
-
-### 22.1 Files that say `SWU-PGN/1.1`
-
-**These are older than 1.0, not newer.** During development the format was numbered 1.1;
-the number was corrected to 1.0 at publication, but files written in that window exist in
-the wild and declare `[Game "SWU-PGN/1.1"]`.
-
-So **version numbers do not order this format**. A reader MUST NOT use "greater than" to
-decide compatibility — match the version string exactly:
-
-| `Game` tag | What to do |
-|---|---|
-| `SWU-PGN/1.0` | This document. |
-| `SWU-PGN/1.1` | A pre-release file. Parse it as 1.0, with the allowances below. |
-| another `SWU-PGN/1.x` | Same major version: accept it, ignore what you don't know ([§18](#18-versions-and-unknown-things)). |
-| a different major version | Reject. |
-
-A 1.1 file is structurally a 1.0 file — the grammar, the sections and the event types all
-parse. It differs in what its **writer** did, and every difference is detectable from the
-file itself:
-
-| In a 1.1 file | What a reader should do |
-|---|---|
-| Tokens are `TOKEN:<Title>` / `TOKEN:<Title>:<copy>`, with no `#<numericId>` | Treat as an opaque identity; no art lookup. Detect: a `TOKEN:` id containing no `#`. |
-| No `%%% CARDS` | Fall back to your own card database, or show raw ids. |
-| No `%%% STORY` | Render it yourself ([§16](#16-turning-a-file-into-a-story)). |
-| No `attachedTo` on a token's `MOVE` | The host is not stated. Do not guess it from event adjacency — leave the binding unknown. |
-| No `kind` on `MOVE` / `CREATE_TOKEN` | You cannot tell a token upgrade from a token unit. See below. |
-| No `RESOURCE` records | Recover resourcing from `MOVE` into the `resource` zone. |
-| Token gains with no matching removal | Tokens never come off. Clamp at zero and expect `statusTokens` to disagree with keyframes. |
-| `MOVE` with `from: ""`, or `from === to` | Skip the record; it carries no information. |
-| Keyframes missing a seat, or `"players":{}` | **Ignore that keyframe** and keep folding ([§13](#13-keyframes)). |
-| Duplicated arena cards when folding between keyframes | The 1.1 fold pushed a card for both the `MOVE` and the `PLAY`. Make placement idempotent by id ([§12.1](#121-the-move-rule-the-big-one)). |
-| `Engine "forceteki@unknown"` / `Seed "unseeded"` | Untraceable / not deterministically replayable ([§5.3](#53-provenance-engine-and-seed)). |
-
-**On the missing `kind`.** Without it a reader genuinely cannot tell which `TOKEN:` ids are
-upgrades — Shield, Experience, Advantage, Weakness, which must never enter an arena — from
-which are units — Battle Droid, X-Wing, TIE Fighter, Clone Trooper, Mandalorian, Spy, Beast,
-which must. Both shapes are `TOKEN:<name>#<id>`. Hardcoding the upgrade names works until a
-new token upgrade is printed, which is a latent bug rather than a fix. For a 1.1 file the
-honest fallback is: treat a token as an upgrade when its `MOVE` carries `attachedTo`,
-otherwise as a unit, and let the keyframe win when the two disagree. In 1.0, `kind` removes
-the guess.
 
 ---
 
