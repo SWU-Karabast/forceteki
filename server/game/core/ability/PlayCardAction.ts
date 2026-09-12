@@ -1,6 +1,7 @@
 import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import type { IActionTargetResolver } from '../../TargetInterfaces';
 import type { Card } from '../card/Card';
+import type { GameSystem } from '../gameSystem/GameSystem';
 import type { Aspect, CardType } from '../Constants';
 import { EffectName, EventName, KeywordName, PhaseName, PlayType } from '../Constants';
 import type { ICost } from '../cost/ICost';
@@ -29,6 +30,7 @@ export interface IPlayCardActionPropertiesBase {
     exploitValue?: number;
     canPlayFromAnyZone?: boolean;
     attachTargetCondition?: (attachTarget: Card, context: AbilityContext) => boolean;
+    preResolveGameSystem?: GameSystem;
 }
 
 interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {

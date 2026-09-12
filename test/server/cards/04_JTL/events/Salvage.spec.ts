@@ -27,7 +27,7 @@ describe('Salvage', function() {
             expect(context.player1.exhaustedResourceCount).toBe(3);
         });
 
-        it('Salvage shoul be able to target a friendly Stolen AT-Hauler that was defeated this phase', async function() {
+        it('Salvage should be able to target a friendly Stolen AT-Hauler that was defeated this phase', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -58,6 +58,32 @@ describe('Salvage', function() {
             expect(context.player2).toBeActivePlayer();
             expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
             expect(context.stolenAthauler.damage).toBe(1);
+        });
+
+        it('Salvage should be able to target a friendly Stolen AT-Hauler that was defeated this phase', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hasInitiative: false,
+                    hand: ['salvage'],
+                    discard: ['heroic-arc170'],
+                },
+                player2: {
+                    groundArena: ['atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.salvage);
+            context.player1.clickCard(context.heroicArc170);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.atst]);
+            context.player1.clickCard(context.atst);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.heroicArc170.damage).toBe(1);
+            expect(context.atst.damage).toBe(2);
         });
     });
 });
