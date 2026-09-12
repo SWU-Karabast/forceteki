@@ -24,6 +24,7 @@ export default class LeiaOrganaExtraordinary extends NonLeaderUnitCard {
                     cost: AbilityHelper.costs.useTheForce,
                     immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                         AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
+                            title: `Each friendly ${TextHelper.Heroism} unit gets +2/+2 for this phase`,
                             target: context.player.getArenaUnits({ aspect: Aspect.Heroism }),
                             effect: AbilityHelper.ongoingEffects.modifyStats({
                                 power: 2,

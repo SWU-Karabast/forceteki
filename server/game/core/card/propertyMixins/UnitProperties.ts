@@ -30,9 +30,10 @@ import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatC
 import type { ICaptorCard, ICardWithCaptureZone } from '../../zone/CaptureZone';
 import { CaptureZone } from '../../zone/CaptureZone';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
+import { giveAbilityToAttachedUnitTitle, giveKeywordToAttachedUnitTitle } from '../../ongoingEffect/effectImpl/GainAbilityDescription';
 import type { Player } from '../../Player';
 import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
-import type { IUpgradeCard } from '../CardInterfaces';
+import type { ICardWithUpgrades, IUpgradeCard } from '../CardInterfaces';
 import type { ActionAbilityBase } from '../../ability/ActionAbility';
 import type { ILeaderCard } from './LeaderProperties';
 import type { ILeaderUnitCard } from '../LeaderUnitCard';
@@ -69,17 +70,16 @@ export interface IUnitAbilityRegistrar<T extends IUnitCard> extends IInPlayCardA
     addWhenAttackEndsAbility(properties: Omit<IWhenAttackEndsAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
 }
 
-export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty, ICardWithCaptureZone {
+export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty, ICardWithCaptureZone, ICardWithUpgrades {
     get defaultArena(): Arena;
     get lastPlayerToModifyHp(): Player;
     get isClonedUnit(): boolean;
-    readonly upgrades: IUpgradeCard[];
     isClone(): this is Clone;
     getCaptor(): ICaptorCard | null;
     isAttacking(): boolean;
     isCaptured(): boolean;
-    isUpgraded(): boolean;
     hasExperience(): boolean;
+    hasWeakness(): boolean;
     hasShield(): boolean;
     effectsPreventAttack(target: Card, context?: AbilityContext): boolean;
     moveToCaptureZone(targetZone: CaptureZone);
@@ -93,9 +93,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unregisterWhenCapturedKeywords();
     checkDefeatedByOngoingEffect();
     refreshWhileInPlayKeywordAbilityEffects();
-    unattachUpgrade(upgrade, event);
     canAttachPilot(pilot: IUnitCard): boolean;
-    attachUpgrade(upgrade);
     getNumericKeywordTotal(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
     getMaxUnitAttackLimit(): number;
 }
@@ -269,6 +267,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         public hasExperience(): boolean {
             return this.upgrades.some((card) => card.isExperience());
+        }
+
+        public hasWeakness(): boolean {
+            return this.upgrades.some((card) => card.isWeakness());
         }
 
         public hasShield(): boolean {
@@ -567,7 +569,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             const { gainCondition, ...gainedKeywordProperties } = properties;
 
             this.addPilotingConstantAbilityTargetingAttached({
-                title: 'Give keyword to the attached card',
+                title: giveKeywordToAttachedUnitTitle(gainedKeywordProperties),
                 condition: this.addZoneCheckToGainCondition(gainCondition),
                 ongoingEffect: OngoingEffectLibrary.gainKeyword(gainedKeywordProperties)
             });
@@ -577,7 +579,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             const { gainCondition, ...gainedAbilityProperties } = properties;
 
             this.addPilotingConstantAbilityTargetingAttached({
-                title: 'Give ability to the attached card',
+                title: giveAbilityToAttachedUnitTitle(gainedAbilityProperties),
                 condition: this.addZoneCheckToGainCondition(gainCondition),
                 ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbilityProperties)
             });
@@ -717,6 +719,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const hiddenKeywordAbilityProps: IConstantAbilityProps<this> = {
                     title: `${TextHelper.Hidden}`,
                     condition: (context) =>
+                        context.source.hasSomeKeyword(KeywordName.Hidden) &&
                         context.source.isInPlay() &&
                         this.wasPlayedDeployedOrCreatedThisPhase(context.source),
                     ongoingEffect: this.game.abilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)

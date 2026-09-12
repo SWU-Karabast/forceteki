@@ -62,10 +62,10 @@ export class DamageModificationSystem<
                     };
                 case DamageModificationType.Replace:
                     const replaceWith = properties.replaceWithEffect;
-                    const replaceMessage = replaceWith.getEffectMessage(context);
+                    const [replaceFormat, replaceArgs] = replaceWith.getEffectMessage(context);
                     return {
                         format: '{0} instead of {1} taking damage',
-                        args: [replaceMessage, this.getTargetMessage(context.event.card, context)],
+                        args: [{ format: replaceFormat, args: replaceArgs }, this.getTargetMessage(context.event.card, context)],
                     };
                 default:
                     Contract.fail(`Invalid modificationType ${properties.modificationType} for DamageModificationSystem`);

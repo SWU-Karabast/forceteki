@@ -99,6 +99,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return this.selector.hasEnoughTargets(context);
     }
 
+    /** True if this resolver permits selecting zero cards */
+    public get allowsChoosingNoCards(): boolean {
+        return this.selector.optional;
+    }
+
     public getAllLegalTargets(context: AbilityContext): Card[] {
         return this.selector.getAllLegalTargets(context);
     }
@@ -266,8 +271,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     private promptForSingleOptionalTarget(player: Player, context: AbilityContext, target: Card) {
-        const effectName = this.properties.activePromptTitle ? this.properties.activePromptTitle : context.ability.getTitle(context);
-
+        const effectName = super.buildConcreteActivePromptTitle(context) ?? context.ability?.getTitle(context);
         const activePromptTitle = `Trigger the effect '${effectName}' on target '${target.title}' or pass${this.selector.appendToDefaultTitle ? ' ' + this.selector.appendToDefaultTitle : ''}`;
 
         context.game.promptWithHandlerMenu(player, {
@@ -275,8 +279,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             choices: [`${effectName} -> ${target.title}`, 'Pass'],
             handlers: [
                 () => this.setTargetResult(context, target),
-                // finalize the resolution with no target so the resolver doesn't re-prompt (mirrors the "choose nothing" path)
-                () => this.setTargetResult(context, null)
+                // matches the "Choose nothing" behavior of the standard multi-card prompt
+                () => this.setTargetResult(context, [])
             ]
         });
     }

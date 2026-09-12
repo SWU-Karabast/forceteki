@@ -149,6 +149,19 @@ export interface IServerRoleUsersListsEntity {
     contributors: IServerRoleUserEntity[];
 }
 
+/**
+ * Global, runtime-toggleable server settings. Stored as a single item so that moderators can
+ * change them without a redeploy of either the client or the server.
+ */
+export interface IServerSettingsEntity {
+
+    /** When false, no new games may be created, joined or requeued. In-progress games are unaffected. */
+    gamesEnabled: boolean;
+    maintenanceMessage?: string;
+    updatedBy?: string;
+    updatedAt?: string;
+}
+
 export enum ModActionType {
     Mute = 'Mute',
     Warning = 'Warning',

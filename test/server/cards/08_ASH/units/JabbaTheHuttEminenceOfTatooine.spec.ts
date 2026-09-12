@@ -118,6 +118,32 @@ describe('Jabba The Hutt, Eminence Of Tatooine', function() {
             });
         });
 
+        it('should be able to return a Fortify upgrade attached to a base to its owner\'s hand', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['jabba-the-hutt#eminence-of-tatooine'],
+                    base: { card: 'echo-base', upgrades: ['alliance-shield-generator'] }
+                },
+                player2: {
+                    base: { card: 'kestro-city', upgrades: ['sinister-war-memorial'] }
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.jabbaTheHutt);
+            expect(context.player1).toBeAbleToSelectExactly([context.allianceShieldGenerator, context.sinisterWarMemorial]);
+            context.player1.clickCard(context.allianceShieldGenerator);
+
+            expect(context.player1).toHavePassAbilityPrompt('Play Alliance Shield Generator for free');
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickCard(context.p1Base);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p1Base).toHaveExactUpgradeNames(['alliance-shield-generator']);
+        });
+
         it('should return a pilot leader upgrade to its owner\'s hand (leader is defeated)', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',

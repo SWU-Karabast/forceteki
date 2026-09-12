@@ -71,6 +71,13 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         return targetResolver.hasLegalTarget(context);
     }
 
+    /**
+     * True if this selection can be legally resolved by choosing zero cards (e.g. {@link TargetMode.UpTo}).
+     */
+    public selectionAllowsChoosingNoCards(context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}): boolean {
+        return this.generateTargetResolver(context, additionalProperties).allowsChoosingNoCards;
+    }
+
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}): void {
         if (!this.hasLegalTarget(context, additionalProperties)) {
             return;
@@ -96,7 +103,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                 if (!properties.isCost && Helpers.asArray(context.target).length > 0) {
                     this.addOnSelectEffectMessage(context, properties);
                 }
-                properties.onSelectHandler?.(context.target);
+                properties.onSelectHandler?.(context.targets[properties.name] ?? context.target);
                 properties.immediateEffect.queueGenerateEventGameSteps(events, context, additionalProperties);
             }
         }, `Execute immediate effect for select card system "${properties.name}"`);

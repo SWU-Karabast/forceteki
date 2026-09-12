@@ -159,6 +159,7 @@ class DeckBuilder {
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.groundArena));
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.spaceArena));
         inPlayCards = inPlayCards.concat(this.getUpgradesFromCard(playerCards.leader));
+        inPlayCards = inPlayCards.concat(this.getUpgradesFromCard(playerCards.base));
 
         // Collect all the cards together
         deckCards = deckCards.concat(inPlayCards);

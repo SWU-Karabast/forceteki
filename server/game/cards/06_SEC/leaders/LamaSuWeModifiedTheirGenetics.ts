@@ -28,7 +28,10 @@ export default class LamaSuWeModifiedTheirGenetics extends LeaderUnitCard {
                 immediateEffect: abilityHelper.immediateEffects.playCardFromHand({
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
                     playAsType: WildcardCardType.Upgrade,
-                    attachTargetCondition: (target, context) => target.controller === context.player && !target.hasSomeTrait(Trait.Vehicle),
+                    attachTargetCondition: (target, context) =>
+                        target.isUnit() &&
+                        target.controller === context.player &&
+                        !target.hasSomeTrait(Trait.Vehicle),
                 }),
             },
             ifYouDo: (ifYouDoContext) => {
@@ -55,7 +58,10 @@ export default class LamaSuWeModifiedTheirGenetics extends LeaderUnitCard {
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
                     playAsType: WildcardCardType.Upgrade,
                     canPlayFromAnyZone: true,
-                    attachTargetCondition: (target, context) => target.controller === context.player && !target.hasSomeTrait(Trait.Vehicle),
+                    attachTargetCondition: (target, context) =>
+                        target.isUnit() &&
+                        target.controller === context.player &&
+                        !target.hasSomeTrait(Trait.Vehicle),
                 }),
             },
         });

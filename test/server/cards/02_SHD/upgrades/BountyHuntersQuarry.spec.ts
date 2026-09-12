@@ -117,7 +117,7 @@ describe('Bounty Hunter\'s Quarry', function () {
                 context.moveToRegroupPhase();
 
                 // Fireball is defeated, triggering the bounty
-                expect(context.player1).toHavePrompt(`Trigger the ability '${prompt}' or pass`);
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({

@@ -16,7 +16,8 @@ describe('Bounty Posting', function() {
 
                 const { context } = contextRef;
 
-                const preShuffleDeck = context.player1.deck;
+                // Seeded so the shuffle result is identical on every run.
+                context.game.setRandomSeed('12345');
 
                 context.player1.clickCard(context.bountyPosting);
                 expect(context.player1).toHaveExactDisplayPromptCards({
@@ -42,7 +43,15 @@ describe('Bounty Posting', function() {
                 context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.cloneTrooper);
                 expect(context.cloneTrooper).toHaveExactUpgradeNames(['top-target']);
-                expect(preShuffleDeck).not.toEqual(context.player1.deck);
+
+                // Top Target was drawn; the remaining cards were shuffled into this deterministic order.
+                expect(context.player1.deck.map((c) => c.internalName)).toEqual([
+                    'death-mark',
+                    'pyke-sentinel',
+                    'hylobon-enforcer',
+                    'cell-block-guard',
+                    'tieln-fighter'
+                ]);
                 expect(context.player2).toBeActivePlayer();
             });
 

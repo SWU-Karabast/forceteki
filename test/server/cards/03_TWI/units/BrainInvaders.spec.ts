@@ -419,7 +419,7 @@ describe('Brain Invaders', () => {
 
                 // Fennec Shand regains her action ability
                 expect(context.fennecShand).toHaveAvailableActionWhenClickedBy(context.player1);
-                expect(context.player1).toHaveEnabledPromptButton('Play a unit that costs 4 or less from your hand. Give it ambush for this phase');
+                expect(context.player1).toHaveEnabledPromptButton('Play a unit that costs 4 or less from your hand. Give it Ambush for this phase');
                 context.player1.clickPrompt('Attack');
                 context.player1.clickCard(context.p2Base);
 

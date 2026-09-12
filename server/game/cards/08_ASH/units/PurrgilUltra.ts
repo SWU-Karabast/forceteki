@@ -1,7 +1,7 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { EventName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class PurrgilUltra extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -25,15 +25,19 @@ export default class PurrgilUltra extends NonLeaderUnitCard {
                 cardCondition: (card, context) => card.isUnit() && card !== context?.source,
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
-            ifYouDo: (ifYouDoContext) => ({
-                // TODO: Update this ability to read cost from LKI, since cards like Clone can copy
-                // another card's printed attributes while in play
-                title: `Deal ${ifYouDoContext.target.cost} damage to a unit`,
-                targetResolver: {
-                    cardTypeFilter: WildcardCardType.Unit,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: ifYouDoContext.target.cost }),
-                }
-            })
+            ifYouDo: (ifYouDoContext) => {
+                const returnedUnitCost = ifYouDoContext.events.find(
+                    (event) => event.name === EventName.OnCardMoved && event.card === ifYouDoContext.target
+                )?.lastKnownInformation?.cost ?? ifYouDoContext.target.cost;
+
+                return {
+                    title: `Deal ${returnedUnitCost} damage to a unit`,
+                    targetResolver: {
+                        cardTypeFilter: WildcardCardType.Unit,
+                        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: returnedUnitCost }),
+                    }
+                };
+            }
         });
     }
 }

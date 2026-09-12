@@ -63,6 +63,19 @@ describe('Power Failure', function() {
                 expect(context.imperialInterceptor).toHaveExactUpgradeNames(['academy-training', 'shield']);
                 expect(context.pykeSentinel).toHaveExactUpgradeNames(['entrenched', 'devotion']);
             });
+
+            it('does not crash and defeats no upgrades if the player declines to choose a unit', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.powerFailure);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.imperialInterceptor]);
+                expect(context.player1).toHaveChooseNothingButton();
+                context.player1.clickPrompt('Choose nothing');
+
+                expect(context.imperialInterceptor).toHaveExactUpgradeNames(['academy-training', 'shield']);
+                expect(context.pykeSentinel).toHaveExactUpgradeNames(['entrenched', 'devotion']);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

@@ -31,6 +31,7 @@ export default class PitDroidTeam extends NonLeaderUnitCard {
                 amount: 1,
                 match: (card, adjusterSource) => this.isFirstUpgradePlayedOnAnotherFriendlyUnitThisPhase(card, adjusterSource),
                 attachTargetCondition: (attachTarget, context, adjusterSource) =>
+                    attachTarget.isUnit() &&
                     attachTarget.controller === context.player &&
                     attachTarget !== adjusterSource,
             }),
@@ -41,7 +42,8 @@ export default class PitDroidTeam extends NonLeaderUnitCard {
         return !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
             playedCardEntry.playedBy === card.controller &&
             playedCardEntry.card.isUpgrade() &&
-            playedCardEntry.parentCard?.controller === card.controller &&
+            playedCardEntry.parentCard?.isUnit() &&
+            playedCardEntry.parentCard.controller === card.controller &&
             playedCardEntry.parentCard !== adjusterSource &&
             playedCardEntry.card !== card
         );

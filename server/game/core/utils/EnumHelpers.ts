@@ -68,6 +68,32 @@ export namespace EnumHelpers {
         }
     };
 
+    /**
+     * Any zone where cards are considered to be "in play" (CR 4.9.1). Face-down cards in these zones are still considered out
+     * of play, including the backside of leader cards.
+     *
+     * Resource zone excluded because all cards in that zone are facedown and considered out of play.
+     *
+     * @param zone The zone to check.
+     * @returns True if the zone is an in-play zone (GroundArena, SpaceArena, Base, or AnyArena wildcard), false otherwise.
+     */
+    export const isInPlayZone = (zone: ZoneFilter): zone is ZoneName.GroundArena |
+      ZoneName.SpaceArena |
+      ZoneName.Base |
+      WildcardZoneName.AnyArena |
+      WildcardZoneName.AnyAttackable => {
+        switch (zone) {
+            case ZoneName.GroundArena:
+            case ZoneName.SpaceArena:
+            case ZoneName.Base:
+            case WildcardZoneName.AnyArena:
+            case WildcardZoneName.AnyAttackable:
+                return true;
+            default:
+                return false;
+        }
+    };
+
     export const getCardTypesForFilter = (cardTypeFilter: CardTypeFilter): CardType[] => {
         switch (cardTypeFilter) {
             case WildcardCardType.Any:
@@ -325,9 +351,11 @@ export namespace EnumHelpers {
         [TokenUnitName.Spy]: 'Spy',
         // eslint-disable-next-line forceteki/no-raw-token-text -- token display name, not a trait reference
         [TokenUnitName.Mandalorian]: 'Mandalorian',
+        [TokenUnitName.Beast]: 'Beast',
         [TokenUpgradeName.Shield]: 'Shield',
         [TokenUpgradeName.Experience]: 'Experience',
         [TokenUpgradeName.Advantage]: 'Advantage',
+        [TokenUpgradeName.Weakness]: 'Weakness',
         [TokenCardName.Credit]: 'Credit',
         [TokenCardName.Force]: 'The Force'
     };

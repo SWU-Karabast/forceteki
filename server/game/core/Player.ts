@@ -280,7 +280,7 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             : ByoyomiTimer.MainTimeWarningSeconds;
         const alertType = status === PlayerTimeRemainingStatus.Danger ? AlertType.Danger : AlertType.Warning;
 
-        this.game.addAlert(alertType, `${this.name} has ${secondsRemaining} seconds of main time remaining.`);
+        this.game.addAlert(alertType, '{0} has {1} seconds of main time remaining.', this, secondsRemaining);
     }
 
     public getArenaCards(filter: IAllArenasForPlayerCardFilterProperties = {}) {
@@ -628,7 +628,8 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * @returns {import('./card/baseClasses/InPlayCard').IInPlayCard[]} Duplicates of passed card (does not check unique status)
      */
     public getDuplicatesInPlay(card: IInPlayCard): IInPlayCard[] {
-        return this.getArenaCards().filter((otherCard) =>
+        return this.getInPlayCards().filter((otherCard): otherCard is IInPlayCard =>
+            otherCard.canBeInPlay() &&
             otherCard.title === card.title &&
             otherCard.subtitle === card.subtitle &&
             otherCard !== card

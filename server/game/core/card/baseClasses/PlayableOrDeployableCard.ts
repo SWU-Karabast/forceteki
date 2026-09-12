@@ -1,6 +1,6 @@
 import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
 import { PlotAbility } from '../../../abilities/keyword/PlotAbility';
-import type { IAbilityPropsWithSystems, IConstantAbilityProps, IOngoingEffectGenerator, NumericKeywordName } from '../../../Interfaces';
+import type { IAbilityPropsWithSystems, IConstantAbilityProps, IOngoingEffectGenerator, IPlayCostProperties, NumericKeywordName } from '../../../Interfaces';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
@@ -13,6 +13,7 @@ import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, Wi
 
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
+import * as CostAdjusterFactory from '../../cost/CostAdjusterFactory';
 import type { Restriction } from '../../ongoingEffect/effectImpl/Restriction';
 import { registerStateBase, statePrimitive } from '../../GameObjectUtils';
 import type { Player } from '../../Player';
@@ -22,6 +23,10 @@ import { Helpers } from '../../utils/Helpers';
 import { Card } from '../Card';
 import type { ICardCanChangeControllers } from '../CardInterfaces';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
+import type { ICost } from '../../cost/ICost';
+import { GameSystemCost } from '../../cost/GameSystemCost';
+import type { CardTargetSystem } from '../../gameSystem/CardTargetSystem';
+import { getSelectCost } from '../../../costs/CostLibrary';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
@@ -68,6 +73,30 @@ export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostP
 @registerStateBase()
 export class PlayableOrDeployableCard extends Card implements IPlayableOrDeployableCard {
     protected preEnterPlayAbilities: PreEnterPlayAbility[] = [];
+
+    /**
+     * Additional play costs that originate from this card's *own* abilities, registered via the ability
+     * registrar's `addAdditionalPlayCost`. Because they are card abilities they are blanked while the card is
+     * out of play (see {@link getAdditionalPlayCostAbilities}), and they are merged into every play action
+     * generated for the card.
+     *
+     * This is distinct from additional play costs imposed by *other* effects (e.g. Saw Gerrera), which are
+     * ongoing effects added in {@link PlayCardAction.getCosts} rather than tracked here.
+     */
+    protected additionalPlayCostAbilities: ICost[] = [];
+
+    /**
+     * Alternate play costs registered on this card (see `addAlternatePlayCost`). Each becomes an alternate
+     * play action offered alongside the default, allowing the player to pay the alternate cost instead of
+     * the resource cost.
+     */
+    protected alternatePlayCosts: IPlayCostProperties<this>[] = [];
+
+    /**
+     * The explicit `costName`s already registered for this card's additional/alternate play costs. Used to
+     * guard against two play costs sharing a name and silently colliding on the same `context.costs` key.
+     */
+    private readonly registeredPlayCostNames = new Set<string>();
 
     @statePrimitive()
     private accessor _exhausted: boolean | null = null;
@@ -184,7 +213,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
                 defaultPlayAction = this.buildCheapestAlternatePlayAction(propertyOverridesWithExploit, KeywordName.Smuggle, playType);
             }
         } else {
-            defaultPlayAction = this.buildPlayCardAction({ ...propertyOverridesWithExploit, playType });
+            defaultPlayAction = this.buildPlayCardAction(this.applyAdditionalPlayCosts({ ...propertyOverridesWithExploit, playType }));
         }
 
         // if there's not a basic play action available for the requested play type, return nothing
@@ -193,6 +222,16 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         }
 
         const actions: PlayCardAction[] = [defaultPlayAction];
+
+        // Alternate play costs are offered alongside the default for the base play types only (not for
+        // keyword-alternate play types like Smuggle/Piloting), and not when the card is blanked out of play.
+        if (
+            (playType === PlayType.PlayFromHand || playType === PlayType.PlayFromOutOfPlay) &&
+            this.alternatePlayCosts.length > 0 &&
+            !this.isBlankOutOfPlay()
+        ) {
+            actions.push(...this.buildAlternatePlayActions(playType, propertyOverridesWithExploit));
+        }
 
         return actions;
     }
@@ -213,7 +252,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
                 alternatePlayActionAspects: keywordWithCostValue.aspects
             };
 
-            return this.buildPlayCardAction(alternateActionProps);
+            return this.buildPlayCardAction(this.applyAdditionalPlayCosts(alternateActionProps));
         });
 
         return KeywordHelpers.getCheapestPlayAction(playType, alternatePlayActions);
@@ -222,6 +261,107 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     // can't do abstract due to mixins
     public buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction {
         Contract.fail('This method should be overridden by the subclass');
+    }
+
+    /**
+     * Registers an additional cost to be paid whenever this card is played. Called by the ability
+     * registrar's `addAdditionalPlayCost`. See also {@link additionalPlayCostAbilities}.
+     */
+    protected registerAdditionalPlayCost(properties: IPlayCostProperties<this>): void {
+        this.assertPlayCostNameUnused(properties);
+        this.additionalPlayCostAbilities = this.additionalPlayCostAbilities.concat(this.buildPlayCost(properties));
+    }
+
+    /**
+     * Registers an alternate way to play this card, surfaced as an extra play action alongside the default
+     * (e.g. "you may play this by discarding a card insted of paying costs"). Called by the registrar's
+     * `addAlternatePlayCost`. See {@link alternatePlayCosts}.
+     */
+    protected registerAlternatePlayCost(properties: IPlayCostProperties<this>): void {
+        this.assertPlayCostNameUnused(properties);
+        this.alternatePlayCosts = [...this.alternatePlayCosts, properties];
+    }
+
+    /**
+     * Guards against two additional/alternate play costs on this card sharing an explicit `costName`, which
+     * would silently collide on the same `context.costs` key and make one of the chosen cost targets
+     * unretrievable. Only names that are explicitly set are checked (unnamed costs default to their game
+     * system's name and aren't tracked here).
+     */
+    private assertPlayCostNameUnused(properties: IPlayCostProperties<this>): void {
+        const { costName } = properties;
+        if (costName == null) {
+            return;
+        }
+
+        Contract.assertFalse(
+            this.registeredPlayCostNames.has(costName),
+            `Duplicate play cost name '${costName}' registered on ${this.internalName}. Each additional/alternate play cost must use a unique costName to avoid colliding in context.costs.`
+        );
+        this.registeredPlayCostNames.add(costName);
+    }
+
+    private buildPlayCost(properties: IPlayCostProperties<this>): ICost[] {
+        if (properties.cost) {
+            return Helpers.asArray(properties.cost);
+        }
+
+        if (properties.targetResolver) {
+            const { immediateEffect, activePromptTitle, ...selectProperties } = properties.targetResolver;
+            return [getSelectCost(
+                immediateEffect as CardTargetSystem<AbilityContext<this>>,
+                { ...selectProperties, name: properties.costName },
+                activePromptTitle ?? properties.title ?? ''
+            )];
+        }
+
+        return [new GameSystemCost(properties.immediateEffect, false, properties.costName)];
+    }
+
+    /**
+     * Builds the extra play action(s) for this card's registered alternate play costs (see
+     * `addAlternatePlayCost`). Each plays the card for free (printed cost suppressed) by paying its cost.
+     *
+     * An alternate play cost is meant to be paid *instead* of the card's other costs, so we deliberately do
+     * not merge in this card's registered additional play costs here (unlike the default/keyword actions).
+     * Note: additional costs imposed by an opponent's ongoing effect (e.g. Saw Gerrera) are added later in
+     * {@link PlayCardAction.getCosts} and are not yet circumvented — see the linked issue.
+     */
+    private buildAlternatePlayActions(
+        playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay,
+        propertyOverrides: IPlayCardActionOverrides
+    ): PlayCardAction[] {
+        return this.alternatePlayCosts.map((alternate) =>
+            this.buildPlayCardAction({
+                ...propertyOverrides,
+                playType,
+                title: alternate.title,
+                additionalCosts: this.buildPlayCost(alternate),
+                costAdjusters: [CostAdjusterFactory.create(this.game, this, { costAdjustType: CostAdjustType.Free })],
+            })
+        );
+    }
+
+    /**
+     * The additional play costs registered on this card (see `addAdditionalPlayCost`). These are card
+     * abilities, so a card blanked out of play (all abilities lost) has none.
+     */
+    protected getAdditionalPlayCostAbilities(): ICost[] {
+        return this.isBlankOutOfPlay() ? [] : this.additionalPlayCostAbilities;
+    }
+
+    /**
+     * Merges this card's registered additional play costs (see `addAdditionalPlayCost`) into the
+     * `additionalCosts` of a play action's properties. Applied at action-build time so the costs are
+     * captured into the action's `createdWithProperties` and therefore preserved across `clone()`.
+     */
+    protected applyAdditionalPlayCosts<T extends IPlayCardActionPropertiesBase>(properties: T): T {
+        const additionalPlayCostAbilities = this.getAdditionalPlayCostAbilities();
+        if (additionalPlayCostAbilities.length === 0) {
+            return properties;
+        }
+
+        return Helpers.mergeArrayProperty(properties, 'additionalCosts', additionalPlayCostAbilities);
     }
 
     public exhaust() {
@@ -431,7 +571,10 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             sourceZoneFilter: WildcardZoneName.Any,
             targetController: WildcardRelativePlayer.Any,
             condition,
-            ongoingEffect
+            ongoingEffect,
+
+            // this adjuster only changes the cost to play the card itself, so it isn't board state worth summarizing
+            omitFromOngoingEffectSummary: true
         };
 
         return costAdjustAbilityProps;

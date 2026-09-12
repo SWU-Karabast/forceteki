@@ -9,7 +9,8 @@ describe('Token units', function() {
                             'clone-trooper',
                             'battle-droid',
                             'spy',
-                            'mandalorian'
+                            'mandalorian',
+                            'beast'
                         ],
                         spaceArena: ['xwing', 'tie-fighter']
                     },
@@ -18,7 +19,8 @@ describe('Token units', function() {
                             'clone-trooper',
                             'battle-droid',
                             'spy',
-                            'mandalorian'
+                            'mandalorian',
+                            'beast'
                         ],
                         spaceArena: ['xwing', 'tie-fighter']
                     }
@@ -29,6 +31,7 @@ describe('Token units', function() {
                 const p1Tokens = {
                     ['clone-trooper']: context.player1.findCardsByName('clone-trooper'),
                     ['battle-droid']: context.player1.findCardsByName('battle-droid'),
+                    ['beast']: context.player1.findCardsByName('beast'),
                     ['spy']: context.player1.findCardsByName('spy'),
                     ['mandalorian']: context.player1.findCardsByName('mandalorian'),
                     ['xwing']: context.player1.findCardsByName('xwing'),
@@ -38,6 +41,7 @@ describe('Token units', function() {
                 const p2Tokens = {
                     ['clone-trooper']: context.player2.findCardsByName('clone-trooper'),
                     ['battle-droid']: context.player2.findCardsByName('battle-droid'),
+                    ['beast']: context.player2.findCardsByName('beast'),
                     ['spy']: context.player2.findCardsByName('spy'),
                     ['mandalorian']: context.player2.findCardsByName('mandalorian'),
                     ['xwing']: context.player2.findCardsByName('xwing'),
@@ -51,6 +55,7 @@ describe('Token units', function() {
                             return 'spaceArena';
                         case 'clone-trooper':
                         case 'battle-droid':
+                        case 'beast':
                         case 'spy':
                         case 'mandalorian':
                             return 'groundArena';

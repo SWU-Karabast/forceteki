@@ -272,5 +272,79 @@ describe('Ravager, Final Imperial Command', function () {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('When the played unit leaves play before the ability resolves', function () {
+            it('uses the power the unit had when it left play, and does not block the played unit\'s own triggers', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'maul#old-master',
+                        hand: ['inferno-squad#we-can-grieve-later'],
+                        spaceArena: ['ravager#final-imperial-command'],
+                        groundArena: ['wampa']
+                    },
+                    player2: {
+                        groundArena: ['reinforcement-walker']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Maul plays Inferno Squad and immediately defeats it
+                context.player1.clickCard(context.maul);
+                context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Then, defeat it.');
+                context.player1.clickCard(context.infernoSquad);
+                expect(context.infernoSquad).toBeInZone('discard');
+
+                // Ravager deals 3 damage to unit in ground arena
+                context.player1.clickPrompt('Deal 3 damage to a unit in the ground arena');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.reinforcementWalker]);
+                context.player1.clickCard(context.reinforcementWalker);
+                expect(context.reinforcementWalker.damage).toBe(3);
+
+                // Inferno Squad's own When Played and When Defeated abilities both still resolve
+                context.player1.clickPrompt('Resolve next');
+                context.player1.clickCardNonChecking(context.wampa);
+                expect(context.wampa.damage).toBe(1);
+                expect(context.wampa).toHaveExactUpgradeNames(['weakness']);
+
+                context.player1.clickCard(context.reinforcementWalker);
+                expect(context.reinforcementWalker.damage).toBe(4);
+                expect(context.reinforcementWalker).toHaveExactUpgradeNames(['weakness']);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('uses the unit\'s modified power rather than its printed power', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'maul#old-master',
+                        hand: ['inferno-squad#we-can-grieve-later'],
+                        spaceArena: ['ravager#final-imperial-command'],
+                        groundArena: ['general-veers#blizzard-force-commander']
+                    },
+                    player2: {
+                        groundArena: ['reinforcement-walker']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.maul);
+                context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Then, defeat it.');
+                context.player1.clickCard(context.infernoSquad);
+
+                // General Veers gives Inferno Squad +1 power for 4 total damage
+                context.player1.clickPrompt('Deal 4 damage to a unit in the ground arena');
+                context.player1.clickCard(context.reinforcementWalker);
+
+                expect(context.reinforcementWalker.damage).toBe(4);
+
+                context.player1.clickPrompt('Resolve all (2)');
+                context.player1.clickCardNonChecking(context.reinforcementWalker);
+                context.player1.clickCardNonChecking(context.reinforcementWalker);
+            });
+        });
     });
 });

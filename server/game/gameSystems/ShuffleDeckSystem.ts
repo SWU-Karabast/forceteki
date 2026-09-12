@@ -19,7 +19,9 @@ export class ShuffleDeckSystem<TContext extends AbilityContext = AbilityContext>
     }
 
     public eventHandler(event): void {
-        event.context.player.shuffleDeck();
+        for (const player of Helpers.asArray(event.player)) {
+            player.shuffleDeck();
+        }
     }
 
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<IShuffleDeckProperties>): [string, any[]] {

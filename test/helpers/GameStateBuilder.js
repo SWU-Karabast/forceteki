@@ -20,6 +20,7 @@ class GameStateBuilder {
             'allPlayersInInitiativeOrder',
             'getAllNonLeaderCardTitles',
             'getPlayableCardTitles',
+            'getTraitNames',
             'getChatLog',
             'getChatLogs',
             'getPromptedPlayer',

@@ -206,5 +206,47 @@ describe('Luke Skywalker, I Can Save Him', function() {
                 expect(context.p1Base.damage).toBe(0);
             });
         });
+
+        it('Luke Skywalker\'s leader unit side should heal when another unit attacks, but not when he attacks while Condemn is attached', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'luke-skywalker#i-can-save-him', deployed: true, damage: 3 },
+                    spaceArena: [{ card: 'awing', damage: 1 }],
+                    groundArena: ['battlefield-marine', 'atst'],
+                    base: { card: 'dagobah-swamp', damage: 5 }
+
+                },
+                player2: {
+                    hasInitiative: true,
+                    hand: ['condemn', 'superlaser-blast']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.condemn);
+            context.player2.clickCard(context.lukeSkywalker);
+
+            context.player1.clickCard(context.awing);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.awing, context.p1Base]);
+            context.player1.clickCard(context.p1Base);
+            expect(context.p1Base.damage).toBe(3);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.lukeSkywalker);
+            context.player1.clickCard(context.p2Base);
+
+            context.player2.clickCard(context.superlaserBlast);
+            expect(context.player1).toHaveExactViewableDisplayPromptCards([context.superlaserBlast]);
+            context.player1.clickDone();
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p1Base.damage).toBe(3);
+            expect(context.lukeSkywalker.damage).toBe(3);
+        });
     });
 });

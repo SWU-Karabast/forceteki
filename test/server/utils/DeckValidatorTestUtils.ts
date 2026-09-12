@@ -1,18 +1,19 @@
 import type { IDecklistInternal, IInternalCardEntry } from '../../../server/utils/deck/DeckInterfaces';
 import { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestCardDataGetter';
-import type { ISetCatalog } from '../../../server/utils/deck/SwuSetData';
-import { formatRules, nonRotatingSets, rotationBlocks, SwuSetId } from '../../../server/utils/deck/SwuSetData';
+import type { IFormatRules, ISetCatalog } from '../../../server/utils/deck/SwuSetData';
+import { formatRules, isReleased, nonRotatingSets, ReleaseStage, rotationBlocks, SwuSetId } from '../../../server/utils/deck/SwuSetData';
 import { setCodeToString } from '../../../server/Util';
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
 import type { CardDataGetter } from '../../../server/utils/cardData/CardDataGetter';
 import type { ICardDataJson } from '../../../server/utils/cardData/CardDataInterfaces';
-import type { CardPool, SwuGameFormat } from '../../../server/game/core/Constants';
+import { SwuGameFormat } from '../../../server/game/core/Constants';
+import type { CardPool } from '../../../server/game/core/Constants';
 
 // Released set IDs (uppercase to match card.setId.set from JSON)
 export const RELEASED_SETS = new Set<string>([
-    ...rotationBlocks.flatMap((b) => b.sets).filter((s) => s.released)
+    ...rotationBlocks.flatMap((b) => b.sets).filter(isReleased)
         .map((s) => s.id.toUpperCase()),
-    ...nonRotatingSets.filter((s) => s.released).map((s) => s.id.toUpperCase()),
+    ...nonRotatingSets.filter(isReleased).map((s) => s.id.toUpperCase()),
 ]);
 
 /** Uppercased legal set codes for a format + card pool, for matching against `card.setId.set`. */
@@ -45,6 +46,11 @@ export function getDeckFiller(cardDataGetter: UnitTestCardDataGetter, count: num
         }
         const card = cardDataGetter.getCardSync(cardId);
         if (!isPlayableType(card)) {
+            continue;
+        }
+        // Skip synthetic fixture cards (preview/future/banned stand-ins, all prefixed with `__`) so they never
+        // leak into generic filler — some live in real legal sets and must only appear when a test adds them.
+        if (card.internalName.startsWith('__')) {
             continue;
         }
         if (!legalSets.has(card.setId.set)) {
@@ -164,26 +170,37 @@ export async function makeValidatorWithUnknownSetCard(cardDataGetter: UnitTestCa
 }
 
 // ---------------------------------------------------------------------------
-// Synthetic "preview" set support
-// Whether a real set is an unreleased ("preview") mainline set changes over time, and there are periods with
-// no preview set at all. To keep the preview/NextSet tests running unconditionally, we inject a synthetic
-// preview set ('TPRV') that is always present: an unreleased mainline set with its own leader, base, and units.
-// The validator reads this via an alternate ISetCatalog, and a subclass teaches the enum-based set parsing to
-// recognize the synthetic set code. Production code and data are untouched.
+// Synthetic set + ban fixtures
+// The real release calendar and ban list change over time, so tests that must keep exercising the preview,
+// future-set, and ban-expiry logic use synthetic stand-ins injected via an alternate ISetCatalog instead of
+// pinning to real sets/cards. There are three:
+//   - TPRV: a `Next` mainline set (the upcoming set) — legal under NextSet, excluded from Current.
+//   - TFUT: a `Future` set (previews further out than the next set) — excluded from every constructed pool.
+//   - a synthetic suspended card in a released set whose ban `expiresWith` TPRV — active under Current, lifted
+//     under NextSet (mirrors the real "ban expires with the next set's release" behavior, durably).
+// A subclass teaches the enum-based set parsing to recognize the synthetic set codes. Production code/data are
+// untouched. All synthetic cards use a `__` internal-name prefix so getDeckFiller skips them.
 // ---------------------------------------------------------------------------
 
-/** Uppercase set code (matches `card.setId.set`) for the synthetic preview set. */
+/** Uppercase set code (matches `card.setId.set`) for the synthetic preview ("next") set. */
 export const TEST_PREVIEW_SET_CODE = 'TPRV';
 
 /** Lowercase set id (matches the `SwuSetId` enum-value convention) for the synthetic preview set. */
 const TEST_PREVIEW_SET_ID = 'tprv';
 
-/** Builds a synthetic preview-set card of the given printed type. */
-function makePreviewCard(kind: 'leader' | 'base' | 'unit', num: number): ICardDataJson {
-    const internalName = `__tprv-${kind}-${num}__`;
+/** Uppercase set code for the synthetic future set (previews beyond the next set). */
+export const TEST_FUTURE_SET_CODE = 'TFUT';
+
+/** Lowercase set id for the synthetic future set. */
+const TEST_FUTURE_SET_ID = 'tfut';
+
+/** Builds a synthetic card of the given set/type. Internal name is `__`-prefixed so filler skips it. */
+function makeSyntheticCard(setCode: string, kind: 'leader' | 'base' | 'unit', num: number): ICardDataJson {
+    const slug = setCode.toLowerCase();
+    const internalName = `__${slug}-${kind}-${num}__`;
     return {
-        id: `__tprv-${kind}-${num}-id__`,
-        title: `TPRV ${kind} ${num}`,
+        id: `${internalName}-id__`,
+        title: `${setCode} ${kind} ${num}`,
         subtitle: '',
         cost: 1,
         hp: 1,
@@ -194,8 +211,8 @@ function makePreviewCard(kind: 'leader' | 'base' | 'unit', num: number): ICardDa
         traits: [],
         keywords: [],
         types: [kind],
-        setId: { set: TEST_PREVIEW_SET_CODE, number: num },
-        setCodes: [{ set: TEST_PREVIEW_SET_CODE, number: num }],
+        setId: { set: setCode, number: num },
+        setCodes: [{ set: setCode, number: num }],
         internalName,
         arena: 'ground',
     };
@@ -203,24 +220,52 @@ function makePreviewCard(kind: 'leader' | 'base' | 'unit', num: number): ICardDa
 
 // One leader, one base, and enough units to fill a minimum Limited deck (whose NextSet pool is this single set).
 const PREVIEW_CARDS: ICardDataJson[] = [
-    makePreviewCard('leader', 100),
-    makePreviewCard('base', 101),
-    ...Array.from({ length: 35 }, (_, i) => makePreviewCard('unit', i + 1)),
+    makeSyntheticCard(TEST_PREVIEW_SET_CODE, 'leader', 100),
+    makeSyntheticCard(TEST_PREVIEW_SET_CODE, 'base', 101),
+    ...Array.from({ length: 35 }, (_, i) => makeSyntheticCard(TEST_PREVIEW_SET_CODE, 'unit', i + 1)),
 ];
 
+// A few playable cards suffice: future-set tests only ever add a single TFUT card to an otherwise-legal deck.
+const FUTURE_CARDS: ICardDataJson[] = Array.from({ length: 3 }, (_, i) => makeSyntheticCard(TEST_FUTURE_SET_CODE, 'unit', i + 1));
+
+// The synthetic suspended card lives in the latest released mainline set (derived, so it stays a real, always-
+// legal set regardless of the calendar) — and, critically, one getFirstCardInSet never probes, so it can't leak
+// into another test. Number 999 avoids colliding with a real card in that set.
+const bannedCardSetCode = ([...rotationBlocks.flatMap((b) => b.sets)].reverse().find((s) => isReleased(s) && s.mainline)?.id ?? SwuSetId.SOR).toUpperCase();
+const TEST_BANNED_CARD: ICardDataJson = makeSyntheticCard(bannedCardSetCode, 'unit', 999);
+
+/** Internal name of the synthetic suspended card whose ban expires with the synthetic next (TPRV) set. */
+export const TEST_BANNED_CARD_NAME = TEST_BANNED_CARD.internalName;
+
+/** All synthetic cards served by the preview card-data getter. */
+const SYNTHETIC_CARDS: ICardDataJson[] = [...PREVIEW_CARDS, ...FUTURE_CARDS, TEST_BANNED_CARD];
+
+/** formatRules with a synthetic Eternal suspension added (expiring with TPRV) so ban-expiry is testable. */
+function buildTestFormatRules(): Map<SwuGameFormat, IFormatRules> {
+    const testRules = new Map(formatRules);
+    const eternalRules = testRules.get(SwuGameFormat.Eternal);
+    const eternalBans = new Map(eternalRules.bannedCards);
+    eternalBans.set(TEST_BANNED_CARD.id, { name: TEST_BANNED_CARD_NAME, expiresWith: TEST_PREVIEW_SET_ID as SwuSetId });
+    testRules.set(SwuGameFormat.Eternal, { ...eternalRules, bannedCards: eternalBans });
+    return testRules;
+}
+
 /**
- * The default set catalog with a synthetic unreleased mainline "preview" set appended to the latest block.
- * Under {@link CardPool.Current} it is excluded (unreleased), so current-pool legality is unchanged; under
- * {@link CardPool.NextSet} it becomes legal, which is what the preview tests exercise.
+ * The default set catalog with the synthetic sets appended to the latest block (TPRV as `Next`, TFUT as
+ * `Future`) and a synthetic Eternal suspension. Under {@link CardPool.Current} TPRV/TFUT are excluded, so
+ * current-pool legality is unchanged; under {@link CardPool.NextSet} TPRV becomes legal (TFUT never does).
  */
 export const TEST_SET_CATALOG: ISetCatalog = {
     rotationBlocks: rotationBlocks.map((block, i) => {
         return i === rotationBlocks.length - 1
-            ? { ...block, sets: [...block.sets, { id: TEST_PREVIEW_SET_ID as SwuSetId, released: false, mainline: true }] }
+            ? { ...block, sets: [...block.sets,
+                { id: TEST_PREVIEW_SET_ID as SwuSetId, releaseStage: ReleaseStage.Next, mainline: true },
+                { id: TEST_FUTURE_SET_ID as SwuSetId, releaseStage: ReleaseStage.Future, mainline: false },
+            ] }
             : { ...block, sets: [...block.sets] };
     }),
     nonRotatingSets,
-    formatRules,
+    formatRules: buildTestFormatRules(),
 };
 
 /** A {@link UnitTestCardDataGetter} that also serves the synthetic preview-set cards. */
@@ -230,7 +275,7 @@ class PreviewTestCardDataGetter extends UnitTestCardDataGetter {
 
     public constructor(folderRoot: string) {
         super(folderRoot);
-        for (const card of PREVIEW_CARDS) {
+        for (const card of SYNTHETIC_CARDS) {
             this.previewById.set(card.id, card);
             this.previewByName.set(card.internalName, card);
             this.cardMap.set(card.id, { id: card.id, title: card.title, subtitle: card.subtitle, internalName: card.internalName, cost: card.cost });
@@ -269,12 +314,14 @@ class PreviewDeckValidator extends DeckValidator {
         return TEST_SET_CATALOG;
     }
 
-    // The base implementation only recognizes real `SwuSetId` members; re-add the synthetic preview set so its
-    // cards resolve to a real (illegal-under-Current, legal-under-NextSet) set rather than an unknown one.
+    // The base implementation only recognizes real `SwuSetId` members; re-add the synthetic set codes so their
+    // cards resolve to a recognized set (with the intended pool legality) rather than an unknown one. The
+    // synthetic banned card uses a real released set code, so the base implementation already handles it.
     protected override parseSets(cardData: ICardDataJson): SwuSetId[] {
         const base = super.parseSets(cardData);
         const codes = (cardData.setCodes ?? [cardData.setId]).map((c) => c.set.toLowerCase());
-        return codes.includes(TEST_PREVIEW_SET_ID) ? [...base, TEST_PREVIEW_SET_ID as SwuSetId] : base;
+        const extra = [TEST_PREVIEW_SET_ID, TEST_FUTURE_SET_ID].filter((id) => codes.includes(id)) as SwuSetId[];
+        return [...base, ...extra];
     }
 }
 

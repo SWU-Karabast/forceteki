@@ -302,6 +302,43 @@ describe('autoSingleTarget: single-target scenarios', function() {
             });
         });
 
+        describe('when an optional single-target prompt has a function-valued activePromptTitle', function() {
+            it('resolves the dynamic title to a concrete string in the play-or-pass prompt when autoSingleTarget is on', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['the-eye-of-aldhani']
+                    },
+                    player2: {
+                        autoSingleTarget: true,
+                        groundArena: ['wampa']
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.theEyeOfAldhani);
+
+                context.moveToRegroupPhase();
+                context.player1.clickDone();
+                context.player2.clickDone();
+
+                // the opponent's single unit produces an optional target prompt; the dynamic title resolves to text,
+                // not the raw source of the activePromptTitle function
+                const effectTitle = 'Select up to 1 units and pay 1 resource for each of them to keep them ready';
+                expect(context.player2).toHavePrompt(`Trigger the effect '${effectTitle}' on target 'Wampa' or pass`);
+                expect(context.player2).toHaveExactPromptButtons([
+                    `${effectTitle} -> Wampa`,
+                    'Pass'
+                ]);
+
+                context.player2.clickPrompt(`${effectTitle} -> Wampa`);
+
+                // paying keeps Wampa ready at the cost of one resource
+                expect(context.player2.exhaustedResourceCount).toBe(1);
+                expect(context.wampa.exhausted).toBeFalse();
+            });
+        });
+
         describe('when deploying a pilot leader as an upgrade with one eligible vehicle', function() {
             const pilotDeployPrompt = 'Deploy Kazuda Xiono as a Pilot';
 

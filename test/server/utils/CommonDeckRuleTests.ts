@@ -3,18 +3,21 @@ import { DeckValidationFailureReason, IllegalInFormatReason } from '../../../ser
 import type { IDecklistInternal } from '../../../server/utils/deck/DeckInterfaces';
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
 import type { UnitTestCardDataGetter } from '../../../server/utils/cardData/UnitTestCardDataGetter';
-import { formatRules, nonRotatingSets, rotationBlocks } from '../../../server/utils/deck/SwuSetData';
-import { buildCardEntry, buildValidationTestDeck, getDeckFiller, getFirstBase, getFirstCardInSet, getFirstLeader, getLegalSetCodes, TEST_PREVIEW_SET_CODE } from './DeckValidatorTestUtils';
+import { formatRules, isReleased, nonRotatingSets, rotationBlocks } from '../../../server/utils/deck/SwuSetData';
+import { buildCardEntry, buildValidationTestDeck, getDeckFiller, getFirstBase, getFirstCardInSet, getFirstLeader, getLegalSetCodes, TEST_FUTURE_SET_CODE, TEST_PREVIEW_SET_CODE } from './DeckValidatorTestUtils';
 
 // Representative sets for the format-legality probes, derived from the set data so they don't need manual
 // upkeep as sets release and rotate. Uppercased to match `card.setId.set`. Any probe may be undefined (e.g.
 // there is currently no unreleased mainline set); undefined probes are skipped.
 const rotationSets = rotationBlocks.flatMap((block) => block.sets);
-const OLD_RELEASED_SET = rotationSets.find((s) => s.released)?.id.toUpperCase();           // earliest released set (rotated out of the rotating formats)
+const OLD_RELEASED_SET = rotationSets.find(isReleased)?.id.toUpperCase();                  // earliest released set (rotated out of the rotating formats)
 const NON_ROTATING_SET = nonRotatingSets[0]?.id.toUpperCase();                             // a non-rotating set (legal only in Eternal/Open)
-// Synthetic upcoming unreleased mainline ("preview") set, injected by the test utils so this probe is always
-// available regardless of the real release calendar (see DeckValidatorTestUtils).
+// Synthetic upcoming unreleased mainline ("preview"/next) set, injected by the test utils so this probe is
+// always available regardless of the real release calendar (see DeckValidatorTestUtils).
 const PREVIEW_SET = TEST_PREVIEW_SET_CODE;
+// Synthetic "future" set — previews further out than the next set, so it is excluded from every constructed
+// pool (Current and NextSet alike).
+const FUTURE_SET = TEST_FUTURE_SET_CODE;
 
 /** Per-format configuration that drives the shared deck-building rule tests. */
 export interface ICommonDeckRuleConfig {
@@ -233,14 +236,36 @@ export function registerCommonDeckRuleTests(getContext: () => ICommonTestContext
                 expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeUndefined();
             });
         }
+
+        // A "future" set (previewing further out than the next set) must stay illegal even under NextSet — the
+        // NextSet meta only reflects the immediately-upcoming set. Skipped where the future set is legal anyway
+        // (Open includes everything).
+        if (!nextSetLegalSets.has(FUTURE_SET)) {
+            it(`should reject a ${FUTURE_SET} card even under NextSet (previews beyond the next set)`, function () {
+                const ctx = getContext();
+                const filler = getDeckFiller(ctx.cardDataGetter, minDeckSize - 1, nextSetLegalSets);
+                const futureCard = getFirstCardInSet(ctx.cardDataGetter, FUTURE_SET);
+                const leader = getFirstLeader(ctx.cardDataGetter, nextSetLegalSets).internalName;
+                const base = getFirstBase(ctx.cardDataGetter, nextSetLegalSets).internalName;
+                const deck = buildValidationTestDeck(ctx.cardDataGetter, leader, base, [...filler, futureCard]);
+                const failures = ctx.validator.validateInternalDeck(deck, { format: config.format, cardPool: CardPool.NextSet });
+                expect(failures[DeckValidationFailureReason.IllegalInFormat]).toBeDefined();
+                expect(failures[DeckValidationFailureReason.IllegalInFormat][0].reason).toBe(IllegalInFormatReason.NotLegalInFormat);
+            });
+        }
     });
 
     // Ban list — derived from the format's own suspended cards, so any format with a ban list (Eternal now,
     // Premier again in the future) is covered automatically.
-    const bannedCards = [...rules.bannedCards.values()];
-    if (bannedCards.length > 0) {
+    // `name` is the card's internal name (see IBannedCard), which is what buildCardEntry looks up. Only bans
+    // that are still active in this pool are asserted here — a ban whose `expiresWith` set is already legal in
+    // this pool has lifted (see the NextSet coverage in the per-format specs).
+    const activeBannedCardNames = [...rules.bannedCards.values()]
+        .filter((b) => !(b.expiresWith != null && currentLegalSets.has(b.expiresWith.toUpperCase())))
+        .map((b) => b.name);
+    if (activeBannedCardNames.length > 0) {
         describe('ban list', function () {
-            for (const bannedCard of bannedCards) {
+            for (const bannedCard of activeBannedCardNames) {
                 it(`should reject the suspended card ${bannedCard}`, function () {
                     const ctx = getContext();
                     const filler = getDeckFiller(ctx.cardDataGetter, minDeckSize - 1, config.legalSets);
