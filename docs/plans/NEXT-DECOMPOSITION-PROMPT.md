@@ -18,9 +18,11 @@ Plan 3 (docs/plans/03-codegen-serializers.md) is complete. Extend
 docs/plans/IMPLEMENTATION-ORDER.md with implementation units for Plans 4, 5,
 and 6, following the exact conventions that file already establishes for Plans
 1-3: one unit = one orchestrate run = one staged diff = one commit gate; a unit
-table with dependencies, size, risk, and route; a per-unit fenced invocation
-carrying an explicit scope fence; and the performance capture assigned to
-exactly one final unit per plan.
+table with dependencies, size, risk, and route (`--fast`, full, or an explicit
+`--tier N` override with its reason); a per-unit fenced invocation carrying an
+explicit scope fence and, for red-risk units, `Proof level: hardened`; and the
+performance capture assigned to exactly one final unit per plan. Routes use
+the installed Anvil lanes - there is no `/orchestrate-mini` command.
 
 Do NOT write implementation plans. This is decomposition only - a backlog. Each
 unit's actual handoff gets written by the Anvil plan stage immediately before it
