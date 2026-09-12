@@ -14,5 +14,11 @@ test/gameSetups/*.json
 .env
 *.zip
 Dockerfile.test
+
+# Claude Code: project config under .claude/ is shared (settings.json, commands/,
+# agents/, skills/), personal overrides and generated state are not
 .claude/settings.local.json
+.claude/*.local.json
+.claude/worktrees/
+CLAUDE.local.md
 *.code-workspace
