@@ -1,4 +1,5 @@
 import { parse, render } from '../../../swupgn/src/index';
+import { isTopLevelActionRecord } from '../../../swupgn/src/actionLinks';
 import { checkKeyframes } from '../../../swupgn/src/integrity';
 import { fold, stateAt } from '../../../swupgn/src/fold';
 import type { GameEvent } from '../../../swupgn/src/types';
@@ -438,14 +439,14 @@ describe('SWU-PGN/1.0 writer contract (real game)', function () {
             // regardless of the role it happened to be in when the file was written.
             const indexEntry = doc.cards.find((c) => c.id === pilotId);
             expect(indexEntry).toBeDefined();
-            expect(indexEntry!.kind).toBe('unit');
+            expect(indexEntry.kind).toBe('unit');
 
             // Reader and writer agree, and the pilot lives on its host rather than beside it.
             expect(checkKeyframes(doc.events).mismatches.filter((m) => m.path.includes('cards['))).toEqual([]);
             const state = fold(doc.events);
             const arena = ([1, 2] as const).flatMap((seat) => state.players[seat]?.cards ?? []);
             expect(arena.map((c) => c.id)).not.toContain(pilotId);
-            expect(arena.find((c) => c.id === hostId)!.upgrades).toContain(pilotId);
+            expect(arena.find((c) => c.id === hostId).upgrades).toContain(pilotId);
         });
     });
 });
@@ -533,6 +534,361 @@ describe('SWU-PGN/1.0 writer contract (control change)', function () {
             const mid = stateAt(doc.events, steals[0].seq);
             expect(mid.players[2]?.cards.map((c) => c.id)).toContain(steals[0].card);
             expect(mid.players[1]?.cards.map((c) => c.id)).not.toContain(steals[0].card);
+        });
+    });
+});
+
+// A ROUND_END keyframe is stamped with the round it ends, so it has to describe that round's
+// end. It did not: the engine clears `isInitiativeClaimed` when the ACTION phase tears down and
+// nulls `currentPhase` when the regroup phase ends, both before the round-ended step, so every
+// ROUND_END snapshot reported the swept-up between-rounds state — `initiativeTaken: false` for a
+// round that claimed, and phase 'setup' for a round that had just finished its regroup. The fold
+// disagreed at every claimed round, which is one integrity mismatch per round of a real game.
+describe('SWU-PGN/1.0 writer contract (round-end keyframe timing)', function () {
+    integration(function (contextRef) {
+        it('snapshots ROUND_END with the claim and phase of the round it ends', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['wampa'],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+                player2: {
+                    groundArena: ['battlefield-marine'],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+            });
+            const { context } = contextRef;
+
+            // Claiming makes player1 pass for the rest of the round; player2 then passes too.
+            context.player1.claimInitiative();
+            context.moveToNextActionPhase();
+
+            const doc = parse((context.game as any).getCachedSwuPgn() as string);
+            const claims = doc.events.filter((e: any) => e.t === 'CLAIM_INITIATIVE');
+            expect(claims.length).toBe(1);
+
+            const keyframeAt = (seq: string) => (doc.events.find((e: any) => e.seq === seq) as any)?.keyframe;
+
+            const roundEnd = keyframeAt('R1.end');
+            expect(roundEnd).toBeDefined();
+            expect(roundEnd.initiativeTaken).toBe(true);
+            expect(roundEnd.phase).toBe('regroup');
+
+            // The claim resets on rollover, so the next round opens with the counter available.
+            const nextRoundStart = keyframeAt('R2.start');
+            expect(nextRoundStart).toBeDefined();
+            expect(nextRoundStart.initiativeTaken).toBe(false);
+            expect(nextRoundStart.phase).toBe('action');
+
+            // §14: a keyframe must equal the fold at its seq. The claim is the field that broke it.
+            expect(checkKeyframes(doc.events).mismatches.filter((m) => m.path === 'initiativeTaken')).toEqual([]);
+        });
+    });
+});
+
+// CR 6.1 lists "use an action ability" among the six things a player may do with their action,
+// so it is an action in its own right. The recorder numbered it as a sub-event, which filed it
+// under whatever was numbered last -- and for a leader ability used after the opponent's turn
+// that is the OPPONENT'S `PASS`. A real 7-round export had five of these: ten records hanging
+// off a pass, the §16 story indenting them under it, and a move list built from numbered
+// actions showing only the resulting DEFEAT.
+describe('SWU-PGN/1.0 writer contract (action abilities are actions)', function () {
+    integration(function (contextRef) {
+        it('numbers a leader action ability as its own action, not as a child of the opponent pass', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'grand-moff-tarkin#oversector-governor',
+                    groundArena: ['atst'],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    hasInitiative: true,
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+            });
+            const { context } = contextRef;
+
+            // Player 2 passes; player 1 then spends their action on Tarkin's ability. Its cost is
+            // a resource and exhausting the leader, so the ability owns real consequences.
+            context.player2.passAction();
+            context.player1.clickCard(context.grandMoffTarkin);
+            context.player1.clickPrompt('Give an experience token to an Imperial unit');
+            context.player1.clickCard(context.atst);
+            context.moveToNextActionPhase();
+
+            const doc = parse((context.game as any).getCachedSwuPgn() as string);
+            const activations = doc.events.filter((e: any) => e.t === 'ABILITY_ACTIVATE') as any[];
+            const tarkin = activations.find((e: any) => e.kind === 'action');
+            expect(tarkin).toBeDefined();
+            expect(tarkin.p).toBe(1);
+            expect(tarkin.title).toBe('Give an experience token to an Imperial unit');
+
+            // Its own integer step, immediately after the pass's.
+            const pass = doc.events.find((e: any) => e.t === 'PASS' && e.p === 2) as any;
+            expect(pass).toBeDefined();
+            expect(tarkin.seq).toMatch(/^R1\.A\.\d+$/);
+            expect(Number(tarkin.seq.split('.')[2])).toBe(Number(pass.seq.split('.')[2]) + 1);
+
+            // ...and the pass keeps no lettered children: what used to hang off it now hangs off
+            // the ability, which is the record that caused it.
+            // ...and nothing is left filed under the pass. A record numbered under it but stamped
+            // `for` the ability (the menu choice that picked the ability, and the target choice —
+            // both land before the ability announces itself, §9.1) belongs to the ability.
+            const ownedBy = (seq: string) => doc.events
+                .filter((e: any) => (e.for ?? (e.seq.startsWith(seq) && e.seq !== seq ? seq : null)) === seq)
+                .map((e: any) => `${e.seq}:${e.t}`);
+            expect(ownedBy(pass.seq)).toEqual([]);
+            expect(ownedBy(tarkin.seq)).toEqual([
+                'R1.A.1a:MODAL_CHOICE', 'R1.A.1b:CHOICE',
+                'R1.A.2a:EXHAUST_RESOURCES', 'R1.A.2b:EXHAUST', 'R1.A.2c:MOVE',
+                'R1.A.2d:EXPERIENCE_GAIN', 'R1.A.2e:STATS',
+            ]);
+
+            // The story reads as the player's own action, and is numbered.
+            const story = render(doc);
+            expect(story).toContain('Player 1 uses Grand Moff Tarkin');
+            expect(story).not.toContain('↳ Grand Moff Tarkin, Oversector Governor uses an ability');
+        });
+    });
+});
+
+// §9.1 says a writer SHOULD stamp `for` on every record numbered before the beat it belongs to.
+// Resourcing is announced the same way round as a play -- the hand->resource MOVE lands first,
+// the RESOURCE that summarises it follows -- and it was the one such pair the writer missed, so
+// a reader trusting `for` put the card into the previous beat.
+//
+// §10.1 also counts the resource row rather than naming it, so the regroup's one-record-per-
+// resource READY_RESOURCES burst (54 of them in a 7-round game, every one amount: 1) carries
+// nothing an amount: N does not.
+describe('SWU-PGN/1.0 writer contract (resource records)', function () {
+    integration(function (contextRef) {
+        it('stamps the resourcing MOVE with its RESOURCE, and readies the row in one record', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['wampa'],
+                    resources: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+                player2: {
+                    groundArena: ['battlefield-marine'],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+            });
+            const { context } = contextRef;
+
+            // Spend four resources, so the regroup has four to ready back.
+            context.player1.clickCard(context.wampa);
+            context.player2.passAction();
+            context.moveToNextActionPhase();
+
+            const doc = parse((context.game as any).getCachedSwuPgn() as string);
+
+            // Every resourcing names the beat it belongs to -- in setup and in regroup alike.
+            const resources = doc.events.filter((e: any) => e.t === 'RESOURCE') as any[];
+            expect(resources.length).toBeGreaterThan(0);
+            const unstamped = doc.events
+                .filter((e: any) => e.t === 'MOVE' && e.to === 'resource' && e.from === 'hand')
+                .filter((m: any) => !resources.some((r) => r.card === m.card && r.seq === m.for))
+                .map((m: any) => `${m.seq}:${m.card}`);
+            expect(unstamped).toEqual([]);
+
+            // One READY_RESOURCES for the seat that spent, carrying the whole amount.
+            const readies = doc.events.filter((e: any) => e.t === 'READY_RESOURCES' && e.p === 1) as any[];
+            expect(readies.length).toBe(1);
+            expect(readies[0].amount).toBe(4);
+
+            // Per-card READY is untouched -- those name a card, so each one says something -- and
+            // the merge is arithmetic only: folding one amount:4 leaves the row where folding four
+            // amount:1 did.
+            expect(doc.events.some((e: any) => e.t === 'READY')).toBe(true);
+            const row = stateAt(doc.events, readies[0].seq).players[1];
+            expect(row?.resourcesExhausted).toBe(0);
+        });
+    });
+});
+
+// DAMAGE says what dealt it; HEAL said only that HP went up. Nothing later in the file can
+// supply the missing half — OVERWHELM omits its source too, but a reader recovers that from the
+// beat's ATTACK, and a heal has no attack to fall back on.
+//
+// DEFEAT.reason is the one closed vocabulary in the format (§6.4), so this also pins the two
+// reasons a single attack produces: the unit died to combat damage, and the upgrade it was
+// carrying died to the rules engine with no card to blame.
+describe('SWU-PGN/1.0 writer contract (heal source and defeat reasons)', function () {
+    integration(function (contextRef) {
+        it('names what healed, and files each defeat under its closed-set reason', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['repair'],
+                    groundArena: ['atst'],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+                player2: {
+                    groundArena: [{ card: 'battlefield-marine', upgrades: ['academy-training'] }],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+            });
+            const { context } = contextRef;
+
+            // The AT-ST trades into an upgraded marine: the marine dies to the attack, its
+            // upgrade dies with it, and the AT-ST comes away damaged for Repair to heal.
+            context.player1.clickCard(context.atst);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.battlefieldMarine.zoneName).toBe('discard');
+            const damaged = context.atst.damage;
+            expect(damaged).toBeGreaterThan(3);
+
+            context.player2.passAction();
+            context.player1.clickCard(context.repair);
+            context.player1.clickCard(context.atst);
+            expect(context.atst.damage).toBe(damaged - 3);
+
+            const doc = parse((context.game as any).getCachedSwuPgn() as string);
+
+            const heal = doc.events.find((e: any) => e.t === 'HEAL') as any;
+            expect(heal).toBeDefined();
+            expect(heal.src).toBe(doc.cards?.find((c: any) => c.name === 'Repair')?.id);
+            expect(heal.tgt).toBe(doc.cards?.find((c: any) => c.name === 'AT-ST')?.id);
+
+            // The attack's two defeats, each under its own reason.
+            const defeats = doc.events.filter((e: any) => e.t === 'DEFEAT') as any[];
+            const reasonFor = (name: string) => defeats
+                .find((d) => d.card === doc.cards?.find((c: any) => c.name === name)?.id)?.reason;
+            expect(reasonFor('Battlefield Marine')).toBe('attack');
+            // The upgrade was nobody's doing: its host left play and the engine took it with it.
+            expect(reasonFor('Academy Training')).toBe('frameworkEffect');
+
+            // Every reason in the file is inside the closed set, and the file validates.
+            const CLOSED = ['attack', 'ability', 'nonCombatDamage', 'uniqueRule', 'frameworkEffect', 'unknown'];
+            expect(defeats.map((d) => d.reason).filter((r) => !CLOSED.includes(r))).toEqual([]);
+        });
+    });
+});
+
+// `kind` exists so a reader never has to regex the engine's ability identifier, which is an
+// internal slug this format does not promise to keep stable. It is answered from the ability
+// OBJECT wherever the engine knows it; `keyword` is the exception, since a keyword ability is
+// built as an ordinary triggered ability and only its identifier's descriptor says otherwise.
+describe('SWU-PGN/1.0 writer contract (ability kinds)', function () {
+    integration(function (contextRef) {
+        it('labels each activation with its kind, without parsing the engine identifier', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'grand-moff-tarkin#oversector-governor',
+                    hand: ['secretive-sage'],   // Shielded: a keyword ability
+                    groundArena: ['atst'],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+                player2: {
+                    groundArena: ['battlefield-marine'],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+            });
+            const { context } = contextRef;
+
+            // An action ability (Tarkin's, off the leader's own menu) ...
+            context.player1.clickCard(context.grandMoffTarkin);
+            context.player1.clickPrompt('Give an experience token to an Imperial unit');
+            context.player1.clickCard(context.atst);
+            context.player2.passAction();
+
+            // ... and a keyword ability, which fires as a consequence of the play, not instead
+            // of it: the PLAY is the action, Shielded is something that happened because of it.
+            context.player1.clickCard(context.secretiveSage);
+
+            context.moveToNextActionPhase();
+
+            const doc = parse((context.game as any).getCachedSwuPgn() as string);
+            const byKind = new Map<string, any>();
+            for (const e of doc.events as any[]) {
+                if (e.t === 'ABILITY_ACTIVATE' && e.kind != null && !byKind.has(e.kind)) {
+                    byKind.set(e.kind, e);
+                }
+            }
+
+            expect(byKind.get('action')?.title).toBe('Give an experience token to an Imperial unit');
+            expect(byKind.get('keyword')).toBeDefined();
+            expect(byKind.get('keyword').card).toBe(doc.cards?.find((c: any) => c.name === 'Secretive Sage')?.id);
+            // Only the action ability is a numbered action; the keyword one is a sub-step.
+            expect(byKind.get('action').seq).toMatch(/^R1\.A\.\d+$/);
+            expect(byKind.get('keyword').seq).toMatch(/^R1\.A\.\d+[a-z]+$/);
+
+            // Every activation carries a kind, and none of them is derived from the identifier's
+            // shape: each one agrees with the descriptor the engine built into that identifier.
+            const activations = doc.events.filter((e: any) => e.t === 'ABILITY_ACTIVATE') as any[];
+            expect(activations.length).toBeGreaterThan(1);
+            expect(activations.filter((e) => e.kind == null)).toEqual([]);
+            const CLOSED = ['action', 'epic', 'triggered', 'keyword', 'replacement', 'constant'];
+            expect(activations.map((e) => e.kind).filter((k) => !CLOSED.includes(k))).toEqual([]);
+            for (const e of activations) {
+                if (typeof e.ability === 'string' && e.ability.includes('_keyword_')) {
+                    expect(e.kind).toBe('keyword');
+                }
+            }
+        });
+    });
+});
+
+// `ms` is a DURATION, not a clock: milliseconds from the header's Date. Date and EndDate give a
+// game's total length and nothing inside it, so "how long did this decision take" -- a review
+// question, the same one chess PGN answers with %clk -- is unreachable without this.
+//
+// It is deliberately narrow. A lettered consequence must never carry one: the engine resolves a
+// play's damage and defeats in the same instant as the play, so a number there would measure the
+// engine rather than the player, and stamping everything would put a timing field on two thirds
+// of the file to say nothing.
+describe('SWU-PGN/1.0 writer contract (per-action timing)', function () {
+    integration(function (contextRef) {
+        it('times the numbered actions and the phase boundaries, and nothing else', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['wampa'],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+                player2: {
+                    groundArena: ['battlefield-marine'],
+                    deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'],
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.p2Base);
+            context.player2.passAction();
+            context.moveToNextActionPhase();
+
+            const doc = parse((context.game as any).getCachedSwuPgn() as string);
+            const events = doc.events as any[];
+
+            // Every numbered action and every boundary carries one ...
+            const TIMED = ['ROUND_START', 'PHASE_START'];
+            const shouldBeTimed = events.filter((e) =>
+                TIMED.includes(e.t) || ((/^R\d+\.[SAG]\.\d+$/).test(e.seq) && isTopLevelActionRecord(e)));
+            expect(shouldBeTimed.length).toBeGreaterThan(3);
+            expect(shouldBeTimed.filter((e) => typeof e.ms !== 'number').map((e) => e.seq)).toEqual([]);
+
+            // ... and nothing else does.
+            const untimed = events.filter((e) => !shouldBeTimed.includes(e));
+            expect(untimed.filter((e) => e.ms != null).map((e) => `${e.seq}:${e.t}`)).toEqual([]);
+
+            // A duration from Date, never a clock: non-negative and inside the game's own span.
+            const span = Date.now() - new Date(doc.header.date).getTime();
+            expect(shouldBeTimed.filter((e) => e.ms < 0 || e.ms > span)).toEqual([]);
+
+            // Monotonic in record order, since the origin never moves mid-game.
+            const stamps = shouldBeTimed.map((e) => e.ms);
+            expect(stamps).toEqual([...stamps].sort((a, b) => a - b));
+
+            // The fold does not see it, and neither does the story.
+            expect(fold(events)).toEqual(fold(events.map(({ ms, ...rest }: any) => rest)));
+            expect(render(doc)).toBe(render({ ...doc, events: events.map(({ ms, ...rest }: any) => rest) }));
         });
     });
 });

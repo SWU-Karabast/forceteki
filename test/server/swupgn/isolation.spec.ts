@@ -10,8 +10,11 @@ function walk(dir: string): string[] {
     const out: string[] = [];
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
         const full = path.join(dir, entry.name);
-        if (entry.isDirectory()) { out.push(...walk(full)); }
-        else if (entry.name.endsWith('.ts')) { out.push(full); }
+        if (entry.isDirectory()) {
+            out.push(...walk(full));
+        } else if (entry.name.endsWith('.ts')) {
+            out.push(full);
+        }
     }
     return out;
 }
@@ -24,7 +27,7 @@ describe('swupgn module isolation', function () {
         const offenders: string[] = [];
         for (const file of walk(srcDir)) {
             const text = fs.readFileSync(file, 'utf8');
-            if (/from ['"].*server\/game/.test(text)) {
+            if ((/from ['"].*server\/game/).test(text)) {
                 offenders.push(file);
             }
         }

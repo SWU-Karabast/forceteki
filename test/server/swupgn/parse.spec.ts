@@ -50,7 +50,7 @@ describe('parse', function () {
 
 describe('parse error paths', function () {
     const HEAD = [
-        '[Game "SWU-PGN/1.0"]','[GameId "g1"]','[Date "2026-06-16T00:00:00Z"]',
+        '[Game "SWU-PGN/1.0"]', '[GameId "g1"]', '[Date "2026-06-16T00:00:00Z"]',
         '[CardPool "LOF"] [Engine "e"] [Seed "s"]',
         '[P1Id "a"] [P2Id "b"] [P1 "Player 1"] [P2 "Player 2"]',
         '[P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]',
@@ -72,9 +72,17 @@ describe('parse error paths', function () {
         expect(() => parse(bad)).toThrowError(/before any %%% section/);
     });
 
-    it('throws a distinct error for a record under an unrecognized section', function () {
-        const bad = HEAD + '\n%%% BOGUS\n{"x":1}';
-        expect(() => parse(bad)).toThrowError(/unrecognized section/);
+    // §18: a section this reader does not know belongs to a LATER version, not to a broken
+    // file. Throwing here made every 1.0 reader hard-fail on the first file carrying a new
+    // section — the exact forward compatibility the spec promises in writing. The records are
+    // skipped and everything the reader DOES understand still parses.
+    it('ignores a record under an unrecognized section instead of throwing', function () {
+        const forward = HEAD + '\n%%% BOGUS\n{"x":1}\n\n%%% EVENTS\n{"seq":"R1.A.1","t":"PASS","p":1}';
+        let doc;
+        expect(() => {
+            doc = parse(forward);
+        }).not.toThrow();
+        expect(doc.events.map((e) => e.seq)).toEqual(['R1.A.1']);
     });
 });
 
@@ -103,6 +111,20 @@ describe('parse header numbers', function () {
         const withErrors = header('4').replace('[Rounds "4"]', '[Rounds "4"] [RecorderErrors "2"]');
         expect(withErrors).not.toBe(header('4'));
         expect(parse(withErrors).header.recorderErrors).toBe(2);
+    });
+
+    // A count that is not digits is CORRUPT, not zero. finiteOr ran before any schema saw the
+    // value, so `[Undos "garbage"]` became `undos: 0` and validated clean -- a mangled audit
+    // trail reporting, confidently, that no undo ever happened.
+    it('drops a non-numeric count tag rather than reading it as zero', function () {
+        for (const bad of ['garbage', '1e309', '-1', '']) {
+            const text = header('4').replace('[Rounds "4"]', `[Rounds "4"] [Undos "${bad}"]`);
+            expect(parse(text).header.undos)
+                .withContext(`Undos "${bad}" must not parse to a number`)
+                .toBeUndefined();
+        }
+        const good = header('4').replace('[Rounds "4"]', '[Rounds "4"] [Undos "3"]');
+        expect(parse(good).header.undos).toBe(3);
     });
 
     it('does not mistake a [-prefixed record inside a JSON section for a header line', function () {

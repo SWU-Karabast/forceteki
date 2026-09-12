@@ -4,11 +4,43 @@ export type Seat = 1 | 2;
  * Unit or upgrade, for readers deciding whether something occupies an arena. An `'upgrade'`
  * attaches to a unit and is NEVER a member of `ground`/`space`.
  *
- * The same field name means two things (spec §10.1): on an EVENT (`MOVE`, `CREATE_TOKEN`) it
- * is the ROLE that event enacts; in `%%% CARDS` it is the card's printed IDENTITY. A pilot is
- * a `'unit'` card whose move onto a vehicle is an `'upgrade'` move.
+ * The same field name means THREE things, and they are disjoint. On an EVENT (`MOVE`,
+ * `CREATE_TOKEN`, `DEPLOY_LEADER`) it is the ROLE that event enacts; in `%%% CARDS` it is the
+ * card's printed IDENTITY (spec §10.1) -- a pilot is a `'unit'` card whose move onto a vehicle
+ * is an `'upgrade'` move. On `ABILITY_ACTIVATE` it is neither: it is `AbilityKind` below, a
+ * completely separate vocabulary. A reader MUST branch on `t` before it reads `kind`.
  */
 export type CardKind = 'unit' | 'upgrade';
+
+/**
+ * What sort of ability an `ABILITY_ACTIVATE` reports (spec §10.1). Nothing to do with
+ * `CardKind`, which shares the field name on other record types.
+ *
+ * `action` and `epic` are the player's own action for the turn and take their own step number;
+ * every other kind is a consequence of something else and is a sub-step.
+ *
+ * This alias is the ONE definition. The JSON Schema enum in `schema/event.schema.json` and the
+ * §10.1 table in the spec must list exactly these values -- `types.spec.ts` asserts the schema
+ * and this type agree, so a new kind cannot be added in only one of the two.
+ */
+export type AbilityKind =
+  | 'action' | 'epic' | 'triggered' | 'keyword' | 'replacement' | 'constant';
+
+/**
+ * Why a card was defeated (spec §6.4). The one CLOSED vocabulary in the format: these are the
+ * engine's own defeat-source kinds, and a reader is expected to switch on them.
+ *
+ * - `attack`   — combat damage from an attack. `defeatedBy` names the attacker.
+ * - `ability`  — a card ability defeated it outright, or dealt the damage that did.
+ * - `nonCombatDamage` — damage from something that is not an attack (an event, an ongoing effect).
+ * - `uniqueRule` — the CR 8.9 uniqueness rule: a second copy of a unique card in play.
+ * - `frameworkEffect` — the rules engine itself, with no card to blame: an upgrade whose host
+ *   left play, a unit whose remaining HP fell to zero when an effect expired or was removed, or
+ *   a leader unit that would have changed control (it is defeated instead).
+ * - `unknown` — the writer could not resolve a cause. Should not appear in a healthy file.
+ */
+export type DefeatReason =
+  | 'attack' | 'ability' | 'nonCombatDamage' | 'uniqueRule' | 'frameworkEffect' | 'unknown';
 
 export interface Header {
     game: string;            // "SWU-PGN/1.0"
@@ -32,6 +64,7 @@ export interface Header {
      *  file is complete. Present means events were dropped and the keyframes are the only
      *  fully trustworthy boundaries. */
     recorderErrors?: number;
+    undos?: number;
 
     /** When the game ENDED, ISO-8601 UTC. With `date` (when it started) this gives the game's
      *  duration, which is the only thing per-event timestamps would have bought. Absent when the
@@ -97,6 +130,16 @@ export interface SetupInitRecord {
  */
 export interface ActionLink {
     for?: string;
+
+    /**
+     * Milliseconds from the header's `Date` to this record (spec §5.2, §9). Written ONLY on
+     * numbered actions and on `ROUND_START` / `PHASE_START` — never on a lettered consequence,
+     * which the engine resolves in the same instant as its action. Ignored by the fold.
+     *
+     * Relative and coarse on purpose: it answers "how long did this decision take", which is a
+     * review question `Date` and `EndDate` cannot reach, and it is never a wall-clock time.
+     */
+    ms?: number;
 }
 
 export type GameEvent = ActionLink & (
@@ -106,16 +149,33 @@ export type GameEvent = ActionLink & (
   | { seq: string; t: 'PASS' | 'CLAIM_INITIATIVE'; p: Seat }
   | { seq: string; t: 'CHOICE'; p: Seat; prompt?: string; offered: string[]; chose: number }
   | { seq: string; t: 'MULLIGAN' | 'KEEP_HAND'; p: Seat }
+  // A player took a decision back. The records it retracted are GONE from the file -- a reader
+  // folding the stream sees only what still stands -- so this note exists purely to say that a
+  // retraction happened, and where it reached back to. It folds to NOTHING. `at` is the seq of
+  // the first record that was dropped; this record's own seq is that one plus `-undo`, because
+  // the recorder's counters were rewound too and the redo re-issues the original number.
+  | { seq: string; t: 'UNDO'; at: string; by?: Seat }
   | { seq: string; t: 'MODAL_CHOICE'; p: Seat; offered: string[]; chose: number }
-  | { seq: string; t: 'ABILITY_ACTIVATE'; p: Seat; card: string; ability?: string; epic?: boolean }
+  // `kind` says what sort of ability this is, so a reader never has to guess from the shape of
+  // `ability` (the engine's own identifier, which this format does not promise to keep stable).
+  // `action` and `epic` are the player's own action for the turn and take their own step number;
+  // every other kind is a consequence of something else and is a sub-step. `title` is the
+  // ability's printable name.
+  | {
+      seq: string; t: 'ABILITY_ACTIVATE'; p: Seat; card: string; ability?: string;
+      kind?: AbilityKind;
+      title?: string; epic?: boolean;
+  }
   // A double-sided leader flipped in place (it never deploys). `onStartingSide` is the face
   // AFTER the flip -- an absolute value, not a toggle, so a dropped record cannot invert
   // every later face and a reader joining at a keyframe has something to apply.
   | { seq: string; t: 'LEADER_FLIP'; p: Seat; card: string; onStartingSide: boolean }
   | { seq: string; t: 'STATS'; card: string; power: number; hp: number; keywords?: string[] }
   | { seq: string; t: 'DAMAGE'; src: string; tgt: string; amt: number; damageType: string; hp: number }
-  | { seq: string; t: 'HEAL'; tgt: string; amt: number; hp: number }
-  | { seq: string; t: 'DEFEAT'; card: string; reason: string; defeatedBy?: string }
+  | { seq: string; t: 'HEAL'; src?: string; tgt: string; amt: number; hp: number }
+  // `reason` is the one CLOSED vocabulary in the format (spec §6.4): it comes from the engine's
+  // own fixed enum, and a reader is meant to switch on it.
+  | { seq: string; t: 'DEFEAT'; card: string; reason: DefeatReason; defeatedBy?: string }
   | { seq: string; t: 'EXHAUST' | 'READY'; card: string }
   | { seq: string; t: 'EXHAUST_RESOURCES' | 'READY_RESOURCES'; p: Seat; amount: number }
   | { seq: string; t: 'DRAW'; p: Seat; count: number; cards: string[] }

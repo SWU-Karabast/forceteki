@@ -88,9 +88,9 @@ describe('SWU-PGN/1.0 keyframe completeness (real game)', function () {
                 // CI output and can never silently grow — but do not fail the gate on them.
                 // eslint-disable-next-line no-console
                 console.log(
-                    'SWU-PGN keyframe gate: NOT asserting handSize/resourcesReady past R1.start '
-                    + '(test-harness double-setup artifact; Plan-3 to validate on an organic game):\n'
-                    + JSON.stringify(deferred, null, 2)
+                    'SWU-PGN keyframe gate: NOT asserting handSize/resourcesReady past R1.start ' +
+                    '(test-harness double-setup artifact; Plan-3 to validate on an organic game):\n' +
+                    JSON.stringify(deferred, null, 2)
                 );
             }
 

@@ -16,7 +16,8 @@ const dir = path.resolve(__dirname, '../../../../swupgn/test-vectors');
  * `minimal` is hand-written and its STORY/fold/render derived from it.
  */
 describe('canonical vectors', function () {
-    const names = fs.readdirSync(dir).filter((f) => f.endsWith('.swupgn')).map((f) => f.replace('.swupgn', ''));
+    const names = fs.readdirSync(dir).filter((f) => f.endsWith('.swupgn'))
+        .map((f) => f.replace('.swupgn', ''));
     for (const name of names) {
         const read = () => fs.readFileSync(path.join(dir, `${name}.swupgn`), 'utf8');
 

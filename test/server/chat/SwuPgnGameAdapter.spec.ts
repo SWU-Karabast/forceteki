@@ -72,8 +72,16 @@ describe('SwuPgnGameAdapter.engineVersion', function () {
     });
 
     afterEach(function () {
-        savedForceteki === undefined ? delete process.env.FORCETEKI_VERSION : process.env.FORCETEKI_VERSION = savedForceteki;
-        savedNpm === undefined ? delete process.env.npm_package_version : process.env.npm_package_version = savedNpm;
+        if (savedForceteki === undefined) {
+            delete process.env.FORCETEKI_VERSION;
+        } else {
+            process.env.FORCETEKI_VERSION = savedForceteki;
+        }
+        if (savedNpm === undefined) {
+            delete process.env.npm_package_version;
+        } else {
+            process.env.npm_package_version = savedNpm;
+        }
         Adapter.cachedEngineVersion = undefined;
     });
 

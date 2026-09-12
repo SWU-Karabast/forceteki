@@ -87,3 +87,29 @@ describe('render attachments and captures', function () {
         expect(out.trim()).toBe('');
     });
 });
+
+// UNDO folds to nothing, but a reader still has to know a retraction happened, so it prints as
+// its own marker line rather than as a numbered action or an indented consequence.
+describe('render undo marker', function () {
+    const nm = { nameOf: (id: string) => id };
+    const doc = (events: any[]) => ({ header: {} as any, decks: [], setup: [], events, annotations: [] });
+
+    it('prints a marker naming who undid and where, without numbering it', function () {
+        const out = render(doc([
+            { seq: 'R1.A.1', t: 'PASS', p: 2 },
+            { seq: 'R1.A.1-undo', t: 'UNDO', at: 'R1.A.1', by: 1 },
+            { seq: 'R1.A.1', t: 'PASS', p: 2 },
+        ]), nm);
+        expect(out).toContain('·· Player 1 undid back to R1.A.1 ··');
+        // Not numbered, and not indented as a consequence of the pass above it.
+        expect(out).not.toMatch(/\d+\.\s*·· Player 1/);
+        expect(out).not.toMatch(/↳.*undid/);
+    });
+
+    it('falls back to a neutral phrase when the undoing player is unknown', function () {
+        const out = render(doc([
+            { seq: 'R1.A.1-undo', t: 'UNDO', at: 'R1.A.1' },
+        ]), nm);
+        expect(out).toContain('·· A player undid back to R1.A.1 ··');
+    });
+});

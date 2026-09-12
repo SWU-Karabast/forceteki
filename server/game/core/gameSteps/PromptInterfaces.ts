@@ -128,6 +128,7 @@ export interface IPromptPropertiesBase {
     activePromptTitle?: ((context: AbilityContext) => string) | string;
     waitingPromptTitle?: string;
     promptTitle?: string;
+
     /**
      * When `false`, the prompt's resolution is NOT recorded to the SWU-PGN log (set by
      * administrative/system prompts whose choices shouldn't appear in the notation, e.g.

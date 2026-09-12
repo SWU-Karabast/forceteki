@@ -1,6 +1,6 @@
 import type { SwuPgnDocument, Header } from '../../../../swupgn/src/types';
 import { checkKeyframes } from '../../../../swupgn/src/integrity';
-import { linkActionSteps } from '../../../../swupgn/src/actionLinks';
+import { coalesceResourceReadies, linkActionSteps } from '../../../../swupgn/src/actionLinks';
 import { logger } from '../../../logger';
 
 /** Cap on how many mismatches are logged, so a systematically broken stream can't flood the log. */
@@ -14,7 +14,7 @@ const HEADER_TAG_ORDER: [keyof Header, string][] = [
     ['p1Leader', 'P1Leader'], ['p1Base', 'P1Base'], ['p2Leader', 'P2Leader'], ['p2Base', 'P2Base'],
     ['result', 'Result'], ['reason', 'Reason'], ['rounds', 'Rounds'],
     ['endDate', 'EndDate'], ['match', 'Match'], ['gameNumber', 'GameNumber'],
-    ['recorderErrors', 'RecorderErrors'],
+    ['recorderErrors', 'RecorderErrors'], ['undos', 'Undos'],
 ];
 
 function escapeTag(value: string): string {
@@ -26,11 +26,25 @@ function escapeTag(value: string): string {
 
 export class SwuPgnWriter {
     public write(doc: SwuPgnDocument): string {
-        // File each pre-announcement record under the action it belongs to (spec §9.1). This is
-        // the writer's job rather than the recorder's: when those records arrive the recorder
-        // cannot know an action is about to follow, but by now the whole list is in hand.
-        // Non-mutating, so the caller's document is untouched.
-        doc = { ...doc, events: linkActionSteps(doc.events) };
+        // Two passes the writer can do and the recorder cannot, both because they need the whole
+        // event list at once: fold each run of per-resource READY_RESOURCES into one counted
+        // record (§10.1), then file each pre-announcement record under the action it belongs to
+        // (§9.1) — when those records arrive the recorder does not yet know an action is about to
+        // follow. Non-mutating, so the caller's document is untouched.
+        // Every seq something else points at. Coalescing drops records, and a dropped record
+        // that an annotation (or another record's `for`) cites becomes a dangling reference.
+        const referenced = new Set<string>();
+        for (const a of doc.annotations ?? []) {
+            if (typeof a?.ref === 'string') {
+                referenced.add(a.ref);
+            }
+        }
+        for (const e of doc.events) {
+            if (typeof e.for === 'string') {
+                referenced.add(e.for);
+            }
+        }
+        doc = { ...doc, events: linkActionSteps(coalesceResourceReadies(doc.events, referenced)) };
 
         this.verifyKeyframes(doc);
 

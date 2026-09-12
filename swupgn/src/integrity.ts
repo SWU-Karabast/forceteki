@@ -1,8 +1,12 @@
 import type { CardInstanceState, GameEvent, PlayerState, ReducedState } from './types';
 import { emptyState, isCompleteKeyframe, reduce } from './fold';
 
-export interface KeyframeMismatch { seq: string; path: string; expected: unknown; got: unknown; }
-export interface IntegrityResult { ok: boolean; mismatches: KeyframeMismatch[]; }
+export interface KeyframeMismatch {
+    seq: string; path: string; expected: unknown; got: unknown;
+}
+export interface IntegrityResult {
+    ok: boolean; mismatches: KeyframeMismatch[];
+}
 
 /** Order-free comparison of two id lists; a missing list is an empty one (older files). */
 function sameSet(a: unknown, b: unknown): boolean {

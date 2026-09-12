@@ -1,7 +1,9 @@
 import type { CardIndexRecord } from './types';
 
 /** Resolves a SET#NUM[:copy] id to a display name. Copy suffixes are stripped before lookup. */
-export interface NameResolver { nameOf(id: string): string; }
+export interface NameResolver {
+    nameOf(id: string): string;
+}
 
 export function baseId(ref: string): string {
     return String(ref).replace(/:\d+$/, '');

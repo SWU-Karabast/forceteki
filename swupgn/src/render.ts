@@ -1,6 +1,8 @@
 import type { SwuPgnDocument, GameEvent, ReducedState, Seat } from './types';
-import { baseId, NameResolver, indexResolver } from './cardNames';
+import type { NameResolver } from './cardNames';
+import { baseId, indexResolver } from './cardNames';
 import { isCompleteKeyframe } from './fold';
+import { isTopLevelActionRecord } from './actionLinks';
 
 const RULE_WIDTH = 78;
 
@@ -11,20 +13,6 @@ function arr(x: unknown): string[] {
 
 function who(p: Seat | undefined): string {
     return p === 1 ? 'Player 1' : p === 2 ? 'Player 2' : '';
-}
-
-/**
- * Events a player CHOSE to do. These get a number; everything else is a consequence of the
- * numbered action above it and is printed indented underneath.
- *
- * This mirrors the `seq` scheme, where a top-level action is `R2.A.3` and its consequences
- * are `R2.A.3a`, `R2.A.3b`, … — the causal grouping is already in the data, and indenting
- * is what makes it visible.
- */
-function isTopLevelAction(e: GameEvent): boolean {
-    return e.t === 'PLAY' || e.t === 'PLAY_EVENT' || e.t === 'PLAY_UPGRADE' ||
-        e.t === 'PLAY_SMUGGLE' || e.t === 'DEPLOY_LEADER' || e.t === 'ATTACK' ||
-        e.t === 'PASS' || e.t === 'CLAIM_INITIATIVE';
 }
 
 /** Normative one-line rendering of a single event. `null` means "not part of the story". */
@@ -57,8 +45,14 @@ function line(e: GameEvent, n: NameResolver): string | null {
         case 'OVERWHELM': return `${e.amt} Overwhelm damage to ${who(e.p === 1 ? 2 : 1)}'s base — ${e.hp} HP left`;
         case 'HEAL': return `${e.amt} healed on ${nm(e.tgt)} — ${e.hp} HP left`;
         case 'DEFEAT': return `${nm(e.card)} is defeated${e.defeatedBy ? ` by ${nm(e.defeatedBy)}` : ''}`;
-        case 'ABILITY_ACTIVATE': return `${nm(e.card)} uses an ability`;
+        // An action ability is the player's own action for the turn, so it reads like one
+        // ("Player 2 uses Director Krennic"); every other kind happened TO a card.
+        case 'ABILITY_ACTIVATE': return e.kind === 'action' || e.kind === 'epic'
+            ? `${who(e.p)} uses ${nm(e.card)}${e.kind === 'epic' ? '\'s Epic Action' : ''}`
+            : `${nm(e.card)} uses an ability`;
         case 'TRIGGER': return `${nm(e.card)} triggers`;
+        // Handled by the caller, which gives it its own marker line rather than a story line.
+        case 'UNDO': return null;
         case 'STATUS_TOKEN': return `${nm(e.card)} ${e.count < 0 ? 'loses' : 'gains'} ${Math.abs(e.count)} ${e.token}`;
         case 'SHIELD_GAIN': return `${nm(e.card)} gains ${e.count ?? 1} shield`;
         case 'SHIELD_USE': return `${nm(e.card)} loses ${e.count ?? 1} shield`;
@@ -91,7 +85,7 @@ function line(e: GameEvent, n: NameResolver): string | null {
 
 /** `"ASH#110:2"` -> `" #2"`, so two copies of a card are distinguishable in the prose. */
 function copySuffix(ref: string): string {
-    const m = /:(\d+)$/.exec(String(ref));
+    const m = (/:(\d+)$/).exec(String(ref));
     return m ? ` #${m[1]}` : '';
 }
 
@@ -182,6 +176,12 @@ export function render(doc: SwuPgnDocument, names?: NameResolver): string {
             actionNum = 0;
             continue;
         }
+        // Neither an action nor a consequence: the records it retracted are gone from the file,
+        // so it is a mark in the margin saying the narrative below was replayed from here.
+        if (e.t === 'UNDO') {
+            out.push(`    ·· ${e.by ? who(e.by) : 'A player'} undid back to ${e.at} ··`);
+            continue;
+        }
         if (e.t === 'PHASE_START') {
             out.push(` ── ${e.phase} ──`);
             actionNum = 0;
@@ -191,7 +191,11 @@ export function render(doc: SwuPgnDocument, names?: NameResolver): string {
         if (text == null) {
             continue;
         }
-        if (isTopLevelAction(e)) {
+        // Events a player CHOSE to do get a number; everything else is a consequence of the
+        // numbered action above it and is printed indented underneath. This mirrors the `seq`
+        // scheme, where a top-level action is `R2.A.3` and its consequences are `R2.A.3a`,
+        // `R2.A.3b`, … — the causal grouping is already in the data, and indenting shows it.
+        if (isTopLevelActionRecord(e)) {
             actionNum += 1;
             out.push(` ${String(actionNum).padStart(2)}. ${text}`);
         } else {

@@ -1,9 +1,10 @@
 import type { Game } from '../Game';
-import { CardType, DeployType, EventName, PhaseName, PlayType, ZoneName } from '../Constants';
+import { AbilityType, CardType, DeployType, EventName, PhaseName, PlayType, ZoneName } from '../Constants';
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 import { logger } from '../../../logger';
-import type { Header, GameEvent, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
+import type { AbilityKind, DefeatReason, Header, GameEvent, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
 import { anonymizedMatchId, saltedPlayerId, anonymizePlayerLabel } from './swuPgnIdentity';
+import { isTopLevelActionRecord } from '../../../../swupgn/src/actionLinks';
 
 export interface HeaderContext {
     gameId: string;
@@ -21,6 +22,9 @@ export interface HeaderContext {
 
     /** Handler failures during recording; omitted from the header when zero. */
     recorderErrors?: number;
+
+    /** Undos performed during the game; omitted from the header when zero. */
+    undos?: number;
 
     /** When the game ended (ISO-8601 UTC); with `date` this gives its duration. */
     endDate?: string;
@@ -55,6 +59,7 @@ export function buildHeader(ctx: HeaderContext): Header {
         p2Leader: ctx.p2.leader, p2Base: ctx.p2.base,
         result: ctx.result, reason: ctx.reason, rounds: ctx.rounds,
         ...(ctx.recorderErrors ? { recorderErrors: ctx.recorderErrors } : {}),
+        ...(ctx.undos ? { undos: ctx.undos } : {}),
     };
 }
 
@@ -144,6 +149,25 @@ function readOr<T>(get: () => T, fallback: T): T {
         return fallback;
     }
 }
+
+/**
+ * The engine's defeat causes, mapped to the format's CLOSED `DEFEAT.reason` set (spec §6.4).
+ *
+ * Typed as `Record<DefeatSourceType, DefeatReason>` on purpose: the two vocabularies are
+ * maintained separately -- the engine's in `IDamageOrDefeatSource.ts`, the format's in the
+ * spec, the schema enum and `swupgn/src/types.ts` -- and a plain `source.type` passthrough let
+ * a NEW engine cause widen into the file silently, producing a value no schema or reader knew.
+ * This map makes the compiler name the day that happens, at the one line that bridges them.
+ *
+ * A source the engine did not supply at all falls through to `unknown` at the call site.
+ */
+const DEFEAT_REASON_OF: Record<DefeatSourceType, DefeatReason> = {
+    [DefeatSourceType.Attack]: 'attack',
+    [DefeatSourceType.Ability]: 'ability',
+    [DefeatSourceType.NonCombatDamage]: 'nonCombatDamage',
+    [DefeatSourceType.UniqueRule]: 'uniqueRule',
+    [DefeatSourceType.FrameworkEffect]: 'frameworkEffect',
+};
 
 /** Spec §6.2 arena zones -- the destinations a reader turns into arena membership. */
 const ARENA_ZONE_NAMES = new Set(['ground', 'space']);
@@ -250,6 +274,9 @@ export class SwuPgnRecorder {
     /** %%% SETUP section records (currently the INIT deck-order record). */
     private readonly setup: (SetupInitRecord | GameEvent)[] = [];
 
+    /** Fallback origin for `ms`, for a game that reports neither `startedAt` nor `createdAt`. */
+    private readonly startedRecordingMs = Date.now();
+
     /** Current round number. */
     private currentRound = 0;
 
@@ -274,6 +301,15 @@ export class SwuPgnRecorder {
      * file that silently dropped events past the logging cap does not pass for a clean one.
      */
     private errorCount = 0;
+
+    /**
+     * Undos performed during this game, surfaced as the header's `Undos`.
+     *
+     * Deliberately NOT held in a checkpoint and never restored by `rollbackTo`: every other
+     * counter here describes the RECORDING, which a rollback rewinds, while this one describes
+     * the SESSION, which it does not. Undoing a second time does not un-happen the first.
+     */
+    private undoCount = 0;
 
     /**
      * Remembers which unit each token-upgrade is attached to, and what kind it is
@@ -332,6 +368,11 @@ export class SwuPgnRecorder {
         return this.events;
     }
 
+    /** How many undos this game has had. See `undoCount`. */
+    public getUndoCount(): number {
+        return this.undoCount;
+    }
+
     public getSetup(): (SetupInitRecord | GameEvent)[] {
         return this.setup;
     }
@@ -388,8 +429,13 @@ export class SwuPgnRecorder {
      * restores all counters and the tokenParents map, and discards that checkpoint and any
      * later ones so re-recording the redo starts clean.
      * Safe no-op when the snapshot id is unknown (nothing was recorded after it).
+     *
+     * Leaves an `UNDO` note where the truncation happened (spec §10.2) and counts the undo into
+     * the header's `Undos` tag. Without those the file is not merely quiet about the undo, it
+     * actively misreports: the retracted records are gone, so a reader sees a game in which no
+     * decision was ever taken back. The note folds to nothing, so nobody's board changes.
      */
-    public rollbackTo(restoredSnapshotId: number | null): void {
+    public rollbackTo(restoredSnapshotId: number | null, undoingPlayerId?: string): void {
         try {
             if (restoredSnapshotId == null) {
                 return;
@@ -405,6 +451,18 @@ export class SwuPgnRecorder {
                 return; // nothing was recorded after the restored snapshot
             }
             const boundary = this.checkpoints[idx];
+            // The first record being dropped is what the undo reached back to; capture it
+            // before the truncation takes it away.
+            //
+            // UNWRAP a previous UNDO note. push() re-checkpoints BEFORE appending the note, so
+            // the boundary for this snapshot ends up pointing AT that note; undoing to the same
+            // point again (undo -> retry -> undo, ordinary usage) would then read the note's own
+            // seq. That produced `R2.start-undo-undo` whose `at` named a record the truncation
+            // had just deleted -- a dangling citation the reference validator rejects, and an
+            // unbounded `-undo-undo-...` suffix on repeat. Chain through to the real game
+            // position instead, so every UNDO names where play actually resumed.
+            const dropped = this.events[boundary.eventsLen];
+            const undoneFrom = dropped?.t === 'UNDO' ? dropped.at : dropped?.seq;
             this.events.length = boundary.eventsLen;
             this.setup.length = boundary.setupLen;
             this.currentRound = boundary.currentRound;
@@ -426,6 +484,30 @@ export class SwuPgnRecorder {
             }
             // Drop this checkpoint and any later ones; the redo re-checkpoints as it records.
             this.checkpoints.length = idx;
+
+            // The count is NOT part of the rolled-back state: an undo is a fact about the
+            // session, and undoing again does not un-happen the first one. So it is never
+            // restored from a checkpoint, and it is the authoritative figure -- an UNDO note is
+            // an ordinary record and a later, deeper rollback can truncate one away.
+            this.undoCount++;
+            const by = undoingPlayerId
+                ? readOr<Seat | undefined>(() => this.seatOf({ id: undoingPlayerId }), undefined)
+                : undefined;
+            if (undoneFrom != null) {
+                // Its own seq, hyphen-suffixed from the record it reached back to (the same
+                // shape `.game-end` uses). Reusing that record's seq verbatim would collide:
+                // the counters are restored too, so the redo re-issues the very same number.
+                this.push({
+                    seq: `${undoneFrom}-undo`,
+                    t: 'UNDO',
+                    at: undoneFrom,
+                    // Through readOr like every other optional derivation here: the truncation
+                    // has already applied by this point, so a throw from seat resolution would
+                    // lose the note that says the retraction happened while keeping the
+                    // retraction itself. A note without `by` beats no note.
+                    ...(by != null ? { by } : {}),
+                });
+            }
         } catch (error) {
             this.logError('rollbackTo', error);
         }
@@ -480,7 +562,27 @@ export class SwuPgnRecorder {
 
     private push(e: GameEvent): void {
         this.maybeCheckpoint();
+        // Elapsed time, on the records a reviewer asks it of: the numbered actions, and the
+        // round/phase boundaries they sit between (spec §5.2). NOT on lettered consequences --
+        // the engine resolves those in the same instant as the action that caused them, so a
+        // number there would measure the engine, not the player.
+        if (isTopLevelActionRecord(e) || e.t === 'ROUND_START' || e.t === 'PHASE_START') {
+            e.ms = this.elapsedMs();
+        }
         this.events.push(e);
+    }
+
+    /**
+     * Milliseconds from the header's `Date` to now.
+     *
+     * Resolved from the same expression the header's `Date` is built from, so the two cannot
+     * disagree about when zero was. `startedAt` is set when play begins and never moves after
+     * that, so every record in a game shares one origin. Clamped at zero: a record written
+     * before `startedAt` was set would otherwise be negative, which is not a duration.
+     */
+    private elapsedMs(): number {
+        const origin = readOr<Date | undefined>(() => this.game.startedAt ?? this.game.createdAt, undefined);
+        return Math.max(0, Date.now() - (origin?.getTime() ?? this.startedRecordingMs));
     }
 
     /**
@@ -740,6 +842,42 @@ export class SwuPgnRecorder {
         }
     }
 
+    /**
+     * What KIND of ability this is, in the fixed vocabulary `ABILITY_ACTIVATE.kind` uses.
+     *
+     * Without it the only signal a reader has is the shape of the engine's ability identifier
+     * (`…_action_1`, `…_triggered_0`, `mandalorian_keyword_shielded_0`, `shield_replacement_0`,
+     * `reforge_anonymous`), so every reader ends up regexing an id this format never promised
+     * to keep stable. The writer is the one place that can answer from the ability OBJECT.
+     *
+     * Epic Actions are reported as their own kind rather than as `action`, because the rules
+     * track used/unused Epic Action as game state (CR 1.16) and a reader shows it differently.
+     * `keyword` is the one kind the object cannot answer: a keyword ability is built as an
+     * ordinary TriggeredAbility whose identifier carries a `keyword_<name>` descriptor
+     * (`Card.buildGeneralAbilityProps`), so that descriptor is the engine's own answer, read
+     * here once instead of by every reader.
+     */
+    private abilityKind(ability: any): AbilityKind | undefined {
+        if (ability == null) {
+            return undefined;
+        }
+        if (readOr(() => ability.isEpicAction === true, false)) {
+            return 'epic';
+        }
+        const id = readOr<unknown>(() => ability.abilityIdentifier, undefined);
+        if (typeof id === 'string' && (/_keyword_/).test(id)) {
+            return 'keyword';
+        }
+        switch (readOr<unknown>(() => ability.type, undefined)) {
+            case AbilityType.Action: return 'action';
+            case AbilityType.Triggered: return 'triggered';
+            case AbilityType.ReplacementEffect:
+            case AbilityType.DamageModification: return 'replacement';
+            case AbilityType.Constant: return 'constant';
+            default: return undefined;
+        }
+    }
+
     /** Engine PhaseName → 1.1 reader vocabulary ('setup'|'action'|'regroup'). */
     private phaseVocab(phase: string): ReducedState['phase'] {
         switch (phase) {
@@ -787,6 +925,45 @@ export class SwuPgnRecorder {
             event.keyframe = keyframe;
         }
         this.push(event);
+    }
+
+    /**
+     * The two round-scoped keyframe fields the engine has already cleared by the time
+     * OnRoundEnded fires, recovered for the ROUND_END snapshot.
+     *
+     * `ActionPhase.tearDownActionPhase` sets `isInitiativeClaimed = false` at the END of the
+     * action phase, and `Phase.endPhase` nulls `currentPhase` (which the projection maps to
+     * 'setup') — both before the round-ended step runs. So projecting the live engine there
+     * stamps the swept-up between-rounds state under the finished round's seq: every round
+     * that claimed initiative reported `initiativeTaken: false`, breaking §14's "keyframe
+     * equals the fold at that seq" (checkKeyframes flagged one mismatch per claimed round),
+     * and every ROUND_END claimed phase 'setup' instead of the regroup it just finished.
+     *
+     * Recovered from the stream already written rather than from newly tracked state: those
+     * events are the very thing the reader folds, so the keyframe agrees with the fold by
+     * construction, and `rollbackTo` truncates them — an undo past a claim corrects this for
+     * free, with no new field to restore at a checkpoint. The scan stops at this round's
+     * ROUND_START, so it walks one round of events, once per round.
+     */
+    private roundScopedKeyframeFields(): { phase?: ReducedState['phase']; initiativeTaken: boolean } {
+        let phase: ReducedState['phase'] | undefined;
+        let initiativeTaken = false;
+        for (let i = this.events.length - 1; i >= 0; i--) {
+            const event = this.events[i];
+            if (event.t === 'ROUND_START') {
+                break;
+            }
+            if (event.t === 'CLAIM_INITIATIVE') {
+                initiativeTaken = true;
+            } else if (event.t === 'PHASE_START' && phase === undefined) {
+                // The last phase to start this round — regroup in a normal round, but an
+                // additional phase if a card granted one, so it is read rather than assumed.
+                phase = event.phase as ReducedState['phase'];
+            }
+        }
+        // No PHASE_START this round means there is nothing better to say than what the
+        // projection already put there.
+        return phase === undefined ? { initiativeTaken } : { phase, initiativeTaken };
     }
 
     /**
@@ -910,6 +1087,7 @@ export class SwuPgnRecorder {
             const event: GameEvent = { seq: `R${this.currentRound}.end`, t: 'ROUND_END', round: this.currentRound };
             const keyframe = this.projectKeyframe();
             if (keyframe) {
+                Object.assign(keyframe, this.roundScopedKeyframeFields());
                 event.keyframe = keyframe;
             }
             this.push(event);
@@ -970,7 +1148,7 @@ export class SwuPgnRecorder {
             // attach lands after the play.)
             const host = t === 'PLAY_UPGRADE' ? this.parentOf(card) : null;
             const seq = this.nextSeq(true);
-            this.push({
+            const playRecord: GameEvent = {
                 seq,
                 t,
                 p: this.seatOf(player),
@@ -982,7 +1160,8 @@ export class SwuPgnRecorder {
                 // payment and never reach this event; `costs` here is targeted-adjuster
                 // bookkeeping, not an amount.
                 cost: typeof card?.cost === 'number' ? card.cost : undefined,
-            } as GameEvent);
+            };
+            this.push(playRecord);
         });
 
         this.on(EventName.OnLeaderDeployed, (event: any) => {
@@ -1120,10 +1299,17 @@ export class SwuPgnRecorder {
 
         this.on(EventName.OnDamageHealed, (event: any) => {
             const card = event?.card;
+            // What healed it, on the same terms as DAMAGE.src. Without it the record says a
+            // base gained 2 HP and nothing at all about why, and no later record can supply it
+            // -- a heal has no attack to recover the source from the way OVERWHELM does.
+            // Heals are always ability-driven (HealSystem has no combat path), so the ability's
+            // own source card is the answer; omitted when it can't be resolved.
+            const src = this.idOf(event?.context?.source);
             const seq = this.nextSeq(false);
             this.push({
                 seq,
                 t: 'HEAL',
+                ...(src !== 'unknown' ? { src } : {}),
                 tgt: this.targetRef(card),
                 amt: event?.damageHealed ?? event?.amount ?? 0,
                 hp: card?.remainingHp ?? 0,
@@ -1161,7 +1347,11 @@ export class SwuPgnRecorder {
             }
 
             const defeatSource = event?.defeatSource;
-            const reason: string = defeatSource?.type ?? '';
+            // Spec §6.4 pins this to a closed set, so a reader can switch on it. It is the
+            // engine's own DefeatSourceType, which is closed too -- but an event that reaches
+            // here with no defeat source at all would otherwise write an empty string, a value
+            // outside the set and outside the schema. Say `unknown` instead of lying.
+            const reason: DefeatReason = DEFEAT_REASON_OF[defeatSource?.type] ?? 'unknown';
             let defeatedBy: any = null;
             if (defeatSource?.type === DefeatSourceType.Attack) {
                 defeatedBy = defeatSource?.attack?.attacker;
@@ -1555,14 +1745,33 @@ export class SwuPgnRecorder {
             const cardId = this.targetRef(card);
             const player = card?.controller ?? card?.owner;
             const ability = event?.ability?.abilityIdentifier;
+            const kind = this.abilityKind(event?.ability);
+            const title = readOr(() => event?.ability?.getTitle?.(), undefined);
+
             // Drop a just-recorded paired TRIGGER for the same card; this single record subsumes
-            // it. Reuse the popped TRIGGER's seq for this record (rather than allocating a fresh
-            // one) so the collapse leaves no skipped seq number behind it.
+            // it.
             const last = this.events[this.events.length - 1];
-            let seq: string;
-            if (last && last.t === 'TRIGGER' && (last as any).card === cardId) {
-                seq = last.seq;
+            const pairedTrigger = last != null && last.t === 'TRIGGER' && (last as any).card === cardId;
+            if (pairedTrigger) {
                 this.events.pop();
+            }
+
+            // CR 6.1 lists "use an action ability" among the six things a player may do with
+            // their action, so an action (or Epic Action) ability IS a top-level action and takes
+            // its own step number — the same as a play or an attack. Recording it as a sub-event
+            // filed it under whatever the last numbered action was, which for a leader ability
+            // used after the opponent's turn is the OPPONENT'S `PASS`: the pass appeared to have
+            // ten consequences, and the ability's own DEFEAT/EXHAUST hung off the wrong player's
+            // action. Every other ability kind (triggered, keyword, replacement) genuinely IS a
+            // consequence of the action that caused it, and stays a sub-event.
+            //
+            // Otherwise reuse the popped TRIGGER's seq rather than allocating a fresh one, so the
+            // collapse leaves no skipped seq number behind it.
+            let seq: string;
+            if (kind === 'action' || kind === 'epic') {
+                seq = this.nextSeq(true);
+            } else if (pairedTrigger) {
+                seq = last.seq;
             } else {
                 seq = this.nextSeq(false);
             }
@@ -1572,7 +1781,9 @@ export class SwuPgnRecorder {
                 p: this.seatOf(player),
                 card: cardId,
                 ability: typeof ability === 'string' ? ability : undefined,
-                ...(event?.ability?.isEpicAction === true ? { epic: true } : {}),
+                ...(kind ? { kind } : {}),
+                ...(typeof title === 'string' && title !== '' ? { title } : {}),
+                ...(kind === 'epic' ? { epic: true } : {}),
             });
         });
 

@@ -16,6 +16,18 @@ function parseHeaderLine(line: string, raw: Record<string, string>): void {
  * silently into whatever consumed it. A wrong-but-finite value fails loudly at the point of
  * use; NaN fails nowhere and corrupts everything downstream.
  */
+/**
+ * A header count that is not a base-10 integer is corrupt, not zero.
+ *
+ * `finiteOr` runs at PARSE time, before any schema sees the value, so `[Undos "garbage"]` used
+ * to become `undos: 0` and validate clean -- silently reporting "no undos happened" for a file
+ * whose audit metadata was mangled. Returning undefined instead leaves the tag absent, which
+ * the schema and every reader already handle, and keeps "absent" honestly distinct from "zero".
+ */
+function strictCount(value: string): number | undefined {
+    return (/^\s*\d+\s*$/).test(value) ? Number(value) : undefined;
+}
+
 function finiteOr(value: string, fallback: number): number {
     const n = Number(value);
     return Number.isFinite(n) ? n : fallback;
@@ -41,17 +53,25 @@ function buildHeader(raw: Record<string, string>): Header {
         p2Leader: req('P2Leader'), p2Base: req('P2Base'),
         result: req('Result') as Header['result'], reason: req('Reason'),
         rounds: finiteOr(req('Rounds'), 0),
-        ...(raw['RecorderErrors'] != null ? { recorderErrors: finiteOr(raw['RecorderErrors'], 0) } : {}),
+        ...(strictCount(raw['RecorderErrors'] ?? '') !== undefined ? { recorderErrors: strictCount(raw['RecorderErrors']) } : {}),
+        ...(strictCount(raw['Undos'] ?? '') !== undefined ? { undos: strictCount(raw['Undos']) } : {}),
         ...(raw['EndDate'] != null ? { endDate: raw['EndDate'] } : {}),
         ...(raw['Match'] != null ? { match: raw['Match'] } : {}),
-        ...(raw['GameNumber'] != null ? { gameNumber: finiteOr(raw['GameNumber'], 0) } : {}),
+        ...(strictCount(raw['GameNumber'] ?? '') !== undefined ? { gameNumber: strictCount(raw['GameNumber']) } : {}),
     };
 }
 
 type Section = 'NONE' | 'UNKNOWN' | 'STORY' | 'DECKS' | 'CARDS' | 'SETUP' | 'EVENTS' | 'ANNOTATIONS';
 
 /** Sections whose lines are NDJSON records. `STORY` is deliberately not one of them. */
-const JSON_SECTIONS = ['DECKS', 'CARDS', 'SETUP', 'EVENTS', 'ANNOTATIONS'];
+export const JSON_SECTIONS = ['DECKS', 'CARDS', 'SETUP', 'EVENTS', 'ANNOTATIONS'];
+
+/**
+ * Every `%%%` banner this version knows. Exported so `validate()` warns on exactly the set
+ * `parse()` accepts -- two hand-maintained copies drift, and the warning then fires on a
+ * section the reader does happily parse, or stays silent on one it drops.
+ */
+export const KNOWN_SECTIONS: readonly string[] = ['STORY', ...JSON_SECTIONS];
 
 /** Drop leading/trailing blank lines a section banner's spacing leaves around the prose. */
 function trimBlankEdges(lines: string[]): string[] {
@@ -98,7 +118,8 @@ export function parse(text: string): SwuPgnDocument {
             continue;
         }
         if (line.startsWith('%%%')) {
-            const name = line.slice(3).trim().toUpperCase();
+            const name = line.slice(3).trim()
+                .toUpperCase();
             section = (name === 'STORY' || JSON_SECTIONS.includes(name) ? name : 'UNKNOWN') as Section;
             continue;
         }
@@ -114,7 +135,11 @@ export function parse(text: string): SwuPgnDocument {
             case 'SETUP': setup.push(rec as SetupInitRecord | GameEvent); break;
             case 'EVENTS': events.push(rec as GameEvent); break;
             case 'ANNOTATIONS': annotations.push(rec as Annotation); break;
-            case 'UNKNOWN': throw new Error(`SWU-PGN: JSON record in unrecognized section on line ${i + 1}`);
+            // A section this reader does not know is a LATER version's, not a broken file: §18
+            // requires a reader to ignore what it does not understand and keep going. Throwing
+            // here made every 1.0 reader hard-fail on the first file that carried a new section,
+            // which is exactly the forward compatibility the spec promises in writing.
+            case 'UNKNOWN': break;
             default: throw new Error(`SWU-PGN: record before any %%% section on line ${i + 1}`);
         }
     }

@@ -1,4 +1,6 @@
-import type { SwuPgnDocument, GameEvent, ReducedState, Header } from '../../../swupgn/src/types';
+import type { AbilityKind, DefeatReason, SwuPgnDocument, GameEvent, ReducedState, Header } from '../../../swupgn/src/types';
+import * as fs from 'fs';
+import * as path from 'path';
 
 describe('swupgn types', function () {
     it('models a minimal document', function () {
@@ -15,5 +17,38 @@ describe('swupgn types', function () {
         const empty: ReducedState = { round: 0, phase: 'setup', initiative: null, players: {} };
         expect(doc.events[0].t).toBe('PLAY');
         expect(empty.round).toBe(0);
+    });
+});
+
+// A closed vocabulary in this format lives in four places: the TS alias, the JSON Schema enum,
+// the spec table and the writer. TypeScript can police the first and the last; nothing policed
+// the schema, so a kind added in one place and forgotten in another would ship a file the
+// reference validator rejects. These two tests are that missing check.
+describe('swupgn closed vocabularies stay in lockstep', function () {
+    const schema = JSON.parse(fs.readFileSync(
+        path.resolve(__dirname, '../../../../swupgn/schema/event.schema.json'), 'utf8')) as any;
+
+    const enumFor = (t: string, field: string): string[] => {
+        const branch = schema.allOf.find((b: any) =>
+            b.if?.properties?.t?.const === t ||
+            (Array.isArray(b.if?.properties?.t?.enum) && b.if.properties.t.enum.includes(t)));
+        return branch?.then?.properties?.[field]?.enum ?? [];
+    };
+
+    it('ABILITY_ACTIVATE.kind: the AbilityKind alias equals the schema enum', function () {
+        // The compiler enforces this list is exhaustive over AbilityKind: drop a member and
+        // the Record below stops type-checking.
+        const exhaustive: Record<AbilityKind, true> = {
+            action: true, epic: true, triggered: true, keyword: true, replacement: true, constant: true,
+        };
+        expect(Object.keys(exhaustive).sort()).toEqual(enumFor('ABILITY_ACTIVATE', 'kind').sort());
+    });
+
+    it('DEFEAT.reason: the DefeatReason alias equals the schema enum', function () {
+        const exhaustive: Record<DefeatReason, true> = {
+            attack: true, ability: true, nonCombatDamage: true,
+            uniqueRule: true, frameworkEffect: true, unknown: true,
+        };
+        expect(Object.keys(exhaustive).sort()).toEqual(enumFor('DEFEAT', 'reason').sort());
     });
 });

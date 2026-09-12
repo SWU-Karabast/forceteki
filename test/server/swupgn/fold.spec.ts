@@ -148,7 +148,7 @@ describe('fold event coverage', function () {
             { seq: 'R1.A.5', t: 'EXPERIENCE_GAIN', card: 'SOR#108', count: 2 },
             { seq: 'R1.A.6', t: 'STATUS_TOKEN', card: 'SOR#108', token: 'stun', count: 1 },
         ] as any);
-        const c = s.players[1]?.cards.find((x) => x.id === 'SOR#108')!;
+        const c = s.players[1]?.cards.find((x) => x.id === 'SOR#108');
         expect(c.damage).toBe(2);
         expect(c.zone).toBe('space');
         expect(c.shields).toBe(1);
@@ -222,7 +222,7 @@ describe('fold resources', function () {
     ];
 
     it('EXHAUST_RESOURCES moves ready resources to exhausted; READY_RESOURCES moves them back', function () {
-        const paid = fold([...two, { seq: 'R1.A.0a', t: 'EXHAUST_RESOURCES', p: 1, amount: 2 }] as any).players[1]!;
+        const paid = fold([...two, { seq: 'R1.A.0a', t: 'EXHAUST_RESOURCES', p: 1, amount: 2 }] as any).players[1];
         expect([paid.resourcesReady, paid.resourcesExhausted]).toEqual([1, 2]);
         const readied = fold([
             ...two,
@@ -232,14 +232,14 @@ describe('fold resources', function () {
             // A record for a resource that was already ready (a writer may emit one) finds
             // nothing exhausted and does nothing.
             { seq: 'R1.G.3', t: 'READY_RESOURCES', p: 1, amount: 1 },
-        ] as any).players[1]!;
+        ] as any).players[1];
         expect([readied.resourcesReady, readied.resourcesExhausted]).toEqual([3, 0]);
     });
 
     it('clamps to what the row holds, exactly as the engine exhausts min(amount, ready)', function () {
-        const p = fold([...two, { seq: 'R1.A.0a', t: 'EXHAUST_RESOURCES', p: 1, amount: 5 }] as any).players[1]!;
+        const p = fold([...two, { seq: 'R1.A.0a', t: 'EXHAUST_RESOURCES', p: 1, amount: 5 }] as any).players[1];
         expect([p.resourcesReady, p.resourcesExhausted]).toEqual([0, 3]);
-        const q = fold([{ seq: 'R1.A.0a', t: 'READY_RESOURCES', p: 1, amount: 5 }] as any).players[1]!;
+        const q = fold([{ seq: 'R1.A.0a', t: 'READY_RESOURCES', p: 1, amount: 5 }] as any).players[1];
         expect([q.resourcesReady, q.resourcesExhausted]).toEqual([0, 0]);
     });
 
@@ -251,7 +251,7 @@ describe('fold resources', function () {
             { seq: 'R1.A.0a', t: 'EXHAUST_RESOURCES', p: 1, amount: 2 },
             { seq: 'R1.A.0b', t: 'MOVE', card: 'A', from: 'resource', to: 'ground', p: 1, kind: 'unit', exhausted: true },
             { seq: 'R1.A.0c', t: 'MOVE', card: 'B', from: 'resource', to: 'hand', p: 1 },
-        ] as any).players[1]!;
+        ] as any).players[1];
         expect([p.resourcesReady, p.resourcesExhausted]).toEqual([0, 1]);
     });
 
@@ -409,7 +409,7 @@ describe('fold game state beyond the arenas', function () {
         ];
         const deployed = fold(events.slice(0, 2)).players[1]?.leader;
         expect(deployed).toEqual({ id: 'SOR#010', deployed: true, exhausted: false, epicActionUsed: true });
-        const home = fold(events).players[1]!;
+        const home = fold(events).players[1];
         expect(home.leader).toEqual({ id: 'SOR#010', deployed: false, exhausted: true, epicActionUsed: true });
         expect(home.cards).toEqual([]);
         // Readied at regroup like anything else.
@@ -501,7 +501,7 @@ describe('fold arena membership', function () {
             { seq: 'R1.A.1a', t: 'MOVE', card: 'SOR#071', from: 'hand', to: 'ground', p: 1, kind: 'upgrade' },
             { seq: 'R1.A.1b', t: 'MOVE', card: 'TOKEN:advantage#5844562972', from: 'outsideTheGame', to: 'ground', p: 1, kind: 'upgrade', attachedTo: 'SOR#095' },
         ];
-        const p = fold(events).players[1]!;
+        const p = fold(events).players[1];
         expect(p.cards.map((c) => c.id)).toEqual(['SOR#095']);   // neither upgrade is in play
         expect(p.handSize).toBe(0);                              // 1 drawn, 1 played out of hand
     });
@@ -555,9 +555,9 @@ describe('fold arena membership', function () {
                 { seq: 'R1.A.2', t: 'MOVE', card: 'SOR#108', from: 'ground', to: 'discard' },
             ] as unknown as GameEvent[];
 
-            const p1 = fold(events).players[1]!;
+            const p1 = fold(events).players[1];
 
-            expect(p1.cards.find((c) => c.id === 'SOR#108')!.zone).toBe('discard');
+            expect(p1.cards.find((c) => c.id === 'SOR#108').zone).toBe('discard');
             expect(p1.handSize).toBe(0);
             expect(p1.resourcesReady).toBe(0);
         });
@@ -604,5 +604,61 @@ describe('fold arena membership', function () {
             expect(at.players[2]?.cards.map((c) => c.id)).toEqual(['SOR#002']);
             expect(at.players[1]?.cards).toEqual([]); // the keyframe replaced R1's board
         });
+    });
+});
+
+// A zone list is bounded by deck size in any real game, so a list this long cannot come from
+// honest play. This parses UNTRUSTED files in a browser: addOnce scans the list on every add, so
+// an unbounded `cards[]` in a DRAW would cost O(n^2) string comparisons and hang the tab. Past
+// the cap the id is dropped rather than the file rejected -- degrading is the fold's contract.
+describe('fold zone list cap', function () {
+    it('drops ids past the cap instead of growing the list without bound', function () {
+        const ids = Array.from({ length: 1005 }, (_, i) => `TOKEN:x${i}`);
+        const s = fold([{ seq: 'R1.A.1', t: 'DRAW', p: 1, count: ids.length, cards: ids }] as any);
+        expect(s.players[1]?.hand.length).toBe(1000);
+        // The ones under the cap are kept, in order; nothing past it is silently substituted in.
+        expect(s.players[1]?.hand[0]).toBe('TOKEN:x0');
+        expect(s.players[1]?.hand[999]).toBe('TOKEN:x999');
+        expect(s.players[1]?.hand).not.toContain('TOKEN:x1000');
+    });
+
+    it('does not throw when a card past the cap is later referenced', function () {
+        const ids = Array.from({ length: 1001 }, (_, i) => `TOKEN:x${i}`);
+        expect(() => fold([
+            { seq: 'R1.A.1', t: 'DRAW', p: 1, count: ids.length, cards: ids },
+            { seq: 'R1.A.2', t: 'DISCARD', p: 1, cards: ['TOKEN:x1000'] },
+        ] as any)).not.toThrow();
+    });
+});
+
+// Both of these are reachable from a schema-VALID file: validation passing is not the same as
+// the fold being safe to run on the result.
+describe('fold hardening against crafted files', function () {
+    it('bounds arena growth, so a file of unique arena MOVEs cannot make the fold quadratic', function () {
+        // findCard() scans every card in play, so an unbounded arena is O(n^2) to fold. A real
+        // game never approaches the cap; only a crafted file does.
+        const events: any[] = [];
+        for (let i = 0; i < 1500; i++) {
+            events.push({ seq: `R1.A.${i}`, t: 'MOVE', card: `SOR#${i}`, from: 'hand', to: 'ground', p: 1 });
+        }
+        const s = fold(events as any);
+        expect(s.players[1].cards.length).toBe(1000);
+    });
+
+    it('refuses to snap to a keyframe whose card is missing a list the fold dereferences', function () {
+        // `{id, zone}` with no `upgrades` passed as "complete", the fold snapped to it, and the
+        // next exit from that arena crashed in detach() on c.upgrades.indexOf.
+        const halfCard = { round: 2, phase: 'action' as const, initiative: 1 as const, players: {
+            1: { seat: 1, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0,
+                resourcesExhausted: 0, credits: 0, hasForce: false, discard: [],
+                cards: [{ id: 'SOR#108', zone: 'ground' }] },
+            2: { seat: 2, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0,
+                resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] },
+        } };
+        const events = [
+            { seq: 'R2.start', t: 'ROUND_START', round: 2, keyframe: halfCard },
+            { seq: 'R2.A.1', t: 'MOVE', card: 'SOR#108', from: 'ground', to: 'discard', p: 1 },
+        ] as any;
+        expect(() => fold(events)).not.toThrow();
     });
 });

@@ -42,7 +42,7 @@ describe('SwuPgnWriter', function () {
         expect(text).toContain('%%% ANNOTATIONS');
         const evLine = text.split('\n').find((l) => l.includes('"t":"PLAY"'));
         expect(evLine).toBeDefined();
-        expect(() => JSON.parse(evLine!)).not.toThrow();
+        expect(() => JSON.parse(evLine)).not.toThrow();
     });
 
     it('escapeTag: collapses newlines to space and preserves escaped double-quotes', function () {
@@ -54,6 +54,7 @@ describe('SwuPgnWriter', function () {
         const doc = parse(text);
         expect(doc.header.reason).toBe('he said "go" then left');
     });
+
     describe('keyframe integrity gate', function () {
         // The gate reports and never blocks: keyframes stay authoritative, so a reader still
         // gets every round boundary, and withholding the file would cost a player the whole

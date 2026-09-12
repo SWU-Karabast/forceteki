@@ -58,10 +58,15 @@ describe('checkKeyframes', function () {
     });
 
     it('fails on a per-card field mismatch (keyframe claims damage but the fold has none)', function () {
-        const card = (over: Partial<{ damage: number }>) => ({
-            id: 'SOR#232', zone: 'ground', damage: 0, exhausted: false, upgrades: [] as string[],
-            shields: 0, experience: 0, statusTokens: {} as Record<string, number>, captured: [] as string[], ...over,
-        });
+        const card = (over: Partial<{ damage: number }>) => {
+            const upgrades: string[] = [];
+            const statusTokens: Record<string, number> = {};
+            const captured: string[] = [];
+            return {
+                id: 'SOR#232', zone: 'ground', damage: 0, exhausted: false, upgrades,
+                shields: 0, experience: 0, statusTokens, captured, ...over,
+            };
+        };
         const seat = (cards: any[]) => ({ seat: 1 as const, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [],
             resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards });
         const seat2 = { seat: 2 as const, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0,
@@ -77,8 +82,8 @@ describe('checkKeyframes', function () {
         expect(r.ok).toBe(false);
         const dmg = r.mismatches.find((m) => m.path === 'players.1.cards[SOR#232].damage');
         expect(dmg).toBeDefined();
-        expect(dmg!.expected).toBe(2);
-        expect(dmg!.got).toBe(0);
+        expect(dmg.expected).toBe(2);
+        expect(dmg.got).toBe(0);
     });
 });
 

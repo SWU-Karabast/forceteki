@@ -159,8 +159,8 @@ export class SwuPgnGameAdapter {
     }
 
     /** Roll the recorded stream back in lockstep with the game on undo. */
-    public rollbackTo(restoredSnapshotId: number | null): void {
-        this.recorder.rollbackTo(restoredSnapshotId);
+    public rollbackTo(restoredSnapshotId: number | null, undoingPlayerId?: string): void {
+        this.recorder.rollbackTo(restoredSnapshotId, undoingPlayerId);
     }
 
     // ── Resolver + setup capture ────────────────────────────────────────────────
@@ -647,6 +647,7 @@ export class SwuPgnGameAdapter {
             p2: { username: player2.user.username, leader: leaderId(player2), base: baseId(player2) },
             // Handler failures drop events silently past the logging cap; say so in the file.
             recorderErrors: this.recorder.getErrorCount() || undefined,
+            undos: this.recorder.getUndoCount() || undefined,
             // Spec §5.2. `EndDate` with `Date` gives the game's duration -- the one thing
             // per-event timestamps would have bought. Absent while the game is still running.
             endDate: read(() => this.game.finishedAt?.toISOString(), undefined),

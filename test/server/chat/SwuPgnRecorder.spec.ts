@@ -123,8 +123,8 @@ describe('SwuPgnRecorder events fold to expected state', function () {
         const s = fold(events);
         expect(s.players[2]?.baseHp).toBe(28);
         const card = s.players[1]?.cards.find((c) => c.id === 'SOR#108');
-        expect(card!.zone).toBe('ground');
-        expect(card!.exhausted).toBe(true);
+        expect(card.zone).toBe('ground');
+        expect(card.exhausted).toBe(true);
     });
 
     it('DRAW + RESOURCE adjust hand/resources and DEFEAT moves a card to discard', function () {
@@ -155,7 +155,7 @@ describe('SwuPgnRecorder events fold to expected state', function () {
 
         const events = rec.getEvents() as GameEvent[];
         const s = fold(events);
-        const ps = s.players[1]!;
+        const ps = s.players[1];
         // drew 2 (hand +2), resourced 1 (hand -1, resourcesReady +1) -> hand 1, resources 1
         expect(ps.handSize).toBe(1);
         expect(ps.resourcesReady).toBe(1);
@@ -203,8 +203,8 @@ describe('SwuPgnRecorder gap events: board mutations', function () {
         const events = rec.getEvents() as GameEvent[];
         const s = fold(events);
         const card = s.players[1]?.cards.find((c) => c.id === 'SOR#200');
-        expect(card!.zone).toBe('space');        // MOVE normalized to 'space'
-        expect(card!.shields).toBe(0);           // +1 then -1
+        expect(card.zone).toBe('space');        // MOVE normalized to 'space'
+        expect(card.shields).toBe(0);           // +1 then -1
         expect(s.players[2]?.baseHp).toBe(27);   // OVERWHELM (or overwhelm-damage) snapped base
     });
 });
@@ -224,8 +224,8 @@ describe('SwuPgnRecorder: token creation and play cost', function () {
         // RecorderErrors on any game with a token.
         const outOfPlay = () => {
             // What the engine's Contract actually throws for a stat read in this zone.
-            throw new Error('Contract assertion failure: Attempting to read property upgrades '
-              + 'on clone-trooper but it is in zone outsideTheGame where the property does not apply');
+            throw new Error('Contract assertion failure: Attempting to read property upgrades ' +
+              'on clone-trooper but it is in zone outsideTheGame where the property does not apply');
         };
         const cloneToken = {
             uuid: 'TOKEN:Clone', owner: p1, controller: p1,
@@ -296,8 +296,8 @@ describe('SwuPgnRecorder gap events: counters + upgrades', function () {
         const events = rec.getEvents() as GameEvent[];
         const s = fold(events);
         const card = s.players[1]?.cards.find((c) => c.id === 'SOR#300');
-        expect(card!.experience).toBe(2);
-        expect(card!.statusTokens['advantage']).toBe(1);
+        expect(card.experience).toBe(2);
+        expect(card.statusTokens['advantage']).toBe(1);
     });
 
     // The reported bug: a gained Advantage was emitted as STATUS_TOKEN +1 on attach, but its
@@ -331,11 +331,11 @@ describe('SwuPgnRecorder gap events: counters + upgrades', function () {
         expect(removals.map((e: any) => e.t).sort()).toEqual(['EXPERIENCE_GAIN', 'SHIELD_USE', 'STATUS_TOKEN']);
 
         const card = fold(events).players[1]?.cards.find((c) => c.id === 'SOR#300');
-        expect(card!.experience).toBe(0);
-        expect(card!.shields).toBe(0);
+        expect(card.experience).toBe(0);
+        expect(card.shields).toBe(0);
         // A token that reaches zero is DELETED, not left as {advantage: 0} — the engine
         // keyframe reports a host with no tokens as {}, and the gate compares by JSON equality.
-        expect(card!.statusTokens).toEqual({});
+        expect(card.statusTokens).toEqual({});
     });
 
     it('records MULLIGAN/KEEP_HAND and a MODAL_CHOICE with offered/chose', function () {
@@ -609,6 +609,53 @@ describe('SwuPgnRecorder keyframes + INIT', function () {
     });
 });
 
+// DEFEAT.reason is a CLOSED set (spec §6.4) and the writer bridges it from the engine's own
+// DefeatSourceType. Both ends of that bridge need a test: the mapped values are covered by the
+// real-game contract specs, but the fallback is only reachable when the engine hands over a
+// defeat with no source at all -- which is exactly the case that used to write an empty string,
+// a value outside the enum and outside the schema.
+describe('SwuPgnRecorder closed-vocabulary fallbacks', function () {
+    const recorder = () => {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: () => 1 as const });
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        return { game, rec };
+    };
+
+    it('writes DEFEAT.reason \'unknown\' when the engine supplies no defeat source', function () {
+        const { game, rec } = recorder();
+        const p1 = { id: 'p1' };
+        const unit = fakeCard({ uuid: 'SOR#999', zoneName: 'groundArena', owner: p1, controller: p1, printedType: 'unit' });
+        game.emit(EventName.OnCardDefeated, { card: unit, defeatSource: undefined });
+        const defeat = rec.getEvents().find((e: any) => e.t === 'DEFEAT') as any;
+        expect(defeat).toBeDefined();
+        expect(defeat.reason).toBe('unknown');
+    });
+
+    it('maps an engine defeat cause to its closed-set name rather than passing the raw value', function () {
+        const { game, rec } = recorder();
+        const p1 = { id: 'p1' };
+        const unit = fakeCard({ uuid: 'SOR#998', zoneName: 'groundArena', owner: p1, controller: p1, printedType: 'unit' });
+        game.emit(EventName.OnCardDefeated, { card: unit, defeatSource: { type: 'uniqueRule' } });
+        const defeat = rec.getEvents().find((e: any) => e.t === 'DEFEAT') as any;
+        expect(defeat.reason).toBe('uniqueRule');
+    });
+
+    // `src` is optional on HEAL: a source the writer cannot resolve is OMITTED, never written as
+    // the sentinel 'unknown' -- a reader must be able to tell "nothing healed it" apart from
+    // "something healed it and we could not name it".
+    it('omits HEAL.src entirely when the healing source cannot be resolved', function () {
+        const { game, rec } = recorder();
+        const p1 = { id: 'p1' };
+        const unit = fakeCard({ uuid: 'SOR#997', zoneName: 'groundArena', owner: p1, controller: p1, printedType: 'unit', remainingHp: 5 });
+        game.emit(EventName.OnDamageHealed, { card: unit, damageHealed: 2, context: undefined });
+        const heal = rec.getEvents().find((e: any) => e.t === 'HEAL') as any;
+        expect(heal).toBeDefined();
+        expect(heal.amt).toBe(2);
+        expect('src' in heal).toBe(false);
+    });
+});
+
 describe('SwuPgnRecorder rollback', function () {
     it('truncates events + setup and restores counters/tokenParents to a checkpoint boundary', function () {
         const game = new FakeEmitter();
@@ -644,11 +691,20 @@ describe('SwuPgnRecorder rollback', function () {
         // counters advanced past the boundary.
         expect((rec as any).actionCounter).toBeGreaterThan(boundaryAction);
 
-        // Roll back to the checkpoint.
-        rec.rollbackTo(1);
+        const firstDropped = (rec.getEvents()[boundaryEventsLen] as any).seq;
 
-        // events truncated back to the boundary; post-checkpoint events dropped.
-        expect(rec.getEvents().length).toBe(boundaryEventsLen);
+        // Roll back to the checkpoint.
+        rec.rollbackTo(1, 'p1');
+
+        // events truncated back to the boundary; post-checkpoint events dropped. The UNDO note
+        // left in their place is the one record the rollback ADDS (spec §10.2).
+        const undo = rec.getEvents()[rec.getEvents().length - 1] as any;
+        expect(undo.t).toBe('UNDO');
+        expect(undo.at).toBe(firstDropped);
+        expect(undo.seq).toBe(`${firstDropped}-undo`);
+        expect(undo.by).toBe(1);
+        expect(rec.getUndoCount()).toBe(1);
+        expect(rec.getEvents().length).toBe(boundaryEventsLen + 1);
         expect(rec.getEvents().some((e: any) => e.card === 'SOR#401')).toBe(false);
         expect(rec.getEvents().some((e: any) => e.t === 'SHIELD_GAIN')).toBe(false);
 
@@ -683,11 +739,13 @@ describe('SwuPgnRecorder rollback', function () {
         rec.checkpoint(1);
         const len = rec.getEvents().length;
 
+        // Nothing was truncated, so nothing is noted and nothing is counted.
         expect(() => rec.rollbackTo(999)).not.toThrow();
         expect(rec.getEvents().length).toBe(len);
         // rolling back to null is also a safe no-op.
         expect(() => rec.rollbackTo(null)).not.toThrow();
         expect(rec.getEvents().length).toBe(len);
+        expect(rec.getUndoCount()).toBe(0);
     });
 });
 

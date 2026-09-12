@@ -1,3 +1,6 @@
+// A namespace for the id-formatting helpers, referenced as `SwuPgn.formatSetId(...)` from the
+// recorder, the adapter and their specs. Kept a class for that call-site shape.
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class SwuPgn {
     /**
      * Formats a SET#NUM identifier: uppercases the set and zero-pads the number to 3 digits.

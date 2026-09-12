@@ -13,6 +13,6 @@ describe('swupgn public API', function () {
         const story = render(doc, { nameOf: (id) => id });
         expect(story.length).toBeGreaterThan(0);
         const mid = stateAt(doc.events, 'R1.A.1');
-        expect(mid.players[2]!.baseHp).toBe(30);
+        expect(mid.players[2].baseHp).toBe(30);
     });
 });

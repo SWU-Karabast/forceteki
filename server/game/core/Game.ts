@@ -167,14 +167,14 @@ export class Game extends EventEmitter {
         return this.state.actionNumber;
     }
 
-    /** The RNG seed this game was run with (undefined for an unseeded/test RNG). Read by SwuPgnGameAdapter. */
-    public get randomSeed(): string | undefined {
-        return this._randomGenerator.seed;
-    }
-
     public set actionNumber(value: number) {
         Contract.assertNonNegative(value, 'Action number must be non-negative: ' + value);
         this.state.actionNumber = value;
+    }
+
+    /** The RNG seed this game was run with (undefined for an unseeded/test RNG). Read by SwuPgnGameAdapter. */
+    public get randomSeed(): string | undefined {
+        return this._randomGenerator.seed;
     }
 
     public get winnerNames(): readonly string[] {
@@ -1935,7 +1935,7 @@ export class Game extends EventEmitter {
         const rollbackHandler = this._snapshotManager.buildRollbackHandler(settings);
 
         const performRollback = () => {
-            const result = this.rollbackToSnapshotInternal(settings, rollbackHandler);
+            const result = this.rollbackToSnapshotInternal(settings, rollbackHandler, playerId);
 
             if (!result) {
                 return false;
@@ -1990,7 +1990,7 @@ export class Game extends EventEmitter {
         return !!opponent.hasResolvedAbilityThisTimepoint;
     }
 
-    private rollbackToSnapshotInternal(settings: IGetSnapshotSettings, rollbackHandler: (() => any) | null = null): boolean {
+    private rollbackToSnapshotInternal(settings: IGetSnapshotSettings, rollbackHandler: (() => any) | null = null, undoingPlayerId?: string): boolean {
         if (!this.isUndoEnabled) {
             return false;
         }
@@ -2009,7 +2009,7 @@ export class Game extends EventEmitter {
 
             this._actionsSinceLastUndo = 0;
 
-            this.postRollbackOperations(rollbackResult.entryPoint);
+            this.postRollbackOperations(rollbackResult.entryPoint, undoingPlayerId);
 
             if (rollbackResult.rolledPastGameEnd) {
                 this._router.handleUndoGameEnd();
@@ -2079,7 +2079,7 @@ export class Game extends EventEmitter {
         this._swuPgnFileServed = true;
     }
 
-    public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint): void {
+    public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint, undoingPlayerId?: string): void {
         if (this._swuPgnFileServed && !this.isEnded) {
             // Rolling back into live play after the log was served. Withhold further copies and
             // leave an auditable trail. NOTE: this does not un-leak the copy already downloaded
@@ -2096,7 +2096,7 @@ export class Game extends EventEmitter {
         // checkpoints lazily per snapshot id (in SwuPgnRecorder.push), so rolling back to
         // the restored snapshot id drops exactly the events recorded after it and restores
         // counters + shieldParents. currentSnapshotId already reflects the restored snapshot.
-        this._swuPgnAdapter.rollbackTo(this._snapshotManager.currentSnapshotId);
+        this._swuPgnAdapter.rollbackTo(this._snapshotManager.currentSnapshotId, undoingPlayerId);
         // Only an undo that reopens the game invalidates the pinned end-of-game file. Players
         // may keep playing after game end; an undo within that post-game play must not
         // regenerate (and re-serve) a file that now differs from the one already downloaded.

@@ -63,7 +63,12 @@ export function isCompleteKeyframe(k: unknown): k is ReducedState {
         if (!Array.isArray(ps.cards) || !Array.isArray(ps.hand) || !Array.isArray(ps.discard)) {
             return false;
         }
-        if (!ps.cards.every((c) => typeof c === 'object' && c !== null)) {
+        // Every card the fold later dereferences must actually carry the list it dereferences.
+        // `upgrades` was checked nowhere: a keyframe card of `{id, zone}` passed as "complete",
+        // the fold snapped to it, and the next exit from that arena crashed in detach() on
+        // `c.upgrades.indexOf`. A keyframe is snapped to WHOLESALE, so a half-shaped card in one
+        // is not a detail to tolerate -- it is a damaged checkpoint (spec §13).
+        if (!ps.cards.every((c) => typeof c === 'object' && c !== null && Array.isArray((c as Partial<CardInstanceState>).upgrades))) {
             return false;
         }
     }
@@ -94,15 +99,18 @@ function player(s: ReducedState, seat: Seat): PlayerState | undefined {
     if (!isSeat(seat)) {
         return undefined;
     }
-    if (!s.players[seat]) {
-        s.players[seat] = emptyPlayer(seat);
+    const existing = s.players[seat];
+    if (existing) {
+        return existing;
     }
-    return s.players[seat]!;
+    const created = emptyPlayer(seat);
+    s.players[seat] = created;
+    return created;
 }
 
 /** Resolve a target ref like "base@2" or "SOR#095:2" to the owning seat (best-effort). */
 function seatOfBaseRef(ref: string): Seat | null {
-    const m = /^base@([12])$/.exec(ref);
+    const m = (/^base@([12])$/).exec(ref);
     return m ? (Number(m[1]) as Seat) : null;
 }
 
@@ -145,13 +153,32 @@ function newCard(id: string, zone: string): CardInstanceState {
  * play — invisible while keyframes kept snapping the state back, but wrong for `stateAt()`
  * anywhere between two keyframes, which is exactly what a replay scrubber asks for.
  */
+/**
+ * Hard ceiling on any per-seat list the fold grows from an untrusted file: arena cards, hand,
+ * discard, resources. A real game never comes close; a crafted one is trying to make a reader
+ * do unbounded work. Past it, records are dropped rather than folded.
+ */
+const MAX_ZONE_LIST = 1000;
+
 function placeCard(s: ReducedState, seat: Seat, id: string, zone: string): void {
     const existing = findCard(s, id);
     if (existing) {
         existing.zone = zone;
         return;
     }
-    player(s, seat)?.cards.push(newCard(id, zone));
+    const ps = player(s, seat);
+    if (!ps) {
+        return;
+    }
+    // Same cap, and for the same reason, as `addOnce` on the zone lists: this is the OTHER
+    // unbounded growth path, and it is the expensive one. `findCard` scans every card in play,
+    // so a file of N unique MOVEs into an arena folds in O(N^2) -- 40k records (under 4 MB,
+    // schema-valid) took seconds of synchronous work, which in a browser is the tab and in Node
+    // is the event loop. A real game never approaches this; only a crafted file does.
+    if (ps.cards.length >= MAX_ZONE_LIST) {
+        return;
+    }
+    ps.cards.push(newCard(id, zone));
 }
 
 /** Remove `id` from every seat's arena list, wherever it is. */
@@ -253,8 +280,6 @@ const isArena = (z: string): boolean => ARENA_ZONES.has(z);
  * comparisons and hang the tab. Past the cap the id is dropped rather than the file rejected --
  * degrading is the fold's contract, and no honest file reaches it.
  */
-const MAX_ZONE_LIST = 1000;
-
 function addOnce(list: string[], id: string): void {
     if (list.length >= MAX_ZONE_LIST) {
         return;
@@ -409,7 +434,10 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
     if (ARENA_ZONES.has(e.to)) {
         if (existing) {
             existing.zone = e.to;
-        } else {
+        } else if (ps.cards.length < MAX_ZONE_LIST) {
+            // MOVE is the arena's real author (§12.1) -- PLAY only summarises -- so this is the
+            // path a crafted file grows, and it must carry the same ceiling placeCard does.
+            // findCard() scans every card in play, so an unbounded arena folds in O(n^2).
             ps.cards.push(newCard(e.card, e.to));
         }
     } else if (existing && ARENA_ZONES.has(existing.zone)) {
@@ -703,14 +731,20 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             break;
         }
         case 'RESOURCE': break;
-        case 'SHIELD_GAIN': { const c = findCard(s, e.card); if (c) { c.shields += e.count ?? 1; } break; }
-        case 'SHIELD_USE': { const c = findCard(s, e.card); if (c) { c.shields = Math.max(0, c.shields - (e.count ?? 1)); } break; }
+        case 'SHIELD_GAIN': { const c = findCard(s, e.card); if (c) {
+            c.shields += e.count ?? 1;
+        } break; }
+        case 'SHIELD_USE': { const c = findCard(s, e.card); if (c) {
+            c.shields = Math.max(0, c.shields - (e.count ?? 1));
+        } break; }
         // `count` may be negative: a token leaving its host is recorded as the same event with a
         // negative delta (see SwuPgnRecorder.tokenRecord). Counts clamp at 0, and a status token
         // that reaches 0 is DELETED rather than left as `{advantage: 0}` — an engine keyframe
         // reports a host with no tokens as `statusTokens: {}`, and the integrity gate compares
         // the two by JSON equality.
-        case 'EXPERIENCE_GAIN': { const c = findCard(s, e.card); if (c) { c.experience = Math.max(0, c.experience + e.count); } break; }
+        case 'EXPERIENCE_GAIN': { const c = findCard(s, e.card); if (c) {
+            c.experience = Math.max(0, c.experience + e.count);
+        } break; }
         case 'STATUS_TOKEN': {
             const c = findCard(s, e.card);
             if (c) {
@@ -726,6 +760,9 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         case 'KEEP_HAND': case 'MODAL_CHOICE': case 'SHUFFLE':
         case 'SEARCH': case 'REVEAL':
         case 'TRIGGER': case 'PHASE_END': case 'ROUND_END': case 'GAME_END':
+        // UNDO is a note ABOUT the file, not an event in the game: the records it retracted were
+        // removed, so there is nothing left to undo when folding.
+        case 'UNDO':
             break;
         default: { const _exhaustive: never = e; void _exhaustive; break; }
     }
@@ -760,6 +797,11 @@ export function fold(events: GameEvent[]): ReducedState {
  */
 export function stateAt(events: GameEvent[], seq: string): ReducedState {
     const idx = events.findIndex((e) => e.seq === seq);
+    // An unknown seq folds the whole list. That is the DOCUMENTED contract (spec §12.3), not an
+    // oversight: an adversarial review flagged the fallback as a silent wrong answer, which it
+    // is, but it is normative and external readers are built on it. The dangling-reference case
+    // that motivated the objection is closed at its source instead -- the writer no longer
+    // coalesces away a seq anything still points at (see coalesceResourceReadies).
     const end = idx >= 0 ? idx : events.length - 1;
     for (let i = end; i >= 0; i--) {
         const e = events[i];

@@ -2,13 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://karabast.net/swu-pgn/1.0/event.schema.json",
   "title": "SWU-PGN/1.0 Event",
-  "description": "One %%% EVENTS (or %%% SETUP) record. Open by design (additionalProperties: true, spec §18) so a reader tolerates fields added later; the per-type constraints below pin the SHAPE of the fields the fold dereferences, so a malformed file is rejected here rather than surfacing as a TypeError in a browser. Nothing here rejects a pre-release 1.1 file (spec §22.1): a keyframe missing a seat still validates and is ignored by the fold.",
+  "description": "One %%% EVENTS (or %%% SETUP) record. Open by design (additionalProperties: true, spec §18) so a reader tolerates fields added later; the per-type constraints below pin the SHAPE of the fields the fold dereferences, so a malformed file is rejected here rather than surfacing as a TypeError in a browser. A keyframe missing a seat still validates here and is ignored by the fold (spec §13).",
   "type": "object",
   "required": ["seq","t"],
   "properties": {
-    "seq": { "type": "string", "pattern": "^R\\d+\\.(S|A|G)(\\.[A-Za-z0-9-]+)?$|^R\\d+\\.(start|end)$" },
+    "seq": { "type": "string", "pattern": "^R\\d+\\.(S|A|G)(\\.[A-Za-z0-9-]+)?$|^R\\d+\\.(start|end)(-undo)?$" },
     "t": { "type": "string" },
-    "p": { "enum": [1,2] }
+    "p": { "enum": [1,2] },
+    "for": { "type": "string" },
+    "ms": { "type": "integer", "minimum": 0, "description": "Milliseconds from the header's Date to this record (spec 5.2.1). A duration, never a clock. Only on numbered actions and ROUND_START / PHASE_START." }
   },
   "additionalProperties": true,
   "allOf": [
@@ -26,7 +28,15 @@
     },
     {
       "if": { "properties": { "t": { "enum": ["DAMAGE","HEAL","OVERWHELM"] } }, "required": ["t"] },
-      "then": { "properties": { "tgt": { "type": "string" }, "amt": { "type": "integer" }, "hp": { "type": "integer" } }, "required": ["tgt","amt","hp"] }
+      "then": { "properties": { "src": { "type": "string" }, "tgt": { "type": "string" }, "amt": { "type": "integer" }, "hp": { "type": "integer" } }, "required": ["tgt","amt","hp"] }
+    },
+    {
+      "if": { "properties": { "t": { "const": "UNDO" } }, "required": ["t"] },
+      "then": { "properties": { "at": { "type": "string" }, "by": { "enum": [1,2] } }, "required": ["at"] }
+    },
+    {
+      "if": { "properties": { "t": { "const": "DEFEAT" } }, "required": ["t"] },
+      "then": { "properties": { "reason": { "enum": ["attack","ability","nonCombatDamage","uniqueRule","frameworkEffect","unknown"] }, "defeatedBy": { "type": "string" } }, "required": ["reason"] }
     },
     {
       "if": { "properties": { "t": { "enum": ["STATUS_TOKEN","EXPERIENCE_GAIN"] } }, "required": ["t"] },
@@ -51,6 +61,10 @@
     {
       "if": { "properties": { "t": { "const": "LEADER_FLIP" } }, "required": ["t"] },
       "then": { "properties": { "card": { "type": "string" }, "onStartingSide": { "type": "boolean" } }, "required": ["card","onStartingSide"] }
+    },
+    {
+      "if": { "properties": { "t": { "const": "ABILITY_ACTIVATE" } }, "required": ["t"] },
+      "then": { "properties": { "ability": { "type": "string" }, "kind": { "enum": ["action","epic","triggered","keyword","replacement","constant"] }, "title": { "type": "string" }, "epic": { "type": "boolean" } } }
     },
     {
       "if": { "properties": { "t": { "const": "CAPTURE" } }, "required": ["t"] },

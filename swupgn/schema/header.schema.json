@@ -26,7 +26,7 @@
     "Game": {
       "type": "string",
       "pattern": "^SWU-PGN/1\\.\\d+$",
-      "description": "Any SWU-PGN/1.x version string. Spec 22.1 requires readers to accept 1.1 (a pre-release file, parsed as 1.0) and any other same-major 1.x, ignoring what they don't know - so this must not be pinned to the exact constant \"SWU-PGN/1.0\". A different major version is rejected."
+      "description": "Any SWU-PGN/1.x version string. Spec 18 requires readers to accept a HIGHER minor version and ignore what they do not know, so this must not be pinned to the exact constant \"SWU-PGN/1.0\". A different major version is rejected."
     },
     "Result": {
       "enum": [
@@ -44,6 +44,11 @@
     },
     "Rounds": {
       "type": "integer"
+    },
+    "Undos": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "How many undos the game had. Absent means none. Authoritative: an UNDO record is an ordinary record and a later, deeper rollback can truncate one away, so the count MAY exceed the number of UNDO records in the file."
     }
   },
   "additionalProperties": true
