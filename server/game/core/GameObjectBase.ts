@@ -121,15 +121,6 @@ export abstract class GameObjectBase implements IGameObjectBase {
         return this.state;
     }
 
-    public getState() {
-        // This *must* return a copy, without any references, hence the use of structuredClone.
-        try {
-            return structuredClone(this.state);
-        } catch (ex) {
-            throw new Error(`Unable to retrieve the copied state for ${this.getGameObjectName()}.\nError: ${ex.toString()}\nCurrent State:\n\n${JSON.stringify(this.state)}\n\n`);
-        }
-    }
-
     /** A function for game to call on all objects after all state has been rolled back. Intended to be used when a class has state changes that have external changes, for example, updating OngoingEffectEngine. */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public afterSetAllState(oldState: IGameObjectBaseState) { }

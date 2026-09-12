@@ -75,7 +75,7 @@ global.integration = function (definitions, enableUndo = false) {
                 gameRouter,
                 { id: '111', username: 'player1', settings: { optionSettings: { autoSingleTarget: false } } },
                 { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } },
-                enableUndo ? UndoMode.Full : UndoMode.Disabled
+                enableUndo ? UndoMode.Free : UndoMode.Disabled
             );
 
             /** @type {SwuTestContext} */

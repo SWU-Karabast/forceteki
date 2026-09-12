@@ -2,7 +2,6 @@ import type { Game } from '../Game';
 import type { GameStateManager } from './GameStateManager';
 import type { IGameSnapshot, SnapshotTimepoint } from './SnapshotInterfaces';
 import { Contract } from '../utils/Contract.js';
-import { SnapshotArray } from './container/SnapshotArray';
 import type { IClearNewerSnapshotsBinding, IClearNewerSnapshotsHandler } from './container/SnapshotContainerBase';
 import { SnapshotMap } from './container/SnapshotMap';
 import { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
@@ -70,20 +69,6 @@ export class SnapshotFactory {
     public constructor(game: Game, gameStateManager: GameStateManager) {
         this.game = game;
         this.gameStateManager = gameStateManager;
-    }
-
-    /** @deprecated This is implemented but not currently used or tested */
-    public createSnapshotArray(maxLength: number): SnapshotArray {
-        return this.createSnapshotContainerWithClearSnapshotsBinding((clearNewerSnapshotsBinding) =>
-            new SnapshotArray(
-                maxLength,
-                this.game,
-                this.gameStateManager,
-                () => this.getCurrentActionSnapshot(),
-                (snapshot: IGameSnapshot) => this.updateCurrentActionSnapshot(snapshot),
-                clearNewerSnapshotsBinding
-            )
-        );
     }
 
     public createSnapshotMap<T>(): SnapshotMap<T> {

@@ -88,7 +88,7 @@ Assertions use the `Contract` namespace in `core/utils/Contract.ts`; failures ro
 ### Snapshot and undo
 
 Every engine object extends `core/GameObjectBase.ts`, registers with `game.gameObjectManager`, and keeps rollback-relevant data in a `state` object declared with the accessor decorators from `core/GameObjectUtils.ts` (`@statePrimitive`, `@stateValue`, `@stateRef`, `@stateRefArray`, `@stateRefMap/Set/Record`). The class must carry `@registerState()` or `@registerStateBase()` or construction throws, and a `@registerState` class may not extend another `@registerState` class.
-References between objects are stored as ids and rehydrated on rollback; `getState()` uses `structuredClone`, so anything non-cloneable placed in `state` throws. Rollback (`core/snapshot/GameStateManager.rollbackToSnapshot`) mutates live instances in place, and `SnapshotManager.ts` is the facade the `Game` owns.
+References between objects are stored as ids and rehydrated on rollback; snapshots serialize `state` with `v8.serialize` (`GameStateManager.buildGameStateForSnapshot`, reading through `getStateUnsafe()`), so anything not structured-clone-compatible placed in `state` throws. Rollback (`core/snapshot/GameStateManager.rollbackToSnapshot`) mutates live instances in place, and `SnapshotManager.ts` is the facade the `Game` owns.
 The engine is deterministic (seeded `seedrandom`, no `Math.random` under `server/`).
 
 ## Implementing a card
