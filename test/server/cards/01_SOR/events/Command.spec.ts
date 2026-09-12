@@ -119,6 +119,35 @@ describe('Command', function() {
             context.ignoreUnresolvedActionPhasePrompts = true;
         });
 
+        it('Command\'s damage ability should fizzle if no friendly unit has any power', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['command'],
+                    groundArena: ['moisture-farmer', 'coruscanti-spy']
+                },
+                player2: {
+                    groundArena: ['atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.command);
+            context.player1.clickPrompt('A friendly unit deals damage equal to its power to a non-unique enemy unit.');
+
+            // no friendly unit can deal damage, so nothing is selected and no damage is dealt
+            expect(context.atst.damage).toBe(0);
+            expect(context.player1).toHaveEnabledPromptButtons([
+                'Give 2 Experience tokens to a unit.',
+                'Put this event into play as a resource.',
+                '(No effect) Return a unit from your discard pile to your hand.'
+            ]);
+
+            // since we only clicked one option
+            context.ignoreUnresolvedActionPhasePrompts = true;
+        });
+
         it('Command\'s damage ability should fizzle if there is no legal friendly unit', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
