@@ -25,6 +25,7 @@ npm run test-parallel-undo
 | Lane / tier | fast, tier 1 (Small 🟢) |
 | Plan | [01-snapshot-hygiene.md](01-snapshot-hygiene.md) work item E |
 | Parent | `3dcaecdb0` |
+| Commit | `512a62113` |
 | Branch | `experimental/rollback-saves-optimizations` |
 
 ### What changed
