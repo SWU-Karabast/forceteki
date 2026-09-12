@@ -1,6 +1,7 @@
 import { AbilityContext } from '../../ability/AbilityContext';
 import type { Card } from '../../card/Card';
 import type { BaseCardSelector } from '../../cardSelector/BaseCardSelector';
+import { EventName } from '../../Constants';
 import type { Game } from '../../Game';
 import type { OngoingEffectSourceBase } from '../../ongoingEffect/OngoingEffectSource';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
@@ -152,9 +153,18 @@ export class SelectCardPrompt extends UiPrompt {
     }
 
     protected override highlightSelectableCards() {
-        this.choosingPlayer.setSelectableCards(this.selector.findPossibleCards(this.context).filter((card) => this.checkCardCondition(card)));
+        const selectable = this.selector.findPossibleCards(this.context).filter((card) => this.checkCardCondition(card));
+        // Remember what was actually put in front of the player. The SWU-PGN CHOICE record needs
+        // the offered set, and it is emitted after onSelect has already run its side effects --
+        // re-deriving it there would scan the zones a second time AND could return a different
+        // list than the one the player chose from.
+        this.lastOfferedCards = selectable;
+        this.choosingPlayer.setSelectableCards(selectable);
         this.choosingPlayer.opponent.setSelectableCards([]);
     }
+
+    /** Candidates most recently shown to the choosing player; pure logging state (SWU-PGN §4.2). */
+    private lastOfferedCards: Card[] = [];
 
     public override activeCondition(player) {
         return player === this.choosingPlayer;
@@ -261,10 +271,36 @@ export class SelectCardPrompt extends UiPrompt {
     private fireOnSelect() {
         const cardParam = this.selector.formatSelectParam(this.selectedCards);
         if (this.properties.onSelect(cardParam)) {
+            this.emitCardSelection();
             this.complete();
             return true;
         }
         return false;
+    }
+
+    /**
+     * Pure-log SWU-PGN/1.0 hook (§4.2 CHOICE): surface a resolved card-selection prompt for the
+     * recorder — the offered candidate cards and the single card chosen. Only single-card
+     * selections are emitted; the 1.1 CHOICE record models one pick, so multi/zero-select prompts
+     * are skipped. Fully wrapped: recording instrumentation must never affect gameplay.
+     */
+    private emitCardSelection() {
+        try {
+            // Administrative/system prompts opt out via pgnLog:false (parity with HandlerMenuPrompt's
+            // MODAL_CHOICE gate). Only single-card selections are recorded — see the recorder's CHOICE
+            // handler, which models one pick.
+            if (this.properties.pgnLog === false || this.selectedCards.length !== 1) {
+                return;
+            }
+            this.game.emit(EventName.OnCardSelection, {
+                player: this.choosingPlayer,
+                offered: this.lastOfferedCards,
+                chosen: this.selectedCards[0],
+                prompt: this.promptTitle,
+            });
+        } catch {
+            // never let recording instrumentation break a prompt
+        }
     }
 
     public override menuCommand(player, arg) {

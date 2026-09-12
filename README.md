@@ -8,6 +8,10 @@ We have a [Discord server](https://discord.gg/N6ZgcZ3SfA) for updates, bug repor
 
 For details on how to get started adding cards, see the [wiki](https://github.com/SWU-Karabast/forceteki/wiki).
 
+### Game replays (SWU-PGN)
+
+Every game the engine runs produces one event-sourced replay file. [`docs/SWU-PGN-1.0-SPEC.md`](./docs/SWU-PGN-1.0-SPEC.md) is the format spec, and [`swupgn/`](./swupgn/README.md) is the engine-independent reference reader (`parse`, `fold`, `render`, `validate`) that a replay client builds against. Deployments that publish these files must set `FORCETEKI_VERSION` and `SWUPGN_ID_SECRET` — see the swupgn README.
+
 ## Development Quickstart
 
 Follow these instructions to get to the point of being able to run the [unit tests](./test/server/) locally.
