@@ -130,3 +130,82 @@ Cold adversarial review returned 1 blocking finding (the vacuous absence test), 
 ### Notes
 
 `getState()`'s pre-start `{}` shortcut is worth remembering beyond this unit: any future test asserting that some field is *absent* from a serialized payload has to establish that it is looking at the real payload first, or it proves nothing. The same hazard applies to the serialization-failure branch, which also returns a near-empty object.
+
+---
+
+## `P1-A` — Ongoing-effect wrapper churn (Plan 1, work item A)
+
+| | |
+|---|---|
+| Task ID | `p1-a` |
+| Date | 2026-09-12 |
+| Lane / tier | full, tier 3 (Medium 🔴) |
+| Plan | [01-snapshot-hygiene.md](01-snapshot-hygiene.md) work item A, including its "Related fix in the same area" |
+| Parent | `b8b9cc997` |
+| Commit | `PENDING` |
+| Branch | `experimental/rollback-saves-optimizations` |
+
+### What changed
+
+Three allocation pathologies in the ongoing-effect engine, plus the context fix work item B depends on.
+
+- **A1 — compare before wrapping.** `DynamicOngoingEffectImpl.recalculate` used to build a wrapper GameObject on every recalculation and only then ask `compareValues` whether anything had changed. Since `OngoingEffectEngine.resolveEffects` re-enters up to ten times per game-state resolution, an effect whose value was stable still churned ten wrappers per resolution. The comparison now runs first, and an unchanged value allocates nothing.
+- **A2 — one reused wrapper per (effect, target), value in decorated state.** Previously every *changed* value stored a fresh wrapper into the `@stateRefMap values` map, and `UndoMap.set` latched `_hasRef` permanently, so each superseded wrapper stayed registered for the life of the game and was re-serialized into every later snapshot. A new `MutableOngoingEffectValueWrapper` holds its value in a `@stateValue` accessor and is updated in place instead.
+- **A3 — deferred `GainKeyword` construction.** `gainKeyword(fn)` and `gainKeywords` built their `GainKeyword` GameObject *inside* the `calculate` closure, so the subclass early-return registered a transient on every recalculation even when the value was unchanged. The closures now return raw keyword props, and an optional `wrapValue` factory — threaded through `OngoingEffectBuilder.card.dynamic` / `player.dynamic` — constructs the wrapper only once a change is detected.
+- **A4 — per-effect context caching.** `OngoingEffect.refreshContext` runs on every rollback via `afterSetAllState` and used to allocate a fresh `AbilityContext` plus a throwaway `OngoingEffectSource` each time. It now builds the context once with an explicit source and mutates `player`/`source`/`ongoingEffect` in place on later calls. `Game.getFrameworkContext` was deliberately left alone: its roughly fifteen other call sites never overwrite `source`, so a shared instance there would have changed `context.source` identity semantics game-wide.
+
+Net: 839 insertions, 35 deletions across 10 files — six engine, four new specs.
+
+### The two decisions the plan gate had to settle
+
+**Option 1 over option 2.** Option 1 (reuse the wrapper, value as decorated state) was chosen, so there is no Plan 5 impact to flag — stage 5b's wrapper-recreation recipe builds on exactly the JSON-safe decorated-value subset this establishes. Option 1 is also the smaller change: option 2 would have had to hold two storage shapes in one `values` map, which must still carry `GainKeyword` GameObjects.
+
+Worth recording, because the plan doc says otherwise and the next reader would re-derive it: **the plan's stated blocker for option 2 does not bind.** `OngoingEffectEngine.effectLimitReached` reads `targetStates` through `effect.impl?.valueWrapper`, and for a dynamic impl that resolves to the constructor-time dummy wrapper, never an entry of the `values` map. `targetStates` is defined only on `DetachedOngoingEffectValueWrapper`, which only the detached *static* builders create. So the client-state summary's dependency on wrapper object identity is on the detached static wrapper, which neither option touches.
+
+**The aliasing audit cleared in-place context mutation, with no consumer needing an exemption.** `player` is the only field that can differ between two refreshes — `source` and `ongoingEffect` are `readonly` and reassigned identically. Every retainer either gets force-refreshed (`impl.context`, the value wrapper's context via `setContext`, and `DetachedOngoingEffectValueWrapper`'s push into its retained target states) or holds an independent `copy()` / `createCopy()`. Two negative findings closed it: nothing anywhere mutates any other field of an ongoing effect's context (`gameActionsResolutionChain` is dead, and the only `context.events` mutations are on ability contexts), and no retainer wants a pinned pre-rollback snapshot. `summarizeOngoingEffectsForState`'s reads of `effect.context` and `effect.ongoingEffect` are per-call and run after `afterSetAllState`, so they see refreshed values.
+
+Review added one caller the plan's framing had omitted: `PlayableOrDeployableCard.ts:506` also calls `refreshContext()` on a live controller change, not only on rollback. The audit's conclusions are caller-independent and that path is strictly better served by in-place mutation, so no change was needed — but `refreshContext` is not rollback-only, and a future reader should not assume it is.
+
+### What is deliberately unchanged
+
+Retention semantics for wrapper subclasses returned directly by `calculate` (`GainAbility`, `AdditionalPhaseEffect`, `GainKeyword`) and for any value that is a function or contains GameObject references. These keep the immutable-pinned-wrapper model. A3 changed only *when* a `GainKeyword` is constructed, never what is retained.
+
+In-place reuse is gated on three conditions, all of which must hold: the wrap site has no `wrapValue` factory, the value passes `isSnapshotSafeOngoingEffectValue`, and the entry already in `values` for that target is itself a `MutableOngoingEffectValueWrapper`. That third clause is not decoration — after one unsafe value evicts the mutable wrapper, the stored entry is a plain `OngoingEffectValueWrapper` whose `value` is `private readonly`, and mutating it would write outside decorated state, silently keeping the newer value through every undo. An evicted wrapper is never revived.
+
+Snapshot-safe means primitives plus plain arrays and objects whose leaves are all accepted; it rejects functions, `GameObjectBase` instances anywhere in the graph, foreign prototypes (`Map`, `Set`, `Date`, class instances) and true cycles. Both live raw shapes — `{hp, power}` from `modifyStats` and `Aspect[]` from `providesAspectIconsForCosts` — are accepted, so the reuse path covers the whole live raw surface today.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `npm run lint` | exit 0 |
+| `npm run test-parallel` | 8234 specs, 0 failures, 13 pending |
+| `npm run test-parallel-undo` | 8049 specs, 0 failures, 15 pending |
+
+Baselines at the parent commit were 8211/0/13 and 8028/0/14. The pending count rises by exactly one in undo mode: that is the new `undoIntegration` suite correctly self-skipping when `ENABLE_UNDO_ALL_TESTS=true`, since it manages its own manual snapshots. No pre-existing pending spec was activated.
+
+Four new spec files, 24 new cases, no existing spec modified or removed:
+
+- `test/server/core/ongoingEffects/DynamicOngoingEffectValueWrapper.spec.ts` — compare-before-allocate, one-wrapper-per-safe-run reuse, nullish coercion, the safe-to-unsafe-to-safe class transition, the unsafe-value fallback, the defensive subclass branch, and direct boundary cases for the snapshot-safety predicate including a shared-reference DAG and a true cycle.
+- `test/server/core/ongoingEffects/OngoingEffectContextCaching.spec.ts` — context identity stable across refreshes, `player` tracking `abilityPlayer()` when the source's controller changes, `impl.context` agreeing, zero registrations per refresh, and no `OngoingEffectSource` at construction.
+- `test/server/core/ongoingEffects/GainKeywordNormalization.spec.ts` — `normalizeKeywordProps` idempotence, and raw-versus-normalized equality of both `getValue()` and `effectDescription`.
+- `test/server/core/ongoingEffects/OngoingEffectWrapperChurnUndo.spec.ts` — bounded wrapper growth, zero registrations across the rollback seam, rollback restoring the in-place value, post-rollback context correctness, and no allocation for an unchanged dynamic keyword.
+
+**The acceptance assertions are non-vacuous by execution, not by argument.** Reverting the three production files to parent content in the working tree, with the index untouched, and rerunning the churn spec failed all three cases with ten assertion failures: the pre-existing wrapper family grew 4, 6, 8, 10 against an expected flat 2 — exactly one permanently pinned wrapper per value change, which is the A2 bug — the mutable family was 0 against an expected 1, the rollback seam registered 3 objects where zero are required, and the unchanged-keyword case allocated 2 where zero are required. Two of the new unit specs cannot even compile against the parent, since they use the new constructor arity. The tree was then restored and re-verified byte-identical to the index before the final gate ran.
+
+Review: three concurrent cold lenses (correctness/security on Opus, ordering/performance and architecture/contracts on Sonnet) returned **zero blocking findings**, and the architecture lens returned zero findings of any severity. Five warnings across the other two lenses were all fixed and independently confirmed by a cold delta review. Two plan-review rounds preceded implementation; the first caught four test-design gaps that would have let hardened-level criteria pass vacuously.
+
+### Notes worth carrying forward
+
+- `GainKeyword` does not override `getGameObjectName()`, so its uuid carries the base `OngoingEffectValueWrapper_` prefix, not `GainKeyword_`. Any test or tooling identifying a `GainKeyword` allocation by uuid string will silently match nothing; `instanceof` is the reliable check. The same applies to `GainAbility`, `AdditionalPhaseEffect` and `DetachedOngoingEffectValueWrapper` — the whole family shares one prefix. That is what makes a uuid-prefix diff across a code seam a usable allocation-accounting technique for `P1-B`, provided you know the families are not separable that way.
+- `OngoingEffectSource` likewise inherits the base `GameObject` name, so a uuid-prefix check for it matches nothing. Counting `lastGameObjectId` deltas around a seam is the reliable technique instead — and because `GameObjectBase.register()` runs unconditionally in the constructor, before `hasRef` can latch, that counter is an exact allocation count for every subclass regardless of eventual retention.
+- `KeywordInstance.toProperties()` returns a bare **string** for non-numeric keywords, while `GainKeyword`'s constructor normalizes to `{keyword}`. Any future compare-before-construct work in this area must normalize first, or it will report a change on every recalculation — strictly worse than the churn it set out to remove.
+- `OngoingEffect.context` is now a long-lived per-effect object. Per-resolution state must be `copy()`d off it, never stashed on it. A comment at `refreshContext` records this; the invariant is otherwise held only by that comment and the audit above.
+- `refreshContext` is the only thing that refreshes `context.player`, and it runs at construction, on rollback, and on a controller change. A mid-game controller change through any other path leaves `context.player` stale — pre-existing behavior, which `PutIntoPlaySystem.ts` already works around with `.copy({player})`.
+- `ProvidedAspects.forCard` returns `card.aspects` **by reference**, so a dynamic value can alias a live non-state card field. That alias now round-trips through `v8.serialize` on every snapshot, which is a stricter guarantee than before rather than a weaker one, but the stored value must be treated as read-only. The new wrapper class carries this caveat in its comment.
+
+### Deferred, with reasons
+
+- **The Plan 1 performance capture is not run here.** It belongs to `P1-B`, the final unit of this plan. The allocation and GC-share movement this unit is meant to produce is therefore predicted but unmeasured; only the object-count assertions in the new specs bound it.
+- **`isSnapshotSafeOngoingEffectValue` lives in the new wrapper module, not `GameObjectUtils.ts`**, deliberately, so it does not collide with the decorator-layer assertion unit `P2-B` will add, and so Plan 5 has one import for the family.
+- **The plan doc's mis-stated option-2 blocker was not corrected in place**, since editing work item A's prose falls outside this unit's scope fence. It is recorded above instead.

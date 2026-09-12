@@ -5,7 +5,7 @@ import type { IOngoingCardEffectProps, IOngoingPlayerEffectProps, IOngoingCardEf
 // import type { StatusToken } from '../StatusToken';
 import { OngoingCardEffect } from './OngoingCardEffect';
 // import ConflictEffect from './ConflictEffect';
-import type { CalculateOngoingEffect } from './effectImpl/DynamicOngoingEffectImpl';
+import type { CalculateOngoingEffect, WrapOngoingEffectValue } from './effectImpl/DynamicOngoingEffectImpl';
 import DynamicOngoingEffectImpl from './effectImpl/DynamicOngoingEffectImpl';
 import { OngoingPlayerEffect } from './OngoingPlayerEffect';
 import { StaticOngoingEffectImpl } from './effectImpl/StaticOngoingEffectImpl';
@@ -27,9 +27,9 @@ export const OngoingEffectBuilder = {
                 (game: Game, source: Card, props: IOngoingCardEffectProps) =>
                     new OngoingCardEffect(game, source, props, new StaticOngoingEffectImpl(game, type, is.function(value) ? value(game) : value)),
         dynamic:
-            <TValue>(type: EffectName, value: CalculateOngoingEffect<TValue>): IOngoingCardEffectGenerator =>
+            <TValue>(type: EffectName, value: CalculateOngoingEffect<TValue>, wrapValue?: WrapOngoingEffectValue<TValue>): IOngoingCardEffectGenerator =>
                 (game: Game, source: Card, props: IOngoingCardEffectProps) =>
-                    new OngoingCardEffect(game, source, props, new DynamicOngoingEffectImpl(game, type, value)),
+                    new OngoingCardEffect(game, source, props, new DynamicOngoingEffectImpl(game, type, value, wrapValue)),
         detached:
             (type: EffectName, value): IOngoingCardEffectGenerator =>
                 (game: Game, source: Card, props: IOngoingCardEffectProps) =>
@@ -46,9 +46,9 @@ export const OngoingEffectBuilder = {
                 (game: Game, source: Card, props: IOngoingPlayerEffectProps) =>
                     new OngoingPlayerEffect(game, source, props, new StaticOngoingEffectImpl(game, type, is.function(value) ? value(game) : value)),
         dynamic:
-            <TValue>(type: EffectName, value: CalculateOngoingEffect<TValue>): IOngoingPlayerEffectGenerator =>
+            <TValue>(type: EffectName, value: CalculateOngoingEffect<TValue>, wrapValue?: WrapOngoingEffectValue<TValue>): IOngoingPlayerEffectGenerator =>
                 (game: Game, source: Card, props: IOngoingPlayerEffectProps) =>
-                    new OngoingPlayerEffect(game, source, props, new DynamicOngoingEffectImpl(game, type, value)),
+                    new OngoingPlayerEffect(game, source, props, new DynamicOngoingEffectImpl(game, type, value, wrapValue)),
         detached:
             (type: EffectName, value): IOngoingPlayerEffectGenerator =>
                 (game: Game, source: Card, props: IOngoingPlayerEffectProps) =>

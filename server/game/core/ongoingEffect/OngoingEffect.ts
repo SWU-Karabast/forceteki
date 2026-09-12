@@ -1,5 +1,5 @@
 import type { IOngoingEffectProps, WhenType } from '../../Interfaces';
-import type { AbilityContext } from '../ability/AbilityContext';
+import { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import type { ZoneFilter } from '../Constants';
 import { Duration, WildcardZoneName, EffectName } from '../Constants';
@@ -95,12 +95,23 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject> ext
         return this.source.controller;
     }
 
+    // `context` is long-lived: refreshContext mutates the same object in place on every rollback rather than
+    // allocating a fresh AbilityContext each time (see the aliasing audit in the p1-a plan). `player` is the
+    // only field that legitimately differs between refreshes; `source` and `ongoingEffect` are re-assigned
+    // identically every time. Per-resolution state (e.g. `events`) must never be stashed on this context -
+    // copy() it off instead - or a later rollback will silently resurrect stale per-resolution data.
     public refreshContext() {
-        this.context = this.game.getFrameworkContext(this.abilityPlayer());
-        this.context.source = this.source;
-        // The process of creating the OngoingEffect tacks on additional properties that are ability related,
-        //  so this is *probably* fine, but definitely a sign it needs a refactor at some point.
-        this.context.ongoingEffect = this.ongoingEffect;
+        Contract.assertNotNullLike(this.source, 'refreshContext requires a source; a falsy source would otherwise silently substitute a throwaway OngoingEffectSource in the AbilityContext constructor');
+
+        if (!this.context) {
+            this.context = new AbilityContext({ game: this.game, player: this.abilityPlayer(), source: this.source, ongoingEffect: this.ongoingEffect });
+        } else {
+            this.context.player = this.abilityPlayer();
+            // The process of creating the OngoingEffect tacks on additional properties that are ability related,
+            //  so this is *probably* fine, but definitely a sign it needs a refactor at some point.
+            this.context.source = this.source;
+            this.context.ongoingEffect = this.ongoingEffect;
+        }
         this.impl.setContext(this.context);
     }
 

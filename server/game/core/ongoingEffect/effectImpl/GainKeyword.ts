@@ -11,6 +11,27 @@ import { TextHelper } from '../../utils/TextHelper';
 
 @registerState()
 export class GainKeyword extends OngoingEffectValueWrapperBase<IKeywordProperties | IKeywordProperties[]> {
+    /**
+     * Normalizes a raw keyword name/properties argument (or array of them) into the `IKeywordProperties`
+     * shape this class stores, e.g. `'sentinel'` -> `{ keyword: 'sentinel' }`. Identity on nullish input,
+     * idempotent on already-normalized input. Extracted so the dynamic wrap path in `DynamicOngoingEffectImpl`
+     * can compare a raw `calculate` result against a stored normalized value without re-deriving this logic
+     * and risking drift, which would otherwise report a change on every recalculation.
+     */
+    public static normalizeKeywordProps(keywordProps: KeywordNameOrProperties | KeywordNameOrProperties[]): IKeywordProperties | IKeywordProperties[] {
+        if (keywordProps == null) {
+            return keywordProps as unknown as IKeywordProperties;
+        }
+
+        if (Array.isArray(keywordProps)) {
+            return keywordProps.map((keyword) => (typeof keyword === 'string' ? { keyword } : keyword));
+        } else if (typeof keywordProps === 'string') {
+            return { keyword: keywordProps };
+        }
+
+        return keywordProps;
+    }
+
     public constructor(game: Game, keywordProps: KeywordNameOrProperties | KeywordNameOrProperties[]) {
         const effectDescription: FormatMessage = {
             format: 'give {0}',
@@ -19,13 +40,7 @@ export class GainKeyword extends OngoingEffectValueWrapperBase<IKeywordPropertie
             )
         };
 
-        if (Array.isArray(keywordProps)) {
-            super(game, keywordProps.map((keyword) => (typeof keyword === 'string' ? { keyword } : keyword)), effectDescription);
-        } else if (typeof keywordProps === 'string') {
-            super(game, { keyword: keywordProps }, effectDescription);
-        } else {
-            super(game, keywordProps, effectDescription);
-        }
+        super(game, GainKeyword.normalizeKeywordProps(keywordProps), effectDescription);
     }
 
     public override apply(target: Card): void {

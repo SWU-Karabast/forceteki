@@ -136,13 +136,16 @@ export = {
         switch (typeof keywordOrKeywordProperties) {
             case 'function':
                 return OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword,
-                    (target, context, game) => new GainKeyword(game, keywordOrKeywordProperties(target, context, game)));
+                    (target, context, game) => GainKeyword.normalizeKeywordProps(keywordOrKeywordProperties(target, context, game)),
+                    (game, value) => new GainKeyword(game, value));
             default:
                 return OngoingEffectBuilder.card.static(EffectName.GainKeyword, (game) => new GainKeyword(game, keywordOrKeywordProperties));
         }
     },
     gainKeywords: (calculate: (target: any, context: AbilityContext) => KeywordNameOrProperties[]) =>
-        OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context, game) => new GainKeyword(game, calculate(target, context))),
+        OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword,
+            (target, context, game) => GainKeyword.normalizeKeywordProps(calculate(target, context)),
+            (game, value) => new GainKeyword(game, value)),
     multiplyNumericKeyword: (multiplier: NumericKeywordMultiplier) => OngoingEffectBuilder.card.static(EffectName.MultiplyNumericKeyword, multiplier),
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     loseAllOtherAbilities: (properties: { exceptKeyword: KeywordName }) =>
