@@ -142,7 +142,7 @@ Cold adversarial review returned 1 blocking finding (the vacuous absence test), 
 | Lane / tier | full, tier 3 (Medium 🔴) |
 | Plan | [01-snapshot-hygiene.md](01-snapshot-hygiene.md) work item A, including its "Related fix in the same area" |
 | Parent | `b8b9cc997` |
-| Commit | `PENDING` |
+| Commit | `aa95babf7` |
 | Branch | `experimental/rollback-saves-optimizations` |
 
 ### What changed
