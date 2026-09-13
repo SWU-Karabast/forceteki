@@ -272,6 +272,14 @@ and asserts (a) the recreated objects receive the same uuids and (b) the
 rollback itself performed zero registrations (the `_isRollingBack` guard did
 not fire). Full suite + `npm run test-undo`.
 
+**Acceptance criterion (a) is NOT met as shipped.** The measured post-rollback
+replay assigns ids with a +3 offset from the pre-rollback run (`Card_271` ->
+`Card_274`), because the post-rollback pipeline rebuild performs a different
+number of prompt-refresh sweeps than the original run; the shipped test
+asserts the plan's own prescribed fallback (a bounded inequality) instead of
+uuid equality. Criterion (b) is met. See `docs/plans/ANVIL-LOG.md`'s P1-B
+entry for the full record.
+
 ## Work item C: Seed the RNG in production and surface the seed
 
 **Problem.** `Game` constructs `new Randomness()` unseeded (`Game.ts:339`);

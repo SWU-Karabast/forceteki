@@ -8,6 +8,7 @@ described in [Plan 0](../00-performance-benchmarks.md).
 | Capture | Taken after | Notes |
 |---|---|---|
 | [`initial-performance`](initial-performance.md) | Nothing — baseline on `main` before any plan work | The comparison target for the whole roadmap |
+| [`after-plan-01`](after-plan-01.md) | Plan 1 (snapshot hygiene, work items A-E) | Captured on a different machine/Node version than `initial-performance` (Ryzen 7 9850X3D / Node v24.13.0 vs i9-13900HX / Node v22.11.0), so per the comparability rules below the speed deltas are directional only. `manager/rollbackTo(Manual)` moved -10% to -22% across scenarios; the cross-machine/Node change is large enough that it could mask a same-order-of-magnitude increase from the new occupancy check and depth-guard comparison, so this capture cannot confirm the new checks are free — it only rules out a large regression. `payload/fullSnapshotTotal` and `manager/moveToNextTimepoint(Action)` stayed within noise except `forty-cards-per-player`'s `moveToNextTimepoint(Action)` at +12.0%, still inside the sub-20% noise band |
 
 Add a row when a plan lands.
 

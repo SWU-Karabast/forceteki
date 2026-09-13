@@ -813,6 +813,24 @@ export class Game extends EventEmitter {
     // TODO: parameter contract checks for this flow
     /**
      * This function is called from the client whenever a card is clicked
+     *
+     * p1-b client-protocol audit: `cardId` is a bare card uuid with no prompt/sequence gate
+     * (unlike menuButton/perCardMenuButton/statefulPromptResults, which are all checked against a
+     * prompt's own uuid and legal-target list before a card uuid is trusted). Card uuids are recycled
+     * after a rollback restores the id counter, so a stale in-flight click from a message processed
+     * after a rollback can now resolve to a *different*, live card instead of to nothing. The blast
+     * radius is bounded: the authority for whether a click does anything is always the current pipeline
+     * step's own legality check (`ActionWindow.onCardClicked`, `SelectCardPrompt.onCardClicked`,
+     * `ResourcePrompt.onCardClicked`), never the uuid itself, so this can only misapply an action the
+     * clicking player was already entitled to take. It can also resolve to a step that does not
+     * implement `onCardClicked` at all, reaching `BaseStep.onCardClicked`'s `Contract.fail`
+     * (`BaseStep.ts:17-18`) and raising an engine error counted against `Lobby.MaxGameMessageErrors`
+     * (`Lobby.ts:1639-1644`), escalating to `SevereHaltGame` past the threshold — where a stale click
+     * previously just no-op'd against a since-removed card. This is not newly client-controllable: any
+     * live uuid already reaches that same fail path today; the marginal effect of this change is that a
+     * stale racing-an-undo click moves from inert to error-raising. A real fix needs a client-side
+     * action-sequence token on this call; the wire format cannot be changed unilaterally from this
+     * repository.
      */
     public cardClicked(sourcePlayerId: string, cardId: string): void {
         const player = this.getPlayerById(sourcePlayerId);

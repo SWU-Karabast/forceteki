@@ -209,3 +209,86 @@ Review: three concurrent cold lenses (correctness/security on Opus, ordering/per
 - **The Plan 1 performance capture is not run here.** It belongs to `P1-B`, the final unit of this plan. The allocation and GC-share movement this unit is meant to produce is therefore predicted but unmeasured; only the object-count assertions in the new specs bound it.
 - **`isSnapshotSafeOngoingEffectValue` lives in the new wrapper module, not `GameObjectUtils.ts`**, deliberately, so it does not collide with the decorator-layer assertion unit `P2-B` will add, and so Plan 5 has one import for the family.
 - **The plan doc's mis-stated option-2 blocker was not corrected in place**, since editing work item A's prose falls outside this unit's scope fence. It is recorded above instead.
+
+---
+
+## `P1-B` — Restore `lastGameObjectId` on rollback (Plan 1, work item B — final unit)
+
+| | |
+|---|---|
+| Task ID | `p1-b` |
+| Date | 2026-09-12 |
+| Lane / tier | full, tier 3 (Large 🔴) |
+| Plan | [01-snapshot-hygiene.md](01-snapshot-hygiene.md) work item B, plus its item-B risk notes and the closing performance-capture section |
+| Parent | `deb54b46f` |
+| Branch | `experimental/rollback-saves-optimizations` |
+
+### What changed
+
+`GameStateManager.lastGameObjectId` was written on every registration but never restored on rollback, so ids drifted upward forever across undos — persistent identity corruption for the save/load roadmap this plan serves. This unit restores the counter and arms the guard that makes doing so safe.
+
+- `_isRollingBack` (dead boolean) replaced by `_rollbackDepth`, a re-entrancy counter, because `rollbackToSnapshot` re-enters itself on its recovery path and a boolean would be cleared by the inner frame's `finally` while the outer frame is still mid-rollback.
+- `register()` hard-fails (`Contract.fail`, branch form to avoid allocating a message/closure on the hot path) if called while `_rollbackDepth !== 0`. A second branch in the same method hard-fails if `gameObjectMapping` already holds a live occupant for the id about to be assigned, so a wrong reuse is loud instead of silently overwriting a live object.
+- `restoreLastGameObjectId(snapshot)` writes `_lastGameObjectId = snapshot.lastGameObjectId` as the last statement before `rollbackToSnapshot` returns `true`, after the `afterSetAllState` pass (restoring earlier would let a transient created during that pass consume an id a replayed object is owed). Asserts the snapshot value is present, an integer, and `<=` the live counter (rollback never moves forward).
+- `withRegistrationGuardSuspended(handler)` zeroes the depth counter for the duration of `handler` and restores the exact prior depth afterward (not always 0, so a suspension inside the nested recovery frame leaves the outer frame's guard armed). Wraps all five game-facing calls that re-enter Game/Lobby/GameChat while a rollback is in progress: the two `reportSevereRollbackFailure` calls and the `addAlert` call inside `rollbackToSnapshot`, and the `reportError` call inside each of `get`'s and `getUnsafe`'s catch blocks (the latter two are genuinely reachable mid-rollback, since every `@stateRef`-family hydration calls back into `get`/`getUnsafe`).
+- Comment above the `afterSetAllState` loop pins the ordering dependency the restore depends on: `updates` is reverse-registration order, so every `OngoingEffect.refreshContext()` runs before `OngoingEffectEngine.resolveEffects(true)`.
+- `Game.cardClicked` gets a comment-only audit conclusion (see below); no behavior change.
+- `test/server/core/ongoingEffects/OngoingEffectWrapperChurnUndo.spec.ts` (p1-a's spec): its assertion `lastGameObjectId` is unchanged across a rollback is exactly the invariant this unit inverts. Re-expressed on a mechanism that survives the restore: a counting wrapper over `register()` proves zero registrations during the rollback (independent of this unit's own implementation), and three assertions replace the old one — the fixture allocated between snapshot and rollback, the counter now equals the snapshot's own recorded value, and it moved backward from the pre-rollback value.
+- New `test/scenarios/undo/GameObjectIdRestore.spec.ts`, three cases (below).
+
+Net: 2 production files changed (`GameStateManager.ts`, `Game.ts` comment-only), 1 spec modified, 1 spec added, 2 performance-capture files added, `docs/plans/performance/README.md` and this log updated.
+
+### Two required audits
+
+**uuid-reuse audit (non-state-tracked structures outside the decorator system).** Enumerated every `.uuid`-keyed `Map`/`Record` under `server/`. `GameStateManager.gameObjectMapping` is the one structure both outside decorated state and maintained by rollback itself; this unit's occupancy check is what makes a wrong reuse loud. Everything else keyed by uuid is either in decorated state (out of scope by the plan, already covered by `Contract.assertDoesNotHaveKey` in one existing case) or owned by a prompt instance that `Game.postRollbackOperations` always rebuilds. Transient ids (`createWithoutRefsUnsafe`) are safely recycled: a transient is never inserted into `gameObjectMapping` and can never be the target of a `@stateRef`, so nothing can look one up by id. One pre-existing, out-of-scope hazard recorded rather than fixed: `removeUnusedGameObjects` drops still-alive-but-ref-less objects from both `allGameObjects` and `gameObjectMapping` while keeping their uuid string. Before this change, that was harmless in practice because the counter only ever grew, so a dropped id was never reissued and any stray lookup would simply miss. After the restore, a replayed object can legitimately take that same freed id, so `get(uuid)` can silently return a *different, live* object instead of failing loudly — a loud-to-silent transition against the standing "nothing degrades silently" invariant. Recorded rather than fixed because reachability stays low: it requires a `@stateRef` assigned to an object `removeUnusedGameObjects` already swept, which is a pre-existing dangling-reference bug on its own regardless of this unit's change.
+
+**Client-protocol audit (outbound uuid payloads and inbound uuid-carrying commands).** Seven outbound payload sites carry a GameObject uuid; six are rebuilt from scratch on every `sendGameState` (prompt payloads, since `postRollbackOperations` rebuilds the pipeline). The seventh, `GameChat.messages` (via `GameObject.getShortSummary()`), is **not** part of `game.state`, is not serialised into any snapshot, and is not touched by rollback — a negative result the previous plan revision got wrong (it claimed everything was rebuilt from scratch). Consequence: a chat entry written between a snapshot and a rollback keeps a `getShortSummary()` uuid that a replayed object can now legitimately re-acquire, so client behavior keyed on that uuid (card preview on hover/click) could resolve to a different live card; the rendered text itself (`id`/`name`) is unaffected. Of the four inbound uuid-carrying commands, three (`menuButton`, `perCardMenuButton`, `statefulPromptResults`) are gated by a prompt v1 uuid and/or the prompt's own legal-target list, so a stale click on those is unreachable for a recycled id. `cardClicked(playerId, cardId)` is the one ungated path: `findAnyCardInAnyList` resolves a bare uuid with no prompt/sequence check. After this change a stale in-flight click (processed after a rollback) can resolve to a different, live card instead of to nothing, and if that card is legal for the current step, the step acts on it — a real input-fidelity defect, not merely cosmetic. It is bounded: the authority for whether a click does anything is always the current pipeline step's own legality re-check, never the uuid, so this can only misapply an action the clicking player was already entitled to take; it cannot be triggered by an opponent to act on the undoing player's behalf, and cannot occur *during* a rollback (`onGameMessage` runs to completion per message, synchronously). Both residuals (chat log, `cardClicked`) are recorded as deferred, owned by client protocol (separate repository), since a real fix needs a client-side action-sequence token on `cardClicked`'s wire format, which cannot be added unilaterally from this repo.
+
+### Step 1 diagnostic probe results
+
+- **1a (does rollback register anything today?).** Temporary counting/logging variant of the guard, `npm run test-parallel-undo`: 8049 specs, 0 failures, 15 pending — **zero registrations during rollback across the whole suite**. Confirms work item A's zero-allocation contract is reachable, as section 2 of the plan argued from source. Probe fully reverted before step 2.
+- **1b (is replayed-uuid equality exact?).** Temporary restore-only line plus a scratch scenario (moment-of-peace shield token, replayed identically after `postRollbackOperations`): pre-rollback shield uuid `Card_271`, replayed shield uuid `Card_274` — **not exact, offset +3**, against a `counterAtSnapshot`/`counterBeforeRollback` window of 267/276. The fallback bound `counterAtSnapshot < replayedId <= counterBeforeRollback` held (267 < 274 <= 276). Per the plan, AC4b is therefore written as that bounded inequality, not exact equality, in `GameObjectIdRestore.spec.ts`. The driver is prompt-refresh sweep count (every `ActionWindow.continue()` → `highlightSelectableCards()` → `getSelectableCards()` sweep allocates a fresh, uncached play action per playable card through `register()`), not the number of transients per sweep — the post-rollback pipeline rebuild does not perform exactly the same number of sweeps the original run did. Probe fully reverted before step 2.
+
+**Conclusion, not just a measurement: work item B's acceptance criterion (a) — recreated objects receive the same uuids — is NOT met.** The counter no longer drifts and the replayed id is bounded within the freed window, but uuid assignment across rollback+replay is not reproducible, because the post-rollback pipeline rebuild performs a different number of prompt-refresh sweeps than the original run. Criterion (b), zero registrations during rollback, is met. `docs/plans/01-snapshot-hygiene.md`'s work item B acceptance paragraph is annotated in place to the same effect, since that document (unlike this log) is committed and read by later plan authors.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `npm run lint` | exit 0, no output |
+| `npm run test-parallel` | 8237 specs, 0 failures, 13 pending |
+| `npm run test-parallel-undo` | 8050 specs, 0 failures, 16 pending |
+
+Baselines at parent `deb54b46f` were 8234/0/13 and 8049/0/15. `test-parallel` rises by exactly 3 (the three new `it`s in `GameObjectIdRestore.spec.ts`, run under `it` semantics there). `test-parallel-undo` rises by exactly 1 pending and 1 spec count: the new spec's `describe` self-skips as a single "skipped in whole-suite undo mode" entry under `ENABLE_UNDO_ALL_TESTS=true`, the same mechanism every other `undoIntegration`-marked spec in this suite already uses. No pre-existing pending spec was activated, no regression.
+
+All three `GameObjectIdRestore.spec.ts` cases and all three `OngoingEffectWrapperChurnUndo.spec.ts` cases were also run individually (`test-fast`) before the full gate, isolating them from parallel-worker interaction.
+
+### Performance capture (required deliverable)
+
+`npm run benchmark -- --name after-plan-01 --compare initial-performance`, committed as `docs/plans/performance/after-plan-01.{json,md}` with a README row.
+
+**This capture ran on a different machine and Node version than `initial-performance`** (Ryzen 7 9850X3D / Node v24.13.0 vs i9-13900HX / Node v22.11.0), so per the README's own comparability rules the timing deltas below are directional only, not a same-machine/same-runtime comparison.
+
+- `manager/rollbackTo(Manual)`, the row the plan specifically requires quantified: moved -12.9% (`compact-board`), -12.9% (`large-board`), -14.9% (`forty-cards-per-player`), -22.5% (`forty-cards-sparse-mutations`), -10.0% (`forty-cards-four-mutated`). No increase was observed in any scenario; the plan's expectation of a small increase from the added guard/restore work is not confirmed by this capture, but the cross-machine caveat above means this is not strong evidence either way — the underlying hardware/Node change is large enough to dominate a same-order-of-magnitude effect.
+- `payload/fullSnapshotTotal`: +0.1% to +0.2% across all five scenarios — flat, no red flag.
+- `manager/moveToNextTimepoint(Action)`: within the sub-20% noise band in four of five scenarios; `forty-cards-per-player` shows +12.0%, also inside the band. No investigation triggered.
+- Memory/op on `manager/rollbackTo(Manual)` moved in both directions across scenarios (+15.2% `compact-board`, -4.1% to -9.8% elsewhere) — read as noise for the same cross-machine reason.
+
+### Disclosed residuals (accepted, per plan section 10)
+
+- **A guard violation halts the game unconditionally in production.** The throw escapes `rollbackToSnapshot` outside the inner try/catch, with no recovery, no counter restore, and no `postRollbackOperations`. The only empirical bound is suite coverage (~16k spec-runs across both gate commands) plus the source audit in plan section 2 — not a proof it cannot happen in a live game. Accepted because a silently drifted id counter corrupts persistent identity for every later save, which is worse than a loud halt, and the branch is `experimental/rollback-saves-optimizations` under `LIFECYCLE=local`.
+- **AC3 (the occupancy check) has no positive falsifier.** Its only reachable trigger is a bug the rest of this change is designed to prevent; manufacturing a collision would mean faking `gameObjectMapping`, testing the mock rather than the engine. Its real control is the two full suites with the check armed.
+- **AC5 is only partly falsifiable.** `GameObjectIdRestore.spec.ts` test 3 covers the `:183` site (`reportSevereRollbackFailure` on the inner-try failure path) with a synthetic reporter and would fail if `withRegistrationGuardSuspended` were wired to a pass-through no-op. The other four suspension sites (`addAlert`, the recovery-failure `reportSevereRollbackFailure`, and `get`'s/`getUnsafe`'s `reportError`) stay inspection-only: the harness stubs `pushUpdate` to `() => true`, so no spec exercises the production reporting path, and per the corrected client-protocol audit that path allocates nothing today anyway, so a spec installing a real `pushUpdate` still could not distinguish a present suspension from an absent one at those sites.
+- **`cardClicked` and the chat-log uuid exposure** — see the client-protocol audit above; both deferred to a separate-repository owner.
+
+### Notes
+
+- `_lastGameObjectId` starts at `-1`, so the first id is `0`; the restore is exact equality against the snapshot's recorded value, never an offset.
+- `Contract.assertDoesNotHaveKey` has no lazy-message overload and `Contract.assertNotNullLikeOrNan` drops the caller's message on its null branch — both are why the two hot-path guards in `register()` are written as `if (...) { Contract.fail(...) }` rather than an assert call.
+- The uuid-prefix-diff technique `P1-A`'s log entry flagged as usable for accounting allocations does not apply to counting registrations during a rollback (a class-name diff would not distinguish "class already seen" from "class registered this seam"); this unit instead counts calls to `register()` directly with a temporary wrapper, in both the modified and new specs.
+
+### Deferred, with reasons
+
+- Client-side action-sequence token for `cardClicked`, and any client behavior keyed on a chat-entry uuid — owner: client protocol (separate repository).
+- Plan 5's rehydration-scope carve-out for the guard — owner: Plan 5, explicitly not this unit. The guard lands unconditional here.
+- The `removeUnusedGameObjects` dropped-but-alive object hazard (uuid-reuse audit) — pre-existing, recorded, not fixed.

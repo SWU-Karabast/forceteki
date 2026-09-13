@@ -2,6 +2,7 @@ import { SnapshotType, KeywordName } from '../../../../server/game/core/Constant
 import type { Card } from '../../../../server/game/core/card/Card';
 import type { Player } from '../../../../server/game/core/Player';
 import { GainKeyword } from '../../../../server/game/core/ongoingEffect/effectImpl/GainKeyword';
+import type { IGameSnapshot, IRollbackResult } from '../../../../server/game/core/snapshot/SnapshotInterfaces';
 
 /**
  * p1-a work item A, end-to-end proof (hardened): drives real cards through the fixed
@@ -25,6 +26,21 @@ describe('DynamicOngoingEffectImpl wrapper churn under undo', function() {
 
         function getAllGameObjects(game): { uuid: string }[] {
             return getRegistrar(game).allGameObjects;
+        }
+
+        // Separate local interface pair for the snapshot factory internals p1-b needs here, following the
+        // pattern in test/scenarios/undo/Performance.spec.ts:43-59. Kept apart from IRegistrarInternals /
+        // getRegistrar above, which cover only lastGameObjectId and allGameObjects and are left unchanged.
+        interface ISnapshotFactoryInternals {
+            currentActionSnapshot: IGameSnapshot;
+        }
+
+        interface ISnapshotManagerInternals {
+            snapshotFactory: ISnapshotFactoryInternals;
+        }
+
+        function getSnapshotFactory(game): ISnapshotFactoryInternals {
+            return (game.snapshotManager as unknown as ISnapshotManagerInternals).snapshotFactory;
         }
 
         // Reads `allGameObjects` uuids directly rather than calling `buildGameStateForSnapshot()`, whose
@@ -99,6 +115,9 @@ describe('DynamicOngoingEffectImpl wrapper churn under undo', function() {
             expect(getRaidAmount(context.avarKriss)).toBe(3);
 
             const snapshotId = game.takeManualSnapshot(context.player1Object);
+            // takeManualSnapshot stores (aliases) the existing currentActionSnapshot, so this is the
+            // counter value p1-b's restore will write back.
+            const snapshotLastGameObjectId = getSnapshotFactory(game).currentActionSnapshot.lastGameObjectId;
 
             // Change both a raw-value dynamic effect (97th Legion's stats) and a GainKeyword dynamic
             // effect (Avar Kriss's Raid) in the same timepoint.
@@ -113,9 +132,12 @@ describe('DynamicOngoingEffectImpl wrapper churn under undo', function() {
 
             // The tight seam: SnapshotManager.rollbackTo alone, excluding postRollbackOperations (which
             // legitimately rebuilds the pipeline and can allocate). Every GameObjectBase registers
-            // unconditionally at construction, so lastGameObjectId is an exact allocation counter across
-            // this seam for every class, including the four this unit's fixes target (OngoingEffectValueWrapper,
-            // MutableOngoingEffectValueWrapper, GainKeyword, OngoingEffectSource).
+            // unconditionally at construction, so before p1-b, lastGameObjectId was an exact allocation
+            // counter across this seam for every class, including the four this unit's fixes target
+            // (OngoingEffectValueWrapper, MutableOngoingEffectValueWrapper, GainKeyword, OngoingEffectSource).
+            // p1-b restores the counter to the snapshot's own recorded value on every rollback, so that
+            // invariant no longer holds on lastGameObjectId itself; the zero-registration guarantee is
+            // re-expressed below by counting registrations directly across the seam instead.
             // Poison every live effect's context fields with an obviously-wrong sentinel before rolling
             // back. `context` is a plain (non-decorated) field, so rollback's state restore does not touch
             // it directly; only the `afterSetAllState` -> `refreshContext` hook can put it right. Without
@@ -135,13 +157,34 @@ describe('DynamicOngoingEffectImpl wrapper churn under undo', function() {
 
             const registrar = getRegistrar(game);
             const lastIdBeforeRollback = registrar.lastGameObjectId;
-            const rollbackResult = game.snapshotManager.rollbackTo({
-                type: SnapshotType.Manual,
-                playerId: context.player1Object.id,
-                snapshotId,
-            });
+
+            // Count registrations directly across the seam instead of inferring them from the counter,
+            // which p1-b's restore now overwrites. Keeps this spec's zero-allocation guarantee falsifiable
+            // and independent of p1-b's own implementation.
+            const registerFn = (game.gameObjectManager as unknown as { register: (go: unknown) => void }).register;
+            let registrationsDuringRollback = 0;
+            (game.gameObjectManager as unknown as { register: (go: unknown) => void }).register = function(this: unknown, go: unknown) {
+                registrationsDuringRollback++;
+                return registerFn.call(this, go);
+            };
+
+            let rollbackResult: IRollbackResult;
+            try {
+                rollbackResult = game.snapshotManager.rollbackTo({
+                    type: SnapshotType.Manual,
+                    playerId: context.player1Object.id,
+                    snapshotId,
+                });
+            } finally {
+                (game.gameObjectManager as unknown as { register: (go: unknown) => void }).register = registerFn;
+            }
+
             expect(rollbackResult.success).toBeTrue();
-            expect(registrar.lastGameObjectId).toBe(lastIdBeforeRollback);
+            expect(registrationsDuringRollback).toBe(0);
+
+            expect(lastIdBeforeRollback).toBeGreaterThan(snapshotLastGameObjectId);   // the fixture really did allocate
+            expect(registrar.lastGameObjectId).toBe(snapshotLastGameObjectId);        // p1-b restored it
+            expect(registrar.lastGameObjectId).toBeLessThan(lastIdBeforeRollback);    // the restore actually moved it
 
             // Restore a consistent game for the harness's afterEach, replaying what
             // Game.rollbackToSnapshotInternal does next (outside the measured seam).

@@ -32,10 +32,20 @@ export class GameStateManager implements IGameObjectRegistrar {
     private allGameObjects: GameObjectBase[] = [];
 
     private _lastGameObjectId = -1;
-    // unused for now but will be used to detect GO creation during the rollback process later on.
-    private _isRollingBack = false;
+
+    // Depth rather than a boolean: rollbackToSnapshot re-enters itself on the recovery path (see the
+    // recursive call below), and a plain boolean would be cleared by the inner frame's `finally` while
+    // the outer frame is still mid-rollback.
+    private _rollbackDepth = 0;
 
     private _disableRegistration = false;
+
+    // Thin wrapper over _rollbackDepth for readability at call sites; the depth counter above it remains
+    // the source of truth for re-entrancy. Do not read this name as "the boolean is back" and revert
+    // _rollbackDepth to a plain flag — see its own comment for why that would be unsafe.
+    private get isRollingBack(): boolean {
+        return this._rollbackDepth !== 0;
+    }
 
     public get lastGameObjectId(): number {
         return this._lastGameObjectId;
@@ -55,7 +65,10 @@ export class GameStateManager implements IGameObjectRegistrar {
         try {
             Contract.assertNotNullLike(ref, errorMessage);
         } catch (error) {
-            this.#game.reportError(error, GameErrorSeverity.SevereHaltGame);
+            // Suspended: this is one of the engine's primary "this is very bad" reporting sites, and it is
+            // reachable mid-rollback (every @stateRef-family hydration calls back into get/getUnsafe), so it
+            // must never be masked by the registration guard firing from inside error reporting.
+            this.withRegistrationGuardSuspended(() => this.#game.reportError(error, GameErrorSeverity.SevereHaltGame));
 
             throw error;
         }
@@ -69,7 +82,8 @@ export class GameStateManager implements IGameObjectRegistrar {
         try {
             Contract.assertNotNullLike(ref, errorMessage);
         } catch (error) {
-            this.#game.reportError(error, GameErrorSeverity.SevereHaltGame);
+            // Suspended for the same reason as get()'s catch, above.
+            this.withRegistrationGuardSuspended(() => this.#game.reportError(error, GameErrorSeverity.SevereHaltGame));
 
             throw error;
         }
@@ -80,17 +94,32 @@ export class GameStateManager implements IGameObjectRegistrar {
         gameObject = Helpers.asArray(gameObject);
 
         for (const go of gameObject) {
+            // Written as a branch, not an assert, so nothing is allocated (closure or message string) on
+            // this hot path when the guard does not fire. A GameObject registering while a rollback is in
+            // progress means the zero-allocation contract the id restore depends on has been violated.
+            if (this.isRollingBack) {
+                Contract.fail(`Attempted to register GameObject ${go.getGameObjectName()} (${go.constructor.name}) during a rollback; rollback must not allocate any GameObject.`);
+            }
+
             Contract.assertIsNullLike(go.uuid,
                 `Tried to register a Game Object that was already registered ${go.uuid}`
             );
 
             const nextId = this._lastGameObjectId + 1;
-            go.uuid = go.getGameObjectName() + '_' + nextId;
+            const uuid = go.getGameObjectName() + '_' + nextId;
+
+            go.uuid = uuid;
             this._lastGameObjectId = nextId;
 
             if (!this._disableRegistration) {
+                // Also a branch for the same allocation reason: `Contract.assertDoesNotHaveKey` only takes
+                // an eager `string` message, which would build the message on every registration.
+                if (this.gameObjectMapping.has(uuid)) {
+                    Contract.fail(`Attempted to register GameObject ${uuid} but the mapping already has a live occupant ${this.gameObjectMapping.get(uuid).getGameObjectName()}; this would silently overwrite it.`);
+                }
+
                 this.allGameObjects.push(go);
-                this.gameObjectMapping.set(go.uuid, go);
+                this.gameObjectMapping.set(uuid, go);
             }
         }
     }
@@ -142,7 +171,7 @@ export class GameStateManager implements IGameObjectRegistrar {
 
     public rollbackToSnapshot(snapshot: IGameSnapshot, beforeRollbackSnapshot?: IGameSnapshot): boolean {
         Contract.assertNotNullLike(snapshot, 'Empty snapshot provided for rollback');
-        this._isRollingBack = true;
+        this._rollbackDepth++;
         try {
             const removals: { index: number; go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
             const updates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
@@ -180,7 +209,10 @@ export class GameStateManager implements IGameObjectRegistrar {
             } catch (error) {
                 if (!beforeRollbackSnapshot) {
                     logger.error('Error during rollback to snapshot and no beforeRollbackSnapshot provided, game may be in unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
-                    this.#game.reportSevereRollbackFailure(error);
+                    // Suspended: reportSevereRollbackFailure re-enters Game/Lobby error reporting, which must
+                    // never be masked by the registration guard. Nothing registers on this path today (see
+                    // the corrected client-protocol audit), so this is defence in depth, not a required fix.
+                    this.withRegistrationGuardSuspended(() => this.#game.reportSevereRollbackFailure(error));
                 }
 
                 rollbackError = error;
@@ -191,11 +223,14 @@ export class GameStateManager implements IGameObjectRegistrar {
             if (rollbackError) {
                 try {
                     this.rollbackToSnapshot(beforeRollbackSnapshot);
-                    this.#game.addAlert(AlertType.Danger, 'An error occurred during undo. This error has been reported to the dev team for investigation. If it happens multiple times, please reach out in the discord.');
+                    // Suspended for the same reason as above: addAlert re-enters GameChat/Lobby.
+                    this.withRegistrationGuardSuspended(() => this.#game.addAlert(AlertType.Danger, 'An error occurred during undo. This error has been reported to the dev team for investigation. If it happens multiple times, please reach out in the discord.'));
                     return false;
                 } catch (error) {
                     logger.error('The attempt to restore game state from prior to rollback has failed. Game has reached an unrecoverable state.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
-                    this.#game.reportSevereRollbackFailure(error);
+                    // Suspended for the same reason as above. reportSevereRollbackFailure always throws, so
+                    // control never reaches past this call regardless.
+                    this.withRegistrationGuardSuspended(() => this.#game.reportSevereRollbackFailure(error));
                 }
             }
 
@@ -211,15 +246,65 @@ export class GameStateManager implements IGameObjectRegistrar {
                 this.gameObjectMapping.delete(removed.go.uuid);
             }
 
-            // Inform GOs that all states have been updated.
+            // Inform GOs that all states have been updated. `updates` is built in reverse registration
+            // order (last to first), so every OngoingEffect.refreshContext() runs before
+            // OngoingEffectEngine.resolveEffects(true) — the engine is constructed during game setup and so
+            // always has a lower id than any effect it tracks. If that order ever flips, effects would
+            // resolve against stale contexts, which can produce different `calculate` results, new targets,
+            // and a fresh wrapper allocation — which the registration guard above would then turn into a
+            // halted production rollback.
             for (const update of updates) {
                 update.go.afterSetAllState(update.oldState);
             }
 
+            // Must run after afterSetAllState: restoring the counter any earlier would let a transient
+            // created during that pass consume an id a replayed object is owed.
+            this.restoreLastGameObjectId(snapshot);
+
             return true;
         } finally {
-            this._isRollingBack = false;
+            this._rollbackDepth--;
         }
+    }
+
+    /**
+     * Suspends the registration guard for the duration of `handler`, so error/alert reporting that
+     * re-enters game/router code can never have its own diagnostic masked by the guard firing from
+     * inside an error handler. Restores the exact prior depth rather than assuming 0, so a suspension
+     * inside the nested recovery rollback (see the recursive call above) leaves the outer frame's guard
+     * armed afterward.
+     */
+    private withRegistrationGuardSuspended<T>(handler: () => T): T {
+        const depth = this._rollbackDepth;
+        this._rollbackDepth = 0;
+        try {
+            return handler();
+        } finally {
+            this._rollbackDepth = depth;
+        }
+    }
+
+    /**
+     * Restores `_lastGameObjectId` to the value recorded in the snapshot being rolled back to. The nested
+     * recovery call above restores from `beforeRollbackSnapshot` as part of its own normal completion, and
+     * the outer frame returns `false` immediately afterward without reaching here, so there is no double
+     * restore.
+     */
+    private restoreLastGameObjectId(snapshot: IGameSnapshot): void {
+        Contract.assertNotNullLike(
+            snapshot.lastGameObjectId,
+            'Snapshot has no lastGameObjectId; cannot restore the GameObject id counter'
+        );
+        Contract.assertTrue(
+            Number.isInteger(snapshot.lastGameObjectId),
+            () => `Snapshot lastGameObjectId ${snapshot.lastGameObjectId} is not an integer; cannot restore the GameObject id counter`
+        );
+        Contract.assertTrue(
+            snapshot.lastGameObjectId <= this._lastGameObjectId,
+            () => `Snapshot lastGameObjectId ${snapshot.lastGameObjectId} is ahead of the live counter ${this._lastGameObjectId}; rollback only ever moves backwards`
+        );
+
+        this._lastGameObjectId = snapshot.lastGameObjectId;
     }
 
     private afterTakeSnapshot() {
