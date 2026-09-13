@@ -380,7 +380,7 @@ Three cold reviews: round 1 REJECTED (1 blocking, 4 warnings), round 2 APPROVED 
 | Lane / tier | full, tier 3 (Large 🟡) |
 | Plan | [02-semantic-save-load.md](02-semantic-save-load.md) work item A |
 | Parent | `1e2e7d631` |
-| Commit | `PLACEHOLDER_COMMIT_SHA` |
+| Commit | `b99e7fc65` |
 | Branch | `experimental/rollback-saves-optimizations` |
 
 ### What changed
