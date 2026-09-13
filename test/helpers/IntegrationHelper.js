@@ -21,6 +21,16 @@ const { QuickUndoAvailableState } = require('../../server/game/core/snapshot/Sna
 // whole suite in undo mode (each test runs, rolls back, then runs again)
 const ENABLE_UNDO_ALL_TESTS = process.env.ENABLE_UNDO_ALL_TESTS === 'true';
 
+// Set this at module scope, not only in the `beforeEach` below. `Helpers.isDevelopment()` memoizes
+// lazily on its first call for the life of the process, so whichever spec happens to construct the
+// first `Game` in a jasmine worker decides the value for every later spec in that worker. Jasmine's
+// parallel runner loads every file under `helpers/` once per worker, before any spec file is
+// dispatched (see `node_modules/jasmine/lib/parallel_worker.js:79-84`), so a module-scope line here -
+// unlike one inside a spec file, which loads only when dispatched - runs before any spec can
+// construct a `Game`, making the memoized value deterministic across serial and parallel runs alike.
+// `??=` leaves a real `ENVIRONMENT` (e.g. `production`) untouched.
+process.env.ENVIRONMENT ??= 'development';
+
 // this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
 if (!jasmine.getEnv().configuration().random) {
     jasmine.getEnv().addReporter({

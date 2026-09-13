@@ -8,8 +8,13 @@ import { EnumHelpers } from './EnumHelpers';
 import type { Game } from '../Game';
 import type { ISerializationError } from '../../Interfaces';
 
-// Memoize the development check since process.env.ENVIRONMENT doesn't change at runtime
-const _isDevelopment = process.env.ENVIRONMENT === 'development';
+// Memoize the development check lazily, on first call, rather than at module load. Several entry points
+// (the jasmine test harness, and `npm run dev` via server/env.ts's dotenv.config()) set process.env.ENVIRONMENT
+// only after this module has already been required, so reading it eagerly at module-load time would always
+// observe it as unset. Reading it lazily on first call - long after those entry points have finished setting
+// it - gets the real value, and caching that first result still avoids a process.env lookup on every call
+// (this is read on the hot @stateValue / StateWatcher.addUpdater paths, including once per rollback).
+let _isDevelopment: boolean | undefined;
 
 const defaultFilterCallback = (item) => item != null;
 
@@ -172,7 +177,7 @@ export namespace Helpers {
         return Array.isArray(val) ? val : [val];
     }
 
-    export const isDevelopment = () => _isDevelopment;
+    export const isDevelopment = () => (_isDevelopment ??= process.env.ENVIRONMENT === 'development');
 
     export function getSingleOrThrow<T>(val: T | T[]): T {
         Contract.assertNotNullLike(val);

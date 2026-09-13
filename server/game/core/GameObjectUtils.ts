@@ -1,5 +1,6 @@
 import type { GameObjectBase, IGameObjectBase } from './GameObjectBase';
 import { Contract } from './utils/Contract';
+import { Helpers } from './utils/Helpers';
 
 // @ts-expect-error Symbol.metadata is not yet a standard.
 Symbol.metadata ??= Symbol.for('Symbol.metadata');
@@ -658,15 +659,178 @@ export function stateValue<T extends GameObjectBase, TValue>() {
                 return this.state[name];
             },
             set(this: T, newValue: TValue) {
+                if (Helpers.isDevelopment()) {
+                    assertJsonSafeStateValue(name, newValue);
+                }
                 this.state[name] = newValue;
             },
             init(this: T, value: TValue) {
+                if (Helpers.isDevelopment()) {
+                    assertJsonSafeStateValue(name, value);
+                }
                 this.state[name] = value;
                 // We don't use the internal field and only use the data within state.
                 return undefined;
             }
         };
     };
+}
+
+/**
+ * Structural check for "is this a {@link GameObjectBase} instance", used in place of `instanceof
+ * GameObjectBase` here. `GameObjectBase` is imported as a type only in this file: `GameObjectBase.ts`
+ * imports values back from this module (the `@registerStateBase`/`@statePrimitive` decorators run at
+ * class-definition time), so a value import here would create a runtime require cycle that throws
+ * "Cannot access 'stateMetadata' before initialization" whenever something requires this module before
+ * `GameObjectBase`. `getObjectId` is the identifying method every `GameObjectBase` exposes (see
+ * `GameObjectBase.ts`). More generally: no value import in this module - not just `GameObjectBase`
+ * itself - may transitively reach `GameObjectBase` or any other `@registerState`/`@registerStateBase`
+ * class, since requiring any of them re-triggers the same class-definition-time decorator cycle; this
+ * is a property of the whole file, not of one symbol, and nothing in lint or CI enforces it.
+ */
+function isGameObjectBaseInstance(value: object): value is GameObjectBase {
+    return typeof (value as { getObjectId?: unknown }).getObjectId === 'function';
+}
+
+/**
+ * Describes why a value is not JSON-safe, for use in the {@link assertJsonSafeStateValue} error message.
+ */
+function describeInvalidJsonStateValue(value: unknown): string {
+    if (typeof value === 'function') {
+        return 'a function';
+    }
+    if (typeof value === 'symbol') {
+        return 'a symbol';
+    }
+    if (typeof value === 'bigint') {
+        return 'a bigint';
+    }
+    if (typeof value === 'number') {
+        return `a non-finite number (${String(value)})`;
+    }
+
+    // Note: a GameObjectBase instance never reaches this function - assertJsonSafeStateValue detects it
+    // structurally (see isGameObjectBaseInstance) and throws its own dedicated message first.
+
+    const prototypeName = (Object.getPrototypeOf(value) as { constructor?: { name?: string } } | null)?.constructor?.name;
+    return `an instance of ${prototypeName ?? 'an unknown, non-plain type'}`;
+}
+
+/**
+ * Dev-mode-only recursive check that a value assigned to a {@link stateValue} accessor is either
+ * JSON-representable, or one of the known encodable types this repo's state system already models in
+ * decorated state (`Map`, `Set`; a {@link GameObjectId} is just a branded `string` at runtime and needs no
+ * special case). `Map` keys are restricted to `string`, matching the {@link stateValue} doc's
+ * `Map<string, ...>` convention and every field actually declared this way - a non-string `Map` key is not
+ * JSON-representable as an object key in the first place, which keeps Plan 3's encoder contract
+ * well-defined.
+ *
+ * This does not change runtime behavior outside of `Helpers.isDevelopment()`; it exists to catch new
+ * `@stateValue` state that would violate the JSON-safety invariant Plan 6 (see
+ * `docs/plans/02-semantic-save-load.md`) depends on, before it can accumulate. `GameObjectId`s (branded
+ * strings) are legal here - invariant 2 only bans them from save *files*, which is a separate, later
+ * enforcement point (work item A2).
+ *
+ * Known coverage gaps, intentionally not closed here:
+ * - `StateWatcher` entries are written straight into the state bag without going through a `@stateValue`
+ *   accessor (see `StateWatcher.ts:51,66,142`), so this check never sees watcher payloads - including
+ *   their `Set<Trait>` members. Plan 3's step 2 encoder is deliberately the first enforcement point for
+ *   those; do not extend this check into the watcher bag to compensate.
+ * - This check only runs from the accessor's `set`/`init`, so **in-place** mutation of an already-stored
+ *   `Map`/`Set` (e.g. `AbilityLimit.useCount.set(...)`, `GainAbility.ts`,
+ *   `GainNonKeywordAbilitiesFromUnitEffect.ts`) never re-enters it - the accessor sees one `set`/`init` call
+ *   with an empty collection and nothing thereafter, for as long as the collection is only ever mutated
+ *   in place during normal play. This is the primary documented use of `@stateValue`
+ *   maps above, so it is a real coverage gap, not a marginal one. As with the `StateWatcher` bag, Plan 3's
+ *   encoder is the intended enforcement point for this population path; do not close it here by rerouting
+ *   these fields through `UndoMap`/`UndoSet`, which is snapshot-layer work for a later unit. Note that
+ *   rollback is not subject to this gap: `copyState` reassigns every `stateSimpleMetadata` field (which
+ *   `@stateValue` registers into) via `instance[field] = newState[field]`, re-entering the `set` accessor
+ *   with whatever the field held at snapshot time - a populated collection included - so this check does
+ *   re-validate in-place-mutated maps/sets on every rollback.
+ *
+ * Also note: this walks plain-object properties with `Object.keys`, which sees only *own enumerable
+ * string-keyed* properties (a symbol-keyed or non-enumerable property is invisible to it), and which
+ * invokes any getters on the object as part of walking it.
+ *
+ * `ancestors` tracks only the current recursion path (to reject a true cycle) the same way
+ * {@link isSnapshotSafeOngoingEffectValue} does, but this function is otherwise a distinct check for a
+ * distinct invariant: it accepts `Map`/`Set` (which that structured-clone check rejects) and rejects
+ * non-finite numbers (which that check allows, since `v8.serialize` round-trips them fine).
+ */
+export function assertJsonSafeStateValue(propertyName: string, value: unknown, ancestors: Set<object> = new Set<object>()): void {
+    if (value === null || value === undefined) {
+        return;
+    }
+
+    const valueType = typeof value;
+    if (valueType === 'string' || valueType === 'boolean') {
+        return;
+    }
+
+    if (valueType === 'number') {
+        if (!Number.isFinite(value)) {
+            throw new Error(`State value "${propertyName}" is not JSON-safe: contains ${describeInvalidJsonStateValue(value)}. Use a finite number, or encode the special value explicitly (e.g. as a string) before storing it in state.`);
+        }
+        return;
+    }
+
+    if (valueType !== 'object') {
+        // functions, symbols, bigints.
+        throw new Error(`State value "${propertyName}" is not JSON-safe: contains ${describeInvalidJsonStateValue(value)}. Only JSON-representable values, plus Map/Set/GameObjectId, are allowed in @stateValue fields.`);
+    }
+
+    if (isGameObjectBaseInstance(value as object)) {
+        const constructorName = (value as { constructor?: { name?: string } }).constructor?.name ?? 'unknown';
+        throw new Error(`State value "${propertyName}" is not JSON-safe: contains a GameObjectBase instance (${constructorName}). Use GameObjectId instead and call go.getObjectId() to capture the reference in state.`);
+    }
+
+    if (ancestors.has(value as object)) {
+        throw new Error(`State value "${propertyName}" is not JSON-safe: contains a circular reference.`);
+    }
+
+    if (Array.isArray(value)) {
+        ancestors.add(value as object);
+        for (let i = 0; i < value.length; i++) {
+            assertJsonSafeStateValue(`${propertyName}[${i}]`, value[i], ancestors);
+        }
+        ancestors.delete(value as object);
+        return;
+    }
+
+    if (value instanceof Map) {
+        ancestors.add(value as object);
+        for (const [key, entryValue] of value) {
+            if (typeof key !== 'string') {
+                throw new Error(`State value "${propertyName}" is not JSON-safe: contains a Map with a non-string key (typeof "${typeof key}"). Map keys must be strings to be JSON-representable as object keys.`);
+            }
+            assertJsonSafeStateValue(`${propertyName} (Map value for key "${key}")`, entryValue, ancestors);
+        }
+        ancestors.delete(value as object);
+        return;
+    }
+
+    if (value instanceof Set) {
+        ancestors.add(value as object);
+        for (const entryValue of value) {
+            assertJsonSafeStateValue(`${propertyName} (Set member)`, entryValue, ancestors);
+        }
+        ancestors.delete(value as object);
+        return;
+    }
+
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) {
+        // A class instance with a foreign prototype (Date, KeywordInstance, AbilityLimit, etc.) that isn't
+        // one of the known encodable types handled above.
+        throw new Error(`State value "${propertyName}" is not JSON-safe: contains ${describeInvalidJsonStateValue(value)}. Only plain objects, arrays, Map, Set, and JSON-representable primitives (or GameObjectId) are allowed in @stateValue fields.`);
+    }
+
+    ancestors.add(value as object);
+    for (const key of Object.keys(value as Record<string, unknown>)) {
+        assertJsonSafeStateValue(`${propertyName}.${key}`, (value as Record<string, unknown>)[key], ancestors);
+    }
+    ancestors.delete(value as object);
 }
 
 /** Experimental: Uses proxies to cause any in-place mutation functions to also affect the underlying state. */

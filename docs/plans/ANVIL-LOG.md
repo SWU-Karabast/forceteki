@@ -293,3 +293,78 @@ All three `GameObjectIdRestore.spec.ts` cases and all three `OngoingEffectWrappe
 - Client-side action-sequence token for `cardClicked`, and any client behavior keyed on a chat-entry uuid — owner: client protocol (separate repository).
 - Plan 5's rehydration-scope carve-out for the guard — owner: Plan 5, explicitly not this unit. The guard lands unconditional here.
 - The `removeUnusedGameObjects` dropped-but-alive object hazard (uuid-reuse audit) — pre-existing, recorded, not fixed.
+
+---
+
+## `P2-B` — JSON-safety dev assertion (Plan 2, work item B)
+
+| | |
+|---|---|
+| Task ID | `p2-b` |
+| Date | 2026-09-13 |
+| Lane / tier | fast, tier 1 (Small 🟡) |
+| Plan | [02-semantic-save-load.md](02-semantic-save-load.md) work item B |
+| Parent | `2f0568431` |
+| Commit | _(filled in after commit)_ |
+| Branch | `experimental/rollback-saves-optimizations` |
+
+### What changed
+
+A dev-mode assertion that `@stateValue` payloads stay JSON-representable, plus the one-line change that makes dev-mode assertions actually run at all.
+
+- `server/game/core/GameObjectUtils.ts`: new `assertJsonSafeStateValue`, called from `stateValue()`'s `set` and `init` behind `Helpers.isDevelopment()`. Accepts `null`/`undefined`, `string`, `boolean`, **finite** numbers, plain objects, arrays, and `Map`/`Set` (recursing into all of them). Rejects functions, symbols, bigints, non-finite numbers, foreign-prototype class instances, `GameObjectBase` instances (with a message pointing at `GameObjectId`/`getObjectId()`), and circular references. `Map` keys must be `string`. A `GameObjectId` is a branded `string` at runtime, so it passes the string check with no brand detection — per the plan, `GameObjectId`s are legal *in engine state*; only save *files* ban them, which is work item A2's problem.
+- `server/game/core/utils/Helpers.ts`: `isDevelopment()` now memoizes **lazily, on first call** instead of eagerly at module load. This is the load-bearing change — see below.
+- `test/helpers/IntegrationHelper.js`: `process.env.ENVIRONMENT ??= 'development'` at module scope, so gate activation is deterministic rather than dependent on which spec constructs the first `Game` in a worker.
+- `test/server/core/GameObjectUtils.spec.ts` (new): 19 specs — the validator's accept/reject contract, and three that drive the real decorator `set`/`init` wiring through purpose-built fixtures.
+
+Net: 350 insertions, 3 deletions across 4 files.
+
+### The dev gate was dead code, in every environment
+
+The assertion this unit was asked for is gated on `Helpers.isDevelopment()`, and review established that the gate could never be true. `isDevelopment()` read `process.env.ENVIRONMENT === 'development'` into a module-level `const` **at module load**, and in every reachable process that load happened before anything set the variable: the jasmine harness set it in a `beforeEach` (`IntegrationHelper.js:66`), and `npm run dev` loads `Helpers.js` before `server/env.ts` runs `dotenv.config()`. Production was correct only by accident of `Dockerfile:13` setting a real env var.
+
+So the pre-existing `StateWatcher.addUpdater` check — the very check this unit was modelled on — had been inert since it was written, and a new check wired the same way would have shipped equally inert. **Shipping it that way was offered and explicitly rejected by the repo owner**, who chose to fix the flag as part of this unit. That is why `Helpers.ts` is in a unit whose plan text names only the decorator layer.
+
+Lazy memoization (`_isDevelopment ??= ...`) rather than a per-call `process.env` read is deliberate: `copyState`'s `stateSimpleMetadata` loop re-enters every `@stateValue` `set` accessor on **every rollback**, so a per-call env lookup would land on the exact hot path this roadmap is optimizing.
+
+Consequence to be aware of: `StateWatcher.addUpdater`'s check is now live for the first time. Both gating suites pass with it armed, so no watcher registration in the repo violates it today.
+
+### Two defects caught by review, both real
+
+- **A require-time crash.** The first implementation used `instanceof GameObjectBase`, which needed a value import — but `GameObjectBase.ts` imports back from `GameObjectUtils` and runs `@registerStateBase` as a decorator *at module evaluation*. That cycle made `require('build/server/game/core/GameObjectUtils.js')`, `cards/Index.js`, and `utils/deck/DeckValidator.js` all die with `ReferenceError: Cannot access 'stateMetadata' before initialization`. It was invisible to the suite purely because `GameServer.ts` happens to import `Lobby` before `DeckValidator`. Fixed by restoring the type-only import and detecting a `GameObjectBase` structurally (`typeof value.getObjectId === 'function'`); the `instanceof` only ever affected the error message, never the accept/reject decision, since a `GameObjectBase` hits the foreign-prototype branch regardless.
+- **A flake introduced by the fix for the above.** Lazy memoization means the first caller in a process pins the value, and three specs construct a real `Game` outside `IntegrationHelper`'s `beforeEach` (`ongoingEffects/DynamicOngoingEffectValueWrapper`, `GainKeywordNormalization`, `OngoingEffectContextCaching`). If one led a jasmine worker it pinned the gate off for ~500 following specs. Reproduced directly: that ordering gave `28 specs, 2 failures`. Fixed at module scope in the helper, since jasmine loads `helpers/` once per worker before dispatching any spec file — a module-scope line in a *spec* file would not work, because spec files load only when dispatched.
+
+### Known gaps, stated rather than closed
+
+- **State-watcher entries.** `StateWatcher` writes entries straight into the state bag with no `@stateValue` accessor (`StateWatcher.ts:51,66,142`), so this assertion never sees watcher payloads, `Set<Trait>` members included. Plan 3 Phase A step 0 migrates them and Plan 3's step 2 encoder is deliberately the first enforcement. The plan explicitly says not to extend this check into the bag, and it was not extended.
+- **In-place `Map`/`Set` mutation during normal play.** The check runs on `set`/`init`, so `AbilityLimit.useCount.set(...)` and the equivalents in `GainAbility` / `GainNonKeywordAbilitiesFromUnitEffect` are not validated at mutation time. Rollback *does* re-validate them, because `copyState` re-enters the `set` accessor with the full snapshot-time value, and `StateWatcher` is the only class using `CopyMode.UseBulkCopy` (which skips that loop) — so the gap is real only for non-rollback play. Documented in the validator's JSDoc; closing it would mean routing those fields through `UndoMap`/`UndoSet`, which is Plan 3 work.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `npm run lint` | exit 0 |
+| `npm run build` (server + test tsc + card json) | exit 0 |
+| `npm run test-parallel` | 8256 specs, 0 failures, 13 pending (35.3s) |
+| `npm run test-parallel-undo` | 8069 specs, 0 failures, 16 pending (51.4s) |
+| Module-load probes | `GameObjectUtils.js`, `cards/Index.js`, `DeckValidator.js` all load clean |
+| P2B-06 ordering repro | `28 specs, 0 failures` (was 28/2) |
+
+Baselines at parent `2f0568431` were 8237/0/13 and 8050/0/16. `test-parallel` rises by 19 (the new spec file) and `test-parallel-undo` by 19 for the same reason. No pre-existing spec changed state, and the timings are flat against pre-change baselines, so arming both dev checks costs nothing measurable.
+
+Three cold reviews: round 1 REJECTED (1 blocking, 4 warnings), round 2 APPROVED WITH CONCERNS (1 warning, introduced by the round-1 repair), round 3 APPROVED (0 blocking, 0 warnings, 1 informational nit). The round-1 blocking crash and the round-2 flake were each independently reproduced by the orchestrator before being accepted as real.
+
+### Out of scope, deliberately
+
+- Work items A, A2, C, D, E of Plan 2. No save-format code was written.
+- The Plan 2 performance capture, which unit `P2-E` owns. `npm run benchmark` was not run.
+- `isSnapshotSafeOngoingEffectValue` and its caller in `DynamicOngoingEffectImpl.ts` — unrelated machinery enforcing *structured-clone* safety for wrapper selection, not JSON safety. The new check is a separate function on purpose: it accepts `Map`/`Set` (which that one rejects) and rejects non-finite numbers (which that one allows, since `v8.serialize` round-trips them).
+
+### Deferred, with reasons
+
+- `test/helpers/IntegrationHelper.js:66`'s `beforeEach` assignment of `ENVIRONMENT` is now vestigial — the module-scope line resolves the memo before it can ever run. Harmless (both paths yield `development`), left in place rather than widening this unit's test-helper footprint further. Worth removing in a later pass.
+- Non-string `Map` keys are now rejected, which is stricter than the plan's literal wording. No live field is affected (all four `@stateValue` maps are `Map<string, …>`), and it makes Plan 3's encoder contract well-defined.
+
+### Notes
+
+`npm run build` alone does **not** refresh `build/test/**`, including plain-`.js` helpers like `IntegrationHelper.js` — `scripts/build-server.js` never touches it. Rebuilding test-side changes needs `npx tsc -p ./test/tsconfig.json` (which has `allowJs: true`). A stale build here produces a *false* spec failure, which cost one verification round in this unit.
