@@ -161,5 +161,72 @@ describe('Luminara Unduli, Besieged General', function() {
                 expect(context.luminaraUnduli.getPower()).toBe(7);
             });
         });
+
+        describe('Luminara\'s ability with Maul, Old Master', function() {
+            it('should still trigger when she is the unit Maul plays and defeats', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'maul#old-master',
+                        hand: ['luminara-unduli#besieged-general'],
+                        groundArena: ['battlefield-marine'],
+                        spaceArena: ['cartel-spacer'],
+                        resources: 20
+                    },
+                    player2: {
+                        groundArena: ['rebel-pathfinder']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Maul plays Luminara and immediately defeats her
+                context.player1.clickCard(context.maul);
+                context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Then, defeat it.');
+                context.player1.clickCard(context.luminaraUnduli);
+                expect(context.luminaraUnduli).toBeInZone('discard');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.cartelSpacer]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(5);
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should still trigger when she is already in play and Maul plays and defeats another unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'maul#old-master',
+                        hand: ['wampa'],
+                        groundArena: ['luminara-unduli#besieged-general', 'battlefield-marine'],
+                        spaceArena: ['cartel-spacer'],
+                        resources: 20
+                    },
+                    player2: {
+                        groundArena: ['rebel-pathfinder']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.maul);
+                context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Then, defeat it.');
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('discard');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.luminaraUnduli, context.battlefieldMarine, context.cartelSpacer]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.luminaraUnduli);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(9);
+                expect(context.luminaraUnduli.getPower()).toBe(7);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });

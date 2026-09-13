@@ -26,7 +26,10 @@ export class ExactlyXCardSelector<TContext extends AbilityContext = AbilityConte
     }
 
     public override hasEnoughSelected(selectedCards: Card[]) {
-        return this.optional || selectedCards.length === this.numCards;
+        if (this.optional && selectedCards.length === 0) {
+            return true;
+        }
+        return selectedCards.length === this.numCards;
     }
 
     public override hasEnoughTargets(context: TContext) {
