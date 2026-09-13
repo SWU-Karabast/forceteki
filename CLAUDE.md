@@ -36,8 +36,9 @@ npm run test-fast -- "**/FettsFirespraySettlingTheScore.spec.js"
 
 `--filter=<pattern>` narrows by spec name. The README form `npm test test/server/cards/.../X.spec.js` is stale because no `.js` exists under `test/`.
 
-Two environment failures to recognise:
+Three environment failures to recognise:
 
+- A spec that fails on a change you just made under `test/` — a helper, a fixture, the harness — when the source looks correct. `npm run build` is server-only (`scripts/build-server.js` runs bare `tsc`) and never writes `build/test/`, so pairing it with a direct jasmine invocation (`npm run jasmine`, `npx jasmine`) runs the *previous* compile of your test-side edit. The `npm test` / `test-parallel` / `test-parallel-undo` / `test-fast` scripts are not affected — they build through `scripts/build-test.js`, which compiles the test tree too. When driving jasmine directly, rebuild it yourself with `npx tsc -p ./test/tsconfig.json` (that config sets `allowJs`, so plain `.js` helpers compile as well). A stale test build fails identically to a real defect, so suspect it first whenever a test-side edit appears not to take effect.
 - `Importing card class with repeated id!` means `build/` holds compiled output for a card file that was since renamed or deleted. Run `rm -r build/` and rebuild.
 - `Card data hash file test\json\card-data-hash.txt not found` or a hash mismatch means `test/json` is stale relative to `card-data-version.txt`, `scripts/fetchdata.js`, or `scripts/mockdata.js`. Run `npm run get-cards`. Bump `card-data-version.txt` when upstream data changed but no script did, so CI's cache busts. `get-cards` downloads from FFG's API and hangs with no output when outbound network is blocked, so run it outside a sandbox.
 
