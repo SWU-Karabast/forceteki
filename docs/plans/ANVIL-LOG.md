@@ -220,6 +220,7 @@ Review: three concurrent cold lenses (correctness/security on Opus, ordering/per
 | Date | 2026-09-12 |
 | Lane / tier | full, tier 3 (Large 🔴) |
 | Plan | [01-snapshot-hygiene.md](01-snapshot-hygiene.md) work item B, plus its item-B risk notes and the closing performance-capture section |
+| Commit | `5787a3314` |
 | Parent | `deb54b46f` |
 | Branch | `experimental/rollback-saves-optimizations` |
 

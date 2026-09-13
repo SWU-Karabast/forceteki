@@ -127,12 +127,19 @@ the baseline every later capture compares against. No units.
 Four units. `P1-E` and `P1-C` are independent of everything; `P1-B` hard-depends
 on `P1-A` **in full**.
 
-| Unit | Scope | Depends on | Size | Route |
-|---|---|---|---|---|
-| `P1-E` | Item E — housekeeping / dead-code deletion | — | Small 🟢 | `--fast` |
-| `P1-C` | Item C — seed the RNG in production, surface the seed | — | Small 🟡 | `--fast` |
-| `P1-A` | Item A — `OngoingEffectValueWrapper` churn + `refreshContext` caching | — | Medium 🔴 | full |
-| `P1-B` ⏱ | Item B — restore `lastGameObjectId`, `_isRollingBack` guard, client-protocol audit | `P1-A` | Medium 🔴 | `--tier 3` |
+| Unit | Scope | Depends on | Size | Route | Status |
+|---|---|---|---|---|---|
+| `P1-E` | Item E — housekeeping / dead-code deletion | — | Small 🟢 | `--fast` | landed `512a62113` |
+| `P1-C` | Item C — seed the RNG in production, surface the seed | — | Small 🟡 | `--fast` | landed `d5afa3de8` |
+| `P1-A` | Item A — `OngoingEffectValueWrapper` churn + `refreshContext` caching | — | Medium 🔴 | full | landed `aa95babf7` |
+| `P1-B` ⏱ | Item B — restore `lastGameObjectId`, `_isRollingBack` guard, client-protocol audit | `P1-A` | Medium 🔴 | `--tier 3` | landed `5787a3314` |
+
+**Plan 1 is complete.** All four scheduled units have landed and the closing
+performance capture (`after-plan-01`) is committed. Note for later plans:
+item B's acceptance criterion (a) — replayed objects receive the *same* uuids —
+is **not** met; the counter no longer drifts and replayed ids are bounded within
+the freed window, but exact uuid reproducibility does not hold. See the `P1-B`
+entry in [ANVIL-LOG.md](ANVIL-LOG.md).
 
 Item D is **not scheduled** — it is a prerequisite contract for a future
 client-facing bookmarks feature. Do not create a unit for it.
@@ -395,7 +402,7 @@ generator, not on the parity harness.
 | Plan | Status |
 |---|---|
 | 4 — Delta snapshots | Blocked on Plan 3. Not decomposed. |
-| 5 — GameObject release & recreation | Blocked on Plan 3 and Plan 1 item B. Not decomposed. |
+| 5 — GameObject release & recreation | Blocked on Plan 3. Plan 1 item B landed (`5787a3314`), which also lands the unconditional registration guard Plan 5's A2 rehydration scopes will need to relax. Not decomposed. |
 | 6 — Full-fidelity save/load | Blocked on Plans 2, 3, and 5. Not decomposed. |
 
 These three build directly on the serialization surface that Plan 3 replaces
