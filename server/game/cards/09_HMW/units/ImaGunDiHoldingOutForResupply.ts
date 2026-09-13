@@ -21,8 +21,6 @@ export default class ImaGunDiHoldingOutForResupply extends NonLeaderUnitCard {
                     activePromptTitle: 'Resource a card from your hand',
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
-                    // mustChangeGameState: GameStateChangeRequired.MustFullyResolve,
-                    // effect: 'put a card from their hand into play as a resource',
                     immediateEffect: AbilityHelper.immediateEffects.resourceCard()
                 }),
             }),
