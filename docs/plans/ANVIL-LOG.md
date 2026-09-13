@@ -305,7 +305,7 @@ All three `GameObjectIdRestore.spec.ts` cases and all three `OngoingEffectWrappe
 | Lane / tier | fast, tier 1 (Small 🟡) |
 | Plan | [02-semantic-save-load.md](02-semantic-save-load.md) work item B |
 | Parent | `2f0568431` |
-| Commit | _(filled in after commit)_ |
+| Commit | `1e2e7d631` |
 | Branch | `experimental/rollback-saves-optimizations` |
 
 ### What changed
