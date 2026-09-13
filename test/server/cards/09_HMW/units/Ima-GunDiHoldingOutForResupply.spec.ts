@@ -20,7 +20,7 @@ describe('Ima-Gun Di, Holding Out for Resupply', function() {
             context.player1.clickCard(context.vanquish);
             context.player1.clickCard(context.imagunDi);
 
-            expect(context.player2).toHavePrompt('Select a card from your hand to resource. If you do, resource the top card of your deck.');
+            expect(context.player2).toHavePrompt('Resource a card from your hand');
             expect(context.player2).toHaveChooseNothingButton();
             context.player2.clickCard(context.daringRaid);
 
@@ -52,7 +52,7 @@ describe('Ima-Gun Di, Holding Out for Resupply', function() {
             context.player1.clickCard(context.vanquish);
             context.player1.clickCard(context.imagunDi);
 
-            expect(context.player2).toHavePrompt('Select a card from your hand to resource. If you do, resource the top card of your deck.');
+            expect(context.player2).toHavePrompt('Resource a card from your hand');
             expect(context.player2).toHaveChooseNothingButton();
             context.player2.clickPrompt('Choose nothing');
 
@@ -84,7 +84,7 @@ describe('Ima-Gun Di, Holding Out for Resupply', function() {
             context.player1.clickCard(context.vanquish);
             context.player1.clickCard(context.imagunDi);
 
-            expect(context.player2).not.toHavePrompt('Select a card from your hand to resource. If you do, resource the top card of your deck.');
+            expect(context.player2).not.toHavePrompt('Resource a card from your hand');
 
             expect(context.daringRaid).toBeInZone('hand', context.player2);
             expect(context.resupply).toBeInZone('deck', context.player2);
@@ -114,7 +114,7 @@ describe('Ima-Gun Di, Holding Out for Resupply', function() {
             context.player1.clickCard(context.vanquish);
             context.player1.clickCard(context.imagunDi);
 
-            expect(context.player2).not.toHavePrompt('Select a card from your hand to resource. If you do, resource the top card of your deck.');
+            expect(context.player2).not.toHavePrompt('Resource a card from your hand');
 
             expect(context.daringRaid).toBeInZone('hand', context.player2);
             expect(context.resupply).toBeInZone('deck', context.player2);
@@ -145,7 +145,7 @@ describe('Ima-Gun Di, Holding Out for Resupply', function() {
             context.player2.clickCard(context.noGloryOnlyResults);
             context.player2.clickCard(context.imagunDi);
 
-            expect(context.player2).toHavePrompt('Select a card from your hand to resource. If you do, resource the top card of your deck.');
+            expect(context.player2).toHavePrompt('Resource a card from your hand');
             expect(context.player2).toHaveChooseNothingButton();
             context.player2.clickCard(context.daringRaid);
 
@@ -177,7 +177,7 @@ describe('Ima-Gun Di, Holding Out for Resupply', function() {
             context.player1.clickCard(context.vanquish);
             context.player1.clickCard(context.imagunDi);
 
-            expect(context.player2).toHavePrompt('Select a card from your hand to resource. If you do, resource the top card of your deck.');
+            expect(context.player2).toHavePrompt('Resource a card from your hand');
             expect(context.player2).toHaveChooseNothingButton();
             context.player2.clickCard(context.daringRaid);
 
