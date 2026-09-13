@@ -22,6 +22,7 @@ export interface ILastKnownInformation {
     upgrades?: IUpgradeCard[];
     traits: Set<Trait>;
     exhausted?: boolean;
+    inPlayId?: number;
 }
 
 /**
@@ -55,7 +56,8 @@ export function buildLastKnownInformation(card: Card): ILastKnownInformation {
             damage: card.damage,
             upgrades: card.upgrades,
             traits: card.traits,
-            exhausted: card.exhausted
+            exhausted: card.exhausted,
+            inPlayId: card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId,
         };
     }
 
@@ -70,7 +72,8 @@ export function buildLastKnownInformation(card: Card): ILastKnownInformation {
             arena: card.zoneName,
             controller: card.controller,
             parentCard: card.parentCard,
-            traits: card.traits
+            traits: card.traits,
+            inPlayId: card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId,
         };
     }
 
