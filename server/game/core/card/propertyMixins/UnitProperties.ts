@@ -190,10 +190,25 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private accessor _whileInPlayKeywordAbilities: (readonly ConstantAbility[]) | null = null;
 
         @stateRefArray()
-        protected accessor pilotingActionAbilities: readonly ActionAbilityBase[] = [];
+        private accessor _pilotingActionAbilities: readonly ActionAbilityBase[] = [];
 
         @stateRefArray()
-        protected accessor pilotingTriggeredAbilities: readonly TriggeredAbilityBase[] = [];
+        private accessor _pilotingTriggeredAbilities: readonly TriggeredAbilityBase[] = [];
+
+        /**
+         * Public so the save-format writer can walk this card's piloting action abilities as part of the
+         * shared limit-bearing ability surface. `isUnit()` cannot be used to gate access to this surface
+         * (it is false for a pilot-attached card), so callers must reach it structurally instead, e.g.
+         * `'pilotingActionAbilities' in card`.
+         */
+        public get pilotingActionAbilities(): readonly ActionAbilityBase[] {
+            return this._pilotingActionAbilities;
+        }
+
+        /** See {@link pilotingActionAbilities}. */
+        public get pilotingTriggeredAbilities(): readonly TriggeredAbilityBase[] {
+            return this._pilotingTriggeredAbilities;
+        }
 
         @stateRefArray()
         private accessor _pilotingConstantAbilities: readonly ConstantAbility[] = [];
@@ -528,16 +543,16 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             switch (properties.type) {
                 case AbilityType.Action:
-                    this.pilotingActionAbilities = [...this.pilotingActionAbilities, this.createActionAbility(properties)];
+                    this._pilotingActionAbilities = [...this._pilotingActionAbilities, this.createActionAbility(properties)];
                     break;
                 case AbilityType.Constant:
                     this._pilotingConstantAbilities = [...this._pilotingConstantAbilities, this.createConstantAbility(properties)];
                     break;
                 case AbilityType.Triggered:
-                    this.pilotingTriggeredAbilities = [...this.pilotingTriggeredAbilities, this.createTriggeredAbility(properties)];
+                    this._pilotingTriggeredAbilities = [...this._pilotingTriggeredAbilities, this.createTriggeredAbility(properties)];
                     break;
                 case AbilityType.ReplacementEffect:
-                    this.pilotingTriggeredAbilities = [...this.pilotingTriggeredAbilities, this.createReplacementEffectAbility(properties)];
+                    this._pilotingTriggeredAbilities = [...this._pilotingTriggeredAbilities, this.createReplacementEffectAbility(properties)];
                     break;
                 default:
                     Contract.fail(`Unsupported ability type ${(properties as any).type}`);

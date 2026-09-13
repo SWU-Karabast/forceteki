@@ -147,7 +147,7 @@ function isExcludedFromSummary(effect: OngoingEffect): boolean {
  *   3. An explicit description on the effect props (already phrased for display).
  *   4. The effect impl's description, which is a bare phrase, so we append the duration ("... for this phase").
  */
-function describeEffect(effect: OngoingEffect): string | undefined {
+export function describeEffect(effect: OngoingEffect): string | undefined {
     // Delayed effects carry their title on the impl value; lasting effects carry it on their props.
     const explicitTitle = effect.impl?.type === EffectName.DelayedEffect
         ? resolveText((effect.impl.getValue() as { title?: unknown })?.title)

@@ -13,6 +13,14 @@ export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
     get<T extends GameObjectBase>(gameObjectId: GameObjectId<T>): T | null;
 
+    /**
+     * The number of currently tracked game objects. Used by the save-format writer's isolation tests as a
+     * falsifiable observable for object-graph leakage: `player.allCards` is decklist-derived and `get()`
+     * reports `SevereHaltGame` on an unregistered uuid rather than returning null, so neither can be used
+     * to detect a leaked pristine-construction object directly.
+     */
+    get registeredObjectCount(): number;
+
     /** @deprecated Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly. */
     getUnsafe<T extends GameObjectBase>(uuid: GameObjectId): T;
 
@@ -49,6 +57,10 @@ export class GameStateManager implements IGameObjectRegistrar {
 
     public get lastGameObjectId(): number {
         return this._lastGameObjectId;
+    }
+
+    public get registeredObjectCount(): number {
+        return this.allGameObjects.length;
     }
 
     public constructor(game: Game) {

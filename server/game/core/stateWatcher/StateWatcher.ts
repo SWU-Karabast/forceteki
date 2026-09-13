@@ -98,6 +98,17 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
         return this.mapCurrentValue(this.state.entries);
     }
 
+    /**
+     * The number of recorded entries, without mapping them through `mapCurrentValue`. The save-format
+     * writer needs this count (to emit a `watcherEntry` engine-only fact) but must never call
+     * `getCurrentValue()`: that maps every entry through `game.getFromId`, and a watcher entry can
+     * reference a game object that no longer exists (e.g. a removed token), which `GameStateManager.get`
+     * reports as `SevereHaltGame` and rethrows rather than returning null.
+     */
+    public get entryCount(): number {
+        return this.state.entries.length;
+    }
+
     protected addUpdater(properties: IStateListenerProperties<TState[]>) {
         if (Helpers.isDevelopment()) {
             Object.keys(properties).forEach((prop) => {

@@ -368,3 +368,82 @@ Three cold reviews: round 1 REJECTED (1 blocking, 4 warnings), round 2 APPROVED 
 ### Notes
 
 `npm run build` alone does **not** refresh `build/test/**`, including plain-`.js` helpers like `IntegrationHelper.js` — `scripts/build-server.js` never touches it. Rebuilding test-side changes needs `npx tsc -p ./test/tsconfig.json` (which has `allowJs: true`). A stale build here produces a *false* spec failure, which cost one verification round in this unit.
+
+---
+
+## `P2-A` — `ISavedMatch` schema + `MatchSerializer` writer + `engineOnlyFacts` manifest (Plan 2, work item A)
+
+| | |
+|---|---|
+| Task ID | `p2-a` |
+| Date | 2026-09-13 |
+| Lane / tier | full, tier 3 (Large 🟡) |
+| Plan | [02-semantic-save-load.md](02-semantic-save-load.md) work item A |
+| Parent | `1e2e7d631` |
+| Commit | `PLACEHOLDER_COMMIT_SHA` |
+| Branch | `experimental/rollback-saves-optimizations` |
+
+### What changed
+
+A new `server/game/core/stateSerialization/` subsystem that walks a live `Game` and emits a JSON-safe `ISavedMatch` document for attaching to a bug report, plus ten additive engine accessors. No existing execution path changed; the writer has no production caller in this unit by design (`P2-D` is the declared future caller).
+
+- `SavedMatchInterfaces.ts` — the `ISavedMatch` contract, `SAVED_MATCH_FORMAT_VERSION = 1`, and `SaveIntegrityError`.
+- `MatchSerializer.ts` — `save(game, options?)`, synchronous, in three ordered phases (detect unsupported state, walk positions, resolve refs and classify). Deliberately **not** built on `Game.captureGameState`, which truncates the deck to five cards and drops limits and effects.
+- `EngineOnlyFacts.ts` — the degrade-with-manifest classifier.
+- `AbilityLimitSerializer.ts`, `SharedAbilitySurface.ts` — per-copy ability limits, and the single shared definition of which abilities this unit walks.
+- `PristineAbilityIdentifiers.ts` — the `Card.nextAbilityIdx` coordinate guard and its isolation scope.
+- `SavedCardRefResolver.ts`, `ChatScrubber.ts` — in-file `(seat, zone, ordinal)` coordinates, and uuid/user-id-free chat.
+
+Net: 20 files, 2605 insertions, 7 deletions. `stateWatchers` ships `[]` with a `TODO(P2-A2)`; the `watcherEntry` manifest stubs are present so the drop is enumerated rather than silent.
+
+### Re-derivability is decided structurally, and that took four plan reviews to get right
+
+The writer must distinguish an ongoing effect that will be **re-created at load** (say nothing) from one that is **genuinely lost** (enumerate it in `engineOnlyFacts`). Three consecutive plan reviews each found the same shape of defect: the predicate enumerated the ability lists that register effects, and each review found one more list it had missed — the card scan itself, then `_pilotingConstantAbilities` and `_whileInPlayKeywordAbilities`, then `addGainedConstantAbility`'s second registration. Each fix was correct; the method was what kept failing.
+
+The repo owner authorized a fourth round on the condition that the method change, not the predicate. The result **deletes** the enumeration rather than extending it:
+
+> An effect that is `duration === Duration.Persistent && !ongoingEffect.isLastingEffect`, reached after the delayed rules, was registered by a `ConstantAbility` and is re-derivable.
+
+This holds because every `ConstantAbility` sets `Duration.Persistent` in its constructor (`ConstantAbility.ts:79`), and `isEffectActive()` (`OngoingEffect.ts:152-173`) *already* requires `source.getConstantAbilities().some((a) => a.registeredEffects?.includes(this))` for exactly that class of effect — which rule 0 has already demanded. The rule is a corollary of the engine's own liveness check, not a new claim. The delayed class is closed separately, by rule 1's precedence: every effect reachable through `OngoingEffectSource.persistent()` carries `impl.type === EffectName.DelayedEffect`.
+
+The enumeration obligation now lives in `UnitProperties.getConstantAbilities()`, where the engine must keep it correct for its own predicate. A registering list someone forgets to add there produces an effect the engine itself treats as dead — so the serializer stays right, and the failure mode becomes "the engine is broken for everyone" rather than "the save is silently wrong." Deleting the three-list union also removed the two accessors it needed.
+
+### The coordinate guard must not mutate the match it is saving
+
+`Card.nextAbilityIdx` is private, so the only way to check that an emitted `abilityIdentifier` is real is to construct a pristine instance of the card class and compare. Against a live `Game` that is dangerous: construction registers with `gameObjectManager`, registers state watchers, adds `game.on(...)` limit listeners, and — the hazard the plan originally missed — registers ongoing effects into the live engine for any constant ability with `sourceZoneFilter: WildcardZoneName.Any` (~44 card files, plus every `EventCard`).
+
+That last one fails silently at write time and surfaces later: the phantom effect holds a uuid absent from `gameObjectMapping`, and `GameStateManager.get` does not return null for an unregistered uuid — it reports `SevereHaltGame` and rethrows. Taking a save would have halted the next undo.
+
+The derivation therefore runs inside one non-nesting `createWithoutRefsUnsafe` handler with a plain recording stand-in swapped in for `game.stateWatcherRegistrar`, and tears down all four hazards — each step independently guarded so a throw in one cannot skip the others, with the registrar restore unconditional beneath them. Two falsifier specs prove the teardown: they were confirmed by reverting the fix, watching them fail, and restoring it.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `npm run lint` | exit 0 |
+| `npm run test-parallel` | 8386 specs, 0 failures, 13 pending |
+| `npm run test-parallel-undo` | 8199 specs, 0 failures, 16 pending |
+| `npm run validate-cards` | 1983 files, 2 exempt |
+
+Baselines at parent `1e2e7d631` were 8256/0/13 and 8069/0/16; both suites rise by exactly 130, the number of new `it`s. Four plan reviews (REJECTED three times, then APPROVED WITH CONCERNS), a three-lens implementation fan-out (0 blocking), two fix cycles and three confirming delta reviews.
+
+### Known gaps, stated rather than closed
+
+- **AC11's card-pool sweep is a seeded sample, not exhaustive.** Measured coverage this run: ground units 48/865, space units 24/306, events 40/428, leaders 16/171, bases 16/40, upgrades 24/161, pilot-attach 16/32. Per-partition attach floors are asserted (upgrades 0.6 against a measured 0.729; pilot-attach 0.8 against 1.000) and fail the spec when breached. The limiting factor was modelling upgrade `attachCondition`s for host selection, not runtime — the sample runs in about 1.2s.
+- **The sweep cannot detect a dropped ability limit.** A dropped limit produces no manifest fact, so an empty manifest stays empty. A reachability assertion covers the ability *surface* instead: every ability carrying a non-`UnlimitedAbilityLimit` limit must be reachable by the writer's shared surface. That is what `PoeDameronICanFlyAnything`'s piloting `perRound(1)` violated before this unit widened the walk.
+- **A teardown failure can mask a concurrent derivation failure.** Standard `try { throw A } finally { throw B }` semantics: the teardown rethrow supersedes the body's error. Pre-existing, requires two simultaneous currently-unreachable failures, and the registrar restore — the invariant that protects live-game correctness — is sound in every case.
+- **`AbilityHelper.limit.perGame(...)` is reachable nowhere on the writer's ability surface today.** Both call sites (`JabbaTheHuttCrimeBoss.ts:50`, `ShienFlurry.ts:45`) feed `delayedCardEffect`, whose limit lands on the ongoing effect's factory props and is read only by `OngoingEffectEngine.checkDelayedEffects` — never becoming a `CardAbility`. The `ISavedPerGameAbilityLimit` schema branch is therefore exercised by a runtime `.limit` swap rather than by a real card. Worth knowing for Plan 6 or any future reviewer citing a "reachable `PerGameAbilityLimit`" card.
+- **Gained-ability use counts are not durable** across save/load and are enumerated rather than preserved; `gained_from_<id>` is not a safe key (the engine carries its own TODO saying so). Plan 6 territory.
+- **`cardDataVersion` has no runtime source** and defaults to `null`; owner `P2-D`.
+- **The pristine derivation advances `_lastGameObjectId`** — by every `GameObjectBase` allocated during construction, not one per card. Benign against `P1-B`'s backwards-only restore rule (the ids never occupy a mapping slot), monotonic, and asserted as such rather than as a fixed count.
+
+### Out of scope, deliberately
+
+Work items A2 (watcher entry encoding), C (loader), D (server plumbing and the armed save trigger), and E (verification suite and degradation measurement). `npm run benchmark` was not run; `P2-E` owns the Plan 2 capture.
+
+### Notes for the next agent
+
+- `node scripts/build-test.js` invoked directly fails in a sandboxed shell (`concurrently` is not resolvable outside an `npm run` context). Use the npm scripts.
+- Direct `npx jasmine build/test/<file>.spec.js` fails with `TypeError: Class extends value undefined is not a constructor` even against a freshly built tree — a module-registration-order problem distinct from the documented stale-build trap. Use `npm run jasmine -- --filter="<Name>"`, which loads through `jasmine.json`'s configured helpers.
+- A substring-style leak assertion must exclude timestamp fields. A short numeric test player id (`"222"`) collided with digits inside an ISO timestamp's milliseconds and produced a real intermittent failure before the scan was scoped to message content.
+- `test/helpers/DeckBuilder`'s `upgrades: [...]` setup path does not exclude token upgrades the way arena-unit setup does; naming `shield` or `experience` there fails deep in deck construction with an opaque "Card undefined not found in card map".

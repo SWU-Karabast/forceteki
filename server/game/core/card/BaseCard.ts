@@ -24,6 +24,7 @@ const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAb
 
 export interface IBaseCard extends ICardWithDamageProperty, ICardWithActionAbilities<IBaseCard>, ICardWithTriggeredAbilities<IBaseCard>, ICardWithCaptureZone, ICardWithUpgrades {
     get epicActionSpent(): boolean;
+    get epicActionAbility(): EpicActionAbility | undefined;
     get defeated(): boolean;
     defeatBase(): void;
 }
@@ -32,6 +33,11 @@ export interface IBaseCard extends ICardWithDamageProperty, ICardWithActionAbili
 @registerStateBase()
 export class BaseCard extends BaseCardParent implements IBaseCard {
     private _epicActionAbility?: EpicActionAbility;
+
+    /** Read-only access to this base's epic action ability, if it has one. Used by the save-format writer to include it in the shared limit-bearing ability surface. */
+    public get epicActionAbility(): EpicActionAbility | undefined {
+        return this._epicActionAbility;
+    }
 
     public get epicActionSpent() {
         Contract.assertNotNullLike(this._epicActionAbility, `Attempting to check if epic action for card ${this.internalName} is spent, but no epic action ability is set`);

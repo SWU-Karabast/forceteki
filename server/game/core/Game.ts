@@ -321,6 +321,14 @@ export class Game extends EventEmitter {
     public readonly onBo3SetForfeit?: (losingPlayerId: string) => void;
     public manualMode: boolean;
     public gameMode: GameMode;
+
+    /**
+     * Whether this game was configured to use the per-player action timer. `Game` extends `EventEmitter`
+     * rather than `GameObjectBase` (and rollback swaps `game.state` wholesale rather than the instance),
+     * so this needs no state decorator: it is fixed at construction and never changes. Read by the
+     * save-format writer for `ISavedMatch.settings.useActionTimer`.
+     */
+    public readonly useActionTimer: boolean;
     public currentlyResolving: ICurrentlyResolving;
     public state: IGameState;
     public tokenFactories: Record<string, (player: Player, additionalProperties?: any) => ITokenCard> | null;
@@ -395,6 +403,7 @@ export class Game extends EventEmitter {
 
         this.manualMode = false;
         this.gameMode = details.gameMode;
+        this.useActionTimer = details.useActionTimer ?? false;
 
         this.initializeCurrentlyResolving();
 

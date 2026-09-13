@@ -46,7 +46,12 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
 
     private readonly deployBox: string;
 
-    protected get deployEpicActionLimit() {
+    /**
+     * Public so the save-format writer can identify (by instance identity) the ability limit entries
+     * that represent this leader's deploy action, since those are represented in the schema by
+     * `epicDeployUsed` rather than as a normal serialized limit.
+     */
+    public get deployEpicActionLimit() {
         return this._deployEpicActionLimit;
     }
 

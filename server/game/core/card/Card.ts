@@ -332,6 +332,15 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
     protected readonly cardData: ICardDataJson;
 
+    /**
+     * Read-only access to this card's raw printed card data. Used by the save-format writer to
+     * reconstruct a pristine instance of this card's class for comparison purposes; `CardDataGetter`
+     * only exposes async lookups, which isn't usable from the writer's synchronous derivation helper.
+     */
+    public get printedCardData(): ICardDataJson {
+        return this.cardData;
+    }
+
     // *********************************************** CONSTRUCTOR ***********************************************
     public constructor(
         owner: Player, cardData: ICardDataJson

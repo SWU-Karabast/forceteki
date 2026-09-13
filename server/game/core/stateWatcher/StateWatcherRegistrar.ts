@@ -28,6 +28,15 @@ export class StateWatcherRegistrar extends GameObjectBase {
         return this.watchers.has(watcherName);
     }
 
+    /**
+     * Read-only enumeration of every currently registered watcher. Used by the save-format writer to emit
+     * one `watcherEntry` engine-only fact per watcher with non-empty entries; there is otherwise no public
+     * way to enumerate watcher names (`watchers` is a private `@stateRefMap`).
+     */
+    public get registeredWatchers(): StateWatcher[] {
+        return [...this.watchers.values()];
+    }
+
     public registerWatcher<TWatcher extends StateWatcher>(name: StateWatcherName, watcherFactory: (registrar: StateWatcherRegistrar) => TWatcher): TWatcher {
         let watcher = this.watchers.get(name) as TWatcher;
         if (!watcher) {
