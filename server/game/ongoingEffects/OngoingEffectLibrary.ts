@@ -82,6 +82,7 @@ export = {
     //        unapply: () => true
     //    }),
 
+    canAttackBaseWhileUsingAmbush: () => OngoingEffectBuilder.card.static(EffectName.CanAttackBaseWhileUsingAmbush),
     canAttackMultipleUnitsSimultaneously: (effectImpl: CanAttackMultipleUnitsSimultaneously) => OngoingEffectBuilder.card.static(EffectName.CanAttackMultipleUnitsSimultaneously, effectImpl),
     canPlayFromDiscard: (properties: PlayFromDiscardProperties = {}) => OngoingEffectBuilder.card
         .static(EffectName.CanPlayFromDiscard, properties),
@@ -175,6 +176,7 @@ export = {
     // loseAllNonKeywordAbilities: () => OngoingEffectBuilder.card.static(EffectName.LoseAllNonKeywordAbilities),
     gainTrait: (trait: Trait) => OngoingEffectBuilder.card.static(EffectName.GainTrait, trait),
     loseTrait: (trait: Trait) => OngoingEffectBuilder.card.static(EffectName.LoseTrait, trait),
+    allCardsForPlayerLoseTrait: (trait: Trait) => OngoingEffectBuilder.allCardsForPlayer.static(EffectName.LoseTrait, trait),
     // modifyBaseMilitarySkillMultiplier: (value) =>
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBaseMilitarySkillMultiplier, value),
     // modifyBasePoliticalSkillMultiplier: (value) =>
