@@ -719,6 +719,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const hiddenKeywordAbilityProps: IConstantAbilityProps<this> = {
                     title: `${TextHelper.Hidden}`,
                     condition: (context) =>
+                        context.source.hasSomeKeyword(KeywordName.Hidden) &&
                         context.source.isInPlay() &&
                         this.wasPlayedDeployedOrCreatedThisPhase(context.source),
                     ongoingEffect: this.game.abilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)

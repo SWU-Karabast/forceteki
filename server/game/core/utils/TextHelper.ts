@@ -167,8 +167,7 @@ export namespace TextHelper {
      */
     export function trait(trait: TraitEnum | string): string {
         return process.env.NODE_ENV === 'test'
-            ? trait.split(' ').map(Helpers.capitalize)
-                .join(' ')
+            ? Helpers.titleCase(trait)
             : `{trait:${trait.replace(/ /g, '-')}}`;
     }
 

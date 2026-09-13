@@ -224,7 +224,7 @@ describe('Jar Jar Binks, Bombad General', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(1);
             });
 
-            xit('deals 1 damage to a unit and heals 1 damage from a base if a token upgrade was created this phase (our opponent make us create token upgrades)', async function () {
+            it('deals 1 damage to a unit and heals 1 damage from a base if a token upgrade was created this phase (our opponent make us create token upgrades)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -251,7 +251,7 @@ describe('Jar Jar Binks, Bombad General', function () {
                 context.player1.clickCard(context.p1Base);
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.wampa.damage).toBe(2);
+                expect(context.wampa.damage).toBe(1);
                 expect(context.p1Base.damage).toBe(1);
                 expect(context.jarJarBinks.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(1);
@@ -443,7 +443,7 @@ describe('Jar Jar Binks, Bombad General', function () {
                 expect(context.p1Base.damage).toBe(1);
             });
 
-            xit('deals 1 damage to a unit and heals 1 damage from a base if a token upgrade was created this phase (our opponent make us create token upgrades)', async function () {
+            it('deals 1 damage to a unit and heals 1 damage from a base if a token upgrade was created this phase (our opponent make us create token upgrades)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -474,7 +474,7 @@ describe('Jar Jar Binks, Bombad General', function () {
                 context.player1.clickCard(context.p1Base);
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.wampa.damage).toBe(2);
+                expect(context.wampa.damage).toBe(1);
                 expect(context.p1Base.damage).toBe(1);
             });
         });

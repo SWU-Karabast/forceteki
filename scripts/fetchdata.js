@@ -224,6 +224,16 @@ function populateMissingData(attributes, id) {
                 }]
             };
             break;
+        case '1055085019': // Theed Palace
+            attributes.reprints = {
+                data: [{
+                    attributes: {
+                        expansion: { data: { attributes: { code: 'HMW' } } },
+                        cardNumber: 25
+                    }
+                }]
+            };
+            break;
         case '4751899478': // Mos Eisley
             attributes.reprints = {
                 data: [{
