@@ -37,7 +37,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
                 return true;
             }
             if (this.dependentTarget) {
-                return this.dependentTarget.checkGameActionsForTargetsChosenByPlayer(contextCopy, player);
+                return this.dependentTarget.hasTargetsChosenByPlayerInternal(contextCopy, player);
             }
             return false;
         });
