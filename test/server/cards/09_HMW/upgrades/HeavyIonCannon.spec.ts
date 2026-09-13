@@ -55,13 +55,13 @@ describe('Heavy Ion Cannon', function() {
 
             context.player1.clickCard(context.p1Base);
 
-            expect(context.player1).toHavePrompt('Deal 2 damage to a unit');
-            expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.greenSquadronAwing, context.cadBane]);
-            context.player1.clickCard(context.cadBane);
-
             expect(context.player1).toHavePrompt('Choose a card to discard');
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.daringRaid]);
             context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.player1).toHavePrompt('Deal 2 damage to a unit');
+            expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.greenSquadronAwing, context.cadBane]);
+            context.player1.clickCard(context.cadBane);
 
             expect(context.battlefieldMarine).toBeInZone('discard', context.player1);
             expect(context.daringRaid).toBeInZone('hand', context.player1);
@@ -110,8 +110,6 @@ describe('Heavy Ion Cannon', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.p1Base);
-
-            context.player1.clickPrompt('Use it anyway');
 
             expect(context.player1).toHavePrompt('Choose a card to discard');
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.daringRaid]);

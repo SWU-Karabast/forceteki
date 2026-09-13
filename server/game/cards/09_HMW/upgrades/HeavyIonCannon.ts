@@ -20,6 +20,8 @@ export default class HeavyIonCannon extends UpgradeCard {
         registrar.addGainActionAbilityTargetingAttached({
             title: 'Deal 2 damage to a unit',
             limit: AbilityHelper.limit.perPhase(1),
+            gainCondition: (context) => context.source.parentCard?.isBase(),
+            cannotTargetFirst: true,
             canResolveWithoutLegalTargets: true,
             cost: [AbilityHelper.costs.discardCardFromOwnHand()],
             targetResolver: {

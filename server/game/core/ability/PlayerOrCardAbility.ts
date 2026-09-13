@@ -95,7 +95,7 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
         this.type = type;
         this.optional = !!properties.optional;
         this.immediateEffect = properties.immediateEffect;
-        this.canResolveWithoutLegalTargets = properties.canResolveWithoutLegalTargets ?? false;
+        this.canResolveWithoutLegalTargets = false;
         this.canBeTriggeredBy = properties.canBeTriggeredBy ?? RelativePlayer.Self;
         this.customConfirmation = properties.customConfirmation;
 
