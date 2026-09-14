@@ -141,5 +141,29 @@ describe('Low Altitude Combat', function () {
             expect(context.greenSquadronAwing).toBeInZone('groundArena', context.player2);
             expect(context.p2Base.damage).toBe(5);
         });
+
+        it('should move a space unit with a captured unit to the ground arena', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['low-altitude-combat'],
+                    groundArena: ['yoda#old-master'],
+                    spaceArena: [{ card: 'alliance-xwing', capturedUnits: ['wampa'] }],
+                }
+            });
+
+            const { context } = contextRef;
+            context.player1.clickCard(context.lowAltitudeCombat);
+            context.player1.clickCard(context.allianceXwing);
+
+            expect(context.allianceXwing).toBeInZone('groundArena', context.player1);
+            expect(context.wampa).toBeCapturedBy(context.allianceXwing);
+
+            context.player1.clickCard(context.yoda);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p2Base.damage).toBe(4);
+        });
     });
 });
