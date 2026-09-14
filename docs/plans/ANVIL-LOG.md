@@ -447,3 +447,90 @@ Work items A2 (watcher entry encoding), C (loader), D (server plumbing and the a
 - Direct `npx jasmine build/test/<file>.spec.js` fails with `TypeError: Class extends value undefined is not a constructor` even against a freshly built tree — a module-registration-order problem distinct from the documented stale-build trap. Use `npm run jasmine -- --filter="<Name>"`, which loads through `jasmine.json`'s configured helpers.
 - A substring-style leak assertion must exclude timestamp fields. A short numeric test player id (`"222"`) collided with digits inside an ISO timestamp's milliseconds and produced a real intermittent failure before the scan was scoped to message content.
 - `test/helpers/DeckBuilder`'s `upgrades: [...]` setup path does not exclude token upgrades the way arena-unit setup does; naming `shield` or `experience` there fails deep in deck construction with an opaque "Card undefined not found in card map".
+
+---
+
+## `P2-A2` — State-watcher entry encoding (Plan 2, work item A2)
+
+| | |
+|---|---|
+| Task ID | `p2-a2` |
+| Date | 2026-09-13 |
+| Lane / tier | full, tier 4 (Large 🔴), proof level hardened |
+| Plan | [02-semantic-save-load.md](02-semantic-save-load.md) work item A2 |
+| Parent | `3500a4516` |
+| Commit | _(recorded separately)_ |
+| Branch | `experimental/rollback-saves-optimizations` |
+
+### What changed
+
+The `stateWatchers` section `P2-A` left as `TODO(P2-A2)` is now populated. All 15 watcher entry structs under `server/game/stateWatchers/` have a saved shape, mapped row for row, with every `GameObjectId` replaced by an `ISavedCardRef` or a seat string and every runtime counter replaced by an encoded form.
+
+- `SavedMatchInterfaces.ts` — 15 entry interfaces, `ISavedStintRef`, `ISavedCounterOrdinal`, `ISavedTaggedSet`, `ISavedLastKnownInformation`, `PRIOR_STINT_ID`, and a `ISavedStateWatcherSection` union discriminated on `watcher`. `ISavedCardRef.parent` gains `seat`; `SavedRefZone` gains `forceToken` and `creditTokens`.
+- `WatcherEntryEncoding.ts` — the shared primitives, including the three loader-facing pure functions `resolveStintId`, `mintCounterId` and `deriveCounterSpaceSizes`.
+- `StateWatcherSerializer.ts` — one encoder per watcher behind a registry mapped over `StateWatcherName`, which pins each encoder to its own key's entry shape, and `serializeStateWatchers`.
+- `SavedCardRefResolver.ts` — a uuid-keyed index and `tryLookupByUuid`. Every ref handed out is a fresh copy, so no two document positions alias one object.
+- `StateWatcher.rawEntries` — the unmapped read the writer needs.
+- `EngineOnlyFacts.buildWatcherEntryFacts` is removed; `watcherEntry` now means one dropped entry, not one unencoded watcher.
+
+### Durable decisions, with their re-check conditions
+
+**An in-play id is published as a relation, never a number.** Each stint field encodes `'live' | 'prior' | null` against its own referent's live comparison key, and the loader resolves `'live'` back to the loaded card's key. The alternative — writing the raw number and having the loader reproduce it — needs the loader to control `_mostRecentInPlayId` exactly, which it cannot while `P2-C1` is unlanded. The published invariant is `entry.inPlayId === liveStintKey(loadedCard)` and it names no specific number on purpose: **a deck-origin card is already at `0` before it is ever played, not `-1`** (`ZoneName.Deck` is hidden and `DeckZone.initializeDeck` calls `initializeZone` with no previous zone, so the visible-to-hidden branch fires once during construction). Re-check if `P2-C1` changes injection so an injected card's `_mostRecentInPlayId` is not what `liveStintKey` returns for it.
+
+**`PRIOR_STINT_ID = -2`.** `_mostRecentInPlayId` is initialised `-1` and only ever incremented (both mutation sites are `+= 1`), so `-2` is below every past and future key of every card. The argument depends on that global minimum alone. Re-check only if an initialiser or a decrement appears.
+
+**Live-comparison counters are minted from a strictly negative, order-preserving range.** The writer emits dense save-local ordinals into two document-scoped spaces (game-event ids; attack ids); the loader maps ordinal `i` of a space of size `n` to `i - n`. Both live generators only ever produce values `>= 0`, so no minted id can collide with one. The spaces are document-scoped rather than per-watcher because `AttackEntry.attackId` and `DamageDealtEntry.activeAttackId` come from one generator and are compared against each other. `spaceSize` is not published as a field; it is derived by `deriveCounterSpaceSizes(document)`, which ships alongside `mintCounterId` for the same reason `resolveStintId` does. **`mintCounterId`'s `ordinal >= spaceSize` guard is not what makes the derivation safe** — it fires only when the supplied size falls below an ordinal in the section being decoded, which an under-derived size need not do. Two attacks where only the first deals damage is the counterexample: a per-section derivation gives the damage section size 1, mints its entry to `-1`, and points it at the *second* attack with no error raised. Shipping the derivation is what closes that, not the guard. Which members share a space is declared once, in `counterSpaceMembers`, and **both halves read it**: the writer's `CounterSpaces.record` resolves its space through `spaceOf(watcher, key)` rather than taking a space argument, and refuses the document if a recording member has no row. The alternative — the writer naming its space at the call site and the table serving only the loader — was what the first implementation did, and it made the table's "single source of truth" claim false: a fourth member could join a space on the writer side while the loader under-derived it, mis-grouping every surviving member of that space with no error. Re-check if a member joins either space: the table row is now mandatory, but the row's *space* is still a human judgement.
+
+**A base-zone Force or Credit token gets a referent coordinate.** `hasTheForce`/`creditTokens` stay the canonical representation — the tokens are not emitted as document members — but `{ zone: 'forceToken', ordinal: 0 }` and `{ zone: 'creditTokens', ordinal: k }` name them so a watcher entry can resolve. Without this, `CreateForceTokenSystem` and `CreateCreditTokenSystem` (both `OnTokensCreated` + `moveTo(ZoneName.Base)`) made every `tokensCreatedThisPhase` entry drop on an ordinary play path, costing `TheClientPleaseLowerYourBlaster` and `JarJarBinksBombadGeneral` an ability after a load. Credit tokens are interchangeable, so the ordinal is a position rather than an identity. The alternative — emitting these tokens as real document members with their own array, the way arena cards are — was rejected because it publishes two representations of one fact (`creditTokens: 3` and a three-element array) that a loader would have to reconcile, for tokens that carry no state of their own. Re-check when a base-zone token acquires distinguishing per-token state — damage, an attachment, or a per-token flag — at which point the count is no longer lossless and these tokens need emitted positions rather than synthesised coordinates.
+
+**`ISavedCardRef.parent.seat`.** The nested coordinate was ambiguous: `parent.zone`/`parent.ordinal` index into the *parent's* controller's arrays, while `controllerSeat` is the nested card's own. `AttachUpgradeSystem.getFinalController` and `TakeControlOfUnitSystem` (which re-controls only *token* upgrades) both produce the mismatch.
+
+**`formatVersion` stays at `1`.** Lifecycle is dev and the format has no producer outside tests, so a shape change replaces version 1 in place rather than bumping. The exemption is written into the constant's own doc comment and ends at the first save produced outside a test (`P2-D`).
+
+**Set payloads are serialized, not dropped.** The three `Set<Trait>` payloads encode as `{ "$set": [...] }` with members sorted lexicographically, matching Plan 3's tag. Sorting rather than preserving insertion order makes the document diff-stable and makes a round-trip property independent of how the loader materialises the Set.
+
+**Sections are emitted in `StateWatcherName` declaration order**, not registration order, so the document does not vary with which card happened to register a watcher first. A watcher with no surviving entry emits no section: absent and empty mean the same thing and absent is the smaller canonical form.
+
+### Five engine findings, published rather than fixed
+
+Three are watcher updaters reading a property their source object does not have; the fourth is a member declared mandatory that the event does not always carry; the fifth is a damage type with no updater branch. Repairing any of them changes live watcher semantics and belongs to a card-behaviour unit.
+
+1. `AttackEntry.targetInPlayId` reads `event.attack.targetInPlayId`; `Attack` exposes `targetInPlayMap`. Always `undefined`. Published as an always-`null` schema member.
+2. `DefeatedCardEntry.wasDefeatedWhileAttacking` was **declared** `IDefeatSource` but holds the boolean `event.isDefeatedWhileAttacking`, and its only consumer uses it as a truthiness test. The declared type is corrected here — type-only, no runtime effect — because the serializer cannot honestly type its input otherwise.
+3. `DamageDealtEntry.damageSourceEventId` reads `event.damageSource.eventId`; no variant of `IDamageSource` declares it. Always `undefined`, and unlike (1) it has no consumer. Published as an always-`null` schema member.
+4. `DamageDealtEntry.isIndirect` is declared `boolean` but copies `event.isIndirect`, which combat and overwhelm damage events never set — observed absent on every combat damage entry. Published as `boolean | null`. `damageSourcePlayer` and `targetController` are the same story in weaker form: the updater writes both through an optional chain, so both are published `string | null` while every other seat member in the section is non-null.
+5. `DamageDealtThisPhaseWatcher`'s updater branches on `DamageType.Combat`, `Overwhelm` and `Ability` only. `DamageType.Excess` — reachable through `BlizzardAssaultAtat` and `WipeThemOut` — falls through all three, so such an entry carries no sources and no targets. The saved shape publishes it faithfully: `damageSourceCards: []` and `targets: []` are a legal, reachable shape rather than corruption, and both declarations now say so, because a loader told to hard-fail on schema violations would otherwise be right to reject the document.
+
+The two always-`null` members are held by an exact `toBeNull` assertion, not by their declared type: `tsconfig.json` enables neither `strict` nor `strictNullChecks`, so a passed-through `undefined` would type-check against a `null`-typed member. Both also carry a dev-mode tripwire on the *raw* field, so repairing either engine bug surfaces immediately instead of leaving the writer quietly emitting `null` forever. That tripwire **reports** through `Game.reportError` at `Normal` severity rather than throwing: a save is a bug-report artifact and must degrade, never halt, and an assertion here would mean that repairing one of these engine bugs makes every dev `save()` on a board with an attack or damage entry fail outright. `Lobby.handleError` logs a `Normal` report and leaves the game alone, so the document is still produced; the test harness's router spy rethrows every reported error, so the same note fails the suite instead, which is the wanted outcome there. Notes are deduplicated per save, because `Lobby` escalates to `SevereHaltGame` once one request exceeds its error ceiling and a board can hold many attack entries. It deliberately does not emit an `engineOnlyFacts` entry either — `watcherEntry` means one dropped entry and nothing else, and `P2-C2` may rely on that.
+
+### Nullability is a published contract in both directions
+
+A `stateWatchers` member declared without `| null` is guaranteed present; a `null` there is a schema violation a consumer may hard-fail on. Where the live struct marks a member mandatory but the value is absent, the writer **drops the whole entry** and enumerates it as a `watcherEntry` fact rather than widening the member. Where the live struct marks it optional, the document declares `| null` and `null` means absent. Six members are declared `| null` although their live member is *not* optional — `attackerAttributes`, both `lastKnownInformation` members, and `damageSourcePlayer`, `targetController` and `isIndirect` — and each carries its own note saying why; in all six `null` still means absent, never degraded. Every `| null` in the section names what produces it. The one path that previously widened silently — a non-`Set` traits payload encoding to `null` with no fact — now routes through the same drop-and-enumerate channel, so there is exactly one degraded outcome in the section and it is always enumerated.
+
+### The writer never reaches the game object manager
+
+`StateWatcher.getCurrentValue()` maps every id through `Game.getFromId`, which reports `SevereHaltGame` and rethrows for an id whose object no longer exists. A save is a bug-report artifact and must degrade, never halt. Every referent is therefore resolved from the writer's own position index, keyed by `card.uuid` — the plain getter, not `getObjectId()`, which calls `markReferenced` and would give the read-only writer a side effect. An entry whose *present* referent occupies no emitted position is dropped and enumerated as exactly one `watcherEntry` fact naming the watcher, the entry index and the offending field; an *absent* optional reference is `null` and is not degradation. The reachable producer is a token removed from the game: `AsToken.removeFromGame` nulls `zone` but leaves the object registered.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `npm run lint` | exit 0 |
+| `npm run validate-cards` | exit 0 |
+| `npm run test-parallel` | 8407 specs, 0 failures, 13 pending |
+| `npm run test-parallel-undo` | 8220 specs, 0 failures, 16 pending |
+
+Baselines at `3500a4516` were 8386/0/13 and 8199/0/16; both suites rise by exactly 21, the number of new `it`s. `npm run benchmark` was **not** run — `P2-E` owns the Plan 2 capture.
+
+### Out of scope, deliberately
+
+Work items C (loader, headless prompt driver, `P2-C1` injection helpers), D (server plumbing), and E (verification suite). `resolveStintId` and `mintCounterId` ship here because the stint/sentinel and ordinal/mint pairs are only meaningful defined together, but they are pure, `Game`-free functions — the published contract, not a loader.
+
+### Notes for the next agent
+
+- A unit cannot attack on the turn it is played, so a spec that needs an attacker with a superseded stint must place it on the board at setup, bounce it, and replay it — not play it and attack in one turn.
+- `Sentinel` makes its unit the only legal attack target; a fixture with a Pyke Sentinel on the defending board forces every attack onto it.
+- `game.actionNumber` is incremented *after* an attack's watcher entry records it, so an entry's `actionNumber` is one below the post-action live value. Comparing a published value against the live `rawEntries` value is the reliable "preserved verbatim" oracle.
+- `CounterSpaces` stages recorded values per entry and commits only on survival, so a dropped entry's raw value never enters a space. This is tidiness, not correctness: committing it would make the space *sparser*, not wrong, since `spaceSize = max(ordinal) + 1` still satisfies `ordinal < spaceSize` and every minted id stays negative and order-preserving.
+- A watcher entry can reference a Force or Credit token in the base zone. Nothing else in the document indexes those, so they need their own zone names; see the durable decision above.
+- **For `P2-C2` and `P2-E`: the `null`/`undefined` mapping is not symmetric.** The live watcher structs carry `undefined` for absent optional members while the document must carry `null`. A document-to-document round-trip property is unaffected; a property that compares reconstructed *live* entries needs the loader to write `undefined` where the document says `null`, or it fails on every optional member.

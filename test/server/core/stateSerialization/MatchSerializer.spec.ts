@@ -2,6 +2,7 @@ import { PerGameAbilityLimit } from '../../../../server/game/core/ability/Abilit
 import { save } from '../../../../server/game/core/stateSerialization/MatchSerializer';
 import { scrubChatMessages } from '../../../../server/game/core/stateSerialization/ChatScrubber';
 import { SavedCardRefResolver } from '../../../../server/game/core/stateSerialization/SavedCardRefResolver';
+import { StateWatcherName } from '../../../../server/game/core/Constants';
 
 /**
  * Establishes P2-A's acceptance criteria for `MatchSerializer.save` against a real `Game`, calling it
@@ -78,12 +79,31 @@ describe('MatchSerializer.save', function() {
 
             it('contains no uuid, no runtime counter, no Date object, and no undefined member, and survives a JSON round-trip (AC8)', function() {
                 const { context } = contextRef;
+
+                // An action, so that the walk actually reaches populated watcher state: card placement
+                // bypasses the event-firing systems, so a freshly built fixture holds none. This attack
+                // populates attacksThisPhase, damageDealtThisPhase and unitsDamagedThisPhase. It lives in
+                // this `it()` rather than the shared `beforeEach`, which AC1/AC2 also use.
+                context.player1.clickCard(context.atatSuppressor);
+                context.player1.clickCard(context.wampa);
+
                 const document = save(context.game);
 
                 const forbiddenKeys = new Set(['uuid', 'playEventId', 'inPlayId', 'attackId', 'eventId']);
-                const seen = new Set<unknown>();
 
-                function walk(value: unknown, path: string): void {
+                // Cycle detection is keyed by (object, banKeys), not by object alone. `SavedCardRefResolver`
+                // hands out a card's ref at many positions, and a ref first reached inside `stateWatchers`
+                // (ban off) would otherwise be marked seen and never key-checked anywhere in the document --
+                // making the ban structurally unenforceable for exactly the objects it exists to police.
+                const seenByScope = { banned: new Set<unknown>(), unbanned: new Set<unknown>() };
+
+                // `banKeys` is false only inside `stateWatchers`, where those names are the schema's own
+                // field names and carry encoded forms rather than raw runtime values (an in-play id is
+                // 'live'/'prior'/null, a counter is a save-local ordinal). Scoping the *ban* rather than the
+                // *walk* is deliberate: the undefined, Date and round-trip checks must stay document-wide,
+                // including inside that subtree. The typed oracle for the subtree lives in
+                // StateWatcherSerializer.spec.ts (T12).
+                function walk(value: unknown, path: string, banKeys: boolean): void {
                     if (value === undefined) {
                         throw new Error(`Found an undefined member at ${path}`);
                     }
@@ -93,28 +113,56 @@ describe('MatchSerializer.save', function() {
                     if (value === null || typeof value !== 'object') {
                         return;
                     }
+                    const seen = banKeys ? seenByScope.banned : seenByScope.unbanned;
                     if (seen.has(value)) {
                         return;
                     }
                     seen.add(value);
 
                     if (Array.isArray(value)) {
-                        value.forEach((element, index) => walk(element, `${path}[${index}]`));
+                        value.forEach((element, index) => walk(element, `${path}[${index}]`, banKeys));
                         return;
                     }
 
                     for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
-                        if (forbiddenKeys.has(key)) {
+                        if (banKeys && forbiddenKeys.has(key)) {
                             throw new Error(`Found forbidden key "${key}" at ${path}.${key}`);
                         }
-                        walk(nested, `${path}.${key}`);
+                        // Only the document's own root `stateWatchers` member turns the ban off -- not a
+                        // member of that name at any depth.
+                        walk(nested, `${path}.${key}`, banKeys && !(path === 'document' && key === 'stateWatchers'));
                     }
                 }
 
-                walk(document, 'document');
+                walk(document, 'document', true);
 
                 const roundTripped = JSON.parse(JSON.stringify(document));
                 expect(roundTripped).toEqual(document);
+
+                // The scoping above must be load-bearing, not decorative: if the section were empty, or
+                // carried no forbidden key name, the new branch would never execute and this test would
+                // silently stop covering it. `attackId` (attacksThisPhase) and `inPlayId`
+                // (unitsDamagedThisPhase) are the two exact-string hits; `activeAttackId` is a different
+                // string and does not match.
+                expect(document.stateWatchers.length).toBeGreaterThan(0);
+
+                const keysInsideSection = new Set<string>();
+                function collectKeys(value: unknown): void {
+                    if (value === null || typeof value !== 'object') {
+                        return;
+                    }
+                    if (Array.isArray(value)) {
+                        value.forEach(collectKeys);
+                        return;
+                    }
+                    for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+                        keysInsideSection.add(key);
+                        collectKeys(nested);
+                    }
+                }
+                collectKeys(document.stateWatchers);
+
+                expect([...forbiddenKeys].some((key) => keysInsideSection.has(key))).toBeTrue();
             });
         });
 
@@ -400,8 +448,8 @@ describe('MatchSerializer.save', function() {
             });
         });
 
-        describe('AC10 — stateWatchers ships empty, marked, and its state is declared dropped', function() {
-            it('always emits stateWatchers: [] and, when a watcher holds entries, a matching watcherEntry fact', async function() {
+        describe('AC10 — watcher state is encoded into stateWatchers, not declared dropped', function() {
+            it('emits a section for a populated watcher and no watcherEntry fact', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -413,11 +461,17 @@ describe('MatchSerializer.save', function() {
                 context.player1.clickCard(context.battlefieldMarine);
 
                 const document = save(context.game);
-                expect(document.stateWatchers).toEqual([]);
 
                 const hasNonEmptyWatcher = context.game.stateWatcherRegistrar.registeredWatchers.some((watcher) => watcher.entryCount > 0);
                 expect(hasNonEmptyWatcher).toBeTrue();
-                expect(document.engineOnlyFacts.some((fact) => fact.category === 'watcherEntry')).toBeTrue();
+
+                const playedSection = document.stateWatchers.find((section) => section.watcher === StateWatcherName.CardsPlayedThisPhase);
+                expect(playedSection).toBeDefined();
+                expect(playedSection.entries.length).toBe(1);
+                expect(playedSection.entries[0].card.card).toBe('battlefield-marine');
+
+                // `watcherEntry` now means "an entry was dropped", and nothing here is unresolvable.
+                expect(document.engineOnlyFacts.some((fact) => fact.category === 'watcherEntry')).toBeFalse();
             });
         });
 
@@ -474,19 +528,19 @@ describe('MatchSerializer.save', function() {
                 const resolver = new SavedCardRefResolver();
 
                 resolver.indexTopLevel(context.lomPyke, 'p1', 'groundArena', 0);
-                resolver.indexNested(context.academyTraining, 'p1', 'groundArena', 0, 'upgrades');
-                resolver.indexNested(context.battlefieldMarine, 'p1', 'groundArena', 0, 'capturedCards');
+                resolver.indexNested(context.academyTraining, 'p1', 'p1', 'groundArena', 0, 'upgrades');
+                resolver.indexNested(context.battlefieldMarine, 'p1', 'p1', 'groundArena', 0, 'capturedCards');
                 resolver.indexTopLevel(context.player1Object.deckLeader, 'p1', 'leader', 0);
 
                 const upgradeRef = resolver.resolve(context.academyTraining, 'p1');
                 expect(upgradeRef.zone).toBeNull();
                 expect(upgradeRef.ordinal).toBeNull();
-                expect(upgradeRef.parent).toEqual({ zone: 'groundArena', ordinal: 0, list: 'upgrades' });
+                expect(upgradeRef.parent).toEqual({ seat: 'p1', zone: 'groundArena', ordinal: 0, list: 'upgrades' });
 
                 const capturedRef = resolver.resolve(context.battlefieldMarine, 'p1');
                 expect(capturedRef.zone).toBeNull();
                 expect(capturedRef.ordinal).toBeNull();
-                expect(capturedRef.parent).toEqual({ zone: 'groundArena', ordinal: 0, list: 'capturedCards' });
+                expect(capturedRef.parent).toEqual({ seat: 'p1', zone: 'groundArena', ordinal: 0, list: 'capturedCards' });
 
                 const leaderRef = resolver.resolve(context.player1Object.deckLeader, 'p1');
                 expect(leaderRef.zone).toBe('leader');

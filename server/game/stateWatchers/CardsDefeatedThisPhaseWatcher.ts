@@ -7,7 +7,6 @@ import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
 import type { Game } from '../core/Game';
 import type { UnwrapRef, UnwrapRefObject } from '../core/GameObjectBase';
-import type { IDefeatSource } from '../IDamageOrDefeatSource';
 import { registerState, type GameObjectId } from '../core/GameObjectUtils';
 import type { IStateWatcherLKIEntry } from '../core/stateWatcher/StateWatcher';
 
@@ -16,7 +15,9 @@ export interface DefeatedCardEntry {
     inPlayId: number;
     controlledBy: GameObjectId<Player>;
     defeatedBy?: GameObjectId<Player>;
-    wasDefeatedWhileAttacking: IDefeatSource;
+
+    /** Written from `event.isDefeatedWhileAttacking`, set in `DefeatCardSystem.addDefeatSourceToEvent`; a boolean, and the only consumer below uses it as a truthiness test. */
+    wasDefeatedWhileAttacking: boolean;
     lastKnownInformation: IStateWatcherLKIEntry;
 }
 

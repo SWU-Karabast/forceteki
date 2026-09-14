@@ -8,8 +8,9 @@ import type { Player } from '../Player';
 import { serializeAbilityLimitsForCard } from './AbilityLimitSerializer';
 import type { ISeatedPlayer } from './AbilityLimitSerializer';
 import { scrubChatMessages } from './ChatScrubber';
-import { buildPilotLeaderFacts, buildWatcherEntryFacts, classifyOngoingEffects } from './EngineOnlyFacts';
+import { buildPilotLeaderFacts, classifyOngoingEffects } from './EngineOnlyFacts';
 import { SavedCardRefResolver } from './SavedCardRefResolver';
+import { serializeStateWatchers } from './StateWatcherSerializer';
 import { SAVED_MATCH_FORMAT_VERSION, SaveIntegrityError } from './SavedMatchInterfaces';
 import type {
     IEngineOnlyFact,
@@ -22,6 +23,7 @@ import type {
     ISavedPlayer,
     ISavedResourceEntry,
     SavedArrayRefZone,
+    SavedParentRefZone,
 } from './SavedMatchInterfaces';
 
 /**
@@ -39,11 +41,17 @@ function requireSeat(seatByPlayer: ReadonlyMap<Player, string>, player: Player):
     return seat;
 }
 
+/**
+ * `parentSeat` is the seat whose arrays `parentZone`/`parentOrdinal` index into. It is passed explicitly
+ * rather than read off the nested card, whose own controller can differ from its parent's -- see
+ * `ISavedCardRef.parent` for the two live ways that happens.
+ */
 function buildAttachedCardEntries(
     cards: readonly Card[],
     seatByPlayer: ReadonlyMap<Player, string>,
     refResolver: SavedCardRefResolver,
-    parentZone: SavedArrayRefZone | 'leader' | 'base',
+    parentSeat: string,
+    parentZone: SavedParentRefZone,
     parentOrdinal: number,
     list: 'upgrades' | 'capturedCards',
     exclude: ReadonlySet<Card>
@@ -56,7 +64,7 @@ function buildAttachedCardEntries(
         }
 
         const ownerSeat = requireSeat(seatByPlayer, card.owner);
-        refResolver.indexNested(card, requireSeat(seatByPlayer, card.controller), parentZone, parentOrdinal, list);
+        refResolver.indexNested(card, requireSeat(seatByPlayer, card.controller), parentSeat, parentZone, parentOrdinal, list);
         entries.push({ card: card.internalName, ownerSeat });
     }
 
@@ -83,8 +91,8 @@ function buildArenaEntry(
         damage: state.damage ?? 0,
         exhausted: !!state.exhausted,
         ...(ownerSeat !== controllerSeat ? { ownerSeat } : {}),
-        upgrades: buildAttachedCardEntries(state.upgrades ?? [], seatByPlayer, refResolver, zone, ordinal, 'upgrades', pilotDeployedLeaders),
-        capturedCards: buildAttachedCardEntries(state.capturedUnits ?? [], seatByPlayer, refResolver, zone, ordinal, 'capturedCards', new Set()),
+        upgrades: buildAttachedCardEntries(state.upgrades ?? [], seatByPlayer, refResolver, controllerSeat, zone, ordinal, 'upgrades', pilotDeployedLeaders),
+        capturedCards: buildAttachedCardEntries(state.capturedUnits ?? [], seatByPlayer, refResolver, controllerSeat, zone, ordinal, 'capturedCards', new Set()),
         limits: serializeAbilityLimitsForCard(card, seatedPlayers),
     };
 }
@@ -103,8 +111,8 @@ function buildBaseEntry(
     return {
         card: base.internalName,
         damage: state.damage ?? 0,
-        upgrades: buildAttachedCardEntries(base.upgrades, seatByPlayer, refResolver, 'base', 0, 'upgrades', new Set()),
-        capturedCards: buildAttachedCardEntries(base.capturedUnits, seatByPlayer, refResolver, 'base', 0, 'capturedCards', new Set()),
+        upgrades: buildAttachedCardEntries(base.upgrades, seatByPlayer, refResolver, controllerSeat, 'base', 0, 'upgrades', new Set()),
+        capturedCards: buildAttachedCardEntries(base.capturedUnits, seatByPlayer, refResolver, controllerSeat, 'base', 0, 'capturedCards', new Set()),
         limits: serializeAbilityLimitsForCard(base, seatedPlayers),
     };
 }
@@ -164,8 +172,8 @@ function buildLeaderEntry(
         exhausted: leaderUnit.exhausted,
         damage: state.damage ?? 0,
         epicDeployUsed: leaderUnit.deployEpicActionLimit.isAtMax(leaderUnit.owner),
-        upgrades: buildAttachedCardEntries(state.upgrades ?? [], seatByPlayer, refResolver, 'leader', 0, 'upgrades', new Set()),
-        capturedCards: buildAttachedCardEntries(state.capturedUnits ?? [], seatByPlayer, refResolver, 'leader', 0, 'capturedCards', new Set()),
+        upgrades: buildAttachedCardEntries(state.upgrades ?? [], seatByPlayer, refResolver, controllerSeat, 'leader', 0, 'upgrades', new Set()),
+        capturedCards: buildAttachedCardEntries(state.capturedUnits ?? [], seatByPlayer, refResolver, controllerSeat, 'leader', 0, 'capturedCards', new Set()),
         limits,
     };
 }
@@ -189,6 +197,29 @@ function buildResourceEntry(
         exhausted: (card as unknown as ICardWithExhaustProperty).exhausted,
         ...(ownerSeat !== controllerSeat ? { ownerSeat } : {}),
     };
+}
+
+/**
+ * Gives the base zone's Force and Credit tokens coordinates, without emitting them as document members:
+ * `hasTheForce` and `creditTokens` already carry their existence and count canonically, and a loader
+ * rebuilds the objects from those. What they need is a *referent* coordinate, because a watcher entry can
+ * name one: `CreateForceTokenSystem` and `CreateCreditTokenSystem` both fire `OnTokensCreated` and
+ * `moveTo(ZoneName.Base)`, `TokensCreatedThisPhaseWatcher` records every generated token unfiltered, and
+ * `TheClientPleaseLowerYourBlaster` / `JarJarBinksBombadGeneral` read that watcher. Without a coordinate
+ * every such entry was dropped on an ordinary play path, costing the player an ability they were entitled
+ * to after a load.
+ *
+ * `seat` is the base zone's owner's seat, which `BaseZone.setForceToken`/`addCreditToken` both assert is
+ * also the token's controller.
+ */
+function indexBaseZoneTokens(player: Player, seat: string, refResolver: SavedCardRefResolver): void {
+    const baseZone = player.baseZone;
+
+    if (baseZone.forceToken != null) {
+        refResolver.indexTopLevel(baseZone.forceToken, seat, 'forceToken', 0);
+    }
+
+    baseZone.credits.forEach((credit, ordinal) => refResolver.indexTopLevel(credit, seat, 'creditTokens', ordinal));
 }
 
 function indexSimpleZoneCards(
@@ -218,8 +249,10 @@ function findPilotDeployedLeaders(players: readonly Player[]): LeaderUnitCard[] 
 /**
  * The card set the completeness assertion checks against: every card owned by either player that is
  * currently in a zone (the union of `decklist.allCards`, `.tokens`, and `.outsideTheGameCards`, filtered to
- * `card.zone != null`), minus Force and credit tokens (canonically represented by `hasTheForce` and
- * `creditTokens`). The zone filter is mandatory: `Game.roundEnded` removes every non-Force token from
+ * `card.zone != null`), minus Force and credit tokens. Those do get coordinates (see
+ * {@link indexBaseZoneTokens}) but are still not *required* to appear: they are canonically represented by
+ * `hasTheForce` and `creditTokens`, so a document that omits one is not incomplete, and the writer should
+ * not refuse an entire save over a token in a transitional zone. The zone filter is mandatory: `Game.roundEnded` removes every non-Force token from
  * `outsideTheGame` each round without clearing the card lists, so from round 2 onward almost every game
  * carries zone-less tokens that must not be required to appear anywhere in the document.
  */
@@ -250,6 +283,9 @@ export function save(game: Game, options: ISaveOptions = {}): ISavedMatch {
     const players = game.getPlayers();
     const seatedPlayers: ISeatedPlayer[] = players.map((player, index) => ({ seat: `p${index + 1}`, player }));
     const seatByPlayer = new Map<Player, string>(seatedPlayers.map(({ seat, player }) => [player, seat]));
+    // Keyed by uuid rather than by object because a watcher entry stores a `GameObjectId`, which is a
+    // branded `uuid`; resolving it this way keeps the writer off `Game.getFromId` entirely.
+    const seatByUuid = new Map<string, string>(seatedPlayers.map(({ seat, player }) => [player.uuid, seat]));
     const getSeatForPlayer = (player: Player): string => requireSeat(seatByPlayer, player);
 
     // Phase 1: pre-pass.
@@ -275,6 +311,7 @@ export function save(game: Game, options: ISaveOptions = {}): ISavedMatch {
             buildArenaEntry(card, seat, ordinal, 'spaceArena', seatByPlayer, seatedPlayers, refResolver, pilotDeployedLeaderSet));
 
         const base = buildBaseEntry(player.base, seat, seatByPlayer, seatedPlayers, refResolver);
+        indexBaseZoneTokens(player, seat, refResolver);
         const leader = buildLeaderEntry(
             player.deckLeader, seat, seatByPlayer, seatedPlayers, refResolver, pilotDeployedLeaderSet.has(player.deckLeader)
         );
@@ -304,10 +341,11 @@ export function save(game: Game, options: ISaveOptions = {}): ISavedMatch {
 
     // Phase 3: detection and manifest.
     const resolveCardRef = (card: Card) => refResolver.resolve(card, getSeatForPlayer(card.controller));
+    const watchers = serializeStateWatchers(game, refResolver, seatByUuid);
     const engineOnlyFacts: IEngineOnlyFact[] = [
         ...buildPilotLeaderFacts(pilotDeployedLeaders, resolveCardRef),
         ...classifyOngoingEffects(game, resolveCardRef, getSeatForPlayer, seatedPlayers),
-        ...buildWatcherEntryFacts(game),
+        ...watchers.droppedFacts,
     ];
 
     const chat = scrubChatMessages(game.gameChat.messages);
@@ -348,10 +386,7 @@ export function save(game: Game, options: ISaveOptions = {}): ISavedMatch {
             prevActionPhasePlayerPassed: game.prevActionPhasePlayerPassed,
         },
         players: savedPlayers,
-        // A2 owns the per-watcher entry encoding; until then, non-empty watchers are recorded only as
-        // `watcherEntry` engineOnlyFacts.
-        // TODO(P2-A2): encode `stateWatchers` entries instead of leaving this empty.
-        stateWatchers: [],
+        stateWatchers: watchers.sections,
         engineOnlyFacts,
         chat,
         timers,

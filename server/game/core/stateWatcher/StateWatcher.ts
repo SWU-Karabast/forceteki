@@ -99,14 +99,27 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
     }
 
     /**
-     * The number of recorded entries, without mapping them through `mapCurrentValue`. The save-format
-     * writer needs this count (to emit a `watcherEntry` engine-only fact) but must never call
-     * `getCurrentValue()`: that maps every entry through `game.getFromId`, and a watcher entry can
-     * reference a game object that no longer exists (e.g. a removed token), which `GameStateManager.get`
-     * reports as `SevereHaltGame` and rethrows rather than returning null.
+     * The number of recorded entries, without mapping them through `mapCurrentValue`. Its only callers are
+     * tests now that the save-format writer encodes entries rather than counting them, but it remains the
+     * correct non-halting way to ask how much state a watcher holds: `getCurrentValue()` maps every entry
+     * through `game.getFromId`, and a watcher entry can reference a game object that no longer exists
+     * (e.g. a removed token), which `GameStateManager.get` reports as `SevereHaltGame` and rethrows rather
+     * than returning null.
      */
     public get entryCount(): number {
         return this.state.entries.length;
+    }
+
+    /**
+     * The recorded entries exactly as stored — `GameObjectId`s unmapped, never passed through
+     * `mapCurrentValue`. For the save-format writer only, for the reason spelled out on {@link entryCount}:
+     * the writer resolves every referent from its own position index and must never reach the game object
+     * manager. Returns a copy of the array: `readonly TState[]` would stop a caller replacing an element
+     * but not mutating one, and this is the first public read into a `@registerStateBase` object's live
+     * `state`. The elements themselves are still the live entry objects.
+     */
+    public get rawEntries(): readonly TState[] {
+        return [...this.state.entries];
     }
 
     protected addUpdater(properties: IStateListenerProperties<TState[]>) {

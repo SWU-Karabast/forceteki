@@ -245,21 +245,3 @@ export function buildPilotLeaderFacts(
         };
     });
 }
-
-/**
- * One `watcherEntry` fact per registered state watcher whose entries are non-empty. Watchers reset only at
- * end of phase, so a mid-phase save routinely carries entries; A2 owns the actual entry encoding, so this
- * unit records only that state was dropped, never its content. Must read `entryCount`, never
- * `getCurrentValue()` (see `StateWatcher.entryCount`'s own doc comment for why).
- */
-export function buildWatcherEntryFacts(game: Game): IEngineOnlyFact[] {
-    return game.stateWatcherRegistrar.registeredWatchers
-        .filter((watcher) => watcher.entryCount > 0)
-        .map((watcher) => ({
-            category: 'watcherEntry' as const,
-            source: null,
-            target: null,
-            duration: null,
-            description: `${watcher.name} watcher has ${watcher.entryCount} recorded ${watcher.entryCount === 1 ? 'entry' : 'entries'} not encoded in this format version (see TODO(P2-A2))`,
-        }));
-}
