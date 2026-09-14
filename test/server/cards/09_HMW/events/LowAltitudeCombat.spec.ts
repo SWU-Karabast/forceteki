@@ -41,6 +41,43 @@ describe('Low Altitude Combat', function () {
             expect(context.p2Base.damage).toBe(4);
         });
 
+        it('Low Altitude Combat\'s ability should moves a space unit to the ground arena (friendly), then may attack with a ground unit that gets +2/+0', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['low-altitude-combat', 'chewbacca#faithful-first-mate'],
+                    spaceArena: ['alliance-xwing', { card: 'awing', exhausted: true }],
+                    groundArena: ['8d8#daimyos-majordomo']
+                },
+                player2: {
+                    spaceArena: ['green-squadron-awing']
+                }
+            });
+
+            const { context } = contextRef;
+            context.player1.clickCard(context.chewbacca);
+            context.player1.clickPrompt('Play Chewbacca with Piloting');
+
+            context.player1.clickCard(context.awing);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.lowAltitudeCombat);
+            context.player1.clickCard(context.awing);
+
+            // The space unit is now in the ground arena
+            expect(context.awing).toBeInZone('groundArena', context.player1);
+
+            expect(context.player1).toBeAbleToSelectExactly([context._8d8]);
+            context.player1.clickCard(context._8d8);
+            expect(context.player1).toHavePrompt('Choose a target for attack');
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player2).toBeActivePlayer();
+
+            expect(context.p2Base.damage).toBe(3);
+        });
+
         it('Low Altitude Combat\'s ability should moves a space unit to the ground arena (friendly), then may pass attack', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
