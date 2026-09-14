@@ -546,7 +546,7 @@ Work items C (loader, headless prompt driver, `P2-C1` injection helpers), D (ser
 | Lane / tier | full, tier 3 (Large 🟡), proof level standard |
 | Plan | [02-semantic-save-load.md](02-semantic-save-load.md) work item C steps 3 and 4; [IMPLEMENTATION-ORDER.md](IMPLEMENTATION-ORDER.md) unit `P2-C1` |
 | Parent | `a9e77897f` |
-| Commit | `TBD` — orchestrator to fill in after commit |
+| Commit | `841c46cb8` |
 | Branch | `experimental/rollback-saves-optimizations` |
 
 ### What changed
