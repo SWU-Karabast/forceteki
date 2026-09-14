@@ -44,9 +44,11 @@ degraded positions are acceptable to load at all.
 - **Fresh-start path:** `Lobby.ts` builds `GameConfiguration` →
   `new Game(...)` → `selectDeck` → `initialiseAsync` (`Lobby.ts:1259-1289`).
   Card reconstruction from ids already exists
-  (`Deck.buildCardsFromSetCodeAsync`, `server/utils/deck/Deck.ts:207-228` —
-  note it is `private`, so the loader needs a small public surface added;
-  token factories at `Game.ts:1578-1592`).
+  (`Deck.buildCardsFromSetCodeAsync`, `server/utils/deck/Deck.ts:207-228`;
+  token factories at `Game.ts:1578-1592`). That method is `private`, but the
+  loader needs no public surface added for it: `Player.initialiseAsync` →
+  `prepareDecksAsync` → `Deck.buildCardsAsync` already builds the whole card
+  pool from the decklist.
 - **State injection:** `test/helpers/GameStateBuilder.js:95-256`
   (`setupGameStateAsync`) already does: real game start → advance phases →
   `moveAllNonBaseZonesToRemoved()` → place every card
@@ -314,7 +316,15 @@ Rebuilding the pipeline is the only way to reach `roundNumber > 1` or
    combinations are "no claim → both false" and "claimed by X → X true, other
    false" (`Game.ts:1342-1346`, `ActionWindow.ts:198-207`; the both-true case
    ends the phase immediately, so no action window exists there).
-3. `resolveGameState(true)`, then `snapshotManager.clearAllSnapshots()`.
+3. Resolve game state **inside a real event window**, then restore the
+   per-copy ability-limit counts, then `snapshotManager.clearAllSnapshots()`.
+   Both of those orderings are forced by the engine, not chosen:
+   `resolveGameState(true)` called bare crashes any degraded save whose
+   dropped buff was keeping a unit alive (the defeat reaches
+   `Game.addSubwindowEvents`, which dereferences a `currentEventWindow`
+   nothing has opened yet), and the limit restore must follow it because
+   `resolveGameState`'s moved-card sweep resets every limit on the cards
+   injection just placed. Work item C step 6 has the full mechanics.
 4. `game.postRollbackOperations({ Round, WithinActionPhase })`. With
    `PhaseInitializeMode.RollbackToWithinPhase` (mapped at `Game.ts:1234-1235`),
    the rebuilt `ActionPhase` **skips** `setupActionPhase`
@@ -558,7 +568,11 @@ compensate.
      from `test/helpers/PlayerInteractionWrapper.ts` into engine-side code,
      plus one operation the helpers lack: setting a non-in-play card's
      `_mostRecentInPlayId`, which A2's stint-flag rehydration needs for
-     cards in discard.
+     cards in discard. (That operation shipped, but the loader turned out
+     not to need it: A2's `resolveStintId` contract resolves a `'live'`
+     stint to the loaded card's own key by construction, and a `'prior'`
+     stint to a negative sentinel the setter rejects anyway. It stays as a
+     supported injection primitive, not a load-path dependency.)
      The test helpers then become thin wrappers over the engine
      implementation (large incidental win: state injection becomes a
      supported engine feature instead of test-only code). Two mandatory
@@ -576,12 +590,14 @@ compensate.
        also a real schema zone — any card the loader failed to place would
        silently remain there. Assert post-injection `outsideTheGame` contents
        equal the save's declared `outsideTheGame` arrays, else fail the load.
-  5. Restore, in order: per-copy ability-limit counts (the single authority
-     for all limits, including `epicDeployUsed` → the leader's
-     `EpicActionLimit`), watcher entries (per A2), chat, timers, RNG state,
+  5. Restore, in order: watcher entries (per A2), chat, timers, RNG state,
      `Game.state` scalars, and the `passedActionPhase` derivation — exactly
-     as specified in "Load sequence" above. Two semantics to pin down here
-     so PR 4 doesn't discover them by surprise:
+     as specified in "Load sequence" above. **Per-copy ability-limit counts
+     belong in step 6, immediately after `resolveGameState`, not here** — they
+     are still the single authority for all limits, including `epicDeployUsed`
+     → the leader's `EpicActionLimit`, and step 6 explains why that call has
+     to come first. Two semantics to pin down here so PR 4 doesn't discover
+     them by surprise:
      - **Chat restore replaces the message log**, never appends — the driven
        setup in step 3 generates its own messages, and appending would fail
        E's round-trip property on chat.
@@ -595,9 +611,41 @@ compensate.
        `activePlayer.actionTimer.stop()` (`ActionWindow.ts:41`), but
        `stop()` only stops the turn timer and *pauses* the main timer,
        preserving its remaining time (`ByoyomiTimer.ts:173-181`).
-  6. `resolveGameState(true)`, `clearAllSnapshots()`, then
-     `postRollbackOperations({ Round, WithinActionPhase })` per the load
+  6. Resolve game state, restore the ability-limit counts, `clearAllSnapshots()`,
+     then `postRollbackOperations({ Round, WithinActionPhase })` per the load
      sequence; the re-entered ActionWindow takes the first action snapshot.
+     Three constraints here are forced by the engine, and none of them is
+     visible from reading the call sites — each one surfaced as a failing
+     check:
+     - **`resolveGameState(true)` must run inside a live event window.** Called
+       bare it crashes any degraded save whose dropped for-this-phase buff was
+       keeping a unit alive: the resulting defeat reaches
+       `Game.addSubwindowEvents`, which dereferences `currentEventWindow`
+       unconditionally, and nothing has opened one — `postRollbackOperations`
+       does, one line later. Open a root `EventWindow` and drive it.
+     - **Drive that window on `game.pipeline`, never a private `GamePipeline`.**
+       `Game.queueStep` always targets `this.pipeline`, so a private one never
+       runs the ability resolvers and prompts the drive queues, and
+       `postRollbackOperations` then clears them — which silently produced
+       illegal boards (two copies of a unique in play, its resolution prompt
+       discarded).
+     - **Ability-limit counts are restored after this call, not before.**
+       `resolveGameState`'s moved-card sweep calls `resolveAbilitiesForNewZone()`
+       on every card injection placed, which resets every action and triggered
+       ability's limit. Restoring first wipes every count, which is why step 5
+       leaves them to this step.
+
+     One further engine convention has to be defeated for the load to honour its
+     own contract. `BaseStepWithPipeline.continue()` catches any exception from
+     its inner pipeline, routes it to `Game.reportError`, and reports the step
+     **complete** — correct for live play, where a game must survive one
+     ability's failure, and wrong for a loader that promises to throw. Since
+     `Game._router` is `private readonly`, the loader wraps the caller's router
+     in a proxy that rethrows from `handleError`, and keeps it armed for the
+     *whole* span of the load — construction, driven setup, injection,
+     restoration, this resolution drive, and `postRollbackOperations`' own
+     re-entry. Scoping it to any single drive leaves the next one swallowing;
+     that was proven twice, at ~5-7 swallowed exceptions per load.
 - Loading must be rejected cleanly (not crash) on: unknown card names or
   ability identifiers, invalid positions (e.g. upgrade on empty arena),
   format-version mismatch, corrupt or truncated files, staging-zone residue.
