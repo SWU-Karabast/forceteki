@@ -24,6 +24,10 @@ export default class MysteriousDisappearance extends EventCard {
                     choosingPlayer: (context) => (context.targets.player === context.player ? RelativePlayer.Self : RelativePlayer.Opponent),
                     controller: (context) => (context.targets.player === context.player ? RelativePlayer.Self : RelativePlayer.Opponent),
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
+                    // Worded from the chooser's point of view, since it may be the opponent reading it.
+                    activePromptTitle: (context) => (context.targets.player === context.player
+                        ? 'Choose a non-leader unit. You may defeat it.'
+                        : 'Choose a non-leader unit. Your opponent may defeat it.'),
                 }
             },
             then: (thenContext) => ({

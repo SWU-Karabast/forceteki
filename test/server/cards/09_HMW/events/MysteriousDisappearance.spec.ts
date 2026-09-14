@@ -25,6 +25,7 @@ describe('Mysterious Disappearance', function () {
                 context.player1.clickPrompt('Opponent');
 
                 // The opponent chooses from their own non-leader units - the deployed leader is not eligible.
+                expect(context.player2).toHavePrompt('Choose a non-leader unit. Your opponent may defeat it.');
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.sundariPeacekeeper]);
                 context.player2.clickCard(context.wampa);
 
@@ -45,6 +46,7 @@ describe('Mysterious Disappearance', function () {
                 context.player1.clickCard(context.mysteriousDisappearance);
                 context.player1.clickPrompt('You');
 
+                expect(context.player1).toHavePrompt('Choose a non-leader unit. You may defeat it.');
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
                 context.player1.clickCard(context.battlefieldMarine);
 
