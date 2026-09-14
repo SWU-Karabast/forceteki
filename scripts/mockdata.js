@@ -3478,6 +3478,79 @@ const mockCards = [
         arena: 'ground',
         internalName: 'boga#loyal-varactyl'
     }),
+    buildMockCard({
+        title: 'Arena Nexu',
+        subtitle: 'Starved For Prey',
+        cost: 4,
+        power: 2,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        traits: ['creature'],
+        keywords: ['grit'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 182
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'arena-nexu#starved-for-prey'
+    }),
+    buildMockCard({
+        title: 'Arena Acklay',
+        subtitle: 'Screaming Predator',
+        cost: 5,
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        traits: ['creature'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 156
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'arena-acklay#screaming-predator'
+    }),
+    buildMockCard({
+        title: 'Arena Reek',
+        subtitle: 'Fixture of Ceremony',
+        cost: 3,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: false,
+        aspects: ['command'],
+        traits: ['creature'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 135
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'arena-reek#fixture-of-ceremony'
+    }),
+    buildMockCard({
+        title: 'Poggle the Lesser',
+        subtitle: 'Let the Executions Begin',
+        cost: 5,
+        power: 1,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        traits: ['separatist', 'official'],
+        types: ['leader'],
+        setId: {
+            set: 'HMW',
+            number: 12
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'poggle-the-lesser#let-the-executions-begin'
+    }),
     // -------- End Mock Cards --------
 ];
 
