@@ -645,7 +645,7 @@ Every check in this table was re-run by the orchestrator directly against the fi
 | Lane / tier | full, tier 3 (Large 🟡), proof level hardened |
 | Plan | [02-semantic-save-load.md](02-semantic-save-load.md) work item C steps 1, 2, 5 and 6; [IMPLEMENTATION-ORDER.md](IMPLEMENTATION-ORDER.md) unit `P2-C2` |
 | Parent | `104e3b983` |
-| Commit | _(recorded below after the commit lands)_ |
+| Commit | `61d24772d` |
 | Branch | `experimental/rollback-saves-optimizations` |
 
 ### What changed
