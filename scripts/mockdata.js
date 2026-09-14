@@ -117,7 +117,7 @@ const mockCards = [
         traits: ['innate'],
         types: ['event'],
         setId: {
-            set: 'HMW',
+            set: 'IC27',
             number: 166
         },
         unique: false,
