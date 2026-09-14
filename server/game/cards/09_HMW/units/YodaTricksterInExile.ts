@@ -1,7 +1,7 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { CardType, ZoneName } from '../../../core/Constants';
+import { CardType } from '../../../core/Constants';
 
 export default class YodaTricksterInExile extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,9 +16,11 @@ export default class YodaTricksterInExile extends NonLeaderUnitCard {
             title: 'Put Yoda on top of your deck',
             optional: true,
             immediateEffect: abilityHelper.immediateEffects.conditional({
-                // Only move him if he actually landed in the discard pile - something else may
-                // have taken him elsewhere (e.g. into a resource row) before this resolves.
-                condition: (context) => context.source.zoneName === ZoneName.Discard,
+                // He must be in the resolving player's own discard pile. That rules out both
+                // being moved elsewhere first (e.g. into a resource row) and being defeated
+                // while under an opponent's control (e.g. No Glory, Only Results), where he
+                // ends up in his owner's discard pile rather than the resolving player's.
+                condition: (context) => context.source.zone === context.player.discardZone,
                 onTrue: abilityHelper.immediateEffects.moveToTopOfDeck((context) => ({ target: context.source }))
             }),
             ifYouDo: {

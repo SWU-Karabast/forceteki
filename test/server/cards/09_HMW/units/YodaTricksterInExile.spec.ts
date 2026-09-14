@@ -69,6 +69,38 @@ describe('Yoda, Trickster In Exile', function () {
             });
         });
 
+        it('Yoda\'s ability should not put him on any deck if he is defeated while controlled by the opponent via No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['yoda#trickster-in-exile'],
+                    base: { card: 'echo-base', damage: 5 },
+                    deck: ['wampa', 'battlefield-marine']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    base: { card: 'chopper-base', damage: 5 },
+                    deck: ['atst', 'sundari-peacekeeper']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.passAction();
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.yodaTricksterInExile);
+
+            // Player 2 controlled Yoda when he was defeated, so the trigger resolves for them -
+            // but Yoda lands in player 1's discard pile, not player 2's. Nothing should move
+            // and nobody should be healed.
+            expect(context.yodaTricksterInExile).toBeInZone('discard', context.player1);
+            expect(context.player1.deck[0]).toBe(context.wampa);
+            expect(context.player2.deck[0]).toBe(context.atst);
+            expect(context.p1Base.damage).toBe(5);
+            expect(context.p2Base.damage).toBe(5);
+            expect(context.player1).toBeActivePlayer();
+        });
+
         it('Yoda\'s ability should fizzle if he was moved out of the discard pile before it resolves', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
