@@ -459,7 +459,7 @@ Work items A2 (watcher entry encoding), C (loader), D (server plumbing and the a
 | Lane / tier | full, tier 4 (Large 🔴), proof level hardened |
 | Plan | [02-semantic-save-load.md](02-semantic-save-load.md) work item A2 |
 | Parent | `3500a4516` |
-| Commit | _(recorded separately)_ |
+| Commit | `b37ce5e8c` |
 | Branch | `experimental/rollback-saves-optimizations` |
 
 ### What changed
