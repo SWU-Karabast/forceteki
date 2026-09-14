@@ -201,6 +201,15 @@ export class ByoyomiTimer implements IByoyomiTimer {
     }
 
     /**
+     * Restores the main timer's remaining time as a *paused* main timer, and clears `isOnMainTimer` (the
+     * not-persisted fact — a loaded player always starts on a fresh turn timer).
+     */
+    public restoreMainTimeRemainingSeconds(remainingSeconds: number): void {
+        this.mainTimer.restoreRemainingSecondsPaused(remainingSeconds);
+        this.isOnMainTimer = false;
+    }
+
+    /**
      * Called when the turn timer expires.
      * Transitions to the main timer (starts or resumes it).
      */

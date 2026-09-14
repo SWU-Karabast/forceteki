@@ -30,4 +30,13 @@ export interface IByoyomiTimer extends IActionTimer {
      * burning main time; transitions to Warning/Danger as main time runs low.
      */
     get timeRemainingStatus(): PlayerTimeRemainingStatus;
+
+    /**
+     * Restores the main timer's remaining time as a *paused* main timer, for state injection (the save
+     * loader) only. No-op when timers are disabled ({@link NoopActionTimer}).
+     *
+     * `isOnMainTimer` is deliberately not a restorable fact: the turn timer resets on every prompt by
+     * design, so a loaded player always starts on a fresh turn timer, never mid-main-timer.
+     */
+    restoreMainTimeRemainingSeconds(remainingSeconds: number): void;
 }

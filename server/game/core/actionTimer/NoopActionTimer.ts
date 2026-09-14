@@ -60,4 +60,8 @@ export class NoopActionTimer implements IByoyomiTimer {
     public resume() {
         return;
     }
+
+    public restoreMainTimeRemainingSeconds() {
+        return;
+    }
 }

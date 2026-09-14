@@ -326,6 +326,8 @@ export enum EventName {
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
     OnLeaderFlipped = 'onLeaderFlipped',
+    /** Framework/loader-internal: the no-op event `MatchLoader.loadAsync` opens a real event window around so a load-time resulting defeat resolves through the normal engine path. No card text names this. */
+    OnLoadStateResolution = 'onLoadStateResolution',
     OnLookAtCard = 'onLookAtCard',
     OnLookMoveDeckCardsTopOrBottom = 'onLookMoveDeckCardsTopOrBottom',
     OnPassActionPhasePriority = 'onPassActionPhasePriority',

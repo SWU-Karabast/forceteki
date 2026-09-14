@@ -1,5 +1,5 @@
 import type { Card } from '../card/Card';
-import type { IAttackableCard, ICardWithUpgrades } from '../card/CardInterfaces';
+import type { IAttackableCard, ICardCanChangeControllers, ICardWithUpgrades } from '../card/CardInterfaces';
 import type { InPlayCard } from '../card/baseClasses/InPlayCard';
 import type { ICardWithExhaustProperty } from '../card/baseClasses/PlayableOrDeployableCard';
 import { LeaderUnitCard } from '../card/LeaderUnitCard';
@@ -110,6 +110,14 @@ export function setDiscard(player: Player, cards: readonly Card[]): void {
 export interface IResourceEntry {
     card: ICardWithExhaustProperty;
     exhausted?: boolean;
+
+    /**
+     * When provided and different from the card's current controller, the card is taken into this
+     * player's resource zone. `moveTo(ZoneName.Resource)` alone cannot express this: it resolves the
+     * destination through the card's *own* controller, and the evacuation loop above has already reset
+     * that to the owner (Resource → Deck is a controller-resetting move).
+     */
+    controller?: Player;
 }
 
 /** Current resources → deck top; then each entry → resource zone (same reverse ordering as {@link setDeck}). */
@@ -118,7 +126,11 @@ export function setResources(player: Player, entries: readonly IResourceEntry[])
         card.moveTo(DeckZoneDestination.DeckTop);
     }
     for (const entry of [...entries].reverse()) {
-        entry.card.moveTo(ZoneName.Resource);
+        if (entry.controller != null && entry.controller !== entry.card.controller) {
+            (entry.card as unknown as ICardCanChangeControllers).takeControl(entry.controller, ZoneName.Resource);
+        } else {
+            entry.card.moveTo(ZoneName.Resource);
+        }
         entry.card.exhausted = entry.exhausted ?? false;
     }
 }

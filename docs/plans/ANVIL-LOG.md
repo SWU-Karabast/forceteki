@@ -635,3 +635,80 @@ Not touched, per reviewer disposition: P2C1-IA-05 (log lists three deviations, w
 Matches the expected 8407/0/13 + 8 new `it`s and 8220/0/16 + 8 new `undoIt`s exactly (7 original `GameStateInjector.spec.ts` its from the `P2-C1` unit itself, plus the 1 added under fix-cycle item 6). No regression outside the one spec this cycle's own repairs introduced and item 7 above corrects.
 
 Every check in this table was re-run by the orchestrator directly against the final repaired tree before the commit gate, rather than inherited from the fix-pass agent's own reporting: `npm run build` exit 0, `npm run lint` exit 0, completeness check A 19 files, completeness check B 9 residue sites, plus both suite runs above. The two completeness greps matter more than the compile here: this repo sets neither `strict` nor `strictFunctionTypes`, and TypeScript checks method-override parameters bivariantly, so a narrowed override signature left behind by the widening compiles clean — verified empirically with the repo's own `tsc`. The greps are therefore the real detector for the `PromptButtonArg` work, and a clean `npm run build` alone must not be read as proving it.
+
+## `P2-C2` — `MatchLoader` (Plan 2, work item C, steps 1, 2, 5 and 6)
+
+| | |
+|---|---|
+| Task ID | `p2-c2` |
+| Date | 2026-09-14 |
+| Lane / tier | full, tier 3 (Large 🟡), proof level hardened |
+| Plan | [02-semantic-save-load.md](02-semantic-save-load.md) work item C steps 1, 2, 5 and 6; [IMPLEMENTATION-ORDER.md](IMPLEMENTATION-ORDER.md) unit `P2-C2` |
+| Parent | `104e3b983` |
+| Commit | _(recorded below after the commit lands)_ |
+| Branch | `experimental/rollback-saves-optimizations` |
+
+### What changed
+
+`MatchLoader.loadAsync(saved, config)` now reconstructs a live `Game` from an `ISavedMatch` and re-enters the pipeline mid-action-phase. Nine new modules under `server/game/core/stateSerialization/`:
+
+- `MatchLoader.ts` — the entry point: validation, seat binding, game construction + driven setup, injection, the fixed restore order, and pipeline re-entry.
+- `SavedMatchValidator.ts` — document validation. Gates `formatVersion`; deliberately does **not** gate `cardDataVersion` (reported only as error diagnostics). Resolves every `internalName`, token name and `abilityIdentifier` against current card data, checks decklist/document multiset coverage, and validates the RNG state's structure.
+- `LoadedPositionIndex.ts` — resolves `ISavedCardRef` coordinates back to live cards.
+- `WatcherEntryDecoding.ts` / `StateWatcherDeserializer.ts` — the load-side inverse of `P2-A2`'s encoders, one decoder per `StateWatcherName`.
+- `MatchPositionInjector.ts` — orchestrates `GameStateInjector` across all seats in four phases (stage every seat → resolve-and-place across seats → base-zone tokens → `setOutsideTheGame` + staging assertion for every seat last).
+- `AbilityLimitRestorer.ts` — the single authority for all per-copy limit counts, including `epicDeployUsed`.
+- `ChatRestorer.ts` — replaces the message log wholesale, never appends.
+- `MatchLoadError.ts` — the single exception type for load-side failures.
+
+Plus four engine write surfaces: `SimpleActionTimer.restoreRemainingSecondsPaused`, `IByoyomiTimer`/`ByoyomiTimer`/`NoopActionTimer.restoreMainTimeRemainingSeconds`, `StateWatcher.setRawEntriesForStateInjection`, and `EventName.OnLoadStateResolution`. `GameStateInjector.IResourceEntry` gains an optional `controller` (the one authorized edit to a `P2-C1` file — see Durable decisions 1).
+
+Three new spec files (`MatchLoader.spec.ts`, `MatchLoaderContinuation.spec.ts`, `MatchLoaderRejection.spec.ts`) plus `test/helpers/MatchLoaderHarness.ts`: 42 specs.
+
+### Durable decisions (with re-check conditions)
+
+1. **Cross-owned resources travel as `IResourceEntry.controller`, not a loader-side pre-pass.** A loader-side `takeControl` before `setResources` is provably self-defeating: `setResources` evacuates the resource zone through the deck, and `zoneMoveRequiresControllerReset(Resource, Deck)` resets `controller` to `owner` (`EnumHelpers.ts:182-185`, `Card.ts:988-990`). Mirrors the already-landed `IArenaUnitEntry.controller`. Re-check if `setResources` ever stops evacuating through the deck.
+2. **Ability-limit counts are restored *after* `resolveGameState(true)`, not before.** This deviates from the plan's literal step order, deliberately: `resolveGameState`'s moved-card sweep calls `resolveAbilitiesForNewZone()`, which calls `limit.reset()` on every action/triggered ability for any non-arena-to-arena move — true of every injected card. Restoring first wiped every count. Re-check if the moved-card sweep stops resetting limits.
+3. **Seats bind by identity (`game.getPlayerById`), never by position.** `Game.getPlayers()` is `Object.values(playersAndSpectators)` keyed by `player.id`, and JavaScript orders array-index-like string keys numerically ahead of all others — so ids like `'user-a'` and `'7'` silently reverse seat order. Re-check if `playersAndSpectators` ever stops being keyed by user id.
+4. **Step 6 drives its `EventWindow` on `game.pipeline` itself, never a standalone `GamePipeline`.** `Game.queueStep` always targets `this.pipeline`, so a private pipeline never runs the ability resolvers and prompts the drive queues, and `postRollbackOperations` then clears them — which silently produced illegal boards (two copies of a unique in play). Re-check if `Game.queueStep` ever becomes pipeline-parameterised.
+5. **A router proxy converts the engine's report-and-continue convention into throws for the whole span of the load.** `BaseStepWithPipeline.continue()` catches any exception, routes it to `Game.reportError`, and returns `true` — correct for live play, wrong for a loader that promises to throw. `Game._router` is `private readonly`, so a `Proxy` scoped by a flag is the only available seam. The flag is set before the `Game` is constructed and cleared in a whole-body `finally`, so it covers construction, driven setup, injection, restoration, the resolution drive **and** `postRollbackOperations`' pipeline re-entry, while guaranteeing the returned game's router behaves normally during play. Scoping it more narrowly was tried twice and left a hole each time. Re-check if `Game` ever gains a router setter, which would allow a cleaner swap.
+6. **Watchers named by the document are registered on demand**; a harness-built source game registers all 15, a production game only what its cards request.
+7. **Nested `ISavedCardRef`s match on `internalName` + `ownerSeat`**, since `ISavedAttachedCard` records no controller.
+
+### Deviations from the plan, with evidence
+
+1. **Ability-limit restore moved after `resolveGameState`** — Durable decision 2 above. Caught by a failing AC4; confirmed independently by all three reviewers against `Game.ts:1604-1608` and `Card.ts:1162-1184`.
+2. **The event-window mechanism for degraded saves is not in the plan at all.** The plan assumed step 6 could call `resolveGameState(true)` bare. It cannot: a degraded save whose dropped for-this-phase buff was keeping a unit alive defeats that unit during `resolveGameState`, which reaches `Game.addSubwindowEvents` and dereferences a null `currentEventWindow`, crashing the load. The plan's own residual-risk note pre-committed this outcome to the gate rather than absorbing it. Resolved by decision at the gate (see below).
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `npm run build` | exit 0 |
+| `npm run lint` | exit 0 |
+| `npm run validate-cards` | exit 0 (1983 card files, 2 exempt; 1960 test files) |
+| `npm run test-parallel` | 8458 specs, 0 failures, 13 pending |
+| `npm run test-parallel-undo` | 8271 specs, 0 failures, 16 pending |
+
+Baseline at `104e3b983` was 8415/0/13 and 8228/0/16; both deltas are exactly the 43 new specs. Every row was re-run by the orchestrator directly against the final tree before the commit gate, not inherited from the fix-pass agent's reporting; two independent cold reviewers also ran both suites and reported identical counts. `npm run benchmark` was not run — out of scope by instruction (owned by `P2-E`).
+
+This unit went through three implementation review rounds (nine cold reviews, three concurrent lenses each) plus two user-approved bounded extensions, each with its own confirming review. Rounds 1 and 2 both returned unanimous REJECTED; the defects they found are recorded in the decisions and deviations above rather than only in the run's disposable state.
+
+**The error-swallow hole took three attempts to close, and the reason is worth remembering.** `BaseStepWithPipeline.continue()`'s catch-and-report-`true` is reached from *every* pipeline drive, so each time the rethrow window was scoped to the drive that had been measured, the next unmeasured drive still swallowed: first only step 6 was covered (step 3's driven setup still swallowed, measured at 5-7 exceptions per load), then steps 3-6 (leaving `postRollbackOperations`' re-entry, measured resolving over a half-built pipeline). Only a whole-body window closed it. If a future change introduces another engine drive inside `loadAsync`, it is inside the window already — but if one is added *outside* it, the same hole reopens.
+
+**Test-quality note worth carrying forward.** Two specs in this unit passed against the very defect they named (AC4 passed when *both* copies of a card were wrongly restored at max; the deploy-limit rejection spec used an identifier shape that can never match a real minted identifier, so it exercised the wrong branch entirely). Both were caught by reviewers reading assertions rather than test names. The final round's reviewers verified the new specs discriminate by reverting each fix in the compiled `build/` tree and confirming the specs fail — a technique worth reusing whenever a spec is the sole evidence for a repair.
+
+### Known residuals, all disclosed and accepted at the gate
+
+1. **Nested-controller divergence is only detected coincidentally.** `ISavedAttachedCard` records `{card, ownerSeat}` with no controller, so a card whose live controller differs from its owner (reachable via `EvidenceOfTheCrime` and at least four other implemented cards) loads under its owner's control unless some *other* document fact happens to name it. Documented on `LoadedPositionIndex.resolveRef`. A general fix needs a schema extension — that is work item A's territory, not the loader's.
+2. **No structured discriminator between "bad document" and "engine bug."** Everything is a `MatchLoadError` with the original in `diagnostics.cause`. `P2-D` needs this distinction for its user-facing error path; put it on that unit's acceptance criteria.
+3. **`Lobby.handleGameEnd()` acts on the router's own `this.game`.** A degraded save that resolves into an outright win calls the real router's end-of-game path against whatever game the router currently thinks is active, before `loadAsync` can reject. Documented on `loadAsync`.
+4. Silent decoder defaults for a few optional watcher fields, and a hardcoded starting-hand size in the validator, were not investigated.
+
+### Notes for the next agent (`P2-D`)
+
+- The loader constructs the `Game` itself and takes its collaborators through `IMatchLoadConfig`; it returns `IMatchLoadResult { game, engineOnlyFacts, playersBySeat }`. The `engineOnlyFacts` manifest is surfaced there because `P2-D` is the first thing that can show it to a dev.
+- **`players[].name` round-trips only if the caller binds usernames matching the saved ones.** This is a caller obligation, documented on `IMatchLoadConfig.seats`.
+- **Two seats bound to the same username are rejected**, because engine limit maps key on `player.name` and would silently merge the two seats' counts.
+- **A save taken after Bo3 sideboarding always fails to load**, because the document's decklist is `originalDeckList`, which sideboarding does not update. The validator produces a diagnostic naming that cause. Making such saves loadable is a writer-side change (work item A), not a loader change.
+- Residuals 2 and 3 above are `P2-D`'s to resolve or consciously accept.

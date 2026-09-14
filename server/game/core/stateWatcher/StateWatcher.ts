@@ -122,6 +122,15 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
         return [...this.state.entries];
     }
 
+    /**
+     * Replaces the recorded entries wholesale, for state injection (the save loader) only. The write-side
+     * mirror of {@link rawEntries}: entries are stored exactly as an updater would store them
+     * (`GameObjectId`s, not `GameObject`s), and the caller owns their shape.
+     */
+    public setRawEntriesForStateInjection(entries: readonly TState[]): void {
+        this.state.entries = [...entries];
+    }
+
     protected addUpdater(properties: IStateListenerProperties<TState[]>) {
         if (Helpers.isDevelopment()) {
             Object.keys(properties).forEach((prop) => {

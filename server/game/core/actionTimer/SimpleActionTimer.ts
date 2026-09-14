@@ -152,6 +152,27 @@ export class SimpleActionTimer {
     }
 
     /**
+     * Re-establishes the timer in the paused state with exactly `remainingSeconds` left, scheduling no
+     * handlers (a paused timer has none to schedule). For state injection (the save loader) only.
+     *
+     * `timeRemainingSeconds` reads back the same integer because `endTime` and `pauseTime` are derived
+     * from one `Date.now()` reading: `timeRemainingSeconds` computes `Math.ceil((endTime - pauseTime) /
+     * 1000)`, and `endTime - pauseTime` is exactly `remainingSeconds * 1000` by construction.
+     */
+    public restoreRemainingSecondsPaused(remainingSeconds: number): void {
+        Contract.assertTrue(Number.isInteger(remainingSeconds) && remainingSeconds > 0, `remainingSeconds must be a positive integer, got ${remainingSeconds}`);
+
+        const remainingMs = remainingSeconds * 1000;
+        Contract.assertTrue(remainingMs <= this.timeLimitMs, `remainingSeconds (${remainingSeconds}) exceeds the timer's own limit (${this.timeLimitMs / 1000})`);
+
+        this.stop();
+
+        const now = Date.now();
+        this.endTime = new Date(now + remainingMs);
+        this.pauseTime = new Date(now);
+    }
+
+    /**
      * Called before firing a handler. Override in subclasses to add safety checks.
      * If this returns false, the handler will not be fired and the timer will be stopped.
      */
