@@ -4,7 +4,7 @@ import { BaseStep } from '../BaseStep';
 import { Contract } from '../../utils/Contract';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { Helpers } from '../../utils/Helpers';
-import type { IButton } from '../PromptInterfaces';
+import type { IButton, PromptButtonArg } from '../PromptInterfaces';
 import type { Game } from '../../Game';
 import type { AllPlayerPrompt } from './AllPlayerPrompt';
 
@@ -31,7 +31,7 @@ export abstract class UiPrompt extends BaseStep {
         this.clearPrompts();
     }
 
-    public abstract menuCommand(player: Player, arg: string, uuid: string): boolean;
+    public abstract menuCommand(player: Player, arg: PromptButtonArg, uuid: string): boolean;
 
     public abstract activePromptInternal(player: Player): IPlayerPromptStateProperties;
 
@@ -96,7 +96,7 @@ export abstract class UiPrompt extends BaseStep {
         }
     }
 
-    public override onMenuCommand(player: Player, arg: string, uuid: string, method: string): boolean {
+    public override onMenuCommand(player: Player, arg: PromptButtonArg, uuid: string, method: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
         return this.menuCommand(player, arg, uuid);
     }

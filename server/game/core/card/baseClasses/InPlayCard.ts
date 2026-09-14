@@ -107,11 +107,42 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
      */
     public get mostRecentInPlayId() {
         this.assertPropertyEnabledForZoneBoolean(
-            !this.isInPlay() && this.zone.hiddenForPlayers == null,
+            !this.isInPlay() && this.zone != null && this.zone.hiddenForPlayers == null,
             'mostRecentInPlayId'
         );
 
         return this._mostRecentInPlayId;
+    }
+
+    /**
+     * Write path for {@link _mostRecentInPlayId}, for state injection (test board construction and,
+     * later, `P2-C2`'s save loader) only. A loaded discard/staging card must carry the stint value the
+     * save recorded so watcher-entry matching (`CardsLeftPlayThisPhaseWatcher.getLeftPlayEntry`) still
+     * finds it.
+     *
+     * The guard is deliberately **exactly** the {@link mostRecentInPlayId} getter's predicate — not the
+     * weaker `!isInPlay()` alone. `WatcherEntryEncoding.liveStintKey` returns `null` for a card in a zone
+     * with `hiddenForPlayers != null` (deck, hand, opponent's resources) regardless of what this field
+     * holds, so a write there would be unreadable through that path while the getter would still assert on
+     * any later direct read — silently breaking the `entry.inPlayId === liveStintKey(loadedCard)` pairing
+     * `P2-A2` established. Refusing an in-play card protects a live stint from being overwritten.
+     *
+     * This must run before watcher restore, and it is the third writer of a field whose monotonicity
+     * (`PRIOR_STINT_ID = -2`) depends on nothing else assigning it out of band. Accordingly this setter
+     * only ever accepts a non-negative integer: the `PRIOR_STINT_ID` sentinel (`-2`) is never written
+     * through this path, only by the dedicated mechanism that collapses a superseded stint, so a caller
+     * attempting to write it (or any other negative or non-integer value) here is a defect, not a valid use.
+     */
+    public setMostRecentInPlayIdForStateInjection(value: number) {
+        Contract.assertNonNegative(value);
+        Contract.assertTrue(Number.isInteger(value), `Attempting to set mostRecentInPlayId to non-integer value ${value}`);
+
+        this.assertPropertyEnabledForZoneBoolean(
+            !this.isInPlay() && this.zone != null && this.zone.hiddenForPlayers == null,
+            'mostRecentInPlayId'
+        );
+
+        this._mostRecentInPlayId = value;
     }
 
     /**

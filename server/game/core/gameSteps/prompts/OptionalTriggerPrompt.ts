@@ -2,7 +2,7 @@ import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { PromptType } from '../PromptInterfaces';
-import type { IButtonWithSourceCard, ITriggerWindowSourceCard } from '../PromptInterfaces';
+import type { IButtonWithSourceCard, ITriggerWindowSourceCard, PromptButtonArg } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
 export interface IOptionalTriggerPromptProperties {
@@ -71,7 +71,7 @@ export class OptionalTriggerPrompt extends UiPrompt {
         };
     }
 
-    public override menuCommand(_player: Player, arg: string): boolean {
+    public override menuCommand(_player: Player, arg: PromptButtonArg): boolean {
         switch (arg) {
             case 'trigger':
                 this.properties.onTrigger();

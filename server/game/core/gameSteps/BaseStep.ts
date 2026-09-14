@@ -3,7 +3,7 @@ import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { Contract } from '../utils/Contract';
 import type { IStep } from './IStep';
-import type { IStatefulPromptResults } from './PromptInterfaces';
+import type { IStatefulPromptResults, PromptButtonArg } from './PromptInterfaces';
 
 export abstract class BaseStep implements IStep {
     public constructor(public game: Game) {}
@@ -18,7 +18,7 @@ export abstract class BaseStep implements IStep {
         Contract.fail(`Attempting to trigger onCardClicked prompt command for player '${player.name}' and card '${card.internalName}' but it is not supported by the current step'`);
     }
 
-    public onMenuCommand(player: Player, arg: string, uuid: string, method: string): boolean {
+    public onMenuCommand(player: Player, arg: PromptButtonArg, uuid: string, method: string): boolean {
         Contract.fail(`Attempting to trigger onMenuCommand prompt command for player '${player.name}' but it is not supported by the current step`);
     }
 

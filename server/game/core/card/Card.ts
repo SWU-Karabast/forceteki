@@ -53,6 +53,7 @@ import type { IAbilityHelper } from '../../AbilityHelper';
 import type { IGameStatisticsTrackable } from '../../../gameStatistics/GameStatisticsTracker';
 import { registerStateBase, stateRefArray, stateRef, statePrimitive } from '../GameObjectUtils';
 import type { ZoneAbstract } from '../zone/ZoneAbstract';
+import type { OutsideTheGameZone } from '../zone/OutsideTheGameZone';
 import type Advantage from '../../cards/08_ASH/tokens/Advantage';
 import type Weakness from '../../cards/09_HMW/tokens/Weakness';
 
@@ -991,6 +992,35 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         this.addSelfToZone(targetZoneName);
 
         this.postMoveSteps(prevZone, initializeCardState);
+    }
+
+    /**
+     * Raw zone re-parenting for the state-injection bulk "move everything to staging" operation
+     * (`GameStateInjector.moveAllNonBaseZonesToStaging`) only. Deliberately skips everything `moveTo`
+     * does beyond the reference swap itself — no `OnCardMoved` event, no `initializeForCurrentZone`, no
+     * controller reset — because that operation stages a whole board's worth of cards in one batch before
+     * any of them are set up for real, and paying the full per-card move pipeline for each one would be
+     * pure overhead for state that is about to be overwritten again. The caller is responsible for adding
+     * the card to the target zone's own card list; this only updates the card's own back-reference.
+     *
+     * Deliberately narrowed to `OutsideTheGameZone` rather than the full `Zone` union: this is the only
+     * legitimate target of a batch re-parent (staging cards before a state-injection rebuild), so the type
+     * itself rules out using this as a general-purpose bypass of `moveTo`. `Card.zone`'s own setter stays
+     * `protected`; this remains the one narrow public entry point, and it asserts that the card has already
+     * been removed from its current zone's own card list before the swap — the caller
+     * (`moveAllNonBaseZonesToStaging`) always clears/removes from the source zone first, so a card still
+     * present in its old zone's list at this point means a caller forgot that step, which would otherwise
+     * leave a phantom entry in the old zone's `_cards` that no future `moveTo` call would ever clean up
+     * (see P2C1-IC-01 / IA-03 / IO-2).
+     */
+    public setZoneForStateInjectionBatch(zone: OutsideTheGameZone): void {
+        const currentZone = this.zone;
+        Contract.assertFalse(
+            currentZone != null && (currentZone.cards as readonly Card[]).some((card) => card === this),
+            `Attempting to batch-reparent card ${this.internalName} to ${zone} while it is still a member of its current zone (${currentZone})'s card list`
+        );
+
+        this.zone = zone;
     }
 
     protected removeFromCurrentZone() {

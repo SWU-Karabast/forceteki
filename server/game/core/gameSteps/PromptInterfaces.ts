@@ -28,9 +28,18 @@ export enum PromptType {
     OptionalTrigger = 'optionalTrigger',
 }
 
+/**
+ * `HandlerMenuPrompt` and `HandlerMenuMultipleSelectionPrompt` emit and consume numeric button args
+ * (the index of the clicked handler); every other button producer emits a string. This alias states
+ * that union once so the `menuButton` chain can admit both without each declaration re-deriving it.
+ * Deliberately not applied to the `perCardMenuButton` chain (`IDisplayCardsWithButtonsPromptProperties`
+ * and friends), which has no numeric producer and stays `string`.
+ */
+export type PromptButtonArg = string | number;
+
 export interface IButton {
     text: string;
-    arg: string;
+    arg: PromptButtonArg;
     command?: string;
     disabled?: boolean;
 }
@@ -183,7 +192,7 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
     immediateEffect?: GameSystem;
     mustSelect?: Card[];
     onCancel?: (player: Player) => void;
-    onMenuCommand?: (arg: string) => boolean;
+    onMenuCommand?: (arg: PromptButtonArg) => boolean;
     onSelect?: (card: Card | Card[]) => boolean;
     onSelectionSetChanged?: (selectedCards: Card[], context: AbilityContext) => void;
     selectCardMode: SelectCardMode;

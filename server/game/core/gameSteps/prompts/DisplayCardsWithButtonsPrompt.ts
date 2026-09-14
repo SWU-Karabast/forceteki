@@ -3,7 +3,7 @@ import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import { Contract } from '../../utils/Contract';
 import type { IDisplayCard } from '../PromptInterfaces';
-import { DisplayCardSelectionState, type IButton, type IDisplayCardsWithButtonsPromptProperties, SelectCardMode } from '../PromptInterfaces';
+import { DisplayCardSelectionState, type IButton, type IDisplayCardsWithButtonsPromptProperties, SelectCardMode, type PromptButtonArg } from '../PromptInterfaces';
 import { DisplayCardPrompt } from './DisplayCardPrompt';
 
 export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCardsWithButtonsPromptProperties> {
@@ -76,7 +76,7 @@ export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCar
         this.onComplete();
     }
 
-    public override menuCommand(_player: Player, arg: string, _uuid: string): boolean {
+    public override menuCommand(_player: Player, arg: PromptButtonArg, _uuid: string): boolean {
         Contract.fail(`Unexpected menu command: '${arg}'`);
     }
 

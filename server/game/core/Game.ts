@@ -100,7 +100,8 @@ import type {
     IDisplayCardsBasicPromptProperties,
     ISelectCardPromptProperties,
     IDistributeAmongTargetsPromptProperties,
-    IStatefulPromptResults
+    IStatefulPromptResults,
+    PromptButtonArg
 } from './gameSteps/PromptInterfaces';
 import type { GameMode } from '../../GameMode';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
@@ -1122,7 +1123,7 @@ export class Game extends EventEmitter {
     /**
      * This function is called by the client whenever a player clicks a button in a prompt
      */
-    public menuButton(playerId: string, arg: string, uuid: string, method: string): boolean {
+    public menuButton(playerId: string, arg: PromptButtonArg, uuid: string, method: string): boolean {
         const player = this.getPlayerById(playerId);
 
         // check to see if the current step in the pipeline is waiting for input

@@ -9,6 +9,7 @@ const playableCardTitles = require('../json/_playableCardTitles.json');
 const Util = require('./Util.js');
 const { GameMode } = require('../../server/GameMode.js');
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager.js');
+const ScriptedSetupRunner = require('../../server/game/core/stateSerialization/ScriptedSetupRunner.js');
 
 class GameFlowWrapper {
     /**
@@ -85,12 +86,7 @@ class GameFlowWrapper {
      */
     resourceAnyTwo() {
         this.guardCurrentPhase('setup');
-        for (const player of this.allPlayersInInitiativeOrder()) {
-            player.clickAnyOfSelectableCards(2);
-            player.clickDone();
-        }
-
-        this.game.continue();
+        ScriptedSetupRunner.answerResourcePrompts(this.game, 2);
     }
 
     startGameAsync() {
@@ -102,7 +98,7 @@ class GameFlowWrapper {
      */
     keepStartingHand() {
         this.guardCurrentPhase('setup');
-        this.allPlayersInInitiativeOrder().forEach((player) => player.clickPrompt('Keep'));
+        ScriptedSetupRunner.answerMulliganPrompts(this.game, 'keep');
     }
 
 
@@ -111,9 +107,7 @@ class GameFlowWrapper {
      */
     skipSetupPhase() {
         const startingPlayer = (!!this.game.initiativePlayer ? this.allPlayers.find((playerWrapper) => playerWrapper.player.id === this.game.initiativePlayer.id) : this.player1) || this.player1;
-        this.selectInitiativePlayer(startingPlayer);
-        this.keepStartingHand();
-        this.resourceAnyTwo();
+        ScriptedSetupRunner.runSetupPhase(this.game, { initiativePlayer: startingPlayer.player, cardsPerPlayer: 2 });
     }
 
     /**
@@ -207,12 +201,7 @@ class GameFlowWrapper {
     }
 
     selectInitiativePlayer(player) {
-        var promptedPlayer = this.getPromptedPlayer('You won the flip. Choose the player to start with initiative:');
-        if (player === promptedPlayer) {
-            promptedPlayer.clickPrompt('Yourself');
-        } else {
-            promptedPlayer.clickPrompt('Opponent');
-        }
+        ScriptedSetupRunner.answerInitiativePrompt(this.game, player.player);
     }
 
     setDamage(card, damage) {

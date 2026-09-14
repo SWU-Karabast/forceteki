@@ -17,6 +17,7 @@ export interface ICardWithDamageProperty extends ICardWithPrintedHpProperty {
     get remainingHp(): number;
     addDamage(amount: number, source: IDamageSource): number;
     removeDamage(amount: number): number;
+    setDamageForStateInjection(value: number): void;
 }
 
 /**
@@ -64,6 +65,19 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
         }
 
         protected set damage(value: number) {
+            this.assertPropertyEnabledForZone(this._damage, 'damage');
+            this._damage = value;
+        }
+
+        /**
+         * Write path for {@link damage}, for state injection (test board construction and, later,
+         * `P2-C2`'s save loader) only. Assigns the supplied value **exactly** — it does not clamp to
+         * {@link remainingHp} or anything else, unlike {@link addDamage}. A test board or a saved position
+         * can legitimately carry damage above printed HP (overwhelm/defeat math depends on that), so a
+         * clamping setter here would silently corrupt both. Do not add a clamp to "fix" this.
+         */
+        public setDamageForStateInjection(value: number) {
+            Contract.assertNonNegative(value);
             this.assertPropertyEnabledForZone(this._damage, 'damage');
             this._damage = value;
         }

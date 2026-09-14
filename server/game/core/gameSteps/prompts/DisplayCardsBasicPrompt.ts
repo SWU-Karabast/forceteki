@@ -5,7 +5,7 @@ import type { OngoingEffectSourceBase } from '../../ongoingEffect/OngoingEffectS
 import type { Player } from '../../Player';
 import { Contract } from '../../utils/Contract';
 import type { IDisplayCard, IDisplayCardsBasicPromptProperties } from '../PromptInterfaces';
-import { DisplayCardSelectionState, type IButton } from '../PromptInterfaces';
+import { DisplayCardSelectionState, type IButton, type PromptButtonArg } from '../PromptInterfaces';
 import { DisplayCardPrompt } from './DisplayCardPrompt';
 
 export class DisplayCardsBasicPrompt extends DisplayCardPrompt<IDisplayCardsBasicPromptProperties> {
@@ -66,7 +66,7 @@ export class DisplayCardsBasicPrompt extends DisplayCardPrompt<IDisplayCardsBasi
         }));
     }
 
-    public override menuCommand(player: Player, arg: string, uuid: string): boolean {
+    public override menuCommand(player: Player, arg: PromptButtonArg, uuid: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
 
         Contract.assertTrue(arg === 'done', `Unexpected menu command: '${arg}'`);

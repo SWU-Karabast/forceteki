@@ -3,7 +3,7 @@ import { BaseStep } from './BaseStep';
 import type { IStep } from './IStep';
 import type { Card } from '../card/Card';
 import type { Player } from '../Player';
-import type { IStatefulPromptResults } from './PromptInterfaces';
+import type { IStatefulPromptResults, PromptButtonArg } from './PromptInterfaces';
 
 export abstract class BaseStepWithPipeline extends BaseStep implements IStep {
     public pipeline = new GamePipeline();
@@ -29,7 +29,7 @@ export abstract class BaseStepWithPipeline extends BaseStep implements IStep {
         return this.pipeline.handleCardClicked(player, card);
     }
 
-    public override onMenuCommand(player: Player, arg: string, uuid: string, method: string) {
+    public override onMenuCommand(player: Player, arg: PromptButtonArg, uuid: string, method: string) {
         return this.pipeline.handleMenuCommand(player, arg, uuid, method);
     }
 

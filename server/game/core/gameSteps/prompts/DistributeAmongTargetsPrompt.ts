@@ -4,7 +4,7 @@ import type { Card } from '../../card/Card';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { Contract } from '../../utils/Contract';
 import type { IDistributeAmongTargetsPromptData, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptMapResults, IStatefulPromptResults } from '../PromptInterfaces';
-import { PromptType, StatefulPromptType } from '../PromptInterfaces';
+import { PromptType, StatefulPromptType, type PromptButtonArg } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 import { EnumHelpers } from '../../utils/EnumHelpers';
 
@@ -97,7 +97,7 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
         return { menuTitle: this.properties.waitingPromptTitle, promptUuid: this.uuid };
     }
 
-    public override menuCommand(player: Player, arg: string, uuid: string): boolean {
+    public override menuCommand(player: Player, arg: PromptButtonArg, uuid: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
 
         Contract.fail(`Unexpected menu command: '${arg}'`);

@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
-import { ZoneName, DeckZoneDestination, DeployType, KeywordName } from '../../server/game/core/Constants.js';
+import { ZoneName, DeckZoneDestination } from '../../server/game/core/Constants.js';
+import type { Arena, MoveZoneDestination } from '../../server/game/core/Constants.js';
 import { Card } from '../../server/game/core/card/Card.js';
+import * as GameStateInjector from '../../server/game/core/stateSerialization/GameStateInjector.js';
 import TestSetupError from './TestSetupError.js';
 import Util from './Util.js';
 import { TrackedGameCardMetric, GameCardMetric } from '../../server/gameStatistics/GameStatisticsTracker.js';
 import type { Game } from '../../server/game/core/Game.js';
 import type { InPlayCard } from '../../server/game/core/card/baseClasses/InPlayCard.js';
+import type { IAttackableCard } from '../../server/game/core/card/CardInterfaces.js';
+import type { ICardWithExhaustProperty } from '../../server/game/core/card/baseClasses/PlayableOrDeployableCard.js';
 import type { IStatefulPromptResults } from '../../server/game/core/gameSteps/PromptInterfaces.js';
 import { nonEnumerable } from './decorators.js';
 
@@ -38,27 +42,7 @@ export class PlayerInteractionWrapper {
      * be moved into their proper starting zones for the test.
      */
     public moveAllNonBaseZonesToRemoved() {
-        // Collect all cards from all zones
-        const arenaCards = this.player.getArenaCards();
-        const resourceCards = this.player.resourceZone.clearCards();
-        const discardCards = this.player.discardZone.clearCards();
-        const handCards = this.player.handZone.clearCards();
-        const deckCards = this.player.deckZone.clearDeck();
-
-        // Remove arena cards from their zones
-        for (let i = 0; i < arenaCards.length; i++) {
-            arenaCards[i].zone.removeCard(arenaCards[i]);
-        }
-
-        // Combine all cards into one list
-        const allCards = [...arenaCards, ...resourceCards, ...discardCards, ...handCards, ...deckCards];
-
-        // Update zone references and add to outsideTheGame in batch
-        const outsideZone = this.player.outsideTheGameZone;
-        for (let i = 0; i < allCards.length; i++) {
-            allCards[i].zone = outsideZone;
-        }
-        outsideZone.addCards(allCards);
+        GameStateInjector.moveAllNonBaseZonesToStaging(this.player);
 
         Util.refreshGameState(this.game);
     }
@@ -73,12 +57,17 @@ export class PlayerInteractionWrapper {
      * @param {String|DrawCard[]} [newContents] - a list of card names or objects
      */
     public setHand(newContents = [], prevZones = ['deck']) {
-        this.hand.forEach((card: any) => this.setupMoveCard(card, 'deck'));
+        // Return the current hand to the deck before resolving names: a mid-test re-set that reuses a
+        // card name currently in hand must see it as available again, the way the interleaved resolve-then-
+        // move the pre-injector helper did. The injector's own "current hand -> deck top" step then finds
+        // nothing left to clear (a no-op, per B2), since this has already done it.
+        for (const card of [...this.player.handZone.cards]) {
+            card.moveTo(DeckZoneDestination.DeckTop);
+        }
 
-        newContents.forEach((nameOrCard) => {
-            const card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
-            this.setupMoveCard(card, 'hand');
-        });
+        const cards = this.resolveCardsByName(newContents, prevZones);
+
+        GameStateInjector.setHand(this.player, cards);
     }
 
     /**
@@ -122,19 +111,35 @@ export class PlayerInteractionWrapper {
 
         const leaderCard = this.player.deckLeader;
 
-        if (leaderOptions.deployed) {
-            leaderCard.deploy({ type: DeployType.LeaderUnit });
-
-            // mark the deploy epic action as used
-            const deployAbility = leaderCard.getActionAbilities().find((ability: { getTitle: () => string | string[] }) => ability.getTitle().includes('Deploy'));
-            if (deployAbility?.limit) {
-                deployAbility.limit.increment(this.player);
+        if (!leaderOptions.deployed) {
+            if (leaderOptions.damage) {
+                throw new TestSetupError('Leader should not have damage when not deployed');
             }
+            if (leaderOptions.upgrades) {
+                throw new TestSetupError('Leader should not have upgrades when not deployed');
+            }
+        }
 
-            leaderCard.damage = leaderOptions.damage || 0;
-            leaderCard.exhausted = leaderOptions.exhausted || false;
+        // `onStartingSide` is declarative (unlike this option's toggle-style `flipped`): passing it only
+        // when `flipped` is truthy preserves the old one-shot-flip behavior without ever requiring a
+        // non-double-sided leader to answer the "which side" question at all. It is also gated on
+        // `!leaderOptions.deployed`, matching the removed helper exactly: the old code's `leaderCard.flipLeader()`
+        // call lived only in its non-deployed branch, so `{ deployed: true, flipped: true }` silently
+        // ignored `flipped` there. Passing `onStartingSide` unconditionally would newly throw
+        // `StateInjectionError` (or newly flip) for that combination, which is undocumented behavior
+        // change, not a bug fix, so the gate preserves the old silent-ignore instead.
+        GameStateInjector.setLeaderStatus(this.player, {
+            deployed: leaderOptions.deployed,
+            damage: leaderOptions.damage,
+            exhausted: leaderOptions.exhausted,
+            onStartingSide: (!leaderOptions.deployed && leaderOptions.flipped) ? false : undefined,
+        });
 
-            // Get the upgrades
+        if (leaderOptions.deployed) {
+            // The engine operation deliberately does no deploy-limit bookkeeping (AC3); this wrapper
+            // restores the net behavior test setup always had by spending it explicitly here.
+            GameStateInjector.markLeaderDeployUsed(this.player);
+
             if (leaderOptions.upgrades) {
                 this.setCardUpgrades(leaderCard, leaderOptions.upgrades);
             }
@@ -142,24 +147,6 @@ export class PlayerInteractionWrapper {
             if (leaderOptions.capturedUnits) {
                 this.setCapturedUnits(leaderCard, leaderOptions.capturedUnits);
             }
-        } else {
-            if (leaderOptions.deployed === false) {
-                if (leaderCard.deployed === true) {
-                    leaderCard.undeploy();
-                }
-            }
-            if (leaderOptions.damage) {
-                throw new TestSetupError('Leader should not have damage when not deployed');
-            }
-            if (leaderOptions.upgrades) {
-                throw new TestSetupError('Leader should not have upgrades when not deployed');
-            }
-
-            if (leaderOptions.flipped) {
-                leaderCard.flipLeader();
-            }
-
-            leaderCard.exhausted = leaderOptions.exhausted || false;
         }
 
         Util.refreshGameState(this.game);
@@ -182,7 +169,7 @@ export class PlayerInteractionWrapper {
         }
 
         const baseCard = this.player.base;
-        baseCard.damage = baseOptions.damage || 0;
+        GameStateInjector.setBaseStatus(this.player, { damage: baseOptions.damage || 0 });
 
         if (baseOptions.capturedUnits) {
             this.setCapturedUnits(baseCard, baseOptions.capturedUnits);
@@ -251,12 +238,19 @@ export class PlayerInteractionWrapper {
      * @param {(Object|String)[]} newState - list of cards in play and their states
      */
     public setArenaUnits(arenaName: string, currentUnitsInArena: any[], newState = [], prevZones = ['deck', 'hand']) {
-        // First, move all cards in play back to the deck
-        currentUnitsInArena.forEach((card: any) => {
-            this.setupMoveCard(card, 'deck');
-        });
-        // Set up each of the cards
-        newState.forEach((options) => {
+        // Return the units currently in this arena to the deck before resolving any new names, so a
+        // mid-test re-set that reuses a card name currently on the board can find it again (see setHand's
+        // comment). The injector's own "clear this arena" step then has nothing left to do.
+        for (const card of currentUnitsInArena) {
+            card.moveTo(DeckZoneDestination.DeckTop);
+        }
+
+        // All entries (and their upgrades/captured units) resolve names against the same pool in one pass,
+        // before any of them moves, so a repeated name must not resolve to the same card object twice —
+        // `claimed` is threaded through every resolution below to exclude cards already spoken for.
+        const claimed: Card[] = [];
+
+        const entries = newState.map((options) => {
             if (typeof options === 'string') {
                 options = {
                     card: options
@@ -272,8 +266,9 @@ export class PlayerInteractionWrapper {
             if (Util.isTokenUnit(options.card)) {
                 card = this.generateToken(this.player, options.card);
             } else {
-                card = this.findCardByName(options.card, prevZones, opponentControlled ? 'opponent' : null);
+                card = this.resolveCardsByName([options.card], prevZones, opponentControlled ? 'opponent' : null, claimed)[0];
             }
+            claimed.push(card);
 
             if (!card.isUnit()) {
                 throw new TestSetupError(`Attempting to add non-unit card ${card.internalName} to ${arenaName}`);
@@ -281,116 +276,73 @@ export class PlayerInteractionWrapper {
                 throw new TestSetupError(`Attempting to place ${card.internalName} in invalid arena '${arenaName}'`);
             }
 
-            // Move card to play
-            this.setupMoveCard(card, arenaName);
+            const upgrades = options.upgrades
+                ? options.upgrades.map((upgrade: any) => {
+                    const upgradeCard = this.resolveUpgradeCard(upgrade, prevZones, claimed);
+                    claimed.push(upgradeCard);
+                    return upgradeCard;
+                })
+                : undefined;
+            const capturedUnits = options.capturedUnits
+                ? options.capturedUnits.map((capturedUnit: any) => {
+                    const capturedCard = this.resolveCapturedUnitCard(capturedUnit, prevZones, claimed);
+                    claimed.push(capturedCard);
+                    return capturedCard;
+                })
+                : undefined;
 
-            if (opponentControlled) {
-                card.takeControl(card.owner.opponent);
-            }
-
-            // Set exhausted state (false by default)
-            if (options.exhausted != null) {
-                // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-                options.exhausted ? card.exhaust() : card.ready();
-            } else {
-                card.ready();
-            }
-
-            if (options.damage != null) {
-                // @ts-expect-error - need to be able to set damage on non-unit cards for testing purposes
-                card.damage = options.damage;
-            }
-
-            if (options.upgrades) {
-                this.setCardUpgrades(card, options.upgrades, prevZones);
-            }
-
-            if (options.capturedUnits) {
-                this.setCapturedUnits(card, options.capturedUnits, prevZones);
-            }
-
-            if (options.damage !== undefined) {
-                // @ts-expect-error - need to be able to set damage on non-unit cards for testing purposes
-                card.damage = options.damage;
-            }
+            return {
+                card,
+                controller: opponentControlled ? card.owner.opponent : undefined,
+                exhausted: options.exhausted != null ? !!options.exhausted : false,
+                damage: options.damage ?? 0,
+                upgrades,
+                capturedUnits,
+            };
         });
+
+        GameStateInjector.setArenaUnits(this.player, arenaName as Arena, entries);
 
         Util.refreshGameState(this.game);
     }
 
+    private resolveUpgradeCard(upgrade: any, prevZones: string | string[] = 'any', excluding: Card[] = []): InPlayCard {
+        const upgradeName = (typeof upgrade === 'string') ? upgrade : upgrade.card;
+        if (Util.isTokenUpgrade(upgradeName)) {
+            return this.generateToken(this.player, upgradeName) as InPlayCard;
+        }
+        return this.resolveCardsByName([upgradeName], prevZones, undefined, excluding)[0] as unknown as InPlayCard;
+    }
+
     public setCardUpgrades(card: any, upgrades: any, prevZones: string | string[] = 'any') {
+        const claimed: Card[] = [];
         for (const upgrade of upgrades) {
-            const upgradeName = (typeof upgrade === 'string') ? upgrade : upgrade.card;
-            let upgradeCard: InPlayCard;
-            if (Util.isTokenUpgrade(upgradeName)) {
-                upgradeCard = this.generateToken(this.player, upgradeName) as InPlayCard;
-            } else {
-                upgradeCard = this.findCardByName(upgradeName, prevZones);
-            }
-
-            // Fortify upgrades attach to bases; all other upgrades attach to units. Guard test setups
-            // against the two illegal combinations so mistakes surface immediately rather than silently.
-            const hasFortify = upgradeCard.hasSomeKeyword(KeywordName.Fortify);
-            if (card.isBase() && !hasFortify) {
-                throw new TestSetupError(`Attempting to attach upgrade '${upgradeName}' to a base, but it does not have the Fortify keyword`);
-            }
-            if (!card.isBase() && hasFortify) {
-                throw new TestSetupError(`Attempting to attach Fortify upgrade '${upgradeName}' to non-base card '${card.internalName}'`);
-            }
-
-            upgradeCard.attachTo(card);
+            const upgradeCard = this.resolveUpgradeCard(upgrade, prevZones, claimed);
+            claimed.push(upgradeCard);
+            GameStateInjector.attachUpgrade(upgradeCard, card);
         }
     }
 
-    public setCapturedUnits(card: { captureZone: any }, capturedUnits: any, prevZones: string | string[] = 'any') {
+    private resolveCapturedUnitCard(capturedUnit: any, prevZones: string | string[] = 'any', excluding: Card[] = []) {
+        const capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
+        const side = (capturedUnit.hasOwnProperty('owner') && capturedUnit.owner === this.player.name) ? 'self' : 'opponent';
+        if (Util.isTokenUnit(capturedUnitName)) {
+            throw new TestSetupError(`Attempting to add token unit ${capturedUnitName} to a capture zone`);
+        }
+        return this.resolveCardsByName([capturedUnitName], prevZones, side, excluding)[0];
+    }
+
+    public setCapturedUnits(card: IAttackableCard, capturedUnits: any, prevZones: string | string[] = 'any') {
+        const claimed: Card[] = [];
         for (const capturedUnit of capturedUnits) {
-            const capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
-            const side = (capturedUnit.hasOwnProperty('owner') && capturedUnit.owner === this.player.name) ? 'self' : 'opponent';
-            let capturedUnitCard: { moveToCaptureZone: (arg0: any) => void };
-            if (Util.isTokenUnit(capturedUnitName)) {
-                throw new TestSetupError(`Attempting to add token unit ${capturedUnitName} to ${card}`);
-            } else {
-                capturedUnitCard = this.findCardByName(capturedUnitName, prevZones, side);
-            }
-            capturedUnitCard.moveToCaptureZone(card.captureZone);
+            const capturedUnitCard = this.resolveCapturedUnitCard(capturedUnit, prevZones, claimed);
+            claimed.push(capturedUnitCard);
+            GameStateInjector.captureCard(capturedUnitCard, card);
         }
     }
 
     public generateToken(player: any, tokenName: any) {
-        let tokenClassName: string;
-        switch (tokenName) {
-            case 'battle-droid':
-                tokenClassName = 'battleDroid';
-                break;
-            case 'clone-trooper':
-                tokenClassName = 'cloneTrooper';
-                break;
-            case 'spy':
-                tokenClassName = 'spy';
-                break;
-            case 'mandalorian':
-                tokenClassName = 'mandalorian';
-                break;
-            case 'beast':
-                tokenClassName = 'beast';
-                break;
-            case 'tie-fighter':
-                tokenClassName = 'tieFighter';
-                break;
-            case 'xwing':
-                tokenClassName = 'xwing';
-                break;
-            case 'experience':
-            case 'shield':
-            case 'advantage':
-            case 'weakness':
-                tokenClassName = tokenName;
-                break;
-            default:
-                throw new TestSetupError(`Unknown token type: ${tokenName}`);
-        }
-
-        return this.game.generateToken(player, tokenClassName as any);
+        return GameStateInjector.generateToken(player, tokenName);
     }
 
     public get deck() {
@@ -398,13 +350,15 @@ export class PlayerInteractionWrapper {
     }
 
     public setDeck(newContents = [], prevZones = ['any']) {
-        this.player.deckZone.cards.forEach(
-            (card: any) => this.setupMoveCard(card, 'outsideTheGame')
-        );
-        newContents.reverse().forEach((nameOrCard) => {
-            const card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
-            this.setupMoveCard(card, 'deck');
-        });
+        // Resolve names in the same order `GameStateInjector.setDeck` will place them in (reversed, since
+        // it places `cards` so `cards[0]` ends on top) rather than the caller's order. For duplicate names
+        // whose physical copies sit in different zones, resolution order determines which entry claims
+        // which copy, and the pre-port helper resolved-then-immediately-moved in this same reversed order
+        // (see `PlayerInteractionWrapper.setDeck` prior to the P2-C1 port). Reversing the resolved array
+        // back afterward restores this method's own `cards[0]`-on-top contract for its caller.
+        const cards = this.resolveCardsByName([...newContents].reverse(), prevZones).reverse();
+
+        GameStateInjector.setDeck(this.player, cards);
     }
 
     public get resources() {
@@ -430,18 +384,25 @@ export class PlayerInteractionWrapper {
      * @param {(Object|String)[]} newState - list of cards in play and their states
      */
     public setResourceCards(newContents = [], prevZones = ['deck', 'hand']) {
-        //  Move cards to the deck
-        this.resources.forEach((card: any) => {
-            this.setupMoveCard(card, 'deck');
-        });
-        // Move cards to the resource area in reverse order
-        // (helps with referring to cards by index)
-        newContents.reverse().forEach((resource) => {
-            const name = typeof resource === 'string' ? resource : resource.card;
-            const card = this.findCardByName(name, prevZones);
-            this.setupMoveCard(card, 'resource');
-            card.exhausted = typeof resource === 'string' ? false : resource.exhausted;
-        });
+        // See setHand's comment: return current resources to the deck before resolving names, so a
+        // mid-test re-set (e.g. setResourceCount after resources already exist) can find a card name
+        // that's currently resourced.
+        for (const card of [...this.player.resourceZone.cards]) {
+            card.moveTo(DeckZoneDestination.DeckTop);
+        }
+
+        const names = newContents.map((resource) => (typeof resource === 'string' ? resource : resource.card));
+        // See setDeck's comment: resolve in the same reversed order `GameStateInjector.setResources`
+        // places entries in, so duplicate-named entries claim the same physical copy the pre-port helper
+        // did, then reverse back to restore the caller-order contract of `entries` below.
+        const cards = this.resolveCardsByName([...names].reverse(), prevZones).reverse();
+        const entries = newContents.map((resource, i) => ({
+            card: cards[i] as ICardWithExhaustProperty,
+            exhausted: typeof resource === 'string' ? false : resource.exhausted,
+        }));
+
+        GameStateInjector.setResources(this.player, entries);
+
         Util.refreshGameState(this.game);
     }
 
@@ -450,7 +411,7 @@ export class PlayerInteractionWrapper {
             const upgradeCard = this.findCardByName(upgrade.card, 'any', 'opponent');
             const attachedCardAlsoOpponentControlled = upgrade.hasOwnProperty('attachedToOwner') && upgrade.attachedToOwner !== this.player.name;
             const attachTo = attachedCardAlsoOpponentControlled ? this.findCardByName(upgrade.attachedTo, 'any', 'opponent') : this.findCardByName(upgrade.attachedTo);
-            upgradeCard.attachTo(attachTo);
+            GameStateInjector.attachUpgrade(upgradeCard, attachTo);
         }
     }
 
@@ -479,14 +440,17 @@ export class PlayerInteractionWrapper {
      * @param {String[]} newContents - list of names of cards to be put in conflict discard
      */
     public setDiscard(newContents = [], prevZones = ['deck']) {
-        //  Move cards to the deck
-        this.discard.forEach((card: any) => this.setupMoveCard(card, 'deck'));
-        // Move cards to the discard in reverse order
-        // (helps with referring to cards by index)
-        newContents.reverse().forEach((name) => {
-            const card = typeof name === 'string' ? this.findCardByName(name, prevZones) : name;
-            this.setupMoveCard(card, 'discard');
-        });
+        // See setHand's comment: return the current discard to the deck before resolving names, so a
+        // mid-test re-set that reuses a card name currently in discard can find it again.
+        for (const card of [...this.player.discardZone.cards]) {
+            card.moveTo(DeckZoneDestination.DeckTop);
+        }
+
+        // See setDeck's comment: resolve in the same reversed order `GameStateInjector.setDiscard`
+        // places cards in, then reverse back to restore the caller-order contract.
+        const cards = this.resolveCardsByName([...newContents].reverse(), prevZones).reverse();
+
+        GameStateInjector.setDiscard(this.player, cards);
     }
 
     public get initiativePlayer() {
@@ -561,6 +525,43 @@ export class PlayerInteractionWrapper {
 
     public findCardsByName(names: any, zones: string | string[] = 'any', side?: any) {
         return this.filterCardsByName(names, zones, side);
+    }
+
+    /**
+     * Resolves a list of names (or already-resolved cards) to distinct `Card` instances, preserving input
+     * order. Two entries with the same name resolve to two different copies rather than the same card
+     * object twice: each lookup excludes cards already claimed earlier in this same call (via `excluding`,
+     * which the caller may pre-seed with cards claimed by a sibling resolution — e.g. a controller-arena
+     * unit list and its own upgrades/captures resolved from the same pool). Injection operations that take
+     * a whole list of pre-resolved cards in one call (`setHand`, `setDeck`, `setDiscard`, `setResources`,
+     * `setArenaUnits`) rely on this: unlike the old helper methods, they no longer resolve one name and
+     * immediately move it before resolving the next, so nothing else would break the tie between duplicate
+     * names.
+     */
+    private resolveCardsByName(namesOrCards: any[], zones: string | string[] = 'any', side?: string, excluding: Card[] = []): Card[] {
+        const resolved: Card[] = [];
+        for (const nameOrCard of namesOrCards) {
+            if (typeof nameOrCard !== 'string') {
+                resolved.push(nameOrCard);
+                continue;
+            }
+
+            const allMatches = this.filterCardsByName(nameOrCard, zones, side);
+            const candidate = allMatches.find((card: Card) => !excluding.includes(card) && !resolved.includes(card));
+            if (!candidate) {
+                if (allMatches.length > 0) {
+                    // At least one card named `nameOrCard` exists, but every copy is already claimed by an
+                    // earlier entry in this same call (duplicate name requesting more copies than exist) —
+                    // a distinct problem from "no such card", so it gets its own message rather than
+                    // reusing findCardByName's "not found" wording, which would misdirect a spec author at
+                    // the name instead of the actual copy-count shortfall.
+                    throw new TestSetupError(`Not enough copies of '${nameOrCard}' available: requested more than the ${allMatches.length} distinct ${allMatches.length === 1 ? 'copy' : 'copies'} found in zones [${[].concat(zones).join(', ')}]`);
+                }
+                throw new TestSetupError(`Could not find any cards matching name ${nameOrCard}`);
+            }
+            resolved.push(candidate);
+        }
+        return resolved;
     }
 
     /**
@@ -916,12 +917,11 @@ export class PlayerInteractionWrapper {
      * @param {String} targetZone - zone where the card should be moved
      * @param {String | String[]} searchZones - zones where to find the card object
      */
-    public setupMoveCard(card: string | Card | { card: Card }, targetZone: string, searchZones: string | string[] = 'any') {
+    public setupMoveCard(card: string | Card | { card: Card }, targetZone: MoveZoneDestination | ZoneName.Deck, searchZones: string | string[] = 'any') {
         if (!(card instanceof Card)) {
             const cardName = typeof card === 'string' ? card : card.card;
             card = this.mixedListToCardList([cardName], searchZones)[0];
         }
-        // @ts-ignore - Need to ignore type error because moveTo expects a Zone object but we're only passing the zone name for testing purposes
         card.moveTo(targetZone === ZoneName.Deck ? DeckZoneDestination.DeckTop : targetZone);
         return card;
     }
@@ -984,55 +984,11 @@ export class PlayerInteractionWrapper {
      * @param {Boolean} hasForce - true if the player should have the Force Token
      */
     public setHasTheForce(hasForce = true) {
-        if (hasForce) {
-            if (this.player.hasTheForce) {
-                throw new TestSetupError(`Attempting to give Force Token to ${this.player.name}, but they already have it.`);
-            }
-
-            const forceTokens = this.player.outsideTheGameZone
-                .getCards({ condition: (card: { isForceToken: () => any }) => card.isForceToken() });
-
-            if (forceTokens.length === 0) {
-                throw new TestSetupError(`Failed to find a Force Token for ${this.player.name}`);
-            }
-
-            forceTokens[0].moveTo(ZoneName.Base);
-        } else {
-            if (!this.player.hasTheForce) {
-                throw new TestSetupError(`Attempting to remove Force Token from ${this.player.name}, but they don't have it.`);
-            }
-            const forceToken = this.player.baseZone.forceToken;
-
-            if (!forceToken) {
-                throw new TestSetupError(`Failed to find a Force Token for ${this.player.name}`);
-            }
-
-            forceToken.moveTo(ZoneName.OutsideTheGame);
-        }
+        GameStateInjector.setHasTheForce(this.player, hasForce);
     }
 
     public setCreditTokenCount(count: number) {
-        const currentCount = this.player.creditTokenCount;
-
-        if (count < currentCount) {
-            const tokensToRemove = currentCount - count;
-            const tokens = this.player.baseZone.credits.slice(0, tokensToRemove);
-            for (const token of tokens) {
-                token.moveTo(ZoneName.OutsideTheGame);
-            }
-            return;
-        }
-
-        const tokensToAdd = count - currentCount;
-        const tokens = [];
-
-        for (let i = 0; i < count; i++) {
-            tokens.push(this.game.generateToken(this.player, 'credit' as any));
-        }
-
-        for (const token of tokens) {
-            token.moveTo(ZoneName.Base);
-        }
+        GameStateInjector.setCreditTokenCount(this.player, count);
     }
 
     public playAttachment(attachment: any, target: any) {

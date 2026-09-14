@@ -4,7 +4,7 @@ import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { Contract } from '../../utils/Contract';
 import { AllPlayerPrompt } from './AllPlayerPrompt';
-import { PromptType, SelectCardMode } from '../PromptInterfaces';
+import { PromptType, SelectCardMode, type PromptButtonArg } from '../PromptInterfaces';
 import { GameCardMetric } from '../../../../gameStatistics/GameStatisticsTracker';
 
 export class ResourcePrompt extends AllPlayerPrompt {
@@ -113,7 +113,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
         };
     }
 
-    public override menuCommand(player: Player, arg: string): boolean {
+    public override menuCommand(player: Player, arg: PromptButtonArg): boolean {
         if (arg === 'done') {
             if (this.completionCondition(player)) {
                 return false;

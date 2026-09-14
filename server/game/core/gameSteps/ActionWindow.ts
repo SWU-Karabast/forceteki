@@ -8,7 +8,7 @@ import type { Card } from '../card/Card.js';
 import type { IPlayerPromptStateProperties } from '../PlayerPromptState.js';
 import type { AbilityResolver } from './AbilityResolver.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
-import { PromptType, type IButton } from './PromptInterfaces.js';
+import { PromptType, type IButton, type PromptButtonArg } from './PromptInterfaces.js';
 import type { SnapshotManager } from '../snapshot/SnapshotManager.js';
 import { SnapshotTimepoint } from '../snapshot/SnapshotInterfaces.js';
 
@@ -160,7 +160,7 @@ export class ActionWindow extends UiPrompt {
         return { menuTitle: 'Waiting for opponent to take an action or pass' };
     }
 
-    public override menuCommand(player: Player, choice: string, uuid: string) {
+    public override menuCommand(player: Player, choice: PromptButtonArg, uuid: string) {
         switch (choice) {
             // case 'manual':
             //     this.game.promptForSelect(this.activePlayer, {

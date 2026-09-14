@@ -1,7 +1,7 @@
 import type { Player } from '../../Player';
 import type { Game } from '../../Game';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
-import { PromptType, type ITriggerWindowSourceCard } from '../PromptInterfaces';
+import { PromptType, type ITriggerWindowSourceCard, type PromptButtonArg } from '../PromptInterfaces';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { UiPrompt } from './UiPrompt';
 
@@ -61,7 +61,7 @@ export class BatchTriggerResolutionPrompt extends UiPrompt {
         };
     }
 
-    public override menuCommand(_player: Player, arg: string): boolean {
+    public override menuCommand(_player: Player, arg: PromptButtonArg): boolean {
         switch (arg) {
             case 'next':
                 this.properties.onResolveNext();

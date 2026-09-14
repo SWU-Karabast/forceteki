@@ -1,4 +1,4 @@
-import { SnapshotType, KeywordName } from '../../../../server/game/core/Constants';
+import { SnapshotType, KeywordName, ZoneName } from '../../../../server/game/core/Constants';
 import type { Card } from '../../../../server/game/core/card/Card';
 import type { Player } from '../../../../server/game/core/Player';
 import { GainKeyword } from '../../../../server/game/core/ongoingEffect/effectImpl/GainKeyword';
@@ -122,7 +122,7 @@ describe('DynamicOngoingEffectImpl wrapper churn under undo', function() {
             // Change both a raw-value dynamic effect (97th Legion's stats) and a GainKeyword dynamic
             // effect (Avar Kriss's Raid) in the same timepoint.
             context.player1.setResourceCount(6);
-            context.player1.setupMoveCard('wampa', 'groundArena');
+            context.player1.setupMoveCard('wampa', ZoneName.GroundArena);
             game.resolveGameState(true);
 
             expect(context._97thLegion.getPower()).toBe(6);

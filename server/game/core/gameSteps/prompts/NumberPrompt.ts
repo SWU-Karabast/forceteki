@@ -4,7 +4,7 @@ import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { Contract } from '../../utils/Contract';
 import { PromptType } from '../PromptInterfaces';
-import type { IPromptPropertiesBase } from '../PromptInterfaces';
+import type { IPromptPropertiesBase, PromptButtonArg } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
 export interface INumberPromptProperties extends IPromptPropertiesBase {
@@ -62,14 +62,19 @@ export class NumberPrompt extends UiPrompt {
         return { menuTitle: this.properties.waitingPromptTitle, promptUuid: this.uuid };
     }
 
-    public override menuCommand(player: Player, arg: string, uuid: string): boolean {
+    public override menuCommand(player: Player, arg: PromptButtonArg, uuid: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
 
         const value = Number(arg);
         Contract.assertTrue(Number.isInteger(value), `Number prompt value must be an integer, instead received ${arg}`);
         Contract.assertTrue(value >= this.properties.min && value <= this.properties.max, `Number prompt value ${value} is outside range ${this.properties.min}-${this.properties.max}`);
 
-        this.properties.choiceHandler(arg);
+        // Normalises a numeric arg to match what every choiceHandler consumer already expects (a string it
+        // re-parses) and what the engine's own auto-resolve path already emits (NumberTargetResolver.ts
+        // calls `min.toString()`). Not a `typeof` guard: unlike DropdownListPrompt, a number prompt carries
+        // no button holding its value, so there is no in-repo evidence the client ever sends a string here,
+        // and a guard could reject input that works in production today.
+        this.properties.choiceHandler(String(arg));
         this.complete();
 
         return true;

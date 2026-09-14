@@ -3,7 +3,7 @@ import type { Card } from '../../card/Card';
 import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import { Contract } from '../../utils/Contract';
-import type { IButton, IDisplayCard, ISelectableCard } from '../PromptInterfaces';
+import type { IButton, IDisplayCard, ISelectableCard, PromptButtonArg } from '../PromptInterfaces';
 import { DisplayCardSelectionState, type IDisplayCardsSelectProperties, SelectCardMode } from '../PromptInterfaces';
 import { DisplayCardPrompt } from './DisplayCardPrompt';
 
@@ -95,7 +95,7 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
         }));
     }
 
-    public override menuCommand(_player: Player, arg: string, _uuid: string): boolean {
+    public override menuCommand(_player: Player, arg: PromptButtonArg, _uuid: string): boolean {
         if (arg === 'done') {
             this.selectedCardsHandler(this.selectedCards);
             this.complete();

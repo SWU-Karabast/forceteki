@@ -1,5 +1,6 @@
 const Util = require('../../server/Util.js');
 const TestSetupError = require('./TestSetupError.js');
+const GameStateInjector = require('../../server/game/core/stateSerialization/GameStateInjector.js');
 
 // card can be a single or an array
 function checkNullCard(card, prefix = 'Card list contains one more null elements') {
@@ -134,11 +135,11 @@ function formatDropdownListOptions(options) {
 }
 
 function isTokenUnit(cardName) {
-    return ['battle-droid', 'clone-trooper', 'tie-fighter', 'xwing', 'spy', 'mandalorian', 'beast'].includes(cardName);
+    return GameStateInjector.isTokenUnitName(cardName);
 }
 
 function isTokenUpgrade(cardName) {
-    return ['shield', 'experience', 'advantage', 'weakness'].includes(cardName);
+    return GameStateInjector.isTokenUpgradeName(cardName);
 }
 
 /**

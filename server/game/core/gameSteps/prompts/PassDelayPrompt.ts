@@ -3,7 +3,7 @@ import type { OngoingEffectSourceBase } from '../../ongoingEffect/OngoingEffectS
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
-import { PromptType, type IButton } from '../PromptInterfaces';
+import { PromptType, type IButton, type PromptButtonArg } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
 export interface IPassDelayPromptProperties {
@@ -55,7 +55,7 @@ export class PassDelayPrompt extends UiPrompt {
         return false;
     }
 
-    public override menuCommand(player: Player, arg: string, uuid: string): boolean {
+    public override menuCommand(player: Player, arg: PromptButtonArg, uuid: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
         this.complete();
         return true;

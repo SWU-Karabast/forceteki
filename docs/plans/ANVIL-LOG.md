@@ -534,3 +534,104 @@ Work items C (loader, headless prompt driver, `P2-C1` injection helpers), D (ser
 - `CounterSpaces` stages recorded values per entry and commits only on survival, so a dropped entry's raw value never enters a space. This is tidiness, not correctness: committing it would make the space *sparser*, not wrong, since `spaceSize = max(ordinal) + 1` still satisfies `ordinal < spaceSize` and every minted id stays negative and order-preserving.
 - A watcher entry can reference a Force or Credit token in the base zone. Nothing else in the document indexes those, so they need their own zone names; see the durable decision above.
 - **For `P2-C2` and `P2-E`: the `null`/`undefined` mapping is not symmetric.** The live watcher structs carry `undefined` for absent optional members while the document must carry `null`. A document-to-document round-trip property is unaffected; a property that compares reconstructed *live* entries needs the loader to write `undefined` where the document says `null`, or it fails on every optional member.
+
+---
+
+## `P2-C1` — Headless setup runner + engine-side state injection (Plan 2, work item C, steps 3–4)
+
+| | |
+|---|---|
+| Task ID | `p2-c1` |
+| Date | 2026-09-14 |
+| Lane / tier | full, tier 3 (Large 🟡), proof level standard |
+| Plan | [02-semantic-save-load.md](02-semantic-save-load.md) work item C steps 3 and 4; [IMPLEMENTATION-ORDER.md](IMPLEMENTATION-ORDER.md) unit `P2-C1` |
+| Parent | `a9e77897f` |
+| Commit | `TBD` — orchestrator to fill in after commit |
+| Branch | `experimental/rollback-saves-optimizations` |
+
+### What changed
+
+Two pieces of logic that previously existed only under `test/helpers/` are now supported engine code under `server/game/core/stateSerialization/`:
+
+- `ScriptedSetupRunner.ts` — answers the three setup-phase prompts (initiative, mulligan, resource) through the same public entry points the client uses (`Game.menuButton`, `Game.cardClicked`, `Game.continue`), identified by engine prompt type/class, never by title text.
+- `GameStateInjector.ts` — free functions for placing cards into zones and setting per-card state: `moveAllNonBaseZonesToStaging`, `setHand`/`setDeck`/`setDiscard`/`setResources`, `setOutsideTheGame` + `assertStagingZoneMatches`, `setArenaUnits`, `attachUpgrade`/`captureCard`, `setLeaderStatus` + `markLeaderDeployUsed`, `setBaseStatus`, `setHasTheForce`, `setCreditTokenCount`, `setMostRecentInPlayId`, and the token-name table (`isTokenUnitName`/`isTokenUpgradeName`/`isTokenCardName`/`resolveTokenName`/`generateToken`).
+- `InPlayCard.setMostRecentInPlayIdForStateInjection` — a public write path for `_mostRecentInPlayId`, guarded by exactly the `mostRecentInPlayId` getter's predicate.
+- `Damage.setDamageForStateInjection` — a public, non-clamping write path for `damage`, added to `ICardWithDamageProperty`.
+- `Card.setZoneForStateInjectionBatch` — a narrow, undocumented-elsewhere addition (see Deviations below): raw zone re-parenting for the bulk "move everything to staging" operation only, bypassing the per-card move pipeline's event/re-init overhead.
+- The `menuButton` handler chain and `IButton.arg` are now `PromptButtonArg = string | number` (`PromptInterfaces.ts` and 18 more files), correcting a declaration that has been wrong since `HandlerMenuPrompt` started emitting numeric args; the `perCardMenuButton` chain is untouched (no numeric producer).
+- `PlayerInteractionWrapper.ts`, `GameFlowWrapper.js` and `Util.js` are reduced to call the injector/runner instead of doing the mechanics inline, preserving public method shapes and test-facing error messages (`TestSetupError`) where specs depend on them.
+- New spec: `test/server/core/stateSerialization/GameStateInjector.spec.ts` (7 `it`s, see Verification).
+
+### Durable decisions (see plan §9 for full text; summarized here with re-check conditions)
+
+1. Prompts are identified by class where a dedicated prompt class exists (`MulliganPrompt`, `ResourcePrompt`), and by `PromptType.Initiative` for the classless initiative `HandlerMenuPrompt`. No `PromptType.Mulligan` was added. Re-check if mulligan stops being its own class or the client needs to distinguish it.
+2. The leader deploy limit is spent by instance handle (`LeaderUnitCard.deployEpicActionLimit`), never by walking action abilities — the same handle `AbilityLimitSerializer` already uses. Re-check if a leader ever gains a second, independent deploy limit.
+3. Injection must precede watcher restore; `setMostRecentInPlayIdForStateInjection` enforces exactly the getter's zone predicate (`!isInPlay() && zone.hiddenForPlayers == null`), not the weaker `!isInPlay()` alone, because `liveStintKey` returns `null` in a hidden zone regardless of the field. Re-check if `P2-C2` reorders its restore pass or a zone's `hiddenForPlayers` changes.
+4. `outsideTheGame` order is a saved fact (`MatchSerializer` indexes it by ordinal); `setOutsideTheGame` is ordered (remove+re-add to reorder an already-staged card, since `moveTo` no-ops within a zone) and `assertStagingZoneMatches` is an ordered comparison with three distinct failure modes. Re-check if `outsideTheGame` ever leaves `SavedArrayRefZone`.
+5. `IButton.arg`/`PromptButtonArg` — decided at the gate (scope revision 1) over a localized cast in the runner. The `perCardMenuButton` chain stays `string`. Re-check if a numeric `arg` ever appears on a per-card button.
+
+### Deviations from the plan, with evidence
+
+The plan was followed as the ordered edit sequence, but implementation surfaced three defects the plan's own reasoning missed. All three are disclosed here rather than silently absorbed, per protocol's requirement to distinguish an observed fact from a causal hypothesis and to report justified departures.
+
+1. **`Card.moveAllNonBaseZonesToStaging`'s batched reparent needed a new `Card` method.** The plan's step 3 called for porting `PlayerInteractionWrapper.moveAllNonBaseZonesToRemoved`'s `card.zone = outsideZone` batched reassignment verbatim. `Card.zone`'s setter is `protected`; the original test-helper file only compiles because its `player`/`Card` types resolve loosely (confirmed empirically: an isolated probe assigning to a properly-typed `Card.zone` from outside the class fails `TS2445`). A genuine engine file cannot replicate that assignment without a cast, and casts are prohibited in this unit's new engine files. Added `Card.setZoneForStateInjectionBatch(zone)` — a minimal, clearly-scoped public method with the same doc-comment discipline as steps 4a/4b, doing only the raw reference swap the batch operation needs (no event, no re-init, no controller reset). This is outside the plan's literal step list but required for step 3 to compile at all; flagged here rather than silently widening `Card.zone`'s own visibility or using a cast.
+2. **`setArenaUnits`'s damage write must precede upgrade/capture attachment, not follow it.** The plan's proof reasoning for collapsing the ported helper's two damage writes into one explicitly kept "the write after attachment" — reasoning only about the non-clamping setter making the two writes' *stored value* equal. It missed that `InPlayCard.attachTo` can run an attach condition that reads the target's *current* damage during the call (`MarkMyWords.ts`: `context.attachTarget.damage > 0`), discovered via a real suite failure (`Mark My Words - integration - should grant Overwhelm to the attached unit`) under `test-parallel`. The dropped write is genuinely dead only when it is the *second* one; the implementation keeps the *first* write (damage set, then upgrades/captures attach) and drops the second, which is the actual behavior-preserving collapse. See the doc comment on `GameStateInjector.setArenaUnits`.
+3. **Batching name resolution ahead of placement breaks duplicate-name and mid-test-reuse cases the ported helpers handled by interleaving resolve-then-move.** Every ported helper (`setHand`, `setDeck`, `setDiscard`, `setResourceCards`, `setArenaUnits`) used to resolve one name and immediately move that card before resolving the next, so a repeated name (e.g. three `battlefield-marine`s) or a name currently occupying the very zone being replaced (e.g. `setResourceCount` called mid-test when the same filler card is already resourced) naturally found a different, correctly-available copy each time. Separating "resolve all names" from "place them" (as the injector's batch functions require, since they take pre-resolved `Card[]`) broke both: duplicate names in one call aliased to the same object, and a mid-test re-set of a zone couldn't find a card sitting in the very zone about to be cleared. Fixed in `PlayerInteractionWrapper.ts`: a private `resolveCardsByName` helper (order-preserving, excludes cards already claimed in the same call) replaces ad hoc single-lookup resolution everywhere a batch is built, and `setHand`/`setDiscard`/`setResourceCards`/`setArenaUnits` explicitly return the zone's *current* contents to the deck before resolving new names, mirroring the ordering the interleaved helpers used to get for free. Caught by two real suite failures under `test-parallel` (`InDebtToCrimsonDawn`/`TheConflictWithin`'s `setResourceCount` calls, and the initial `SetupPhase.spec.ts` hand-size assertion) before being generalized to the other batch methods.
+
+None of these change the plan's public API shapes, ordered edits, or durable decisions; they are implementation-level corrections the plan's own proof.md-style verification (running the full suite) is exactly designed to catch, and did.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `npm run build` | exit 0, no diagnostics |
+| step-0 completeness check A (`grep -rl "PromptButtonArg" server/`) | exactly the 19 expected files |
+| step-0 completeness check B (`grep -rn "arg: string" ...`) | exactly the 9 expected residue sites |
+| `npm run lint` | exit 0 |
+| `npm run validate-cards` | exit 0 (1983 card files, 2 exempt; 1960 test files) |
+| `npm run test-parallel` | 8414 specs, 0 failures, 13 pending |
+| `npm run test-parallel-undo` | 8227 specs, 0 failures, 16 pending |
+
+Baseline at `a9e77897f` was 8407/0/13 and 8220/0/16. Both deltas are exactly the 7 new `it`s in `GameStateInjector.spec.ts` (run as `undoIt`s under `test-parallel-undo`'s `ENABLE_UNDO_ALL_TESTS` mode); no other change is a regression. `npm run benchmark` was not run — out of scope by instruction (owned by `P2-E`).
+
+This table records the state at the end of the initial implementation. Fix cycle 1 below added one further spec and supersedes these counts; see "Fix cycle 1 verification" for the numbers this unit actually commits at.
+
+### Out of scope, deliberately
+
+`MatchLoader` (`P2-C2`), work item C steps 1, 2, 5 and 6, work items D and E. `npm run benchmark`.
+
+### Notes for the next agent
+
+- **Injection must run before watcher restore.** `P2-C2`'s restore pass must place cards (including `setMostRecentInPlayId`) before resolving any watcher entry, or the `entry.inPlayId === liveStintKey(loadedCard)` pairing `P2-A2` established breaks silently.
+- **`markLeaderDeployUsed` is test-wrapper-only.** `P2-C2`'s restore pass owns all ability-limit counts itself; do not call it from the loader.
+- `Card.zone`'s setter is `protected` by design. Any future bulk zone-reassignment need should extend `Card.setZoneForStateInjectionBatch`'s doc-commented, narrowly-scoped pattern rather than reaching for a cast or widening the setter's visibility.
+- A batch operation that takes a list of names to resolve into distinct cards (repeated names, or names that may currently occupy the zone being replaced) needs either interleaved resolve-then-move, or an explicit "return current zone contents to the pool" step before resolution — see `PlayerInteractionWrapper.resolveCardsByName` and its callers for the pattern now used throughout the test wrapper.
+- `PromptButtonArg` (`PromptInterfaces.ts`) is the type an engine-side prompt driver imports for `menuButton`/`cardClicked`-adjacent code; `P2-C2` inherits it rather than re-deriving the union.
+- **`outsideTheGame` is never empty, and a staging assertion that hardcodes its expected contents will intermittently fail on the Force token.** `Player.initialiseAsync` calls `this.game.generateToken(this, TokenCardName.Force)` unconditionally, before any test- or loader-specific board setup runs (`Player.ts:797`, landing in `Game.generateToken` → `player.outsideTheGameZone.addCard(token)`, `Game.ts:1664-1673`). The token sits in `outsideTheGame` for the lifetime of the player unless something explicitly moves it (e.g. `setHasTheForce` granting it to a unit). `P2-C2`'s restore pass, which stages everything then places cards and asserts the staging zone is clean, will see this token as "unexpected residue" unless it samples the zone's actual pre-existing contents (or the token's known position) before asserting, rather than asserting against a literal `[]` or a hardcoded card list. `GameStateInjector.spec.ts`'s `moveTo`-branch spec hit exactly this (see Fix cycle 1 note below) and is the worked example of the correct pattern: sample `outsideTheGameZone.cards` immediately before the call under test, fold that into the expected list, don't assume the zone starts empty.
+
+### Fix cycle 1 (findings repair pass, `RUN_ID=p2-c1-2026-09-14T01:00:44.598482+00:00`)
+
+Three cold reviewers found no BLOCKING issues but converged on several WARNING-level defects, repaired here:
+
+1. **`Card.setZoneForStateInjectionBatch` narrowed and guarded**, rather than moved onto `OutsideTheGameZone` outright: the reviewer-preferred fix (a zone-side method performing both the reparent and the list insertion atomically) is not achievable without either a cast or widening `Card.zone`'s setter beyond `protected`, since `OutsideTheGameZone` cannot write another class's protected member across files. Applied the documented fallback instead: the parameter is now typed `OutsideTheGameZone` (not the full `Zone` union), and the method asserts the card is not already present in its current zone's own card list before the swap, which is exactly the phantom-double-membership hazard the reviewers raised. `Card.zone`'s setter was already `protected` (unchanged); this remains the one narrow public entry point.
+2. **`InPlayCard.setMostRecentInPlayIdForStateInjection`** now asserts `Contract.assertNonNegative` + integer, matching its sibling `Damage.setDamageForStateInjection`'s guard discipline; also guards `this.zone` against `null` before dereferencing, matching `WatcherEntryEncoding.liveStintKey`'s handling of the same case.
+3. **`ScriptedSetupRunner.runSetupPhase`** now asserts, after driving all three prompts, that every player *gained* exactly `cardsPerPlayer` resources during the call — closing the silent-no-op paths in `answerResourcePrompts` (prompt absent) and `ResourcePrompt.menuCommand` (returns `false` on insufficient selection) that the ported-from `clickDone` used to convert into a loud `TestSetupError`. First attempt asserted an *absolute* post-count of `cardsPerPlayer`, which regressed 6 specs (e.g. `Improvised Identity`) that pre-load resources before calling this driver; fixed to compare against each player's resource count captured immediately before the driver runs, not zero.
+4. **`resolveCardsByName`'s resolution order now mirrors placement order** for `setDeck`/`setDiscard`/`setResourceCards`: each reverses its input before resolving, then reverses the resolved array back, restoring the pre-port helper's behavior exactly for duplicate-named entries whose physical copies span multiple zones. The plan's claim that the only behavioral difference here was caller-array-identity was wrong; this was a real, if narrow, defect (no suite spec exercises duplicate-named entries, per `CLAUDE.md`'s own guidance against them).
+5. **`GameStateInjector.ts` now routes every caller/input-shape violation through `StateInjectionError`**, not `Contract` — the arena-mismatch check, the undeployed-damage check, both `markLeaderDeployUsed` guards, all three `setHasTheForce` guards, and `setCreditTokenCount`'s negative-count guard. The module header now states the principled rule explicitly (`StateInjectionError` for caller/input mistakes; `Contract` reserved for a primitive's own value-domain guards elsewhere, e.g. `Damage`/`InPlayCard`), so `P2-C2`'s `catch (e) { if (e instanceof StateInjectionError) }` discrimination is no longer half-blind.
+6. Nits: `GameStateInjector.spec.ts`'s two bare `toThrowError()` calls now match `/mostRecentInPlayId/`; a new spec exercises `setOutsideTheGame`'s `moveTo` branch (previously only the already-staged remove+re-add branch ran); `resolveCardsByName`'s exhaustion error now names the copy-count shortfall instead of reusing "not found" wording; `PlayerInteractionWrapper.setLeaderStatus`'s `onStartingSide` mapping is now gated on `!deployed`, restoring the removed helper's exact behavior for `{ deployed: true, flipped: true }` (previously silently ignored, now silently ignored again rather than newly throwing/flipping); the three `as any` casts at the wrapper→engine seam (`setArenaUnits`'s arena, `setCapturedUnits`'s captor, `setResourceCards`'s card) are now `as Arena` / `IAttackableCard` param typing / `as ICardWithExhaustProperty`.
+
+7. **The `moveTo`-branch spec added under IC-08 (item 6 above) itself hardcoded `outsideTheGame`'s expected post-call contents to `['wampa', 'battlefield-marine']`, ignoring the Force token every player already carries there** (`Player.initialiseAsync` → `Game.generateToken`, see "Notes for the next agent" above). This is the one failing spec this fix cycle introduced and is now corrected: the spec samples `player.outsideTheGameZone.cards` immediately before calling `setOutsideTheGame` and folds that sampled residue into the expected order, rather than assuming the zone starts empty. Confirmed the mechanism is the Force token's unconditional creation at game init, not a `moveTo`/`postMoveSteps` side effect triggered by the call under test — `setOutsideTheGame`/`Card.moveTo` do nothing to generate tokens, and re-running the corrected spec in isolation (`npm run test-fast -- "**/GameStateInjector.spec.js"`) plus the full `test-parallel`/`test-parallel-undo` gate both pass clean (see Verification below). No production code was at fault; only the spec's expectation was wrong.
+
+Not touched, per reviewer disposition: P2C1-IA-05 (log lists three deviations, which is accurate, not an error), P2C1-IA-06 (incidental local `IButton`, confirmed harmless), P2C1-IA-07 (positive finding, no action).
+
+#### Fix cycle 1 verification (cold restart, spec fix + full re-run)
+
+| Check | Result |
+|---|---|
+| `npm run test-fast -- "**/GameStateInjector.spec.js"` (isolated) | 8 specs, 0 failures |
+| `npm run test-parallel` | 8415 specs, 0 failures, 13 pending |
+| `npm run test-parallel-undo` | 8228 specs, 0 failures, 16 pending |
+
+Matches the expected 8407/0/13 + 8 new `it`s and 8220/0/16 + 8 new `undoIt`s exactly (7 original `GameStateInjector.spec.ts` its from the `P2-C1` unit itself, plus the 1 added under fix-cycle item 6). No regression outside the one spec this cycle's own repairs introduced and item 7 above corrects.
+
+Every check in this table was re-run by the orchestrator directly against the final repaired tree before the commit gate, rather than inherited from the fix-pass agent's own reporting: `npm run build` exit 0, `npm run lint` exit 0, completeness check A 19 files, completeness check B 9 residue sites, plus both suite runs above. The two completeness greps matter more than the compile here: this repo sets neither `strict` nor `strictFunctionTypes`, and TypeScript checks method-override parameters bivariantly, so a narrowed override signature left behind by the widening compiles clean — verified empirically with the repo's own `tsc`. The greps are therefore the real detector for the `PromptButtonArg` work, and a clean `npm run build` alone must not be read as proving it.

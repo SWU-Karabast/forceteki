@@ -2,7 +2,7 @@ import type { Game } from './Game';
 import type { Player } from './Player';
 import type { Card } from './card/Card';
 import type { IStep } from './gameSteps/IStep';
-import type { IStatefulPromptResults } from './gameSteps/PromptInterfaces';
+import type { IStatefulPromptResults, PromptButtonArg } from './gameSteps/PromptInterfaces';
 
 type StepFactory = () => IStep;
 type StepItem = IStep | StepFactory;
@@ -107,7 +107,7 @@ export class GamePipeline {
         return false;
     }
 
-    public handleMenuCommand(player: Player, arg: string, uuid: string, method: string) {
+    public handleMenuCommand(player: Player, arg: PromptButtonArg, uuid: string, method: string) {
         if (this.pipeline.length === 0) {
             return false;
         }

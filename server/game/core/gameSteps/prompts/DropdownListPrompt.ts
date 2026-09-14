@@ -3,7 +3,7 @@ import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { Contract } from '../../utils/Contract';
-import type { IPromptPropertiesBase } from '../PromptInterfaces';
+import type { IPromptPropertiesBase, PromptButtonArg } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
 export interface IDropdownListPromptProperties extends IPromptPropertiesBase {
@@ -58,8 +58,9 @@ export class DropdownListPrompt extends UiPrompt {
     }
 
     /** Selected list option is returned via this call */
-    public override menuCommand(player: Player, arg: string, uuid: string): boolean {
+    public override menuCommand(player: Player, arg: PromptButtonArg, uuid: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
+        Contract.assertTrue(typeof arg === 'string', `Expected a string dropdown selection but got '${arg}' (${typeof arg})`);
         Contract.assertArrayIncludes(this.properties.options, arg);
 
         this.properties.choiceHandler(arg);

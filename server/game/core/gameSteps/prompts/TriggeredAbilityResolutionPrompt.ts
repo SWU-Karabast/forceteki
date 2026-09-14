@@ -1,7 +1,7 @@
 import type { Player } from '../../Player';
 import type { Game } from '../../Game';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
-import { PromptType, type IResolutionChoice, type ITriggerWindowButton } from '../PromptInterfaces';
+import { PromptType, type IResolutionChoice, type ITriggerWindowButton, type PromptButtonArg } from '../PromptInterfaces';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import { UiPrompt } from './UiPrompt';
 
@@ -71,7 +71,7 @@ export class TriggeredAbilityResolutionPrompt extends UiPrompt {
         };
     }
 
-    public override menuCommand(_player: Player, arg: string): boolean {
+    public override menuCommand(_player: Player, arg: PromptButtonArg): boolean {
         if (arg === 'cancel') {
             this.complete();
             return true;
