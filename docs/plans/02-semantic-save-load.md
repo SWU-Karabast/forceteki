@@ -247,16 +247,25 @@ executed**:
 - If the game is already at an action-window boundary, save immediately
   (`saveTrigger.kind: "immediate"`).
 - Otherwise record the current `actionNumber`/phase and set a one-shot armed
-  flag. `ActionWindow.checkUpdateSnapshot` (`ActionWindow.ts:125-136`) is
-  already reached on the first `continue()` of every action window, for
-  *either* player, so the flag fires at the very next boundary — **bounded
-  drift of at most one action** (`saveTrigger.kind: "deferred"`). The report
-  submits when the save lands, not when the button is clicked.
+  flag. Every action window's first `continue()` is reached for *either*
+  player, so the flag fires at the very next boundary — **bounded drift of at
+  most one action** (`saveTrigger.kind: "deferred"`). The Discord submission
+  waits for the save; the client is acked immediately either way (see below).
 - **Arm independently of `undoMode`.** Hook the boundary itself, not the
   snapshot: `SnapshotManager.moveToNextTimepoint`/`takeSnapshot` early-return
   when undo is disabled (`SnapshotManager.ts:116,134`), so a flag keyed to a
-  snapshot actually being taken would never fire in undo-disabled games. The
-  boundary is reached regardless; the save does not depend on undo history.
+  snapshot actually being taken would never fire in undo-disabled games.
+  **`ActionWindow.checkUpdateSnapshot`'s own guard is not that hook**, which
+  `P2-D` established the hard way: the guard reads
+  `currentSnapshottedTimepointType`/`currentSnapshottedAction`, and those
+  resolve to `SnapshotFactory.currentActionSnapshot`, which is only ever
+  assigned *past* `moveToNextTimepoint`'s undo-disabled early return. With undo
+  off it stays unset, so the guard is true on every tick rather than once per
+  boundary. As shipped, the hook is a per-instance latch on `ActionWindow`
+  itself, set on its first `continue()`: one window is constructed per action
+  (`ActionPhase.queueNextAction`) regardless of `undoMode`, and
+  `getNextActionNumber()` increments immediately before construction, so the
+  one-action drift holds in both modes by construction.
 
 The drift is declared, never hidden: `saveTrigger.requestedAtActionNumber`
 read against `game.actionNumber` tells the dev opening the artifact exactly
@@ -264,6 +273,16 @@ how far the saved position sits past the reported behavior (invariant 4 —
 enumerated, not silent). A deferred save that never fires — game ends, player
 disconnects, game halts — submits the report with no save attached; the
 existing `captureGameState` Discord summary is unaffected and still goes out.
+
+As shipped (`P2-D`), only the Discord submission is deferred: the client is
+acked at request time in every case, carrying a `saveStatus` of `"included"`,
+`"pending"` or `"unavailable"`. Withholding the ack until the save landed —
+the earlier reading of "the report submits when the save lands" — left the
+client waiting indefinitely whenever the one-shot never fired, and permanently
+on the halt paths. Report *content* (`captureGameState`, the message log, the
+opponent lookup) is likewise captured at request time, so the declared
+one-action drift applies to the save alone and the existing summary still
+describes the moment the player clicked.
 
 **Requests outside the action phase are refused, not armed.** A request
 arriving during setup or regroup has no same-round boundary to fire at: the
@@ -685,6 +704,19 @@ load path.
   flag firing into a later round would produce an artifact that silently
   misrepresents the reported moment. Requests arriving outside the action
   phase are refused, per "Requesting a save from a non-quiescent moment".
+  **Three clear conditions were not enough.** As shipped, `P2-D` clears on
+  five: those three, plus **rollback re-entry** (`Game.postRollbackOperations`,
+  the single choke point for every rollback path) and **both halt paths**
+  (`Lobby.handleError`'s `SevereHaltGame` branch and
+  `handleSerializationFailure`). Rollback is mandatory because
+  `GameStateManager.rollbackToSnapshot` replaces `game.state` wholesale via
+  `v8.deserialize` rather than through property setters, so a plain field
+  survives an undo untouched *and* the phase-exit hook never fires on a
+  rollback-driven phase change — a request armed before an undo would fire
+  against a replayed timeline. The halt paths are mandatory because neither
+  calls `endGame` nor marks anyone disconnected, and a halted game stays
+  driveable, so without them the pending report is lost outright and the stale
+  trigger survives to fire against a much later action.
 - Load: dev-facing flow accepting an `ISavedMatch`, binding users to seats
   (each user picks or is assigned a seat; the seat determines their decklist
   and all seat-keyed state), constructing the game via `MatchLoader`, and
