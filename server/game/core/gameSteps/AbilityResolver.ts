@@ -109,6 +109,18 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
         this.context.stage = Stage.PreTarget;
 
+        // If a triggered reveal-from-hidden-zone ability has no card to reveal, queue a masking pause before any
+        // cancellation below. This happens regardless of how the ability then resolves (cancelled for no legal
+        // effect, or resolving a dependent "then"/"if you do" to nothing), so the pause is indistinguishable from a
+        // player who could reveal but declined and never leaks that their hidden cards can't satisfy the reveal.
+        const revealMaskingPlayer = this.context.ability.getRevealMaskingPlayer(this.context);
+        if (revealMaskingPlayer) {
+            this.game.promptForPassDelay(revealMaskingPlayer, {
+                source: this.context.source.name,
+                activePromptTitle: 'Pausing for Reveal'
+            });
+        }
+
         if (this.context.ability.meetsRequirements(this.context, this.ignoredRequirements, true) !== '') {
             this.cancelled = true;
             this.resolutionCommitted = true;

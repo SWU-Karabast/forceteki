@@ -377,6 +377,28 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
         return this.nonDependentTargets.some((target) => target.hasLegalTarget(context));
     }
 
+    /**
+     * For a triggered ability that reveals cards from a zone hidden from the opponent, returns the player who should
+     * be shown a masking pause when they have no card to reveal, or null if no masking is needed. Resolving such an
+     * ability instantly would leak that the player's hidden cards can't satisfy the reveal, so instead we present a
+     * brief, skippable pause that is indistinguishable from a player who could reveal but declined. Only triggered
+     * abilities are masked; player-initiated abilities (actions, events) already involve a visible interaction.
+     * Mirrors the disclose masking in DiscloseAspectsSystem.
+     */
+    public getRevealMaskingPlayer(context: AbilityContext): Player | null {
+        if (!this.isTriggeredAbility()) {
+            return null;
+        }
+
+        for (const target of this.nonDependentTargets) {
+            if (target.isMissingRevealTargetForMasking(context)) {
+                return target.getChoosingPlayer(context);
+            }
+        }
+
+        return null;
+    }
+
     public checkAllTargets(context: AbilityContext) {
         return this.nonDependentTargets.every((target) => target.checkTarget(context));
     }
