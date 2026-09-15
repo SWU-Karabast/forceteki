@@ -18,6 +18,28 @@ describe('Arena Acklay, Screaming Predator', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
+        it('should deal two damage to enemy base when Arena Acklay is dealt combat damage and survives', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['daring-raid'],
+                    groundArena: ['arena-acklay#screaming-predator']
+                },
+                player2: {
+                    groundArena: ['battlefield-marine'],
+                    hasInitiative: true
+                }
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.battlefieldMarine);
+            context.player2.clickCard(context.arenaAcklay);
+
+            expect(context.arenaAcklay.damage).toBe(3);
+            expect(context.p2Base.damage).toBe(2);
+            expect(context.player1).toBeActivePlayer();
+        });
+
         it('should not deal damage to base if friendly unit is damaged', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
