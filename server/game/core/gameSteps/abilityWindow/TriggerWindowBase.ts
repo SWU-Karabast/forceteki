@@ -495,7 +495,12 @@ export abstract class TriggerWindowBase extends BaseStep {
     }
 
     private canAnyAbilitiesResolve(triggeredAbilities: TriggeredAbilityContext[]) {
-        return triggeredAbilities?.some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext, SubStepCheck.All));
+        // A triggered reveal-from-hidden-zone ability with no card to reveal has no legal effect, but must still be
+        // resolved so it can present a masking pause (see AbilityResolver.checkAbility) instead of being silently
+        // dropped, which would leak that the player's hidden cards can't satisfy the reveal.
+        return triggeredAbilities?.some((triggeredAbilityContext) =>
+            triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext, SubStepCheck.All) ||
+            triggeredAbilityContext.ability.getRevealMaskingPlayer(triggeredAbilityContext) != null);
     }
 
     public abstract override toString(): string;
