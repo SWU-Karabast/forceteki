@@ -78,6 +78,9 @@ describe('Stolen Landspeeder', function () {
             expect(context.stolenLandspeeder).toBeInZone('groundArena', context.player1);
             expect(context.stolenLandspeeder).toHaveExactUpgradeNames(['experience']);
             expect(context.player2).toBeActivePlayer();
+
+            // the enter-play effect from the bounty replay is logged crediting Stolen Landspeeder itself
+            expect(context.getChatLogs(5)).toContain('player1 uses Stolen Landspeeder to give an Experience token to Stolen Landspeeder');
         });
 
         it('Stolen Landspeeder\'s ability should not allow opponent to take control of it when played from out of hand', async function () {
