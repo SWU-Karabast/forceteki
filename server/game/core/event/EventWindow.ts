@@ -1,5 +1,4 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import type { GameSystem } from '../gameSystem/GameSystem';
 import { AbilityType } from '../Constants';
 import { ReplacementEffectWindow } from '../gameSteps/abilityWindow/ReplacementEffectWindow';
 import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
@@ -26,7 +25,6 @@ export class EventWindow extends BaseStepWithPipeline {
     private parentWindow?: EventWindow = null;
     private resolvedEvents: any[] = [];
     private subwindowEvents: any[] = [];
-    private preResolveGameSystems: { gameSystem: GameSystem; context: AbilityContext }[] = [];
     private subAbilityStepFn?: () => AbilityContext = null;
     private windowDepth?: number = null;
 

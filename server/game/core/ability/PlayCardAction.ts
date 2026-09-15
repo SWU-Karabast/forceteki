@@ -7,7 +7,7 @@ import type { ICost } from '../cost/ICost';
 import type { AbilityContext } from './AbilityContext';
 import { PlayerAction } from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
-import { type CostAdjuster, CostAdjustType } from '../cost/CostAdjuster';
+import { CostAdjustType, type CostAdjuster } from '../cost/CostAdjuster';
 import { Helpers } from '../utils/Helpers';
 import { Contract } from '../utils/Contract';
 import { TextHelper } from '../utils/TextHelper';
