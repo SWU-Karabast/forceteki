@@ -3551,6 +3551,73 @@ const mockCards = [
         arena: 'ground',
         internalName: 'poggle-the-lesser#let-the-executions-begin'
     }),
+    buildMockCard({
+        title: 'The Great Progenitor',
+        subtitle: 'First of the Drengir',
+        cost: 5,
+        power: 4,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['creature'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 67
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-great-progenitor#first-of-the-drengir'
+    }),
+    buildMockCard({
+        title: 'Clone of the Zillo Beast',
+        subtitle: 'Emperor\'s Experiment',
+        cost: 4,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['clone', 'creature'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 65
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'clone-of-the-zillo-beast#emperors-experiment',
+    }),
+    buildMockCard({
+        title: 'Opee Sea Killer',
+        cost: 5,
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['creature'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 90
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'opee-sea-killer',
+    }),
+    buildMockCard({
+        title: 'Always a Bigger Fish',
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['innate'],
+        types: ['event'],
+        setId: {
+            set: 'HMW',
+            number: 99
+        },
+        unique: false,
+        internalName: 'always-a-bigger-fish'
+    }),
     // -------- End Mock Cards --------
 ];
 
