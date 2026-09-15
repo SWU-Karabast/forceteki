@@ -55,13 +55,13 @@ describe('Heavy Ion Cannon', function() {
 
             context.player1.clickCard(context.p1Base);
 
-            expect(context.player1).toHavePrompt('Choose a card to discard');
-            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.daringRaid]);
-            context.player1.clickCard(context.battlefieldMarine);
-
             expect(context.player1).toHavePrompt('Deal 2 damage to a unit');
             expect(context.player1).toBeAbleToSelectExactly([context.rebelPathfinder, context.greenSquadronAwing, context.cadBane]);
             context.player1.clickCard(context.cadBane);
+
+            expect(context.player1).toHavePrompt('Choose a card to discard');
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.daringRaid]);
+            context.player1.clickCard(context.battlefieldMarine);
 
             expect(context.battlefieldMarine).toBeInZone('discard', context.player1);
             expect(context.daringRaid).toBeInZone('hand', context.player1);
@@ -111,6 +111,9 @@ describe('Heavy Ion Cannon', function() {
 
             context.player1.clickCard(context.p1Base);
 
+            expect(context.player1).toHavePrompt('The ability "Deal 2 damage to a unit" will have no effect. Are you sure you want to use it?');
+            context.player1.clickPrompt('Use it anyway');
+
             expect(context.player1).toHavePrompt('Choose a card to discard');
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.daringRaid]);
             context.player1.clickCard(context.battlefieldMarine);
@@ -124,6 +127,33 @@ describe('Heavy Ion Cannon', function() {
 
             expect(context.player1).toBeActivePlayer();
             expect(context.player1).not.toBeAbleToSelect(context.p1Base);
+        });
+
+        it('Heavy Ion Cannon\'s given action ability should not use limit when cancelling warning prompt', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['battlefield-marine', 'daring-raid'],
+                    base: { card: 'echo-base', upgrades: ['heavy-ion-cannon'] }
+                },
+                player2: {
+                    hand: ['green-squadron-awing'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.p1Base);
+
+            expect(context.player1).toHavePrompt('The ability "Deal 2 damage to a unit" will have no effect. Are you sure you want to use it?');
+            context.player1.clickPrompt('Cancel');
+
+            context.player1.passAction();
+
+            context.player2.clickCard(context.greenSquadronAwing);
+
+            expect(context.player1).toBeActivePlayer();
+            expect(context.player1).toBeAbleToSelect(context.p1Base);
         });
     });
 });

@@ -21,7 +21,6 @@ export default class HeavyIonCannon extends UpgradeCard {
             title: 'Deal 2 damage to a unit',
             limit: AbilityHelper.limit.perPhase(1),
             gainCondition: (context) => context.source.parentCard?.isBase(),
-            cannotTargetFirst: true,
             cost: AbilityHelper.costs.discardCardFromOwnHand(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
