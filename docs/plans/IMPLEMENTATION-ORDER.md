@@ -210,6 +210,20 @@ independently valuable and independently testable.
 | `P2-D` | Item D — save request surface + the armed one-shot trigger | `P2-C2` | Medium 🟡 | full |
 | `P2-E` ⏱ | Item E — round-trip, continuation, degraded-manifest, trigger tests + degradation-rate measurement | `P2-D` | Medium 🟡 | full |
 
+**Plan 2 is complete.** All seven units have landed and the closing capture
+([`after-plan-02`](performance/after-plan-02.md)) is committed. Two things the
+closing unit surfaced are worth carrying forward rather than leaving buried in
+[the Anvil log](ANVIL-LOG.md#p2-e--verification-suite--degradation-measurement-plan-2-work-item-e):
+
+- **The writer refuses outright on roughly 0.9% of real boards** (`SaveIntegrityError`
+  from its own completeness check — a card owned and in a zone that never got
+  indexed), across several card shapes. The bug report still submits, but its
+  save attachment is silently lost for exactly the complex-interaction positions
+  most likely to need one. It is a `P2-A` defect, found by `P2-E`'s measurement,
+  and it needs its own task.
+- **9.9% of boards save degraded**, dominated by `lastingEffect` and
+  `delayedEffect` — the categories Plan 6 is meant to close.
+
 **Land `P2-B` first, before the writer.** It is the standing-invariant
 enforcement, and it will likely surface existing `@stateValue` payloads that
 violate it. Finding those while fixing a 30-line guardrail is much cheaper than

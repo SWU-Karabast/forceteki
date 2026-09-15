@@ -16,6 +16,7 @@ const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
 const { SnapshotType, PhaseName } = require('../../server/game/core/Constants.js');
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager.js');
 const { QuickUndoAvailableState } = require('../../server/game/core/snapshot/SnapshotInterfaces.js');
+const saveDegradationProbe = require('./SaveDegradationProbe.js');
 
 // enabled via the `ENABLE_UNDO_ALL_TESTS` env var (see the `test-undo` npm scripts) to run the
 // whole suite in undo mode (each test runs, rolls back, then runs again)
@@ -212,6 +213,15 @@ global.integration = function (definitions, enableUndo = false) {
                 context.game.captureGameState('any');
             } catch (error) {
                 throw new TestSetupError('Failed to correctly serialize post-test game state', { error: { message: error.message, stack: error.stack } });
+            }
+
+            // P2-E AC11: a tail call, not a second `afterEach` registration -- jasmine's
+            // `Suite.prototype.afterEach` does `this.afterFns.unshift(...)` (reverse declaration order), so
+            // a second registration here would run *before* the serialization check above. Appending as the
+            // last statement of this same function makes the ordering structural instead. No-op unless
+            // `MEASURE_SAVE_DEGRADATION=true`.
+            if (saveDegradationProbe.isEnabled()) {
+                saveDegradationProbe.sample(context);
             }
         });
 

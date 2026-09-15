@@ -1,4 +1,9 @@
 import { GameEndReason, PhaseName, SnapshotType } from '../../../../server/game/core/Constants';
+import { save } from '../../../../server/game/core/stateSerialization/MatchSerializer';
+import { loadAsync } from '../../../../server/game/core/stateSerialization/MatchLoader';
+import { UndoMode } from '../../../../server/game/core/snapshot/SnapshotManager';
+import { buildLoadConfig } from '../../../helpers/MatchLoaderHarness';
+import { wrapLoadedGame } from '../../../helpers/SaveLoadHarness';
 
 /**
  * P2-D server plumbing: `Game.armedSave` (`GameInterfaces.ts`) and `ActionWindow`'s per-instance
@@ -161,6 +166,97 @@ describe('Game.armedSave', function() {
 
             expect(onCleared).toHaveBeenCalledTimes(1);
             expect(onFired).not.toHaveBeenCalled();
+        });
+
+        // P2E-AC7: `02-semantic-save-load.md:790-792` enumerates "mid-prompt and mid-attack" as the two
+        // mid-resolution sub-cases. The mid-prompt case is already covered above (Strike True's own
+        // SelectCardPrompt); this drives the attack-resolution branch specifically, with a card whose own
+        // On-Attack ability opens a prompt during attack resolution.
+        it('arms mid-attack-resolution and fires at the next action-window boundary with drift exactly one action', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { groundArena: ['fifth-brother#fear-hunter', 'wampa'] },
+                player2: { groundArena: ['battlefield-marine'] },
+            });
+            const { context } = contextRef;
+            const game = context.game;
+
+            const onFired = jasmine.createSpy('onFired');
+            game.armedSave.onFired = onFired;
+
+            // Declares the attack; Fifth Brother's optional On-Attack ability opens a SelectCardPrompt
+            // (another ground unit to damage), so the open prompt is mid-attack-resolution, not the action
+            // window itself -- exactly the branch `Game.ts:419-429` shares with the mid-prompt case above.
+            context.player1.clickCard(context.fifthBrotherFearHunter);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(game.getCurrentOpenPrompt()).not.toBe(game.currentActionWindow);
+
+            const requestedAtActionNumber = game.actionNumber;
+            expect(game.armedSave.request()).toEqual({ kind: 'armed' });
+            expect(onFired).not.toHaveBeenCalled();
+
+            // Resolve the optional damage-another-unit half of the ability: accept the "may trigger"
+            // confirmation, then pick the other ground unit to damage.
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickCard(context.wampa);
+
+            expect(onFired).toHaveBeenCalledOnceWith({ requestedAtActionNumber, requestedAtPhase: PhaseName.Action });
+            expect(game.actionNumber).toBe(requestedAtActionNumber + 1);
+        });
+
+        // P2E-AC8: `MatchLoader.ts:219` builds the loaded game with `undoMode: saved.settings.undoMode`,
+        // and `SavedMatchValidator` does not gate that field -- the only route to a genuinely
+        // undo-disabled live game under `ENABLE_UNDO_ALL_TESTS`, where `integration()`'s second argument
+        // (that would otherwise pin `UndoMode.Disabled`) is dropped entirely.
+        it('fires for a game whose undoMode is pinned to Disabled via a loaded document, in both gating suites', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                // Two friendly and two enemy ground units: the loaded seats default `autoSingleTarget:
+                // true` (`getUserWithDefaultsSet`, unlike this harness's own `setupTestAsync`), which
+                // auto-resolves a target-selection prompt with exactly one legal choice -- collapsing
+                // Strike True's whole two-target ability into zero real clicks and never actually arming.
+                player1: { hand: ['strike-true'], groundArena: ['wampa', 'kachirho-militia'] },
+                player2: { groundArena: ['specforce-soldier', 'battlefield-marine'] },
+            });
+            const { context } = contextRef;
+
+            const document = save(context.game);
+            document.settings.undoMode = UndoMode.Disabled;
+            const { game: loadedGame, playersBySeat } = await loadAsync(document, buildLoadConfig(context));
+
+            expect(loadedGame.snapshotManager.undoMode).toBe(UndoMode.Disabled);
+            // The control that makes this case meaningful: the snapshot-derived signal a naive hook might
+            // have used instead is unconditionally absent in this mode. `SnapshotFactory.ts`'s own getter
+            // is typed `number | null` but its optional-chained implementation actually yields `undefined`
+            // when nothing has been snapshotted -- a pre-existing type/runtime mismatch, not this test's
+            // concern; `toBeUndefined()` matches the real value.
+            expect(loadedGame.snapshotManager.currentSnapshottedAction).toBeUndefined();
+
+            const onFired = jasmine.createSpy('onFired');
+            loadedGame.armedSave.onFired = onFired;
+
+            const activePlayerSeat = document.game.actionPhaseActivePlayer;
+            const loadedWrappers = wrapLoadedGame(loadedGame, playersBySeat);
+            const loadedActive = activePlayerSeat === 'p1' ? loadedWrappers.p1 : loadedWrappers.p2;
+
+            loadedActive.clickCard(loadedActive.findCardByName('strike-true'));
+            expect(loadedGame.getCurrentOpenPrompt()).not.toBe(loadedGame.currentActionWindow);
+
+            const requestedAtActionNumber = loadedGame.actionNumber;
+            expect(loadedGame.armedSave.request()).toEqual({ kind: 'armed' });
+            expect(onFired).not.toHaveBeenCalled();
+
+            // Strike True's own two target selections (friendly unit, then enemy unit) are both the active
+            // player's own clicks, resolving the same ability -- not a turn change. The enemy target is
+            // resolved through the *opponent's* wrapper: `findCardByName` with no `side` searches only
+            // `this.player.decklist.allCards` (`PlayerInteractionWrapper.ts:598-605`), so `loadedActive`
+            // alone can never resolve a card it does not own.
+            const loadedOpponent = loadedActive === loadedWrappers.p1 ? loadedWrappers.p2 : loadedWrappers.p1;
+            loadedActive.clickCard(loadedActive.findCardByName('wampa'));
+            loadedActive.clickCard(loadedOpponent.findCardByName('specforce-soldier'));
+
+            expect(onFired).toHaveBeenCalledOnceWith({ requestedAtActionNumber, requestedAtPhase: PhaseName.Action });
+            expect(loadedGame.actionNumber).toBe(requestedAtActionNumber + 1);
         });
     });
 

@@ -818,3 +818,89 @@ The confirming delta review verified each repair against the dispatcher's actual
 - The four clear conditions are: `Game.currentPhase`'s setter (exit from `PhaseName.Action`), `Game.endGame`, `Lobby.setUserDisconnected` (inside the player branch, after the socket-id check — a spectator or superseded socket must not clear), and `Game.postRollbackOperations`. The halt paths clear too, via `Lobby.handleError`/`handleSerializationFailure`.
 - `saveTrigger.kind` is `'immediate'` when the request arrived at a boundary and `'deferred'` when it was armed; `requestedAtActionNumber` read against the document's own `game.actionNumber` is the declared drift, and it is exactly 0 or 1 respectively.
 - Work item E's trigger-matrix group should include the undo-disabled case explicitly — that is the mode where the naive hook silently misbehaves, and it is the default mode for ordinary `integration()` specs.
+
+---
+
+## `P2-E` — Verification suite + degradation measurement (Plan 2, work item E)
+
+| | |
+|---|---|
+| Task ID | `p2-e` |
+| Date | 2026-09-15 |
+| Lane / tier | full, tier 2 (Medium 🟡), proof level standard |
+| Plan | [02-semantic-save-load.md](02-semantic-save-load.md) work item E; [IMPLEMENTATION-ORDER.md](IMPLEMENTATION-ORDER.md) unit `P2-E` |
+| Parent | `9b55eaf01` |
+| Commit | _(recorded in the follow-up commit)_ |
+| Branch | `experimental/rollback-saves-optimizations` |
+
+**This is the final unit of Plan 2.** No file under `server/` changed.
+
+### What changed
+
+25 specs across four new files and two extensions, one shared helper, a non-gating degradation measurement, and the closing performance capture.
+
+- `test/helpers/SaveLoadHarness.ts` — the shared helper. `normalizeSavedMatch` (excludes `savedAt`; renders `stateWatchers` as a name-keyed map so absent ≡ empty), `saveLoadSaveAsync`, `wrapLoadedGame`, and `expectContinuationMatchesOriginalAsync` — the differential oracle, which drives an identical action sequence into both the original and the loaded game and compares the two resulting documents.
+- `SaveLoadRoundTrip.spec.ts` (5), `SaveLoadContinuation.spec.ts` (8), `EngineOnlyFactsManifest.spec.ts` (5), `ArmedSaveEndToEnd.spec.ts` (3), plus 4 appended specs across `ArmedSaveTrigger.spec.ts` and `MatchLoaderRejection.spec.ts`.
+- `SaveDegradationProbe.js` + `scripts/measure-save-degradation.js` + `npm run measure-degradation` — env-gated behind `MEASURE_SAVE_DEGRADATION`, sampling one terminal quiescent action-phase board per integration spec, called from the **tail of** `IntegrationHelper.js`'s existing `afterEach` rather than a second registration, because jasmine runs same-suite `afterEach`s in reverse declaration order.
+- `docs/plans/performance/after-plan-02.{json,md}` — the closing capture.
+
+### The suite's own oracle was vacuous, and the suites passing did not reveal it
+
+The differential oracle excluded `stateWatchers` sections absent from the pre-save document, to filter noise from `GameStateBuilder.registerAllStateWatchers`, which stress-registers all 15 watchers on a test game while a loaded game registers only what its document named.
+
+The first repair narrowed that predicate to the registrar set difference. It was correctly implemented, its timing argument was sound, and it was still wrong: only 4 of the 15 watcher types are registered unconditionally (`UnitProperties.ts:342-345`); the other 11 are opt-in per card. For a generic fixture those 11 exist on the source side *only* as harness artifact, so they stayed excluded. A cold reviewer proved it by running the real oracle against the shipped attack scenario: the original document carried 8 populated watcher sections, the loaded one carried 2, **and the assertion passed**.
+
+Both gating suites were green at unchanged counts throughout. That is what a vacuous comparison looks like from the outside, and it is why the second repair was required to produce a discriminating experiment rather than another green run.
+
+The fix removes the filter entirely: mirror the same reflective registration onto the loaded game after `loadAsync`, assert the two registrars are equal, then compare the full documents. Scenario 1 went from 2 compared watcher sections to 8.
+
+**Carry this forward:** when a test's own oracle is the deliverable, a passing suite is not evidence that the oracle works. Mutate something the oracle must catch and confirm it fails. Both retained probes are at `.anvil/p2-e/experiments/fix2-watcher-oracle/`.
+
+### The measurement found a real writer defect on its first run
+
+`npm run measure-degradation` over 6,128 real boards: **90.1% save clean, 9.9% degrade** — by category, `lastingEffect` 410 boards, `delayedEffect` 129, `gainedAbility` 50, `watcherEntry` 40, `pilotLeader` 8.
+
+**57 boards (~0.9%) fail to save at all**, throwing `SaveIntegrityError` from the writer's own `assertCompleteness`: a card that is owned and in a zone never got indexed. Sampled names across two runs — `gold-leader#fastest-ship-in-the-fleet`, `max-rebo#encore`, `sneaking-suspicion`, `the-daughter#embodiment-of-light` — span several card shapes, so this is broader than any single mechanic.
+
+This is a **pre-existing defect in the shipped writer (work item A)**, not in this unit, recorded as finding `P2E-I1-01`, unresolved. It is distinct from both prior open residuals: `P2-C2` residual 1 is a *load-time* fidelity bug that still produces a document; this is a *save-time hard refusal* that produces none. Impact is bounded — both `Lobby` call sites catch and degrade to `saveStatus: 'unavailable'`, so the bug report still submits — but the attachment is silently lost for exactly the complex-interaction positions most likely to need it, with only a server log as trace. The design designates `pilotLeader` as a *degrade-with-manifest* category, so at least some of these should degrade rather than refuse.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `npm run lint` | exit 0 |
+| `npm run build` | exit 0 |
+| `npx tsc -p ./test/tsconfig.json` | exit 0 |
+| `npm run validate-cards` | exit 0 (1983 card files, 1960 test files) |
+| `npm run test-parallel` | 8513 specs, 0 failures, 13 pending |
+| `npm run test-parallel-undo` | 8326 specs, 0 failures, 17 pending |
+| `npm run measure-degradation` | 6128 sampled, 9.9% degraded, 57 hard failures |
+| `npm run benchmark` | capture written |
+
+Baseline was 8488/0/13 and 8301/0/17; both suites are up exactly **+25**, matching the 25 new specs and confirming they are collected in **both** modes rather than skipped in one.
+
+### The benchmark says Plan 2 moved nothing on the hot path
+
+Against `initial-performance` the deltas are large and favourable, but that comparison is **cross-machine** (Ryzen 7 9850X3D / Node v24.13.0 here against i9-13900HX / Node v22.11.0) and therefore directional only under the capture index's rule 2.
+
+The same-machine `after-plan-01` → `after-plan-02` comparison is the informative one: 30 comparable timing rows, mostly improvements, with scatter in **both** directions (`large-board full/buildGameStateForSnapshot` +36.8% against the same benchmark at −23.3% and −16.0% in two other scenarios). Bidirectional and inconsistent per benchmark — noise, not a systematic cost. **No evidence the `P2-B` dev-mode JSON assertion sits on a hot path**, which is the specific question the plan said this capture existed to answer.
+
+### Review history
+
+Two plan reviews (the second a user-authorised bounded extension past the tier-2 ceiling) and three implementation reviews across two fix cycles. The extension paid for itself twice: the first plan review caught the fixture that silently ignores `{deployed: true, flipped: true}` and the backwards `afterEach` ordering assumption; the delta review independently re-derived the `chat[].date` divergence hunt across `gameId`, `rng.state`, counter ordinals and stint refs and found no missed case.
+
+The first implementation review returned APPROVED-WITH-FINDINGS; its one warning became the BLOCKING vacuity finding once a reviewer actually ran the oracle.
+
+### Known residuals, disclosed and accepted at the gate
+
+1. **`P2E-I1-01`** — the writer completeness gap above. Not this unit's to fix; needs its own task.
+2. **`P2E-I3-01`** — the 4 core-registered watchers are live during `loadAsync`'s step-6 `resolveGameState` window, which the source game never runs. No current scenario is degraded, so it cannot manifest today, and it predates this unit. Whoever adds a **degraded-save continuation scenario** should expect a spurious loaded-side-only entry and check this first.
+3. **`P2E-I3-02`** — the reflective `StateWatcherLibrary` walk is duplicated between `SaveLoadHarness.ts` and `GameStateBuilder.js`. A desync would fail loudly via the new registrar-equality assertion rather than drift silently.
+4. **Counter-ordinal mutations are invisible by design.** `CounterSpaces` re-derives ordinals as dense order-preserving ranks, so a uniform shift of decoded counter ids re-encodes identically. No oracle over the saved representation can catch it; pick a categorically-encoded field for any future mutation probe.
+
+### Notes for the next agent
+
+- `expectContinuationMatchesOriginalAsync` compares **whole documents**. Adding a continuation scenario needs no filter maintenance — but if a member ever diverges between two separately-driven games for a non-defect reason, normalise it **by name with a written reason**, never by widening the comparison. Two such members are already settled: `chat[].date` is excluded in differential mode only; `timers` is deliberately kept, because `NoopActionTimer` returns a constant here.
+- A `sequence` closure must resolve cards through its own wrappers (`p1.findCardByName(...)`), never through `context.<cardName>` — the two games hold different card objects.
+- `buildLoadConfig` defaults `autoSingleTarget: true` while `setupTestAsync` does not, so a single-legal-target prompt auto-resolves on the loaded side but not the original. Fixtures driven through both games must avoid single-target prompts or account for the click-count difference.
+- `context.p1Leader`/`p2Leader` and `context.flow` are declared in `IntegrationHelper.d.ts` but are `undefined` at runtime. Use `context.player1Object.deckLeader` and the `proxiedGameFlowWrapperMethods` allowlist instead.

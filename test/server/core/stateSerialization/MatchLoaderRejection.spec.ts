@@ -249,6 +249,32 @@ describe('MatchLoader.loadAsync — rejection', function() {
             expect((caught as Error).message).toContain('cannot be represented');
         });
 
+        it('rejects a stateWatchers section naming an unregistered watcher', async function() {
+            await expectRejection((doc) => {
+                doc.stateWatchers.push({ watcher: 'not-a-real-watcher' as any, entries: [] } as any);
+            });
+        });
+
+        it('rejects a watcher entry whose card ref names an occupied position holding a different card', async function() {
+            await expectRejection((doc) => {
+                doc.stateWatchers.push({
+                    watcher: StateWatcherName.CardsDrawnThisPhase,
+                    entries: [{
+                        player: 'p1',
+                        card: {
+                            // p1's groundArena[0] genuinely holds "wampa" (this suite's fixture); naming a
+                            // different card at that same occupied position is the mismatch this loader
+                            // must reject rather than silently resolving to whatever is actually there.
+                            card: 'battlefield-marine',
+                            controllerSeat: 'p1',
+                            zone: 'groundArena',
+                            ordinal: 0,
+                        },
+                    }],
+                } as any);
+            });
+        });
+
         it('does not gate on a cardDataVersion mismatch (documents a non-case)', async function() {
             const document: ISavedMatch = JSON.parse(JSON.stringify(goodDocument));
             document.cardDataVersion = 'some-other-version';
