@@ -20,15 +20,10 @@ export default class EasyPrey extends EventCard {
                 }),
                 AbilityHelper.immediateEffects.createBeast({
                     amount: 1,
-                    target: context.player.opponent
+                    target: context.player.opponent,
+                    enterPlayEffect: AbilityHelper.immediateEffects.giveWeakness()
                 }),
-            ]),
-            then: (thenContext) => ({
-                title: 'Give a Weakness token to it',
-                immediateEffect: AbilityHelper.immediateEffects.giveWeakness({
-                    target: thenContext.resolvedEvents[1]?.generatedTokens
-                })
-            })
+            ])
         });
     }
 }
