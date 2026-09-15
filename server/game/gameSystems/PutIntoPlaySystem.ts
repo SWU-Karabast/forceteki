@@ -10,9 +10,11 @@ import {
 } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { Card } from '../core/card/Card';
+import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
 import type { UnitsEnterPlayReadyForPlayer } from '../core/playerEffect/UnitsEnterPlayReadyForPlayer';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
+import { Helpers } from '../core/utils/Helpers';
 
 export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
     controller?: Player | RelativePlayer;
@@ -21,6 +23,17 @@ export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
 
     /** How the unit is entering play. Default is `EntryType.Played` */
     entryType: EntryType;
+
+    /**
+     * Effect(s) resolved as the unit enters play, retargeted onto it. They resolve after the unit is put into play but
+     * before this window's game-state defeat check, so e.g. an HP-buffing token applied here counts before the unit is
+     * checked for defeat by an ongoing HP reduction.
+     *
+     * Each must be a "leaf" system acting on a single card target (e.g. `giveExperience()`, `damage()`,
+     * `cardLastingEffect()`, `attachUpgrade()`); its target is overwritten with the entering unit. Pass an array for
+     * several effects — do not wrap them in `simultaneous(...)`, which does not produce a single retargetable event.
+     */
+    enterPlayEffect?: GameSystem | GameSystem[];
 }
 
 export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IPutIntoPlayProperties> {
@@ -49,6 +62,24 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         } else {
             event.card.exhaust();
         }
+
+        this.resolveEnterPlayEffects(event);
+    }
+
+    /**
+     * Resolves any {@link IPutIntoPlayProperties.enterPlayEffect} systems, retargeted onto the entering unit, in a new
+     * event window. Opening it from this handler front-inserts it into the current window's pipeline, so it resolves
+     * after the unit is in play but before this window's defeat check (`resolveGameState`). The unit is already in play
+     * when these effects are generated, so effects and any replacement effects reacting to them target it correctly.
+     */
+    private resolveEnterPlayEffects(event): void {
+        const enterPlayEffects = Helpers.asArray(event.enterPlayEffect).filter((system) => system != null) as GameSystem[];
+        if (enterPlayEffects.length === 0) {
+            return;
+        }
+
+        const effectEvents = enterPlayEffects.map((system) => system.generateRetargetedEvent(event.card, event.context));
+        event.context.game.openEventWindow(effectEvents);
     }
 
     public override canAffectInternal(card: Card, context: TContext): boolean {
@@ -73,7 +104,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<IPutIntoPlayProperties>): void {
         // TODO:rename this class and all related classes / methods as PutUnitIntoPlay
-        const { controller, overrideZone, entersReady, entryType } = this.generatePropertiesFromContext(
+        const { controller, overrideZone, entersReady, entryType, enterPlayEffect } = this.generatePropertiesFromContext(
             context,
             additionalProperties
         ) as IPutIntoPlayProperties;
@@ -82,6 +113,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         event.controller = controller;
         event.originalZone = overrideZone || card.zoneName;
         event.entryType = entryType;
+        event.enterPlayEffect = enterPlayEffect;
         const matchersApply = this.checkEntersPlayReadyEffectsForPlayer(card, newController, context, entryType);
         event.entersReady = entersReady ||
           this.checkEntersPlayReady(card, newController) ||
