@@ -2,6 +2,7 @@ import type { Card } from '../core/card/Card';
 import { AbilityResolver } from '../core/gameSteps/AbilityResolver';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Contract } from '../core/utils/Contract';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
@@ -35,6 +36,12 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
      * as part of a card ability. If not specified, the default behavior is to allow any valid attach target.
      */
     attachTargetCondition?: (attachTarget: Card, context: AbilityContext) => boolean;
+
+    /**
+     * Effect(s) resolved as the played unit enters play; only applies when playing a card as a unit.
+     * See {@link IPutIntoPlayProperties.enterPlayEffect}.
+     */
+    enterPlayEffect?: GameSystem | GameSystem[];
 }
 
 // TODO: implement playing with smuggle and from non-standard zones(discard(e.g. Palpatine's Return), top of deck(e.g. Ezra Bridger), etc.) as part of abilities with another function(s)
@@ -202,7 +209,10 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             entersReady: properties.entersReady,
             canPlayFromAnyZone: properties.canPlayFromAnyZone,
             exploitValue: properties.exploitValue,
-            attachTargetCondition: properties.attachTargetCondition
+            attachTargetCondition: properties.attachTargetCondition,
+            enterPlayEffect: properties.enterPlayEffect,
+            // credit the ability that played the card (e.g. Three Lessons), not the card being played, in enter-play effect logs
+            enterPlayEffectSource: context.source
         };
     }
 }

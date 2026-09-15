@@ -139,6 +139,7 @@ export enum EffectName {
     NoMulligan = 'noMulligan',
     PrintedAttributesOverride = 'printedAttributesOverride',
     ProvidesAspectsForCosts = 'providesAspectsForCosts',
+    ReplaceKeyword = 'replaceKeyword',
     RescuedUnitsEnterPlayReady = 'rescuedUnitsEnterPlayReady',
     SetPower = 'setPower',
     ShowTopCard = 'showTopCard',

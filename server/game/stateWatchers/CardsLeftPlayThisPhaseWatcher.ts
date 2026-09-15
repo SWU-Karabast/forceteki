@@ -52,20 +52,12 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
     }
 
     public getLeftPlayEntry(card: IInPlayCard, inPlayId?: number): UnwrapRef<CardLeftPlayEntry> | undefined {
-        const inPlayIdToCheck = inPlayId ?? this.getCardId(card);
+        const inPlayIdToCheck = inPlayId ?? card.mostRecentInPlayId;
         if (inPlayIdToCheck == null) {
             return undefined;
         }
 
         return this.getCurrentValue().find((entry) => entry.card === card && entry.inPlayId === inPlayIdToCheck);
-    }
-
-    private getCardId(card: IInPlayCard): number | undefined {
-        if (card.isInPlay()) {
-            return card.inPlayId;
-        }
-
-        return card.zone.hiddenForPlayers == null ? card.mostRecentInPlayId : undefined;
     }
 
     public someCardLeftPlay({ controller, filter }: {
@@ -115,7 +107,7 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
             update: (currentState, event) => currentState.concat({
                 card: event.card.getObjectId(),
                 controlledBy: event.lastKnownInformation.controller.getObjectId(),
-                inPlayId: this.getCardId(event.card),
+                inPlayId: event.lastKnownInformation.inPlayId,
                 lastKnownInformation: {
                     traits: event.lastKnownInformation.traits,
                     type: event.lastKnownInformation.type,
