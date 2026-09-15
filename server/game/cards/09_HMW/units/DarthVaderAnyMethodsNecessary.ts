@@ -25,7 +25,7 @@ export default class DarthVaderAnyMethodsNecessary extends NonLeaderUnitCard {
                         adjustCost: { costAdjustType: CostAdjustType.Free },
                         nested: true,
                         playAsType: WildcardCardType.Unit,
-                        preResolveGameSystem: abilityHelper.immediateEffects.damage((context) => ({
+                        enterPlayEffect: abilityHelper.immediateEffects.damage((context) => ({
                             amount: 2,
                             target: context.source
                         }))

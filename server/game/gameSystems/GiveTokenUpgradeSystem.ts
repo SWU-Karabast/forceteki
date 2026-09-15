@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { CardTypeFilter } from '../core/Constants';
-import { TokenUpgradeName } from '../core/Constants';
+import { RelativePlayer, TokenUpgradeName } from '../core/Constants';
 import { EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -17,6 +17,9 @@ export interface IGiveTokenUpgradeProperties extends ICardTargetSystemProperties
     tokenType: TokenUpgradeName;
     amount?: number;
 
+    /** The player considered to have created (given) the token(s). Defaults to `RelativePlayer.Self`. */
+    createdBy?: RelativePlayer;
+
     /** Shield-only: whether the created Shield token should be removed before other shields when preventing damage. Ignored for other token types. */
     highPriorityRemoval?: boolean;
 }
@@ -27,7 +30,8 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
     public override readonly eventName = EventName.OnTokensCreated;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit];
     protected override readonly defaultProperties: Omit<IGiveTokenUpgradeProperties, 'tokenType'> = {
-        amount: 1
+        amount: 1,
+        createdBy: RelativePlayer.Self
     };
 
     // event handler doesn't do anything since the tokens were generated in updateEvent
@@ -155,6 +159,10 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
         event.card = cardsArray.length === 1 ? cardsArray[0] : null;
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        if (properties.createdBy === RelativePlayer.Opponent && context.player.opponent) {
+            event.player = context.player.opponent;
+        }
 
         event.amount = properties.amount;
         event.tokenType = properties.tokenType;

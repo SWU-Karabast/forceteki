@@ -97,15 +97,24 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         targetResolver.resolve(context, targetResults);
 
         context.game.queueSimpleStep(() => {
-            if (targetResults.cancelled || (properties.cancelIfNoTargets && Helpers.asArray(context.target).length === 0)) {
+            const selectedCards = Helpers.asArray(context.targets[properties.name]);
+
+            if (targetResults.cancelled || (properties.cancelIfNoTargets && selectedCards.length === 0)) {
                 properties.cancelHandler?.();
-            } else {
-                if (!properties.isCost && Helpers.asArray(context.target).length > 0) {
-                    this.addOnSelectEffectMessage(context, properties);
-                }
-                properties.onSelectHandler?.(context.targets[properties.name] ?? context.target);
-                properties.immediateEffect.queueGenerateEventGameSteps(events, context, additionalProperties);
+                return;
             }
+
+            // a mandatory selection resolves without a card when the resolver finds no effective target and skips the
+            // prompt, leaving nothing to apply the effect to. choosing nothing in an "up to" selection is a real choice
+            if (selectedCards.length === 0 && !this.selectionAllowsChoosingNoCards(context, additionalProperties)) {
+                return;
+            }
+
+            if (!properties.isCost && Helpers.asArray(context.target).length > 0) {
+                this.addOnSelectEffectMessage(context, properties);
+            }
+            properties.onSelectHandler?.(context.targets[properties.name] ?? context.target);
+            properties.immediateEffect.queueGenerateEventGameSteps(events, context, additionalProperties);
         }, `Execute immediate effect for select card system "${properties.name}"`);
     }
 

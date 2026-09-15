@@ -22,7 +22,7 @@ export default class Salvage extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     playAsType: WildcardCardType.Unit,
                     canPlayFromAnyZone: true,
-                    preResolveGameSystem: AbilityHelper.immediateEffects.damage((context) => ({
+                    enterPlayEffect: AbilityHelper.immediateEffects.damage((context) => ({
                         target: context.source,
                         amount: 1
                     }))
