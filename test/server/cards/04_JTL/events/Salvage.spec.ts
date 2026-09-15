@@ -60,7 +60,7 @@ describe('Salvage', function() {
             expect(context.stolenAthauler.damage).toBe(1);
         });
 
-        it('Salvage should be able to target a friendly Stolen AT-Hauler that was defeated this phase', async function() {
+        it('Salvage should play a Vehicle unit from discard and deal 1 damage to it before any trigger', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {

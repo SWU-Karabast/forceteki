@@ -21,13 +21,16 @@ export default class Salvage extends EventCard {
                 cardCondition: (card) => card.hasSomeTrait(Trait.Vehicle),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     playAsType: WildcardCardType.Unit,
-                    canPlayFromAnyZone: true,
-                    enterPlayEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                        target: context.source,
-                        amount: 1
-                    }))
+                    canPlayFromAnyZone: true
                 })
             },
+            then: (thenContext) => ({
+                title: 'Deal 1 damage to the played unit',
+                immediateEffect: AbilityHelper.immediateEffects.damage({
+                    target: thenContext.target,
+                    amount: 1,
+                })
+            })
         });
     }
 }
