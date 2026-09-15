@@ -210,7 +210,9 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             canPlayFromAnyZone: properties.canPlayFromAnyZone,
             exploitValue: properties.exploitValue,
             attachTargetCondition: properties.attachTargetCondition,
-            enterPlayEffect: properties.enterPlayEffect
+            enterPlayEffect: properties.enterPlayEffect,
+            // credit the ability that played the card (e.g. Three Lessons), not the card being played, in enter-play effect logs
+            enterPlayEffectSource: context.source
         };
     }
 }

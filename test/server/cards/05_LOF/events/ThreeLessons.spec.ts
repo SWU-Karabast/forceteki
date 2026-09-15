@@ -30,6 +30,9 @@ describe('Three Lessons', function () {
                 expect(context.rebelPathfinder.hasSomeKeyword('hidden')).toBeTrue();
                 expect(context.player2).toBeActivePlayer();
 
+                // the enter-play effects are logged as a single message crediting Three Lessons, not the played unit
+                expect(context.getChatLogs(5)).toContain('player1 uses Three Lessons to give an Experience token to Rebel Pathfinder and to give a Shield token to Rebel Pathfinder');
+
                 context.player2.clickCard(context.isbAgent);
                 expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.p1Base]);
                 context.player2.clickCard(context.p1Base);
