@@ -742,14 +742,35 @@ load path.
   because `GameStateBuilder.registerAllStateWatchers` registers every watcher
   in the library (`GameStateBuilder.js:233,262-271`) while production games
   register only the watchers their cards request, the two sides will not have
-  identical watcher sets. For a *degraded* first save, the property is:
+  identical watcher sets.
+  **As shipped, this normalization is enough for the round-trip properties but
+  is *not* enough for the continuation oracle below, and using it there was a
+  real defect.** Only 4 of the 15 watcher types are registered unconditionally
+  (`UnitProperties.ts:342-345`); the other 11 are opt-in per card, so for a
+  generic fixture they exist on the harness side alone and *any* predicate
+  keyed on that asymmetry silently drops them from the comparison — measured at
+  8 populated watcher sections against 2, with the assertion still passing. The
+  continuation oracle therefore removes the asymmetry at its source instead:
+  mirror the same reflective registration onto the loaded game after
+  `loadAsync`, assert both registrars are equal, and compare whole documents
+  with no watcher filter. For a *degraded* first save, the property is:
   the two documents are equal after excluding `engineOnlyFacts` and
   `savedAt`, and the re-save's manifest is **empty** (the dropped facts no
   longer exist to drop).
 - **Continuation tests** (must pass for **non-degraded** saves — empty
   manifest): save mid-game in an integration test, load, and play several
   representative actions asserting identical outcomes to the unloaded
-  original. Required scenarios:
+  original. As shipped, "identical outcomes" is a **differential** compare —
+  the same action sequence is driven into both the original and the loaded
+  game and the two resulting documents are compared — for 6 of the 8 scenarios.
+  Scenarios 7 and 8 are availability-shaped rather than replayable (a sequence
+  that never touches the spent copy or the deployed leader produces identical
+  documents whether or not the limit was restored), so they keep targeted
+  assertions; that departure is argued rather than silent. One member had to be
+  normalized out of the differential form by name: `chat[].date` is wall-clock
+  derived, so two separately-driven games disagree on it. `timers` deliberately
+  stays in, because `NoopActionTimer` returns a constant here. Required
+  scenarios:
   - attack, play unit, use triggered ability;
   - claim initiative *after* load;
   - a save taken *after* initiative was claimed (exercises the
@@ -791,6 +812,20 @@ load path.
   format is; it is **not a ship gate** — the bug-report customer accepts
   degraded artifacts (it would become a gate only if a player-facing button
   is ever built).
+  As shipped (`npm run measure-degradation`), the sample is one terminal
+  quiescent action-phase board per integration spec, not every action-window
+  position — biased toward end-of-scenario boards and toward whatever the card
+  pool's spec authors chose to test, and stated as such with the numbers. First
+  run over 6,128 boards: **90.1% clean, 9.9% degraded**, dominated by
+  `lastingEffect` and `delayedEffect`.
+  It also surfaced an output category this section did not anticipate:
+  **57 boards (~0.9%) fail to save outright** with `SaveIntegrityError` from
+  the writer's own `assertCompleteness` — a card owned and in a zone that never
+  got indexed, across several card shapes. That is a **work item A defect**, not
+  a degradation, and it is tracked separately. Note the tension it exposes: at
+  least some of those positions (`pilotLeader` is already a declared manifest
+  category) should degrade with a manifest entry rather than refuse, so the
+  degrade-vs-refuse boundary in work item A needs revisiting alongside the fix.
 
 ## Explicit non-goals (v1)
 
