@@ -13,6 +13,7 @@ import type { Card } from '../core/card/Card';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
 import type { UnitsEnterPlayReadyForPlayer } from '../core/playerEffect/UnitsEnterPlayReadyForPlayer';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { Helpers } from '../core/utils/Helpers';
 
@@ -34,6 +35,13 @@ export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
      * several effects — do not wrap them in `simultaneous(...)`, which does not produce a single retargetable event.
      */
     enterPlayEffect?: GameSystem | GameSystem[];
+
+    /**
+     * Card credited as the source of {@link enterPlayEffect} in the chat log. Defaults to `context.source`; supplied
+     * explicitly when playing a unit, where `context.source` is the played card rather than the ability that granted
+     * the effect (e.g. Three Lessons).
+     */
+    enterPlayEffectSource?: Card;
 }
 
 export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IPutIntoPlayProperties> {
@@ -78,8 +86,42 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
             return;
         }
 
-        const effectEvents = enterPlayEffects.map((system) => system.generateRetargetedEvent(event.card, event.context));
-        event.context.game.openEventWindow(effectEvents);
+        const context = event.context;
+        const unit: Card = event.card;
+
+        // Point each effect at the entering unit so its chat message and generated event both target it.
+        for (const system of enterPlayEffects) {
+            system.setDefaultTargetFn(() => unit);
+        }
+
+        this.logEnterPlayEffects(enterPlayEffects, context, event.enterPlayEffectSource ?? context.source);
+
+        const effectEvents = enterPlayEffects.map((system) => system.generateRetargetedEvent(unit, context));
+        context.game.openEventWindow(effectEvents);
+    }
+
+    /** Adds a chat line for the enter-play effects, matching the `{player} uses {source} to {effect}` format used for ability effects. */
+    private logEnterPlayEffects(systems: GameSystem[], context: TContext, source: Card): void {
+        const loggableSystems = systems.filter((system) => system.hasLegalTarget(context));
+        if (loggableSystems.length === 0) {
+            return;
+        }
+
+        let effectMessage: string;
+        let effectArgs: any[];
+        if (loggableSystems.length === 1) {
+            const [message, args] = loggableSystems[0].getEffectMessage(context);
+            effectMessage = message;
+            effectArgs = Helpers.asArray(args);
+        } else {
+            effectMessage = ChatHelpers.formatWithLength(loggableSystems.length, 'to ');
+            effectArgs = loggableSystems.map((system) => {
+                const [message, args] = system.getEffectMessage(context);
+                return { format: message, args: Helpers.asArray(args) };
+            });
+        }
+
+        context.game.addMessage('{0} uses {1} to {2}', context.player, source, { format: effectMessage, args: effectArgs });
     }
 
     public override canAffectInternal(card: Card, context: TContext): boolean {
@@ -104,7 +146,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<IPutIntoPlayProperties>): void {
         // TODO:rename this class and all related classes / methods as PutUnitIntoPlay
-        const { controller, overrideZone, entersReady, entryType, enterPlayEffect } = this.generatePropertiesFromContext(
+        const { controller, overrideZone, entersReady, entryType, enterPlayEffect, enterPlayEffectSource } = this.generatePropertiesFromContext(
             context,
             additionalProperties
         ) as IPutIntoPlayProperties;
@@ -114,6 +156,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         event.originalZone = overrideZone || card.zoneName;
         event.entryType = entryType;
         event.enterPlayEffect = enterPlayEffect;
+        event.enterPlayEffectSource = enterPlayEffectSource;
         const matchersApply = this.checkEntersPlayReadyEffectsForPlayer(card, newController, context, entryType);
         event.entersReady = entersReady ||
           this.checkEntersPlayReady(card, newController) ||
