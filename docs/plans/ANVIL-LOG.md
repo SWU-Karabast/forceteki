@@ -830,7 +830,7 @@ The confirming delta review verified each repair against the dispatcher's actual
 | Lane / tier | full, tier 2 (Medium 🟡), proof level standard |
 | Plan | [02-semantic-save-load.md](02-semantic-save-load.md) work item E; [IMPLEMENTATION-ORDER.md](IMPLEMENTATION-ORDER.md) unit `P2-E` |
 | Parent | `9b55eaf01` |
-| Commit | _(recorded in the follow-up commit)_ |
+| Commit | `ce083a972` |
 | Branch | `experimental/rollback-saves-optimizations` |
 
 **This is the final unit of Plan 2.** No file under `server/` changed.
