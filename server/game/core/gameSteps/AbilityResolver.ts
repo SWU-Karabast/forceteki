@@ -344,21 +344,30 @@ export class AbilityResolver extends BaseStepWithPipeline {
             for (const event of this.events) {
                 event.cancel();
             }
+
+            // if the ability was cancelled after costs were paid, the limit is still used
+            if (this.resolutionCommitted && this.context.ability.getCosts(this.context).length > 0) {
+                this.incrementLimit();
+            }
             return;
         }
 
         this.context.player.hasResolvedAbilityThisTimepoint = true;
 
-        // Increment limits (limits aren't used up on cards in hand)
-        if (this.context.ability.limit && this.context.source.zoneName !== ZoneName.Hand &&
-          (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.zoneName === this.context.source.zoneName)) {
-            this.context.ability.limit.increment(this.context.player);
-        }
+        this.incrementLimit();
 
         this.context.ability.displayMessage(this.context);
         this.context.stage = Stage.Effect;
 
         this.context.ability.executeHandler(this.context);
+    }
+
+    // Increment limits (limits aren't used up on cards in hand)
+    private incrementLimit() {
+        if (this.context.ability.limit && this.context.source.zoneName !== ZoneName.Hand &&
+          (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.zoneName === this.context.source.zoneName)) {
+            this.context.ability.limit.increment(this.context.player);
+        }
     }
 
     private resetGameAbilityResolver() {
