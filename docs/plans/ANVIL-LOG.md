@@ -724,7 +724,7 @@ This unit went through three implementation review rounds (nine cold reviews, th
 | Lane / tier | full, tier 2 (Medium 🟡), proof level standard |
 | Plan | [02-semantic-save-load.md](02-semantic-save-load.md) work item D; [IMPLEMENTATION-ORDER.md](IMPLEMENTATION-ORDER.md) unit `P2-D` |
 | Parent | `58f5c4ca7` |
-| Commit | _(recorded below after the commit lands)_ |
+| Commit | `5b1fdb70b` |
 | Branch | `experimental/rollback-saves-optimizations` |
 
 ### What changed
