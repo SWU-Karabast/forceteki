@@ -8,6 +8,7 @@ import { logger } from '../../logger';
 import { Helpers } from './utils/Helpers';
 import type { MatchmakingType } from '../../gamenode/Lobby';
 import type { SwuGameFormat } from './Constants';
+import type { ISavedMatch } from './stateSerialization/SavedMatchInterfaces';
 
 interface IDiscordFormat {
     content: string;
@@ -74,6 +75,15 @@ export interface IDiscordDispatcher {
 export class DiscordDispatcher implements IDiscordDispatcher {
     private static readonly MaxServerErrorCount = 3;
     private static readonly MaxUndoErrorCount = 3;
+
+    /**
+     * Combined budget across every attachment on one bug report (`files[0]` game state, `files[1]`
+     * messages, `files[2]` saved match), not `savedMatch` alone -- Discord's webhook ceiling applies to
+     * the whole multipart payload, so a correctly-sized `savedMatch` attachment that pushes the total over
+     * the line would still fail delivery of the entire report (`P2D-R1-08`). Kept comfortably under
+     * common multi-file webhook payload ceilings (well below 8 MB).
+     */
+    private static readonly MaxReportAttachmentBytes = 7 * 1024 * 1024;
     private readonly _bugReportWebhookUrl: string;
     private readonly _serverErrorWebhookUrl: string;
     private readonly _playerReportWebhookUrl: string;
@@ -231,6 +241,37 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             });
         }
 
+        // Decide whether the saved match fits the combined attachment budget alongside files[0]/[1],
+        // computed here (not inside the file-attaching block below, after payload_json is serialized)
+        // because a decision to omit needs its own embed field, and fields is serialized into
+        // payload_json before the files are attached.
+        // P2D-I1-09: computed once here (when there is a saved match to budget against) and handed down
+        // to addGameStateToForm/addGameMessagesToForm below, rather than each of those re-serializing the
+        // same two biggest payloads in a report a second time ~40 lines later.
+        let gameStateJson: string | undefined;
+        let messagesText: string | undefined;
+        let savedMatchJson: string | null = null;
+        if (reportType === ReportType.BugReport && report.savedMatch) {
+            gameStateJson = JSON.stringify(report.gameState, null, 2);
+            messagesText = DiscordDispatcher.formatMessagesToText(report.messages, report.reporter.id, report.opponent.id, 'Player1', 'Player2');
+            const candidateJson = JSON.stringify(report.savedMatch);
+            const totalBytes = Buffer.byteLength(gameStateJson) + Buffer.byteLength(messagesText) + Buffer.byteLength(candidateJson);
+            if (totalBytes <= DiscordDispatcher.MaxReportAttachmentBytes) {
+                savedMatchJson = candidateJson;
+                fields.push({
+                    name: 'Saved Match',
+                    value: 'See attached JSON file for the full save (dev-team only; contains rng.seed).',
+                    inline: false
+                });
+            } else {
+                fields.push({
+                    name: 'Saved Match',
+                    value: `Omitted: combined attachment size (${(totalBytes / (1024 * 1024)).toFixed(1)} MB) exceeds the ${(DiscordDispatcher.MaxReportAttachmentBytes / (1024 * 1024)).toFixed(0)} MB webhook attachment budget.`,
+                    inline: false
+                });
+            }
+        }
+
         // Create FormData for sending file attachment
         const formData = new FormData();
 
@@ -252,8 +293,14 @@ export class DiscordDispatcher implements IDiscordDispatcher {
 
         const timestamp = new Date().getTime();
         if (reportType === ReportType.BugReport) {
-            this.addGameStateToForm(formData, report.gameState, report.lobbyId, timestamp);
-            this.addGameMessagesToForm(formData, report.messages, report.lobbyId, report.reporter.id, report.opponent.id, timestamp);
+            this.addGameStateToForm(formData, report.gameState, report.lobbyId, timestamp, gameStateJson);
+            this.addGameMessagesToForm(formData, report.messages, report.lobbyId, report.reporter.id, report.opponent.id, timestamp, undefined, undefined, undefined, undefined, messagesText);
+            if (savedMatchJson != null) {
+                formData.append('files[2]', Buffer.from(savedMatchJson), {
+                    filename: `saved-match-${report.lobbyId}-${timestamp}.json`,
+                    contentType: 'application/json',
+                });
+            }
         } else {
             this.addGameMessagesToForm(formData, report.messages, report.lobbyId, report.reporter.id, report.opponent.id, timestamp, report.reporter.username, report.opponent.username);
             if (report.chatMessages) {
@@ -280,8 +327,13 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         }
     }
 
-    private addGameStateToForm(formData: FormData, gameState: any, lobbyId: string, timestamp: number): void {
-        const gameStateJson = JSON.stringify(gameState, null, 2);
+    /**
+     * `precomputedJson`, when supplied (P2D-I1-09), is a `JSON.stringify(gameState, null, 2)` a caller
+     * already produced to compute an attachment size budget elsewhere -- reused here instead of
+     * serializing the same payload a second time.
+     */
+    private addGameStateToForm(formData: FormData, gameState: any, lobbyId: string, timestamp: number, precomputedJson?: string): void {
+        const gameStateJson = precomputedJson ?? JSON.stringify(gameState, null, 2);
         const fileName = `bug-report-${lobbyId}-${timestamp}.json`;
         formData.append('files[0]', Buffer.from(gameStateJson), {
             filename: fileName,
@@ -289,8 +341,9 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         });
     }
 
-    private addGameMessagesToForm(formData: FormData, messages: ISerializedMessage[], lobbyId: string, reporterId: string, opponentId: string, timestamp: number, reporterUsername = 'Player1', opponentUsername = 'Player2', fileField = 'files[1]', fileNamePrefix = 'report-messages'): void {
-        const messagesText = DiscordDispatcher.formatMessagesToText(messages, reporterId, opponentId, reporterUsername, opponentUsername);
+    /** `precomputedText`: as `addGameStateToForm`'s `precomputedJson`, but for the formatted messages text (P2D-I1-09). */
+    private addGameMessagesToForm(formData: FormData, messages: ISerializedMessage[], lobbyId: string, reporterId: string, opponentId: string, timestamp: number, reporterUsername = 'Player1', opponentUsername = 'Player2', fileField = 'files[1]', fileNamePrefix = 'report-messages', precomputedText?: string): void {
+        const messagesText = precomputedText ?? DiscordDispatcher.formatMessagesToText(messages, reporterId, opponentId, reporterUsername, opponentUsername);
         const fileName = `${fileNamePrefix}-${lobbyId}-${timestamp}.txt`;
         formData.append(fileField, Buffer.from(messagesText), {
             filename: fileName,
@@ -610,12 +663,14 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         gameId?: string,
         screenResolution?: { width: number; height: number } | null,
         viewport?: { width: number; height: number } | null,
-        chatMessages?: ISerializedMessage[]
+        chatMessages?: ISerializedMessage[],
+        savedMatch?: ISavedMatch
     ): ISerializedReportState {
         return {
             description: sanitizeForJson(description),
             gameState,
             playerReportType,
+            savedMatch,
             reporter: {
                 id: user.getId(),
                 username: user.getUsername(),

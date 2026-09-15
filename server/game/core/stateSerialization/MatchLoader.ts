@@ -44,6 +44,16 @@ export interface IMatchLoadConfig {
     pushUpdate?: () => void;
     buildSafeTimeout?: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
     userTimeoutDisconnect?: (userId: string) => void;
+
+    /**
+     * Invoked immediately after `new Game(...)` succeeds, before any further driving. `P2-D`'s real
+     * caller (`Lobby.loadSavedMatchAsync`) uses this to assign the router's own `game` reference early, so
+     * a degraded save that resolves into an outright win during restoration calls
+     * `handleGameEnd()`/`sendGameState()` against the game this function is building, not against
+     * whatever the router previously held (see this file's own doc comment on `loadAsync` and the
+     * `isEnded` check below, both addressed to `P2-D` by name).
+     */
+    onGameConstructed?: (game: Game) => void;
 }
 
 export interface IMatchLoadResult {
@@ -164,7 +174,8 @@ function createRethrowingRouterProxy(real: Lobby): { proxy: Lobby; setRethrowErr
  * (2) a degraded save that resolves into an outright win calls the *real* router's
  * `handleGameEnd()`/`sendGameState()` before this function can reject, because `Lobby.handleGameEnd()`
  * takes no argument and acts on the router's own stored game rather than the one this function builds --
- * P2-D needs to account for that when it becomes this loader's first real caller.
+ * resolved by `P2-D` via `IMatchLoadConfig.onGameConstructed` (see that field's doc comment and its call
+ * site just after `new Game(...)` below).
  */
 export async function loadAsync(saved: ISavedMatch, config: IMatchLoadConfig): Promise<IMatchLoadResult> {
     // Step 1: validate the document. No Game is constructed until this passes.
@@ -213,6 +224,11 @@ export async function loadAsync(saved: ISavedMatch, config: IMatchLoadConfig): P
                 },
                 { router: routerProxy }
             );
+
+            // See IMatchLoadConfig.onGameConstructed's doc comment: must run before any restoration step
+            // that can reach endGame() (game.selectDeck below is not one of those, but everything from
+            // step 4 onward is).
+            config.onGameConstructed?.(game);
 
             for (const seat of orderedSeats) {
                 const savedPlayer = findSavedPlayer(saved, seat);
@@ -368,10 +384,11 @@ export async function loadAsync(saved: ISavedMatch, config: IMatchLoadConfig): P
             // returns a `Game` to its caller. This guard stops `loadAsync` from also returning a "successful"
             // result on top of that; it does not (and, with `Lobby.handleGameEnd()` taking no argument and
             // acting on the router's own stored `this.game` rather than the `Game` this function constructed,
-            // cannot cheaply) undo the router calls that already fired. P2-D, which is what will give this
-            // loader its first real router, needs to either register this `Game` as the router's `game` before
-            // any restoration step that can trigger `endGame()`, or accept that a base-lethal degraded save
-            // reports a game end against whatever game the router currently thinks is active.
+            // cannot cheaply) undo the router calls that already fired. Resolved by `P2-D`
+            // (`IMatchLoadConfig.onGameConstructed`, called right after `new Game(...)` above, well before
+            // this point): its real caller (`Lobby.loadSavedMatchAsync`) registers this `Game` as the
+            // router's `game` immediately on construction, so a base-lethal degraded save's `endGame()`
+            // call lands on the game this function is actually building.
             if (game.isEnded) {
                 throw new MatchLoadError('Resolving game state after loading the position ended the game outright (e.g. lethal base damage this loader could not avoid reproducing); this degraded save cannot be returned as a live, in-progress game.');
             }

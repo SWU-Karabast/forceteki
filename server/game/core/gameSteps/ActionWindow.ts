@@ -22,6 +22,17 @@ export class ActionWindow extends UiPrompt {
     private readonly setPassStatus: (passed: boolean) => boolean;
     private readonly snapshotManager: SnapshotManager;
 
+    /**
+     * Set on this instance's first `continue()` and never again. Deliberately independent of
+     * `snapshotManager` / `undoMode`: `checkUpdateSnapshot`'s guard below only reads real values once
+     * `moveToNextTimepoint` has actually taken a snapshot, which never happens under `UndoMode.Disabled`,
+     * so a hook keyed off that guard would fire on every tick instead of once per boundary. A fresh
+     * `ActionWindow` is constructed once per action (`ActionPhase.queueNextAction`) regardless of
+     * `undoMode`, so this field alone gives an undo-mode-independent "first tick of a new action window"
+     * signal for the armed-save trigger.
+     */
+    private boundaryFired = false;
+
     public constructor(
         game: Game,
         prevPlayerPassed: boolean,
@@ -104,6 +115,11 @@ export class ActionWindow extends UiPrompt {
 
     public override continue() {
         this.checkUpdateSnapshot();
+
+        if (!this.boundaryFired) {
+            this.boundaryFired = true;
+            this.game.armedSave.checkTrigger();
+        }
 
         // TODO: do we need promptedActionWindows?
         if (!this.activePlayer.promptedActionWindows[ActionWindow.windowName]) {

@@ -36,6 +36,53 @@ export interface GameConfiguration {
      * same seed into two live games would make one game's shuffles predictable from the other's.
      */
     seed?: string;
+
+    /** Wired into `Game.armedSave.onFired`/`.onCleared` at construction -- see `IArmedSaveSurface`. */
+    onArmedSaveFired?: (trigger: IArmedSaveRequestInfo) => void;
+    onArmedSaveCleared?: () => void;
+}
+
+/** Info describing the moment a save was requested, or ultimately taken, at. */
+export interface IArmedSaveRequestInfo {
+    requestedAtActionNumber: number;
+    requestedAtPhase: string;
+}
+
+export type RequestSaveOutcome =
+  | { kind: 'refused' }
+  | ({ kind: 'immediate' } & IArmedSaveRequestInfo)
+  | { kind: 'armed' };
+
+/**
+ * `Game`'s save-request surface, nested under one non-function property rather than exposed as
+ * individually-named `Game` members. `Lobby.onGameMessage` dispatches any client-sent `{type: 'game',
+ * command}` message straight to `this.game[command]` with no allowlist, guarded only by `typeof
+ * this.game[command] !== 'function'` -- a bare public method or callback field here would be directly
+ * client-invocable (an unbounded, client-triggered `MatchSerializer.save` loop for `onFired`, and a
+ * mid-resolution save for `checkTrigger`/`request`). `armedSave` itself is an object, not a function, so
+ * the dispatcher's guard rejects `{command: 'armedSave'}` outright, and nothing inside it is reachable by
+ * a single command-name lookup. See the implementation review finding `P2D-R1-01`.
+ */
+export interface IArmedSaveSurface {
+
+    /** Called from `Lobby.submitReport` when a save-requesting bug report arrives. */
+    request(): RequestSaveOutcome;
+
+    /** Called once per action-window boundary by `ActionWindow`'s own per-instance latch. Idempotent. */
+    checkTrigger(): void;
+
+    /** Called on every clear condition (phase exit, game end, disconnect, rollback re-entry). Idempotent. */
+    clear(): void;
+
+    /**
+     * Mutable (not fixed at construction): `Lobby.buildGameSettings()` wires these once via
+     * `GameConfiguration`, and `ArmedSaveTrigger.spec.ts` reassigns them directly on `context.game.armedSave`
+     * post-construction, since the test harness (`GameFlowWrapper`) builds `Game` with no callback
+     * passthrough. Reassignable because they live one level inside the non-function `armedSave` container,
+     * which itself stays `readonly`.
+     */
+    onFired?: (trigger: IArmedSaveRequestInfo) => void;
+    onCleared?: () => void;
 }
 
 export interface ICurrentlyResolving {

@@ -64,7 +64,7 @@ import { DisplayCardsBasicPrompt } from './gameSteps/prompts/DisplayCardsBasicPr
 import { PassDelayPrompt } from './gameSteps/prompts/PassDelayPrompt';
 import type { IPassDelayPromptProperties } from './gameSteps/prompts/PassDelayPrompt';
 import { validateGameConfiguration, validateGameOptions } from './GameInterfaces';
-import type { GameConfiguration, GameOptions, ICurrentlyResolving } from './GameInterfaces';
+import type { GameConfiguration, GameOptions, IArmedSaveSurface, ICurrentlyResolving, RequestSaveOutcome } from './GameInterfaces';
 import type { GameObjectBase } from './GameObjectBase';
 import { Helpers } from './utils/Helpers';
 import type { CostAdjuster } from './cost/CostAdjuster';
@@ -184,6 +184,11 @@ export class Game extends EventEmitter {
     }
 
     public set currentPhase(value: PhaseName | null) {
+        // Clear condition 1/4 for an armed save request: exiting the action phase (e.g. to regroup)
+        // invalidates the "next action-window boundary" the request was waiting on.
+        if (this.state.currentPhase === PhaseName.Action && value !== PhaseName.Action) {
+            this.armedSave.clear();
+        }
         this.state.currentPhase = value;
     }
 
@@ -320,6 +325,15 @@ export class Game extends EventEmitter {
     public readonly userTimeoutDisconnect: (userId: string) => void;
     public readonly preselectedFirstPlayerId: string | undefined;
     public readonly onBo3SetForfeit?: (losingPlayerId: string) => void;
+
+    private _armedSaveRequest: { requestedAtActionNumber: number; requestedAtPhase: string } | null = null;
+
+    /**
+     * See `IArmedSaveSurface`'s own doc comment for why this is a single non-function property rather
+     * than individually-named `Game` members: it is what keeps this whole surface off the client-callable
+     * `Lobby.onGameMessage` dispatch path.
+     */
+    public readonly armedSave: IArmedSaveSurface;
     public manualMode: boolean;
     public gameMode: GameMode;
 
@@ -396,6 +410,41 @@ export class Game extends EventEmitter {
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
         this.preselectedFirstPlayerId = details.preselectedFirstPlayerId;
         this.onBo3SetForfeit = details.onBo3SetForfeit;
+
+        // See `IArmedSaveSurface` (GameInterfaces.ts) and `ActionWindow`'s per-instance `boundaryFired`
+        // latch for the full design. `request`/`checkTrigger`/`clear` are defined here as closures (not
+        // instance methods) so they can be handed out on this one property without also being reachable
+        // as top-level, client-dispatchable `Game` methods.
+        this.armedSave = {
+            request: (): RequestSaveOutcome => {
+                if (this.currentPhase !== PhaseName.Action) {
+                    return { kind: 'refused' };
+                }
+                const requestedAtActionNumber = this.actionNumber;
+                const requestedAtPhase = this.currentPhase;
+                if (this.currentActionWindow != null && this.getCurrentOpenPrompt() === this.currentActionWindow) {
+                    return { kind: 'immediate', requestedAtActionNumber, requestedAtPhase };
+                }
+                this._armedSaveRequest ??= { requestedAtActionNumber, requestedAtPhase };
+                return { kind: 'armed' };
+            },
+            checkTrigger: (): void => {
+                if (this._armedSaveRequest == null) {
+                    return;
+                }
+                const trigger = this._armedSaveRequest;
+                this._armedSaveRequest = null;
+                this.armedSave.onFired?.(trigger);
+            },
+            clear: (): void => {
+                if (this._armedSaveRequest != null) {
+                    this._armedSaveRequest = null;
+                    this.armedSave.onCleared?.();
+                }
+            },
+            onFired: details.onArmedSaveFired,
+            onCleared: details.onArmedSaveCleared,
+        };
 
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this._debug = { pipeline: false };
@@ -875,6 +924,11 @@ export class Game extends EventEmitter {
      * Display message declaring victory for one player, and record stats for the game
      */
     public endGame(winnerPlayers: Player[] | Player, reasonCode: GameEndReason): void {
+        // Clear condition 2/4 for an armed save request: unconditional, above the `isEnded` guard below,
+        // so a second `endGame` call on an already-ended game doesn't matter -- there is nothing left to
+        // clear by then.
+        this.armedSave.clear();
+
         this.gameEndReason = reasonCode;
 
         if (this.isEnded) {
@@ -2023,6 +2077,16 @@ export class Game extends EventEmitter {
     }
 
     public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint): void {
+        // Clear condition 4/4 for an armed save request: `game.state` is replaced wholesale during
+        // rollback (never through the `currentPhase` setter above), so a plain instance field like
+        // `_armedSaveRequest` survives that replacement untouched. An armed request is never "replayed"
+        // across a rollback -- it is unconditionally cancelled here, since resuming a save request across
+        // a rollback would let a later boundary silently stamp a now-wrong `requestedAtActionNumber` onto
+        // a document from a timeline the reporter never saw. Placed first, before any step is rebuilt, so
+        // no boundary can fire between this clear and the rebuild. A no-op on `MatchLoader`'s own call
+        // into this method (a freshly constructed `Game` has nothing armed).
+        this.armedSave.clear();
+
         this.pipeline.clearSteps();
         this.initializeCurrentlyResolving();
         if (entryPoint.type === RollbackEntryPointType.Setup) {

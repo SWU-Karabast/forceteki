@@ -712,3 +712,109 @@ This unit went through three implementation review rounds (nine cold reviews, th
 - **Two seats bound to the same username are rejected**, because engine limit maps key on `player.name` and would silently merge the two seats' counts.
 - **A save taken after Bo3 sideboarding always fails to load**, because the document's decklist is `originalDeckList`, which sideboarding does not update. The validator produces a diagnostic naming that cause. Making such saves loadable is a writer-side change (work item A), not a loader change.
 - Residuals 2 and 3 above are `P2-D`'s to resolve or consciously accept.
+
+---
+
+## `P2-D` — Server plumbing + the armed one-shot save trigger (Plan 2, work item D)
+
+| | |
+|---|---|
+| Task ID | `p2-d` |
+| Date | 2026-09-15 |
+| Lane / tier | full, tier 2 (Medium 🟡), proof level standard |
+| Plan | [02-semantic-save-load.md](02-semantic-save-load.md) work item D; [IMPLEMENTATION-ORDER.md](IMPLEMENTATION-ORDER.md) unit `P2-D` |
+| Parent | `58f5c4ca7` |
+| Commit | _(recorded below after the commit lands)_ |
+| Branch | `experimental/rollback-saves-optimizations` |
+
+### What changed
+
+The three surfaces work item D asked for: a save *request* folded into the existing bug-report flow, the armed one-shot that decides *when* the save is actually taken, and a dev-only load route.
+
+- `Game.ts` / `GameInterfaces.ts` — the armed-save state and its `IArmedSaveSurface`: `request()`, `checkTrigger()`, `clear()`, plus mutable `onFired`/`onCleared` callbacks wired from `GameConfiguration`. `request()` refuses outside the action phase, saves inline when `getCurrentOpenPrompt() === currentActionWindow`, and otherwise arms `{requestedAtActionNumber, requestedAtPhase}` with `??=` coalescing.
+- `ActionWindow.ts` — a per-instance `boundaryFired` latch set on the window's first `continue()`, which calls `game.armedSave.checkTrigger()`. Five lines, and the single most load-bearing decision in the unit (see below).
+- `Lobby.ts` — `submitReport` gains a fourth arg (`requestSave`, honoured only for bug reports with a live game); the report body splits into a synchronous preamble and `finishReportSubmission`; a per-user `pendingSaveReports` map holds deferred reports; `onArmedSaveFired`/`onArmedSaveCleared`/`drainPendingSaveReports` resolve them; and `loadSavedMatchAsync` wraps `MatchLoader.loadAsync`.
+- `DiscordDispatcher.ts` — the completed `ISavedMatch` attaches as `files[2]` on the bug-report branch (confirmed unused there; the player-report branch's existing `files[2]` chat attachment is untouched), behind a combined-payload size budget.
+- `GameServer.ts` / `UserFactory.ts` — `POST /api/dev/load-saved-match`, registered only under `ENVIRONMENT === 'development'`, gated by `ServerRole.Developer` and `areGamesEnabled()`, returning `{success, gameId, engineOnlyFacts}` and nothing else. `getExistingUserByIdAsync` requires a genuine account before a seat is bound.
+- `MatchLoader.ts` — the one authorized `stateSerialization/` edit: an optional `IMatchLoadConfig.onGameConstructed` hook plus its single call site, retiring the two TODOs that file addressed to `P2-D` by name.
+
+Four new spec files, 30 specs: `ArmedSaveTrigger.spec.ts` (7), `LobbySaveReportDrain.spec.ts` (11), `DevMatchLoad.spec.ts` (6), `DiscordDispatcherSavedMatch.spec.ts` (6). Net 1427 insertions, 41 deletions across 13 files.
+
+### The boundary hook cannot key off the snapshot manager, and the first plan got this wrong
+
+The plan text says to arm "independently of `undoMode`, guarding the `SnapshotManager` early-returns at `:116,:134`". The obvious reading — hook inside `ActionWindow.checkUpdateSnapshot`'s existing `if`, which does not itself mention `undoMode` — is wrong, and plan review caught it before any code was written.
+
+That guard reads `snapshotManager.currentSnapshottedTimepointType` and `currentSnapshottedAction`. Both resolve to `SnapshotFactory.currentActionSnapshot?.<field>`, and `currentActionSnapshot` is assigned only at the end of `createSnapshotForCurrentTimepoint`, which `moveToNextTimepoint` reaches **only past** its `UndoMode.Disabled` early return. Under `UndoMode.Disabled` the field is permanently unset, both getters return null, and the guard is unconditionally true **on every tick**. The guard's outer shape is undo-independent; its operands are entirely undo-dependent.
+
+This mattered concretely: `integration()` defaults to `UndoMode.Disabled`, and `ENABLE_UNDO_ALL_TESTS=true` rebinds it to `Free`. A drift assertion written against that hook would have passed one gating suite and failed the other.
+
+**The fix is a per-`ActionWindow` `boundaryFired` field**, set on the instance's first `continue()`. One `ActionWindow` is constructed per action (`ActionPhase.queueNextAction`, the only construction site) regardless of `undoMode`, and `getNextActionNumber()` increments `game.actionNumber` immediately *before* construction — so the declared drift is exactly one action in both modes, by construction rather than by observation. `ActionWindow` extends `BaseStep`, a plain class with no `@registerState`, so the latch is outside `state` and cannot be corrupted by snapshot/restore.
+
+**Carry this forward:** `checkUpdateSnapshot`'s guard is not a usable "once per boundary" signal for anything. Any future per-action-boundary hook needs its own latch.
+
+### Four clear conditions, because rollback is one of them
+
+The plan named three (game end, phase exit to regroup, disconnect). Review established a fourth is mandatory: `GameStateManager.rollbackToSnapshot` replaces `game.state` wholesale via `v8.deserialize`, **not** through property setters, so a plain field survives rollback untouched *and* the `currentPhase`-setter hook never fires on a rollback-driven phase change. Without it, a request armed at round 3 action 7 survives an undo and fires against a replayed timeline, declaring a drift computed against an action number the position never had — the one failure mode the unit's own brief says it must not ship.
+
+The clear lives at the top of `Game.postRollbackOperations`, which is the single re-entry point for every rollback path in the codebase (live undo via `Game.rollbackToSnapshotInternal`, and `MatchLoader`'s own load-time call). The error-recovery path inside `GameStateManager` deliberately does *not* reach it, which is correct: that path restores the original timeline, so the armed request is still valid.
+
+Two more clear sites were added during implementation review: `handleError`'s `SevereHaltGame` branch and `handleSerializationFailure`. Neither calls `endGame` nor marks anyone disconnected, and a halted game remains driveable — so without them a pending report was lost outright *and* the stale trigger survived to fire against a much later action.
+
+### Anything public on `Game` or `Lobby` is a client-invocable command
+
+`Lobby.onGameMessage` dispatches `{type:'game', command}` to `this.game[command]` with no allowlist, guarded only by `typeof !== 'function'`. `Lobby.onLobbyMessage` does the same for `this[command]` — and **reaches `private` members**, since TypeScript's `private` is compile-time only. The repo already depends on this: `submitReport` itself is a dispatched private.
+
+Both halves of this unit tripped over it, in successive review rounds. First, five bare public `Game` members would have let a client emit `game:onArmedSaveFired` in a loop (an unbounded `MatchSerializer.save` loop, each result discarded) or `game:checkArmedSaveTrigger` to force a save mid-resolution — a document stamped `kind:'deferred'` with drift 0, taken at a moment the design doc lists as an explicit non-goal. The fix is the non-function `armedSave` container: an object, not a function, so the dispatcher's guard rejects it and nothing inside is reachable by a single command-name lookup.
+
+The *second* round found the same hazard had simply moved: the fire and drain handlers now lived on `Lobby`, where the dispatcher is strictly more permissive. Fixed with argument-shape guards, which work because the dispatcher binds `this[command](socket, ...args)` — the `Socket` always occupies argument 0, so a client cannot place a conforming object in the guarded position, while the real internal caller always supplies a number and a string (`request()` only arms inside `PhaseName.Action`).
+
+**Carry this forward:** `onLobbyMessage` remains generally unguarded for the ~40 other private `Lobby` methods. That is a real, separately-scoped finding — a general allowlist was offered at both gates and explicitly declined as out of scope for this unit, twice. It is worth its own task.
+
+### Decisions worth re-checking later
+
+1. **The client is acked immediately for every outcome** (`saveStatus: 'included' | 'pending' | 'unavailable'`); only the Discord POST is deferred. The plan originally withheld the ack until the save landed, reading "the report submits when the save lands" as covering the ack too. That reading created an indefinite client hang whenever the one-shot never fired, and a permanent one on the halt paths. Re-check if the client ever needs to distinguish "pending, will arrive" from "sent".
+2. **Report *content* is captured at request time; only the save moves.** `captureGameState`, `getLogMessages` and the opponent lookup stay in the synchronous preamble, so `files[0]` describes the moment the player clicked, and the declared one-action drift applies to the save alone. An earlier split had both move together, silently changing the existing bug-report channel's meaning.
+3. **A second concurrent save-requesting report degrades rather than being refused** — it submits immediately with `saveStatus: 'unavailable'`, so the player's typed description is never discarded. `pendingSaveReports` is capped at one entry per user.
+4. **The dev-load route is development-only.** `setupDevAppRoutes` is registered only under `ENVIRONMENT === 'development'`; `ServerRole.Developer` and `areGamesEnabled()` are defense in depth, not the primary control. The route-scoped 5 MB body parser is mounted under the same environment check and *before* the global `express.json()`, since Express runs parsers in registration order and a later per-route parser would be inert behind the global 100 kB default.
+5. **Hidden information stays cleartext, by product decision.** Deck order and hands are in the file because the recipient is the dev team and that is what makes a report reproducible. No scrubbing writer mode exists. Re-check when player-to-player sharing is proposed.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `npm run build` | exit 0 |
+| `npx tsc -p ./test/tsconfig.json` | exit 0 |
+| `npm run lint` | exit 0 |
+| `npm run validate-cards` | exit 0 |
+| `npm run test-parallel` | 8488 specs, 0 failures, 13 pending |
+| `npm run test-parallel-undo` | 8301 specs, 0 failures, 17 pending |
+
+Baseline at `58f5c4ca7` was 8458/0/13 and 8271/0/16. Both suites are up exactly 30, matching the 30 new specs — collected and run in **both** modes, not silently skipped in one. The extra undo-suite pending is the `undoIntegration` rollback-clear case, which `ENABLE_UNDO_ALL_TESTS=true` deliberately `xit`s; it runs for real under `test-parallel`. `npm run benchmark` was not run — out of scope by instruction (owned by `P2-E`).
+
+Harness semantics worth stating once, because two successive plan revisions got them backwards: `integration(defs, enableUndo = false)` defaults to `UndoMode.Disabled`, and under `ENABLE_UNDO_ALL_TESTS=true` its **second argument is dropped**, so there is no way to pin `Disabled` under the undo sweep; `undoIntegration` bodies are replaced with an `xit` skip under that same variable.
+
+### Review history
+
+Two plan-review rounds (the second a user-approved bounded extension) and two implementation-review rounds. Both first rounds returned REJECTED, and in both cases the defect was in the mechanism the unit exists to protect:
+
+- Plan round 1: 5 BLOCKING, including the undo-dependent hook above and the missing rollback clear.
+- Implementation round 1: 1 BLOCKING — the client-dispatch containment had been applied to `Game` and defeated on `Lobby`.
+
+The confirming delta review verified each repair against the dispatcher's actual argument binding rather than the finding's prose, and re-verified that `Game.ts` and `ActionWindow.ts` were byte-identical to the previously-approved subject, so the safety invariant did not need re-deriving.
+
+### Known residuals, disclosed and accepted at the gate
+
+1. **`onLobbyMessage`'s general lack of a command allowlist** (above) — declined twice as out of scope; worth its own task.
+2. **Three test/diagnostic NITs from the final review, fixed in fix cycle 2** (not carried as open residuals): the two containment specs now assert a positive control (`lobby.userLastActivity.has('u1')`) proving `onLobbyMessage` actually reached the dispatched handler, rather than only negatives that would pass vacuously if a future refactor made `updateUserLastActivity` throw for this stub shape; the halt-path specs' stub game now carries `snapshotManager`/`id`, so `finishReportSubmission` runs to completion instead of throwing into an absorbed rejection, and both cases assert `formatAndSendReportAsync` was actually called, not just that the map emptied; and `loadSavedMatchAsync`'s own containment guard was narrowed to a plain shape check (`saved == null || typeof saved !== 'object' || !Array.isArray(seats)`), leaving `formatVersion` policy solely to `SavedMatchValidator`. The narrowed contract still rejects the dispatched `Socket` (it has no `seats` property, so `Array.isArray(seats)` is `false`), and Plan 6 now only has to touch the validator when it adds schema migration.
+3. **The dev route's HTTP path has no executable evidence** — body-parser ordering and the auth middleware are verified by inspection only, since no HTTP/Express harness exists anywhere in this suite. The `areGamesEnabled()` gate *is* tested, by capturing the handler through `setupDevAppRoutes.call(stub, fakeApp)`.
+4. **The 5 MB body limit and the 7 MB Discord attachment budget are structural estimates**, not measured against a real production-sized `ISavedMatch`.
+5. **`P2-C2`'s residual 2 is still open**: there is no structured discriminator between "bad document" and "engine bug" — everything is a `MatchLoadError` with the original in `diagnostics.cause`. The dev route translates every one to a 400. `P2-C2` named this as `P2-D`'s to resolve or accept; it is consciously accepted, since the route's only consumer is the dev team, who has the server logs.
+
+`P2-C2`'s residual 3 (`Lobby.handleGameEnd()` acting on the router's own `this.game`) **is** resolved, by the `onGameConstructed` hook.
+
+### Notes for the next agent (`P2-E`)
+
+- The armed trigger's observable surface for testing is `game.armedSave` — `request()` returns `{kind}`, and `onFired`/`onCleared` are reassignable directly on `context.game` after `setupTestAsync()` returns. The harness has no `GameConfiguration` passthrough, so that post-construction assignment is the only route.
+- The four clear conditions are: `Game.currentPhase`'s setter (exit from `PhaseName.Action`), `Game.endGame`, `Lobby.setUserDisconnected` (inside the player branch, after the socket-id check — a spectator or superseded socket must not clear), and `Game.postRollbackOperations`. The halt paths clear too, via `Lobby.handleError`/`handleSerializationFailure`.
+- `saveTrigger.kind` is `'immediate'` when the request arrived at a boundary and `'deferred'` when it was armed; `requestedAtActionNumber` read against the document's own `game.actionNumber` is the declared drift, and it is exactly 0 or 1 respectively.
+- Work item E's trigger-matrix group should include the undo-disabled case explicitly — that is the mode where the naive hook silently misbehaves, and it is the default mode for ordinary `integration()` specs.

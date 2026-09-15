@@ -64,6 +64,9 @@ import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 import { ModActionService } from '../utils/ModActionService';
 import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema, ServerSettingsUpdateSchema } from '../services/DynamoDBInterfaceSchemas';
+import { MatchLoadError } from '../game/core/stateSerialization/MatchLoadError';
+import type { IEngineOnlyFact, ISavedMatch } from '../game/core/stateSerialization/SavedMatchInterfaces';
+import { getUserWithDefaultsSet } from '../Settings';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -233,6 +236,17 @@ export class GameServer {
         testGameBuilder?: any
     ) {
         const app = express();
+        // Path-scoped, mounted before the global parser below: Express runs body parsers in registration
+        // order, and body-parser short-circuits on req._body, so this is what actually raises the limit
+        // for this one route -- a parser mounted later, inside setupDevAppRoutes, would never run (the
+        // global 100kB parser below would already have rejected an oversized body first). See
+        // loadSavedMatchForDev's own doc comment for why this route needs a larger body than the default.
+        // P2D-I1-03: gated the same as `setupDevAppRoutes` below (the route this parser exists for is
+        // itself dev-only) -- unconditionally, this let any unauthenticated client on a production server
+        // force a 5 MB JSON parse (versus the 100 kB global limit) against a path that only ever 404s.
+        if (process.env.ENVIRONMENT === 'development') {
+            app.use('/api/dev/load-saved-match', express.json({ limit: '5mb' }));
+        }
         app.use(express.json());
         const server = http.createServer(app);
 
@@ -1963,8 +1977,90 @@ export class GameServer {
         };
     }
 
+    /**
+     * Resolves `userId` against a genuine, existing account. Never falls back to
+     * `userFactory.createAnonymousUser`, which accepts a caller-supplied id verbatim -- doing so here
+     * would let a posted seat id equal to a live user's id silently rebind that user's own
+     * `userLobbyMap` entry (used elsewhere for reconnection/routing). Throws `MatchLoadError` (translated
+     * to a 400 by the route handler) rather than returning `null`, since every call site needs a `User`.
+     */
+    private async resolveRealUserForDevLoad(userId: string): Promise<User> {
+        const user = await this.userFactory.getExistingUserByIdAsync(userId);
+        if (!user) {
+            throw new MatchLoadError(`No existing user account found for seat id "${userId}"; the dev load route never binds a seat to an unverified caller-supplied id.`);
+        }
+        return user;
+    }
+
+    /**
+     * Dev-only: constructs a fresh, headless `Lobby`/`Game` from a posted `ISavedMatch` document and binds
+     * each seat to a genuine existing account. Registers the new `Lobby` in `this.lobbies`/
+     * `this.userLobbyMap` only *after* `loadSavedMatchAsync` has already succeeded, so a failed load (an
+     * invalid document, an unresolvable seat id) leaves server-wide state untouched rather than leaking a
+     * half-registered lobby on the common failure path. This deferred `createLobbyUser` is load-bearing
+     * together with `Lobby.loadSavedMatchAsync`'s own early `this.game` registration via
+     * `onGameConstructed` (P2D-I1-08): calling `createLobbyUser` any earlier would populate `lobbyUser`
+     * before the load either fails or produces a real `Game`, and a degraded save that resolves into an
+     * outright win during restoration would then reach `endGameUpdateStatsAsync` and write phantom
+     * results against two real accounts.
+     */
+    private async loadSavedMatchForDev(saved: ISavedMatch, seatUserIds: Record<string, string>): Promise<{ gameId: string; engineOnlyFacts: readonly IEngineOnlyFact[] }> {
+        const lobby = new Lobby(
+            'Loaded Match',
+            MatchmakingType.PrivateLobby,
+            SwuGameFormat.Open,
+            GamesToWinMode.BestOfOne,
+            CardPool.Unlimited,
+            this.cardDataGetter,
+            this.deckValidator,
+            this,
+            this.discordDispatcher
+        );
+
+        const seats = await Promise.all(Object.entries(seatUserIds).map(async ([seat, userId]) => {
+            const user = await this.resolveRealUserForDevLoad(userId);
+            return { seat, user, seatUser: getUserWithDefaultsSet({ id: user.getId(), username: user.getUsername() }) };
+        }));
+
+        // Throws MatchLoadError on any invalid-document or unbindable-seat path; nothing below is
+        // registered into server-wide maps until this has already succeeded.
+        const result = await lobby.loadSavedMatchAsync(saved, seats.map(({ seat, seatUser }) => ({ seat, user: seatUser })));
+
+        this.lobbies.set(lobby.id, lobby);
+        for (const { user } of seats) {
+            lobby.createLobbyUser(user);
+            this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+        }
+
+        return { gameId: result.game.id, engineOnlyFacts: result.engineOnlyFacts };
+    }
+
     // dev only endpoints
     private setupDevAppRoutes(app: express.Application) {
+        // Loads a saved match document into a fresh, headless game for reproduction by the dev team. The
+        // response never includes the document or its rng.seed -- only {success, gameId, engineOnlyFacts}.
+        app.post('/api/dev/load-saved-match', this.buildAuthMiddleware('load-saved-match', ServerRole.Developer), async (req, res, next) => {
+            try {
+                if (!this.areGamesEnabled()) {
+                    return this.sendGamesDisabledResponse(res);
+                }
+
+                const { savedMatch, seats } = req.body as { savedMatch?: ISavedMatch; seats?: Record<string, string> };
+                if (!savedMatch || !seats || typeof seats !== 'object') {
+                    return res.status(400).json({ success: false, message: 'Request body must include savedMatch and a seats map of seat label to existing user id.' });
+                }
+
+                const result = await this.loadSavedMatchForDev(savedMatch, seats);
+                return res.status(200).json({ success: true, gameId: result.gameId, engineOnlyFacts: result.engineOnlyFacts });
+            } catch (error) {
+                if (error instanceof MatchLoadError) {
+                    return res.status(400).json({ success: false, message: error.message });
+                }
+                logger.error('GameServer (load-saved-match) Server error:', error);
+                next(error);
+            }
+        });
+
         // deletes all cosmetics from the database
         app.delete('/api/cosmetics', this.buildAuthMiddleware('clear-all-cosmetics', ServerRole.Admin), async (req, res, next) => {
             try {

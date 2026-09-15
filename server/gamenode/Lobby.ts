@@ -35,9 +35,15 @@ import type { IQueueFormatKey } from './QueueHandler';
 import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 import { ModerationType } from '../services/DynamoDBInterfaces';
-import type { ISerializedMessage } from '../game/Interfaces';
+import type { ISerializedGameState, ISerializedMessage } from '../game/Interfaces';
 import { PlayerReportType, ReportType } from '../game/Interfaces';
 import type { IStatsMessageFormat } from '../utils/stats/statsMessages';
+import type { IArmedSaveRequestInfo } from '../game/core/GameInterfaces';
+import { save } from '../game/core/stateSerialization/MatchSerializer';
+import type { ISavedMatch } from '../game/core/stateSerialization/SavedMatchInterfaces';
+import { loadAsync } from '../game/core/stateSerialization/MatchLoader';
+import type { IMatchLoadResult, IMatchLoadSeat } from '../game/core/stateSerialization/MatchLoader';
+import { MatchLoadError } from '../game/core/stateSerialization/MatchLoadError';
 import {
     createStatsMessage,
     StatsMessageKey,
@@ -131,6 +137,33 @@ export interface RematchRequest {
     mode: RematchMode;
 }
 
+type SaveStatus = 'included' | 'unavailable' | 'pending';
+
+/**
+ * Everything `submitReport` captures synchronously at request time, regardless of the eventual save
+ * outcome -- see `finishReportSubmission`'s doc comment for why this must never move to fire time.
+ */
+interface IPendingSaveReport {
+    socket: Socket;
+    reportType: ReportType;
+    parsedDescription: string;
+    playerReportType: PlayerReportType | null;
+    screenResolution: { width: number; height: number } | null;
+    viewport: { width: number; height: number } | null;
+    gameState: ISerializedGameState;
+    gameMessages: ISerializedMessage[];
+    chatMessages?: ISerializedMessage[];
+    opponent: { id: string; username: string };
+}
+
+interface IFinishReportParams extends IPendingSaveReport {
+    savedMatch: ISavedMatch | null;
+    saveStatus?: SaveStatus;
+
+    /** False for a deferred completion, whose client was already acked `'pending'` at request time. */
+    ackClient: boolean;
+}
+
 export class Lobby {
     private static readonly MaxGameMessageErrors = 100;
 
@@ -168,6 +201,13 @@ export class Lobby {
     private usersLeftCount = 0;
     private gameMessageErrorCount = 0;
     private statsUpdateStatus = new Map<string, Map<StatsSource, IStatsMessageFormat>>();
+
+    /**
+     * At most one entry per requesting user id (a normal game has at most 2 players), keyed by
+     * `socket.user.getId()`. Populated only while a save-requesting bug report is waiting on a deferred
+     * ('armed') save; drained by `onArmedSaveFired`/`drainPendingSaveReports`.
+     */
+    private pendingSaveReports = new Map<string, IPendingSaveReport>();
 
     private winHistory: IGameWinHistory;
     private bo3NextGameConfirmedBy?: Set<string>;
@@ -1049,6 +1089,11 @@ export class Lobby {
 
             user.state = 'disconnected';
             this.gameChat.setTypingState(id, false);
+            // Clear condition 3/4 for an armed save request. Placed inside this branch, after the
+            // socket-id check, so a spectator disconnecting (handled below) or a stale/superseded
+            // reconnecting socket for this same player never cancels a live player's armed save
+            // (implementation review finding P2D-R1-07).
+            this.game?.armedSave.clear();
             logger.info(`Lobby: setting user ${user.username} to disconnected on socket id ${socketId}`, { lobbyId: this.id, userName: user.username, userId: user.id });
         }
 
@@ -1477,7 +1522,122 @@ export class Lobby {
             onBo3SetForfeit: this.gamesToWinMode === GamesToWinMode.BestOfThree
                 ? (losingPlayerId: string) => this.concedeBo3ByUserId(losingPlayerId)
                 : undefined,
+            onArmedSaveFired: (trigger: IArmedSaveRequestInfo) => this.onArmedSaveFired(trigger),
+            onArmedSaveCleared: () => this.drainPendingSaveReports('unavailable', 'the armed save request was cleared (phase exit, game end, disconnect, or rollback)'),
         };
+    }
+
+    /**
+     * `Game.armedSave.onFired`: called once, from `ActionWindow`'s own boundary latch, at the first
+     * action-window boundary after a save was armed. Builds the save (if anything is actually waiting on
+     * it) and completes every pending report with it.
+     */
+    private onArmedSaveFired(trigger: IArmedSaveRequestInfo): void {
+        // P2D-I1-01: `onLobbyMessage` has no command allowlist and dispatches by name to `this[command]`,
+        // reaching this `private` method with `this[command](socket, ...args)` -- so a client-emitted
+        // `lobby:onArmedSaveFired` calls this with `trigger` bound to the `Socket`, not a real
+        // `IArmedSaveRequestInfo`. The only legitimate caller is `Game.armedSave.onFired`, wired in
+        // `buildGameSettings()` below, which always supplies both fields with these types. Rejecting any
+        // other shape keeps this handler's capability -- building an `ISavedMatch` right now and shipping
+        // it to Discord -- unreachable from client dispatch, without a general `Lobby` command allowlist.
+        if (typeof trigger?.requestedAtActionNumber !== 'number' || typeof trigger?.requestedAtPhase !== 'string') {
+            return;
+        }
+
+        if (this.pendingSaveReports.size === 0) {
+            // P2D-R1-01: never build a save for nothing, even though the only wired caller
+            // (ActionWindow's latch) is itself gated on an armed request existing.
+            return;
+        }
+
+        let savedMatch: ISavedMatch | null = null;
+        try {
+            // Only reachable as a Game callback fired by this lobby's own `this.game`, so it is always set here.
+            Contract.assertNotNullLike(this.game, 'Lobby: onArmedSaveFired fired with no active game');
+            savedMatch = save(this.game, { saveTrigger: { kind: 'deferred', ...trigger } });
+        } catch (error) {
+            logger.error('Lobby: deferred save failed; completing pending report(s) without a save', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+        }
+
+        const pending = [...this.pendingSaveReports.values()];
+        this.pendingSaveReports.clear();
+        for (const p of pending) {
+            this.finishReportSubmission({ ...p, savedMatch, saveStatus: savedMatch != null ? 'included' : 'unavailable', ackClient: false })
+                .catch((error) => logger.error('Lobby: unhandled failure completing a deferred bug report', { error: { message: error.message, stack: error.stack }, lobbyId: this.id }));
+        }
+    }
+
+    /**
+     * `Game.armedSave.onCleared`, and also called directly from the halt paths (`handleError`'s
+     * `SevereHaltGame` branch, `handleSerializationFailure`), which never call `endGame`/disconnect a
+     * player and so never reach the fire/clear mechanism on their own. Every entry is logged individually
+     * before being drained -- the free-text description is otherwise lost with no trace.
+     */
+    private drainPendingSaveReports(saveStatus: 'unavailable', reason: string): void {
+        // P2D-I1-01: same client-dispatch hazard as `onArmedSaveFired` above. A client-emitted
+        // `lobby:drainPendingSaveReports` calls this with `saveStatus` bound to the `Socket` (dispatch
+        // supplies the caller's socket as the first argument), never the literal `'unavailable'` every
+        // real caller passes -- so this rejects anything else instead of discarding a pending report
+        // (potentially an opponent's) on a client's say-so.
+        if (saveStatus !== 'unavailable') {
+            return;
+        }
+
+        if (this.pendingSaveReports.size === 0) {
+            return;
+        }
+
+        for (const userId of this.pendingSaveReports.keys()) {
+            logger.warn('Lobby: abandoning a pending save-requesting report', { lobbyId: this.id, userId, reason });
+        }
+
+        const pending = [...this.pendingSaveReports.values()];
+        this.pendingSaveReports.clear();
+        for (const p of pending) {
+            this.finishReportSubmission({ ...p, savedMatch: null, saveStatus, ackClient: false })
+                .catch((error) => logger.error('Lobby: unhandled failure completing an abandoned bug report', { error: { message: error.message, stack: error.stack }, lobbyId: this.id }));
+        }
+    }
+
+    /**
+     * Dev-only load entry point (`GameServer.loadSavedMatchForDev`): drives `MatchLoader.loadAsync` with
+     * this lobby as the router and registers this lobby's own `game` as early as possible, via
+     * `onGameConstructed`, so a degraded save that resolves into an outright win during restoration calls
+     * `handleGameEnd()`/`sendGameState()` against the game this call is building rather than whatever
+     * (nothing) this lobby's `game` previously held. See `MatchLoader.ts`'s own comments addressed to
+     * `P2-D` for why this matters. This early registration is load-bearing together with
+     * `GameServer.loadSavedMatchForDev` registering `createLobbyUser` only *after* this call has already
+     * succeeded (P2D-I1-08): reversing either order lets a degraded save that resolves into an outright
+     * win reach `endGameUpdateStatsAsync` with a populated `lobbyUser` before `this.game` exists, or with
+     * `this.game` set but no real lobby user yet, either of which writes phantom results against real
+     * accounts.
+     */
+    public async loadSavedMatchAsync(saved: ISavedMatch, seats: readonly IMatchLoadSeat[]): Promise<IMatchLoadResult> {
+        // P2D-I1-10 / P2D-D1-03: `public` and therefore also client-dispatchable via `onLobbyMessage`
+        // (`this[command](socket, ...args)`), which would bind `saved` to the caller's `Socket` and
+        // `seats` to the client's first argument (or nothing) -- and `onGameConstructed` below assigns
+        // `this.game`, so letting either through would let a client replace a live lobby's `Game`
+        // mid-match. This is a pure containment guard against that dispatch shape, not a version policy:
+        // a `Socket` is an object but has no `seats` property, so `Array.isArray(seats)` is `false` and
+        // it is rejected regardless of `saved.formatVersion`. Document-level validation, including
+        // `formatVersion`, belongs solely to `SavedMatchValidator.validate` (deeper in `loadAsync`), which
+        // collects and names every failure instead of this guard's generic message -- and is the only
+        // layer that should have to change when Plan 6 adds schema migration.
+        if (saved == null || typeof saved !== 'object' || !Array.isArray(seats)) {
+            throw new MatchLoadError(`loadSavedMatchAsync: expected a saved-match document and a seats array, got ${typeof saved} / ${typeof seats}`);
+        }
+
+        return await loadAsync(saved, {
+            cardDataGetter: this.cardDataGetter,
+            router: this,
+            seats,
+            onGameConstructed: (game) => {
+                this.game = game;
+            },
+            pushUpdate: () => this.sendGameState(this.game),
+            buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) => this.buildSafeTimeout(callback, delayMs, errorMessage),
+            userTimeoutDisconnect: (userId: string) => this.userTimeoutDisconnect(userId),
+        });
     }
 
     private userTimeoutDisconnect(userId: string) {
@@ -1673,6 +1833,18 @@ export class Lobby {
             this.sendGameState(this.game);
 
             if (severity === GameErrorSeverity.SevereHaltGame) {
+                // The halt paths never call endGame() or disconnect anyone, so the armed-save
+                // fire/clear mechanism never drains a pending save-requesting report on its own here.
+                // Clear the armed request first (P2D-I1-02) -- a halted game stays driveable
+                // (onGameMessage resets its error count on every message and its catch only logs), so
+                // leaving `_armedSaveRequest` armed lets a later report's `??=` coalesce onto this stale
+                // trigger and eventually fire with unbounded drift against a position the reporter never
+                // saw. `armedSave.clear()` itself drains via `onCleared` when something was actually
+                // armed; the direct drain below is then a no-op fallback that only matters when nothing
+                // was armed but a report is still pending (P2D-R1-02).
+                this.game?.armedSave.clear();
+                this.drainPendingSaveReports('unavailable', 'the game halted due to a severe error');
+
                 // this is ugly since we're probably within an exception handler currently, but if we get here it's already crisis
                 throw error;
             }
@@ -1681,6 +1853,12 @@ export class Lobby {
 
     public handleSerializationFailure(game: Game, error: Error): never {
         logger.error('Lobby: handleSerializationFailure', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+
+        // See the SevereHaltGame branch of handleError above -- same reasoning (P2D-R1-02, P2D-I1-02):
+        // clear the armed request first so it can't coalesce a later report onto a stale trigger, then
+        // drain as the no-op fallback for the not-armed case.
+        this.game?.armedSave.clear();
+        this.drainPendingSaveReports('unavailable', 'game state serialization failed and the game halted');
 
         const [player1Id, player2Id] = game.getPlayers().map((p) => p.id);
 
@@ -2398,6 +2576,14 @@ export class Lobby {
         });
     }
 
+    /**
+     * Handles `bugReport`/`playerReport` client messages. Captures the report's content synchronously,
+     * at request time, unconditionally -- the save (`args[3] === true`, bug reports only) is the only
+     * part of the report that can move in time, via `Game.armedSave`. Every `requestSave` outcome acks
+     * the client immediately (including `'pending'`); only the eventual Discord POST for a `'pending'`
+     * report is ever deferred, so no path leaves the client waiting on an event that might never fire
+     * (e.g. the game halting -- see `drainPendingSaveReports`, called independently on those paths).
+     */
     private async submitReport(socket: Socket, ...args: any[]): Promise<void> {
         Contract.assertTrue(
             args[0] === 'bugReport' || args[0] === 'playerReport',
@@ -2406,6 +2592,7 @@ export class Lobby {
         const reportType = args[0] as ReportType;
         const reportMessage = args[1];
         const playerReportType = Object.values(PlayerReportType).includes(args[2]) ? args[2] as PlayerReportType : null;
+        const requestSave = reportType === ReportType.BugReport && this.game != null && args[3] === true;
         const resultEvent = reportType === ReportType.BugReport ? 'bugReportResult' : 'playerReportResult';
         const reportLabel = reportType === ReportType.BugReport ? 'bug report' : 'player report';
 
@@ -2448,48 +2635,50 @@ export class Lobby {
                 chatMessages = this.gameChat.getPlayerChatMessages();
             }
 
-            const report = this.discordDispatcher.formatReport(
-                parsedDescription,
-                gameState,
-                playerReportType,
-                socket.user,
-                opponent,
-                gameMessages,
-                this.id,
-                this.gameFormat,
-                this.matchmakingType,
-                this.game?.snapshotManager.gameStepsSinceLastUndo,
-                this.game?.id,
-                screenResolution,
-                viewport,
-                chatMessages
-            );
+            const pendingReport: IPendingSaveReport = {
+                socket, reportType, parsedDescription, playerReportType, screenResolution, viewport,
+                gameState, gameMessages, chatMessages, opponent,
+            };
 
-            const success = await this.discordDispatcher.formatAndSendReportAsync(report, reportType);
-            if (!success) {
-                throw new Error(`${reportLabel} failed to send to discord. See logs for details.`);
-            }
-            const existingUser = this.users.find((u) => u.id === socket.user.getId());
-            if (reportType === ReportType.BugReport) {
-                existingUser.reportedBugs += 1;
-            }
+            let saveStatus: SaveStatus | undefined;
+            let savedMatch: ISavedMatch | null = null;
 
-            socket.send(resultEvent, {
-                id: uuid(),
-                success: true,
-                message: `Successfully sent ${reportLabel}`
-            });
-
-            // we report the alert only if its a bug report
-            if (reportType === ReportType.BugReport) {
-                this.game.addAlert(
-                    AlertType.Notification,
-                    `{0} has submitted a ${reportLabel}`,
-                    existingUser.username
-                );
+            if (requestSave) {
+                if (this.pendingSaveReports.has(socket.user.getId())) {
+                    // P2D-R1-03: degrade rather than refuse a concurrent request, so this report's
+                    // (already-captured) description is never silently discarded behind a generic error.
+                    saveStatus = 'unavailable';
+                } else {
+                    const outcome = this.game.armedSave.request();
+                    if (outcome.kind === 'immediate') {
+                        try {
+                            savedMatch = save(this.game, { saveTrigger: { kind: 'immediate', requestedAtActionNumber: outcome.requestedAtActionNumber, requestedAtPhase: outcome.requestedAtPhase } });
+                            saveStatus = 'included';
+                        } catch (error) {
+                            logger.error('Lobby: immediate save failed; submitting report without a save', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+                            saveStatus = 'unavailable';
+                        }
+                    } else if (outcome.kind === 'refused') {
+                        saveStatus = 'unavailable';
+                    } else {
+                        saveStatus = 'pending';
+                    }
+                }
             }
 
-            this.sendLobbyState();
+            if (saveStatus === 'pending') {
+                this.pendingSaveReports.set(socket.user.getId(), pendingReport);
+                socket.send(resultEvent, {
+                    id: uuid(),
+                    success: true,
+                    saveStatus: 'pending',
+                    message: `${reportLabel} received; a save will be attached once it lands.`
+                });
+                this.sendLobbyState();
+                return;
+            }
+
+            await this.finishReportSubmission({ ...pendingReport, savedMatch, saveStatus, ackClient: true });
         } catch (error) {
             logger.error(`Error processing ${reportLabel}`, {
                 error: { message: error.message, stack: error.stack },
@@ -2502,6 +2691,87 @@ export class Lobby {
                 success: false,
                 message: `An error occurred while processing your ${reportLabel}.`
             });
+        }
+    }
+
+    /**
+     * Sends the Discord report and, for `ackClient`, the client ack. Owns a complete internal try/catch
+     * and never rejects: called both synchronously from `submitReport` (`ackClient: true`) and later from
+     * `onArmedSaveFired`/`drainPendingSaveReports` (`ackClient: false`, the client having already been
+     * acked `'pending'` at request time) -- a throw from the latter path must never become an unhandled
+     * rejection.
+     */
+    private async finishReportSubmission(params: IFinishReportParams): Promise<void> {
+        const resultEvent = params.reportType === ReportType.BugReport ? 'bugReportResult' : 'playerReportResult';
+        const reportLabel = params.reportType === ReportType.BugReport ? 'bug report' : 'player report';
+
+        try {
+            const report = this.discordDispatcher.formatReport(
+                params.parsedDescription,
+                params.gameState,
+                params.playerReportType,
+                params.socket.user,
+                params.opponent,
+                params.gameMessages,
+                this.id,
+                this.gameFormat,
+                this.matchmakingType,
+                this.game?.snapshotManager.gameStepsSinceLastUndo,
+                this.game?.id,
+                params.screenResolution,
+                params.viewport,
+                params.chatMessages,
+                params.savedMatch ?? undefined
+            );
+
+            const success = await this.discordDispatcher.formatAndSendReportAsync(report, params.reportType);
+            if (!success) {
+                throw new Error(`${reportLabel} failed to send to discord. See logs for details.`);
+            }
+
+            const existingUser = this.users.find((u) => u.id === params.socket.user.getId());
+            if (params.reportType === ReportType.BugReport) {
+                if (existingUser) {
+                    existingUser.reportedBugs += 1;
+                } else {
+                    // The reporter can have left the lobby between the request and a deferred save
+                    // firing (P2D-R1-10b) -- log rather than throw after the Discord POST already succeeded.
+                    logger.warn('Lobby: could not find the reporting user to increment reportedBugs; they may have left', { lobbyId: this.id, userId: params.socket.user.getId() });
+                }
+            }
+
+            if (params.ackClient) {
+                params.socket.send(resultEvent, { id: uuid(), success: true, message: `Successfully sent ${reportLabel}`, saveStatus: params.saveStatus });
+            }
+
+            // we report the alert only if its a bug report
+            if (params.reportType === ReportType.BugReport) {
+                this.game?.addAlert(
+                    AlertType.Notification,
+                    `{0} has submitted a ${reportLabel}`,
+                    existingUser?.username ?? params.socket.user.getUsername()
+                );
+            }
+
+            this.sendLobbyState();
+        } catch (error) {
+            logger.error(`Error processing ${reportLabel}`, {
+                error: { message: error.message, stack: error.stack },
+                lobbyId: this.id,
+                userId: params.socket.user.id
+            });
+
+            if (params.ackClient) {
+                params.socket.send(resultEvent, {
+                    id: uuid(),
+                    success: false,
+                    message: `An error occurred while processing your ${reportLabel}.`
+                });
+            }
+            // ackClient === false (deferred completion): the client was already acked with
+            // 'pending' at request time and is not told about a later Discord failure -- this matches
+            // how a live client today has no visibility into e.g. a retried webhook; the failure is
+            // still logged above for operators.
         }
     }
 }

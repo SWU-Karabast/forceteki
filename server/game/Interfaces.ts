@@ -23,6 +23,7 @@ import type { GroundArenaZone } from './core/zone/GroundArenaZone';
 import type { SpaceArenaZone } from './core/zone/SpaceArenaZone';
 import type { CaptureZone } from './core/zone/CaptureZone';
 import type { IUnitCard } from './core/card/propertyMixins/UnitProperties';
+import type { ISavedMatch } from './core/stateSerialization/SavedMatchInterfaces';
 import type { DelayedEffectType } from './gameSystems/DelayedEffectSystem';
 import type { IUpgradeCard } from './core/card/CardInterfaces';
 import type { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
@@ -530,6 +531,14 @@ export interface ISerializedReportState {
     viewport?: { width: number; height: number } | null;
     gameFormat: SwuGameFormat;
     matchType: MatchmakingType;
+
+    /**
+     * Present only for a bug report that requested and obtained a save. Never sent to a client socket --
+     * this is only ever read by `DiscordDispatcher`, which attaches it to the dev-team-only Discord
+     * webhook payload; it carries `rng.seed`, which Plan 1 item C requires stay absent from every
+     * client-bound payload.
+     */
+    savedMatch?: ISavedMatch;
 }
 
 export interface ISerializedUndoFailureState {

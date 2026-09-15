@@ -89,6 +89,27 @@ export class UserFactory {
         return new AnonymousUser(id || uuid(), name || 'Anonymous', !!id);
     }
 
+    /**
+     * Resolves an existing account by id, or `null` if none exists. Unlike `createAnonymousUser`, never
+     * fabricates a user from a caller-supplied id -- used by callers (the dev-only saved-match loader)
+     * that must not bind a seat to an unverified id, since `createAnonymousUser` accepts its `id` param
+     * verbatim and `userLobbyMap.set(user.id, ...)` would then silently rebind a real user's own lobby
+     * routing if the supplied id happened to collide with theirs.
+     */
+    public async getExistingUserByIdAsync(userId: string): Promise<User | null> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const userData = await dbService.getUserProfileAsync(userId);
+            if (!userData) {
+                return null;
+            }
+            return new AuthenticatedUser(userData);
+        } catch (error) {
+            logger.error('Error resolving existing user by id:', { error: { message: error.message, stack: error.stack } });
+            throw error;
+        }
+    }
+
     public createAnonymousUserFromQuery(query?: ParsedUrlQuery): AnonymousUser {
         if (query.user) {
             // Check if it's a string that needs parsing
