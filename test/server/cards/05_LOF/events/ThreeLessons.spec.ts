@@ -156,5 +156,29 @@ describe('Three Lessons', function () {
             context.player2.clickCard(context.p1Base);
             expect(context.player1).toBeActivePlayer();
         });
+
+        it('should let a low-HP unit survive Supreme Leader Snoke because the Experience token is given as it enters play', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['three-lessons', 'vulptex'],
+                    resources: 10,
+                },
+                player2: {
+                    groundArena: ['supreme-leader-snoke#shadow-ruler'],
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.threeLessons);
+            context.player1.clickCard(context.vulptex);
+
+            // Vulptex (3/2) + Experience is 4/3; with Snoke's -2/-2 it survives at 2/1.
+            expect(context.vulptex).toBeInZone('groundArena');
+            expect(context.vulptex).toHaveExactUpgradeNames(['experience', 'shield']);
+            expect(context.vulptex.hasSomeKeyword('hidden')).toBeTrue();
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
