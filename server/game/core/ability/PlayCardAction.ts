@@ -1,14 +1,13 @@
 import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import type { IActionTargetResolver } from '../../TargetInterfaces';
 import type { Card } from '../card/Card';
-import type { GameSystem } from '../gameSystem/GameSystem';
 import type { Aspect, CardType } from '../Constants';
 import { EffectName, EventName, KeywordName, PhaseName, PlayType } from '../Constants';
 import type { ICost } from '../cost/ICost';
 import type { AbilityContext } from './AbilityContext';
 import { PlayerAction } from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
-import { CostAdjustType, type CostAdjuster } from '../cost/CostAdjuster';
+import { type CostAdjuster, CostAdjustType } from '../cost/CostAdjuster';
 import { Helpers } from '../utils/Helpers';
 import { Contract } from '../utils/Contract';
 import { TextHelper } from '../utils/TextHelper';
@@ -30,7 +29,6 @@ export interface IPlayCardActionPropertiesBase {
     exploitValue?: number;
     canPlayFromAnyZone?: boolean;
     attachTargetCondition?: (attachTarget: Card, context: AbilityContext) => boolean;
-    preResolveGameSystem?: GameSystem;
 }
 
 interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {

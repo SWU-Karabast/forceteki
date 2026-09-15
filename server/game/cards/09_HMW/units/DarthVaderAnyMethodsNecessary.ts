@@ -1,8 +1,6 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CostAdjustType } from '../../../core/cost/CostAdjuster';
-import { WildcardCardType } from '../../../core/Constants';
 
 export default class DarthVaderAnyMethodsNecessary extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -20,18 +18,11 @@ export default class DarthVaderAnyMethodsNecessary extends NonLeaderUnitCard {
                 selectCount: 2,
                 canChooseFewer: true,
                 cardCondition: (card) => card.isUnit() && card.cost <= 4,
-                selectedCardsImmediateEffect: abilityHelper.immediateEffects.sequential([
-                    abilityHelper.immediateEffects.playCardFromOutOfPlay({
-                        adjustCost: { costAdjustType: CostAdjustType.Free },
-                        nested: true,
-                        playAsType: WildcardCardType.Unit,
-                        enterPlayEffect: abilityHelper.immediateEffects.damage((context) => ({
-                            amount: 2,
-                            target: context.source
-                        }))
-                    }),
-                ])
-            }),
+                playedCardEnterPlayEffect: abilityHelper.immediateEffects.damage((context) => ({
+                    amount: 2,
+                    target: context.source
+                })),
+            })
         });
     }
 }
