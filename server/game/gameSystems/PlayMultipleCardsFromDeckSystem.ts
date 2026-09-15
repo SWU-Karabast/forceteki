@@ -18,7 +18,7 @@ export interface IPlayMultipleCardsFromDeckProperties<TContext extends AbilityCo
     playAsType?: WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event;
 
     /**
-     * Effect(s) resolved for each played units before any trigger and next units
+     * Effect(s) resolved for each played units as they enter play, before any triggers and before subsequent units enter play
      * See {@link IPutIntoPlayProperties.enterPlayEffect}.
      */
     playedCardEnterPlayEffect?: GameSystem | GameSystem[];

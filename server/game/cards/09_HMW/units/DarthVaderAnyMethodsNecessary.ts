@@ -18,10 +18,9 @@ export default class DarthVaderAnyMethodsNecessary extends NonLeaderUnitCard {
                 selectCount: 2,
                 canChooseFewer: true,
                 cardCondition: (card) => card.isUnit() && card.cost <= 4,
-                playedCardEnterPlayEffect: abilityHelper.immediateEffects.damage((context) => ({
+                playedCardEnterPlayEffect: abilityHelper.immediateEffects.damage({
                     amount: 2,
-                    target: context.source
-                })),
+                }),
             })
         });
     }
