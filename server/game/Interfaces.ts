@@ -163,7 +163,6 @@ export interface IAbilityProps<TContext extends AbilityContext> {
 
     printedAbility?: boolean;
     cannotTargetFirst?: boolean;
-    canResolveWithoutLegalTargets?: boolean;
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);
     then?: ((context?: TContext) => IThenAbilityPropsWithSystems<TContext>) | IThenAbilityPropsWithSystems<TContext>;

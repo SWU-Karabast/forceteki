@@ -118,6 +118,7 @@ describe('Heavy Ion Cannon', function() {
             expect(context.battlefieldMarine).toBeInZone('discard', context.player1);
             expect(context.daringRaid).toBeInZone('hand', context.player1);
             expect(context.player2).toBeActivePlayer();
+            expect(context.getChatLogs(5)).toContain('player1 attempted to use Echo Base, but there are insufficient legal targets');
 
             context.player2.clickCard(context.greenSquadronAwing);
 

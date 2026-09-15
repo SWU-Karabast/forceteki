@@ -22,11 +22,10 @@ export default class HeavyIonCannon extends UpgradeCard {
             limit: AbilityHelper.limit.perPhase(1),
             gainCondition: (context) => context.source.parentCard?.isBase(),
             cannotTargetFirst: true,
-            canResolveWithoutLegalTargets: true,
-            cost: [AbilityHelper.costs.discardCardFromOwnHand()],
+            cost: AbilityHelper.costs.discardCardFromOwnHand(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
             },
         });
     }
