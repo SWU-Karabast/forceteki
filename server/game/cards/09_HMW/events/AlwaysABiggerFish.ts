@@ -13,7 +13,6 @@ export default class AlwaysABiggerFish extends EventCard {
         };
     }
 
-    // Defeat a friendly Creature unit. If you do, play a Creature unit that costs up to 3 more than the defeated unit from your hand for free
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: `Defeat a friendly ${TextHelper.Trait.Creature} unit`,
@@ -28,6 +27,7 @@ export default class AlwaysABiggerFish extends EventCard {
                 return {
                     title: `Play a ${TextHelper.Trait.Creature} unit that costs up to ${TextHelper.resource(defeatedUnitCost + 3)} from your hand for free`,
                     targetResolver: {
+                        activePromptTitle: `Play a ${TextHelper.Trait.Creature} unit that costs up to ${TextHelper.resource(defeatedUnitCost + 3)} from your hand for free`,
                         cardTypeFilter: WildcardCardType.Unit,
                         zoneFilter: ZoneName.Hand,
                         controller: RelativePlayer.Self,

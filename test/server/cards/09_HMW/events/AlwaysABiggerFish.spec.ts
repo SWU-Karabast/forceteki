@@ -25,6 +25,7 @@ describe('Always a Bigger Fish', function () {
             expect(context.blurrg).toBeInZone('discard', context.player1);
 
             // Blurrg costs 3: can play a Creature costing up to 6. Sando Aqua Monster (8) and Battlefield Marine (non-Creature) are not selectable
+            expect(context.player1).toHavePrompt('Play a Creature unit that costs up to 6 resources from your hand for free');
             expect(context.player1).toBeAbleToSelectExactly([context.wildRancor, context.wampa]);
             context.player1.clickCard(context.wampa);
 
@@ -77,6 +78,47 @@ describe('Always a Bigger Fish', function () {
 
             expect(context.gracefulPurrgil).toBeInZone('spaceArena', context.player1);
             expect(context.player1.exhaustedResourceCount).toBe(2);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should trigger Purrgil Ultra\'s when defeated ability after the if you do effect', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'great-grass-plains',
+                    hand: ['always-a-bigger-fish', 'wampa'],
+                    groundArena: ['blurrg'],
+                    spaceArena: ['purrgil-ultra']
+                },
+                player2: {
+                    groundArena: ['atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.alwaysABiggerFish);
+            context.player1.clickCard(context.purrgilUltra);
+            expect(context.purrgilUltra).toBeInZone('discard', context.player1);
+
+            // The event's if you do resolves first: Purrgil Ultra costs 8, can play a Creature costing up to 11
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+            context.player1.clickCard(context.wampa);
+            expect(context.wampa).toBeInZone('groundArena', context.player1);
+
+            // Then Purrgil Ultra's when defeated ability triggers: return a friendly non-leader unit to hand
+            expect(context.player1).toBeAbleToSelectExactly([context.blurrg, context.wampa]);
+            expect(context.player1).toHavePassAbilityButton();
+            context.player1.clickCard(context.blurrg);
+
+            // If you do: deal damage equal to the returned unit's cost (Blurrg costs 3) to a unit
+            expect(context.player1).toHavePrompt('Deal 3 damage to a unit');
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst]);
+            context.player1.clickCard(context.atst);
+
+            expect(context.blurrg).toBeInZone('hand', context.player1);
+            expect(context.atst.damage).toBe(3);
+            expect(context.player1.exhaustedResourceCount).toBe(2); // only the event's cost was paid
             expect(context.player2).toBeActivePlayer();
         });
 
