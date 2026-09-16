@@ -3655,7 +3655,7 @@ const mockCards = [
     }),
     buildMockCard({
         title: 'Commander Gree',
-        subtitle: 'Of the 41st Elit Corps',
+        subtitle: 'Of the 41st Elite Corps',
         cost: 4,
         power: 3,
         hp: 6,
@@ -3669,7 +3669,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'ground',
-        internalName: 'commander-gree#of-the-41st-elit-corps',
+        internalName: 'commander-gree#of-the-41st-elite-corps',
     }),
     buildMockCard({
         title: 'Saw Gerrera',
