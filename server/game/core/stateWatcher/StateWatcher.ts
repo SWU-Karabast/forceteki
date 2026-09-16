@@ -1,4 +1,5 @@
 import type { IStateListenerResetProperties, IStateListenerProperties } from '../../Interfaces';
+import type { IUpgradeCard } from '../card/CardInterfaces';
 import type { CardType, StateWatcherName, Trait, ZoneName } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type { Game } from '../Game';
@@ -23,6 +24,7 @@ export interface IStateWatcherLKIEntry {
     type: CardType;
     power?: number;
     arena?: ZoneName;
+    upgrades?: IUpgradeCard[];
     // TODO: Add more fields if needed
 }
 
