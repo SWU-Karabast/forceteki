@@ -258,8 +258,8 @@ function isPromoSetCode(setCode) {
     if (promoRegex.test(setCode)) {
         return true;
     }
-    // Gamegenic promo bases
-    if (setCode === 'GG') {
+    // Gamegenic promo bases and Costco exclusives
+    if (setCode === 'GG' || setCode === 'CST') {
         return true;
     }
     // OP Promos (codes that are 4 or 5 characters and end in P or OP)
