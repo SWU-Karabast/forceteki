@@ -1,11 +1,11 @@
-import type {IAbilityHelper} from '../../../AbilityHelper';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import type {
     ILeaderUnitAbilityRegistrar,
     ILeaderUnitLeaderSideAbilityRegistrar
 } from '../../../core/card/AbilityRegistrationInterfaces';
-import {LeaderUnitCard} from '../../../core/card/LeaderUnitCard';
-import {RelativePlayer, Trait, WildcardCardType} from '../../../core/Constants';
-import {TextHelper} from '../../../core/utils/TextHelper';
+import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
+import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class PoggleTheLesserLetTheExecutionsBegin extends LeaderUnitCard {
     protected override getImplementationId() {
