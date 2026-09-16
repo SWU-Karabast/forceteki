@@ -1510,6 +1510,63 @@ describe('Undo', function() {
                     expect(context.player1.exhaustedResourceCount).toBe(5);
                     expect(context.battlefieldMarine.exhausted).toBe(false);
                 });
+
+                it('records a defeated unit\'s traits as a real Set that survives a rollback unchanged', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            groundArena: ['wampa']
+                        },
+                        player2: {
+                            // Battlefield Marine: power 3 / hp 3, traits ['rebel', 'trooper'] -- Wampa (power 4)
+                            // defeats it in one hit, populating CardsDefeatedThisPhaseWatcher's
+                            // lastKnownInformation.traits with a real, non-empty Set<Trait>.
+                            groundArena: ['battlefield-marine']
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    // Mirrors StateWatcherSerializer.spec.ts's rawEntriesFor helper: the live, unmapped
+                    // entries of one watcher, read through the public rawEntries accessor.
+                    const rawDefeatedEntries = (): any[] => {
+                        const registered = context.game.stateWatcherRegistrar.registeredWatchers.find(
+                            (candidate) => candidate.name === 'cardsDefeatedThisPhase'
+                        );
+                        return [...(registered?.rawEntries ?? [])];
+                    };
+
+                    const assertPopulatedEntrySurvives = (): void => {
+                        const rawEntries = rawDefeatedEntries();
+                        expect(rawEntries.length).toBe(1);
+
+                        const traits = rawEntries[0].lastKnownInformation.traits;
+                        expect(traits instanceof Set).toBe(true);
+                        expect(traits.size).toBeGreaterThan(0);
+                        expect(traits.has('rebel')).toBe(true);
+                        expect(traits.has('trooper')).toBe(true);
+                    };
+
+                    // Perform the defeat, and confirm the watcher entry is populated, *before* the
+                    // rollback() helper's snapshot point below. This way the snapshot itself captures
+                    // a real, non-empty Set<Trait> entry, so the restore that rollback() exercises is
+                    // copyState's unconditional field-copy reassigning that populated value back --
+                    // not reassigning an empty array from a pre-defeat snapshot.
+                    context.player1.clickCard(context.wampa);
+                    context.player1.clickCard(context.battlefieldMarine);
+
+                    expect(context.battlefieldMarine).toBeInZone('discard');
+                    assertPopulatedEntrySurvives();
+
+                    rollback(contextRef, function() {
+                        // Unrelated action: passing priority doesn't touch CardsDefeatedThisPhaseWatcher,
+                        // so this isolates whether rollback alone can corrupt or lose the already-populated
+                        // watcher entry captured in the snapshot above.
+                        context.player2.passAction();
+
+                        assertPopulatedEntrySurvives();
+                    });
+                });
             });
 
             describe('UnitsHealedThisPhaseWatcher', function() {

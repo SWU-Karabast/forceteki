@@ -9,7 +9,7 @@ import { Helpers } from '../utils/Helpers';
 import { is } from '../utils/TypeHelpers';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
 
-import { CopyMode, registerStateBase } from '../GameObjectUtils';
+import { registerStateBase, stateValue } from '../GameObjectUtils';
 
 export interface IStateWatcherState<TState> extends IGameObjectBaseState {
     entries: TState[];
@@ -41,14 +41,14 @@ export interface IStateWatcherLKIEntry {
  * - a state reset method that provides an initial state to reset to
  * - a set of event triggers which will update the stored state to keep the history
  */
-@registerStateBase(CopyMode.UseBulkCopy)
+@registerStateBase()
 export abstract class StateWatcher<TState = any> extends GameObjectBase {
     private stateUpdaters: IStateListenerProperties<TState[]>[] = [];
     private readonly allUpdaters;
     public readonly name: StateWatcherName;
     private eventNameMapping = new Map<string, (...args: any[]) => void>();
 
-    protected declare state: IStateWatcherState<TState>; // Narrow the type of state for easier access to entries
+    @stateValue() private accessor entries: TState[] = [];
 
     // the state reset trigger is the end of the phase
     private stateResetTrigger: IStateListenerResetProperties = {
@@ -63,7 +63,6 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
         registrar: StateWatcherRegistrar
     ) {
         super(game);
-        this.state.entries = [];
         this.name = name;
         Contract.assertFalse(registrar.isRegistered(name), `State Watcher type "${name}" is already registered.`);
 
@@ -95,7 +94,7 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
     protected abstract mapCurrentValue(stateValue: TState[]): UnwrapRef<TState>[];
 
     public getCurrentValue(): UnwrapRef<TState>[] {
-        return this.mapCurrentValue(this.state.entries);
+        return this.mapCurrentValue(this.entries);
     }
 
     /**
@@ -107,7 +106,7 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
      * than returning null.
      */
     public get entryCount(): number {
-        return this.state.entries.length;
+        return this.entries.length;
     }
 
     /**
@@ -119,7 +118,7 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
      * `state`. The elements themselves are still the live entry objects.
      */
     public get rawEntries(): readonly TState[] {
-        return [...this.state.entries];
+        return [...this.entries];
     }
 
     /**
@@ -128,7 +127,7 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
      * (`GameObjectId`s, not `GameObject`s), and the caller owns their shape.
      */
     public setRawEntriesForStateInjection(entries: readonly TState[]): void {
-        this.state.entries = [...entries];
+        this.entries = [...entries];
     }
 
     protected addUpdater(properties: IStateListenerProperties<TState[]>) {
@@ -170,9 +169,9 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
                     return;
                 }
 
-                const currentStateValue = this.state.entries;
+                const currentStateValue = this.entries;
                 const updatedStateValue = listener.update(currentStateValue, event);
-                this.state.entries = updatedStateValue;
+                this.entries = updatedStateValue;
             };
 
             eventNames.forEach((eventName) => {

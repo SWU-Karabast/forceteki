@@ -12,7 +12,6 @@ const stateSetMetadata = Symbol();
 const stateRecordMetadata = Symbol();
 const stateObjectMetadata = Symbol();
 const stateHydrationMetadata = Symbol();
-const bulkCopyMetadata = Symbol();
 
 const stateClassesStr: Record<string, string> = {};
 
@@ -32,10 +31,7 @@ export type GameObjectId<T extends IGameObjectBase = IGameObjectBase> = Branded<
 export enum CopyMode {
 
     /** Copies from the state using only the Metadata fields. */
-    UseMetaDataOnly = 0,
-
-    /** Copies from the state using a bulk copy method, and then re-applies any of the map/array/record Metadata fields to recreate the cached values. Inefficient, but safe. */
-    UseBulkCopy = 1
+    UseMetaDataOnly = 0
 }
 
 export interface RegisterStateOptions {
@@ -206,7 +202,7 @@ function normalizeRegisterStateOptions(copyModeOrOptions: CopyMode | RegisterSta
 /**
  * Decorator to capture the names of any accessors flagged as &#64;statePrimitive, &#64;stateRef, or &#64;stateRefArray for copyState, and then clear the array for the next derived class to use.
  * This is meant for classes that are meant to be directly instantiated, they must be non-abstract and leafs.
- * @param copyModeOrOptions If CopyModeEnum.UseFullCopy, makes the class use the bulk copy method as backup to the meta data. This is going to be slower, but helps if we have state not easily capturable by the state decorators.
+ * @param copyModeOrOptions `CopyMode` currently has a single mode (metadata-only copy); the parameter is retained for options.autoInitialize and future modes.
  * If options.autoInitialize=false, the class is marked/registered without creating a constructor wrapper.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
@@ -220,12 +216,6 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
         }
 
         const metaState = context.metadata[stateMetadata] as Record<string | symbol, any>;
-        if (options.copyMode === CopyMode.UseBulkCopy) {
-            // this *should* work for derived classes: the context.metadata uses a prototype inheritance of it's own for each derived class, so when a class branches, so should the metadata object.
-            // That means that we're ok with marking the meta data object at *this* prototype as true; other branches off of GameObjectBase won't share it.
-            // NEEDS VERIFICATION.
-            context.metadata[bulkCopyMetadata] = true;
-        }
         if (metaState) {
             // Move metadata from the stateMedata symbol to the name of the class, so that we can look it up later in copyStruct.
             context.metadata[targetClass.name] = metaState;
@@ -732,16 +722,12 @@ function describeInvalidJsonStateValue(value: unknown): string {
  * enforcement point (work item A2).
  *
  * Known coverage gaps, intentionally not closed here:
- * - `StateWatcher` entries are written straight into the state bag without going through a `@stateValue`
- *   accessor (see `StateWatcher.ts:51,66,142`), so this check never sees watcher payloads - including
- *   their `Set<Trait>` members. Plan 3's step 2 encoder is deliberately the first enforcement point for
- *   those; do not extend this check into the watcher bag to compensate.
  * - This check only runs from the accessor's `set`/`init`, so **in-place** mutation of an already-stored
  *   `Map`/`Set` (e.g. `AbilityLimit.useCount.set(...)`, `GainAbility.ts`,
  *   `GainNonKeywordAbilitiesFromUnitEffect.ts`) never re-enters it - the accessor sees one `set`/`init` call
  *   with an empty collection and nothing thereafter, for as long as the collection is only ever mutated
  *   in place during normal play. This is the primary documented use of `@stateValue`
- *   maps above, so it is a real coverage gap, not a marginal one. As with the `StateWatcher` bag, Plan 3's
+ *   maps above, so it is a real coverage gap, not a marginal one. Plan 3's
  *   encoder is the intended enforcement point for this population path; do not close it here by rerouting
  *   these fields through `UndoMap`/`UndoSet`, which is snapshot-layer work for a later unit. Note that
  *   rollback is not subject to this gap: `copyState` reassigns every `stateSimpleMetadata` field (which
@@ -891,10 +877,6 @@ function CreateUndoArrayBase<TValue extends GameObjectBase>(go: GameObjectBase, 
 
 export function copyState<T extends GameObjectBase>(instance: T, newState: Record<any, any>) {
     let baseClass = Object.getPrototypeOf(instance);
-    let isFullCopy = false;
-    if (baseClass.constructor[Symbol.metadata][bulkCopyMetadata]) {
-        isFullCopy = true;
-    }
     while (baseClass) {
         const metadata = baseClass.constructor[Symbol.metadata];
         // Pull out any data provided by @registerState for this class.
@@ -905,7 +887,7 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
             const hydrationMetadata = metaState[stateHydrationMetadata] as Record<string, StateHydrationHandler> | undefined;
 
             // STATE NOTE: We only need to copy this if we aren't using structuredClone.
-            if (!isFullCopy && metaState[stateSimpleMetadata]) {
+            if (metaState[stateSimpleMetadata]) {
                 const metaSimples = metaState[stateSimpleMetadata] as string[];
                 for (const field of metaSimples) {
                     instance[field] = newState[field];
