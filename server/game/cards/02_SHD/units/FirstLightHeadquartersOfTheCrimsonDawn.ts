@@ -36,8 +36,10 @@ export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUni
     }
 }
 
+// Exported (not otherwise used outside this file) so Plan 5's name -> constructor factory for the
+// generated state serializers can resolve this module-local registered class.
 @registerState()
-class FirstLightSmuggleAction extends PlayUnitActionBase {
+export class FirstLightSmuggleAction extends PlayUnitActionBase {
     private abilityHelper: IAbilityHelper;
 
     private static generateProperties(AbilityHelper: IAbilityHelper, properties: IPlayCardActionOverrides = {}): IPlayCardActionProperties {

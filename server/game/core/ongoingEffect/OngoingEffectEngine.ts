@@ -191,8 +191,10 @@ function effectLimitReached(effect: OngoingEffect): boolean {
     return limited.length > 0 && limited.every((applied) => applied.isExpired());
 }
 
+// Exported (not otherwise used outside this file) so Plan 5's name -> constructor factory for the
+// generated state serializers can resolve this module-local registered class.
 @registerState()
-class CustomDurationEvent extends GameObjectBase {
+export class CustomDurationEvent extends GameObjectBase {
     public readonly name: string;
     public readonly handler: (...args: any[]) => void;
     public readonly effect: OngoingEffect<any>;

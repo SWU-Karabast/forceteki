@@ -16,6 +16,12 @@ if (!fs.existsSync('./build/server')) {
     buildAll = true;
 }
 
+// Unconditional and run exactly once per invocation, before the isFast branch below - not folded into
+// the `!fs.existsSync('./build/server')` guard above, which only fires on the first build in a fresh
+// tree. Without this placement, a repeat `npm run test-fast` in a tree that already has `build/server`
+// would skip generation entirely and let tsc compile a stale or missing artifact silently.
+runCommand('node scripts/generate-state-serializers.js');
+
 if (!buildAll && !fs.existsSync('./build/test/json')) {
     fs.mkdirSync('./build/test/json', { recursive: true });
     runCommand('cpy ./test/json/ ./build/');

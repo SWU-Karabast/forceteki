@@ -8,6 +8,7 @@ server/events.txt
 config/local*
 server/logs/*.gz
 build/
+server/game/core/generated/
 .idea/
 test/**/json/
 test/gameSetups/*.json

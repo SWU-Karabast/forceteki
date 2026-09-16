@@ -23,6 +23,7 @@
     "lint-verbose": "eslint",
     "get-cards": "node ./scripts/fetchdata.js",
     "validate-cards": "ts-node scripts/validateCards.ts",
+    "generate-serializers": "node scripts/generate-state-serializers.js",
     "benchmark": "node scripts/run-performance-benchmarks.js",
     "benchmark-card-memory": "cross-env NODE_ENV=test node --expose-gc scripts/card-memory-benchmark.js",
     "measure-degradation": "node scripts/measure-save-degradation.js"
@@ -67,6 +68,7 @@
     "eslint-import-resolver-typescript": "^3.7.0",
     "eslint-plugin-import-x": "^4.6.1",
     "eslint-plugin-unused-imports": "^4.1.4",
+    "ts-morph": "28.0.0",
     "ts-node": "^10.9.2",
     "ts-to-zod": "^3.15.0"
   }

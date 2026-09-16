@@ -29,6 +29,7 @@
     },
     "include": [
         "../server/**/*",
-        "./**/*"
+        "./**/*",
+        "../scripts/stateSerializerModel.js"
     ],
 }

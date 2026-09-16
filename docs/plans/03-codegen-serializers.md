@@ -371,11 +371,27 @@ change and lands first as its own PR.
    by design — it must appear in the benchmark as "rollback time (including
    the oldState pass)" or the "replace runtime cost" headline is overstated
    for the rollback path.
-6. **Registry key policy** (the contract handed to Plan 5): registry keys
-   are the names of concrete `@registerState`-decorated classes — exported
-   or module-local (serialization is name-keyed and structurally typed, so
-   no import of the class is needed; one of the two required card-file
-   registrations below, `FirstLightSmuggleAction`, is module-local). Mixin factories mint a new class per call with the
+6. **Registry key policy** (the contract handed to Plan 5) — **corrected by
+   `P3-PA1` against live code (implementation-time correction, not the
+   original plan wording):** the literal rule as first written here
+   ("registry keys are the names of concrete `@registerState`-decorated
+   classes") is false on current `main`. No card class carries
+   `@registerState` at all — `Card`, `PlayableOrDeployableCard`,
+   `InPlayCard`, `NonLeaderUnitCard`, `LeaderUnitCard`, and every other card
+   base class is `@registerStateBase`, and a card's full prototype chain
+   contains zero `@registerState` classes. Under the literal rule, the
+   registry would have **no entry for any card**, and lookup **throws for
+   every card instance** at the first serialization attempt — a loud,
+   total failure, not a silent mis-resolution to a wrong ancestor. The rule
+   actually implemented (and verified against all 126 top-level registered
+   classes, 28 abstract / 98 non-abstract): a class is a registry key if it
+   carries **either** `@registerState` or `@registerStateBase` and is
+   declared at module top level (not inside a mixin factory function body).
+   Each registry entry additionally records its decorator kind and
+   `abstract` modifier, so Plan 5 can recover concreteness (e.g. filter to
+   the 98 non-abstract or 85 `@registerState`-only subsets) without
+   re-running the resolver or importing the target class. Mixin factories
+   mint a new class per call with the
    same name (`AsUnit` at `UnitProperties.ts:116`, `WithDamage` at
    `Damage.ts:30`) and
    different flattened ancestor chains — mixin fragments are an internal
@@ -400,9 +416,12 @@ change and lands first as its own PR.
    non-exported `@registerState` classes
    (`FirstLightSmuggleAction`, `CustomDurationEvent` — note the last is in
    core, `OngoingEffectEngine.ts`, not under `cards/**`) are exported so the
-   generated registry can import them, and the generator hard-forbids new
-   module-local `@registerState` classes going forward (generation-time
-   failure). See `05-gameobject-recreation.md` A1.
+   generated registry can import them, and the generator hard-forbids any
+   new module-local registered class of **either** decorator that would
+   become a non-abstract registry key, going forward (generation-time
+   failure) — extended from `@registerState` alone to both decorators
+   because the structural rule above makes a top-level `@registerStateBase`
+   class a registry key too. See `05-gameobject-recreation.md` A1.
 7. **Value-collection mutation:** with live Maps/Sets/arrays in native
    fields, in-place mutation of a `stateValue`-typed collection is invisible
    to the retained setters (only whole-value reassignment is observed).
@@ -417,17 +436,27 @@ change and lands first as its own PR.
    path left for a live test shim to preserve. Then delete the harness.
 9. Update `docs/` developer docs: "adding a state field" workflow now
    includes the codegen step; document the hard-fail behavior.
-10. **Lint job — lands with Phase A step 1, not at cutover:**
-    `.github/workflows/pullrequest.yml:24` runs `npx eslint --quiet` with no
-    build/generation step, so the non-optional import of a gitignored module
-    trips `eslint-plugin-import-x`'s resolver. This fix is **required in the
-    same PR as the non-optional import** (Phase A step 1): that workflow
-    needs either a generation step in the lint job or a resolver carve-out
-    for the generated path. Chosen shape: carve the generated module path
-    out of the import resolver / `no-unresolved` rule (one settings entry)
-    rather than paying full generation in the lint job; the test job, which
-    builds, is the generation gate. (Listed here with the other CI work for
-    reference; the timing constraint is Phase A's.)
+10. **Lint job — lands with Phase A step 1, not at cutover — corrected by
+    `P3-PA1` against live config (implementation-time correction):** the
+    claim as first written here, that the non-optional import "trips
+    `eslint-plugin-import-x`'s resolver" and "would otherwise break on
+    every PR", is false against the live `eslint.config.mjs`. Measured:
+    `eslint.config.mjs` spreads `eslintPluginImportX.flatConfigs.recommended`
+    into an object literal that then declares its own `rules:` key, which
+    replaces the spread `rules` wholesale — so `import-x/no-unresolved` is
+    not active, and a direct probe (a file importing a nonexistent module
+    under `./generated/`) lints clean. `.github/workflows/pullrequest.yml`'s
+    `lint` job runs no build, so the generated artifact is normally absent
+    there regardless. The real, verified lint hazard is the opposite one:
+    once a developer has built locally, the generated artifact **exists**
+    and eslint **does** lint it against `@stylistic/all-flat`. Chosen shape:
+    add `server/game/core/generated/**` to `eslint.config.mjs`'s top-level
+    `ignores` array (the same array used for `build/**`), with a comment
+    recording that if `import-x/no-unresolved` is ever enabled repo-wide,
+    the importing module (`StateSerializers.ts`) will need its own
+    carve-out too. No generation step is added to the lint job. (Listed
+    here with the other CI work for reference; the timing constraint is
+    Phase A's.)
 
 ## Verification
 
