@@ -3600,7 +3600,7 @@ const mockCards = [
             set: 'HMW',
             number: 90
         },
-        unique: true,
+        unique: false,
         arena: 'ground',
         internalName: 'opee-sea-killer',
     }),
@@ -3617,6 +3617,77 @@ const mockCards = [
         },
         unique: false,
         internalName: 'always-a-bigger-fish'
+    }),
+    buildMockCard({
+        title: 'Wroshyr Rebel',
+        cost: 2,
+        power: 0,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        traits: ['rebel', 'wookiee'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 133
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'wroshyr-rebel',
+    }),
+    buildMockCard({
+        title: 'Rex',
+        subtitle: 'Outserved His Purpose',
+        cost: 5,
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        traits: ['fringe', 'clone'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 141
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'rex#outserved-his-purpose',
+    }),
+    buildMockCard({
+        title: 'Commander Gree',
+        subtitle: 'Of the 41st Elite Corps',
+        cost: 4,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        traits: ['republic', 'clone', 'trooper'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 138
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'commander-gree#of-the-41st-elite-corps',
+    }),
+    buildMockCard({
+        title: 'Saw Gerrera',
+        subtitle: 'Shadowlands Insurgent',
+        cost: 4,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['rebel'],
+        types: ['unit'],
+        setId: {
+            set: 'HMW',
+            number: 119
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'saw-gerrera#shadowlands-insurgent',
     }),
     // -------- End Mock Cards --------
 ];
