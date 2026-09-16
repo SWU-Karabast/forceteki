@@ -43,9 +43,8 @@ export default class TheGreatProgenitorFirstOfTheDrengir extends NonLeaderUnitCa
     private weaknessTokenCount(context: AbilityContext<NonLeaderUnitCard>): number {
         const upgrades = context.source.isInPlay()
             ? context.source.upgrades
-            : this.cardsLeftPlayThisPhase.getCurrentValue()
-                .find((entry) => entry.card === context.source && entry.inPlayId === context.source.mostRecentInPlayId)
-                ?.lastKnownInformation.upgrades ?? [];
+            : (this.cardsLeftPlayThisPhase.getLeftPlayEntry(context.source)?.lastKnownInformation.upgrades ?? [])
+                .map((upgradeId) => this.getObject(upgradeId));
 
         return upgrades.filter((upgrade) => upgrade.isWeakness()).length;
     }
