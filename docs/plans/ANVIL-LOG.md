@@ -920,3 +920,59 @@ The first implementation review returned APPROVED-WITH-FINDINGS; its one warning
 - A `sequence` closure must resolve cards through its own wrappers (`p1.findCardByName(...)`), never through `context.<cardName>` — the two games hold different card objects.
 - `buildLoadConfig` defaults `autoSingleTarget: true` while `setupTestAsync` does not, so a single-legal-target prompt auto-resolves on the loaded side but not the original. Fixtures driven through both games must avoid single-target prompts or account for the click-count difference.
 - `context.p1Leader`/`p2Leader` and `context.flow` are declared in `IntegrationHelper.d.ts` but are `undefined` at runtime. Use `context.player1Object.deckLeader` and the `proxiedGameFlowWrapperMethods` allowlist instead.
+
+---
+
+## `P3-PA0` — StateWatcher bag migration (Plan 3, Phase A step 0)
+
+| | |
+|---|---|
+| Task ID | `p3-pa0` |
+| Date | 2026-09-15 |
+| Lane / tier | full, tier 2 (Medium 🟡) |
+| Plan | [03-codegen-serializers.md](03-codegen-serializers.md), Phase A step 0 |
+| Parent | `1cfceda6f` |
+| Commit | `b48378f99` |
+| Branch | `experimental/rollback-saves-optimizations` |
+
+### What changed
+
+`StateWatcher.ts`'s `entries` field moves from a raw write into the `GameObjectBase` state bag to `@stateValue() private accessor entries: TState[] = [];`, routing every read/write (the constructor, `getCurrentValue`, the `entryCount`/`rawEntries` getters, `setRawEntriesForStateInjection`, and the listener-driven update handler) through the decorated accessor. The constructor's direct `this.state.entries = []` write is deleted; the accessor's own `init()` subsumes it at the same relative point in construction.
+
+`GameObjectUtils.ts`'s `CopyMode.UseBulkCopy` and `copyState`'s `bulkCopyMetadata`-gated skip are retired — `StateWatcher` was their only user, confirmed by grep across `server/`, `scripts/`, and `test/`. `copyState`'s `metaSimples` reassignment loop, previously skipped for bulk-copy classes, is now unconditional. `registerState`'s JSDoc is rewritten (not deleted) to describe the single remaining `CopyMode`. The now-stale "Known coverage gaps" doc comment on `assertJsonSafeStateValue`, which had correctly noted that `StateWatcher` entries bypassed the check, is updated — after this change they don't.
+
+This is Phase A step 0 of Plan 3, landing first as its own PR per that plan's own sequencing: a generator that scans decorated fields would otherwise emit an empty watcher serializer, since `entries` previously had no decorated accessor at all.
+
+Audited for other direct state-bag writers: none found beyond the migrated file. `TokenCards.ts`'s `declare state: never` is inert (no write), and `Game.ts`'s ~29 `this.state.` matches are `Game.state: IGameState` — an unrelated property, since `Game` does not extend `GameObjectBase`.
+
+Added one hardened-proof-level test (`test/scenarios/undo/Undo.spec.ts`, `CardsDefeatedThisPhaseWatcher` describe block): a Wampa defeats a Battlefield Marine, populating `CardsDefeatedThisPhaseWatcher`'s `lastKnownInformation.traits` with a real, non-empty `Set<Trait>`, *before* `rollback()`'s snapshot point — so the rollback it exercises actually reassigns the populated value via `copyState`'s now-unconditional field-copy, not an empty array. (The first version of this test defeated the unit *inside* the `rollback()` callback, which meant the snapshot always captured an empty `entries` array; a cold implementation review caught this, and the fix-pass restructured the test to snapshot after population — see Review history below.)
+
+### Why this needed its own gate, not just lint
+
+Watcher restore changes from a bulk-copy skip to the standard field-copy reassignment — same data, different mechanism — and this is also the first time `StateWatcher` entries pass through `assertJsonSafeStateValue`'s dev-mode JSON-safety check (added by an unrelated Plan 2 commit after this plan step's text was last written; the design doc's own Phase A framing still says step 2's encoder is "deliberately the first enforcement point" for these entries, which this migration supersedes one step early). Both are covered directly by the new test rather than left to incidental coverage, and both gate on the full suite plus `npm run test-parallel-undo`, per this repo's standing rule for anything touching `GameObjectUtils.ts`.
+
+### Verification
+
+Full-suite and undo-suite results were independently reproduced by the orchestrator (not just taken from the implementer's report) using a temporary, disposable jasmine reporter (`.anvil/p3-pa0/evidence-reporter.js`, never committed) that records exact per-case outcomes, to satisfy `forge.md`'s requirement for real per-case evidence rather than a runner exit code alone.
+
+| Check | Result |
+|---|---|
+| `npm run lint` | exit 0 |
+| `npm run test-parallel` | 8517 specs, 0 failures, 13 pending |
+| `npm run test-parallel-undo` | 8329 specs, 0 failures, 17 pending |
+
+Baseline (pre-edit, same HEAD) was identical in shape (8517/0/13, 8329/0/17 after the fix-pass; the implementer's original pre-fix run matched too), so these are zero new failures and an unchanged pending count, not merely a passing run.
+
+### Review history
+
+One plan review (APPROVED WITH CONCERNS, 2 warnings, 1 nit — all three folded into the plan as implementer instructions: update the now-stale `assertJsonSafeStateValue` coverage-gap comment, document the `_uuid` reassignment blast radius from removing `isFullCopy`, and clarify which gate command actually exercises the new dev-mode check). Two implementation reviews: the first (APPROVED WITH CONCERNS, 1 warning) caught that the new rollback test's `rollback()` call wrapped the defeat itself, so the snapshot it took was always pre-population — the restore path being changed by this migration was never actually exercised with real data. One fix cycle restructured the test to populate the watcher entry before the snapshot point; the confirming delta review returned APPROVED with zero findings.
+
+### Known residuals, disclosed and accepted at the gate
+
+None. This unit's scope (Phase A step 0 only) is fully closed by the commit above; Phase A steps 1-6 and all of Phase B remain for `P3-PA1` onward per [IMPLEMENTATION-ORDER.md](IMPLEMENTATION-ORDER.md). The performance capture is explicitly out of scope for this unit, owned by `P3-PB3`.
+
+### Notes for the next agent
+
+- `rollback(contextRef, assertion, altAssertion)` (`test/helpers/IntegrationHelper.js`) takes its snapshot **before** `assertion()` first runs, then replays the same `assertion()` after restoring to it. Any state meant to "survive a rollback unchanged" must already exist by the time `rollback()` is called — creating it *inside* the callback only ever exercises a rollback to an empty/prior value, never a populated one.
+- The full-suite and undo-suite jasmine runs require `NODE_ENV=test` (set by the npm scripts via `cross-env`) for correct behavior: `TextHelper.ts` and several other modules branch on `process.env.NODE_ENV === 'test'` for message rendering. Running `jasmine` directly without it produces large numbers of spurious message-mismatch failures unrelated to any code change — confirmed here (~1000 spurious failures without `NODE_ENV=test`, zero with it, both runs otherwise identical) while building independent per-case verification evidence outside the npm scripts.
+- `isFullCopy` was confirmed `true` (via temporary, reverted instrumentation of `copyState()` against the unmodified baseline) for all 15 concrete `StateWatcher` subclasses pre-migration, closing the `GameObjectUtils.ts` "NEEDS VERIFICATION" note about decorator-metadata prototype inheritance. Future `@registerState`/`@registerStateBase` work can rely on that inheritance mechanism without re-deriving it.
