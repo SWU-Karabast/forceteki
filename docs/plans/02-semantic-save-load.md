@@ -401,7 +401,13 @@ them by only saving at action timepoints in the action phase.
   - gained abilities on cards (granted by another card's effect);
   - pending delayed effects / custom-duration events;
   - **leader deployed as a pilot** (`DeployType.LeaderUpgrade`);
-  - **watcher entries whose referents cannot be re-identified** (see A2).
+  - **watcher entries whose referents cannot be re-identified** (see A2);
+  - **on-board cards with no expressible coordinate** — `ISavedCardRef.parent`
+    addresses a nested card only as a direct child of a top-level position, so
+    a card nested deeper, or one whose container no longer lists it, is dropped
+    and enumerated as `unrepresentedCard`. This is the *only* completeness gap
+    the writer forgives: a card missing from a plain zone is a writer defect and
+    still hard-fails (see `MatchSerializer.assertCompleteness`).
   For each detected fact the writer drops it from the saved position and
   appends an **`engineOnlyFacts` manifest entry** — one entry per dropped
   fact: `category` (from the list above), `source` (`ISavedCardRef` of the
@@ -821,11 +827,16 @@ load path.
   It also surfaced an output category this section did not anticipate:
   **57 boards (~0.9%) fail to save outright** with `SaveIntegrityError` from
   the writer's own `assertCompleteness` — a card owned and in a zone that never
-  got indexed, across several card shapes. That is a **work item A defect**, not
-  a degradation, and it is tracked separately. Note the tension it exposes: at
-  least some of those positions (`pilotLeader` is already a declared manifest
-  category) should degrade with a manifest entry rather than refuse, so the
-  degrade-vs-refuse boundary in work item A needs revisiting alongside the fix.
+  got indexed, across several card shapes. That was a **work item A defect**, not
+  a degradation, and it has since been fixed (finding `P2E-I1-01`); the
+  measurement now reports zero completeness failures. The tension it exposed was
+  resolved as the note there predicted: the dominant cause was an arena filter
+  that skipped hosts on `card.isLeaderUnit()`, a predicate that is true of any
+  unit carrying the `IsLeader` effect, and those boards now save with the host at
+  a real coordinate plus the `pilotLeader` manifest entry they always warranted.
+  The residue — a captive left in a `CaptureZone` its captor has replaced — is
+  genuinely unrepresentable and degrades under the new `unrepresentedCard`
+  category (see `EngineOnlyFactCategory`).
 
 ## Explicit non-goals (v1)
 

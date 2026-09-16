@@ -1,10 +1,12 @@
 import { DoubleSidedLeaderCard } from '../card/DoubleSidedLeaderCard';
 import type { Card } from '../card/Card';
 import type { IBaseCard } from '../card/BaseCard';
+import { InPlayCard } from '../card/baseClasses/InPlayCard';
 import type { ICardWithExhaustProperty } from '../card/baseClasses/PlayableOrDeployableCard';
 import { LeaderUnitCard } from '../card/LeaderUnitCard';
 import type { Game } from '../Game';
 import type { Player } from '../Player';
+import { CaptureZone } from '../zone/CaptureZone';
 import { serializeAbilityLimitsForCard } from './AbilityLimitSerializer';
 import type { ISeatedPlayer } from './AbilityLimitSerializer';
 import { scrubChatMessages } from './ChatScrubber';
@@ -14,6 +16,7 @@ import { serializeStateWatchers } from './StateWatcherSerializer';
 import { SAVED_MATCH_FORMAT_VERSION, SaveIntegrityError } from './SavedMatchInterfaces';
 import type {
     IEngineOnlyFact,
+    ISavedCardRef,
     ISaveOptions,
     ISavedArenaEntry,
     ISavedAttachedCard,
@@ -234,6 +237,21 @@ function indexSimpleZoneCards(
     });
 }
 
+/**
+ * The cards the arena walk must skip because {@link buildLeaderEntry} emits them at the `leader` singleton
+ * instead. Deliberately identity against the seated players' `deckLeader`s rather than `card.isLeaderUnit()`,
+ * which is not a statement about the card's identity at all: `UnitProperties.isLeaderUnit` returns
+ * `isLeaderAttachedToThis()`, so *any* ordinary unit currently piloted by a deployed leader answers `true`
+ * to it. Filtering on that predicate silently dropped every such host unit from the document (and, with it,
+ * its own upgrades, which are only reachable through its arena entry) -- the defect `assertCompleteness`
+ * caught. Both leaders go in one set rather than one per seat because a leader whose control has changed
+ * shows up in the *opponent's* arena while still being emitted at its owner's `leader` position, and
+ * indexing it in both places would trip `SavedCardRefResolver`'s duplicate guard.
+ */
+function collectDeckLeaders(players: readonly Player[]): Set<Card> {
+    return new Set<Card>(players.map((player) => player.deckLeader).filter((leader) => leader != null));
+}
+
 /** `deployed === true && isAttached()`, per `LeaderUnitCard.addPilotDeploy`. */
 function findPilotDeployedLeaders(players: readonly Player[]): LeaderUnitCard[] {
     const leaders: LeaderUnitCard[] = [];
@@ -273,6 +291,84 @@ function collectExpectedCards(game: Game): Set<Card> {
 }
 
 /**
+ * The card whose saved entry would have to carry `card`, if `card` is nested under another card at all:
+ * its captor when it sits in a `CaptureZone`, its parent when it is attached. `null` means `card` sits
+ * directly in a zone the position walk enumerates in its own right, which is the distinction
+ * {@link buildUnrepresentedCardFacts} turns on -- a miss there is a writer defect, not unrepresentable
+ * state, and must stay loud.
+ *
+ * Both reads are upward and assertion-free, which the downward ones are not: `UnitProperties.upgrades` and
+ * `.capturedUnits` both go through `assertPropertyEnabledForZone`, and an assertion here would route
+ * through `Game.reportError` and give the read-only writer a side effect on the game it is describing.
+ */
+function getNestingContainer(card: Card): Card | null {
+    if (card.zone instanceof CaptureZone) {
+        return card.zone.captor as unknown as Card;
+    }
+
+    if (card instanceof InPlayCard && card.isAttached()) {
+        return card.parentCard as unknown as Card;
+    }
+
+    return null;
+}
+
+/**
+ * The reconciliation between the position walk and {@link collectExpectedCards}: one `unrepresentedCard`
+ * manifest entry per on-board card the walk did not place, for the cards whose position `v1` structurally
+ * cannot express. Two shapes reach this, and both are genuinely unrepresentable rather than missed:
+ *
+ * - **A container that no longer lists the card.** `UnitProperties.setCaptureZoneEnabled` mints a *new*
+ *   `CaptureZone` each time capture is re-enabled, so bouncing a captor out of play and replaying it leaves
+ *   the captive pointing at a zone the captor has since replaced. The captor's live `capturedUnits` no
+ *   longer contains it, and no walk of the captor can produce it. This is the shape `measure-degradation`
+ *   actually observes.
+ * - **Nested more than one level deep.** `ISavedAttachedCard` is `{ card, ownerSeat }` with no child lists
+ *   of its own, and `ISavedCardRef.parent` addresses a nested card only as a direct child of a *top-level*
+ *   position. An upgrade on a captured unit, or a unit captured by a card that is itself attached, has no
+ *   coordinate to be given -- so `buildAttachedCardEntries` does not recurse, and what it cannot reach is
+ *   declared here instead. No board in the suite currently produces this, so it is covered structurally
+ *   rather than by a repro spec.
+ *
+ * Per the owning plan's degrade-with-manifest rule, unrepresentable state is dropped and enumerated rather
+ * than refused. The rule is deliberately narrow: it forgives only a card that hangs off another card, never
+ * one sitting in a plain zone, so it cannot absorb a repeat of the `isLeaderUnit()` arena-filter defect
+ * (whose victims had no container at all) into a quiet manifest line.
+ */
+function buildUnrepresentedCardFacts(
+    expectedCards: ReadonlySet<Card>,
+    refResolver: SavedCardRefResolver,
+    resolveCardRef: (card: Card) => ISavedCardRef
+): { facts: IEngineOnlyFact[]; declared: Set<Card> } {
+    const facts: IEngineOnlyFact[] = [];
+    const declared = new Set<Card>();
+
+    for (const card of expectedCards) {
+        if (refResolver.isIndexed(card)) {
+            continue;
+        }
+
+        const container = getNestingContainer(card);
+        if (container == null) {
+            continue;
+        }
+
+        const relation = card.zone instanceof CaptureZone ? 'captured by' : 'attached to';
+
+        declared.add(card);
+        facts.push({
+            category: 'unrepresentedCard',
+            source: resolveCardRef(card),
+            target: resolveCardRef(container),
+            duration: null,
+            description: `${card.internalName} is ${relation} ${container.internalName}, whose own saved position cannot carry it: v1 expresses a nested card only as a direct child of a top-level position. The card is not saved.`,
+        });
+    }
+
+    return { facts, declared };
+}
+
+/**
  * Produces the lossless `v1` save-format document for `game`. Does not call, wrap, or model itself on
  * `Game.captureGameState`, which truncates the deck to five cards and drops all limits and effects. The
  * writer's public surface is read-only: it returns a document and leaves the game as it found it (the one
@@ -291,6 +387,7 @@ export function save(game: Game, options: ISaveOptions = {}): ISavedMatch {
     // Phase 1: pre-pass.
     const pilotDeployedLeaders = findPilotDeployedLeaders(players);
     const pilotDeployedLeaderSet = new Set<Card>(pilotDeployedLeaders);
+    const deckLeaders = collectDeckLeaders(players);
 
     // Phase 2: position walk.
     const refResolver = new SavedCardRefResolver();
@@ -302,8 +399,8 @@ export function save(game: Game, options: ISaveOptions = {}): ISavedMatch {
 
         const resources = player.resources.map((card, ordinal) => buildResourceEntry(card, seat, ordinal, seatByPlayer, refResolver));
 
-        const groundArenaCards = game.groundArena.getCards({ controller: player }).filter((card) => !card.isLeaderUnit() && !card.isAttached());
-        const spaceArenaCards = game.spaceArena.getCards({ controller: player }).filter((card) => !card.isLeaderUnit() && !card.isAttached());
+        const groundArenaCards = game.groundArena.getCards({ controller: player }).filter((card) => !deckLeaders.has(card) && !card.isAttached());
+        const spaceArenaCards = game.spaceArena.getCards({ controller: player }).filter((card) => !deckLeaders.has(card) && !card.isAttached());
 
         const groundArena = groundArenaCards.map((card, ordinal) =>
             buildArenaEntry(card, seat, ordinal, 'groundArena', seatByPlayer, seatedPlayers, refResolver, pilotDeployedLeaderSet));
@@ -342,9 +439,12 @@ export function save(game: Game, options: ISaveOptions = {}): ISavedMatch {
     // Phase 3: detection and manifest.
     const resolveCardRef = (card: Card) => refResolver.resolve(card, getSeatForPlayer(card.controller));
     const watchers = serializeStateWatchers(game, refResolver, seatByUuid);
+    const expectedCards = collectExpectedCards(game);
+    const unrepresentedCards = buildUnrepresentedCardFacts(expectedCards, refResolver, resolveCardRef);
     const engineOnlyFacts: IEngineOnlyFact[] = [
         ...buildPilotLeaderFacts(pilotDeployedLeaders, resolveCardRef),
         ...classifyOngoingEffects(game, resolveCardRef, getSeatForPlayer, seatedPlayers),
+        ...unrepresentedCards.facts,
         ...watchers.droppedFacts,
     ];
 
@@ -392,28 +492,38 @@ export function save(game: Game, options: ISaveOptions = {}): ISavedMatch {
         timers,
     };
 
-    assertCompleteness(game, refResolver, document);
+    assertCompleteness(expectedCards, refResolver, unrepresentedCards.declared, document);
 
     return document;
 }
 
 /**
- * Every card owned by either player that is currently in a zone must appear exactly once in the document.
+ * Every card owned by either player that is currently in a zone must be accounted for: it appears exactly
+ * once at a coordinate, or it is enumerated in `engineOnlyFacts` as an `unrepresentedCard`.
  * `SavedCardRefResolver.indexTopLevel`/`indexNested` already throw if the same live card is indexed twice,
  * so "present in the index" is equivalent to "appears exactly once" here; this only needs to check that
- * every expected card was indexed at all. Deliberately not the oracle AC1 uses: a check and a test sharing
- * an oracle proves only self-consistency.
+ * every expected card was either indexed at all or declared dropped. `collectExpectedCards` is deliberately
+ * not the oracle AC1 uses: a check and a test sharing an oracle proves only self-consistency.
+ *
+ * Accepting a declared drop is not a relaxation of invariant 4 -- it is the degrade-with-manifest rule the
+ * owning plan states, and the alternative the plan reserves for untrustworthy *coordinates*, not for state
+ * the format cannot hold. What is still forbidden, and still hard-fails here, is a card that vanishes
+ * without either: {@link buildUnrepresentedCardFacts} only ever declares a card nested under another card,
+ * so a card missing from a plain zone remains exactly as loud as it was.
  */
-function assertCompleteness(game: Game, refResolver: SavedCardRefResolver, document: ISavedMatch): void {
-    const expectedCards = collectExpectedCards(game);
-
+function assertCompleteness(
+    expectedCards: ReadonlySet<Card>,
+    refResolver: SavedCardRefResolver,
+    declaredUnrepresented: ReadonlySet<Card>,
+    document: ISavedMatch
+): void {
     for (const card of expectedCards) {
-        const ref = refResolver.resolve(card, '');
-        const wasEmitted = ref.zone != null || ref.parent != null;
-        if (!wasEmitted) {
-            throw new SaveIntegrityError(
-                `Card "${card.internalName}" (uuid ${card.uuid}) is owned by a player and in a zone, but does not appear anywhere in the saved match. Document formatVersion: ${document.formatVersion}.`
-            );
+        if (refResolver.isIndexed(card) || declaredUnrepresented.has(card)) {
+            continue;
         }
+
+        throw new SaveIntegrityError(
+            `Card "${card.internalName}" (uuid ${card.uuid}) is owned by a player and in a zone, but does not appear anywhere in the saved match and was not declared as an unrepresentedCard fact. Document formatVersion: ${document.formatVersion}.`
+        );
     }
 }

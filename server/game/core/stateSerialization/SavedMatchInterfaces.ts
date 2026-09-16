@@ -192,8 +192,18 @@ export interface ISavedPlayer {
  * It means exactly one thing: a single watcher entry referenced a card with no position anywhere in this
  * document (a token removed from the game is the reachable producer), so that entry was dropped and
  * enumerated here.
+ *
+ * `unrepresentedCard` means a card that is genuinely on the board — owned by a player and in a zone — was
+ * not emitted at any coordinate, because the only coordinate that could describe it is one `v1` has no
+ * shape for. `ISavedCardRef.parent` addresses a nested card strictly as a direct child of a *top-level*
+ * position, so a card nested one level further down (an upgrade on a captured unit, a unit captured by a
+ * card that is itself attached) has nowhere to live; so does a card whose container no longer lists it, as
+ * happens to a captive whose captor's `CaptureZone` was replaced out from under it. `source` is the
+ * unplaced card (a position-less ref, the schema's declared "referent not in any emitted position" form)
+ * and `target` is the container it hangs off. Everything else that goes missing is a writer defect and
+ * still hard-fails — see `MatchSerializer.assertCompleteness`.
  */
-export type EngineOnlyFactCategory = 'lastingEffect' | 'gainedAbility' | 'delayedEffect' | 'watcherEntry' | 'pilotLeader';
+export type EngineOnlyFactCategory = 'lastingEffect' | 'gainedAbility' | 'delayedEffect' | 'watcherEntry' | 'pilotLeader' | 'unrepresentedCard';
 
 export interface IEngineOnlyFact {
     category: EngineOnlyFactCategory;

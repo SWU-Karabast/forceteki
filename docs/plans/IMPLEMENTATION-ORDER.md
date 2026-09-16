@@ -215,12 +215,13 @@ independently valuable and independently testable.
 closing unit surfaced are worth carrying forward rather than leaving buried in
 [the Anvil log](ANVIL-LOG.md#p2-e--verification-suite--degradation-measurement-plan-2-work-item-e):
 
-- **The writer refuses outright on roughly 0.9% of real boards** (`SaveIntegrityError`
+- **The writer refused outright on roughly 0.9% of real boards** (`SaveIntegrityError`
   from its own completeness check — a card owned and in a zone that never got
-  indexed), across several card shapes. The bug report still submits, but its
-  save attachment is silently lost for exactly the complex-interaction positions
-  most likely to need one. It is a `P2-A` defect, found by `P2-E`'s measurement,
-  and it needs its own task.
+  indexed), across several card shapes. A `P2-A` defect, found by `P2-E`'s
+  measurement and **since fixed** — see finding `P2E-I1-01` in
+  [the Anvil log](ANVIL-LOG.md#p2-e--verification-suite--degradation-measurement-plan-2-work-item-e).
+  The completeness check now reports zero hard failures; the only refusals left
+  are the `Card.nextAbilityIdx` coordinate-drift ones the design intends.
 - **9.9% of boards save degraded**, dominated by `lastingEffect` and
   `delayedEffect` — the categories Plan 6 is meant to close.
 

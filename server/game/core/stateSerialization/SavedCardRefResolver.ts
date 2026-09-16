@@ -105,6 +105,17 @@ export class SavedCardRefResolver {
         }
     }
 
+    /**
+     * Whether `card` occupies an emitted position. Stated directly rather than as a
+     * `resolve(...).zone != null || .parent != null` test on the synthesized ref, because the two callers
+     * that ask this question (`MatchSerializer`'s unrepresented-card sweep and its completeness assertion)
+     * must agree exactly on what "appears in the document" means, and a shared predicate is what makes
+     * that structural.
+     */
+    public isIndexed(card: Card): boolean {
+        return this.refsByCard.has(card);
+    }
+
     public resolve(card: Card, controllerSeat: string): ISavedCardRef {
         const indexed = this.refsByCard.get(card);
         if (indexed) {
