@@ -1,0 +1,105 @@
+describe('Always a Bigger Fish', function () {
+    integration(function (contextRef) {
+        it('should defeat a friendly Creature unit and play a Creature unit costing up to 3 more from hand for free', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'great-grass-plains',
+                    hand: ['always-a-bigger-fish', 'wild-rancor', 'sando-aqua-monster', 'wampa', 'battlefield-marine'],
+                    groundArena: ['blurrg', 'atst']
+                },
+                player2: {
+                    groundArena: ['nameless-terror']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.alwaysABiggerFish);
+            expect(context.player1).toHavePrompt('Defeat a friendly Creature unit');
+
+            // Only friendly Creature units: not AT-ST (non-Creature), not enemy Nameless Terror
+            expect(context.player1).toBeAbleToSelectExactly([context.blurrg]);
+            context.player1.clickCard(context.blurrg);
+
+            expect(context.blurrg).toBeInZone('discard', context.player1);
+
+            // Blurrg costs 3: can play a Creature costing up to 6. Sando Aqua Monster (8) and Battlefield Marine (non-Creature) are not selectable
+            expect(context.player1).toBeAbleToSelectExactly([context.wildRancor, context.wampa]);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.wampa).toBeInZone('groundArena', context.player1);
+            expect(context.player1.exhaustedResourceCount).toBe(2); // only the event's cost was paid
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should limit the playable Creature cost based on the defeated unit\'s cost', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'great-grass-plains',
+                    hand: ['always-a-bigger-fish', 'wampa', 'lurking-wampa'],
+                    groundArena: ['womp-rat', 'atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.alwaysABiggerFish);
+            context.player1.clickCard(context.wompRat);
+
+            // Womp Rat costs 1: can play a Creature costing up to 4. Lurking Wampa (5) is not selectable
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.wampa).toBeInZone('groundArena', context.player1);
+            expect(context.player1.exhaustedResourceCount).toBe(2);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should be able to play a space Creature unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'great-grass-plains',
+                    hand: ['always-a-bigger-fish', 'graceful-purrgil'],
+                    groundArena: ['blurrg']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.alwaysABiggerFish);
+            context.player1.clickCard(context.blurrg);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.gracefulPurrgil]);
+            context.player1.clickCard(context.gracefulPurrgil);
+
+            expect(context.gracefulPurrgil).toBeInZone('spaceArena', context.player1);
+            expect(context.player1.exhaustedResourceCount).toBe(2);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should fizzle the play effect if there is no valid Creature unit in hand', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'great-grass-plains',
+                    hand: ['always-a-bigger-fish', 'battlefield-marine', 'sando-aqua-monster'],
+                    groundArena: ['womp-rat']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.alwaysABiggerFish);
+            context.player1.clickCard(context.wompRat);
+
+            // Womp Rat costs 1: Sando Aqua Monster (8) is too expensive and Battlefield Marine is not a Creature
+            expect(context.wompRat).toBeInZone('discard', context.player1);
+            expect(context.sandoAquaMonster).toBeInZone('hand', context.player1);
+            expect(context.player1.exhaustedResourceCount).toBe(2);
+            expect(context.player2).toBeActivePlayer();
+        });
+    });
+});
