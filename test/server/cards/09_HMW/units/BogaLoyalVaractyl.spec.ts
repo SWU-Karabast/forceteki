@@ -15,7 +15,7 @@ describe('Boga, Loyal Varactyl', function() {
             context.player1.clickCard(context.boga);
 
             // AT-ST is a Vehicle and cannot be chosen
-            expect(context.player1).toHavePrompt('Choose a non-Vehicle unit in your discard pile not named Boga. For this phase, you may play that unit from your discard pile. It costs 1 resource less')
+            expect(context.player1).toHavePrompt('Choose a non-Vehicle unit in your discard pile not named Boga. For this phase, you may play that unit from your discard pile. It costs 1 resource less');
             expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
             context.player1.clickCard(context.wampa);
 
