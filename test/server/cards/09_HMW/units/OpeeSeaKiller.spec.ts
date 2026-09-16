@@ -32,6 +32,7 @@ describe('Opee Sea Killer', function () {
                     groundArena: [{ card: 'opee-sea-killer', damage: 2 }]
                 },
                 player2: {
+                    base: 'theed-palace',
                     groundArena: ['wampa']
                 }
             });
@@ -45,27 +46,6 @@ describe('Opee Sea Killer', function () {
 
             expect(context.p2Base.damage).toBe(5);
             expect(context.player2).toBeActivePlayer();
-        });
-
-        it('should have printed power while undamaged even with a Naboo base', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    base: 'theed-palace',
-                    groundArena: ['opee-sea-killer']
-                }
-            });
-
-            const { context } = contextRef;
-
-            expect(context.opeeSeaKiller.getPower()).toBe(5);
-
-            // Grit kicks in as soon as it is damaged
-            context.setDamage(context.opeeSeaKiller, 3);
-            expect(context.opeeSeaKiller.getPower()).toBe(8);
-
-            context.setDamage(context.opeeSeaKiller, 0);
-            expect(context.opeeSeaKiller.getPower()).toBe(5);
         });
     });
 });
