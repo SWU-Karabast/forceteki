@@ -1,8 +1,8 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import type { TokenUpgradeName } from '../../../core/Constants';
+import type { IAbilityHelper } from '../../../AbilityHelper';
 import { WildcardCardType } from '../../../core/Constants';
-import { GiveTokenUpgradeSystem } from '../../../gameSystems/GiveTokenUpgradeSystem';
+import { Contract } from '../../../core/utils/Contract';
 
 export default class BossLyonieHypnotized extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -12,7 +12,7 @@ export default class BossLyonieHypnotized extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
             title: 'Choose a token upgrade attached to another unit. Give another one of those tokens to that unit',
             when: {
@@ -24,12 +24,15 @@ export default class BossLyonieHypnotized extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Upgrade,
                 cardCondition: (card, context) =>
                     card.isTokenUpgrade() && card.parentCard != null && card.parentCard !== context.source,
-                // Token upgrade internal names ('shield', 'experience', ...) are the TokenUpgradeName
-                // values, so the chosen token tells us which kind to give.
-                immediateEffect: new GiveTokenUpgradeSystem((context) => ({
-                    target: context.target.parentCard,
-                    tokenType: context.target.internalName as TokenUpgradeName,
-                })),
+                immediateEffect: abilityHelper.immediateEffects.giveTokenUpgrade((context) => {
+                    const token = context.target;
+                    Contract.assertTrue(token.isTokenUpgrade());
+
+                    return {
+                        target: token.parentCard,
+                        tokenType: token.tokenName,
+                    };
+                }),
             }
         });
     }
