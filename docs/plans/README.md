@@ -23,7 +23,7 @@ PR-sized units and is the entry point for actually building any of this.
 
 | # | Plan | Depends on | Size | Deliverable |
 |---|------|-----------|------|-------------|
-| 0 | [Performance benchmarks & baseline](00-performance-benchmarks.md) | — | Small (one PR) | Benchmark harness + runner + the `initial-performance` capture. **Done first; everything else is measured against it.** |
+| 0 | [Performance benchmarks & baseline](00-performance-benchmarks.md) | — | Small (one PR) | Benchmark harness + runner + the first baseline capture. **Done first; everything else is measured against a baseline from this harness.** |
 | 1 | [Snapshot hygiene & enablers](01-snapshot-hygiene.md) | — | Small (4 small PRs — items A, B, C, E; item B after item A; item D is prerequisite-only, not scheduled) | Memory-growth fixes, RNG seeding, dead-code cleanup |
 | 2 | [Semantic save/load v1](02-semantic-save-load.md) | — (Plan 1 recommended first) | Medium | Bug-report save/load artifact; requestable at any moment, taken at the next action-window boundary; unrepresentable state degrades with an `engineOnlyFacts` manifest |
 | 3 | [Codegen state serializers](03-codegen-serializers.md) | Plan 1 recommended | Large (two phases) | Build-time generated serializers replacing runtime decorator cost; schema-surface hash for Plan 6 |
@@ -46,16 +46,21 @@ The roadmap exists to make two things better, and both are measured:
    share of wall time lost to garbage collection. This is the term that has
    actually hurt in production.
 
-[Plan 0](00-performance-benchmarks.md) builds the tooling and captures
-[`initial-performance`](performance/initial-performance.md) **before any other
-plan starts**. Every plan then captures its own report on completion:
+[Plan 0](00-performance-benchmarks.md) builds the tooling and captured the first
+baseline **before any other plan started**. That capture was taken on different
+hardware and a different Node version than everything since, so the roadmap's
+comparison target is now
+[`pre-roadmap-baseline`](performance/pre-roadmap-baseline.md); see the
+[capture index](performance/README.md). Every plan captures its own report on
+completion:
 
 ```bash
-npm run benchmark -- --name after-plan-NN --compare initial-performance
+npm run benchmark -- --name after-plan-NN --compare pre-roadmap-baseline
 ```
 
 Captures live in [`docs/plans/performance/`](performance/README.md). The
-**initial → after-plan-04** delta is the roadmap's performance deliverable:
+**pre-roadmap-baseline → after-plan-04** delta is the roadmap's performance
+deliverable:
 Plan 4 (delta snapshots) is the last plan whose thesis is performance, so its
 capture is the one that answers whether the roadmap fixed speed and GC
 pressure. Plans 5 and 6 are save/load-oriented — their captures still get

@@ -127,7 +127,7 @@ Replace the "Plans 4-6 - not decomposed yet" section with the real tables.
   classification wins at run time.
 - Assign each plan's performance capture to exactly one final unit, and have
   every other invocation explicitly forbid running it. The capture commands are
-  `npm run benchmark -- --name after-plan-NN --compare initial-performance`.
+  `npm run benchmark -- --name after-plan-NN --compare pre-roadmap-baseline`.
   Plan 4's capture is the roadmap's performance deliverable (the last plan whose
   thesis is performance — Plans 5 and 6 are save/load-oriented, their captures
   no-regression checks), so the unit owning `after-plan-04` also owns writing

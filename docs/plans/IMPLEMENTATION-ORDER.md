@@ -106,7 +106,7 @@ other invocation explicitly forbids it.
 |---|---|---|
 | 1 | `P1-B` | `npm run benchmark -- --name after-plan-01 --compare initial-performance` |
 | 2 | `P2-E` | `npm run benchmark -- --name after-plan-02 --compare initial-performance` |
-| 3 | `P3-PB3` | `npm run benchmark -- --name after-plan-03 --compare initial-performance` |
+| 3 | `P3-PB3` | `npm run benchmark -- --name after-plan-03 --compare pre-roadmap-baseline` |
 
 Two standing rules from [Plan 0](00-performance-benchmarks.md) that are easy to
 break by accident, repeated here because they bind every unit: **do not edit an
@@ -373,7 +373,7 @@ re-derive. The plan itself points at Plan 2's watcher section for the same surve
 ### `P3-PB3` ⏱ — Docs + capture
 
 ```bash
-/orchestrate --fast Implement docs/plans/03-codegen-serializers.md Phase B step 9 (developer docs) ONLY: update docs/ so the "adding a state field" workflow includes the codegen step, and document the hard-fail behavior when the generated artifact is missing or stale. Scope fence: no production code changes; do NOT retire the parity harness (step 8 is deliberately deferred one release cycle). This is the FINAL scheduled unit of Plan 3: after the docs land, run `npm run benchmark -- --name after-plan-03 --compare initial-performance` and commit both generated files under docs/plans/performance/. Note in the plan doc that Plan 3 is expected to trade build-time complexity for runtime cost, and quantify any headline-benchmark regression rather than waving it through. task_id: p3-pb3
+/orchestrate --fast Implement docs/plans/03-codegen-serializers.md Phase B step 9 (developer docs) ONLY: update docs/ so the "adding a state field" workflow includes the codegen step, and document the hard-fail behavior when the generated artifact is missing or stale. Scope fence: no production code changes; do NOT retire the parity harness (step 8 is deliberately deferred one release cycle). This is the FINAL scheduled unit of Plan 3: after the docs land, run `npm run benchmark -- --name after-plan-03 --compare pre-roadmap-baseline` and commit both generated files under docs/plans/performance/. Note in the plan doc that Plan 3 is expected to trade build-time complexity for runtime cost, and quantify any headline-benchmark regression rather than waving it through. task_id: p3-pb3
 ```
 
 ### `P3-PB4` — Retire the parity harness *(deferred)*

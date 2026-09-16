@@ -657,9 +657,9 @@ fuzz mode (recreation parity, invariant 4).
 Capture after **each stage**, since each is separately landable:
 
 ```bash
-npm run benchmark -- --name after-plan-05a --compare initial-performance
-npm run benchmark -- --name after-plan-05b --compare initial-performance
-npm run benchmark -- --name after-plan-05c --compare initial-performance
+npm run benchmark -- --name after-plan-05a --compare pre-roadmap-baseline
+npm run benchmark -- --name after-plan-05b --compare pre-roadmap-baseline
+npm run benchmark -- --name after-plan-05c --compare pre-roadmap-baseline
 ```
 
 Commit both generated files under `docs/plans/performance/`. See

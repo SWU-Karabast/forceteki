@@ -72,7 +72,7 @@ numbers), and writes both `<name>.md` and `<name>.json`.
 To compare against an earlier capture:
 
 ```bash
-npm run benchmark -- --name after-plan-03 --compare initial-performance
+npm run benchmark -- --name after-plan-03 --compare pre-roadmap-baseline
 ```
 
 ## Two corrections to the branch's method
@@ -138,13 +138,16 @@ quick containers.
 
 ## Capture protocol (applies to every later plan)
 
-1. When a plan lands, run `npm run benchmark -- --name after-plan-NN --compare initial-performance`.
+1. When a plan lands, run `npm run benchmark -- --name after-plan-NN --compare pre-roadmap-baseline`.
 2. Commit `docs/plans/performance/after-plan-NN.md` **and** `.json`. The JSON is
    the source of truth; the markdown is generated and must not be hand-edited.
 3. Note anything that would distort the comparison (machine change, scenario
    added, headline benchmark redefined) in the plan's own doc.
+4. If the plan's thesis is timing rather than bytes, take the capture three or more times and report the spread. The measured single-row timing noise floor on this harness is about ±18%, so one run cannot support a timing claim. Memory and payload rows are stable to ~1.5% and 0.3% respectively and can be read from a single run.
 
-The **initial vs. after-plan-04** delta is the roadmap's performance
+The comparison target is `pre-roadmap-baseline` at `3dcaecdb0`, the direct parent of the roadmap's first plan-work commit. `initial-performance` was captured on different hardware under a different Node version and has been retired as a comparison target; the [capture index](performance/README.md) records why, and `initial-performance.{json,md}` stays committed as the historical record.
+
+The **pre-roadmap-baseline vs. after-plan-04** delta is the roadmap's performance
 deliverable — Plan 4 (delta snapshots) is the last plan whose thesis is
 performance; Plans 5 and 6 are save/load-oriented and their captures are
 no-regression checks. Intermediate captures exist

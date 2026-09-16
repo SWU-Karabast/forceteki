@@ -1,0 +1,1977 @@
+{
+  "name": "after-plan-01-replicate",
+  "label": null,
+  "report": {
+    "schemaVersion": 1,
+    "environment": {
+      "capturedAt": "2026-09-16T01:35:06.999Z",
+      "gitCommit": "5787a3314",
+      "gitBranch": "HEAD",
+      "gitDirty": true,
+      "nodeVersion": "v24.13.0",
+      "v8Version": "13.6.233.17-node.37",
+      "platform": "win32 10.0.26200",
+      "arch": "x64",
+      "cpuModel": "AMD Ryzen 7 9850X3D 8-Core Processor           ",
+      "cpuCount": 16,
+      "totalMemoryBytes": 33913405440,
+      "exposeGc": true
+    },
+    "scenarios": [
+      {
+        "scenario": "compact-board",
+        "mutatedCards": 11,
+        "liveGameObjects": 154,
+        "results": [
+          {
+            "category": "manager",
+            "benchmark": "moveToNextTimepoint(Action)",
+            "iterations": 50,
+            "avgMs": 0.22375799999999998,
+            "minMs": 0.1339,
+            "maxMs": 0.6143,
+            "p50Ms": 0.2256,
+            "p95Ms": 0.3014,
+            "totalMs": 11.187899999999999,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 480,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 480
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 58720.32,
+              "externalBytes": 38861.36,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 94945.28,
+              "totalBytes": 97581.68
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 879.52,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 879.52
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 3136136,
+              "externalBytes": 1943068,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 4747264,
+              "totalBytes": 5079204
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": -444784,
+              "externalBytes": 1943068,
+              "arrayBuffersBytes": 0,
+              "rssBytes": -1048576,
+              "totalBytes": 1498284
+            }
+          },
+          {
+            "category": "full",
+            "benchmark": "createSnapshotForCurrentTimepoint",
+            "iterations": 50,
+            "avgMs": 0.22043800000000002,
+            "minMs": 0.1416,
+            "maxMs": 0.4941,
+            "p50Ms": 0.2276,
+            "p95Ms": 0.2745,
+            "totalMs": 11.0219,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 480,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 480
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 54894.08,
+              "externalBytes": 48729.64,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 103628.8,
+              "totalBytes": 103623.72
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 577.92,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 245.76,
+              "totalBytes": 577.92
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 2922368,
+              "externalBytes": 2436482,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 5197824,
+              "totalBytes": 5358850
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 208168,
+              "externalBytes": 2436482,
+              "arrayBuffersBytes": 0,
+              "rssBytes": -749568,
+              "totalBytes": 2644650
+            }
+          },
+          {
+            "category": "full",
+            "benchmark": "buildGameStateForSnapshot",
+            "iterations": 50,
+            "avgMs": 0.18637200000000007,
+            "minMs": 0.1394,
+            "maxMs": 0.5009,
+            "p50Ms": 0.1598,
+            "p95Ms": 0.2631,
+            "totalMs": 9.318600000000004,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 334.08,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 334.08
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 52797.12,
+              "externalBytes": 46980,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 101498.88,
+              "totalBytes": 99777.12
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 330.24,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 1228.8,
+              "totalBytes": 330.24
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 2790184,
+              "externalBytes": 2349000,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 5136384,
+              "totalBytes": 5139184
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 264080,
+              "externalBytes": 2349000,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 851968,
+              "totalBytes": 2613080
+            }
+          },
+          {
+            "category": "full",
+            "benchmark": "rollbackToSnapshot",
+            "iterations": 25,
+            "avgMs": 1.058736,
+            "minMs": 0.6311,
+            "maxMs": 1.7124,
+            "p50Ms": 1.0416,
+            "p95Ms": 1.5486,
+            "totalMs": 26.468399999999995,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 8296.32,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 819.2,
+              "totalBytes": 8296.32
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 308396.16,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": -2129.92,
+              "totalBytes": 308396.16
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 160871.68,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 2785.28,
+              "totalBytes": 160871.68
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 11989656,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 36864,
+              "totalBytes": 11989656
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 1538176,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 221184,
+              "totalBytes": 1538176
+            }
+          },
+          {
+            "category": "manager",
+            "benchmark": "rollbackTo(Manual)",
+            "iterations": 25,
+            "avgMs": 1.111392,
+            "minMs": 0.8013,
+            "maxMs": 1.6976,
+            "p50Ms": 1.0734,
+            "p95Ms": 1.4289,
+            "totalMs": 27.784799999999997,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 55241.92,
+              "externalBytes": 40507.72,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 94208,
+              "totalBytes": 95749.64
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 288584.32,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 25886.72,
+              "totalBytes": 288584.32
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 174360.96,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 25231.36,
+              "totalBytes": 174360.96
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 13107264,
+              "externalBytes": 1012693,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 3637248,
+              "totalBytes": 14119957
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 1504312,
+              "externalBytes": 1012693,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 380928,
+              "totalBytes": 2517005
+            }
+          },
+          {
+            "category": "sustained",
+            "benchmark": "snapshotAndUndoCycle",
+            "iterations": 400,
+            "avgMs": 1.2002702499999995,
+            "minMs": 0.6676,
+            "maxMs": 24.3996,
+            "p50Ms": 1.1303,
+            "p95Ms": 1.3121,
+            "totalMs": 480.1080999999998,
+            "gc": {
+              "count": 1,
+              "durationMs": 22.263299994170666,
+              "majorCount": 0,
+              "minorCount": 1,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0.0025,
+            "gcMsPerIteration": 0.055658249985426664,
+            "gcPauseFraction": 0.04637143175499575,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 20.48,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 132094.3,
+              "externalBytes": 16384.5225,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 50688,
+              "totalBytes": 148478.8225
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 1152.22,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 30.72,
+              "totalBytes": 1152.22
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 53785760,
+              "externalBytes": 6553809,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 20357120,
+              "totalBytes": 60339569
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 9759224,
+              "externalBytes": 6553809,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 8421376,
+              "totalBytes": 16313033
+            }
+          }
+        ],
+        "payloads": [
+          {
+            "scenario": "compact-board",
+            "category": "payload",
+            "benchmark": "fullSnapshotTotal",
+            "serializedBytes": 53283,
+            "notes": {
+              "bytesPerGameObject": 346
+            }
+          },
+          {
+            "scenario": "compact-board",
+            "category": "payload",
+            "benchmark": "gameStateBuffer",
+            "serializedBytes": 875
+          },
+          {
+            "scenario": "compact-board",
+            "category": "payload",
+            "benchmark": "gameObjectStatesBuffer",
+            "serializedBytes": 52408
+          },
+          {
+            "scenario": "compact-board",
+            "category": "payload",
+            "benchmark": "retainedChain(13 snapshots)",
+            "serializedBytes": 642948,
+            "notes": {
+              "heapUsedBytes": 3552,
+              "externalBytes": 639396,
+              "bytesPerSnapshot": 49458
+            }
+          }
+        ]
+      },
+      {
+        "scenario": "large-board",
+        "mutatedCards": 28,
+        "liveGameObjects": 230,
+        "results": [
+          {
+            "category": "manager",
+            "benchmark": "moveToNextTimepoint(Action)",
+            "iterations": 25,
+            "avgMs": 0.238336,
+            "minMs": 0.1432,
+            "maxMs": 0.6116,
+            "p50Ms": 0.2408,
+            "p95Ms": 0.2993,
+            "totalMs": 5.9584,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 88545.28,
+              "externalBytes": 8666.28,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 133365.76,
+              "totalBytes": 97211.56
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 672,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 672
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 2260296,
+              "externalBytes": 216657,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 3334144,
+              "totalBytes": 2476953
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": -282360,
+              "externalBytes": 216657,
+              "arrayBuffersBytes": 0,
+              "rssBytes": -622592,
+              "totalBytes": -65703
+            }
+          },
+          {
+            "category": "full",
+            "benchmark": "createSnapshotForCurrentTimepoint",
+            "iterations": 25,
+            "avgMs": 0.19260400000000005,
+            "minMs": 0.1328,
+            "maxMs": 0.4225,
+            "p50Ms": 0.1641,
+            "p95Ms": 0.2698,
+            "totalMs": 4.815100000000001,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 85152.64,
+              "externalBytes": 69481.44,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 125009.92,
+              "totalBytes": 154634.08
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 2165880,
+              "externalBytes": 1737036,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 3125248,
+              "totalBytes": 3902916
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": -24792,
+              "externalBytes": 1737036,
+              "arrayBuffersBytes": 0,
+              "rssBytes": -1744896,
+              "totalBytes": 1712244
+            }
+          },
+          {
+            "category": "full",
+            "benchmark": "buildGameStateForSnapshot",
+            "iterations": 25,
+            "avgMs": 0.5415639999999999,
+            "minMs": 0.1367,
+            "maxMs": 5.0667,
+            "p50Ms": 0.2599,
+            "p95Ms": 1.8214,
+            "totalMs": 13.539099999999998,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 82646.08,
+              "externalBytes": 65288.8,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 118620.16,
+              "totalBytes": 147934.88
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 2103216,
+              "externalBytes": 1632220,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 2965504,
+              "totalBytes": 3735436
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 5656,
+              "externalBytes": 1632220,
+              "arrayBuffersBytes": 0,
+              "rssBytes": -1212416,
+              "totalBytes": 1637876
+            }
+          },
+          {
+            "category": "full",
+            "benchmark": "rollbackToSnapshot",
+            "iterations": 15,
+            "avgMs": 1.5026533333333334,
+            "minMs": 1.0823,
+            "maxMs": 2.57,
+            "p50Ms": 1.4099,
+            "p95Ms": 2.57,
+            "totalMs": 22.5398,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 14353.6,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 2184.5333333333333,
+              "totalBytes": 14353.6
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 365051.2,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 15837.866666666667,
+              "totalBytes": 365051.2
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 398249.6,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 13107.2,
+              "totalBytes": 398249.6
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 11678280,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 466944,
+              "totalBytes": 11678280
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 1099512,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 495616,
+              "totalBytes": 1099512
+            }
+          },
+          {
+            "category": "manager",
+            "benchmark": "rollbackTo(Manual)",
+            "iterations": 15,
+            "avgMs": 1.6062533333333333,
+            "minMs": 1.1573,
+            "maxMs": 1.9632,
+            "p50Ms": 1.7275,
+            "p95Ms": 1.9632,
+            "totalMs": 24.093799999999998,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 109474.13333333333,
+              "externalBytes": 49992.26666666667,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 195242.66666666666,
+              "totalBytes": 159466.4
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 364897.06666666665,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 16930.133333333335,
+              "totalBytes": 364897.06666666665
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 399660.8,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 10376.533333333333,
+              "totalBytes": 399660.8
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 13123944,
+              "externalBytes": 749884,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 3338240,
+              "totalBytes": 13873828
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 1092120,
+              "externalBytes": 749884,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 851968,
+              "totalBytes": 1842004
+            }
+          },
+          {
+            "category": "sustained",
+            "benchmark": "snapshotAndUndoCycle",
+            "iterations": 400,
+            "avgMs": 2.0301887500000007,
+            "minMs": 1.2479,
+            "maxMs": 18.8475,
+            "p50Ms": 1.9424,
+            "p95Ms": 2.211,
+            "totalMs": 812.0755000000003,
+            "gc": {
+              "count": 3,
+              "durationMs": 42.345499999821186,
+              "majorCount": 0,
+              "minorCount": 3,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0.0075,
+            "gcMsPerIteration": 0.10586374999955296,
+            "gcPauseFraction": 0.05214478210439937,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 326.6,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 71.68,
+              "totalBytes": 326.6
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 50236.98,
+              "externalBytes": 1040.75,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 29061.12,
+              "totalBytes": 51277.73
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 907.2,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 81.92,
+              "totalBytes": 907.2
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 20956984,
+              "externalBytes": 416300,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 11792384,
+              "totalBytes": 21373284
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 479304,
+              "externalBytes": 416300,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 11653120,
+              "totalBytes": 895604
+            }
+          }
+        ],
+        "payloads": [
+          {
+            "scenario": "large-board",
+            "category": "payload",
+            "benchmark": "fullSnapshotTotal",
+            "serializedBytes": 83260,
+            "notes": {
+              "bytesPerGameObject": 362
+            }
+          },
+          {
+            "scenario": "large-board",
+            "category": "payload",
+            "benchmark": "gameStateBuffer",
+            "serializedBytes": 1305
+          },
+          {
+            "scenario": "large-board",
+            "category": "payload",
+            "benchmark": "gameObjectStatesBuffer",
+            "serializedBytes": 81955
+          },
+          {
+            "scenario": "large-board",
+            "category": "payload",
+            "benchmark": "retainedChain(13 snapshots)",
+            "serializedBytes": 1046024,
+            "notes": {
+              "heapUsedBytes": 46904,
+              "externalBytes": 999120,
+              "bytesPerSnapshot": 80463
+            }
+          }
+        ]
+      },
+      {
+        "scenario": "forty-cards-per-player",
+        "mutatedCards": 40,
+        "liveGameObjects": 275,
+        "results": [
+          {
+            "category": "manager",
+            "benchmark": "moveToNextTimepoint(Action)",
+            "iterations": 10,
+            "avgMs": 0.31995,
+            "minMs": 0.1901,
+            "maxMs": 0.7018,
+            "p50Ms": 0.299,
+            "p95Ms": 0.7018,
+            "totalMs": 3.1995,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 119658.4,
+              "externalBytes": -151435.6,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 154419.2,
+              "totalBytes": -31777.2
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 672,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 672
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 1215408,
+              "externalBytes": -1514356,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 1544192,
+              "totalBytes": -298948
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": -642080,
+              "externalBytes": -1514356,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 1744896,
+              "totalBytes": -2156436
+            }
+          },
+          {
+            "category": "full",
+            "benchmark": "createSnapshotForCurrentTimepoint",
+            "iterations": 10,
+            "avgMs": 0.22081999999999996,
+            "minMs": 0.1569,
+            "maxMs": 0.4316,
+            "p50Ms": 0.1863,
+            "p95Ms": 0.4316,
+            "totalMs": 2.2081999999999997,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 116308,
+              "externalBytes": 57517.2,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 42188.8,
+              "totalBytes": 173825.2
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 293.6,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 293.6
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 1178120,
+              "externalBytes": 575172,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 421888,
+              "totalBytes": 1753292
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": -35408,
+              "externalBytes": 575172,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 466944,
+              "totalBytes": 539764
+            }
+          },
+          {
+            "category": "full",
+            "benchmark": "buildGameStateForSnapshot",
+            "iterations": 10,
+            "avgMs": 0.29007,
+            "minMs": 0.2023,
+            "maxMs": 0.5757,
+            "p50Ms": 0.264,
+            "p95Ms": 0.5757,
+            "totalMs": 2.9007,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 113842.4,
+              "externalBytes": 47308.5,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 5734.4,
+              "totalBytes": 161150.9
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 1153408,
+              "externalBytes": 473085,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 57344,
+              "totalBytes": 1626493
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": -22568,
+              "externalBytes": 473085,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 147456,
+              "totalBytes": 450517
+            }
+          },
+          {
+            "category": "full",
+            "benchmark": "rollbackToSnapshot",
+            "iterations": 6,
+            "avgMs": 2.06375,
+            "minMs": 1.9407,
+            "maxMs": 2.4467,
+            "p50Ms": 1.9524,
+            "p95Ms": 2.4467,
+            "totalMs": 12.3825,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 17565.333333333332,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 17565.333333333332
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 363308,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 2730.6666666666665,
+              "totalBytes": 363308
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 566056,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 566056
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 5687408,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 16384,
+              "totalBytes": 5687408
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 112336,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 24576,
+              "totalBytes": 112336
+            }
+          },
+          {
+            "category": "manager",
+            "benchmark": "rollbackTo(Manual)",
+            "iterations": 6,
+            "avgMs": 1.9232500000000001,
+            "minMs": 1.7921,
+            "maxMs": 2.224,
+            "p50Ms": 1.8052,
+            "p95Ms": 2.224,
+            "totalMs": 11.5395,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 141882.66666666666,
+              "externalBytes": 107,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 188416,
+              "totalBytes": 141989.66666666666
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 365109.3333333333,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 24576,
+              "totalBytes": 365109.3333333333
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 568417.3333333334,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 1365.3333333333333,
+              "totalBytes": 568417.3333333334
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 6458288,
+              "externalBytes": 642,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 1286144,
+              "totalBytes": 6458930
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 115528,
+              "externalBytes": 642,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 1503232,
+              "totalBytes": 116170
+            }
+          },
+          {
+            "category": "sustained",
+            "benchmark": "snapshotAndUndoCycle",
+            "iterations": 400,
+            "avgMs": 2.161688750000001,
+            "minMs": 1.3145,
+            "maxMs": 19.3667,
+            "p50Ms": 2.0622,
+            "p95Ms": 2.348,
+            "totalMs": 864.6755000000004,
+            "gc": {
+              "count": 3,
+              "durationMs": 45.35640000551939,
+              "majorCount": 0,
+              "minorCount": 3,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0.0075,
+            "gcMsPerIteration": 0.11339100001379848,
+            "gcPauseFraction": 0.05245482265372312,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 86050.04,
+              "externalBytes": 8444.1,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 20756.48,
+              "totalBytes": 94494.14
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": -141.24,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 10.24,
+              "totalBytes": -141.24
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 34841344,
+              "externalBytes": 3377640,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 8323072,
+              "totalBytes": 38218984
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 4203992,
+              "externalBytes": 3377640,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 45056,
+              "totalBytes": 7581632
+            }
+          }
+        ],
+        "payloads": [
+          {
+            "scenario": "forty-cards-per-player",
+            "category": "payload",
+            "benchmark": "fullSnapshotTotal",
+            "serializedBytes": 96504,
+            "notes": {
+              "bytesPerGameObject": 351
+            }
+          },
+          {
+            "scenario": "forty-cards-per-player",
+            "category": "payload",
+            "benchmark": "gameStateBuffer",
+            "serializedBytes": 1487
+          },
+          {
+            "scenario": "forty-cards-per-player",
+            "category": "payload",
+            "benchmark": "gameObjectStatesBuffer",
+            "serializedBytes": 95017
+          },
+          {
+            "scenario": "forty-cards-per-player",
+            "category": "payload",
+            "benchmark": "retainedChain(13 snapshots)",
+            "serializedBytes": 1207104,
+            "notes": {
+              "heapUsedBytes": 49056,
+              "externalBytes": 1158048,
+              "bytesPerSnapshot": 92854
+            }
+          }
+        ]
+      },
+      {
+        "scenario": "forty-cards-sparse-mutations",
+        "mutatedCards": 12,
+        "liveGameObjects": 249,
+        "results": [
+          {
+            "category": "manager",
+            "benchmark": "moveToNextTimepoint(Action)",
+            "iterations": 12,
+            "avgMs": 0.29365,
+            "minMs": 0.2482,
+            "maxMs": 0.6434,
+            "p50Ms": 0.2558,
+            "p95Ms": 0.6434,
+            "totalMs": 3.5238000000000005,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 100668.66666666667,
+              "externalBytes": -126931.16666666667,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 682.6666666666666,
+              "totalBytes": -26262.5
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 672,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 672
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 1230464,
+              "externalBytes": -1523174,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 8192,
+              "totalBytes": -292710
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": -497320,
+              "externalBytes": -1523174,
+              "arrayBuffersBytes": 0,
+              "rssBytes": -4964352,
+              "totalBytes": -2020494
+            }
+          },
+          {
+            "category": "full",
+            "benchmark": "createSnapshotForCurrentTimepoint",
+            "iterations": 12,
+            "avgMs": 0.19831666666666667,
+            "minMs": 0.1519,
+            "maxMs": 0.3785,
+            "p50Ms": 0.1661,
+            "p95Ms": 0.3785,
+            "totalMs": 2.3798,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 97232,
+              "externalBytes": 61158,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 97280,
+              "totalBytes": 158390
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 1184616,
+              "externalBytes": 733896,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 1167360,
+              "totalBytes": 1918512
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": -19528,
+              "externalBytes": 733896,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 1335296,
+              "totalBytes": 714368
+            }
+          },
+          {
+            "category": "full",
+            "benchmark": "buildGameStateForSnapshot",
+            "iterations": 12,
+            "avgMs": 0.18669166666666667,
+            "minMs": 0.1364,
+            "maxMs": 0.4813,
+            "p50Ms": 0.1478,
+            "p95Ms": 0.4813,
+            "totalMs": 2.2403,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 94737.33333333333,
+              "externalBytes": 52787,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 4096,
+              "totalBytes": 147524.33333333334
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 1154680,
+              "externalBytes": 633444,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 49152,
+              "totalBytes": 1788124
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": -19456,
+              "externalBytes": 633444,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 118784,
+              "totalBytes": 613988
+            }
+          },
+          {
+            "category": "full",
+            "benchmark": "rollbackToSnapshot",
+            "iterations": 8,
+            "avgMs": 1.820175,
+            "minMs": 1.3957,
+            "maxMs": 2.9027,
+            "p50Ms": 1.6872,
+            "p95Ms": 2.9027,
+            "totalMs": 14.5614,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 10094,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 10094
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 356257,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 512,
+              "totalBytes": 356257
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 172784,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 172784
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 4320608,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 4096,
+              "totalBytes": 4320608
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 327912,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 4096,
+              "totalBytes": 327912
+            }
+          },
+          {
+            "category": "manager",
+            "benchmark": "rollbackTo(Manual)",
+            "iterations": 8,
+            "avgMs": 1.9015125,
+            "minMs": 1.7814,
+            "maxMs": 2.2478,
+            "p50Ms": 1.8666,
+            "p95Ms": 2.2478,
+            "totalMs": 15.2121,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 114370,
+              "externalBytes": 23175,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 137545
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 358875,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 16384,
+              "totalBytes": 358875
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 172990,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 172990
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 5177408,
+              "externalBytes": 185400,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 131072,
+              "totalBytes": 5362808
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 340152,
+              "externalBytes": 185400,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 143360,
+              "totalBytes": 525552
+            }
+          },
+          {
+            "category": "sustained",
+            "benchmark": "snapshotAndUndoCycle",
+            "iterations": 400,
+            "avgMs": 2.067210250000001,
+            "minMs": 1.2368,
+            "maxMs": 20.7948,
+            "p50Ms": 1.9615,
+            "p95Ms": 2.2567,
+            "totalMs": 826.8841000000004,
+            "gc": {
+              "count": 3,
+              "durationMs": 45.67190000414848,
+              "majorCount": 0,
+              "minorCount": 3,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0.0075,
+            "gcMsPerIteration": 0.11417975001037121,
+            "gcPauseFraction": 0.05523373832457107,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 20.48,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 58925.94,
+              "externalBytes": 3002.3175,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 3573.76,
+              "totalBytes": 61928.2575
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": -346.6,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": -346.6
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 23909560,
+              "externalBytes": 1200927,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 1445888,
+              "totalBytes": 25110487
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 1402640,
+              "externalBytes": 1200927,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 1138688,
+              "totalBytes": 2603567
+            }
+          }
+        ],
+        "payloads": [
+          {
+            "scenario": "forty-cards-sparse-mutations",
+            "category": "payload",
+            "benchmark": "fullSnapshotTotal",
+            "serializedBytes": 92379,
+            "notes": {
+              "bytesPerGameObject": 371
+            }
+          },
+          {
+            "scenario": "forty-cards-sparse-mutations",
+            "category": "payload",
+            "benchmark": "gameStateBuffer",
+            "serializedBytes": 1487
+          },
+          {
+            "scenario": "forty-cards-sparse-mutations",
+            "category": "payload",
+            "benchmark": "gameObjectStatesBuffer",
+            "serializedBytes": 90892
+          },
+          {
+            "scenario": "forty-cards-sparse-mutations",
+            "category": "payload",
+            "benchmark": "retainedChain(13 snapshots)",
+            "serializedBytes": 1116412,
+            "notes": {
+              "heapUsedBytes": 7864,
+              "externalBytes": 1108548,
+              "bytesPerSnapshot": 85878
+            }
+          }
+        ]
+      },
+      {
+        "scenario": "forty-cards-four-mutated",
+        "mutatedCards": 4,
+        "liveGameObjects": 233,
+        "results": [
+          {
+            "category": "manager",
+            "benchmark": "moveToNextTimepoint(Action)",
+            "iterations": 15,
+            "avgMs": 0.23795333333333335,
+            "minMs": 0.1589,
+            "maxMs": 0.4776,
+            "p50Ms": 0.2274,
+            "p95Ms": 0.4776,
+            "totalMs": 3.5693,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 89995.2,
+              "externalBytes": -80359.26666666666,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 154282.66666666666,
+              "totalBytes": 9635.933333333332
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 672,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 672
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 1377792,
+              "externalBytes": -1205389,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 2314240,
+              "totalBytes": 172403
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": -489448,
+              "externalBytes": -1205389,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 2473984,
+              "totalBytes": -1694837
+            }
+          },
+          {
+            "category": "full",
+            "benchmark": "createSnapshotForCurrentTimepoint",
+            "iterations": 15,
+            "avgMs": 0.23827333333333336,
+            "minMs": 0.2109,
+            "maxMs": 0.5295,
+            "p50Ms": 0.2143,
+            "p95Ms": 0.5295,
+            "totalMs": 3.5741000000000005,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 86872.53333333334,
+              "externalBytes": 64378.6,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 9011.2,
+              "totalBytes": 151251.13333333333
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 1325192,
+              "externalBytes": 965679,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 135168,
+              "totalBytes": 2290871
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": -17752,
+              "externalBytes": 965679,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 188416,
+              "totalBytes": 947927
+            }
+          },
+          {
+            "category": "full",
+            "benchmark": "buildGameStateForSnapshot",
+            "iterations": 15,
+            "avgMs": 0.25670000000000004,
+            "minMs": 0.226,
+            "maxMs": 0.5948,
+            "p50Ms": 0.2305,
+            "p95Ms": 0.5948,
+            "totalMs": 3.8505000000000003,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 84278.93333333333,
+              "externalBytes": 57696,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 819.2,
+              "totalBytes": 141974.93333333332
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 288
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 1286288,
+              "externalBytes": 865440,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 12288,
+              "totalBytes": 2151728
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": -6768,
+              "externalBytes": 865440,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 135168,
+              "totalBytes": 858672
+            }
+          },
+          {
+            "category": "full",
+            "benchmark": "rollbackToSnapshot",
+            "iterations": 10,
+            "avgMs": 1.43805,
+            "minMs": 0.9688,
+            "maxMs": 2.4981,
+            "p50Ms": 1.3773,
+            "p95Ms": 2.4981,
+            "totalMs": 14.3805,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 7244.8,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 7244.8
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 314749.6,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 314749.6
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 59762.4,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 59762.4
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 3826792,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 3826792
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 528672,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 528672
+            }
+          },
+          {
+            "category": "manager",
+            "benchmark": "rollbackTo(Manual)",
+            "iterations": 10,
+            "avgMs": 1.4512300000000002,
+            "minMs": 0.96,
+            "maxMs": 2.3576,
+            "p50Ms": 1.3668,
+            "p95Ms": 2.3576,
+            "totalMs": 14.512300000000003,
+            "gc": {
+              "count": 0,
+              "durationMs": 0,
+              "majorCount": 0,
+              "minorCount": 0,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0,
+            "gcMsPerIteration": 0,
+            "gcPauseFraction": 0,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 100436.8,
+              "externalBytes": 35436.6,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 135873.4
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 317716.8,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 1228.8,
+              "totalBytes": 317716.8
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 60572.8,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 60572.8
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 4796488,
+              "externalBytes": 354366,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 12288,
+              "totalBytes": 5150854
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": 543008,
+              "externalBytes": 354366,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 167936,
+              "totalBytes": 897374
+            }
+          },
+          {
+            "category": "sustained",
+            "benchmark": "snapshotAndUndoCycle",
+            "iterations": 400,
+            "avgMs": 1.85481975,
+            "minMs": 1.1671,
+            "maxMs": 21.4247,
+            "p50Ms": 1.788,
+            "p95Ms": 2.0011,
+            "totalMs": 741.9279,
+            "gc": {
+              "count": 2,
+              "durationMs": 31.958099998533726,
+              "majorCount": 0,
+              "minorCount": 2,
+              "incrementalCount": 0,
+              "weakCbCount": 0
+            },
+            "gcCountPerIteration": 0.005,
+            "gcMsPerIteration": 0.07989524999633431,
+            "gcPauseFraction": 0.04307440116288082,
+            "forcedGcAvailable": true,
+            "setupMemoryAvg": {
+              "heapUsedBytes": 288,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 10.24,
+              "totalBytes": 288
+            },
+            "timedMemoryAvg": {
+              "heapUsedBytes": 139839.38,
+              "externalBytes": 22770.9825,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 56637.44,
+              "totalBytes": 162610.3625
+            },
+            "resetMemoryAvg": {
+              "heapUsedBytes": 553.82,
+              "externalBytes": 0,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 0,
+              "totalBytes": 553.82
+            },
+            "netMemoryDelta": {
+              "heapUsedBytes": 56635080,
+              "externalBytes": 9108393,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 22659072,
+              "totalBytes": 65743473
+            },
+            "retainedMemoryDelta": {
+              "heapUsedBytes": -582080,
+              "externalBytes": -265293,
+              "arrayBuffersBytes": 0,
+              "rssBytes": 14753792,
+              "totalBytes": -847373
+            }
+          }
+        ],
+        "payloads": [
+          {
+            "scenario": "forty-cards-four-mutated",
+            "category": "payload",
+            "benchmark": "fullSnapshotTotal",
+            "serializedBytes": 88431,
+            "notes": {
+              "bytesPerGameObject": 380
+            }
+          },
+          {
+            "scenario": "forty-cards-four-mutated",
+            "category": "payload",
+            "benchmark": "gameStateBuffer",
+            "serializedBytes": 1487
+          },
+          {
+            "scenario": "forty-cards-four-mutated",
+            "category": "payload",
+            "benchmark": "gameObjectStatesBuffer",
+            "serializedBytes": 86944
+          },
+          {
+            "scenario": "forty-cards-four-mutated",
+            "category": "payload",
+            "benchmark": "retainedChain(13 snapshots)",
+            "serializedBytes": 1122740,
+            "notes": {
+              "heapUsedBytes": 61568,
+              "externalBytes": 1061172,
+              "bytesPerSnapshot": 86365
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "cardMemory": {
+    "cardsInDataset": 2386,
+    "retainedCardCount": 2386,
+    "heapDeltaBytes": 16228752,
+    "externalDeltaBytes": 40,
+    "totalDeltaBytes": 16228792,
+    "bytesPerCard": 6802,
+    "exposeGc": true
+  }
+}

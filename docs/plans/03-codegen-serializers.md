@@ -483,8 +483,8 @@ Capture **after each phase**, not just at the end — Phase B is the cutover and
 is the one that can regress memory:
 
 ```bash
-npm run benchmark -- --name after-plan-03-phase-a --compare initial-performance
-npm run benchmark -- --name after-plan-03 --compare initial-performance
+npm run benchmark -- --name after-plan-03-phase-a --compare pre-roadmap-baseline
+npm run benchmark -- --name after-plan-03 --compare pre-roadmap-baseline
 ```
 
 Commit both generated files under `docs/plans/performance/`. See

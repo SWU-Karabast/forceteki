@@ -417,7 +417,7 @@ arrives with the delta stage.
 ## Performance capture (required on completion)
 
 ```bash
-npm run benchmark -- --name after-plan-04 --compare initial-performance
+npm run benchmark -- --name after-plan-04 --compare pre-roadmap-baseline
 ```
 
 Also compare against `after-plan-03`, since Plan 3 is this plan's immediate
@@ -427,7 +427,7 @@ baseline. Commit both generated files under `docs/plans/performance/`. See
 
 **This capture is the roadmap's performance deliverable.** Plan 4 is the last
 plan whose thesis is performance — Plans 5 and 6 are save/load-oriented, and
-their captures are no-regression checks. The `initial-performance` →
+their captures are no-regression checks. The `pre-roadmap-baseline` →
 `after-plan-04` comparison is therefore the one that answers the roadmap's
 central question. Read it against the two things the roadmap set out to fix:
 
@@ -463,4 +463,4 @@ measured cost, not an estimate.
 checkpoint cost, delta payload bytes — belong in the diagnostic tier as **new
 rows**. The `-morph` branch's spec has all three and can be ported directly. Do
 not repurpose existing row names; that breaks the comparison against
-`initial-performance`.
+every prior capture.

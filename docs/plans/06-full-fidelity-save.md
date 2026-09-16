@@ -545,7 +545,7 @@ turns that failure mode into a test-time error.
 ## Performance capture (required on completion)
 
 ```bash
-npm run benchmark -- --name final-performance --compare initial-performance
+npm run benchmark -- --name final-performance --compare pre-roadmap-baseline
 ```
 
 Commit both generated files under `docs/plans/performance/`, and update the
@@ -556,7 +556,7 @@ capture index. See [Plan 0](00-performance-benchmarks.md) for the method and
 (delta snapshots) is the last plan whose thesis is performance; this plan and
 Plan 5 are save/load-oriented. This capture is the closing bookend: a
 no-regression check confirming the save/load work did not give back the wins
-recorded in the `initial-performance` → `after-plan-04` comparison. Also
+recorded in the `pre-roadmap-baseline` → `after-plan-04` comparison. Also
 compare against the latest prior capture (`after-plan-05c` or wherever the
 roadmap left off) so a regression introduced here is attributable to this plan
 rather than smeared across the whole roadmap diff.
