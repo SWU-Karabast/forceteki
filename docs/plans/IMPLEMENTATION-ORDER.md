@@ -66,9 +66,14 @@ npm run test-parallel-undo
 ```
 
 The suite is ~2,000 spec files, so use the parallel forms for gating.
-`npm run test-fast` is for inner-loop iteration only, and is off-limits once
-`P3-PA1` lands (Plan 3 warns that `--fast-build` can compile a stale generated
-artifact). Only the ⏱ units run the benchmark.
+`npm run test-fast` is for inner-loop iteration only. The stale-artifact hazard
+Plan 3 warned about here did not survive `P3-PA1` (`75665d015`): the generation
+step is placed unconditionally, before the `--fast-build` branch in
+`scripts/build-test.js`, so a repeat fast build still regenerates a stale
+artifact rather than compiling it. Verified by two consecutive `--fast-build`
+runs. `test-fast` remains unsuitable as gating evidence for the ordinary reason —
+it skips part of the build — not because of codegen. Only the ⏱ units run the
+benchmark.
 
 ### Task IDs, state, and the audit trail
 
@@ -306,9 +311,19 @@ reading the plan linearly:
 
 **Step 10 (the lint fix) is not a Phase B unit.** The plan buries it at the end of
 Phase B but says in two places that it must land *in the same PR* as the
-non-optional generated-module import. `.github/workflows/pullrequest.yml:24` runs
-`npx eslint --quiet` with no build step, so the moment the import goes
-non-optional, every PR's lint job breaks. It is folded into `P3-PA1`.
+non-optional generated-module import. It is folded into `P3-PA1`.
+
+The stated reason was wrong, though the sequencing was right. `P3-PA1`
+(`75665d015`) measured it: `eslint.config.mjs` spreads
+`eslintPluginImportX.flatConfigs.recommended` into an object literal that later
+declares its own `rules` key, which replaces the spread rules wholesale, so
+`import-x/no-unresolved` is **not** enabled and a non-optional import of a
+missing module does not break the lint job. `npx eslint --print-config` shows
+`import-x/newline-after-import` as the only active import-x rule. The real hazard
+is the reverse — once a contributor has built locally, the generated artifact
+exists and would be linted against `@stylistic/all-flat` — so the fix is an
+`ignores` entry, not a resolver carve-out. Plan 3 Phase B step 10 is corrected in
+the same commit.
 
 **Step 7 (the decorator split) is sequenced before the cutover, not after.** The
 plan lists it as Phase B step 7 with the rationale "do it now, while touching
