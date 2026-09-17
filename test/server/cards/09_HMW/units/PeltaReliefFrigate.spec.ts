@@ -52,6 +52,8 @@ describe('Pelta Relief Frigate', function () {
 
             context.player1.clickCard(context.peltaReliefFrigate);
             expect(context.player1).toBeAbleToSelectExactly([context.peltaReliefFrigate, context.opeeSeaKiller, context.grandInquisitor]);
+            expect(context.player1).not.toHaveChooseNothingButton();
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.grandInquisitor);
 
             expect(context.peltaReliefFrigate.damage).toBe(0);

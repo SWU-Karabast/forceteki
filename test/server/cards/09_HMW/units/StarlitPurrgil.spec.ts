@@ -19,12 +19,12 @@ describe('Starlit Purrgil', function () {
             it('should exhaust a friendly unit when played', function () {
                 const { context } = contextRef;
 
-                // Play the cruiser
+                // Play the purrgil
                 context.player1.clickCard(context.starlitPurrgil);
 
                 expect(context.player1).toHavePrompt('Exhaust a unit');
 
-                // All units in play are valid targets, including the cruiser itself
+                // All units in play are valid targets, including the purrgil itself
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.starlitPurrgil,
                     context.wampa,
@@ -44,12 +44,12 @@ describe('Starlit Purrgil', function () {
             it('should exhaust an enemy unit when played', function () {
                 const { context } = contextRef;
 
-                // Play the cruiser
+                // Play the purrgil
                 context.player1.clickCard(context.starlitPurrgil);
 
                 expect(context.player1).toHavePrompt('Exhaust a unit');
 
-                // All units in play are valid targets, including the cruiser itself
+                // All units in play are valid targets, including the purrgil itself
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.starlitPurrgil,
                     context.wampa,
@@ -69,13 +69,13 @@ describe('Starlit Purrgil', function () {
             it('should allow the player to decline and exhaust no units', function () {
                 const { context } = contextRef;
 
-                // Play the cruiser and pass the optional ability
+                // Play the purrgil and pass the optional ability
                 context.player1.clickCard(context.starlitPurrgil);
 
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Pass');
 
-                // No units exhausted beyond the cruiser itself
+                // No units exhausted beyond the purrgil itself
                 expect(context.wampa.exhausted).toBeFalse();
                 expect(context.cartelSpacer.exhausted).toBeFalse();
                 expect(context.battlefieldMarine.exhausted).toBeFalse();
