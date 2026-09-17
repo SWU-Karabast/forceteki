@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class WookieeRangers extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'wookiee-rangers-id',
+            id: '9324135917',
             internalName: 'wookiee-rangers',
         };
     }

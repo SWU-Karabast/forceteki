@@ -4,11 +4,11 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, Trait } from '../../../core/Constants';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
-export default class GungaCityGuards extends NonLeaderUnitCard {
+export default class GungaCityGuard extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'gunga-city-guards-id',
-            internalName: 'gunga-city-guards',
+            id: '1446255223',
+            internalName: 'gunga-city-guard',
         };
     }
 

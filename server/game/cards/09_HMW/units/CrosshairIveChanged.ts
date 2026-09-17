@@ -6,7 +6,7 @@ import { PhaseName } from '../../../core/Constants';
 export default class CrosshairIveChanged extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'crosshair#ive-changed-id',
+            id: '5410512027',
             internalName: 'crosshair#ive-changed'
         };
     }

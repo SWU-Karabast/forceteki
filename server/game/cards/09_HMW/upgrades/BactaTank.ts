@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class BactaTank extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'bacta-tank-id',
+            id: '9325516009',
             internalName: 'bacta-tank',
         };
     }

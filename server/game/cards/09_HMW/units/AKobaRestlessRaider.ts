@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class AKobaRestlessRaider extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'akoba#restless-raider-id',
+            id: '6927577313',
             internalName: 'akoba#restless-raider',
         };
     }

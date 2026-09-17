@@ -16,7 +16,7 @@ export default class OshaHauntedByHerPast extends LeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'osha#haunted-by-her-past-id',
+            id: '9853778959',
             internalName: 'osha#haunted-by-her-past'
         };
     }

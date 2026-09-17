@@ -6,7 +6,7 @@ import { PhaseName } from '../../../core/Constants';
 export default class DarkSanctum extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'dark-sanctum-id',
+            id: '8622909461',
             internalName: 'dark-sanctum',
         };
     }

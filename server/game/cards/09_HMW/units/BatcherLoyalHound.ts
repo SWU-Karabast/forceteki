@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class BatcherLoyalHound extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'batcher#loyal-hound-id',
+            id: '6543389758',
             internalName: 'batcher#loyal-hound'
         };
     }

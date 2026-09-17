@@ -13,7 +13,7 @@ export default class AsajjVentressNoTimeForRegret extends LeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'asajj-ventress#no-time-for-regret-id',
+            id: '8487171598',
             internalName: 'asajj-ventress#no-time-for-regret',
         };
     }

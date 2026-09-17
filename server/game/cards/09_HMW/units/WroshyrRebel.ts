@@ -2,19 +2,21 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
 
-export default class StormtrooperPatrol extends NonLeaderUnitCard {
+export default class WroshyrRebel extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '3113478203',
-            internalName: 'stormtrooper-patrol',
+            id: '7296857431',
+            internalName: 'wroshyr-rebel',
         };
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: 'While you control another unit that costs 3 or more, this unit gets +2/+0',
-            condition: (c) => c.player.hasSomeArenaUnit({ condition: (u) => u.isUnit() && u.cost >= 3, otherThan: c.source }),
-            ongoingEffect: abilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })
+            title: 'This unit gets +1/+0 for every 2 resources you control',
+            ongoingEffect: abilityHelper.ongoingEffects.modifyStats((target) => ({
+                power: Math.floor(target.controller.resources.length / 2),
+                hp: 0,
+            }))
         });
     }
 }

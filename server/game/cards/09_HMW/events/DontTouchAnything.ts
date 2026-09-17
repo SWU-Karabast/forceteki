@@ -5,7 +5,7 @@ import { EventCard } from '../../../core/card/EventCard';
 export default class DontTouchAnything extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'dont-touch-anything-id',
+            id: '9042649302',
             internalName: 'dont-touch-anything',
         };
     }
