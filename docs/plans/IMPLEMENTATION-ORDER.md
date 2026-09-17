@@ -306,6 +306,31 @@ times.
 | `P3-PB3` ⏱ | Phase B step 9 — docs + perf capture | `P3-PB2` | Small 🟢 | `--fast` |
 | `P3-PB4` | Phase B step 8 — retire the parity harness | `P3-PB2` + one release cycle | Small 🟢 | *deferred* (`--fast`) |
 
+**`P3-PA2` landed (`02664636b`) and the generator passed its gate.** Across
+78,602 snapshots and 10,895,600 records in the undo suite, the generated
+serializers produced **zero comparison mismatches** against the existing
+`getStateUnsafe()`+`v8` path. That is the empirical answer to the cutover's
+central question, and `P3-PB2` should consume it rather than re-deriving it.
+
+Two consequences for the units still ahead:
+
+- **`P3-PA3` has a known blocker, not a new discovery to make.** The harness
+  surfaced one real latent defect:
+  `DamageDealtThisPhaseWatcher.damageSourceCardTypes` holds `undefined` in a
+  field typed `CardType[]` with non-optional elements, which `encodeStateValue`
+  deliberately refuses and `v8.serialize` silently tolerated. All 84 parity
+  failures are that single root cause, and `AC7` landed as accepted-risk against
+  it. It is spun out to its own unit. `P3-PA3` exercises the same watcher state,
+  so expect to hit it too — check whether the fix has landed before planning, and
+  do not re-diagnose it from scratch. Note that `CardType.Leader` is well-defined
+  and `buildTypeFromPrinted` throws on anything unexpected, so "the card has no
+  type" is *not* the explanation.
+- **`P3-PB3` must run its benchmark capture with `ENABLE_PARITY_HARNESS` unset.**
+  The harness wraps `buildGameStateForSnapshot`, which is exactly what that
+  capture measures; leaving it on inflates the numbers. The harness is otherwise
+  reusable by design (`npm run test-parity` / `test-parity-undo`, and an exported
+  pure `compareSnapshotRecords`), which is what `P3-PB4` eventually retires.
+
 Three sequencing calls worth stating explicitly, since none is obvious from
 reading the plan linearly:
 
