@@ -3,21 +3,26 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
-export default class CidScalebackCantBeTrusted extends NonLeaderUnitCard {
+export default class CloneOfTheZilloBeastEmperorsExperiment extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '4318148716',
-            internalName: 'cid-scaleback#cant-be-trusted'
+            id: '2558977875',
+            internalName: 'clone-of-the-zillo-beast#emperors-experiment',
         };
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addWhenPlayedAbility({
-            title: 'An opponent chooses a unit they control. Give a Weakness token to it.',
+        registrar.addConstantAbility({
+            title: 'Other friendly units get -2/-2',
+            targetController: RelativePlayer.Self,
+            matchTarget: (card, context) => card.isUnit() && card !== context.source,
+            ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: -2 })
+        });
+
+        registrar.addOnAttackAbility({
+            title: 'Give a Weakness token to a unit',
+            optional: true,
             targetResolver: {
-                activePromptTitle: 'Choose a unit. Your opponent gives it a Weakness token.',
-                choosingPlayer: RelativePlayer.Opponent,
-                controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.giveWeakness()
             }

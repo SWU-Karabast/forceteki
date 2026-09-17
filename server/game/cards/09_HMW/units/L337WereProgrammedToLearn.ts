@@ -7,7 +7,7 @@ import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 export default class L337WereProgrammedToLearn extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'l337#were-programmed-to-learn-id',
+            id: '2929437656',
             internalName: 'l337#were-programmed-to-learn',
         };
     }

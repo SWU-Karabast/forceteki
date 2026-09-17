@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class Nightfall extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'nightfall-id',
+            id: '6401776875',
             internalName: 'nightfall',
         };
     }

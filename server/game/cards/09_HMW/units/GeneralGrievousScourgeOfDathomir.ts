@@ -6,7 +6,7 @@ import { AbilityRestriction, CardType, WildcardRelativePlayer, ZoneName } from '
 export default class GeneralGrievousScourgeOfDathomir extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'general-grievous#scourge-of-dathomir-id',
+            id: '3294806366',
             internalName: 'general-grievous#scourge-of-dathomir',
         };
     }

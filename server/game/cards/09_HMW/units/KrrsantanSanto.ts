@@ -6,7 +6,7 @@ import { WildcardCardType, ZoneName } from '../../../core/Constants';
 export default class KrrsantanSanto extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'krrsantan#santo-id',
+            id: '1246255814',
             internalName: 'krrsantan#santo',
         };
     }

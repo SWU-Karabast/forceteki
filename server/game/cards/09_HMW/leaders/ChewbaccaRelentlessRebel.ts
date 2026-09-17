@@ -8,7 +8,7 @@ import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 export default class ChewbaccaRelentlessRebel extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'chewbacca#relentless-rebel-id',
+            id: '8052149677',
             internalName: 'chewbacca#relentless-rebel',
         };
     }

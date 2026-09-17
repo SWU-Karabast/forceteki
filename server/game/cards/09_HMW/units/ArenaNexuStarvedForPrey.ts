@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class ArenaNexuStarvedForPrey extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'arena-nexu#starved-for-prey-id',
+            id: '8117759033',
             internalName: 'arena-nexu#starved-for-prey',
         };
     }
