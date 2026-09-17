@@ -23,7 +23,7 @@ describe('Frenzied Tri-Fighters', function() {
                 context.player1.clickCard(context.frozenInCarbonite);
 
                 expect(context.frozenInCarbonite).toBeInZone('discard', context.player2);
-                expect(context.wampa.isUpgraded()).toBe(false);
+                expect(context.wampa).toHaveExactUpgradeNames([]);
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['resilient']);
                 expect(context.player2).toBeActivePlayer();
             });
@@ -115,6 +115,33 @@ describe('Frenzied Tri-Fighters', function() {
 
                 expect(context.wampa).toHaveExactUpgradeNames(['the-darksaber']);
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not target Pilot with a unit\'s cost greater than 3', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['frenzied-trifighters']
+                    },
+                    player2: {
+                        hand: ['chewbacca#faithful-first-mate'],
+                        spaceArena: [{ card: 'awing', upgrades: ['shield'] }],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.chewbacca);
+                context.player2.clickPrompt('Play Chewbacca with Piloting');
+                context.player2.clickCard(context.awing);
+
+                context.player1.clickCard(context.frenziedTrifighters);
+                expect(context.player1).toBeAbleToSelectExactly([context.shield]);
+                context.player1.clickCard(context.shield);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.awing).toHaveExactUpgradeNames(['chewbacca#faithful-first-mate']);
             });
         });
     });
