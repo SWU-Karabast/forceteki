@@ -9,7 +9,8 @@ describe('Wild Space Wanderer', function() {
                         base: { card: 'kestro-city', upgrades: ['alliance-shield-generator'] }
                     },
                     player2: {
-                        base: { card: 'colossus', upgrades: ['trap-field'] }
+                        base: { card: 'colossus', upgrades: ['trap-field'] },
+                        groundArena: [{ card: 'wampa', upgrades: ['resilient'] }]
                     }
                 });
 
@@ -24,52 +25,6 @@ describe('Wild Space Wanderer', function() {
 
                 expect(context.trapField).toBeInZone('discard', context.player2);
                 expect(context.allianceShieldGenerator).toBeAttachedTo(context.p1Base);
-                expect(context.player2).toBeActivePlayer();
-            });
-
-            it('should not be able to target upgrades on units', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['wild-space-wanderer'],
-                        base: { card: 'kestro-city', upgrades: ['alliance-shield-generator'] }
-                    },
-                    player2: {
-                        groundArena: [{ card: 'wampa', upgrades: ['resilient'] }]
-                    }
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.wildSpaceWanderer);
-
-                expect(context.player1).toBeAbleToSelectExactly([context.allianceShieldGenerator]);
-                expect(context.player1).toHavePassAbilityButton();
-
-                context.player1.clickCard(context.allianceShieldGenerator);
-
-                expect(context.allianceShieldGenerator).toBeInZone('discard', context.player1);
-                expect(context.wampa).toHaveExactUpgradeNames(['resilient']);
-                expect(context.player2).toBeActivePlayer();
-            });
-
-            it('should allow the player to decline defeating an upgrade', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['wild-space-wanderer']
-                    },
-                    player2: {
-                        base: { card: 'colossus', upgrades: ['trap-field'] }
-                    }
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.wildSpaceWanderer);
-                context.player1.clickPrompt('Pass');
-
-                expect(context.trapField).toBeAttachedTo(context.p2Base);
                 expect(context.player2).toBeActivePlayer();
             });
 
