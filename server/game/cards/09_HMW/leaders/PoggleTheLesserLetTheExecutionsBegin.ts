@@ -42,7 +42,7 @@ export default class PoggleTheLesserLetTheExecutionsBegin extends LeaderUnitCard
         });
 
         registrar.addOnAttackAbility({
-            title: `You may ready a friendly ${TextHelper.Trait.Creature} unit and deal 1 damage to it`,
+            title: `Ready a friendly ${TextHelper.Trait.Creature} unit and deal 1 damage to it`,
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
