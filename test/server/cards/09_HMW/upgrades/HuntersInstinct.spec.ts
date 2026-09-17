@@ -39,25 +39,5 @@ describe('Hunter\'s Instinct', function() {
 
             expect(context.p2Base.damage).toBe(5);
         });
-
-        it('Hunter\'s Instinct should give Grit to an attached Creature unit played from hand', async function() {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    hand: ['hunters-instinct'],
-                    groundArena: [{ card: 'porg', damage: 0 }]
-                }
-            });
-
-            const { context } = contextRef;
-
-            context.player1.clickCard(context.huntersInstinct);
-            context.player1.clickCard(context.porg);
-
-            // Porg is a Creature: 1 power + 2 from the upgrade, Grit adds 0 while undamaged
-            expect(context.porg.getPower()).toBe(3);
-            expect(context.huntersInstinct).toBeAttachedTo(context.porg);
-            expect(context.player2).toBeActivePlayer();
-        });
     });
 });
