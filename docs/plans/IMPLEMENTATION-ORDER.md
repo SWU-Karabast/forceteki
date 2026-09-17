@@ -314,17 +314,20 @@ central question, and `P3-PB2` should consume it rather than re-deriving it.
 
 Two consequences for the units still ahead:
 
-- **`P3-PA3` has a known blocker, not a new discovery to make.** The harness
-  surfaced one real latent defect:
-  `DamageDealtThisPhaseWatcher.damageSourceCardTypes` holds `undefined` in a
-  field typed `CardType[]` with non-optional elements, which `encodeStateValue`
-  deliberately refuses and `v8.serialize` silently tolerated. All 84 parity
-  failures are that single root cause, and `AC7` landed as accepted-risk against
-  it. It is spun out to its own unit. `P3-PA3` exercises the same watcher state,
-  so expect to hit it too — check whether the fix has landed before planning, and
-  do not re-diagnose it from scratch. Note that `CardType.Leader` is well-defined
-  and `buildTypeFromPrinted` throws on anything unexpected, so "the card has no
-  type" is *not* the explanation.
+- **`P3-PA3`'s known blocker is cleared.** The harness surfaced one real latent
+  defect: `DamageDealtThisPhaseWatcher.damageSourceCardTypes` holds `undefined`
+  in a field typed `CardType[]` with non-optional elements, which
+  `encodeStateValue` deliberately refuses and `v8.serialize` silently tolerated.
+  All 84 parity failures were that single root cause, and `P3-PA2`'s `AC7`
+  landed as accepted-risk against it. **The spun-out fix landed at `02b63ac53`
+  (`P3-PA2F`), and both parity suites are now green**, so `AC7` is satisfied and
+  that residual is discharged. `P3-PA3` exercises the same watcher state but
+  should not re-diagnose this — the cause was that `event.damageSource.card` is
+  not a card at all in the ability branch: a framework `AbilityContext` defaults
+  its `source` to an `OngoingEffectSource`, which answers `getObjectId()` but
+  has no `type`. See the `P3-PA2F` entry in
+  [ANVIL-LOG.md](ANVIL-LOG.md) before planning; note that entry is a direct fix
+  session, not an `/orchestrate` run, so it carries no review assurance.
 - **`P3-PB3` must run its benchmark capture with `ENABLE_PARITY_HARNESS` unset.**
   The harness wraps `buildGameStateForSnapshot`, which is exactly what that
   capture measures; leaving it on inflates the numbers. The harness is otherwise

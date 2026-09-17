@@ -1174,3 +1174,66 @@ Implementation review round 1 — APPROVED WITH CONCERNS, 0 blocking, 1 warning 
 - **Do not put a test-mode env flag on an outer build command.** This repo delivers them on the jasmine invocation (`jasmine-undo`, `jasmine-undo-parallel`, and now `jasmine-parity`, `jasmine-parity-undo`), because `cross-env VAR=x node build && npm run jasmine-*` leaves the second command with an unmodified environment. This was a blocking plan-review finding here and would be an easy one to reintroduce.
 - **`undoIntegration` becomes a no-op `xit` stub under `ENABLE_UNDO_ALL_TESTS=true`.** Any new spec that needs a guaranteed real snapshot in *every* run mode, including whole-suite-undo runs, must not rely on that marker.
 - **`assertJsonSafeStateValue` does not reject a plain object carrying a reserved `$map`/`$set`/`$num` own key, while `encodeStateValue` throws on it.** An old-bag payload with a reserved key is therefore representable today but unencodable on the generated side — a real, reachable stop-and-report case, not a hypothetical.
+
+---
+
+## `P3-PA2F` — `DamageDealtThisPhaseWatcher` undefined card types (the fix spun out of `P3-PA2`)
+
+| | |
+|---|---|
+| Task ID | none |
+| Date | 2026-09-16 |
+| Lane / tier | **not an `/orchestrate` run** — a direct fix session against the residual `P3-PA2` disclosed |
+| Plan | no plan doc; the unit is the one [IMPLEMENTATION-ORDER.md](IMPLEMENTATION-ORDER.md) spun out of `P3-PA2` without assigning it an id |
+| Parent | `1d50460b7` |
+| Commit | `02b63ac53` |
+| Branch | `experimental/rollback-saves-optimizations` |
+
+This entry is recorded for continuity, since the roadmap points `P3-PA3` at it, but it is **not** an Anvil run and should not be read as one. There was no plan agent, no planning review, no cold adversarial review, no tier routing and no `.anvil/{task_id}/` state. The evidence below is the gate output only. A reviewer wanting the assurance level the surrounding entries carry should run one against this commit.
+
+### Root cause: the damage source is not a card
+
+Not a missing or malformed card type — the object in `damageSourceCards` is not a card at all.
+
+In the `DamageType.Ability` branch the updater reads `event.damageSource.card`, which `DamageSystem.addAbilityDamagePropertiesToEvent` sets from `properties.source ?? context.source`. `AbilityContext`'s constructor (`AbilityContext.ts:64`) defaults `source` to `new OngoingEffectSource(this.game)` whenever none is supplied, which is exactly what a **framework context** is. `OngoingEffectSource` extends `GameObject`, so `getObjectId()` succeeds and nothing throws, but it is not a card and declares no `type` — hence `undefined`.
+
+The reachable producer is `DrawSystem`'s empty-deck draw damage (`DrawSystem.ts:91`), which builds its contingent damage event with `context.game.getFrameworkContext(event.player)` **deliberately**: per an FFG ruling the damage is attributed to the drawing player rather than to the card that triggered the draw, and the system's own comment records that the connection to that card is intentionally lost. So this is a designed absence, not an upstream defect.
+
+The same non-card case was already known at this exact site: the pre-existing `TODO FIX EMPTY DECK DAMAGE EVENT` and the `'canBeInPlay' in sourceCard` guard on the very next line already write `null` for `damageSourceInPlayIds`. Only `damageSourceCardTypes` was missed.
+
+`P3-PA2` was right that "the card has no type" is not the explanation, and right to say it needed instrumenting rather than guessing. Instrumenting all three branches and running the full suite returned a clean answer: **every** occurrence is `branch=ability ctor=OngoingEffectSource name=Framework effect`, and zero come from the combat or overwhelm branches. That is what scopes the change to one write site.
+
+### The disposition: option (b), `null`
+
+The field legitimately has no type for some damage sources, so `DamageDealtEntry.damageSourceCardTypes` becomes `(CardType | null)[]` and the updater writes `[sourceCard.type ?? null]`. `null` rather than `undefined` because the encoder refuses `undefined` by design. Consumers were already safe — `EnumHelpers.isUnit` has `default: return false`.
+
+`strictNullChecks` is **off** in this repo, so the widened type is documentary; the `?? null` is the functional fix. Worth knowing before relying on any similar widening elsewhere in the roadmap.
+
+None of the gated inputs moved: no `StateEncoding.ts` narrowing loosened, no `STATE_RECORD_FORMAT_VERSION` bump, no schema-surface-hash regeneration.
+
+### Two corrections to assumptions carried into this unit
+
+1. **The save path needed no encoding fix.** `P3-PA2`'s handoff flagged Plan 2's save/load code as likely to mis-encode the same data. It does not. Such an entry never reaches a save file at all: `damageSourceCards` then holds the framework object, which has no position, so `encodeDamageDealt`'s `requiredReferents` drops the **whole entry** and enumerates the drop in `engineOnlyFacts` (`damageDealtThisPhase entry 0 dropped: field "damageSourceCards" references a card with no position in this save`). A `null` element is therefore unreachable on disk. `ISavedDamageDealtEntry.damageSourceCardTypes` stays `CardType[]` and now documents *why*, rather than widening and putting an impossible case on loaders. No saved match changes meaning. This was established by test, after an initial doc comment asserting the opposite was written and then disproved.
+2. **The absent `DamageType.Excess` branch is intentional and was already documented.** `ISavedDamageDealtEntry.damageSourceCards` already calls the resulting empty arrays "a legal, reachable shape, not corruption", reachable through `BlizzardAssaultAtat` and `WipeThemOut`. Checked, left alone, and the branch now carries a pointer to that prose so the next reader does not re-open it.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `npm run lint` | exit 0 |
+| `npm run validate-cards` | passed (1983 card files, 1960 test files) |
+| `npm run test-parallel` | 8597 specs, 0 failures, 13 pending — `P3-PA2` baseline 8596 plus the 1 new spec |
+| `npm run test-parallel-undo` | 8409 specs, 0 failures, 17 pending — baseline 8408 plus the 1 |
+| `npm run test-parity` | **8597 specs, 0 failures** (was 4), 0 encode errors |
+| `npm run test-parity-undo` | **8409 specs, 0 failures** (was 80), 0 encode errors, 79,498 snapshots / 11,072,021 records compared |
+
+**`P3-PA2`'s `AC7` is now satisfied.** Both harness-active suites are green, so its accepted-risk residual 1 is discharged and the parity gate passes outright: zero comparison mismatches *and* zero encoder throws across ~11.07M records.
+
+One new spec, in `test/server/core/stateSerialization/StateWatcherSerializer.spec.ts`. It asserts `=== null` and `=== undefined` as two separate identity checks rather than `toEqual([null])`, because jasmine's equality treats `[undefined]` and `[null]` as matching — the same coercion that kept this latent through `v8.serialize`. A `toEqual` here would have been a falsifier that cannot fail. It was confirmed to fail on the unfixed code, failing exactly those two assertions.
+
+### Notes for the next agent
+
+- **`P3-PA3` (restore leg) is unblocked.** The roadmap's instruction to check whether this fix has landed is answered: it landed at `02b63ac53`. Do not re-diagnose it.
+- **A framework `AbilityContext` is a general hazard for watcher state, not a one-off.** Any watcher field that reads a card-shaped property off `context.source` can receive an `OngoingEffectSource` instead, which answers `getObjectId()` but has no card surface at all. `DrawSystem`'s empty-deck damage is the only *currently reachable* producer for this field, established empirically across the whole suite — but the shape is reachable anywhere `getFrameworkContext` is used. Worth a look when `P3-PA4` does its coverage cross-check.
+- **`TODO FIX EMPTY DECK DAMAGE EVENT` in the watcher is deliberately still open.** Making that damage carry a real card source is an upstream rules-attribution change, separate from this encoding fix and not in scope here.
+- **`strictNullChecks` is off**, so a `| null` in a state interface constrains nothing at compile time. Treat such declarations as documentation and gate the actual behavior on a test.
