@@ -306,6 +306,18 @@ times.
 | `P3-PB3` ⏱ | Phase B step 9 — docs + perf capture | `P3-PB2` | Small 🟢 | `--fast` |
 | `P3-PB4` | Phase B step 8 — retire the parity harness | `P3-PB2` + one release cycle | Small 🟢 | *deferred* (`--fast`) |
 
+**`P3-PA3` landed (`761d82d66`) and answered the cutover's zone question.** The
+restore leg is green on both modes, and the finding `P3-PB2` was told to consume
+is recorded in [ANVIL-LOG.md](ANVIL-LOG.md): **`reconcileUpdatedCardZoneMemberships`
+is not needed on main's full-snapshot restore path.** Structurally it exists only
+on `-morph`, called solely from `rollbackToDeltaChain`, and is absent from this
+branch. Empirically, forward and reverse zone violations are both zero across
+8,186 rollbacks in a single-process complete-coverage compare-mode run. Read the
+log entry's four labels before relying on it — in particular that a parallel
+`[ParityHarness] pid=` reporter line covers only about 75% of a run in undo mode
+and an unbounded fraction in non-undo mode, which is why the complete-coverage
+evidence is a serial run.
+
 **`P3-PA2` landed (`02664636b`) and the generator passed its gate.** Across
 78,602 snapshots and 10,895,600 records in the undo suite, the generated
 serializers produced **zero comparison mismatches** against the existing

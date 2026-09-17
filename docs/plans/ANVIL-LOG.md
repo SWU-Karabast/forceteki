@@ -1247,7 +1247,7 @@ One new spec, in `test/server/core/stateSerialization/StateWatcherSerializer.spe
 | Lane / tier | full, tier 3 (Medium 🔴) |
 | Plan | [03-codegen-serializers.md](03-codegen-serializers.md), Phase A step 4 |
 | Parent | `17c4a4fb0` |
-| Commit | *(recorded in a follow-up commit, per the `P3-PA1`/`P3-PA2` pattern)* |
+| Commit | `761d82d66` |
 | Branch | `experimental/rollback-saves-optimizations` |
 
 Three files, test-side only: `test/helpers/ParityHarness.ts` extended, `test/server/core/RestoreParityHarness.spec.ts` added, `package.json` gains four scripts. No `server/` file was modified — the harness reaches `GameObjectBase`'s `protected` `state` and `afterSetState` by cast, deliberately.
