@@ -4,7 +4,7 @@ describe('Soaring Can-Cell', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    groundArena: ['soaring-cancell'],
+                    hand: ['soaring-cancell'],
                     base: 'echo-base'
                 },
                 player2: {
@@ -14,9 +14,11 @@ describe('Soaring Can-Cell', function() {
 
             const { context } = contextRef;
 
+            context.player1.clickCard(context.soaringCancell);
+
             expect(context.soaringCancell.hasSomeKeyword('ambush')).toBeFalse();
 
-            expect(context.player1).toBeActivePlayer();
+            expect(context.player2).toBeActivePlayer();
         });
 
         it('should have Ambush if the base is Kashyyyk trait', async function() {

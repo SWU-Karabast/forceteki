@@ -111,5 +111,31 @@ describe('Saw Gerrera, Shadowlands Insurgent', function() {
             expect(context.player1.resources.length).toBe(startingResources);
             expect(context.p2Base.damage).toBe(2);
         });
+
+        it('should double resource if opponent used L3', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['daring-raid'],
+                    groundArena: ['l337#were-programmed-to-learn']
+                },
+                player2: {
+                    groundArena: ['saw-gerrera#shadowlands-insurgent'],
+                    deck: ['resupply', 'vanquish']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.daringRaid);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickPrompt('You');
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.resupply).toBeInZone('resource', context.player2);
+            expect(context.vanquish).toBeInZone('resource', context.player2);
+        });
     });
 });

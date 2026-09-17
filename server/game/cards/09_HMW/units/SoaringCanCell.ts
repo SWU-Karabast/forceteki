@@ -16,10 +16,7 @@ export default class SoaringCanCell extends NonLeaderUnitCard {
         registrar.addConstantAbility({
             title: `While you control an ${TextHelper.Trait.Kashyyyk} base, this unit gains ${TextHelper.Ambush}`,
             condition: (c) => c.player.base.hasSomeTrait(Trait.Kashyyyk),
-            matchTarget: (card, context) => card === context.source,
-            ongoingEffect: [
-                AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush),
-            ]
+            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush),
         });
     }
 }

@@ -1,7 +1,6 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType } from '../../../core/Constants';
 
 export default class SawGerreraShadowlandsInsurgent extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +14,7 @@ export default class SawGerreraShadowlandsInsurgent extends NonLeaderUnitCard {
         registrar.addTriggeredAbility({
             title: 'Resource the top card of your deck',
             when: {
-                onCardPlayed: (event, context) => event.player !== context.player && event.cardTypeWhenInPlay === CardType.Event,
+                onCardPlayed: (event, context) => event.player !== context.player && event.card.isEvent(),
             },
             immediateEffect: AbilityHelper.immediateEffects.resourceCard((context) => ({ target: context.player.getTopCardOfDeck() }))
         });
