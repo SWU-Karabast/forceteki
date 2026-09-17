@@ -444,7 +444,16 @@ export interface ISavedDamageDealtEntry {
     /** Index-aligned with {@link damageSourceCards}; each element is classified against its own referent. */
     damageSourceInPlayIds: ISavedStintRef[];
 
-    /** Index-aligned with {@link damageSourceCards}. */
+    /**
+     * Index-aligned with {@link damageSourceCards}.
+     *
+     * Stays non-optional even though the live `DamageDealtEntry.damageSourceCardTypes` it is encoded
+     * from is `(CardType | null)[]`. The live field holds `null` only for a damage source that is not
+     * a card -- framework-sourced ability damage, whose source is an `OngoingEffectSource` -- and such
+     * an entry never reaches a save file at all: `damageSourceCards` then references an object with no
+     * position, so {@link ISavedMatch.engineOnlyFacts} records the drop and the whole entry is omitted.
+     * A `null` element here is therefore unreachable, and a loader need not handle one.
+     */
     damageSourceCardTypes: CardType[];
 
     /**

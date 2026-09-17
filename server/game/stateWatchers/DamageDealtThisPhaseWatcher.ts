@@ -24,8 +24,16 @@ export interface DamageDealtEntry {
     /** In-play IDs for each entry in damageSourceCards, aligned by index. */
     damageSourceInPlayIds: (number | undefined)[];
 
-    /** Card types for each entry in damageSourceCards, aligned by index. */
-    damageSourceCardTypes: CardType[];
+    /**
+     * Card types for each entry in damageSourceCards, aligned by index.
+     *
+     * `null` when the source of the damage is not a card at all. Ability damage generated from a
+     * framework context (`Game.getFrameworkContext`) has an `OngoingEffectSource` as its source
+     * rather than a card, and that class carries no `type`. `DrawSystem`'s empty-deck draw damage
+     * is the reachable case: it is deliberately attributed to the drawing player rather than to
+     * the card that triggered the draw, so there is genuinely no source card type to record.
+     */
+    damageSourceCardTypes: (CardType | null)[];
     damageSourcePlayer: GameObjectId<Player>;
     damageSourceEventId: number;
     targets: GameObjectId<Card>[];
@@ -134,7 +142,7 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
             update: (currentState: IDamageDealtThisPhase, event: any) => {
                 let damageSourceCards: GameObjectId<IPlayableCard>[] = [];
                 let damageSourceInPlayIds: (number | undefined)[] = [];
-                let damageSourceCardTypes: CardType[] = [];
+                let damageSourceCardTypes: (CardType | null)[] = [];
                 let targets: GameObjectId<Card>[] = [];
                 let activeAttackId: number = undefined;
 
@@ -155,12 +163,18 @@ export class DamageDealtThisPhaseWatcher extends StateWatcher<DamageDealtEntry> 
                 } else if (event.type === DamageType.Ability) {
                     const sourceCard = event.damageSource.card;
                     damageSourceCards = [sourceCard.getObjectId()];
-                    damageSourceCardTypes = [sourceCard.type];
+                    // Framework-sourced ability damage has an OngoingEffectSource here instead of a card,
+                    // which has no `type`. Record null rather than undefined: the state encoder rejects
+                    // undefined array elements by design, since JSON.stringify would silently coerce them.
+                    damageSourceCardTypes = [sourceCard.type ?? null];
                     // TODO FIX EMPTY DECK DAMAGE EVENT
                     damageSourceInPlayIds = ['canBeInPlay' in sourceCard && sourceCard.canBeInPlay() ? this.getCardId(sourceCard) : null];
                     targets = [event.card.getObjectId()];
                     activeAttackId = this.game.currentAttack?.id;
                 }
+                // There is intentionally no branch for DamageType.Excess: such an entry records no
+                // sources and no targets. See ISavedDamageDealtEntry.damageSourceCards, which documents
+                // the resulting empty arrays as a legal shape that a loader must not reject.
 
                 return currentState.concat({
                     damageType: event.type,

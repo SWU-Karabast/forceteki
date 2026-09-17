@@ -436,6 +436,49 @@ describe('MatchSerializer state-watcher encoding', function() {
             });
         });
 
+        describe('a non-card damage source records a null card type, not undefined', function() {
+            it('writes null for framework-sourced ability damage from an empty-deck draw', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['patrolling-vwing'],
+                        deck: [],
+                    },
+                    player2: {
+                        hasInitiative: true,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Patrolling V-Wing draws on play. With an empty deck, DrawSystem instead deals damage
+                // through a *framework* context, whose source is an OngoingEffectSource rather than a
+                // card -- so the watcher has no card type to record for this entry.
+                context.player2.passAction();
+                context.player1.clickCard(context.patrollingVwing);
+
+                const liveEntries = rawEntriesFor(context, StateWatcherName.DamageDealtThisPhase);
+                expect(liveEntries.length).toBe(1);
+                expect(liveEntries[0].damageSourceCardTypes.length).toBe(1);
+
+                // The point of the test: null, and specifically *not* undefined. Asserted with identity
+                // checks rather than a toEqual against [null], because jasmine's equality treats
+                // [undefined] and [null] as matching -- the same coercion that let this stay latent
+                // through the v8.serialize path. The state encoder rejects an undefined array element by
+                // design, so an undefined here is a live encode failure at every snapshot point.
+                expect(liveEntries[0].damageSourceCardTypes[0] === null).toBeTrue();
+                expect(liveEntries[0].damageSourceCardTypes[0] === undefined).toBeFalse();
+
+                // Such an entry never reaches a save file: its damageSourceCards references the framework
+                // source, which has no position, so the entry is dropped and the drop is enumerated. That
+                // is why ISavedDamageDealtEntry.damageSourceCardTypes stays non-optional.
+                const document = save(context.game);
+                expect(entriesFor(document, StateWatcherName.DamageDealtThisPhase)).toEqual([]);
+                expect(watcherEntryFacts(document).length).toBe(1);
+                expect(watcherEntryFacts(document)[0].description).toContain('damageSourceCards');
+            });
+        });
+
         describe('AC6 — counters are minted into shared, document-scoped spaces', function() {
             it('assigns attack ordinals in attack order and groups each damage entry with its attack (T7)', async function() {
                 await contextRef.setupTestAsync({
