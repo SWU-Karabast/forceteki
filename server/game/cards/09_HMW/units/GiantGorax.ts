@@ -6,7 +6,7 @@ import { CardType, RelativePlayer, TargetMode, Trait, WildcardCardType, ZoneName
 export default class GiantGorax extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'giant-gorax-id',
+            id: '3695328235',
             internalName: 'giant-gorax',
         };
     }

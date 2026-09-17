@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class TeekaYoureInLuck extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'teeka#youre-in-luck-id',
+            id: '2288296841',
             internalName: 'teeka#youre-in-luck',
         };
     }

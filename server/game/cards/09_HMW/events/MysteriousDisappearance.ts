@@ -6,7 +6,7 @@ import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Cons
 export default class MysteriousDisappearance extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'mysterious-disappearance-id',
+            id: '0692921257',
             internalName: 'mysterious-disappearance',
         };
     }
