@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class YordFandarDevoutlyDisciplined extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'yord-fandar#devoutly-disciplined-id',
+            id: '3492052595',
             internalName: 'yord-fandar#devoutly-disciplined',
         };
     }

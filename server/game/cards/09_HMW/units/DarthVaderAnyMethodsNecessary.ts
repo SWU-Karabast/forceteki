@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class DarthVaderAnyMethodsNecessary extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'darth-vader#any-methods-necessary-id',
+            id: '5451605535',
             internalName: 'darth-vader#any-methods-necessary',
         };
     }

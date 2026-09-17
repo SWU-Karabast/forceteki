@@ -6,7 +6,7 @@ import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 export default class SinisterWarMemorial extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'sinister-war-memorial-id',
+            id: '3798257647',
             internalName: 'sinister-war-memorial',
         };
     }

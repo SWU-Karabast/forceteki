@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class GarnacLetTheHuntBegin extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'garnac#let-the-hunt-begin-id',
+            id: '2004981626',
             internalName: 'garnac#let-the-hunt-begin',
         };
     }

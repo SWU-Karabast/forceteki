@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class RadiantVIINegotiatingForNaboo extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'radiant-vii#negotiating-for-naboo-id',
+            id: '7701528392',
             internalName: 'radiant-vii#negotiating-for-naboo',
         };
     }

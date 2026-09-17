@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class RyykBlademaster extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'ryyk-blademaster-id',
+            id: '1784192148',
             internalName: 'ryyk-blademaster'
         };
     }

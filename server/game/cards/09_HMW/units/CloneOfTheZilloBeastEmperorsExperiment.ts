@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class CloneOfTheZilloBeastEmperorsExperiment extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'clone-of-the-zillo-beast#emperors-experiment-id',
+            id: '2558977875',
             internalName: 'clone-of-the-zillo-beast#emperors-experiment',
         };
     }

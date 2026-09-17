@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class OpeeSeaKiller extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'opee-sea-killer-id',
+            id: '9194949375',
             internalName: 'opee-sea-killer',
         };
     }

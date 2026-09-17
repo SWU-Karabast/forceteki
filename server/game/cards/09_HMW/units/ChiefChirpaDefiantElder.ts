@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class ChiefChirpaDefiantElder extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'chief-chirpa#defiant-elder-id',
+            id: '9897192796',
             internalName: 'chief-chirpa#defiant-elder',
         };
     }
