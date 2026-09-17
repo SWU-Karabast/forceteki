@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class PeppiBowShaakHerder extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'peppi-bow#shaak-herder-id',
+            id: '4438529342',
             internalName: 'peppi-bow#shaak-herder',
         };
     }

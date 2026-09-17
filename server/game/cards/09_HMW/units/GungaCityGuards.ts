@@ -7,8 +7,8 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class GungaCityGuards extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'gunga-city-guards-id',
-            internalName: 'gunga-city-guards',
+            id: '1446255223',
+            internalName: 'gunga-city-guard',
         };
     }
 

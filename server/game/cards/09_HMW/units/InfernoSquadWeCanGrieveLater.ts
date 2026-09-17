@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class InfernoSquadWeCanGrieveLater extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'inferno-squad#we-can-grieve-later-id',
+            id: '9241047444',
             internalName: 'inferno-squad#we-can-grieve-later'
         };
     }

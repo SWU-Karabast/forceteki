@@ -15,7 +15,7 @@ export default class JarJarBinksBombadGeneral extends LeaderUnitCard {
 
     protected override getImplementationId () {
         return {
-            id: 'jar-jar-binks#bombad-general-id',
+            id: '5606867456',
             internalName: 'jar-jar-binks#bombad-general',
         };
     }

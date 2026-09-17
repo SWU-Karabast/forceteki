@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class ArenaAcklayScreamingPredator extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'arena-acklay#screaming-predator-id',
+            id: '3800014209',
             internalName: 'arena-acklay#screaming-predator',
         };
     }

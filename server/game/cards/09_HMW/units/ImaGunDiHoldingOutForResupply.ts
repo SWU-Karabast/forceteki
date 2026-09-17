@@ -6,7 +6,7 @@ import { RelativePlayer, ZoneName } from '../../../core/Constants';
 export default class ImaGunDiHoldingOutForResupply extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'imagun-di#holding-out-for-resupply-id',
+            id: '6561074658',
             internalName: 'imagun-di#holding-out-for-resupply'
         };
     }

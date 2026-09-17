@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class OmegaCloseYourEyesAndFocus extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'omega#close-your-eyes-and-focus-id',
+            id: '5495312929',
             internalName: 'omega#close-your-eyes-and-focus',
         };
     }

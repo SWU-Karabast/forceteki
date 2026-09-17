@@ -6,7 +6,7 @@ import { CardType } from '../../../core/Constants';
 export default class YodaTricksterInExile extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'yoda#trickster-in-exile-id',
+            id: '9369725899',
             internalName: 'yoda#trickster-in-exile',
         };
     }

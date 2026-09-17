@@ -8,7 +8,7 @@ import { EventName, RelativePlayer, TargetMode, WildcardCardType, WildcardZoneNa
 export default class NuteGunrayPerfectlyLegal extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'nute-gunray#perfectly-legal-id',
+            id: '6462566000',
             internalName: 'nute-gunray#perfectly-legal'
         };
     }
