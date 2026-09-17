@@ -1237,3 +1237,100 @@ One new spec, in `test/server/core/stateSerialization/StateWatcherSerializer.spe
 - **A framework `AbilityContext` is a general hazard for watcher state, not a one-off.** Any watcher field that reads a card-shaped property off `context.source` can receive an `OngoingEffectSource` instead, which answers `getObjectId()` but has no card surface at all. `DrawSystem`'s empty-deck damage is the only *currently reachable* producer for this field, established empirically across the whole suite — but the shape is reachable anywhere `getFrameworkContext` is used. Worth a look when `P3-PA4` does its coverage cross-check.
 - **`TODO FIX EMPTY DECK DAMAGE EVENT` in the watcher is deliberately still open.** Making that damage carry a real card source is an upstream rules-attribution change, separate from this encoding fix and not in scope here.
 - **`strictNullChecks` is off**, so a `| null` in a state interface constrains nothing at compile time. Treat such declarations as documentation and gate the actual behavior on a test.
+
+## `P3-PA3` — Codegen serializer parity harness, restore leg (Plan 3, Phase A step 4)
+
+| | |
+|---|---|
+| Task ID | `p3-pa3` |
+| Date | 2026-09-17 |
+| Lane / tier | full, tier 3 (Medium 🔴) |
+| Plan | [03-codegen-serializers.md](03-codegen-serializers.md), Phase A step 4 |
+| Parent | `17c4a4fb0` |
+| Commit | *(recorded in a follow-up commit, per the `P3-PA1`/`P3-PA2` pattern)* |
+| Branch | `experimental/rollback-saves-optimizations` |
+
+Three files, test-side only: `test/helpers/ParityHarness.ts` extended, `test/server/core/RestoreParityHarness.spec.ts` added, `package.json` gains four scripts. No `server/` file was modified — the harness reaches `GameObjectBase`'s `protected` `state` and `afterSetState` by cast, deliberately.
+
+### The headline answer: `reconcileUpdatedCardZoneMemberships` is NOT needed on main's full-snapshot restore path
+
+This is the question the unit existed to answer, and `P3-PB2`'s invocation block says to consume this evidence rather than re-derive it. Two independent sources.
+
+**Structural.** On `feature/quick-undo-deltas-morph`, `reconcileUpdatedCardZoneMemberships` is defined at `server/game/core/snapshot/GameStateManager.ts:368` and has exactly one call site — line 306, inside `rollbackToDeltaChain`, the **delta**-rollback path. That branch's own full-snapshot `rollbackToSnapshot` never calls it. Its inputs are delta-shaped: it reads `previousZoneUuid` off a per-object serialized old state and visits only cards in `delta.changedFields`. `git log --all -S` dates it to `541c2a580` "WIP Delta + Serializer". It is a delta artifact, and if it belongs anywhere on main it belongs to Plan 4, not to the cutover. It does not exist anywhere on this branch.
+
+**Measured.** `zoneViolationsForward = zoneViolationsReverse = 0` and `zonesNotCovered = 0` across **8,186 rollbacks in a single-process compare-mode run over the whole undo suite** (complete counters, nothing sampled) — the mode whose live restore mechanism is main's own `copyState`, which is exactly what the question asks about. Corroborated by ~6,200 further rollbacks in generated+undo mode across three of four workers, and by `AC5`, a spec that moves a card between zones across a snapshot boundary and asserts membership in **both** directions after a generated-path restore with no reconciliation step anywhere in the tree.
+
+### Net width of that measurement — read this before relying on the answer
+
+- **No zone class and no field is excluded from the forward pass.** An earlier implementation excluded `DeckZone` wholesale; review rejected that, because deck-resident cards are precisely the population `reconcileUpdatedCardZoneMemberships`'s forward repair (`if (currentZone && !currentZone.cards?.includes(card)) currentZone.addCard(card)`) would act on. Excluding them would have made the measurement unable to detect the thing it was measuring.
+- **What replaced it:** the forward pass reports only violations **new relative to a baseline captured immediately before each outermost rollback**, keyed `cardUuid::zoneUuid`. The masked population is therefore a `(card, zone)` pair that was *already* violating at that instant — not a class of cards.
+- **Size of the masked population:** 78 pre-rollback forward violations across 8,186 serial rollbacks (≈0.0095 per rollback). All 78 are `pre`/`forward` by the counter's definition. The 10 retained identity samples — and all ~60 retained across every run in the final cycle — are uniformly `zoneClass: DeckZone`, on four distinct deck-resident cards (`underworld-thug`, `cartel-spacer`, `battlefield-marine`, `pyke-sentinel`). **The zone class of the remaining 68 is counted but not recorded**, because the retention buffer caps at 10; this is a sampled characterization, not an enumeration. Making it exhaustive at the class level is tracked as a follow-up on `P3-PA4` in [IMPLEMENTATION-ORDER.md](IMPLEMENTATION-ORDER.md).
+- **`AllArenasZone` is excluded from the reverse pass by explicit `instanceof` negation**, and that is the only by-name exclusion anywhere. It inherits a state-backed `_cards` from `SimpleZone` via `ConcreteOrMetaArenaZone` (the codegen model serializes it), but its public `cards` getter is a `flatMap` aggregate over the two concrete arenas, so a reverse check reading the getter would report every in-play card as a violation. The reverse pass reads **raw backing fields** (`_cards`, `_deck`, `_searchingCards`, `_leader`, `_forceToken`, `_credits`, `_upgrades`), never the public getter — the one place the harness's read-through-the-accessor discipline must not apply.
+- **Deviation from the approved plan, recorded as required:** `plan.md:206` instructed that a calibration exclusion be "excluded by name, on measured evidence." Identity-diffing was implemented instead. It is stricter and consistent with the plan's own principles, but it is a deviation, and its consequence is that the exclusion list is now **empty**. An empty exclusion list must not be read as total coverage — the baseline-diff semantics above are what bound the measurement.
+
+### Labels that qualify the evidence — all four matter to `P3-PB2`
+
+1. **The zone counters have no injected falsifier.** They are a reported, human-adjudicated measurement that fails no spec. Only the *detection* path is proven non-vacuous, by the nonzero `preRollbackViolationsForward` on every run. The new-violation branch has never fired, because no post-rollback violation has ever occurred in ~50,000 rollbacks.
+2. **Coverage is uneven across configurations, and the "~75%" figure does not generalize.** A parallel `[ParityHarness] pid=` reporter line is emitted by only 3 of 4 configured workers (see the reporter gap below). In *undo* mode the missing worker's share is ~24%. In *non-undo* mode per-worker `zoneChecks` run 7 / 156 / 10, so the missing share is unbounded from the visible data and could be the majority. **Complete-coverage zone evidence exists only for compare + undo (the serial run).** `AC10` and `AC13`'s zone zeros are corroborating, not load-bearing.
+3. **Generated mode is blind to a dropped `@statePrimitive`/`@stateValue` field**, because the state bag is still installed wholesale before `deserialize` runs and those accessors read the bag. Primitive/value coverage rests on compare mode (`AC2`) alone. Do not read a green generated-mode run as whole-path proof.
+4. **`AC6` proves the ref-array aliasing vector only.** The plan's AC6 row also names a `@stateValue` collection; that was dropped because `decodeStateValue` provably constructs a fresh container at every level, closing the vector by construction — a forward-contract pin the plan's §10 permits dropping. `StateWatcher.entries` would have been a suitable field had one been needed.
+
+### The reporter gap: real, measured, and caused outside this repo
+
+Every `--parallel=4` run emits only **3** `[ParityHarness] pid=` lines. Two measurements settled what that means, after two review rounds reasoned confidently in opposite directions about it:
+
+- **Serial cross-check** (no `--parallel`; note `--parallel=1` is rejected by jasmine 5.1.0, `lib/command.js:117-127` — the serial equivalent is omitting the flag): 105,651 snapshots / 8,186 rollbacks single-process, versus 78,579 / 6,150 across the three visible parallel workers. The missing share is 25.6% / 24.9% — one worker of four. A conservation argument in review round 2, which inferred the invisible worker contributed ≈0 because visible sums looked conserved, is **refuted** by this.
+- **Boot marker** (`pid-<pid>.boot` written at module load, beside the exit-time `pid-<pid>.log`): **4 boot files, 3 exit files**, timestamps spanning 3 ms. The fourth worker exists and loads the harness, then loses its `'exit'` handler. Cause is inside `node_modules/jasmine/lib/parallel_runner.js`, outside this unit's scope fence.
+
+**But the gap costs less than that implies, and the distinction is load-bearing.** `parallel_runner.js:370-372` forwards every worker's `specDone` to the primary over IPC, independently of any exit handler, so spec results were never incomplete — the parallel `0 failures` is a four-worker fact. And every `harnessRestoreErrors` increment provably terminates in an exception that reaches the spec, so a mismatch on the invisible worker still turns the run red. The lost line costs only the **silent** counters: `zoneViolations*`, `zonesNotCovered`, `skippedPreInstall`, `installedAtExit`, `uninstallsWhileModuleLoadArmed`. For those it is the only channel.
+
+### Two defects the harness found in itself, worth carrying forward
+
+Both are the same shape — a check that cannot go red — and both were found only because the unit was required to prove its own gate falsifiable.
+
+1. **The escape proof was absorbed by one of its own specs.** `AC2` asserts `toThrowError(/class=…uuid=…field="_damage"/)`, and the *injected* diagnostic matched that pattern exactly, so `AC2` swallowed it and the run exited 0 green. Fixed with a `withExpectedHarnessMismatch(fn)` scope that `checkInjection` honours, plus tightening `AC2` to its own `legacy=0 generated=3` values.
+2. **The dominant flakiness cause was different and deeper.** The injection targets `NonLeaderUnitCard._damage`, but `_damage` is `null` for a unit not in play (`Damage.ts` nulls it by zone). When the one-shot landed on such an object, `corruptLiveField` threw a plain **un-stashed** error, production's recovery swallowed it, `undoIt` returned early, and the run exited green with the shot wasted. This reproduced in 5 of the first 20 verification runs and explains the originally-disclosed "roughly 1 run in 4-5" symptom. Fixed by checking the record's field-value type *before* consuming the one-shot, and — the general fix — routing `corruptLiveField`'s unsupported-type throw through `stashFirstHarnessError` so every injection-setup failure is loud by construction. Verified: `PARITY_INJECT_RESTORE_MISMATCH=NonLeaderUnitCard._zone` (a ref-kind field) now exits nonzero where it previously exited green.
+
+**Whoever designs `P3-PB2`'s own escape proof should assume this class of defect rather than rediscover it:** an injection hook whose setup can fail silently proves nothing, and a spec that asserts on a message *shape* can absorb the very diagnostic the proof depends on.
+
+### Verification
+
+Sequential throughout — never two build/test commands at once, per the shared `build/` hazard.
+
+| Check | Result |
+|---|---|
+| `npm run lint` | exit 0 (re-run and retained after the final cycle) |
+| `npm run test-parallel` | 8604 specs, 0 failures, 13 pending — baseline + exactly the 7 new specs |
+| `npm run test-parallel-undo` | 8416 specs, 0 failures, 17 pending — baseline + exactly the 7 new specs |
+| `npm run test-parity` | 8604 specs, 0 failures; `harnessRestoreErrors=0`, `rollbacksFailed=0`, zero zone violations on every observed worker |
+| `npm run test-parity-undo` | 8416 specs, 0 failures; same |
+| **serial `test-parity-undo`** (no `--parallel`, `--random=true`, seed 23582) | 8416 specs, 0 failures; **complete-coverage**: 105,651 snapshots / 14,723,111 records / 8,186 rollbacks / 1,146,540 objects / 19,048,834 fields; all absolute counters 0 |
+| `npm run test-parity-generated` | 8604 specs, 0 failures; `restoreMode=generated`; zero zone violations |
+| `npm run test-parity-undo-generated` | 8416 specs, 0 failures; `restoreMode=generated`; zero zone violations |
+| escape proof (`AC14`) | 20/20 across four configurations in cycle 1, landing on five distinct specs; re-confirmed 4/4 plus the ref-kind check in cycle 2 |
+
+`deliberateHarnessErrors` / `deliberateRollbackFailures` are separate counters carrying this unit's own `AC2`/`AC7` injections (2 non-undo, 4 undo), so `harnessRestoreErrors === 0` and `rollbacksFailed === 0` remain true absolutes rather than being narratively excused.
+
+### Review history
+
+Plan reviewed twice (round 1 REJECTED — the gate could not fail, because a restore-leg throw is absorbed by `rollbackToSnapshot`'s own recovery, then by `undoIt`'s early return, while `undoIntegration`'s assertions are `xit`-stubbed under `ENABLE_UNDO_ALL_TESTS`; round 2 APPROVED WITH CONCERNS). Implementation reviewed three times: round 1 a three-lens fan-out, **rejected 3/3**; round 2 and round 3 confirming deltas, both APPROVED WITH CONCERNS, final counts BLOCKING 0 / WARNING 3 / NIT 2. Two repair cycles used of two.
+
+### Known residuals, disclosed and accepted at the gate
+
+1. **The reporter gap itself** — 3 of 4 worker lines, cause outside the scope fence. Characterized above rather than fixed. The boot-marker instrument stays in the harness so a future unit can tell "worker lost its handler" from "worker never loaded."
+2. **`P3PA3-D-04`** — the zone counters have no injected falsifier (label 1 above).
+3. **`P3PA3-F-01`** — complete-coverage zone evidence exists for compare+undo only; closed by label rather than by ~8 more minutes of serial generated-mode runtime, on the reasoning that those counters are corroborating and unfalsified either way.
+4. **`P3PA3-F-03`** — the masked pre-rollback population is a sampled characterization (10 of 78 identified), not an enumeration. An earlier evidence row called it "fully enumerated" and named one card; both were wrong and are corrected above.
+5. **`P3PA3-D-03`** — the calibration-throw repair is verified by inspection only. No reproducer exists on main (it needs a zone-storage getter that throws), and manufacturing one would mean patching `server/`.
+6. **`P3PA3-F-04`** (nit) — the same repair was not generalized to the symmetric post-rollback `runZoneMembershipCheck` site. Its failure mode there is a *misattributed red*, never a green, because the depth counter has already been decremented.
+7. **`P3PA3-D-09` / `P3PA3-F-05`** (nit) — the reporter run directory is never pruned, and its `process.ppid` key is not unique outside parallel mode. Today's boot/exit comparison is unaffected (3 ms timestamp spread rules out contamination), but the counts are only meaningful for a directory known to hold a single run. Tracked as a follow-up on `P3-PA4` in [IMPLEMENTATION-ORDER.md](IMPLEMENTATION-ORDER.md).
+8. **The `@stateValue` collection half of `AC6`** was dropped (label 4 above).
+
+### Notes for the next agent
+
+- **`P3-PB2`: take the headline answer and its four labels together.** "Not needed" is well supported for main's full-snapshot path; it is not a statement that zone membership is verified under every configuration.
+- **A parallel `pid=` reporter line is not whole-suite evidence in this repo.** When a silent counter matters, run the suite serially (omit `--parallel`) and use the single-process line. When a spec assertion matters, parallel is fine — `specDone` is forwarded from every worker.
+- **The harness is reusable and flag-gated** (`ENABLE_PARITY_HARNESS`, `PARITY_RESTORE_MODE=compare|generated`, `PARITY_INJECT_RESTORE_MISMATCH=<Class>.<field>`), with zero footprint when unset. `P3-PB2` re-runs `AC14` after the cutover; `P3-PB3` must run its benchmark capture with `ENABLE_PARITY_HARNESS` **unset**, since the harness wraps `buildGameStateForSnapshot`.
+- **The pre-existing engine gap this unit surfaced but did not fix:** `SimpleZone`/`DeckZone`'s `addCard`/`removeCard` never touch the card's own `.zone` field; a separate move orchestrator keeps the two sides of the doubly-represented membership in sync, and deck-resident cards demonstrate a live, restore-independent gap in that synchronization. Out of scope here. Recorded as an observation, not a defect of this unit.
+- **`SnapshotManager.takeManualSnapshot` does not build a fresh snapshot** — it references whichever snapshot is already current. A spec-scoped harness block must force `SnapshotFactory.createSnapshotForCurrentTimepoint` first, or the manual snapshot silently references a pre-harness buffer with no retained records.
+- **`SnapshotManager.rollbackManualSnapshot`'s `Contract.assertNotNullLike` conflates** "manual snapshot ID does not exist" with "rollback attempted, failed, and recovered" — both throw the same message. `AC7` drives its rollback through the container directly for this reason.
