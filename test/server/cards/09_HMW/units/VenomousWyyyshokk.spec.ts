@@ -28,7 +28,7 @@ describe('Venomous Wyyyshokk', function() {
             expect(context.wampa.getHp()).toBe(4);
         });
 
-        it('Venomous Wyyyshokk\'s ability should give a weakness token to a damaged unit when defeated', async function () {
+        it('Venomous Wyyyshokk\'s ability should give a weakness token to a damaged unit when defeated NGOR', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
