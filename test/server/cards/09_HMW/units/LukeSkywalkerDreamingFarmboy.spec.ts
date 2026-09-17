@@ -14,10 +14,10 @@ describe('Luke Skywalker, Dreaming Farmboy', function() {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.lukeSkywalkerDreamingFarmboy);
+                context.player1.clickCard(context.lukeSkywalker);
 
-                expect(context.lukeSkywalkerDreamingFarmboy.exhausted).toBeFalse();
-                expect(context.lukeSkywalkerDreamingFarmboy).toBeInZone('groundArena', context.player1);
+                expect(context.lukeSkywalker.exhausted).toBeFalse();
+                expect(context.lukeSkywalker).toBeInZone('groundArena', context.player1);
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -38,10 +38,10 @@ describe('Luke Skywalker, Dreaming Farmboy', function() {
 
                 expect(context.game.roundNumber).toBe(2);
 
-                context.player1.clickCard(context.lukeSkywalkerDreamingFarmboy);
+                context.player1.clickCard(context.lukeSkywalker);
 
-                expect(context.lukeSkywalkerDreamingFarmboy.exhausted).toBeTrue();
-                expect(context.lukeSkywalkerDreamingFarmboy).toBeInZone('groundArena', context.player1);
+                expect(context.lukeSkywalker.exhausted).toBeTrue();
+                expect(context.lukeSkywalker).toBeInZone('groundArena', context.player1);
             });
         });
     });
