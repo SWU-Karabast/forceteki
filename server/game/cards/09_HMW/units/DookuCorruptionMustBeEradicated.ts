@@ -6,7 +6,7 @@ import { CardType, WildcardCardType } from '../../../core/Constants';
 export default class DookuCorruptionMustBeEradicated extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'dooku#corruption-must-be-eradicated-id',
+            id: '5738669570',
             internalName: 'dooku#corruption-must-be-eradicated',
         };
     }

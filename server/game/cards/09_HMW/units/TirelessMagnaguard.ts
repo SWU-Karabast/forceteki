@@ -6,7 +6,7 @@ import { Duration, ZoneName } from '../../../core/Constants';
 export default class TirelessMagnaguard extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'tireless-magnaguard-id',
+            id: '1558034495',
             internalName: 'tireless-magnaguard',
         };
     }

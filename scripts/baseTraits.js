@@ -95,6 +95,9 @@ function populateBaseTraits(attributes, id) {
         case '5043366366': // Daimyo's Palace: Tatooine
         case '7897278827': // Great Pit of Carkoon: Tatooine
         case '8082875787': // Freetown: Tatooine
+        case '3333690969': // Dune Sea: Tatooine (HMW)
+        case '7252516684': // Tusken Camp: Tatooine (HMW)
+        case '8087001946': // Jundland Wastes: Tatooine (HMW)
             attributes.traits = {
                 data: [{ attributes: { name: 'Tatooine' } }]
             };
@@ -161,8 +164,19 @@ function populateBaseTraits(attributes, id) {
             };
             break;
         case '9014930596': // Shield Generator Complex: Endor
+        case '8235689435': // Dendroid Wilds: Endor (HMW)
+        case '2939276465': // Research Station 9: Endor (HMW)
+        case '2826528227': // Bright Tree Village: Endor (HMW)
             attributes.traits = {
                 data: [{ attributes: { name: 'Endor' } }]
+            };
+            break;
+        case '0240829409': // Origin Tree: Kashyyyk (HMW)
+        case '4907839316': // Kyyyalstaad Swamp: Kashyyyk (HMW)
+        case '5618455889': // Kachirho: Kashyyyk (HMW)
+        case '6555104126': // Shadowlands: Kashyyyk (HMW)
+            attributes.traits = {
+                data: [{ attributes: { name: 'Kashyyyk' } }]
             };
             break;
         case '1029978899': // Colossus: Castilon
@@ -177,6 +191,9 @@ function populateBaseTraits(attributes, id) {
             break;
         case '1055085019': // Theed Palace: Naboo
         case '1672815328': // Lake Country: Naboo
+        case '8977825391': // Great Grass Plains: Naboo (HMW)
+        case '1170187008': // Otoh Gunga: Naboo (HMW)
+        case '2232746982': // Bioweapons Lab: Naboo (HMW)
             attributes.traits = {
                 data: [{ attributes: { name: 'Naboo' } }]
             };

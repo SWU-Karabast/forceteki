@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class FettsFirespraySettlingTheScore extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'fetts-firespray#settling-the-score-id',
+            id: '0941615068',
             internalName: 'fetts-firespray#settling-the-score',
         };
     }

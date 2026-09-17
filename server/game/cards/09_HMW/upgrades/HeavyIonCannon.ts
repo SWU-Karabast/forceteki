@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class HeavyIonCannon extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'heavy-ion-cannon-id',
+            id: '5341831883',
             internalName: 'heavy-ion-cannon',
         };
     }

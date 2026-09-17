@@ -5,7 +5,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 export default class Growth extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'growth-id',
+            id: '2496794687',
             internalName: 'growth',
         };
     }

@@ -7,7 +7,7 @@ import { Contract } from '../../../core/utils/Contract';
 export default class BossLyonieHypnotized extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'boss-lyonie#hypnotized-id',
+            id: '2305570577',
             internalName: 'boss-lyonie#hypnotized',
         };
     }

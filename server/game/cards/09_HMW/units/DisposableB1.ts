@@ -9,7 +9,7 @@ export default class DisposableB1 extends NonLeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'disposable-b1-id',
+            id: '0054868207',
             internalName: 'disposable-b1'
         };
     }
