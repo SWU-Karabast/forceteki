@@ -13,11 +13,12 @@ export default class Resonate extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'If a friendly non-leader unit shares a Trait with a friendly Leader, heal 4 damage from a unit or base',
+            title: 'Heal 4 damage from a unit or base',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.hasSomeArenaCard({ type: WildcardCardType.NonLeaderUnit, trait: context.player.getLeaderCards()
                     .flatMap((leader) => Array.from(leader.traits)) }),
                 onTrue: AbilityHelper.immediateEffects.selectCard({
+                    cardTypeFilter: WildcardCardType.Any,
                     immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 4 })
                 })
             })
