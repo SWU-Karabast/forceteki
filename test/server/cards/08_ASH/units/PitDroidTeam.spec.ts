@@ -1,5 +1,37 @@
 describe('Pit Droid Team', function() {
     integration(function(contextRef) {
+        it('stacks with Wedge Antilles when playing a pilot from hand', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    resources: 3,
+                    base: 'dagobah-swamp',
+                    leader: 'wedge-antilles#leader-of-red-squadron',
+                    hand: ['hopeful-volunteer', 'electrostaff'],
+                    groundArena: ['pit-droid-team', 'battlefield-marine'],
+                    spaceArena: ['concord-dawn-interceptors'],
+                },
+            });
+
+            const { context } = contextRef;
+            context.player1.clickCard(context.wedgeAntilles);
+            expect(context.player1).toBeAbleToSelectExactly([context.hopefulVolunteer]);
+            context.player1.clickCard(context.hopefulVolunteer);
+            context.player1.clickCard(context.concordDawnInterceptors);
+
+            expect(context.concordDawnInterceptors).toHaveExactUpgradeNames(['hopeful-volunteer']);
+            expect(context.player1.exhaustedResourceCount).toBe(0);
+            expect(context.wedgeAntilles.exhausted).toBeTrue();
+            expect(context.player2).toBeActivePlayer();
+
+            context.player2.passAction();
+            context.player1.clickCard(context.electrostaff);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine).toHaveExactUpgradeNames(['electrostaff']);
+            expect(context.player1.exhaustedResourceCount).toBe(2);
+        });
+
         it('discounts the first upgrade played on another friendly unit each phase and resets next phase', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',

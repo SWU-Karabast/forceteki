@@ -8,7 +8,7 @@ import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties
 export default class SandoAquaMonster extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'sando-aqua-monster-id',
+            id: '8902247163',
             internalName: 'sando-aqua-monster',
         };
     }

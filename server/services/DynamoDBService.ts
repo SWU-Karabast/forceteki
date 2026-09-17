@@ -20,7 +20,8 @@ import {
     type IDeckStatsEntity,
     type IUserProfileDataEntity,
     type IUserPreferences,
-    type IServerRoleUsersListsEntity
+    type IServerRoleUsersListsEntity,
+    type IServerSettingsEntity
 } from './DynamoDBInterfaces';
 import { z } from 'zod';
 import { IDeckDataEntitySchema, IDeckStatsEntitySchema, ModActionEntitySchema, UsernameChangeEntitySchema } from './DynamoDBInterfaceSchemas';
@@ -729,6 +730,47 @@ class DynamoDBService {
                 contributors: result.Item.contributors || []
             };
         }, 'Error getting admin users');
+    }
+
+    // Server settings methods
+    public getServerSettingsAsync(): Promise<IServerSettingsEntity> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.getItemAsync('SERVER_SETTINGS', 'GLOBAL');
+
+            // A missing item means no moderator has ever set these, which is the state on the first
+            // deploy of this feature. Default to enabled so that the rollout itself can't black out
+            // the site - unlike a read failure, this is a known state rather than an unknown one.
+            if (!result.Item) {
+                return { gamesEnabled: true };
+            }
+
+            return {
+                gamesEnabled: result.Item.gamesEnabled !== false,
+                maintenanceMessage: result.Item.maintenanceMessage,
+                updatedBy: result.Item.updatedBy,
+                updatedAt: result.Item.updatedAt
+            };
+        }, 'Error getting server settings');
+    }
+
+    public saveServerSettingsAsync(settings: IServerSettingsEntity) {
+        return this.executeDbOperationAsync(() => {
+            const item: Record<string, any> = {
+                pk: 'SERVER_SETTINGS',
+                sk: 'GLOBAL',
+                gamesEnabled: settings.gamesEnabled
+            };
+
+            // The document client is not configured with removeUndefinedValues, so undefined
+            // fields have to be omitted rather than written.
+            for (const key of ['maintenanceMessage', 'updatedBy', 'updatedAt'] as const) {
+                if (settings[key] !== undefined) {
+                    item[key] = settings[key];
+                }
+            }
+
+            return this.putItemAsync(item);
+        }, 'Error saving server settings');
     }
 
     // Mod Actions

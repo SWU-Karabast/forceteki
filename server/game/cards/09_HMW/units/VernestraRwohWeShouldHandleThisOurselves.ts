@@ -8,7 +8,7 @@ import { Helpers } from '../../../core/utils/Helpers';
 export default class VernestraRwohWeShouldHandleThisOurselves extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'vernestra-rwoh#we-should-handle-this-ourselves-id',
+            id: '2449316417',
             internalName: 'vernestra-rwoh#we-should-handle-this-ourselves',
         };
     }

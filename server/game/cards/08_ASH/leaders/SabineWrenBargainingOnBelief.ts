@@ -21,12 +21,15 @@ export default class SabineWrenBargainingOnBelief extends LeaderUnitCard {
             title: `An opponent gives 2 Advantage tokens to a unit they control. If they do, the next unit you play this phase gains ${TextHelper.Shielded} for this phase`,
             cost: abilityHelper.costs.exhaustSelf(),
             targetResolver: {
-                activePromptTitle: `Choose a unit to give 2 Advantage tokens. The next unit your opponent plays this phase gains ${TextHelper.Shielded} for this phase`,
+                activePromptTitle: `Give 2 Advantage tokens to a unit. The next unit your opponent plays this phase gains ${TextHelper.Shielded} for this phase`,
                 waitingPromptTitle: 'Waiting for opponent to select a unit for Sabine Wren\'s ability',
                 cardTypeFilter: WildcardCardType.Unit,
                 choosingPlayer: RelativePlayer.Opponent,
                 controller: RelativePlayer.Opponent,
-                immediateEffect: abilityHelper.immediateEffects.giveAdvantage({ amount: 2 })
+                immediateEffect: abilityHelper.immediateEffects.giveAdvantage({
+                    createdBy: RelativePlayer.Opponent,
+                    amount: 2
+                })
             },
             effect: 'have {1} give 2 Advantage tokens to {0} to create a delayed effect',
             effectArgs: (context) => [context.player.opponent.name],

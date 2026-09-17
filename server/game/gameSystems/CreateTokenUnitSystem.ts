@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { TokenUnitName } from '../core/Constants';
 import { EffectName, EntryType, EventName } from '../core/Constants';
+import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
@@ -17,6 +18,9 @@ export interface ICreateTokenUnitRequiredProperties {
 
 export interface ICreateTokenUnitProperties extends IPlayerTargetSystemProperties, Partial<ICreateTokenUnitRequiredProperties> {
     tokenType: TokenUnitName;
+
+    /** Effect(s) resolved as each created token enters play. See {@link IPutIntoPlayProperties.enterPlayEffect}. */
+    enterPlayEffect?: GameSystem | GameSystem[];
 }
 
 /** Handles the logic for creating token units and putting them into play. The specific token is set via `tokenType` (see the create* factory methods in GameSystemLibrary). */
@@ -80,6 +84,7 @@ export class CreateTokenUnitSystem<TContext extends AbilityContext = AbilityCont
                     target: token,
                     entersReady: event.entersReady || player.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady),
                     entryType: EntryType.Created,
+                    enterPlayEffect: event.enterPlayEffect,
                 }).generateEvent(event.context);
 
                 putIntoPlayEvent.order = event.order + 1;
@@ -103,5 +108,6 @@ export class CreateTokenUnitSystem<TContext extends AbilityContext = AbilityCont
         event.amount = properties.amount;
         event.tokenType = properties.tokenType;
         event.entersReady = properties.entersReady;
+        event.enterPlayEffect = properties.enterPlayEffect;
     }
 }

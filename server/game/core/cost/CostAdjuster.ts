@@ -376,7 +376,11 @@ export abstract class CostAdjuster extends GameObjectBase {
         }
 
         const upgrade = context.source;
-        Contract.assertTrue(upgrade.isUpgrade(), `attachTargetCondition can only be used with upgrade cards, attempting to use with '${upgrade.title}'`);
+        // Pilots are still units in hand while their upgrade play costs are being evaluated.
+        Contract.assertTrue(
+            upgrade.isUpgrade() || (upgrade.isUnit() && context.playType === PlayType.Piloting),
+            `attachTargetCondition can only be used with upgrade cards or units played using Piloting, attempting to use with '${upgrade.title}'`
+        );
 
         if (context.stage === Stage.Cost && context.target != null) {
             return this.attachTargetCondition(context.target, context, this.sourceCard);
@@ -395,5 +399,4 @@ export abstract class CostAdjuster extends GameObjectBase {
         return false;
     }
 }
-
 

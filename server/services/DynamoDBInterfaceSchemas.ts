@@ -76,6 +76,15 @@ export const FindUserSchema = z.object({
     searchQuery: z.string().min(1, 'searchQuery is required'),
 });
 
+export const ServerSettingsUpdateSchema = z.object({
+    gamesEnabled: z.boolean().optional(),
+    maintenanceMessage: z.string().max(500, 'maintenanceMessage must be 500 characters or fewer')
+        .optional(),
+}).refine(
+    (data) => data.gamesEnabled !== undefined || data.maintenanceMessage !== undefined,
+    { message: 'At least one of gamesEnabled or maintenanceMessage is required' }
+);
+
 export const ModActionEntitySchema = z.object({
     id: z.string(),
     playerId: z.string(),

@@ -6,7 +6,7 @@ import { AbilityRestriction, PhaseName } from '../../../core/Constants';
 export default class HijackedATST extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'hijacked-atst-id',
+            id: '8707440461',
             internalName: 'hijacked-atst',
         };
     }

@@ -89,6 +89,8 @@ import type { IPlayMultipleCardsFromDeckProperties } from './PlayMultipleCardsFr
 import { PlayMultipleCardsFromDeckSystem } from './PlayMultipleCardsFromDeckSystem';
 import type { IPlayMultipleCardsFromDiscardProperties } from './PlayMultipleCardsFromDiscardSystem';
 import { PlayMultipleCardsFromDiscardSystem } from './PlayMultipleCardsFromDiscardSystem';
+import type { IPlayMultipleCardsFromHandProperties } from './PlayMultipleCardsFromHandSystem';
+import { PlayMultipleCardsFromHandSystem } from './PlayMultipleCardsFromHandSystem';
 import type { IPutIntoPlayProperties } from './PutIntoPlaySystem';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
 import type { IReadyResourcesSystemProperties } from './ReadyResourcesSystem';
@@ -319,22 +321,30 @@ export function frameworkDefeat<TContext extends AbilityContext = AbilityContext
     return new FrameworkDefeatCardSystem<TContext>(propertyFactory);
 }
 export type IGiveTokenUpgradeFactoryProperties = Omit<IGiveTokenUpgradeProperties, 'tokenType'>;
-function giveTokenUpgrade<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext>, tokenType: TokenUpgradeName) {
-    return new GiveTokenUpgradeSystem<TContext>(
+/**
+ * Gives a token upgrade whose type is supplied in the properties, so it can be decided at
+ * resolution time (e.g. "give another one of those tokens"). When the type is fixed, prefer
+ * giveExperience / giveShield / giveAdvantage / giveWeakness.
+ */
+export function giveTokenUpgrade<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeProperties, TContext>) {
+    return new GiveTokenUpgradeSystem<TContext>(propertyFactory);
+}
+function giveTokenUpgradeOfType<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext>, tokenType: TokenUpgradeName) {
+    return giveTokenUpgrade<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IGiveTokenUpgradeProperties, 'tokenType'>(propertyFactory, { tokenType })
     );
 }
 export function giveExperience<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext> = {}) {
-    return giveTokenUpgrade<TContext>(propertyFactory, TokenUpgradeName.Experience);
+    return giveTokenUpgradeOfType<TContext>(propertyFactory, TokenUpgradeName.Experience);
 }
 export function giveShield<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext> = {}) {
-    return giveTokenUpgrade<TContext>(propertyFactory, TokenUpgradeName.Shield);
+    return giveTokenUpgradeOfType<TContext>(propertyFactory, TokenUpgradeName.Shield);
 }
 export function giveAdvantage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext> = {}) {
-    return giveTokenUpgrade<TContext>(propertyFactory, TokenUpgradeName.Advantage);
+    return giveTokenUpgradeOfType<TContext>(propertyFactory, TokenUpgradeName.Advantage);
 }
 export function giveWeakness<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext> = {}) {
-    return giveTokenUpgrade<TContext>(propertyFactory, TokenUpgradeName.Weakness);
+    return giveTokenUpgradeOfType<TContext>(propertyFactory, TokenUpgradeName.Weakness);
 }
 export function heal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IHealProperties, TContext>) {
     return new HealSystem<TContext>(propertyFactory);
@@ -684,6 +694,9 @@ export function playMultipleCardsFromDeck<TContext extends AbilityContext = Abil
 }
 export function playMultipleCardsFromDiscard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayMultipleCardsFromDiscardProperties<TContext>, TContext>) {
     return new PlayMultipleCardsFromDiscardSystem<TContext>(propertyFactory);
+}
+export function playMultipleCardsFromHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayMultipleCardsFromHandProperties<TContext>, TContext>) {
+    return new PlayMultipleCardsFromHandSystem<TContext>(propertyFactory);
 }
 export function delayedPlayerEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDelayedEffectProperties, 'delayedEffectType'>>) {
     return new DelayedEffectSystem<TContext>(

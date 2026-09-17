@@ -113,6 +113,33 @@ describe('Poe Dameron, I Can Fly Anything', function() {
 
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should increate limit even if used when no legal target', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'poe-dameron#i-can-fly-anything',
+                        spaceArena: ['cartel-spacer'],
+                        hand: ['awing'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.poeDameron);
+                context.player1.clickPrompt('Flip Poe Dameron and attach him as an upgrade to a friendly Vehicle unit without a Pilot on it');
+                context.player1.clickCard(context.cartelSpacer);
+
+                context.player2.claimInitiative();
+
+                context.player1.clickCard(context.poeDameron);
+                expect(context.player1).toHavePrompt('The ability "Attach this upgrade to a friendly Vehicle unit without a Pilot on it" will have no effect. Are you sure you want to use it?');
+                context.player1.clickPrompt('Use it anyway');
+
+                context.player1.clickCard(context.awing);
+
+                expect(context.poeDameron).not.toHaveAvailableActionWhenClickedBy(context.player1);
+            });
         });
 
         describe('Poe Dameron\'s deployed ability', function() {

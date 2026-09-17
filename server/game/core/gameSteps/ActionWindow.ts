@@ -276,7 +276,21 @@ export class ActionWindow extends UiPrompt {
     private getCardLegalActions(card: Card, player: Player) {
         const actions = card.getActions();
         const legalActions = actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
-        return legalActions;
+
+        // Show one button per source for gained abilities from multiple copies of the same card.
+        // Deduplicating after the requirements filter keeps a copy at its use limit from hiding a usable one.
+        const seenGainedSources = new Set<string>();
+        return legalActions.filter((action) => {
+            const gainAbilitySource = action.isCardAbility() && !action.printedAbility ? action.gainAbilitySource : null;
+            if (!gainAbilitySource) {
+                return true;
+            }
+            if (seenGainedSources.has(gainAbilitySource.internalName)) {
+                return false;
+            }
+            seenGainedSources.add(gainAbilitySource.internalName);
+            return true;
+        });
     }
 
     // markBonusActionsTaken() {

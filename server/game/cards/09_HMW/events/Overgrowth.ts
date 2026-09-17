@@ -7,7 +7,7 @@ import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../..
 export default class Overgrowth extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'overgrowth-id',
+            id: '1479940864',
             internalName: 'overgrowth',
         };
     }
@@ -25,13 +25,13 @@ export default class Overgrowth extends EventCard {
                         zoneFilter: WildcardZoneName.AnyArena,
                         name: 'friendlyUnit',
                         immediateEffect: abilityHelper.immediateEffects.selectCard({
-                            activePromptTitle: (context) => `Deal ${context.targets.friendlyUnit?.getPower()} damage to an enemy unit`,
+                            activePromptTitle: (context) => `Deal ${context.targets.friendlyUnit.getPower()} damage to an enemy unit`,
                             controller: RelativePlayer.Opponent,
                             cardTypeFilter: WildcardCardType.Unit,
                             zoneFilter: WildcardZoneName.AnyArena,
                             name: 'enemyUnit',
                             immediateEffect: abilityHelper.immediateEffects.damage((context) => ({
-                                amount: context.targets.friendlyUnit?.getPower(),
+                                amount: context.targets.friendlyUnit.getPower(),
                                 target: context.targets.enemyUnit
                             }))
                         })
