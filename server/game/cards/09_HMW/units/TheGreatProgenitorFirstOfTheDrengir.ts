@@ -11,7 +11,7 @@ export default class TheGreatProgenitorFirstOfTheDrengir extends NonLeaderUnitCa
 
     protected override getImplementationId() {
         return {
-            id: 'the-great-progenitor#first-of-the-drengir-id',
+            id: '1666373167',
             internalName: 'the-great-progenitor#first-of-the-drengir',
         };
     }
