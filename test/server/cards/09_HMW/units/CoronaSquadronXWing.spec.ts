@@ -18,10 +18,11 @@ describe('Corona Squadron X-Wing', function() {
             context.player1.clickCard(context.p2Base);
             expect(context.player1).toHavePassAbilityPrompt('Ready a resource');
             context.player1.clickPrompt('Trigger');
+            context.player1.clickPrompt('You');
             expect(context.player1.exhaustedResourceCount).toBe(1);
         });
 
-        xit('should ready an enemy resource on attack', function () {
+        it('should ready an enemy resource on attack', function () {
             const { context } = contextRef;
 
             context.player2.exhaustResources(2);

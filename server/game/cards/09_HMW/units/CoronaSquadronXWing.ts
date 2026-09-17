@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { TargetMode } from '../../../core/Constants';
 
 export default class CoronaSquadronXWing extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,10 +15,10 @@ export default class CoronaSquadronXWing extends NonLeaderUnitCard {
         registrar.addOnAttackAbility({
             title: 'Ready a resource',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.readyResources((context) => ({
-                target: context.player,
-                amount: 1
-            }))
+            targetResolver: {
+                mode: TargetMode.Player,
+                immediateEffect: AbilityHelper.immediateEffects.readyResources({ amount: 1 })
+            }
         });
     }
 }
