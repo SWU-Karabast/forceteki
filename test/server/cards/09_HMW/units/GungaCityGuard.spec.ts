@@ -5,17 +5,17 @@ describe('Gunga City Guards', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['gunga-city-guards', 'the-armorer#secrecy-is-our-survival'],
+                        hand: ['gunga-city-guard', 'the-armorer#secrecy-is-our-survival'],
                         base: 'great-grass-plains'
                     },
                 });
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.gungaCityGuards);
+                context.player1.clickCard(context.gungaCityGuard);
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.gungaCityGuards).toHaveExactUpgradeNames(['shield']);
+                expect(context.gungaCityGuard).toHaveExactUpgradeNames(['shield']);
 
                 context.moveToNextActionPhase();
 
@@ -23,14 +23,14 @@ describe('Gunga City Guards', function() {
                 context.player1.clickPrompt('Shielded');
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.gungaCityGuards).toHaveExactUpgradeNames(['shield', 'shield']);
+                expect(context.gungaCityGuard).toHaveExactUpgradeNames(['shield', 'shield']);
             });
 
             it('should have Shielded when you control another Gungan unit', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['gunga-city-guards'],
+                        hand: ['gunga-city-guard'],
                         groundArena: ['gungan-warrior'],
                         base: 'energy-conversion-lab'
                     },
@@ -38,17 +38,17 @@ describe('Gunga City Guards', function() {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.gungaCityGuards);
+                context.player1.clickCard(context.gungaCityGuard);
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.gungaCityGuards).toHaveExactUpgradeNames(['shield']);
+                expect(context.gungaCityGuard).toHaveExactUpgradeNames(['shield']);
             });
 
             it('should not have Shielded when you do not control another Gungan unit and no Naboo base', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['gunga-city-guards'],
+                        hand: ['gunga-city-guard'],
                         base: 'energy-conversion-lab'
                     },
                     player2: {
@@ -59,10 +59,10 @@ describe('Gunga City Guards', function() {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.gungaCityGuards);
+                context.player1.clickCard(context.gungaCityGuard);
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.gungaCityGuards).toHaveExactUpgradeNames([]);
+                expect(context.gungaCityGuard).toHaveExactUpgradeNames([]);
             });
         });
     });

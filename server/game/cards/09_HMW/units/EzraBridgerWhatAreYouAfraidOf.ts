@@ -5,7 +5,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 export default class EzraBridgerWhatAreYouAfraidOf extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'ezra-bridger#what-are-you-afraid-of-id',
+            id: '7046829720',
             internalName: 'ezra-bridger#what-are-you-afraid-of',
         };
     }

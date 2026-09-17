@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class MotherTalzinPledgedToTheSisterhood extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'mother-talzin#pledged-to-the-sisterhood-id',
+            id: '7923280265',
             internalName: 'mother-talzin#pledged-to-the-sisterhood',
         };
     }

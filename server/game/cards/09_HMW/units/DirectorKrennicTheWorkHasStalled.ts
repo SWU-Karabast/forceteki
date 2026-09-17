@@ -5,7 +5,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 export default class DirectorKrennicTheWorkHasStalled extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'director-krennic#the-work-has-stalled-id',
+            id: '6368234898',
             internalName: 'director-krennic#the-work-has-stalled',
         };
     }

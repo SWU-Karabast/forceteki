@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class HunterEveryoneGetToCover extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'hunter#everyone-get-to-cover-id',
+            id: '7017880281',
             internalName: 'hunter#everyone-get-to-cover'
         };
     }

@@ -7,7 +7,7 @@ import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../..
 export default class Overgrowth extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'overgrowth-id',
+            id: '1479940864',
             internalName: 'overgrowth',
         };
     }

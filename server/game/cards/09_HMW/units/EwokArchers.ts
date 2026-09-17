@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class EwokArchers extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'ewok-archers-id',
+            id: '0743602026',
             internalName: 'ewok-archers',
         };
     }

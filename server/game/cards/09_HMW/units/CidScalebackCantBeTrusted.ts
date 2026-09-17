@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class CidScalebackCantBeTrusted extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'cid-scaleback#cant-be-trusted-id',
+            id: '4318148716',
             internalName: 'cid-scaleback#cant-be-trusted'
         };
     }

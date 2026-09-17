@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class BossNassOtohGungaBoss extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'boss-nass#otoh-gunga-boss-id',
+            id: '8413537581',
             internalName: 'boss-nass#otoh-gunga-boss',
         };
     }

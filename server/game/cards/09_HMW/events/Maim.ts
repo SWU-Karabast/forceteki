@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class Maim extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'maim-id',
+            id: '6988596587',
             internalName: 'maim',
         };
     }
