@@ -177,9 +177,8 @@ describe('Poggle the Lesser, Let the Executions Begin', function () {
                 context.player1.clickCard(context.poggleTheLesser);
                 context.player1.clickCard(context.p2Base);
 
-                // Selection should allow Pass
-                expect(context.player1).toHaveEnabledPromptButton('Pass');
-                context.player1.clickPrompt('Pass');
+                // Should allow Pass
+                context.player1.passAction();
 
                 expect(context.huntingNexu.exhausted).toBeTrue();
                 expect(context.poggleTheLesser.exhausted).toBeTrue();
