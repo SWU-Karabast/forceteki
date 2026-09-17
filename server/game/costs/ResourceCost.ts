@@ -243,9 +243,13 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
 
     /** Builds an event to exhaust the remaining resources to pay the cost after adjustments have been applied */
     protected getExhaustResourceEvent(context: AbilityContext<TCard>, adjustResult: ICostAdjustTriggerResult): GameEvent {
-        return new GameEvent(EventName.OnExhaustResources, context, { amount: this.getAdjustedCost(context) }, (event) => {
+        // `player` and the final `amount` are on the event for its listeners (the SWU-PGN
+        // recorder reads both after the handler): `amount` at construction is the pre-Exploit
+        // estimate, and the paying player is not always `context.player`.
+        return new GameEvent(EventName.OnExhaustResources, context, { amount: this.getAdjustedCost(context), player: this.payingPlayer(context) }, (event: GameEvent & { amount: number }) => {
             const amount = adjustResult.adjustedCost.value;
             context.costs.resources = amount;
+            event.amount = amount;
 
             const usedAdjusters: CostAdjuster[] = Array.from(adjustResult.triggeredAdjusters);
             for (const adjuster of usedAdjusters) {

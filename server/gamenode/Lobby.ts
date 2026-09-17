@@ -2504,4 +2504,49 @@ export class Lobby {
             });
         }
     }
+
+    public getGameLog(socket: any, callback: (data: { swuPgnFile?: string } | { error: string }) => void): void {
+        if (!this.game) {
+            if (typeof callback === 'function') {
+                callback({ error: 'No active game' });
+            }
+            return;
+        }
+
+        // Only serve game files after the game has ended to prevent leaking
+        // omniscient replay snapshots (which include hidden card data) mid-game.
+        // Gate on isEnded (state-backed via winnerNames), not finishedAt: finishedAt
+        // is set once and never reset, so after an undo-past-game-end the game is
+        // live again while finishedAt is still truthy — isEnded correctly flips back.
+        if (!this.game.isEnded) {
+            if (typeof callback === 'function') {
+                callback({ error: 'Game is still in progress' });
+            }
+            return;
+        }
+
+        // The single-file `.swupgn` (header + decks + setup + events) is the sole
+        // served game-log format.
+        let swuPgnFile: string;
+        try {
+            swuPgnFile = this.game.getCachedSwuPgn();
+        } catch (e) {
+            // Report the failure instead of calling back with an undefined file: a
+            // `{ swuPgnFile: undefined }` reply is success-shaped, so the client cannot
+            // tell "generation failed" from "nothing to serve".
+            logger.error(`Error generating SWU-PGN/1.0 file: ${e}`);
+            if (typeof callback === 'function') {
+                callback({ error: 'Failed to generate game log' });
+            }
+            return;
+        }
+
+        // Mark before replying: the file is on its way out, and the game may be reopened by
+        // an undo past game end (see Game.markSwuPgnServed).
+        this.game.markSwuPgnServed();
+
+        if (typeof callback === 'function') {
+            callback({ swuPgnFile });
+        }
+    }
 }
