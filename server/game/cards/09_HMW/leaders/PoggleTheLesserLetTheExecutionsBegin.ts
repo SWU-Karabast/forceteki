@@ -10,7 +10,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class PoggleTheLesserLetTheExecutionsBegin extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'poggle-the-lesser#let-the-executions-begin-id',
+            id: '6595435691',
             internalName: 'poggle-the-lesser#let-the-executions-begin',
         };
     }
