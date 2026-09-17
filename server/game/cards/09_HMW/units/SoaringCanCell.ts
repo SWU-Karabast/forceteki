@@ -4,7 +4,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName, Trait } from '../../../core/Constants';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
-export default class VillageCanCell extends NonLeaderUnitCard {
+export default class SoaringCanCell extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '2209630427',
