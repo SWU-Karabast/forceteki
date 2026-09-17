@@ -322,6 +322,7 @@ export enum EventName {
     OnExhaustResources = 'onExhaustResources',
     OnExhaustUnitsToPayCost = 'onExhaustUnitsToPayCost',
     OnExploitUnits = 'onExploitUnits',
+    OnDamageUnitsToPayCost = 'onDamageUnitsToPayCost',
     OnForceUsed = 'onForceUsed',
     OnIndirectDamageDealtToPlayer = 'onIndirectDamageDealtToPlayer',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',

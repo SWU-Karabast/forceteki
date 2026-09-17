@@ -32,7 +32,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
         source: ICardWithCostProperty,
         properties: IExhaustUnitsCostAdjusterProperties
     ) {
-        super(game, source, CostAdjustStage.ExhaustUnits_4,
+        super(game, source, CostAdjustStage.ExhaustUnits_5,
             {
                 ...properties,
                 costAdjustType: CostAdjustType.ExhaustUnits,

@@ -31,6 +31,7 @@ export enum CostAdjustType {
     IgnoreWildcardAspects = 'ignoreWildcardAspects',
     ModifyPayStage = 'modifyPayStage',
     Exploit = 'exploit',
+    DamageUnits = 'damageUnits',
     ExhaustUnits = 'exhaustUnits',
     DefeatCreditTokens = 'defeatCreditTokens'
 }
@@ -79,6 +80,10 @@ export interface IExploitCostAdjusterProperties extends ICostAdjusterPropertiesB
     exploitKeywordAmount: number;
 }
 
+export interface IDamageUnitsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.DamageUnits;
+}
+
 export interface IExhaustUnitsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
     costAdjustType: CostAdjustType.ExhaustUnits;
     canExhaustUnitCondition: (card: IUnitCard, context: AbilityContext) => boolean;
@@ -124,11 +129,13 @@ export type ICostAdjusterProperties =
   | IIgnoreWildcardAspectsCostAdjusterProperties
   | IModifyPayStageCostAdjusterProperties
   | IExploitCostAdjusterProperties
+  | IDamageUnitsCostAdjusterProperties
   | IExhaustUnitsCostAdjusterProperties
   | IDefeatCreditTokensCostAdjusterProperties;
 
 export type ITargetedCostAdjusterProperties =
   | IExploitCostAdjusterProperties
+  | IDamageUnitsCostAdjusterProperties
   | IExhaustUnitsCostAdjusterProperties;
 
 export interface ICanAdjustProperties {

@@ -5,10 +5,11 @@ import { CostAdjustStage } from './CostInterfaces';
 
 export function getCostAdjustStagesInEvaluationOrder(): CostAdjustStage[] {
     return [
-        CostAdjustStage.Increase_6,
-        CostAdjustStage.DefeatCredits_5,
-        CostAdjustStage.ExhaustUnits_4,
-        CostAdjustStage.PayStage_3,
+        CostAdjustStage.Increase_7,
+        CostAdjustStage.DefeatCredits_6,
+        CostAdjustStage.ExhaustUnits_5,
+        CostAdjustStage.PayStage_4,
+        CostAdjustStage.DamageUnits_3,
         CostAdjustStage.Exploit_2,
         CostAdjustStage.IgnoreWildcard_1,
         CostAdjustStage.Standard_0
@@ -20,9 +21,10 @@ export function getCostAdjustStagesInTriggerOrder(): CostAdjustStage[] {
         CostAdjustStage.Standard_0,
         CostAdjustStage.IgnoreWildcard_1,
         CostAdjustStage.Exploit_2,
-        CostAdjustStage.PayStage_3,
-        CostAdjustStage.ExhaustUnits_4,
-        CostAdjustStage.DefeatCredits_5
+        CostAdjustStage.DamageUnits_3,
+        CostAdjustStage.PayStage_4,
+        CostAdjustStage.ExhaustUnits_5,
+        CostAdjustStage.DefeatCredits_6
         // we do not run the increase step during triggering / payment, it was added on during the evaluation pass
     ];
 }
@@ -30,13 +32,14 @@ export function getCostAdjustStagesInTriggerOrder(): CostAdjustStage[] {
 export function isInteractiveCostAdjusterStage(stage: CostAdjustStage): boolean {
     switch (stage) {
         case CostAdjustStage.Exploit_2:
-        case CostAdjustStage.ExhaustUnits_4:
-        case CostAdjustStage.DefeatCredits_5:
+        case CostAdjustStage.DamageUnits_3:
+        case CostAdjustStage.ExhaustUnits_5:
+        case CostAdjustStage.DefeatCredits_6:
             return true;
         case CostAdjustStage.Standard_0:
         case CostAdjustStage.IgnoreWildcard_1:
-        case CostAdjustStage.PayStage_3:
-        case CostAdjustStage.Increase_6:
+        case CostAdjustStage.PayStage_4:
+        case CostAdjustStage.Increase_7:
             return false;
         default:
             Contract.fail(`Unknown CostAdjustStage value: ${stage}`);

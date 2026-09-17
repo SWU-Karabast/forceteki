@@ -9,10 +9,11 @@ export enum CostAdjustStage {
     Standard_0 = 'standard_0',
     IgnoreWildcard_1 = 'ignoreWildcard_1',
     Exploit_2 = 'exploit_2',
-    PayStage_3 = 'payStage_3',
-    ExhaustUnits_4 = 'exhaustUnits_4',
-    DefeatCredits_5 = 'defeatCredits_5',
-    Increase_6 = 'increase_6'
+    DamageUnits_3 = 'damageUnits_3',
+    PayStage_4 = 'payStage_4',
+    ExhaustUnits_5 = 'exhaustUnits_5',
+    DefeatCredits_6 = 'defeatCredits_6',
+    Increase_7 = 'increase_7'
 }
 
 export enum ResourceCostType {
