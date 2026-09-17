@@ -143,5 +143,96 @@ describe('Always a Bigger Fish', function () {
             expect(context.player1.exhaustedResourceCount).toBe(2);
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('should use a cost of 0 when defeating a Beast token', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'great-grass-plains',
+                    hand: ['always-a-bigger-fish', 'womp-rat', 'wampa'],
+                    groundArena: ['beast']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.alwaysABiggerFish);
+            context.player1.clickCard(context.beast);
+
+            expect(context.beast).toBeInZone('outsideTheGame');
+
+            // Beast token costs 0: can play a Creature costing up to 3. Wampa (4) is not selectable
+            expect(context.player1).toHavePrompt('Play a Creature unit that costs up to 3 resources from your hand for free');
+            expect(context.player1).toBeAbleToSelectExactly([context.wompRat]);
+            context.player1.clickCard(context.wompRat);
+
+            expect(context.wompRat).toBeInZone('groundArena', context.player1);
+            expect(context.player1.exhaustedResourceCount).toBe(2);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should use the copied unit\'s cost when defeating a Clone', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'great-grass-plains',
+                    leader: 'tarfful#fighting-from-the-shadowlands',
+                    hand: ['always-a-bigger-fish', 'clone', 'wild-rancor', 'sando-aqua-monster'],
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Play Clone as a copy of Wampa
+            context.player1.clickCard(context.clone);
+            expect(context.player1).toHavePrompt('Choose a unit to clone');
+            context.player1.clickCard(context.wampa);
+            expect(context.clone).toBeCloneOf(context.wampa);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.alwaysABiggerFish);
+
+            // Both Wampa and the Clone (a Wampa copy) are friendly Creature units
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.clone]);
+            context.player1.clickCard(context.clone);
+            expect(context.clone).toBeInZone('discard', context.player1);
+
+            // The Clone's cost is the copied Wampa's cost (4), not Clone's printed cost (7): can play a Creature costing up to 7
+            expect(context.player1).toHavePrompt('Play a Creature unit that costs up to 7 resources from your hand for free');
+            expect(context.player1).toBeAbleToSelectExactly([context.wildRancor]);
+            context.player1.clickCard(context.wildRancor);
+
+            expect(context.wildRancor).toBeInZone('groundArena', context.player1);
+            expect(context.player1.exhaustedResourceCount).toBe(9); // 7 for Clone + 2 for the event
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should be able to decline playing a Creature unit from hand', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'great-grass-plains',
+                    hand: ['always-a-bigger-fish', 'wampa'],
+                    groundArena: ['blurrg']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.alwaysABiggerFish);
+            context.player1.clickCard(context.blurrg);
+
+            // Choosing from a hidden zone: the player may choose nothing
+            expect(context.player1).toHavePrompt('Play a Creature unit that costs up to 6 resources from your hand for free');
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+            expect(context.player1).toHaveChooseNothingButton();
+            context.player1.clickPrompt('Choose nothing');
+
+            expect(context.wampa).toBeInZone('hand', context.player1);
+            expect(context.player1.exhaustedResourceCount).toBe(2);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

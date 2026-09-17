@@ -8,7 +8,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class AlwaysABiggerFish extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'always-a-bigger-fish-id',
+            id: '7168890908',
             internalName: 'always-a-bigger-fish',
         };
     }
