@@ -16,9 +16,8 @@ describe('Corona Squadron X-Wing', function() {
 
             context.player1.clickCard(context.coronaSquadronXwing);
             context.player1.clickCard(context.p2Base);
-            expect(context.player1).toHavePassAbilityPrompt('Ready a resource');
-            context.player1.clickPrompt('Trigger');
             context.player1.clickPrompt('You');
+            context.player1.clickPrompt('Trigger');
             expect(context.player1.exhaustedResourceCount).toBe(1);
         });
 
@@ -29,9 +28,8 @@ describe('Corona Squadron X-Wing', function() {
 
             context.player1.clickCard(context.coronaSquadronXwing);
             context.player1.clickCard(context.p2Base);
-            expect(context.player1).toHavePassAbilityPrompt('Ready a resource');
-            context.player1.clickPrompt('Trigger');
             context.player1.clickPrompt('Opponent');
+            context.player1.clickPrompt('Trigger');
             expect(context.player2.exhaustedResourceCount).toBe(1);
         });
 
@@ -43,7 +41,7 @@ describe('Corona Squadron X-Wing', function() {
 
             context.player1.clickCard(context.coronaSquadronXwing);
             context.player1.clickCard(context.p2Base);
-            expect(context.player1).toHavePassAbilityPrompt('Ready a resource');
+            context.player1.clickPrompt('You');
             context.player1.clickPrompt('Pass');
             expect(context.player1.exhaustedResourceCount).toBe(2);
             expect(context.player2.exhaustedResourceCount).toBe(2);
