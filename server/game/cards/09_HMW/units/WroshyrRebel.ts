@@ -5,7 +5,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 export default class WroshyrRebel extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'wroshyr-rebel-id',
+            id: '7296857431',
             internalName: 'wroshyr-rebel',
         };
     }

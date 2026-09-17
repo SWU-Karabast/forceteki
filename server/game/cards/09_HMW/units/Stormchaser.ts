@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class Stormchaser extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'stormchaser-id',
+            id: '7437813242',
             internalName: 'stormchaser'
         };
     }

@@ -4,7 +4,7 @@ import { TokenUpgradeName } from '../../../core/Constants';
 export default class Weakness extends TokenUpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'weakness-id',
+            id: '7816991190',
             internalName: 'weakness',
         };
     }

@@ -5,7 +5,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 export default class EasyPrey extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'easy-prey-id',
+            id: '4168307965',
             internalName: 'easy-prey'
         };
     }

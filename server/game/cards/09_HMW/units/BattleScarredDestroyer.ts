@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class BattleScarredDestroyer extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'battlescarred-destroyer-id',
+            id: '0405244910',
             internalName: 'battlescarred-destroyer'
         };
     }

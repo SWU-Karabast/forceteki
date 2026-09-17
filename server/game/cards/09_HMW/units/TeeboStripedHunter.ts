@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class TeeboStripedHunter extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'teebo#striped-hunter-id',
+            id: '9629078251',
             internalName: 'teebo#striped-hunter',
         };
     }
