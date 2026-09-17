@@ -6,6 +6,9 @@ describe('Neebray Manta', function() {
                 player1: {
                     hand: ['neebray-manta'],
                     deck: ['battlefield-marine', 'wampa', 'porg', 'daring-raid']
+                },
+                player2: {
+                    deck: ['awing']
                 }
             });
 
@@ -18,6 +21,7 @@ describe('Neebray Manta', function() {
             expect(context.wampa).toBeInZone('hand', context.player1);
             expect(context.porg).toBeInZone('hand', context.player1);
             expect(context.daringRaid).toBeInZone('deck', context.player1);
+            expect(context.awing).toBeInZone('deck', context.player2);
             expect(context.player1.hand.length).toBe(3);
             expect(context.player2).toBeActivePlayer();
         });
