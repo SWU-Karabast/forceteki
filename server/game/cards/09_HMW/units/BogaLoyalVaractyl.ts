@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class BogaLoyalVaractyl extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'boga#loyal-varactyl-id',
+            id: '2640980103',
             internalName: 'boga#loyal-varactyl',
         };
     }
