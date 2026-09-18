@@ -1,4 +1,5 @@
 import type { GameObjectBase, IGameObjectBase } from './GameObjectBase';
+import type { FieldKind } from './StateEncoding';
 import { Contract } from './utils/Contract';
 import { Helpers } from './utils/Helpers';
 
@@ -6,6 +7,10 @@ import { Helpers } from './utils/Helpers';
 Symbol.metadata ??= Symbol.for('Symbol.metadata');
 const stateMetadata = Symbol();
 const stateSimpleMetadata = Symbol();
+// P3-PA4: statePrimitive/stateValue both push into stateSimpleMetadata above with no way to tell them
+// apart; this sub-bucket records each field's specific kind ('primitive' | 'value') alongside it, additive
+// only - no decorator get/set/init behavior changes.
+const stateSimpleKindMetadata = Symbol();
 const stateArrayMetadata = Symbol();
 const stateMapMetadata = Symbol();
 const stateSetMetadata = Symbol();
@@ -17,6 +22,15 @@ const stateClassesStr: Record<string, string> = {};
 
 export const registerStateClassMarker = Symbol('registerStateClassMarker');
 export const registerStateAutoInitializeMarker = Symbol('registerStateAutoInitializeMarker');
+
+/**
+ * P3-PA4: every class actually passed through `registerState()`/`registerStateBase()`, captured at
+ * decoration time - including abstract classes and mixin-fragment classes declared inside factory function
+ * bodies (`WithCost`, `WithDamage`, and the other ten `declaredInFunction` classes). This registry's job is
+ * to record everything registered at runtime; tolerance for fragments/test-fixtures belongs in
+ * `StateSerializerCoverageCheck.ts`'s comparison logic, not here.
+ */
+export const registeredStateClassesByName = new Map<string, abstract new (...args: never[]) => unknown>();
 
 // A generic helper type
 declare const __brand: unique symbol;
@@ -200,6 +214,55 @@ function normalizeRegisterStateOptions(copyModeOrOptions: CopyMode | RegisterSta
 }
 
 /**
+ * P3-PA4 (PA4-IR2-1 fix-pass): compares two classes' *own* (not inherited/flattened) field-declaration
+ * metadata - the same per-class bucket `registerState()` writes to `context.metadata[targetClass.name]`
+ * and `getRuntimeStateFieldModelByClassName()` reads per prototype-chain level - for structural equality:
+ * same field names and same kind per field, across every bucket a field decorator populates.
+ * Deliberately excludes `stateHydrationMetadata`, whose values are closures (always reference-distinct,
+ * so comparing them would always report a mismatch) and which is derived from the same field
+ * declarations already compared via the other buckets, not an independent source of truth.
+ *
+ * Own-metadata comparison (not a flattened prototype-chain walk) is what makes this usable on
+ * `AsLeader`-style classes: `AsLeader`'s *flattened* model legitimately differs between
+ * `WithLeaderProperties()` call sites because the base classes it extends differ, so comparing flattened
+ * models would false-positive (throw) on that legitimate case. Its *own* bucket - just the fields
+ * `AsLeader`'s class body itself declares - is identical every time, since it's the same source text
+ * re-executed.
+ */
+function ownStateMetadataEquals(a: Record<string | symbol, any> | undefined, b: Record<string | symbol, any> | undefined): boolean {
+    if (a === b) {
+        return true;
+    }
+    if (!a || !b) {
+        return false;
+    }
+
+    for (const bucket of [stateSimpleMetadata, stateArrayMetadata, stateMapMetadata, stateSetMetadata, stateRecordMetadata, stateObjectMetadata]) {
+        const aFields = ((a[bucket] as string[] | undefined) ?? []).slice().sort();
+        const bFields = ((b[bucket] as string[] | undefined) ?? []).slice().sort();
+        if (aFields.length !== bFields.length || aFields.some((field, i) => field !== bFields[i])) {
+            return false;
+        }
+    }
+
+    const aKinds = (a[stateSimpleKindMetadata] as Record<string, FieldKind> | undefined) ?? {};
+    const bKinds = (b[stateSimpleKindMetadata] as Record<string, FieldKind> | undefined) ?? {};
+    const aKindKeys = Object.keys(aKinds).sort();
+    const bKindKeys = Object.keys(bKinds).sort();
+    if (aKindKeys.length !== bKindKeys.length || aKindKeys.some((key, i) => key !== bKindKeys[i] || aKinds[key] !== bKinds[key])) {
+        return false;
+    }
+
+    return true;
+}
+
+/** Reads a registered class's own (not inherited) field-declaration metadata bucket, by the same key `registerState()` stores it under. */
+function getOwnStateMetadata(registeredClass: abstract new (...args: never[]) => unknown, className: string): Record<string | symbol, any> | undefined {
+    const metadata = (registeredClass as unknown as { [Symbol.metadata]?: Record<string, any> })[Symbol.metadata];
+    return metadata?.[className] as Record<string | symbol, any> | undefined;
+}
+
+/**
  * Decorator to capture the names of any accessors flagged as &#64;statePrimitive, &#64;stateRef, or &#64;stateRefArray for copyState, and then clear the array for the next derived class to use.
  * This is meant for classes that are meant to be directly instantiated, they must be non-abstract and leafs.
  * @param copyModeOrOptions `CopyMode` currently has a single mode (metadata-only copy); the parameter is retained for options.autoInitialize and future modes.
@@ -239,6 +302,47 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
         });
 
         if (!options.autoInitialize) {
+            // P3-PA4: record the class actually returned by this decorator (targetClass here, since there
+            // is no wrapper) - the class whose own [Symbol.metadata] the runtime ultimately populates from
+            // context.metadata. `targetClass[Symbol.metadata]` itself is not yet reliable at this point in
+            // a wrapped (autoInitialize=true) branch below, which is why this line is duplicated per
+            // return rather than hoisted above the autoInitialize check.
+            //
+            // PA4-IR2-1 (fix-pass, round 2): this branch IS now guarded against a same-name collision with
+            // a different field shape - it is not simply excluded from the threat. `registerStateBase()`
+            // covers two structurally different situations and both need to keep working:
+            //   - A class declared once, at module top level (`ZoneAbstract`, `Card`, `BaseCard`,
+            //     `CardAbility`, `StateWatcher`, and ~25 others). These ARE real, name-compared,
+            //     non-excluded forward-pass targets for `checkStateSerializerCoverage()` (`ZoneAbstract` is
+            //     the retained falsifier proving this: removing it from the generator's emission makes the
+            //     coverage check throw for it by name - see `impl-escape-proof-class-p3-pa4` in
+            //     verification.jsonl). A same-name collision here is never legitimate and must throw, the
+            //     same as the concrete branch below.
+            //   - A class declared *inside* a factory function invoked more than once (`AsLeader` in
+            //     `WithLeaderProperties()`, called from `LeaderProperties.ts`, `DoubleSidedLeaderCard.ts`,
+            //     and `LeaderUnitCard.ts`). Each call re-executes the same class body, producing a
+            //     structurally identical but distinct class object under the same name every time - a
+            //     legitimate, expected re-registration that must NOT throw.
+            // `ownStateMetadataEquals()` (above) tells these apart by comparing each class's *own* (not
+            // flattened/inherited) field metadata: identical own fields/kinds means "same source re-run",
+            // a genuine mismatch means "a different class reused this name" - e.g. a test fixture
+            // shadowing a real production class, which is exactly the silent-corruption failure this
+            // registry exists to prevent. A flattened comparison would not work here: `AsLeader`'s
+            // flattened model legitimately differs per call site because the base classes it extends
+            // differ, so it would false-positive on the exact case that must be allowed.
+            if (registeredStateClassesByName.has(targetClass.name)) {
+                const existingClass = registeredStateClassesByName.get(targetClass.name);
+                const existingOwnMetadata = getOwnStateMetadata(existingClass, targetClass.name);
+                if (!ownStateMetadataEquals(existingOwnMetadata, metaState)) {
+                    throw new Error(`class "${targetClass.name}" is already registered via @registerState/@registerStateBase with a different field shape. registeredStateClassesByName is keyed by bare class name and is compared by name in checkStateSerializerCoverage(); a name collision with different fields (e.g. a test fixture shadowing a real production class) would silently corrupt that class's field-model lookup. If this is a legitimate factory-declared fragment re-registered from multiple call sites (like AsLeader in WithLeaderProperties()), its own declared fields must match exactly at every call site.`);
+                }
+                // Own metadata matches: this is the same factory-declared fragment class body re-executed
+                // at another call site. `getRuntimeStateFieldModelByClassName()`'s prototype-chain walk
+                // only needs *some* structurally-equivalent representative class object per name, not this
+                // specific one, so keeping the earlier-registered object (rather than overwriting) is
+                // equally correct; overwriting is kept here only to match this branch's prior behavior.
+            }
+            registeredStateClassesByName.set(targetClass.name, targetClass);
             return targetClass;
         }
 
@@ -284,6 +388,29 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
             enumerable: false,
             configurable: true
         });
+
+        // P3-PA4: record the class actually returned by this decorator - here, wrappedClass, not
+        // targetClass. `[Symbol.metadata]` on a class-decorator-replaced binding is populated by the
+        // runtime's own decorator machinery onto whatever value the decorator returns, *after* this
+        // function returns; `targetClass[Symbol.metadata]` at this point in the call is a stale, pre-
+        // decoration snapshot (confirmed empirically: it retains the parent class's own metadata key, not
+        // this class's), so the registry must hold the same object real instances resolve through
+        // (`wrappedClass`), not the pre-wrap class.
+        //
+        // PA4-IR-1 (fix-pass): guarded against overwriting an existing entry, unlike the unwrapped
+        // (`registerStateBase()`/fragment) branch above. Every concrete `@registerState()` class in this
+        // codebase is declared once at module top level (verified: every real `@registerState()` call site
+        // under `server/**` is immediately followed by a top-level class declaration, never one nested
+        // inside a function body that could be invoked more than once), so a name collision here can only
+        // mean a test fixture (or a future card/zone/etc. class) was accidentally given the same name as an
+        // already-registered concrete class - silently overwriting that class's field-model lookup, which
+        // is exactly the failure this registry exists to prevent. Throwing here is safe today (the full
+        // gating suite runs clean with this guard in place) and does not touch the fragment path above,
+        // where the same guard is unsafe (see that branch's comment).
+        if (registeredStateClassesByName.has(targetClass.name)) {
+            throw new Error(`class "${targetClass.name}" is already registered via @registerState/@registerStateBase. Concrete (auto-initializing) class names captured in registeredStateClassesByName must be unique across the whole process, including test fixtures, since lookups are keyed by bare class name.`);
+        }
+        registeredStateClassesByName.set(targetClass.name, wrappedClass);
 
         return wrappedClass;
     };
@@ -345,6 +472,8 @@ export function statePrimitive<T extends GameObjectBase, TValue extends string |
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateSimpleMetadata] ??= [];
         (metaState[stateSimpleMetadata] as string[]).push(context.name);
+        // P3-PA4: additive kind write disambiguating this field from a @stateValue field at the metadata level.
+        (metaState[stateSimpleKindMetadata] ??= {})[context.name as string] = 'primitive' satisfies FieldKind;
         const name = context.name;
 
         // No need to use the backing fields, read and write directly to state.
@@ -641,6 +770,8 @@ export function stateValue<T extends GameObjectBase, TValue>() {
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateSimpleMetadata] ??= [];
         (metaState[stateSimpleMetadata] as string[]).push(context.name);
+        // P3-PA4: additive kind write disambiguating this field from a @statePrimitive field at the metadata level.
+        (metaState[stateSimpleKindMetadata] ??= {})[context.name as string] = 'value' satisfies FieldKind;
         const name = context.name;
 
         // No need to use the backing fields, read and write directly to state.
@@ -935,6 +1066,75 @@ export function copyState<T extends GameObjectBase>(instance: T, newState: Recor
         // Continue to the next parent class in the prototype chain and check again.
         baseClass = newBaseClass;
     }
+}
+
+export interface IRuntimeStateFieldModelEntry {
+    name: string;
+    kind: FieldKind;
+}
+
+/**
+ * P3-PA4: reads the flattened field name+kind model for a registered class, reusing copyState's exact walk
+ * technique above (visit each level of the prototype chain, accumulate whatever metadata bucket that level
+ * itself claims) - no new resolution logic, only new read access. Returns undefined if className was never
+ * passed through registerState()/registerStateBase() (distinguishable from "found, zero fields" via Map
+ * semantics). Used by StateSerializerCoverageCheck.ts to compare against the generated model.
+ */
+export function getRuntimeStateFieldModelByClassName(className: string): IRuntimeStateFieldModelEntry[] | undefined {
+    const targetClass = registeredStateClassesByName.get(className);
+    if (!targetClass) {
+        return undefined;
+    }
+
+    const fields = new Map<string, FieldKind>();
+    let baseClass = (targetClass as unknown as { prototype: object }).prototype;
+    while (baseClass) {
+        const constructor = (baseClass as { constructor: any }).constructor;
+        const metadata = constructor[Symbol.metadata];
+        const metaState = metadata?.[constructor.name] as Record<symbol, any>;
+
+        if (metaState) {
+            if (metaState[stateSimpleMetadata]) {
+                const kinds = metaState[stateSimpleKindMetadata] as Record<string, FieldKind> | undefined;
+                for (const field of metaState[stateSimpleMetadata] as string[]) {
+                    fields.set(field, kinds?.[field] ?? 'primitive');
+                }
+            }
+            if (metaState[stateArrayMetadata]) {
+                for (const field of metaState[stateArrayMetadata] as string[]) {
+                    fields.set(field, 'refArray');
+                }
+            }
+            if (metaState[stateMapMetadata]) {
+                for (const field of metaState[stateMapMetadata] as string[]) {
+                    fields.set(field, 'refMap');
+                }
+            }
+            if (metaState[stateSetMetadata]) {
+                for (const field of metaState[stateSetMetadata] as string[]) {
+                    fields.set(field, 'refSet');
+                }
+            }
+            if (metaState[stateRecordMetadata]) {
+                for (const field of metaState[stateRecordMetadata] as string[]) {
+                    fields.set(field, 'refRecord');
+                }
+            }
+            if (metaState[stateObjectMetadata]) {
+                for (const field of metaState[stateObjectMetadata] as string[]) {
+                    fields.set(field, 'ref');
+                }
+            }
+        }
+
+        const newBaseClass = Object.getPrototypeOf(baseClass);
+        if (!newBaseClass || !newBaseClass.constructor.name || newBaseClass === Object.prototype) {
+            break;
+        }
+        baseClass = newBaseClass;
+    }
+
+    return [...fields.entries()].map(([name, kind]) => ({ name, kind }));
 }
 
 // A custom class to pass through any values to the underlying state Map.

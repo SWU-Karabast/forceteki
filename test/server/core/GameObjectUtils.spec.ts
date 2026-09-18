@@ -1,5 +1,17 @@
 import { GameObjectBase } from '../../../server/game/core/GameObjectBase';
-import { assertJsonSafeStateValue, registerState, stateValue } from '../../../server/game/core/GameObjectUtils';
+import {
+    assertJsonSafeStateValue,
+    getRuntimeStateFieldModelByClassName,
+    registerState,
+    registerStateBase,
+    stateRef,
+    stateRefArray,
+    stateRefMap,
+    stateRefRecord,
+    stateRefSet,
+    statePrimitive,
+    stateValue,
+} from '../../../server/game/core/GameObjectUtils';
 
 /** Small purpose-built fixture: a real @stateValue accessor with a JSON-safe default, for exercising the decorator's set()/get() wiring (not just the underlying validator function). */
 @registerState()
@@ -11,6 +23,83 @@ class JsonSafeStateValueFixture extends GameObjectBase {
 @registerState()
 class InvalidInitJsonStateValueFixture extends GameObjectBase {
     @stateValue() public accessor value: unknown = (() => 1) as unknown;
+}
+
+/**
+ * `P3-PA4` (AC1): a fixture carrying one field of every decorator kind, including both `@statePrimitive`
+ * and `@stateValue` on the same class - the one previously-invisible kind pair (`GameObjectUtils.ts`
+ * lumped both into one bucket before this unit's additive `stateSimpleKindMetadata` write).
+ */
+@registerState()
+class AllFieldKindsFixture extends GameObjectBase {
+    @statePrimitive() public accessor primitiveField: string = 'a';
+    @stateValue() public accessor valueField: unknown = null;
+    @stateRef() public accessor refField: GameObjectBase | null = null;
+    @stateRefArray() public accessor refArrayField: readonly GameObjectBase[] = [];
+    @stateRefMap() public accessor refMapField: Map<string, GameObjectBase> = new Map();
+    @stateRefSet() public accessor refSetField: Set<GameObjectBase> = new Set();
+    @stateRefRecord() public accessor refRecordField: Record<string, GameObjectBase> = {};
+}
+
+/**
+ * `P3-PA4` (AC1(b), corrected fixture shape per plan.md §0.1 item 3): a `@registerStateBase` intermediate
+ * class declared *inside* a factory function, mirroring `WithDamage`'s real shape
+ * (`propertyMixins/Damage.ts`) - the previously-prescribed "undecorated mixin-only ancestor" is structurally
+ * impossible in this codebase and throws at class-definition time (`GameObjectUtils.ts`'s `registerState()`
+ * parent-registration guard).
+ */
+function WithFactoryDeclaredFragment<TBase extends abstract new (...args: any[]) => GameObjectBase>(BaseClass: TBase) {
+    @registerStateBase()
+    abstract class FactoryDeclaredFragment extends BaseClass {
+        @statePrimitive() public accessor fragmentField: string = 'fragment';
+    }
+    return FactoryDeclaredFragment;
+}
+
+@registerState()
+class ConcreteFragmentDescendantFixture extends WithFactoryDeclaredFragment(GameObjectBase) {
+    @statePrimitive() public accessor concreteField: string = 'concrete';
+}
+
+/**
+ * `P3-PA4` (PA4-IR2-1 fix-pass): a top-level, single-declaration `@registerStateBase` fixture - standing
+ * in for real production classes like `ZoneAbstract`/`Card`/`CardAbility`, which are declared once at
+ * module scope (not inside a multiply-invoked factory function) and were found completely unguarded
+ * against a same-name collision with a different field shape.
+ */
+@registerStateBase()
+abstract class TopLevelBaseFixture extends GameObjectBase {
+    @statePrimitive() public accessor topLevelField: string = 'a';
+}
+
+/**
+ * `P3-PA4` (PA4-IR2-1 fix-pass): two distinct top-level `@registerStateBase` fixtures used as the base
+ * class for `WithRepeatableFragment` below, so its two call sites produce classes whose *flattened*
+ * models legitimately differ (different base fields) while their *own* models stay identical - the same
+ * shape as the real `AsLeader` (`WithLeaderProperties()`) case.
+ */
+@registerStateBase()
+abstract class BaseVariantAFixture extends GameObjectBase {
+    @statePrimitive() public accessor variantAField: string = 'a';
+}
+
+@registerStateBase()
+abstract class BaseVariantBFixture extends GameObjectBase {
+    @statePrimitive() public accessor variantBField: string = 'b';
+}
+
+/**
+ * `P3-PA4` (PA4-IR2-1 fix-pass): a factory-declared `@registerStateBase` fragment invoked more than once,
+ * mirroring `WithLeaderProperties()`'s `AsLeader` - each call re-executes the same class body under the
+ * same name but against a different base class, which is the legitimate re-registration case the guard
+ * must allow.
+ */
+function WithRepeatableFragment<TBase extends abstract new (...args: any[]) => GameObjectBase>(BaseClass: TBase) {
+    @registerStateBase()
+    abstract class RepeatableFragment extends BaseClass {
+        @statePrimitive() public accessor repeatableField: string = 'repeatable';
+    }
+    return RepeatableFragment;
 }
 
 describe('assertJsonSafeStateValue', function() {
@@ -164,5 +253,105 @@ describe('the @stateValue decorator', function() {
         const { game } = gameObjectHelper.createMockGame();
 
         expect(() => new InvalidInitJsonStateValueFixture(game)).toThrowError(/not JSON-safe/);
+    });
+});
+
+/**
+ * `P3-PA4` (PA4-IR-1 fix-pass): registeredStateClassesByName is a process-wide registry keyed by bare
+ * class name, so a second @registerState/@registerStateBase class declared with a name that collides
+ * with an already-registered one (here, the top-of-file `JsonSafeStateValueFixture` fixture) must throw
+ * at decoration time rather than silently overwrite the earlier registration.
+ */
+describe('the @registerState duplicate class name guard', function() {
+    it('throws when a class name collides with an already-registered class', function() {
+        const declareDuplicate = () => {
+            @registerState()
+            class JsonSafeStateValueFixture extends GameObjectBase {
+                @statePrimitive() public accessor other: string = 'x';
+            }
+            return JsonSafeStateValueFixture;
+        };
+
+        expect(declareDuplicate).toThrowError(/JsonSafeStateValueFixture.*already registered/);
+    });
+
+    /**
+     * `P3-PA4` (PA4-IR2-1 fix-pass, round 2): the concrete-branch-only guard above did not cover
+     * `@registerStateBase()`, so a top-level single-declaration fragment like the real `ZoneAbstract`
+     * (round 2's named falsifier) could be silently shadowed by a same-named class with different fields.
+     */
+    it('throws when a top-level (non-factory-declared) @registerStateBase class name collides with an already-registered class of a different field shape', function() {
+        // Precondition: the original fixture is actually registered, with the one field this duplicate will lack
+        // (plus GameObjectBase's own `_uuid`, since the model is the flattened prototype-chain walk).
+        const registeredFieldNames = getRuntimeStateFieldModelByClassName('TopLevelBaseFixture')?.map((field) => field.name)
+            .sort();
+        expect(registeredFieldNames).toEqual(['_uuid', 'topLevelField']);
+
+        const declareDuplicate = () => {
+            @registerStateBase()
+            abstract class TopLevelBaseFixture extends GameObjectBase {
+                @statePrimitive() public accessor differentField: string = 'x';
+            }
+            return TopLevelBaseFixture;
+        };
+
+        expect(declareDuplicate).toThrowError(/TopLevelBaseFixture.*already registered.*different field shape/);
+    });
+
+    /**
+     * `P3-PA4` (PA4-IR2-1 fix-pass, round 2): the guard must NOT throw on the legitimate case it was
+     * originally left unguarded to allow - a factory-declared fragment (like the real `AsLeader`) that is
+     * re-declared, under the same name, once per call site, against a different base class each time.
+     */
+    it('does not throw when a factory-declared @registerStateBase fragment (like AsLeader) is legitimately re-registered from a different call site with identical own fields', function() {
+        const firstCallSite = WithRepeatableFragment(BaseVariantAFixture);
+
+        // Precondition: the first call site is actually registered, with its own field plus its base's
+        // (and GameObjectBase's own `_uuid`, since the model is the flattened prototype-chain walk).
+        const firstCallSiteFieldNames = getRuntimeStateFieldModelByClassName('RepeatableFragment')?.map((field) => field.name)
+            .sort();
+        expect(firstCallSiteFieldNames).toEqual(['_uuid', 'repeatableField', 'variantAField']);
+
+        let secondCallSite: unknown;
+        expect(() => {
+            secondCallSite = WithRepeatableFragment(BaseVariantBFixture);
+        }).not.toThrow();
+
+        expect(secondCallSite).not.toBe(firstCallSite);
+        // The flattened model now reflects the second call site's base class - legitimately different from
+        // the first call's flattened model - which is exactly why the guard compares each class's *own*
+        // field metadata rather than this flattened one.
+        const secondCallSiteFieldNames = getRuntimeStateFieldModelByClassName('RepeatableFragment')?.map((field) => field.name)
+            .sort();
+        expect(secondCallSiteFieldNames).toEqual(['_uuid', 'repeatableField', 'variantBField']);
+    });
+});
+
+describe('getRuntimeStateFieldModelByClassName', function() {
+    it('returns undefined for a class name that was never registered', function() {
+        expect(getRuntimeStateFieldModelByClassName('SomeClassNameThatWasNeverRegistered')).toBeUndefined();
+    });
+
+    it('distinguishes @statePrimitive and @stateValue fields on the same class as kind "primitive" and "value" respectively, and maps each ref-shaped decorator to its expected kind', function() {
+        const fields = getRuntimeStateFieldModelByClassName('AllFieldKindsFixture');
+        expect(fields).toBeDefined();
+
+        const byName = new Map(fields.map((field) => [field.name, field.kind]));
+        expect(byName.get('primitiveField')).toBe('primitive');
+        expect(byName.get('valueField')).toBe('value');
+        expect(byName.get('refField')).toBe('ref');
+        expect(byName.get('refArrayField')).toBe('refArray');
+        expect(byName.get('refMapField')).toBe('refMap');
+        expect(byName.get('refSetField')).toBe('refSet');
+        expect(byName.get('refRecordField')).toBe('refRecord');
+    });
+
+    it('includes a factory-declared @registerStateBase intermediate\'s own field in its @registerState concrete descendant\'s flattened model', function() {
+        const fields = getRuntimeStateFieldModelByClassName('ConcreteFragmentDescendantFixture');
+        expect(fields).toBeDefined();
+
+        const byName = new Map(fields.map((field) => [field.name, field.kind]));
+        expect(byName.get('fragmentField')).toBe('primitive');
+        expect(byName.get('concreteField')).toBe('primitive');
     });
 });

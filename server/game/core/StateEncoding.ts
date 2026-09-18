@@ -42,16 +42,28 @@ export interface IStateSerializer<T extends IGameObjectBase = IGameObjectBase> {
 }
 
 /**
+ * Field kind as resolved by the generator's `FIELD_DECORATOR_TO_KIND` (`scripts/stateSerializerModel.js`)
+ * from a field's literal decorator name. These seven strings must match that map's values character-for-
+ * character (P3-PA4 §2.4) - the runtime side (`GameObjectUtils.ts`'s `stateSimpleKindMetadata`) reuses this
+ * same type for its own kind resolution, so a mismatch here either fails to compile or makes
+ * `StateSerializerCoverageCheck.ts` report every class as a kind mismatch, not silently drift.
+ */
+export type FieldKind = 'primitive' | 'value' | 'ref' | 'refArray' | 'refMap' | 'refSet' | 'refRecord';
+
+/**
  * One registry entry as emitted by the generated artifact and consumed by `StateSerializers.ts`.
  * `decorator` and `isAbstract` let a later plan (Plan 5) recover concreteness (e.g. filter to the
  * non-abstract or `@registerState`-only subsets) without re-running ts-morph or importing the target
  * class. Neither field is a schema-surface-hash input - flipping a class abstract or changing its
  * decorator changes nothing about how its values encode.
+ * `fields` (P3-PA4) is likewise not a schema-surface-hash input - it is diagnostic/coverage-check data
+ * consumed by `StateSerializerCoverageCheck.ts`, not part of the serialized-record format.
  */
 export interface IGeneratedSerializerEntry<T extends IGameObjectBase = IGameObjectBase> {
     className: string;
     decorator: 'registerState' | 'registerStateBase';
     isAbstract: boolean;
+    fields: readonly { name: string; kind: FieldKind }[];
     serializer: IStateSerializer<T>;
 }
 

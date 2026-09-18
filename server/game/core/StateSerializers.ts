@@ -1,5 +1,5 @@
 import type { IGameObjectBase } from './GameObjectBase';
-import { generatedStateSerializerEntries, GENERATED_SCHEMA_SURFACE_HASH } from './generated/GeneratedStateSerializers';
+import { generatedExcludedFragmentClassNames, generatedStateSerializerEntries, GENERATED_SCHEMA_SURFACE_HASH } from './generated/GeneratedStateSerializers';
 import type { IGeneratedSerializerEntry } from './StateEncoding';
 
 /**
@@ -64,6 +64,24 @@ export function getStateSerializerFor(instance: IGameObjectBase): IGeneratedSeri
     }
 
     throw new Error(`No generated state serializer is registered for any class in the prototype chain of "${ctor?.name ?? 'unknown'}".`);
+}
+
+/**
+ * P3-PA4: every entry known to the generator, for `StateSerializerCoverageCheck.ts`'s forward pass. Reuses
+ * the registry already populated at module load rather than adding a second import edge to the gitignored
+ * generated module, keeping "one non-optional edge to the generated artifact" singular.
+ */
+export function getAllGeneratedSerializerEntries(): readonly IGeneratedSerializerEntry[] {
+    return [...registry.values()];
+}
+
+/**
+ * P3-PA4: classes the generator's static resolver knows about but deliberately excludes from its targets
+ * (mixin-fragment classes declared inside factory function bodies). Used by `StateSerializerCoverageCheck.ts`'s
+ * reverse pass to distinguish a known, tolerated fragment from a genuinely stale/missing generator target.
+ */
+export function getExcludedFragmentClassNames(): readonly string[] {
+    return generatedExcludedFragmentClassNames;
 }
 
 registerStateSerializers(generatedStateSerializerEntries);

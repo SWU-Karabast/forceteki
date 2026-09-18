@@ -58,7 +58,7 @@ function main() {
     const generator = require('./stateSerializerGenerator');
 
     const tResolveStart = Date.now();
-    const { targets, visitedFiles } = generator.resolveGenerator({ Node, Project, SyntaxKind }, REPO_ROOT, path.join(REPO_ROOT, TSCONFIG_FILE));
+    const { targets, visitedFiles, excludedFragmentClassNames } = generator.resolveGenerator({ Node, Project, SyntaxKind }, REPO_ROOT, path.join(REPO_ROOT, TSCONFIG_FILE));
     const tResolveEnd = Date.now();
 
     const finalInputs = Array.from(new Set([...candidates, ...visitedFiles, ...GENERATOR_SOURCE_FILES, TSCONFIG_FILE]));
@@ -67,7 +67,7 @@ function main() {
         throw new Error('Could not recompute the generation hash after a successful resolve - a candidate or visited file disappeared mid-run.');
     }
 
-    const artifactText = generator.emitArtifact({ targets, generationHash: finalHash, visitedFiles });
+    const artifactText = generator.emitArtifact({ targets, generationHash: finalHash, visitedFiles, excludedFragmentClassNames });
 
     const artifactAbs = path.join(REPO_ROOT, ARTIFACT_REL);
     fs.mkdirSync(path.dirname(artifactAbs), { recursive: true });

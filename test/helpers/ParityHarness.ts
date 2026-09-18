@@ -134,6 +134,15 @@ interface IRetainedZoneViolation {
 const retainedPreRollbackZoneViolations: IRetainedZoneViolation[] = [];
 const retainedPostRollbackZoneViolations: IRetainedZoneViolation[] = [];
 
+/**
+ * `P3-PA4` follow-up: an exhaustive `zoneClass -> count` tally, incremented unconditionally alongside the
+ * capped identity buffers above (never gated by their 10-item cap). Directly answers `P3PA3-F-03`'s
+ * disclosed residual ("10 of 78... a sampled characterization, not an enumeration") by making the
+ * class-level breakdown exhaustive, while the per-instance identity buffers stay capped as before (still
+ * useful for concrete triage examples).
+ */
+const zoneViolationClassCounts = new Map<string, number>();
+
 export interface IParityHarnessStats {
     installed: boolean;
     snapshotsCompared: number;
@@ -186,6 +195,26 @@ export function getParityHarnessStats(): IParityHarnessStats {
 
 export function getRetainedZoneViolations(): IRetainedZoneViolation[] {
     return [...retainedPreRollbackZoneViolations, ...retainedPostRollbackZoneViolations];
+}
+
+/** `P3-PA4` follow-up: exhaustive per-`zoneClass` violation counts, never capped. A plain object (not the
+ * backing `Map`) so it round-trips through `JSON.stringify` for the exit-time reporter line without extra
+ * marshalling. Consumers reading this in the same process as `ParityHarnessZoneTally.spec.ts` will only
+ * ever see that spec's own synthetic `zoneClass` keys during the window before the spec's `afterEach`
+ * removes them (see `deleteZoneViolationClassCountForTest`) - real `zoneClass` keys (e.g. `DeckZone`) are
+ * never touched by that cleanup, since synthetic keys use a disjoint, uniquely-prefixed name. */
+export function getZoneViolationClassCounts(): Record<string, number> {
+    return Object.fromEntries(zoneViolationClassCounts);
+}
+
+/** `P3-PA4` (PA4-IR-2 fix-pass) test-only isolation hook: removes one `zoneClass` key from the shared
+ * exhaustive tally. `ParityHarnessZoneTally.spec.ts` calls this in an `afterEach` for every synthetic
+ * `zoneClass` it registers via `recordZoneViolation`, so the tally this task's own unit spec drives never
+ * outlives the spec that created it - a real, same-process exhaustive breakdown (e.g. the serial
+ * parity+undo run this task's evidence depends on, or a future consumer like P3-PB2) only ever sees
+ * genuine zone-membership violations, never this spec's synthetic noise. Not for production use. */
+export function deleteZoneViolationClassCountForTest(zoneClass: string): void {
+    zoneViolationClassCounts.delete(zoneClass);
 }
 
 /** Reader for the record set retained at snapshot time for a given snapshot's `.states` buffer (§4.1).
@@ -827,7 +856,16 @@ function setStateImpl(instance: GameObjectBase, newState: IGameObjectBaseState):
 // Zone-membership observation (§4.6)
 // ---------------------------------------------------------------------------------------------
 
-function recordZoneViolation(phase: 'pre' | 'post', direction: 'forward' | 'reverse', card: Card, zoneUuid: string, zoneClass: string): void {
+/** Exported (`P3-PA4`) so a spec can drive a controlled sequence directly, for `getZoneViolationClassCounts`'s
+ * own arithmetic proof - mirrors this file's existing pattern of exposing a pure function alongside its
+ * module-load side effects (e.g. `compareSnapshotRecords`). Forcing an actual `DeckZone` bookkeeping bug
+ * deterministically is impractical (a rare, statistically-observed condition per P3-PA3); direct calls here
+ * are a controlled substitute for the tally's own arithmetic, not a claim about detecting a real violation. */
+export function recordZoneViolation(phase: 'pre' | 'post', direction: 'forward' | 'reverse', card: Card, zoneUuid: string, zoneClass: string): void {
+    // Unconditional, never gated by the identity buffer's 10-item cap below - the whole point is
+    // exhaustiveness where the identity buffer is sampled.
+    zoneViolationClassCounts.set(zoneClass, (zoneViolationClassCounts.get(zoneClass) ?? 0) + 1);
+
     const buffer = phase === 'pre' ? retainedPreRollbackZoneViolations : retainedPostRollbackZoneViolations;
     if (buffer.length < 10) {
         buffer.push({
@@ -1172,12 +1210,81 @@ export function withParityHarnessInstalled<T>(fn: () => T): T {
  * "line-count == worker-count" precondition the reviewers asked for is applied by reading this directory
  * after a run completes (recorded per-run in the verification evidence) rather than by code in this file,
  * since jasmine's own `--parallel` worker count is not introspectable from inside a worker.
+ *
+ * `P3-PA4` correction: `process.ppid` should not be assumed stable across *separate* invocations of this
+ * repo's scripts - verified empirically during P3-PA4 planning, four separate `node`/`cross-env node`
+ * invocations from one shell produced four different `process.ppid` values. The one guarantee that *is*
+ * established (P3-PA3's own boot/exit-marker measurement, cited as-is above, not re-derived) is that all
+ * workers of a single `--parallel` jasmine invocation share one `process.ppid` (the jasmine primary's).
+ * Because per-invocation directory identity cannot be relied on for correlation across separate
+ * invocations, hygiene is handled by pruning stale sibling directories (`pruneStaleReporterRunDirectories`
+ * below) rather than by any claim about which directory a given invocation will land in.
  */
+const REPORTER_RUN_PARENT_DIR = path.join(os.tmpdir(), 'forceteki-parity-harness-runs');
+const STALE_REPORTER_RUN_DIR_THRESHOLD_MS = 6 * 60 * 60 * 1000; // 6 hours, unchanged rationale from the v1 draft.
+
 function getReporterRunDir(): string {
-    return path.join(os.tmpdir(), 'forceteki-parity-harness-runs', String(process.ppid));
+    return path.join(REPORTER_RUN_PARENT_DIR, String(process.ppid));
+}
+
+/**
+ * `P3-PA4` follow-up, redesigned from a v1 draft that pruned files *within* the current run's own
+ * directory - which can never bound growth, since every invocation (serial or parallel) mints its own
+ * fresh, never-revisited `<ppid>` directory (per the correction above), so the directory being pruned was
+ * always freshly created and therefore never had anything old in it.
+ *
+ * Prunes stale *sibling* directories one level up, under the parent path, each representing one prior
+ * invocation. A sibling whose newest-contained-file mtime (or its own mtime, if empty) is older than
+ * `thresholdMs` is removed entirely (`fs.rmSync`, recursive). Exported as a pure function for direct spec
+ * testability, mirroring this file's existing pattern of exposing a pure function alongside a module-load
+ * side effect (e.g. `compareSnapshotRecords`). Called once at module load below, **never** inside
+ * `process.on('exit', ...)` - that handler is exactly the one P3-PA3 measured as lost in 1 of 4 parallel
+ * workers, so adding filesystem work there would make the loss costlier, not just theoretically undesirable.
+ */
+export function pruneStaleReporterRunDirectories(thresholdMs: number = STALE_REPORTER_RUN_DIR_THRESHOLD_MS): void {
+    let siblingNames: string[];
+    try {
+        siblingNames = fs.readdirSync(REPORTER_RUN_PARENT_DIR);
+    } catch {
+        // Parent directory does not exist yet - nothing to prune.
+        return;
+    }
+
+    const now = Date.now();
+    for (const siblingName of siblingNames) {
+        const siblingDir = path.join(REPORTER_RUN_PARENT_DIR, siblingName);
+        let newestMtimeMs: number;
+        try {
+            const dirStat = fs.statSync(siblingDir);
+            newestMtimeMs = dirStat.mtimeMs;
+            if (dirStat.isDirectory()) {
+                for (const fileName of fs.readdirSync(siblingDir)) {
+                    const fileMtimeMs = fs.statSync(path.join(siblingDir, fileName)).mtimeMs;
+                    if (fileMtimeMs > newestMtimeMs) {
+                        newestMtimeMs = fileMtimeMs;
+                    }
+                }
+            }
+        } catch {
+            // Removed concurrently by another process/worker between readdir and stat - nothing to prune.
+            continue;
+        }
+
+        if (now - newestMtimeMs > thresholdMs) {
+            try {
+                fs.rmSync(siblingDir, { recursive: true, force: true });
+            } catch (error) {
+                console.error(`[ParityHarness] pid=${process.pid} failed to prune stale reporter run directory "${siblingDir}": ${(error as Error).message}`);
+            }
+        }
+    }
 }
 
 if (process.env.ENABLE_PARITY_HARNESS === 'true') {
+    // `P3-PA4` follow-up: prune stale sibling run directories before writing this run's own boot marker
+    // below, so growth across many invocations stays bounded.
+    pruneStaleReporterRunDirectories();
+
     installParityHarness();
     moduleLoadArmed = true;
     // `P3PA3-D-01`: a boot-time marker, written here at module load rather than at exit. This settles
@@ -1214,10 +1321,15 @@ if (process.env.ENABLE_PARITY_HARNESS === 'true') {
             violationsLine = `[ParityHarness] pid=${process.pid} retainedZoneViolations=${JSON.stringify(getRetainedZoneViolations())}`;
             console.log(violationsLine);
         }
+        // `P3-PA4` follow-up: the exhaustive zoneClass tally, replacing P3-PA3's sampled "10 of 78"
+        // characterization - printed unconditionally (like the counters line above) so it appears in every
+        // flag-on run's captured stdout, not gated behind the identity-buffer's own nonzero check.
+        const zoneClassCountsLine = `[ParityHarness] pid=${process.pid} zoneViolationClassCounts=${JSON.stringify(getZoneViolationClassCounts())}`;
+        console.log(zoneClassCountsLine);
         try {
             const dir = getReporterRunDir();
             fs.mkdirSync(dir, { recursive: true });
-            fs.writeFileSync(path.join(dir, `pid-${process.pid}.log`), `${line}\n${violationsLine ? violationsLine + '\n' : ''}`, 'utf8');
+            fs.writeFileSync(path.join(dir, `pid-${process.pid}.log`), `${line}\n${violationsLine ? violationsLine + '\n' : ''}${zoneClassCountsLine}\n`, 'utf8');
         } catch (error) {
             // Best-effort: the stdout line above is still the fallback record if the file write itself fails.
             console.error(`[ParityHarness] pid=${process.pid} failed to write reporter file: ${(error as Error).message}`);

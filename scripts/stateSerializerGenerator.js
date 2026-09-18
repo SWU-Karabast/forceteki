@@ -182,10 +182,21 @@ function resolveGenerator({ Node, Project, SyntaxKind }, repoRoot, tsConfigFileP
         };
     });
 
+    // P3-PA4: classes registered at runtime but deliberately excluded from `targets` above by
+    // `selectTargets`'s `declaredInFunction` filter (mixin-fragment classes declared inside factory
+    // function bodies, e.g. WithCost/WithDamage). Sourced from `rawClasses`, which already carries this -
+    // nothing new is resolved here, only reported, so StateSerializerCoverageCheck.ts's reverse pass can
+    // tell "known fragment" apart from "stale/missing generator target".
+    const excludedFragmentClassNames = rawClasses
+        .filter((rawClass) => rawClass.declaredInFunction)
+        .map((rawClass) => rawClass.name)
+        .sort();
+
     return {
         targets: resolved,
         visitedFiles: Array.from(visited)
             .sort(),
+        excludedFragmentClassNames,
     };
 }
 
@@ -284,7 +295,7 @@ function renderCompletenessTable(targets) {
         .join('\n');
 }
 
-function emitArtifact({ targets, generationHash, visitedFiles }) {
+function emitArtifact({ targets, generationHash, visitedFiles, excludedFragmentClassNames }) {
     const usedKinds = new Set();
     for (const target of targets) {
         for (const field of target.fields) {
@@ -338,8 +349,17 @@ function emitArtifact({ targets, generationHash, visitedFiles }) {
     });
 
     const entryLines = targets
-        .map((target) => `    { className: '${target.name}', decorator: '${target.decorator}', isAbstract: ${target.isAbstract}, serializer: { serialize: serialize${target.name}, deserialize: deserialize${target.name} } },`)
+        .map((target) => {
+            const fieldsLiteral = target.fields
+                .map((field) => `{ name: '${field.name}', kind: '${field.kind}' }`)
+                .join(', ');
+            return `    { className: '${target.name}', decorator: '${target.decorator}', isAbstract: ${target.isAbstract}, fields: [${fieldsLiteral}], serializer: { serialize: serialize${target.name}, deserialize: deserialize${target.name} } },`;
+        })
         .join('\n');
+
+    const excludedFragmentClassNamesLiteral = (excludedFragmentClassNames ?? [])
+        .map((name) => `'${name}'`)
+        .join(', ');
 
     const header = model.renderArtifactCacheHeader({
         formatVersion: model.STATE_RECORD_FORMAT_VERSION,
@@ -365,6 +385,8 @@ function emitArtifact({ targets, generationHash, visitedFiles }) {
         'export const generatedStateSerializerEntries: readonly IGeneratedSerializerEntry[] = [',
         entryLines,
         '];',
+        '',
+        `export const generatedExcludedFragmentClassNames: readonly string[] = [${excludedFragmentClassNamesLiteral}];`,
         '',
         `export const GENERATED_SCHEMA_SURFACE_HASH = '${schemaSurfaceHash}';`,
         `export const GENERATED_SCHEMA_FORMAT_VERSION = ${model.STATE_RECORD_FORMAT_VERSION};`,
