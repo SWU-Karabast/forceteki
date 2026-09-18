@@ -17,8 +17,9 @@ const { SnapshotType, PhaseName } = require('../../server/game/core/Constants.js
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager.js');
 const { QuickUndoAvailableState } = require('../../server/game/core/snapshot/SnapshotInterfaces.js');
 
-// set to true to run all tests with undo enabled
-const ENABLE_UNDO_ALL_TESTS = false;
+// enabled via the `ENABLE_UNDO_ALL_TESTS` env var (see the `test-undo` npm scripts) to run the
+// whole suite in undo mode (each test runs, rolls back, then runs again)
+const ENABLE_UNDO_ALL_TESTS = process.env.ENABLE_UNDO_ALL_TESTS === 'true';
 
 // this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
 if (!jasmine.getEnv().configuration().random) {
@@ -129,9 +130,11 @@ global.integration = function (definitions, enableUndo = false) {
 
                 newContext.setupCallCount++;
 
-                // If this isn't an Undo Test, or this is an Undo Test that has the setup within the undoIt call rather than a beforeEach, run the setup.
-                // this is to prevent repeated setup calls when we run the test twice in an Undo test.
-                if (!newContext.isUndoTest || this.contextRef.snapshot?.startOfTestSnapshot == null) {
+                // Run the setup on the first pass of a test (including the initial run of an Undo test), but skip it during
+                // an Undo test's rollback replay so we don't rebuild the board on top of the restored snapshot.
+                // On the first pass we (re)take the start-of-test snapshot after each setup, so a test that overrides a
+                // beforeEach board with its own setupTestAsync in the body snapshots the final board it actually runs against.
+                if (!newContext.isUndoTest || !newContext.undoReplayInProgress) {
                     await gameStateBuilder.setupGameStateAsync(newContext, options);
                     gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
 
@@ -139,6 +142,10 @@ global.integration = function (definitions, enableUndo = false) {
 
                     if (newContext.isUndoTest) {
                         contextRef.snapshot.startOfTestSnapshot = buildStartOfTestSnapshot(newContext.game);
+                        // Chat isn't part of the rollback snapshot, so capture it here (at the same point the
+                        // snapshot is taken) to restore after rollback. Capturing at setup time matters for tests
+                        // whose setupTestAsync runs in the body: the "Round: N - <Phase>" banner is emitted here.
+                        contextRef.snapshot.startOfTestChatMessages = newContext.game.gameChat.messages.slice();
                     }
                 }
             };
@@ -210,21 +217,29 @@ global.undoIntegration = function (definitions) {
 const jit = it;
 global.undoIt = function(expectation, assertion, timeout) {
     jit(expectation + ' (with Undo)', async function() {
+        // Non-integration tests (e.g. plain unit tests) have no game context. When whole-suite undo
+        // mode reassigns `global.it` to `undoIt`, those tests reach here without a `contextRef`, so
+        // there's nothing to snapshot / roll back - just run the assertion once like a normal `it`.
+        if (!this.contextRef) {
+            await assertion();
+            return;
+        }
+
         /** @type {SwuTestContext} */
         const context = this.contextRef.context;
         const snapshotUtils = this.contextRef.snapshot;
         context.isUndoTest = true;
+        context.undoReplayInProgress = false;
 
         // If the game setup was in a beforeEach before this was called, take a snapshot.
         if (context.hasSetupGame) {
             snapshotUtils.startOfTestSnapshot = buildStartOfTestSnapshot(context.game);
+            snapshotUtils.startOfTestChatMessages = context.game.gameChat.messages.slice();
         }
 
         if (snapshotUtils.startOfTestSnapshot?.snapshotId === -1) {
             throw new Error('Snapshot ID invalid');
         }
-
-        const messagesBeforeAssertion = context.game.gameChat.messages.slice();
 
         await assertion();
         if (snapshotUtils.startOfTestSnapshot?.snapshotId == null) {
@@ -241,8 +256,11 @@ global.undoIt = function(expectation, assertion, timeout) {
             return;
         }
 
-        context.game.gameChat.messages = messagesBeforeAssertion;
+        // Chat isn't part of the rollback snapshot, so restore it to the start-of-test state captured
+        // alongside the snapshot (see the buildStartOfTestSnapshot call sites).
+        context.game.gameChat.messages = (snapshotUtils.startOfTestChatMessages ?? []).slice();
 
+        context.undoReplayInProgress = true;
         await assertion();
     }, timeout);
 };
@@ -252,17 +270,17 @@ global.undoFit = function(expectation, assertion, timeout) {
         const context = this.contextRef.context;
         const snapshotUtils = this.contextRef.snapshot;
         context.isUndoTest = true;
+        context.undoReplayInProgress = false;
 
         // If the game setup was in a beforeEach before this was called, take a snapshot.
         if (context.hasSetupGame) {
             snapshotUtils.startOfTestSnapshot = buildStartOfTestSnapshot(context.game);
+            snapshotUtils.startOfTestChatMessages = context.game.gameChat.messages.slice();
         }
 
         if (snapshotUtils.startOfTestSnapshot?.snapshotId === -1) {
             throw new Error('Snapshot ID invalid');
         }
-
-        const messagesBeforeAssertion = context.game.gameChat.messages.slice();
 
         await assertion();
         if (snapshotUtils.startOfTestSnapshot?.snapshotId == null) {
@@ -279,8 +297,9 @@ global.undoFit = function(expectation, assertion, timeout) {
             return;
         }
 
-        context.game.gameChat.messages = messagesBeforeAssertion;
+        context.game.gameChat.messages = (snapshotUtils.startOfTestChatMessages ?? []).slice();
 
+        context.undoReplayInProgress = true;
         await assertion();
     }, timeout);
 };
@@ -320,6 +339,18 @@ global.rollback = function(contextRef, assertion, altAssertion) {
 };
 
 if (ENABLE_UNDO_ALL_TESTS) {
-    global.integration = global.undoIntegration;
+    // Run every normal integration suite in undo mode (each test runs, rolls back, then runs again).
+    global.integration = function (definitions) {
+        originalIntegration(definitions, true);
+    };
     global.it = global.undoIt;
+
+    // Disable the dedicated undo test files. They already run in undo mode as part of the normal
+    // suite, so re-running them here is redundant - the point of whole-suite mode is to exercise
+    // the regular tests under undo. `undoIntegration` is the semantic marker for those files.
+    // Register a pending spec (via `xit`, which is not reassigned to `undoIt`) so the enclosing
+    // describe isn't left empty (jasmine errors on childless describes, particularly in parallel mode).
+    global.undoIntegration = function () {
+        xit('skipped in whole-suite undo mode (dedicated undo suite)');
+    };
 }

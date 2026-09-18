@@ -114,7 +114,7 @@ describe('Mina Bonteri, Stop This War', function() {
                 expect(context.player1.hand.length).toBe(startingHandSize + 1);
             });
 
-            it('skips the ability prompt if the cards in hand cannot satisfy the required aspects', function() {
+            it('shows a skippable pause instead of resolving if the cards in hand cannot satisfy the required aspects', function() {
                 const { context } = contextRef;
                 const startingHandSize = context.player1.hand.length;
 
@@ -131,7 +131,12 @@ describe('Mina Bonteri, Stop This War', function() {
                 context.player1.clickCard(context.minaBonteri);
                 context.player1.clickCard(context.reinforcementWalker);
 
-                // No ability prompt because cards in hand cannot satisfy required aspects
+                // Player 1 can't satisfy the disclose requirement, so a skippable masking pause is shown
+                // instead of resolving instantly (which would leak hand contents to the opponent).
+                expect(context.player1).toHavePrompt('Pausing for Disclose');
+                expect(context.player1).toHaveEnabledPromptButton('Skip');
+                context.player1.clickPrompt('Skip');
+
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player1.hand.length).toBe(startingHandSize - 2); // 2 cards discarded, no cards drawn
             });

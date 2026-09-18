@@ -11,7 +11,7 @@ describe('Stronger Together', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.strongerTogether);
-            context.player1.clickPrompt('Shielded');
+            context.player1.clickPrompt('Resolve all (2)');
 
             expect(context.player2).toBeActivePlayer();
 

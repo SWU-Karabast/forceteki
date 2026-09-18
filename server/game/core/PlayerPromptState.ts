@@ -1,5 +1,5 @@
 import type { Card } from './card/Card';
-import type { IButton, IDisplayCard, IDistributeAmongTargetsPromptData, INumberPromptData, PromptType, SelectCardMode } from './gameSteps/PromptInterfaces';
+import type { IBatchTriggerResolutionPromptData, IButton, IDisplayCard, IDistributeAmongTargetsPromptData, INumberPromptData, PromptType, SelectCardMode } from './gameSteps/PromptInterfaces';
 import type { Player } from './Player';
 
 export interface IPlayerPromptStateProperties {
@@ -14,6 +14,7 @@ export interface IPlayerPromptStateProperties {
     selectOrder?: boolean;
     selectNumber?: INumberPromptData;
     distributeAmongTargets?: IDistributeAmongTargetsPromptData;
+    batchTriggerResolution?: IBatchTriggerResolutionPromptData;
     dropdownListOptions?: string[];
     displayCards?: IDisplayCard[];
     perCardButtons?: IButton[];
@@ -35,6 +36,7 @@ export class PlayerPromptState {
     public selectOrder = false;
     public selectNumber?: INumberPromptData = null;
     public distributeAmongTargets?: IDistributeAmongTargetsPromptData = null;
+    public batchTriggerResolution?: IBatchTriggerResolutionPromptData = null;
     public menuTitle = '';
     public promptTitle = '';
     public promptUuid = '';
@@ -86,6 +88,7 @@ export class PlayerPromptState {
         this.selectNumber = prompt.selectNumber;
         this.menuTitle = prompt.menuTitle ?? '';
         this.distributeAmongTargets = prompt.distributeAmongTargets;
+        this.batchTriggerResolution = prompt.batchTriggerResolution;
         this.dropdownListOptions = prompt.dropdownListOptions ?? [];
         this.promptUuid = prompt.promptUuid;
         this.buttons = prompt.buttons ?? [];
@@ -134,6 +137,7 @@ export class PlayerPromptState {
             selectOrder: this.selectOrder,
             selectNumber: this.selectNumber,
             distributeAmongTargets: this.distributeAmongTargets,
+            batchTriggerResolution: this.batchTriggerResolution,
             dropdownListOptions: this.dropdownListOptions,
             menuTitle: this.menuTitle,
             promptTitle: this.promptTitle,

@@ -206,6 +206,27 @@ describe('Survivors Gauntlet', function() {
             context.player2.clickPrompt('Pass');
         });
 
+        it('cannot choose a Fortify upgrade attached to a base', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['survivors-gauntlet'],
+                    base: { card: 'echo-base', upgrades: ['alliance-shield-generator'] },
+                    groundArena: [{ card: 'wampa', upgrades: ['experience'] }, 'battlefield-marine'],
+                },
+                player2: {}
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.survivorsGauntlet);
+
+            // Only upgrades on units in the arenas are eligible - the base upgrade is excluded
+            expect(context.player1).toBeAbleToSelectExactly([context.experience]);
+            expect(context.player1).toHavePassAbilityButton();
+            context.player1.clickPrompt('Pass');
+        });
+
         // Ruling 2025-03-25 (CR 3.6.3.B): for a non-upgrade card attached as an upgrade, the attachment
         // restriction is created by the ability that made it an upgrade and persists while it stays an
         // upgrade; "friendly"/"enemy" in that restriction is determined by the upgrade's controller.

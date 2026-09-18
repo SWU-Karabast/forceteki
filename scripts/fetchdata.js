@@ -8,6 +8,7 @@ const path = require('path');
 const cliProgress = require('cli-progress');
 const { addMockCards } = require('./mockdata');
 const { computeCardDataHash } = require('./cardDataHash');
+const { populateBaseTraits } = require('./baseTraits');
 
 // ############################################################################
 // #################                 IMPORTANT              ###################
@@ -96,6 +97,18 @@ function populateMissingData(attributes, id) {
                 ]
             };
             attributes.backSideTitle = 'Darth Sidious';
+            break;
+        case '1535458352': // Grand Moff Tarkin - Tyrant of the Outer Rim (HMW)
+            // Official data does not include the deployed leader-unit side's identity ("The Death Star").
+            attributes.backSideTitle = 'The Death Star';
+            attributes.backSideSubtitle = 'Icon of Tyranny';
+            attributes.backSideTraits = {
+                data: [
+                    { attributes: { name: 'Imperial' } },
+                    { attributes: { name: 'Vehicle' } },
+                    { attributes: { name: 'Capital Ship' } },
+                ]
+            };
             break;
         case '8862896760': // Maul - Shadow Collective Visionary
             attributes.text = 'Ambush\nOverwhelm\nOn Attack: You may choose another friendly Underworld unit. If you do, all combat damage that would be dealt to this unit during this attack is dealt to the chosen unit instead.';
@@ -210,6 +223,43 @@ function populateMissingData(attributes, id) {
             };
             break;
     }
+
+    // HMW reprints
+    switch (id) {
+        case '9014930596': // Shield Generator Complex
+            attributes.reprints = {
+                data: [{
+                    attributes: {
+                        expansion: { data: { attributes: { code: 'HMW' } } },
+                        cardNumber: 22
+                    }
+                }]
+            };
+            break;
+        case '1055085019': // Theed Palace
+            attributes.reprints = {
+                data: [{
+                    attributes: {
+                        expansion: { data: { attributes: { code: 'HMW' } } },
+                        cardNumber: 25
+                    }
+                }]
+            };
+            break;
+        case '4751899478': // Mos Eisley
+            attributes.reprints = {
+                data: [{
+                    attributes: {
+                        expansion: { data: { attributes: { code: 'HMW' } } },
+                        cardNumber: 32
+                    }
+                }]
+            };
+            break;
+    }
+
+    // Bases trait
+    populateBaseTraits(attributes, id);
 }
 
 const promoPrefixes = ['C', 'G', 'J', 'P', 'MV'];
@@ -220,8 +270,8 @@ function isPromoSetCode(setCode) {
     if (promoRegex.test(setCode)) {
         return true;
     }
-    // Gamegenic promo bases
-    if (setCode === 'GG') {
+    // Gamegenic promo bases and Costco exclusives
+    if (setCode === 'GG' || setCode === 'CST') {
         return true;
     }
     // OP Promos (codes that are 4 or 5 characters and end in P or OP)
@@ -298,11 +348,24 @@ function filterValues(card) {
         filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
         filteredObj.keywords = getAttributeNames(card.attributes.keywords);
 
+        // Fortify upgrades attach to a base and have no power/HP modifier. The official data omits
+        // these values (null), but the engine requires numeric upgrade stats. Default them (and the
+        // derived power/HP) to 0, matching how other stat-less upgrades and tokens are handled.
+        if (filteredObj.keywords.includes('fortify')) {
+            filteredObj.upgradeHp = filteredObj.upgradeHp ?? 0;
+            filteredObj.upgradePower = filteredObj.upgradePower ?? 0;
+            filteredObj.hp = filteredObj.hp ?? 0;
+            filteredObj.power = filteredObj.power ?? 0;
+        }
+
         if (card.attributes.backSideAspects) {
             filteredObj.backSideAspects = getAttributeNames(card.attributes.backSideAspects);
         }
         if (card.attributes.backSideTitle) {
             filteredObj.backSideTitle = card.attributes.backSideTitle;
+        }
+        if (card.attributes.backSideSubtitle) {
+            filteredObj.backSideSubtitle = card.attributes.backSideSubtitle;
         }
         if (card.attributes.backSideTraits) {
             filteredObj.backSideTraits = getAttributeNames(card.attributes.backSideTraits);
@@ -387,7 +450,9 @@ function buildCardLists(cards) {
         ['SEC', 6],
         ['LAW', 7],
         ['TS26', 7.5],
-        ['ASH', 8]
+        ['ASH', 8],
+        ['HMW', 9],
+        ['IC27', 9.5]
     ]);
 
     for (const card of cards) {
@@ -500,6 +565,16 @@ async function main() {
     downloadProgressBar.stop();
 
     const { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames } = buildCardLists(cards);
+
+    // Validate that all bases have traits
+    const basesWithoutTraits = uniqueCards.filter((card) => card.types.includes('base') && (!card.traits || card.traits.length === 0));
+    if (basesWithoutTraits.length > 0) {
+        console.error('\nERROR: The following bases are missing traits:');
+        for (const base of basesWithoutTraits) {
+            console.error(`  - ${base.title} (${makeSetCodeString(base.setId)})`);
+        }
+        throw new Error('Bases are missing traits. Please add traits to these bases (mockdata.js if it is a mock card, or baseTraits.js if it is a released card).');
+    }
 
     cards.map((card) => delete card.debugObject);
 

@@ -144,6 +144,43 @@ describe('Qui-Gon Jinn, Student of the Living Force', function() {
                 expect(context.quigonJinn.exhausted).toBe(true);
                 expect(context.player1.hasTheForce).toBe(false);
             });
+
+            it('should use the copied unit\'s cost when returning a Clone', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'quigon-jinn#student-of-the-living-force',
+                        base: 'echo-base',
+                        hasForceToken: true,
+                        resources: 7,
+                        hand: ['clone', 'wampa', 'alliance-dispatcher'],
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.clone);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.clone).toBeCloneOf(context.battlefieldMarine);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.quigonJinn);
+                context.player1.clickPrompt('Return a friendly non-leader unit to its owner\'s hand. If you do, play a non-Villainy unit that costs less than the returned unit for free');
+                expect(context.player1).toBeAbleToSelectExactly([context.clone, context.battlefieldMarine]);
+                context.player1.clickCard(context.clone);
+                expect(context.clone).toBeInZone('hand');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceDispatcher]);
+                context.player1.clickCard(context.allianceDispatcher);
+                expect(context.allianceDispatcher).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(7); // Clone
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.quigonJinn.exhausted).toBe(true);
+                expect(context.player1.hasTheForce).toBe(false);
+            });
         });
 
         describe('Qui-Gon Jinn\'s deployed ability', function () {

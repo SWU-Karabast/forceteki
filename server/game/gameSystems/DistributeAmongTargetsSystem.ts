@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import type { CardTypeFilter, ZoneFilter, RelativePlayerFilter } from '../core/Constants';
+import type { CardTypeFilter, ZoneFilter, RelativePlayerFilter, TokenUpgradeName } from '../core/Constants';
 import { CardType, RelativePlayer, TargetMode, WildcardCardType } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
@@ -11,8 +11,7 @@ import type { DamageSystem } from './DamageSystem';
 import type { HealSystem } from './HealSystem';
 import { Contract } from '../core/utils/Contract';
 import { Helpers } from '../core/utils/Helpers';
-import type { GiveExperienceSystem } from './GiveExperienceSystem';
-import type { GiveAdvantageSystem } from './GiveAdvantageSystem';
+import type { GiveTokenUpgradeSystem } from './GiveTokenUpgradeSystem';
 import type { FormatMessage } from '../core/chat/GameChat';
 
 export interface IDistributeAmongTargetsSystemProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
@@ -52,12 +51,17 @@ export abstract class DistributeAmongTargetsSystem<
 
     public abstract promptType: DistributePromptType;
     protected abstract canDistributeLessDefault(): boolean;
-    protected abstract generateEffectSystem(target?: Card, amount?: number, properties?): DamageSystem | HealSystem | GiveExperienceSystem | GiveAdvantageSystem;
+    protected abstract generateEffectSystem(target?: Card, amount?: number, properties?): DamageSystem | HealSystem | GiveTokenUpgradeSystem;
     protected abstract getDistributedAmountFromEvent(event: any): number;
-    protected abstract getDistributionType(amount: number): string | FormatMessage;
+    protected abstract getDistributionType(amount: number, context: TContext): string | FormatMessage;
 
     protected getDistributionVerb(): string {
         return 'distribute';
+    }
+
+    /** The token upgrade being distributed, surfaced on the prompt so it (and the FE) can render the specific token. Only relevant for token-upgrade distributions. */
+    protected getPromptTokenType(context: TContext): TokenUpgradeName | undefined {
+        return undefined;
     }
 
     protected preferLogGameMessageBeforeEventResolution(): boolean {
@@ -99,7 +103,7 @@ export abstract class DistributeAmongTargetsSystem<
             if (amount !== 0) {
                 targets.push({
                     format: '{0} {1} to {2}',
-                    args: [`${amount}`, this.getDistributionType(amount), this.getTargetMessage(individualEvent.card, context)],
+                    args: [`${amount}`, this.getDistributionType(amount, context), this.getTargetMessage(individualEvent.card, context)],
                 });
             }
         }
@@ -107,7 +111,7 @@ export abstract class DistributeAmongTargetsSystem<
         if (targets.length === 0) {
             targets.push({
                 format: 'no effective {0}',
-                args: [this.getDistributionType(0)],
+                args: [this.getDistributionType(0, context)],
             });
         }
 
@@ -138,7 +142,7 @@ export abstract class DistributeAmongTargetsSystem<
             const controllerDescriptor = properties.controller === RelativePlayer.Self ? 'a friendly' : properties.controller === RelativePlayer.Opponent ? 'an enemy' : filterDescription.article;
             return [
                 'distribute {0} {1} to {2} {3}',
-                [amountDescription, this.getDistributionType(amountToDistribute), controllerDescriptor, filterDescription.description],
+                [amountDescription, this.getDistributionType(amountToDistribute, context), controllerDescriptor, filterDescription.description],
             ];
         }
 
@@ -147,7 +151,7 @@ export abstract class DistributeAmongTargetsSystem<
 
         return [
             'distribute {0} {1} among {2}{3}',
-            [amountDescription, this.getDistributionType(amountToDistribute), controllerDescriptor, filterDescription.description],
+            [amountDescription, this.getDistributionType(amountToDistribute, context), controllerDescriptor, filterDescription.description],
         ];
     }
 
@@ -175,7 +179,11 @@ export abstract class DistributeAmongTargetsSystem<
         distributeEvent.checkCondition = () => true;
         events.push(distributeEvent);
 
-        // auto-select if there's only one legal target and the player isn't allowed to choose 0 targets
+        // Auto-select if there's only one legal target and the player isn't allowed to choose 0 targets.
+        // The canChooseNoTargets guard also excludes any "distribute less" case (canDistributeLess implies
+        // canChooseNoTargets, enforced below), so this only fires when the full amount must go to the one
+        // target - a decision-free case that always auto-resolves regardless of the autoSingleTarget setting
+        // (which only governs single card target selection).
         if ((!properties.canChooseNoTargets && !context.ability.optional) && legalTargets.length === 1) {
             distributeEvent.card = legalTargets[0];
             const event = this.generateEffectEvent(legalTargets[0], distributeEvent, context, amountToDistribute);
@@ -189,6 +197,7 @@ export abstract class DistributeAmongTargetsSystem<
         // build prompt with handler that will push damage / heal events into execution window on prompt resolution
         const promptProperties: IDistributeAmongTargetsPromptProperties = {
             type: this.promptType,
+            tokenType: this.getPromptTokenType(context),
             legalTargets,
             canChooseNoTargets: properties.canChooseNoTargets || context.ability.optional,
             canDistributeLess: properties.canDistributeLess,

@@ -58,7 +58,7 @@ describe('The Disclose aspects mechanic', function() {
             expect(context.player1.hand.length).toBe(3);
         });
 
-        it('is automatically skipped if the required aspects cannot be disclosed with cards in hand', async function() {
+        it('shows a skippable pause instead of resolving instantly if the required aspects cannot be disclosed with cards in hand', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -76,6 +76,13 @@ describe('The Disclose aspects mechanic', function() {
             // Player 2 plays Vanquish to defeat Mina Bonteri
             context.player2.clickCard(context.vanquish);
             context.player2.clickCard(context.minaBonteri);
+
+            // Player 1 can't satisfy the disclose requirement. Instead of resolving instantly (which would
+            // leak that fact to the opponent), a skippable pause is shown that is indistinguishable from a
+            // player who can disclose but declines.
+            expect(context.player1).toHavePrompt('Pausing for Disclose');
+            expect(context.player1).toHaveEnabledPromptButton('Skip');
+            context.player1.clickPrompt('Skip');
 
             expect(context.player1).toBeActivePlayer();
             expect(context.player1.hand.length).toBe(4); // No card drawn
@@ -245,7 +252,7 @@ describe('The Disclose aspects mechanic', function() {
             expect(context.player1.hand.length).toBe(2);
         });
 
-        it('is automatically skipped if the required aspects cannot be disclosed with cards in hand', async function() {
+        it('shows a skippable pause instead of resolving instantly if the required aspects cannot be disclosed with cards in hand', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -263,6 +270,13 @@ describe('The Disclose aspects mechanic', function() {
             // Player 2 plays Vanquish to defeat Mina Bonteri
             context.player2.clickCard(context.vanquish);
             context.player2.clickCard(context.minaBonteri);
+
+            // Player 1 can't satisfy the disclose requirement. Instead of resolving instantly (which would
+            // leak that fact to the opponent), a skippable pause is shown that is indistinguishable from a
+            // player who can disclose but declines.
+            expect(context.player1).toHavePrompt('Pausing for Disclose');
+            expect(context.player1).toHaveEnabledPromptButton('Skip');
+            context.player1.clickPrompt('Skip');
 
             expect(context.player1).toBeActivePlayer();
             expect(context.player1.hand.length).toBe(0); // No card drawn

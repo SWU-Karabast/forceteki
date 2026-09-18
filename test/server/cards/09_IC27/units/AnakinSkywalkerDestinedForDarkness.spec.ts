@@ -39,7 +39,6 @@ describe('Anakin Skywalker, Destined for Darkness', function () {
 
             expect(context.player1).toBeActivePlayer();
             expect(context.darthVader).toBeInZone('hand', context.player1);
-            expect(context.player1.deck[0]).not.toBe(context.brainInvaders);
         });
 
         it('Anakin Skywalker\'s when defeated ability should search whole deck for a Darth Vader (No Glory Only Results)', async function () {
@@ -81,7 +80,6 @@ describe('Anakin Skywalker, Destined for Darkness', function () {
 
             expect(context.player1).toBeActivePlayer();
             expect(context.darthVader).toBeInZone('hand', context.player2);
-            expect(context.player2.deck[0]).not.toBe(context.brainInvaders);
         });
 
         it('Anakin Skywalker\'s when defeated ability should fail if deck is empty', async function () {

@@ -584,6 +584,34 @@ describe('Clone', function() {
                 expect(handClone.isClonedUnit).toBeTrue();
             });
 
+            it('cannot copy a unit when blanked in hand (Galen Erso) and enters play as a defeated 0/0', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                    },
+                    player2: {
+                        hand: ['clone'],
+                        groundArena: ['wampa'],
+                        resources: 20
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Galen names Clone, blanking it in player2's hand (including out of play)
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Clone');
+
+                // Playing the blanked Clone offers no copy prompt: its pre-enter-play ability is gone
+                context.player2.clickCard(context.clone);
+
+                // With no copy, Clone enters as its printed 0/0 and is immediately defeated
+                expect(context.clone).toBeInZone('discard');
+                expect(context.wampa).toBeInZone('groundArena');
+                expect(context.player1).toBeActivePlayer();
+            });
+
             it('is not defeated if blanked', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

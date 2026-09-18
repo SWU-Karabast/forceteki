@@ -17,9 +17,10 @@ export default class ScreechingTieFighter extends NonLeaderUnitCard {
         AbilityHelper: IAbilityHelper
     ) {
         registrar.addOnAttackAbility({
-            title: `Select a ground unit to lose all ${TextHelper.Keywords} for this phase`,
+            title: `A ground unit loses all ${TextHelper.Keywords} for the phase`,
             optional: true,
             targetResolver: {
+                activePromptTitle: `Select a ground unit to lose all ${TextHelper.Keywords} for this phase`,
                 zoneFilter: ZoneName.GroundArena,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({

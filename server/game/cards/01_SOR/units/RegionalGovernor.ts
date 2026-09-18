@@ -19,7 +19,7 @@ export default class RegionalGovernor extends NonLeaderUnitCard {
                 options: this.game.playableCardTitles,
             },
             then: (thenContext) => ({
-                title: 'While this unit is in play, opponents can\'t play the named card',
+                title: `While this unit is in play, opponents can't play ${thenContext.select}`,
                 immediateEffect: AbilityHelper.immediateEffects.playerLastingEffect((context) => ({
                     duration: Duration.WhileSourceInPlay,
                     target: context.player.opponent,

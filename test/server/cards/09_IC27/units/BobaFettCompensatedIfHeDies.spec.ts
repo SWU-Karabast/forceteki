@@ -6,14 +6,12 @@ describe('Boba Fett, Compensated If He Dies', function () {
                     phase: 'action',
                     player1: {
                         groundArena: ['boba-fett#compensated-if-he-dies', 'wampa'],
+                        resources: { readyCount: 17, exhaustedCount: 3 }
                     },
                     player2: {
                         groundArena: ['atst', 'battlefield-marine']
                     }
                 });
-
-                const { context } = contextRef;
-                context.player1.exhaustResources(3);
             });
 
             it('Boba Fett\'s ability should ready 2 resources if the defender was defeated', function () {

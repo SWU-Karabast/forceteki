@@ -127,6 +127,8 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
             handlers.push(() => (targetResults.cancelled = true));
         }*/
 
+        // A single legal handler (no pass option) is a decision-free menu choice, so we always auto-resolve it
+        // regardless of the player's autoSingleTarget setting (which only governs single *card* target selection).
         if (handlers.length === 1) {
             handlers[0]();
         } else if (handlers.length > 1) {

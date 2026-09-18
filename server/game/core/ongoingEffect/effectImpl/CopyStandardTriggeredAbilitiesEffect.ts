@@ -6,6 +6,7 @@ import { StandardTriggeredAbilityType } from '../../Constants';
 import type { ICardWithStandardAbilitySetup } from '../../card/propertyMixins/StandardAbilitySetup';
 import type { IUnitAbilityRegistrar, IUnitCard } from '../../card/propertyMixins/UnitProperties';
 import type { Game } from '../../Game';
+import { Helpers } from '../../utils/Helpers';
 
 import { registerState } from '../../GameObjectUtils';
 
@@ -26,20 +27,24 @@ const abilityTypeDisplayName: Record<StandardTriggeredAbilityType, string> = {
 };
 
 @registerState()
-export class CopyStandardTriggeredAbilitiesEffect extends OngoingEffectValueWrapperBase<ICardWithStandardAbilitySetup<Card>> {
+export class CopyStandardTriggeredAbilitiesEffect extends OngoingEffectValueWrapperBase<ICardWithStandardAbilitySetup<Card>[]> {
     private printedTriggeredAbilitiesUuidByTargetCard?: Set<string>;
     private readonly abilityType: StandardTriggeredAbilityType;
 
-    public constructor(game: Game, sourceUnit: Card, abilityType: StandardTriggeredAbilityType) {
+    public constructor(game: Game, sourceUnits: Card | Card[], abilityType: StandardTriggeredAbilityType) {
+        const sourceUnitsArray = Helpers.asArray(sourceUnits);
+
         const effectDescription: FormatMessage = {
             format: `copy the "${abilityTypeDisplayName[abilityType]}" abilities of {0}`,
-            args: [sourceUnit]
+            args: [sourceUnitsArray]
         };
 
-        Contract.assertTrue(sourceUnit.isUnit(), `Only units can have their triggered abilities copied, attempted to copy from ${sourceUnit.internalName}`);
-        Contract.assertTrue(sourceUnit.hasStandardAbilitySetup(), `Only units with standard ability setup can have their triggered abilities copied, attempted to copy from ${sourceUnit.internalName}`);
+        for (const sourceUnit of sourceUnitsArray) {
+            Contract.assertTrue(sourceUnit.isUnit(), `Only units can have their triggered abilities copied, attempted to copy from ${sourceUnit.internalName}`);
+            Contract.assertTrue(sourceUnit.hasStandardAbilitySetup(), `Only units with standard ability setup can have their triggered abilities copied, attempted to copy from ${sourceUnit.internalName}`);
+        }
 
-        super(game, sourceUnit, effectDescription);
+        super(game, sourceUnitsArray as ICardWithStandardAbilitySetup<Card>[], effectDescription);
 
         this.abilityType = abilityType;
     }
@@ -54,16 +59,17 @@ export class CopyStandardTriggeredAbilitiesEffect extends OngoingEffectValueWrap
             target.getPrintedTriggeredAbilities().map((ability) => ability.uuid)
         );
 
-        const sourceUnit = this.getValue();
-
         // Access the target's registrar. Cards using this effect must expose getAbilityRegistrar() publicly
         // (following the same pattern as Clone).
         const realRegistrar = (target as unknown as { getAbilityRegistrar(): IUnitAbilityRegistrar<IUnitCard> }).getAbilityRegistrar();
         const filteredRegistrar = this.createFilteredRegistrar(realRegistrar);
 
-        // Call the source unit's setupCardAbilities with the filtered registrar,
-        // so only the matching triggered abilities get registered on the target
-        sourceUnit.setupCardAbilities(filteredRegistrar, this.game.abilityHelper);
+        // Call each source unit's setupCardAbilities with the filtered registrar, so only the matching
+        // triggered abilities get registered on the target. A single snapshot above covers all sources, so
+        // unapply cleanly removes every copied ability regardless of how many sources were copied.
+        for (const sourceUnit of this.getValue()) {
+            sourceUnit.setupCardAbilities(filteredRegistrar, this.game.abilityHelper);
+        }
     }
 
     public override unapply(target: IUnitCard): void {

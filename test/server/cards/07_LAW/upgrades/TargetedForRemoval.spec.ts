@@ -25,7 +25,7 @@ describe('Targeted For Removal', function () {
                 expect(context.player2.credits).toBe(0);
             });
 
-            xit('works with clone', async function () {
+            it('works with clone', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {

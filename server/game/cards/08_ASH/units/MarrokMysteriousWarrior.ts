@@ -14,9 +14,12 @@ export default class MarrokMysteriousWarrior extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `Gain ${TextHelper.Saboteur} while upgraded`,
+            title: `Loses ${TextHelper.Sentinel} and gains ${TextHelper.Saboteur} while upgraded`,
             condition: (context) => context.source.isUpgraded(),
-            ongoingEffect: [AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur), AbilityHelper.ongoingEffects.loseKeyword(KeywordName.Sentinel)]
+            ongoingEffect: [
+                AbilityHelper.ongoingEffects.loseKeyword(KeywordName.Sentinel),
+                AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur),
+            ]
         });
     }
 }

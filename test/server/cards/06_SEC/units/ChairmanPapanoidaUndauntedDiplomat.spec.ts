@@ -101,15 +101,12 @@ describe('Chairman Papanoida, Undaunted Diplomat', function () {
                 expect(context.player1).toHavePassAbilityPrompt('Both players draw a card');
                 context.player1.clickPrompt('Trigger');
 
-                // One trigger per player, choose which one to resolve first
-                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
-                expect(context.player1).toHaveExactPromptButtons([
-                    disclosePrompt,
-                    disclosePrompt
-                ]);
+                // The two identical draw triggers (one per player's draw) are grouped, opening a resolution modal directly
+                expect(context.player1).toHavePrompt(`Resolve "${disclosePrompt}"`);
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
 
-                // Resolve one of the triggers first
-                context.player1.clickPrompt(disclosePrompt);
+                // Resolve both grouped triggers, each running its own per-instance disclose prompt
+                context.player1.clickPrompt('Resolve all (2)');
                 expect(context.player1).toHavePrompt(disclosePrompt);
                 expect(context.player1).toHaveEnabledPromptButton('Choose nothing');
                 expect(context.player1).toBeAbleToSelectExactly([
@@ -204,7 +201,7 @@ describe('Chairman Papanoida, Undaunted Diplomat', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not trigger if the hand is empty', function () {
+            it('shows a skippable pause instead of resolving if the hand is empty', function () {
                 const { context } = contextRef;
 
                 context.player1.passAction();
@@ -219,7 +216,12 @@ describe('Chairman Papanoida, Undaunted Diplomat', function () {
 
                 context.player2.clickCard(context.strategicAnalysis);
 
-                context.player1.passAction(); // cannot pass if disclose prompt is up
+                // Player 1's Chairman Papanoida disclose triggers but they can't satisfy it (empty hand),
+                // so a skippable masking pause is shown instead of resolving instantly
+                expect(context.player1).toHavePrompt('Pausing for Disclose');
+                context.player1.clickPrompt('Skip');
+
+                context.player1.passAction();
                 const spy = context.player1.findCardsByName('spy');
                 expect(spy.length).toBe(0);
 

@@ -46,13 +46,13 @@ export default class TheArmorerSteelShapesUs extends LeaderUnitCard {
             title: 'Play an upgrade from your resources on a friendly unit',
             optional: true,
             targetResolver: {
-
                 zoneFilter: ZoneName.Resource,
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     playAsType: WildcardCardType.Upgrade,
                     canPlayFromAnyZone: true,
                     attachTargetCondition: (attachTarget, context) =>
+                        attachTarget.isUnit() &&
                         attachTarget.controller === context.player
                 })
             },

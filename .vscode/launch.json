@@ -57,7 +57,8 @@
       "args": [
         "--config=./jasmine.json",
         "--random=false",
-        "${file}"
+        // Jasmine runs the compiled JS in build/, so translate the open .ts source to its built .js path
+        "${workspaceFolder}/build/${relativeFileDirname}/${fileBasenameNoExtension}.js"
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
@@ -77,7 +78,8 @@
         "--config=./jasmine.json",
         "--random=true",
         "--parallel=2",
-        "${file}"
+        // Jasmine runs the compiled JS in build/, so translate the open .ts source to its built .js path
+        "${workspaceFolder}/build/${relativeFileDirname}/${fileBasenameNoExtension}.js"
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",

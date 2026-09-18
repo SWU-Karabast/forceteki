@@ -54,6 +54,34 @@ describe('The Client, Please Lower Your Blaster', function() {
                 expect(context.wampa.exhausted).toBeTrue();
             });
 
+            it('exhausts an enemy unit if opponent ability make you create token upgrade ', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'the-client#please-lower-your-blaster',
+                        resources: 3,
+                        groundArena: ['han-solo#hibernation-sick', 'battlefield-marine'],
+                    },
+                    player2: {
+                        leader: 'sabine-wren#bargaining-on-belief',
+                        resources: 1,
+                        groundArena: ['wampa'],
+                        hasInitiative: true
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.sabineWren);
+                context.player1.clickCard(context.hanSolo);
+
+                context.player1.clickCard(context.theClient);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+
+                context.player1.clickCard(context.wampa);
+                expect(context.theClient.exhausted).toBeTrue();
+                expect(context.wampa.exhausted).toBeTrue();
+            });
+
             it('exhausts an enemy unit if a token upgrade was created on an enemy unit this phase', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

@@ -19,7 +19,14 @@ export default class EvidenceOfTheCrime extends EventCard {
                     activePromptTitle: 'Choose an upgrade to take control of',
                     controller: WildcardRelativePlayer.Any,
                     cardTypeFilter: WildcardCardType.Upgrade,
-                    cardCondition: (card) => card.hasCost() && card.cost <= 3,
+                    cardCondition: (card) =>
+                        card.isUpgrade() &&
+                        // Requiring the upgrade to be on a unit is not technically correct, but we don't have
+                        // a bare TakeControlOfUpgradeSystem, for the case where the upgrade is on a base
+                        // https://github.com/SWU-Karabast/forceteki/issues/2656
+                        card.parentCard.isUnit() &&
+                        card.hasCost() &&
+                        card.cost <= 3,
                 },
                 unit: {
                     dependsOn: 'upgrade',

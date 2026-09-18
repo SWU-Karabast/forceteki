@@ -18,9 +18,9 @@ export default class MoralAuthority extends UpgradeCard {
             title: 'Attached unit captures an enemy non-leader unit with less remaining HP than it',
             targetResolver: {
                 controller: RelativePlayer.Opponent,
-                cardCondition: (card, context) => card.isUnit() && card.remainingHp < context.source.parentCard.remainingHp,
+                cardCondition: (card, context) => card.isUnit() && card.remainingHp < context.source.parentUnit.remainingHp,
                 immediateEffect: AbilityHelper.immediateEffects.capture((context) => ({
-                    captor: context.source.parentCard
+                    captor: context.source.parentUnit
                 }))
             }
         });

@@ -256,6 +256,9 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             this.addGameMessagesToForm(formData, report.messages, report.lobbyId, report.reporter.id, report.opponent.id, timestamp);
         } else {
             this.addGameMessagesToForm(formData, report.messages, report.lobbyId, report.reporter.id, report.opponent.id, timestamp, report.reporter.username, report.opponent.username);
+            if (report.chatMessages) {
+                this.addGameMessagesToForm(formData, report.chatMessages, report.lobbyId, report.reporter.id, report.opponent.id, timestamp, report.reporter.username, report.opponent.username, 'files[2]', 'report-chat-only');
+            }
         }
 
         // Send to Discord webhook with file attachment using our custom function
@@ -286,10 +289,10 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         });
     }
 
-    private addGameMessagesToForm(formData: FormData, messages: ISerializedMessage[], lobbyId: string, reporterId: string, opponentId: string, timestamp: number, reporterUsername = 'Player1', opponentUsername = 'Player2'): void {
+    private addGameMessagesToForm(formData: FormData, messages: ISerializedMessage[], lobbyId: string, reporterId: string, opponentId: string, timestamp: number, reporterUsername = 'Player1', opponentUsername = 'Player2', fileField = 'files[1]', fileNamePrefix = 'report-messages'): void {
         const messagesText = DiscordDispatcher.formatMessagesToText(messages, reporterId, opponentId, reporterUsername, opponentUsername);
-        const fileName = `report-messages-${lobbyId}-${timestamp}.txt`;
-        formData.append('files[1]', Buffer.from(messagesText), {
+        const fileName = `${fileNamePrefix}-${lobbyId}-${timestamp}.txt`;
+        formData.append(fileField, Buffer.from(messagesText), {
             filename: fileName,
             contentType: 'text/plain',
         });
@@ -606,7 +609,8 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         gameStepsSinceLastUndo?: number,
         gameId?: string,
         screenResolution?: { width: number; height: number } | null,
-        viewport?: { width: number; height: number } | null
+        viewport?: { width: number; height: number } | null,
+        chatMessages?: ISerializedMessage[]
     ): ISerializedReportState {
         return {
             description: sanitizeForJson(description),
@@ -625,6 +629,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             lobbyId,
             gameId,
             messages,
+            chatMessages,
             timestamp: new Date().toISOString(),
             screenResolution,
             viewport,

@@ -59,6 +59,10 @@ export namespace TextHelper {
     export const Hidden = keyword(KeywordName.Hidden);
     /** The display representation of the Plot keyword, stylized on the client side */
     export const Plot = keyword(KeywordName.Plot);
+    /** The display representation of the Support keyword, stylized on the client side */
+    export const Support = keyword(KeywordName.Support);
+    /** The display representation of the Fortify keyword, stylized on the client side */
+    export const Fortify = keyword(KeywordName.Fortify);
     /** The display representation of the Raid keyword, stylized on the client side */
     export function Raid(amount: number) {
         return keyword({ keyword: KeywordName.Raid, amount });
@@ -163,8 +167,7 @@ export namespace TextHelper {
      */
     export function trait(trait: TraitEnum | string): string {
         return process.env.NODE_ENV === 'test'
-            ? trait.split(' ').map(Helpers.capitalize)
-                .join(' ')
+            ? Helpers.titleCase(trait)
             : `{trait:${trait.replace(/ /g, '-')}}`;
     }
 

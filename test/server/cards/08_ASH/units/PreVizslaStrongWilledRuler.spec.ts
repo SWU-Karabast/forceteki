@@ -110,11 +110,7 @@ describe('Pre Vizsla, Strong-Willed Ruler', function () {
 
             context.player1.clickPrompt('Done');
 
-            context.player1.clickPrompt('Shielded');
-            context.player1.clickPrompt('Shielded');
-            context.player1.clickPrompt('Shielded');
-            context.player1.clickPrompt('Shielded');
-            context.player1.clickPrompt('Shielded');
+            context.player1.clickPrompt('Resolve all (6)');
 
             const mandalorians = context.player1.findCardsByName('mandalorian');
 
@@ -253,11 +249,7 @@ describe('Pre Vizsla, Strong-Willed Ruler', function () {
 
             context.player1.clickPrompt('Done');
 
-            context.player1.clickPrompt('Shielded');
-            context.player1.clickPrompt('Shielded');
-            context.player1.clickPrompt('Shielded');
-            context.player1.clickPrompt('Shielded');
-            context.player1.clickPrompt('Shielded');
+            context.player1.clickPrompt('Resolve all (6)');
 
             const mandalorians = context.player1.findCardsByName('mandalorian');
 
@@ -525,29 +517,15 @@ describe('Pre Vizsla, Strong-Willed Ruler', function () {
             expect(context.snowspeeder).toBeInZone('groundArena', context.player2);
         });
 
-        it('should not defeat lurking tie and also not make the token', async function () {
+        it('can also select undefeatable unit but make token only for resolved event (Lurking TIE Phantom)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['pre-vizsla#strongwilled-ruler'],
-                    groundArena: [
-                        'porg',
-                        'wampa',
-                        'jedha-agitator',
-                        'death-star-stormtrooper',
-                        'jawa-scavenger',
-                    ],
-                    spaceArena: ['awing', 'vanguard-ace', 'wing-leader', 'outland-tie-vanguard'],
-                    leader: { card: 'grand-inquisitor#hunting-the-jedi', deployed: true }
                 },
                 player2: {
-                    groundArena: [
-                        { card: 'atst', damage: 1 },
-                        'consular-security-force',
-                        'snowspeeder'
-                    ],
+                    groundArena: [{ card: 'atst', damage: 6 }],
                     spaceArena: ['lurking-tie-phantom'],
-                    leader: { card: 'han-solo#audacious-smuggler', deployed: true }
                 }
             });
 
@@ -557,44 +535,52 @@ describe('Pre Vizsla, Strong-Willed Ruler', function () {
             expect(context.player1).toHavePrompt('Choose any number of non-leader units with a total of 6 or less remaining HP');
             expect(context.player1).toHaveChooseNothingButton();
 
-            expect(context.player1).toBeAbleToSelectExactly([
-                context.preVizsla,
-                context.porg,
-                context.wampa,
-                context.awing,
-                context.jedhaAgitator,
-                context.deathStarStormtrooper,
-                context.vanguardAce,
-                context.jawaScavenger,
-                context.wingLeader,
-                context.outlandTieVanguard,
-                context.snowspeeder,
-                context.lurkingTiePhantom,
-                context.atst
-            ]);
             context.player1.clickCard(context.lurkingTiePhantom);
+            context.player1.clickCard(context.atst);
             context.player1.clickPrompt('Done');
 
             const mandalorians = context.player1.findCardsByName('mandalorian');
 
-            expect(mandalorians.length).toBe(0);
+            expect(mandalorians.length).toBe(1);
+            expect(mandalorians[0]).toBeInZone('groundArena', context.player1);
 
-            expect(context.atst).toBeInZone('groundArena', context.player2);
-            expect(context.jedhaAgitator).toBeInZone('groundArena', context.player1);
-            expect(context.deathStarStormtrooper).toBeInZone('groundArena', context.player1);
-            expect(context.vanguardAce).toBeInZone('spaceArena', context.player1);
-            expect(context.jawaScavenger).toBeInZone('groundArena', context.player1);
-            expect(context.wingLeader).toBeInZone('spaceArena', context.player1);
-            expect(context.outlandTieVanguard).toBeInZone('spaceArena', context.player1);
-            expect(context.porg).toBeInZone('groundArena', context.player1);
-            expect(context.wampa).toBeInZone('groundArena', context.player1);
-            expect(context.awing).toBeInZone('spaceArena', context.player1);
+            expect(context.atst).toBeInZone('discard', context.player2);
             expect(context.lurkingTiePhantom).toBeInZone('spaceArena', context.player2);
-            expect(context.grandInquisitor).toBeInZone('groundArena', context.player1);
-            expect(context.hanSolo).toBeInZone('groundArena', context.player2);
-            expect(context.preVizsla).toBeInZone('groundArena', context.player1);
-            expect(context.consularSecurityForce).toBeInZone('groundArena', context.player2);
-            expect(context.snowspeeder).toBeInZone('groundArena', context.player2);
+        });
+
+        it('can also select undefeatable unit but make token only for resolved event (Rey)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['pre-vizsla#strongwilled-ruler'],
+                },
+                player2: {
+                    groundArena: [{ card: 'atst', damage: 6 }, { card: 'rey#skywalker', damage: 7 }],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.preVizsla);
+            expect(context.player1).toHavePrompt('Choose any number of non-leader units with a total of 6 or less remaining HP');
+            expect(context.player1).toHaveChooseNothingButton();
+
+            context.player1.clickCard(context.rey);
+            context.player1.clickCard(context.atst);
+            context.player1.clickPrompt('Done');
+
+            const mandalorians = context.player1.findCardsByName('mandalorian');
+
+            expect(mandalorians.length).toBe(1);
+            expect(mandalorians[0]).toBeInZone('groundArena', context.player1);
+
+            expect(context.atst).toBeInZone('discard', context.player2);
+            expect(context.rey).toBeInZone('groundArena', context.player2);
+
+            expect(context.getChatLogs(5)).toContainArray([
+                'player2 uses Rey to cancel the effects of Pre Vizsla',
+                'player1 uses Pre Vizsla to create a Mandalorian token'
+            ]);
         });
 
         it('should be able to be passed', async function () {

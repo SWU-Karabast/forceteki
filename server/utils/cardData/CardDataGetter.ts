@@ -96,9 +96,11 @@ export abstract class CardDataGetter {
             [TokenUnitName.XWing]: await getCardAsync('xwing'),
             [TokenUnitName.Spy]: await getCardAsync('spy'),
             [TokenUnitName.Mandalorian]: await getCardAsync('mandalorian'),
+            [TokenUnitName.Beast]: await getCardAsync('beast'),
             [TokenUpgradeName.Experience]: await getCardAsync('experience'),
             [TokenUpgradeName.Shield]: await getCardAsync('shield'),
             [TokenUpgradeName.Advantage]: await getCardAsync('advantage'),
+            [TokenUpgradeName.Weakness]: await getCardAsync('weakness'),
             [TokenCardName.Force]: await getCardAsync('the-force'),
             [TokenCardName.Credit]: await getCardAsync('credit'),
         };
@@ -112,9 +114,11 @@ export abstract class CardDataGetter {
             [TokenUnitName.XWing]: getCard('xwing'),
             [TokenUnitName.Spy]: getCard('spy'),
             [TokenUnitName.Mandalorian]: getCard('mandalorian'),
+            [TokenUnitName.Beast]: getCard('beast'),
             [TokenUpgradeName.Experience]: getCard('experience'),
             [TokenUpgradeName.Shield]: getCard('shield'),
             [TokenUpgradeName.Advantage]: getCard('advantage'),
+            [TokenUpgradeName.Weakness]: getCard('weakness'),
             [TokenCardName.Force]: getCard('the-force'),
             [TokenCardName.Credit]: getCard('credit'),
         };

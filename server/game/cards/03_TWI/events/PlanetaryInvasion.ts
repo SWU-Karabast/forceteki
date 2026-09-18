@@ -22,6 +22,7 @@ export default class PlanetaryInvasion extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.ready(),
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                        title: `Gets +1/+0 and gains ${TextHelper.Overwhelm} for this phase`,
                         effect: [
                             AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 }),
                             AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm)
