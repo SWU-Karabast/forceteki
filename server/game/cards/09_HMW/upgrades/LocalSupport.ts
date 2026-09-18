@@ -19,16 +19,17 @@ export default class LocalSupport extends UpgradeCard {
                 promptedPlayer: RelativePlayer.Self,
                 target: context.player.getTopCardOfDeck()
             })),
-            then: (thenContext) => ({
-                title: 'Draw the top card of your deck',
-                thenCondition: () => {
-                    const revealedCard = thenContext.events[0]?.cards?.[0];
-                    return revealedCard != null && thenContext.player.isTraitInPlay([...revealedCard.traits]);
-                },
-                immediateEffect: AbilityHelper.immediateEffects.drawSpecificCard({
-                    target: thenContext.player.getTopCardOfDeck()
-                })
-            })
+            ifYouDo: (ifYouDoContext) => {
+                const revealedCard = ifYouDoContext.target ?? ifYouDoContext.events[0]?.cards?.[0];
+
+                return {
+                    title: revealedCard ? `Draw ${revealedCard.title}` : 'Draw the revealed card',
+                    ifYouDoCondition: () => revealedCard != null && ifYouDoContext.player.isTraitInPlay([...revealedCard.traits]),
+                    immediateEffect: AbilityHelper.immediateEffects.drawSpecificCard({
+                        target: revealedCard
+                    })
+                };
+            }
         });
     }
 }

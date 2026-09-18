@@ -23,5 +23,32 @@ describe('Migrate', function() {
             const p2Beast = context.player2.findCardsByName('beast');
             expect(p2Beast.length).toBe(0);
         });
+
+        it('Migrates\'s ability should create a Beast token for every 3 resources they control', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['migrate'],
+                    base: 'echo-base',
+                    resources: 2,
+                    credits: 1
+                },
+                player2: {
+                    resources: 6
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.migrate);
+            context.player1.clickPrompt('Use 1 Credit');
+
+            expect(context.player2).toBeActivePlayer();
+            const p1Beast = context.player1.findCardsByName('beast');
+            expect(p1Beast.length).toBe(0);
+
+            const p2Beast = context.player2.findCardsByName('beast');
+            expect(p2Beast.length).toBe(0);
+        });
     });
 });
