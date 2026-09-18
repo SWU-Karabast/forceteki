@@ -15,23 +15,20 @@ export default class InsurgentCamp extends UpgradeCard {
         registrar.addTriggeredAbility({
             title: 'Defeat this upgrade to ready that unit',
             contextTitle: (context) => `Defeat this upgrade to ready ${context.event.card.title}`,
+            optional: true,
             when: {
                 onCardPlayed: (event, context) =>
                     event.cardTypeWhenInPlay === CardType.BasicUnit &&
+                    (event.card.isInPlay() && event.card.getPower() <= 3) &&
                     event.player === context.player
             },
-            optional: true,
-            immediateEffect: abilityHelper.immediateEffects.conditional({
-                // NOTE: This may need to be adjusted in the event the card receives an errata to be in line with Neel
-                condition: (context) => context.event.card.getPower() <= 3,
-                onTrue: abilityHelper.immediateEffects.defeat((context) => ({ target: context.source }))
-            }),
-            ifYouDo: {
-                title: 'Ready that unit',
-                immediateEffect: abilityHelper.immediateEffects.ready((context) => ({
-                    target: context.event.card,
-                }))
-            }
+            immediateEffect: abilityHelper.immediateEffects.defeat((context) => ({ target: context.source })),
+            ifYouDo: (ifYouDoContext) => ({
+                title: `Ready ${ifYouDoContext.event.card.title}`,
+                immediateEffect: abilityHelper.immediateEffects.ready({
+                    target: ifYouDoContext.event.card,
+                })
+            })
         });
     }
 }
