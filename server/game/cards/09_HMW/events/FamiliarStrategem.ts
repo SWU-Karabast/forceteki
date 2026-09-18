@@ -13,7 +13,7 @@ export default class FamiliarStrategem extends EventCard {
 
     public override setupCardAbilities (registrar: IEventAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Attack with a unit. If it shares a trait with another friendly unit, it gets +2/+0 for this attack.',
+            title: 'Attack with a unit. If it shares a Trait with another friendly unit, it gets +2/+0 for this attack.',
             initiateAttack: {
                 attackerLastingEffects: {
                     effect: abilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }),
