@@ -22,21 +22,19 @@ export default class EmerieKarrForYourOwnGood extends NonLeaderUnitCard {
                 cardCondition: (card, context) => card !== context.source,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
             },
-            ifYouDo: (ifYouDoContext) => ({
+            ifYouDo: {
                 title: `The next unit you play this phase costs ${TextHelper.resource(1)}`,
-                immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: ifYouDoContext?.target.controller === ifYouDoContext.source.controller,
-                    onTrue: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
-                        ongoingEffectDescription: 'discount the next unit played by',
-                        ongoingEffectTargetDescription: 'them',
-                        effect: AbilityHelper.ongoingEffects.decreaseCost({
-                            cardTypeFilter: WildcardCardType.Unit,
-                            limit: AbilityHelper.limit.perPlayerPerGame(1),
-                            amount: 1
-                        })
-                    }),
+                ifYouDoCondition: (context) => context.target.controller === context.source.controller,
+                immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
+                    ongoingEffectDescription: 'discount the next unit played by',
+                    ongoingEffectTargetDescription: 'them',
+                    effect: AbilityHelper.ongoingEffects.decreaseCost({
+                        cardTypeFilter: WildcardCardType.Unit,
+                        limit: AbilityHelper.limit.perPlayerPerGame(1),
+                        amount: 1
+                    })
                 })
-            })
+            }
         });
     }
 }
