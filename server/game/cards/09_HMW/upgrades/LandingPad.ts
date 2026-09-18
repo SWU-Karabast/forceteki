@@ -13,7 +13,7 @@ export default class LandingPad extends UpgradeCard {
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addGainConstantAbilityTargetingAttached({
-            title: 'Friendly space units gain +1/+0',
+            title: 'Friendly space units get +1/+0',
             gainCondition: (context) => context.source.parentCard?.isBase(),
             matchTarget: (card, context) =>
                 card.controller === context.player && card.isUnit() && card.zoneName === ZoneName.SpaceArena,
