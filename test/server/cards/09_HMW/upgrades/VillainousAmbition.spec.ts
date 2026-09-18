@@ -17,10 +17,9 @@ describe('Villainous Ambition', function() {
 
             context.player1.clickCard(context.villainousAmbition);
             context.player1.clickCard(context.pykeSentinel);
-            expect(context.player1).toHavePassAbilityButton();
-            context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.pykeSentinel, context.cartelSpacer]);
+            expect(context.player1).toHavePassAbilityButton();
 
             context.player1.clickCard(context.atst);
 
@@ -51,7 +50,7 @@ describe('Villainous Ambition', function() {
             expect(context.atst.damage).toBe(0);
         });
 
-        it('Villainous Ambition\'s ability should not trigger if played on a non villain', async function () {
+        it('Villainous Ambition\'s ability should not trigger if played on a non villainy unit', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {

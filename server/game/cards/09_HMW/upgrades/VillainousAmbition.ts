@@ -15,13 +15,13 @@ export default class VillainousAmbition extends UpgradeCard {
         registrar.addWhenPlayedAbility({
             title: 'Deal 2 damage to a unit',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.parentUnit?.hasSomeAspect(Aspect.Villainy),
-                onTrue: AbilityHelper.immediateEffects.selectCard({
-                    cardTypeFilter: WildcardCardType.Unit,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
+            targetResolver: {
+                cardTypeFilter: WildcardCardType.Unit,
+                immediateEffect: AbilityHelper.immediateEffects.conditional({
+                    condition: (context) => context.source.parentUnit?.hasSomeAspect(Aspect.Villainy),
+                    onTrue: AbilityHelper.immediateEffects.damage({ amount: 2 })
                 })
-            })
+            }
         });
     }
 }
