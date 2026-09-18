@@ -7,7 +7,7 @@ describe('Gungi, Fighting for Kashyyyk', function () {
                         phase: 'action',
                         player1: {
                             hand: ['daring-raid', 'wampa'],
-                            groundArena: [{card: 'gungi#fighting-for-kashyyyk', exhausted: true }]
+                            groundArena: [{ card: 'gungi#fighting-for-kashyyyk', exhausted: true }]
                         }
                     });
                     const { context } = contextRef;
