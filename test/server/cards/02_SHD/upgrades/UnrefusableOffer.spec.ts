@@ -266,45 +266,49 @@ describe('Unrefusable Offer', function () {
             expect(context.sabineWren).toBeInZone('discard');
         });
 
+        // NOTE: Unrefusable Offer + Superlaser Technician "don't play well together" / are mutually
+        // exclusive (rulings). This drafted test is disabled because of a "multiple trigger which play
+        // the same card" issue in the engine — both Unrefusable Offer's Bounty and Superlaser
+        // Technician's own When Defeated try to play the same defeated unit. Left as xit pending a fix.
         // TODO FIX MULTIPLE TRIGGER WHICH PLAY THE SAME CARD
-        // it('Unrefusable Offer\'s Bounty ability should play defeated unit (enters ready) and defeat it at the start of regroup phase', async function () {
-        //     await contextRef.setupTestAsync({
-        //         phase: 'action',
-        //         player1: {
-        //             hand: ['unrefusable-offer'],
-        //             groundArena: ['wampa'],
-        //         },
-        //         player2: {
-        //             groundArena: ['superlaser-technician']
-        //         }
-        //     });
-        //
-        //     const { context } = contextRef;
-        //
-        //     context.player1.clickCard(context.unrefusableOffer);
-        //     context.player1.clickCard(context.superlaserTechnician);
-        //
-        //     context.player2.passAction();
-        //
-        //     context.player1.clickCard(context.wampa);
-        //     context.player1.clickCard(context.superlaserTechnician);
-        //     context.player1.clickPrompt('You');
-        //     expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it');
-        //     context.player1.clickPrompt('Trigger');
-        //
-        //     expect(context.player2).toBeActivePlayer();
-        //     expect(context.superlaserTechnician).toBeInZone('groundArena');
-        //     expect(context.superlaserTechnician.exhausted).toBeFalse();
-        //
-        //     context.setDamage(context.p2Base, 0);
-        //     context.player2.passAction();
-        //
-        //     context.player1.clickCard(context.superlaserTechnician);
-        //     context.player1.clickCard(context.p2Base);
-        //     expect(context.p2Base.damage).toBe(3);
-        //
-        //     context.moveToNextActionPhase();
-        //     expect(context.superlaserTechnician).toBeInZone('discard');
-        // });
+        xit('Unrefusable Offer\'s Bounty ability should play defeated unit (enters ready) and defeat it at the start of regroup phase', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['unrefusable-offer'],
+                    groundArena: ['wampa'],
+                },
+                player2: {
+                    groundArena: ['superlaser-technician']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.unrefusableOffer);
+            context.player1.clickCard(context.superlaserTechnician);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.superlaserTechnician);
+            context.player1.clickPrompt('You');
+            expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.superlaserTechnician).toBeInZone('groundArena');
+            expect(context.superlaserTechnician.exhausted).toBeFalse();
+
+            context.setDamage(context.p2Base, 0);
+            context.player2.passAction();
+
+            context.player1.clickCard(context.superlaserTechnician);
+            context.player1.clickCard(context.p2Base);
+            expect(context.p2Base.damage).toBe(3);
+
+            context.moveToNextActionPhase();
+            expect(context.superlaserTechnician).toBeInZone('discard');
+        });
     });
 });

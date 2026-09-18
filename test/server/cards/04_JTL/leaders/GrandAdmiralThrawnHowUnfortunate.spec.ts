@@ -763,6 +763,24 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 context.player1.clickCard(context.p2Base);
                 expect(context.player1).toBeActivePlayer();
             });
+
+            // Ruling 2025-09-29: choosing to resolve an ability counts as "using" it, so Thrawn's
+            // doubling triggers even if Thrawn himself is defeated as part of that ability (e.g. he is
+            // the friendly unit chosen by Arihnda Pryce's When Defeated).
+            xit('still triggers Thrawn\'s doubling when Thrawn is the unit defeated by the When Defeated ability he is doubling', function () {
+                // Deployed Thrawn is in play alongside Arihnda Pryce. Pryce is defeated; her When
+                // Defeated ("defeat another friendly unit, then deal 4 to each enemy base") is used and
+                // chooses Thrawn as the friendly unit to defeat. Thrawn's "use that ability again" still
+                // triggers because using the ability already occurred, even though Thrawn left play.
+            });
+
+            // Ruling 2025: Thrawn only doubles abilities that explicitly say "When Defeated". A
+            // defeat-triggered ability worded differently (e.g. Gideon Hask's ability) is not doubled.
+            xit('does not double a defeat-triggered ability that is not worded "When Defeated" (Gideon Hask)', function () {
+                // Deployed Thrawn is in play alongside Gideon Hask. Hask's defeat-triggered ability
+                // resolves, but since it is not literally a "When Defeated" ability, Thrawn does not
+                // offer to use it again.
+            });
         });
     });
 });

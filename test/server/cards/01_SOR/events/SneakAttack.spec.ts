@@ -149,6 +149,41 @@ describe('Sneak Attack', function() {
                 expect(context.game.currentPhase).toBe('regroup');
             });
 
+            // Ruling 2025-03-25: a unit played with Sneak Attack is defeated at the start of the
+            // regroup phase as long as it's still in play. Attaching it as a pilot upgrade (e.g. via
+            // Corvus) does not remove it from play, so the delayed effect still defeats it.
+            it('should defeat a unit played via Sneak Attack that was attached as a pilot upgrade before regroup', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['sneak-attack', 'iden-versio#adapt-or-die', 'corvus#inferno-squadron-raider'],
+                        base: 'administrators-tower',
+                        leader: 'darth-vader#dark-lord-of-the-sith',
+                        resources: 12
+                    },
+                    player2: {}
+                });
+
+                const { context } = contextRef;
+
+                // Play Iden (a Pilot unit) via Sneak Attack
+                context.player1.clickCard(context.sneakAttack);
+                context.player1.clickCard(context.idenVersio);
+                expect(context.idenVersio).toBeInZone('groundArena');
+
+                context.player2.passAction();
+
+                // Play Corvus and use its When Played to attach Iden as a pilot upgrade
+                context.player1.clickCard(context.corvus);
+                context.player1.clickCard(context.idenVersio);
+                expect(context.idenVersio.parentCard).toBe(context.corvus); // Iden is now an upgrade on Corvus
+
+                // At the start of the regroup phase, Iden is still in play (as an upgrade) and is
+                // defeated by Sneak Attack's delayed effect
+                context.moveToRegroupPhase();
+                expect(context.idenVersio).toBeInZone('discard');
+            });
+
             it('should not defeat Sabine if she is waylay back in hand and played back the same phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -177,6 +212,17 @@ describe('Sneak Attack', function() {
                 context.player1.clickCard(context.sabineWren);
                 context.nextPhase();
                 expect(context.sabineWren).toBeInZone('groundArena');
+            });
+
+            // Ruling 2026-05-06: the start of the regroup phase is a single moment in time. If a unit
+            // is rescued at that moment (because Sneak Attack's delayed effect defeats the guarding
+            // unit), it is not in play in time to see the "when the regroup phase starts" trigger window,
+            // so its own start-of-regroup ability does not trigger.
+            xit('does not trigger a rescued unit\'s "when the regroup phase starts" ability when it is freed at regroup start', function () {
+                // Play Discerning Veteran via Sneak Attack, capturing an enemy Contracted Hunter. At the
+                // start of the regroup phase, Sneak Attack's delayed effect defeats Discerning Veteran,
+                // rescuing Contracted Hunter at that same moment. Contracted Hunter's "When the regroup
+                // phase starts: Defeat this unit" does NOT trigger, since it was not in play to see it.
             });
         });
     });

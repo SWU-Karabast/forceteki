@@ -110,5 +110,13 @@ describe('Lando Calrissian With Impeccable Taste', function () {
             expect(context.protector).toBeInZone('discard');
             expect(context.player1.readyResourceCount).toBe(4);
         });
+
+        // Ruling 2024: when Lando's leader ability is used to play a unit with Ambush via Timely
+        // Intervention, the "defeat a resource you own and control" cost is paid before the Ambush
+        // attack from the played unit resolves.
+        xit('defeats the resource prior to resolving Ambush when playing a unit via Timely Intervention', function () {
+            // Use Lando's leader ability to play Timely Intervention, which plays a unit with Ambush
+            // from hand. The resource is defeated (Lando's cost) before the Ambush attack resolves.
+        });
     });
 });

@@ -251,5 +251,53 @@ describe('DJ, Blatant Thief', function() {
 
         // TODO: test with Endless Legions to confirm that DJ doesn't take control of the card back after it's played
         // TODO: test with Endless Legions to confirm that the DJ ability doesn't trigger if he is played
+
+        // Ruling 2024: defeating DJ via the uniqueness rule (playing a second copy) still counts as
+        // leaving play, so the stolen resource reverts to its owner — you cannot keep it permanently.
+        it('returns the stolen resource to its owner when DJ is defeated by the uniqueness rule', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'chopper-base',
+                    leader: 'han-solo#audacious-smuggler',
+                    hand: ['dj#blatant-thief'],
+                    resources: [
+                        'dj#blatant-thief', 'atst', 'atst', 'atst', 'atst',
+                        'atst', 'atst', 'atst', 'atst', 'atst'
+                    ]
+                },
+                player2: {
+                    groundArena: ['atat-suppressor'],
+                    resources: 10
+                }
+            });
+
+            const { context } = contextRef;
+
+            const djToSmuggle = context.player1.findCardsByName('dj#blatant-thief').find((c) => c.zoneName === 'resource');
+            const djInHand = context.player1.findCardsByName('dj#blatant-thief').find((c) => c.zoneName === 'hand');
+
+            // Smuggle-play the first DJ; he steals a ready enemy resource
+            context.player1.clickCard(djToSmuggle);
+            expect(context.player1.resources.length).toBe(11);
+            expect(context.player2.resources.length).toBe(9);
+            const stolenResource = context.player1.resources.find((r) => r.owner === context.player2Object);
+            expect(stolenResource).toBeTruthy();
+
+            context.player2.passAction();
+
+            // Ready resources so the second DJ can be afforded, then play him from hand
+            context.player1.readyResources(11);
+            context.player1.clickCard(djInHand);
+
+            // Uniqueness rule: choose to defeat the first DJ (the one that stole the resource)
+            expect(context.player1).toHavePrompt('Choose which copy of DJ, Blatant Thief to defeat');
+            context.player1.clickCard(djToSmuggle);
+
+            // The stolen resource reverts to its owner when the first DJ leaves play
+            expect(stolenResource.controller).toBe(context.player2Object);
+            expect(context.player1.resources.length).toBe(10);
+            expect(context.player2.resources.length).toBe(10);
+        });
     });
 });

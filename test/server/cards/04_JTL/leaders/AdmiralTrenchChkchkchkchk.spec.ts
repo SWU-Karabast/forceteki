@@ -376,5 +376,12 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
             expect(context.admiralTrench.exhausted).toBeTrue();
             expect(context.admiralTrench).toBeInZone('base');
         });
+
+        // Ruling 2025: deploying Admiral Trench with an empty deck does not deal damage to your own
+        // base (the "draw a card / empty-deck damage" portion is skipped when there is nothing to draw).
+        xit('does not deal damage to your own base when deployed with an empty deck', function () {
+            // Deploy Admiral Trench while your deck is empty. The deploy ability resolves without
+            // dealing the empty-deck draw damage to your own base.
+        });
     });
 });

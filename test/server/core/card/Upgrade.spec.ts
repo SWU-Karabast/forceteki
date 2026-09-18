@@ -219,6 +219,19 @@ describe('Upgrade cards', function() {
             expect(context.academyTraining).not.toHaveAvailableActionWhenClickedBy(context.player1);
         });
 
+        describe('When an upgrade\'s host later becomes ineligible', function() {
+            // Ruling 2025: upgrade eligibility is checked whenever the upgrade is attached (or moved),
+            // but the upgrade does NOT fall off if the host later becomes invalid. For example, an
+            // upgrade with the restriction "Attach to a Force unit" stays attached even if the host
+            // temporarily loses the Force trait.
+            xit('stays attached when the host loses the trait its attachment restriction requires', function () {
+                // Attach an upgrade with a trait-based attachment restriction (e.g. "Attach to a Force
+                // unit") to a valid host. The host then loses that trait (e.g. via a lasting effect that
+                // removes the Force trait). The upgrade remains attached — eligibility is not re-checked
+                // after attachment.
+            });
+        });
+
         describe('When an upgrade is moved', function() {
             it('respects the targeting restrictions', async function() {
                 await contextRef.setupTestAsync({

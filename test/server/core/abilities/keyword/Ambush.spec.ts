@@ -160,5 +160,20 @@ describe('Ambush keyword', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
+        describe('When Ambush triggers nested inside an ongoing attack', function() {
+            // Ruling 2026-02-10: an Ambush triggered during an opponent's attack (e.g. tokens created by
+            // a defender's When Defeated, entering with Ambush) is nested and resolves within that
+            // attack. Because the attack is still ongoing, all "while attacking" abilities — including
+            // Raid — remain active on the attacker during the nested ambush.
+            xit('resolves the nested ambush within the attack, with the attacker\'s "while attacking" abilities (Raid) still active', function () {
+                // Player A controls a stolen Wedge Antilles (friendly Vehicles get +1/+1 and Ambush) and
+                // Chimaera (When Defeated: create 2 TIE Fighter tokens) at near-lethal HP. Player B
+                // attacks with a Jedi Starfighter (Clone Cohort attached, Raid 2) into Chimaera and uses
+                // its On Attack to defeat Chimaera. Player A's 2 TIE tokens enter with Ambush (nested) and
+                // ambush into the attacking Jedi Starfighter, which still has its Raid bonus because
+                // Player B's attack is still ongoing.
+            });
+        });
     });
 });

@@ -469,6 +469,16 @@ describe('Kylo Ren, We\'re Not Done Yet', function () {
                 expect(context.kyloRen).toBeInZone('groundArena');
                 expect(context.player2).toBeActivePlayer();
             });
+
+            // Ruling 2025-09-29: "Play any number of upgrades" does not fix the legal set at the start;
+            // it re-checks legal choices each time you play one. So an upgrade that entered the discard
+            // pile during resolution (e.g. discarded from hand by a nested trigger) can then be played.
+            xit('can play an upgrade that entered the discard pile during resolution of the When Deployed trigger', function () {
+                // Deploy Kylo with upgrades in discard whose triggers, when played, discard another
+                // upgrade from hand (e.g. Snapshot Reflexes' on-attack via Battle Fury discards Sith
+                // Holocron). That newly-discarded upgrade can then be played on Kylo as the same
+                // "play any number" ability continues resolving.
+            });
         });
     });
 });

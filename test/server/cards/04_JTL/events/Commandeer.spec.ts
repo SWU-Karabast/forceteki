@@ -60,5 +60,17 @@ describe('Commandeer', function() {
                 expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
             });
         });
+
+        describe('Commandeer played on a unit you already control', function() {
+            // Ruling 2025-03-25: you can choose a unit you already control with Commandeer. Since you
+            // don't take control of it, the "if you do, ready it" clause does not apply (it is not
+            // readied). The final sentence is not under "if you do," so it is still returned to its
+            // owner's hand at the start of the next regroup phase.
+            xit('does not ready the unit but still returns it to its owner\'s hand at regroup', function () {
+                // Player 1 controls an exhausted friendly Vehicle (cost 6 or less, no Pilot) and plays
+                // Commandeer targeting it. It stays exhausted (not readied) but is still returned to
+                // Player 1's hand at the start of the next regroup phase.
+            });
+        });
     });
 });

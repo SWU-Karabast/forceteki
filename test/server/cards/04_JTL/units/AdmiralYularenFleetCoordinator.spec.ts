@@ -245,5 +245,17 @@ describe('Admiral Yularen, Fleet Coordinator', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
+        describe('Admiral Yularen\'s keyword grant and later-played Vehicles', function() {
+            // Ruling 2025-09-29 (errata since applied): Yularen's lasting effect functions like a
+            // constant ability (like SOR Admiral Piett). It grants the chosen keyword to friendly
+            // Vehicles already in play AND to friendly Vehicles played after his ability triggers, for
+            // as long as Yularen remains in play.
+            xit('grants the chosen keyword to a friendly Vehicle played after Yularen\'s ability triggers', function () {
+                // Play Yularen and choose a keyword. Then play another friendly Vehicle unit later that
+                // phase. The later-played Vehicle should also gain the chosen keyword while Yularen is in
+                // play (constant-ability behavior, per the errata).
+            });
+        });
     });
 });

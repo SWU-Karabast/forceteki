@@ -138,6 +138,18 @@ describe('L3-37, Get Out of my seat', function() {
 
                 expect(context.player1).toBeActivePlayer();
             });
+
+            // Ruling 2025-09-29: a pending triggered ability that defeats "it" still defeats L3-37 even
+            // after she changes from a unit into an upgrade via her replacement effect — she is the same
+            // game object and is still in play as an upgrade. (Same principle as Iden + Corvus + Sneak
+            // Attack.)
+            xit('is still defeated by Heroic Sacrifice\'s "Defeat it" after becoming a pilot upgrade', function () {
+                // L3-37 is in play as a unit with a friendly Vehicle (no Pilot) available. Play Heroic
+                // Sacrifice to attack with L3-37 (gains "When this unit deals combat damage: Defeat it").
+                // She would be defeated in combat, so her replacement attaches her as a pilot upgrade to
+                // the Vehicle. When Heroic Sacrifice's "Defeat it" resolves, the L3-37 upgrade is still
+                // defeated, since it is the same game object still in play.
+            });
         });
     });
 });

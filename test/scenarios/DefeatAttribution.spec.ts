@@ -543,6 +543,21 @@ describe('Defeat attribution', function () {
             });
         });
 
+        describe('When an HP-providing upgrade is defeated,', function() {
+            // Ruling 2025-04-30: attaching or removing an upgrade from a unit can count as changing the
+            // remaining HP of that unit for the purpose of defeat responsibility (CR 1.18.1.D — the
+            // player who most recently changed the unit's remaining HP is responsible for it being
+            // defeated). So defeating an upgrade that was providing HP (dropping the unit to 0 remaining
+            // HP) makes the player who defeated that upgrade responsible for defeating the unit.
+            xit('the player who defeats the HP-providing upgrade is responsible for the resulting unit defeat', function () {
+                // A unit is only alive because of an upgrade granting it +HP (its remaining HP would be 0
+                // without the upgrade). An opponent defeats that upgrade, dropping the unit to 0 remaining
+                // HP and defeating it. That opponent is considered responsible for defeating the unit
+                // (e.g. for Bounty / "if you defeated a unit this phase" effects), because removing the
+                // upgrade counts as most recently changing the unit's remaining HP.
+            });
+        });
+
         // TODO add test for 'A Fine Addition'
         // TODO add more tests around Jango potentially
     });

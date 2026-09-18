@@ -271,5 +271,13 @@ describe('A Fine Addition', function () {
                 ]);
             });
         });
+
+        // Ruling: A Fine Addition may not be played as a "soft pass" if an eligible target upgrade
+        // exists in any player's discard — when an enemy was defeated this phase and a playable upgrade
+        // is available, the player must play one and cannot choose nothing / pass.
+        xit('cannot be played as a soft pass when an eligible upgrade exists in a discard pile', function () {
+            // An enemy was defeated this phase and an eligible upgrade exists in a discard pile. Playing
+            // A Fine Addition must play an upgrade — there is no "Choose nothing" / pass option.
+        });
     });
 });

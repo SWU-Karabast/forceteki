@@ -134,5 +134,25 @@ describe('Gar Saxon, Viceroy of Mandalore', function() {
             expect(context.player1.handSize).toBe(2);
             expect(context.daggerSquadronPilot).toBeInZone('hand');
         });
+
+        // Ruling 2026-05-06: whether Gar Saxon's granted "When Defeated: return an upgrade" applies to a
+        // second defeated unit depends on damage timing. With "then" (sequential), Gar dies first and
+        // his aura is gone before the second unit dies, so it can't return its upgrade. With "and" /
+        // multi-unit damage (simultaneous, 1.9.8), both units die while still upgraded, so the second
+        // unit's granted When Defeated still applies and can return its upgrade.
+        describe('Gar Saxon\'s granted When Defeated vs simultaneous/sequential damage', function () {
+            xit('does NOT let the second unit return its upgrade when damage is sequential ("then" — Let\'s Call It War)', function () {
+                // Gar (with an upgrade) and an upgraded Supercommando Squad both at lethal-ish HP. Let's
+                // Call It War deals damage to Gar, THEN to the Squad. Gar is defeated first, his aura
+                // ends, so when the Squad is defeated it no longer has the granted When Defeated and
+                // cannot return its upgrade.
+            });
+
+            xit('DOES let the second unit return its upgrade when damage is simultaneous (Grenade Strike / Unlimited Power)', function () {
+                // Gar (with an upgrade) and an upgraded Supercommando Squad. Grenade Strike (or Unlimited
+                // Power) deals damage to both simultaneously (1.9.8). Both are defeated while still
+                // upgraded, so the Squad's granted When Defeated still applies and returns its upgrade.
+            });
+        });
     });
 });
