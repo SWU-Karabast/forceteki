@@ -9,7 +9,7 @@ export default class CoronaSquadronXWing extends NonLeaderUnitCard {
             id: '6727635998',
             internalName: 'corona-squadron-xwing'
         };
-    } // TODO: Fix player targeting system for readying resources
+    }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
