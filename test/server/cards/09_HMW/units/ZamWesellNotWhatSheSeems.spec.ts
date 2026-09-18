@@ -174,12 +174,13 @@ describe('Zam Wesell, Not What She Seems', function() {
                 expect(context.zamWesell.hasSomeTrait(Trait.Force)).toBeFalse();
             });
 
-            it('should gain traits from both a pilot leader deployed as an upgrade and its host Vehicle unit', async function() {
+            it('should gain traits from both a pilot leader deployed as an upgrade and its host Vehicle unit, and can herself hold a Pilot upgrade once she gains the Vehicle trait', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['zam-wesell#not-what-she-seems'],
                         spaceArena: ['alliance-xwing'],
+                        hand: ['dagger-squadron-pilot'],
                         leader: { card: 'major-vonreg#red-baron', deployed: false }
                     }
                 });
@@ -196,6 +197,138 @@ describe('Zam Wesell, Not What She Seems', function() {
                 // gained because the host is now a leader unit via the EffectName.IsLeader designation
                 expect(context.zamWesell.hasSomeTrait(Trait.FirstOrder)).toBeTrue();
                 expect(context.zamWesell.hasSomeTrait(Trait.Vehicle)).toBeTrue();
+
+                // Deploying the leader was player1's action for the turn; pass through player2's
+                // turn so player1 can act again
+                context.player2.passAction();
+
+                // Prove the gained Vehicle trait through gameplay: Piloting can only attach to a
+                // friendly Vehicle unit without a Pilot upgrade on it. Alliance X-Wing already has
+                // Major Vonreg attached as a Pilot, so Zam is the only eligible target here, and
+                // that is only possible because she now counts as a Vehicle unit.
+                context.player1.clickCard(context.daggerSquadronPilot);
+                context.player1.clickPrompt('Play Dagger Squadron Pilot with Piloting');
+                expect(context.player1).toBeAbleToSelectExactly([context.zamWesell]);
+                context.player1.clickCard(context.zamWesell);
+
+                expect(context.zamWesell).toHaveExactUpgradeNames(['dagger-squadron-pilot']);
+            });
+        });
+
+        describe('proving traits through game interactions', function() {
+            it('is a valid target for Wing Leader\'s When Played ability as a friendly Rebel unit, gained from an undeployed leader while in play', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['zam-wesell#not-what-she-seems'],
+                        hand: ['wing-leader'],
+                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: false }
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Chirrut is undeployed, so Zam (via her gained Rebel trait) is the only
+                // other friendly Rebel unit in play that Wing Leader can target
+                context.player1.clickCard(context.wingLeader);
+                expect(context.player1).toBeAbleToSelectExactly([context.zamWesell]);
+                context.player1.clickCard(context.zamWesell);
+
+                expect(context.zamWesell).toHaveExactUpgradeNames(['experience', 'experience']);
+            });
+
+            it('cannot be attached to by Bolstered Endurance, since her gained leader traits exclude Force', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['zam-wesell#not-what-she-seems'],
+                        hand: ['bolstered-endurance'],
+                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Deployed Chirrut is a friendly leader unit with the Force trait; Zam gains his
+                // Rebel trait but not Force, so only Chirrut himself is an eligible attach target
+                context.player1.clickCard(context.bolsteredEndurance);
+                expect(context.player1).toBeAbleToSelectExactly([context.chirrutImwe]);
+                context.player1.clickCard(context.chirrutImwe);
+
+                expect(context.bolsteredEndurance).toBeAttachedTo(context.chirrutImwe);
+            });
+
+            it('can be found by Psychometry for sharing her gained Rebel trait, even while she is in the discard pile', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['psychometry'],
+                        discard: ['zam-wesell#not-what-she-seems'],
+                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: false },
+                        // Fleet Lieutenant shares only the granted Rebel trait with Zam (not Underworld
+                        // or Bounty Hunter); the rest share no trait with her at all
+                        deck: ['fleet-lieutenant', 'mystic-reflection', 'krayt-dragon', 'wampa', 'moisture-farmer']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.psychometry);
+                expect(context.player1).toBeAbleToSelectExactly([context.zamWesell]);
+                context.player1.clickCard(context.zamWesell);
+
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.fleetLieutenant],
+                    invalid: [context.mysticReflection, context.kraytDragon, context.wampa, context.moistureFarmer]
+                });
+                context.player1.clickCardInDisplayCardPrompt(context.fleetLieutenant);
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.fleetLieutenant]);
+                context.player2.clickDone();
+
+                expect(context.fleetLieutenant).toBeInZone('hand');
+            });
+
+            it('gains the Hutt trait from a deployed Jabba the Hutt while in hand, and can attack the same phase when played with a Credit-granted Ambush', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['zam-wesell#not-what-she-seems'],
+                        leader: { card: 'jabba-the-hutt#crime-boss', deployed: true },
+                        credits: 1
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Hutt is not one of Zam's printed traits; she only has it because Jabba is a
+                // friendly leader, and the constant ability grants it even while she's in hand
+                expect(context.zamWesell).toBeInZone('hand');
+                expect(context.zamWesell.hasSomeTrait(Trait.Hutt)).toBeTrue();
+
+                // Zam's own printed Underworld trait qualifies her for Jabba's deployed unit-side
+                // action ability, which plays an Underworld unit from hand
+                context.player1.clickCard(context.jabbaTheHutt);
+                context.player1.clickPrompt('Play an Underworld unit unit from your hand');
+                context.player1.clickCard(context.zamWesell);
+
+                // Pay her cost with the Credit token, which conditionally grants Ambush for the phase
+                context.player1.clickPrompt('Use 1 Credit');
+                expect(context.zamWesell).toBeInZone('groundArena', context.player1);
+
+                // Resolve Ambush and prove it actually works by attacking the same phase, despite
+                // Zam having entered play exhausted
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // Combat damage was dealt on both sides, proving the attack actually resolved
+                expect(context.battlefieldMarine.damage).toBe(2);
+                expect(context.zamWesell.damage).toBe(3);
             });
         });
     });
