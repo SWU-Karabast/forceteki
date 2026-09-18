@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, StandardTriggeredAbilityType, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { Duration, RelativePlayer, StandardTriggeredAbilityType, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { Helpers } from '../../../core/utils/Helpers';
 
 export default class VernestraRwohWeShouldHandleThisOurselves extends NonLeaderUnitCard {
@@ -34,11 +34,21 @@ export default class VernestraRwohWeShouldHandleThisOurselves extends NonLeaderU
             title: 'This unit gains the "When Played" abilities of the chosen units for this phase',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => Helpers.asArray(context.costs[chosenUnitsCostName] ?? []).length > 0,
-                onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => {
+                onTrue: AbilityHelper.immediateEffects.cardLastingEffect((context) => {
                     const selectedCards = Helpers.asArray(context.costs[chosenUnitsCostName] ?? []) as Card[];
                     const cardTitlesList = selectedCards.map((card) => card.title).join(' and ');
+
                     return {
                         title: `Gain the "When Played" abilities of ${cardTitlesList} for this phase`,
+                        ongoingEffectDescription: `copy the "When Played" abilities of ${cardTitlesList} for this phase{0}`,
+                        ongoingEffectTargetDescription: '',
+                        // TODO: Using a custom duration here as a band-aid fix for GH Issue #2885
+                        duration: Duration.Custom,
+                        target: context.source,
+                        until: {
+                            onCardLeavesPlay: (event, context) => event.card === context.source,
+                            onPhaseEnded: () => true,
+                        },
                         effect: AbilityHelper.ongoingEffects.copyStandardTriggeredAbilities(selectedCards, StandardTriggeredAbilityType.WhenPlayed),
                     };
                 }),
