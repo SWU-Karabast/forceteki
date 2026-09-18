@@ -13,6 +13,16 @@ import { TriggeredAbilityResolutionPrompt } from '../prompts/TriggeredAbilityRes
 import { BatchTriggerResolutionPrompt } from '../prompts/BatchTriggerResolutionPrompt';
 import type { IResolutionChoice, ITriggerWindowSourceCard } from '../PromptInterfaces';
 
+/** Builds the lightweight card summary attached to trigger-style prompt buttons. */
+export function getTriggerSourceCardSummary(card: Card): ITriggerWindowSourceCard {
+    Contract.assertNotNullLike(card, 'Cannot build trigger source card summary for null card');
+
+    return {
+        ...card.getShortSummary(),
+        type: card.type
+    };
+}
+
 export abstract class TriggerWindowBase extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
     protected unresolved = new Map<Player, TriggeredAbilityContext[]>();
@@ -267,7 +277,7 @@ export abstract class TriggerWindowBase extends BaseStep {
     protected buildContextChoice(context: TriggeredAbilityContext): IResolutionChoice {
         return {
             getTitle: () => context.ability.getTitle(context),
-            getSourceCard: () => this.getSourceCardSummary(context.source),
+            getSourceCard: () => getTriggerSourceCardSummary(context.source),
             hasLegalEffects: () => context.ability.hasAnyLegalEffects(context, SubStepCheck.All),
             handler: () => this.resolveAbility(context),
         };
@@ -283,7 +293,7 @@ export abstract class TriggerWindowBase extends BaseStep {
         const first = members[0];
         return {
             getTitle: () => this.getGroupingTitle(first),
-            getSourceCard: () => this.getSourceCardSummary(first.source),
+            getSourceCard: () => getTriggerSourceCardSummary(first.source),
             hasLegalEffects: () => members.some((context) => context.ability.hasAnyLegalEffects(context, SubStepCheck.All)),
             count: members.length,
             handler: () => this.promptBatchResolution(members),
@@ -318,7 +328,7 @@ export abstract class TriggerWindowBase extends BaseStep {
         const player = this.currentlyResolvingPlayer;
 
         this.game.queueStep(new BatchTriggerResolutionPrompt(this.game, player, {
-            sourceCard: this.getSourceCardSummary(first.source),
+            sourceCard: getTriggerSourceCardSummary(first.source),
             title: this.getGroupingTitle(first),
             remainingCount: members.length,
             onResolveNext: () => {
@@ -332,17 +342,6 @@ export abstract class TriggerWindowBase extends BaseStep {
                 this.promptUnresolvedAbilities();
             },
         }));
-    }
-
-    protected getSourceCardSummary(card: Card): ITriggerWindowSourceCard | undefined {
-        if (!card?.isCard?.()) {
-            return undefined;
-        }
-
-        return {
-            ...card.getShortSummary(),
-            type: card.type
-        };
     }
 
     /** Get the set of yet-unresolved abilities for the player whose turn it is to do resolution */

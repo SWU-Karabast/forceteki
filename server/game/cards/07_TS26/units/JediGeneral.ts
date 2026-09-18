@@ -21,13 +21,10 @@ export default class JediGeneral extends NonLeaderUnitCard {
                 // upgrade like The Darksaber), so the effect scales in TwinSuns (two leaders) and when
                 // extra leaders are created — not just a single trooper.
                 condition: (context) => this.republicLeaderCount(context) > 0,
-                onTrue: abilityHelper.immediateEffects.createCloneTrooper((context) => ({ amount: this.republicLeaderCount(context) })),
-            }),
-            ifYouDo: (ifYouDoContext) => ({
-                title: 'Give each created token an Experience token',
-                immediateEffect: abilityHelper.immediateEffects.giveExperience({
-                    target: ifYouDoContext.resolvedEvents[0]?.generatedTokens,
-                })
+                onTrue: abilityHelper.immediateEffects.createCloneTrooper((context) => ({
+                    amount: this.republicLeaderCount(context),
+                    enterPlayEffect: abilityHelper.immediateEffects.giveExperience(),
+                })),
             }),
         });
     }

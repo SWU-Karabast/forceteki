@@ -55,6 +55,10 @@ class GameFlowWrapper {
         return playableCardTitles;
     }
 
+    getTraitNames() {
+        return this.game.traitNames;
+    }
+
     allPlayersInInitiativeOrder() {
         return [...this.allPlayers].sort((playerWrapper) => (this.game.initiativePlayer.id === playerWrapper.player.id ? -1 : 1));
     }

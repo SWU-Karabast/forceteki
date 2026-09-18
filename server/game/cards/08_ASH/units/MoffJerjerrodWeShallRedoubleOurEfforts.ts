@@ -8,7 +8,7 @@ import type { GameSystem } from '../../../core/gameSystem/GameSystem';
 import type { IPlayerTargetSystemProperties } from '../../../core/gameSystem/PlayerTargetSystem';
 import { Contract } from '../../../core/utils/Contract';
 import { EnumHelpers } from '../../../core/utils/EnumHelpers';
-import type { ICreateTokenUnitRequiredProperties } from '../../../gameSystems/CreateTokenUnitSystem';
+import type { ICreateTokenUnitProperties, ICreateTokenUnitRequiredProperties } from '../../../gameSystems/CreateTokenUnitSystem';
 
 export default class MoffJerjerrodWeShallRedoubleOurEfforts extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -51,10 +51,12 @@ export default class MoffJerjerrodWeShallRedoubleOurEfforts extends NonLeaderUni
         AbilityHelper: IAbilityHelper
     ): GameSystem<TriggeredAbilityContext<NonLeaderUnitCard>> {
         const { tokenType, amount, player } = context.event;
-        const doubledUnitTokenProperties: ICreateTokenUnitRequiredProperties & Pick<IPlayerTargetSystemProperties, 'target'> = {
+        const doubledUnitTokenProperties: ICreateTokenUnitRequiredProperties & Pick<IPlayerTargetSystemProperties, 'target'> & Pick<ICreateTokenUnitProperties, 'enterPlayEffect'> = {
             amount: amount * 2,
             entersReady: context.event.entersReady,
-            target: player
+            target: player,
+            // Forward the original creation's enter-play effect so each doubled token still receives it
+            enterPlayEffect: context.event.enterPlayEffect
         };
 
         const systemForToken: Record<TokenName, GameSystem<TriggeredAbilityContext<NonLeaderUnitCard>>> = {
@@ -65,11 +67,13 @@ export default class MoffJerjerrodWeShallRedoubleOurEfforts extends NonLeaderUni
             [TokenUnitName.TIEFighter]: AbilityHelper.immediateEffects.createTieFighter(doubledUnitTokenProperties),
             [TokenUnitName.Spy]: AbilityHelper.immediateEffects.createSpy(doubledUnitTokenProperties),
             [TokenUnitName.Mandalorian]: AbilityHelper.immediateEffects.createMandalorian(doubledUnitTokenProperties),
+            [TokenUnitName.Beast]: AbilityHelper.immediateEffects.createBeast(doubledUnitTokenProperties),
             // Upgrades: token upgrades are given as a single creation event spanning every affected unit (event.cards),
             // so double the amount for all of them at once
             [TokenUpgradeName.Shield]: AbilityHelper.immediateEffects.giveShield({ amount: amount * 2, target: context.event.cards }),
             [TokenUpgradeName.Experience]: AbilityHelper.immediateEffects.giveExperience({ amount: amount * 2, target: context.event.cards }),
             [TokenUpgradeName.Advantage]: AbilityHelper.immediateEffects.giveAdvantage({ amount: amount * 2, target: context.event.cards }),
+            [TokenUpgradeName.Weakness]: AbilityHelper.immediateEffects.giveWeakness({ amount: amount * 2, target: context.event.cards }),
             // Miscellaneous
             [TokenCardName.Credit]: AbilityHelper.immediateEffects.createCreditToken({ amount: amount * 2, target: player }),
             [TokenCardName.Force]: AbilityHelper.immediateEffects.theForceIsWithYou({ target: player }),

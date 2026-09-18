@@ -20,7 +20,7 @@ export default class Condemn extends UpgradeCard {
 
         registrar.addGainOnAttackAbilityTargetingAttached({
             title: `The defending player discloses ${TextHelper.aspectList(aspects)} to give this unit -6/-0 for this attack`,
-            gainCondition: (context) => context.source.parentCard?.isAttacking(),
+            gainCondition: (context) => context.source.parentUnit?.isAttacking(),
             immediateEffect: AbilityHelper.immediateEffects.disclose((context) => ({
                 activePromptTitle: `Disclose ${TextHelper.aspectList(aspects)} to give ${context.source.title} -6/-0 for this attack`,
                 aspects: aspects,
@@ -36,7 +36,7 @@ export default class Condemn extends UpgradeCard {
 
         registrar.addConstantAbilityTargetingAttached({
             title: 'While this unit is attacking, it loses all other abilities',
-            condition: (context) => context.source.parentCard.isAttacking(),
+            condition: (context) => context.source.parentUnit.isAttacking(),
             ongoingEffect: AbilityHelper.ongoingEffects.loseAllAbilitiesExceptFromSource()
         });
     }

@@ -331,7 +331,7 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
         }
 
-        // If the ability has no target resolvers, itcannot resolve without legal targets (e.g. bounties), and it has an immediate effect without a then effect.
+        // If the ability has no target resolvers, it cannot resolve without legal targets (e.g. bounties), and it has an immediate effect without a then effect.
         // we check if the immediate effect has any legal target so that the ability can be cancelled automatically if not.
         // This is useful for abilities with a "if you do not" effect to trigger it automatically without prompting the player
         // in case the ability effect has no legal target.

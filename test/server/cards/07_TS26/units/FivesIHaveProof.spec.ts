@@ -285,6 +285,37 @@ describe('Fives, I Have Proof!', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('cannot copy any When Played abilities when blanked in hand (Galen Erso)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['fives#i-have-proof'],
+                        resources: 20
+                    },
+                    player2: {
+                        hand: ['galen-erso#youll-never-win'],
+                        spaceArena: ['patrolling-vwing'],
+                        resources: 20
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                // Galen (player2's) names Fives, blanking him in player1's hand (including out of play)
+                context.player2.clickCard(context.galenErso);
+                context.player2.chooseListOption('Fives');
+
+                // Playing the blanked Fives offers no copy prompt: his pre-enter-play ability is gone
+                context.player1.clickCard(context.fives);
+
+                // Fives enters play as a vanilla unit; Patrolling V-Wing's "When Played: Draw a card" was not copied
+                expect(context.fives).toBeInZone('groundArena');
+                expect(context.player1.handSize).toBe(0);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should retain a copied "for this phase" lasting effect even after Fives is defeated', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

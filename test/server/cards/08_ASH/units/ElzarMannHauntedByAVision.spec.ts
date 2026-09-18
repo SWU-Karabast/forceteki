@@ -48,7 +48,7 @@ describe('Elzar Mann, Haunted by a Vision', function() {
 
                 // Elzar's ability triggers - decline to distribute tokens
                 expect(context.player1).toHavePrompt('Distribute 5 Advantage tokens among targets');
-                context.player1.setDistributeAmongTargetsPromptState(new Map(), 'distributeAdvantage');
+                context.player1.setDistributeTokenUpgradePromptState(new Map());
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -89,7 +89,7 @@ describe('Elzar Mann, Haunted by a Vision', function() {
 
                 // Elzar's ability triggers - decline to distribute tokens
                 expect(context.player1).toHavePrompt('Distribute 5 Advantage tokens among targets');
-                context.player1.setDistributeAmongTargetsPromptState(new Map(), 'distributeAdvantage');
+                context.player1.setDistributeTokenUpgradePromptState(new Map());
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -130,7 +130,7 @@ describe('Elzar Mann, Haunted by a Vision', function() {
 
                 // Elzar's ability triggers - decline to distribute tokens
                 expect(context.player1).toHavePrompt('Distribute 5 Advantage tokens among targets');
-                context.player1.setDistributeAmongTargetsPromptState(new Map(), 'distributeAdvantage');
+                context.player1.setDistributeTokenUpgradePromptState(new Map());
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -186,7 +186,7 @@ describe('Elzar Mann, Haunted by a Vision', function() {
 
                 // Elzar's ability triggers - decline to distribute tokens
                 expect(context.player1).toHavePrompt('Distribute 5 Advantage tokens among targets');
-                context.player1.setDistributeAmongTargetsPromptState(new Map(), 'distributeAdvantage');
+                context.player1.setDistributeTokenUpgradePromptState(new Map());
                 expect(context.player2).toBeActivePlayer();
             });
         });
@@ -234,11 +234,11 @@ describe('Elzar Mann, Haunted by a Vision', function() {
                     ]);
 
                     // Distribute 5 tokens spread across three units
-                    context.player1.setDistributeAmongTargetsPromptState(new Map([
+                    context.player1.setDistributeTokenUpgradePromptState(new Map([
                         [context.cloudCityWingGuard, 2],
                         [context.consularSecurityForce, 2],
                         [context.cartelSpacer, 1]
-                    ]), 'distributeAdvantage');
+                    ]));
 
                     // Verify tokens were distributed correctly
                     expect(context.cloudCityWingGuard).toHaveExactUpgradeNames(['advantage', 'advantage']);
@@ -269,9 +269,9 @@ describe('Elzar Mann, Haunted by a Vision', function() {
 
                     // Play Elzar Mann and stack all 5 tokens on one unit
                     context.player1.clickCard(context.elzarMann);
-                    context.player1.setDistributeAmongTargetsPromptState(new Map([
+                    context.player1.setDistributeTokenUpgradePromptState(new Map([
                         [context.cloudCityWingGuard, 5]
-                    ]), 'distributeAdvantage');
+                    ]));
 
                     expect(context.cloudCityWingGuard).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage', 'advantage', 'advantage']);
                     expect(context.consularSecurityForce).toHaveExactUpgradeNames([]);
@@ -288,10 +288,10 @@ describe('Elzar Mann, Haunted by a Vision', function() {
 
                     // Play Elzar Mann and distribute only 2 tokens
                     context.player1.clickCard(context.elzarMann);
-                    context.player1.setDistributeAmongTargetsPromptState(new Map([
+                    context.player1.setDistributeTokenUpgradePromptState(new Map([
                         [context.cloudCityWingGuard, 1],
                         [context.consularSecurityForce, 1]
-                    ]), 'distributeAdvantage');
+                    ]));
 
                     expect(context.cloudCityWingGuard).toHaveExactUpgradeNames(['advantage']);
                     expect(context.consularSecurityForce).toHaveExactUpgradeNames(['advantage']);
@@ -317,7 +317,7 @@ describe('Elzar Mann, Haunted by a Vision', function() {
 
                     // Play Elzar Mann and distribute 0 tokens
                     context.player1.clickCard(context.elzarMann);
-                    context.player1.setDistributeAmongTargetsPromptState(new Map(), 'distributeAdvantage');
+                    context.player1.setDistributeTokenUpgradePromptState(new Map());
 
                     // No search occurs — it is p2's turn immediately
                     expect(context.player2).toBeActivePlayer();
@@ -331,9 +331,9 @@ describe('Elzar Mann, Haunted by a Vision', function() {
 
                     // Play Elzar Mann and distribute 1 token → opponent searches top 2 cards
                     context.player1.clickCard(context.elzarMann);
-                    context.player1.setDistributeAmongTargetsPromptState(new Map([
+                    context.player1.setDistributeTokenUpgradePromptState(new Map([
                         [context.cloudCityWingGuard, 1]
-                    ]), 'distributeAdvantage');
+                    ]));
 
                     expect(context.cloudCityWingGuard).toHaveExactUpgradeNames(['advantage']);
 
@@ -372,9 +372,9 @@ describe('Elzar Mann, Haunted by a Vision', function() {
 
                 // Play Elzar Mann and distribute 3 tokens → opponent searches top 6 cards (2 × 3)
                 context.player1.clickCard(context.elzarMann);
-                context.player1.setDistributeAmongTargetsPromptState(new Map([
+                context.player1.setDistributeTokenUpgradePromptState(new Map([
                     [context.cloudCityWingGuard, 3]
-                ]), 'distributeAdvantage');
+                ]));
 
                 expect(context.cloudCityWingGuard).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage']);
 
@@ -412,9 +412,9 @@ describe('Elzar Mann, Haunted by a Vision', function() {
 
                 // Distribute all 5 tokens onto the one other friendly unit
                 context.player1.clickCard(context.elzarMann);
-                context.player1.setDistributeAmongTargetsPromptState(new Map([
+                context.player1.setDistributeTokenUpgradePromptState(new Map([
                     [context.cloudCityWingGuard, 5]
-                ]), 'distributeAdvantage');
+                ]));
 
                 // Advantage tokens were placed
                 expect(context.cloudCityWingGuard).toHaveExactUpgradeNames(['advantage', 'advantage', 'advantage', 'advantage', 'advantage']);
@@ -442,9 +442,9 @@ describe('Elzar Mann, Haunted by a Vision', function() {
 
                 // Play Elzar Mann and distribute 1 token → opponent searches top 2 cards (both non-events)
                 context.player1.clickCard(context.elzarMann);
-                context.player1.setDistributeAmongTargetsPromptState(new Map([
+                context.player1.setDistributeTokenUpgradePromptState(new Map([
                     [context.cloudCityWingGuard, 1]
-                ]), 'distributeAdvantage');
+                ]));
 
                 // All searched cards are invalid — opponent can only take nothing
                 expect(context.player2).toHaveExactDisplayPromptCards({

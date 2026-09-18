@@ -22,6 +22,37 @@ describe('Jedi General', function() {
             expect(troopers[0]).toHaveExactUpgradeNames(['experience']);
         });
 
+        it('Jedi General\'s Clone Trooper survives Supreme Leader Snoke because the Experience token is given as it enters play', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['jedi-general'],
+                    leader: 'captain-rex#fighting-for-his-brothers'
+                },
+                player2: {
+                    groundArena: ['supreme-leader-snoke#shadow-ruler'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.jediGeneral);
+
+            // Snoke is an enemy unit, so Jedi General's Ambush is a real trigger; resolve it (declining the attack)
+            // before the create-Clone-Trooper trigger.
+            context.player1.clickPrompt('Ambush');
+            context.player1.clickPrompt('Pass');
+
+            expect(context.player2).toBeActivePlayer();
+
+            // Clone Trooper (2/2) + Experience is 3/3; with Snoke's -2/-2 it survives at 1/1.
+            const troopers = context.player1.findCardsByName('clone-trooper');
+            expect(troopers.length).toBe(1);
+            expect(troopers[0]).toBeInZone('groundArena');
+            expect(troopers[0].exhausted).toBeTrue();
+            expect(troopers[0]).toHaveExactUpgradeNames(['experience']);
+        });
+
         it('Jedi General\'s ability should create a Clone Token and give an Experience token to it if we control a Republic leader (deployed)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

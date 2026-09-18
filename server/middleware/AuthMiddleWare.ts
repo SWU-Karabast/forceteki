@@ -30,6 +30,14 @@ export const authMiddleware = (gameServer: GameServer, routeName?: string, serve
             const cookies = parse(req.headers.cookie || '');
             const token = cookies['__Secure-next-auth.session-token'] || cookies['next-auth.session-token'];
             if (!token) {
+                // A route that names a required role has no anonymous form of itself. Refuse here
+                // rather than continuing as an anonymous user: the role check below sits on the
+                // authenticated path, so falling through would skip it altogether.
+                if (serverRoleRequired) {
+                    logger.warn(`Auth ${routeName ?? req.path}: unauthenticated request to a route requiring ${serverRoleRequired}`);
+                    return res.status(401).json({ success: false, message: 'Authentication required' });
+                }
+
                 if (routeName) {
                     logger.info(`Auth ${routeName}: no token found in cookies. Proceeding with anonymous user`);
                 }

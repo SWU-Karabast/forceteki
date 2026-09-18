@@ -14,7 +14,7 @@ export default class DomesticatedLothCat extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `Enemy units lose ${TextHelper.Ambush} and Support.`,
+            title: `Enemy units lose ${TextHelper.Ambush} and ${TextHelper.Support}`,
             targetController: RelativePlayer.Opponent,
             targetCardTypeFilter: WildcardCardType.Unit,
             ongoingEffect: [

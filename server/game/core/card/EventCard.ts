@@ -8,7 +8,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import { Contract } from '../utils/Contract';
 import type { IDecreaseCostAbilityProps, IPlayableCard, IPlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
-import type { IEventAbilityProps, IPlayRestrictionAbilityProps } from '../../Interfaces';
+import type { IEventAbilityProps, IPlayCostProperties, IPlayRestrictionAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';
 import { PlayEventAction } from '../../actions/PlayEventAction';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
@@ -127,6 +127,8 @@ export class EventCard extends EventCardParent implements IEventCard {
         return {
             ...super.getAbilityRegistrar() as IBasicAbilityRegistrar<EventCard>,
             setEventAbility: (properties: IEventAbilityProps) => this.setEventAbility(properties),
+            addAdditionalPlayCost: (properties) => this.registerAdditionalPlayCost(properties as IPlayCostProperties<this>),
+            addAlternatePlayCost: (properties) => this.registerAlternatePlayCost(properties as IPlayCostProperties<this>),
             addDecreaseCostAbility: (properties: IDecreaseCostAbilityProps<EventCard>) => this.addDecreaseCostAbility(properties),
             addPlayRestrictionAbility: (properties: IPlayRestrictionAbilityProps) => this.addPlayRestrictionAbility(properties),
         };

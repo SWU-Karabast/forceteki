@@ -16,7 +16,7 @@ describe('Two-Faced Troig', function() {
 
             // Play Two-Faced Troig
             context.player1.clickCard(context.twofacedTroig);
-            expect(context.player1).toHavePassAbilityPrompt('Give control of Two-Faced Troig to the opponent and create 2 Credit tokens');
+            expect(context.player1).toHavePassAbilityPrompt('Give control of this unit to the opponent and create 2 Credit tokens');
 
             // Ability should trigger - let opponent take control
             context.player1.clickPrompt('Trigger');

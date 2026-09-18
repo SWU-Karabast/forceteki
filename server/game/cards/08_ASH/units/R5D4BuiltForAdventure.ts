@@ -14,7 +14,9 @@ export default class R5D4BuiltForAdventure extends NonLeaderUnitCard {
         registrar.addOnAttackAbility({
             title: 'Defeat all upgrade on the defending unit',
             immediateEffect: AbilityHelper.immediateEffects.defeat((context) => ({
-                target: context.event.attack.getAllTargets().flatMap((x) => x.upgrades)
+                target: context.event.attack.getAllTargets()
+                    .filter((x) => x.isUnit())
+                    .flatMap((x) => x.upgrades)
             }))
         });
     }

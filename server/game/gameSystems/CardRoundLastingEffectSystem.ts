@@ -16,7 +16,6 @@ export class CardRoundLastingEffectSystem<TContext extends AbilityContext = Abil
     protected override readonly defaultProperties: ICardLastingEffectProperties = {
         duration: null,
         effect: [],
-        ability: null
     };
 
     // constructor needs to do some extra work to ensure that the passed props object ends up as valid for the parent class

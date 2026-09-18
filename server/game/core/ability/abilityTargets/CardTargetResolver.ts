@@ -99,6 +99,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return this.selector.hasEnoughTargets(context);
     }
 
+    /** True if this resolver permits selecting zero cards */
+    public get allowsChoosingNoCards(): boolean {
+        return this.selector.optional;
+    }
+
     public getAllLegalTargets(context: AbilityContext): Card[] {
         return this.selector.getAllLegalTargets(context);
     }

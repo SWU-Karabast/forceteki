@@ -29,6 +29,8 @@ import type { PlayFromDiscardProperties } from '../core/ongoingEffect/effectImpl
 import type { CanAttackMultipleUnitsSimultaneously } from '../core/ongoingEffect/effectImpl/CanAttackMultipleUnitsSimultaneously';
 import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
 import { GainKeyword } from '../core/ongoingEffect/effectImpl/GainKeyword';
+import type { IReplaceKeywordProperties } from '../core/ongoingEffect/effectImpl/ReplaceKeyword';
+import { ReplaceKeyword } from '../core/ongoingEffect/effectImpl/ReplaceKeyword';
 import StatsModifierWrapper from '../core/ongoingEffect/effectImpl/StatsModifierWrapper';
 import { OngoingEffectValueWrapper } from '../core/ongoingEffect/effectImpl/OngoingEffectValueWrapper';
 import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/NumericKeywordMultiplier';
@@ -82,6 +84,7 @@ export = {
     //        unapply: () => true
     //    }),
 
+    canAttackBaseWhileUsingAmbush: () => OngoingEffectBuilder.card.static(EffectName.CanAttackBaseWhileUsingAmbush),
     canAttackMultipleUnitsSimultaneously: (effectImpl: CanAttackMultipleUnitsSimultaneously) => OngoingEffectBuilder.card.static(EffectName.CanAttackMultipleUnitsSimultaneously, effectImpl),
     canPlayFromDiscard: (properties: PlayFromDiscardProperties = {}) => OngoingEffectBuilder.card
         .static(EffectName.CanPlayFromDiscard, properties),
@@ -124,7 +127,7 @@ export = {
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
     cloneUnit: (target: Card) => OngoingEffectBuilder.card.static(EffectName.CloneUnit, (game) => new CloneUnitEffect(game, target)),
     gainNonKeywordAbilitiesFromUnit: (sourceUnit: Card) => OngoingEffectBuilder.card.static(EffectName.GainNonKeywordAbilitiesFromUnit, (game) => new GainNonKeywordAbilitiesFromUnitEffect(game, sourceUnit)),
-    copyStandardTriggeredAbilities: (target: Card, abilityType: StandardTriggeredAbilityType) => OngoingEffectBuilder.card.static(EffectName.CopyStandardTriggeredAbilities, (game) => new CopyStandardTriggeredAbilitiesEffect(game, target, abilityType)),
+    copyStandardTriggeredAbilities: (targets: Card | Card[], abilityType: StandardTriggeredAbilityType) => OngoingEffectBuilder.card.static(EffectName.CopyStandardTriggeredAbilities, (game) => new CopyStandardTriggeredAbilitiesEffect(game, targets, abilityType)),
     isLeader: () => OngoingEffectBuilder.card.static(EffectName.IsLeader),
     gainAbility: (properties: IAbilityPropsWithType) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, (game) => new GainAbility(game, properties)),
@@ -143,6 +146,7 @@ export = {
     gainKeywords: (calculate: (target: any, context: AbilityContext) => KeywordNameOrProperties[]) =>
         OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context, game) => new GainKeyword(game, calculate(target, context))),
     multiplyNumericKeyword: (multiplier: NumericKeywordMultiplier) => OngoingEffectBuilder.card.static(EffectName.MultiplyNumericKeyword, multiplier),
+    replaceKeyword: (properties: IReplaceKeywordProperties) => OngoingEffectBuilder.card.static(EffectName.ReplaceKeyword, (game) => new ReplaceKeyword(game, properties)),
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     loseAllOtherAbilities: (properties: { exceptKeyword: KeywordName }) =>
         OngoingEffectBuilder.card.static(EffectName.BlankExceptKeyword, properties),
@@ -175,6 +179,7 @@ export = {
     // loseAllNonKeywordAbilities: () => OngoingEffectBuilder.card.static(EffectName.LoseAllNonKeywordAbilities),
     gainTrait: (trait: Trait) => OngoingEffectBuilder.card.static(EffectName.GainTrait, trait),
     loseTrait: (trait: Trait) => OngoingEffectBuilder.card.static(EffectName.LoseTrait, trait),
+    allCardsForPlayerLoseTrait: (trait: Trait) => OngoingEffectBuilder.allCardsForPlayer.static(EffectName.LoseTrait, trait),
     // modifyBaseMilitarySkillMultiplier: (value) =>
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBaseMilitarySkillMultiplier, value),
     // modifyBasePoliticalSkillMultiplier: (value) =>

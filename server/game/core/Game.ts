@@ -13,6 +13,8 @@ import { RegroupPhase } from './gameSteps/phases/RegroupPhase';
 import { SimpleStep } from './gameSteps/SimpleStep';
 import MenuPrompt from './gameSteps/prompts/MenuPrompt';
 import HandlerMenuPrompt from './gameSteps/prompts/HandlerMenuPrompt';
+import { OptionalTriggerPrompt } from './gameSteps/prompts/OptionalTriggerPrompt';
+import type { IOptionalTriggerPromptProperties } from './gameSteps/prompts/OptionalTriggerPrompt';
 import GameOverPrompt from './gameSteps/prompts/GameOverPrompt';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import { GameEvent } from './event/GameEvent';
@@ -36,11 +38,12 @@ import {
     TokenCardName,
     TokenUpgradeName,
     TokenUnitName,
+    Trait,
     WildcardCardType,
     WildcardZoneName,
     ZoneName
 } from './Constants';
-import type { TokenName, Trait } from './Constants';
+import type { TokenName } from './Constants';
 import { StateWatcherRegistrar } from './stateWatcher/StateWatcherRegistrar';
 import { DistributeAmongTargetsPrompt } from './gameSteps/prompts/DistributeAmongTargetsPrompt';
 import HandlerMenuMultipleSelectionPrompt from './gameSteps/prompts/HandlerMenuMultipleSelectionPrompt';
@@ -54,7 +57,6 @@ import { GroundArenaZone } from './zone/GroundArenaZone';
 import { SpaceArenaZone } from './zone/SpaceArenaZone';
 import { AllArenasZone } from './zone/AllArenasZone';
 import type { IAllArenasZoneCardFilterProperties, IAllArenasSpecificTypeCardFilterProperties } from './zone/AllArenasZone';
-import { EnumHelpers } from './utils/EnumHelpers';
 import { SelectCardPrompt } from './gameSteps/prompts/SelectCardPrompt';
 import { DisplayCardsWithButtonsPrompt } from './gameSteps/prompts/DisplayCardsWithButtonsPrompt';
 import { DisplayCardsForSelectionPrompt } from './gameSteps/prompts/DisplayCardsForSelectionPrompt';
@@ -345,6 +347,11 @@ export class Game extends EventEmitter {
     public cardDataGetter: CardDataGetter;
     public playableCardTitles: string[];
     public allNonLeaderCardTitles: string[];
+
+    /** Title Case display name of every {@link Trait}, sorted alphabetically, for "name a trait" abilities */
+    public readonly traitNames: string[] = Object.values(Trait).map((trait) => Helpers.titleCase(trait))
+        .sort();
+
     public readonly statsTracker: IGameStatisticsTracker;
     public clientUIProperties: IClientUIProperties;
     public spaceArena: SpaceArenaZone;
@@ -558,15 +565,15 @@ export class Game extends EventEmitter {
     /**
      * Checks if a player is a spectator
      */
-    public isSpectator(player: Player | Spectator): player is Spectator {
-        return player.constructor === Spectator;
+    public isSpectator(player: Player | Spectator | AnonymousSpectator): player is Spectator | AnonymousSpectator {
+        return !this.isPlayer(player);
     }
 
     /**
      * Checks if a player is a player
      */
-    public isPlayer(player: Player | Spectator): player is Player {
-        return !this.isSpectator(player);
+    public isPlayer(player: Player | Spectator | AnonymousSpectator): player is Player {
+        return player.constructor === Player;
     }
 
     /**
@@ -847,7 +854,7 @@ export class Game extends EventEmitter {
      * Check to see if a base (or both bases) has been destroyed
      */
     public checkWinCondition(): void {
-        const losingPlayers = this.getPlayers().filter((player) => player.base.damage >= player.base.getHp());
+        const losingPlayers = this.getPlayers().filter((player) => player.base.damage >= player.base.getHp() || player.base.defeated);
         if (losingPlayers.length === 1) {
             this.endGame(losingPlayers[0].opponent, GameEndReason.GameRules);
         } else if (losingPlayers.length === 2) { // draw game
@@ -1026,6 +1033,16 @@ export class Game extends EventEmitter {
         } else {
             this.queueStep(new HandlerMenuPrompt(this, player, properties));
         }
+    }
+
+    /**
+     * Prompts a player to resolve or decline a single optional triggered ability, rendering its source
+     * card as the Trigger button.
+     */
+    public promptWithOptionalTrigger(player: Player, properties: IOptionalTriggerPromptProperties): void {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new OptionalTriggerPrompt(this, player, properties));
     }
 
     public promptDisplayCardsWithButtons(player: Player, properties: IDisplayCardsWithButtonsPromptProperties): void {
@@ -1414,8 +1431,8 @@ export class Game extends EventEmitter {
     /**
      * Resolves a card ability
      */
-    public resolveAbility(context: AbilityContext, ignoredRequirements: string[] = []): AbilityResolver {
-        const resolver = new AbilityResolver(this, context, false, null, null, ignoredRequirements);
+    public resolveAbility(context: AbilityContext, ignoredRequirements: string[] = [], canCancel?: boolean): AbilityResolver {
+        const resolver = new AbilityResolver(this, context, false, canCancel, null, ignoredRequirements);
         this.queueStep(resolver);
         return resolver;
     }
@@ -1574,14 +1591,14 @@ export class Game extends EventEmitter {
         const checkedCards: Card[] = [];
 
         for (const movedCard of this.state.movedCards.map((id) => this.getFromId(id))) {
-            if (EnumHelpers.isArena(movedCard.zoneName) && movedCard.unique) {
+            if (movedCard.unique && movedCard.canBeInPlay() && movedCard.isInPlay()) {
                 const existingCard = checkedCards.find((otherCard) =>
                     otherCard.title === movedCard.title &&
                     otherCard.subtitle === movedCard.subtitle &&
                     otherCard.controller === movedCard.controller
                 );
 
-                if (!existingCard && movedCard.canBeInPlay()) {
+                if (!existingCard) {
                     checkedCards.push(movedCard);
                     movedCard.checkUnique();
                 }
@@ -1735,6 +1752,7 @@ export class Game extends EventEmitter {
                     clientUIProperties: {},
                     spectators: {},
                     winners: [],
+                    ongoingEffects: [],
                 };
             }
 
@@ -1744,6 +1762,7 @@ export class Game extends EventEmitter {
                     playerState[player.id] = player.getStateSummary(activePlayer);
                 }
 
+                const ongoingEffects = this.ongoingEffectEngine.summarizeOngoingEffectsForState(this.isPlayer(activePlayer) ? activePlayer : null);
                 const allMessages = this.gameChat.messages;
                 const totalMessages = allMessages.length;
                 const newMessages = allMessages.slice(lastMessageOffset);
@@ -1770,6 +1789,7 @@ export class Game extends EventEmitter {
                     format: this.format,
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
+                    ongoingEffects,
                 };
 
                 // Advance the offset for this participant
