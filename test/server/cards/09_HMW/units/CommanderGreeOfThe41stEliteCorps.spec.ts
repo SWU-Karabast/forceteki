@@ -4,18 +4,12 @@ describe('Commander Gree, Of the 41st Elite Corps', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['sinister-war-memorial'],
                     groundArena: ['commander-gree#of-the-41st-elite-corps', 'battlefield-marine'],
-                    base: 'chopper-base'
+                    base: { card: 'chopper-base', upgrades: ['sinister-war-memorial'] }
                 },
             });
 
             const { context } = contextRef;
-
-            context.player1.clickCard(context.sinisterWarMemorial);
-            context.player1.clickCard(context.p1Base);
-
-            context.player2.passAction();
 
             context.player1.clickCard(context.commanderGree);
             context.player1.clickCard(context.p2Base);
@@ -44,22 +38,35 @@ describe('Commander Gree, Of the 41st Elite Corps', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Commander Gree\'s constant ability should not give Raid to other friendly units', async function () {
+        it('Commander Gree\'s constant ability should give him Raid 4 if there are 3 or more Command aspect icons among friendly units using double aspect', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['sinister-war-memorial'],
-                    groundArena: ['commander-gree#of-the-41st-elite-corps', 'battlefield-marine'],
+                    groundArena: ['commander-gree#of-the-41st-elite-corps', 'enterprising-lackeys'],
                     base: 'chopper-base'
                 },
             });
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.sinisterWarMemorial);
-            context.player1.clickCard(context.p1Base);
+            context.player1.clickCard(context.commanderGree);
+            context.player1.clickCard(context.p2Base);
 
-            context.player2.passAction();
+            // 3 plus raid 4
+            expect(context.p2Base.damage).toBe(7);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('Commander Gree\'s constant ability should not give Raid to other friendly units', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['commander-gree#of-the-41st-elite-corps', 'battlefield-marine'],
+                    base: { card: 'chopper-base', upgrades: ['sinister-war-memorial'] }
+                },
+            });
+
+            const { context } = contextRef;
 
             context.player1.clickCard(context.battlefieldMarine);
             context.player1.clickCard(context.p2Base);
