@@ -18,7 +18,7 @@ export default class CommandeeredTourShuttle extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card, context) => card !== context.source && card.isUnit() && card.getPower() <= 3,
-                immediateEffect: AbilityHelper.immediateEffects.ready((context) => ({ target: context.target }))
+                immediateEffect: AbilityHelper.immediateEffects.ready()
             }
         });
     }
