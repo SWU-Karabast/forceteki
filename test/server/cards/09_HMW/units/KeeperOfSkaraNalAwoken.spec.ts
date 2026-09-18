@@ -19,15 +19,15 @@ describe('Keeper of Skara Nal, Awoken', function() {
             context.player1.clickCard(groundKeeper);
             context.player1.clickCard(context.wampa);
 
+            // The Discard ability shares this On Attack window with Keeper's Restore 2, so it's offered inline;
+            // clicking it opts in directly (no interstitial), and the discard is then resolved as its cost.
             context.player1.clickPrompt('Discard 2 cards named Keeper of Skara Nal from your hand. If you do, this unit gets +15/+0 and gains Overwhelm for this attack.');
 
             expect(context.player1).toBeAbleToSelectExactly([handKeepers[0], handKeepers[1]]);
             expect(context.player1).toHaveChooseNothingButton();
-            expect(context.player1).toHavePassAbilityButton();
 
             context.player1.clickCard(handKeepers[0]);
             expect(context.player1).not.toHaveEnabledPromptButton('Done');
-            expect(context.player1).toHavePassAbilityButton();
 
             context.player1.clickCard(handKeepers[1]);
             context.player1.clickDone();
@@ -42,7 +42,7 @@ describe('Keeper of Skara Nal, Awoken', function() {
             expect(handKeepers[1]).toBeInZone('discard', context.player1);
         });
 
-        it('should not discard Keeper of Skara Nal cards if selecting one and pass (and should not have +15 and Overwhelm)', async function() {
+        it('should not discard Keeper of Skara Nal cards if the ability is declined (and should not have +15 and Overwhelm)', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -61,10 +61,9 @@ describe('Keeper of Skara Nal, Awoken', function() {
             context.player1.clickCard(groundKeeper);
             context.player1.clickCard(context.wampa);
 
-            context.player1.clickPrompt('Discard 2 cards named Keeper of Skara Nal from your hand. If you do, this unit gets +15/+0 and gains Overwhelm for this attack.');
-            expect(context.player1).toBeAbleToSelectExactly([handKeepers[0], handKeepers[1]]);
-            context.player1.clickCard(handKeepers[0]);
-            context.player1.clickPrompt('Pass');
+            // The Discard ability shares this On Attack window with Keeper's Restore 2, so it's offered inline;
+            // decline it via the inline Pass instead of committing to the discard.
+            context.player1.clickInlineTriggerPass('Discard 2 cards named Keeper of Skara Nal from your hand. If you do, this unit gets +15/+0 and gains Overwhelm for this attack.');
 
             expect(context.player2).toBeActivePlayer();
 

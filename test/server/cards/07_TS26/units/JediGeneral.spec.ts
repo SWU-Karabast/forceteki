@@ -38,10 +38,9 @@ describe('Jedi General', function() {
 
             context.player1.clickCard(context.jediGeneral);
 
-            // Snoke is an enemy unit, so Jedi General's Ambush is a real trigger; resolve it (declining the attack)
-            // before the create-Clone-Trooper trigger.
-            context.player1.clickPrompt('Ambush');
-            context.player1.clickPrompt('Pass');
+            // Snoke is an enemy unit, so Jedi General's Ambush is a real trigger sharing this window with the
+            // create-Clone-Trooper trigger; decline the attack inline in the simultaneous-trigger prompt.
+            context.player1.clickInlineTriggerPass('Ambush');
 
             expect(context.player2).toBeActivePlayer();
 
