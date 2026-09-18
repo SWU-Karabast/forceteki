@@ -1334,3 +1334,101 @@ Plan reviewed twice (round 1 REJECTED — the gate could not fail, because a res
 - **The pre-existing engine gap this unit surfaced but did not fix:** `SimpleZone`/`DeckZone`'s `addCard`/`removeCard` never touch the card's own `.zone` field; a separate move orchestrator keeps the two sides of the doubly-represented membership in sync, and deck-resident cards demonstrate a live, restore-independent gap in that synchronization. Out of scope here. Recorded as an observation, not a defect of this unit.
 - **`SnapshotManager.takeManualSnapshot` does not build a fresh snapshot** — it references whichever snapshot is already current. A spec-scoped harness block must force `SnapshotFactory.createSnapshotForCurrentTimepoint` first, or the manual snapshot silently references a pre-harness buffer with no retained records.
 - **`SnapshotManager.rollbackManualSnapshot`'s `Contract.assertNotNullLike` conflates** "manual snapshot ID does not exist" with "rollback attempted, failed, and recovered" — both throw the same message. `AC7` drives its rollback through the container directly for this reason.
+
+---
+
+## `P3-PA4` — Codegen serializer coverage/staleness cross-check (Plan 3, Phase A step 5)
+
+| | |
+|---|---|
+| Task ID | `p3-pa4` |
+| Date | 2026-09-18 |
+| Lane / tier | full, tier 2 (Medium 🟡), proof level hardened |
+| Plan | [03-codegen-serializers.md](03-codegen-serializers.md), Phase A step 5 |
+| Parent | `69e6bbefb` |
+| Commit | `d218b8b56` |
+| Branch | `experimental/rollback-saves-optimizations` |
+
+Eleven files, +916/−9. Seven touch `server/`; the rest are specs and the parity harness. Phase A step 5 closes with this, and the old system remains authoritative throughout.
+
+### What the check does
+
+`checkStateSerializerCoverage()` (`server/game/core/StateSerializerCoverageCheck.ts`) compares, per class, the runtime decorator metadata field set against the generated serializer's field model — **by name and by kind** — and hard-fails on any delta. Two passes: a forward pass over every generated entry (aggregating every class's problems into one throw), then a reverse pass over the runtime registry that fires only after the forward pass is clean.
+
+It exists rather than a source-content hash because it works in a compiled production build where the TS sources are absent; the metadata is runtime data.
+
+### The two sides of the comparison had to be built before they could be compared
+
+Neither side was readable at runtime on arrival, and this is the bulk of the diff:
+
+- **Runtime kinds.** `statePrimitive` and `stateValue` both wrote into `stateSimpleMetadata` with no way to tell them apart — the generator distinguishes all seven kinds from source, so the asymmetry was one-sided. Closed with an additive `stateSimpleKindMetadata` bucket, plus `registeredStateClassesByName` and `getRuntimeStateFieldModelByClassName()`, which walks the prototype chain exactly as `copyState` does.
+- **Generated model.** `emitArtifact` already computed `target.fields` for the emitted interfaces and the schema-surface hash but never emitted it as runtime data. Now it does, alongside `generatedExcludedFragmentClassNames`.
+
+The completeness-table sha256 stayed `d45edc88898ad4cfbab6e8be160ef4a2bb55f98eda150448032c90e2766e59fb` across four clean regenerations — the additions never touched target resolution.
+
+### The gate is proven falsifiable through the real generator pipeline
+
+The acceptance bar was that a green check which cannot go red proves nothing. Both directions were proven by temporarily removing something from the generator's actual emission, regenerating, observing red, and reverting:
+
+- a **field** dropped from `entryLines` → the forward pass throws naming the class and field;
+- a whole **class** dropped from `targets` → the reverse pass throws naming it (`ZoneAbstract` was the subject).
+
+The injection-based specs are separate and additionally guard against the P3-PA2/P3-PA3 escape-proof anti-patterns: each asserts its baseline precondition **before** mutating, and pins the exact class and field rather than a message shape.
+
+### A real bug the unit surfaced in the decorator machinery
+
+`registerState()` initially recorded the pre-wrap `targetClass`, but TypeScript's compiled decorator transform finalizes `[Symbol.metadata]` onto whichever object the decorator **returns** — `wrappedClass` on the default `autoInitialize: true` path. Every wrapped concrete class's own fields were therefore invisible to the reader. Durable consequence for anyone touching this area: read `context.metadata` inside the decorator, or read `[Symbol.metadata]` off the class *after* decoration binds — never off a captured pre-wrap reference.
+
+### The duplicate-name guard, and why it is split across the two branches
+
+The registry is keyed by bare class name, so a test fixture sharing a production class's name would silently shadow it and the check would compare the wrong field model. The guard closes this, but it could not be blanket: **`AsLeader` is legitimately registered three times**, once per `WithLeaderProperties()` call site (`LeaderProperties.ts:11`, `DoubleSidedLeaderCard.ts:18`, `LeaderUnitCard.ts:28`), and the other factory-declared fragments behave the same way. A global throw breaks the build — proven empirically, and the failed experiment is retained in the ledger rather than discarded.
+
+The resolution compares each class's **own** declared-field metadata, not the flattened walk: identical own fields allow re-registration (the factory case, whose flattened models legitimately differ because the base classes differ), a mismatch throws. A first attempt guarded only the `@registerState()` branch, which left the ~29 top-level `@registerStateBase()` classes — including `ZoneAbstract`, the exact example the finding named — unguarded; review caught that, and it is why the guard now spans both branches.
+
+### Two premises in the unit's own brief turned out to be false, and are corrected here
+
+1. **`validate-cards` does not force-load any card module.** `scripts/validateCards.ts` is pure static text and filename analysis. The mechanism that actually executes every card class body is `server/game/cards/Index.ts`'s `require()` loop. A later task should not assume `validate-cards` exercises any runtime loading path.
+2. **Dev startup already force-loads every card class today.** The import chain `gamenode/index.ts` → `GameServer` → `Lobby` → `Game` → `cards/Index` is eager, verified empirically at 1983 cards. So the two-call-site requirement is not justified by the stated coverage gap; it is justified because dev-startup coverage is *contingent* on those imports staying eager, and `npm run dev` is never run by CI. The spec call site is what makes full coverage a CI-enforced property rather than a coincidence of today's require graph.
+
+Also corrected: the dev/production gate at this layer is `process.env.ENVIRONMENT`, not `NODE_ENV`. The call site uses a dev-gated dynamic `require()` so production boot does not load the generated-serializer graph — preserving `StateSerializers.ts`'s documented "nothing in the live engine imports this module yet" invariant until `P3-PB2`.
+
+### The two P3-PA3 follow-ups, and the number `P3-PB2` should now use
+
+- **`P3PA3-F-03` is closed.** The zoneClass tally is exhaustive at the class level, and the serial run reports **`{"DeckZone":78}`** — all 78 masked pre-rollback forward violations are `DeckZone`, confirming P3-PA3's sampled attribution *fully* rather than at 10 of 78. **`P3-PB2` should cite this figure, not the sample.** An earlier run of the same measurement was polluted by this unit's own unit spec calling `recordZoneViolation` directly; that is now isolated via `afterEach` cleanup, so the figure above is clean.
+- **`P3PA3-D-09` / `P3PA3-F-05` is closed.** Pruning now removes stale *sibling* run directories under `forceteki-parity-harness-runs/` at module load (6-hour threshold), never inside the `process.on('exit')` handler that P3-PA3 measured as lost in 1 of 4 workers. The first attempt pruned files *within* the current run's directory, which is always fresh — the wrong target, since each invocation mints a new `<ppid>` directory.
+- **Corrected environment fact:** `process.ppid` is **not** a stable per-shell identifier here. Four separate invocations from one shell produced four different values (measured independently twice). P3-PA3's narrower claim — a shared ppid across one `--parallel` invocation's own workers — is the only part safe to rely on.
+
+### Verification
+
+Sequential throughout, per the shared `build/` hazard.
+
+| Check | Result |
+|---|---|
+| `npm run lint` | exit 0 |
+| `npm run test-parallel` | 8620 specs, 0 failures, 13 pending — baseline 8604 + exactly the 16 new specs |
+| `npm run test-parallel-undo` | 8432 specs, 0 failures, 17 pending — baseline 8416 + the same 16 |
+| completeness-table sha256 | `d45edc88…` unchanged across four clean regenerations |
+| real-path field falsifier (AC5) | red on emission removal, green after revert |
+| real-path class falsifier (AC7) | red on target removal, green after revert |
+| dev-boot, clean and hidden-field | reaches `createAsync()` / crashes the boot loudly |
+| serial `ENABLE_PARITY_HARNESS` + `ENABLE_UNDO_ALL_TESTS` | `zoneViolationClassCounts={"DeckZone":78}` |
+
+### Review history
+
+Plan reviewed twice (round 1 **REJECTED** — the reverse pass would have thrown on the 12 factory fragments and on spec-declared fixtures, nondeterministically under `--parallel`, and one acceptance fixture was unconstructible because `registerState()` forbids an unregistered named parent; round 2 APPROVED WITH CONCERNS). Implementation reviewed four times: round 1 raised the registry-collision and tally-pollution warnings, round 2 caught the guard landing on the wrong branch, round 3 APPROVED the repair, round 4 was the final binding review of the commit subject and the evidence package. Both fix cycles used.
+
+### Known residuals, disclosed and accepted at the gate
+
+1. **`PA4-IR3-1`** — `ownStateMetadataEquals` cannot distinguish `@stateRefArray()` from `@stateRefArray(false)`; both land in the shared `stateArrayMetadata` bucket. Null impact today: `FieldKind` has no readonly/mutable variant, so the guard's only consumer cannot observe the difference. Same structurally-undetectable distinction already disclosed as `PA4-N2` at plan stage.
+2. **`PA4-IR3-2`** — the guard compares own fields but not base-class identity, and overwrites the registry entry on the no-throw path. Exploiting it needs a same name *and* identical own fields *and* a coincidentally matching flattened set; any real divergence would still surface as a loud forward-pass failure.
+3. **`PA4-R2-Q1`** — the fully-default, unrestricted-registry path runs only at the dev-startup call site, which jasmine structurally never loads. Verified by real-tree experiment, never inside a CI-gated suite. Matches `P3-PA1`'s precedent.
+4. **`AC3`'s determinism under `--parallel`** rests on the restricted-`runtimeRegisteredClassNames` design plus one real 4-worker run, not a multi-seed flakiness campaign.
+5. **`AC8`'s serial leg** is fix1-subject evidence carried forward under the evidence-reuse contract, on byte-identical harness dependencies. The final reviewer independently verified the byte-identity and judged the reuse sound.
+
+### Notes for the next agent
+
+- **`P3-PB2` must keep the decorator metadata field-name recording** when it slims the decorators — this check depends on it, and so does the `stateSimpleKindMetadata` bucket this unit added.
+- **Cite `DeckZone=78` as exhaustive at the class level**, not the "10 of 78" sample. The identity buffer is still capped at 10 for triage examples; the tally is not.
+- **`npm run test-fast -- --filter="X"` does not forward `--filter` to jasmine** — npm swallows the unrecognized flag and the whole suite runs. Use a glob (`npm run test-fast -- "**/File.spec.js"`), or `npm run jasmine -- --filter="X"` once `test-fast` has freshened `build/test`.
+- **`npm run build` can silently under-emit after a hand-deleted compiled output.** With `incremental: true`, deleting a file under `build/` without also deleting `build/server/tsconfig.tsbuildinfo` (note: *not* `build/tsconfig.tsbuildinfo`) makes tsc skip re-emitting it while still exiting 0. Worth knowing alongside the existing stale-test-build failure mode.
+- **The generator's `rawClasses` (pre-`selectTargets`) already answers "what did the generator deliberately exclude"** — read it rather than re-deriving the `declaredInFunction` check.

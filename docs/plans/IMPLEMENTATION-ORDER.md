@@ -306,6 +306,33 @@ times.
 | `P3-PB3` ⏱ | Phase B step 9 — docs + perf capture | `P3-PB2` | Small 🟢 | `--fast` |
 | `P3-PB4` | Phase B step 8 — retire the parity harness | `P3-PB2` + one release cycle | Small 🟢 | *deferred* (`--fast`) |
 
+**`P3-PA4` landed (`d218b8b56`) and Phase A is complete.** The coverage/staleness
+cross-check compares runtime decorator metadata against the generated model per
+class, by field name **and** kind, and hard-fails on any delta — at dev startup
+and in a CI spec that force-loads every card module. It is proven falsifiable
+through the real generator pipeline in both directions (a dropped field and a
+dropped class, each regenerated, observed red, reverted), so it is a gate that
+can actually go red rather than one that merely passes.
+
+Three things `P3-PB2` should take from it. **Keep the decorator metadata
+field-name recording** when slimming the decorators — this check depends on it,
+as does the `stateSimpleKindMetadata` bucket the unit added. **Cite
+`DeckZone=78`** as the exhaustive class-level breakdown: the `P3-PA3` follow-up
+landed here, and all 78 masked pre-rollback forward violations are `DeckZone`,
+so the "10 of 78" sample in that entry is superseded. And note that two premises
+from this unit's own brief were **false and are corrected** in
+[ANVIL-LOG.md](ANVIL-LOG.md): `validate-cards` force-loads nothing (it is static
+text analysis; `cards/Index.ts`'s `require()` loop is the real mechanism), and
+dev startup already loads every card class today, so the two-call-site design is
+justified by CI enforcement rather than by the stated coverage gap.
+
+Both `P3-PA3` follow-ups tracked here are now closed: the zoneClass tally is
+exhaustive, and reporter run-directory pruning targets stale sibling directories
+at module load. A third correction came out of it — `process.ppid` is **not** a
+stable per-shell identifier in this environment (four invocations from one shell
+gave four values); only P3-PA3's narrower shared-ppid-across-one-`--parallel`-run
+claim holds.
+
 **`P3-PA3` landed (`761d82d66`) and answered the cutover's zone question.** The
 restore leg is green on both modes, and the finding `P3-PB2` was told to consume
 is recorded in [ANVIL-LOG.md](ANVIL-LOG.md): **`reconcileUpdatedCardZoneMemberships`
