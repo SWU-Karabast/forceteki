@@ -178,6 +178,8 @@ export = {
     //     OngoingEffectBuilder.card.static(EffectName.IncreaseLimitOnPrintedAbilities, abilities),
     // loseAllNonKeywordAbilities: () => OngoingEffectBuilder.card.static(EffectName.LoseAllNonKeywordAbilities),
     gainTrait: (trait: Trait) => OngoingEffectBuilder.card.static(EffectName.GainTrait, trait),
+    gainTraits: (calculate: (target: any, context: AbilityContext) => Trait[]) =>
+        OngoingEffectBuilder.card.dynamic(EffectName.GainTrait, (target, context) => calculate(target, context)),
     loseTrait: (trait: Trait) => OngoingEffectBuilder.card.static(EffectName.LoseTrait, trait),
     allCardsForPlayerLoseTrait: (trait: Trait) => OngoingEffectBuilder.allCardsForPlayer.static(EffectName.LoseTrait, trait),
     // modifyBaseMilitarySkillMultiplier: (value) =>
