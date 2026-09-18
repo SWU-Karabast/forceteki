@@ -28,9 +28,6 @@ const abilityTypeDisplayName: Record<StandardTriggeredAbilityType, string> = {
 
 @registerState()
 export class CopyStandardTriggeredAbilitiesEffect extends OngoingEffectValueWrapperBase<ICardWithStandardAbilitySetup<Card>[]> {
-    // UUIDs of the target's printed triggered abilities *before* copying, keyed by target card. Stored as
-    // tracked state (via @stateValue) so it survives snapshot rollback/replay in the undo system. On unapply
-    // we remove any printed triggered ability that isn't in this pre-copy set (i.e. the ones we copied on).
     @stateValue() private accessor _preCopyTriggeredAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
     private readonly abilityType: StandardTriggeredAbilityType;
 

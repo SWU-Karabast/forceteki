@@ -11,9 +11,6 @@ import { registerState, stateValue } from '../../GameObjectUtils';
 
 @registerState()
 export class CloneUnitEffect extends OngoingEffectValueWrapperBase<ICardWithStandardAbilitySetup<Card>> {
-    // UUIDs of the target's printed abilities *before* cloning, keyed by target card. Stored as tracked
-    // state (via @stateValue) so it survives snapshot rollback/replay in the undo system. On unapply we
-    // remove any printed ability that isn't in these pre-clone sets (i.e. the ones we cloned on).
     @stateValue() private accessor _preCloneActionAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
     @stateValue() private accessor _preCloneTriggeredAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
     @stateValue() private accessor _preCloneConstantAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
