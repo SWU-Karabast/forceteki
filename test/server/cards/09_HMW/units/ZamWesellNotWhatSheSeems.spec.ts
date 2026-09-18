@@ -1,8 +1,135 @@
 import { Trait } from '../../../../../server/game/core/Constants';
 
-describe('Zam Wesell, Not What She Seems', function() {
+describe('Zam Wesell, Not What She Seems -- trait-gaining ability', function() {
     integration(function(contextRef) {
-        describe('its trait-granting ability', function() {
+        describe('proving gained traits through game interactions', function() {
+            it('while in play - is a valid target for Wing Leader\'s When Played ability as a friendly Rebel unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['zam-wesell#not-what-she-seems'],
+                        hand: ['wing-leader'],
+                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: false }
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Zam can be targeted by Wing Leader's When Played ability due to her gained Rebel trait
+                context.player1.clickCard(context.wingLeader);
+                expect(context.player1).toBeAbleToSelectExactly([context.zamWesell]);
+                context.player1.clickCard(context.zamWesell);
+
+                expect(context.zamWesell).toHaveExactUpgradeNames(['experience', 'experience']);
+            });
+
+            it('while in play - is not a valid target for Bolstered Endurance, since her gained leader traits exclude Force', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['zam-wesell#not-what-she-seems'],
+                        hand: ['bolstered-endurance'],
+                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Deployed Chirrut is a friendly leader unit with the Force trait, but Zam excludes the Force trait
+                context.player1.clickCard(context.bolsteredEndurance);
+                expect(context.player1).toBeAbleToSelectExactly([context.chirrutImwe]);
+                context.player1.clickCard(context.chirrutImwe);
+
+                expect(context.bolsteredEndurance).toBeAttachedTo(context.chirrutImwe);
+            });
+
+            it('while in discard - can be found by Psychometry for sharing her gained Rebel trait, even while she is in the discard pile', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'chirrut-imwe#one-with-the-force',
+                        hand: ['psychometry'],
+                        discard: ['zam-wesell#not-what-she-seems'],
+                        deck: ['fleet-lieutenant', 'mystic-reflection', 'krayt-dragon', 'wampa', 'moisture-farmer']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.psychometry);
+                expect(context.player1).toBeAbleToSelectExactly([context.zamWesell]);
+                context.player1.clickCard(context.zamWesell);
+
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.fleetLieutenant], // Shares the Rebel trait with Zam (via Chirrut leader)
+                    invalid: [context.mysticReflection, context.kraytDragon, context.wampa, context.moistureFarmer]
+                });
+                context.player1.clickCardInDisplayCardPrompt(context.fleetLieutenant);
+
+                // P2 is prompted to see the revealed card
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.fleetLieutenant]);
+                context.player2.clickDone();
+
+                expect(context.fleetLieutenant).toBeInZone('hand');
+            });
+
+            it('while in hand - can be played as an Imperial unit for Adimiral Ozzel\'s ability', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grand-moff-tarkin#oversector-governor',
+                        hand: ['zam-wesell#not-what-she-seems', 'superlaser-technician', 'secretive-sage'],
+                        groundArena: ['admiral-ozzel#overconfident']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Use Admiral Ozzel's ability to play an Imperial unit from hand
+                context.player1.clickCard(context.admiralOzzel);
+                context.player1.clickPrompt('Play an Imperial unit from your hand. It enters play ready');
+
+                // Zam is selectable as an Imperial unit due to Grand Moff Tarkin's Imperial trait
+                expect(context.player1).toBeAbleToSelectExactly([context.zamWesell, context.superlaserTechnician]);
+                context.player1.clickCard(context.zamWesell);
+                expect(context.zamWesell).toBeInZone('groundArena');
+                context.player2.clickPrompt('Choose nothing'); // P2 declines to ready a unit
+            });
+
+            it('while in deck - can be revealed and drawn when searching for a Mandalorian unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'bokatan-kryze#princess-in-exile',
+                        deck: ['zam-wesell#not-what-she-seems', 'secretive-sage', 'mandalorian-warrior'],
+                        hand: ['this-is-the-way']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play This is The Way to search for Mandalorian cards
+                context.player1.clickCard(context.thisIsTheWay);
+                expect(context.player1).toHavePrompt('Select up to 2 cards');
+
+                // Zam is selectable because she gains the Mandalorian trait from Bo-Katan
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    invalid: [context.secretiveSage],
+                    selectable: [context.zamWesell, context.mandalorianWarrior]
+                });
+                context.player1.clickCardInDisplayCardPrompt(context.zamWesell);
+                context.player1.clickDone();
+
+                // P2 is prompted to see the revealed cards
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.zamWesell]);
+                context.player2.clickDone();
+
+                // Zam is revealed and drawn from the deck
+                expect(context.zamWesell).toBeInZone('hand');
+            });
+        });
+
+        describe('Raw trait-gaining assertions', function() {
             it('should gain a trait from an undeployed friendly leader while in play', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -212,123 +339,6 @@ describe('Zam Wesell, Not What She Seems', function() {
                 context.player1.clickCard(context.zamWesell);
 
                 expect(context.zamWesell).toHaveExactUpgradeNames(['dagger-squadron-pilot']);
-            });
-        });
-
-        describe('proving traits through game interactions', function() {
-            it('is a valid target for Wing Leader\'s When Played ability as a friendly Rebel unit, gained from an undeployed leader while in play', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        groundArena: ['zam-wesell#not-what-she-seems'],
-                        hand: ['wing-leader'],
-                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: false }
-                    }
-                });
-
-                const { context } = contextRef;
-
-                // Chirrut is undeployed, so Zam (via her gained Rebel trait) is the only
-                // other friendly Rebel unit in play that Wing Leader can target
-                context.player1.clickCard(context.wingLeader);
-                expect(context.player1).toBeAbleToSelectExactly([context.zamWesell]);
-                context.player1.clickCard(context.zamWesell);
-
-                expect(context.zamWesell).toHaveExactUpgradeNames(['experience', 'experience']);
-            });
-
-            it('cannot be attached to by Bolstered Endurance, since her gained leader traits exclude Force', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        groundArena: ['zam-wesell#not-what-she-seems'],
-                        hand: ['bolstered-endurance'],
-                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
-                    }
-                });
-
-                const { context } = contextRef;
-
-                // Deployed Chirrut is a friendly leader unit with the Force trait; Zam gains his
-                // Rebel trait but not Force, so only Chirrut himself is an eligible attach target
-                context.player1.clickCard(context.bolsteredEndurance);
-                expect(context.player1).toBeAbleToSelectExactly([context.chirrutImwe]);
-                context.player1.clickCard(context.chirrutImwe);
-
-                expect(context.bolsteredEndurance).toBeAttachedTo(context.chirrutImwe);
-            });
-
-            it('can be found by Psychometry for sharing her gained Rebel trait, even while she is in the discard pile', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['psychometry'],
-                        discard: ['zam-wesell#not-what-she-seems'],
-                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: false },
-                        // Fleet Lieutenant shares only the granted Rebel trait with Zam (not Underworld
-                        // or Bounty Hunter); the rest share no trait with her at all
-                        deck: ['fleet-lieutenant', 'mystic-reflection', 'krayt-dragon', 'wampa', 'moisture-farmer']
-                    }
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.psychometry);
-                expect(context.player1).toBeAbleToSelectExactly([context.zamWesell]);
-                context.player1.clickCard(context.zamWesell);
-
-                expect(context.player1).toHaveExactDisplayPromptCards({
-                    selectable: [context.fleetLieutenant],
-                    invalid: [context.mysticReflection, context.kraytDragon, context.wampa, context.moistureFarmer]
-                });
-                context.player1.clickCardInDisplayCardPrompt(context.fleetLieutenant);
-
-                // P2 is prompted to see the revealed card
-                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.fleetLieutenant]);
-                context.player2.clickDone();
-
-                expect(context.fleetLieutenant).toBeInZone('hand');
-            });
-
-            it('gains the Hutt trait from a deployed Jabba the Hutt while in hand, and can attack the same phase when played with a Credit-granted Ambush', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        hand: ['zam-wesell#not-what-she-seems'],
-                        leader: { card: 'jabba-the-hutt#crime-boss', deployed: true },
-                        credits: 1
-                    },
-                    player2: {
-                        groundArena: ['battlefield-marine']
-                    }
-                });
-
-                const { context } = contextRef;
-
-                // Hutt is not one of Zam's printed traits; she only has it because Jabba is a
-                // friendly leader, and the constant ability grants it even while she's in hand
-                expect(context.zamWesell).toBeInZone('hand');
-                expect(context.zamWesell.hasSomeTrait(Trait.Hutt)).toBeTrue();
-
-                // Zam's own printed Underworld trait qualifies her for Jabba's deployed unit-side
-                // action ability, which plays an Underworld unit from hand
-                context.player1.clickCard(context.jabbaTheHutt);
-                context.player1.clickPrompt('Play an Underworld unit unit from your hand');
-                context.player1.clickCard(context.zamWesell);
-
-                // Pay her cost with the Credit token, which conditionally grants Ambush for the phase
-                context.player1.clickPrompt('Use 1 Credit');
-                expect(context.zamWesell).toBeInZone('groundArena', context.player1);
-
-                // Resolve Ambush and prove it actually works by attacking the same phase, despite
-                // Zam having entered play exhausted
-                expect(context.player1).toHavePassAbilityPrompt('Ambush');
-                context.player1.clickPrompt('Trigger');
-                context.player1.clickCard(context.battlefieldMarine);
-
-                // Combat damage was dealt on both sides, proving the attack actually resolved
-                expect(context.battlefieldMarine.damage).toBe(2);
-                expect(context.zamWesell.damage).toBe(3);
             });
         });
     });
