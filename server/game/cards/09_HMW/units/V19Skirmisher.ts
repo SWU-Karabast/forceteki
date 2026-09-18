@@ -16,7 +16,6 @@ export default class V19Skirmisher extends NonLeaderUnitCard {
         registrar.addConstantAbility({
             title: `While you control 3 or more units, this unit gains ${TextHelper.Sentinel}`,
             condition: (context) => context.player.getArenaUnits().length >= 3,
-            matchTarget: (card, context) => card === context.source,
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });
     }
