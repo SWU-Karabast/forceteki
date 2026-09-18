@@ -24,24 +24,31 @@ describe('Migrate', function() {
             expect(p2Beast.length).toBe(0);
         });
 
-        it('Migrates\'s ability should create a Beast token for every 3 resources they control', async function() {
+        it('Migrates\'s ability should create a Beast token for every 3 resources they control, but less than 3', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['migrate'],
+                    groundArena: [{ card: 'battlefield-marine', upgrades: ['ahsokas-lightsabers#dont-hurt-them'] }],
                     base: 'echo-base',
                     resources: 2,
-                    credits: 1
                 },
                 player2: {
+                    groundArena: ['rebel-pathfinder'],
                     resources: 6
                 }
             });
 
             const { context } = contextRef;
 
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickCard(context.rebelPathfinder);
+
+            context.player2.passAction();
+
             context.player1.clickCard(context.migrate);
-            context.player1.clickPrompt('Use 1 Credit');
+            // context.player1.clickPrompt('Play anyway');
 
             expect(context.player2).toBeActivePlayer();
             const p1Beast = context.player1.findCardsByName('beast');
