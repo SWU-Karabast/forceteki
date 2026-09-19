@@ -24,7 +24,7 @@ export default class EmerieKarrForYourOwnGood extends NonLeaderUnitCard {
             },
             ifYouDo: {
                 title: `The next unit you play this phase costs ${TextHelper.resource(1)}`,
-                ifYouDoCondition: (context) => context.target.controller === context.source.controller,
+                ifYouDoCondition: (context) => context.target.controller === context.player,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                     ongoingEffectDescription: 'discount the next unit played by',
                     ongoingEffectTargetDescription: 'them',
