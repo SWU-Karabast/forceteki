@@ -41,8 +41,11 @@ describe('Forced Pacification', function () {
                     context.strikeship,
                     context.sabineWren
                 ]);
+                expect(context.player1).toHavePrompt('Exhaust up to 4 enemy units (0 selected)');
                 expect(context.player1).not.toHaveChooseNothingButton();
                 context.player1.clickCard(context.wampa);
+
+                expect(context.player1).toHavePrompt('Exhaust up to 4 enemy units (1 selected)');
 
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
                 context.player1.clickCard(context.sabineWren);

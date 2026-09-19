@@ -16,7 +16,7 @@ export default class ForcedPacification extends EventCard {
         registrar.setEventAbility({
             title: 'Defeat any number of friendly units. For each friendly unit defeated this way, exhaust 2 enemy units.',
             targetResolver: {
-                activePromptTitle: 'Choose any number of friendly units',
+                activePromptTitle: 'Defeat any number of friendly units',
                 mode: TargetMode.Unlimited,
                 canChooseNoCards: true,
                 cardTypeFilter: WildcardCardType.Unit,
@@ -29,8 +29,13 @@ export default class ForcedPacification extends EventCard {
                 const exhaustCount = Math.min(defeatResolved * 2, enemyUnitCount);
 
                 return ({
-                    title: 'For each unit defeated this way, exhaust 2 enemy units',
+                    title: `Exhaust up to ${exhaustCount} enemy units`,
                     targetResolver: {
+                        activePromptTitle: (_context, selectedCards) => (
+                            selectedCards == null
+                                ? `Exhaust up to ${exhaustCount} enemy units`
+                                : `Exhaust up to ${exhaustCount} enemy units (${selectedCards.length} selected)`
+                        ),
                         mode: TargetMode.Exactly,
                         numCards: exhaustCount,
                         cardTypeFilter: WildcardCardType.Unit,
