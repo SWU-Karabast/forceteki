@@ -7,6 +7,7 @@ import { WithPrintedHp } from './PrintedHp';
 import type { IDamageSource } from '../../../IDamageOrDefeatSource';
 import { EffectName } from '../../Constants';
 import { registerStateBase, statePrimitive } from '../../GameObjectUtils';
+import type { SerializedStateRecord } from '../../StateEncoding';
 
 export interface ICardWithDamageProperty extends ICardWithPrintedHpProperty {
     setActiveAttack(attack: Attack);
@@ -160,7 +161,7 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             this._attackEnabled = enabledStatus;
         }
 
-        protected override afterSetState(oldState: any) {
+        public override afterSetState(oldState: SerializedStateRecord) {
             // Active Attack is transitive and should always be null during the start of an action
             this._activeAttack = null;
         }

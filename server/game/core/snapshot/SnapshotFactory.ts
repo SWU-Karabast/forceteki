@@ -7,7 +7,7 @@ import { SnapshotMap } from './container/SnapshotMap';
 import { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { PhaseName } from '../Constants';
 import { MetaSnapshotArray } from './container/MetaSnapshotArray';
-import v8 from 'node:v8';
+import { encodeStateValue } from '../StateEncoding';
 
 export type IGetCurrentSnapshotHandler = () => IGameSnapshot;
 export type IUpdateCurrentSnapshotHandler = (snapshot: IGameSnapshot) => void;
@@ -137,7 +137,8 @@ export class SnapshotFactory {
             timepoint,
             timepointNumber: nextTimepointNumber,
             phase: this.game.currentPhase,
-            gameState: v8.serialize(this.game.state),
+            // P3-PB2: a fresh JSON-safe record, never aliasing the live Game.state object.
+            gameState: encodeStateValue('Game.state', this.game.state),
             states: this.gameStateManager.buildGameStateForSnapshot(),
             rngState: this.game.randomGenerator.rngState,
             requiresConfirmationToRollback: false,

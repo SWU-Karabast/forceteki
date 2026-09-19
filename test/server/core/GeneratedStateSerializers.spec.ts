@@ -1,11 +1,10 @@
-import v8 from 'node:v8';
 
 import { GameObjectBase } from '../../../server/game/core/GameObjectBase';
 import type { GameObjectId } from '../../../server/game/core/GameObjectUtils';
 import { registerState, stateRefSet } from '../../../server/game/core/GameObjectUtils';
 import { generatedStateSerializerEntries } from '../../../server/game/core/generated/GeneratedStateSerializers';
 import { getStateSerializerFor } from '../../../server/game/core/StateSerializers';
-import { decodeRefSet, encodeRefSet } from '../../../server/game/core/StateEncoding';
+import { decodeRefSet, encodeRefMap, encodeRefSet } from '../../../server/game/core/StateEncoding';
 import type { SerializedStateRecord } from '../../../server/game/core/StateEncoding';
 
 /**
@@ -30,13 +29,13 @@ class RefSetWorkaroundFixture extends GameObjectBase {
  * `IGameObjectRegistrar` interface type. Following the same local-internals-interface pattern as
  * `test/scenarios/undo/GameObjectIdRestore.spec.ts`. */
 interface IStateManagerSnapshotInternals {
-    buildGameStateForSnapshot(): Buffer;
+    buildGameStateForSnapshot(): Record<string, SerializedStateRecord>;
 }
 
 function harvestLiveUuids(game: { gameObjectManager: unknown }): string[] {
     const manager = game.gameObjectManager as unknown as IStateManagerSnapshotInternals;
-    const stateBuffer = manager.buildGameStateForSnapshot();
-    return Object.keys(v8.deserialize(stateBuffer) as Record<string, unknown>);
+    // P3-PB2: the capture returns the record map itself, not a v8 buffer.
+    return Object.keys(manager.buildGameStateForSnapshot());
 }
 
 /** Mirrors what `JSON.stringify` does to an `undefined` object property value (drops the key), so a
@@ -206,7 +205,7 @@ describe('Generated state serializers', function() {
             expect(deckZone.deck).toEqual(deckArrayBeforeDeserialize);
         });
 
-        it('the refMap workaround repopulates the state bag (the sole v8.serialize snapshot authority), not just the live backing field', async function() {
+        it('the refMap workaround leaves the live field a fully-populated UndoMap that re-encodes to the same record', async function() {
             await setupBoard();
             const { context } = contextRef;
 
@@ -221,16 +220,18 @@ describe('Generated state serializers', function() {
             entry.serializer.deserialize(context.game, registrar, record);
 
             const liveWatchers = (registrar as unknown as { watchers: Map<string, GameObjectBase> }).watchers;
-            const stateBagWatchers = (registrar.getStateUnsafe() as unknown as Record<string, unknown>).watchers as Map<string, string>;
 
-            expect(stateBagWatchers).not.toBeNull();
-            expect(stateBagWatchers.size).toBe(liveWatchers.size);
-            for (const [name, watcher] of liveWatchers) {
-                expect(stateBagWatchers.get(name)).toBe(watcher.uuid);
-            }
+            // P3-PB2: the id mirror this case used to read is gone. The surviving observations are that the
+            // restored field is the live wrapper (so later `.set()` calls still latch `_hasRef`) and that
+            // re-encoding it reproduces the record it was restored from, entry for entry and in order.
+            expect(liveWatchers.constructor.name).toBe('UndoMap');
+            const reEncoded = encodeRefMap(liveWatchers);
+            expect(reEncoded).not.toBeNull();
+            expect(reEncoded.$map.length).toBe(liveWatchers.size);
+            expect(reEncoded).toEqual(record.watchers as unknown as { $map: [string, unknown][] });
         });
 
-        it('the refSet workaround repopulates the state bag, via a purpose-built fixture (refSet has zero live users to exercise this against)', async function() {
+        it('the refSet workaround leaves the live field a fully-populated UndoSet that re-encodes to the same record, via a purpose-built fixture (refSet has zero live users to exercise this against)', async function() {
             await setupBoard();
             const { context } = contextRef;
 
@@ -256,11 +257,11 @@ describe('Generated state serializers', function() {
                 fixture.members.add(member);
             }
 
-            const stateBagMembers = (fixture.getStateUnsafe() as unknown as Record<string, unknown>).members as Set<string>;
-            expect(stateBagMembers).not.toBeNull();
-            expect(stateBagMembers.size).toBe(2);
-            expect(stateBagMembers.has(wampa.uuid)).toBe(true);
-            expect(stateBagMembers.has(cartelSpacer.uuid)).toBe(true);
+            // P3-PB2: observed on the live field and its re-encoding rather than on the deleted id mirror.
+            expect(fixture.members.constructor.name).toBe('UndoSet');
+            const reEncoded = encodeRefSet(fixture.members);
+            expect(reEncoded).not.toBeNull();
+            expect(reEncoded.$set).toEqual([wampa.uuid, cartelSpacer.uuid]);
         });
     });
 });

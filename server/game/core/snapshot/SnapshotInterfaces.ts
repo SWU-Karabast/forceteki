@@ -3,6 +3,7 @@ import type { PhaseName, RollbackRoundEntryPoint, RollbackSetupEntryPoint, Snaps
 import type { GameObjectId } from '../GameObjectUtils';
 import type { Player } from '../Player';
 import type { IRandomness } from '../Randomness';
+import type { SerializedStateRecord } from '../StateEncoding';
 
 export interface ISnapshotSettingsBase {
     type: SnapshotType;
@@ -125,8 +126,14 @@ export interface IGameSnapshot {
     timepointNumber: number;
     activePlayerId?: string;
 
-    gameState: Buffer;
-    states: Buffer;
+    /**
+     * P3-PB2: plain JSON-safe records, not `v8` buffers. `gameState` is `encodeStateValue`'s output for
+     * `Game.state`; `states` maps each live GameObject's uuid to its generated `serialize<Class>` record.
+     * Both are retained as-is and are never mutated by a restore, so a snapshot can be rolled back to
+     * repeatedly.
+     */
+    gameState: unknown;
+    states: Record<string, SerializedStateRecord>;
     rngState: IRandomness['rngState'];
 
     requiresConfirmationToRollback: boolean;

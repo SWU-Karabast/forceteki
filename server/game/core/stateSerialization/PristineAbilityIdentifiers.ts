@@ -2,7 +2,7 @@ import { cards as cardImplementations } from '../../cards/Index';
 import { createUnimplementedCard } from '../card/CardHelpers';
 import type { Card } from '../card/Card';
 import type { StateWatcherName } from '../Constants';
-import type { IStateWatcherState, StateWatcher } from '../stateWatcher/StateWatcher';
+import type { StateWatcher } from '../stateWatcher/StateWatcher';
 import type { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
 import { getLimitBearingAbilitySurface } from './SharedAbilitySurface';
 
@@ -161,11 +161,14 @@ export function getPristineAbilityIdentifiers(card: Card): ReadonlySet<string> {
 
             // Hazard 2 (listener cleanup only; the registrar field itself is restored below): clean up
             // every watcher the stand-in recorded. `cleanupOnRemove`'s `oldState` argument is unused by
-            // `StateWatcher`'s own implementation (it only unregisters listeners), so the cast below is
-            // safe.
+            // `StateWatcher`'s own implementation (it only unregisters listeners), so an empty record is
+            // sufficient. P3-PB2: deliberately NOT `getStateSerializerFor(watcher).serializer.serialize(watcher)`
+            // - a real encode can throw (a non-finite number, an undefined array element, ...), which would
+            // make save-tier teardown newly fallible inside a `try` whose whole job is to run every remaining
+            // teardown step, in exchange for a value nothing reads.
             try {
                 for (const watcher of standIn.recordedWatchers) {
-                    watcher.cleanupOnRemove(watcher.getStateUnsafe() as unknown as IStateWatcherState<unknown>);
+                    watcher.cleanupOnRemove({});
                 }
             } catch (err) {
                 firstTeardownError ??= err;

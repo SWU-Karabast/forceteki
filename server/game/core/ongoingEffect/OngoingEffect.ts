@@ -5,16 +5,12 @@ import type { ZoneFilter } from '../Constants';
 import { Duration, WildcardZoneName, EffectName } from '../Constants';
 import type { Game } from '../Game';
 import type { GameObject } from '../GameObject';
-import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { Contract } from '../utils/Contract';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
-import { registerStateBase, stateRefArray, type GameObjectId } from '../GameObjectUtils';
+import { registerStateBase, stateRefArray } from '../GameObjectUtils';
+import type { SerializedStateRecord } from '../StateEncoding';
 import type { Player } from '../Player';
-
-export interface IOngoingEffectState<TTarget extends GameObject> extends IGameObjectBaseState {
-    targets: GameObjectId<TTarget>[];
-}
 
 /**
  * Represents a card based effect applied to one or more targets.
@@ -213,7 +209,7 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject> ext
         };
     }
 
-    public override afterSetAllState(oldState) {
+    public override afterSetAllState(oldState: SerializedStateRecord) {
         this.refreshContext();
     }
 }

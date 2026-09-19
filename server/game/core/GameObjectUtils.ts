@@ -1,4 +1,5 @@
 import type { GameObjectBase, IGameObjectBase } from './GameObjectBase';
+import { STATE_ENCODING_TAGS, UNENCODABLE_OBJECT_KEYS } from './StateEncoding';
 import type { FieldKind } from './StateEncoding';
 import { Contract } from './utils/Contract';
 import { Helpers } from './utils/Helpers';
@@ -16,7 +17,6 @@ const stateMapMetadata = Symbol();
 const stateSetMetadata = Symbol();
 const stateRecordMetadata = Symbol();
 const stateObjectMetadata = Symbol();
-const stateHydrationMetadata = Symbol();
 
 const stateClassesStr: Record<string, string> = {};
 
@@ -53,149 +53,65 @@ export interface RegisterStateOptions {
     autoInitialize?: boolean;
 }
 
-type StateHydrationHandler = (instance: GameObjectBase, rawValue: unknown) => void;
+/**
+ * P3-PB2: eager ref *marking*. Before the state-bag cutover these latches were a side effect of building the
+ * id mirror (`createIdArray`/`createIdMap`/... and `newValue?.getObjectId()`); with the mirror gone they have
+ * to be explicit, because nothing else calls `getObjectId()` on a referent that is only ever reachable through
+ * a ref field. Dropping a latch does not fail to compile and does not reliably fail a test: the referent
+ * survives until `removeUnusedGameObjects()` culls it at the *next* snapshot, and the rollback after that dies
+ * in `getFromUuidUnsafe` (a `SevereHaltGame`, two commits later). Keep every `markStateRef*` call paired with
+ * the setter/mutator it guards.
+ *
+ * `getObjectId()`'s return value is deliberately discarded - the call is made purely for its `markReferenced()`
+ * side effect. Serialization reads `.uuid` directly and never marks (`StateEncoding.ts`), which is what lets
+ * capture run cull-then-serialize.
+ */
+function markStateRef(value: IGameObjectBase | null | undefined): void {
+    if (value == null) {
+        return;
+    }
 
-// Registers how a state field should be rebuilt from raw copied state during copyState().
-function registerStateHydrator(metaState: Record<string | symbol, unknown>, fieldName: string, hydrator: StateHydrationHandler) {
-    const hydrationMetadata = (metaState[stateHydrationMetadata] ??= {}) as Record<string, StateHydrationHandler>;
-    hydrationMetadata[fieldName] = hydrator;
+    value.getObjectId();
 }
 
-function createIdArray<TValue extends IGameObjectBase>(values: readonly TValue[] | TValue[] | null | undefined): GameObjectId<TValue>[] | null | undefined {
+function markStateRefArray(values: readonly IGameObjectBase[] | null | undefined): void {
     if (values == null) {
-        return null;
+        return;
     }
 
-    const ids = new Array<GameObjectId<TValue>>(values.length);
-    for (let i = 0; i < values.length; i++) {
-        ids[i] = values[i].getObjectId();
-    }
-
-    return ids;
-}
-
-function createIdMap<TValue extends IGameObjectBase>(values: Map<string, TValue> | null | undefined): Map<string, GameObjectId<TValue>> | null | undefined {
-    if (values == null) {
-        return null;
-    }
-
-    const ids = new Map<string, GameObjectId<TValue>>();
-    for (const [key, value] of values) {
-        ids.set(key, value.getObjectId());
-    }
-
-    return ids;
-}
-
-function createIdSet<TValue extends IGameObjectBase>(values: Set<TValue> | null | undefined): Set<GameObjectId<TValue>> | null | undefined {
-    if (values == null) {
-        return null;
-    }
-
-    const ids = new Set<GameObjectId<TValue>>();
     for (const value of values) {
-        ids.add(value.getObjectId());
+        value.getObjectId();
     }
-
-    return ids;
 }
 
-function createIdRecord<TValue extends IGameObjectBase>(values: Record<string, TValue> | null | undefined): Record<string, GameObjectId<TValue>> | null | undefined {
+function markStateRefMap(values: ReadonlyMap<string, IGameObjectBase> | null | undefined): void {
     if (values == null) {
-        return null;
+        return;
     }
 
-    const ids: Record<string, GameObjectId<TValue>> = {};
-    for (const key in values) {
-        if (Object.prototype.hasOwnProperty.call(values, key)) {
-            ids[key] = values[key].getObjectId();
-        }
+    for (const value of values.values()) {
+        value.getObjectId();
     }
-
-    return ids;
 }
 
-function hydrateReadonlyArrayFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, rawValue: readonly GameObjectId<TValue>[] | GameObjectId<TValue>[] | null | undefined): readonly TValue[] | null | undefined {
-    if (rawValue == null) {
-        return null;
+function markStateRefSet(values: ReadonlySet<IGameObjectBase> | null | undefined): void {
+    if (values == null) {
+        return;
     }
 
-    const values = new Array<TValue>(rawValue.length);
-    for (let i = 0; i < rawValue.length; i++) {
-        values[i] = instance.game.getFromUuidUnsafe(rawValue[i]);
+    for (const value of values) {
+        value.getObjectId();
     }
-
-    return values;
 }
 
-function hydrateUndoMapFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Map<string, GameObjectId<TValue>> | null | undefined): Map<string, TValue> | null | undefined {
-    if (rawValue == null) {
-        return null;
+function markStateRefRecord(values: Readonly<Record<string, IGameObjectBase>> | null | undefined): void {
+    if (values == null) {
+        return;
     }
 
-    const hydratedMap = CreateUndoMapInternal<TValue>(instance, prop);
-    for (const [key, valueId] of rawValue) {
-        Map.prototype.set.call(hydratedMap, key, instance.game.getFromUuidUnsafe(valueId));
+    for (const key of Object.keys(values)) {
+        values[key].getObjectId();
     }
-
-    return hydratedMap;
-}
-
-function hydrateUndoSetFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Set<GameObjectId<TValue>> | null | undefined): Set<TValue> | null | undefined {
-    if (rawValue == null) {
-        return null;
-    }
-
-    const hydratedSet = CreateUndoSetInternal<TValue>(instance, prop);
-    for (const id of rawValue) {
-        Set.prototype.add.call(hydratedSet, instance.game.getFromUuidUnsafe(id));
-    }
-
-    return hydratedSet;
-}
-
-function hydrateUndoRecordFromIds<TValue extends GameObjectBase>(instance: GameObjectBase, prop: string, rawValue: Record<string, GameObjectId<TValue>> | null | undefined): Record<string, TValue> | null | undefined {
-    if (rawValue == null) {
-        return null;
-    }
-
-    const hydratedRecord: Record<string, TValue> = {};
-    for (const key in rawValue) {
-        if (Object.prototype.hasOwnProperty.call(rawValue, key)) {
-            hydratedRecord[key] = instance.game.getFromUuidUnsafe(rawValue[key]);
-        }
-    }
-
-    return UndoSafeRecord(instance, hydratedRecord, prop);
-}
-
-function hydrateIdFromState<TValue extends GameObjectBase>(instance: GameObjectBase, rawValue: GameObjectId<TValue> | null | undefined): TValue | null | undefined {
-    if (rawValue == null) {
-        return null;
-    }
-
-    return instance.game.getFromUuidUnsafe(rawValue);
-}
-
-function pushIdsOntoStateArray<TValue extends IGameObjectBase>(stateArray: GameObjectId<TValue>[], items: TValue[]): number {
-    // eslint-disable-next-line @typescript-eslint/prefer-for-of
-    for (let i = 0; i < items.length; i++) {
-        stateArray.push(items[i].getObjectId());
-    }
-
-    return stateArray.length;
-}
-
-function unshiftIdsOntoStateArray<TValue extends IGameObjectBase>(stateArray: GameObjectId<TValue>[], items: TValue[]): number {
-    for (let i = items.length - 1; i >= 0; i--) {
-        stateArray.unshift(items[i].getObjectId());
-    }
-
-    return stateArray.length;
-}
-
-function getStateIdArray<TValue extends IGameObjectBase>(go: GameObjectBase, name: string): GameObjectId<TValue>[] {
-    return (go as GameObjectBase & { state: Record<string, GameObjectId<TValue>[]> }).state[name];
 }
 
 function normalizeRegisterStateOptions(copyModeOrOptions: CopyMode | RegisterStateOptions | undefined): Required<RegisterStateOptions> {
@@ -218,9 +134,6 @@ function normalizeRegisterStateOptions(copyModeOrOptions: CopyMode | RegisterSta
  * metadata - the same per-class bucket `registerState()` writes to `context.metadata[targetClass.name]`
  * and `getRuntimeStateFieldModelByClassName()` reads per prototype-chain level - for structural equality:
  * same field names and same kind per field, across every bucket a field decorator populates.
- * Deliberately excludes `stateHydrationMetadata`, whose values are closures (always reference-distinct,
- * so comparing them would always report a mismatch) and which is derived from the same field
- * declarations already compared via the other buckets, not an independent source of truth.
  *
  * Own-metadata comparison (not a flattened prototype-chain walk) is what makes this usable on
  * `AsLeader`-style classes: `AsLeader`'s *flattened* model legitimately differs between
@@ -263,7 +176,7 @@ function getOwnStateMetadata(registeredClass: abstract new (...args: never[]) =>
 }
 
 /**
- * Decorator to capture the names of any accessors flagged as &#64;statePrimitive, &#64;stateRef, or &#64;stateRefArray for copyState, and then clear the array for the next derived class to use.
+ * Decorator to capture the names of any accessors flagged as &#64;statePrimitive, &#64;stateRef, or &#64;stateRefArray, and then clear the array for the next derived class to use.
  * This is meant for classes that are meant to be directly instantiated, they must be non-abstract and leafs.
  * @param copyModeOrOptions `CopyMode` currently has a single mode (metadata-only copy); the parameter is retained for options.autoInitialize and future modes.
  * If options.autoInitialize=false, the class is marked/registered without creating a constructor wrapper.
@@ -280,7 +193,7 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
 
         const metaState = context.metadata[stateMetadata] as Record<string | symbol, any>;
         if (metaState) {
-            // Move metadata from the stateMedata symbol to the name of the class, so that we can look it up later in copyStruct.
+            // Move metadata from the stateMedata symbol to the name of the class, so that we can look it up later by class name.
             context.metadata[targetClass.name] = metaState;
             // Delete field to clear for the next derived class, if any.
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
@@ -362,7 +275,7 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
                 this.initialize();
             }
         };
-        // Preserve the original class name for diagnostics and metadata lookups (e.g. copyState).
+        // Preserve the original class name for diagnostics and metadata lookups (e.g. getRuntimeStateFieldModelByClassName).
         Object.defineProperty(wrappedClass, 'name', { value: targetClass.name });
 
         // Mark the wrapper too; runtime enforcement checks the constructed class, not just the original targetClass.
@@ -380,8 +293,8 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
             configurable: false
         });
 
-        // copyState walks Symbol.metadata on constructors in the prototype chain.
-        // Re-expose the original metadata on the wrapper so state copy behavior is unchanged.
+        // getRuntimeStateFieldModelByClassName walks Symbol.metadata on constructors in the prototype chain.
+        // Re-expose the original metadata on the wrapper so the field-model lookup is unchanged.
         Object.defineProperty(wrappedClass, Symbol.metadata, {
             value: targetClass[Symbol.metadata],
             writable: false,
@@ -417,7 +330,7 @@ export function registerState<T extends GameObjectBase>(copyModeOrOptions?: Copy
 }
 
 /**
- * Decorator to capture the names of any accessors flagged as &#64;statePrimitive, &#64;stateRef, or &#64;stateRefArray for copyState, and then clear the array for the next derived class to use.
+ * Decorator to capture the names of any accessors flagged as &#64;statePrimitive, &#64;stateRef, or &#64;stateRefArray, and then clear the array for the next derived class to use.
  *
  * This is meant for base classes that need to be extended by &#64;registerState classes, but should not be directly instantiated themselves, and thus don't need the constructor wrapper that guarantees initialize() is called.
  */
@@ -443,7 +356,7 @@ export function buildAutoInitializingCardClass(targetCardClass: any): any {
             this.initialize();
         }
     };
-    // Preserve the original class name for diagnostics and metadata lookups (e.g. copyState).
+    // Preserve the original class name for diagnostics and metadata lookups (e.g. getRuntimeStateFieldModelByClassName).
     Object.defineProperty(wrappedClass, 'name', { value: targetCardClass.name });
 
     Object.defineProperty(wrappedClass, registerStateClassMarker, {
@@ -474,20 +387,16 @@ export function statePrimitive<T extends GameObjectBase, TValue extends string |
         (metaState[stateSimpleMetadata] as string[]).push(context.name);
         // P3-PA4: additive kind write disambiguating this field from a @stateValue field at the metadata level.
         (metaState[stateSimpleKindMetadata] ??= {})[context.name as string] = 'primitive' satisfies FieldKind;
-        const name = context.name;
-
-        // No need to use the backing fields, read and write directly to state.
+        // P3-PB2: the native backing field is the sole storage; the decorator only records metadata.
         return {
             get(this: T) {
-                return this.state[name];
+                return target.get.call(this);
             },
             set(this: T, newValue: TValue) {
-                this.state[name] = newValue;
+                target.set.call(this, newValue);
             },
             init(this: T, value: TValue) {
-                this.state[name] = value;
-                // We don't use the internal field and only use the data within state.
-                return undefined;
+                return value;
             }
         };
     };
@@ -517,28 +426,19 @@ export function stateRefArray<T extends GameObjectBase, TValue extends GameObjec
         (metaState[stateArrayMetadata] as string[]).push(context.name);
         const name = context.name as string;
 
-        if (readonly) {
-            registerStateHydrator(metaState, name, (instance, rawValue: GameObjectId<TValue>[] | null | undefined) => {
-                target.set.call(instance as T, hydrateReadonlyArrayFromIds<TValue>(instance, rawValue) as readonly TValue[]);
-            });
-        } else {
-            registerStateHydrator(metaState, name, (instance, rawValue: GameObjectId<TValue>[] | null | undefined) => {
-                target.set.call(instance as T, CreateUndoArrayInternalFromIds<TValue>(instance, name, rawValue));
-            });
-        }
-
-        // Use the backing fields as the cache, and write refs to the state.
+        // P3-PB2: the native backing field is the sole storage. markStateRefArray replaces the id mirror's
+        // incidental getObjectId() latching (see markStateRef's comment).
         if (readonly) {
             return {
                 get(this: T) {
                     return target.get.call(this);
                 },
                 set(this: T, newValue: TValue[]) {
-                    this.state[name] = createIdArray(newValue);
+                    markStateRefArray(newValue);
                     target.set.call(this, newValue);
                 },
                 init(this: T, value: TValue[]) {
-                    this.state[name] = createIdArray(value);
+                    markStateRefArray(value);
                     return value;
                 }
             };
@@ -555,12 +455,17 @@ export function stateRefArray<T extends GameObjectBase, TValue extends GameObjec
                 }
             },
             set(this: T, newValue: TValue[]) {
-                this.state[name] = createIdArray(newValue);
+                markStateRefArray(newValue);
                 target.set.call(this, newValue ? CreateUndoArrayInternal(this, name, newValue) : newValue);
             },
+            // P3-PB2: `init` now *copies* `value` into the wrapper rather than building an empty UndoArray
+            // and writing the ids to the bag separately - with the bag gone the live field is the only
+            // storage, so an empty wrapper would silently discard the initializer. All three mutable
+            // @stateRefArray(false) users initialize with `= []` (GameObject.ts:30, DeckZone.ts:22,25), so
+            // no live behavior differs today.
             init(this: T, value: TValue[]) {
-                this.state[name] = createIdArray(value);
-                return value ? CreateUndoArrayInternal(this, name) : value;
+                markStateRefArray(value);
+                return value ? CreateUndoArrayInternal(this, name, value) : value;
             }
         };
     };
@@ -585,25 +490,20 @@ export function stateRefMap<T extends GameObjectBase, TValue extends GameObjectB
         (metaState[stateMapMetadata] as string[]).push(context.name);
         const name = context.name as string;
 
-        registerStateHydrator(metaState, name, (instance, rawValue: Map<string, GameObjectId<TValue>> | null | undefined) => {
-            target.set.call(instance as T, hydrateUndoMapFromIds<TValue>(instance, name, rawValue) as Map<string, TValue>);
-        });
-
-        // Use the backing fields as the cache, and write refs to the state.
+        // P3-PB2: the native backing field is the sole storage.
         return {
             get(this) {
                 return target.get.call(this);
             },
             set(this: GameObjectBase, newValue) {
-                // createIdMap builds the state mirror for the incoming entries; CreateUndoMapInternal then
-                // populates the wrapper without re-writing that mirror (see its doc comment).
-                this.state[name] = createIdMap(newValue);
+                // The caller marks the incoming entries here; CreateUndoMapInternal then populates via
+                // Map.prototype.set, bypassing the override (see its doc comment). Keep the two paired.
+                markStateRefMap(newValue);
                 target.set.call(this, newValue ? CreateUndoMapInternal(this, name, newValue.entries()) : newValue);
             },
             init(this: GameObjectBase, value) {
                 Contract.assertTrue(value.size === 0, 'UndoMap cannot be init with entries');
-                this.state[name] = value;
-                // If this is not-null, create a equivalent map in the state. Otherwise, leave it as-is.
+                // If this is not-null, create an equivalent wrapper. Otherwise, leave it as-is.
                 return value ? CreateUndoMapInternal<TValue>(this, name) : value;
             },
         };
@@ -629,26 +529,20 @@ export function stateRefSet<T extends GameObjectBase, TValue extends GameObjectB
         (metaState[stateSetMetadata] as string[]).push(context.name);
         const name = context.name as string;
 
-        registerStateHydrator(metaState, name, (instance, rawValue: Set<GameObjectId<TValue>> | null | undefined) => {
-            target.set.call(instance as T, hydrateUndoSetFromIds<TValue>(instance, name, rawValue) as Set<TValue>);
-        });
-
-        // Use the backing fields as the cache, and write refs to the state.
-        // State stores a Set<string> keyed by UUID so that delete can look up by key.
+        // P3-PB2: the native backing field is the sole storage.
         return {
             get(this) {
                 return target.get.call(this);
             },
             set(this: GameObjectBase, newValue) {
-                // createIdSet builds the state mirror for the incoming values; CreateUndoSetInternal then
-                // populates the wrapper without re-writing that mirror (see CreateUndoMapInternal's doc comment).
-                this.state[name] = createIdSet(newValue);
+                // Marked here for the same reason as stateRefMap's set: CreateUndoSetInternal populates via
+                // Set.prototype.add and bypasses the override.
+                markStateRefSet(newValue);
                 target.set.call(this, newValue ? CreateUndoSetInternal(this, name, newValue.values()) : newValue);
             },
             init(this: GameObjectBase, value) {
                 Contract.assertTrue(value.size === 0, 'UndoSet cannot be init with entries');
-                this.state[name] = value ? new Set() : value;
-                // If this is not-null, create an equivalent set in the state. Otherwise, leave it as-is.
+                // If this is not-null, create an equivalent wrapper. Otherwise, leave it as-is.
                 return value ? CreateUndoSetInternal<TValue>(this, name) : value;
             },
         };
@@ -674,21 +568,20 @@ export function stateRefRecord<T extends GameObjectBase, TValue extends GameObje
         (metaState[stateRecordMetadata] as string[]).push(context.name);
         const name = context.name as string;
 
-        registerStateHydrator(metaState, name, (instance, rawValue: Record<string, GameObjectId<TValue>> | null | undefined) => {
-            target.set.call(instance as T, hydrateUndoRecordFromIds<TValue>(instance, name, rawValue) as Record<string, TValue>);
-        });
-
-        // Use the backing fields as the cache, and write refs to the state.
+        // P3-PB2: the native backing field is the sole storage.
         return {
             get(this) {
                 return target.get.call(this);
             },
+            // The `newValue == null` guard closes the P3-PA1 landmine: the old body called
+            // `UndoSafeRecord(this, newValue, name)` unconditionally, so assigning null reached
+            // `new Proxy(null, ...)` and threw. `init` already guarded; `set` did not.
             set(this: GameObjectBase, newValue) {
-                this.state[name] = createIdRecord(newValue);
-                target.set.call(this, UndoSafeRecord(this, newValue, name));
+                markStateRefRecord(newValue);
+                target.set.call(this, newValue == null ? newValue : UndoSafeRecord(this, newValue, name));
             },
             init(this: GameObjectBase, value) {
-                this.state[name] = value ? {} : value;
+                markStateRefRecord(value);
                 return value ? UndoSafeRecord(this, value, name) : value;
             },
         };
@@ -712,25 +605,18 @@ export function stateRef<T extends GameObjectBase, TValue extends GameObjectBase
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateObjectMetadata] ??= [];
         (metaState[stateObjectMetadata] as string[]).push(context.name);
-        const name = context.name as string;
 
-        registerStateHydrator(metaState, name, (instance, rawValue: GameObjectId<TValue> | null | undefined) => {
-            target.set.call(instance as unknown as T, hydrateIdFromState(instance, rawValue) as unknown as TValue);
-        });
-
-        // Use the backing fields as the cache, and write refs to the state.
+        // P3-PB2: the native backing field is the sole storage.
         return {
             get(this) {
                 return target.get.call(this);
             },
             set(this, newValue) {
-                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                this.state[name] = newValue?.getObjectId();
+                markStateRef(newValue);
                 target.set.call(this, newValue);
             },
             init(value) {
-                // @ts-expect-error we should technically have access to 'state' since this is internal to the class, but for now this is a workaround.
-                this.state[name] = value?.getObjectId();
+                markStateRef(value);
                 return value;
             }
         };
@@ -825,24 +711,22 @@ export function stateValue<T extends GameObjectBase, TValue>(_options?: { allowG
         (metaState[stateSimpleKindMetadata] ??= {})[context.name as string] = 'value' satisfies FieldKind;
         const name = context.name;
 
-        // No need to use the backing fields, read and write directly to state.
+        // P3-PB2: the native backing field is the sole storage.
         return {
             get(this: T) {
-                return this.state[name];
+                return target.get.call(this);
             },
             set(this: T, newValue: TValue) {
                 if (Helpers.isDevelopment()) {
                     assertJsonSafeStateValue(name, newValue);
                 }
-                this.state[name] = newValue;
+                target.set.call(this, newValue);
             },
             init(this: T, value: TValue) {
                 if (Helpers.isDevelopment()) {
                     assertJsonSafeStateValue(name, value);
                 }
-                this.state[name] = value;
-                // We don't use the internal field and only use the data within state.
-                return undefined;
+                return value;
             }
         };
     };
@@ -874,22 +758,22 @@ export function stateMap<T extends GameObjectBase, TValue>() {
         (metaState[stateSimpleKindMetadata] ??= {})[context.name as string] = 'value' satisfies FieldKind;
         const name = context.name as string;
 
+        // P3-PB2: the native backing field is the sole storage.
         return {
             get(this: T) {
-                return this.state[name];
+                return target.get.call(this);
             },
             set(this: T, newValue: Map<string, TValue>) {
                 if (Helpers.isDevelopment()) {
                     assertJsonSafeStateValue(name, newValue);
                 }
-                this.state[name] = newValue == null ? newValue : new ValueMap<TValue>(this, name, newValue.entries());
+                target.set.call(this, newValue == null ? newValue : new ValueMap<TValue>(this, name, newValue.entries()));
             },
             init(this: T, value: Map<string, TValue>) {
                 if (Helpers.isDevelopment()) {
                     assertJsonSafeStateValue(name, value);
                 }
-                this.state[name] = value == null ? value : new ValueMap<TValue>(this, name, value.entries());
-                return undefined;
+                return value == null ? value : new ValueMap<TValue>(this, name, value.entries());
             }
         };
     };
@@ -916,22 +800,22 @@ export function stateSet<T extends GameObjectBase, TValue>() {
         (metaState[stateSimpleKindMetadata] ??= {})[context.name as string] = 'value' satisfies FieldKind;
         const name = context.name as string;
 
+        // P3-PB2: the native backing field is the sole storage.
         return {
             get(this: T) {
-                return this.state[name];
+                return target.get.call(this);
             },
             set(this: T, newValue: Set<TValue>) {
                 if (Helpers.isDevelopment()) {
                     assertJsonSafeStateValue(name, newValue);
                 }
-                this.state[name] = newValue == null ? newValue : new ValueSet<TValue>(this, name, newValue.values());
+                target.set.call(this, newValue == null ? newValue : new ValueSet<TValue>(this, name, newValue.values()));
             },
             init(this: T, value: Set<TValue>) {
                 if (Helpers.isDevelopment()) {
                     assertJsonSafeStateValue(name, value);
                 }
-                this.state[name] = value == null ? value : new ValueSet<TValue>(this, name, value.values());
-                return undefined;
+                return value == null ? value : new ValueSet<TValue>(this, name, value.values());
             }
         };
     };
@@ -961,22 +845,22 @@ export function stateArray<T extends GameObjectBase, TValue>() {
         (metaState[stateSimpleKindMetadata] ??= {})[context.name as string] = 'value' satisfies FieldKind;
         const name = context.name as string;
 
+        // P3-PB2: the native backing field is the sole storage.
         return {
             get(this: T) {
-                return this.state[name];
+                return target.get.call(this);
             },
             set(this: T, newValue: TValue[]) {
                 if (Helpers.isDevelopment()) {
                     assertJsonSafeStateValue(name, newValue);
                 }
-                this.state[name] = newValue == null ? newValue : CreateValueArrayInternal(this, name, newValue);
+                target.set.call(this, newValue == null ? newValue : CreateValueArrayInternal(this, name, newValue));
             },
             init(this: T, value: TValue[]) {
                 if (Helpers.isDevelopment()) {
                     assertJsonSafeStateValue(name, value);
                 }
-                this.state[name] = value == null ? value : CreateValueArrayInternal(this, name, value);
-                return undefined;
+                return value == null ? value : CreateValueArrayInternal(this, name, value);
             }
         };
     };
@@ -997,6 +881,12 @@ export function stateArray<T extends GameObjectBase, TValue>() {
 function isGameObjectBaseInstance(value: object): value is GameObjectBase {
     return typeof (value as { getObjectId?: unknown }).getObjectId === 'function';
 }
+
+/**
+ * The encoder's rejected own-key set, assembled from its own two exported sources rather than re-listed
+ * here, so this write-site gate cannot drift away from the sink that has to serialize what it admits.
+ */
+const RESERVED_STATE_VALUE_KEYS = new Set<string>([...STATE_ENCODING_TAGS, ...UNENCODABLE_OBJECT_KEYS]);
 
 /**
  * Describes why a value is not JSON-safe, for use in the {@link assertJsonSafeStateValue} error message.
@@ -1050,19 +940,21 @@ function describeInvalidJsonStateValue(value: unknown): string {
  *   real coverage gap, not a marginal one. Plan 3's encoder is the intended enforcement point for this
  *   population path; do not close either gap here by adding re-validation to the wrapper mutators, which is
  *   separate follow-up work, not this unit's scope. Note that rollback is not subject to either gap:
- *   `copyState` reassigns every `stateSimpleMetadata` field (which `@stateValue`/`@stateMap`/`@stateSet`/
- *   `@stateArray` all register into) via `instance[field] = newState[field]`, re-entering the `set` accessor
- *   with whatever the field held at snapshot time - a populated collection included - so this check does
- *   re-validate in-place-mutated maps/sets/arrays on every rollback.
+ *   the generated deserializer assigns every `value`-kind field through its public accessor
+ *   (`i.field = decodeStateValue(...)`), re-entering the `set` accessor with whatever the field held at
+ *   snapshot time - a populated collection included - so this check does re-validate in-place-mutated
+ *   maps/sets/arrays on every rollback.
  *
  * Also note: this walks plain-object properties with `Object.keys`, which sees only *own enumerable
  * string-keyed* properties (a symbol-keyed or non-enumerable property is invisible to it), and which
  * invokes any getters on the object as part of walking it.
  *
- * `ancestors` tracks only the current recursion path (to reject a true cycle) the same way
- * {@link isSnapshotSafeOngoingEffectValue} does, but this function is otherwise a distinct check for a
- * distinct invariant: it accepts `Map`/`Set` (which that structured-clone check rejects) and rejects
- * non-finite numbers (which that check allows, since `v8.serialize` round-trips them fine).
+ * `ancestors` tracks only the current recursion path (to reject a true cycle). P3-PB2 fix
+ * (`PB2I1-CS-01`): this is now the encoder's domain restated at the write site, not a second opinion about
+ * it. `isSnapshotSafeOngoingEffectValue` is the one remaining relative of this check and it delegates to
+ * `encodeStateValue` outright, so the only surviving difference between the three is that this assert still
+ * tolerates an `undefined` array element / Map value / Set member, which `encodeStateValue` refuses (see its
+ * own comment for why). Do not add a fourth near-copy of these rules.
  */
 export function assertJsonSafeStateValue(propertyName: string, value: unknown, ancestors: Set<object> = new Set<object>()): void {
     if (value === null || value === undefined) {
@@ -1132,31 +1024,45 @@ export function assertJsonSafeStateValue(propertyName: string, value: unknown, a
         throw new Error(`State value "${propertyName}" is not JSON-safe: contains ${describeInvalidJsonStateValue(value)}. Only plain objects, arrays, Map, Set, and JSON-representable primitives (or GameObjectId) are allowed in @stateValue fields.`);
     }
 
+    // P3-PB2 fix (PB2I1-CS-01): both key rules are the encoder's, restated at the write site so a bad
+    // payload is caught where it is produced rather than at the next snapshot capture. A reserved tag would
+    // be indistinguishable from a tagged value on decode; `__proto__` cannot be stored as an own property by
+    // the object-literal assignment both codec legs use. See `encodeStateValue` for both. The predicate
+    // matches too, not just the key set: both sides test the enumerable own keys (`PB2I2-N2`), so this gate
+    // cannot admit a key the encoder refuses.
+    const ownKeys = Object.keys(value as Record<string, unknown>);
+    for (const key of ownKeys) {
+        if (RESERVED_STATE_VALUE_KEYS.has(key)) {
+            throw new Error(`State value "${propertyName}" is not JSON-safe: plain object carries the reserved own key "${key}", which the state encoder cannot represent. Rename the property.`);
+        }
+    }
+
     ancestors.add(value as object);
-    for (const key of Object.keys(value as Record<string, unknown>)) {
+    for (const key of ownKeys) {
         assertJsonSafeStateValue(`${propertyName}.${key}`, (value as Record<string, unknown>)[key], ancestors);
     }
     ancestors.delete(value as object);
 }
 
-/** Experimental: Uses proxies to cause any in-place mutation functions to also affect the underlying state. */
+/**
+ * Uses a proxy to give in-place mutation of a `@stateRefRecord` field a single, addressable call site.
+ * P3-PB2: the dual-write into the state bag is gone; the trap's remaining job is to latch `_hasRef` on a
+ * newly stored referent, exactly as `UndoMap.set`/`UndoSet.add` do.
+ *
+ * `go`/`name` are retained unused for the same reason `ValueMap` retains `#go`/`#prop`: they are Plan 4's
+ * (`docs/plans/04-delta-snapshots.md`) `recordFieldChange` hook point, and re-threading them later would
+ * touch every call site again.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
 function UndoSafeRecord<T extends GameObjectBase, TValue extends GameObjectBase>(go: T, record: Record<string, TValue>, name: string) {
-    // @ts-expect-error these functions can bypass the accessibility safeties.
-    Contract.assertTrue(Object.prototype.hasOwnProperty.call(go.state, name), 'Property ' + name + ' not found on the state of the GameObject');
-
     const proxiedRecord = new Proxy(record, {
         set(target, prop, newValue, receiver) {
-            const result = Reflect.set(target, prop, newValue, receiver);
-            // @ts-expect-error Override accessibility and set the same property on the internal state.
-            Reflect.set(go.state[name], prop, newValue?.getObjectId(), go.state[name]);
-            return result;
+            markStateRef(newValue);
+            return Reflect.set(target, prop, newValue, receiver);
         },
         deleteProperty(target, prop: string) {
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             delete target[prop];
-            // @ts-expect-error Override accessibility and set the same property on the internal state.
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete go.state[prop];
             return true;
         },
     });
@@ -1177,20 +1083,6 @@ function CreateUndoArrayInternal<TValue extends GameObjectBase>(go: GameObjectBa
     return undoArr as IStateArray<TValue>;
 }
 
-function CreateUndoArrayInternalFromIds<TValue extends GameObjectBase>(go: GameObjectBase, prop: string, ids?: readonly GameObjectId<TValue>[] | GameObjectId<TValue>[] | null) {
-    if (ids == null) {
-        return ids as unknown as IStateArray<TValue> | null | undefined;
-    }
-
-    const undoArr = CreateUndoArrayBase<TValue>(go, prop);
-    undoArr.length = ids.length;
-    for (let i = 0; i < ids.length; i++) {
-        undoArr[i] = go.game.getFromUuidUnsafe(ids[i]);
-    }
-
-    return undoArr as IStateArray<TValue>;
-}
-
 function CreateUndoArrayBase<TValue extends GameObjectBase>(go: GameObjectBase, prop: string) {
     return new UndoArray<TValue>().init(go, prop);
 }
@@ -1200,9 +1092,10 @@ function CreateUndoArrayBase<TValue extends GameObjectBase>(go: GameObjectBase, 
  * mutator ever runs inside the pre-initialization window described on that class.
  *
  * Population goes through `Map.prototype.set` rather than the override, because every caller has already
- * built the id mirror in `go.state[prop]` before calling here (`createIdMap()` on the accessor's set path,
- * the restored state object itself on the hydrate path). Anything added after construction goes through the
- * override as usual and does write the mirror.
+ * marked the incoming entries before calling here (`markStateRefMap()` on the accessor's set path). **That
+ * pairing is load-bearing after P3-PB2:** the override is now the only thing that latches `_hasRef` on a
+ * stored referent, so a future caller that populates through here without marking first would leave those
+ * referents unlatched and cullable. Anything added after construction goes through the override as usual.
  */
 function CreateUndoMapInternal<TValue extends GameObjectBase>(go: GameObjectBase, prop: string, entries?: Iterable<readonly [string, TValue]> | null) {
     const undoMap = new UndoMap<TValue>().init(go, prop);
@@ -1215,7 +1108,7 @@ function CreateUndoMapInternal<TValue extends GameObjectBase>(go: GameObjectBase
     return undoMap;
 }
 
-/** {@link UndoSet} counterpart to {@link CreateUndoMapInternal}; same construct-init-populate ordering and same mirror contract. */
+/** {@link UndoSet} counterpart to {@link CreateUndoMapInternal}; same construct-init-populate ordering and same marking contract. */
 function CreateUndoSetInternal<TValue extends GameObjectBase>(go: GameObjectBase, prop: string, values?: Iterable<TValue> | null) {
     const undoSet = new UndoSet<TValue>().init(go, prop);
     if (values) {
@@ -1227,77 +1120,16 @@ function CreateUndoSetInternal<TValue extends GameObjectBase>(go: GameObjectBase
     return undoSet;
 }
 
-export function copyState<T extends GameObjectBase>(instance: T, newState: Record<any, any>) {
-    let baseClass = Object.getPrototypeOf(instance);
-    while (baseClass) {
-        const metadata = baseClass.constructor[Symbol.metadata];
-        // Pull out any data provided by @registerState for this class.
-        const metaState = metadata?.[baseClass.constructor.name] as Record<symbol, any>;
-
-        // If there is any state, go through each of the types and do the copy process.
-        if (metaState) {
-            const hydrationMetadata = metaState[stateHydrationMetadata] as Record<string, StateHydrationHandler> | undefined;
-
-            // STATE NOTE: We only need to copy this if we aren't using structuredClone.
-            if (metaState[stateSimpleMetadata]) {
-                const metaSimples = metaState[stateSimpleMetadata] as string[];
-                for (const field of metaSimples) {
-                    instance[field] = newState[field];
-                }
-            }
-
-            // STATE TODO: Once objects can be GC'd and we can recreate objects during rollback, this will need to happen *after* the new objects are created.
-            if (metaState[stateArrayMetadata]) {
-                const metaArrays = metaState[stateArrayMetadata] as string[];
-                for (const field of metaArrays) {
-                    hydrationMetadata[field](instance, newState[field]);
-                }
-            }
-            if (metaState[stateMapMetadata]) {
-                const metaMaps = metaState[stateMapMetadata] as string[];
-                for (const field of metaMaps) {
-                    hydrationMetadata[field](instance, newState[field]);
-                }
-            }
-            if (metaState[stateSetMetadata]) {
-                const metaSets = metaState[stateSetMetadata] as string[];
-                for (const field of metaSets) {
-                    hydrationMetadata[field](instance, newState[field]);
-                }
-            }
-            if (metaState[stateRecordMetadata]) {
-                const metaRecords = metaState[stateRecordMetadata] as string[];
-                for (const field of metaRecords) {
-                    hydrationMetadata[field](instance, newState[field]);
-                }
-            }
-            if (metaState[stateObjectMetadata]) {
-                const metaObjects = metaState[stateObjectMetadata] as string[];
-                for (const field of metaObjects) {
-                    hydrationMetadata[field](instance, newState[field]);
-                }
-            }
-        }
-
-        const newBaseClass = Object.getPrototypeOf(baseClass);
-        // Check if there's another parent class and that that class isn't the base Object of every class.
-        if (!newBaseClass || !newBaseClass.constructor.name || newBaseClass === Object.prototype) {
-            break;
-        }
-        // Continue to the next parent class in the prototype chain and check again.
-        baseClass = newBaseClass;
-    }
-}
-
 export interface IRuntimeStateFieldModelEntry {
     name: string;
     kind: FieldKind;
 }
 
 /**
- * P3-PA4: reads the flattened field name+kind model for a registered class, reusing copyState's exact walk
- * technique above (visit each level of the prototype chain, accumulate whatever metadata bucket that level
- * itself claims) - no new resolution logic, only new read access. Returns undefined if className was never
+ * P3-PA4: reads the flattened field name+kind model for a registered class by walking the prototype chain
+ * and accumulating whatever metadata bucket each level itself claims. (This walk originated in the deleted
+ * the metadata-driven state copier P3-PB2 replaced with the generated deserializers; it survives here because the
+ * coverage cross-check still needs a runtime view of the declared fields.) Returns undefined if className was never
  * passed through registerState()/registerStateBase() (distinguishable from "found, zero fields" via Map
  * semantics). Used by StateSerializerCoverageCheck.ts to compare against the generated model.
  */
@@ -1374,6 +1206,11 @@ export function getRuntimeStateFieldModelByClassName(className: string): IRuntim
  */
 class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
     // Properties are JS private to ensure they aren't enumerable. Otherwise this would break equality checks in tests.
+    // P3-PB2 fix (PB2I1-AC-09): after the state-bag cutover these two are write-only - `init()` sets them and
+    // nothing reads them. They are retained for the same reason `UndoSafeRecord`/`ValueMap` retain theirs:
+    // they are Plan 4's (`docs/plans/04-delta-snapshots.md`) `recordFieldChange` hook point. A dead-code sweep,
+    // or enabling `no-unused-private-class-members`, would delete them and make Plan 4 re-thread `init(go, prop)`
+    // through four construction paths and every decorator call site.
     #go: GameObjectBase;
     #prop: string;
 
@@ -1385,23 +1222,15 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
     }
 
     public override set(key: string, value: TValue): this {
-        // @ts-expect-error Overriding state accessibility
-        const stateValue = this.#go.state[this.#prop] as Map<string, GameObjectId<TValue>>;
-        stateValue.set(key, value.getObjectId());
+        markStateRef(value);
         return super.set(key, value);
     }
 
     public override delete(key: string): boolean {
-        // @ts-expect-error Overriding state accessibility
-        const stateValue = this.#go.state[this.#prop] as Map<string, GameObjectId<TValue>>;
-        stateValue.delete(key);
         return super.delete(key);
     }
 
     public override clear(): void {
-        // @ts-expect-error Overriding state accessibility
-        const stateValue = this.#go.state[this.#prop] as Map<string, GameObjectId<TValue>>;
-        stateValue.clear();
         super.clear();
     }
 }
@@ -1413,6 +1242,11 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
  */
 class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
     // Properties are JS private to ensure they aren't enumerable. Otherwise this would break equality checks in tests.
+    // P3-PB2 fix (PB2I1-AC-09): after the state-bag cutover these two are write-only - `init()` sets them and
+    // nothing reads them. They are retained for the same reason `UndoSafeRecord`/`ValueMap` retain theirs:
+    // they are Plan 4's (`docs/plans/04-delta-snapshots.md`) `recordFieldChange` hook point. A dead-code sweep,
+    // or enabling `no-unused-private-class-members`, would delete them and make Plan 4 re-thread `init(go, prop)`
+    // through four construction paths and every decorator call site.
     #go: GameObjectBase;
     #prop: string;
 
@@ -1424,23 +1258,15 @@ class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
     }
 
     public override add(value: TValue): this {
-        // @ts-expect-error Overriding state accessibility
-        const stateValue = this.#go.state[this.#prop] as Set<GameObjectId<TValue>>;
-        stateValue.add(value.getObjectId());
+        markStateRef(value);
         return super.add(value);
     }
 
     public override delete(value: TValue): boolean {
-        // @ts-expect-error Overriding state accessibility
-        const stateValue = this.#go.state[this.#prop] as Set<GameObjectId<TValue>>;
-        stateValue.delete(value.getObjectId());
         return super.delete(value);
     }
 
     public override clear(): void {
-        // @ts-expect-error Overriding state accessibility
-        const stateValue = this.#go.state[this.#prop] as Set<GameObjectId<TValue>>;
-        stateValue.clear();
         super.clear();
     }
 }
@@ -1454,6 +1280,11 @@ export interface IStateArray<T> extends Array<T> {
 
 class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
     // Properties are JS private to ensure they aren't enumerable. Otherwise this would break equality checks in tests.
+    // P3-PB2 fix (PB2I1-AC-09): after the state-bag cutover these two are write-only - `init()` sets them and
+    // nothing reads them. They are retained for the same reason `UndoSafeRecord`/`ValueMap` retain theirs:
+    // they are Plan 4's (`docs/plans/04-delta-snapshots.md`) `recordFieldChange` hook point. A dead-code sweep,
+    // or enabling `no-unused-private-class-members`, would delete them and make Plan 4 re-thread `init(go, prop)`
+    // through four construction paths and every decorator call site.
     #go: GameObjectBase;
     #prop: string;
 
@@ -1468,40 +1299,34 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
     }
 
     public override push(...items: TValue[]): number {
-        // @ts-expect-error Overriding state accessibility
-        pushIdsOntoStateArray(this.#go.state[this.#prop], items);
+        markStateRefArray(items);
         return super.push(...items);
     }
 
     public override unshift(...items: TValue[]): number {
-        // @ts-expect-error Overriding state accessibility
-        unshiftIdsOntoStateArray(this.#go.state[this.#prop], items);
+        markStateRefArray(items);
         return super.unshift(...items);
     }
 
     public override pop(): TValue {
-        // @ts-expect-error Overriding state accessibility
-        (this.#go.state[this.#prop] as GameObjectId[]).pop();
         return super.pop();
     }
 
     public override shift(): TValue {
-        // @ts-expect-error Overriding state accessibility
-        (this.#go.state[this.#prop] as GameObjectId[]).shift();
         return super.shift();
     }
 
     public override reverse(): TValue[] {
-        // @ts-expect-error Overriding state accessibility
-        (this.#go.state[this.#prop] as GameObjectId[]).reverse();
         return super.reverse();
     }
 
-    // Throws because a position-indexed id mirror (pushIdsOntoStateArray et al., above) would otherwise
-    // desync from this array's own reordering - there is no way to reorder the mirror in lockstep without
-    // reimplementing sort's comparator-driven placement against it. P3-PB1's ValueArray has no such mirror
-    // (see its class doc comment) and therefore does not need this restriction; its sort/fill are plain
-    // pass-throughs.
+    // P3-PB2: the position-indexed id mirror these two guarded is gone, but the restriction stays and the
+    // reason changes. `fill(v)` would store `v` into every slot without ever routing it through
+    // markStateRef, so a referent reachable only through this array would never latch `_hasRef` and would be
+    // culled at the next snapshot. `sort` does not itself break the latch, but keeping both throwing
+    // preserves the "mutate a ref array only through the tracked API" discipline that `IStateArray`'s
+    // readonly indexer exists to enforce, and neither has a live call site. ValueArray's sort/fill remain
+    // plain pass-throughs - it holds no refs, so it has nothing to latch (see its class doc comment).
     public override sort(): this {
         throw new Error('Sort is not supported in UndoArray.');
     }
@@ -1511,8 +1336,6 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
             throw new Error('UndoArray.splice only supports up to two arguments.');
         }
 
-        // @ts-expect-error Overriding state accessibility
-        (this.#go.state[this.#prop] as GameObjectId[]).splice(start, deleteCount);
         return super.splice(start, deleteCount);
     }
 
@@ -1525,19 +1348,17 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
 /**
  * Wraps a `Map<string, non-GameObjectBase>` field so in-place mutation (`set`/`delete`/`clear`) is a single,
  * addressable call site - mirroring `UndoMap`'s ref-collection pattern, but with **no dual-write mirror**: a
- * `@stateMap` field's `this.state[name]` already *is* the same live object the accessor exposes (see
- * `stateValue`'s doc comment), so `copyState`'s full-field reassignment on rollback already restores
- * in-place-mutated contents correctly, with or without this wrapper (P3-PB1 §1.1). This wrapper's only job is
- * to give Plan 4 (`docs/plans/04-delta-snapshots.md`) one call-site hook for its future
+ * `@stateMap` field holds one live collection and the generated deserializer restores it by reassigning
+ * the whole field through the public accessor, so in-place-mutated contents are restored correctly with or
+ * without this wrapper (P3-PB1 §1.1). This wrapper's only job is to give Plan 4
+ * (`docs/plans/04-delta-snapshots.md`) one call-site hook for its future
  * `this.game.deltaTracker?.recordFieldChange(...)` line; every mutator below is currently a pure pass-through.
  *
- * `#go`/`#prop` are JS-private (not merely TypeScript-private), so they are invisible to `v8.serialize`,
- * `Object.keys`, and test equality checks - matching `UndoMap`'s exact shape (verified lint-clean under this
- * repo's actual flat config, plan_v2.md §1.4 point 6). This also means `#go`'s back-reference to the owning
- * `GameObjectBase` creates a bag-to-GameObject reference cycle retained in the `oldState` object handed to
- * `afterSetState`/`cleanupOnRemove` on rollback - not a leak (both objects are already reachable from the
- * live game graph regardless), but a new shape for that particular object that a future traversal of
- * `oldState` should be aware of.
+ * `#go`/`#prop` are JS-private (not merely TypeScript-private), so they are invisible to `Object.keys` and
+ * to test equality checks - matching `UndoMap`'s exact shape (verified lint-clean under this repo's actual
+ * flat config). P3-PB2 removed the reference-cycle note that used to sit here: `oldState` is now a plain
+ * JSON-safe record produced by `encodeStateValue`, which walks this collection into a `$map` payload rather
+ * than retaining the wrapper itself, so no `GameObjectBase` back-reference reaches a lifecycle hook.
  */
 export class ValueMap<TValue> extends Map<string, TValue> {
     #go: GameObjectBase;

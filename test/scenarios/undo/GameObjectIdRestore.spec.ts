@@ -208,8 +208,13 @@ describe('GameObject id counter restore on rollback', function() {
             context.player1.clickCard(context.momentOfPeace);
             context.player1.clickCard(context.wampa);
 
-            const originalSetState = (context.wampa as unknown as { setState: (state: unknown) => void }).setState;
-            (context.wampa as unknown as { setState: (state: unknown) => void }).setState = function() {
+            // P3-PB2: the per-object state-write method no longer exists; the equivalent instance-scoped
+            // injection point inside
+            // the same `try` in `rollbackToSnapshot` is `afterSetState`, which the restore loop calls
+            // immediately after each object's `deserialize`. Own-property shadow, not a prototype patch:
+            // wampa's effective `afterSetState` resolves through `WithDamage.prototype`, nearer than
+            // `GameObjectBase.prototype`, so an own property is the only thing guaranteed to win the lookup.
+            (context.wampa as unknown as { afterSetState: (oldState: unknown) => void }).afterSetState = function() {
                 throw new Error('P1B_SENTINEL');
             };
 
@@ -228,7 +233,7 @@ describe('GameObject id counter restore on rollback', function() {
                 // error escapes instead, failing this test.
                 expect(() => stateManager.rollbackToSnapshot(snapshot)).toThrowError(/P1B_SENTINEL/);
             } finally {
-                (context.wampa as unknown as { setState: (state: unknown) => void }).setState = originalSetState;
+                delete (context.wampa as unknown as { afterSetState?: unknown }).afterSetState;
                 (game as unknown as { reportSevereRollbackFailure: (error: Error) => void }).reportSevereRollbackFailure = originalReportSevereRollbackFailure;
             }
 

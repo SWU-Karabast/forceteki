@@ -1,4 +1,3 @@
-import type { IGameObjectState } from './GameObject';
 import { GameObject } from './GameObject';
 import type { Deck } from '../../utils/deck/Deck.js';
 import type { IDeckListForLoading } from '../../utils/deck/DeckInterfaces';
@@ -54,23 +53,8 @@ import { QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type { User } from '../../utils/user/User';
 import { DefeatCreditTokensCostAdjuster } from './cost/DefeatCreditTokensCostAdjuster';
 
-import { registerState, stateRefArray, stateRef, stateValue, type GameObjectId } from './GameObjectUtils';
+import { registerState, stateRefArray, stateRef, stateValue } from './GameObjectUtils';
 import type { IInPlayZoneCardFilterProperties } from './zone/ConcreteOrMetaArenaZone';
-
-export interface IPlayerState extends IGameObjectState {
-    handZone: GameObjectId<HandZone>;
-    resourceZone: GameObjectId<ResourceZone>;
-    discardZone: GameObjectId<DiscardZone>;
-    outsideTheGameZone: GameObjectId<OutsideTheGameZone>;
-    baseZone: GameObjectId<BaseZone> | null;
-    deckZone: GameObjectId<DeckZone>;
-    leader: GameObjectId<ILeaderCard>;
-    base: GameObjectId<IBaseCard>;
-    passedActionPhase: boolean;
-    // IDeckList is made up of arrays and GameObjectIds, so it's serializable.
-    decklist: IDeckListForLoading;
-    costAdjusters: GameObjectId<CostAdjuster>[];
-}
 
 @registerState()
 export class Player extends GameObject implements IGameStatisticsTrackable {

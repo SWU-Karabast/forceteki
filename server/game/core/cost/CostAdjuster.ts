@@ -8,9 +8,8 @@ import type { Player } from '../Player';
 import { Contract } from '../../core/utils/Contract';
 import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import { EnumHelpers } from '../utils/EnumHelpers';
-import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
-import { registerStateBase, stateRef, statePrimitive, type GameObjectId } from '../GameObjectUtils';
+import { registerStateBase, stateRef, statePrimitive } from '../GameObjectUtils';
 import { ResourceCostType, type ICostAdjustEvaluationIntermediateResult, type ICostAdjustTriggerResult } from './CostInterfaces';
 import type { ICostAdjusterEvaluationTarget, ICostAdjustmentResolutionProperties, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { CostAdjustStage } from './CostInterfaces';
@@ -135,11 +134,6 @@ export interface ICanAdjustProperties {
     attachTargets?: Card[];
     penaltyAspect?: Aspect;
     isAbilityCost?: boolean;
-}
-
-export interface ICostAdjusterState extends IGameObjectBaseState {
-    source: GameObjectId<Card>;
-    isCancelled: boolean;
 }
 
 export interface ITriggerStageTargetSelection {

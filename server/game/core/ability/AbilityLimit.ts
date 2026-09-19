@@ -1,11 +1,11 @@
 import { EventName } from '../Constants';
 import type { Player } from '../Player';
 import type { CardAbility } from './CardAbility';
-import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import type { Game } from '../Game';
 import type { IEventRegistration } from '../../Interfaces';
 import { registerState, registerStateBase, stateMap, statePrimitive } from '../GameObjectUtils';
+import type { ISerializedAbilityLimit } from '../generated/GeneratedStateSerializers';
 
 export interface IAbilityLimit {
     get ability(): CardAbility | null;
@@ -20,10 +20,6 @@ export interface IAbilityLimit {
     isEpicActionLimit(): this is EpicActionLimit;
 }
 
-export interface IAbilityLimitState extends IGameObjectBaseState {
-    isRegistered: boolean;
-}
-
 @registerStateBase()
 export abstract class AbilityLimit extends GameObjectBase implements IAbilityLimit {
     public ability: CardAbility | null = null;
@@ -35,7 +31,7 @@ export abstract class AbilityLimit extends GameObjectBase implements IAbilityLim
         return true;
     }
 
-    protected override afterSetState(oldState: IAbilityLimitState): void {
+    public override afterSetState(oldState: ISerializedAbilityLimit): void {
         if (this.isRegistered !== oldState.isRegistered) {
             if (this.isRegistered) {
                 this.registerEvents();
@@ -45,7 +41,7 @@ export abstract class AbilityLimit extends GameObjectBase implements IAbilityLim
         }
     }
 
-    public override cleanupOnRemove(oldState: IAbilityLimitState): void {
+    public override cleanupOnRemove(oldState: ISerializedAbilityLimit): void {
         if (oldState.isRegistered) {
             this.unregisterEvents();
         }

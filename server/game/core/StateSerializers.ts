@@ -3,9 +3,10 @@ import { generatedExcludedFragmentClassNames, generatedStateSerializerEntries, G
 import type { IGeneratedSerializerEntry } from './StateEncoding';
 
 /**
- * Name-keyed registry for the codegen state serializers (Plan 3, Phase A step 1 / Phase B step 6). Nothing
- * in the live engine imports this module yet, by design: the state bag, `copyState`, and `v8.serialize`
- * remain the sole snapshot authority for the whole of this unit (see B18 in the plan's behavior table).
+ * Name-keyed registry for the codegen state serializers (Plan 3, Phase A step 1 / Phase B step 6).
+ * P3-PB2 made this the sole snapshot authority: the state bag, the metadata-driven state copier and
+ * `v8.serialize` are gone, and
+ * `GameStateManager` resolves every capture and restore through `getStateSerializerFor` below.
  * This import is the one non-optional edge to the generated artifact - it is what turns a missing or
  * ungenerated artifact into a `tsc` `TS2307` build failure rather than a silently-skipped feature.
  *

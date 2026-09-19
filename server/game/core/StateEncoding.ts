@@ -10,12 +10,25 @@ import type { GameObjectId } from './GameObjectUtils';
  * `P3-PA2`'s restore-leg parity comparison needs iteration order preserved, while the save-file tier's
  * `encodeTaggedSet` sorts for document diff-stability. Do not "fix" one to match the other.
  *
- * Nothing in the live engine imports this module yet; it exists so `P3-PA1`'s generated serializers have
- * somewhere to import from without creating the CommonJS load-order cycle described in the plan's §3.1.
+ * P3-PB2: this module is now on the live snapshot path. `GameStateManager` and `SnapshotFactory` reach it
+ * through the generated serializers, and `encodeStateValue`/`decodeStateValue` are also `Game.state`'s own
+ * codec. It stays a leaf (it imports only types) so the generated artifact can import from it without the
+ * CommonJS load-order cycle described in the plan's §3.1.
  *
  * `STATE_RECORD_FORMAT_VERSION` must be bumped in the same commit as any change to encoder/decoder
  * *behavior* - a new tag, a changed tagged shape, or a widened/narrowed accepted domain - because Plan 6
  * gates save compatibility on the schema-surface hash, which is the only other thing that would move.
+ *
+ * P3-PB2 fix, `PB2I1-CS-03`: the `__proto__` rejection below is deliberately NOT accompanied by a version
+ * bump, and that is a judgement call worth recording rather than a lapse. The rule above exists so Plan 6
+ * can tell whether two *documents* mean the same thing. An own `__proto__` key was never representable:
+ * `out[key] = ...` on a `{}` container invokes `Object.prototype`'s `__proto__` setter, so the property was
+ * silently dropped on the way out and silently absent on the way back - the same class of hazard the
+ * reserved-tag check already rejects, minus the throw. No encodable payload's meaning therefore changes;
+ * an already-lossy hole becomes loud. Version 1 has additionally never been persisted anywhere (snapshots
+ * are in-process only and do not survive a process restart, and Plan 6's file writer does not exist yet),
+ * so there is no document for a bump to gate. Bumping would instead have moved `computeSchemaSurfaceHash`'s
+ * input and re-baselined `PB2-K8`'s pinned hash to buy nothing.
  *
  * Two encoded values are deliberately not JSON-safe in memory and are Plan 6 (file-tier) deferrals rather
  * than defects here: a `primitive` field may hold a non-finite number (`@statePrimitive` has no assert
@@ -30,6 +43,24 @@ export const STATE_RECORD_FORMAT_VERSION = 1;
 export const STATE_ENCODING_TAGS = ['$map', '$set', '$num'] as const;
 
 const RESERVED_TAG_SET = new Set<string>(STATE_ENCODING_TAGS);
+
+/**
+ * Own property keys that no plain-object payload may carry, on either leg. `__proto__` is rejected rather
+ * than special-cased because both directions build their container with `{}` and assign with `out[key] =`,
+ * which routes that one key into `Object.prototype`'s accessor instead of storing it - see the
+ * `PB2I1-CS-03` note in this module's header for why this narrowing does not move
+ * `STATE_RECORD_FORMAT_VERSION`.
+ */
+export const UNENCODABLE_OBJECT_KEYS = new Set<string>(['__proto__']);
+
+/** Throws if `value`/`record` carries any key the object paths cannot round-trip. */
+function assertNoUnsafeObjectKeys(describe: () => string, ownKeys: readonly string[]): void {
+    for (const key of ownKeys) {
+        if (UNENCODABLE_OBJECT_KEYS.has(key)) {
+            throw new Error(`${describe()} carries the unsupported own key "${key}", which an object literal's property assignment cannot store or read back.`);
+        }
+    }
+}
 
 export type SerializedStateRecord = Record<string, unknown>;
 
@@ -96,15 +127,35 @@ function describeInvalidValue(value: unknown): string {
     return `an instance of ${prototypeName ?? 'an unknown, non-plain type'}`;
 }
 
+export interface IStateValueEncodeOptions {
+
+    /**
+     * Rejects a `Map` or `Set` anywhere in the payload. Not an encoder limitation - both encode fine and the
+     * live snapshot path leaves this off. It exists so a caller that needs a *narrower* domain than the
+     * encoder's can express that narrowing without owning a second walk of its own: see
+     * `isSnapshotSafeOngoingEffectValue`, whose extra rule is that a Map/Set stored in
+     * `MutableOngoingEffectValueWrapper` would need `ValueMap`/`ValueSet` wrapping to make in-place mutation
+     * observable, which that wrapper does not do.
+     */
+    rejectCollections?: boolean;
+}
+
 /**
  * Encodes a `@stateValue` payload into a JSON-safe form. Domain is `assertJsonSafeStateValue`'s domain
- * (see `GameObjectUtils.ts`) minus four deliberate narrowings, three of which throw rather than silently
- * degrading: a plain object carrying a reserved tag (`$map`/`$set`/`$num`) as an own key, an `undefined`
- * array element, and a non-finite number. The non-finite rule exists because `deserializeStateValue`
+ * (see `GameObjectUtils.ts`) minus three deliberate narrowings, two of which throw rather than silently
+ * degrading: an `undefined` array element, an `undefined` Map value or Set member, and (the silent one)
+ * shared-substructure identity. Everything else this encoder rejects - a non-finite number, a reserved-tag
+ * or `__proto__` own key, a foreign prototype, a `GameObjectBase`, a cycle - the write-site assert rejects
+ * too. Passing the dev-mode gate therefore does **not** guarantee that capture cannot throw: the two
+ * narrowings above are exactly the gap, so a payload holding an `undefined` array element or an
+ * `undefined` Map value / Set member is admitted at write time and throws here at the next snapshot
+ * capture, inside the game pipeline, with no abort path. That is a known accepted residual, recorded in
+ * `docs/plans/03-codegen-serializers.md` under Phase B step 5; do not read this comment as ruling it out.
+ * The non-finite rule exists because `deserializeStateValue`
  * assigns through the field's public accessor, which re-runs the dev-mode assert in `Helpers.isDevelopment()`
  * - an encoder that let a non-finite number through would emit a record whose own deserializer throws.
  *
- * The fourth narrowing does not throw and is easy to miss: shared substructure is not preserved. Unlike
+ * The silent narrowing is easy to miss: shared substructure is not preserved. Unlike
  * `v8.serialize`/`v8.deserialize` (AC4's reference semantics), this encoder walks each value with a
  * path-scoped `ancestors` set (added before recursing into a container, deleted after), which only
  * detects a cycle - it does not deduplicate a DAG. Two properties that reference the *same* object today
@@ -117,7 +168,11 @@ function describeInvalidValue(value: unknown): string {
  * of P3-PA1 (see ANVIL-LOG.md's `P3-PA1` entry) - none rely on shared-substructure identity being
  * preserved across a round trip. Re-audit before Plan 6 ships if the live `@stateValue` set has grown.
  */
-export function encodeStateValue(propertyName: string, value: unknown, ancestors: Set<object> = new Set<object>()): unknown {
+export function encodeStateValue(propertyName: string, value: unknown, options?: IStateValueEncodeOptions): unknown {
+    return encodeStateValueInternal(propertyName, value, new Set<object>(), options?.rejectCollections === true);
+}
+
+function encodeStateValueInternal(propertyName: string, value: unknown, ancestors: Set<object>, rejectCollections: boolean): unknown {
     if (value === null || value === undefined) {
         return value;
     }
@@ -154,13 +209,16 @@ export function encodeStateValue(propertyName: string, value: unknown, ancestors
             if (value[i] === undefined) {
                 throw new Error(`State value "${propertyName}[${i}]" cannot be encoded: array elements may not be undefined (JSON.stringify would silently turn it into null).`);
             }
-            out[i] = encodeStateValue(`${propertyName}[${i}]`, value[i], ancestors);
+            out[i] = encodeStateValueInternal(`${propertyName}[${i}]`, value[i], ancestors, rejectCollections);
         }
         ancestors.delete(value as object);
         return out;
     }
 
     if (value instanceof Map) {
+        if (rejectCollections) {
+            throw new Error(`State value "${propertyName}" cannot be encoded: contains a Map, and this call rejects Map/Set payloads.`);
+        }
         ancestors.add(value as object);
         const entries: [string, unknown][] = [];
         for (const [key, entryValue] of value) {
@@ -170,20 +228,23 @@ export function encodeStateValue(propertyName: string, value: unknown, ancestors
             if (entryValue === undefined) {
                 throw new Error(`State value "${propertyName}" (Map value for key "${key}") cannot be encoded: Map values may not be undefined (JSON.stringify would silently turn it into null).`);
             }
-            entries.push([key, encodeStateValue(`${propertyName} (Map value for key "${key}")`, entryValue, ancestors)]);
+            entries.push([key, encodeStateValueInternal(`${propertyName} (Map value for key "${key}")`, entryValue, ancestors, rejectCollections)]);
         }
         ancestors.delete(value as object);
         return { $map: entries } satisfies ITaggedMap;
     }
 
     if (value instanceof Set) {
+        if (rejectCollections) {
+            throw new Error(`State value "${propertyName}" cannot be encoded: contains a Set, and this call rejects Map/Set payloads.`);
+        }
         ancestors.add(value as object);
         const members: unknown[] = [];
         for (const entryValue of value) {
             if (entryValue === undefined) {
                 throw new Error(`State value "${propertyName}" (Set member) cannot be encoded: Set members may not be undefined (JSON.stringify would silently turn it into null).`);
             }
-            members.push(encodeStateValue(`${propertyName} (Set member)`, entryValue, ancestors));
+            members.push(encodeStateValueInternal(`${propertyName} (Set member)`, entryValue, ancestors, rejectCollections));
         }
         ancestors.delete(value as object);
         return { $set: members } satisfies ITaggedSet;
@@ -194,16 +255,27 @@ export function encodeStateValue(propertyName: string, value: unknown, ancestors
         throw new Error(`State value "${propertyName}" cannot be encoded: contains ${describeInvalidValue(value)}.`);
     }
 
-    for (const reservedKey of RESERVED_TAG_SET) {
-        if (Object.prototype.hasOwnProperty.call(value, reservedKey)) {
-            throw new Error(`State value "${propertyName}" cannot be encoded: plain object carries reserved key "${reservedKey}" as its own property, which would be indistinguishable from a tagged value on decode.`);
+    // P3-PB2 fix (`PB2I2-N2`): both own-key guards test the *enumerable* own keys, the same set the copy
+    // loop below and `assertJsonSafeStateValue`'s write-site restatement iterate, and the same set the
+    // decode leg's reserved-tag check uses. An earlier `hasOwnProperty` form here also saw non-enumerable
+    // own keys, which made this the one guard in the module with a domain the write-site assert could not
+    // restate - a payload carrying a non-enumerable own `$map` passed the dev-mode gate and threw at
+    // capture. Such a key is not encodable either way: the copy loop never reads it, so it is dropped from
+    // the output exactly as a non-enumerable own `foo` already is, and no tagged-object ambiguity can reach
+    // the decoder.
+    const ownKeys = Object.keys(value as Record<string, unknown>);
+    for (const key of ownKeys) {
+        if (RESERVED_TAG_SET.has(key)) {
+            throw new Error(`State value "${propertyName}" cannot be encoded: plain object carries reserved key "${key}" as its own property, which would be indistinguishable from a tagged value on decode.`);
         }
     }
 
+    assertNoUnsafeObjectKeys(() => `State value "${propertyName}" cannot be encoded: plain object`, ownKeys);
+
     ancestors.add(value as object);
     const out: Record<string, unknown> = {};
-    for (const key of Object.keys(value as Record<string, unknown>)) {
-        out[key] = encodeStateValue(`${propertyName}.${key}`, (value as Record<string, unknown>)[key], ancestors);
+    for (const key of ownKeys) {
+        out[key] = encodeStateValueInternal(`${propertyName}.${key}`, (value as Record<string, unknown>)[key], ancestors, rejectCollections);
     }
     ancestors.delete(value as object);
     return out;
@@ -267,8 +339,10 @@ export function decodeStateValue(record: unknown): unknown {
         throw new Error(`Cannot decode state record: reserved tag "${tag}" has no decode branch.`);
     }
 
+    assertNoUnsafeObjectKeys(() => 'Cannot decode state record: plain object', ownKeys);
+
     const out: Record<string, unknown> = {};
-    for (const key of Object.keys(record as Record<string, unknown>)) {
+    for (const key of ownKeys) {
         out[key] = decodeStateValue((record as Record<string, unknown>)[key]);
     }
     return out;
@@ -360,8 +434,11 @@ export function encodeRefRecord(values: Readonly<Record<string, IGameObjectBase>
     if (values === null || values === undefined) {
         return null;
     }
+    const ownKeys = Object.keys(values);
+    assertNoUnsafeObjectKeys(() => 'Ref-record field cannot be encoded: source record', ownKeys);
+
     const out: Record<string, string> = {};
-    for (const key of Object.keys(values)) {
+    for (const key of ownKeys) {
         out[key] = (values[key] as unknown as { uuid: string }).uuid;
     }
     return out;
@@ -371,8 +448,11 @@ export function decodeRefRecord<T extends IGameObjectBase>(game: Game, record: R
     if (record === null || record === undefined) {
         return null;
     }
+    const ownKeys = Object.keys(record);
+    assertNoUnsafeObjectKeys(() => 'Ref-record field cannot be decoded: stored record', ownKeys);
+
     const out: Record<string, T> = {};
-    for (const key of Object.keys(record)) {
+    for (const key of ownKeys) {
         out[key] = decodeRef<T>(game, record[key]);
     }
     return out;

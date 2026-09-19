@@ -1550,8 +1550,8 @@ describe('Undo', function() {
                     // Perform the defeat, and confirm the watcher entry is populated, *before* the
                     // rollback() helper's snapshot point below. This way the snapshot itself captures
                     // a real, non-empty Set<Trait> entry, so the restore that rollback() exercises is
-                    // copyState's unconditional field-copy reassigning that populated value back --
-                    // not reassigning an empty array from a pre-defeat snapshot.
+                    // the generated deserializer's unconditional field reassignment putting that
+                    // populated value back -- not reassigning an empty array from a pre-defeat snapshot.
                     context.player1.clickCard(context.wampa);
                     context.player1.clickCard(context.battlefieldMarine);
 

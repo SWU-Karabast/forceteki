@@ -1,17 +1,15 @@
-import v8 from 'node:v8';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
+import type { Game } from '../../server/game/core/Game';
 import { GameObjectBase } from '../../server/game/core/GameObjectBase';
-import type { IGameObjectBase, IGameObjectBaseState } from '../../server/game/core/GameObjectBase';
-import type { GameObjectId } from '../../server/game/core/GameObjectUtils';
-import { copyState } from '../../server/game/core/GameObjectUtils';
+import type { IGameObjectBase } from '../../server/game/core/GameObjectBase';
 import { GameStateManager } from '../../server/game/core/snapshot/GameStateManager';
 import type { IGameSnapshot } from '../../server/game/core/snapshot/SnapshotInterfaces';
-import { getStateSerializerFor } from '../../server/game/core/StateSerializers';
+import { getAllGeneratedSerializerEntries, getStateSerializerFor } from '../../server/game/core/StateSerializers';
 import { STATE_ENCODING_TAGS } from '../../server/game/core/StateEncoding';
-import type { SerializedStateRecord } from '../../server/game/core/StateEncoding';
+import type { FieldKind, IGeneratedSerializerEntry, IStateSerializer, SerializedStateRecord } from '../../server/game/core/StateEncoding';
 import { Card } from '../../server/game/core/card/Card';
 import { ZoneAbstract } from '../../server/game/core/zone/ZoneAbstract';
 import { SimpleZone } from '../../server/game/core/zone/SimpleZone';
@@ -20,14 +18,28 @@ import { BaseZone } from '../../server/game/core/zone/BaseZone';
 import { AllArenasZone } from '../../server/game/core/zone/AllArenasZone';
 
 /**
- * Parity harness (Plan 3 Phase A). The serialize leg (`P3-PA2`) proves the generated per-class
- * serializers (`P3-PA1`) agree, field-for-field, with the state-bag + v8 snapshot path that remains the
- * sole runtime authority throughout this unit. The restore leg (`P3-PA3`) extends this with the
- * complementary half: it proves the generated `deserialize<Class>` functions reconstruct identical live
- * state to `copyState`'s hydrator walk (compare mode), and separately drives the whole undo suite through
- * the generated path as the live restore mechanism (generated mode), before the Phase B cutover makes it
- * authoritative for real. See `docs/plans/03-codegen-serializers.md` and `.anvil/p3-pa3/plan.md` §4 for
- * the full design and its bounded dispositions.
+ * Parity harness. Through Plan 3 Phase A this compared two legs - the state bag + `v8` snapshot path
+ * against the generated per-class serializers, on both the serialize (`P3-PA2`) and restore (`P3-PA3`)
+ * sides. **`P3-PB2` deleted the bag, so there is no second leg left to compare against.** Rather than
+ * shell the harness out (which would make `test-parity*` a duplicate suite run and make the `AC14` escape
+ * proof unrunnable), it is repointed onto invariants that are genuine *after* the cutover:
+ *
+ * 1. **Round-trip self-check.** Each registry entry's `deserialize` is wrapped so that, immediately after
+ *    the original returns and *before* `afterSetState` runs, the instance is re-serialized and deep-compared
+ *    to the record it was just handed. For every field kind the round trip is identity by construction, so
+ *    any divergence is a real defect - a setter that transforms a value, a dropped field, a wrapper that
+ *    loses contents. No legacy leg, no allowlist.
+ * 2. **Wrapper identity.** A round-trip compare reads *values*, so it is blind by construction to the
+ *    failure this cutover most needs to catch: a deserializer that bypassed the setter and left a plain
+ *    `Array` where an `UndoArray` belongs encodes to the identical uuid list. The check below therefore also
+ *    asserts that each `refMap`/`refSet` field holds an `UndoMap`/`UndoSet` after restore, and that a
+ *    `refArray` field that held an `UndoArray` *before* the call still holds one after. The before/after
+ *    form is required because `FieldKind` cannot distinguish `@stateRefArray(true)` from `(false)`.
+ *    **A green run here is still not evidence for the `_hasRef` latch itself** - that is carried only by the
+ *    dedicated specs.
+ * 3. **Zone membership**, unchanged from `P3-PA3`, including the exhaustive per-class tally.
+ *
+ * See `docs/plans/03-codegen-serializers.md`.
  *
  * Opt-in, zero footprint when the flag is off: `installParityHarness()` only ever runs from the
  * `ENABLE_PARITY_HARNESS === 'true'` guard below. This file must never construct a `Game`/`GameObjectBase`
@@ -39,25 +51,30 @@ import { AllArenasZone } from '../../server/game/core/zone/AllArenasZone';
 const RESERVED_TAGS: readonly string[] = STATE_ENCODING_TAGS;
 
 let installed = false;
-let snapshotsCompared = 0;
-let recordsCompared = 0;
-let originalBuildGameStateForSnapshot: typeof GameStateManager.prototype.buildGameStateForSnapshot | null = null;
 let priorTimeout: number | null = null;
 
 // ---------------------------------------------------------------------------------------------
-// Restore-leg module state (P3-PA3 §4)
+// Restore-leg module state
 // ---------------------------------------------------------------------------------------------
 
-let originalSetState: ((this: GameObjectBase, state: IGameObjectBaseState) => void) | null = null;
 let originalRollbackToSnapshot: typeof GameStateManager.prototype.rollbackToSnapshot | null = null;
 
-/** Buffer identity -> the generated records captured for that snapshot at the moment it was taken
- * (§4.1). Released with the snapshot buffer itself since this is a WeakMap. */
-const retainedGeneratedRecords = new WeakMap<Buffer, Map<string, SerializedStateRecord>>();
+/**
+ * Each wrapped registry entry and the `deserialize` the harness wraps. `original` is mutable on purpose:
+ * `withDeserializePatchedBeneathHarness` swaps it so a spec's injected failure always sits *inside* the
+ * harness's check rather than outside it. Without that, the layering would depend on run mode - with the
+ * flag on the harness installs at module load and a spec's later `entry.serializer.deserialize = ...`
+ * wraps *it*, so the spec's corruption would land after the check had already passed; with the flag off,
+ * `withParityHarnessInstalled` runs later and the order is reversed. Also used to make uninstall exact.
+ */
+interface IWrappedEntry {
+    entry: IGeneratedSerializerEntry;
 
-/** The current rollback's retained record set, saved/restored (never set/cleared) around the original
- * call so the self-re-entrant recovery path (§2, §4.4) leaves the outer frame's set intact. */
-let currentRestoreRecords: Map<string, SerializedStateRecord> | null = null;
+    /** The `deserialize` that was on the entry before install, restored verbatim by `uninstallParityHarness`. */
+    preInstall: IStateSerializer['deserialize'];
+    original: IStateSerializer['deserialize'];
+}
+const wrappedEntries: IWrappedEntry[] = [];
 
 /** Depth counter for the harness's own wrapper, distinct from `GameStateManager`'s private
  * `_rollbackDepth` — the harness needs its own because it re-enters through the very same patched
@@ -79,14 +96,23 @@ let rethrowSuppressed = false;
  * / the rollback-result accounting route into the `deliberate*` counters instead of the absolute ones. */
 let harnessErrorExpected = false;
 
-let restoreModeOverride: 'compare' | 'generated' | null = null;
-
-let moduleLoadArmed = false;
-let uninstallsWhileModuleLoadArmed = 0;
-
 let rollbacksObserved = 0;
 let objectsCompared = 0;
 let fieldsCompared = 0;
+
+/** `PB2R2-W4`: non-vacuity for the wrapper-identity check. A `FieldKind` rename, a model-lookup miss, or a
+ * guard that only ever matches `refSet` (which has zero live uses) would leave the check running over an
+ * empty enumeration behind a permanently green suite.
+ *
+ * P3-PB2 fix (`PB2I1-OPR-06` / `PB2I1-AC-08`): this counter is **per instance per rollback**, not per
+ * declaration site. The six mutable-wrapper fields this tree declares - three `@stateRefArray(false)` and
+ * three `@stateRefMap` - include `GameObject._ongoingEffects`, declared once on the base and instantiated
+ * on every card, zone and player, so a real rollback reaches roughly 70 fields, not six. Measured: 143853
+ * over 2015 rollbacks on `test-parity-undo`, 6972 over 102 on `test-parity`. The earlier "expect six"
+ * reading invited someone to "fix" a correct check; it also meant a regression that silenced 90% of the
+ * checks still looked consistent with the comment, which is why `ParityHarness.spec.ts` now asserts a floor
+ * against this value rather than leaving it narrated. */
+let wrapperFieldsChecked = 0;
 let rollbacksFailed = 0;
 let harnessRestoreErrors = 0;
 
@@ -96,7 +122,6 @@ let harnessRestoreErrors = 0;
  * absolutes (§4.7: "`harnessRestoreErrors === 0` stays absolute in every case") for every other run. */
 let deliberateHarnessErrors = 0;
 let deliberateRollbackFailures = 0;
-let skippedPreInstall = 0;
 let zoneChecks = 0;
 let zoneViolationsForward = 0;
 let zoneViolationsReverse = 0;
@@ -145,51 +170,43 @@ const zoneViolationClassCounts = new Map<string, number>();
 
 export interface IParityHarnessStats {
     installed: boolean;
-    snapshotsCompared: number;
-    recordsCompared: number;
-    restoreMode: 'compare' | 'generated';
+    wrappedDeserializers: number;
     rollbacksObserved: number;
     objectsCompared: number;
     fieldsCompared: number;
+    wrapperFieldsChecked: number;
     rollbacksFailed: number;
     harnessRestoreErrors: number;
     deliberateHarnessErrors: number;
     deliberateRollbackFailures: number;
-    skippedPreInstall: number;
     zoneChecks: number;
     zoneViolationsForward: number;
     zoneViolationsReverse: number;
     preRollbackViolationsForward: number;
     preRollbackViolationsReverse: number;
     zonesNotCovered: number;
-    moduleLoadArmed: boolean;
     installedAtExit: boolean;
-    uninstallsWhileModuleLoadArmed: number;
 }
 
 export function getParityHarnessStats(): IParityHarnessStats {
     return {
         installed,
-        snapshotsCompared,
-        recordsCompared,
-        restoreMode: currentRestoreMode(),
+        wrappedDeserializers: wrappedEntries.length,
         rollbacksObserved,
         objectsCompared,
         fieldsCompared,
+        wrapperFieldsChecked,
         rollbacksFailed,
         harnessRestoreErrors,
         deliberateHarnessErrors,
         deliberateRollbackFailures,
-        skippedPreInstall,
         zoneChecks,
         zoneViolationsForward,
         zoneViolationsReverse,
         preRollbackViolationsForward,
         preRollbackViolationsReverse,
         zonesNotCovered,
-        moduleLoadArmed,
         installedAtExit: installed,
-        uninstallsWhileModuleLoadArmed,
     };
 }
 
@@ -217,13 +234,6 @@ export function deleteZoneViolationClassCountForTest(zoneClass: string): void {
     zoneViolationClassCounts.delete(zoneClass);
 }
 
-/** Reader for the record set retained at snapshot time for a given snapshot's `.states` buffer (§4.1).
- * Exposed so a spec (AC6) can deep-compare it against a copy taken at snapshot time to prove no retained
- * record is later aliased into live state. */
-export function getRetainedGeneratedRecords(buffer: Buffer): Map<string, SerializedStateRecord> | undefined {
-    return retainedGeneratedRecords.get(buffer);
-}
-
 function describeForError(value: unknown): string {
     try {
         const stringified = JSON.stringify(value);
@@ -240,7 +250,7 @@ function fail(className: string, serializerClassName: string, uuid: string, fiel
     // so P3-PA3/P3-PA4 (which reuse this harness) can run that triage straight off the thrown message.
     const classLabel = className === serializerClassName ? `class=${className}` : `class=${className} serializerClass=${serializerClassName}`;
     throw new Error(
-        `[ParityHarness] serialize-leg mismatch: ${classLabel} uuid=${uuid} field="${fieldPath}"` +
+        `[ParityHarness] round-trip mismatch: ${classLabel} uuid=${uuid} field="${fieldPath}"` +
         `${detail ? ` (${detail})` : ''} old=${describeForError(oldValue)} new=${describeForError(newValue)}`
     );
 }
@@ -274,73 +284,68 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
     return prototype === Object.prototype || prototype === null;
 }
 
-/** Compares an old-side native `Map`/`Set` (never tagged — only the generated side tags containers)
- * against the new side's tagged payload, walking both in iteration order. Never sorts either side (AC4). */
-function compareTaggedContainer(className: string, serializerClassName: string, uuid: string, fieldPath: string, oldValue: unknown, newValue: Record<string, unknown>, tag: string): void {
+/**
+ * Compares two tagged container payloads, walking both in iteration order and never sorting either side.
+ *
+ * P3-PB2 changed this function's shape: before the cutover, one side was a native `Map`/`Set` read out of
+ * the state bag and only the generated side carried a tag. Both sides are encoder output now, so a
+ * `$map`/`$set` payload is compared against a `$map`/`$set` payload, and a tag on one side only is itself a
+ * mismatch (a `value`-kind field whose re-serialize stopped producing a container, for instance).
+ */
+function compareTaggedContainer(className: string, serializerClassName: string, uuid: string, fieldPath: string, oldValue: unknown, newValue: unknown, tag: string): void {
+    const oldTag = getReservedTag(oldValue);
+    if (oldTag !== tag) {
+        fail(className, serializerClassName, uuid, fieldPath, oldValue, newValue, `one side is ${tag}-tagged and the other is ${oldTag === null ? 'not tagged' : `${oldTag}-tagged`}`);
+    }
+
+    const key = tag as '$map' | '$set';
+    const oldMembers = (oldValue as Record<string, unknown>)[key];
+    const newMembers = (newValue as Record<string, unknown>)[key];
+    if (!Array.isArray(oldMembers) || !Array.isArray(newMembers)) {
+        fail(className, serializerClassName, uuid, fieldPath, oldValue, newValue, `a ${tag}-tagged payload's "${tag}" property is not an array`);
+    }
+    if (oldMembers.length !== newMembers.length) {
+        fail(className, serializerClassName, uuid, fieldPath, oldValue, newValue, `${tag} size differs (old=${oldMembers.length}, new=${newMembers.length})`);
+    }
+
     if (tag === '$map') {
-        if (!(oldValue instanceof Map)) {
-            fail(className, serializerClassName, uuid, fieldPath, oldValue, newValue, 'new side is $map-tagged but old side is not a Map');
-        }
-        const newEntries = (newValue as { $map: [string, unknown][] }).$map;
-        if (!Array.isArray(newEntries)) {
-            fail(className, serializerClassName, uuid, fieldPath, oldValue, newValue, `$map-tagged payload's "$map" property is not an array (got ${typeof newEntries})`);
-        }
-        const oldEntries = [...(oldValue as Map<unknown, unknown>).entries()];
-        if (oldEntries.length !== newEntries.length) {
-            fail(className, serializerClassName, uuid, fieldPath, oldValue, newValue, `Map size differs (old=${oldEntries.length}, new=${newEntries.length})`);
-        }
-        for (let i = 0; i < oldEntries.length; i++) {
-            const [oldKey, oldVal] = oldEntries[i];
-            const [newKey, newVal] = newEntries[i];
-            if (oldKey !== newKey) {
-                fail(className, serializerClassName, uuid, `${fieldPath} (Map entry ${i} key, iteration order)`, oldKey, newKey, 'Map key differs at this iteration-order position; keys are never sorted before comparison');
+        for (let i = 0; i < oldMembers.length; i++) {
+            const oldEntry = oldMembers[i] as [string, unknown];
+            const newEntry = newMembers[i] as [string, unknown];
+            if (!Array.isArray(oldEntry) || !Array.isArray(newEntry) || oldEntry.length !== 2 || newEntry.length !== 2) {
+                fail(className, serializerClassName, uuid, `${fieldPath} ($map entry ${i})`, oldEntry, newEntry, '$map entries must be two-element [key, value] pairs');
             }
-            compareValue(className, serializerClassName, uuid, `${fieldPath} (Map value for key "${String(oldKey)}")`, oldVal, newVal, false);
+            if (oldEntry[0] !== newEntry[0]) {
+                fail(className, serializerClassName, uuid, `${fieldPath} (Map entry ${i} key, iteration order)`, oldEntry[0], newEntry[0], 'Map key differs at this iteration-order position; keys are never sorted before comparison');
+            }
+            compareValue(className, serializerClassName, uuid, `${fieldPath} (Map value for key "${String(oldEntry[0])}")`, oldEntry[1], newEntry[1]);
         }
         return;
     }
 
-    // tag === '$set'
-    if (!(oldValue instanceof Set)) {
-        fail(className, serializerClassName, uuid, fieldPath, oldValue, newValue, 'new side is $set-tagged but old side is not a Set');
-    }
-    const newMembers = (newValue as { $set: unknown[] }).$set;
-    if (!Array.isArray(newMembers)) {
-        fail(className, serializerClassName, uuid, fieldPath, oldValue, newValue, `$set-tagged payload's "$set" property is not an array (got ${typeof newMembers})`);
-    }
-    const oldMembers = [...(oldValue as Set<unknown>)];
-    if (oldMembers.length !== newMembers.length) {
-        fail(className, serializerClassName, uuid, fieldPath, oldValue, newValue, `Set size differs (old=${oldMembers.length}, new=${newMembers.length})`);
-    }
     for (let i = 0; i < oldMembers.length; i++) {
-        compareValue(className, serializerClassName, uuid, `${fieldPath} (Set member, iteration order index ${i})`, oldMembers[i], newMembers[i], false);
+        compareValue(className, serializerClassName, uuid, `${fieldPath} (Set member, iteration order index ${i})`, oldMembers[i], newMembers[i]);
     }
 }
 
 /**
- * Structural comparison of one field's old-bag value against its generated-side counterpart.
+ * Structural comparison of one field's expected value against the value the re-serialize produced.
  *
- * `isTopLevel` gates the single pinned asymmetry exception (AC3): `oldValue === undefined && newValue ===
- * null` is forgiven only when comparing `oldRecord`/`newRecord`'s own top-level keys directly — never when
- * recursing into an array, plain object, Map, or Set below that level, where the same pattern is a real
- * divergence (`encodeStateValue` passes a nested `undefined` through unchanged, so old and new already
- * agree there without help; forgiving it again would only ever risk masking a genuine mismatch).
+ * P3-PB2 removed this function's one asymmetry exception (`undefined` on the bag side vs `null` on the
+ * encoder side, previously gated by an `isTopLevel` flag): with the bag gone both sides are encoder output,
+ * so that shape can no longer legitimately occur and forgiving it would only risk masking a real mismatch.
  */
-function compareValue(className: string, serializerClassName: string, uuid: string, fieldPath: string, oldValue: unknown, newValue: unknown, isTopLevel: boolean): void {
-    if (isTopLevel && oldValue === undefined && newValue === null) {
-        return;
-    }
-
-    const tag = getReservedTag(newValue);
+function compareValue(className: string, serializerClassName: string, uuid: string, fieldPath: string, oldValue: unknown, newValue: unknown): void {
+    const tag = getReservedTag(newValue) ?? getReservedTag(oldValue);
     if (tag) {
         if (tag === '$map' || tag === '$set') {
-            compareTaggedContainer(className, serializerClassName, uuid, fieldPath, oldValue, newValue as Record<string, unknown>, tag);
+            compareTaggedContainer(className, serializerClassName, uuid, fieldPath, oldValue, newValue, tag);
             return;
         }
         // Any other reserved tag (e.g. "$num") has no comparator branch — throw naming it rather than
         // silently falling through to plain-object recursion (AC9), mirroring decodeStateValue's own
         // refusal of an undecodable reserved tag.
-        fail(className, serializerClassName, uuid, fieldPath, oldValue, newValue, `new side carries reserved tag "${tag}" with no comparator branch`);
+        fail(className, serializerClassName, uuid, fieldPath, oldValue, newValue, `a compared value carries reserved tag "${tag}" with no comparator branch`);
     }
 
     if (Array.isArray(oldValue) || Array.isArray(newValue)) {
@@ -351,7 +356,7 @@ function compareValue(className: string, serializerClassName: string, uuid: stri
             fail(className, serializerClassName, uuid, fieldPath, oldValue, newValue, `array length differs (old=${oldValue.length}, new=${newValue.length})`);
         }
         for (let i = 0; i < oldValue.length; i++) {
-            compareValue(className, serializerClassName, uuid, `${fieldPath}[${i}]`, oldValue[i], newValue[i], false);
+            compareValue(className, serializerClassName, uuid, `${fieldPath}[${i}]`, oldValue[i], newValue[i]);
         }
         return;
     }
@@ -362,7 +367,7 @@ function compareValue(className: string, serializerClassName: string, uuid: stri
         }
         const keys = new Set<string>([...Object.keys(oldValue), ...Object.keys(newValue)]);
         for (const key of keys) {
-            compareValue(className, serializerClassName, uuid, `${fieldPath}.${key}`, oldValue[key], newValue[key], false);
+            compareValue(className, serializerClassName, uuid, `${fieldPath}.${key}`, oldValue[key], newValue[key]);
         }
         return;
     }
@@ -373,170 +378,43 @@ function compareValue(className: string, serializerClassName: string, uuid: stri
 }
 
 /**
- * Pure: takes the manager (for `.get(uuid)`) and an already-produced snapshot buffer; performs zero
- * prototype patching and touches no module-level counters (other than the optional `collect` out-map).
- * Reads stored refs via `.uuid` only (through the generated serializers' own encoders — never
- * `getObjectId()`), which is what keeps this side-effect-free (AC2). Returns the number of records
- * compared; throws on the first mismatch it finds.
+ * Pure post-cutover round-trip self-check: re-serializes `instance` and deep-compares the result, field by
+ * field, against the `record` it was just restored from. Performs zero prototype patching and touches no
+ * module-level counters, so a spec can call it directly on a synthetic record.
  *
- * `collect`, when supplied (P3-PA3 §4.1), receives each uuid's generated record (the exact object the
- * generated serializer produced) as it is built — the restore leg's own record set is fed from here
- * rather than re-derived or re-serialized later, since it must be the generator's real output captured
- * at snapshot time.
+ * Reads stored refs via `.uuid` only (through the generated serializers' own encoders - never
+ * `getObjectId()`), which is what keeps this side-effect-free. Returns the number of fields compared;
+ * throws the standard mismatch diagnostic on the first divergence it finds.
+ *
+ * There is no `undefined`/`null` leniency here, unlike the retired two-leg comparator: both sides are now
+ * encoder output, so the asymmetry the old exception existed for cannot arise, and forgiving it would be an
+ * unjustified rule.
  */
-export function compareSnapshotRecords(manager: GameStateManager, buffer: Buffer, collect?: Map<string, SerializedStateRecord>): number {
-    const oldRecordsByUuid = v8.deserialize(buffer) as Record<string, SerializedStateRecord>;
-    let compared = 0;
+export function compareRoundTrip(instance: IGameObjectBase, record: SerializedStateRecord): number {
+    const className = (instance as unknown as { constructor: { name: string } }).constructor.name;
 
-    for (const uuid of Object.keys(oldRecordsByUuid)) {
-        const oldRecord = oldRecordsByUuid[uuid];
-        const instance = manager.get<GameObjectBase>(uuid as GameObjectId<GameObjectBase>) as unknown as IGameObjectBase;
-        const className = (instance as unknown as { constructor: { name: string } }).constructor.name;
-
-        let newRecord: SerializedStateRecord;
-        let serializerClassName: string;
-        try {
-            const entry = getStateSerializerFor(instance);
-            serializerClassName = entry.className;
-            newRecord = entry.serializer.serialize(instance);
-        } catch (error) {
-            throw new Error(`[ParityHarness] uuid=${uuid} class=${className}: failed to resolve or run the generated serializer: ${(error as Error).message}`);
-        }
-
-        if (collect) {
-            collect.set(uuid, newRecord);
-        }
-
-        const keys = new Set<string>([...Object.keys(oldRecord), ...Object.keys(newRecord)]);
-        for (const key of keys) {
-            compareValue(className, serializerClassName, uuid, key, oldRecord[key], newRecord[key], true);
-        }
-
-        compared++;
+    let reserialized: SerializedStateRecord;
+    let serializerClassName: string;
+    try {
+        const entry = getStateSerializerFor(instance);
+        serializerClassName = entry.className;
+        reserialized = entry.serializer.serialize(instance);
+    } catch (error) {
+        throw new Error(`[ParityHarness] class=${className}: failed to resolve or run the generated serializer: ${(error as Error).message}`);
     }
 
-    return compared;
+    const uuid = String((instance as unknown as { uuid?: unknown }).uuid);
+    const keys = new Set<string>([...Object.keys(record), ...Object.keys(reserialized)]);
+    for (const key of keys) {
+        compareValue(className, serializerClassName, uuid, key, record[key], reserialized[key]);
+    }
+
+    return keys.size;
 }
 
 // ---------------------------------------------------------------------------------------------
 // Restore-leg observation and comparison (§4.6)
 // ---------------------------------------------------------------------------------------------
-
-type NormalizedValue =
-  | { ref: string }
-  | { ctor: string; items: NormalizedValue[] }
-  | { ctor: string; entries: [unknown, NormalizedValue][] }
-  | { ctor: string; members: NormalizedValue[] }
-  | { ctor: 'Object'; props: Record<string, NormalizedValue> }
-  | string | number | boolean | null | undefined;
-
-function normalizeLiveValue(value: unknown, ancestors: Set<unknown>): NormalizedValue {
-    if (value === null || value === undefined || typeof value !== 'object') {
-        return value as NormalizedValue;
-    }
-    if (ancestors.has(value)) {
-        throw new Error('[ParityHarness] cycle detected while normalizing a restored field for comparison');
-    }
-    if (typeof (value as { getObjectId?: unknown }).getObjectId === 'function') {
-        // Structural GameObjectBase check: read `.uuid` only, never `getObjectId()` (mirrors the
-        // serialize leg's own side-effect-free discipline, AC2's sibling concern on the restore leg).
-        return { ref: (value as unknown as { uuid: string }).uuid };
-    }
-
-    const nextAncestors = new Set(ancestors);
-    nextAncestors.add(value);
-
-    if (Array.isArray(value)) {
-        return { ctor: (value as object).constructor.name, items: value.map((entry) => normalizeLiveValue(entry, nextAncestors)) };
-    }
-    if (value instanceof Map) {
-        return { ctor: value.constructor.name, entries: [...value.entries()].map(([key, entry]) => [key, normalizeLiveValue(entry, nextAncestors)]) };
-    }
-    if (value instanceof Set) {
-        return { ctor: value.constructor.name, members: [...value.values()].map((entry) => normalizeLiveValue(entry, nextAncestors)) };
-    }
-    if (isPlainObject(value)) {
-        const props: Record<string, NormalizedValue> = {};
-        for (const key of Object.keys(value)) {
-            props[key] = normalizeLiveValue(value[key], nextAncestors);
-        }
-        return { ctor: 'Object', props };
-    }
-    // P3PA3-I1-07: the prior fallback (`{ ctor, items: [] }`) made two *different* instances of the same
-    // otherwise-unhandled class compare equal under `normalizedEqual`, which is exactly the comparator hole
-    // §4.6 says this gate exists to prevent. Reachability from a real observed field was unproven by
-    // inspection; thrown loudly instead, per the reviewer's own falsifier ("make the branch throw and run
-    // the suite; if it never fires, convert it to a throw permanently"). This run's suites did not trip it
-    // (see verification evidence), so it stands as a tripwire pending a real normalizer if one is ever
-    // needed for a future field shape.
-    throw new Error(`[ParityHarness] normalizeLiveValue: no normalizer branch for a live value of type "${(value as object).constructor.name}" — add one rather than silently treating distinct instances as equal.`);
-}
-
-/** Reads each of `fieldNames` through `instance`'s public accessor and normalizes it, mirroring
- * `encodeStateValue`'s own shape (§4.6). */
-export function observeLiveFields(instance: unknown, fieldNames: Iterable<string>): Record<string, NormalizedValue> {
-    const result: Record<string, NormalizedValue> = {};
-    for (const name of fieldNames) {
-        result[name] = normalizeLiveValue((instance as Record<string, unknown>)[name], new Set());
-    }
-    return result;
-}
-
-function normalizedEqual(a: NormalizedValue, b: NormalizedValue): boolean {
-    if (a === b) {
-        return true;
-    }
-    if (a === null || a === undefined || b === null || b === undefined || typeof a !== 'object' || typeof b !== 'object') {
-        return Object.is(a, b);
-    }
-    const aObj = a as Record<string, unknown>;
-    const bObj = b as Record<string, unknown>;
-    if ('ref' in aObj || 'ref' in bObj) {
-        return 'ref' in aObj && 'ref' in bObj && aObj.ref === bObj.ref;
-    }
-    if (aObj.ctor !== bObj.ctor) {
-        return false;
-    }
-    if ('items' in aObj) {
-        if (!('items' in bObj)) {
-            return false;
-        }
-        const ai = aObj.items as NormalizedValue[];
-        const bi = bObj.items as NormalizedValue[];
-        return ai.length === bi.length && ai.every((value, i) => normalizedEqual(value, bi[i]));
-    }
-    if ('entries' in aObj) {
-        if (!('entries' in bObj)) {
-            return false;
-        }
-        const ae = aObj.entries as [unknown, NormalizedValue][];
-        const be = bObj.entries as [unknown, NormalizedValue][];
-        return ae.length === be.length && ae.every(([key, value], i) => Object.is(key, be[i][0]) && normalizedEqual(value, be[i][1]));
-    }
-    if ('members' in aObj) {
-        if (!('members' in bObj)) {
-            return false;
-        }
-        const am = aObj.members as NormalizedValue[];
-        const bm = bObj.members as NormalizedValue[];
-        return am.length === bm.length && am.every((value, i) => normalizedEqual(value, bm[i]));
-    }
-    if ('props' in aObj) {
-        if (!('props' in bObj)) {
-            return false;
-        }
-        const ap = aObj.props as Record<string, NormalizedValue>;
-        const bp = bObj.props as Record<string, NormalizedValue>;
-        const keys = new Set<string>([...Object.keys(ap), ...Object.keys(bp)]);
-        for (const key of keys) {
-            if (!normalizedEqual(ap[key], bp[key])) {
-                return false;
-            }
-        }
-        return true;
-    }
-    return false;
-}
 
 function stashFirstHarnessError(error: Error): void {
     if (firstHarnessError === null) {
@@ -559,23 +437,6 @@ export function getFirstHarnessError(): Error | null {
     return firstHarnessError;
 }
 
-function raiseRestoreMismatch(className: string, uuid: string, fieldPath: string, legacyValue: unknown, generatedValue: unknown): never {
-    const error = new Error(
-        `[ParityHarness] restore-leg mismatch: leg=restore class=${className} uuid=${uuid} field="${fieldPath}" ` +
-        `legacy=${describeForError(legacyValue)} generated=${describeForError(generatedValue)}`
-    );
-    stashFirstHarnessError(error);
-    throw error;
-}
-
-function compareRestoreObservations(className: string, uuid: string, legacy: Record<string, NormalizedValue>, generated: Record<string, NormalizedValue>, fieldNames: Iterable<string>): void {
-    for (const field of fieldNames) {
-        if (!normalizedEqual(legacy[field], generated[field])) {
-            raiseRestoreMismatch(className, uuid, field, legacy[field], generated[field]);
-        }
-    }
-}
-
 /** `P3PA3-I2-007`: every scoped-override helper below restores its state in a synchronous `finally`, so an
  * `async fn` (or any `fn` returning a thenable) would have its scope reverted before the awaited work
  * inside it actually runs — silently mis-scoping. No current call site does this, but the file is
@@ -583,27 +444,6 @@ function compareRestoreObservations(className: string, uuid: string, legacy: Rec
 function assertNotThenable(result: unknown, helperName: string): void {
     if (result !== null && (typeof result === 'object' || typeof result === 'function') && typeof (result as { then?: unknown }).then === 'function') {
         throw new Error(`[ParityHarness] ${helperName}(fn) requires a synchronous fn; fn() returned a thenable, which would revert the scope before any awaited work runs.`);
-    }
-}
-
-function currentRestoreMode(): 'compare' | 'generated' {
-    if (restoreModeOverride) {
-        return restoreModeOverride;
-    }
-    return process.env.PARITY_RESTORE_MODE === 'generated' ? 'generated' : 'compare';
-}
-
-/** Spec-scoped override of the process-level restore mode (§4.3), so a spec can drive real rollbacks
- * through the generated path inside an otherwise-compare-mode run. */
-export function withRestoreMode<T>(mode: 'compare' | 'generated', fn: () => T): T {
-    const prior = restoreModeOverride;
-    restoreModeOverride = mode;
-    try {
-        const result = fn();
-        assertNotThenable(result, 'withRestoreMode');
-        return result;
-    } finally {
-        restoreModeOverride = prior;
     }
 }
 
@@ -701,19 +541,19 @@ function corruptLiveField(instance: unknown, field: string): void {
 }
 
 /**
- * One-shot, documented fault injection (§4.8): when `PARITY_INJECT_RESTORE_MISMATCH=<Class>.<field>` is
- * set and this is the first eligible object encountered (not already fired, not inside
- * `withHarnessRethrowSuppressed`), runs a dedicated one-field dual restore — independent of the active
- * `restoreMode` — corrupts the generated side, and throws the standard restore mismatch diagnostic if
- * they disagree (which, for the primitive fields this hook supports, they always do). Running the check
- * independently of `restoreMode` (rather than only perturbing whichever leg that mode would naturally
- * run) is what lets the same one env var prove the gate can fail in all four AC14 configurations,
- * including the two pure generated-mode runs that do not perform a compare-mode dual restore on their
- * own — a deliberate implementation choice within the plan's descriptive "compare mode: perturb the
- * generated leg's observation; generated mode: skip that field's write" text, disclosed here rather than
- * silently narrowed.
+ * One-shot, documented fault injection - the gate's own falsifier (AC14). When
+ * `PARITY_INJECT_RESTORE_MISMATCH=<Class>.<field>` is set and this is the first eligible object restored
+ * (not already fired, not inside a deliberate-suppression scope), the named live field is corrupted
+ * *after* `deserialize` has written it, so the round-trip compare that follows sees a value that disagrees
+ * with the record and raises the standard mismatch diagnostic.
+ *
+ * Eligibility is checked against the *record's* value, not the live one: a field can be a supported
+ * primitive on some instances of a class and `null` on others of the same class (`NonLeaderUnitCard._damage`
+ * is a `number` in play and `null` in a deck), and spending the one shot on an instance
+ * `corruptLiveField` cannot corrupt would waste it on a setup-time throw instead of producing the intended
+ * diagnostic.
  */
-function checkInjection(instance: GameObjectBase, className: string, uuid: string, record: SerializedStateRecord, dirtyBag: IGameObjectBaseState, newState: IGameObjectBaseState): void {
+function checkInjection(instance: GameObjectBase, className: string, record: SerializedStateRecord): void {
     if (injectionFired || rethrowSuppressed || harnessErrorExpected) {
         return;
     }
@@ -721,135 +561,95 @@ function checkInjection(instance: GameObjectBase, className: string, uuid: strin
     if (!spec || spec.className !== className || !(spec.field in record)) {
         return;
     }
-    // Reliability fix, found by running the escape proof 5x/configuration rather than trusting a single
-    // green sample (this is very likely the root cause of the implementer's originally-disclosed "roughly
-    // 1 run in 4-5" flakiness, not merely spec-order absorption by AC2): a field can be a supported
-    // primitive on *some* instances of `className` and unsupported on others of the very same class - e.g.
-    // `NonLeaderUnitCard._damage` is `number` for a card in play but `null` (damage-tracking disabled,
-    // `Damage.ts`'s `assertPropertyEnabledForZone` pattern) for the same class sitting in a deck or hand.
-    // The one-shot budget must not be spent on the first *matching-class* object if that particular
-    // instance's field value isn't one `corruptLiveField` can actually corrupt - doing so wastes the shot
-    // on a setup-time throw instead of ever producing the intended mismatch diagnostic, silently
-    // undermining AC14 exactly as the original disclosure described. Checked against the *record's* value
-    // (the authoritative recorded type for this field on this instance) before touching any live state or
-    // consuming the shot, so an ineligible instance is skipped and a later, eligible instance still gets
-    // the injection.
     const recordedValue = record[spec.field];
     if (typeof recordedValue !== 'number' && typeof recordedValue !== 'string' && typeof recordedValue !== 'boolean') {
         return;
     }
     injectionFired = true;
 
-    const self = instance as unknown as { state: IGameObjectBaseState };
-
-    const isolatedBag = { ...dirtyBag };
-    self.state = isolatedBag;
-    let generatedValue: NormalizedValue;
-    try {
-        getStateSerializerFor(instance).serializer.deserialize(instance.game, instance, record);
-        corruptLiveField(instance, spec.field);
-        generatedValue = observeLiveFields(instance, [spec.field])[spec.field];
-    } finally {
-        // P3PA3-I1-04's fix, applied consistently here: never leave `state` pointing at the isolated
-        // (possibly partially-mutated) copy if the injection setup itself throws.
-        self.state = dirtyBag;
-    }
-
-    self.state = newState;
-    copyState(instance, newState);
-    const legacyValue = observeLiveFields(instance, [spec.field])[spec.field];
-
-    if (!normalizedEqual(legacyValue, generatedValue)) {
-        raiseRestoreMismatch(className, uuid, spec.field, legacyValue, generatedValue);
-    }
-    // Unreachable for the primitive types corruptLiveField supports — left here defensively so a future
-    // supported type that happened to collide is still handled sanely: state is left at `newState` with
-    // copyState already applied (a valid legacy restore), so the normal per-mode restore that follows
-    // simply re-runs copyState/deserialize on top of it, which is safe since both are idempotent and
-    // start-state independent (plan.md §2).
+    corruptLiveField(instance, spec.field);
 }
 
 // ---------------------------------------------------------------------------------------------
-// The per-object comparison seam (§4.2, §4.3)
+// The per-object restore seam: round-trip self-check + wrapper identity
 // ---------------------------------------------------------------------------------------------
 
-function setStateImpl(instance: GameObjectBase, newState: IGameObjectBaseState): void {
-    const self = instance as unknown as { state: IGameObjectBaseState; afterSetState(oldState: IGameObjectBaseState): void; constructor: { name: string } };
-    const dirtyBag = self.state;
+/**
+ * Snapshots, for one instance, which `refArray` fields currently hold an `UndoArray`. `FieldKind` cannot
+ * distinguish `@stateRefArray(true)` (plain array, by design) from `@stateRefArray(false)` (wrapped), so the
+ * only decidable form of the check is before/after: a field that was wrapped going in must still be wrapped
+ * coming out.
+ */
+function collectWrappedRefArrayFields(instance: GameObjectBase, fields: readonly { name: string; kind: FieldKind }[]): string[] {
+    const wrapped: string[] = [];
+    for (const field of fields) {
+        if (field.kind !== 'refArray') {
+            continue;
+        }
+        const value = (instance as unknown as Record<string, unknown>)[field.name];
+        if (value != null && (value as object).constructor.name === 'UndoArray') {
+            wrapped.push(field.name);
+        }
+    }
+    return wrapped;
+}
+
+function raiseWrapperIdentityFailure(className: string, uuid: string, fieldName: string, expected: string, actual: string): never {
+    const error = new Error(
+        `[ParityHarness] wrapper-identity failure: class=${className} uuid=${uuid} field="${fieldName}" ` +
+        `expected=${expected} actual=${actual}. A restored ref collection that is not its wrapper type no longer ` +
+        'latches _hasRef on later mutation, so its referents are culled at the next snapshot and the rollback ' +
+        'after that fails in getFromUuidUnsafe.'
+    );
+    stashFirstHarnessError(error);
+    throw error;
+}
+
+/**
+ * Runs after the real `deserialize` returns and before `afterSetState` - the hooks legitimately mutate
+ * state (`Damage.afterSetState` nulls `_activeAttack`; `OngoingEffectEngine.afterSetAllState` calls
+ * `resolveEffects(true)`), so a post-rollback comparison would need a divergence allowlist, which is
+ * exactly the "gate that cannot go red" failure this harness exists to avoid.
+ */
+function checkRestoredInstance(
+    entry: IGeneratedSerializerEntry,
+    instance: GameObjectBase,
+    record: SerializedStateRecord,
+    wrappedRefArraysBefore: readonly string[]
+): void {
+    const className = (instance as unknown as { constructor: { name: string } }).constructor.name;
     const uuid = instance.uuid;
-    const className = self.constructor.name;
 
-    if (currentRestoreRecords === null) {
-        // No retained record set for this rollback. The wrapper (patchedRollbackToSnapshot) already turns
-        // this into a loud failure when the harness was armed at module load (R3), so reaching here
-        // always means a legitimate pre-install snapshot (R4): the harness was installed by a spec after
-        // this snapshot was taken, so it never had a chance to retain records for it.
-        skippedPreInstall++;
-        originalSetState.call(instance, newState);
-        return;
-    }
-
-    const record = currentRestoreRecords.get(uuid);
-    if (!record) {
-        const error = new Error(`[ParityHarness] missing retained generated record for uuid=${uuid} class=${className} during restore; every live object being restored must have a record when the harness is armed.`);
-        stashFirstHarnessError(error);
-        throw error;
-    }
-
-    checkInjection(instance, className, uuid, record, dirtyBag, newState);
+    checkInjection(instance, className, record);
 
     objectsCompared++;
 
-    if (currentRestoreMode() === 'generated') {
-        // P3PA3-I3-3 disclosure: `self.state` is installed wholesale *before* `deserialize` runs, so a
-        // `@statePrimitive`/`@stateValue` accessor (which reads `this.state[name]` directly) returns the
-        // correct value whether or not the generated deserializer actually wrote that field. This mode
-        // therefore validates ref-kind restore end-to-end but is blind to a dropped primitive/value field —
-        // that gap is covered by compare mode (AC2), where the isolated shallow copy leaves the dirty value
-        // in place and a drop shows up as a real mismatch. Owed to `P3-PB2` explicitly (plan.md §4.3/§9).
-        self.state = newState;
-        try {
-            getStateSerializerFor(instance).serializer.deserialize(instance.game, instance, record);
-        } catch (error) {
-            const wrapped = new Error(`[ParityHarness] generated deserializer threw for uuid=${uuid} class=${className}: ${(error as Error).message}`);
-            stashFirstHarnessError(wrapped);
-            throw wrapped;
+    for (const field of entry.fields) {
+        const value = (instance as unknown as Record<string, unknown>)[field.name];
+        if (field.kind === 'refMap') {
+            wrapperFieldsChecked++;
+            if (value != null && (value as object).constructor.name !== 'UndoMap') {
+                raiseWrapperIdentityFailure(className, uuid, field.name, 'UndoMap', (value as object).constructor.name);
+            }
+        } else if (field.kind === 'refSet') {
+            wrapperFieldsChecked++;
+            if (value != null && (value as object).constructor.name !== 'UndoSet') {
+                raiseWrapperIdentityFailure(className, uuid, field.name, 'UndoSet', (value as object).constructor.name);
+            }
+        } else if (field.kind === 'refArray' && wrappedRefArraysBefore.includes(field.name)) {
+            wrapperFieldsChecked++;
+            if (value == null || (value as object).constructor.name !== 'UndoArray') {
+                raiseWrapperIdentityFailure(className, uuid, field.name, 'UndoArray', value == null ? String(value) : (value as object).constructor.name);
+            }
         }
-        self.afterSetState(dirtyBag);
-        return;
     }
 
-    // Compare mode (§4.2): the generated leg runs first, isolated, from the dirty starting state; the
-    // legacy leg then runs production's own `copyState`, which is also the live outcome of this call.
-    const fieldNames = new Set<string>([...Object.keys(newState as unknown as Record<string, unknown>), ...Object.keys(record)]);
-
-    const isolatedBag = { ...dirtyBag };
-    self.state = isolatedBag;
-    let generatedObserved: Record<string, NormalizedValue>;
     try {
-        try {
-            getStateSerializerFor(instance).serializer.deserialize(instance.game, instance, record);
-        } catch (error) {
-            const wrapped = new Error(`[ParityHarness] generated deserializer threw for uuid=${uuid} class=${className}: ${(error as Error).message}`);
-            stashFirstHarnessError(wrapped);
-            throw wrapped;
-        }
-        generatedObserved = observeLiveFields(instance, fieldNames);
-    } finally {
-        // P3PA3-I1-04: restore the dirty bag even when the generated leg (or observation) throws, so
-        // production's own recovery `setState`/`afterSetState` is never handed a partially-mutated shallow
-        // copy as `oldState` — the exact silent divergence §4.2's isolation design exists to prevent.
-        self.state = dirtyBag;
+        fieldsCompared += compareRoundTrip(instance, record);
+    } catch (error) {
+        stashFirstHarnessError(error as Error);
+        throw error;
     }
-
-    self.state = newState;
-    copyState(instance, newState);
-    const legacyObserved = observeLiveFields(instance, fieldNames);
-
-    compareRestoreObservations(className, uuid, legacyObserved, generatedObserved, fieldNames);
-    fieldsCompared += fieldNames.size;
-
-    self.afterSetState(dirtyBag);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -992,18 +792,10 @@ function runZoneMembershipCheck(manager: GameStateManager, baselineForwardViolat
 // ---------------------------------------------------------------------------------------------
 
 function rollbackToSnapshotImpl(manager: GameStateManager, snapshot: IGameSnapshot, beforeRollbackSnapshot?: IGameSnapshot): boolean {
-    const records = retainedGeneratedRecords.get(snapshot.states) ?? null;
-
-    if (records === null && moduleLoadArmed) {
-        // A missing record set is a loud failure, never a silent skip, when the harness was installed at
-        // module load — every snapshot taken since then went through the patched
-        // `buildGameStateForSnapshot` and must have retained records (§4.4, R3).
-        throw new Error('[ParityHarness] no retained generated record set found for this rollback\'s snapshot; the harness was installed at module load, so every snapshot should have retained records. This is a retention bug, not a restore mismatch.');
-    }
-
+    // P3-PB2: no retained-record bookkeeping is needed any more. `snapshot.states` *is* the record map the
+    // production restore reads, and the per-object check runs inside the wrapped `deserialize`, which is
+    // handed that record directly.
     harnessRollbackDepth++;
-    const priorRecords = currentRestoreRecords;
-    currentRestoreRecords = records;
 
     if (harnessRollbackDepth === 1) {
         // Pre-rollback calibration (§4.6): read on live pre-rollback state, immediately before the
@@ -1025,7 +817,6 @@ function rollbackToSnapshotImpl(manager: GameStateManager, snapshot: IGameSnapsh
             preRollbackViolationsReverse += pre.reverse;
             currentPreForwardViolationIds = pre.forwardViolationIds;
         } catch (error) {
-            currentRestoreRecords = priorRecords;
             harnessRollbackDepth--;
             currentPreForwardViolationIds = null;
             throw error;
@@ -1036,11 +827,11 @@ function rollbackToSnapshotImpl(manager: GameStateManager, snapshot: IGameSnapsh
     try {
         result = originalRollbackToSnapshot.call(manager, snapshot, beforeRollbackSnapshot);
     } catch (error) {
-        currentRestoreRecords = priorRecords;
         harnessRollbackDepth--;
         if (harnessRollbackDepth === 0) {
-            // The original itself threw uncaught (production defect, or an instance-shadowed `setState`
-            // throwing without a `beforeRollbackSnapshot` — GameObjectIdRestore.spec.ts's own precedent):
+            // The original itself threw uncaught (production defect, or an instance-shadowed
+            // `afterSetState` throwing without a `beforeRollbackSnapshot` — GameObjectIdRestore.spec.ts's
+            // own precedent):
             // production's error propagates untouched and the harness never substitutes its own (R15).
             //
             // P3PA3-I2-004 (disclosed, not fixed — no committed spec reaches this path): if a *harness*
@@ -1059,7 +850,6 @@ function rollbackToSnapshotImpl(manager: GameStateManager, snapshot: IGameSnapsh
         }
         throw error;
     }
-    currentRestoreRecords = priorRecords;
     harnessRollbackDepth--;
 
     // P3PA3-I1-03's bookkeeping-gap fix: account the result *before* the depth-0 re-throw check below, not
@@ -1110,20 +900,32 @@ export function installParityHarness(): void {
     if (installed) {
         return; // idempotent — defense in depth; no committed spec is expected to need this
     }
-    originalBuildGameStateForSnapshot = GameStateManager.prototype.buildGameStateForSnapshot;
-    GameStateManager.prototype.buildGameStateForSnapshot = function(this: GameStateManager) {
-        const collect = new Map<string, SerializedStateRecord>();
-        const buffer = originalBuildGameStateForSnapshot.call(this);
-        snapshotsCompared++;
-        recordsCompared += compareSnapshotRecords(this, buffer, collect);
-        retainedGeneratedRecords.set(buffer, collect);
-        return buffer;
-    };
-
-    originalSetState = GameObjectBase.prototype.setState;
-    GameObjectBase.prototype.setState = function(this: GameObjectBase, newState: IGameObjectBaseState) {
-        setStateImpl(this, newState);
-    };
+    // Wrap every registry entry's `deserialize`. This is the seam `GameStateManager.rollbackToSnapshot`
+    // actually calls, so the check sees exactly the record production handed the object, and it runs before
+    // `afterSetState` - which is where it has to run (see checkRestoredInstance's comment).
+    for (const entry of getAllGeneratedSerializerEntries()) {
+        const wrapped: IWrappedEntry = { entry, preInstall: entry.serializer.deserialize, original: entry.serializer.deserialize };
+        wrappedEntries.push(wrapped);
+        entry.serializer.deserialize = function(game: Game, instance: IGameObjectBase, record: SerializedStateRecord) {
+            const go = instance as unknown as GameObjectBase;
+            const wrappedRefArraysBefore = collectWrappedRefArrayFields(go, entry.fields);
+            try {
+                wrapped.original(game, instance, record);
+            } catch (error) {
+                // A deserializer that throws is a harness-visible restore failure: stash it so the
+                // diagnostic survives production's recovery swallowing the exception, then rethrow
+                // untouched so production's own recovery still runs.
+                // Named `harnessError`, not `wrapped`: the enclosing closure already captures an
+                // `IWrappedEntry` called `wrapped`, whose `.original` is the exact seam
+                // `withDeserializePatchedBeneathHarness` swaps. Shadowing it here was harmless but put the
+                // wrong thing one keystroke away.
+                const harnessError = new Error(`[ParityHarness] generated deserializer threw for uuid=${go.uuid} class=${(go as unknown as { constructor: { name: string } }).constructor.name}: ${(error as Error).message}`);
+                stashFirstHarnessError(harnessError);
+                throw error;
+            }
+            checkRestoredInstance(entry, go, record, wrappedRefArraysBefore);
+        };
+    }
 
     originalRollbackToSnapshot = GameStateManager.prototype.rollbackToSnapshot;
     GameStateManager.prototype.rollbackToSnapshot = function(this: GameStateManager, snapshot: IGameSnapshot, beforeRollbackSnapshot?: IGameSnapshot) {
@@ -1132,9 +934,9 @@ export function installParityHarness(): void {
 
     installed = true;
 
-    // A heavy comparison pass (every live object, every field, every snapshot, plus a full restore-leg
-    // dual restore per object per rollback) is slower than the unmodified path; raise the per-spec
-    // timeout so a legitimately slow comparison is never misattributed to a parity failure.
+    // A full re-serialize and deep compare of every restored object on every rollback is slower than the
+    // unmodified path; raise the per-spec timeout so a legitimately slow comparison is never misattributed
+    // to a parity failure.
     priorTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = Math.max(jasmine.DEFAULT_TIMEOUT_INTERVAL, 20000);
 }
@@ -1143,12 +945,10 @@ export function uninstallParityHarness(): void {
     if (!installed) {
         return;
     }
-    if (moduleLoadArmed) {
-        uninstallsWhileModuleLoadArmed++;
+    for (const { entry, preInstall } of wrappedEntries) {
+        entry.serializer.deserialize = preInstall;
     }
-
-    GameStateManager.prototype.buildGameStateForSnapshot = originalBuildGameStateForSnapshot;
-    GameObjectBase.prototype.setState = originalSetState;
+    wrappedEntries.length = 0;
     GameStateManager.prototype.rollbackToSnapshot = originalRollbackToSnapshot;
     installed = false;
 
@@ -1179,6 +979,51 @@ export function withParityHarnessInstalled<T>(fn: () => T): T {
         if (!priorInstalled) {
             uninstallParityHarness();
         }
+    }
+}
+
+/**
+ * Installs a `deserialize` patch that is guaranteed to run **inside** the harness's own per-object check,
+ * in both flag modes, and removes it again on exit. A spec that assigns `entry.serializer.deserialize`
+ * directly gets mode-dependent layering (see `IWrappedEntry`), which silently changes whether the harness
+ * can observe the injected failure at all.
+ *
+ * `makePatch` receives the function the patch replaces and is expected to call it (or deliberately not to,
+ * when simulating a throwing deserializer).
+ *
+ * One residual, documented rather than guarded because no caller does it: this is not safe against the
+ * harness being installed or uninstalled *inside* `fn`. It resolves which seam to patch once, on entry, and
+ * restores that same seam on exit, so a mode flip in between would restore onto the wrong layer. Nesting
+ * two of these calls, and every layering the committed specs use, is fine.
+ */
+export function withDeserializePatchedBeneathHarness<T>(
+    entry: IGeneratedSerializerEntry,
+    makePatch: (original: IStateSerializer['deserialize']) => IStateSerializer['deserialize'],
+    fn: () => T
+): T {
+    const wrapped = wrappedEntries.find((candidate) => candidate.entry === entry);
+    if (wrapped) {
+        const prior = wrapped.original;
+        wrapped.original = makePatch(prior);
+        try {
+            const result = fn();
+            assertNotThenable(result, 'withDeserializePatchedBeneathHarness');
+            return result;
+        } finally {
+            wrapped.original = prior;
+        }
+    }
+
+    // Harness not installed for this entry (flag off and no spec-scoped install yet): patch the property
+    // directly, which is the only seam there is.
+    const prior = entry.serializer.deserialize;
+    entry.serializer.deserialize = makePatch(prior);
+    try {
+        const result = fn();
+        assertNotThenable(result, 'withDeserializePatchedBeneathHarness');
+        return result;
+    } finally {
+        entry.serializer.deserialize = prior;
     }
 }
 
@@ -1286,7 +1131,6 @@ if (process.env.ENABLE_PARITY_HARNESS === 'true') {
     pruneStaleReporterRunDirectories();
 
     installParityHarness();
-    moduleLoadArmed = true;
     // `P3PA3-D-01`: a boot-time marker, written here at module load rather than at exit. This settles
     // *why* a worker's exit-time `pid=` line can go missing under `--parallel`, which the exit-time file
     // alone cannot: if `boot files == 4` but `exit files == 3`, the worker existed, loaded the harness, and
@@ -1305,13 +1149,14 @@ if (process.env.ENABLE_PARITY_HARNESS === 'true') {
     process.on('exit', () => {
         const stats = getParityHarnessStats();
         const line =
-            `[ParityHarness] pid=${process.pid} snapshotsCompared=${stats.snapshotsCompared} recordsCompared=${stats.recordsCompared} ` +
-            `restoreMode=${stats.restoreMode} rollbacksObserved=${stats.rollbacksObserved} objectsCompared=${stats.objectsCompared} fieldsCompared=${stats.fieldsCompared} ` +
+            `[ParityHarness] pid=${process.pid} wrappedDeserializers=${stats.wrappedDeserializers} ` +
+            `rollbacksObserved=${stats.rollbacksObserved} objectsCompared=${stats.objectsCompared} fieldsCompared=${stats.fieldsCompared} ` +
+            `wrapperFieldsChecked=${stats.wrapperFieldsChecked} ` +
             `rollbacksFailed=${stats.rollbacksFailed} harnessRestoreErrors=${stats.harnessRestoreErrors} ` +
-            `deliberateHarnessErrors=${stats.deliberateHarnessErrors} deliberateRollbackFailures=${stats.deliberateRollbackFailures} skippedPreInstall=${stats.skippedPreInstall} ` +
+            `deliberateHarnessErrors=${stats.deliberateHarnessErrors} deliberateRollbackFailures=${stats.deliberateRollbackFailures} ` +
             `zoneChecks=${stats.zoneChecks} zoneViolationsForward=${stats.zoneViolationsForward} zoneViolationsReverse=${stats.zoneViolationsReverse} ` +
             `preRollbackViolationsForward=${stats.preRollbackViolationsForward} preRollbackViolationsReverse=${stats.preRollbackViolationsReverse} ` +
-            `zonesNotCovered=${stats.zonesNotCovered} moduleLoadArmed=${stats.moduleLoadArmed} installedAtExit=${stats.installedAtExit} uninstallsWhileModuleLoadArmed=${stats.uninstallsWhileModuleLoadArmed}`;
+            `zonesNotCovered=${stats.zonesNotCovered} installedAtExit=${stats.installedAtExit}`;
         console.log(line);
         // The first few retained violations (plan.md §4.6) - printed whenever either counter is nonzero, so
         // a calibration exclusion decision (§4.6's "excludes the most specific class/field that actually

@@ -2,7 +2,7 @@ import type { IStateListenerResetProperties, IStateListenerProperties } from '..
 import type { CardType, StateWatcherName, Trait, ZoneName } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type { Game } from '../Game';
-import type { IGameObjectBaseState, UnwrapRef } from '../GameObjectBase';
+import type { UnwrapRef } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { Contract } from '../utils/Contract';
 import { Helpers } from '../utils/Helpers';
@@ -10,10 +10,7 @@ import { is } from '../utils/TypeHelpers';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
 
 import { registerStateBase, stateArray } from '../GameObjectUtils';
-
-export interface IStateWatcherState<TState> extends IGameObjectBaseState {
-    entries: TState[];
-}
+import type { SerializedStateRecord } from '../StateEncoding';
 
 /**
  * Simplified last known information for state watcher implementations
@@ -188,7 +185,12 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
         this.eventNameMapping.clear();
     }
 
-    public override cleanupOnRemove(oldState: IStateWatcherState<TState>): void {
+    // P3-PB2: deliberately typed with the base `SerializedStateRecord` rather than the generated
+    // `ISerializedStateWatcher`, because this override ignores its argument entirely (it only unregisters
+    // listeners). Narrowing it would force every caller that has no real record to hand - notably the save
+    // tier's teardown in `PristineAbilityIdentifiers.ts` - into an object-literal cast this repo's lint
+    // config forbids, for a value nothing reads.
+    public override cleanupOnRemove(oldState: SerializedStateRecord): void {
         this.unregisterListeners();
     }
 }

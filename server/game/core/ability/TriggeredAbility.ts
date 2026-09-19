@@ -12,13 +12,8 @@ import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/Triggere
 import type { Player } from '../Player';
 import type { AbilityContext } from './AbilityContext';
 import { registerState, registerStateBase, statePrimitive } from '../GameObjectUtils';
-import type { IGameObjectBaseState } from '../GameObjectBase';
+import type { ISerializedTriggeredAbilityBase } from '../generated/GeneratedStateSerializers';
 import * as AttackHelpers from '../attack/AttackHelpers';
-
-// STATE: Interface needed for onAfterSetState and cleanupOnRemove.
-export interface ITriggeredAbilityState extends IGameObjectBaseState {
-    isRegistered: boolean;
-}
 
 /**
  * Represents a reaction ability provided by card text.
@@ -313,7 +308,7 @@ export abstract class TriggeredAbilityBase extends CardAbility {
         }
     }
 
-    protected override afterSetState(oldState: ITriggeredAbilityState): void {
+    public override afterSetState(oldState: ISerializedTriggeredAbilityBase): void {
         if (this.isRegistered !== oldState.isRegistered) {
             if (this.isRegistered) {
                 this.registerEvents();
@@ -323,7 +318,7 @@ export abstract class TriggeredAbilityBase extends CardAbility {
         }
     }
 
-    public override cleanupOnRemove(oldState: ITriggeredAbilityState): void {
+    public override cleanupOnRemove(oldState: ISerializedTriggeredAbilityBase): void {
         if (oldState.isRegistered) {
             this.unregisterEvents();
         }

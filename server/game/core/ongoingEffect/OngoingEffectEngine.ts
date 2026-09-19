@@ -8,17 +8,13 @@ import { Contract } from '../utils/Contract';
 import { Helpers } from '../utils/Helpers';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
-import type { IGameObjectBaseState } from '../GameObjectBase';
+import type { ISerializedCustomDurationEvent, ISerializedOngoingEffectEngine } from '../generated/GeneratedStateSerializers';
 import { GameObjectBase } from '../GameObjectBase';
-import { registerState, stateRefArray, statePrimitive, type GameObjectId } from '../GameObjectUtils';
+import { registerState, stateRefArray, statePrimitive } from '../GameObjectUtils';
 import type { MsgArg } from '../chat/GameChat';
 import type { IOngoingEffectSummary } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type { Player } from '../Player';
-
-interface ICustomDurationEventState extends IGameObjectBaseState {
-    isRegistered: boolean;
-}
 
 /**
  * Resolves a chat {@link FormatMessage} (or plain string) into a standalone string for the summary.
@@ -218,7 +214,7 @@ export class CustomDurationEvent extends GameObjectBase {
         this.game.removeListener(this.name, this.handler);
     }
 
-    protected override afterSetState(oldState: ICustomDurationEventState): void {
+    public override afterSetState(oldState: ISerializedCustomDurationEvent): void {
         if (this.isRegistered !== oldState.isRegistered) {
             if (this.isRegistered) {
                 this.registerEvent();
@@ -228,15 +224,11 @@ export class CustomDurationEvent extends GameObjectBase {
         }
     }
 
-    public override cleanupOnRemove(oldState: ICustomDurationEventState): void {
+    public override cleanupOnRemove(oldState: ISerializedCustomDurationEvent): void {
         if (oldState.isRegistered) {
             this.unregisterEvent();
         }
     }
-}
-
-export interface IOngoingEffectState extends IGameObjectBaseState {
-    effects: GameObjectId<OngoingEffect<any>>[];
 }
 
 @registerState()
@@ -571,7 +563,7 @@ export class OngoingEffectEngine extends GameObjectBase {
         return this.effects.map((effect) => effect.getDebugInfo());
     }
 
-    public override afterSetAllState(_prevState: IOngoingEffectState) {
+    public override afterSetAllState(_prevState: ISerializedOngoingEffectEngine) {
         // resolve effects so that targets are recalculated
         this.resolveEffects(true);
     }

@@ -1,10 +1,7 @@
 import type { Game } from './Game';
-import { copyState, registerStateBase, registerStateClassMarker, statePrimitive, type GameObjectId } from './GameObjectUtils';
+import { registerStateBase, registerStateClassMarker, statePrimitive, type GameObjectId } from './GameObjectUtils';
+import type { SerializedStateRecord } from './StateEncoding';
 import { Contract } from './utils/Contract';
-
-export interface IGameObjectBaseState {
-    uuid: string;
-}
 
 export interface IGameObjectBase {
     getObjectId(): GameObjectId<this>;
@@ -36,11 +33,6 @@ type UnwrapRefProperty<T> = T extends GameObjectId<infer U> ?
 @registerStateBase()
 export abstract class GameObjectBase implements IGameObjectBase {
     public readonly game: Game;
-
-    // The cast "as unknown as IGameObjectBaseState" is a work-around to let us instantiate it as an empty object initially.
-    // While we need to declare the state here, unless manual usage is required, it should never be directly accessed.
-    // If direct access is required, use "declare state: <SomeInterface>;" in the specific class that needs manual access.
-    protected state: IGameObjectBaseState = {} as unknown as IGameObjectBaseState;
 
     private _cannotHaveRefs = false;
     private _hasRef = false;
@@ -106,28 +98,29 @@ export abstract class GameObjectBase implements IGameObjectBase {
         this._cannotHaveRefs = true;
     }
 
-    /** Sets the state.  */
-    public setState(state: IGameObjectBaseState) {
-        const oldState = this.state;
-        this.state = state;
-        copyState(this, this.state);
-        this.afterSetState(oldState);
-    }
-
-    /**
-     * @deprecated Be ***very*** careful with this function. This returns a direct reference and should only be used for serialization, never keep this reference stored anywhere.
-     */
-    public getStateUnsafe() {
-        return this.state;
-    }
-
     /** A function for game to call on all objects after all state has been rolled back. Intended to be used when a class has state changes that have external changes, for example, updating OngoingEffectEngine. */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public afterSetAllState(oldState: IGameObjectBaseState) { }
+    public afterSetAllState(oldState: SerializedStateRecord) { }
 
-    /** A function for game to call after the state for this object has been rolled back. Intended to be used when a class has state changes that have internal changes, such as caching state. */
+    /**
+     * A function for game to call after the state for this object has been rolled back. Intended to be used
+     * when a class has state changes that have internal changes, such as caching state.
+     *
+     * P3-PB2: `public`, not `protected`, because the caller moved out of the deleted per-object state-write
+     * method and into `GameStateManager.rollbackToSnapshot`, which now drives the whole
+     * per-object sequence (deserialize -> afterSetState) in one visible place, alongside the already-public
+     * `afterSetAllState`/`cleanupOnRemove`.
+     *
+     * An override must mutate only `this`. `GameStateManager`'s pre-pass manufactures every object's
+     * `oldState` before any restore runs, so an override that wrote a decorated field on *another* object
+     * would observe records taken strictly before the rollback rather than interleaved with it. Nothing
+     * enforces this, and the symptom is remote from the cause: the other object's hook would be handed a
+     * stale `oldState`, skip an `isRegistered` transition branch, and leave a Game listener registered or
+     * unregistered - surfacing much later as a duplicated or missing triggered ability, with no compile
+     * error and no failing test. All six current overrides were audited and mutate only `this`.
+     */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected afterSetState(oldState: IGameObjectBaseState) { }
+    public afterSetState(oldState: SerializedStateRecord) { }
 
     /**
      * A function for game to call on all objects if they are being removed from the GameObject list (typically after a rollback to before the object was created).
@@ -136,7 +129,7 @@ export abstract class GameObjectBase implements IGameObjectBase {
      * The most common example is removing event handlers that have been registered on Game.
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public cleanupOnRemove(oldState: IGameObjectBaseState) { }
+    public cleanupOnRemove(oldState: SerializedStateRecord) { }
 
     private assertInitialized(operation: string) {
         Contract.assertTrue(this._initialized, `Attempting to ${operation} on uninitialized GameObject: ${this.getGameObjectName()} (UUID: ${this.uuid})`);

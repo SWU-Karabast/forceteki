@@ -21,7 +21,6 @@ import type { AbilityLimit } from './AbilityLimit.js';
 import type { ICost, ICostResult } from '../cost/ICost.js';
 import type { ITargetResult, TargetResolver } from './abilityTargets/TargetResolver.js';
 import type { ActionAbilityBase } from './ActionAbility.js';
-import type { IGameObjectBaseState } from '../GameObjectBase.js';
 import { GameObjectBase } from '../GameObjectBase.js';
 import type { CardAbility } from './CardAbility.js';
 import type { CardAbilityStep } from './CardAbilityStep.js';
@@ -32,9 +31,6 @@ import { registerStateBase } from '../GameObjectUtils';
 export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     triggerHandlingMode?: TriggerHandlingMode;
 };
-
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IPlayerOrCardAbilityState extends IGameObjectBaseState { }
 
 /**
  * Base class representing an ability that can be done by the player

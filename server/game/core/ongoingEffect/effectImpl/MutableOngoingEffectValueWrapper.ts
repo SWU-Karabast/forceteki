@@ -1,7 +1,7 @@
 import type { FormatMessage } from '../../chat/GameChat';
 import type { Game } from '../../Game';
-import { GameObjectBase } from '../../GameObjectBase';
 import { registerState, stateValue } from '../../GameObjectUtils';
+import { encodeStateValue } from '../../StateEncoding';
 import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 
 /**
@@ -12,9 +12,9 @@ import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
  * on the old immutable instance surviving.
  *
  * Because the value is serialized with the rest of `state` by `GameStateManager.buildGameStateForSnapshot`,
- * it may only ever hold structured-clone-safe data (see `isSnapshotSafeOngoingEffectValue`). Anything else
- * (functions, GameObjectBase instances, foreign-prototype class instances) must keep using the immutable
- * `OngoingEffectValueWrapper`.
+ * it may only ever hold data the state encoder accepts (see `isSnapshotSafeOngoingEffectValue`, which asks
+ * that encoder directly). Anything else - functions, GameObjectBase instances, foreign-prototype class
+ * instances, non-finite numbers, Map/Set - must keep using the immutable `OngoingEffectValueWrapper`.
  *
  * The stored value may be an object the producer still owns by reference (e.g. `ProvidedAspects.forCard`
  * returns `card.aspects` directly) rather than a copy made for this wrapper. Treat the stored value as
@@ -59,57 +59,42 @@ export class MutableOngoingEffectValueWrapper<TValue> extends OngoingEffectValue
 }
 
 /**
- * Returns true when `value` is safe to store in decorated state: it survives `v8.serialize` and contains
- * no functions, no `GameObjectBase` instances, and no class instances with a foreign (non-plain,
- * non-array) prototype. Recurses through plain objects and arrays and terminates on cycles.
+ * Returns true when `value` is safe to store in this wrapper's decorated state. P3-PB2 fix
+ * (`PB2I1-CS-01`): this is the encoder's own accept domain, obtained by running the encoder, plus the one
+ * narrowing this wrapper needs on top of it.
  *
- * `ancestors` tracks only the current recursion path (added before recursing into a node, removed once
- * that node's subtree is fully checked), not every node visited overall. This rejects a true cycle - a
- * node that contains itself somewhere along its own path - while still accepting a shared-reference DAG
- * such as `const a = ['x']; ({ primary: a, secondary: a })`, where `a` is visited twice but never appears
- * on its own ancestor path. A visited-everywhere set would misclassify that DAG as cyclic and silently
- * fall back to the immutable-pinned-wrapper path, reintroducing the unbounded growth this wrapper exists
- * to remove.
+ * It used to be a hand-written third walk that agreed with `v8.serialize`, which was the sink until the
+ * P3-PB2 cutover. Against `encodeStateValue` it was strictly *weaker* in three ways - it admitted
+ * `NaN`/`±Infinity`, an `undefined` array element, and a plain object carrying `$map`/`$set`/`$num`/
+ * `__proto__` as an own key - so a value this predicate blessed could make the next automatic snapshot
+ * capture throw, which is a whole-game break rather than a failed undo. Delegating makes that divergence
+ * structurally impossible instead of a thing to remember. The cost is one throwaway encoded copy on a path
+ * that already walked the whole value and only runs when a dynamic effect value actually changed.
+ *
+ * `rejectCollections` carries the extra rule: a `Map`/`Set` encodes fine, but storing one here would need
+ * `ValueMap`/`ValueSet` wrapping for in-place mutation to be observable, and this wrapper does not do that
+ * - so such a value keeps using the immutable `OngoingEffectValueWrapper`, exactly as before.
+ *
+ * A shared-reference DAG (`const a = ['x']; ({ primary: a, secondary: a })`) is still accepted: the encoder
+ * detects only a true cycle, using a path-scoped ancestor set for the same reason the old predicate did -
+ * a visited-everywhere set would misclassify that DAG as cyclic and fall back to the pinned-wrapper path,
+ * reintroducing the unbounded growth this wrapper exists to remove.
+ *
+ * The bare `catch` is wider than that domain, deliberately. It answers "unsafe" not only for the encoder's
+ * own rejections but for *any* throw raised while walking the value - a getter on the effect's computed
+ * object that throws, or a structure deep enough to exhaust the stack - where the old hand-written
+ * predicate propagated both. That is a knowing trade and not a silent degradation of state: the fallback is
+ * the immutable `OngoingEffectValueWrapper`, which stores its value in a plain undecorated field
+ * (`OngoingEffectValueWrapper.ts`), so a value routed there never reaches the encoder again and cannot
+ * break a later capture. What it does cost is diagnosis - an engine defect in a `calculate` shows up as
+ * this effect quietly losing its mutable-wrapper retention rather than as a stack trace. If that ever needs
+ * to be visible, narrow the catch to the encoder's own `Error` shape rather than removing the fallback.
  */
-export function isSnapshotSafeOngoingEffectValue(value: unknown, ancestors = new Set<object>()): boolean {
-    if (value === null || value === undefined) {
+export function isSnapshotSafeOngoingEffectValue(value: unknown): boolean {
+    try {
+        encodeStateValue('MutableOngoingEffectValueWrapper._value', value, { rejectCollections: true });
         return true;
-    }
-
-    const valueType = typeof value;
-    if (valueType === 'string' || valueType === 'number' || valueType === 'boolean') {
-        return true;
-    }
-
-    if (valueType !== 'object') {
-        // functions, symbols, bigints, etc.
+    } catch {
         return false;
     }
-
-    if (value instanceof GameObjectBase) {
-        return false;
-    }
-
-    if (ancestors.has(value as object)) {
-        // Reject rather than recurse forever; a cyclic graph is not a shape this predicate needs to accept.
-        return false;
-    }
-
-    if (Array.isArray(value)) {
-        ancestors.add(value as object);
-        const result = value.every((element) => isSnapshotSafeOngoingEffectValue(element, ancestors));
-        ancestors.delete(value as object);
-        return result;
-    }
-
-    const prototype = Object.getPrototypeOf(value);
-    if (prototype !== Object.prototype && prototype !== null) {
-        // A class instance with a foreign prototype: Map, Set, Date, KeywordInstance, AbilityLimit, etc.
-        return false;
-    }
-
-    ancestors.add(value as object);
-    const result = Object.values(value as Record<string, unknown>).every((propertyValue) => isSnapshotSafeOngoingEffectValue(propertyValue, ancestors));
-    ancestors.delete(value as object);
-    return result;
 }

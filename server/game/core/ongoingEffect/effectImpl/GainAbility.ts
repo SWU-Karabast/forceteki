@@ -4,18 +4,10 @@ import type { Card } from '../../card/Card';
 import type { FormatMessage } from '../../chat/GameChat';
 import { AbilityType } from '../../Constants';
 import type { Game } from '../../Game';
-import type { IGameObjectBaseState } from '../../GameObjectBase';
 import { Contract } from '../../utils/Contract';
 import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
 import { describeGainedAbility, gainedAbilityTriggerLabel } from './GainAbilityDescription';
-import { registerState, stateRef, stateMap, statePrimitive, type GameObjectId } from '../../GameObjectUtils';
-
-export interface IGainAbilityState extends IGameObjectBaseState {
-    abilityIdentifier: string;
-    abilityUuidByTargetCard: Map<string, string>;
-    gainAbilitySource: GameObjectId<Card>;
-    source: GameObjectId<Card>;
-}
+import { registerState, stateRef, stateMap, statePrimitive } from '../../GameObjectUtils';
 
 @registerState()
 export class GainAbility extends OngoingEffectValueWrapperBase<IAbilityPropsWithType> {

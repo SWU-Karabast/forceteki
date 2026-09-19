@@ -1,4 +1,4 @@
-import v8 from 'node:v8';
+import { getStateSerializerFor } from '../../../../server/game/core/StateSerializers';
 import { Game } from '../../../../server/game/core/Game';
 import type { GameConfiguration } from '../../../../server/game/core/GameInterfaces';
 import { GameMode } from '../../../../server/GameMode';
@@ -139,9 +139,16 @@ describe('DynamicOngoingEffectImpl value wrapper reuse', function() {
         expect(thirdEntry).not.toBe(firstEntry);
         expect(thirdEntry).not.toBe(secondEntry);
 
-        // Every mutable-wrapper entry seen along the way must be serializable on its own.
-        expect(() => v8.serialize(firstEntry.getStateUnsafe())).not.toThrow();
-        expect(() => v8.serialize(thirdEntry.getStateUnsafe())).not.toThrow();
+        // Every mutable-wrapper entry seen along the way must be serializable on its own. P3-PB2: observed
+        // through the generated serializer and a JSON round trip, which is what the snapshot path now does,
+        // rather than through the deleted state bag and v8.
+        for (const entry of [firstEntry, thirdEntry]) {
+            let record: unknown;
+            expect(() => {
+                record = getStateSerializerFor(entry).serializer.serialize(entry);
+            }).not.toThrow();
+            expect(() => JSON.parse(JSON.stringify(record))).not.toThrow();
+        }
     });
 
     it('never stores a function or a GameObject-bearing value in a mutable (decorated-state) wrapper', function() {
@@ -217,6 +224,37 @@ describe('DynamicOngoingEffectImpl value wrapper reuse', function() {
             const cyclic: any = { a: 1 };
             cyclic.self = cyclic;
             expect(isSnapshotSafeOngoingEffectValue(cyclic)).toBeFalse();
+        });
+
+        /**
+         * `P3-PB2` fix (`PB2I1-CS-01`). Every value below was accepted by the hand-written predicate this
+         * function replaced, because that predicate agreed with `v8.serialize` - the sink until the P3-PB2
+         * cutover. `encodeStateValue` refuses all of them, so admitting one meant storing a payload that
+         * makes the *next automatic snapshot capture* throw, on a path with no abort and no recovery: the
+         * game breaks rather than the undo. Each case therefore fails against the old predicate and passes
+         * only because this one asks the encoder.
+         */
+        it('rejects everything the state encoder refuses, so a blessed value can never break a later capture', function() {
+            expect(isSnapshotSafeOngoingEffectValue(NaN)).toBeFalse();
+            expect(isSnapshotSafeOngoingEffectValue(Infinity)).toBeFalse();
+            expect(isSnapshotSafeOngoingEffectValue(-Infinity)).toBeFalse();
+            expect(isSnapshotSafeOngoingEffectValue({ nested: { total: Infinity } })).toBeFalse();
+
+            // An `undefined` array element: `JSON.stringify` would silently turn it into `null`, so the
+            // encoder refuses it outright.
+            expect(isSnapshotSafeOngoingEffectValue([1, undefined, 3])).toBeFalse();
+
+            // Reserved tags and `__proto__` as own keys: indistinguishable from a tagged payload on decode,
+            // and unstorable by the codec's own object assignment, respectively.
+            expect(isSnapshotSafeOngoingEffectValue({ $map: [] })).toBeFalse();
+            expect(isSnapshotSafeOngoingEffectValue({ $set: [] })).toBeFalse();
+            expect(isSnapshotSafeOngoingEffectValue({ $num: 'NaN' })).toBeFalse();
+            expect(isSnapshotSafeOngoingEffectValue(JSON.parse('{"__proto__": {"polluted": true}}'))).toBeFalse();
+
+            // Still accepted, so the narrowing did not swallow the ordinary case: a finite number, and an
+            // object property that holds `undefined` (which survives encoding unchanged).
+            expect(isSnapshotSafeOngoingEffectValue(-0)).toBeTrue();
+            expect(isSnapshotSafeOngoingEffectValue({ present: 1, absent: undefined })).toBeTrue();
         });
     });
 });

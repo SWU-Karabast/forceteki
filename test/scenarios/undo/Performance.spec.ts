@@ -16,6 +16,7 @@ import { BenchmarkReportWriter } from './benchmark/BenchmarkReport';
 import type { IBenchmarkScenario } from './benchmark/BenchmarkScenarios';
 import { benchmarkScenarios } from './benchmark/BenchmarkScenarios';
 import v8 from 'node:v8';
+import type { SerializedStateRecord } from '../../../server/game/core/StateEncoding';
 
 /**
  * Snapshot / undo performance benchmarks — Stage 0 of the snapshot roadmap.
@@ -60,7 +61,7 @@ interface IBenchmarkSnapshotManager {
 
 /** GameStateManager surface. `Game.gameObjectManager` is narrowed to `IGameObjectRegistrar` in production. */
 interface IBenchmarkStateManager {
-    buildGameStateForSnapshot(): Buffer;
+    buildGameStateForSnapshot(): Record<string, SerializedStateRecord>;
     rollbackToSnapshot(snapshot: IGameSnapshot, beforeRollbackSnapshot?: IGameSnapshot): boolean;
 }
 
@@ -109,7 +110,7 @@ function captureAnchorSnapshot(snapshotFactory: IBenchmarkSnapshotFactory): IGam
 }
 
 function countLiveGameObjects(snapshot: IGameSnapshot): number {
-    return Object.keys(v8.deserialize(snapshot.states) as Record<string, unknown>).length;
+    return Object.keys(snapshot.states).length;
 }
 
 function canBenchmarkExhaustCard(card): boolean {
@@ -261,8 +262,14 @@ async function runScenarioBenchmarkAsync(contextRef, scenario: IBenchmarkScenari
     // --- Payload size -----------------------------------------------------
 
     const payloadSnapshot = captureAnchorSnapshot(snapshotFactory);
-    const gameStateBytes = payloadSnapshot.gameState.byteLength;
-    const gameObjectStateBytes = payloadSnapshot.states.byteLength;
+    // P3-PB2: the snapshot payload is no longer a `Buffer`, so these two rows measure a
+    // *serialized-equivalent* size (a measurement-only `v8.serialize` of the retained record) rather than
+    // the stored payload's own length. Row names are unchanged so the series stays comparable against
+    // `pre-roadmap-baseline`; `payload/retainedChain` below is unchanged and remains the load-bearing row
+    // for the JSON-vs-v8-at-rest fallback decision. See docs/plans/03-codegen-serializers.md, "Benchmark
+    // maintenance".
+    const gameStateBytes = v8.serialize(payloadSnapshot.gameState).byteLength;
+    const gameObjectStateBytes = v8.serialize(payloadSnapshot.states).byteLength;
     const totalPayloadBytes = gameStateBytes + gameObjectStateBytes;
 
     const payloads: IPayloadMeasurement[] = [
@@ -271,10 +278,31 @@ async function runScenarioBenchmarkAsync(contextRef, scenario: IBenchmarkScenari
             category: 'payload',
             benchmark: 'fullSnapshotTotal',
             serializedBytes: totalPayloadBytes,
-            notes: { bytesPerGameObject: Math.round(totalPayloadBytes / liveGameObjects) }
+            notes: {
+                bytesPerGameObject: Math.round(totalPayloadBytes / liveGameObjects),
+                measurement: 'v8-equivalent-of-json-record (not stored bytes); sum of the two rows below'
+            }
         },
-        { scenario: scenario.name, category: 'payload', benchmark: 'gameStateBuffer', serializedBytes: gameStateBytes },
-        { scenario: scenario.name, category: 'payload', benchmark: 'gameObjectStatesBuffer', serializedBytes: gameObjectStateBytes }
+        // P3-PB2 fix (PB2I1-OPR-03): the row names and the schema version deliberately do not move, so the
+        // series stays comparable against `pre-roadmap-baseline`; the provenance travels in `notes`, which
+        // the renderer already prints, so P3-PB3's capture carries it instead of having to rediscover it.
+        // Two systematic artefacts make this *not* a like-for-like content-volume comparison: v8 encodes a
+        // native Map/Set compactly where the encoder emits `{$map:[...]}`/`{$set:[...]}`, and v8 preserves
+        // shared substructure where `encodeStateValue` explicitly does not.
+        {
+            scenario: scenario.name,
+            category: 'payload',
+            benchmark: 'gameStateBuffer',
+            serializedBytes: gameStateBytes,
+            notes: { measurement: 'v8-equivalent-of-json-record (not stored bytes); P3-PB2 changed this row from Buffer.byteLength of the stored payload' }
+        },
+        {
+            scenario: scenario.name,
+            category: 'payload',
+            benchmark: 'gameObjectStatesBuffer',
+            serializedBytes: gameObjectStateBytes,
+            notes: { measurement: 'v8-equivalent-of-json-record (not stored bytes); P3-PB2 changed this row from Buffer.byteLength of the stored payload' }
+        }
     ];
 
     // --- Retention --------------------------------------------------------

@@ -1,13 +1,14 @@
 import type { Game } from '../Game';
-import type { GameObjectBase, IGameObjectBaseState } from '../GameObjectBase';
-import type { IGameSnapshot } from './SnapshotInterfaces';
+import type { GameObjectBase } from '../GameObjectBase';
+import type { IGameSnapshot, IGameState } from './SnapshotInterfaces';
 import { Contract } from '../utils/Contract.js';
 import { Helpers } from '../utils/Helpers.js';
-import { to } from '../utils/TypeHelpers';
-import v8 from 'node:v8';
 import { logger } from '../../../logger';
 import { AlertType, GameErrorSeverity } from '../Constants';
 import type { GameObjectId } from '../GameObjectUtils';
+import { getStateSerializerFor } from '../StateSerializers';
+import { decodeStateValue } from '../StateEncoding';
+import type { SerializedStateRecord } from '../StateEncoding';
 
 export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
@@ -174,36 +175,95 @@ export class GameStateManager implements IGameObjectRegistrar {
         }
     }
 
-    public buildGameStateForSnapshot(): Buffer {
+    public buildGameStateForSnapshot(): Record<string, SerializedStateRecord> {
+        // MUST stay first: the hasRef latch contract. Serialization reads `.uuid` and never calls
+        // `getObjectId()`, so every latch has to be settled by the cull before any record is built.
         this.removeUnusedGameObjects();
 
         // Return the state of all game objects that are still in the game.
-        return v8.serialize(to.record(this.allGameObjects, (item) => item.uuid, (item) => item.getStateUnsafe()));
+        const states: Record<string, SerializedStateRecord> = {};
+        for (const go of this.allGameObjects) {
+            states[go.uuid] = getStateSerializerFor(go).serializer.serialize(go);
+        }
+
+        return states;
     }
 
     public rollbackToSnapshot(snapshot: IGameSnapshot, beforeRollbackSnapshot?: IGameSnapshot): boolean {
         Contract.assertNotNullLike(snapshot, 'Empty snapshot provided for rollback');
         this._rollbackDepth++;
         try {
-            const removals: { index: number; go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
-            const updates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
-
-            let rollbackError: Error | null = null;
+            // P3-PB2 pre-pass. `oldState` used to be a free read of the live state bag; it is now a real
+            // `serialize(go)` call, which can throw (a non-finite number, an undefined array element, a
+            // foreign prototype, ... - see StateEncoding.ts). Such a throw is *deterministic*: its cause is
+            // the object's own payload and `serialize` precedes any mutation of that object, so a retry hits
+            // the identical condition. That is why the whole pass runs to completion here, before anything
+            // is mutated, with its own `try` OUTSIDE the restore `try` below:
+            //
+            //  - Interleaving it with the update loop would leave objects i+1..n already deserialized when
+            //    object i throws (a torn graph), and the recovery leg further down would re-run the same
+            //    encode and fail identically - an abort that cannot terminate.
+            //  - Being outside the restore `try` is what keeps its failure off `rollbackError`, so no
+            //    recovery is attempted for a failure that has nothing to recover from.
+            //  - It runs before `this.#game.state` is replaced, so an abort leaves `game.state` untouched too.
+            //  - `oldStates` is index-aligned with `allGameObjects`, which is safe because the registration
+            //    guard above already forbids creating a GameObject while `_rollbackDepth > 0`, and nothing is
+            //    removed from `allGameObjects` until after the update loop.
+            //  - Do NOT add a per-object try/catch: swallowing an encoder defect behind a successful-looking
+            //    undo is exactly what this structure exists to forbid.
+            //
+            // A useful consequence: once this completes, every live object is proven encodable, so the
+            // recovery leg guarding the restore loop below cannot itself fail for an *encode* reason.
+            const oldStates = new Array<SerializedStateRecord>(this.allGameObjects.length);
             try {
-                this.#game.state = v8.deserialize(snapshot.gameState);
-
-                const snapshotStatesByUuid = v8.deserialize(snapshot.states) as Record<string, IGameObjectBaseState>;
-
-                // Indexes in last to first for the purpose of removal.
                 for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
                     const go = this.allGameObjects[i];
                     if (!go.initialized) {
                         throw new Error(`GameObject ${go.getGameObjectName()} (UUID: ${go.uuid}, Type: ${go.constructor.name}) is not initialized during rollback. This should not be possible.`);
                     }
 
-                    // Rollback swaps the entire state object reference, so retaining the previous object here is safe
-                    // and avoids a structuredClone for every updated or removed GameObject.
-                    const oldState = go.getStateUnsafe();
+                    oldStates[i] = getStateSerializerFor(go).serializer.serialize(go);
+                }
+            } catch (error) {
+                logger.error('Error building pre-rollback state; rollback aborted before any state was modified.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });
+
+                // A non-fatal severe report: it reaches Discord, so a latent encoder defect is not a
+                // console-only signal, and it keeps the alert below truthful. Deliberately NOT
+                // reportSevereRollbackFailure, which escalates to SevereHaltGame and throws - halting a game
+                // that is completely intact. The weaker severity is not an unconditional promise of that,
+                // only the best available one: Lobby.handleError escalates *any* severity to SevereHaltGame
+                // and rethrows once gameMessageErrorCount passes MaxGameMessageErrors, which would propagate
+                // out of this catch past the alert and the `return false`. That counter resets per client
+                // message, so reaching it needs more than MaxGameMessageErrors failures inside one message.
+                // Both calls are guard-suspended because the severe branch of
+                // Lobby.handleError calls captureGameState, which constructs and registers pristine
+                // GameObjects while _rollbackDepth is still nonzero.
+                this.withRegistrationGuardSuspended(() => this.#game.reportError(error, GameErrorSeverity.SevereGameMessageOnly));
+                this.withRegistrationGuardSuspended(() => this.#game.addAlert(AlertType.Danger, 'An error occurred during undo. This error has been reported to the dev team for investigation. If it happens multiple times, please reach out in the discord.'));
+
+                // No recovery rollback and no halt: nothing was mutated, so the game is exactly as it was
+                // and the undo simply did not happen. The caller sees the same `false` it already sees for a
+                // recovered failure.
+                return false;
+            }
+
+            const removals: { index: number; go: GameObjectBase; oldState: SerializedStateRecord }[] = [];
+            const updates: { go: GameObjectBase; oldState: SerializedStateRecord }[] = [];
+
+            let rollbackError: Error | null = null;
+            try {
+                // Decoded, never assigned: decodeStateValue builds a fresh object at every level, so later
+                // in-place mutations (winnerNames.push, allCards.push, movedCards.push) cannot reach the
+                // retained snapshot record and a second rollback to the same snapshot behaves identically.
+                this.#game.state = decodeStateValue(snapshot.gameState) as IGameState;
+
+                // Retained as-is and never mutated, for the same repeat-rollback reason.
+                const snapshotStatesByUuid = snapshot.states;
+
+                // Indexes in last to first for the purpose of removal.
+                for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
+                    const go = this.allGameObjects[i];
+                    const oldState = oldStates[i];
 
                     const updatedState = snapshotStatesByUuid[go.uuid];
                     if (!updatedState) {
@@ -212,7 +272,8 @@ export class GameStateManager implements IGameObjectRegistrar {
                     }
 
                     updates.push({ go, oldState });
-                    go.setState(updatedState);
+                    getStateSerializerFor(go).serializer.deserialize(this.#game, go, updatedState);
+                    go.afterSetState(oldState);
                 }
 
                 for (const removed of removals) {
@@ -234,7 +295,18 @@ export class GameStateManager implements IGameObjectRegistrar {
             // if we hit an error during rollback, attempt to restore the original state
             if (rollbackError) {
                 try {
-                    this.rollbackToSnapshot(beforeRollbackSnapshot);
+                    // P3-PB2 fix (PB2I1-OPR-01). At HEAD this nested call could only return true or throw,
+                    // so discarding its result was safe by construction. The pre-pass above added a third
+                    // outcome - `return false` after an abort that mutated nothing *in that frame* - and
+                    // this frame has already replaced `this.#game.state` and deserialized part of the graph,
+                    // so accepting that false would hand the player the benign "the undo didn't happen"
+                    // alert over a torn graph. Reachable without an encoder defect: the pre-pass also throws
+                    // for `!go.initialized`, and the outer frame's own error reporting can register pristine
+                    // GameObjects through the suspended guard. Convert it to a throw so the catch below
+                    // escalates exactly as it did at HEAD.
+                    if (!this.rollbackToSnapshot(beforeRollbackSnapshot)) {
+                        throw new Error('The recovery rollback aborted in its own pre-rollback state pass, so the game state is only partially restored.');
+                    }
                     // Suspended for the same reason as above: addAlert re-enters GameChat/Lobby.
                     this.withRegistrationGuardSuspended(() => this.#game.addAlert(AlertType.Danger, 'An error occurred during undo. This error has been reported to the dev team for investigation. If it happens multiple times, please reach out in the discord.'));
                     return false;

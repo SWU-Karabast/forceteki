@@ -4,19 +4,11 @@ import { AbilityRestriction, EffectName, Stage } from './Constants';
 import type { Game } from './Game';
 import type { Player } from './Player';
 import type { Card } from './card/Card';
-import type { IGameObjectBaseState } from './GameObjectBase';
 import { GameObjectBase } from './GameObjectBase';
 import type { Restriction } from './ongoingEffect/effectImpl/Restriction';
 import type { OngoingCardEffect } from './ongoingEffect/OngoingCardEffect';
 import { registerStateBase, stateRefArray, statePrimitive } from './GameObjectUtils';
 import type { IStateArray } from './GameObjectUtils';
-
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IGameObjectState extends IGameObjectBaseState {
-    // id: string;
-    // nameField: string;
-    // ongoingEffects: GameObjectId<OngoingCardEffect>[];
-}
 
 export interface IOngoingEffectFilters {
     type?: EffectName;

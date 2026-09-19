@@ -160,6 +160,31 @@ describe('StateEncoding value encoder/decoder', function() {
             expect(() => encodeStateValue('root.num', { n: NaN })).toThrowError(/root\.num\.n/);
             expect(() => encodeStateValue('root.inf', Infinity)).toThrowError(/root\.inf/);
         });
+
+        /**
+         * `P3-PB2` fix (`PB2I1-CS-03`). `__proto__` is the reserved-tag hazard's twin: both codec legs build
+         * `{}` and assign `out[key] = ...`, which for this one key runs `Object.prototype`'s accessor
+         * instead of storing a property. Before the guard the key was silently dropped on encode and
+         * silently absent on decode - and once Plan 6 feeds `decodeStateValue` a persisted document rather
+         * than an in-process record, it becomes a prototype-pollution sink on the load path.
+         *
+         * `JSON.parse` is how the test constructs it: an object *literal* `{ __proto__: ... }` sets the
+         * prototype instead of creating an own property, so a literal would not reproduce the case at all.
+         */
+        it('a plain object carrying "__proto__" as an own key', function() {
+            const hostile = JSON.parse('{"__proto__": {"polluted": true}, "ok": 1}');
+            expect(Object.keys(hostile)).toContain('__proto__');
+            expect(() => encodeStateValue('root.obj', hostile)).toThrowError(/__proto__/);
+            expect(() => encodeStateValue('root.nested', { inner: hostile })).toThrowError(/__proto__/);
+        });
+    });
+
+    it('rejects a "__proto__" own key on decode as well, so a persisted record cannot reach Object.prototype', function() {
+        const hostile = JSON.parse('{"__proto__": {"polluted": true}}');
+        expect(() => decodeStateValue(hostile)).toThrowError(/__proto__/);
+        expect(() => decodeStateValue({ wrapper: hostile })).toThrowError(/__proto__/);
+        const probe: Record<string, unknown> = {};
+        expect(probe.polluted).toBeUndefined();
     });
 
     it('the value path throws on a non-finite number, and $num remains reserved in the tag vocabulary for the primitive path', function() {
