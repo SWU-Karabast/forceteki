@@ -1,6 +1,6 @@
 describe('Defoliator Tank', function () {
     integration(function (contextRef) {
-        const promptTitle = 'If the defending unit isn\'t a Droid or Vehicle, pay 2 resources to give 2 Weakness tokens to it';
+        const promptTitle = 'Pay 2 resources to give 2 Weakness tokens to defending non-Droid non-Vehicle units';
 
         describe('Defoliator Tank\'s on attack ability', function () {
             beforeEach(function () {
@@ -11,7 +11,7 @@ describe('Defoliator Tank', function () {
                         resources: 5
                     },
                     player2: {
-                        groundArena: ['consular-security-force', 'battle-droid', 'atst'],
+                        groundArena: ['consular-security-force', 'battle-droid', 'snowspeeder'],
                         spaceArena: ['tie-fighter']
                     }
                 });
@@ -48,6 +48,7 @@ describe('Defoliator Tank', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(0);
                 expect(context.consularSecurityForce).toHaveExactUpgradeNames([]);
                 expect(context.consularSecurityForce.damage).toBe(4);
+                expect(context.defoliatorTank.damage).toBe(3);
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -59,6 +60,7 @@ describe('Defoliator Tank', function () {
 
                 expect(context.player1.exhaustedResourceCount).toBe(0);
                 expect(context.battleDroid).toBeInZone('outsideTheGame');
+                expect(context.defoliatorTank.damage).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -66,11 +68,12 @@ describe('Defoliator Tank', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.defoliatorTank);
-                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.snowspeeder);
 
                 expect(context.player1.exhaustedResourceCount).toBe(0);
-                expect(context.atst).toHaveExactUpgradeNames([]);
-                expect(context.atst.damage).toBe(4);
+                expect(context.snowspeeder).toHaveExactUpgradeNames([]);
+                expect(context.snowspeeder.damage).toBe(4);
+                expect(context.defoliatorTank.damage).toBe(3);
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -106,6 +109,41 @@ describe('Defoliator Tank', function () {
             expect(context.wampa).toHaveExactUpgradeNames([]);
             expect(context.wampa.damage).toBe(4);
             expect(context.player2).toBeActivePlayer();
+        });
+        it('Defoliator Tank\'s ability, gained by Darth Maul via Improvised Identity, should give Weakness to each eligible defender of a two-unit attack', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [{ card: 'darth-maul#revenge-at-last', upgrades: ['improvised-identity'] }],
+                    deck: ['defoliator-tank', 'cartel-spacer', 'takedown'],
+                    resources: 5
+                },
+                player2: {
+                    groundArena: ['krayt-dragon', 'atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Use Improvised Identity: discard Defoliator Tank from the top 3 and attack with its abilities
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickPrompt('Search the top 3 cards of your deck for a ground unit and discard it. Then, you may attack with this unit. For this attack, this unit gains the discarded unit\'s abilities.');
+            context.player1.clickCardInDisplayCardPrompt(context.defoliatorTank);
+            expect(context.defoliatorTank).toBeInZone('discard', context.player1);
+
+            // Maul attacks two units at once: one eligible (Krayt Dragon), one Vehicle (AT-ST)
+            context.player1.clickCard(context.kraytDragon);
+            context.player1.clickCard(context.atst);
+            context.player1.clickDone();
+
+            expect(context.player1).toHavePassAbilityPrompt(promptTitle);
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.player1.exhaustedResourceCount).toBe(2);
+            // Only the non-Vehicle defender gets the tokens; a single-target accessor would have failed here
+            expect(context.kraytDragon).toHaveExactUpgradeNames(['weakness', 'weakness']);
+            expect(context.kraytDragon.getPower()).toBe(8);
+            expect(context.atst).toHaveExactUpgradeNames([]);
         });
     });
 });
