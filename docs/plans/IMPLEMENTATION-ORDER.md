@@ -398,6 +398,36 @@ every call site anyway." Landing it *before* `P3-PB2` gets the mechanical
 call-site sweep reviewed on its own and takes it out of the largest diff in the
 roadmap.
 
+**`P3-PB1` landed (`4d9171039`).** `stateMap`/`stateSet`/`stateArray` exist as
+real decorators backed by `ValueMap`/`ValueSet`/`ValueArray`, whose overridden
+mutators are the value-collection hook Plan 4 needs; the nine affected fields
+are retargeted with no declared-type changes. Bare `@stateValue()` now rejects
+`Map`/`Set`/`Array` at compile time, so a collection-typed state field cannot be
+declared without naming its kind, and the one genuinely-generic field keeps an
+`{ allowGenericValue: true }` escape hatch guarded by a custom lint rule. Three
+things `P3-PB2` should take from it:
+
+- **`scripts/stateSerializerModel.js`'s decorator tables now carry six field
+  decorator names, not three.** Both `FIELD_DECORATOR_TO_KIND` and
+  `DECORATOR_SCAN_NAMES` gained `stateMap`/`stateSet`/`stateArray`, all mapped
+  to kind `'value'`. The generated artifact and schema-surface hash were
+  byte-identical across that change, verified by regeneration and diff — adding
+  a decorator name that maps to an existing kind is provably inert, which is
+  useful precedent if the cutover adds more.
+- **Do not rebuild a `ValueArray` with `length =` plus index assignment.** That
+  recipe (copied from `UndoArray`) produces a holey array that `v8.serialize`
+  writes with the sparse tag, measured ~9% larger on a 200-entry watcher
+  payload. `ValueArray.from(arr).init(go, prop)` stays dense and byte-identical
+  to a plain array. A byte-parity spec guards it with `Buffer.compare`.
+- **`ValueMap`/`ValueSet` deliberately have no `#init` field.** Private fields
+  are not merely unreadable-as-`undefined` but *throw* inside a mutator that
+  `super(entries)` invokes during construction, so an `#init`-style guard cannot
+  work there. When Plan 4 adds the real hook body, put it in the constructor
+  after `super()`, or use a `WeakSet` keyed by `this`, or route construction
+  through `.init()` after an empty `super()` as `ValueArray` does. Note the
+  pre-existing `UndoMap`/`UndoSet` still carry this latent hazard and *do* read
+  `#init`; that is tracked separately, not by this unit.
+
 **`P3-PB2` is genuinely atomic and cannot be split further.** You cannot delete
 the state bag and not have the new restore path in the same commit. This is the
 highest-risk unit in the whole roadmap. If the implement stage does not converge

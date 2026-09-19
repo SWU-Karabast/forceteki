@@ -1432,3 +1432,57 @@ Plan reviewed twice (round 1 **REJECTED** — the reverse pass would have thrown
 - **`npm run test-fast -- --filter="X"` does not forward `--filter` to jasmine** — npm swallows the unrecognized flag and the whole suite runs. Use a glob (`npm run test-fast -- "**/File.spec.js"`), or `npm run jasmine -- --filter="X"` once `test-fast` has freshened `build/test`.
 - **`npm run build` can silently under-emit after a hand-deleted compiled output.** With `incremental: true`, deleting a file under `build/` without also deleting `build/server/tsconfig.tsbuildinfo` (note: *not* `build/tsconfig.tsbuildinfo`) makes tsc skip re-emitting it while still exiting 0. Worth knowing alongside the existing stale-test-build failure mode.
 - **The generator's `rawClasses` (pre-`selectTargets`) already answers "what did the generator deliberately exclude"** — read it rather than re-deriving the `declaredInFunction` check.
+
+## `P3-PB1` — Phase B step 7, the value-collection decorator split (`4d9171039`)
+
+Plan 3 Phase B step 7, resequenced ahead of the cutover. `stateMap`/`stateSet`/`stateArray` now exist as real decorators backed by `ValueMap`/`ValueSet`/`ValueArray`, whose overridden mutators are the interception point Plan 4 needs: before this, only whole-value reassignment re-entered a decorated setter, so `useCount.set(k, v)` was invisible. Nine fields retargeted (`AbilityLimit` ×2, `AdditionalPhaseEffect` ×2, `GainAbility`, `GainNonKeywordAbilitiesFromUnitEffect` ×3, `StateWatcher.entries`), no declared-type changes — the wrappers are structurally assignable to the collections they extend. The old state bag stays authoritative throughout.
+
+### The decorator names were nearly abandoned on a false premise
+
+The first plan concluded the literal names were infeasible pre-cutover and proposed wrapping every `@stateValue` Map/Set/Array implicitly instead. Plan review **rejected** it: the stated blocker was a scope-fence quotation that does not appear in the request, and the generator — built in Phase A, never fenced off — needed only three table entries. Worth recording because the failure mode was a *confidently sourced* citation, not a hedge. The user chose the literal names over an argument-based `@stateValue({ collection: 'map' })` variant for compile-time ergonomics: separate decorators each carry their own signature, so `TValue` infers from the collection's element type with no overload set and direct error messages.
+
+### Compile-time enforcement, and the one field that cannot have it
+
+Bare `@stateValue()` now rejects concrete `Map`/`Set`/`Array` via a `ForbidStateCollection` conditional type, so a collection-typed state field cannot be declared without naming its kind. `MutableOngoingEffectValueWrapper._value` is the exception: its `TValue` is the class's own unresolved type parameter, and **TypeScript cannot prove an unresolved generic satisfies an exclusionary conditional** — a tuple-wrapped (`[T] extends [...]`) variant fails identically, confirmed by compile probe in two independent sessions. The only escape is a second overload on an argument, not a type-level workaround. Hence `{ allowGenericValue: true }`, a full bypass by construction.
+
+### The guard took four rounds to stop being bypassable
+
+The user asked at the plan gate that the escape hatch be made structurally hard to reach rather than documented. That produced a custom ESLint rule, and then three consecutive reviews each found a fresh way around it:
+
+| Round | Bypass found | Fix |
+|---|---|---|
+| impl round 1 | `const opts = {...}; @stateValue(opts)` — rule matched only an inline object literal | flag any non-empty argument list |
+| impl round 2 | aliased import, namespace import, variable-bound decorator; plus the rule's glob never covered `server/gameStatistics/`, which already registers state | scope-resolve the callee to its import binding; widen the glob |
+| impl round 3 | `from './GameObjectUtils.js'` — the source check was a bare `endsWith`, and 22 files already use that import style | normalize a trailing `.js`/`.mjs`/`.cjs`/`.ts` |
+
+The recurrence had one root cause: the rule kept answering *"is this a call to `stateValue`?"* by matching source text. Each repair closed one spelling. Round 2's reassessment named that explicitly and switched to scope resolution, which closed three shapes at once. **If you extend this rule, resolve bindings — do not add a fifth pattern match.**
+
+Three gaps remain open and are disclosed in the rule header, the `stateValue` JSDoc, and the plan doc: an arbitrary wrapper function that returns `stateValue({...})`, a re-export barrel, and whether a justification comment is *honest* about the field's real type. The first two need cross-file analysis; the third needs typed linting (`parserOptions.project`, not wired into this repo's flat config). Human review is the defense for all three. The JSDoc carries a standing instruction against describing the coverage as "general" — three separate reviews faulted that wording before it was narrowed to an enumeration.
+
+### The sparse-array defect
+
+The first plan built `ValueArray` with `new ValueArray().init(...)`, `length =`, then index assignment — copied from `UndoArray`. Plan review caught it with a runtime probe: that produces a holey array, which `v8.serialize` tags sparse, **+8.6% on a 200-entry watcher payload**. `UndoArray` never exposed this because its instances live in the backing field while the bag holds a plain id array; a `ValueArray` lives *in the bag* and reaches `v8.serialize(getStateUnsafe())`. `ValueArray.from(arr).init(go, prop)` is dense and byte-identical — `Array.from` consults the `this` receiver directly (`Construct(C, [])` then `CreateDataPropertyOrThrow`), so the `[Symbol.species]` override does not interfere. The user asked for byte-parity to become its own acceptance criterion; the spec now compares `v8.serialize` output with `Buffer.compare` across construction, reassignment and `setState` restore for all three wrapper types.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `npm run lint` | exit 0 |
+| `npm run test-parallel` | 8627 specs, 0 failures, 13 pending — baseline 8620 + exactly this unit's 7 new specs |
+| `npm run test-parallel-undo` | 8439 specs, 0 failures, 17 pending — baseline 8432 + the same 7 |
+| generator artifact + schema-surface hash | byte-identical before/after the three-entry table addition, regenerated and diffed |
+| compile-constraint matrix | 6 `@ts-expect-error` negative fixtures; an unused expectation is itself an error, so the clean pass proves each constraint fires |
+| AC9 guard | every closed shape reproduced firing; wrapper-function residual correctly still silent |
+
+Benchmark capture deliberately not run — it belongs to `P3-PB3`, which should expect a per-assignment copy on `@stateMap`/`@stateSet`/`@stateArray` fields (the `@stateValue` setter is named a hot path in `Helpers.ts:11-16`, `StateWatcher.registerListeners` reassigns per matching event, and `copyState` re-wraps on every rollback). That cost is disclosed, not measured.
+
+### Review history
+
+Plan reviewed twice (round 1 **REJECTED** on the fabricated fence and the sparse-array recipe; round 2 APPROVED WITH CONCERNS). Implementation reviewed four times across three fix cycles — rounds 1 and 2 both **REJECTED** on successive escape-hatch bypasses, round 3 APPROVED WITH CONCERNS, round 4 APPROVED with no findings. The third fix cycle ran under a user-authorized budget extension past the tier-2 ceiling, with an explicit stopping condition: another bypass shape would mean shipping as-is rather than a fourth round. Round 4 found none.
+
+### Notes for the next agent
+
+- **Keep both decorator tables in sync.** `scripts/stateSerializerModel.js` has `FIELD_DECORATOR_TO_KIND` *and* `DECORATOR_SCAN_NAMES`. The first drives correctness; the second drives warm-build cache invalidation. Adding a name to only the first leaves stale-cache bugs that no test catches.
+- **`#init` cannot guard a `Map`/`Set` subclass mutator.** Reading a private field inside a mutator that `super(entries)` invokes *throws* — it does not read as `undefined`. `ValueMap`/`ValueSet` therefore have no such field. The pre-existing `UndoMap`/`UndoSet` do read `#init` and carry the live version of this hazard; constructing either from a non-empty iterable throws. Tracked as a separate follow-up, deliberately outside this unit's fence.
+- **`server/game/` is not the whole state-decorator surface.** `server/gameStatistics/GameStatisticsTracker.ts` imports `GameObjectUtils` and declares two `@registerState()` classes. Any lint rule or audit scoped to `server/game/**` silently misses it.
+- **22 files under `server/game/` import with a `.js` extension** (`from './PlayerOrCardAbility.js'`). Any future AST rule matching import source strings must normalize extensions or it will have a hole shaped exactly like PB1-N1.
