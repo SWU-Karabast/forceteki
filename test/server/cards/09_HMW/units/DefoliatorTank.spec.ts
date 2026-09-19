@@ -145,5 +145,40 @@ describe('Defoliator Tank', function () {
             expect(context.kraytDragon.getPower()).toBe(8);
             expect(context.atst).toHaveExactUpgradeNames([]);
         });
+        it('Defoliator Tank\'s ability, gained by Darth Maul via Improvised Identity, should be paid for once and give Weakness to both defenders when both are eligible', async function () {
+            // Judge ruling: it is one On Attack with two defenders, so pay 2 once and give 2 Weakness tokens to each.
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [{ card: 'darth-maul#revenge-at-last', upgrades: ['improvised-identity'] }],
+                    deck: ['defoliator-tank', 'cartel-spacer', 'takedown'],
+                    resources: 5
+                },
+                player2: {
+                    groundArena: ['krayt-dragon', 'gentle-giant']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickPrompt('Search the top 3 cards of your deck for a ground unit and discard it. Then, you may attack with this unit. For this attack, this unit gains the discarded unit\'s abilities.');
+            context.player1.clickCardInDisplayCardPrompt(context.defoliatorTank);
+
+            context.player1.clickCard(context.kraytDragon);
+            context.player1.clickCard(context.gentleGiant);
+            context.player1.clickDone();
+
+            expect(context.player1).toHavePassAbilityPrompt(promptTitle);
+            context.player1.clickPrompt('Trigger');
+
+            // Paid once, not once per defender
+            expect(context.player1.exhaustedResourceCount).toBe(2);
+            expect(context.kraytDragon).toHaveExactUpgradeNames(['weakness', 'weakness']);
+            expect(context.gentleGiant).toHaveExactUpgradeNames(['weakness', 'weakness']);
+            expect(context.kraytDragon.getPower()).toBe(8);
+            // Gentle Giant: 2 base, -2 from Weakness, +5 from Grit after taking Maul's 5 damage
+            expect(context.gentleGiant.getPower()).toBe(5);
+        });
     });
 });
