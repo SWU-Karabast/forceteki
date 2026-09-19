@@ -29,7 +29,6 @@ export default class VolleyFire extends EventCard {
                     },
                     dependsOn: 'friendlyUnit',
                     controller: RelativePlayer.Opponent,
-                    zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                         amount: context.targets.friendlyUnit.getNumericKeywordTotal(KeywordName.Raid) ?? 0,
