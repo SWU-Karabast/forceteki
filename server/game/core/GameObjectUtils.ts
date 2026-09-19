@@ -133,7 +133,7 @@ function hydrateUndoMapFromIds<TValue extends GameObjectBase>(instance: GameObje
         return null;
     }
 
-    const hydratedMap = new UndoMap<TValue>(instance, prop);
+    const hydratedMap = CreateUndoMapInternal<TValue>(instance, prop);
     for (const [key, valueId] of rawValue) {
         Map.prototype.set.call(hydratedMap, key, instance.game.getFromUuidUnsafe(valueId));
     }
@@ -146,7 +146,7 @@ function hydrateUndoSetFromIds<TValue extends GameObjectBase>(instance: GameObje
         return null;
     }
 
-    const hydratedSet = new UndoSet<TValue>(instance, prop);
+    const hydratedSet = CreateUndoSetInternal<TValue>(instance, prop);
     for (const id of rawValue) {
         Set.prototype.add.call(hydratedSet, instance.game.getFromUuidUnsafe(id));
     }
@@ -595,15 +595,16 @@ export function stateRefMap<T extends GameObjectBase, TValue extends GameObjectB
                 return target.get.call(this);
             },
             set(this: GameObjectBase, newValue) {
-                // The below UndoMap instantiation will also load the state map with all of it's values.
+                // createIdMap builds the state mirror for the incoming entries; CreateUndoMapInternal then
+                // populates the wrapper without re-writing that mirror (see its doc comment).
                 this.state[name] = createIdMap(newValue);
-                target.set.call(this, newValue ? new UndoMap(this, name, newValue.entries()) : newValue);
+                target.set.call(this, newValue ? CreateUndoMapInternal(this, name, newValue.entries()) : newValue);
             },
             init(this: GameObjectBase, value) {
                 Contract.assertTrue(value.size === 0, 'UndoMap cannot be init with entries');
                 this.state[name] = value;
                 // If this is not-null, create a equivalent map in the state. Otherwise, leave it as-is.
-                return value ? new UndoMap(this, name) : value;
+                return value ? CreateUndoMapInternal<TValue>(this, name) : value;
             },
         };
     };
@@ -639,15 +640,16 @@ export function stateRefSet<T extends GameObjectBase, TValue extends GameObjectB
                 return target.get.call(this);
             },
             set(this: GameObjectBase, newValue) {
-                // The below UndoSet instantiation will also load the state map with all of its values.
+                // createIdSet builds the state mirror for the incoming values; CreateUndoSetInternal then
+                // populates the wrapper without re-writing that mirror (see CreateUndoMapInternal's doc comment).
                 this.state[name] = createIdSet(newValue);
-                target.set.call(this, newValue ? new UndoSet(this, name, newValue.values()) : newValue);
+                target.set.call(this, newValue ? CreateUndoSetInternal(this, name, newValue.values()) : newValue);
             },
             init(this: GameObjectBase, value) {
                 Contract.assertTrue(value.size === 0, 'UndoSet cannot be init with entries');
                 this.state[name] = value ? new Set() : value;
                 // If this is not-null, create an equivalent set in the state. Otherwise, leave it as-is.
-                return value ? new UndoSet(this, name) : value;
+                return value ? CreateUndoSetInternal<TValue>(this, name) : value;
             },
         };
     };
@@ -1193,6 +1195,38 @@ function CreateUndoArrayBase<TValue extends GameObjectBase>(go: GameObjectBase, 
     return new UndoArray<TValue>().init(go, prop);
 }
 
+/**
+ * The only supported way to build an {@link UndoMap}: construct empty, `init()`, then populate - so no
+ * mutator ever runs inside the pre-initialization window described on that class.
+ *
+ * Population goes through `Map.prototype.set` rather than the override, because every caller has already
+ * built the id mirror in `go.state[prop]` before calling here (`createIdMap()` on the accessor's set path,
+ * the restored state object itself on the hydrate path). Anything added after construction goes through the
+ * override as usual and does write the mirror.
+ */
+function CreateUndoMapInternal<TValue extends GameObjectBase>(go: GameObjectBase, prop: string, entries?: Iterable<readonly [string, TValue]> | null) {
+    const undoMap = new UndoMap<TValue>().init(go, prop);
+    if (entries) {
+        for (const [key, value] of entries) {
+            Map.prototype.set.call(undoMap, key, value);
+        }
+    }
+
+    return undoMap;
+}
+
+/** {@link UndoSet} counterpart to {@link CreateUndoMapInternal}; same construct-init-populate ordering and same mirror contract. */
+function CreateUndoSetInternal<TValue extends GameObjectBase>(go: GameObjectBase, prop: string, values?: Iterable<TValue> | null) {
+    const undoSet = new UndoSet<TValue>().init(go, prop);
+    if (values) {
+        for (const value of values) {
+            Set.prototype.add.call(undoSet, value);
+        }
+    }
+
+    return undoSet;
+}
+
 export function copyState<T extends GameObjectBase>(instance: T, newState: Record<any, any>) {
     let baseClass = Object.getPrototypeOf(instance);
     while (baseClass) {
@@ -1324,34 +1358,36 @@ export function getRuntimeStateFieldModelByClassName(className: string): IRuntim
     return [...fields.entries()].map(([name, kind]) => ({ name, kind }));
 }
 
-// A custom class to pass through any values to the underlying state Map.
+/**
+ * A custom class to pass through any values to the underlying state Map.
+ *
+ * Construction deliberately takes **no** `entries` argument, and there is deliberately no init-guard in
+ * `set()`. `Map`'s own constructor calls this class's overridden `set()` once per entry of any iterable
+ * passed to `super(...)`, and that happens *before* the subclass's private fields are installed on `this`
+ * (per spec, private fields are installed only after `super()` returns). A private read from `set()` at
+ * that point does not evaluate to `undefined`/`false` - it throws
+ * `TypeError: Cannot read private member #x from an object whose class did not declare it`, so an
+ * `#init`-style flag cannot guard the very window it exists for. The window is removed instead of guarded:
+ * build through {@link CreateUndoMapInternal}, which constructs empty, calls `init()`, and only then
+ * populates - the same recipe {@link UndoArray} already uses via {@link CreateUndoArrayBase}. See the
+ * P3-PB1-fix comment on {@link ValueMap.set} for the alternatives that were weighed.
+ */
 class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
+    // Properties are JS private to ensure they aren't enumerable. Otherwise this would break equality checks in tests.
     #go: GameObjectBase;
     #prop: string;
-    #init = false;
 
-    public constructor(go: GameObjectBase, prop: string, entries?: Iterable<readonly [string, TValue]> | null) {
-        super(entries);
+    public init(go: GameObjectBase, prop: string) {
         Contract.assertNotNullLike(go, 'Game Object cannot be null');
         this.#go = go;
         this.#prop = prop;
-        this.#init = true;
-    }
-
-    public init(go: GameObjectBase, prop: string) {
-        this.#go = go;
-        this.#prop = prop;
-        this.#init = true;
         return this;
     }
 
     public override set(key: string, value: TValue): this {
-        // Set is called during instantiation, but "this.go" hasn't (and can't) be defined yet.
-        if (this.#init) {
-            // @ts-expect-error Overriding state accessibility
-            const stateValue = this.#go.state[this.#prop] as Map<string, GameObjectId<TValue>>;
-            stateValue.set(key, value.getObjectId());
-        }
+        // @ts-expect-error Overriding state accessibility
+        const stateValue = this.#go.state[this.#prop] as Map<string, GameObjectId<TValue>>;
+        stateValue.set(key, value.getObjectId());
         return super.set(key, value);
     }
 
@@ -1370,34 +1406,27 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
     }
 }
 
-// A custom class to pass through any values to the underlying state Set.
+/**
+ * A custom class to pass through any values to the underlying state Set. `Set<TValue>` counterpart to
+ * {@link UndoMap} - same no-`entries`-in-the-constructor rationale, same reason there is no init-guard in
+ * `add()`. Build through {@link CreateUndoSetInternal}.
+ */
 class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
+    // Properties are JS private to ensure they aren't enumerable. Otherwise this would break equality checks in tests.
     #go: GameObjectBase;
     #prop: string;
-    #init = false;
 
-    public constructor(go: GameObjectBase, prop: string, values?: Iterable<TValue> | null) {
-        super(values);
+    public init(go: GameObjectBase, prop: string) {
         Contract.assertNotNullLike(go, 'Game Object cannot be null');
         this.#go = go;
         this.#prop = prop;
-        this.#init = true;
-    }
-
-    public init(go: GameObjectBase, prop: string) {
-        this.#go = go;
-        this.#prop = prop;
-        this.#init = true;
         return this;
     }
 
     public override add(value: TValue): this {
-        // Add is called during instantiation, but "this.#go" hasn't (and can't) be defined yet.
-        if (this.#init) {
-            // @ts-expect-error Overriding state accessibility
-            const stateValue = this.#go.state[this.#prop] as Set<GameObjectId<TValue>>;
-            stateValue.add(value.getObjectId());
-        }
+        // @ts-expect-error Overriding state accessibility
+        const stateValue = this.#go.state[this.#prop] as Set<GameObjectId<TValue>>;
+        stateValue.add(value.getObjectId());
         return super.add(value);
     }
 
@@ -1546,6 +1575,10 @@ export class ValueMap<TValue> extends Map<string, TValue> {
         // returns `false`), or (3) do not populate via the constructor's `entries` parameter at all - route
         // construction through `.init(go, prop)` after an empty `super()`, the same recipe `ValueArray` uses
         // via `.from(arr).init(...)` - and have Plan 4's hook fire only from a call made after `.init()`.
+        //
+        // Option (3) is what `UndoMap`/`UndoSet` were moved to, since their mirror-writing guard really was
+        // load-bearing and could not simply be deleted: see `CreateUndoMapInternal` and the `UndoMap` class
+        // doc comment.
         return super.set(key, value);
     }
 

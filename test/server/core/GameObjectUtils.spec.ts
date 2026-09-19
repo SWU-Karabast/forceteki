@@ -509,6 +509,103 @@ describe('the @stateMap / @stateSet / @stateArray decorators (P3-PB1)', function
 });
 
 /**
+ * Regression coverage for the `UndoMap`/`UndoSet` pre-initialization-window defect: both classes used to
+ * take the incoming entries through `super(entries)`, which makes `Map`/`Set`'s own constructor call the
+ * overridden `set()`/`add()` before the subclass's private fields exist on `this`. The `#init` flag those
+ * overrides read was believed to evaluate falsy in that window; it actually throws
+ * `TypeError: Cannot read private member ...`, so assigning a *populated* Map/Set wholesale to a
+ * `@stateRefMap`/`@stateRefSet` field threw. Nothing in the engine assigned a populated collection to one
+ * of those fields (every live user mutates in place, and the generated deserializers assign an empty
+ * collection and then populate it), so the suite never reached it - these tests do, deliberately.
+ *
+ * The empty cases are asserted alongside so a future change that fixes only the populated path, or breaks
+ * the mirror write on the path after construction, is still caught.
+ */
+describe('the @stateRefMap / @stateRefSet decorators, assigned a populated collection wholesale', function() {
+    function idsOf(fixture: AllFieldKindsFixture) {
+        const bag = fixture.getStateUnsafe() as unknown as {
+            refMapField: Map<string, string>;
+            refSetField: Set<string>;
+        };
+        return {
+            mapIds: [...bag.refMapField.entries()],
+            setIds: [...bag.refSetField],
+        };
+    }
+
+    it('does not throw, and mirrors the incoming entries into state as object ids', function() {
+        const { game } = gameObjectHelper.createMockGame();
+        const fixture = new AllFieldKindsFixture(game);
+        const first = new gameObjectHelper.TestGameObject(game, 'first');
+        const second = new gameObjectHelper.TestGameObject(game, 'second');
+
+        expect(() => {
+            fixture.refMapField = new Map([['a', first], ['b', second]]);
+            fixture.refSetField = new Set([first, second]);
+        }).not.toThrow();
+
+        expect([...fixture.refMapField.entries()]).toEqual([['a', first], ['b', second]]);
+        expect([...fixture.refSetField]).toEqual([first, second]);
+
+        const { mapIds, setIds } = idsOf(fixture);
+        expect(mapIds).toEqual([['a', first.getObjectId()], ['b', second.getObjectId()]]);
+        expect(setIds).toEqual([first.getObjectId(), second.getObjectId()]);
+    });
+
+    it('keeps writing the state mirror for mutations made after such an assignment', function() {
+        const { game } = gameObjectHelper.createMockGame();
+        const fixture = new AllFieldKindsFixture(game);
+        const first = new gameObjectHelper.TestGameObject(game, 'first');
+        const second = new gameObjectHelper.TestGameObject(game, 'second');
+
+        fixture.refMapField = new Map([['a', first]]);
+        fixture.refSetField = new Set([first]);
+
+        fixture.refMapField.set('b', second);
+        fixture.refSetField.add(second);
+
+        let mirrors = idsOf(fixture);
+        expect(mirrors.mapIds).toEqual([['a', first.getObjectId()], ['b', second.getObjectId()]]);
+        expect(mirrors.setIds).toEqual([first.getObjectId(), second.getObjectId()]);
+
+        fixture.refMapField.delete('a');
+        fixture.refSetField.delete(first);
+
+        mirrors = idsOf(fixture);
+        expect(mirrors.mapIds).toEqual([['b', second.getObjectId()]]);
+        expect(mirrors.setIds).toEqual([second.getObjectId()]);
+
+        fixture.refMapField.clear();
+        fixture.refSetField.clear();
+
+        mirrors = idsOf(fixture);
+        expect(mirrors.mapIds).toEqual([]);
+        expect(mirrors.setIds).toEqual([]);
+    });
+
+    it('still accepts an empty collection, the only shape the engine assigns today', function() {
+        const { game } = gameObjectHelper.createMockGame();
+        const fixture = new AllFieldKindsFixture(game);
+        const first = new gameObjectHelper.TestGameObject(game, 'first');
+
+        expect(() => {
+            fixture.refMapField = new Map();
+            fixture.refSetField = new Set();
+        }).not.toThrow();
+
+        expect(fixture.refMapField.size).toBe(0);
+        expect(fixture.refSetField.size).toBe(0);
+
+        fixture.refMapField.set('a', first);
+        fixture.refSetField.add(first);
+
+        const { mapIds, setIds } = idsOf(fixture);
+        expect(mapIds).toEqual([['a', first.getObjectId()]]);
+        expect(setIds).toEqual([first.getObjectId()]);
+    });
+});
+
+/**
  * `P3-PA4` (PA4-IR-1 fix-pass): registeredStateClassesByName is a process-wide registry keyed by bare
  * class name, so a second @registerState/@registerStateBase class declared with a name that collides
  * with an already-registered one (here, the top-of-file `JsonSafeStateValueFixture` fixture) must throw
