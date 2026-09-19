@@ -428,6 +428,40 @@ things `P3-PB2` should take from it:
   pre-existing `UndoMap`/`UndoSet` still carry this latent hazard and *do* read
   `#init`; that is tracked separately, not by this unit.
 
+**`P3-PB2` landed (`22b81cf3b`) and Plan 3 Phase B steps 1–5 are complete.** The
+state bag, `copyState`, the hydration-closure metadata and thirteen `I*State`
+bag views are deleted; capture and restore run through the generated per-class
+serializers; `IGameSnapshot.states` and `Game.state` are JSON-safe records.
+`reconcileUpdatedCardZoneMemberships` was **not** ported, consuming `P3-PA3`'s
+measured answer. Four things the remaining Phase B units should take from it:
+
+- **`oldState` is a complete pre-pass inside `rollbackToSnapshot`, not an
+  interleaved read.** An encoder throw is deterministic, so an interleaved pass
+  would tear the object graph and its recovery would re-run the identical
+  encode and fail identically. The pre-pass mutates nothing before it can fail,
+  so an abort declines the undo and leaves the game intact. Do not "optimize" it
+  back inline.
+- **It is a real new per-rollback cost** — ≈141 objects and ≈2,350 encoded
+  fields, ≈ one `full/buildGameStateForSnapshot` pass minus the cull — and it is
+  `P3-PB3`'s named first lever. The exact decidable narrowing, if the capture
+  shows it matters, is to serialize only instances whose lifecycle hook differs
+  from the base (`go.afterSetState !== GameObjectBase.prototype.afterSetState`,
+  likewise the other two), which trades away the whole-population encodability
+  proof the pre-pass currently buys.
+- **`payload/gameStateBuffer` and `payload/gameObjectStatesBuffer` changed
+  meaning** and now carry `notes.measurement` provenance. They measure a
+  measurement-only `v8.serialize` of the JSON record, inflated by `$map`/`$set`
+  tagging and lost identity dedup, so they are not a clean content-volume
+  comparison. `payload/retainedChain` is the load-bearing row for the plan's
+  JSON-vs-`v8`-at-rest fallback decision.
+- **The parity harness is repointed, not retired.** `PARITY_RESTORE_MODE` and
+  the four `*-generated` scripts are gone with the comparison legs; the harness
+  now wraps each registry entry's `deserialize` plus `rollbackToSnapshot`, and
+  runs a round-trip self-check plus a wrapper-identity check. `P3-PB4` still
+  owns step 8's golden fixtures, which remain the real successor. A green parity
+  run is **not** evidence for the `_hasRef` latch contract — the round-trip is
+  structurally blind to it.
+
 **`P3-PB2` is genuinely atomic and cannot be split further.** You cannot delete
 the state bag and not have the new restore path in the same commit. This is the
 highest-risk unit in the whole roadmap. If the implement stage does not converge

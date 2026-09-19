@@ -1330,7 +1330,7 @@ Plan reviewed twice (round 1 REJECTED — the gate could not fail, because a res
 
 - **`P3-PB2`: take the headline answer and its four labels together.** "Not needed" is well supported for main's full-snapshot path; it is not a statement that zone membership is verified under every configuration.
 - **A parallel `pid=` reporter line is not whole-suite evidence in this repo.** When a silent counter matters, run the suite serially (omit `--parallel`) and use the single-process line. When a spec assertion matters, parallel is fine — `specDone` is forwarded from every worker.
-- **The harness is reusable and flag-gated** (`ENABLE_PARITY_HARNESS`, `PARITY_RESTORE_MODE=compare|generated`, `PARITY_INJECT_RESTORE_MISMATCH=<Class>.<field>`), with zero footprint when unset. `P3-PB2` re-runs `AC14` after the cutover; `P3-PB3` must run its benchmark capture with `ENABLE_PARITY_HARNESS` **unset**, since the harness wraps `buildGameStateForSnapshot`.
+- **The harness is reusable and flag-gated** (`ENABLE_PARITY_HARNESS`, `PARITY_RESTORE_MODE=compare|generated`, `PARITY_INJECT_RESTORE_MISMATCH=<Class>.<field>`), with zero footprint when unset. `P3-PB2` re-runs `AC14` after the cutover; `P3-PB3` must run its benchmark capture with `ENABLE_PARITY_HARNESS` **unset**, since the harness wraps `buildGameStateForSnapshot`. — *Superseded in part by `P3-PB2` (`22b81cf3b`): `PARITY_RESTORE_MODE` is retired with the comparison legs, and the harness no longer wraps `buildGameStateForSnapshot` — it wraps each registry entry's `deserialize`, plus `rollbackToSnapshot`. The instruction to `P3-PB3` stands unchanged; only its stated reason has moved. The other two flags are unchanged.*
 - **The pre-existing engine gap this unit surfaced but did not fix:** `SimpleZone`/`DeckZone`'s `addCard`/`removeCard` never touch the card's own `.zone` field; a separate move orchestrator keeps the two sides of the doubly-represented membership in sync, and deck-resident cards demonstrate a live, restore-independent gap in that synchronization. Out of scope here. Recorded as an observation, not a defect of this unit.
 - **`SnapshotManager.takeManualSnapshot` does not build a fresh snapshot** — it references whichever snapshot is already current. A spec-scoped harness block must force `SnapshotFactory.createSnapshotForCurrentTimepoint` first, or the manual snapshot silently references a pre-harness buffer with no retained records.
 - **`SnapshotManager.rollbackManualSnapshot`'s `Contract.assertNotNullLike` conflates** "manual snapshot ID does not exist" with "rollback attempted, failed, and recovered" — both throw the same message. `AC7` drives its rollback through the container directly for this reason.
@@ -1486,3 +1486,100 @@ Plan reviewed twice (round 1 **REJECTED** on the fabricated fence and the sparse
 - **`#init` cannot guard a `Map`/`Set` subclass mutator.** Reading a private field inside a mutator that `super(entries)` invokes *throws* — it does not read as `undefined`. `ValueMap`/`ValueSet` therefore have no such field. The pre-existing `UndoMap`/`UndoSet` do read `#init` and carry the live version of this hazard; constructing either from a non-empty iterable throws. Tracked as a separate follow-up, deliberately outside this unit's fence.
 - **`server/game/` is not the whole state-decorator surface.** `server/gameStatistics/GameStatisticsTracker.ts` imports `GameObjectUtils` and declares two `@registerState()` classes. Any lint rule or audit scoped to `server/game/**` silently misses it.
 - **22 files under `server/game/` import with a `.js` extension** (`from './PlayerOrCardAbility.js'`). Any future AST rule matching import source strings must normalize extensions or it will have a hole shaped exactly like PB1-N1.
+
+---
+
+## `P3-PB2` — Codegen serializer cutover (Plan 3, Phase B steps 1–5)
+
+| | |
+|---|---|
+| Task ID | `p3-pb2` |
+| Date | 2026-09-19 |
+| Lane / tier | full, tier 4 (Large 🔴) |
+| Plan | [03-codegen-serializers.md](03-codegen-serializers.md), Phase B steps 1–5 |
+| Parent | `b143102eb` |
+| Commit | `22b81cf3b` |
+| Branch | `experimental/rollback-saves-optimizations` |
+
+38 files, +1996/−1505. The state bag is gone. `GameObjectBase.state`, `setState`, `getStateUnsafe`, `copyState`, the hydration-closure metadata and thirteen `I*State` bag-view interfaces are deleted; snapshot capture and restore run through the generated per-class serializers; `IGameSnapshot.states` and `Game.state` are JSON-safe records rather than v8 buffers.
+
+### The four things that had to hold, and how each is actually held
+
+1. **The `_hasRef` latch.** Eager marking used to be a *side effect* of building the state-bag id mirror — delete the mirror and every latch disappears with nothing failing to compile and most tests still passing. It is now explicit `markStateRef*` calls in the seven decorator `set`/`init` bodies and in `UndoArray.push`/`unshift`, `UndoMap.set`, `UndoSet.add` and the `UndoSafeRecord` set trap. `splice` is removal-only, `sort`/`fill` throw, and `pop`/`shift`/`reverse`/`copyWithin` introduce no referents. Index assignment and `length =` remain uninterceptable — pre-existing, and now a latch hazard as well as a mirror one (Plan 4's problem).
+2. **Restore assigns through the accessors.** The generated deserializers already emitted `i.<field> = …` before this unit, so no codegen change was needed; the risk was entirely in the setters, which must keep re-wrapping and re-latching.
+3. **No aliasing out of the stored record.** `decodeStateValue` builds fresh containers at every level; `Game.state` is decoded on restore, never assigned — the live game mutates it in place (`winnerNames.push`, `allCards.push`, `movedCards.push`) and `v8.deserialize` was what previously guaranteed freshness.
+4. **Snapshot order stays remove-then-serialize**, valid because eager marking stays and the generated serializers are side-effect-free (they read `go.uuid` directly; zero `getObjectId` occurrences in the artifact).
+
+### The `oldState` pre-pass — the design decision this unit turned on
+
+`oldState` is manufactured at rollback time by serializing each live object. The first design interleaved that with the update loop; **plan review round 2 rejected it**, and the reasoning is worth keeping:
+
+An encoder throw is **deterministic**. The failing object's payload is its own and `serialize` precedes any mutation of it, so the recovery leg at `GameStateManager.ts:237` — which passes no `beforeRollbackSnapshot` of its own — re-runs the identical encode and fails at the same object. Interleaving would therefore leave objects `i+1..n` already deserialized (a torn graph) and then attempt a recovery that cannot terminate.
+
+The shipped form is a **complete pre-pass, in its own `try` outside the restore `try`**, before `game.state` is replaced. Nothing is mutated when it fails, so there is nothing to recover: it logs, files a non-fatal severe report, shows the existing undo-failed alert and returns `false`. A useful consequence the rest of the path leans on: once the pre-pass completes, every live object is proven encodable, so the recovery leg guarding the main loop cannot fail for an *encode* reason.
+
+**This is a per-rollback serialize pass `main` avoided by design.** Measured from the parity counters: ≈141 objects and ≈2,350 encoded fields per rollback, ≈ one `full/buildGameStateForSnapshot` pass minus the cull. It must appear in `P3-PB3`'s rollback timing or the replace-runtime-cost headline is overstated for the rollback path. See the residuals below for the exact narrowing if the capture shows it matters.
+
+### `reconcileUpdatedCardZoneMemberships` is NOT ported
+
+Consumed from `P3-PA3` rather than re-derived, per that unit's instruction. Structurally it is a delta-rollback-only artifact on `feature/quick-undo-deltas-morph`; measured, zero zone violations across 8,186 rollbacks in the complete-coverage serial run plus ~6,200 more. `P3-PA3`'s four qualifying labels were read with it: "not needed" is well supported for main's full-snapshot path, not a statement that zone membership is verified under every configuration.
+
+### The parity harness was repointed, not retired
+
+Step 8 is deferred a release, but "keep it" could not mean "keep comparing" — both legs compared the bag path against the generated path, and after this commit only one path exists. The harness also imported `copyState` and patched `GameObjectBase.prototype.setState`, so it would not have compiled untouched while `jasmine.json`'s helpers glob loads it every run. It now runs a post-deserialize round-trip self-check plus a wrapper-identity check, keeping the `AC14` escape proof runnable. `PARITY_RESTORE_MODE` and the four `*-generated` scripts are retired with the legs they drove.
+
+**Do not read a green parity run as evidence for the latch contract.** The round-trip is structurally blind to it: `encodeRefArray` emits an identical uuid list for a plain `Array` and an `UndoArray`, and `_hasRef` is in no record. `PB2-C4`/`PB2-C5`'s dedicated specs carry that risk alone.
+
+### Review history
+
+Six cold Opus rounds and two repair cycles. Plan reviewed three times: round 1 **rejected** (the deleted-symbol survey covered 4 interfaces where 13 were affected, and the criterion was scoped narrowly enough that a half-done deletion would pass every check); round 2 **rejected** (the interleaved `oldState` design above); round 3 approved with concerns. Implementation reviewed three times: a three-lens fan-out (correctness/security, ordering/performance/resources, architecture/contracts), all three approved-with-concerns with **zero blocking**, then two confirming deltas, the last clean.
+
+Two reviewer claims were **refuted by the author and the refutation upheld**, which is worth recording because both would otherwise have become durable false facts:
+
+- Round 2 asserted that `Lobby.handleError` does not throw for `SevereHaltGame`, so the interleaved form would return `true` in production. It does throw, at `Lobby.ts:1848`, and `Game._router` is statically typed `Lobby`. The finding's disposition stood on its other legs; the mis-stated escalation was recorded rather than quietly dropped.
+- Round 1 counted eight extending interfaces; the author found thirteen across eleven files. Round 3 then found the grep returns twelve, the thirteenth (`IPlayerState`) being reachable only via `IGameObjectState`. The deletion list was right throughout; only the count moved.
+
+### The defect class this unit kept finding: checks that cannot go red
+
+Three separate rounds caught one, which is why the second repair cycle was spent on comment truth rather than code:
+
+1. **`CutoverRestore.spec.ts`'s latch assertions were constants.** `hasRef` is `_hasRef || alwaysTrackState`, and `Card.alwaysTrackState` and `StateWatcher.alwaysTrackState` both return literal `true` — so the pushed card reported `hasRef` and survived the cull whether or not `push` latched anything. The in-file comment claimed the opposite. Real latch coverage lives in `GameObjectUtils.spec.ts`'s `PB2-C4` block, which uses fixtures without that override.
+2. **`RollbackLifecycleOrder.spec.ts` pinned two of three boundaries.** No run recorded an `afterSetState` and a `cleanupOnRemove` together, so hoisting the removal loop above the update loop would have stayed green — a live event-registration leak with a passing gate. Now asserted.
+3. **`StateEncoding.ts`'s doc comment concluded "a payload that passes the dev-mode gate encodes"**, false for the two `undefined`-element narrowings it had just listed — and it was the one place a maintainer would look to rule out the capture-fallibility residual below.
+
+### Verification
+
+Sequential throughout — never two build/test commands at once.
+
+| Check | Result |
+|---|---|
+| `npm run lint` | exit 0 |
+| `tsc --noEmit`, both projects | exit 0 / exit 0 |
+| `npm run test-parallel` | 8678 specs, 0 failures, 13 pending |
+| `npm run test-parallel-undo` | 8490 specs, 0 failures, 17 pending |
+| `npm run test-parity` / `-undo` | 0 failures; `rollbacksFailed` 0, `harnessRestoreErrors` 0, zone counters 0 |
+| escape proof (`AC14`) | exit 3, diagnostic names class + uuid + field |
+| coverage cross-check falsifier | red naming `DeckZone._searchingCards`, green after revert |
+| generator identity | `GENERATED_SCHEMA_SURFACE_HASH` and `--print-model` sha256 both unmoved |
+
+Spec counts reconcile **by identity**, not arithmetic: baseline 8661 → +20/−8 → +4 → +1 = 8678, with all eight removed titles verified absent and every added identity present in the retained reporter ledger. Round 3's reviewer independently recomputed the schema-surface hash from the 126-target model dump rather than reading the constant, and mutation-tested the new reserved-key spec red-then-green.
+
+### Residuals, disclosed and accepted at the gate
+
+1. **The `oldState` pre-pass cost** (above). `P3-PB3`'s named first lever. If the capture shows a material rollback regression, the exact decidable narrowing is to serialize only instances whose hook differs from the base (`go.afterSetState !== GameObjectBase.prototype.afterSetState`, likewise `cleanupOnRemove`/`afterSetAllState`) — an O(1) identity test per object that would cut the pass by orders of magnitude, at the cost of the whole-population encodability proof.
+2. **Snapshot at-rest footprint moved from packed buffers to live object graphs** — ≈141 objects × ≈17 properties per snapshot, retained 3 action + 2 phase per container, multiplied by concurrent lobbies. Only `payload/retainedChain` observes it, and it cannot separate the contributions. This is the row that triggers the plan's documented JSON-vs-v8-at-rest fallback.
+3. **Snapshot capture is now fallible** where `v8.serialize` tolerated, from six pipeline call sites, with none of restore's abort/report/return-false handling — so a bad `@stateValue` payload breaks *the game* on the next action tick rather than breaking the undo. A loud throw is the intended shape; giving capture a degradation path needs a design decision ("what does a game do when it cannot snapshot") that is out of this unit's fence. `isSnapshotSafeOngoingEffectValue` was tightened to delegate to `encodeStateValue`, which closes the one reachable admission route, but the general residual stands and no test exercises a capture-time throw reaching the pipeline.
+4. **`payload/gameStateBuffer` and `payload/gameObjectStatesBuffer` changed meaning** — they now measure a measurement-only `v8.serialize` of the JSON record, not stored bytes. Both carry `notes.measurement` provenance so it travels into the rendered capture. `$map`/`$set` tagging and lost identity dedup inflate them relative to the old numbers, so they are not a clean content-volume comparison; `payload/retainedChain` is the load-bearing row.
+5. **`PB2I3-N1`** (nit, no action) — the own-key predicate alignment changed a non-enumerable own reserved-tag key from throw to silent drop, which is how every other non-enumerable key was already treated, and has no dedicated regression test.
+6. **`StateWatcher.cleanupOnRemove` is typed `SerializedStateRecord`**, not the generated `ISerializedStateWatcher` the plan's table named. Forced: the hook ignores its argument, and the narrow type makes `PristineAbilityIdentifiers`'s `{}` argument need an object-literal cast this repo's lint config forbids. `cleanupOnRemove({ _uuid: watcher.uuid, entries: [] })` would have type-checked with no cast and was not taken.
+7. **`GameStateManager`'s recovery leg still discards its own nested recovery rollback's return value** for the *other* failure route. Pre-existing, untouched; Plan 4 touches this method.
+
+### Notes for the next agent
+
+- **`P3-PB3` must run its capture with `ENABLE_PARITY_HARNESS` unset** — still true, but the reason has changed: the harness now wraps each registry entry's `deserialize` plus `rollbackToSnapshot`, not `buildGameStateForSnapshot`. `PARITY_RESTORE_MODE` no longer exists.
+- **The three capture questions are in `P3-PB3`'s invocation block**, not just here: retained bytes per snapshot before/after, whether the ratio triggers the documented fallback, and whether `sustained/snapshotAndUndoCycle`'s GC count/pause moved now that every rollback allocates a snapshot's worth of short-lived garbage.
+- **`Contract.assertNonNegative` is not a finite-number check.** It rejects null-like, `NaN` and `val < 0`; `Infinity` and `-0` pass. Several call sites read as though it were stricter. Card damage additionally has two write paths of different strictness — public `setDamageForStateInjection` asserts that much, and the `protected set damage` used by `addDamage`/`removeDamage` asserts nothing numeric.
+- **`test/helpers/IntegrationHelper.js`'s router spy rethrows for every `GameErrorSeverity`,** while production `Lobby.handleError` only throws for `SevereHaltGame`. A spec asserting on a non-fatal severe report must stub `reportError` or it observes the harness, not the engine.
+- **Jasmine `fullName` is not unique in this repository** — 55 titles repeat, 59 duplicate executions in the full suite. Any case-identity evidence must disambiguate by occurrence. Jasmine 5.1 also refuses a `--reporter` under `--parallel` unless it declares `reporterCapabilities = { parallel: true }`, and a stream-based reporter silently writes an empty file because the process exits before the stream flushes — use `fs.writeSync`.
+- **`npm run jasmine` with `.js` globs silently under-selects.** Four globs picked 53 specs; the same four plus two picked 106, including the two that had been missing. Verify the selected count against a case ledger rather than trusting the exit code.
+- **The `@stateValue` admission gate now delegates to the encoder** rather than restating its rules. When Plan 6 adds a load-path guard, that will be the fourth own-key check in the module; the other three (encode, decode, write-site assert) are now all `Object.keys` set-membership.
