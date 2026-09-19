@@ -1,4 +1,4 @@
-import { EffectName, PhaseName } from '../../Constants';
+import { EffectName, PhaseName, SwuGameFormat } from '../../Constants';
 import type { Game } from '../../Game';
 import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
@@ -95,8 +95,10 @@ export class ActionPhase extends Phase {
             player.cleanupFromActionPhase();
         }
         this.game.isInitiativeClaimed = false;
-        this.game.isPlanCounterClaimed = false;
-        this.game.isBlastCounterClaimed = false;
+        if (this.game.format === SwuGameFormat.FauxSuns) {
+            this.game.isPlanCounterClaimed = false;
+            this.game.isBlastCounterClaimed = false;
+        }
         this.game.prevActionPhasePlayerPassed = null;
     }
 }

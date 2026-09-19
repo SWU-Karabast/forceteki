@@ -43,7 +43,7 @@ import {
     WildcardZoneName,
     ZoneName
 } from './Constants';
-import type { TokenName } from './Constants';
+import type { ClaimCounterType, TokenName } from './Constants';
 import { StateWatcherRegistrar } from './stateWatcher/StateWatcherRegistrar';
 import { DistributeAmongTargetsPrompt } from './gameSteps/prompts/DistributeAmongTargetsPrompt';
 import HandlerMenuMultipleSelectionPrompt from './gameSteps/prompts/HandlerMenuMultipleSelectionPrompt';
@@ -106,9 +106,7 @@ import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
 import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
-import { ClaimBlastCounterSystem } from '../gameSystems/ClaimBlastCounterSystem';
-import { ClaimInitiativeSystem } from '../gameSystems/ClaimInitiativeSystem';
-import { ClaimPlanCounterSystem } from '../gameSystems/ClaimPlanCounterSystem';
+import { ClaimCounterSystem } from '../gameSystems/ClaimCounterSystem';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
 
@@ -155,19 +153,28 @@ export class Game extends EventEmitter {
     }
 
     public get isPlanCounterClaimed() {
+        this.assertFauxSuns('isPlanCounterClaimed');
         return this.state.isPlanCounterClaimed;
     }
 
     public set isPlanCounterClaimed(value: boolean) {
+        this.assertFauxSuns('isPlanCounterClaimed');
         this.state.isPlanCounterClaimed = value;
     }
 
     public get isBlastCounterClaimed() {
+        this.assertFauxSuns('isBlastCounterClaimed');
         return this.state.isBlastCounterClaimed;
     }
 
     public set isBlastCounterClaimed(value: boolean) {
+        this.assertFauxSuns('isBlastCounterClaimed');
         this.state.isBlastCounterClaimed = value;
+    }
+
+    /** Throws if this game isn't running the Faux Suns format. Guards state that's only meaningful there. */
+    private assertFauxSuns(propertyName: string): void {
+        Contract.assertTrue(this.format === SwuGameFormat.FauxSuns, `${propertyName} is only valid in the FauxSuns format, but this game's format is ${this.format}`);
     }
 
     public allClaimTokensClaimed(): boolean {
@@ -1388,25 +1395,9 @@ export class Game extends EventEmitter {
         return this.actionNumber;
     }
 
-    public claimInitiative(player: Player): void {
-        new ClaimInitiativeSystem({}).resolve(
-            player,
-            this.getFrameworkContext(player),
-            TriggerHandlingMode.ResolvesTriggers
-        );
-    }
-
-    public claimPlanCounter(player: Player): void {
-        new ClaimPlanCounterSystem({}).resolve(
-            player,
-            this.getFrameworkContext(player),
-            TriggerHandlingMode.ResolvesTriggers
-        );
-    }
-
-    public claimBlastCounter(player: Player): void {
-        // TSTODO: update to blast all opponents
-        new ClaimBlastCounterSystem({}).resolve(
+    // TSTODO: update Blast to blast all opponents
+    public claimCounter(player: Player, counterType: ClaimCounterType): void {
+        new ClaimCounterSystem({ counterType }).resolve(
             player,
             this.getFrameworkContext(player),
             TriggerHandlingMode.ResolvesTriggers

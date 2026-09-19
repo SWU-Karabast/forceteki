@@ -1,5 +1,5 @@
 import { UiPrompt } from './prompts/UiPrompt.js';
-import { EffectName, EventName, SnapshotType, SubStepCheck, SwuGameFormat } from '../Constants.js';
+import { ClaimCounterType, EffectName, EventName, SnapshotType, SubStepCheck, SwuGameFormat } from '../Constants.js';
 import { EnumHelpers } from '../utils/EnumHelpers.js';
 import { Contract } from '../utils/Contract.js';
 import type { Game } from '../Game.js';
@@ -238,7 +238,7 @@ export class ActionWindow extends UiPrompt {
 
     public claimInitiative() {
         this.game.addMessage('{0} claims initiative and passes', this.activePlayer);
-        this.game.claimInitiative(this.activePlayer);
+        this.game.claimCounter(this.activePlayer, ClaimCounterType.Initiative);
 
         // Calls this.complete()
         this.pass(false);
@@ -247,7 +247,7 @@ export class ActionWindow extends UiPrompt {
     public claimPlan() {
         // eslint-disable-next-line forceteki/no-raw-token-text -- "Plan" refers to the TwinSuns Plan counter, not the Plan trait
         this.game.addMessage('{0} claims the Plan counter and passes', this.activePlayer);
-        this.game.claimPlanCounter(this.activePlayer);
+        this.game.claimCounter(this.activePlayer, ClaimCounterType.Plan);
 
         // Calls this.complete()
         this.pass(false);
@@ -255,7 +255,7 @@ export class ActionWindow extends UiPrompt {
 
     public claimBlast() {
         this.game.addMessage('{0} claims the Blast counter and passes', this.activePlayer);
-        this.game.claimBlastCounter(this.activePlayer);
+        this.game.claimCounter(this.activePlayer, ClaimCounterType.Blast);
 
         // Calls this.complete()
         this.pass(false);

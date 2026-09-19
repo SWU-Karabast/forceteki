@@ -739,6 +739,13 @@ export enum SwuGameFormat {
     FauxSuns = 'fauxSuns',
 }
 
+/** The claim counters available during the action phase. TwinSuns/FauxSuns formats use all three; other formats use only Initiative. */
+export enum ClaimCounterType {
+    Initiative = 'initiative',
+    Plan = 'plan',
+    Blast = 'blast',
+}
+
 export enum CardPool {
     Current = 'current',
     NextSet = 'nextSet',
