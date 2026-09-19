@@ -162,6 +162,10 @@ import type { ITakeControlOfCreditTokenProperties } from './TakeControlOfCreditT
 import { TakeControlOfCreditTokenSystem } from './TakeControlOfCreditTokenSystem';
 import type { IRevealAndDrawProperties } from './RevealAndDrawSystem';
 import { RevealAndDrawSystem } from './RevealAndDrawSystem';
+import type { IClaimBlastCounterProperties } from './ClaimBlastCounterSystem';
+import { ClaimBlastCounterSystem } from './ClaimBlastCounterSystem';
+import type { IClaimPlanCounterProperties } from './ClaimPlanCounterSystem';
+import { ClaimPlanCounterSystem } from './ClaimPlanCounterSystem';
 import type { PropsFactory } from '../Interfaces';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
@@ -184,6 +188,14 @@ export function capture<TContext extends AbilityContext = AbilityContext>(proper
 }
 export function cardLastingEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardLastingEffectProperties, TContext>) {
     return new CardLastingEffectSystem<TContext>(propertyFactory);
+}
+/** Applies the Blast counter effect: deals 1 ability damage to the target player's opponent's base */
+export function claimBlastCounter<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IClaimBlastCounterProperties, TContext> = {}) {
+    return new ClaimBlastCounterSystem<TContext>(propertyFactory);
+}
+/** Applies the Plan counter effect: draw 1 card, then put a card from hand on the bottom of your deck */
+export function claimPlanCounter<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IClaimPlanCounterProperties, TContext> = {}) {
+    return new ClaimPlanCounterSystem<TContext>(propertyFactory);
 }
 export function collectBounty<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICollectBountyProperties, TContext>) {
     return new CollectBountySystem<TContext>(propertyFactory);

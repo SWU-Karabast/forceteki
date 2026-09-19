@@ -21,8 +21,8 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
     public declare readonly owner: Player;
     public override readonly name: ZoneName.Base;
 
-    @stateRef()
-    private accessor _leader: ILeaderCard | null = null;
+    @stateRefArray()
+    private accessor _leaders: readonly ILeaderCard[] = [];
 
     @stateRef()
     private accessor _forceToken: ITokenCard | null = null;
@@ -34,12 +34,12 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
     private accessor _upgrades: readonly IUpgradeCard[] = [];
 
     public override get cards(): (IBaseZoneCard)[] {
-        return [this.base, this.forceToken, this.leader, ...this.credits, ...this._upgrades]
+        return [this.base, this.forceToken, ...this.leaders, ...this.credits, ...this._upgrades]
             .filter((card) => card !== null);
     }
 
     public override get count() {
-        return (this._leader ? 2 : 1) + this._upgrades.length;
+        return 1 + this._leaders.length + this._upgrades.length;
     }
 
     /** Upgrades attached to the base (via the Fortify keyword). */
@@ -47,8 +47,12 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
         return this._upgrades as IUpgradeCard[];
     }
 
-    public get leader(): ILeaderCard | null {
-        return this._leader;
+    public get leader(): ILeaderCard {
+        return this._leaders[0];
+    }
+
+    public get leaders(): ILeaderCard[] {
+        return this._leaders as ILeaderCard[];
     }
 
     public get forceToken(): ITokenCard | null {
@@ -63,35 +67,36 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
         return this._credits as ITokenCard[];
     }
 
-    public constructor(game: Game, owner: Player, base: IBaseCard, leader: ILeaderCard) {
+    public constructor(game: Game, owner: Player, base: IBaseCard, leaders: ILeaderCard[]) {
         super(game, owner);
 
         this.hiddenForPlayers = null;
         this.name = ZoneName.Base;
 
         this.base = base;
-        this._leader = leader;
+        this._leaders = leaders;
     }
 
     protected override onInitialize(): void {
         super.onInitialize();
 
-        Contract.assertNotNullLike(this._leader, `Attempting to initialize ${this} with null leader`);
+        Contract.assertTrue(this._leaders.length > 0, `Attempting to initialize ${this} with no leaders`);
         this.base.initializeZone(this);
-        this._leader.initializeZone(this);
+        for (const leader of this._leaders) {
+            leader.initializeZone(this);
+        }
     }
 
     public setLeader(leader: ILeaderCard) {
         Contract.assertEqual(leader.controller, this.owner, `Attempting to add card ${leader.internalName} to ${this} as leader but its controller is ${leader.controller}`);
-        Contract.assertIsNullLike(this._leader, `Attempting to add leader ${leader.internalName} to ${this} but a leader is already there`);
 
-        this._leader = leader;
+        this._leaders = [...this._leaders, leader];
     }
 
-    public removeLeader() {
-        Contract.assertNotNullLike(this._leader, `Attempting to remove leader from ${this} but it is in zone ${this.owner.deckLeader.zone}`);
+    public removeLeader(leader: ILeaderCard) {
+        Contract.assertArrayIncludes(this._leaders, leader, `Attempting to remove leader ${leader.internalName} from ${this} but it is not present`);
 
-        this._leader = null;
+        this._leaders = this._leaders.filter((l) => l !== leader);
     }
 
     public setForceToken(forceToken: ITokenCard) {
