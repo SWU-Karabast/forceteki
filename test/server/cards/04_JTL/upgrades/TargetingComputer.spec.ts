@@ -1,4 +1,9 @@
 describe('Targeting Computer', function () {
+    // TODO: once a card that checks a unit's live ability count is merged (e.g. Rex, Outserved His Purpose),
+    // add a test here confirming the attached unit's gained "assign indirect damage" ability shows up in that
+    // count. A "lose all abilities, then attack" test can't observe this directly: the only way to trigger
+    // indirect damage from this unit is via one of its own abilities, which "lose all abilities" also removes,
+    // so the assignment behavior can't be exercised while abilities are stripped.
     integration(function (contextRef) {
         it('should make indirect damage dealt by the attached unit be assigned by the controller of the attached unit', async function () {
             await contextRef.setupTestAsync({
