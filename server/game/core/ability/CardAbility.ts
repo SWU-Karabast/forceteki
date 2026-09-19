@@ -89,7 +89,8 @@ export abstract class CardAbility extends CardAbilityStep {
             return 'cannotInitiate';
         }
 
-        if (!ignoredRequirements.includes('limit') && this.limit.isAtMax(context.player)) {
+        const limit = context.isTriggered() ? context.abilityLimit : this.limit;
+        if (!ignoredRequirements.includes('limit') && limit.isAtMax(context.player)) {
             return 'limit';
         }
 

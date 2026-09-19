@@ -364,6 +364,11 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
     // Increment limits (limits aren't used up on cards in hand)
     private incrementLimit() {
+        if (this.context.isTriggered()) {
+            this.context.abilityLimit?.increment(this.context.player);
+            return;
+        }
+
         if (this.context.ability.limit && this.context.source.zoneName !== ZoneName.Hand &&
           (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.zoneName === this.context.source.zoneName)) {
             this.context.ability.limit.increment(this.context.player);
