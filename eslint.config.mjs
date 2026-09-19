@@ -9,6 +9,7 @@ import unusedImports from "eslint-plugin-unused-imports";
 import noRawTokenText from './eslint-rules/no-raw-token-text.mjs';
 import stateRefArrayRequiresIStateArray from './eslint-rules/state-ref-array-requires-istatearray.mjs';
 import noEventGeneratedTokens from './eslint-rules/no-event-generated-tokens.mjs';
+import requireAllowGenericValueJustification from './eslint-rules/require-allow-generic-value-justification.mjs';
 
 export default tseslint.config(
     {
@@ -260,17 +261,48 @@ export default tseslint.config(
         }
     },
     {
-        files: ["server/game/**/*.ts"],
-        ignores: ["server/game/core/utils/TextHelper.ts"],
+        // P3-PB1-fix2 (PB1-D2): `require-allow-generic-value-justification` guards the `@stateValue`
+        // decorator exported by `server/game/core/GameObjectUtils.ts`, not anything specific to
+        // `server/game/**`. The rule was originally registered only on the narrower `server/game/**/*.ts`
+        // glob below (shared with three other, genuinely server/game/-only rules), so it silently never ran
+        // against any file outside that tree - confirmed reachable in practice:
+        // `server/gameStatistics/GameStatisticsTracker.ts` already imports `registerState`/`stateRefArray`
+        // from GameObjectUtils and declares `@registerState()` classes today, and a
+        // `@stateValue({ allowGenericValue: true })` probe placed there linted clean with zero justification
+        // (review_implreview2.md PB1-D2). This block is scoped instead by "can this file import
+        // GameObjectUtils's decorators", i.e. every `.ts` file under `server/**` (engine, gamenode,
+        // gameStatistics, services, utils - all one Node/TypeScript program with no module boundary stopping
+        // any of them from importing `server/game/core/GameObjectUtils`) plus `test/**`, since
+        // `test/server/core/GameObjectUtils.spec.ts` legitimately exercises the escape hatch itself and
+        // `test/helpers/ParityHarness.ts` also imports from GameObjectUtils. `scripts/**` is deliberately left
+        // out: nothing under `scripts/` imports `server/game/**` (build/codegen scripts run outside the game
+        // engine's module graph), so it cannot reach these decorators - if that ever changes, this glob must
+        // be revisited too.
+        //
+        // The plugin object itself (all four `forceteki/*` rules) is registered here, on this superset glob,
+        // rather than split across two `plugins` blocks: ESLint's flat config rejects two matching config
+        // objects that both declare the same plugin namespace for one file ("Cannot redefine plugin
+        // forceteki"), and `server/game/**/*.ts` is a subset of `server/**/*.ts`. The three server/game/-only
+        // rules are enabled in the narrower block further down, which only sets `rules` (no `plugins`) and
+        // relies on the registration here.
+        files: ["server/**/*.ts", "test/**/*.ts"],
         plugins: {
             forceteki: {
                 rules: {
                     'no-raw-token-text': noRawTokenText,
                     'state-ref-array-requires-istatearray': stateRefArrayRequiresIStateArray,
                     'no-event-generated-tokens': noEventGeneratedTokens,
+                    'require-allow-generic-value-justification': requireAllowGenericValueJustification,
                 }
             }
         },
+        rules: {
+            'forceteki/require-allow-generic-value-justification': 'error',
+        }
+    },
+    {
+        files: ["server/game/**/*.ts"],
+        ignores: ["server/game/core/utils/TextHelper.ts"],
         rules: {
             'forceteki/no-raw-token-text': 'error',
             'forceteki/state-ref-array-requires-istatearray': 'error',

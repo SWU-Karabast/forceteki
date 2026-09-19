@@ -430,6 +430,75 @@ change and lands first as its own PR.
    `stateArray` decorator split (a known `-morph` TODO) now, in this phase,
    while touching every call site anyway — those decorators get wrappers on
    the ref-collection pattern, giving Plan 4 its value-collection hook.
+
+   **Landed early — corrected by `P3-PB1` against live code (implementation-time
+   correction, not the original plan wording):** this step was resequenced
+   before the Phase B cutover and landed against the still-bag-based system
+   (Phase A had already landed; the bag itself is untouched). (a) The
+   literal `stateMap`/`stateSet`/`stateArray` decorator names land via a
+   three-entry additive `scripts/stateSerializerModel.js` table change
+   (`DECORATOR_SCAN_NAMES` and `FIELD_DECORATOR_TO_KIND`, both mapping to
+   kind `'value'`) — verified byte-identical to the generated artifact
+   (both the `--print-model` completeness table and the artifact body
+   outside its cache header) by regenerating and diffing before vs. after
+   the change, since the generator's `ownFields()` resolves `kind` from the
+   decorator identifier only, and every downstream consumer of `kind`
+   switches on `kind` alone. (b) Beyond the original plan wording, this
+   revision also adds a compile-time constraint at the user's request: a
+   field can no longer be declared with a concrete `Map`/`Set`/`Array` type
+   under bare, no-argument `@stateValue()` (compile error) — a field whose
+   *declared* type is an unresolved class generic (today, exactly
+   `MutableOngoingEffectValueWrapper<TValue>._value`) uses the explicit,
+   disclosed escape hatch `@stateValue({ allowGenericValue: true })`
+   instead, which is a full bypass of the check (TypeScript cannot narrow
+   it to "only when `TValue` turns out non-collection" for an unresolved
+   generic) and is guarded against a *silent* new use by the
+   `forceteki/require-allow-generic-value-justification` lint rule
+   (`eslint-rules/`), which requires an adjacent justification comment at
+   every use site, and is registered on every `.ts` file under `server/**`
+   and `test/**` (not just `server/game/**`), since nothing stops a file
+   outside the engine tree from importing these decorators (confirmed
+   reachable: `server/gameStatistics/GameStatisticsTracker.ts` already
+   imports from `GameObjectUtils` and declares `@registerState()` classes).
+   The rule resolves the call site's identifier through scope analysis
+   before checking it. As of the third fix round (PB1-N1/PB1-N2), the
+   shapes it closes are precisely: a bare local identifier bound by a
+   named import; that import aliased; a namespace import accessed via
+   `Namespace.stateValue(...)` member access; `const { stateValue } =
+   Namespace` destructured off a namespace import (aliased or not); a
+   `const`-bound decorator reference (`const dec = stateValue(...); @dec`)
+   chaining to any of the above; the argument-shape indirection
+   (`const opts = {...}; @stateValue(opts)`) fixed in an earlier round
+   (PB1-R1); and all of the above through a relative import path carrying
+   a trailing `.js`/`.mjs`/`.cjs`/`.ts` extension (an ordinary style
+   already used elsewhere in this codebase, not a contrived shape). Three
+   gaps remain, deliberately not closed, each disclosed the same way: (1)
+   the rule does not, and without typed linting cannot, verify that a
+   given justification comment is *honest* — a field concretely typed as
+   `Map`/`Set`/`Array` can still carry this escape hatch and a
+   plausible-sounding comment and pass every automated check; a human
+   reviewer checking the comment against the field's declared type remains
+   the defense for that residual case. (2) An arbitrary wrapper function
+   that itself calls and returns `stateValue({ allowGenericValue: true })`
+   is not traced into and so is not flagged either — closing it needs
+   call-graph analysis approaching the cost of full type-checking; human
+   review of new decorator-factory functions that call `stateValue` is the
+   defense there. (3) A re-export barrel (`export { stateValue } from
+   './GameObjectUtils'` consumed via `import { stateValue } from
+   './proxy'`) is not traced through either, since the rule only inspects
+   the importing file's own import declaration, not a second module's
+   `export ... from` chain; closing it needs cross-file resolution of
+   comparable cost to the wrapper-function gap. Do not describe this
+   rule's coverage as "general" or as making indirection "unable to bypass
+   it silently" — name the shapes actually closed, per the list above.
+   (c) Cost disclosure for this step, not measured here
+   (the performance capture is `P3-PB3`'s job): each of the 9 retargeted
+   fields' `ValueMap`/`ValueSet`/`ValueArray` wrapper allocates fresh on
+   every whole-value reassignment, including once per field per rollback
+   (`copyState`'s `stateSimpleMetadata` reassignment loop) and once per
+   matching event for `StateWatcher.entries` (~15 watchers) — a named
+   candidate contributor if a `payload/*`/`sustained/*` capture shows a
+   regression touching these fields.
 8. Keep the parity harness available behind a flag for one release cycle,
    comparing against committed snapshot fixtures (golden serialized
    records) — B1 deletes the bag and every dual-write, so there is no old

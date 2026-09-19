@@ -1,4 +1,6 @@
+import * as v8 from 'v8';
 import { GameObjectBase } from '../../../server/game/core/GameObjectBase';
+import type { IGameObjectBaseState } from '../../../server/game/core/GameObjectBase';
 import {
     assertJsonSafeStateValue,
     getRuntimeStateFieldModelByClassName,
@@ -11,6 +13,12 @@ import {
     stateRefSet,
     statePrimitive,
     stateValue,
+    stateMap,
+    stateSet,
+    stateArray,
+    ValueMap,
+    ValueSet,
+    ValueArray,
 } from '../../../server/game/core/GameObjectUtils';
 
 /** Small purpose-built fixture: a real @stateValue accessor with a JSON-safe default, for exercising the decorator's set()/get() wiring (not just the underlying validator function). */
@@ -39,6 +47,82 @@ class AllFieldKindsFixture extends GameObjectBase {
     @stateRefMap() public accessor refMapField: Map<string, GameObjectBase> = new Map();
     @stateRefSet() public accessor refSetField: Set<GameObjectBase> = new Set();
     @stateRefRecord() public accessor refRecordField: Record<string, GameObjectBase> = {};
+}
+
+interface IValueCollectionFieldsFixtureState extends IGameObjectBaseState {
+    mapField: Map<string, number>;
+    setField: Set<number>;
+    arrayField: string[];
+}
+
+/**
+ * `P3-PB1` (AC2-AC6): a fixture carrying one field of each of the three new value-collection decorators.
+ * `state` is redeclared with its own interface so tests can read `getStateUnsafe()`/build `setState()`
+ * arguments with the real field names, the same pattern `AbilityLimit.ts`'s `IAbilityLimitState` uses.
+ */
+@registerState()
+class ValueCollectionFieldsFixture extends GameObjectBase {
+    public declare state: IValueCollectionFieldsFixtureState;
+
+    @stateMap() public accessor mapField: Map<string, number> = new Map();
+    @stateSet() public accessor setField: Set<number> = new Set();
+    @stateArray() public accessor arrayField: string[] = [];
+}
+
+/**
+ * `P3-PB1` (§1.4 point 5 / §2.3): regression coverage for the generic-escape-hatch overload, mirroring
+ * `MutableOngoingEffectValueWrapper<TValue>._value` - a field whose *declared* type is an unresolved class
+ * type parameter, which cannot compile under bare `@stateValue()`'s constrained overload (§1.4 point 4).
+ */
+@registerState()
+class GenericEscapeHatchValueFixture<TValue> extends GameObjectBase {
+    // allowGenericValue-justified: TValue is this fixture's own unresolved type parameter, exercising the
+    // same shape as MutableOngoingEffectValueWrapper._value - regression coverage for the escape hatch itself
+    // (P3-PB1 §1.4 point 5), not a real product field.
+    @stateValue({ allowGenericValue: true }) public accessor value: TValue;
+}
+
+/**
+ * `P3-PB1` (§5 item 4c, AC2): compile-only negative fixtures. Each is immediately preceded by a
+ * `@ts-expect-error` directive that the compiler itself enforces (an unused directive is itself a compile
+ * error), so a clean `tsc` pass over this file with these fixtures present proves each negative case
+ * actually occurred. None is ever instantiated; each is exported so `@typescript-eslint/no-unused-vars`
+ * does not flag it (confirmed lint-clean, per plan_v2.md §8 item 1).
+ */
+@registerState()
+export class NegativeStateMapOnArrayFixture extends GameObjectBase {
+    // @ts-expect-error P3-PB1 AC2: @stateMap() requires a Map<string, TValue>-typed accessor, not an array.
+    @stateMap() public accessor value: string[] = [];
+}
+
+@registerState()
+export class NegativeStateSetOnMapFixture extends GameObjectBase {
+    // @ts-expect-error P3-PB1 AC2: @stateSet() requires a Set<TValue>-typed accessor, not a Map.
+    @stateSet() public accessor value: Map<string, number> = new Map();
+}
+
+@registerState()
+export class NegativeStateArrayOnMapFixture extends GameObjectBase {
+    // @ts-expect-error P3-PB1 AC2: @stateArray() requires an array-typed accessor, not a Map.
+    @stateArray() public accessor value: Map<string, number> = new Map();
+}
+
+@registerState()
+export class NegativeStateValueOnMapFixture extends GameObjectBase {
+    // @ts-expect-error P3-PB1 AC2: bare @stateValue() rejects a concrete Map-typed accessor; use @stateMap().
+    @stateValue() public accessor value: Map<string, number> = new Map();
+}
+
+@registerState()
+export class NegativeStateValueOnSetFixture extends GameObjectBase {
+    // @ts-expect-error P3-PB1 AC2: bare @stateValue() rejects a concrete Set-typed accessor; use @stateSet().
+    @stateValue() public accessor value: Set<number> = new Set();
+}
+
+@registerState()
+export class NegativeStateValueOnArrayFixture extends GameObjectBase {
+    // @ts-expect-error P3-PB1 AC2: bare @stateValue() rejects a concrete array-typed accessor; use @stateArray().
+    @stateValue() public accessor value: string[] = [];
 }
 
 /**
@@ -253,6 +337,174 @@ describe('the @stateValue decorator', function() {
         const { game } = gameObjectHelper.createMockGame();
 
         expect(() => new InvalidInitJsonStateValueFixture(game)).toThrowError(/not JSON-safe/);
+    });
+});
+
+describe('the @stateMap / @stateSet / @stateArray decorators (P3-PB1)', function() {
+    it('wraps a Map/Set/Array field in ValueMap/ValueSet/ValueArray at construction, and re-wraps to a fresh instance on whole-value reassignment', function() {
+        const { game } = gameObjectHelper.createMockGame();
+        const fixture = new ValueCollectionFieldsFixture(game);
+
+        expect(fixture.mapField instanceof ValueMap).toBe(true);
+        expect(fixture.setField instanceof ValueSet).toBe(true);
+        expect(fixture.arrayField instanceof ValueArray).toBe(true);
+
+        const oldMap = fixture.mapField;
+        const oldSet = fixture.setField;
+        const oldArray = fixture.arrayField;
+
+        fixture.mapField = new Map([['a', 1]]);
+        fixture.setField = new Set([1]);
+        fixture.arrayField = ['x'];
+
+        expect(fixture.mapField).not.toBe(oldMap);
+        expect(fixture.setField).not.toBe(oldSet);
+        expect(fixture.arrayField).not.toBe(oldArray);
+        expect(fixture.mapField instanceof ValueMap).toBe(true);
+        expect(fixture.setField instanceof ValueSet).toBe(true);
+        expect(fixture.arrayField instanceof ValueArray).toBe(true);
+        expect([...fixture.mapField.entries()]).toEqual([['a', 1]]);
+        expect([...fixture.setField.values()]).toEqual([1]);
+        expect([...fixture.arrayField]).toEqual(['x']);
+    });
+
+    it('behaves identically to the native collection for in-place mutation (functional parity: Map/Set/Array)', function() {
+        const { game } = gameObjectHelper.createMockGame();
+        const fixture = new ValueCollectionFieldsFixture(game);
+
+        fixture.mapField.set('a', 1);
+        fixture.mapField.set('b', 2);
+        expect(fixture.mapField.get('a')).toBe(1);
+        expect(fixture.mapField.size).toBe(2);
+        expect(fixture.mapField.delete('a')).toBe(true);
+        expect(fixture.mapField.has('a')).toBe(false);
+        fixture.mapField.clear();
+        expect(fixture.mapField.size).toBe(0);
+
+        fixture.setField.add(1);
+        fixture.setField.add(2);
+        expect([...fixture.setField]).toEqual([1, 2]);
+        expect(fixture.setField.delete(1)).toBe(true);
+        expect(fixture.setField.has(1)).toBe(false);
+        fixture.setField.clear();
+        expect(fixture.setField.size).toBe(0);
+
+        fixture.arrayField.push('a', 'b');
+        expect(fixture.arrayField.length).toBe(2);
+        expect(fixture.arrayField.pop()).toBe('b');
+        fixture.arrayField.splice(0, 1, 'c', 'd');
+        expect([...fixture.arrayField]).toEqual(['c', 'd']);
+    });
+
+    it('leaves a plain-typed @stateValue field unaffected (JsonSafeStateValueFixture, no wrapping)', function() {
+        const { game } = gameObjectHelper.createMockGame();
+        const fixture = new JsonSafeStateValueFixture(game);
+
+        fixture.value = { a: 1 };
+        expect(fixture.value).toEqual({ a: 1 });
+        expect(fixture.value instanceof ValueMap).toBe(false);
+    });
+
+    it('exercises the generic-escape-hatch fixture get/set (mirrors MutableOngoingEffectValueWrapper._value)', function() {
+        const { game } = gameObjectHelper.createMockGame();
+        const fixture = new GenericEscapeHatchValueFixture<number>(game);
+
+        fixture.value = 5;
+        expect(fixture.value).toBe(5);
+    });
+
+    /**
+     * D3 / AC3: the direct, executable regression guard for the ValueArray sparse-construction defect found
+     * in v1 (`new ValueArray().init(...)`; `.length =`; index-assign produced a measured +7-9% larger
+     * serialization). Exact byte equality, not merely equal length or content.
+     */
+    it('serializes to byte-identical output as the same bag holding a plain, unwrapped Map/Set/Array (snapshot byte-parity)', function() {
+        const { game } = gameObjectHelper.createMockGame();
+        const fixture = new ValueCollectionFieldsFixture(game);
+        fixture.mapField.set('a', 1);
+        fixture.mapField.set('b', 2);
+        fixture.setField.add(1);
+        fixture.setField.add(2);
+        fixture.arrayField.push('x', 'y', 'z');
+
+        const wrappedBag = fixture.getStateUnsafe() as unknown as IValueCollectionFieldsFixtureState;
+
+        const plainMapBag = { ...wrappedBag, mapField: new Map(wrappedBag.mapField.entries()) };
+        const plainSetBag = { ...wrappedBag, setField: new Set(wrappedBag.setField.values()) };
+        const plainArrayBag = { ...wrappedBag, arrayField: [...wrappedBag.arrayField] };
+
+        expect(Buffer.compare(v8.serialize(wrappedBag), v8.serialize(plainMapBag))).toBe(0);
+        expect(Buffer.compare(v8.serialize(wrappedBag), v8.serialize(plainSetBag))).toBe(0);
+        expect(Buffer.compare(v8.serialize(wrappedBag), v8.serialize(plainArrayBag))).toBe(0);
+    });
+
+    /**
+     * AC5, pinned ordering (PB1-W3): the buffer must be captured *before* the second mutation, and restore
+     * must come from that captured buffer, not a live reference - otherwise the assertion would pass
+     * vacuously regardless of restore correctness.
+     */
+    it('rolls back a @stateMap field to its captured contents, discarding a later in-place mutation, and keeps the field a ValueMap afterward', function() {
+        const { game } = gameObjectHelper.createMockGame();
+        const fixture = new ValueCollectionFieldsFixture(game);
+        fixture.mapField.set('a', 1);
+
+        // Capture strictly before the second mutation below.
+        const buf = v8.serialize(fixture.getStateUnsafe());
+
+        fixture.mapField.set('b', 2);
+        expect(fixture.mapField.size).toBe(2);
+
+        // Restore from the captured buffer, not a live reference.
+        fixture.setState(v8.deserialize(buf) as IValueCollectionFieldsFixtureState);
+
+        expect([...fixture.mapField.entries()]).toEqual([['a', 1]]);
+        expect(fixture.mapField instanceof ValueMap).toBe(true);
+    });
+
+    /**
+     * PB1-R3: the byte-parity test above only ever constructs `ValueSet`/`ValueArray` from an empty default
+     * then mutates in place natively; the reassignment test above asserts only `toEqual`, not byte identity.
+     * Neither combines "construct from a non-empty input via whole-field reassignment or a setState/rollback
+     * restore" with a `Buffer.compare` assertion, so a future change that special-cased the empty-construction
+     * path (the way the v1 `new ValueArray().init(...)` + index-assign defect did for `ValueArray` alone)
+     * would not be caught for `ValueSet`/`ValueArray` here. This exercises both: reassignment to a non-empty
+     * native collection, and a setState restore of a non-empty captured buffer, for every wrapped type.
+     */
+    it('serializes to byte-identical output when a @stateMap/@stateSet/@stateArray field is (re)constructed from non-empty input, via reassignment or a setState restore', function() {
+        const { game } = gameObjectHelper.createMockGame();
+        const fixture = new ValueCollectionFieldsFixture(game);
+
+        // Reassignment path: the wrapping constructor call (ValueMap/ValueSet/CreateValueArrayInternal) runs
+        // against a non-empty native Map/Set/Array, not the empty default this unit's own fixture starts from.
+        fixture.mapField = new Map([['a', 1], ['b', 2]]);
+        fixture.setField = new Set([1, 2, 3]);
+        fixture.arrayField = ['x', 'y', 'z'];
+
+        const reassignedBag = fixture.getStateUnsafe() as unknown as IValueCollectionFieldsFixtureState;
+        const reassignedPlainMapBag = { ...reassignedBag, mapField: new Map(reassignedBag.mapField.entries()) };
+        const reassignedPlainSetBag = { ...reassignedBag, setField: new Set(reassignedBag.setField.values()) };
+        const reassignedPlainArrayBag = { ...reassignedBag, arrayField: [...reassignedBag.arrayField] };
+
+        expect(Buffer.compare(v8.serialize(reassignedBag), v8.serialize(reassignedPlainMapBag))).toBe(0);
+        expect(Buffer.compare(v8.serialize(reassignedBag), v8.serialize(reassignedPlainSetBag))).toBe(0);
+        expect(Buffer.compare(v8.serialize(reassignedBag), v8.serialize(reassignedPlainArrayBag))).toBe(0);
+
+        // setState restore path: copyState's full-field reassignment re-enters the accessor's setter with a
+        // deserialized (non-empty) plain Map/Set/Array, exercising the same wrapping constructors again.
+        const buf = v8.serialize(fixture.getStateUnsafe());
+        fixture.mapField.set('c', 3);
+        fixture.setField.add(4);
+        fixture.arrayField.push('w');
+        fixture.setState(v8.deserialize(buf) as IValueCollectionFieldsFixtureState);
+
+        const restoredBag = fixture.getStateUnsafe() as unknown as IValueCollectionFieldsFixtureState;
+        const restoredPlainMapBag = { ...restoredBag, mapField: new Map(restoredBag.mapField.entries()) };
+        const restoredPlainSetBag = { ...restoredBag, setField: new Set(restoredBag.setField.values()) };
+        const restoredPlainArrayBag = { ...restoredBag, arrayField: [...restoredBag.arrayField] };
+
+        expect(Buffer.compare(v8.serialize(restoredBag), v8.serialize(restoredPlainMapBag))).toBe(0);
+        expect(Buffer.compare(v8.serialize(restoredBag), v8.serialize(restoredPlainSetBag))).toBe(0);
+        expect(Buffer.compare(v8.serialize(restoredBag), v8.serialize(restoredPlainArrayBag))).toBe(0);
     });
 });
 

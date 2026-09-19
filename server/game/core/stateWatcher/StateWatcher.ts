@@ -9,7 +9,7 @@ import { Helpers } from '../utils/Helpers';
 import { is } from '../utils/TypeHelpers';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
 
-import { registerStateBase, stateValue } from '../GameObjectUtils';
+import { registerStateBase, stateArray } from '../GameObjectUtils';
 
 export interface IStateWatcherState<TState> extends IGameObjectBaseState {
     entries: TState[];
@@ -48,7 +48,7 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
     public readonly name: StateWatcherName;
     private eventNameMapping = new Map<string, (...args: any[]) => void>();
 
-    @stateValue() private accessor entries: TState[] = [];
+    @stateArray() private accessor entries: TState[] = [];
 
     // the state reset trigger is the end of the phase
     private stateResetTrigger: IStateListenerResetProperties = {

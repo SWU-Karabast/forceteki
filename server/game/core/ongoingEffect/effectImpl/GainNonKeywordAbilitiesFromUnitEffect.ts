@@ -4,7 +4,7 @@ import type { Card } from '../../card/Card';
 import type { FormatMessage } from '../../chat/GameChat';
 import type { IUnitCard } from '../../card/propertyMixins/UnitProperties';
 import type { Game } from '../../Game';
-import { registerState, stateValue } from '../../GameObjectUtils';
+import { registerState, stateMap } from '../../GameObjectUtils';
 import type { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
 
@@ -15,9 +15,9 @@ import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
  */
 @registerState()
 export class GainNonKeywordAbilitiesFromUnitEffect extends OngoingEffectValueWrapperBase<IUnitCard> {
-    @stateValue() private accessor _triggeredAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
-    @stateValue() private accessor _actionAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
-    @stateValue() private accessor _constantAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+    @stateMap() private accessor _triggeredAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+    @stateMap() private accessor _actionAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+    @stateMap() private accessor _constantAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
 
     private get sourceUnit(): IUnitCard {
         return this.getValue();

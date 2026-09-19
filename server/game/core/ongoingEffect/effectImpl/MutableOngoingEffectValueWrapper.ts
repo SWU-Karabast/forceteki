@@ -23,7 +23,14 @@ import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
  */
 @registerState()
 export class MutableOngoingEffectValueWrapper<TValue> extends OngoingEffectValueWrapperBase<TValue> {
-    @stateValue()
+    // allowGenericValue-justified: TValue is this class's own unresolved type parameter, not a concrete
+    // Map/Set/Array - it cannot be proven non-collection at this declaration site (compile-verified,
+    // P3-PB1 plan_v2.md §1.4 point 4: a naive constrained stateValue() genuinely fails to compile here, and
+    // a tuple-wrapped variant fails identically, so this is not a distributivity workaround). A caller that
+    // instantiates this class with a Map/Set/Array-shaped TValue still gets in-place-mutation observability
+    // only if it separately wraps that value itself - this escape hatch does not add ValueMap/ValueSet/
+    // ValueArray wrapping for such an instantiation, and is not meant to.
+    @stateValue({ allowGenericValue: true })
     private accessor _value: TValue;
 
     public constructor(game: Game, value: TValue, effectDescription?: FormatMessage | string) {

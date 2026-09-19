@@ -4,16 +4,16 @@ import type { Game } from '../../Game';
 import { Helpers } from '../../utils/Helpers';
 import { Contract } from '../../utils/Contract';
 import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
-import { registerState, stateRef, stateValue } from '../../GameObjectUtils';
+import { registerState, stateRef, stateSet } from '../../GameObjectUtils';
 
 @registerState()
 export class AdditionalPhaseEffect extends OngoingEffectValueWrapperBase<AdditionalPhaseEffect> {
     public readonly phase: PhaseName;
 
-    @stateValue()
+    @stateSet()
     private accessor _phaseStartedForRounds: Set<number> = new Set<number>();
 
-    @stateValue()
+    @stateSet()
     private accessor _phaseEndedForRounds: Set<number> = new Set<number>();
 
     @stateRef()

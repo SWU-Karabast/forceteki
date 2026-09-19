@@ -5,7 +5,7 @@ import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import type { Game } from '../Game';
 import type { IEventRegistration } from '../../Interfaces';
-import { registerState, registerStateBase, stateValue, statePrimitive } from '../GameObjectUtils';
+import { registerState, registerStateBase, stateMap, statePrimitive } from '../GameObjectUtils';
 
 export interface IAbilityLimit {
     get ability(): CardAbility | null;
@@ -72,7 +72,7 @@ export abstract class AbilityLimit extends GameObjectBase implements IAbilityLim
 
 @registerState()
 export class UnlimitedAbilityLimit extends AbilityLimit {
-    @stateValue() private accessor useCount: Map<string, number> = new Map();
+    @stateMap() private accessor useCount: Map<string, number> = new Map();
 
     public clone() {
         return new UnlimitedAbilityLimit(this.game);
@@ -145,7 +145,7 @@ export class PerGameAbilityLimit extends AbilityLimit {
 export abstract class PerPlayerPerGameAbilityLimitBase extends AbilityLimit {
     public readonly max: number;
 
-    @stateValue() private accessor useCount: Map<string, number> = new Map();
+    @stateMap() private accessor useCount: Map<string, number> = new Map();
 
     public constructor(game: Game, max: number) {
         super(game);

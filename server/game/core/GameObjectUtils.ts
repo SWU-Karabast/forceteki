@@ -736,6 +736,20 @@ export function stateRef<T extends GameObjectBase, TValue extends GameObjectBase
 }
 
 /**
+ * P3-PB1: excludes `Map`/`Set`/array-typed `TValue` from bare {@link stateValue}, since those now have
+ * dedicated decorators ({@link stateMap}/{@link stateSet}/{@link stateArray}) that give in-place mutation an
+ * interception point. Applied only to bare `stateValue()`'s constrained overload - the
+ * `{ allowGenericValue: true }` overload deliberately skips this (see that overload's doc for why: TypeScript
+ * cannot prove an *unresolved* generic type parameter satisfies this conditional, a distinct limitation from
+ * ordinary union distribution - verified via a real `tsc` probe, plan_v2.md §1.4 point 4).
+ */
+type ForbidStateCollection<TValue> =
+    TValue extends Map<any, any> ? never :
+        TValue extends Set<any> ? never :
+            TValue extends readonly any[] ? never :
+                TValue;
+
+/**
  * For any {@link https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm structuredClone}-compatible
  * value that is **not** a primitive and **not** a {@link GameObjectBase}.
  * The value is stored directly in state without any conversion.
@@ -749,12 +763,47 @@ export function stateRef<T extends GameObjectBase, TValue extends GameObjectBase
  * - {@link stateRefArray} for arrays of GameObjectBase references
  * - {@link stateRefMap} for Map<string, GameObjectBase>
  * - {@link stateRefSet} for Set<GameObjectBase>
- * - Map<string, non-GameObjectBase>, including in-place Map mutations
+ * - {@link stateMap}/{@link stateSet}/{@link stateArray} for a `Map`/`Set`/`Array` of non-`GameObjectBase`
+ *   values, including in-place mutation (`.set()`/`.add()`/`.push()`/etc.) - a bare, no-argument
+ *   `@stateValue()` no longer accepts a concretely `Map`/`Set`/array-typed accessor (compile error).
+ *
+ * `@stateValue({ allowGenericValue: true })` is an explicit, disclosed escape hatch for a field whose
+ * *declared* type is an unresolved class type parameter (e.g. `MutableOngoingEffectValueWrapper<TValue>._value:
+ * TValue`) that cannot be proven non-collection at the declaration site. **This is a full bypass of the
+ * compile-time collection check, not one narrowed to "only when TValue turns out non-collection"** -
+ * TypeScript cannot express that distinction for an unresolved generic (verified, plan_v2.md §1.4 point 6), so
+ * a concretely `Map`/`Set`/array-typed field could misuse this option to dodge `stateMap`/`stateSet`/
+ * `stateArray` and the compiler would not catch it. Introducing a *new* use site is guarded by the
+ * `forceteki/require-allow-generic-value-justification` lint rule (`eslint-rules/`) rather than left to review
+ * alone: a use site must carry an adjacent `// allowGenericValue-justified:` comment explaining why the field's
+ * type cannot be a concrete `Map`/`Set`/`Array` at its declaration site (P3-PB1 AC9). The rule resolves the
+ * decorator call back to the real `stateValue` export before checking it, closing: a bare local identifier
+ * bound by a named import; that import aliased; `Namespace.stateValue(...)` member access on a namespace
+ * import; `const { stateValue } = Namespace` destructured off a namespace import (aliased or not); a
+ * `const`/`let`-bound decorator reference chaining to any of the above; and all of the above through a
+ * relative import path carrying a trailing `.js`/`.mjs`/`.cjs`/`.ts` extension. Three gaps are known and
+ * accepted rather than closed, each requiring materially more infrastructure (typed linting / cross-file or
+ * call-graph analysis) than this AST-only, single-file rule affords: (1) the rule cannot verify a
+ * justification comment is *honest* against the field's actual declared type, (2) an arbitrary wrapper
+ * function that itself calls and returns `stateValue({ allowGenericValue: true })` is not traced into and so
+ * is not flagged, and (3) a re-export barrel (`export { stateValue } from './GameObjectUtils'` consumed via
+ * `import { stateValue } from './proxy'`) is not traced through either, since the rule only inspects the
+ * importing file's own import declaration. Human review remains the defense for all three. Do not describe
+ * this coverage as "general" or as making indirection "unable to bypass it silently" - name the shapes. See
+ * the rule's header comment for the full reasoning.
  *
  * @example
  * ⁣@stateValue() accessor decklist: IDeckListForLoading;
  */
-export function stateValue<T extends GameObjectBase, TValue>() {
+export function stateValue<T extends GameObjectBase>(options: { allowGenericValue: true }): <TValue>(
+    target: ClassAccessorDecoratorTarget<T, TValue>,
+    context: ClassAccessorDecoratorContext<T, TValue>
+) => ClassAccessorDecoratorResult<T, TValue>;
+export function stateValue<T extends GameObjectBase, TValue>(): (
+    target: ClassAccessorDecoratorTarget<T, ForbidStateCollection<TValue>>,
+    context: ClassAccessorDecoratorContext<T, ForbidStateCollection<TValue>>
+) => ClassAccessorDecoratorResult<T, ForbidStateCollection<TValue>>;
+export function stateValue<T extends GameObjectBase, TValue>(_options?: { allowGenericValue?: boolean }) {
     return function (
         target: ClassAccessorDecoratorTarget<T, TValue>,
         context: ClassAccessorDecoratorContext<T, TValue>
@@ -791,6 +840,140 @@ export function stateValue<T extends GameObjectBase, TValue>() {
                 }
                 this.state[name] = value;
                 // We don't use the internal field and only use the data within state.
+                return undefined;
+            }
+        };
+    };
+}
+
+/**
+ * `Map<string, TValue>` of non-`GameObjectBase` values, with in-place mutation (`.set()`/`.delete()`/
+ * `.clear()`) given a single, addressable call site via {@link ValueMap} - see that class's doc comment for
+ * why no dual-write mirror is needed here, unlike {@link stateRefMap}'s `UndoMap`. Registers into the same
+ * `stateSimpleMetadata`/`stateSimpleKindMetadata` buckets {@link stateValue} already uses (kind stays
+ * `'value'`), so this is unobservable to the codegen serializer (P3-PB1 §1.2) and to rollback (§1.1) - only
+ * the runtime accessor wraps the stored collection.
+ */
+export function stateMap<T extends GameObjectBase, TValue>() {
+    return function (
+        target: ClassAccessorDecoratorTarget<T, Map<string, TValue>>,
+        context: ClassAccessorDecoratorContext<T, Map<string, TValue>>
+    ): ClassAccessorDecoratorResult<T, Map<string, TValue>> {
+        if (context.static || context.private) {
+            throw new Error('Can only serialize public instance members.');
+        }
+        if (typeof context.name === 'symbol') {
+            throw new Error('Cannot serialize symbol-named properties.');
+        }
+
+        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
+        metaState[stateSimpleMetadata] ??= [];
+        (metaState[stateSimpleMetadata] as string[]).push(context.name);
+        (metaState[stateSimpleKindMetadata] ??= {})[context.name as string] = 'value' satisfies FieldKind;
+        const name = context.name as string;
+
+        return {
+            get(this: T) {
+                return this.state[name];
+            },
+            set(this: T, newValue: Map<string, TValue>) {
+                if (Helpers.isDevelopment()) {
+                    assertJsonSafeStateValue(name, newValue);
+                }
+                this.state[name] = newValue == null ? newValue : new ValueMap<TValue>(this, name, newValue.entries());
+            },
+            init(this: T, value: Map<string, TValue>) {
+                if (Helpers.isDevelopment()) {
+                    assertJsonSafeStateValue(name, value);
+                }
+                this.state[name] = value == null ? value : new ValueMap<TValue>(this, name, value.entries());
+                return undefined;
+            }
+        };
+    };
+}
+
+/**
+ * `Set<TValue>` of non-`GameObjectBase` values - mirrors {@link stateMap} exactly, against {@link ValueSet}.
+ */
+export function stateSet<T extends GameObjectBase, TValue>() {
+    return function (
+        target: ClassAccessorDecoratorTarget<T, Set<TValue>>,
+        context: ClassAccessorDecoratorContext<T, Set<TValue>>
+    ): ClassAccessorDecoratorResult<T, Set<TValue>> {
+        if (context.static || context.private) {
+            throw new Error('Can only serialize public instance members.');
+        }
+        if (typeof context.name === 'symbol') {
+            throw new Error('Cannot serialize symbol-named properties.');
+        }
+
+        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
+        metaState[stateSimpleMetadata] ??= [];
+        (metaState[stateSimpleMetadata] as string[]).push(context.name);
+        (metaState[stateSimpleKindMetadata] ??= {})[context.name as string] = 'value' satisfies FieldKind;
+        const name = context.name as string;
+
+        return {
+            get(this: T) {
+                return this.state[name];
+            },
+            set(this: T, newValue: Set<TValue>) {
+                if (Helpers.isDevelopment()) {
+                    assertJsonSafeStateValue(name, newValue);
+                }
+                this.state[name] = newValue == null ? newValue : new ValueSet<TValue>(this, name, newValue.values());
+            },
+            init(this: T, value: Set<TValue>) {
+                if (Helpers.isDevelopment()) {
+                    assertJsonSafeStateValue(name, value);
+                }
+                this.state[name] = value == null ? value : new ValueSet<TValue>(this, name, value.values());
+                return undefined;
+            }
+        };
+    };
+}
+
+/**
+ * `TValue[]` of non-`GameObjectBase` values - mirrors {@link stateMap} against {@link ValueArray}. Uses
+ * {@link CreateValueArrayInternal} (`ValueArray.from(arr).init(go, prop)`) rather than
+ * `new ValueArray().init(...)` + index-assign, which produces a V8-serialized sparse array (measured
+ * +7-9% larger; plan_v2.md §1.5/PB1-B2) - `.from()` is dense and byte-identical to a plain array.
+ */
+export function stateArray<T extends GameObjectBase, TValue>() {
+    return function (
+        target: ClassAccessorDecoratorTarget<T, TValue[]>,
+        context: ClassAccessorDecoratorContext<T, TValue[]>
+    ): ClassAccessorDecoratorResult<T, TValue[]> {
+        if (context.static || context.private) {
+            throw new Error('Can only serialize public instance members.');
+        }
+        if (typeof context.name === 'symbol') {
+            throw new Error('Cannot serialize symbol-named properties.');
+        }
+
+        const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
+        metaState[stateSimpleMetadata] ??= [];
+        (metaState[stateSimpleMetadata] as string[]).push(context.name);
+        (metaState[stateSimpleKindMetadata] ??= {})[context.name as string] = 'value' satisfies FieldKind;
+        const name = context.name as string;
+
+        return {
+            get(this: T) {
+                return this.state[name];
+            },
+            set(this: T, newValue: TValue[]) {
+                if (Helpers.isDevelopment()) {
+                    assertJsonSafeStateValue(name, newValue);
+                }
+                this.state[name] = newValue == null ? newValue : CreateValueArrayInternal(this, name, newValue);
+            },
+            init(this: T, value: TValue[]) {
+                if (Helpers.isDevelopment()) {
+                    assertJsonSafeStateValue(name, value);
+                }
+                this.state[name] = value == null ? value : CreateValueArrayInternal(this, name, value);
                 return undefined;
             }
         };
@@ -854,17 +1037,21 @@ function describeInvalidJsonStateValue(value: unknown): string {
  *
  * Known coverage gaps, intentionally not closed here:
  * - This check only runs from the accessor's `set`/`init`, so **in-place** mutation of an already-stored
- *   `Map`/`Set` (e.g. `AbilityLimit.useCount.set(...)`, `GainAbility.ts`,
- *   `GainNonKeywordAbilitiesFromUnitEffect.ts`) never re-enters it - the accessor sees one `set`/`init` call
- *   with an empty collection and nothing thereafter, for as long as the collection is only ever mutated
- *   in place during normal play. This is the primary documented use of `@stateValue`
- *   maps above, so it is a real coverage gap, not a marginal one. Plan 3's
- *   encoder is the intended enforcement point for this population path; do not close it here by rerouting
- *   these fields through `UndoMap`/`UndoSet`, which is snapshot-layer work for a later unit. Note that
- *   rollback is not subject to this gap: `copyState` reassigns every `stateSimpleMetadata` field (which
- *   `@stateValue` registers into) via `instance[field] = newState[field]`, re-entering the `set` accessor
+ *   `Map`/`Set`/`Array` never re-enters it - the accessor sees one `set`/`init` call with an empty
+ *   collection and nothing thereafter, for as long as the collection is only ever mutated in place during
+ *   normal play. **P3-PB1 gives every retargeted `@stateMap`/`@stateSet`/`@stateArray` field (`AbilityLimit`'s
+ *   `useCount`, `GainAbility.ts`, `GainNonKeywordAbilitiesFromUnitEffect.ts`, `AdditionalPhaseEffect.ts`,
+ *   `StateWatcher.entries`) an in-place-mutation call site (`ValueMap`/`ValueSet`/`ValueArray`'s overridden
+ *   mutators) - but does not add re-validation to it; the wrapper's mutators are still pure pass-throughs.**
+ *   For a field still declared with bare `@stateValue()` (not `@stateMap`/`@stateSet`/`@stateArray` - as of
+ *   P3-PB1 only a plain-object/primitive-typed or `{ allowGenericValue: true }` field can be), this remains a
+ *   real coverage gap, not a marginal one. Plan 3's encoder is the intended enforcement point for this
+ *   population path; do not close either gap here by adding re-validation to the wrapper mutators, which is
+ *   separate follow-up work, not this unit's scope. Note that rollback is not subject to either gap:
+ *   `copyState` reassigns every `stateSimpleMetadata` field (which `@stateValue`/`@stateMap`/`@stateSet`/
+ *   `@stateArray` all register into) via `instance[field] = newState[field]`, re-entering the `set` accessor
  *   with whatever the field held at snapshot time - a populated collection included - so this check does
- *   re-validate in-place-mutated maps/sets on every rollback.
+ *   re-validate in-place-mutated maps/sets/arrays on every rollback.
  *
  * Also note: this walks plain-object properties with `Object.keys`, which sees only *own enumerable
  * string-keyed* properties (a symbol-keyed or non-enumerable property is invisible to it), and which
@@ -1281,6 +1468,11 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         return super.reverse();
     }
 
+    // Throws because a position-indexed id mirror (pushIdsOntoStateArray et al., above) would otherwise
+    // desync from this array's own reordering - there is no way to reorder the mirror in lockstep without
+    // reimplementing sort's comparator-driven placement against it. P3-PB1's ValueArray has no such mirror
+    // (see its class doc comment) and therefore does not need this restriction; its sort/fill are plain
+    // pass-throughs.
     public override sort(): this {
         throw new Error('Sort is not supported in UndoArray.');
     }
@@ -1295,8 +1487,200 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
         return super.splice(start, deleteCount);
     }
 
+    // See sort() above for why this throws here but not in ValueArray.
     public override fill(value: TValue, start?: number, end?: number): this {
         throw new Error('Fill is not supported in UndoArray.');
     }
+}
+
+/**
+ * Wraps a `Map<string, non-GameObjectBase>` field so in-place mutation (`set`/`delete`/`clear`) is a single,
+ * addressable call site - mirroring `UndoMap`'s ref-collection pattern, but with **no dual-write mirror**: a
+ * `@stateMap` field's `this.state[name]` already *is* the same live object the accessor exposes (see
+ * `stateValue`'s doc comment), so `copyState`'s full-field reassignment on rollback already restores
+ * in-place-mutated contents correctly, with or without this wrapper (P3-PB1 §1.1). This wrapper's only job is
+ * to give Plan 4 (`docs/plans/04-delta-snapshots.md`) one call-site hook for its future
+ * `this.game.deltaTracker?.recordFieldChange(...)` line; every mutator below is currently a pure pass-through.
+ *
+ * `#go`/`#prop` are JS-private (not merely TypeScript-private), so they are invisible to `v8.serialize`,
+ * `Object.keys`, and test equality checks - matching `UndoMap`'s exact shape (verified lint-clean under this
+ * repo's actual flat config, plan_v2.md §1.4 point 6). This also means `#go`'s back-reference to the owning
+ * `GameObjectBase` creates a bag-to-GameObject reference cycle retained in the `oldState` object handed to
+ * `afterSetState`/`cleanupOnRemove` on rollback - not a leak (both objects are already reachable from the
+ * live game graph regardless), but a new shape for that particular object that a future traversal of
+ * `oldState` should be aware of.
+ */
+export class ValueMap<TValue> extends Map<string, TValue> {
+    #go: GameObjectBase;
+    #prop: string;
+
+    public constructor(go: GameObjectBase, prop: string, entries?: Iterable<readonly [string, TValue]> | null) {
+        super(entries);
+        Contract.assertNotNullLike(go, 'Game Object cannot be null');
+        this.#go = go;
+        this.#prop = prop;
+    }
+
+    public override set(key: string, value: TValue): this {
+        // Plan 4 hook point: this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
+        //
+        // P3-PB1-fix (PB1-R2): this class previously carried a `#init` field, assigned `true` at the end of
+        // the constructor and never read, whose doc comment claimed it "guards against Map's own constructor
+        // invoking this override before #go/#prop exist". That claim was false and would have crashed, not
+        // guarded, the first time it was acted on: `Map`'s constructor invokes this overridden `set()` once
+        // per entry of `entries` *during* `super(entries)`, i.e. before this class's own field initializers
+        // (`#go`, `#prop`, and the removed `#init`) run - private fields are only installed on `this` after
+        // `super()` returns. Reading any of those fields from inside `set()` at that point throws
+        // `TypeError: Cannot read private member ... from an object whose class did not declare it`, it does
+        // not read as `false`/`undefined` (reproduced: see review_implreview1.md PB1-R2). `#init` itself was
+        // simply never wired up to skip that read, so it did nothing either way - it has been removed as dead
+        // weight rather than left as a guard that doesn't guard.
+        //
+        // Plan 4 must NOT add a private-field read (`this.#go`/`this.#prop`, or a reintroduced init flag) to
+        // this method's body as written, precisely because it constructs the map from a possibly-non-empty
+        // `entries` iterable (a rollback restore, or any whole-field reassignment of a populated collection) -
+        // not just the empty-default path this unit's own fields exercise. Options that survive the
+        // pre-initialization window: (1) wrap the private-field read in try/catch and no-op on throw,
+        // (2) key a module-level `WeakSet`/`WeakMap` by `this` instead of a private field (a `WeakSet` entry
+        // can't be read before it's writable the way a private field can, since `has()` on an absent key just
+        // returns `false`), or (3) do not populate via the constructor's `entries` parameter at all - route
+        // construction through `.init(go, prop)` after an empty `super()`, the same recipe `ValueArray` uses
+        // via `.from(arr).init(...)` - and have Plan 4's hook fire only from a call made after `.init()`.
+        return super.set(key, value);
+    }
+
+    public override delete(key: string): boolean {
+        // Plan 4 hook point (see set()).
+        return super.delete(key);
+    }
+
+    public override clear(): void {
+        // Plan 4 hook point (see set()).
+        super.clear();
+    }
+}
+
+/**
+ * `Set<TValue>` counterpart to {@link ValueMap} - same no-dual-write-mirror rationale, same `#go`/`#prop`
+ * cycle note.
+ */
+export class ValueSet<TValue> extends Set<TValue> {
+    #go: GameObjectBase;
+    #prop: string;
+
+    public constructor(go: GameObjectBase, prop: string, values?: Iterable<TValue> | null) {
+        super(values);
+        Contract.assertNotNullLike(go, 'Game Object cannot be null');
+        this.#go = go;
+        this.#prop = prop;
+    }
+
+    public override add(value: TValue): this {
+        // Plan 4 hook point: this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
+        // See ValueMap.set()'s comment (PB1-R2): the same pre-initialization-window hazard applies here -
+        // `Set`'s constructor invokes this overridden `add()` once per element of `values` during
+        // `super(values)`, before `#go`/`#prop` are installed. Do not add a private-field read to this method
+        // without one of the three mitigations documented there.
+        return super.add(value);
+    }
+
+    public override delete(value: TValue): boolean {
+        // Plan 4 hook point (see add()).
+        return super.delete(value);
+    }
+
+    public override clear(): void {
+        // Plan 4 hook point (see add()).
+        super.clear();
+    }
+}
+
+/**
+ * `TValue[]` counterpart to {@link ValueMap}/{@link ValueSet}, on `UndoArray`'s `[Symbol.species]` shape.
+ * Unlike `UndoArray`, every mutator here is an unconditional pass-through - including `sort`/`fill`, which
+ * `UndoArray` throws on (see `UndoArray.sort`'s comment for why that divergence is legitimate: `ValueArray`
+ * has no position-indexed id mirror to desync).
+ *
+ * **Disclosed, not fixed:** `copyWithin` is overridden below for consistency, but direct index assignment
+ * (`arr[3] = x`) and the `length` setter (including `arr.length = 0`) mutate elements without invoking any
+ * overridden method, and JS provides no way to intercept them on a subclassed exotic `Array` without a
+ * `Proxy`, which this class does not introduce (the identical, already-accepted gap `UndoArray` has for ref
+ * arrays - mitigated there only by typing the *ref* case's public field `IStateArray<T>`, not applicable here
+ * since these fields' declared types are plain mutable arrays that real call sites already index/reassign
+ * directly). None of the fields using `stateArray` today exercises any of these three operations
+ * (P3-PB1 plan_v2.md §1.3); Plan 4 must not assume they are covered.
+ *
+ * Construction must go through {@link CreateValueArrayInternal} (`ValueArray.from(arr).init(go, prop)`), never
+ * `new ValueArray().init(...)` followed by `.length =`/index-assignment - that recipe produces a
+ * holey/dictionary-mode array that V8's structured-clone serializer tags as sparse instead of dense (measured
+ * +7-9% larger; plan_v2.md §1.5/PB1-B2). `.from()` is a static call, unaffected by the instance-level
+ * `[Symbol.species]` override, and is dense by spec.
+ */
+export class ValueArray<TValue> extends Array<TValue> {
+    #go: GameObjectBase;
+    #prop: string;
+
+    public static override get [Symbol.species]() {
+        return Array;
+    }
+
+    public init(go: GameObjectBase, prop: string) {
+        this.#go = go;
+        this.#prop = prop;
+        return this;
+    }
+
+    public override push(...items: TValue[]): number {
+        // Plan 4 hook point (see ValueMap.set()).
+        return super.push(...items);
+    }
+
+    public override unshift(...items: TValue[]): number {
+        // Plan 4 hook point (see ValueMap.set()).
+        return super.unshift(...items);
+    }
+
+    public override pop(): TValue {
+        // Plan 4 hook point (see ValueMap.set()).
+        return super.pop();
+    }
+
+    public override shift(): TValue {
+        // Plan 4 hook point (see ValueMap.set()).
+        return super.shift();
+    }
+
+    public override reverse(): TValue[] {
+        // Plan 4 hook point (see ValueMap.set()).
+        return super.reverse();
+    }
+
+    public override sort(compareFn?: (a: TValue, b: TValue) => number): this {
+        // Plan 4 hook point (see ValueMap.set()). Unlike UndoArray.sort, this is a pass-through - see this
+        // class's doc comment for why.
+        return super.sort(compareFn);
+    }
+
+    public override splice(start: number, deleteCount?: number, ...items: TValue[]): TValue[] {
+        // Plan 4 hook point (see ValueMap.set()).
+        return items.length > 0 ? super.splice(start, deleteCount, ...items) : super.splice(start, deleteCount);
+    }
+
+    public override fill(value: TValue, start?: number, end?: number): this {
+        // Plan 4 hook point (see ValueMap.set()). Unlike UndoArray.fill, this is a pass-through - see this
+        // class's doc comment for why.
+        return super.fill(value, start, end);
+    }
+
+    public override copyWithin(target: number, start: number, end?: number): this {
+        // Plan 4 hook point (see ValueMap.set()). Overridden for consistency with the other mutators, but see
+        // this class's doc comment: copyWithin, index assignment, and the length setter are not fully
+        // interceptable on a subclassed exotic Array without a Proxy.
+        return super.copyWithin(target, start, end);
+    }
+}
+
+function CreateValueArrayInternal<TValue>(go: GameObjectBase, prop: string, arr: readonly TValue[]): ValueArray<TValue> {
+    return (ValueArray.from(arr) as ValueArray<TValue>).init(go, prop);
 }
 

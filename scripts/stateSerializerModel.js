@@ -10,11 +10,18 @@ const crypto = require('crypto');
 // Decorator names the cheap text scan looks for. Includes the two register decorators and all seven field
 // decorators, so a file using only field decorators (impossible on main today, but not structurally ruled
 // out) still gets caught by the scan.
+// P3-PB1: stateMap/stateSet/stateArray are additive scan/kind entries only - both map to kind 'value',
+// identically to stateValue (see GameObjectUtils.ts's stateMap/stateSet/stateArray doc comments), so this
+// addition is provably inert for every downstream consumer of `kind` (verified: plan_v2.md §1.2/§5 item 1's
+// before/after artifact diff).
 const DECORATOR_SCAN_NAMES = [
     '@registerState',
     '@registerStateBase',
     '@statePrimitive',
     '@stateValue',
+    '@stateMap',
+    '@stateSet',
+    '@stateArray',
     '@stateRef',
     '@stateRefArray',
     '@stateRefMap',
@@ -27,6 +34,9 @@ const REGISTER_DECORATOR_NAMES = new Set(['registerState', 'registerStateBase'])
 const FIELD_DECORATOR_TO_KIND = new Map([
     ['statePrimitive', 'primitive'],
     ['stateValue', 'value'],
+    ['stateMap', 'value'],
+    ['stateSet', 'value'],
+    ['stateArray', 'value'],
     ['stateRef', 'ref'],
     ['stateRefArray', 'refArray'],
     ['stateRefMap', 'refMap'],
