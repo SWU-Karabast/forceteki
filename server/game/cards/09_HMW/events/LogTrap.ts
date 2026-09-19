@@ -22,7 +22,7 @@ export default class LogTrap extends EventCard {
                 title: 'Attack with it again. It can\'t attack bases for this attack',
                 initiateAttack: {
                     attackerCondition: (card) => thenContext.target === card,
-                    targetCondition: (target) => target.isUnit(),
+                    targetCondition: (target) => !target.isBase(),
                     allowExhaustedAttacker: true
                 }
             }),
