@@ -2,6 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { KeywordName, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class VolleyFire extends EventCard {
     protected override getImplementationId () {
@@ -13,7 +14,7 @@ export default class VolleyFire extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'A friendly unit deals damage equal to its Raid to an enemy unit',
+            title: `A friendly unit deals damage equal to its ${TextHelper.Raid} to an enemy unit`,
             targetResolvers: {
                 friendlyUnit: {
                     controller: RelativePlayer.Self,
