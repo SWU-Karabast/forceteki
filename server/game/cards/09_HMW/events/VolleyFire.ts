@@ -14,7 +14,7 @@ export default class VolleyFire extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: `A friendly unit deals damage equal to its ${TextHelper.Raid} to an enemy unit`,
+            title: `A friendly unit deals damage equal to its ${TextHelper.keyword(KeywordName.Raid)} to an enemy unit`,
             targetResolvers: {
                 friendlyUnit: {
                     controller: RelativePlayer.Self,
