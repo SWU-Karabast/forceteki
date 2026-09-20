@@ -1583,3 +1583,57 @@ Spec counts reconcile **by identity**, not arithmetic: baseline 8661 → +20/−
 - **Jasmine `fullName` is not unique in this repository** — 55 titles repeat, 59 duplicate executions in the full suite. Any case-identity evidence must disambiguate by occurrence. Jasmine 5.1 also refuses a `--reporter` under `--parallel` unless it declares `reporterCapabilities = { parallel: true }`, and a stream-based reporter silently writes an empty file because the process exits before the stream flushes — use `fs.writeSync`.
 - **`npm run jasmine` with `.js` globs silently under-selects.** Four globs picked 53 specs; the same four plus two picked 106, including the two that had been missing. Verify the selected count against a case ledger rather than trusting the exit code.
 - **The `@stateValue` admission gate now delegates to the encoder** rather than restating its rules. When Plan 6 adds a load-path guard, that will be the fourth own-key check in the module; the other three (encode, decode, write-site assert) are now all `Object.keys` set-membership.
+
+---
+
+## `P4-0` — Phase-boundary prompt quick-rollback policy (`3936a4515`)
+
+Shipped **documentation, two specs and comments only — zero product-logic change.** The behavior fix this unit was created to deliver was withdrawn at the plan gate and deferred to a new unit, `P4-0b`.
+
+### What the investigation established
+
+The `TODO THIS PR` at `SnapshotManager.ts:328` named Sneak Attack and Thrawn as phase-boundary cases needing a fix. **They were already correct.** Instrumented runs against both cards, on unmodified `main`, show the existing three-case logic resolving each to the right rollback point. The TODO was stale.
+
+The real defect is narrower and the suite already knew about it: `PhaseStartAndEnd.spec.ts` carried its own "ideally, if one player has **finished** their RR prompt and hits undo..." comment while pinning the wrong behavior as a passing assertion. Once a player has decided something in a Regroup/Setup boundary window — two simultaneous Sneak Attacks is the reachable case — their quick-undo overshoots the entire phase transition into the preceding action phase.
+
+**Root cause:** Regroup/Setup's `StartOfPhase` checkpoint is pushed eagerly and unconditionally by `addQuickStartOfPhaseSnapshots` *before* that phase's trigger window opens, while every other quick-rollback checkpoint (`RegroupReadyCards`, `EndOfPhase`, Action's own `StartOfPhase`) is recorded lazily, gated on `Game.hasBeenPrompted`, *after* its window closes. Plain snapshot-id staleness therefore cannot distinguish "this eager checkpoint has never been an undo target" from "it already was, and a prior undo's replay reopened the identical window."
+
+### Three mechanisms designed and rejected at plan review
+
+Each was rejected on a verified defect, not a preference. All three are written up in the Plan 4 doc's "Known limitations (deferred)" section with their failure evidence.
+
+1. **Fire on an open boundary prompt.** At that moment the rollback target *is* the current snapshot, so restoring it and replaying deterministically lands on an identical board and prompt — a state-identical no-op that still consumes a `freeUndoLimit` use. The plan's own proposed test asserted only conditions already true before the rollback ran.
+2. **A rollback-surviving "checkpoint consumed" marker** in `MetaSnapshotArray`. Correct in its plumbing, but it carried state that deliberately does not roll back, needed its own pruning, added a `quickRollback` side effect, and left phase-type and manual rollbacks unmarked.
+3. **A window-scoped completion flag** set in `UiPrompt.complete()` and cleared by the existing `resetPromptedPlayersTracking()`. Structurally much better — no persisted state, no pruning, no `MetaSnapshotArray` change — but `UiPrompt.complete()` is a shared choke point. `UndoConfirmationPrompt`'s **Deny** click sets the flag with no rollback to clear it, and `DisplayCardsBasicPrompt`'s view-only **Done** (reachable from the shipped upgrade `Foresight`, whose reveal is shown to the *opponent*) does the same. The enumerate-the-exceptions strategy missed a case twice, the second time on a file already carrying a sibling opt-out override two lines away.
+
+That second miss is why the run stopped: the same failure mechanism was surviving repair. The structural alternative — derive "is a decision" from whether the prompt offers a real choice, plus a test enumerating every `UiPrompt` subclass so a missing declaration fails CI — is recorded for `P4-0b` rather than attempted here.
+
+### Verification
+
+Sequential throughout — never two build/test commands at once. Run first-hand by the orchestrator against the final tree, not relayed from a stage agent.
+
+| Check | Result |
+|---|---|
+| `npm run lint` | exit 0 |
+| `npm run test-parallel` | 8680 specs, 0 failures, 13 pending |
+| `npm run test-parallel-undo` | 8490 specs, 0 failures, 17 pending |
+| targeted `UndoConfirmation.spec` | 39 specs, 0 failures (37 pre-existing + 2 new) |
+
+Counts are identical across all three subjects the run produced (initial implementation, fix cycle 1, fix cycle 2), which is the expected signature of text-only repairs and was checked rather than assumed. No benchmark — that is `P4-G`'s.
+
+### Residuals, disclosed and accepted at the gate
+
+1. **The behavior fix is not delivered.** `P4-0b` owns it; `P4-F` and `P4-G` now depend on `P4-0b` rather than on a "P4-0 rule" that does not exist.
+2. **Four authorized departures from the approved plan's verbatim deliverable text**, all forced by review findings: one doc paragraph rewritten because its categorical claim was falsified by a spec in the same diff, and four stale line-citations replaced with name-based references. Recorded explicitly rather than allowed to pass under a "verbatim-match" observation.
+3. **`test-parallel-undo` evidences no-regression, not the two new specs.** `IntegrationHelper.js` replaces `undoIntegration` with `xit` under `ENABLE_UNDO_ALL_TESTS`, so both edited spec files run zero assertions in that mode. It ran as the `CLAUDE.md` gate; it is not cited for `AC2`/`AC3`.
+4. **The Setup-phase instance of this mechanism has no dedicated spec** — no shipped card registers an `onPhaseStarted: Setup` trigger that prompts. Same shape as the other unreachable-today gaps.
+5. **`clearAllSnapshots` never clears `quickSnapshots`** — pre-existing, unreachable today because `MatchLoader` builds a fresh `Game`, untouched here.
+
+### Notes for the next agent
+
+- **`Current` and `Previous` are array positions, not semantic labels.** `MetaSnapshotArray.getSnapshotProperties` resolves them to `entries[length-1]` and `entries[length-2]`, so the same physical snapshot is reachable under either label depending on how many entries have been pushed. Two careful readers — the planner and an independent reviewer — produced two different *wrong* branch attributions from static reading before an instrumented run settled it. Do not reason about `getQuickRollbackPoint` from branch or enum names; instrument it.
+- **`Game.confirmationRequiredForRollback` has three independent triggers** and short-circuits on the first: `rollbackInformation.requiresConfirmation || freeUndoLimit.hasReachedLimit`, then `opponent.hasResolvedAbilityThisTimepoint`. `getQuickRollbackInformation` alone computes only the first. Which one actually fires is not predictable from the snapshot-level inputs — the Thrawn boundary case fires trigger 1 via `opponentActedSinceLastSnapshot`'s `> 2` branch, not the deck-reveal path a static read suggests. Derive confirmation behavior from a run.
+- **The prompt's wording is a fast observable.** "undo their **current** action" vs "**previous** action" reflects `isSameTimepoint` directly, so it distinguishes which target was chosen without instrumentation.
+- **Cite this function by named code fragment, not line number.** Three citations in the plan doc and one range citation in the roadmap went stale *inside the commit that introduced them*, invalidated by that commit's own edits. The convention now used in both the doc and the new specs is to name the guard condition or the terminal return.
+- **`IMPLEMENTATION-ORDER.md`'s Drift section citations for Plans 4–6 are pinned to `56e2579ab` by explicit policy** and are not kept current. A staleness sweep should skip them rather than "fix" them.
+- **An experiment that walks only the success path of a two-branch prompt is not evidence about the other branch.** The Deny-path defect survived a full-suite green run because every experiment took Allow, where the rollback's replay wipes the evidence before it can be observed.
