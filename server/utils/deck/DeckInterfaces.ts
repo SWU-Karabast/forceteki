@@ -116,6 +116,9 @@ export enum DeckValidationFailureReason {
      */
     IllegalInFormat = 'illegalInFormat',
 
+    /** TwinSuns only: the two leaders are the same card (or different printings of the same card). */
+    DuplicateLeaders = 'duplicateLeaders',
+
     /** Deck object is null, missing required fields, or contains a negative card count. */
     InvalidDeckData = 'invalidDeckData',
 
@@ -151,6 +154,9 @@ export interface IDeckValidationFailures {
 
     /** Cards that cannot be played in this format. Each entry's `reason` field distinguishes between `NotLegalInFormat`, `Suspended`, and `UnknownSet`. */
     [DeckValidationFailureReason.IllegalInFormat]?: IIllegalCardEntry[];
+
+    /** Twin Suns only: the two leaders are the same card (or different printings of the same card). */
+    [DeckValidationFailureReason.DuplicateLeaders]?: boolean;
 
     /** The deck object itself is malformed — null, missing required fields, or contains a negative card count. */
     [DeckValidationFailureReason.InvalidDeckData]?: boolean;

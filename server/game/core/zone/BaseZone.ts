@@ -47,10 +47,6 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
         return this._upgrades as IUpgradeCard[];
     }
 
-    public get leader(): ILeaderCard {
-        return this._leaders[0];
-    }
-
     public get leaders(): ILeaderCard[] {
         return this._leaders as ILeaderCard[];
     }
@@ -89,6 +85,7 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard> {
 
     public setLeader(leader: ILeaderCard) {
         Contract.assertEqual(leader.controller, this.owner, `Attempting to add card ${leader.internalName} to ${this} as leader but its controller is ${leader.controller}`);
+        Contract.assertFalse(this._leaders.includes(leader), `Attempting to add leader ${leader.internalName} to ${this} but it is already there`);
 
         this._leaders = [...this._leaders, leader];
     }

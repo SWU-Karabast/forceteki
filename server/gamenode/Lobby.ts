@@ -1311,17 +1311,23 @@ export class Lobby {
     /**
      * Deck-validation failures that indicate an illegal deck to actually play with (as opposed
      * to in-progress editing state). These are the failures that in-lobby flows filter out at
-     * import time, so they must be re-checked before a game can start.
+     * import time (deck size) or that could only be introduced by a later change such as the
+     * lobby's format (Twin Suns leader-pair invariants), so they must be re-checked before a
+     * game can start.
      */
-    private static readonly startBlockingDeckSizeFailures: readonly DeckValidationFailureReason[] = [
+    private static readonly startBlockingFailures: readonly DeckValidationFailureReason[] = [
         DeckValidationFailureReason.MinMainboardSizeNotMet,
         DeckValidationFailureReason.MinDecklistSizeNotMet,
         DeckValidationFailureReason.MaxSideboardSizeExceeded,
+        DeckValidationFailureReason.MissingSecondLeader,
+        DeckValidationFailureReason.MixedAlignmentLeaders,
+        DeckValidationFailureReason.DuplicateLeaders,
     ];
 
     /**
      * Returns the lobby users whose active deck cannot legally start a game because of its size
-     * (missing deck, undersized mainboard/decklist, or oversized sideboard). Also refreshes each
+     * (missing deck, undersized mainboard/decklist, or oversized sideboard) or a Twin Suns
+     * leader-pair invariant (missing/duplicate/mismatched second leader). Also refreshes each
      * user's `deckValidationErrors` so the current state is surfaced to clients.
      */
     private getUsersWithInvalidDeckSize(): LobbyUserWrapper[] {
@@ -1337,7 +1343,7 @@ export class Lobby {
             const errors = this.deckValidator.validateInternalDeck(user.deck.getDecklist(), validationProperties);
             user.deckValidationErrors = errors;
 
-            if (Lobby.startBlockingDeckSizeFailures.some((reason) => reason in errors)) {
+            if (Lobby.startBlockingFailures.some((reason) => reason in errors)) {
                 invalidUsers.push(user);
             }
         }

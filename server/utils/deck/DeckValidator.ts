@@ -1,7 +1,7 @@
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { cards, overrideNotImplementedCards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
-import { CardType, CardPool, SwuGameFormat } from '../../game/core/Constants';
+import { Aspect, CardType, CardPool, SwuGameFormat } from '../../game/core/Constants';
 import type { IDecklistInternal, ISwuDbFormatCardEntry, IDeckValidationProperties } from './DeckInterfaces';
 import { DecklistLocation, DeckValidationFailureReason, IllegalInFormatReason, type IDeckValidationFailures, type ISwuDbFormatDecklist } from './DeckInterfaces';
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
@@ -408,6 +408,7 @@ export class DeckValidator {
                         this.checkFormatLegality(secondLeaderData, format, legalSets, failures);
                         if (leaderData) {
                             this.checkTwinSunsLeaderAspectConflict(leaderData, secondLeaderData, failures);
+                            this.checkTwinSunsDuplicateLeaders(deck.leader.id, secondLeaderEntry.id, failures);
                         }
                     }
                 }
@@ -536,10 +537,23 @@ export class DeckValidator {
      * @param failures The validation failures
      */
     protected checkTwinSunsLeaderAspectConflict(leader1Data: ICardCheckData, leader2Data: ICardCheckData, failures: IDeckValidationFailures): void {
-        const eitherHasHeroism = leader1Data.aspects.includes('heroism') || leader2Data.aspects.includes('heroism');
-        const eitherHasVillainy = leader1Data.aspects.includes('villainy') || leader2Data.aspects.includes('villainy');
+        const eitherHasHeroism = leader1Data.aspects.includes(Aspect.Heroism) || leader2Data.aspects.includes(Aspect.Heroism);
+        const eitherHasVillainy = leader1Data.aspects.includes(Aspect.Villainy) || leader2Data.aspects.includes(Aspect.Villainy);
         if (eitherHasHeroism && eitherHasVillainy) {
             failures[DeckValidationFailureReason.MixedAlignmentLeaders] = true;
+        }
+    }
+
+    /**
+     * Checks that the two Twin Suns leaders aren't the same card. Compares by underlying card id (not the
+     * printed set code) so two different printings of the same leader are still caught as a duplicate.
+     * @param leader1SetCode The first leader's (normalized) set code
+     * @param leader2SetCode The second leader's (normalized) set code
+     * @param failures The validation failures
+     */
+    protected checkTwinSunsDuplicateLeaders(leader1SetCode: string, leader2SetCode: string, failures: IDeckValidationFailures): void {
+        if (this.setCodeToId.get(leader1SetCode) === this.setCodeToId.get(leader2SetCode)) {
+            failures[DeckValidationFailureReason.DuplicateLeaders] = true;
         }
     }
 

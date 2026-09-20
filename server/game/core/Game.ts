@@ -177,15 +177,22 @@ export class Game extends EventEmitter {
         Contract.assertTrue(this.format === SwuGameFormat.FauxSuns, `${propertyName} is only valid in the FauxSuns format, but this game's format is ${this.format}`);
     }
 
-    public allClaimTokensClaimed(): boolean {
-        if (this.format === SwuGameFormat.FauxSuns) {
-            // In a 2-player game only 2 of the 3 tokens can ever be claimed (one per player).
-            // TSTODO: update this threshold for 3+ player games where all 3 tokens may be claimable.
-            const claimedCount = [this.isInitiativeClaimed, this.isPlanCounterClaimed, this.isBlastCounterClaimed]
-                .filter(Boolean).length;
-            return claimedCount >= 2;
+    /**
+     * Whether at least one claim counter (Initiative/Plan/Blast) can still be claimed this round, per rule
+     * 12.6.1.A: a player may pass only if no counter is available or they already took one. Claiming a
+     * counter immediately ends that player's turn for the phase, so each player can claim at most one
+     * counter per round — meaning at most `min(3, player count)` of the three counters can ever be claimed
+     * in a single round, regardless of how many total counters exist. Always false outside FauxSuns.
+     */
+    public hasUnclaimedClaimableCounter(): boolean {
+        if (this.format !== SwuGameFormat.FauxSuns) {
+            return false;
         }
-        return true;
+
+        const claimedCount = [this.isInitiativeClaimed, this.isPlanCounterClaimed, this.isBlastCounterClaimed]
+            .filter(Boolean).length;
+        const maxClaimableCounters = Math.min(3, this.getPlayers().length);
+        return claimedCount < maxClaimableCounters;
     }
 
     public get roundNumber() {
@@ -689,6 +696,9 @@ export class Game extends EventEmitter {
     /**
      * Checks who the next legal active player for the action phase should be and updates activePlayer. If none available, sets it to null.
      */
+    // NOTE: when called via ActionWindow.pass() right after a claimCounter() call (see ActionWindow.claim*()),
+    // this read of passedActionPhase depends on ClaimCounterSystem's event window having already run and set
+    // that flag, even though claimCounter() itself only queues that window rather than running it synchronously.
     public rotateActivePlayer(): void {
         Contract.assertTrue(this.currentPhase === PhaseName.Action, `rotateActivePlayer can only be called during the action phase, instead called during ${this.currentPhase}`);
         if (!this.actionPhaseActivePlayer.opponent.passedActionPhase) {

@@ -392,7 +392,9 @@ class DeckBuilder {
             return setCode;
         };
 
-        /** @type {import('../../server/utils/deck/DeckInterfaces.js').IDecklistInternal} */
+        // Built in the SWUDB shape (lowercase `secondleader`), not IDecklistInternal (camelCase `secondLeader`) —
+        // this is what's passed to the Deck constructor below, which expects ISwuDbFormatDecklist.
+        /** @type {Partial<import('../../server/utils/deck/DeckInterfaces.js').ISwuDbFormatDecklist>} */
         const decklist = {
             leader: { id: safeGetSetCode(leader), count: 1 },
             ...(secondLeader ? { secondleader: { id: safeGetSetCode(secondLeader), count: 1 } } : {}),

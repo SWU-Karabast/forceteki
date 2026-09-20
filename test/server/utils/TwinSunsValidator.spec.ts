@@ -80,6 +80,15 @@ describe('FauxSuns deck validation', function () {
             expect(failures[DeckValidationFailureReason.MissingSecondLeader]).toBeTrue();
         });
 
+        it('should reject a deck where both leaders are the same card', function () {
+            const deck = buildDeck(getDeckFiller(cardDataGetter, 80, FAUXSUNS_SETS), {
+                leader: buildCardEntry(cardDataGetter, HEROISM_LEADER_1),
+                secondLeader: buildCardEntry(cardDataGetter, HEROISM_LEADER_1),
+            });
+            const failures = validator.validateInternalDeck(deck, fauxSunsProps());
+            expect(failures[DeckValidationFailureReason.DuplicateLeaders]).toBeTrue();
+        });
+
         it('should reject a Heroism + Villainy leader pair', function () {
             const deck = buildDeck(getDeckFiller(cardDataGetter, 80, FAUXSUNS_SETS), {
                 leader: buildCardEntry(cardDataGetter, HEROISM_LEADER_1),

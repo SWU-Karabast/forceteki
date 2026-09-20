@@ -6,7 +6,7 @@ import type { Player } from '../core/Player.js';
 import { Contract } from '../core/utils/Contract.js';
 import { DamageSystem } from './DamageSystem.js';
 import { DrawSystem } from './DrawSystem.js';
-import { PutOnBottomFromHandSystem } from './PutOnBottomFromHandSystem.js';
+import { ClaimPlanCounterPutOnBottomSystem } from './ClaimPlanCounterPutOnBottomSystem.js';
 
 export interface IClaimCounterProperties extends IPlayerTargetSystemProperties {
     counterType: ClaimCounterType;
@@ -37,9 +37,6 @@ export class ClaimCounterSystem<TContext extends AbilityContext = AbilityContext
             case ClaimCounterType.Initiative:
                 game.initiativePlayer = player;
                 game.isInitiativeClaimed = true;
-
-                // Update game state for the sake of constant abilities that check initiative.
-                game.resolveGameState();
                 break;
             case ClaimCounterType.Plan:
                 game.isPlanCounterClaimed = true;
@@ -49,6 +46,13 @@ export class ClaimCounterSystem<TContext extends AbilityContext = AbilityContext
                 break;
         }
 
+        // NOTE ON ORDERING: this handler runs when the queued event window opens, not synchronously when
+        // resolve() is called (see Game.claimCounter). ActionWindow.claim*() calls Game.claimCounter(...)
+        // and then immediately calls pass(false), which — via Game.rotateActivePlayer() — reads this same
+        // player.passedActionPhase flag. That read only sees the value set here because GamePipeline drains
+        // steps queued during the current step (including this event window) before the pipeline advances
+        // past the ActionWindow's own completion. This isn't independently enforced or unit-tested at the
+        // pipeline level — if that step-ordering ever changes, this flag could be read stale.
         player.passedActionPhase = true;
     }
 
@@ -69,10 +73,13 @@ export class ClaimCounterSystem<TContext extends AbilityContext = AbilityContext
             case ClaimCounterType.Plan:
                 // The draw fires first as a contingent of OnPlanCounterClaimed, then the put-on-bottom
                 // prompt fires as a subsequent contingent — ensuring the player sees their drawn card
-                // before deciding which card to return to the bottom of their deck.
+                // before deciding which card to return to the bottom of their deck. Both must stay as
+                // contingents (rather than independent top-level resolves) so this event window's own
+                // triggered-ability resolution — e.g. Rey/Seasoned Fleet Admiral's "a card was drawn"
+                // triggers — happens after the put-on-bottom prompt, not before it.
                 event.setContingentEventsGenerator(() => [
                     new DrawSystem({ amount: 1 }).generateRetargetedEvent(player, context),
-                    new PutOnBottomFromHandSystem({}).generateRetargetedEvent(player, context),
+                    new ClaimPlanCounterPutOnBottomSystem({}).generateRetargetedEvent(player, context),
                 ]);
                 break;
             case ClaimCounterType.Blast:

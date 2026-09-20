@@ -138,7 +138,7 @@ export class ActionWindow extends UiPrompt {
     public override activePromptInternal(player: Player): IPlayerPromptStateProperties {
         const { mustTakeCardAction, overrideActionPromptTitle } = this.getSelectableCards();
         const isFauxSuns = this.game.format === SwuGameFormat.FauxSuns;
-        const mustClaimToken = isFauxSuns && !this.game.allClaimTokensClaimed();
+        const mustClaimToken = this.game.hasUnclaimedClaimableCounter();
 
         const buttons: IButton[] = [
             { text: 'Pass', arg: 'pass', disabled: mustTakeCardAction || mustClaimToken },
@@ -236,6 +236,10 @@ export class ActionWindow extends UiPrompt {
         // }
     }
 
+    // NOTE: claimInitiative/claimPlan/claimBlast all share this shape — claimCounter(...) only queues the
+    // claim event window (it doesn't set passedActionPhase synchronously), and pass(false) immediately after
+    // relies on that flag already being set by the time it (via Game.rotateActivePlayer()) reads it. See the
+    // ordering note in ClaimCounterSystem.eventHandler for why this is safe today.
     public claimInitiative() {
         this.game.addMessage('{0} claims initiative and passes', this.activePlayer);
         this.game.claimCounter(this.activePlayer, ClaimCounterType.Initiative);

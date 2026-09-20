@@ -6,18 +6,24 @@ import type { Player } from '../core/Player.js';
 import type { Card } from '../core/card/Card.js';
 import * as CardSelectorFactory from '../core/cardSelector/CardSelectorFactory.js';
 import { SelectCardMode } from '../core/gameSteps/PromptInterfaces.js';
+import { MoveCardSystem } from './MoveCardSystem.js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IPutOnBottomFromHandProperties extends IPlayerTargetSystemProperties {}
+export interface IClaimPlanCounterPutOnBottomProperties extends IPlayerTargetSystemProperties {}
 
 /**
  * Prompts the target player to choose a card from their hand and put it on the
- * bottom of their deck. Used as a contingent event of {@link ClaimPlanCounterSystem}.
- * If the player's hand is empty the prompt is skipped.
+ * bottom of their deck. Used as a contingent event of {@link ClaimCounterSystem}'s
+ * Plan counter branch. If the player's hand is empty the prompt is skipped.
+ *
+ * Must remain a contingent event of the claim (rather than an independent top-level resolve, e.g. via
+ * selectCard()) so that this prompt resolves before that claim event window's own triggered-ability
+ * window opens — see SeasonedFleetAdmiral.spec.ts / ReyWithPalpatinesPower.spec.ts, which assert that
+ * the put-on-bottom choice happens before any "a card was drawn" triggers fire.
  */
-export class PutOnBottomFromHandSystem<TContext extends AbilityContext = AbilityContext>
-    extends PlayerTargetSystem<TContext, IPutOnBottomFromHandProperties> {
-    public override readonly name = 'putOnBottomFromHand';
+export class ClaimPlanCounterPutOnBottomSystem<TContext extends AbilityContext = AbilityContext>
+    extends PlayerTargetSystem<TContext, IClaimPlanCounterPutOnBottomProperties> {
+    public override readonly name = 'claimPlanCounterPutOnBottom';
     public override readonly eventName = EventName.OnPlanCounterPutOnBottom;
 
     public override defaultTargets(context: TContext): Player[] {
@@ -28,6 +34,7 @@ export class PutOnBottomFromHandSystem<TContext extends AbilityContext = Ability
     public override eventHandler(event: any): void {
         const player = event.player as Player;
         const game = event.context.game;
+        const context = event.context;
 
         if (player.hand.length === 0) {
             return;
@@ -48,7 +55,7 @@ export class PutOnBottomFromHandSystem<TContext extends AbilityContext = Ability
             selectCardMode: SelectCardMode.Single,
             onSelect: (card: Card | Card[]) => {
                 const target = Array.isArray(card) ? card[0] : card;
-                target.moveTo(DeckZoneDestination.DeckBottom);
+                new MoveCardSystem({ target, destination: DeckZoneDestination.DeckBottom }).resolve(undefined, context);
                 return true;
             },
         });

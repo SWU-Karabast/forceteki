@@ -124,6 +124,9 @@ export class SwuBaseHandler {
         return {
             id: player.id,
             accessToken: accessToken,
+            // Intentionally only the primary leader: SwuBase's schema has one leader slot per player, and
+            // getSingleLeader() would throw for Twin Suns games. If Twin Suns stats reporting is ever
+            // needed, this schema will need a second-leader field to record both.
             leader: player.deckLeader?.id,
             base: player.base?.id,
             deck: {
