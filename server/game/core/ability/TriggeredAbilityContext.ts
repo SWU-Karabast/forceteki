@@ -2,13 +2,11 @@ import type { Card } from '../card/Card';
 import { Contract } from '../utils/Contract';
 import { AbilityContext, type IAbilityContextProperties } from './AbilityContext';
 import type { TriggeredAbilityBase } from './TriggeredAbility';
-import type { AbilityLimit } from './AbilityLimit';
 
 export interface ITriggeredAbilityContextProperties extends IAbilityContextProperties {
     // TODO: rename this to "triggeringEvent"
     event: any;
     overrideTitle?: string;
-    abilityLimit?: AbilityLimit;
 
     /**
      * True if this ability was manually activated by a game system (e.g., UseWhenDefeatedSystem)
@@ -22,9 +20,6 @@ export class TriggeredAbilityContext<TSource extends Card = Card> extends Abilit
     public declare readonly ability: TriggeredAbilityBase;
     public readonly retriggeredByAbility: boolean;
 
-    /** The limit shared by triggers from the source's original stay in play. */
-    public readonly abilityLimit: AbilityLimit;
-
     private _overrideTitle: string = null;
 
     public get overrideTitle(): string | null {
@@ -36,7 +31,6 @@ export class TriggeredAbilityContext<TSource extends Card = Card> extends Abilit
         this.event = properties.event;
         this._overrideTitle = properties.overrideTitle;
         this.retriggeredByAbility = properties.retriggeredByAbility || false;
-        this.abilityLimit = properties.abilityLimit ?? this.ability?.limit;
     }
 
     public setOverrideTitle(title: string) {
@@ -53,7 +47,7 @@ export class TriggeredAbilityContext<TSource extends Card = Card> extends Abilit
     }
 
     public override getProps() {
-        return Object.assign(super.getProps(), { event: this.event, overrideTitle: this.overrideTitle, retriggeredByAbility: this.retriggeredByAbility, abilityLimit: this.abilityLimit });
+        return Object.assign(super.getProps(), { event: this.event, overrideTitle: this.overrideTitle, retriggeredByAbility: this.retriggeredByAbility });
     }
 
     public cancel() {

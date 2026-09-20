@@ -51,7 +51,7 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
     private _title: string;
     private _contextTitle?: (context: AbilityContext) => string;
     private _appendOverrideTitle: boolean;
-    @stateRef() public accessor limit: AbilityLimit = null;
+    @stateRef() protected accessor limit: AbilityLimit = null;
     public canResolveWithoutLegalTargets: boolean;
     public targetResolvers: TargetResolver<any>[];
     public cannotTargetFirst: boolean;
@@ -391,6 +391,11 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
         );
     }
 
+    /** Returns the limit to retain for a new resolution context. */
+    public captureLimit(): AbilityLimit {
+        return this.limit;
+    }
+
     public createContext(player: Player = this.card.controller, event = undefined) {
         return new AbilityContext(this.getContextProperties(player, event));
     }
@@ -398,6 +403,7 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
     public getContextProperties(player: Player, event) {
         return {
             ability: this,
+            limit: this.limit,
             game: this.game,
             player,
             source: this.card,

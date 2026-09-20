@@ -89,8 +89,7 @@ export abstract class CardAbility extends CardAbilityStep {
             return 'cannotInitiate';
         }
 
-        const limit = context.isTriggered() ? context.abilityLimit : this.limit;
-        if (!ignoredRequirements.includes('limit') && limit.isAtMax(context.player)) {
+        if (!ignoredRequirements.includes('limit') && context.isAtLimit()) {
             return 'limit';
         }
 
@@ -100,6 +99,10 @@ export abstract class CardAbility extends CardAbilityStep {
     public getAdjustedCost(context: AbilityContext) {
         const resourceCost = this.getCosts(context).find((cost) => cost.isResourceCost());
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
+    }
+
+    public resetLimit(): void {
+        this.limit.reset();
     }
 
     protected isInValidZone(context) {
