@@ -1,9 +1,4 @@
 describe('Targeting Computer', function () {
-    // TODO: once a card that checks a unit's live ability count is merged (e.g. Rex, Outserved His Purpose),
-    // add a test here confirming the attached unit's gained "assign indirect damage" ability shows up in that
-    // count. A "lose all abilities, then attack" test can't observe this directly: the only way to trigger
-    // indirect damage from this unit is via one of its own abilities, which "lose all abilities" also removes,
-    // so the assignment behavior can't be exercised while abilities are stripped.
     integration(function (contextRef) {
         it('should make indirect damage dealt by the attached unit be assigned by the controller of the attached unit', async function () {
             await contextRef.setupTestAsync({
@@ -63,6 +58,29 @@ describe('Targeting Computer', function () {
             expect(context.pykeSentinel.damage).toBe(1);
             expect(context.p2Base.damage).toBe(2);
             expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should give the attached unit a gained constant ability for units like Rex that count abilities', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['targeting-computer'],
+                    groundArena: ['rex#outserved-his-purpose', 'battlefield-marine']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Vanilla 3/3 Battlefield Marine has no abilities, so Rex buffs it to 4/4.
+            expect(context.battlefieldMarine.getPower()).toBe(4);
+            expect(context.battlefieldMarine.getHp()).toBe(4);
+
+            context.player1.clickCard(context.targetingComputer);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            // Loses +1/+1 from Rex's ability, gains +1/+1 from Targeting Computer upgrade stats
+            expect(context.battlefieldMarine.getPower()).toBe(4);
+            expect(context.battlefieldMarine.getHp()).toBe(4);
         });
     });
 });
