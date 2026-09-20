@@ -82,6 +82,17 @@ const normalizeCardDataForBenchmark = (cardData) => {
         normalized.arena = 'ground';
     }
 
+    // Fortify-only upgrades (e.g. insurgent-camp, landing-pad) have null upgrade stats,
+    // which the InPlayCard constructor rejects.
+    if (Array.isArray(normalized.types) && normalized.types.includes('upgrade')) {
+        if (normalized.upgradeHp == null) {
+            normalized.upgradeHp = 0;
+        }
+        if (normalized.upgradePower == null) {
+            normalized.upgradePower = 0;
+        }
+    }
+
     return normalized;
 };
 
