@@ -33,8 +33,8 @@ export default class ForcedPacification extends EventCard {
                     targetResolver: {
                         activePromptTitle: (_context, selectedCards) => (
                             selectedCards == null
-                                ? `Exhaust up to ${exhaustCount} enemy units`
-                                : `Exhaust up to ${exhaustCount} enemy units (${selectedCards.length} selected)`
+                                ? `Exhaust ${exhaustCount} enemy units`
+                                : `Exhaust ${exhaustCount} enemy units (${selectedCards.length} selected)`
                         ),
                         mode: TargetMode.Exactly,
                         numCards: exhaustCount,
