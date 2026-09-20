@@ -529,6 +529,26 @@ Read `P3-PA3`'s entry in [ANVIL-LOG.md](ANVIL-LOG.md) before starting: it record
 /orchestrate --fast Implement docs/plans/03-codegen-serializers.md Phase B step 9 (developer docs) ONLY: update docs/ so the "adding a state field" workflow includes the codegen step, and document the hard-fail behavior when the generated artifact is missing or stale. Scope fence: no production code changes; do NOT retire the parity harness (step 8 is deliberately deferred one release cycle). This is the FINAL scheduled unit of Plan 3: after the docs land, run `npm run benchmark -- --name after-plan-03 --compare pre-roadmap-baseline` and commit both generated files under docs/plans/performance/. Note in the plan doc that Plan 3 is expected to trade build-time complexity for runtime cost, and quantify any headline-benchmark regression rather than waving it through. The capture is not a report here - it has four specific questions to answer, all recorded by `P3-PB2` in 03-codegen-serializers.md (Phase B step 5, and the "Benchmark maintenance" section at the end); read both before running it. (1) How much of the `full/rollbackToSnapshot` and `manager/rollbackTo(Manual)` delta is the new per-rollback `oldState` pre-pass? `full/buildGameStateForSnapshot` is the lower bound. The pre-pass is the named first lever if rollback regressed, and the plan doc gives the exact decidable narrowing and what it costs. (2) `payload/retainedChain` bytes PER RETAINED SNAPSHOT, before vs after - snapshots are live object graphs now, not one contiguous Buffer, and the multiplier could not be bounded from code. (3) Does that ratio cross the threshold that triggers the plan's documented JSON-vs-v8-at-rest fallback? (4) Did `sustained/snapshotAndUndoCycle`'s GC count and pause move, since every rollback now allocates a full snapshot's worth of short-lived garbage? Also note before reading the numbers: `payload/gameStateBuffer`, `payload/gameObjectStatesBuffer` and `payload/fullSnapshotTotal` changed meaning at `P3-PB2` and carry a `notes.measurement` tag saying so - they are a v8-equivalent size of the retained JSON record, not stored bytes, and they inflate relative to the baseline for two structural reasons the plan doc names. task_id: p3-pb3
 ```
 
+**`P3-PB3` landed and Plan 3 is complete.** `docs/state-fields.md` documents the
+"adding a state field" workflow (decorator kinds, the automatic codegen step
+built into every `npm run build*`/`test*` entry point, `--print-model` for
+inspecting the generated model) and the two hard-fail modes: a missing
+generated artifact is a `tsc TS2307` build error (`StateSerializers.ts`'s
+non-optional import), and a stale one fails loudly via
+`checkStateSerializerCoverage` (dev-startup boot and
+`StateSerializerCoverageCheck.spec.ts`), both documented with their actual
+error shapes. `docs/plans/03-codegen-serializers.md` records the `P3-PB3`
+capture's answers to its four named questions inline at Phase B step 5 and the
+"Benchmark maintenance" section. Headline result, contrary to this plan's own
+risk note: **every measured `manager/*`, `payload/*` and `sustained/*` row
+improved** (`after-plan-03` vs. `pre-roadmap-baseline`) — rollback timing down
+44%–60%, retained-chain memory down 13%–17%, GC pause time down 6x–8x — so the
+documented JSON-vs-`v8`-at-rest fallback is not triggered and was not adopted.
+The card-memory sub-benchmark was skipped (`--skip-card-memory`) due to a
+pre-existing, Plan-3-unrelated gap in `scripts/card-memory-benchmark.js`
+exposed by two newer zero-stat Fortify upgrade cards; flagged separately for a
+follow-up fix, not blocking this unit.
+
 ### `P3-PB4` — Retire the parity harness *(deferred)*
 
 Phase B step 8 says to keep the harness behind a flag for **one release cycle**,
