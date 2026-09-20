@@ -398,8 +398,11 @@ describe('Start / end of phase snapshots', function() {
                 assertRegroupPhaseRaiderDefeatedState(context);
             });
 
-            // TODO: ideally, if one player has finished their RR prompt and hits "undo", it could revert back to start of regroup phase
-            // and not skip over their RR action
+            // Known, documented limitation (deferred, roadmap unit P4-0b): see
+            // docs/plans/04-delta-snapshots.md's "Known limitations (deferred)" section for the root
+            // cause, why three separate fix attempts failed, and the structural alternative left for
+            // whoever picks this up. This assertion pins today's correct-for-now behavior; do not
+            // change it without also resolving that documented item.
             it('should revert back to the last action of the action phase on undo', function () {
                 const { context } = contextRef;
 

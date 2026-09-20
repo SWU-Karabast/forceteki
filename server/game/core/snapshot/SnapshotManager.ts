@@ -325,7 +325,14 @@ export class SnapshotManager {
             return QuickRollbackPoint.Current;
         }
 
-        // TODO THIS PR: update the chunk below to account for phase boundary prompts (e.g Sneak Attack or Thrawn1 trigger)
+        // Phase-boundary triggers (Sneak Attack's single-trigger "defeat at start of regroup phase",
+        // Thrawn1-style start-of-phase reveals) already resolve correctly through the existing cases
+        // below -- confirmed by instrumenting this function and running the two named specs, not by
+        // inspection alone. A separate, real defect -- when this player has already decided something
+        // in a Regroup/Setup boundary window (e.g. two simultaneous Sneak Attacks) before requesting a
+        // quick-undo -- remains open and deferred; see docs/plans/04-delta-snapshots.md's "Known
+        // limitations (deferred)" section (roadmap unit P4-0b) for the exact moment, the mechanism, and
+        // why three fix attempts failed at plan review.
 
         // if we're in the middle of an action, revert to start of action
         if (this.currentSnapshottedTimepointType === SnapshotTimepoint.Action && playerPromptType !== PromptType.ActionWindow) {

@@ -1397,5 +1397,120 @@ describe('Undo confirmation', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
+        describe('Phase boundary triggers', function() {
+            it('requires confirmation for Thrawn\'s start-of-Action-phase reveal, mid-prompt, and lands at the start of that phase transition', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['battlefield-marine'],
+                        deck: ['takedown', 'vanquish', 'rivals-fall', 'cartel-spacer'],
+                        leader: 'grand-admiral-thrawn#patient-and-insightful',
+                        resources: 3,
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'atst'],
+                        deck: ['steadfast-battalion', 'avenger#hunting-star-destroyer', 'specforce-soldier']
+                    },
+                    phaseTransitionHandler: (phase) => {
+                        if (phase === 'action') {
+                            contextRef.context.player1.clickDone();
+                        }
+                    },
+                    enableConfirmationToUndo: true,
+                });
+
+                const { context } = contextRef;
+
+                context.moveToRegroupPhase();
+                context.player1.clickDone();
+                context.player2.clickDone();
+
+                // the undo is requested here, WHILE Thrawn's reveal prompt is still open and unanswered
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                    { card: context.rivalsFall, displayText: 'Yourself' },
+                    { card: context.specforceSoldier, displayText: 'Opponent' }
+                ]);
+
+                // Observed, not predicted: this quick-undo resolves via the existing
+                // [RegroupReadyCards, StartOfPhase, EndOfPhase] staleness case in
+                // SnapshotManager.getQuickRollbackPoint (the block guarded by
+                // `.includes(this.currentSnapshottedTimepointType)`), which returns Current -- not the
+                // mid-action case, which requires SnapshotTimepoint.Action
+                // and cannot fire at this StartOfPhase boundary. Request mode still requires confirmation
+                // here, but not for a deck-reveal-disclosure reason -- instrumenting
+                // SnapshotManager.opponentActedSinceLastSnapshot and Game.confirmationRequiredForRollback
+                // and running this exact test shows requiresConfirmation coming from
+                // opponentActedSinceLastSnapshot's own `timepointsSinceSnapshot > 2` branch (observed
+                // value 4 here); Game.confirmationRequiredForRollback's other two triggers
+                // (freeUndoLimit, hasResolvedAbilityThisTimepoint) never get evaluated.
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeTrue();
+
+                contextRef.snapshot.quickRollback(context.player1.id);
+                expect(context.player2).toHaveConfirmUndoPrompt();
+                context.player2.clickPrompt('Allow');
+
+                expect(context.game.currentPhase).toBe('regroup');
+
+                // proceed back to action phase and Thrawn's prompt to confirm the destination is real
+                context.player1.clickDone();
+                context.player2.clickDone();
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                    { card: context.rivalsFall, displayText: 'Yourself' },
+                    { card: context.specforceSoldier, displayText: 'Opponent' }
+                ]);
+                context.player1.clickDone();
+            });
+
+            it('does not require confirmation for Sneak Attack\'s single-trigger regroup-boundary case, once resolved, and lands at the start of the regroup phase', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['inferno-four#unforgetting', 'system-patrol-craft'],
+                        hand: ['sneak-attack', 'ruthless-raider']
+                    },
+                    player2: {
+                        spaceArena: ['green-squadron-awing'],
+                        groundArena: ['wampa']
+                    },
+                    enableConfirmationToUndo: true,
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sneakAttack);
+                context.player1.clickCard(context.ruthlessRaider);
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                context.moveToRegroupPhase();
+
+                const startOfPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                // RR is defeated by Sneak Attack automatically; resolve its own on-defeat prompt
+                // (mirrors PhaseStartAndEnd.spec.ts's "one player" describe block) -- the undo is
+                // requested AFTER this, at the regroup phase's own resourcing prompt, not mid-prompt.
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                // Observed, not predicted: RegroupResource is not one of the three timepoints the
+                // staleness case checks, so this falls through to `getQuickRollbackPoint`'s final
+                // `return QuickRollbackPoint.Previous` -- which, because answering RR's
+                // prompt just pushed a new quick-snapshot entry for this resourcing timepoint, now
+                // points one position back at the same eager StartOfPhase entry Thrawn's case resolves
+                // through above. Same destination, opposite branch and opposite enum value. Neither
+                // snapshot-level confirmation input nor the opponent-acted fallback requires confirmation
+                // here (P2 has done nothing this timepoint) -- run it and see, rather than assume.
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+
+                contextRef.snapshot.quickRollback(context.player1.id);
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(startOfPhaseSnapshotId);
+                expect(context.game.currentPhase).toBe('regroup');
+                expect(context.greenSquadronAwing).toBeInZone('spaceArena');
+
+                // confirm the destination is real: RR's on-defeat prompt is available again
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
+                context.player1.clickCard(context.greenSquadronAwing);
+            });
+        });
     });
 });

@@ -324,14 +324,20 @@ remains covered by the phase/setup specs and the dedicated specs.
 
 ## Open issues inherited from `-morph` (must be resolved, not carried)
 
-- **Phase-boundary prompts** (`SnapshotManager.ts` `TODO THIS PR`: Sneak
-  Attack / Thrawn-style triggers that prompt at phase boundaries). The
-  quick-rollback policy (`getQuickRollbackPoint`) must handle a delta chain
-  whose window ends at a boundary prompt. Resolve before merge; this TODO
-  also exists on main's `SnapshotManager.ts:328` — fixing it may be a
-  standalone precursor PR. (The other boundary defect — double-consumed
-  ids/timepoint numbers perturbing the confirmation policy — is resolved by
-  the shared-id rule in "Chain selection".)
+- **Phase-boundary prompts, partially resolved on main.** Main's
+  `SnapshotManager.ts` `getQuickRollbackPoint` `TODO THIS PR` has been
+  resolved for Sneak Attack's and Thrawn's own boundary triggers by roadmap
+  unit `P4-0` (the TODO comment is gone; `SnapshotManager.ts:328` no longer
+  names it). A separate, narrower defect — landing on the wrong quick-rollback
+  target when two or more boundary triggers are pending and the requesting
+  player has already decided part of the window — remains open; see "Known
+  limitations (deferred)" below and roadmap unit `P4-0b`. Independently of
+  either: **the quick-rollback policy (`getQuickRollbackPoint`) must still
+  handle a delta chain whose window ends at a boundary prompt** — this is
+  Plan 4's own obligation, not discharged by `P4-0`/`P4-0b`, and belongs to
+  whichever of `P4-E`/`P4-F` builds the delta chain. (The other boundary
+  defect — double-consumed ids/timepoint numbers perturbing the confirmation
+  policy — is resolved by the shared-id rule in "Chain selection".)
 - **In-place mutation of `stateValue` Maps/Sets** is invisible to setter
   hooks. Plan 3 Phase B step 7 commits to the `stateMap`/`stateSet`/
   `stateArray` decorator split in-phase — verify it is present; it is a hard
@@ -340,6 +346,167 @@ remains covered by the phase/setup specs and the dedicated specs.
   `null` → no-op undo) — replaced by the contiguity hard-fail.
 - Any residual `go.state` references (the `-morph` `UndoSafeRecord` assert
   bug) — should already be gone after Plan 3 Phase B.
+
+## Known limitations (deferred)
+
+**Quick-undo overshoots at a Regroup/Setup phase boundary once the requesting
+player has already decided part of that boundary's own trigger window.**
+Deferred by explicit user decision after three fix attempts were rejected at
+plan review (below); tracked as roadmap unit `P4-0b`, which `P4-F` and `P4-G`
+depend on wherever they previously depended on "`P4-0`'s rule" for this case.
+
+**Exact moment.** Two or more players' (or one player's own multiple)
+`StartOfPhase`-triggered abilities are pending in the same Regroup/Setup
+window (e.g. two copies of Sneak Attack, one per player). The requesting
+player has already completed part of that window's own resolution — chosen a
+resolution order, answered one of several simultaneous triggers — *before*
+requesting a quick-undo. Today, `getQuickRollbackPoint` returns `Previous`,
+overshooting into the *previous* action phase, instead of landing at the
+start of the *current* phase transition. (The mirror case — nothing yet
+decided in the window — is not a bug: overshooting there is correct, since
+landing on the boundary checkpoint would be a state-identical no-op. Pinned
+by `test/scenarios/undo/PhaseStartAndEnd.spec.ts`'s `should revert back to
+the last action of the action phase on undo` test.)
+
+**Root cause.** Every quick-undo checkpoint except Regroup/Setup's own
+`StartOfPhase` is recorded lazily — only after its trigger window closes,
+gated on `Game.hasBeenPrompted` (`Phase.ts`'s
+`takeActionSnapshotsForPromptedPlayers`, `ActionPhase.setupActionPhase`'s
+`addQuickStartOfActionSnapshot`). Regroup/Setup's own `StartOfPhase` is the
+one exception: `addQuickStartOfPhaseSnapshots` records it eagerly and
+unconditionally, for every player, before that phase's `OnPhaseStarted`
+trigger window even opens. That eager checkpoint is the *only* thing
+quick-undo can land on while the window is still open. Removing the
+asymmetry (making it lazy like every other checkpoint) does not fix this:
+during the still-open window there would then be no checkpoint at all for
+either `Current` or `Previous` to target, and several already-passing tests'
+`Previous` answer resolves through the eager entry today
+(`PhaseStartAndEnd.spec.ts:126-252`). A fix has to distinguish "the
+requesting player has decided something in this specific window" from "the
+window is merely open," using a signal that resets on a rollback-and-replay
+of that same window the same way `Game.playerHasBeenPrompted` already does.
+
+**How `getQuickRollbackPoint`'s existing cases actually resolve the two
+already-correct cases** — confirmed by instrumenting the function to log the
+branch taken and the value returned, then running the two named existing
+specs, not by static reading; a static read of this exact mechanism produced
+a wrong branch attribution during this task's own planning and was caught
+only by running it:
+- *Thrawn* (`PhaseStartAndEnd.spec.ts`'s "during the prompt, should roll back
+  to the regroup phase snapshot on undo", mid-prompt): the
+  `[RegroupReadyCards, StartOfPhase, EndOfPhase]` staleness case (the
+  `.includes(this.currentSnapshottedTimepointType)` check in
+  `SnapshotManager.ts`'s `getQuickRollbackPoint`) fires and returns
+  `Current`. `Current` resolves to `entries[length-1]` in the player's
+  `MetaSnapshotArray` — which, because Action's own `StartOfPhase` never
+  receives the eager per-phase push Regroup/Setup's does, still points to the
+  *preceding* Regroup phase's own eager `StartOfPhase` entry. That is what
+  produces the observed `regroup`-phase destination — not the mid-action case
+  (the `if` block gated on `SnapshotTimepoint.Action`, which cannot fire at a
+  `StartOfPhase` boundary at all).
+- *Single-trigger Sneak Attack* (`PhaseStartAndEnd.spec.ts:126-150`, after
+  Ruthless Raider's own on-defeat prompt has already been answered, at the
+  Regroup phase's resourcing prompt): `RegroupResource` is not one of the
+  three timepoints the staleness case checks, so control falls through to the
+  function's final `return QuickRollbackPoint.Previous`. `Previous` resolves to
+  `entries[length-2]` — which, because answering Ruthless Raider's prompt
+  caused `takeActionSnapshotsForPromptedPlayers` to push a *new* entry for the
+  resourcing timepoint, now sits one position back from that new entry, at
+  the same eager `StartOfPhase` entry Thrawn's case also resolves through.
+  Same target, reached by the opposite branch and the opposite enum value,
+  for an unrelated reason (a different-length array, not a different
+  destination rule).
+
+The load-bearing point for anyone extending this function:
+`Current`/`Previous` are **positions in a per-player array**, not labels for
+"the boundary" or "the previous action" — which physical snapshot each
+position resolves to depends on how many entries have been pushed by the
+time the function runs, not on which branch or enum name was used to get
+there. Reasoning about this function from branch names alone, without
+checking what the array actually contains at that moment, is exactly how
+this task's own planning briefly misattributed both cases above.
+
+**Three fix attempts, each rejected at plan review — read before trying a
+fourth:**
+1. *Fire on "a boundary prompt is open"* (no player-decision gating).
+   Rejected: this makes the corrected first undo a state-identical no-op at
+   the exact moment nothing has been decided yet.
+2. *A per-player, per-checkpoint "consumed" marker* that survives rollback
+   (added to `MetaSnapshotArray`, pruned via its existing
+   `clearNewerSnapshots` hook). Fixes the moment above, but adds new tracked
+   state to the exact container this doc's "Chain selection" section
+   replaces with `DeltaSnapshotContainer` — a real, if narrow, carry-over
+   cost, and a larger diff than the defect strictly requires.
+3. *A per-player "completed a decision-bearing prompt in this window" flag*,
+   hooked into the shared `UiPrompt.complete()` choke point, reset by the
+   existing `resetPromptedPlayersTracking()` (no new persisted state, no
+   `MetaSnapshotArray` change — the mechanism that should eventually ship).
+   Rejected twice on the same failure shape: the choke point is shared by
+   prompt types that complete without the player deciding anything about
+   game state, and each round's enumeration of those types missed one.
+   `UndoConfirmationPrompt` (the Allow/Deny undo-confirmation prompt) was
+   missed first — clicking **Deny** set the flag for the denying player with
+   no compensating rollback/replay to clear it, so that player's own next
+   quick-undo in the same window became the same no-op defect via ordinary
+   Request-mode play. After adding an explicit opt-out for it (and for
+   `PassDelayPrompt`, a structurally identical but currently-unreachable
+   masking prompt), a **third** no-decision completion was found still
+   missing an opt-out: `DisplayCardsBasicPrompt`, a view-only "Done"-only
+   popup, reachable inside a Regroup boundary window via the shipped upgrade
+   `Foresight` (`server/game/cards/03_TWI/upgrades/Foresight.ts`), which
+   reveals a card to the *opponent* who did not choose to look and decided
+   nothing. `DisplayCardsBasicPrompt` already overrides the sibling predicate
+   `isOpponentRevealNewInfoPrompt()` two lines from where the needed override
+   belonged, and the round whose entire purpose was enumerating this category
+   still missed it — the second time an enumeration of "prompts that aren't
+   decisions" on this exact choke point came up short. Do not retry a fourth
+   enumeration; see the structural alternative below.
+
+**A load-bearing fact discovered along the way, worth keeping regardless of
+which fix ships next:** `Game.confirmationRequiredForRollback` has three
+independent ways to require Request-mode confirmation —
+`rollbackInformation.requiresConfirmation`, `freeUndoLimit.hasReachedLimit`,
+and `!!opponent.hasResolvedAbilityThisTimepoint` — and
+`SnapshotManager.getQuickRollbackInformation` alone only computes the first.
+At a Regroup/Setup boundary where the eager `StartOfPhase` checkpoint is
+still fresh (`timepointsSinceSnapshot` 0 or 1 — the Sneak Attack case above,
+where nothing has been decided since the snapshot was taken), the first
+check does not fire and no code path sets a phase-type snapshot's
+`requiresConfirmationToRollback` true, so confirmation there comes entirely
+from the third check. That scoping does not generalize to every eager
+`StartOfPhase` checkpoint, though: the Thrawn case above lands on the same
+checkpoint type several timepoints after it was taken
+(`timepointsSinceSnapshot = 4`, observed), where
+`opponentActedSinceLastSnapshot`'s `> 2` branch makes the first check
+(`rollbackInformation.requiresConfirmation`) true and short-circuits
+`Game.confirmationRequiredForRollback`'s `||` before the third check is ever
+reached — the first check firing, not the first two being inert. Separately,
+`freeUndoLimit.hasReachedLimit` (`UndoLimit.ts`'s `PerGameUndoLimit`) is a
+per-game usage counter unrelated to boundary type or
+`timepointsSinceSnapshot`; it happens not to have fired in either case
+documented here, but that is not because the boundary makes it structurally
+inert, and a future run could see it fire regardless of which checkpoint is
+targeted. Any future work on this area should derive confirmation behavior
+from an actual run, not from reading the snapshot-level inputs in isolation
+— a prompt's wording ("undo their **current** action" vs. "undo their
+**previous** action") reliably reflects which target (`isSameTimepoint`)
+was actually chosen, and is a fast, direct way to observe it.
+
+**Structural alternative for the next attempt** (not yet designed or
+tried): stop enumerating exceptions on the shared choke point. Either (a)
+derive "is a decision" from whether the prompt's own button/selection state
+actually offers a real choice (more than one enabled option, or selectable —
+not `ViewOnly` — targets) rather than from a per-class opt-out list, or (b)
+add an enumeration test that fails CI whenever a `UiPrompt` subclass has not
+made an explicit, non-inherited declaration either way, so a fourth missed
+case is caught at review time instead of by a shipped card. Whoever picks
+this up (`P4-0b`) should design and test one of these against the full
+existing regression suite (`PhaseStartAndEnd.spec.ts`,
+`UndoConfirmation.spec.ts`) before proposing a fix.
+
+Further reading (optional, not required to act on this item): the full
+round-by-round review trail is retained at `.anvil/p4-0/plan-v2.md` through
+`plan-v5.md` and their matching `review-planreview-*.md` files.
 
 ## Decision checkpoint: full deltas vs per-object memoization
 
