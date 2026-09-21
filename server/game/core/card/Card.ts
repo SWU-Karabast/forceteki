@@ -819,7 +819,14 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         const traits = this.getPrintedTraits();
 
         for (const gainedTrait of this.getOngoingEffectValues(EffectName.GainTrait)) {
-            traits.add(gainedTrait);
+            // gainTrait provides a single Trait; gainTraits (dynamic) provides an array of Traits
+            if (Array.isArray(gainedTrait)) {
+                for (const trait of gainedTrait) {
+                    traits.add(trait);
+                }
+            } else {
+                traits.add(gainedTrait);
+            }
         }
         for (const lostTrait of this.getOngoingEffectValues(EffectName.LoseTrait)) {
             traits.delete(lostTrait);
@@ -1130,9 +1137,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     protected updateActionAbilitiesForZoneInternal(actionAbilities: ActionAbilityBase[], from: ZoneName, to: ZoneName) {
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const action of actionAbilities) {
-                if (action.limit) {
-                    action.limit.reset();
-                }
+                action.resetLimit();
             }
         }
     }
@@ -1142,12 +1147,9 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     }
 
     protected updateTriggeredAbilityEventsInternal(triggeredAbilities: TriggeredAbilityBase[], from: ZoneName, to: ZoneName) {
-        // STATE TODO: Gonna be a little hard to track, but also not a big blocker.
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const triggeredAbility of triggeredAbilities) {
-                if (triggeredAbility.limit) {
-                    triggeredAbility.limit.reset();
-                }
+                triggeredAbility.resetLimitForNewZone();
             }
         }
 
@@ -1349,7 +1351,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                 return false;
             }
         }
-        return false;
+        return true;
     }
 
     private asSetOrArray<T>(valueOrValuesToCheck: T | Set<T> | T[]): Set<T> | T[] {

@@ -125,7 +125,7 @@ describe('Queen Soruna, Willing to Fight', function() {
                     expect(context.player2).toBeActivePlayer();
                 });
 
-                it('should not prompt when player has no units in hand', async function() {
+                it('shows a skippable pause instead of prompting when player has no units in hand', async function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -142,13 +142,17 @@ describe('Queen Soruna, Willing to Fight', function() {
 
                     const { context } = contextRef;
 
-                    // TODO:  Revisit this after the change to mask player not having cards for Disclose is in place
                     context.player1.clickCard(context.queenSoruna);
+
+                    // Player 1 has no unit to reveal, so a skippable masking pause is shown instead of resolving instantly
+                    expect(context.player1).toHavePrompt('Pausing for Reveal');
+                    expect(context.player1).toHaveEnabledPromptButton('Skip');
+                    context.player1.clickPrompt('Skip');
 
                     expect(context.player2).toBeActivePlayer();
                 });
 
-                it('should not prompt when player has no cards in hand', async function() {
+                it('shows a skippable pause instead of prompting when player has no cards in hand', async function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -165,6 +169,11 @@ describe('Queen Soruna, Willing to Fight', function() {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.queenSoruna);
+
+                    // Player 1 has no unit to reveal, so a skippable masking pause is shown instead of resolving instantly
+                    expect(context.player1).toHavePrompt('Pausing for Reveal');
+                    expect(context.player1).toHaveEnabledPromptButton('Skip');
+                    context.player1.clickPrompt('Skip');
 
                     expect(context.player2).toBeActivePlayer();
                 });
@@ -296,7 +305,7 @@ describe('Queen Soruna, Willing to Fight', function() {
                     expect(context.player2).toBeActivePlayer();
                 });
 
-                it('should not prompt when player has no units in hand', async function() {
+                it('shows a skippable pause instead of prompting when player has no units in hand', async function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -314,11 +323,16 @@ describe('Queen Soruna, Willing to Fight', function() {
                     context.player1.clickCard(context.queenSoruna);
                     context.player1.clickCard(context.p2Base);
 
+                    // Player 1 has no unit to reveal, so a skippable masking pause is shown instead of resolving instantly
+                    expect(context.player1).toHavePrompt('Pausing for Reveal');
+                    expect(context.player1).toHaveEnabledPromptButton('Skip');
+                    context.player1.clickPrompt('Skip');
+
                     expect(context.p2Base.damage).toBe(5);
                     expect(context.player2).toBeActivePlayer();
                 });
 
-                it('should not prompt when player has no cards in hand', async function() {
+                it('shows a skippable pause instead of prompting when player has no cards in hand', async function() {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -334,6 +348,11 @@ describe('Queen Soruna, Willing to Fight', function() {
 
                     context.player1.clickCard(context.queenSoruna);
                     context.player1.clickCard(context.p2Base);
+
+                    // Player 1 has no unit to reveal, so a skippable masking pause is shown instead of resolving instantly
+                    expect(context.player1).toHavePrompt('Pausing for Reveal');
+                    expect(context.player1).toHaveEnabledPromptButton('Skip');
+                    context.player1.clickPrompt('Skip');
 
                     expect(context.p2Base.damage).toBe(5);
                     expect(context.player2).toBeActivePlayer();
