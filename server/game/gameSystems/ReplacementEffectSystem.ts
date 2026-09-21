@@ -1,6 +1,6 @@
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import type { FormatMessage } from '../core/chat/GameChat';
-import { AbilityType, GameStateChangeRequired, MetaEventName } from '../core/Constants';
+import { AbilityType, EventName, GameStateChangeRequired, MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { GameObject } from '../core/GameObject';
 import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
@@ -58,7 +58,15 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             }, 'replacementEffect: add replacement event to window');
         }
 
-        event.context.cancel();
+        // a damage event that is fully prevented by a replacement effect still counts as resolved for
+        // "if you do" conditions, so it is marked as replaced (SWU CR 8.9.2). other events nullified by
+        // a replacement effect with no replacement event are cancelled entirely - their standard
+        // resolution is ignored (SWU CR 7.7.5.D)
+        if (eventBeingReplaced.name === EventName.OnDamageDealt) {
+            eventBeingReplaced.markAsReplaced();
+        } else {
+            eventBeingReplaced.cancel();
+        }
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}) {

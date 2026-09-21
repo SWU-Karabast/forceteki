@@ -137,6 +137,18 @@ export class GameEvent {
         }
     }
 
+    /**
+     * Marks this event as replaced without attaching a replacement event, e.g. when a replacement
+     * effect fully prevents the event's effect. A replaced event still counts as resolved for the
+     * purposes of "if you do" conditions (see SWU CR 8.9.2).
+     */
+    public markAsReplaced() {
+        this.resolutionStatus = EventResolutionStatus.REPLACED;
+        if (this._window) {
+            this._window.removeEvent(this);
+        }
+    }
+
     public setWindow(window: EventWindow) {
         Contract.assertNotNullLike(window, `Attempting to set null window for ${this.name}`);
         Contract.assertIsNullLike(this._window, `Attempting to set window ${window} for ${this.name} but it already has a value: ${this._window}`);
