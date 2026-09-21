@@ -31,6 +31,7 @@ export default class OneMustDestroyToCreate extends EventCard {
                     target: this.getTarget(thenContext),
                     playAsType: WildcardCardType.Unit,
                     adjustCost: { costAdjustType: CostAdjustType.Free },
+                    canPlayFromAnyZone: true,
                     nested: true
                 })
             })

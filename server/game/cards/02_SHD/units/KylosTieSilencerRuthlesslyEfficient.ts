@@ -28,7 +28,7 @@ export default class KylosTieSilencerRuthlesslyEfficient extends NonLeaderUnitCa
                 entry.discardedPlayId === context.source.mostRecentInPlayId &&
                 [ZoneName.Hand, ZoneName.Deck].includes(entry.discardedFromZone)
             ),
-            immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({ playAsType: WildcardCardType.Unit }),
+            immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({ playAsType: WildcardCardType.Unit, canPlayFromAnyZone: true }),
             zoneFilter: ZoneName.Discard
         });
     }

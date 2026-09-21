@@ -60,7 +60,8 @@ export default class MaulOldMaster extends LeaderUnitCard {
                 cardCondition: (card) => card.isUnit() && this.cardsDefeatedThisPhaseWatcher.wasDefeatedThisPhase(card),
                 immediateEffect: abilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 5 },
-                    playAsType: WildcardCardType.Unit
+                    playAsType: WildcardCardType.Unit,
+                    canPlayFromAnyZone: true,
                 })
             }
         });

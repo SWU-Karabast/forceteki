@@ -25,6 +25,7 @@ export default class NightbrotherMaulsGauntlet extends NonLeaderUnitCard {
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 },
                     playAsType: WildcardCardType.Unit,
                     entersReady: true,
+                    canPlayFromAnyZone: true,
                 })
             },
             ifYouDo: (ifYouDoContext) => ({

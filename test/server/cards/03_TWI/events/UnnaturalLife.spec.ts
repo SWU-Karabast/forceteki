@@ -51,5 +51,41 @@ describe('Unnatural Life', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
+        it('should be able to play Stolen AT-Hauler from own discard after the opponent defeats it this phase', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'sabine-wren#galvanized-revolutionary',
+                    hand: ['unnatural-life'],
+                    spaceArena: ['stolen-athauler'],
+                    resources: 10
+                },
+                player2: {
+                    leader: 'asajj-ventress#unparalleled-adversary',
+                    hand: ['takedown'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Player 2 defeats the Stolen AT-Hauler
+            context.player2.clickCard(context.takedown);
+            context.player2.clickCard(context.stolenAthauler);
+
+            // It goes to its owner's (Player 1's) discard pile
+            expect(context.stolenAthauler).toBeInZone('discard', context.player1);
+
+            // Player 1 plays Unnatural Life and can select the Stolen AT-Hauler,
+            // even though the opponent is the one currently granted permission to play it from discard
+            context.player1.clickCard(context.unnaturalLife);
+            expect(context.player1).toBeAbleToSelectExactly([context.stolenAthauler]);
+            context.player1.clickCard(context.stolenAthauler);
+
+            // Stolen AT-Hauler is played into Player 1's space arena
+            expect(context.player2).toBeActivePlayer();
+            expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+        });
     });
 });
