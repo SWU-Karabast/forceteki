@@ -12,7 +12,7 @@ import type { Game } from '../../Game';
 import { TriggeredAbilityResolutionPrompt } from '../prompts/TriggeredAbilityResolutionPrompt';
 import { BatchTriggerResolutionPrompt } from '../prompts/BatchTriggerResolutionPrompt';
 import type { IResolutionChoice, ITriggerWindowSourceCard } from '../PromptInterfaces';
-import type { PreResolvedOptional } from '../AbilityResolver';
+import { PreResolvedOptionalChoice } from '../AbilityResolver';
 
 /** Builds the lightweight card summary attached to trigger-style prompt buttons. */
 export function getTriggerSourceCardSummary(card: Card): ITriggerWindowSourceCard {
@@ -114,12 +114,12 @@ export abstract class TriggerWindowBase extends BaseStep {
 
     public abstract shouldCleanUpTriggers(): boolean;
 
-    protected abstract resolveAbility(context: TriggeredAbilityContext, preResolvedOptional?: PreResolvedOptional): void;
+    protected abstract resolveAbility(context: TriggeredAbilityContext, preResolvedOptional?: PreResolvedOptionalChoice): void;
 
     /**
      * Whether this window can resolve an optional trigger's Trigger/Pass choice inline in the resolution-order
      * prompt (skipping the interstitial "You may trigger this ability" prompt). Only true for windows whose
-     * `resolveAbility` honors the {@link PreResolvedOptional} mode; replacement-effect windows opt out.
+     * `resolveAbility` honors the {@link PreResolvedOptionalChoice} mode; replacement-effect windows opt out.
      */
     protected supportsInlineOptionalResolution(): boolean {
         return false;
@@ -312,8 +312,8 @@ export abstract class TriggerWindowBase extends BaseStep {
             handler: () => this.resolveAbility(context),
             optional: this.canResolveOptionalInline(context)
                 ? {
-                    onTrigger: () => this.resolveAbility(context, 'trigger'),
-                    onPass: () => this.resolveAbility(context, 'pass'),
+                    onTrigger: () => this.resolveAbility(context, PreResolvedOptionalChoice.Trigger),
+                    onPass: () => this.resolveAbility(context, PreResolvedOptionalChoice.Pass),
                     passButtonText: this.getOptionalPassButtonText(context),
                 }
                 : undefined,

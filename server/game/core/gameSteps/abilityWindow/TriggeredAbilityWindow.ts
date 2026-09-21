@@ -1,8 +1,8 @@
 import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
-import type { PreResolvedOptional } from '../AbilityResolver';
 import { AbilityType } from '../../Constants';
 import type { EventWindow } from '../../event/EventWindow';
 import type { Game } from '../../Game';
+import type { PreResolvedOptionalChoice } from '../AbilityResolver';
 import { TriggerWindowBase } from './TriggerWindowBase';
 
 export class TriggeredAbilityWindow extends TriggerWindowBase {
@@ -29,7 +29,7 @@ export class TriggeredAbilityWindow extends TriggerWindowBase {
         super.addTriggeredAbilityToWindow(context);
     }
 
-    protected resolveAbility(context: TriggeredAbilityContext, preResolvedOptional?: PreResolvedOptional) {
+    protected resolveAbility(context: TriggeredAbilityContext, preResolvedOptional?: PreResolvedOptionalChoice) {
         // Triggered abilities can't be cancelled once they resolve (an optional one is declined via its
         // "Pass" button), so suppress the spurious "Cancel" button that a top-level resolver would show.
         const resolver = this.game.resolveAbility(context, ['player'], false, preResolvedOptional);
