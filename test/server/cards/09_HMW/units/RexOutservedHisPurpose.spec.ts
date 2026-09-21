@@ -167,6 +167,80 @@ describe('Rex, Outserved His Purpose', function() {
                 expect(context.battlefieldMarine.getHp()).toBe(5);
             });
 
+            it('should still buff a unit that only has a Shield token attached', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['rex#outserved-his-purpose', { card: 'battlefield-marine', upgrades: ['shield'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // A Shield token has an ability, but it's an ability on the token, not on the unit,
+                // so Battlefield Marine still counts as having no abilities and gets Rex's bonus.
+                // Printed 3/3, +0/+0 from Shield, +1/+1 from Rex = 4/4
+                expect(context.battlefieldMarine.getPower()).toBe(4);
+                expect(context.battlefieldMarine.getHp()).toBe(4);
+            });
+
+            it('should still buff a unit after attaching an upgrade whose only ability is its own When Played (Durasteel Plating)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['durasteel-plating'],
+                        groundArena: ['rex#outserved-his-purpose', 'battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Durasteel Plating, whose "When Played: Give a Shield token to attached unit" is
+                // the upgrade's own ability and does not grant Battlefield Marine any ability
+                context.player1.clickCard(context.durasteelPlating);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // The When Played resolved and gave a Shield token, but the Marine still has no abilities of its own
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['durasteel-plating', 'shield']);
+
+                // Printed 3/3, +1/+1 from Durasteel Plating, +1/+1 from Rex = 5/5
+                expect(context.battlefieldMarine.getPower()).toBe(5);
+                expect(context.battlefieldMarine.getHp()).toBe(5);
+            });
+
+            it('should still buff a vehicle whose only upgrade is a Pilot that grants it no ability', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['rex#outserved-his-purpose'],
+                        spaceArena: [{ card: 'desperate-nantex', upgrades: ['luke-skywalker#you-still-with-me'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Luke as a Pilot upgrade only provides stat modifiers and grants no ability to the vehicle,
+                // so Desperate Nantex still counts as having no abilities and gets Rex's bonus.
+                // Printed 2/3, +3/+2 from Luke, +1/+1 from Rex = 6/6
+                expect(context.desperateNantex.getPower()).toBe(6);
+                expect(context.desperateNantex.getHp()).toBe(6);
+            });
+
+            it('should buff a Beast token, which has no abilities', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['rex#outserved-his-purpose', 'beast']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // A Beast token is a vanilla 3/3 with no abilities or keywords, so it gets Rex's bonus
+                expect(context.beast.getPower()).toBe(4);
+                expect(context.beast.getHp()).toBe(4);
+            });
+
             it('should stop buffing a unit once it gains a real ability', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
