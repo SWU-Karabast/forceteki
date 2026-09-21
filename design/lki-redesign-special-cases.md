@@ -16,7 +16,7 @@ This is a working document, not a specification. The design itself is still bein
 
 ## Background
 
-Cards that leave the arena may still be referred to by lingering triggers. Per SWU 8.12, those
+Cards that leave the arena may still be referred to by lingering triggers. Per SWU 8.11, those
 triggers refer to the card's *last known* state before it left, not its current state. See
 [LastKnownInformation.ts](../server/game/core/event/LastKnownInformation.ts) for the current
 mechanism.
@@ -395,7 +395,7 @@ a single counter, `_mostRecentInPlayId`, exposed through two mutually exclusive 
 The counter is incremented on two occasions
 ([InPlayCard.ts:420-440](../server/game/core/card/baseClasses/InPlayCard.ts)):
 
-1. the card enters play (new copy per SWU 8.6.4)
+1. the card enters play (new copy per SWU 8.5.4)
 2. the card moves into a hidden zone — `Hand`, `Resource` or `Deck` per
    [EnumHelpers.isHiddenFromOpponent](../server/game/core/utils/EnumHelpers.ts) (information loss)
 

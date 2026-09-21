@@ -10,7 +10,7 @@ specific code sites needing special handling. This file tracks **what we have de
 
 ## 1. Problem statement
 
-Cards that leave the arena may still be referred to by lingering triggers. Per SWU 8.12, those
+Cards that leave the arena may still be referred to by lingering triggers. Per SWU 8.11, those
 triggers refer to the card's *last known* state before it left, not its current state.
 
 Today this is handled by an opt-in mechanism
@@ -22,8 +22,57 @@ Goals of the redesign:
 
 - Correct LKI by **default**, not opt-in
 - A single mechanism, rather than LKI structs plus a parallel state-watcher copy
-- First-class **copy identity** (SWU 8.6.4 — a card entering play becomes a new copy)
+- First-class **instance identity** (SWU 8.5.4 — a card re-entering play becomes a new copy)
 - Card implementations interact with an accessor layer, not raw card objects
+
+### 1.1 The design in brief
+
+Three object kinds, with a strict separation of who may hold which:
+
+| | What it is | Who holds it | Lifetime |
+|---|---|---|---|
+| **`Card`** | the live, mutable game object | engine only | the game |
+| **`CardRef`** | an opaque token, `(card, instance)`, interned by the registry | events, contexts, engine | transient — never in tracked state (D-23) |
+| **`IUnitProperties`** | a read-only characteristics view | **card authors** | one evaluation |
+
+**Card authors never touch a `Card`.** They receive a `CardRef` and exchange it for properties:
+
+```ts
+const unit = gameState.getPropertiesOrLki(context.event.card);
+if (unit.isInPlay()) {
+    /* unit.power is reachable only here */
+}
+```
+
+**The properties object has two backings, one interface** (D-25, D-26):
+
+- `…PropertiesCaptured` — frozen values from a footprint. Safe to retain.
+- `…PropertiesAccessor` — lazy pass-through to the live card. Cheap; must not be retained.
+
+The getter picks the backing: a footprint exists → captured; otherwise → live. Because one is
+immutable and the other always reads current state, **no cache invalidation is needed anywhere**.
+
+**Footprints** are minted when a card leaves play, batched at the event window's
+`preResolutionEffects` step, keyed by `(card, instance)` so several incarnations coexist within one
+action (SC-13). They are flushed at the action boundary — a correctness requirement, not
+housekeeping, because stale footprints would survive a rollback into an abandoned timeline (D-20).
+**Tombstones** retain the instance key after the data is dropped, so a stale read throws rather than
+silently reading live (D-21).
+
+**Two axes govern what a reference can answer:**
+
+| | instance matches | instance stale |
+|---|---|---|
+| **footprint exists** | characteristics frozen · dereference OK | characteristics frozen · dereference **fizzles** |
+| **no footprint** | characteristics live · dereference OK | **throws** (orphaned) |
+
+Characteristics answer *"what was/is this card?"*. Anything about the present — where it is, whether
+it can be acted on — is asked of the game, not of the properties object (D-3, D-15).
+
+**Dereference is automatic.** A card author passes a `CardRef` as a target exactly as they pass a
+card today; `GameSystem.generatePropertiesFromContext` converts it, and the existing two-phase
+legality check (`canAffect` at generation, `checkEventCondition` at resolution) makes a stale
+reference fizzle (D-6, D-7).
 
 ---
 
@@ -36,20 +85,20 @@ Goals of the redesign:
 | D-2 | Support on-demand point-in-time capture (`pin()`)? | **Deferred.** Scope is "current state, or last known state if departed". See special-cases D-2. | Deferred |
 | D-3 | What discriminates a frozen read from a live read? | **Characteristics vs. location.** *Not* the property name, and *not* the ability slot. | Decided |
 | D-5 | Is "left play" the same event as "became a new copy"? | **No — two independent lifecycle events.** See below. | Decided |
-| D-6 | Who converts a handle back to a live `Card` for game systems to mutate? | **Automatic at the system boundary.** Card implementations pass handles; the framework dereferences internally and fizzles when the instance no longer matches. Preserves "correct by default" and matches today's behavior, where fizzling already happens invisibly via `canAffect`. | Decided |
+| D-6 | Who converts a reference back to a live `Card` for game systems to mutate? | **Automatic at the system boundary.** Card implementations pass references; the framework dereferences internally and fizzles when the instance no longer matches. Preserves "correct by default" and matches today's behavior, where fizzling already happens invisibly via `canAffect`. | Decided |
 | D-7 | *Where* exactly does the automatic dereference happen? | **`GameSystem.generatePropertiesFromContext`** — the single funnel for all card-valued properties. Fizzle reuses the existing two-phase legality check (`canAffect` at generation, `checkEventCondition` at resolution). See special-cases D-7. | Decided |
-| D-8 | Where does instance identity live, and what is its value representation? | **Universal counter on `Card`, plus registry-vended interned handles.** See below. | Decided |
+| D-8 | Where does instance identity live, and what is its value representation? | **Universal counter on `Card`, plus registry-vended interned references.** See below. | Decided |
 | D-9 | Is a `Proxy` pass-through viable for migration? | **No — ruled out entirely**, including as a measurement tool. See below. | Decided |
-| D-10 | How is the handle type hierarchy expressed? | **Hybrid** — hand-write the type-guard signatures, derive the data surface from existing card interfaces via mapped types with a "characteristics only" filter. See below. | Decided |
+| D-10 | How is the properties type hierarchy expressed? | **Hybrid** — hand-write the type-guard signatures, derive the data surface from existing card interfaces via mapped types with a "characteristics only" filter. Refined by D-26 (two concrete types) and D-27 (in-play split). | Decided |
 | D-11 | Is instance-aware equality a deliberate behavior change? | **Yes — instance-aware equality is the default.** Rules-correct per SWU 8.5.4, already hand-rolled at 75 sites, and low-risk because most comparisons occur within a single ability resolution. See below. | Decided |
 | D-12 | Which engine internals need *physical-card* identity rather than instance identity? | **Deferred** — expected to exist, but needs investigation. See special-cases D-12. | Deferred |
 | D-13 | Do footprints capture the full derived characteristic set, or an enumerated subset? | **Enumerated subset.** Nuances must be explicitly considered whenever a new field is added — see below. | Decided |
-| D-14 | What happens when a handle cannot serve a read? | **Throw.** Applies to uncaptured fields and to orphaned handles (case ④). Dereference failure is *not* an error — it fizzles (D-6). | Decided |
+| D-14 | What happens when a read cannot be served? | **Throw.** Applies to uncaptured fields and to orphaned references (case ④). Dereference failure is *not* an error — it fizzles (D-6). In-play-only properties are additionally guarded at compile time (D-27), leaving the throw as a runtime backstop. | Decided |
 | D-15 | Shape of location queries on a handle (`currentZone` vs `isStillInPlay()`) | **Resolved by D-24 and D-27.** Location questions are asked of the game (`gameState.isInPlay(ref)`, `player.discardZone.contains(ref)`); the properties object exposes `isInPlay()` only as a type-narrowing guard over the represented moment. | Decided |
-| D-16 | Is a handle read an independent copy, or a lookup into the live registry? | **A lookup.** A handle holds only `(card, instance)` and carries no data. This makes handles *names*, not *values* — with direct consequences for retention. See below. | Decided |
+| D-16 | Is a reference an independent copy, or a lookup into the live registry? | **A lookup.** A reference holds only `(card, instance)` and carries no data, so it is a *name*, not a *value* — with direct consequences for retention. D-18 then moved card authors onto values; D-25 refined *how* those values are backed. | Decided |
 | D-17 | Are footprints mutable once minted? | **No — deeply immutable.** Collection reads return frozen collections or defensive copies. See below. | Decided |
 | D-18 | Do card authors hold references or materialized values? | **Values.** This revises D-1. Authors extract a properties object and read from it; the reference itself is an opaque token. See below. | Decided |
-| D-19 | How is extraction expressed? | **An external getter keyed by the reference** — `gameState.getCardProperties(cardRef)` — not a method on the reference. Names provisional. See below. | Decided |
+| D-19 | How is extraction expressed? | **An external getter keyed by the reference** — `gameState.getPropertiesOrLki(cardRef)` — not a method on the reference. Names provisional; see D-24. | Decided |
 | D-20 | When are footprints flushed? | **At the action boundary**, matching D-0's rollback boundary. This is a *correctness* requirement, not housekeeping — see below. | Decided |
 | D-21 | How is a flushed-but-referenced instance detected? | **Tombstones** — retain the instance key after dropping its data, so a stale read throws instead of silently reading live. | Decided |
 | D-22 | Is minting universal or opt-in? | **Universal**, from one central hook on leave-play event generation. | Decided |
@@ -58,7 +107,7 @@ Goals of the redesign:
 | D-25 | How is the cost of materializing properties controlled? | **Polymorphic properties object**: a *live* variant holding a card reference with lazy pass-through getters, or a *snapshot* variant holding frozen captured values. No global memoization or invalidation. See below. | Decided |
 | D-26 | Are the two variants one type or two? | **Two concrete types sharing one interface** — `IUnitPropertiesCaptured` and `IUnitPropertiesAccessor`, both satisfying `IUnitProperties`. Consumers that require durability (state watchers) declare the captured type explicitly. Names provisional. See below. | Decided |
 | D-27 | How are in-play-only properties (`power`, `upgrades`, `activeAttack`) exposed? | **Type-level split with a narrowing guard**, preserving the existing `isInPlay()` guards and upgrading them from runtime throw to compile-time error. `power` and `printedPower` stay distinct concepts. See SC-17. | Decided |
-| D-4 | How is current location expressed on a handle? | Options A (live on handle, zero migration), B (off the handle, ask live zones), C (on the handle with explicit `current*` naming, e.g. `currentZone` / `isStillInPlay()`). Scope shrank substantially under D-5 — see §3.8. | **Open** |
+| D-4 | How is current location expressed on a handle? | **Resolved by D-15, D-24 and D-27.** Location questions are asked of the game, not the properties object; the properties object exposes `isInPlay()` only as a type-narrowing guard. | Decided |
 
 ### D-5 in detail — two independent lifecycle events
 
@@ -148,26 +197,27 @@ Deck) — now applied uniformly:
 comparison, never arithmetic. A unit going arena → discard → hand → played increments twice, and
 both increments correctly mean "a different instance".
 
-**Identity is vended as an interned handle.** The registry returns one canonical handle object per
-`(card, instance)` pair. Consequences:
+**Identity is vended as an interned reference.** The registry returns one canonical reference object
+per `(card, instance)` pair. Consequences:
 
-- `handleA === handleB` is automatically instance-aware, so the ~359 reference comparisons (SC-9)
-  keep working without migration, and the 75 hand-rolled pair comparisons collapse to a single `===`
-- the handle is a natural registry key for footprint lookup
+- `refA === refB` is automatically instance-aware, so the ~359 reference comparisons (SC-9) keep
+  working, and the 75 hand-rolled pair comparisons collapse to a single `===`
+- the reference is a natural registry key for footprint lookup
 - identity becomes readable without throwing, removing the 6 hand-rolled ternaries and fixing the
   latent fragility in §3.19
 
 **Constraints this imposes:**
 
-1. **Handles must only ever come from the registry.** An ad-hoc constructed handle would break
+1. **References must only ever come from the registry.** An ad-hoc constructed reference would break
    `===`. This needs enforcement — a private constructor, a factory-only API, or a lint rule.
-2. **Interning needs a lifecycle.** The canonical-handle map is keyed by `(card, instance)` and
-   must not grow without bound across a long game. Note this map is *not* the footprint cache and
-   may not share its flush boundary — see open question Q3.
-3. **Mixed comparison is a new silent hazard.** During incremental migration some values will be
-   handles and some live `Card`s. `handle === card` is **always false**, with no error. This
-   materially strengthens the case for type-level incompatibility in open question Q1, which would
-   turn such comparisons into compile errors.
+2. **Interning needs a lifecycle.** The canonical-reference map is keyed by `(card, instance)` and
+   must not grow without bound across a long game. It is *not* the footprint cache and does not
+   share its flush boundary: it holds identity only, so it is immune to the stale-timeline hazard in
+   D-20 and can live for the game.
+3. **Mixed comparison during migration.** Partially migrated code will hold references in some
+   places and live `Card`s in others, and `ref === card` is always false with no error. D-10's
+   type-level separation turns this into a compile error; under D-18 the exposure is smaller than
+   first thought, because card authors hold properties objects rather than either.
 
 ### D-9 in detail — why `Proxy` is ruled out
 
@@ -302,18 +352,14 @@ should have been there.
 **Constraint:** throwing on case ④ is only safe if long-lived handles cannot routinely become
 orphaned. See SC-15.
 
-### D-16 / D-17 in detail — handles are names, not values
+### D-16 / D-17 in detail — references are names, not values
 
-A handle holds only `(card, instance)`. It carries no data, so every property read is a fresh
-lookup into the registry:
-
-```ts
-get power() { return this.registry.read(this, 'power'); }   // → footprints.get(key).power
-```
+A reference holds only `(card, instance)`. It carries no data, so resolving one is always a lookup
+into the registry.
 
 **The governing principle:**
 
-> A handle is a **name**, not a **value**. A name is only meaningful while the registry that
+> A reference is a **name**, not a **value**. A name is only meaningful while the registry that
 > resolves it retains the binding. Anything that must outlive the registry's retention window needs
 > a *value*, not a name.
 
@@ -322,8 +368,14 @@ rule for where each belongs:
 
 | Scope | Representation | Why |
 |---|---|---|
-| Within an action | **Handle** | The registry retains the binding; cheap, automatic, correct |
-| Across actions | **Materialized value** | The holder must extract at capture time |
+| Within an action | **Reference**, resolved on demand | The registry retains the binding; cheap, automatic, correct |
+| Across actions | **Captured value** (`…PropertiesCaptured`) | The holder must materialize at capture time |
+
+**How D-18 and D-25 build on this.** D-18 moved card *authors* onto values so they never have to
+reason about retention. D-25 then split the value into two backings — a captured variant (frozen)
+and a live variant (lazy pass-through). The live variant is name-like in that it holds a card
+pointer, so the principle above still governs: only the **captured** variant is safe to retain, and
+D-26 makes that a type-level requirement rather than a convention.
 
 **This vindicates the state watchers' current design.** They eagerly extract values
 (`lastKnownInformation: { traits: …, power: … }`) rather than holding a reference, which is exactly
@@ -724,7 +776,7 @@ their applicable zone. Callers work around this with
 
 **Note:** the counter is incremented on entering play *and* on entering a hidden zone, but these
 are **not** two different concepts — both express the single idea "identity continuity is broken"
-(a new copy per SWU 8.6.4, or information loss). Fusing them is correct. What genuinely needs
+(a new copy per SWU 8.5.4, or information loss). Fusing them is correct. What genuinely needs
 separating is *footprint minting* from *identity break* — see D-5.
 
 ### 3.8 Idiom 1 is a reference-validity check, not a location read
@@ -970,7 +1022,7 @@ inPlayId: event.card.inPlayId ?? null,
 Both are symptoms of the same root cause as the 6 hand-rolled ternaries: there is no total,
 never-throwing way to ask a card for its identity.
 
-### 3.20 The handle interface is small, and card code barely touches engine machinery
+### 3.20 The properties interface is small, and card code barely touches engine machinery
 
 Frequency analysis of member accesses on card-typed receivers across `server/game/cards/**`
 (receivers: `context.source`, `context.target`, `thenContext.target`, `ifYouDoContext.target`,
@@ -993,16 +1045,17 @@ By category:
 
 **Three consequences for the design:**
 
-1. **The handle interface can be much smaller than `Card`.** Card implementations touch engine
-   machinery in only ~0.7% of accesses, so excluding mutation and ability-registration methods from
-   the handle costs almost nothing — and directly satisfies SWU 8.11.2 (§3.15). This is what makes
-   a parallel handle hierarchy tractable rather than a full mirror of `Card`.
-2. **Type guards must be first-class on handles.** At 26% of all accesses they are the single
-   largest category after characteristics, so `isUnit()` and friends have to narrow to handle types,
-   not card types. This is the main mirroring work.
-3. **Handles need query methods, not just data fields.** `hasSomeTrait` (272) is the second most
-   common access overall, and `remainingHp` (34) is derived from `getHp()` and `damage`. A plain
-   frozen record would not serve these.
+1. **The properties interface can be much smaller than `Card`.** Card implementations touch engine
+   machinery in only ~0.7% of accesses, so excluding mutation and ability-registration methods
+   costs almost nothing — and directly satisfies SWU 8.11.2 (§3.15). This is what makes a parallel
+   properties hierarchy tractable rather than a full mirror of `Card`.
+2. **Type guards must be first-class on the properties object.** At 26% of all accesses they are
+   the single largest category after characteristics, so `isUnit()` and friends have to narrow to
+   properties types, not card types. This is the main mirroring work, and D-27 adds `isInPlay()` to
+   the same mechanism.
+3. **Properties objects need query methods, not just data fields.** `hasSomeTrait` (272) is the
+   second most common access overall, and `remainingHp` (34) is derived from `getHp()` and `damage`.
+   A plain frozen record would not serve these.
 
 ### 3.21 Most `isInPlay()` calls are accessor guards, not game questions
 
@@ -1084,31 +1137,36 @@ Useful for sizing the migration and for sanity-checking claims.
 
 ---
 
-## 5. Requirements derived so far
+## 5. Requirements
 
 1. **Correct by default.** A card implementation that does nothing special must get last-known
    state for a departed card.
 2. **Eager materialization at departure.** Derived values cannot be reconstructed after ongoing
-   effects are torn down (3.1).
-3. **Window-batched capture.** Simultaneity semantics must be preserved (3.4).
-4. **References must survive being passed around** and stored across steps.
-5. **Instance identity must be comparable** and available without throwing, for every card kind. It
-   must be a first-class value so the 75 hand-rolled pair comparisons (§3.17) collapse to one check.
-6. **References must dereference back to live objects** for game systems to act on, automatically
-   at the system boundary (D-6), with fizzle semantics when the instance no longer matches.
-7. **No silent fallback to live state.** A read that cannot be served correctly should fail loudly
-   rather than return a wrong value — this is the failure mode of the current design.
+   effects are torn down (§3.1), so a footprint must be captured while the card is still in play.
+3. **Window-batched capture.** Simultaneity semantics must be preserved (§3.4, SC-5).
+4. **References must survive being passed around** and stored across steps within an action.
+5. **Instance identity must be comparable** and available without throwing, for every card kind, so
+   the 75 hand-rolled pair comparisons (§3.17) collapse to one check.
+6. **References dereference back to live objects automatically** at the system boundary (D-6, D-7),
+   with fizzle semantics when the instance no longer matches.
+7. **No silent fallback to live state.** A read that cannot be served correctly fails loudly rather
+   than returning a wrong value — this is the failure mode of the current design.
 8. **Incrementally migratable.** A big-bang change across ~1,028 files is not viable.
-9. **Reference validity must be first-class.** Most "is it still in the discard?" checks are really
-   "is this reference still valid?" — see §3.8 and special-cases SC-12. Copy-id comparison answers
-   this; the ability's own zone requirements remain a framework concern.
+9. **Reference validity is first-class.** Most "is it still in the discard?" checks are really "is
+   this reference still valid?" (§3.8, SC-12). Instance comparison answers this; the ability's own
+   zone requirements remain a framework concern.
 10. **Footprints are pure reference data** (SWU 8.11.2) — they must not reactivate abilities or
-    ongoing effects that were on the card — and are **deeply immutable** once minted (D-17).
-11. **Holders that outlive the registry's retention window must materialize values, not hold
-    handles** (D-16). This applies to state watchers, phase-long cost adjusters, delayed effects,
-    and "for this phase" ongoing effects.
+    ongoing effects — and are **deeply immutable** once minted (D-17).
+11. **Holders that outlive the registry's retention window must hold captured values, not
+    references or live views** (D-16, D-23, D-26). This applies to state watchers, phase-long cost
+    adjusters, delayed effects and "for this phase" ongoing effects.
 12. **Multiple footprints for one card must coexist** within an action, keyed by instance, with
-    handles bound at event time (SC-13).
+    references bound at event time (SC-13).
+13. **No global cache requiring invalidation.** Live property reads pass through to the card;
+    captured values are immutable. Neither needs a state-version signal (D-25).
+14. **`power` and `printedPower` remain distinct concepts** (D-27, SC-17). In-play-only properties
+    are reachable only after narrowing, preserving the guard that reading `power` from a card in
+    hand is an error.
 
 ---
 
