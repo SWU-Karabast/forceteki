@@ -124,10 +124,9 @@ export class SwuBaseHandler {
         return {
             id: player.id,
             accessToken: accessToken,
-            // Intentionally only the primary leader: SwuBase's schema has one leader slot per player, and
-            // getSingleLeader() would throw for Twin Suns games. If Twin Suns stats reporting is ever
-            // needed, this schema will need a second-leader field to record both.
-            leader: player.deckLeader?.id,
+            // getSingleLeader() is safe here: this handler is only ever invoked for Premier-format games
+            // (see Lobby.ts's format === SwuGameFormat.Premier gate), which always have exactly one leader.
+            leader: player.getSingleLeader().id,
             base: player.base?.id,
             deck: {
                 id: accessToken ? deckId : 'unknown', // "unknown" deck ids for players NOT linked to swubase

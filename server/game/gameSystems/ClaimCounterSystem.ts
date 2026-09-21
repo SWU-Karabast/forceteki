@@ -44,15 +44,10 @@ export class ClaimCounterSystem<TContext extends AbilityContext = AbilityContext
             case ClaimCounterType.Blast:
                 game.isBlastCounterClaimed = true;
                 break;
+            default:
+                Contract.fail(`Unknown counter type: ${event.counterType}`);
         }
 
-        // NOTE ON ORDERING: this handler runs when the queued event window opens, not synchronously when
-        // resolve() is called (see Game.claimCounter). ActionWindow.claim*() calls Game.claimCounter(...)
-        // and then immediately calls pass(false), which — via Game.rotateActivePlayer() — reads this same
-        // player.passedActionPhase flag. That read only sees the value set here because GamePipeline drains
-        // steps queued during the current step (including this event window) before the pipeline advances
-        // past the ActionWindow's own completion. This isn't independently enforced or unit-tested at the
-        // pipeline level — if that step-ordering ever changes, this flag could be read stale.
         player.passedActionPhase = true;
     }
 

@@ -275,12 +275,11 @@ export class SwuStatsHandler {
         winner: number,
         playerNumber: number
     ): IPlayerData {
-        // Intentionally only the primary leader: SwuStats' schema has one leader slot per player, and
-        // getSingleLeader() would throw for Twin Suns games. If Twin Suns stats reporting is ever
-        // needed, this schema will need a second-leader field to record both.
-        const leaderStr = player.deckLeader?.id;
+        // getSingleLeader() is safe here: this handler is only ever invoked for Premier-format games
+        // (see Lobby.ts's format === SwuGameFormat.Premier gate), which always have exactly one leader.
+        const leaderStr = player.getSingleLeader().id;
         const baseStr = player.base?.id;
-        const opponentLeaderStr = opponentPlayer.deckLeader?.id;
+        const opponentLeaderStr = opponentPlayer.getSingleLeader().id;
         const opponentBaseColor = this.getBaseColor(opponentPlayer.base);
         const cardResults = this.getCardResultsByPlayer(player, game.statsTracker);
         return {

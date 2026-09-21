@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
-import { DeckZoneDestination, EventName, RelativePlayer, TargetMode, ZoneName } from '../core/Constants.js';
+import { DeckZoneDestination, EventName, RelativePlayer, SwuGameFormat, TargetMode, ZoneName } from '../core/Constants.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
 import type { Player } from '../core/Player.js';
@@ -7,6 +7,8 @@ import type { Card } from '../core/card/Card.js';
 import * as CardSelectorFactory from '../core/cardSelector/CardSelectorFactory.js';
 import { SelectCardMode } from '../core/gameSteps/PromptInterfaces.js';
 import { MoveCardSystem } from './MoveCardSystem.js';
+import type { GameEvent } from '../core/event/GameEvent.js';
+import { Contract } from '../core/utils/Contract.js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IClaimPlanCounterPutOnBottomProperties extends IPlayerTargetSystemProperties {}
@@ -28,6 +30,11 @@ export class ClaimPlanCounterPutOnBottomSystem<TContext extends AbilityContext =
 
     public override defaultTargets(context: TContext): Player[] {
         return context.player ? [context.player] : [];
+    }
+
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IClaimPlanCounterPutOnBottomProperties> = {}): void {
+        Contract.assertTrue(context.game.format === SwuGameFormat.FauxSuns, `${this.name} should only be created in the FauxSuns format, but this game's format is ${context.game.format}`);
+        super.queueGenerateEventGameSteps(events, context, additionalProperties);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -191,15 +191,15 @@ export class ActionWindow extends UiPrompt {
                 return true;
 
             case 'claimInitiative':
-                this.claimInitiative();
+                this.claimCounter(ClaimCounterType.Initiative);
                 return true;
 
             case 'claimPlan':
-                this.claimPlan();
+                this.claimCounter(ClaimCounterType.Plan);
                 return true;
 
             case 'claimBlast':
-                this.claimBlast();
+                this.claimCounter(ClaimCounterType.Blast);
                 return true;
 
             default:
@@ -236,30 +236,16 @@ export class ActionWindow extends UiPrompt {
         // }
     }
 
-    // NOTE: claimInitiative/claimPlan/claimBlast all share this shape — claimCounter(...) only queues the
-    // claim event window (it doesn't set passedActionPhase synchronously), and pass(false) immediately after
-    // relies on that flag already being set by the time it (via Game.rotateActivePlayer()) reads it. See the
-    // ordering note in ClaimCounterSystem.eventHandler for why this is safe today.
-    public claimInitiative() {
-        this.game.addMessage('{0} claims initiative and passes', this.activePlayer);
-        this.game.claimCounter(this.activePlayer, ClaimCounterType.Initiative);
-
-        // Calls this.complete()
-        this.pass(false);
-    }
-
-    public claimPlan() {
+    private static readonly claimCounterMessageByType: Record<ClaimCounterType, string> = {
+        [ClaimCounterType.Initiative]: '{0} claims initiative and passes',
         // eslint-disable-next-line forceteki/no-raw-token-text -- "Plan" refers to the TwinSuns Plan counter, not the Plan trait
-        this.game.addMessage('{0} claims the Plan counter and passes', this.activePlayer);
-        this.game.claimCounter(this.activePlayer, ClaimCounterType.Plan);
+        [ClaimCounterType.Plan]: '{0} claims the Plan counter and passes',
+        [ClaimCounterType.Blast]: '{0} claims the Blast counter and passes',
+    };
 
-        // Calls this.complete()
-        this.pass(false);
-    }
-
-    public claimBlast() {
-        this.game.addMessage('{0} claims the Blast counter and passes', this.activePlayer);
-        this.game.claimCounter(this.activePlayer, ClaimCounterType.Blast);
+    public claimCounter(counterType: ClaimCounterType) {
+        this.game.addMessage(ActionWindow.claimCounterMessageByType[counterType], this.activePlayer);
+        this.game.claimCounter(this.activePlayer, counterType);
 
         // Calls this.complete()
         this.pass(false);

@@ -696,9 +696,6 @@ export class Game extends EventEmitter {
     /**
      * Checks who the next legal active player for the action phase should be and updates activePlayer. If none available, sets it to null.
      */
-    // NOTE: when called via ActionWindow.pass() right after a claimCounter() call (see ActionWindow.claim*()),
-    // this read of passedActionPhase depends on ClaimCounterSystem's event window having already run and set
-    // that flag, even though claimCounter() itself only queues that window rather than running it synchronously.
     public rotateActivePlayer(): void {
         Contract.assertTrue(this.currentPhase === PhaseName.Action, `rotateActivePlayer can only be called during the action phase, instead called during ${this.currentPhase}`);
         if (!this.actionPhaseActivePlayer.opponent.passedActionPhase) {

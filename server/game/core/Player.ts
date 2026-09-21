@@ -137,17 +137,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
 
     @stateRefArray() private accessor _deckLeaders: readonly ILeaderCard[] = [];
 
-    /**
-     * Returns only the player's primary (first) deck leader, silently ignoring a second leader if
-     * one is present (e.g. Twin Suns). Only reach for this when the caller genuinely wants "just the
-     * first leader" (e.g. a stats/analytics path that isn't Twin-Suns-aware and can tolerate recording
-     * one leader) — for anything gameplay-facing, use {@link getAllDeckLeaders} or, if the code path is
-     * guaranteed to run only in single-leader formats, {@link getSingleLeader} (which asserts that).
-     */
-    public get deckLeader(): ILeaderCard {
-        return this._deckLeaders[0];
-    }
-
     public getSingleLeader(): ILeaderCard {
         Contract.assertEqual(this._deckLeaders.length, 1, `Expected exactly one leader but found ${this._deckLeaders.length}`);
         return this._deckLeaders[0];
