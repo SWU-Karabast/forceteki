@@ -9,12 +9,14 @@ import type { Card } from '../card/Card';
 import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import type { IOngoingEffectProps } from '../../Interfaces';
 import type { ReplacementEffectContext } from './ReplacementEffectContext';
+import type { AbilityLimit } from './AbilityLimit';
 
 export interface IAbilityContextProperties {
     game: Game;
     source?: any;
     player?: Player;
     ability?: PlayerOrCardAbility;
+    limit?: AbilityLimit;
     ongoingEffect?: IOngoingEffectProps<any>;
     costs?: any;
     costAspects?: Aspect[];
@@ -58,11 +60,18 @@ export class AbilityContext<TSource extends Card = Card> {
     public selectedPromptCards: Card[] = [];
     public activeAttackId?: number;
 
+    // Capture the limit for this resolution. A card leaving and returning can
+    // replace its live limit while existing contexts still share the old one.
+    private readonly limit?: AbilityLimit;
+
     public constructor(properties: IAbilityContextProperties) {
         this.game = properties.game;
         this.source = properties.source || new OngoingEffectSource(this.game);
         this.player = properties.player;
         this.ability = properties.ability;
+        this.limit = 'limit' in properties
+            ? properties.limit
+            : this.ability?.captureLimit?.();
         this.costs = properties.costs || {};
         this.costAspects = properties.costAspects || [];
         this.ongoingEffect = properties.ongoingEffect;
@@ -92,6 +101,14 @@ export class AbilityContext<TSource extends Card = Card> {
         return false;
     }
 
+    public isAtLimit(): boolean {
+        return this.limit?.isAtMax(this.player) ?? false;
+    }
+
+    public incrementLimit(): void {
+        this.limit?.increment(this.player);
+    }
+
     public copy(newProps: Partial<IAbilityContextProperties> = {}): AbilityContext<TSource> {
         const copy = this.createCopy(newProps);
         copy.target = this.target;
@@ -116,6 +133,7 @@ export class AbilityContext<TSource extends Card = Card> {
             source: this.source,
             player: this.player,
             ability: this.ability,
+            limit: this.limit,
             ongoingEffect: this.ongoingEffect,
             costs: Object.assign({}, this.costs),
             costAspects: this.costAspects,

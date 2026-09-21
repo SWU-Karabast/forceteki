@@ -1,6 +1,6 @@
 import { BaseStepWithPipeline } from './BaseStepWithPipeline.js';
 import { SimpleStep } from './SimpleStep.js';
-import { ZoneName, Stage, EventName, RelativePlayer, GameErrorSeverity } from '../Constants.js';
+import { Stage, EventName, RelativePlayer, GameErrorSeverity } from '../Constants.js';
 import { GameEvent } from '../event/GameEvent.js';
 import type { Game } from '../Game.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
@@ -359,27 +359,19 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
             // if the ability was cancelled after costs were paid, the limit is still used
             if (this.resolutionCommitted && this.context.ability.getCosts(this.context).length > 0) {
-                this.incrementLimit();
+                this.context.incrementLimit();
             }
             return;
         }
 
         this.context.player.hasResolvedAbilityThisTimepoint = true;
 
-        this.incrementLimit();
+        this.context.incrementLimit();
 
         this.context.ability.displayMessage(this.context);
         this.context.stage = Stage.Effect;
 
         this.context.ability.executeHandler(this.context);
-    }
-
-    // Increment limits (limits aren't used up on cards in hand)
-    private incrementLimit() {
-        if (this.context.ability.limit && this.context.source.zoneName !== ZoneName.Hand &&
-          (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.zoneName === this.context.source.zoneName)) {
-            this.context.ability.limit.increment(this.context.player);
-        }
     }
 
     private resetGameAbilityResolver() {

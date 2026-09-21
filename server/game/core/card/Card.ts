@@ -1137,9 +1137,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     protected updateActionAbilitiesForZoneInternal(actionAbilities: ActionAbilityBase[], from: ZoneName, to: ZoneName) {
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const action of actionAbilities) {
-                if (action.limit) {
-                    action.limit.reset();
-                }
+                action.resetLimit();
             }
         }
     }
@@ -1149,12 +1147,9 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     }
 
     protected updateTriggeredAbilityEventsInternal(triggeredAbilities: TriggeredAbilityBase[], from: ZoneName, to: ZoneName) {
-        // STATE TODO: Gonna be a little hard to track, but also not a big blocker.
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const triggeredAbility of triggeredAbilities) {
-                if (triggeredAbility.limit) {
-                    triggeredAbility.limit.reset();
-                }
+                triggeredAbility.resetLimitForNewZone();
             }
         }
 

@@ -27,7 +27,7 @@ import type { CardAbility } from './CardAbility.js';
 import type { CardAbilityStep } from './CardAbilityStep.js';
 import type { IPassAbilityHandler } from '../gameSteps/AbilityResolver.js';
 import type { MsgArg } from '../chat/GameChat.js';
-import { registerStateBase } from '../GameObjectUtils';
+import { registerStateBase, stateRef } from '../GameObjectUtils';
 
 export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     triggerHandlingMode?: TriggerHandlingMode;
@@ -51,7 +51,7 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
     private _title: string;
     private _contextTitle?: (context: AbilityContext) => string;
     private _appendOverrideTitle: boolean;
-    public limit?: AbilityLimit;
+    @stateRef() protected accessor limit: AbilityLimit = null;
     public canResolveWithoutLegalTargets: boolean;
     public targetResolvers: TargetResolver<any>[];
     public cannotTargetFirst: boolean;
@@ -413,6 +413,11 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
         );
     }
 
+    /** Returns the limit to retain for a new resolution context. */
+    public captureLimit(): AbilityLimit {
+        return this.limit;
+    }
+
     public createContext(player: Player = this.card.controller, event = undefined) {
         return new AbilityContext(this.getContextProperties(player, event));
     }
@@ -420,6 +425,7 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
     public getContextProperties(player: Player, event) {
         return {
             ability: this,
+            limit: this.limit,
             game: this.game,
             player,
             source: this.card,
