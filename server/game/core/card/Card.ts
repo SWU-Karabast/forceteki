@@ -819,7 +819,14 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         const traits = this.getPrintedTraits();
 
         for (const gainedTrait of this.getOngoingEffectValues(EffectName.GainTrait)) {
-            traits.add(gainedTrait);
+            // gainTrait provides a single Trait; gainTraits (dynamic) provides an array of Traits
+            if (Array.isArray(gainedTrait)) {
+                for (const trait of gainedTrait) {
+                    traits.add(trait);
+                }
+            } else {
+                traits.add(gainedTrait);
+            }
         }
         for (const lostTrait of this.getOngoingEffectValues(EffectName.LoseTrait)) {
             traits.delete(lostTrait);
@@ -1349,7 +1356,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                 return false;
             }
         }
-        return false;
+        return true;
     }
 
     private asSetOrArray<T>(valueOrValuesToCheck: T | Set<T> | T[]): Set<T> | T[] {
