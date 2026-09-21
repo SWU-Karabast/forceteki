@@ -756,6 +756,99 @@ Shape:
 
 ---
 
+### SC-17 — Zone-gated properties: `power` vs `printedPower`
+
+The throwing accessors are **not a defect to be smoothed over**. They encode a real semantic
+distinction that the design must preserve.
+
+- **`power`** is a property of a unit *in play* — it accounts for ongoing effects, attached
+  upgrades, Grit and Raid. It also exists for the **LKI of a unit that was in play**.
+- **`printedPower`** is the equivalent-but-distinct concept for a card that is not in play (usually
+  the printed value, with exceptions via `PrintedAttributesOverride`).
+
+A unit in play has **both**, and conflating them is a design error. Reading `power` from a card in
+hand is almost always a bug, which is why the accessor throws and why the `isInPlay()` guards exist.
+
+Confirmed chain for a unit in hand:
+
+```
+getPower()  →  getModifiedStatValue(StatType.Power)  →  getStatModifiers()
+            →  if (!this.isAttached()) { this.upgrades.forEach(…) }        // isAttached() is false — no parent
+            →  get upgrades()  →  assertPropertyEnabledForZone(this._upgrades, 'upgrades')
+            →  _upgrades is null  (setUpgradesEnabled(false) outside the arenas)
+            →  THROWS
+```
+
+**In-play-only properties:** `power`, `hp`, `damage`, `remainingHp`, `upgrades`, `exhausted`,
+`activeAttack`, `isAttacking`, `isDefending`, `parentCard`.
+**Always available:** `title`, `type`, `traits`, `cost`, `printedPower`, `printedHp`, `aspects`,
+`unique`, `controller`, `owner`.
+
+**The key reframe: the split is about the represented moment, not the card's current zone.**
+
+| Properties object | Was the represented state in play? | `power` |
+|---|---|---|
+| Live accessor, card in an arena | yes | ✅ available |
+| Captured footprint of a departed unit | **yes** — captured while in play | ✅ available |
+| Live accessor, card in hand or deck | no | ❌ not on the type |
+
+This is why LKI works: a footprint of a defeated unit *is* in-play state, so `power` is meaningful
+even though the card now sits in the discard. The distinction is not "is this captured or live" but
+"does this object represent in-play state".
+
+**Resolution — type-level split (option d), with the throw retained as a backstop.**
+
+```ts
+interface IUnitProperties {              // always available
+    readonly title: string;
+    readonly printedPower: number;
+    isInPlay(): this is IUnitPropertiesInPlay;   // type guard
+}
+
+interface IUnitPropertiesInPlay extends IUnitProperties {
+    readonly power: number;              // reachable only after narrowing
+    readonly upgrades: readonly IUpgradeRef[];
+    readonly activeAttack: IAttack | null;
+}
+```
+
+This **preserves the existing guards rather than removing them**, and upgrades them from a runtime
+throw to a compile-time error. Card code is close to unchanged:
+
+```ts
+matchTarget: (cardRef, context) => {
+    const card = gameState.getPropertiesOrLki(cardRef);
+    return card.isUnit() && card.isInPlay() && card.isAttacking() &&
+        card.activeAttack.getAllTargets().includes(/* … */);
+}
+```
+
+The runtime throw (D-14) stays as a backstop for paths that bypass the type system via `any`.
+
+**Options considered and rejected:**
+
+| | Why not |
+|---|---|
+| (a) Pass through and throw, with no type split | Preserves the guard but leaves the properties object non-uniform, and keeps the failure at runtime only |
+| (b) Return printed values as a default when out of play | **Conflates `power` with `printedPower`** — exactly the error the current throw exists to catch |
+| (c) Return `undefined` | Forces optional handling everywhere and still loses the semantic distinction |
+
+**Correction to §3.21.** That section concluded ~17 `isInPlay()` accessor guards would "evaporate".
+They do not — they become **type-narrowing guards**, in nearly identical syntax. The benefit is
+safety (compile-time rather than runtime), not line count. Only the ~7 SC-11 fallbacks genuinely
+collapse.
+
+**Naming.** The discriminant is `isInPlay()`. For a footprint this asserts something about the
+*captured moment* rather than the present — a defeated unit's footprint answers `true` while the
+card sits in the discard. This is consistent with the framing that a properties object is a view of
+a moment, and it keeps the existing guard syntax unchanged across the migration.
+
+---
+
+## Template for new entries
+
+---
+
 ## Template for new entries
 
 ```markdown

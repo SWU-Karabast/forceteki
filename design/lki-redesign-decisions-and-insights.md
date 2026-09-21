@@ -45,7 +45,7 @@ Goals of the redesign:
 | D-12 | Which engine internals need *physical-card* identity rather than instance identity? | **Deferred** — expected to exist, but needs investigation. See special-cases D-12. | Deferred |
 | D-13 | Do footprints capture the full derived characteristic set, or an enumerated subset? | **Enumerated subset.** Nuances must be explicitly considered whenever a new field is added — see below. | Decided |
 | D-14 | What happens when a handle cannot serve a read? | **Throw.** Applies to uncaptured fields and to orphaned handles (case ④). Dereference failure is *not* an error — it fizzles (D-6). | Decided |
-| D-15 | Shape of location queries on a handle (`currentZone` vs `isStillInPlay()`) | **Deferred** — revisit after the Old Daka / play-from-discard pattern is worked through, to keep the snapshot/live separation clear to card authors. | Deferred |
+| D-15 | Shape of location queries on a handle (`currentZone` vs `isStillInPlay()`) | **Resolved by D-24 and D-27.** Location questions are asked of the game (`gameState.isInPlay(ref)`, `player.discardZone.contains(ref)`); the properties object exposes `isInPlay()` only as a type-narrowing guard over the represented moment. | Decided |
 | D-16 | Is a handle read an independent copy, or a lookup into the live registry? | **A lookup.** A handle holds only `(card, instance)` and carries no data. This makes handles *names*, not *values* — with direct consequences for retention. See below. | Decided |
 | D-17 | Are footprints mutable once minted? | **No — deeply immutable.** Collection reads return frozen collections or defensive copies. See below. | Decided |
 | D-18 | Do card authors hold references or materialized values? | **Values.** This revises D-1. Authors extract a properties object and read from it; the reference itself is an opaque token. See below. | Decided |
@@ -55,7 +55,9 @@ Goals of the redesign:
 | D-22 | Is minting universal or opt-in? | **Universal**, from one central hook on leave-play event generation. | Decided |
 | D-23 | May a `CardRef` enter tracked state? | **No — refs are transient** and must never appear in undo snapshots. Tracked state stores `(uuid, instance)` primitives and rehydrates on read. | Decided |
 | D-24 | API surface: getter name, type name, relation traversal, location queries | `getPropertiesOrLki(ref)` returning `IUnitProperties`; getter supplied as a **setup-time parameter**; card-valued relations routed **through the getter**; location questions asked of the game, not the properties object. See below. | Decided |
-| D-25 | How is the cost of materializing properties controlled? | **Memoization**, keyed by `(ref, state version)`. Requires a state-change signal that does not exist today — see below. | Decided |
+| D-25 | How is the cost of materializing properties controlled? | **Polymorphic properties object**: a *live* variant holding a card reference with lazy pass-through getters, or a *snapshot* variant holding frozen captured values. No global memoization or invalidation. See below. | Decided |
+| D-26 | Are the two variants one type or two? | **Two concrete types sharing one interface** — `IUnitPropertiesCaptured` and `IUnitPropertiesAccessor`, both satisfying `IUnitProperties`. Consumers that require durability (state watchers) declare the captured type explicitly. Names provisional. See below. | Decided |
+| D-27 | How are in-play-only properties (`power`, `upgrades`, `activeAttack`) exposed? | **Type-level split with a narrowing guard**, preserving the existing `isInPlay()` guards and upgrading them from runtime throw to compile-time error. `power` and `printedPower` stay distinct concepts. See SC-17. | Decided |
 | D-4 | How is current location expressed on a handle? | Options A (live on handle, zero migration), B (off the handle, ask live zones), C (on the handle with explicit `current*` naming, e.g. `currentZone` / `isStillInPlay()`). Scope shrank substantially under D-5 — see §3.8. | **Open** |
 
 ### D-5 in detail — two independent lifecycle events
@@ -454,35 +456,114 @@ public override setupCardAbilities(
   `false`). This makes `gameState` a general game-state accessor rather than a property-only getter,
   consistent with the original "getter suite over a registry" framing.
 
-### D-25 in detail — memoization
+### D-25 in detail — polymorphic properties object
 
 Eager materialization is a real performance risk in target selection. `getPower()` / `getHp()` are
 not field reads — `getStatModifiers()` filters every ongoing effect, wraps each, then folds in
-upgrade bonuses, Grit and Raid. Under D-24 that cost is paid per candidate card on every legality
-check, and D-24's relation traversal adds two further loop-invariant lookups per candidate.
+upgrade bonuses, Grit and Raid. Paying that per candidate card on every legality check, plus D-24's
+two extra loop-invariant lookups per candidate, would be a significant regression.
 
-**Memoization splits cleanly by backing store:**
+A global memo cache was considered and **rejected**: invalidating it would require a state-version
+signal that does not exist today, and any mutation path bypassing the decorated accessors would
+leave memos silently stale — trading a performance problem for a correctness one.
 
-| Backing | Invalidation |
+**The chosen approach makes invalidation unnecessary rather than solving it.** `IUnitProperties` is
+an interface with two implementations, selected by the getter:
+
+```ts
+// departed card — footprint exists
+class SnapshotProperties implements IUnitProperties {
+    constructor(private readonly footprint: Footprint) {}
+    get power() { return this.footprint.power; }        // frozen
+}
+
+// current card — no footprint
+class LiveProperties implements IUnitProperties {
+    constructor(private readonly card: Card) {}
+    get power() { return this.card.getPower(); }        // lazy pass-through
+}
+```
+
+The invalidation problem splits, and both halves vanish:
+
+| Variant | Why no invalidation |
 |---|---|
-| Footprint | **None needed** — footprints are immutable once minted (D-17), so memo entries live until the action-boundary flush (D-20) |
-| Live card | Must invalidate whenever game state changes |
+| Snapshot | Footprints are immutable once minted (D-17); the object dies at the action-boundary flush (D-20) |
+| Live | Reads current state on every access, so it cannot be stale |
 
-**The live case needs a state-change signal that does not exist today.** There is no global version
-or generation counter on `Game` or `GameStateManager`. A monotonic counter bumped on every tracked
-mutation would serve, with the memo key becoming `(refKey, version)`:
+**Performance returns to today's baseline.** Getters are lazy, so
+`card.isUnit() && card.remainingHp <= 3` computes only `remainingHp` — exactly what the current code
+does. Both variants can also be cached per reference without any invalidation logic, since a
+snapshot is immutable and a live wrapper holds only a pointer.
 
-- The `@statePrimitive` / `@stateRef` / `@stateRefArray` accessors in
-  [GameObjectUtils](../server/game/core/GameObjectUtils.ts) are a natural central insertion point,
-  since all tracked mutation flows through their setters.
-- It must be **global**, not per-card: an ongoing effect attached to another object changes this
-  card's derived stats without touching this card's own state.
-- In a target-selection sweep with no intervening mutation the version is stable, so all candidates
-  hit the memo — which is exactly the case being optimised.
+**This is not D-9's rejected `Proxy`.** The distinctions are structural:
 
-**Correctness hazard to watch:** any mutation path that bypasses the decorated accessors would leave
-memos stale and silently wrong. The migration should either audit that all mutation bumps the
-version, or additionally clear memos at step boundaries as a conservative backstop.
+| | `Proxy` (D-9) | Live variant |
+|---|---|---|
+| Surface | forwards everything, including methods and mutation | explicit interface, curated read-only characteristics |
+| Type | structurally assignable to `Card` | not assignable to `Card` |
+| SWU 8.11.2 | re-exposes ability machinery | cannot — machinery is not on the interface |
+| Identity | `proxy === card` silently false | references are separate and interned (D-8) |
+
+**Consequence for D-16 / D-18.** The properties object is a *view* for live cards and a *value* for
+departed ones. Both implement the same interface, so this is invisible at the call site — it is not
+the rejected "two modes" problem. But two second-order effects follow:
+
+- **Coherence is per-read for the live variant**, not per-extraction. Reading `power` then `upgrades`
+  across an intervening mutation could yield an inconsistent pair. In practice properties objects are
+  short-lived (one predicate evaluation), so this is narrow.
+- **A live properties object cannot enter tracked state.** It holds a card pointer, so
+  `structuredClone` would throw — a loud failure, consistent with D-23. Watchers therefore still
+  need a *durable* materialization distinct from the view.
+
+**Open: zone-gated properties.** See SC-17 — the live variant inherits the throwing behavior of the
+underlying accessors, which affects §3.21's conclusion.
+
+### D-26 in detail — two concrete types, one interface
+
+```ts
+interface IUnitProperties { … }                                    // what card authors see
+class  UnitPropertiesCaptured implements IUnitProperties { … }     // frozen values
+class  UnitPropertiesAccessor implements IUnitProperties { … }     // live pass-through
+```
+
+`getPropertiesOrLki(ref)` returns `IUnitProperties`; consumers that require durability declare
+`IUnitPropertiesCaptured` explicitly.
+
+**This collapses what looked like a third form.** D-25 noted that watchers need a "durable
+materialization distinct from the view" — but that durable form *is* the captured type. A footprint
+and a watcher's stored properties are the same concept, so there are two types, not three.
+
+**The main gain is compile-time enforcement of D-23:**
+
+| | One polymorphic type | Two types, one interface |
+|---|---|---|
+| Storing a live view in tracked state | `structuredClone` throws at runtime | **compile error** |
+| Watcher's declared intent | implicit | explicit in the signature |
+| What card authors write | unchanged | unchanged |
+
+**Capture becomes a named operation:** `gameState.capture(properties): IUnitPropertiesCaptured` —
+identity for an already-captured object, full materialization for an accessor. This is what watchers
+call, and it is the one place the distinction surfaces for anyone outside the engine.
+
+**A serialization form still exists, but it is mechanical.** `IUnitPropertiesCaptured` holds
+card-valued relations (`parentCard`, `upgrades`) as references, which D-23 forbids in tracked state.
+Watchers therefore store a state form with `(uuid, instance)` primitives and rehydrate on read —
+exactly the existing `GameObjectId` / `UnwrapRef` pattern already used for every watcher entry type.
+So: two conceptual types plus one mechanical serialization shape.
+
+**Liskov constraint.** A shared interface is only honest if both implementations answer the same way
+for the same question. This is satisfied under D-27: the availability of `power` depends on whether
+the object represents **in-play state**, not on which implementation is in use. A captured footprint
+of a departed unit and a live accessor for an in-play unit both expose `power`; a live accessor for
+a card in hand does not, and the type-level narrowing guard makes that explicit at compile time.
+
+**Naming.** "Captured" describes state while "Accessor" describes mechanism, so the pair is not
+parallel. Prefer symmetric naming — `…Captured` / `…Live`, or `…Snapshot` / `…View`.
+
+**Interaction with D-10.** Both types derive from the same mapped-type machinery over the card
+interfaces, with the "characteristics only" filter applied once and shared. Roughly 20 card
+interfaces yield ~40 generated types, which is mechanical rather than hand-maintained.
 
 ### D-20 to D-23 in detail — registry lifecycle
 
@@ -955,6 +1036,13 @@ Guard breakdown: `activeAttack` / `isAttacking()` / `isDefending()` — 12 sites
 snapshot model independent of LKI correctness — it removes a class of defensive boilerplate that
 exists only because live property access is zone-gated. Net line count in card implementations
 likely decreases.
+
+> **Correction (see SC-17 and D-27).** The conclusion above is wrong for the ~17 accessor guards.
+> Those guards encode a real semantic distinction — `power` is a property of a unit *in play* (or of
+> the LKI of a unit that was in play), while `printedPower` is the distinct concept for a card that
+> is not in play. The guards are therefore **preserved as type-narrowing guards** in nearly identical
+> syntax, and the gain is safety (compile-time instead of runtime) rather than line count. Only the
+> ~7 SC-11 fallbacks genuinely collapse.
 
 ---
 
