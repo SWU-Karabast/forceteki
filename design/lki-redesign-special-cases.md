@@ -102,27 +102,96 @@ above verification shows a real behavioral difference.
 
 ### D-7 — Where automatic dereference happens
 
-**Deferred.** D-6 settled *that* handle-to-live-card conversion is automatic at the system
-boundary. *Where* that conversion happens is deferred pending analysis of existing game systems.
+**Resolved.** Dereference happens in **`GameSystem.generatePropertiesFromContext`**, and the fizzle
+mechanism reuses the **two-phase legality check that already exists**.
 
-The analysis needs to establish, across `server/game/gameSystems/**` and
-`server/game/core/gameSystem/**`:
+#### The pipeline
 
-- which systems accept cards as targets, and through which property paths
-- which read properties off a target *before* mutating it (those reads should go through the
-  footprint, but the mutation needs the live object — so the two operations may need to happen at
-  different points in the same system)
-- which have **gaps in their current legality checks**, where a hand-written card-side check is
-  silently doing the framework's job. [CaptureSystem](../server/game/gameSystems/CaptureSystem.ts)
-  with `fromOutOfPlay: true` is a confirmed example (§3.8) — it checks only `card.isUnit()`, so
-  `Bothan5`'s zone condition is load-bearing
-- how aggregate/composite systems (`simultaneous`, `sequential`, `conditional`) propagate targets,
-  since a handle passed to a composite must reach the right seam in each child
-- how `CardTargetSystem.generateEvent`'s existing `addLastKnownInformation` flag interacts (SC-1)
+```
+queueGenerateEventGameSteps(events, context, addlProps)        GameSystem.ts:229
+  └─ targets(context, addlProps)                               GameSystem.ts:348
+      └─ generatePropertiesFromContext(...)                    GameSystem.ts:121  ← DEREFERENCE HERE
+  └─ for each target:
+       canAffect(target, ...)                                  GameSystem.ts:170  ← legality, phase 1
+       generateRetargetedEvent(target, ...)                    GameSystem.ts:260
+         └─ createEvent(...)                                   GameSystem.ts:314
+         └─ updateEvent(...)                                   GameSystem.ts:324
+              └─ addPropertiesToEvent(...)                     CardTargetSystem.ts:178 → event.card = card
+              └─ event.setHandler(...)                         → eventHandler runs at resolution
+              └─ event.condition = checkEventCondition         ← legality, phase 2
+```
 
-**Constraint from SC-2:** whatever seam is chosen must give the Finn/Bothan5 pattern — a handle
-used directly as a mutation target — defined fizzle semantics, replacing today's accidental
-reliance on `canAffect` rejection.
+#### Why `generatePropertiesFromContext` is the seam
+
+1. **It is the single funnel.** `targets()`, `generateEvent()`, `queueGenerateEventGameSteps()`,
+   `getEffectMessage()`, `isOptional()` and every `canAffectInternal` override call it.
+2. **It already normalizes targets** — array-wraps, then `properties.target.filter(Boolean)`
+   (GameSystem.ts:134-136). A reference that fails to dereference can return `null` and be filtered
+   out by that existing line, so a stale target degrades to "no legal target" with no new machinery.
+3. **It returns *all* properties**, so the extra card-valued ones are covered by the same pass:
+   `captor` (CaptureSystem), `upgrade` / `parentCard` / `newController` (AttachUpgradeSystem),
+   `attacker` (AttackStepsSystem), `leaderPilotCard` (DeployAndAttachPilotLeaderSystem).
+4. **Downstream code needs no changes.** Every `canAffectInternal` and `eventHandler` across ~60
+   systems continues to receive live `Card` objects.
+
+#### The fizzle mechanism already exists
+
+Legality is checked **twice**, and the second check is what makes a target fizzle:
+
+| Phase | Where | Effect |
+|---|---|---|
+| Generation | `canAffect(target)` in `queueGenerateEventGameSteps` | target never produces an event |
+| Resolution | `event.condition()` → `checkEventCondition` → `canAffect(event.card)` → `event.cancel()` | event is cancelled mid-window |
+
+`CardTargetSystem.checkEventCondition` (CardTargetSystem.ts:162-165) re-runs `canAffect` against
+`event.card` with `GameStateChangeRequired.MustFullyResolve`, and
+[GameEvent.checkCondition](../server/game/core/event/GameEvent.ts) cancels the event when it returns
+false. `EventWindow.resolveEvents` calls this immediately before `executeHandler()`.
+
+**This is why SC-2's Finn pattern accidentally works today**, and it is exactly where instance
+validation belongs: a reference whose instance no longer matches is not a legal target.
+
+#### Gaps to close
+
+- **Systems with no zone check.** The base `canAffectInternal` is only
+  `return this.isTargetTypeValid(target)` (GameSystem.ts:111-114), so any system that does not
+  override it accepts a target in any zone. `CaptureSystem` with `fromOutOfPlay: true` is the
+  confirmed case (§3.8) — it checks only `card.isUnit()`.
+- **Extra card-valued properties are validated inconsistently.** `CaptureSystem` checks its captor
+  (`properties.captor.isUnit() && !properties.captor.isInPlay()`); most systems check nothing for
+  their non-target card properties. Those cannot be handled by `.filter(Boolean)` — a stale
+  `captor` must make the whole system fizzle via `canAffectInternal`.
+- **Composite systems are already safe.** `AggregateSystem.generatePropertiesFromContext`
+  (AggregateSystem.ts:21-35) pushes the resolved `properties.target` into children via
+  `setDefaultTargetFn`, and `ConditionalSystem`, `OptionalSystem`, `SequentialSystem`,
+  `SimultaneousOrSequentialSystem` and `RandomSelectionSystem` all pass targets through rather than
+  re-resolving. Dereferencing once in the parent therefore covers the children.
+
+#### Incidental findings
+
+**`UseWhenDefeatedSystem`'s special-casing dissolves.** Its comment (UseWhenDefeatedSystem.ts:67-71)
+explains that when the source is *still in play*, the event must be regenerated so its LKI reflects
+current stats rather than a stale snapshot — otherwise a re-use (Thrawn copying Helgait's ability)
+reads power captured before the first resolution. Under the new model no footprint exists for an
+in-play card, so `getPropertiesOrLki` returns a **live accessor** that reads current stats by
+construction. The manual regeneration becomes unnecessary.
+
+**Pre-existing bug at UseWhenDefeatedSystem.ts:75.**
+
+```ts
+new DefeatCardSystem(whenDefeatedProps).generateEvent(event.context, whenDefeatedSource, true);
+//                                                                   ^^^^^^^^^^^^^^^^^^ a Card in the
+//                                                                   additionalProperties slot
+```
+
+The signature is `generateEvent(context, additionalProperties, addLastKnownInformation)`, and
+line 102 passes `{}` correctly. A `Card` is being `Object.assign`ed into the properties object. It
+appears harmless today because `this.properties` is assigned last and wins, but it is unintended and
+should be fixed independently of this work.
+
+**SC-1 confirmed and narrowed.** The `addLastKnownInformation` flag on
+`CardTargetSystem.generateEvent` has exactly two call sites, both in `UseWhenDefeatedSystem`
+(lines 75 and 102). Under D-22's universal minting this flag disappears entirely.
 
 ---
 

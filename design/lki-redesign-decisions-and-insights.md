@@ -37,7 +37,7 @@ Goals of the redesign:
 | D-3 | What discriminates a frozen read from a live read? | **Characteristics vs. location.** *Not* the property name, and *not* the ability slot. | Decided |
 | D-5 | Is "left play" the same event as "became a new copy"? | **No — two independent lifecycle events.** See below. | Decided |
 | D-6 | Who converts a handle back to a live `Card` for game systems to mutate? | **Automatic at the system boundary.** Card implementations pass handles; the framework dereferences internally and fizzles when the instance no longer matches. Preserves "correct by default" and matches today's behavior, where fizzling already happens invisibly via `canAffect`. | Decided |
-| D-7 | *Where* exactly does the automatic dereference happen? | **Deferred** — requires careful analysis of existing game systems. See below. | Deferred |
+| D-7 | *Where* exactly does the automatic dereference happen? | **`GameSystem.generatePropertiesFromContext`** — the single funnel for all card-valued properties. Fizzle reuses the existing two-phase legality check (`canAffect` at generation, `checkEventCondition` at resolution). See special-cases D-7. | Decided |
 | D-8 | Where does instance identity live, and what is its value representation? | **Universal counter on `Card`, plus registry-vended interned handles.** See below. | Decided |
 | D-9 | Is a `Proxy` pass-through viable for migration? | **No — ruled out entirely**, including as a measurement tool. See below. | Decided |
 | D-10 | How is the handle type hierarchy expressed? | **Hybrid** — hand-write the type-guard signatures, derive the data surface from existing card interfaces via mapped types with a "characteristics only" filter. See below. | Decided |
@@ -1127,11 +1127,13 @@ exhaustively.
 
 **Prerequisites:**
 
-- **D-7's systems audit** — where automatic dereference happens. Card implementations cannot rely on
-  references-as-targets until this is settled.
+- ~~D-7's systems audit~~ — **complete**; dereference happens in
+  `GameSystem.generatePropertiesFromContext`, fizzle reuses the existing two-phase legality check
 - **The SC-16 regression test** — add it *before* migrating, since it passes today and is the
-  before/after check on centralizing footprints.
-- **A state-version signal** for D-25's memoization, which does not exist today.
+  before/after check on centralizing footprints
+- **Close the legality gaps found by the D-7 audit** — systems that do not override
+  `canAffectInternal` accept targets in any zone, and extra card-valued properties (`captor`,
+  `upgrade`, `parentCard`, `attacker`) are validated inconsistently
 
 **Sequencing questions:**
 
@@ -1150,7 +1152,6 @@ exhaustively.
 | ID | Question |
 |---|---|
 | D-2 | On-demand pinning (`pin()`) for true point-in-time capture — only if a card needs a past value for a card still in play |
-| D-7 | Where automatic dereference happens — requires auditing existing game systems |
 | D-12 | Which engine internals need *physical-card* identity rather than instance identity |
 
 ---
