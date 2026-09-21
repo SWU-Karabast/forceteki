@@ -62,13 +62,10 @@ export interface ITriggerWindowButton extends IButtonWithSourceCard {
     /** Number of similar triggers this button represents (> 1 when several were grouped into one choice) */
     count?: number;
 
-    /**
-     * True when this trigger is optional and its owner can decline it inline (via {@link passArg}) without an
-     * interstitial "You may trigger this ability" prompt. Clicking the card triggers the ability directly.
-     */
+    /** Whether or not this trigger button represents an optional ability that can be passed by the player */
     optional?: boolean;
 
-    /** Command arg the client sends to decline an inline-optional trigger; only set when {@link optional} is true. */
+    /** Command arg the client sends to decline an optional trigger; only set when {@link optional} is true. */
     passArg?: string;
 
     /** Label for the inline decline button (respects an ability's custom pass text); only set when {@link optional} is true. */

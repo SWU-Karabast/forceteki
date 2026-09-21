@@ -61,8 +61,6 @@ export class TriggeredAbilityResolutionPrompt extends UiPrompt {
             sourceCard: choice.getSourceCard(),
             hasLegalEffects,
             count: choice.count,
-            // Optional triggers whose owner is the resolving player expose an inline Pass so the player can
-            // decline without a follow-up interstitial; clicking the card itself triggers the ability.
             optional: choice.optional != null,
             passArg: choice.optional != null ? `pass${num}` : undefined,
             passText: choice.optional?.passButtonText
