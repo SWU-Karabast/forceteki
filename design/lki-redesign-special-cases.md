@@ -713,17 +713,53 @@ succeeds and the card is played — becoming *N+1*. Old Daka never refers to it 
 unaffected. But an ability that continues *"…then defeat it"* (as in SC-13) would find its original
 handle stale, and must instead read the **play** event's handle.
 
-**Proposed rule.** An event's handle is bound once, at the point where its subject is well defined:
+**Rule (corrected per R4).** An event's reference is bound once, at the point where its subject is
+well defined, and a footprint is minted whenever **information is lost**:
 
-| Event category | Bind at | Instance |
-|---|---|---|
-| Card leaves play | footprint mint (`preResolutionEffects`) | the departing instance |
-| Card enters play | after the handler | the newly created instance |
-| Everything else | any point — instance does not change | current |
+| Transition | Information | Mint a footprint? | Bind the event's reference |
+|---|---|---|---|
+| Leaves play (arena → anywhere) | lost | **yes** — in-play footprint | instance unchanged, so any point |
+| Visible → hidden (discard/capture → hand/deck/resource) | lost | **yes** — out-of-play footprint | the pre-break instance |
+| Enters play (anywhere → arena) | gained | no | **after the handler** (the new instance) |
+| Hidden → visible (deck → discard) | gained | no | instance unchanged, so any point |
 
-Chained effects should therefore read the event that matches the instance they mean, which is the
-`context.events` mechanism Old Daka already uses. This is the kind of detail D-6 anticipated would
-be hidden inside `GameSystem` machinery, and it belongs in the D-7 systems audit.
+The second row is R4's correction. An earlier draft said *"everything else: instance does not
+change"*, contradicting SC-15 Path 2 in this same document.
+[InPlayCard.initializeForCurrentZone](../server/game/core/card/baseClasses/InPlayCard.ts:432-435)
+increments on `isHiddenFromOpponent(newZone) && !isHiddenFromOpponent(prevZone)` — a visible →
+hidden move, which is not a leave-play and so minted nothing under D-22's original wording.
+
+**The out-of-play footprint already exists in concept.**
+[buildLastKnownInformation](../server/game/core/event/LastKnownInformation.ts:34-42) has a
+non-arena branch returning a reduced field set (`title`, `cost`, `controller`, `arena`, `traits`) —
+exactly the shape D-27's not-in-play properties type describes.
+
+**Resulting invariant:** every instance break that loses information is preceded by a mint, so a
+reference bound before the break stays readable after it. Enter-play needs no mint because the
+prior state was either hidden (nothing was known) or already captured by an earlier leave-play
+footprint — which is why Old Daka works: the defeat footprint covers reads taken after the replay.
+
+Chained effects read the event matching the instance they mean, via the `context.events` mechanism
+Old Daka already uses. This is the kind of detail D-6 anticipated would be hidden inside
+`GameSystem` machinery.
+
+**Exposure today: latent, not active.** 15 card files perform a discard → hand move (`Command`,
+`BountyHunterCrew`, `TranquilityInspiringFlagship`, `RogueSquadronSkirmisher`,
+`RazorCrestReliableGunship`, `StreetGangRecruiter`, `RenewedFriendship`,
+`GarSaxonViceroyofMandalore`, `DoctorAphraRapaciousArchaeologist`, `DoctorAphraDiggingForAnswers`,
+`FlightOfTheInquisitor`, `AdmiralTrenchHoldingTheLine`, `DaringDelve`, `MoffGideonRemnantCommander`,
+`TraskWalker`). None currently breaks:
+
+- `DaringDelve` and `DoctorAphraDiggingForAnswers` read `hasSomeAspect` / `hasSomeTrait` while the
+  card is still in the **discard** (deck → discard is hidden → visible, so no increment), then use
+  only identity comparison in `cardCondition` afterwards — which interning handles.
+- `ChewbaccaFaithfulFirstMate`'s `onCardMoved` is a **replacement effect**, resolving before the
+  handler, and reads only identity plus `event.destination`.
+- `PurrgilUltra` returns a unit from the **arena** — a leave-play, which does mint.
+- No state watcher listens to `OnCardMoved`.
+
+The gap is real but unexercised: *"return a card from your discard to your hand, then do X based on
+its cost"* would throw under the original wording.
 
 ---
 
