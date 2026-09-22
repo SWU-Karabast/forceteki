@@ -33,7 +33,6 @@ export default class StolenLandspeeder extends NonLeaderUnitCard {
                 onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Free },
                     playAsType: WildcardCardType.Unit,
-                    canPlayFromAnyZone: true,
                     enterPlayEffect: AbilityHelper.immediateEffects.giveExperience(),
                 }),
             })
