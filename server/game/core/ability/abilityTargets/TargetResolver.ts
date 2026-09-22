@@ -134,4 +134,13 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
     public getGameSystems(context: AbilityContext): GameSystem | GameSystem[] {
         return this.properties.immediateEffect ? [this.properties.immediateEffect] : [];
     }
+
+    /**
+     * True when this resolver reveals cards from a hidden zone but the choosing player has no card to reveal, in
+     * which case a triggered ability should show a masking pause rather than silently passing. Overridden by
+     * {@link CardTargetResolver}; other resolver types never mask reveals.
+     */
+    public isMissingRevealTargetForMasking(context: AbilityContext): boolean {
+        return false;
+    }
 }

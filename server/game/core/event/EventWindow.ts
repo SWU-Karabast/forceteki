@@ -86,6 +86,18 @@ export class EventWindow extends BaseStepWithPipeline {
         ]);
     }
 
+    public override continue() {
+        const complete = super.continue();
+
+        // A pause for player input breaks an automatic loop. Count only the
+        // uninterrupted nesting depth so voluntary repeated combos can continue.
+        if (!complete) {
+            this.windowDepth = 0;
+        }
+
+        return complete;
+    }
+
     public addEvent(event) {
         event.setWindow(this);
         this._events.push(event);

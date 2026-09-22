@@ -14,6 +14,7 @@ import type { AbilityContext } from './AbilityContext';
 import { registerState, registerStateBase, statePrimitive } from '../GameObjectUtils';
 import type { IGameObjectBaseState } from '../GameObjectBase';
 import * as AttackHelpers from '../attack/AttackHelpers';
+import { UnlimitedAbilityLimit } from './AbilityLimit';
 
 // STATE: Interface needed for onAfterSetState and cleanupOnRemove.
 export interface ITriggeredAbilityState extends IGameObjectBaseState {
@@ -268,6 +269,24 @@ export abstract class TriggeredAbilityBase extends CardAbility {
         this.isRegistered = true;
     }
 
+    public resetLimitForNewZone() {
+        if (!this.limit || this.limit.isEpicActionLimit()) {
+            return;
+        }
+
+        if (this.limit instanceof UnlimitedAbilityLimit) {
+            this.limit.reset();
+            return;
+        }
+
+        // Pending triggers must retain their original shared limit even if the
+        // source leaves play and returns before those triggers resolve.
+        this.limit.unregisterEvents();
+        this.limit = this.limit.clone();
+        this.limit.ability = this;
+        this.limit.registerEvents();
+    }
+
     public unregisterEvents() {
         if (!this.eventRegistrations) {
             return;
@@ -357,4 +376,3 @@ export abstract class TriggeredAbilityBase extends CardAbility {
 // a concrete, instantiable type for TriggeredAbilityBase.
 @registerState()
 export class TriggeredAbility extends TriggeredAbilityBase { }
-

@@ -59,7 +59,7 @@ describe('Stormchaser', function() {
                 });
             });
 
-            it('should draw a card unconditionally, with no reveal prompt, if there is a Disaster card in discard but none in hand', async function() {
+            it('shows a skippable pause instead of a reveal prompt, then draws a card via the discard condition, if there is a Disaster card in discard but none in hand', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -74,8 +74,12 @@ describe('Stormchaser', function() {
                 // Play Stormchaser
                 context.player1.clickCard(context.stormchaser);
 
-                // No reveal prompt is presented since there's no Disaster card in hand
-                // The draw resolves automatically from the discard pile condition
+                // Player 1 has no Disaster card to reveal, so a skippable masking pause is shown instead of a reveal prompt
+                expect(context.player1).toHavePrompt('Pausing for Reveal');
+                expect(context.player1).toHaveEnabledPromptButton('Skip');
+                context.player1.clickPrompt('Skip');
+
+                // The draw still resolves from the discard pile condition
                 expect(context.wampa).toBeInZone('hand', context.player1);
                 expect(context.sandstorm).toBeInZone('discard', context.player1);
                 expect(context.player2).toBeActivePlayer();
@@ -140,7 +144,7 @@ describe('Stormchaser', function() {
                 });
             });
 
-            it('should not draw a card and present no reveal prompt if there is no Disaster card in hand or discard', async function() {
+            it('shows a skippable pause instead of a reveal prompt, and does not draw a card, if there is no Disaster card in hand or discard', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -154,7 +158,12 @@ describe('Stormchaser', function() {
                 // Play Stormchaser
                 context.player1.clickCard(context.stormchaser);
 
-                // No eligible Disaster card anywhere, so no reveal prompt and no draw
+                // Player 1 has no Disaster card to reveal, so a skippable masking pause is shown instead of a reveal prompt
+                expect(context.player1).toHavePrompt('Pausing for Reveal');
+                expect(context.player1).toHaveEnabledPromptButton('Skip');
+                context.player1.clickPrompt('Skip');
+
+                // No eligible Disaster card anywhere, so no draw
                 expect(context.wampa).toBeInZone('deck', context.player1);
                 expect(context.player2).toBeActivePlayer();
             });
