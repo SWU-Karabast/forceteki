@@ -33,6 +33,12 @@ describe('Qira, Master Of Teras Kasi', function() {
 
                 context.player1.clickCard(context.atst);
 
+                expect(context.getChatLogs(3)).toEqual([
+                    'player1 plays Qi\'ra',
+                    'player1 uses Qi\'ra to discard Takedown',
+                    'player1 uses Qi\'ra to deal 3 damage to AT-ST',
+                ]);
+
                 expect(context.player2).toBeActivePlayer();
                 expect(context.atst.damage).toBe(3);
                 expect(context.takedown).toBeInZone('discard', context.player1);
@@ -49,6 +55,8 @@ describe('Qira, Master Of Teras Kasi', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.porg, context.wampa, context.takedown, context.fulcrum]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Pass');
+
+                expect(context.getChatLog()).toEqual('player1 plays Qi\'ra');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.atst.damage).toBe(0);
