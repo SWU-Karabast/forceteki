@@ -7,7 +7,11 @@ import { TrackedGameCardMetric, GameCardMetric } from '../../server/gameStatisti
 import type { Game } from '../../server/game/core/Game.js';
 import type { InPlayCard } from '../../server/game/core/card/baseClasses/InPlayCard.js';
 import type { IStatefulPromptResults } from '../../server/game/core/gameSteps/PromptInterfaces.js';
+import { PromptType } from '../../server/game/core/gameSteps/PromptInterfaces.js';
 import { nonEnumerable } from './decorators.js';
+
+/** A triggered ability can be referenced by its ability text or by its source card. */
+type TriggerRef = string | Pick<Card, 'uuid' | 'internalName' | 'name'>;
 
 export class PlayerInteractionWrapper {
     @nonEnumerable
@@ -676,29 +680,99 @@ export class PlayerInteractionWrapper {
     }
 
     /**
-     * Declines an inline-optional trigger directly from the simultaneous-trigger resolution prompt (the
-     * "card as action button" prompt) via the Pass affordance carried on that ability's trigger button,
-     * instead of a follow-up interstitial. Matches by the ability's button text or label.
+     * Opts into (resolves) a triggered ability, whether it is offered by the standalone optional-trigger
+     * prompt ("You may trigger this ability") or as one option among simultaneous triggers. Reference the
+     * ability by its source card or its text. The reference may be omitted only for the standalone prompt;
+     * a simultaneous-trigger prompt always requires one so the choice is unambiguous.
      */
-    public clickInlineTriggerPass(abilityText: string) {
-        abilityText = abilityText.toString();
-        const currentPrompt = this.player.currentPrompt();
-        const promptButton = (currentPrompt.buttons ?? []).find(
-            (button: { passArg?: string; text?: { toString: () => string }; label?: { toString: () => string } }) =>
-                button.passArg != null &&
-                [button.text, button.label].some(
-                    (value) => value != null && value.toString().toLowerCase() === abilityText.toLowerCase()
-                )
-        );
+    public clickTrigger(ref?: TriggerRef) {
+        this.resolveTriggerPrompt('trigger', ref);
+    }
 
-        if (!promptButton) {
-            throw new TestSetupError(
-                `Couldn't find an inline Pass for '${abilityText}' for ${this.player.name}. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
-            );
+    /**
+     * Declines (passes) an optional triggered ability, whether it is offered by the standalone
+     * optional-trigger prompt or as one option among simultaneous triggers. Reference the ability by its
+     * source card or its text. The reference may be omitted only for the standalone prompt; a
+     * simultaneous-trigger prompt always requires one so the choice is unambiguous.
+     */
+    public clickPass(ref?: TriggerRef) {
+        this.resolveTriggerPrompt('pass', ref);
+    }
+
+    private resolveTriggerPrompt(mode: 'trigger' | 'pass', ref?: TriggerRef) {
+        const prompt = this.player.currentPrompt();
+        const buttons: any[] = prompt.buttons ?? [];
+        const verb = mode === 'trigger' ? 'clickTrigger' : 'clickPass';
+
+        // Standalone "You may trigger this ability" prompt: fixed Trigger / Pass buttons.
+        if (prompt.promptType === PromptType.OptionalTrigger) {
+            if (ref != null && !this.triggerButtonMatchesRef(buttons.find((button) => button.arg === 'trigger'), ref)) {
+                throw new TestSetupError(
+                    `Expected the optional-trigger prompt for ${this.player.name} to be for '${this.describeTriggerRef(ref)}', but it was not. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
+                );
+            }
+            const button = buttons.find((candidate) => candidate.arg === (mode === 'trigger' ? 'trigger' : 'pass'));
+            this.game.menuButton(this.player.id, button.arg, button.uuid, button.method);
+            this.game.continue();
+            return;
         }
 
-        this.game.menuButton(this.player.id, promptButton.passArg, promptButton.uuid, promptButton.method);
-        this.game.continue();
+        // Simultaneous-trigger resolution prompt: one option per (grouped) trigger, so a reference is required.
+        if (prompt.promptType === PromptType.TriggerWindow) {
+            if (ref == null) {
+                throw new TestSetupError(
+                    `${verb} requires a card or ability text when multiple triggers are being resolved at once. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
+                );
+            }
+            const candidates = mode === 'pass' ? buttons.filter((button) => button.passArg != null) : buttons;
+            const button = this.resolveSingleTriggerButton(candidates, ref, mode);
+            this.game.menuButton(this.player.id, mode === 'pass' ? button.passArg : button.arg, button.uuid, button.method);
+            this.game.continue();
+            return;
+        }
+
+        throw new TestSetupError(
+            `Expected ${this.player.name} to have a triggered-ability prompt to ${mode}, but the current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
+        );
+    }
+
+    private resolveSingleTriggerButton(candidates: any[], ref: TriggerRef, mode: 'trigger' | 'pass') {
+        const matches = candidates.filter((button) => this.triggerButtonMatchesRef(button, ref));
+        if (matches.length === 1) {
+            return matches[0];
+        }
+
+        const label = mode === 'pass' ? 'passable trigger' : 'trigger';
+        const available = candidates.length > 0
+            ? candidates.map((button) => `  - ${button.text}${button.sourceCard ? ` (${button.sourceCard.name})` : ''}`).join('\n')
+            : '  (none)';
+        const reason = matches.length === 0
+            ? `Couldn't find a ${label} matching '${this.describeTriggerRef(ref)}'`
+            : `'${this.describeTriggerRef(ref)}' matches ${matches.length} ${label}s; disambiguate with the ability text`;
+        throw new TestSetupError(
+            `${reason} for ${this.player.name}. Available ${label}s:\n${available}\n\n${Util.formatBothPlayerPrompts(this.testContext)}`
+        );
+    }
+
+    private triggerButtonMatchesRef(button: any, ref: TriggerRef): boolean {
+        if (button == null) {
+            return false;
+        }
+        if (typeof ref === 'string') {
+            const wanted = ref.toLowerCase();
+            return [button.text, button.label]
+                .filter((value) => value != null)
+                // strip the test-only "(No effect) " prefix so callers match on the ability text alone
+                .map((value) => value.toString()
+                    .replace(/^\(No effect\) /, '')
+                    .toLowerCase())
+                .includes(wanted);
+        }
+        return button.sourceCard?.uuid === ref.uuid;
+    }
+
+    private describeTriggerRef(ref: TriggerRef): string {
+        return typeof ref === 'string' ? ref : (ref.name ?? ref.internalName ?? ref.uuid);
     }
 
     public chooseListOption(text: any) {

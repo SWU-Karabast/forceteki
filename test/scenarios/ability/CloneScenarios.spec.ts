@@ -29,7 +29,7 @@ describe('Specific Clone scenarios', function() {
                 expect(context.clone).toBeCloneOf(context.yoda);
 
                 // Choose to resolve When Played ability first (inline — it shares the window with Ambush)
-                expect(context.player1).toHaveInlineTriggerPass('Use the Force to heal 5 damage from a base');
+                expect(context.player1).toHavePassableTriggerPrompt('Use the Force to heal 5 damage from a base');
                 context.player1.clickPrompt('Use the Force to heal 5 damage from a base');
                 context.player1.clickCard(context.p1Base);
                 expect(context.p1Base.damage).toBe(0);

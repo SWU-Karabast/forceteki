@@ -63,7 +63,7 @@ describe('Keeper of Skara Nal, Awoken', function() {
 
             // The Discard ability shares this On Attack window with Keeper's Restore 2, so it's offered inline;
             // decline it via the inline Pass instead of committing to the discard.
-            context.player1.clickInlineTriggerPass('Discard 2 cards named Keeper of Skara Nal from your hand. If you do, this unit gets +15/+0 and gains Overwhelm for this attack.');
+            context.player1.clickPass('Discard 2 cards named Keeper of Skara Nal from your hand. If you do, this unit gets +15/+0 and gains Overwhelm for this attack.');
 
             expect(context.player2).toBeActivePlayer();
 

@@ -428,7 +428,7 @@ describe('Regroup phase', function() {
                 // Choose which ability to resolve first
                 expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
                 expect(context.player1).toHaveExactPromptButtons(['Shielded', 'Ambush', 'Deal 3 damage to this unit']);
-                expect(context.player1).toHaveInlineTriggerPass('Ambush');
+                expect(context.player1).toHavePassableTriggerPrompt('Ambush');
                 context.player1.clickPrompt('Ambush');
 
                 // Ambush Consular Security Force

@@ -23,7 +23,7 @@ describe('Shuttle ST-149 Under Krennics Authority', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.shuttleSt149);
-                expect(context.player1).toHaveInlineTriggerPass('Take control of a token upgrade on a unit and attach it to a different eligible unit.');
+                expect(context.player1).toHavePassableTriggerPrompt('Take control of a token upgrade on a unit and attach it to a different eligible unit.');
                 context.player1.clickPrompt('Take control of a token upgrade on a unit and attach it to a different eligible unit.');
                 expect(context.player1).toBeAbleToSelectExactly([context.experience, context.shield]);
 
@@ -68,8 +68,8 @@ describe('Shuttle ST-149 Under Krennics Authority', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.shuttleSt149);
-                expect(context.player1).toHaveInlineTriggerPass('Take control of a token upgrade on a unit and attach it to a different eligible unit.');
-                context.player1.clickInlineTriggerPass('Take control of a token upgrade on a unit and attach it to a different eligible unit.');
+                expect(context.player1).toHavePassableTriggerPrompt('Take control of a token upgrade on a unit and attach it to a different eligible unit.');
+                context.player1.clickPass('Take control of a token upgrade on a unit and attach it to a different eligible unit.');
 
                 // Shielded should resolve now
                 expect(context.shuttleSt149).toHaveExactUpgradeNames(['shield']);

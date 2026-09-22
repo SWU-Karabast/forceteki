@@ -543,31 +543,72 @@ var customMatchers = {
             }
         };
     },
-    toHaveInlineTriggerPass: function () {
+    toHavePassableTriggerPrompt: function () {
         return {
-            compare: function (player, abilityText) {
+            compare: function (player, ref) {
                 var result = {};
 
-                if (abilityText == null) {
-                    throw new TestSetupError('toHaveInlineTriggerPass requires an abilityText parameter');
+                if (ref == null) {
+                    throw new TestSetupError('toHavePassableTriggerPrompt requires a card or ability text parameter');
                 }
 
-                // In the simultaneous-trigger prompt, an optional trigger exposes its Pass inline via `passArg`
-                // on the ability's own trigger button (matched by button text or label), rather than a separate
-                // "Trigger"/"Pass" interstitial.
-                const triggerButton = (player.currentPrompt().buttons ?? []).find(
-                    (button) => button.passArg != null &&
-                      [button.text, button.label].some(
-                          (value) => value != null && value.toString().toLowerCase() === abilityText.toLowerCase()
-                      )
-                );
-                result.pass = triggerButton != null;
+                // An optional (declinable) trigger, whether presented on its own via the standalone
+                // "You may trigger this ability" prompt or as one option among simultaneous triggers.
+                const prompt = player.currentPrompt();
+                const buttons = prompt.buttons ?? [];
+
+                let passable = false;
+                if (prompt.promptType === 'optionalTrigger') {
+                    passable = triggerButtonMatchesTriggerRef(buttons.find((button) => button.arg === 'trigger'), ref);
+                } else if (prompt.promptType === 'triggerWindow') {
+                    passable = buttons.some((button) => button.passArg != null && triggerButtonMatchesTriggerRef(button, ref));
+                }
+                result.pass = passable;
+
+                const refText = describeTriggerRef(ref);
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have a passable trigger for '${refText}' but it did.`;
+                } else {
+                    result.message = `Expected ${player.name} to have a passable (optional) trigger for '${refText}' ` +
+                    `but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                }
+
+                return result;
+            }
+        };
+    },
+    toHaveExactTriggerResolutionPrompt: function () {
+        return {
+            compare: function (player, expectedEntries) {
+                var result = {};
+
+                if (!Array.isArray(expectedEntries)) {
+                    throw new TestSetupError(`Parameter 'expectedEntries' is not an array: ${expectedEntries}`);
+                }
+
+                const prompt = player.currentPrompt();
+                if (prompt.promptType !== 'triggerWindow') {
+                    result.pass = false;
+                    result.message = `Expected ${player.name} to have a simultaneous-trigger resolution prompt ` +
+                    `but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                    return result;
+                }
+
+                const expected = expectedEntries.map(normalizeTriggerDescriptor);
+                const actual = (prompt.buttons ?? []).map((button) => ({
+                    title: stripNoEffectPrefix(button.text),
+                    optional: !!button.optional,
+                    hasEffect: !!button.hasLegalEffects,
+                    count: button.count ?? 1,
+                }));
+
+                result.pass = triggerDescriptorArraysEqual(expected, actual);
 
                 if (result.pass) {
-                    result.message = `Expected ${player.name} not to have an inline trigger Pass for '${abilityText}' but it did.`;
+                    result.message = `Expected ${player.name} not to have this exact trigger resolution prompt but it did.`;
                 } else {
-                    result.message = `Expected ${player.name} to have an inline trigger Pass for '${abilityText}' ` +
-                    `(a trigger button with a passArg) but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                    result.message = `Expected ${player.name} to have trigger resolution prompt:\n${formatTriggerDescriptors(expected)}\n` +
+                    `but the actual prompt was:\n${formatTriggerDescriptors(actual)}\n\n${generatePromptHelpMessage(player.testContext)}`;
                 }
 
                 return result;
@@ -1445,6 +1486,83 @@ var customMatchers = {
 
 function generatePromptHelpMessage(testContext) {
     return `Current prompts for players:\n${Util.formatBothPlayerPrompts(testContext)}`;
+}
+
+/** Human-readable label for a trigger reference (ability text or source card). */
+function describeTriggerRef(ref) {
+    return typeof ref === 'string' ? ref : (ref.name ?? ref.internalName ?? ref.uuid);
+}
+
+/** Removes the test-only "(No effect) " prefix that trigger buttons carry when they have no legal effect. */
+function stripNoEffectPrefix(text) {
+    return (text ?? '').toString().replace(/^\(No effect\) /, '');
+}
+
+/** Whether a trigger button matches a reference given as ability text (button text/label) or a source card. */
+function triggerButtonMatchesTriggerRef(button, ref) {
+    if (button == null) {
+        return false;
+    }
+    if (typeof ref === 'string') {
+        const wanted = ref.toLowerCase();
+        return [button.text, button.label]
+            .filter((value) => value != null)
+            .map((value) => stripNoEffectPrefix(value).toLowerCase())
+            .includes(wanted);
+    }
+    return button.sourceCard != null && button.sourceCard.uuid === ref.uuid;
+}
+
+/**
+ * Expands a full-state trigger descriptor into its canonical form. A bare string is shorthand for a
+ * single, mandatory, has-effect trigger; an object overrides those defaults per field.
+ */
+function normalizeTriggerDescriptor(entry) {
+    const defaults = { optional: false, hasEffect: true, count: 1 };
+    if (typeof entry === 'string') {
+        return { ...defaults, title: entry };
+    }
+    if (entry == null || typeof entry.title !== 'string') {
+        throw new TestSetupError(`Invalid trigger descriptor (expected a string or an object with a 'title'): ${JSON.stringify(entry)}`);
+    }
+    return { ...defaults, ...entry };
+}
+
+function triggerDescriptorKey(descriptor) {
+    return [descriptor.title, descriptor.optional, descriptor.hasEffect, descriptor.count].join(' ');
+}
+
+/**
+ * Compares two descriptor lists as multisets — order-insensitive, matching `toHaveExactPromptButtons`
+ * (which sorts before comparing). The trigger-resolution prompt's ordering is an engine sort detail that
+ * specs shouldn't be coupled to.
+ */
+function triggerDescriptorArraysEqual(a, b) {
+    if (a.length !== b.length) {
+        return false;
+    }
+    const keysA = a.map(triggerDescriptorKey).sort();
+    const keysB = b.map(triggerDescriptorKey).sort();
+    return keysA.every((key, index) => key === keysB[index]);
+}
+
+function formatTriggerDescriptors(descriptors) {
+    if (descriptors.length === 0) {
+        return '  (no triggers)';
+    }
+    return descriptors.map((descriptor) => {
+        const tags = [];
+        if (descriptor.optional) {
+            tags.push('optional');
+        }
+        if (!descriptor.hasEffect) {
+            tags.push('no effect');
+        }
+        if (descriptor.count > 1) {
+            tags.push(`x${descriptor.count}`);
+        }
+        return `  - ${descriptor.title}${tags.length > 0 ? ` [${tags.join(', ')}]` : ''}`;
+    }).join('\n');
 }
 
 function checkConsistentZoneState(card, result) {

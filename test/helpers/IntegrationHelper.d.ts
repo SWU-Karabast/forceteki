@@ -150,7 +150,8 @@ declare namespace jasmine {
         toBeActivePlayer<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHaveInitiative<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHavePassAbilityPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any): boolean;
-        toHaveInlineTriggerPass<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any): boolean;
+        toHavePassableTriggerPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, ref: any): boolean;
+        toHaveExactTriggerResolutionPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedEntries: any[]): boolean;
         toHaveNoEffectAbilityPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any): boolean;
         toHavePassSingleTargetPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any, target: any): boolean;
         toHaveConfirmUndoPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, blockButtonEnabled?: boolean): boolean;

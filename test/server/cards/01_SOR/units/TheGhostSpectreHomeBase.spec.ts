@@ -20,7 +20,7 @@ describe('The Ghost, Spectre Home Base', function () {
                 context.player1.clickCard(context.theGhost);
 
                 // also shield
-                expect(context.player1).toHaveInlineTriggerPass('Give a shield token to another Spectre unit');
+                expect(context.player1).toHavePassableTriggerPrompt('Give a shield token to another Spectre unit');
                 context.player1.clickPrompt('Give a shield token to another Spectre unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.sabineWren, context.kananJarrus]);
                 context.player1.clickCard(context.sabineWren);

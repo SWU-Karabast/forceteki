@@ -51,7 +51,7 @@ describe('Glavanized Leap', function() {
             const { context } = contextRef;
 
             context.player2.clickCard(context.snubFighterSquadron);
-            context.player2.clickInlineTriggerPass('Ambush');
+            context.player2.clickPass('Ambush');
 
             context.player2.clickCard(context.greenSquadronAwing);
             expect(context.greenSquadronAwing.damage).toBe(1);

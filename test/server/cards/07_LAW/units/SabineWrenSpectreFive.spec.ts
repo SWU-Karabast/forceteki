@@ -42,7 +42,7 @@ describe('Sabine Wren, Spectre Five', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.sabineWren);
-            context.player1.clickInlineTriggerPass('Defeat a non-unique upgrade');
+            context.player1.clickPass('Defeat a non-unique upgrade');
 
             expect(context.player2).toBeActivePlayer();
         });
@@ -88,7 +88,7 @@ describe('Sabine Wren, Spectre Five', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.sabineWren);
-            context.player1.clickInlineTriggerPass('Defeat an upgrade');
+            context.player1.clickPass('Defeat an upgrade');
 
             expect(context.player2).toBeActivePlayer();
         });
@@ -134,7 +134,7 @@ describe('Sabine Wren, Spectre Five', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.sabineWren);
-            context.player1.clickInlineTriggerPass('Defeat an upgrade');
+            context.player1.clickPass('Defeat an upgrade');
 
             expect(context.player2).toBeActivePlayer();
         });
