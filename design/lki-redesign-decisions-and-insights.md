@@ -1499,17 +1499,20 @@ refactors (for example `TriggeredAbility.controllerMeetsRequirements` switching 
 minting and R4's visible→hidden expansion are deliberate behavior changes that come later, with
 their own tests.
 
-### Phase 0 — baselines and gates
+### Phase 0 — baselines and gates ✅ complete
 
-No production code, so this is fast to review and safe to merge immediately.
+No production code, so this is fast to review and safe to merge immediately. Outcomes recorded in
+[lki-migration-register.md](./lki-migration-register.md) §H.
 
-| | Item |
-|---|---|
-| 0.1 | **Build the SC-16 regression test from real cards.** No card performs "when defeated → replay from discard", so the hypothetical "Pointless Cycle" is not constructible. The real analogue is documented at [UseWhenDefeatedSystem.ts:67-71](../server/game/gameSystems/UseWhenDefeatedSystem.ts): [HelgaitDookuWasAVisionary](../server/game/cards/08_ASH/units/HelgaitDookuWasAVisionary.ts) (Advantage tokens equal to its power) re-used via `GrandAdmiralThrawnHowUnfortunate` / `ShadowCasterJustBusiness` / `EnfysNestUntilWeCanGoNoHigher`, plus [DengarTakeYourShot](../server/game/cards/07_LAW/units/DengarTakeYourShot.ts) for the simultaneous-defeat comparison across `event.window.events`. Determine empirically whether the full SC-13 cascade is constructible; if not, decompose into separate I1/I2/I3 tests and record the gap rather than claiming SC-16 covers it. |
-| 0.2 | **Characterization tests** for sites whose behavior will change. The ~8 survival-check hacks (D-31) *will* change — capture current behavior so the diff is visible and intentional. The 7 SC-11 fallbacks must *not* change — lock them in. |
-| 0.3 | **Undo baseline.** `npm run test-undo` green before starting. Extend [test/scenarios/undo/IntraAction.spec.ts](../test/scenarios/undo) with a mid-action rollback case that would catch D-29's stale-footprint bug. |
-| 0.4 | **Timing-window coverage.** `test/scenarios/timingWindows/` currently holds only `DefeatTiming.spec.ts`. Add coverage for SC-10's `when` double-evaluation, since D-31 may change which pass fires first for `PunishingOne` and `LuthenRaelDontYouWantToFightForReal`. |
-| 0.5 | **The per-case migration register** — see below. |
+| | Item | Outcome |
+|---|---|---|
+| 0.1 | **SC-16 regression test from real cards** | Built as `test/scenarios/lki/LastKnownInformation.spec.ts`. The hypothetical "Pointless Cycle" is **not constructible** — no card performs "when defeated → replay from discard". The real analogue, documented at [UseWhenDefeatedSystem.ts:67-71](../server/game/gameSystems/UseWhenDefeatedSystem.ts), is [Helgait](../server/game/cards/08_ASH/units/HelgaitDookuWasAVisionary.ts) re-used via [ChimaeraReinforcingTheCenter](../server/game/cards/04_JTL/units/ChimaeraReinforcingTheCenter.ts) (source stays in play) and [GrandAdmiralThrawnHowUnfortunate](../server/game/cards/04_JTL/leaders/GrandAdmiralThrawnHowUnfortunate.ts) (source defeated). Both directions are now pinned: a source still in play yields **6 then 12** (fresh reading each time), a defeated source yields **7 then 7** (one snapshot, reused). |
+| 0.2 | **Characterization tests** | All 14 sites in scope already had specs. `PoeDameronOneHellOfAPilot.spec.ts:88` covers the defeated case directly; `PunishingOne` and `LuthenRael` are additionally pinned by the new LKI spec. No gaps required filling. |
+| 0.3 | **Undo baseline** | Green at **8,322 specs / 0 failures**. No bespoke rollback test was needed: `undoIt` already runs every assertion, rolls back to the start-of-test snapshot, and **runs it again**, so the LKI spec doubles as the D-29 guard. |
+| 0.4 | **Timing coverage** | Added a characterization test proving trigger conditions that read in-play-only state are evaluated **before** the defeat resolves (SC-10). |
+| 0.5 | **Per-case migration register** | [lki-migration-register.md](./lki-migration-register.md) — 8 sections covering behavior changes, known bugs, type corrections, deletions, expected simplifications, a known-broken disabled test, legality gaps, and the baseline. |
+
+Full suite baseline: **8,500 specs, 0 failures**, 9 pre-existing pending.
 
 ### Phase 1 — core components, proven on a handful of cards
 
@@ -1573,18 +1576,19 @@ the ~359 `===` comparisons keep working unchanged.
 
 ### 0.5 — The per-case migration register
 
-Sites that must **not** be touched by the codemod:
+Now maintained as [lki-migration-register.md](./lki-migration-register.md). Summary of what it
+tracks:
 
-| Site | Why |
+| Section | Contents |
 |---|---|
-| ~8 survival-check hacks (D-31) | behavior inverts; each needs individual review |
-| [DengarTakeYourShot:42](../server/game/cards/07_LAW/units/DengarTakeYourShot.ts) | the only `lki.card` live hop in the repo (SC-3) |
-| `TargetedCostAdjuster.ts:33,398` | `IUnitCard[]` type lie → `IUnitPropertiesCaptured[]` (R11) |
-| `UseWhenDefeatedSystem.ts:75` | pre-existing bug — a `Card` passed in the `additionalProperties` slot; fix as part of this feature work |
-| `DamageSystem.ts:317-322` | damage-event LKI is redundant — delete (R11) |
-| `LastKnownInformation.ts:114` | `defendersLastKnownInformation` is built but never consumed — dead code |
-| `IStateWatcherLKIEntry.upgrades` | stored as `GameObjectId` with no instance component (D-23) |
-| `CardsDefeatedThisPhaseWatcher.ts:134`, `CardsLeftPlayThisPhaseWatcher.ts:112` | store the event's `traits` `Set` instance directly into tracked state (D-17) |
+| A | ~8 survival-check hacks whose behavior inverts under D-31 |
+| B | Known bugs to fix as part of this work (Dengar's `lki.card` hop, `UseWhenDefeatedSystem:75`, watcher instance/Set issues) |
+| C | Type corrections (`TargetedCostAdjuster.selectedTargets`) |
+| D | Code to delete (redundant damage-event LKI, `defendersLastKnownInformation`, the `addLastKnownInformation` flag) |
+| E | Engine simplifications expected to fall out, listed so the reduction is verified rather than assumed |
+| F | A disabled test (`LattsRazziDeadlyWhipmaster.spec.ts:148`) documenting a case today's LKI cannot serve — re-enable after the registry lands |
+| G | Legality gaps from the D-7 audit |
+| H | The phase-0 baseline |
 
 ### Remaining non-blocking items
 
