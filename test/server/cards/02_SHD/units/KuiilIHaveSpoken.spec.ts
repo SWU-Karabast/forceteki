@@ -21,9 +21,12 @@ describe('Kuiil, I Have Spoken', function () {
                 context.player1.clickCard(context.kuiil);
                 context.player1.clickCard(context.player2.base);
 
-                expect(context.player1).toHaveExactPromptButtons(['Discard a card from your deck. If it shares an aspect with your base, return it to your hand', '(No effect) Restore 1']);
+                expect(context.player1).toHaveExactTriggerResolutionPrompt([
+                    'Discard a card from your deck. If it shares an aspect with your base, return it to your hand',
+                    { title: 'Restore 1', hasEffect: false },
+                ]);
 
-                context.player1.clickPrompt('Discard a card from your deck. If it shares an aspect with your base, return it to your hand');
+                context.player1.clickTrigger('Discard a card from your deck. If it shares an aspect with your base, return it to your hand');
                 expect(context.greenSquadronAwing).toBeInZone('hand');
                 expect(context.player2).toBeActivePlayer();
 
@@ -35,9 +38,12 @@ describe('Kuiil, I Have Spoken', function () {
                 context.player1.clickCard(context.kuiil);
                 context.player1.clickCard(context.player2.base);
 
-                expect(context.player1).toHaveExactPromptButtons(['Discard a card from your deck. If it shares an aspect with your base, return it to your hand', 'Restore 1']);
+                expect(context.player1).toHaveExactTriggerResolutionPrompt([
+                    'Discard a card from your deck. If it shares an aspect with your base, return it to your hand',
+                    'Restore 1',
+                ]);
 
-                context.player1.clickPrompt('Discard a card from your deck. If it shares an aspect with your base, return it to your hand');
+                context.player1.clickTrigger('Discard a card from your deck. If it shares an aspect with your base, return it to your hand');
                 expect(context.restoredArc170).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
 
@@ -49,9 +55,12 @@ describe('Kuiil, I Have Spoken', function () {
                 context.player1.clickCard(context.kuiil);
                 context.player1.clickCard(context.player2.base);
 
-                expect(context.player1).toHaveExactPromptButtons(['(No effect) Discard a card from your deck. If it shares an aspect with your base, return it to your hand', 'Restore 1']);
+                expect(context.player1).toHaveExactTriggerResolutionPrompt([
+                    { title: 'Discard a card from your deck. If it shares an aspect with your base, return it to your hand', hasEffect: false },
+                    'Restore 1',
+                ]);
 
-                context.player1.clickPrompt('(No effect) Discard a card from your deck. If it shares an aspect with your base, return it to your hand');
+                context.player1.clickTrigger('Discard a card from your deck. If it shares an aspect with your base, return it to your hand');
                 expect(context.player2).toBeActivePlayer();
             });
         });

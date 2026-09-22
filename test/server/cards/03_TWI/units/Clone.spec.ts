@@ -1765,7 +1765,7 @@ describe('Clone', function() {
                 expect(context.clone).toBeInZone('groundArena');
                 expect(context.clone).toBeCloneOf(context.countDooku);
 
-                expect(context.player1).toHaveInlineTriggerPass('Defeat a unit with 4 or less remaining HP');
+                expect(context.player1).toHavePassableTriggerPrompt('Defeat a unit with 4 or less remaining HP');
                 context.player1.clickPrompt('Defeat a unit with 4 or less remaining HP');
                 expect(context.player1).toBeAbleToSelectExactly([context.clone, context.countDooku]);
 

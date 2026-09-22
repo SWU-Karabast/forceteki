@@ -56,7 +56,7 @@ describe('Arihnda Pryce, On The Road To Power', function () {
             ]);
 
             // choose thrawn ability (triggers inline)
-            expect(context.player1).toHaveInlineTriggerPass('Exhaust Grand Admiral Thrawn to use Arihnda Pryce\'s "When Defeated" ability again');
+            expect(context.player1).toHavePassableTriggerPrompt('Exhaust Grand Admiral Thrawn to use Arihnda Pryce\'s "When Defeated" ability again');
             context.player1.clickPrompt('Exhaust Grand Admiral Thrawn to use Arihnda Pryce\'s "When Defeated" ability again');
 
             // choose oom series

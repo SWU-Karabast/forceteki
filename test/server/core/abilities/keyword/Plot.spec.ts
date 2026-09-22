@@ -340,7 +340,7 @@ describe('Plot keyword', function() {
                 expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Play Cad Bane using Plot', 'Shielded']);
 
                 // Decline Cad Bane inline (Dogmatic + Shielded still share this window)
-                context.player1.clickInlineTriggerPass('Play Cad Bane using Plot');
+                context.player1.clickPass('Play Cad Bane using Plot');
                 expect(context.cadBane).toBeInZone('resource');
 
                 expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Shielded']);
@@ -486,11 +486,11 @@ describe('Plot keyword', function() {
             expect(context.battlefieldMarine).toBeInZone('discard');
 
             // Decline Cad Bane inline (still a multi-trigger window with Dogmatic + Trench's reveal)
-            context.player1.clickInlineTriggerPass('Play Cad Bane using Plot');
+            context.player1.clickPass('Play Cad Bane using Plot');
             expect(context.cadBane).toBeInZone('resource');
 
             // Decline Dogmatic Shock Squad inline (Dogmatic + Trench's reveal still share the window)
-            context.player1.clickInlineTriggerPass('Play Dogmatic Shock Squad using Plot');
+            context.player1.clickPass('Play Dogmatic Shock Squad using Plot');
 
             expect(context.player2).toBeActivePlayer();
             context.player2.clickCard(context.rivalsFall);
@@ -506,7 +506,7 @@ describe('Plot keyword', function() {
                 '(No effect) Reveal the top 4 cards of your deck. An opponent discards 2 of them. Draw 1 of the remaining cards and discard the other']);
 
             // Decline Cad Bane inline (Dogmatic + Trench's reveal still share the window)
-            context.player1.clickInlineTriggerPass('Play Cad Bane using Plot');
+            context.player1.clickPass('Play Cad Bane using Plot');
             expect(context.cadBane).toBeInZone('resource');
 
             // Play Dogmatic Shock Squad inline (still a multi-trigger window with Trench's reveal)

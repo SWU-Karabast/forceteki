@@ -40,7 +40,7 @@ describe('Jedi General', function() {
 
             // Snoke is an enemy unit, so Jedi General's Ambush is a real trigger sharing this window with the
             // create-Clone-Trooper trigger; decline the attack inline in the simultaneous-trigger prompt.
-            context.player1.clickInlineTriggerPass('Ambush');
+            context.player1.clickPass('Ambush');
 
             expect(context.player2).toBeActivePlayer();
 

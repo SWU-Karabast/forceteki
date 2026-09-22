@@ -30,12 +30,43 @@ function formatPrompt(prompt, currentActionTargets) {
     }
 
     return (
-        prompt.menuTitle + '\n' +
-        prompt.buttons.map((button) => '[ ' + button.text + (button.disabled ? ' (disabled)' : '') + ' ]').join('\n') + '\n' +
+        formatPromptTitle(prompt) + '\n' +
+        prompt.buttons.map((button) => formatPromptButton(prompt, button)).join('\n') + '\n' +
         formatSelectableCardsPromptData(prompt, currentActionTargets) + '\n' +
         formatSelectNumberPromptData(prompt) +
         formatDropdownListOptions(prompt.dropdownListOptions)
     );
+}
+
+function formatPromptTitle(prompt) {
+    // The standalone optional-trigger prompt's title is generic, so name the ability and its source card.
+    if (prompt.promptType === 'optionalTrigger') {
+        const triggerButton = prompt.buttons.find((button) => button.arg === 'trigger');
+        if (triggerButton?.label != null) {
+            return `${prompt.menuTitle}: ${triggerButton.label}${formatTriggerSource(triggerButton.sourceCard)}`;
+        }
+    }
+    return prompt.menuTitle;
+}
+
+function formatPromptButton(prompt, button) {
+    // A simultaneous-trigger option is a button group: the trigger, an inline pass button if it is optional,
+    // and the source card shared by both.
+    if (prompt.promptType === 'triggerWindow') {
+        const passButton = button.passArg != null ? ` [ ${button.passText ?? 'Pass'} ]` : '';
+        return `[ ${button.text} ]${passButton}${formatTriggerSource(button.sourceCard)}`;
+    }
+    return '[ ' + button.text + (button.disabled ? ' (disabled)' : '') + ' ]';
+}
+
+/** The trailing source-card label for a trigger; it applies to the whole Trigger / Pass button group. */
+function formatTriggerSource(sourceCard) {
+    return sourceCard != null ? ` (${sourceCard.name})` : '';
+}
+
+/** Removes the "(No effect) " prefix that trigger buttons may carry when they have no legal effect. */
+function stripNoEffectPrefix(text) {
+    return (text ?? '').toString().replace(/^\(No effect\) /, '');
 }
 
 function formatSelectNumberPromptData(prompt) {
@@ -175,6 +206,8 @@ module.exports = {
     promptStatesEqual,
     formatDropdownListOptions,
     formatBothPlayerPrompts,
+    formatTriggerSource,
+    stripNoEffectPrefix,
     isTokenUnit,
     isTokenUpgrade,
     refreshGameState,

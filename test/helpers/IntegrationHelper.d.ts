@@ -128,6 +128,19 @@ interface SwuSetupTestOptions extends Omit<ISerializedGameState, 'player1' | 'pl
     [field: string]: any;
 }
 
+/**
+ * One trigger in a simultaneous-trigger resolution prompt, as asserted by `toHaveExactTriggerResolutionPrompt`.
+ * Defaults: `optional: false`, `hasEffect: true`, `count: 1` (the number of grouped instances), and no
+ * `source`, which matches a trigger from any source card.
+ */
+interface ITriggerResolutionEntry {
+    title: string;
+    optional?: boolean;
+    hasEffect?: boolean;
+    count?: number;
+    source?: Card;
+}
+
 interface ICardDisplaySelectionState {
     selectable?: Card[];
     selected?: Card[];
@@ -155,7 +168,8 @@ declare namespace jasmine {
         toBeActivePlayer<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHaveInitiative<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHavePassAbilityPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any): boolean;
-        toHaveInlineTriggerPass<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any): boolean;
+        toHavePassableTriggerPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: string, sourceCard?: Card): boolean;
+        toHaveExactTriggerResolutionPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedEntries: (string | ITriggerResolutionEntry)[]): boolean;
         toHaveNoEffectAbilityPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any): boolean;
         toHavePassSingleTargetPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any, target: any): boolean;
         toHaveConfirmUndoPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, blockButtonEnabled?: boolean): boolean;

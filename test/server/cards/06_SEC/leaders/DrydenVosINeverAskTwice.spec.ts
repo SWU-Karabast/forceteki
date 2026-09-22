@@ -244,8 +244,8 @@ describe('Dryden Vos, I Never Ask Twice', function () {
                 context.player1.clickCard(context.rukh);
 
                 // must choose between ambush & shield
-                expect(context.player1).toHaveInlineTriggerPass('Ambush');
-                context.player1.clickInlineTriggerPass('Ambush');
+                expect(context.player1).toHavePassableTriggerPrompt('Ambush');
+                context.player1.clickPass('Ambush');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player1.exhaustedResourceCount).toBe(9);

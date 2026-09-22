@@ -30,8 +30,8 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
 
                 // choose between 2 triggers
                 // do not use hondo ability yet
-                expect(context.player1).toHaveInlineTriggerPass('Exhaust this leader to give an Experience token to a unit');
-                context.player1.clickInlineTriggerPass('Exhaust this leader to give an Experience token to a unit');
+                expect(context.player1).toHavePassableTriggerPrompt('Exhaust this leader to give an Experience token to a unit');
+                context.player1.clickPass('Exhaust this leader to give an Experience token to a unit');
                 expect(context.player2).toBeActivePlayer();
                 expect(context.hondoOhnaka.exhausted).toBeFalse();
 
@@ -84,7 +84,7 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
 
                 // choose between 2 triggers
                 expect(context.player1).toHaveExactPromptButtons(['Give an Experience token to a unit', 'Give 3 Experience tokens to this unit']);
-                expect(context.player1).toHaveInlineTriggerPass('Give an Experience token to a unit');
+                expect(context.player1).toHavePassableTriggerPrompt('Give an Experience token to a unit');
                 context.player1.clickPrompt('Give an Experience token to a unit');
 
                 // give experience token to battlefield marine

@@ -31,10 +31,13 @@ describe('Kylo Ren, I Know Your Story', function() {
             context.player1.clickCard(context.vadersLightsaber);
             context.player1.clickCard(context.kyloRen);
 
-            expect(context.player1).toHaveExactPromptButtons(['Use the Force to draw a card', '(No effect) Deal 4 damage to a ground unit']);
+            expect(context.player1).toHaveExactTriggerResolutionPrompt([
+                { title: 'Use the Force to draw a card', optional: true },
+                { title: 'Deal 4 damage to a ground unit', optional: true, hasEffect: false },
+            ]);
 
             // use the force to draw a card
-            context.player1.clickPrompt('Use the Force to draw a card');
+            context.player1.clickTrigger('Use the Force to draw a card');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.wampa).toBeInZone('hand', context.player1);

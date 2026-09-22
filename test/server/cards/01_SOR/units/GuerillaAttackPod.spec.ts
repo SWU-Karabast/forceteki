@@ -62,7 +62,7 @@ describe('Guerilla Attack Pod', function () {
                 expect(context.player1).toHavePassSingleTargetPrompt('Play a unit that costs 6 or less from your hand. Give it ambush for this phase', context.guerillaAttackPod);
 
                 context.player1.clickPrompt('Play a unit that costs 6 or less from your hand. Give it ambush for this phase -> Guerilla Attack Pod');
-                expect(context.player1).toHaveInlineTriggerPass('Ambush');
+                expect(context.player1).toHavePassableTriggerPrompt('Ambush');
                 context.player1.clickPrompt('Ambush');
                 expect(context.guerillaAttackPod.damage).toBe(3);
                 expect(context.ruggedSurvivors.damage).toBe(4);

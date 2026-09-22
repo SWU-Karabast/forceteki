@@ -191,7 +191,7 @@ describe('Shadow Caster, Just Business', function() {
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(1);
 
                 expect(context.player1).toHaveExactPromptButtons(['Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again', 'Use Padawan Starfighter\'s "When Defeated" ability again']);
-                expect(context.player1).toHaveInlineTriggerPass('Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again');
+                expect(context.player1).toHavePassableTriggerPrompt('Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again');
                 context.player1.clickPrompt('Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again');
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(2);

@@ -229,7 +229,7 @@ describe('Ravager, Final Imperial Command', function () {
                 expect(context.blueLeader).toBeInZone('spaceArena');
 
                 // Pass the ambush and moving to ground
-                context.player1.clickInlineTriggerPass('Ambush');
+                context.player1.clickPass('Ambush');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.blueLeader).toBeInZone('groundArena');

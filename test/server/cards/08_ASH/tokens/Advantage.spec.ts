@@ -241,11 +241,11 @@ describe('Advantage', function() {
                 context.player1.clickPrompt('Resolve next');
 
                 // Zeb's ability can be resolved in the middle of the Advantage token defeats
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Defeat Advantage token',
-                    'If the defender was defeated, you may deal 4 damage to a ground unit'
+                expect(context.player1).toHaveExactTriggerResolutionPrompt([
+                    { title: 'Defeat Advantage token', count: 2 },
+                    { title: 'If the defender was defeated, you may deal 4 damage to a ground unit', optional: true },
                 ]);
-                context.player1.clickInlineTriggerPass('If the defender was defeated, you may deal 4 damage to a ground unit');
+                context.player1.clickPass('If the defender was defeated, you may deal 4 damage to a ground unit');
 
                 // The remaining two Advantage tokens then resolve from the modal
                 expect(context.player1).toHavePrompt('Resolve "Defeat Advantage token"');

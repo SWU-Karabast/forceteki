@@ -41,7 +41,7 @@ describe('General Krell, Heartless Tactician', function() {
                 ]);
                 // The optional "Draw a card" trigger is declinable inline; clicking the card triggers it
                 // directly, without a separate Trigger/Pass interstitial.
-                expect(context.player1).toHaveInlineTriggerPass('Draw a card');
+                expect(context.player1).toHavePassableTriggerPrompt('Draw a card');
                 context.player1.clickPrompt('Draw a card');
                 expect(context.leiaOrgana).toBeInZone('base');
                 expect(context.player1.handSize).toBe(startingHandSize + 2);

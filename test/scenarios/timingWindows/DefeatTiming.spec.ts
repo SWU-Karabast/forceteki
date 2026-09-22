@@ -63,7 +63,7 @@ describe('Defeat timing', function() {
                 expect(context.player1).toHavePrompt('Waiting for opponent');
                 expect(context.vanguardInfantry).toBeInZone('discard');
 
-                context.player2.clickInlineTriggerPass('Give an Experience token to a unit');
+                context.player2.clickPass('Give an Experience token to a unit');
 
                 // maz kanata on-play trigger happens next automatically
                 expect(context.mazKanata).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
@@ -152,7 +152,7 @@ describe('Defeat timing', function() {
                 context.player1.clickPrompt('Resolve all (3)');
                 // after the grouped heals resolve, the two draw triggers remain (a multi-trigger window),
                 // so selecting one draws it inline without an interstitial
-                expect(context.player1).toHaveInlineTriggerPass('Draw a card');
+                expect(context.player1).toHavePassableTriggerPrompt('Draw a card');
                 context.player1.clickPrompt('Draw a card');
                 // the last draw is now the lone remaining trigger, resolved via its interstitial — decline it
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card');

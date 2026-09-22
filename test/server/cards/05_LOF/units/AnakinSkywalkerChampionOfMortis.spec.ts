@@ -38,10 +38,11 @@ describe('Anakin Skywalker, Champion of Mortis', function () {
 
             context.player1.clickCard(context.anakinSkywalker);
 
-            expect(context.player1).toHaveExactPromptButtons([heroismPrompt, `(No effect) ${villainyPrompt}`]);
-
-            expect(context.player1).toHaveInlineTriggerPass(heroismPrompt);
-            context.player1.clickPrompt(heroismPrompt);
+            expect(context.player1).toHaveExactTriggerResolutionPrompt([
+                { title: heroismPrompt, optional: true },
+                { title: villainyPrompt, optional: true, hasEffect: false },
+            ]);
+            context.player1.clickTrigger(heroismPrompt);
 
             expect(context.player1).toBeAbleToSelectExactly([context.anakinSkywalker, context.wampa]);
             context.player1.clickCard(context.wampa);
@@ -67,10 +68,11 @@ describe('Anakin Skywalker, Champion of Mortis', function () {
 
             context.player1.clickCard(context.anakinSkywalker);
 
-            expect(context.player1).toHaveExactPromptButtons([`(No effect) ${heroismPrompt}`, villainyPrompt]);
-
-            expect(context.player1).toHaveInlineTriggerPass(villainyPrompt);
-            context.player1.clickPrompt(villainyPrompt);
+            expect(context.player1).toHaveExactTriggerResolutionPrompt([
+                { title: heroismPrompt, optional: true, hasEffect: false },
+                { title: villainyPrompt, optional: true },
+            ]);
+            context.player1.clickTrigger(villainyPrompt);
 
             expect(context.player1).toBeAbleToSelectExactly([context.anakinSkywalker, context.wampa]);
             context.player1.clickCard(context.wampa);
@@ -96,10 +98,11 @@ describe('Anakin Skywalker, Champion of Mortis', function () {
 
             context.player1.clickCard(context.anakinSkywalker);
 
-            expect(context.player1).toHaveExactPromptButtons([heroismPrompt, villainyPrompt]);
-
-            expect(context.player1).toHaveInlineTriggerPass(villainyPrompt);
-            context.player1.clickPrompt(villainyPrompt);
+            expect(context.player1).toHaveExactTriggerResolutionPrompt([
+                { title: heroismPrompt, optional: true },
+                { title: villainyPrompt, optional: true },
+            ]);
+            context.player1.clickTrigger(villainyPrompt);
 
             expect(context.player1).toBeAbleToSelectExactly([context.anakinSkywalker, context.wampa, context.consularSecurityForce]);
             context.player1.clickCard(context.wampa);
