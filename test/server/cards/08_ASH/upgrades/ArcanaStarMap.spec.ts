@@ -324,7 +324,7 @@ describe('Arcana Star Map', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.darthVader);
-                context.player1.clickPrompt('(No effect) Ambush');
+                context.player1.clickPrompt('Ambush');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [
                         context.scoutBikePursuer, context.tielnFighter, context.isbAgent, context.deathStarStormtrooper,

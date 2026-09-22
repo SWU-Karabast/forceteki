@@ -42,7 +42,7 @@ describe('Dooku\'s Solar Sailer, Droid Army Portent', function() {
 
             expect(context.player1).toHaveEnabledPromptButtons([
                 'Exhaust this unit to create a Battle Droid token',
-                '(No effect) Each opponent discards a card from their hand'
+                'Each opponent discards a card from their hand'
             ]);
 
             context.player1.clickPrompt('Exhaust this unit to create a Battle Droid token');

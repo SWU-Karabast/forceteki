@@ -478,7 +478,7 @@ describe('Plot keyword', function() {
             context.player1.clickPrompt('Deploy Admiral Trench');
             expect(context.player1.exhaustedResourceCount).toBe(3);
             expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Play Cad Bane using Plot', 'Play Topple the Summit using Plot',
-                '(No effect) Reveal the top 4 cards of your deck. An opponent discards 2 of them. Draw 1 of the remaining cards and discard the other']);
+                'Reveal the top 4 cards of your deck. An opponent discards 2 of them. Draw 1 of the remaining cards and discard the other']);
 
             // Resolve Topple the Summit
             context.player1.clickPrompt('Play Topple the Summit using Plot');
@@ -503,7 +503,7 @@ describe('Plot keyword', function() {
             context.player1.clickPrompt('Deploy Admiral Trench');
             expect(context.player1.exhaustedResourceCount).toBe(3);
             expect(context.player1).toHaveExactPromptButtons(['Play Dogmatic Shock Squad using Plot', 'Play Cad Bane using Plot',
-                '(No effect) Reveal the top 4 cards of your deck. An opponent discards 2 of them. Draw 1 of the remaining cards and discard the other']);
+                'Reveal the top 4 cards of your deck. An opponent discards 2 of them. Draw 1 of the remaining cards and discard the other']);
 
             // Decline Cad Bane inline (Dogmatic + Trench's reveal still share the window)
             context.player1.clickPass('Play Cad Bane using Plot');

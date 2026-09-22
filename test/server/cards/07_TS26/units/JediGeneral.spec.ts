@@ -12,7 +12,7 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
 
             expect(context.player2).toBeActivePlayer();
 
@@ -64,7 +64,7 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
 
             expect(context.player2).toBeActivePlayer();
 
@@ -115,7 +115,7 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
 
             // Because Mace is a leader unit, Jedi General's ability triggers to create a Clone Trooper and give it an Experience token
             const troopers = context.player1.findCardsByName('clone-trooper');
@@ -138,7 +138,7 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
             expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 2 Clone Trooper tokens instead');
             context.player1.clickPrompt('Trigger');
 
