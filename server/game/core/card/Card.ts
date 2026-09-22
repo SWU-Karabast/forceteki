@@ -53,6 +53,7 @@ import type { IAbilityHelper } from '../../AbilityHelper';
 import type { IGameStatisticsTrackable } from '../../../gameStatistics/GameStatisticsTracker';
 import { registerStateBase, stateRefArray, stateRef, statePrimitive } from '../GameObjectUtils';
 import type { ZoneAbstract } from '../zone/ZoneAbstract';
+import type { IGameStateGetter } from '../lki/GameStateGetter';
 import type Advantage from '../../cards/08_ASH/tokens/Advantage';
 import type Weakness from '../../cards/09_HMW/tokens/Weakness';
 
@@ -292,6 +293,43 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
     public get trackingId(): string {
         return this.id;
+    }
+
+    /**
+     * Card-facing accessor for game state. Use this to exchange a card reference for its
+     * characteristics:
+     *
+     * ```ts
+     * const unit = this.gameState.getPropertiesOrLki(context.event.card);
+     * if (unit.isUnit() && unit.isInPlay()) { … unit.power … }
+     * ```
+     *
+     * Values resolve against the moment the reference represents, so a card that has left play
+     * reports what was last known about it rather than its current state.
+     *
+     * Deliberately narrower than the engine's own accessor: there is no way to reach a live
+     * {@link Card} through this, which is what keeps `SWU 8.11.2` enforceable.
+     */
+    protected get gameState(): IGameStateGetter {
+        return this.game.gameState;
+    }
+
+    /**
+     * Identifies which incarnation of this physical card is currently in play (`SWU 8.5.4`).
+     *
+     * Unlike {@link IInPlayCard.inPlayId} and {@link IInPlayCard.mostRecentInPlayId}, this is safe to
+     * read in any zone and never throws, so it can be used to compare two references to the same
+     * physical card and determine whether they refer to the same incarnation.
+     *
+     * Cards that can never be in play have no incarnation to track and report a constant.
+     *
+     * TODO (LKI migration phase 3): give event cards and bases a real counter so that an event card
+     * bouncing between a visible zone and a hidden one is correctly treated as a new instance.
+     * See design/lki-redesign-decisions-and-insights.md (D-8) and §3.18.
+     */
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style -- must be a getter so InPlayCard can override it with the real counter
+    public get instanceId(): number {
+        return 0;
     }
 
     public get traits(): Set<Trait> {

@@ -89,6 +89,10 @@ export function buildLastKnownInformation(card: Card): ILastKnownInformation {
 export function addLastKnownInformationToEvent(event: GameEvent, card: Card): void {
     event.setPreResolutionEffect((event) => {
         event.lastKnownInformation = buildLastKnownInformation(card);
+
+        // Mirror the capture into the LKI registry at exactly the same instant, so the registry can
+        // be validated as behavior-preserving before anything reads from it.
+        event.context.game.lkiRegistry.capturePending(event.eventId, card);
     });
 }
 

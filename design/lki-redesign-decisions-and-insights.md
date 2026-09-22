@@ -1514,21 +1514,62 @@ No production code, so this is fast to review and safe to merge immediately. Out
 
 Full suite baseline: **8,500 specs, 0 failures**, 9 pre-existing pending.
 
-### Phase 1 — core components, proven on a handful of cards
+### Phase 1 — core components, proven on a handful of cards ✅ first slice complete
 
 Build the registry, `CardRef`, interning, the properties types and the getter. Cards not under test
-remain unchanged; cards and game systems opt in individually.
+remain unchanged; cards opt in individually.
 
-Card selection should cover the failure modes rather than being arbitrary:
+**Delivered.** New module under `server/game/core/lki/`:
 
-| Case | Candidates |
+| File | Contents |
 |---|---|
-| Leave-play LKI (the core path) | `HelgaitDookuWasAVisionary`, `TargetedForRemoval` |
-| SC-11 fallback that should *simplify* | `CalculatedLethality`, `AsajjVentressIWorkAlone` |
-| Multi-footprint cascade (SC-13) | the phase-0 test |
-| Cancelled-event mint (R10 / D-30) | `ChewbaccaFaithfulFirstMate` |
-| Visible → hidden (R4) | `RenewedFriendship`, `DaringDelve` |
-| Instance identity (D-11) | `MonMothmaClingingToHope` |
+| `CardRef.ts` | Opaque interned reference. The card is a **private** field, so implementations cannot reach the live object through one (D-28). |
+| `CardPropertiesInterfaces.ts` | `ICardProperties` → `IUnitProperties` → `IUnitPropertiesInPlay`. `isInPlay()` is declared only on the kind interface, per R7's `TS2320` constraint. |
+| `LiveCardProperties.ts` | Lazy pass-through variant. |
+| `CapturedCardProperties.ts` | Frozen-footprint variant, throwing on uncaptured fields (D-13, D-14). |
+| `LkiRegistry.ts` | Intern map, footprints, pending captures, tombstones, with the three lifetimes from D-29. |
+| `GameStateGetter.ts` | `IGameStateGetter` (card-facing) and `IGameStateInternal` (adds `deref`). |
+
+**Lifecycle wiring**, all behavior-preserving because nothing read from the registry until the
+first card was migrated:
+
+- Capture in `addLastKnownInformationToEvent`, at exactly today's LKI capture points
+- Commit in `EventWindow.resolveEvents`, immediately before `executeHandler` (D-30)
+- Discard in `EventWindow.cleanup` for events that never resolved (D-30)
+- Flush in `ActionPhase.queueNextAction` (D-20)
+- Clear in `GameStateManager.rollbackToSnapshot` (D-29)
+
+**Identity.** `Card.instanceId` is a total, never-throwing accessor; `InPlayCard` overrides it with
+the existing `_mostRecentInPlayId` counter. Giving event cards and bases a real counter is deferred
+to phase 3 and marked with a TODO — no phase-1 card exercises it.
+
+**Opt-in.** A protected `Card.gameState` accessor, so a card opts in simply by calling
+`this.gameState.getPropertiesOrLki(...)`. No setup signatures changed, so non-migrated cards are
+untouched. `getPropertiesOrLki` transitionally accepts a live `Card` as well as a `CardRef`, since
+events still carry card objects until phase 2.
+
+**Cards migrated so far:**
+
+| Card | Exercises |
+|---|---|
+| [HelgaitDookuWasAVisionary](../server/game/cards/08_ASH/units/HelgaitDookuWasAVisionary.ts) | `power` from a footprint; the same ability re-read twice in one action |
+| [CalculatedLethality](../server/game/cards/02_SHD/events/CalculatedLethality.ts) | An SC-11 hand-rolled fallback **collapsing** to a single read |
+| [TargetedForRemoval](../server/game/cards/07_LAW/upgrades/TargetedForRemoval.ts) | `cost` from a footprint |
+
+**Verification.** Full suite **8,500 / 0 failures**, undo suite **8,322 / 0 failures**, lint clean.
+
+The Helgait defeat test is the proof that footprints are actually being served rather than the code
+silently falling back: after the defeat the unit's `upgrades` are nulled out, so a live read of
+`power` would **throw** rather than return a wrong number.
+
+**Remaining in phase 1:**
+
+- Migrate the rest of the selected set (`AsajjVentressIWorkAlone`, `MonMothmaClingingToHope`,
+  `RenewedFriendship` / `DaringDelve` for R4's visible → hidden case)
+- Add a dedicated D-30 test (a unit surviving a replaced defeat must not carry a footprint). Low
+  urgency while only three cards read the registry
+- Extend minting to R4's visible → hidden transition, as a deliberate behavior change with its own
+  tests
 
 ### Phase 2 — the mechanical sweep
 

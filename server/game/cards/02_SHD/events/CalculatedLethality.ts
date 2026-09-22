@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import type { Card } from '../../../core/card/Card';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class CalculatedLethality extends EventCard {
@@ -19,11 +20,7 @@ export default class CalculatedLethality extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.defeat(),
             },
             then: (thenContext) => {
-                const upgradeCount = thenContext.target
-                    ? (thenContext.target.isInPlay()
-                        ? thenContext.target.upgrades.length
-                        : thenContext.events[0].lastKnownInformation.upgrades.length)
-                    : 0;
+                const upgradeCount = thenContext.target ? this.upgradeCountWhenDefeated(thenContext.target) : 0;
 
                 return {
                     title: 'For each upgrade that was on that unit, give an Experience token to a friendly unit.',
@@ -37,5 +34,14 @@ export default class CalculatedLethality extends EventCard {
                 };
             }
         });
+    }
+
+    /**
+     * How many upgrades the target had when it left play, or has now if it survived the defeat (for
+     * example Lurking TIE Phantom). The getter resolves both cases, so no branch is needed here.
+     */
+    private upgradeCountWhenDefeated(target: Card): number {
+        const unit = this.gameState.getPropertiesOrLki(target);
+        return unit.isUnit() && unit.isInPlay() ? unit.upgrades.length : 0;
     }
 }
