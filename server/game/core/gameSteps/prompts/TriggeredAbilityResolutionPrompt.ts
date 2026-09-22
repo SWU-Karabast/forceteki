@@ -51,12 +51,8 @@ export class TriggeredAbilityResolutionPrompt extends UiPrompt {
     private makeChoiceButton(choice: IResolutionChoice, num: number): ITriggerWindowButton {
         const hasLegalEffects = choice.hasLegalEffects();
 
-        // Keep the "(No effect)" prefix for tests so it's easy to tell which abilities have no effect
-        const noEffectPrefix = process.env.NODE_ENV === 'test' && !hasLegalEffects ? '(No effect) ' : '';
-        const title = `${noEffectPrefix}${choice.getTitle()}`;
-
         return {
-            text: title,
+            text: choice.getTitle(),
             arg: num.toString(),
             sourceCard: choice.getSourceCard(),
             hasLegalEffects,
