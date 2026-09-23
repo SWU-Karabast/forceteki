@@ -20,5 +20,6 @@ Dockerfile.test
 .claude/settings.local.json
 .claude/*.local.json
 .claude/worktrees/
+.claude/agent-memory/
 CLAUDE.local.md
 *.code-workspace
