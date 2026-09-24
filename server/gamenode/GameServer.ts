@@ -1452,6 +1452,7 @@ export class GameServer {
                         gamesToWinMode: lobby.gamesToWinMode,
                         host: lobbyOwnerUser?.deck ? {
                             leader: lobbyOwnerUser.deck.leader,
+                            secondLeader: lobbyOwnerUser.deck.secondLeader,
                             base: lobbyOwnerUser.deck.base
                         } : null
                     };
