@@ -150,6 +150,7 @@ export class Deck {
     public getLeaderBase(): ILeaderBaseInternal {
         return {
             leader: this.leader,
+            secondLeader: this.secondLeader,
             base: this.base
         };
     }
