@@ -141,7 +141,7 @@ which reads `test/gameSetups/<filename>` using the same setup schema as `setupTe
 
 This repo carries a depth layer for card-development work with Claude Code. It is committed (so it reaches everyone on a plain `git pull`, no install) and versions with the engine it describes:
 
-- `.claude/rules/` — the SWU Comprehensive Rules v7.0 + official clarifications, indexed in `INDEX.md`. Grep it by topic/card name; never read a file in full. Backing store for the `swu-rules-expert` agent.
+- `.claude/reference/swu-rules/` — the SWU Comprehensive Rules v7.0 + official clarifications, indexed in `INDEX.md`. Grep it by topic/card name; never read a file in full. Backing store for the `swu-rules-expert` agent.
 - `.claude/reference/forceteki-dev-guide.md` — deep card/test authoring templates and the AbilityHelper/registrar surface (the fuller companion to this file).
 - `.claude/reference/test-conventions/` — baseline spec-file conventions (read-only seed for `test-auditor`).
 - `.claude/agents/` — `card-implementer`, `card-test-writer`, `card-librarian`, `swu-rules-expert`, `test-auditor`.
