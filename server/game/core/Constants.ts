@@ -293,6 +293,7 @@ export enum EventName {
     OnAttackDeclared = 'onAttackDeclared',
     OnAttackEnd = 'onAttackEnd',
     OnBeginRound = 'onBeginRound',
+    OnBlastCounterClaimed = 'onBlastCounterClaimed',
     OnBountyCollected = 'onBountyCollected',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',
     OnBaseDefeated = 'onBaseDefeated',
@@ -333,6 +334,8 @@ export enum EventName {
     OnPhaseEnded = 'onPhaseEnded',
     OnPhaseEndedCleanup = 'onPhaseEndedCleanup',
     OnPhaseStarted = 'onPhaseStarted',
+    OnPlanCounterClaimed = 'onPlanCounterClaimed',
+    OnPlanCounterPutOnBottom = 'onPlanCounterPutOnBottom',
     OnReadyResources = 'onReadyResources',
     OnRescue = 'onRescue',
     OnRegroupPhaseReadyCards = 'onRegroupPhaseReadyCards',
@@ -733,6 +736,14 @@ export enum SwuGameFormat {
     Open = 'open',
     Eternal = 'eternal',
     Limited = 'limited',
+    FauxSuns = 'fauxSuns',
+}
+
+/** The claim counters available during the action phase. TwinSuns/FauxSuns formats use all three; other formats use only Initiative. */
+export enum ClaimCounterType {
+    Initiative = 'initiative',
+    Plan = 'plan',
+    Blast = 'blast',
 }
 
 export enum CardPool {

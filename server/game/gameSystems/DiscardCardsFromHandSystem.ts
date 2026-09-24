@@ -19,7 +19,6 @@ import type { FormatMessage } from '../core/chat/GameChat';
 export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProperties {
     amount: Derivable<number, Player>;
     random?: boolean;
-    optional?: boolean;
 
     /* TODO: Add a reveal system to flip over the cards if discarding from an opponent, also in the future
     this may be necessary for a player discarding from their own hands if a card condition or filter exits to keep them honest */
@@ -31,7 +30,6 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
     protected override defaultProperties: IDiscardCardsFromHandProperties = {
         amount: 1,
         random: false,
-        optional: false,
         cardTypeFilter: WildcardCardType.Any,
         cardCondition: () => true,
     };
@@ -116,7 +114,6 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 mode: TargetMode.Exactly,
                 numCards: amount,
                 zoneFilter: ZoneName.Hand,
-                optional: properties.optional,
                 controller: EnumHelpers.asRelativePlayer(player, context.player),
                 cardCondition: (card) => properties.cardCondition(card, context)
             });
@@ -129,11 +126,8 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 isOpponentEffect: choosingPlayer !== context.player,
                 selectCardMode: amount === 1 ? SelectCardMode.Single : SelectCardMode.Multiple,
                 onSelect: (cards) => {
-                    const cardsArray = Helpers.asArray(cards);
-                    this.sendDiscardMessage(cardsArray, choosingPlayer, context);
-                    if (cardsArray.length > 0) {
-                        this.generateEventsForCards(cardsArray, context, events, additionalProperties);
-                    }
+                    this.generateEventsForCards(Helpers.asArray(cards), context, events, additionalProperties);
+                    this.sendDiscardMessage(Helpers.asArray(cards), choosingPlayer, context);
                     return true;
                 },
             });

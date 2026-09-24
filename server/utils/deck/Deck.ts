@@ -22,6 +22,7 @@ export class Deck {
     public readonly base: IInternalCardEntry;
     public readonly deckSource: DeckSource;
     public readonly leader: IInternalCardEntry;
+    public readonly secondLeader?: IInternalCardEntry;
     public readonly id?: string;
     public readonly isPresentInDb: boolean;
     public readonly deckLink?: string;
@@ -36,6 +37,7 @@ export class Deck {
     public constructor(decklist: ISwuDbFormatDecklist, cardDataGetter: CardDataGetter) {
         this.base = Deck.buildDecklistEntry(decklist.base.id, 1, cardDataGetter);
         this.leader = Deck.buildDecklistEntry(decklist.leader.id, 1, cardDataGetter);
+        this.secondLeader = decklist.secondleader ? Deck.buildDecklistEntry(decklist.secondleader.id, 1, cardDataGetter) : undefined;
         this.id = decklist.deckID;
 
         this.cardDataGetter = cardDataGetter;
@@ -138,6 +140,7 @@ export class Deck {
         return {
             name: this.name,
             leader: this.leader,
+            secondLeader: this.secondLeader,
             base: this.base,
             deck: this.convertMapToCardList(this.deckCards),
             sideboard: this.convertMapToCardList(this.sideboard),
@@ -184,9 +187,19 @@ export class Deck {
         Contract.assertTrue(leaderCard.isLeader(), `${leaderCard.internalName} is not a leader`);
         result.leader = leaderCard.getObjectId();
 
+        // second leader (TwinSuns format only)
+        if (this.secondLeader) {
+            const secondLeaderCard = (await this.buildCardsFromSetCodeAsync(this.secondLeader.id, player, cardDataGetter, 1))[0];
+            Contract.assertTrue(secondLeaderCard.isLeader(), `${secondLeaderCard.internalName} is not a leader`);
+            result.secondLeader = secondLeaderCard.getObjectId();
+        }
+
         result.allCards.push(...result.deckCards);
         result.allCards.push(result.base);
         result.allCards.push(result.leader);
+        if (result.secondLeader) {
+            result.allCards.push(result.secondLeader);
+        }
 
         return result;
     }
