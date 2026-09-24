@@ -1184,6 +1184,7 @@ export class GameServer {
                         userId: user.getId(),
                         deck: {
                             leader: { id: resolved.leader?.id ?? '' },
+                            secondLeader: resolved.secondleader?.id ? { id: resolved.secondleader.id } : undefined,
                             base: { id: resolved.base?.id ?? '' },
                             name: resolved.metadata?.name || 'Untitled Deck',
                             favourite: false,
