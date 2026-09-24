@@ -24,11 +24,12 @@ describe('I\'ve Got a Bad Feeling', function() {
 
                     expect(context.player1).toHavePrompt('Return a non-leader unit to its owner\'s hand');
                     context.player1.clickCard(context.superlaserTechnician);
-                    context.player1.clickCard(context.pykeSentinel);
                     expect(context.superlaserTechnician).toBeInZone('hand', context.player2);
+                    expect(context.player1).toHavePrompt('Give a Shield token to a friendly unit');
+                    context.player1.clickCard(context.pykeSentinel);
                 });
 
-                it('can select a friendly upgraded unit to return to hand', async function () {
+                it('can select a friendly unit with enemy upgrade to return to respective hands', async function () {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -46,7 +47,7 @@ describe('I\'ve Got a Bad Feeling', function() {
                     const { context } = contextRef;
 
                     context.player1.passAction();
-                    context.player2.clickCard(context.entrenched); // Providing ownership
+                    context.player2.clickCard(context.entrenched);
                     context.player2.clickCard(context.pykeSentinel);
 
                     context.player1.clickCard(context.iveGotABadFeeling);
