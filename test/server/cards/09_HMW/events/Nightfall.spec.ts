@@ -51,7 +51,7 @@ describe('Nightfall', function() {
                 context.player1.clickCard(context.atst);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing]);
-                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
 
@@ -85,8 +85,8 @@ describe('Nightfall', function() {
                 context.player1.clickCard(context.atst);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing]);
-                expect(context.player1).toHaveChooseNothingButton();
-                context.player1.clickPrompt('Choose nothing');
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.atst.damage).toBe(1);
@@ -112,7 +112,7 @@ describe('Nightfall', function() {
                 context.player1.clickCard(context.nightfall);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing]);
-                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
 
@@ -145,8 +145,77 @@ describe('Nightfall', function() {
                 context.player1.clickCard(context.lurkingTiePhantom);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing]);
-                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.atst.damage).toBe(0);
+                expect(context.lurkingTiePhantom.damage).toBe(0);
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(5);
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+            });
+
+            it('should not break when attacking into a Sentinel with an ability', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['nightfall'],
+                        groundArena: ['battlefield-marine'],
+                        spaceArena: ['green-squadron-awing'],
+                        base: 'shield-generator-complex'
+                    },
+                    player2: {
+                        groundArena: ['atst', { card: 'chirrut-imwe#blind-but-not-deaf', damage: 4 }],
+                        spaceArena: ['lurking-tie-phantom'],
+                        hasForceToken: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.nightfall);
+                context.player1.clickCard(context.chirrutImwe);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.atst]);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.atst.damage).toBe(0);
+                expect(context.lurkingTiePhantom.damage).toBe(0);
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(5);
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+            });
+
+            it('should not break when attacking into a Sentinel without an ability', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['nightfall'],
+                        groundArena: ['battlefield-marine'],
+                        spaceArena: ['green-squadron-awing'],
+                        base: 'shield-generator-complex'
+                    },
+                    player2: {
+                        groundArena: ['atst', 'droid-laser-turret'],
+                        spaceArena: ['lurking-tie-phantom']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.nightfall);
+                context.player1.clickCard(context.droidLaserTurret);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.atst]);
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player2).toBeActivePlayer();
