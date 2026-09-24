@@ -52,6 +52,7 @@ export interface ISwuDbFormatDecklist extends IDeckListBase {
 
 export interface ILeaderBaseInternal {
     leader: IInternalCardEntry;
+    secondLeader?: IInternalCardEntry;
     base: IInternalCardEntry;
 }
 
