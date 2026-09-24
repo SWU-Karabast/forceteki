@@ -50,6 +50,10 @@ If you hit `Importing card class with repeated id!`, delete `build/` and rebuild
 - `server/game/cards/` — ~2000 card implementations, one class per card, grouped by set (`01_SOR`, `02_SHD`, …) then card type.
 - `server/services/`, `server/utils/` — DynamoDB, deck fetching/validation, stats, cosmetics, profanity filter, moderation.
 
+### Action & trigger flow
+
+Action phase: `ActionWindow` alternates players → a player selects an ability → an `AbilityResolver` is queued in `GamePipeline` → costs checked → targets chosen → costs paid → `GameSystem.resolve()` executes → `GameEvent`s fire. Events are collected into an `EventWindow`; after every event in a window resolves, a `TriggeredAbilityWindow` checks each registered `when` condition and queues the matching triggered abilities. Abilities triggered while resolving another trigger are nested and resolve before earlier-queued ones.
+
 ### Card implementations
 
 `server/game/cards/Index.ts` recursively `require`s every built card file and registers it by implementation id. Consequences:
@@ -132,3 +136,15 @@ which reads `test/gameSetups/<filename>` using the same setup schema as `setupTe
   - `no-event-generated-tokens` — read `resolvedEvents[...]?.generatedTokens`, not `events[...].generatedTokens`, so replaced token-creation events resolve correctly.
 - Style is enforced, not advisory: 4-space indent, single quotes, `curly: all`, `eqeqeq`, explicit member accessibility on every TS member, `import type` for type-only imports, `override` required.
 - `legacy_jigoku/` (ported L5R reference code) is referenced by `docs/`, tsconfig and eslint ignores but no longer exists in the repo — ignore those pointers.
+
+## Claude tooling (`.claude/`)
+
+This repo carries a depth layer for card-development work with Claude Code. It is committed (so it reaches everyone on a plain `git pull`, no install) and versions with the engine it describes:
+
+- `.claude/rules/` — the SWU Comprehensive Rules v7.0 + official clarifications, indexed in `INDEX.md`. Grep it by topic/card name; never read a file in full. Backing store for the `swu-rules-expert` agent.
+- `.claude/reference/forceteki-dev-guide.md` — deep card/test authoring templates and the AbilityHelper/registrar surface (the fuller companion to this file).
+- `.claude/reference/test-conventions/` — baseline spec-file conventions (read-only seed for `test-auditor`).
+- `.claude/agents/` — `card-implementer`, `card-test-writer`, `card-librarian`, `swu-rules-expert`, `test-auditor`.
+- `.claude/skills/implement-card/` — end-to-end "implement a new card" workflow that orchestrates the agents above.
+- `.claude/agent-memory/` — per-agent local learnings; **gitignored** (never committed), so it never shows up in feature diffs.
+
