@@ -34,6 +34,7 @@ import {
     RollbackRoundEntryPoint,
     RollbackSetupEntryPoint,
     SnapshotType,
+    SwuGameFormat,
     TokenCardName,
     TokenUpgradeName,
     TokenUnitName,
@@ -42,7 +43,7 @@ import {
     WildcardZoneName,
     ZoneName
 } from './Constants';
-import type { TokenName } from './Constants';
+import type { ClaimCounterType, TokenName } from './Constants';
 import { StateWatcherRegistrar } from './stateWatcher/StateWatcherRegistrar';
 import { DistributeAmongTargetsPrompt } from './gameSteps/prompts/DistributeAmongTargetsPrompt';
 import HandlerMenuMultipleSelectionPrompt from './gameSteps/prompts/HandlerMenuMultipleSelectionPrompt';
@@ -101,11 +102,11 @@ import type {
     IDistributeAmongTargetsPromptProperties,
     IStatefulPromptResults
 } from './gameSteps/PromptInterfaces';
-import type { GameMode } from '../../GameMode';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
 import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
+import { ClaimCounterSystem } from '../gameSystems/ClaimCounterSystem';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
 
@@ -149,6 +150,49 @@ export class Game extends EventEmitter {
 
     public set isInitiativeClaimed(value: boolean) {
         this.state.isInitiativeClaimed = value;
+    }
+
+    public get isPlanCounterClaimed() {
+        this.assertFauxSuns('isPlanCounterClaimed');
+        return this.state.isPlanCounterClaimed;
+    }
+
+    public set isPlanCounterClaimed(value: boolean) {
+        this.assertFauxSuns('isPlanCounterClaimed');
+        this.state.isPlanCounterClaimed = value;
+    }
+
+    public get isBlastCounterClaimed() {
+        this.assertFauxSuns('isBlastCounterClaimed');
+        return this.state.isBlastCounterClaimed;
+    }
+
+    public set isBlastCounterClaimed(value: boolean) {
+        this.assertFauxSuns('isBlastCounterClaimed');
+        this.state.isBlastCounterClaimed = value;
+    }
+
+    /** Throws if this game isn't running the Faux Suns format. Guards state that's only meaningful there. */
+    private assertFauxSuns(propertyName: string): void {
+        Contract.assertTrue(this.format === SwuGameFormat.FauxSuns, `${propertyName} is only valid in the FauxSuns format, but this game's format is ${this.format}`);
+    }
+
+    /**
+     * Whether at least one claim counter (Initiative/Plan/Blast) can still be claimed this round, per rule
+     * 12.6.1.A: a player may pass only if no counter is available or they already took one. Claiming a
+     * counter immediately ends that player's turn for the phase, so each player can claim at most one
+     * counter per round — meaning at most `min(3, player count)` of the three counters can ever be claimed
+     * in a single round, regardless of how many total counters exist. Always false outside FauxSuns.
+     */
+    public hasUnclaimedClaimableCounter(): boolean {
+        if (this.format !== SwuGameFormat.FauxSuns) {
+            return false;
+        }
+
+        const claimedCount = [this.isInitiativeClaimed, this.isPlanCounterClaimed, this.isBlastCounterClaimed]
+            .filter(Boolean).length;
+        const maxClaimableCounters = Math.min(3, this.getPlayers().length);
+        return claimedCount < maxClaimableCounters;
     }
 
     public get roundNumber() {
@@ -309,7 +353,7 @@ export class Game extends EventEmitter {
     public readonly preselectedFirstPlayerId: string | undefined;
     public readonly onBo3SetForfeit?: (losingPlayerId: string) => void;
     public manualMode: boolean;
-    public gameMode: GameMode;
+    public format: SwuGameFormat;
     public currentlyResolving: ICurrentlyResolving;
     public state: IGameState;
     public tokenFactories: Record<string, (player: Player, additionalProperties?: any) => ITokenCard> | null;
@@ -382,7 +426,7 @@ export class Game extends EventEmitter {
         this._experimental = {};
 
         this.manualMode = false;
-        this.gameMode = details.gameMode;
+        this.format = details.format ?? SwuGameFormat.Premier;
 
         this.initializeCurrentlyResolving();
 
@@ -392,6 +436,8 @@ export class Game extends EventEmitter {
             actionPhaseActivePlayer: null,
             roundNumber: 0,
             isInitiativeClaimed: false,
+            isPlanCounterClaimed: false,
+            isBlastCounterClaimed: false,
             allCards: [],
             actionNumber: 0,
             winnerNames: [],
@@ -1356,14 +1402,13 @@ export class Game extends EventEmitter {
         return this.actionNumber;
     }
 
-    public claimInitiative(player: Player): void {
-        this.initiativePlayer = player;
-        this.isInitiativeClaimed = true;
-        player.passedActionPhase = true;
-        this.createEventAndOpenWindow(EventName.OnClaimInitiative, null, { player }, TriggerHandlingMode.ResolvesTriggers);
-
-        // update game state for the sake of constant abilities that check initiative
-        this.resolveGameState();
+    // TSTODO: update Blast to blast all opponents
+    public claimCounter(player: Player, counterType: ClaimCounterType): void {
+        new ClaimCounterSystem({ counterType }).resolve(
+            player,
+            this.getFrameworkContext(player),
+            TriggerHandlingMode.ResolvesTriggers
+        );
     }
 
     /**
@@ -1739,7 +1784,7 @@ export class Game extends EventEmitter {
                         };
                     }),
                     started: this.started,
-                    gameMode: this.gameMode,
+                    format: this.format,
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
                     ongoingEffects,

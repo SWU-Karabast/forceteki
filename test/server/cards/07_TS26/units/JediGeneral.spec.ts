@@ -152,5 +152,94 @@ describe('Jedi General', function() {
             });
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('should create a Clone Trooper for each of two Republic leaders in TwinSuns', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                format: 'fauxSuns',
+                player1: {
+                    hand: ['jedi-general'],
+                    leader: 'captain-rex#fighting-for-his-brothers', // Republic
+                    secondLeader: 'padme-amidala#serving-the-republic' // Republic
+                },
+                player2: {
+                    leader: 'chewbacca#walking-carpet'
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.jediGeneral);
+            context.player1.clickPrompt('(No effect) Ambush');
+
+            const troopers = context.player1.findCardsByName('clone-trooper');
+            expect(troopers.length).toBe(2);
+            expect(troopers.every((trooper) => trooper.exhausted)).toBeTrue();
+            troopers.forEach((trooper) => {
+                expect(trooper).toHaveExactUpgradeNames(['experience']);
+            });
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should only count Republic leaders when the two leaders differ in trait in TwinSuns', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                format: 'fauxSuns',
+                player1: {
+                    hand: ['jedi-general'],
+                    leader: 'captain-rex#fighting-for-his-brothers', // Republic
+                    secondLeader: 'chewbacca#walking-carpet' // Underworld, not Republic
+                },
+                player2: {
+                    leader: 'chewbacca#walking-carpet'
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.jediGeneral);
+            context.player1.clickPrompt('(No effect) Ambush');
+
+            const troopers = context.player1.findCardsByName('clone-trooper');
+            expect(troopers.length).toBe(1);
+            expect(troopers[0].exhausted).toBeTrue();
+            expect(troopers[0]).toHaveExactUpgradeNames(['experience']);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should count both Republic leaders and a Darksaber-bearing Republic unit in TwinSuns', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                format: 'fauxSuns',
+                player1: {
+                    hand: ['jedi-general'],
+                    groundArena: [
+                        {
+                            card: 'mace-windu#party-crasher', // Republic
+                            upgrades: ['the-darksaber#icon-of-leadership'] // Makes attached unit a leader unit
+                        }
+                    ],
+                    leader: 'captain-rex#fighting-for-his-brothers', // Republic
+                    secondLeader: 'padme-amidala#serving-the-republic' // Republic
+                },
+                player2: {
+                    leader: 'chewbacca#walking-carpet'
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.jediGeneral);
+            context.player1.clickPrompt('(No effect) Ambush');
+
+            // Two Republic deck leaders + the Darksaber-borne Republic unit = 3 leaders
+            const troopers = context.player1.findCardsByName('clone-trooper');
+            expect(troopers.length).toBe(3);
+            expect(troopers.every((trooper) => trooper.exhausted)).toBeTrue();
+            troopers.forEach((trooper) => {
+                expect(trooper).toHaveExactUpgradeNames(['experience']);
+            });
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
