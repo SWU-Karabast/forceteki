@@ -172,6 +172,26 @@ export class Game extends EventEmitter {
         this.state.isBlastCounterClaimed = value;
     }
 
+    public get planCounterClaimedByPlayer(): Player | null {
+        this.assertFauxSuns('planCounterClaimedByPlayer');
+        return this.gameObjectManager.get(this.state.planCounterClaimedByPlayer);
+    }
+
+    public set planCounterClaimedByPlayer(value: Player | null) {
+        this.assertFauxSuns('planCounterClaimedByPlayer');
+        this.state.planCounterClaimedByPlayer = value?.getObjectId();
+    }
+
+    public get blastCounterClaimedByPlayer(): Player | null {
+        this.assertFauxSuns('blastCounterClaimedByPlayer');
+        return this.gameObjectManager.get(this.state.blastCounterClaimedByPlayer);
+    }
+
+    public set blastCounterClaimedByPlayer(value: Player | null) {
+        this.assertFauxSuns('blastCounterClaimedByPlayer');
+        this.state.blastCounterClaimedByPlayer = value?.getObjectId();
+    }
+
     /** Throws if this game isn't running the Faux Suns format. Guards state that's only meaningful there. */
     private assertFauxSuns(propertyName: string): void {
         Contract.assertTrue(this.format === SwuGameFormat.FauxSuns, `${propertyName} is only valid in the FauxSuns format, but this game's format is ${this.format}`);
@@ -438,6 +458,8 @@ export class Game extends EventEmitter {
             isInitiativeClaimed: false,
             isPlanCounterClaimed: false,
             isBlastCounterClaimed: false,
+            planCounterClaimedByPlayer: null,
+            blastCounterClaimedByPlayer: null,
             allCards: [],
             actionNumber: 0,
             winnerNames: [],

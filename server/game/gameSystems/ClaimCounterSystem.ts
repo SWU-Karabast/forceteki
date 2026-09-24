@@ -40,9 +40,11 @@ export class ClaimCounterSystem<TContext extends AbilityContext = AbilityContext
                 break;
             case ClaimCounterType.Plan:
                 game.isPlanCounterClaimed = true;
+                game.planCounterClaimedByPlayer = player;
                 break;
             case ClaimCounterType.Blast:
                 game.isBlastCounterClaimed = true;
+                game.blastCounterClaimedByPlayer = player;
                 break;
             default:
                 Contract.fail(`Unknown counter type: ${event.counterType}`);
