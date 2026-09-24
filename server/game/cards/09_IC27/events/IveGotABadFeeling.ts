@@ -13,13 +13,15 @@ export default class IveGotABadFeeling extends EventCard {
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
-            title: 'Return a non-leader unit to its owner\'s hand Give a Shield token to a friendly unit',
-            targetResolvers: {
-                enemyUnit: {
-                    cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                    immediateEffect: AbilityHelper.immediateEffects.returnToHand()
-                },
-                friendlyUnit: {
+            title: 'Return a non-leader unit to its owner\'s hand and give a Shield token to a friendly unit',
+            targetResolver: {
+                activePromptTitle: 'Return a non-leader unit to its owner\'s hand',
+                cardTypeFilter: WildcardCardType.NonLeaderUnit,
+                immediateEffect: AbilityHelper.immediateEffects.returnToHand()
+            },
+            then: {
+                title: 'Give a Shield token to a friendly unit',
+                targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
                     immediateEffect: AbilityHelper.immediateEffects.giveShield()

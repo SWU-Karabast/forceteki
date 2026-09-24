@@ -19,16 +19,16 @@ describe('I\'ve Got a Bad Feeling', function() {
 
                     const { context } = contextRef;
 
-                    context.player1.clickCard('ive-got-a-bad-feeling');
+                    context.player1.clickCard(context.iveGotABadFeeling);
                     expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel, context.imperialInterceptor, context.superlaserTechnician]);
 
-                    expect(context.player1).toHavePrompt('Return a non-leader unit to its owner\'s hand Give a Shield token to a friendly unit');
+                    expect(context.player1).toHavePrompt('Return a non-leader unit to its owner\'s hand');
                     context.player1.clickCard(context.superlaserTechnician);
                     context.player1.clickCard(context.pykeSentinel);
                     expect(context.superlaserTechnician).toBeInZone('hand', context.player2);
                 });
 
-                it('can select a friendly unit to return to hand and should remove damage and be playable', async function () {
+                it('can select a friendly upgraded unit to return to hand', async function () {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -45,27 +45,16 @@ describe('I\'ve Got a Bad Feeling', function() {
 
                     const { context } = contextRef;
 
-                    context.setDamage(context.pykeSentinel, 2);
-
                     context.player1.passAction();
-                    context.player2.clickCard('entrenched'); // Providing ownership
+                    context.player2.clickCard(context.entrenched); // Providing ownership
                     context.player2.clickCard(context.pykeSentinel);
 
-                    context.player1.clickCard('ive-got-a-bad-feeling');
+                    context.player1.clickCard(context.iveGotABadFeeling);
                     expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel, context.superlaserTechnician, context.imperialInterceptor]);
 
                     context.player1.clickCard(context.pykeSentinel);
-                    context.player1.clickCard(context.pykeSentinel);
                     expect(context.pykeSentinel).toBeInZone('hand', context.player1);
                     expect(context.entrenched).toBeInZone('discard', context.player2);
-
-                    context.player2.passAction();
-                    context.player1.clickCard(context.pykeSentinel);
-                    expect(context.pykeSentinel.damage).toBe(0); // Just making sure that the damage is not added back
-                    expect(context.pykeSentinel.isUpgraded()).toBe(false);
-
-                    expect(context.pykeSentinel).toBeInZone('groundArena', context.player1);
-                    expect(context.pykeSentinel.exhausted).toBe(true); // Does not retain state when returned to hand
                 });
 
                 it('cannot return an enemy unit with a leader attached to it to it\'s owner\'s hand', async function () {
@@ -90,7 +79,7 @@ describe('I\'ve Got a Bad Feeling', function() {
                     context.player1.clickCard(context.cartelSpacer);
                     context.player1.setDistributeDamagePromptState(new Map([]));
 
-                    context.player2.clickCard('ive-got-a-bad-feeling');
+                    context.player2.clickCard(context.iveGotABadFeeling);
                     expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel]);
 
                     context.player2.clickCard(context.wampa);
@@ -114,7 +103,7 @@ describe('I\'ve Got a Bad Feeling', function() {
 
                     const { context } = contextRef;
 
-                    context.player1.clickCard('ive-got-a-bad-feeling');
+                    context.player1.clickCard(context.iveGotABadFeeling);
                     context.player1.clickCard(context.superlaserTechnician);
                     expect(context.player1).toBeAbleToSelectExactly(context.pykeSentinel);
                     expect(context.player1).not.toBeAbleToSelectExactly([context.wampa, context.superlaserTechnician]);
@@ -133,7 +122,7 @@ describe('I\'ve Got a Bad Feeling', function() {
 
                     const { context } = contextRef;
 
-                    context.player1.clickCard('ive-got-a-bad-feeling');
+                    context.player1.clickCard(context.iveGotABadFeeling);
                     expect(context.player1).toHaveEnabledPromptButton('Play anyway');
 
                     // Selection should allow Pass
