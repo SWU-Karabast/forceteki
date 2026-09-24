@@ -111,5 +111,36 @@ describe('One Must Destroy To Create', function() {
             expect(context.consularSecurityForce).toBeCapturedBy(context.wampa);
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('should be able to play Stolen AT-Hauler from its own discard pile even though its own when-defeated ability grants that permission to the opponent', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['one-must-destroy-to-create'],
+                    spaceArena: ['stolen-athauler'],
+                    groundArena: ['wampa'],
+                    leader: { card: 'boba-fett#collecting-the-bounty', deployed: true }
+                },
+                player2: {
+                    groundArena: ['atst'],
+                    leader: { card: 'luke-skywalker#faithful-friend', deployed: true }
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.oneMustDestroyToCreate);
+            expect(context.player1).toHavePrompt('Defeat a friendly non-leader unit');
+            context.player1.clickCard(context.stolenAthauler);
+
+            // Stolen AT-Hauler's own when-defeated ability grants the opponent (player2) permission
+            // to play it from discard this phase, but Player 1 should still be able to play it via
+            // One Must Destroy To Create's own "then" effect
+            expect(context.player1).toHavePassAbilityPrompt('Play Stolen AT-Hauler from your discard pile for free');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

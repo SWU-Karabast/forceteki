@@ -30,7 +30,7 @@ export default class SalvagedBlaster extends UpgradeCard {
                 entry.discardedPlayId === context.source.mostRecentInPlayId &&
                 [ZoneName.Hand, ZoneName.Deck].includes(entry.discardedFromZone)
             ),
-            immediateEffect: abilityHelper.immediateEffects.playCardFromOutOfPlay({ playAsType: WildcardCardType.Upgrade }),
+            immediateEffect: abilityHelper.immediateEffects.playCardFromOutOfPlay({ playAsType: WildcardCardType.Upgrade, canPlayFromAnyZone: true }),
             zoneFilter: ZoneName.Discard
         });
     }

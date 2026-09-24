@@ -143,6 +143,48 @@ describe('Maul, Old Master', function() {
                 expect(context.maul).toBeInZone('groundArena', context.player1);
                 expect(context.player1.exhaustedResourceCount).toBe(0);
             });
+
+            it('should be able to play Stolen AT-Hauler from own discard after the opponent defeats it this phase', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'maul#old-master',
+                        spaceArena: ['stolen-athauler'],
+                        resources: 10,
+                        base: 'echo-base'
+                    },
+                    player2: {
+                        hand: ['takedown'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Player 2 defeats the Stolen AT-Hauler
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.stolenAthauler);
+
+                // It goes to its owner's (Player 1's) discard pile
+                expect(context.stolenAthauler).toBeInZone('discard', context.player1);
+
+                // Player 1 deploys Maul and triggers the when deployed ability, and can select
+                // the Stolen AT-Hauler even though the opponent is the one currently granted
+                // permission to play it from discard
+                context.player1.clickCard(context.maul);
+                context.player1.clickPrompt('Deploy Maul');
+
+                // Resolve Shielded first, then the when deployed trigger
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                context.player1.clickPrompt('Shielded');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.stolenAthauler]);
+                context.player1.clickCard(context.stolenAthauler);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+                expect(context.maul).toBeInZone('groundArena', context.player1);
+            });
         });
     });
 });
