@@ -23,6 +23,6 @@
 
 The `swu-rules-expert` agent uses `Grep` across these files — never reads them in full. When looking up a ruling:
 
-1. **By card name**: `Grep "CardName" .claude/rules/clarifications/` to search all files at once.
-2. **By topic**: target the most relevant file based on the table above, e.g., `Grep "Overwhelm" .claude/rules/clarifications/admiral-combat-damage.md`.
-3. **Broad search**: `Grep "keyword" .claude/rules/clarifications/` searches the whole directory.
+1. **By card name**: `Grep "CardName" .claude/reference/swu-rules/clarifications/` to search all files at once.
+2. **By topic**: target the most relevant file based on the table above, e.g., `Grep "Overwhelm" .claude/reference/swu-rules/clarifications/admiral-combat-damage.md`.
+3. **Broad search**: `Grep "keyword" .claude/reference/swu-rules/clarifications/` searches the whole directory.
