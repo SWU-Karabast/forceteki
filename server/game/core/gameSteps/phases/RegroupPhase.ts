@@ -1,4 +1,4 @@
-import { AbilityRestriction, EventName, PhaseName, ZoneName } from '../../Constants';
+import {AbilityRestriction, EffectName, EventName, PhaseName, ZoneName} from '../../Constants';
 import type { Game } from '../../Game';
 import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
@@ -53,7 +53,8 @@ export class RegroupPhase extends Phase {
         const drawEvents: GameEvent[] = [];
 
         for (const player of players) {
-            const drawSystem = new DrawSystem({ amount: 2 });
+            const drawCardsAmount = player.getOngoingEffectValues<number>(EffectName.ModifyCardsDrawnInDrawPhase)[0] ?? 2;
+            const drawSystem = new DrawSystem({ amount: drawCardsAmount });
             drawSystem.queueGenerateEventGameSteps(
                 drawEvents,
                 this.game.getFrameworkContext(player)

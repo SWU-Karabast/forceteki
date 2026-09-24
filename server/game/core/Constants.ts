@@ -126,6 +126,7 @@ export enum EffectName {
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
     UnitsEnterPlayReady = 'unitsEnterPlayReady',
+    ModifyCardsDrawnInDrawPhase = 'modifyCardsDrawnInDrawPhase',
     ModifyHp = 'modifyHp',
     ModifyIndirectDamage = 'modifyIndirectDamage',
     ModifyPilotLimit = 'modifyPilotLimit',
