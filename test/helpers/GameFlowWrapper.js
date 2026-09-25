@@ -16,8 +16,9 @@ class GameFlowWrapper {
      * @param {PlayerInfo} player2Info
      * @param {UndoMode} undoMode
      * @param {boolean} enableConfirmationToUndo
+     * @param {ReadonlySet<string>} [legalCardTitles] restricts "name a card" options; all titles when omitted
      */
-    constructor(cardDataGetter, router, player1Info, player2Info, undoMode = UndoMode.Free) {
+    constructor(cardDataGetter, router, player1Info, player2Info, undoMode = UndoMode.Free, legalCardTitles = undefined) {
         /** @type {import('../../server/game/core/GameInterfaces.js').GameConfiguration} */
         var details = {
             name: `${player1Info.username}'s game`,
@@ -29,6 +30,7 @@ class GameFlowWrapper {
                 Settings.getUserWithDefaultsSet(player2Info),
             ],
             cardDataGetter,
+            legalCardTitles,
             pushUpdate: () => true,
             buildSafeTimeout: () => undefined,
             userTimeoutDisconnect: () => undefined,

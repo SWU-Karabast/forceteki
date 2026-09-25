@@ -1,7 +1,7 @@
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { cards, overrideNotImplementedCards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
-import { Aspect, CardType, CardPool, SwuGameFormat } from '../../game/core/Constants';
+import { Aspect, CardType, CardPool, SwuGameFormat, WildcardCardType } from '../../game/core/Constants';
 import type { IDecklistInternal, ISwuDbFormatCardEntry, IDeckValidationProperties } from './DeckInterfaces';
 import { DecklistLocation, DeckValidationFailureReason, IllegalInFormatReason, type IDeckValidationFailures, type ISwuDbFormatDecklist } from './DeckInterfaces';
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
@@ -21,6 +21,7 @@ const minDeckSizeModifier = new Map([
 
 interface ICardCheckData {
     setId: ISetCode;
+    title: string;
     titleAndSubtitle: string;
     type: CardType;
     sets: SwuSetId[];
@@ -33,6 +34,7 @@ interface ICardCheckData {
 export class DeckValidator {
     private readonly cardData: Map<string, ICardCheckData>;
     private readonly setCodeToId: Map<string, string>;
+    private readonly legalCardTitlesCache = new Map<string, ReadonlySet<string>>();
 
     public static filterOutSideboardingErrors(failures: IDeckValidationFailures): IDeckValidationFailures {
         const filtered: IDeckValidationFailures = {};
@@ -192,6 +194,7 @@ export class DeckValidator {
         for (const cardData of allCardsData) {
             const cardCheckData: ICardCheckData = {
                 setId: cardData.setId,
+                title: cardData.title,
                 titleAndSubtitle: `${cardData.title}${cardData.subtitle ? `, ${cardData.subtitle}` : ''}`,
                 type: Card.buildTypeFromPrinted(cardData.types),
                 sets: this.parseSets(cardData),
@@ -217,6 +220,37 @@ export class DeckValidator {
         unimplementedCards.sort((a, b) => a.setId.set.localeCompare(b.setId.set) || a.titleAndSubtitle.localeCompare(b.titleAndSubtitle));
 
         return unimplementedCards;
+    }
+
+    /**
+     * Returns the titles of non-leader cards that can legally appear in a game of the given format and card
+     * pool, for "name a card" prompts. A title counts as legal if at least one non-leader card with that title
+     * is in a legal set and not suspended — reprints and same-titled cards with different subtitles keep it
+     * available. Tokens are always included since they are created by other cards rather than deckbuilt.
+     */
+    public getLegalCardTitles(format: SwuGameFormat, cardPool: CardPool): ReadonlySet<string> {
+        const cacheKey = `${format}|${cardPool}`;
+        const cached = this.legalCardTitlesCache.get(cacheKey);
+        if (cached) {
+            return cached;
+        }
+
+        const legalSets = DeckValidator.getLegalSets(format, cardPool, this.getSetCatalog());
+        const legalTitles = new Set<string>();
+
+        for (const [cardId, cardData] of this.cardData) {
+            if (cardData.type === CardType.Leader) {
+                continue;
+            }
+
+            if (EnumHelpers.cardTypeMatches(cardData.type, WildcardCardType.Token) ||
+              (cardData.sets.some((set) => legalSets.has(set)) && !this.isSuspended(cardId, format, legalSets))) {
+                legalTitles.add(cardData.title);
+            }
+        }
+
+        this.legalCardTitlesCache.set(cacheKey, legalTitles);
+        return legalTitles;
     }
 
     public getMinimumSideboardedDeckSize(baseId: string, format: SwuGameFormat): number {
@@ -496,19 +530,22 @@ export class DeckValidator {
             return;
         }
 
-        const rules = this.getSetCatalog().formatRules.get(format);
-        const banned = rules?.bannedCards.get(this.setCodeToId.get(setCode));
-
-        // A suspension with an `expiresWith` set lifts once that set is in the pool
-        const banExpired = banned?.expiresWith != null && legalSets.has(banned.expiresWith);
-
-        if (banned && !banExpired) {
+        if (this.isSuspended(this.setCodeToId.get(setCode), format, legalSets)) {
             failures[DeckValidationFailureReason.IllegalInFormat].push({
                 id: setCode,
                 name: cardData.titleAndSubtitle,
                 reason: IllegalInFormatReason.Suspended
             });
         }
+    }
+
+    private isSuspended(cardId: string, format: SwuGameFormat, legalSets: Set<SwuSetId>): boolean {
+        const banned = this.getSetCatalog().formatRules.get(format)?.bannedCards.get(cardId);
+
+        // A suspension with an `expiresWith` set lifts once that set is in the pool
+        const banExpired = banned?.expiresWith != null && legalSets.has(banned.expiresWith);
+
+        return banned != null && !banExpired;
     }
 
     /**
