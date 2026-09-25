@@ -40,13 +40,13 @@ by `test/scenarios/lki/LastKnownInformation.spec.ts`.
 |---|---|---|
 | [DengarTakeYourShot.ts:42](../server/game/cards/07_LAW/units/DengarTakeYourShot.ts) | `event.lastKnownInformation.card.cost` hops through `.card` to the **live** object while the two reads above it use LKI. `cost` *is* captured on the struct, so this is inconsistent. The only such hop in the repo (SC-3). | pending |
 | [UseWhenDefeatedSystem.ts:75](../server/game/gameSystems/UseWhenDefeatedSystem.ts) | `generateEvent(event.context, whenDefeatedSource, true)` passes a `Card` in the `additionalProperties` slot. Line 102 passes `{}` correctly. Harmless today because `this.properties` is assigned last and wins. | pending |
-| [IStateWatcherLKIEntry](../server/game/core/stateWatcher/StateWatcher.ts) | `upgrades` is stored as `GameObjectId<IUpgradeCard>[]` with **no instance component**, so rehydration yields whatever instance the upgrade is at now rather than the captured one. `CardLeftPlayEntry` gets this right by storing `card` and `inPlayId` separately (D-23). | pending |
+| [IStateWatcherLKIEntry](../server/game/core/stateWatcher/StateWatcher.ts) | `upgrades` is stored as `GameObjectId<IUpgradeCard>[]` with **no identity component**, so rehydration yields whatever identity the upgrade is at now rather than the captured one. `CardLeftPlayEntry` gets this right by storing `card` and `inPlayId` separately (D-23). | pending |
 | [CardsDefeatedThisPhaseWatcher.ts:134](../server/game/stateWatchers/CardsDefeatedThisPhaseWatcher.ts), [CardsLeftPlayThisPhaseWatcher.ts:112](../server/game/stateWatchers/CardsLeftPlayThisPhaseWatcher.ts) | Store the event's `traits` `Set` **instance** directly into tracked state, so multiple readers share a mutable collection (D-17). | pending |
 
 ### B.2 Event-relative reads still using the transitional live-`Card` overload
 
-`getLastKnownProperties(Card)` resolves through `refFor(card)`, which uses the card's **current**
-`instanceId`. That is wrong whenever the card has moved on since the event — not only the
+`getLastKnownProperties(Card)` resolves through `getIdentity(card)`, which uses the card's **current**
+`identityId`. That is wrong whenever the card has moved on since the event — not only the
 leaves-play-twice case, but also a single visible → hidden move, which increments the counter (R4).
 The event-bound `event.cardRef` is always correct and should be used instead.
 
@@ -63,7 +63,7 @@ Fixed in phase 1 where a bound reference already exists: `HelgaitDookuWasAVision
 
 All of these hold a card reference across a gap and act on it later **without revalidating that it
 is still the same copy**. By `SWU 8.5.4` a unit that left play and returned is a different unit and
-the effect should fizzle. One generic instance check in `checkEventCondition` (D-6, D-7) resolves the
+the effect should fizzle. One generic identity check in `checkEventCondition` (D-6, D-7) resolves the
 whole table, so these are deliberately **not** being fixed individually — they are listed so the
 phase-2 change can be verified against a known set.
 
@@ -99,7 +99,7 @@ phase-2 change can be verified against a known set.
 ### D.1 The two-helper split is temporary
 
 Phase 1 had to split `addLastKnownInformationToEvent` because the legacy struct is attached to events
-the card **survives** (damage), while a registry record means "this incarnation is gone". Those two
+the card **survives** (damage), while a registry record means "this identity is gone". Those two
 jobs cannot share a function.
 
 The split does not have to survive the migration, and it collapses the right way round — by deleting
@@ -129,7 +129,7 @@ Phase 1 flushes records between actions (`ActionPhase.queueNextAction`) and at e
 - records created during regroup persist for the rest of regroup
 
 The symptom of over-retention is a card that departed to a **visible** zone — where identity is
-preserved and `instanceId` does not increment — continuing to report its pre-departure arena state
+preserved and `identityId` does not increment — continuing to report its pre-departure arena state
 instead of live discard state.
 
 **Deferring this cannot affect any card migrated in phase 1.** All seven read within the same action
@@ -143,7 +143,7 @@ as the event that created the record:
 | `CalculatedLethality` | `then`, immediately after its own defeat effect |
 | `AsajjVentressIWorkAlone` | `ifYouDo`, immediately after its own damage effect |
 | `RavagerFinalImperialCommand` | `onCardPlayed` trigger, same action as the play |
-| `MonMothmaClingingToHope` | no property reads at all — only `refFor` identity, served by the intern map, which is never flushed |
+| `MonMothmaClingingToHope` | no property reads at all — only `getIdentity` identity, served by the intern map, which is never flushed |
 
 Confirmed empirically: with **both** flush sites disabled, the full suite reports only 2 failures,
 and both are the lifecycle tests that assert flushing happens. No migrated-card spec, and no card
@@ -164,7 +164,7 @@ rather than assumed.
 |---|---|
 | [TriggeredAbility.ts:184-185](../server/game/core/ability/TriggeredAbility.ts) | The `if (context.event.card === context.source && context.event.lastKnownInformation)` special case dissolves: reading `controller` through the properties object returns the footprint value automatically. Note this is a high-traffic engine-side ref-vs-`Card` comparison (D-8 constraint 3). |
 | [UseWhenDefeatedSystem.ts:67-75](../server/game/gameSystems/UseWhenDefeatedSystem.ts) | The manual event regeneration for an in-play source becomes unnecessary — no footprint exists for an in-play card, so the getter returns a live accessor that reads current stats by construction. Pinned by `LastKnownInformation.spec.ts`. |
-| [Attack.ts:17,44,49](../server/game/core/attack/Attack.ts) | `targetInPlayMap` and `attackerInPlayId` are a hand-rolled `(card, instance)` handle; they become redundant once references are interned (D-11). |
+| [Attack.ts:17,44,49](../server/game/core/attack/Attack.ts) | `targetInPlayMap` and `attackerInPlayId` are a hand-rolled `(card, identity)` handle; they become redundant once references are interned (D-11). |
 | The 7 SC-11 hand-rolled live/frozen fallbacks | Collapse to a plain property read. |
 | The 75 hand-rolled `(card, inPlayId)` comparisons | Collapse to a single `===`. |
 | The 6 hand-rolled zone-gated accessor ternaries | Identity becomes readable without throwing. |
@@ -184,7 +184,7 @@ rather than assumed.
 Phase 1 replicates today's LKI capture points exactly, and those points do **not** cover every
 departure. Measured by temporarily asserting, at the leave-play branch of
 [InPlayCard.initializeForCurrentZone](../server/game/core/card/baseClasses/InPlayCard.ts), that a
-record exists for the departing incarnation:
+record exists for the departing identity:
 
 | Transition | Failing specs |
 |---|---|
@@ -220,7 +220,7 @@ Found by the D-7 systems audit. Card-side checks are currently doing the framewo
 | Site | Gap | Status |
 |---|---|---|
 | `GameSystem.canAffectInternal` | Base implementation is only `return this.isTargetTypeValid(target)`, so any system that does not override it accepts a target in **any zone**. | pending |
-| [CaptureSystem.ts:33-39](../server/game/gameSystems/CaptureSystem.ts) | With `fromOutOfPlay: true` it checks only `card.isUnit()`, never that the card is still in the discard. This is why [Bothan5NewRepublicPrisonShip.ts:29](../server/game/cards/08_ASH/units/Bothan5NewRepublicPrisonShip.ts)'s hand-written zone check is load-bearing. | pending |
+| [CaptureSystem.ts:33-39](../server/game/gameSystems/CaptureSystem.ts) | With `fromOutOfPlay: true` it checks only `card.isUnitCard()`, never that the card is still in the discard. This is why [Bothan5NewRepublicPrisonShip.ts:29](../server/game/cards/08_ASH/units/Bothan5NewRepublicPrisonShip.ts)'s hand-written zone check is load-bearing. | pending |
 | Extra card-valued properties | `captor`, `upgrade`, `parentCard`, `attacker`, `leaderPilotCard` are validated inconsistently. These cannot be cleaned up by `properties.target.filter(Boolean)` — a stale one must make the whole system fizzle via `canAffectInternal`. | pending |
 | [CardTargetSystem.ts:146-148](../server/game/core/gameSystem/CardTargetSystem.ts) | `generateEvent` does not degrade to "no target": after `filter(Boolean)` the `Contract.assertTrue(target.length === 1, …)` **throws**. | pending |
 

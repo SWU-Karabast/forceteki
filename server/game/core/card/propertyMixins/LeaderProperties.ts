@@ -6,7 +6,7 @@ import type { PlayableOrDeployableCardConstructor } from '../baseClasses/Playabl
 import { PlayableOrDeployableCard, type ICardWithExhaustProperty } from '../baseClasses/PlayableOrDeployableCard';
 import type { ILeaderAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import type { IGameStateGetter } from '../../lki/GameStateGetter';
+import type { ICardStateGetter } from '../../lki/CardStateGetter';
 import { registerStateBase, statePrimitive } from '../../GameObjectUtils';
 
 export const LeaderPropertiesCard = WithLeaderProperties(PlayableOrDeployableCard);
@@ -57,7 +57,7 @@ export function WithLeaderProperties<TBaseClass extends PlayableOrDeployableCard
          * Create card abilities for the leader (non-unit) side by calling subsequent methods with appropriate properties
          */
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        protected setupLeaderSideAbilities(registrar: ILeaderAbilityRegistrar<ILeaderCard>, AbilityHelper: IAbilityHelper, gameState: IGameStateGetter) { }
+        protected setupLeaderSideAbilities(registrar: ILeaderAbilityRegistrar<ILeaderCard>, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) { }
 
         // TODO TYPE REFACTOR: separate out the Leader types from the playable types
         public override getPlayCardActions() {

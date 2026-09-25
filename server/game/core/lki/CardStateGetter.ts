@@ -9,9 +9,9 @@ import { Contract } from '../utils/Contract';
  *
  * Deliberately has **no** way to reach a live {@link Card}. Card implementations receive one of
  * these at setup and use it to exchange references for properties; the `deref` capability lives on
- * {@link IGameStateInternal}, which is not re-exported to card modules (D-28).
+ * {@link ICardStateInternal}, which is not re-exported to card modules (D-28).
  */
-export interface IGameStateGetter {
+export interface ICardStateGetter {
 
     /**
      * Returns the characteristics of the card named by `ref`, as of the moment that reference
@@ -28,21 +28,21 @@ export interface IGameStateGetter {
     getLastKnownProperties(refOrCard: CardRef | Card): ICardProperties;
 
     /**
-     * Returns the canonical reference for a card's current incarnation.
+     * Returns the canonical reference for a card's current identity.
      *
      * Useful when an ability needs to remember *which* card it acted on across steps: references
-     * compare by incarnation, so a card that left play and returned is correctly treated as a
+     * compare by identity, so a card that left play and returned is correctly treated as a
      * different one (`SWU 8.5.4`).
      */
-    refFor(card: Card): CardRef;
+    getIdentity(card: Card): CardRef;
 }
 
 /** Adds engine-only capabilities that card implementations must not have. */
-export interface IGameStateInternal extends IGameStateGetter {
+export interface ICardStateInternal extends ICardStateGetter {
 
     /**
      * Resolves a reference to the live card, or `null` if it no longer names the card's current
-     * incarnation. A `null` result is how an effect fizzles when its target has since left and
+     * identity. A `null` result is how an effect fizzles when its target has since left and
      * re-entered play (D-6).
      */
     deref(ref: CardRef): Card | null;
@@ -54,7 +54,7 @@ export interface IGameStateInternal extends IGameStateGetter {
  * Resolves the registry lazily through the game rather than holding it, because a card's setup runs
  * once at construction while the registry belongs to the current game state.
  */
-export class GameStateGetter implements IGameStateInternal {
+export class CardStateGetter implements ICardStateInternal {
     public constructor(private readonly getRegistry: () => LkiRegistry) {}
 
     public getLastKnownProperties(refOrCard: CardRef | Card): ICardProperties {
@@ -65,7 +65,7 @@ export class GameStateGetter implements IGameStateInternal {
         );
 
         const registry = this.getRegistry();
-        const ref = refOrCard instanceof CardRef ? refOrCard : registry.refFor(refOrCard);
+        const ref = refOrCard instanceof CardRef ? refOrCard : registry.getIdentity(refOrCard);
         return registry.getProperties(ref);
     }
 
@@ -73,7 +73,7 @@ export class GameStateGetter implements IGameStateInternal {
         return this.getRegistry().deref(ref);
     }
 
-    public refFor(card: Card): CardRef {
-        return this.getRegistry().refFor(card);
+    public getIdentity(card: Card): CardRef {
+        return this.getRegistry().getIdentity(card);
     }
 }

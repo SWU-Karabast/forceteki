@@ -23,16 +23,16 @@ import type { CardRef } from './CardRef';
  *
  * ```ts
  * // the ability only makes sense for a unit that was in play, so assert
- * const power = gameState.getLastKnownProperties(ref).asUnit().asInPlay().power;
+ * const power = cardStates.getLastKnownProperties(ref).asUnitCard().asInPlay().power;
  *
  * // zero is a legitimate answer here, so guard
- * const props = gameState.getLastKnownProperties(ref);
- * const count = props.isUnit() && props.isInPlay() ? props.upgrades.length : 0;
+ * const props = cardStates.getLastKnownProperties(ref);
+ * const count = props.isUnitCard() && props.isInPlay() ? props.upgrades.length : 0;
  * ```
  */
 export interface ICardProperties {
 
-    /** Reference to the incarnation this view describes. */
+    /** Reference to the identity this view describes. */
     readonly ref: CardRef;
 
     readonly title: string;
@@ -48,10 +48,10 @@ export interface ICardProperties {
 
     hasSomeTrait(traits: Trait | Trait[]): boolean;
 
-    isUnit(): this is IUnitProperties;
+    isUnitCard(): this is IUnitProperties;
 
     /** Narrows to a unit, failing if this does not describe one. */
-    asUnit(): IUnitProperties;
+    asUnitCard(): IUnitProperties;
 }
 
 /**

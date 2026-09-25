@@ -23,7 +23,7 @@ export class GameEvent {
 
     /**
      * Reference to the card this event is about, bound while the event resolves so later reads name
-     * the incarnation the event fired on rather than whatever occupies that card now.
+     * the identity the event fired on rather than whatever occupies that card now.
      *
      * Set only via {@link setLastKnownInformation}, so it is present on exactly the events that
      * carry last known information.
@@ -35,7 +35,7 @@ export class GameEvent {
     /**
      * Characteristics of {@link cardRef}'s card as of the moment this event was about to resolve.
      *
-     * @deprecated Reach for `gameState.getLastKnownProperties(event.cardRef)` instead. This struct
+     * @deprecated Reach for `cardStates.getLastKnownProperties(event.cardRef)` instead. This struct
      * is removed in phase 4 of the LKI migration.
      */
     public get lastKnownInformation(): ILastKnownInformation | undefined {

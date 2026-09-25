@@ -49,11 +49,11 @@ export class LiveCardProperties implements ICardProperties {
         return this.card.hasSomeTrait(traits);
     }
 
-    public isUnit(): this is IUnitProperties {
+    public isUnitCard(): this is IUnitProperties {
         return false;
     }
 
-    public asUnit(): IUnitProperties {
+    public asUnitCard(): IUnitProperties {
         return Contract.fail(`Expected ${this.ref} to be a unit, but it is a ${this.card.type}`);
     }
 }
@@ -66,11 +66,11 @@ export class LiveUnitProperties extends LiveCardProperties implements IUnitPrope
         super(ref, card);
     }
 
-    public override isUnit(): this is IUnitProperties {
+    public override isUnitCard(): this is IUnitProperties {
         return true;
     }
 
-    public override asUnit(): IUnitProperties {
+    public override asUnitCard(): IUnitProperties {
         return this;
     }
 
@@ -117,7 +117,7 @@ export class LiveUnitProperties extends LiveCardProperties implements IUnitPrope
 
     public get upgrades(): readonly CardRef[] {
         this.assertInPlay('upgrades');
-        return this.card.upgrades.map((upgrade) => this.card.game.lkiRegistry.refFor(upgrade));
+        return this.card.upgrades.map((upgrade) => this.card.game.lkiRegistry.getIdentity(upgrade));
     }
 
     /**

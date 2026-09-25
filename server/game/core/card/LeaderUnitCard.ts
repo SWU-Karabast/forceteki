@@ -22,7 +22,7 @@ import type { TriggeredAbilityBase } from '../ability/TriggeredAbility';
 import type { Card } from './Card';
 import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
 import type { IAbilityHelper } from '../../AbilityHelper';
-import type { IGameStateGetter } from '../lki/GameStateGetter';
+import type { ICardStateGetter } from '../lki/CardStateGetter';
 import type { ConstantAbility } from '../ability/ConstantAbility';
 import { registerStateBase, stateRef } from '../GameObjectUtils';
 
@@ -128,7 +128,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
     protected override onInitialize(): void {
         super.onInitialize();
         this.setupLeaderUnitSide = true;
-        this.setupLeaderUnitSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.gameState);
+        this.setupLeaderUnitSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates);
         this.validateCardAbilities(this.triggeredAbilities, this.deployBox);
     }
 
@@ -204,17 +204,17 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
     }
 
     protected override callSetupLeaderWithRegistrar() {
-        this.setupLeaderSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.gameState);
+        this.setupLeaderSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper, gameState: IGameStateGetter) {}
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) {}
 
     /**
      * Create card abilities for the leader unit side by calling subsequent methods with appropriate properties
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper, gameState: IGameStateGetter) {
+    protected setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) {
     }
 
     private addPilotDeploy(makeAttachedUnitALeader: boolean, registrar: IUnitAbilityRegistrar<LeaderUnitCard>) {

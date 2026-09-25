@@ -148,7 +148,7 @@ describe('Last known information', function () {
         });
 
         describe('When the same card leaves play twice in one action', function () {
-            it('keeps a separate record per incarnation, so a trigger reads the one it fired on', async function () {
+            it('keeps a separate record per identity, so a trigger reads the one it fired on', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -190,7 +190,7 @@ describe('Last known information', function () {
                 expect(landspeeder).toBeInZone('discard', context.player1);
 
                 // HK-47 deals 1 damage to "its controller's base", read from the record of the
-                // incarnation it triggered on — the one player2 controlled. If the second record had
+                // identity it triggered on — the one player2 controlled. If the second record had
                 // overwritten the first, the damage would land on player1's base instead, because
                 // player1 controlled the replayed copy.
                 expect(context.player2.base.damage).toBe(1);
@@ -223,17 +223,17 @@ describe('Last known information', function () {
                 // No record may be left behind for him. A record would make later readings of his
                 // characteristics report the abandoned defeat's values, and would leave a tombstone
                 // that turns reads after the next action boundary into errors.
-                const properties = registry.getProperties(registry.refFor(context.chewbacca));
-                expect(properties.asUnit().isInPlay()).toBe(true);
-                expect(properties.asUnit().asInPlay().power).toBe(context.chewbacca.getPower());
+                const properties = registry.getProperties(registry.getIdentity(context.chewbacca));
+                expect(properties.asUnitCard().isInPlay()).toBe(true);
+                expect(properties.asUnitCard().asInPlay().power).toBe(context.chewbacca.getPower());
 
                 // The tombstone check is the sharper assertion: it survives the action boundary,
                 // where a leaked record would have been flushed and would then throw on read.
                 context.player1.passAction();
                 context.player2.passAction();
 
-                const afterActionBoundary = registry.getProperties(registry.refFor(context.chewbacca));
-                expect(afterActionBoundary.asUnit().asInPlay().power).toBe(context.chewbacca.getPower());
+                const afterActionBoundary = registry.getProperties(registry.getIdentity(context.chewbacca));
+                expect(afterActionBoundary.asUnitCard().asInPlay().power).toBe(context.chewbacca.getPower());
             });
         });
 
@@ -254,7 +254,7 @@ describe('Last known information', function () {
                 const registry = context.game.lkiRegistry;
 
                 // Capture a reference to Wampa while it is still sitting in the discard pile.
-                const beforeMove = registry.refFor(context.wampa);
+                const beforeMove = registry.getIdentity(context.wampa);
 
                 context.player1.clickCard(context.renewedFriendship);
                 context.player1.clickCard(context.wampa);
@@ -262,7 +262,7 @@ describe('Last known information', function () {
 
                 // Moving discard -> hand loses the information the game had about the card, so it is
                 // now a new copy and the old reference no longer names the live card.
-                expect(registry.refFor(context.wampa)).not.toBe(beforeMove);
+                expect(registry.getIdentity(context.wampa)).not.toBe(beforeMove);
                 expect(registry.deref(beforeMove)).toBeNull();
 
                 // Its state was recorded before the move, so the old reference does not become an
@@ -346,7 +346,7 @@ describe('Last known information', function () {
                 // Every non-base damage event captures last known information. If that capture also
                 // wrote a registry record, this still-live unit would answer with its pre-damage
                 // values for the rest of the action, and the action boundary would then tombstone
-                // its current incarnation — turning the read below into a hard crash.
+                // its current identity — turning the read below into a hard crash.
                 context.player1.clickCard(context.chimaera);
                 context.player1.clickCard(context.helgait);
 
@@ -383,7 +383,7 @@ describe('Last known information', function () {
                 // The tombstone left behind turns a stale read into a loud error rather than a
                 // silent fall back to live state — which for a card in the discard pile would
                 // report the wrong zone and would throw outright for in-play-only characteristics.
-                expect(() => registry.getProperties(registry.refFor(context.wampa)))
+                expect(() => registry.getProperties(registry.getIdentity(context.wampa)))
                     .toThrowError(/was flushed at an action boundary/);
             });
         });

@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { AbilityType, KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
-import type { IGameStateGetter } from '../../../core/lki/GameStateGetter';
+import type { ICardStateGetter } from '../../../core/lki/CardStateGetter';
 
 export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -12,7 +12,7 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
         };
     }
 
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper, gameState: IGameStateGetter) {
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) {
         registrar.addPilotDeploy();
 
         registrar.addActionAbility({
@@ -26,7 +26,7 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
             ifYouDo: (ifYouDoContext) => {
                 // The arena the damaged unit was in. If the damage defeated it, this comes from its
                 // last known information rather than the discard pile it now sits in.
-                const friendlyArena = gameState.getLastKnownProperties(ifYouDoContext.target).zoneName;
+                const friendlyArena = cardStates.getLastKnownProperties(ifYouDoContext.target).zoneName;
                 return {
                     title: `Deal 1 damage to an enemy unit in the ${friendlyArena} arena`,
                     targetResolver: {
@@ -40,7 +40,7 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
         });
     }
 
-    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper, gameState: IGameStateGetter) {
+    protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) {
         registrar.addPilotingGainKeywordTargetingAttached({
             keyword: KeywordName.Grit,
         });
@@ -58,7 +58,7 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
             },
             ifYouDo: (ifYouDoContext) => {
-                const friendlyArena = gameState.getLastKnownProperties(ifYouDoContext.target).zoneName;
+                const friendlyArena = cardStates.getLastKnownProperties(ifYouDoContext.target).zoneName;
                 return {
                     title: `Deal 1 damage to an enemy unit in the ${friendlyArena} arena`,
                     targetResolver: {

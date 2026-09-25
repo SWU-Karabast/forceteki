@@ -88,17 +88,16 @@ export function buildLastKnownInformation(card: Card): ILastKnownInformation {
  * before any in-window changes (e.g. defeat from damage events sharing the same window).
  *
  * Use this for events the card may well **survive**, such as damage. It writes no registry record,
- * because a record means "this incarnation is gone" — see {@link addDepartureRecordToEvent}.
+ * because a record means "this identity is gone" — see {@link addDepartureRecordToEvent}.
  *
- * TODO (LKI migration phase 4): delete this. It exists only to serve the legacy
- * `event.lastKnownInformation` struct for events that are not departures, and its sole caller —
- * `DamageSystem.updateEvent` — is itself slated for removal, leaving
- * {@link addDepartureRecordToEvent} as the only helper. See
- * design/lki-migration-register.md §D.1.
+ * @deprecated Serves the legacy `event.lastKnownInformation` struct for events that are not
+ * departures. Its sole caller — `DamageSystem.updateEvent` — is itself slated for removal in phase 4
+ * of the LKI migration, leaving {@link addDepartureRecordToEvent} as the only helper. Do not add new
+ * call sites. See design/lki-migration-register.md §D.1.
  */
 export function addLastKnownInformationToEvent(event: GameEvent, card: Card): void {
     event.setPreResolutionEffect((event) => {
-        event.setLastKnownInformation(buildLastKnownInformation(card), refFor(event, card));
+        event.setLastKnownInformation(buildLastKnownInformation(card), getIdentity(event, card));
     });
 }
 
@@ -107,13 +106,13 @@ export function addLastKnownInformationToEvent(event: GameEvent, card: Card): vo
  *
  * Only for events that actually remove the card from its zone. Recording for an event the card
  * survives would freeze a live unit at its pre-event values for the rest of the action, and would
- * then tombstone its still-current incarnation at the action boundary.
+ * then tombstone its still-current identity at the action boundary.
  */
 export function addDepartureRecordToEvent(event: GameEvent, card: Card): void {
     event.setPreResolutionEffect((event) => {
         const info = buildLastKnownInformation(card);
         event.context.game.lkiRegistry.recordPending(event.eventId, card);
-        event.setLastKnownInformation(info, refFor(event, card));
+        event.setLastKnownInformation(info, getIdentity(event, card));
     });
 }
 
@@ -123,18 +122,18 @@ export function addDepartureRecordToEvent(event: GameEvent, card: Card): void {
  * For synthetic events that never enter an `EventWindow`, so no pre-resolution hook would ever run.
  */
 export function addLastKnownInformationNow(event: GameEvent, card: Card): void {
-    event.setLastKnownInformation(buildLastKnownInformation(card), refFor(event, card));
+    event.setLastKnownInformation(buildLastKnownInformation(card), getIdentity(event, card));
 }
 
 /**
- * The reference naming the incarnation `card` is in right now.
+ * The reference naming the identity `card` is in right now.
  *
  * Resolved at capture time rather than lazily, because the card may leave play and come back, or
  * move into a hidden zone, before anything reads the event — resolving it later would then name the
- * wrong incarnation (SC-13, invariant I2).
+ * wrong identity (SC-13, invariant I2).
  */
-function refFor(event: GameEvent, card: Card): CardRef {
-    return event.context.game.lkiRegistry.refFor(card);
+function getIdentity(event: GameEvent, card: Card): CardRef {
+    return event.context.game.lkiRegistry.getIdentity(card);
 }
 
 /**

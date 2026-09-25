@@ -156,9 +156,9 @@ validation belongs: a reference whose instance no longer matches is not a legal 
 - **Systems with no zone check.** The base `canAffectInternal` is only
   `return this.isTargetTypeValid(target)` (GameSystem.ts:111-114), so any system that does not
   override it accepts a target in any zone. `CaptureSystem` with `fromOutOfPlay: true` is the
-  confirmed case (§3.8) — it checks only `card.isUnit()`.
+  confirmed case (§3.8) — it checks only `card.isUnitCard()`.
 - **Extra card-valued properties are validated inconsistently.** `CaptureSystem` checks its captor
-  (`properties.captor.isUnit() && !properties.captor.isInPlay()`); most systems check nothing for
+  (`properties.captor.isUnitCard() && !properties.captor.isInPlay()`); most systems check nothing for
   their non-target card properties. Those cannot be handled by `.filter(Boolean)` — a stale
   `captor` must make the whole system fizzle via `canAffectInternal`.
 - **Composite systems are already safe.** `AggregateSystem.generatePropertiesFromContext`
@@ -197,7 +197,7 @@ should be fixed independently of this work.
 
 ### D-12 — Engine internals that need physical-card identity
 
-**Deferred.** D-11 makes instance-aware equality the default, which is correct for game rules. But
+**Deferred.** D-11 makes identity-aware equality the default, which is correct for game rules. But
 engine bookkeeping is generally about the *physical card object*, not the rules-level instance, so
 exceptions are expected.
 
@@ -404,7 +404,7 @@ distinct concepts that should be separated. That was wrong — both express the 
 "identity continuity is broken": case 1 by rule (SWU 8.5.4), case 2 because once a card is in a
 hidden zone all tracking information about it is lost, so it must be treated as a new instance
 whenever it becomes visible again. Note that **`Discard` and `Capture` are visible zones, so
-arena → discard preserves instance identity**: a defeated unit sitting in the discard is still the
+arena → discard preserves card identity**: a defeated unit sitting in the discard is still the
 same instance it was in the arena.
 
 What genuinely needs separating is *footprint minting* (triggered by leaving play) from *identity
@@ -479,10 +479,10 @@ these sites silently changes behavior with no compile error and no runtime error
 **Two sub-questions:**
 
 1. ~~**Interning.**~~ **Resolved by D-8** — the registry vends interned handles, one canonical
-   object per `(card, instance)` pair, so `===` continues to work and these ~359 sites need no
+   object per `(card, identity)` pair, so `===` continues to work and these ~359 sites need no
    migration.
 2. **Copy-aware equality is a behavior change.** Today `===` compares *physical card* identity,
-   ignoring instances. Under interned handles, equality becomes instance-aware, so a card that left
+   ignoring instances. Under interned handles, equality becomes identity-aware, so a card that left
    play and returned is no longer equal to its earlier self. Per SWU 8.5.4 that is arguably *more*
    correct — and §3.17 shows the 75 `inPlayId` sites already hand-roll exactly this — but it is a
    silent behavior change across 359 sites and needs to be deliberate.
@@ -610,7 +610,7 @@ D-5 — and (2) the ability's own zone requirement, which is a framework concern
 
 **These checks are load-bearing today, not redundant.**
 [CaptureSystem.canAffectInternal](../server/game/gameSystems/CaptureSystem.ts) with
-`fromOutOfPlay: true` only checks `card.isUnit()`; it does not verify the card is still in the
+`fromOutOfPlay: true` only checks `card.isUnitCard()`; it does not verify the card is still in the
 discard. Removing `Bothan5`'s condition without a replacement would let the capture succeed on a
 card that had since moved to hand.
 
@@ -656,14 +656,14 @@ a +1/+1 upgrade, so it is 5/6.
 genuinely weaker. SWU 8.11.1 defines LKI as a snapshot "immediately before it left play" — i.e.
 bound to a *specific* leave-play event, not to the card.
 
-**The good news:** `(card, instance)` already distinguishes the three copies, because entering play
+**The good news:** `(card, identity)` already distinguishes the three copies, because entering play
 increments the counter. The D-8 key is sufficient; no new identity concept is needed. Nor can the
 key collide — leaving play twice requires entering play in between, which increments.
 
 **Three invariants this imposes:**
 
 1. **Footprints are keyed by instance and coexist.** The registry must be
-   `Map<(card, instance), Footprint>`, never `Map<Card, Footprint>`. Copy 1's footprint must
+   `Map<(card, identity), Footprint>`, never `Map<Card, Footprint>`. Copy 1's footprint must
    survive while copies 2 and 3 are minted.
 2. **Handles are bound at event time and never lazily re-resolved.** If `event.card` resolved to
    "whatever instance the card is now", P2's copy-1 trigger would read copy 3's footprint and deal
@@ -834,7 +834,7 @@ orphan. Concretely:
 - Watchers must keep storing durable extracted values (D-16), not bare handles
 - The same applies to anything persisting beyond an action — phase-long cost adjusters, delayed
   effects, "for this phase" ongoing effects
-- **Tombstones** (retaining the instance key after discarding footprint data) would make the middle
+- **Tombstones** (retaining the identity key after discarding footprint data) would make the middle
   branch sound: "no footprint *and* no tombstone" then genuinely means "never departed", so a stale
   read throws rather than silently reading live
 
@@ -846,23 +846,23 @@ orphan. Concretely:
 
 The scenario passes today because `event.lastKnownInformation` is a per-event struct, so it is a
 genuine before/after check on the centralization. It exercises all three invariants at once:
-instance-keyed footprints (I1), event-time handle binding (I2), and action-boundary flush (I3).
+identity-keyed footprints (I1), event-time handle binding (I2), and action-boundary flush (I3).
 
 Shape:
 
-- A unit with a stat-modifying upgrade, so its first incarnation differs measurably from later ones
+- A unit with a stat-modifying upgrade, so its first identity differs measurably from later ones
 - A triggered ability that (a) reads a characteristic of the defeated unit via LKI, and (b) replays
   and re-defeats it, re-triggering peers into a sub-window
 - Multiple copies of that ability, with once-per-turn limits, so some triggers resolve in
   sub-windows and at least one resolves later in the *parent* window
-- Assert the parent-window resolution uses the **first** incarnation's value, not the latest
+- Assert the parent-window resolution uses the **first** identity's value, not the latest
 
 **Built as "When the same card leaves play twice in one action"** in
 [LastKnownInformation.spec.ts](../test/scenarios/lki/LastKnownInformation.spec.ts). The construction
 that worked:
 
 - **Stolen Landspeeder** owned by player1 but controlled by player2. Its Bounty replays it from
-  discard **under its owner's control**, which is what makes the two incarnations differ in a way an
+  discard **under its owner's control**, which is what makes the two identities differ in a way an
   ability can read — no stat upgrade needed, the differing characteristic is `controller`
 - **Two Supreme Leader Snokes** on player2's side give −4/−4 to enemy non-leaders, so the replayed
   Landspeeder (3/2, +1/+1 from its own Experience token) is defeated the instant it arrives. That
@@ -871,8 +871,8 @@ that worked:
 - **HK-47** reads `controller` off the record and damages that player's base. It survives the two
   Snokes only because of two Experience tokens
 
-Assert: player2's base takes the damage (the incarnation HK-47 triggered on), not player1's (the
-replayed one). Mutation-verified — collapsing `CardRef` keys from `uuid:instanceId` to `uuid` makes
+Assert: player2's base takes the damage (the identity HK-47 triggered on), not player1's (the
+replayed one). Mutation-verified — collapsing `CardRef` keys from `uuid:identityId` to `uuid` makes
 the trigger set itself diverge, so the test fails.
 
 An earlier attempt using **Old Daka** failed for an instructive reason: the action-boundary flush
@@ -942,8 +942,8 @@ throw to a compile-time error. Card code is close to unchanged:
 
 ```ts
 matchTarget: (cardRef, context) => {
-    const card = gameState.getLastKnownProperties(cardRef);
-    return card.isUnit() && card.isInPlay() && card.isAttacking() &&
+    const card = cardStates.getLastKnownProperties(cardRef);
+    return card.isUnitCard() && card.isInPlay() && card.isAttacking() &&
         card.activeAttack.getAllTargets().includes(/* … */);
 }
 ```
@@ -1046,7 +1046,7 @@ the action. That is true but incomplete. The sharper reason showed up while migr
 > that happened to have recorded it.
 
 That is a back-channel, not a use of phase-scoped history. The registry removes the need for it
-because records are keyed by `(card, instance)` rather than by event, so it does not matter which
+because records are keyed by `(card, identity)` rather than by event, so it does not matter which
 event wrote the record. Ravager's two helpers went from:
 
 ```ts
@@ -1063,8 +1063,8 @@ private playedUnitPower(context): number {
 to:
 
 ```ts
-private playedUnitPower(context, gameState: IGameStateGetter): number {
-    const played = gameState.getLastKnownProperties(context.event.card).asUnit();
+private playedUnitPower(context, gameState: ICardStateGetter): number {
+    const played = cardStates.getLastKnownProperties(context.event.card).asUnitCard();
     return played.isInPlay() ? played.power : played.printedPower;
 }
 ```

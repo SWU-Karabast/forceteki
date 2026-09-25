@@ -92,13 +92,13 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     private accessor _mostRecentInPlayId: number = -1
 
     /**
-     * The incarnation counter for this card, readable in any zone. See {@link Card.instanceId}.
+     * The identity counter for this card, readable in any zone. See {@link Card.identityId}.
      *
      * This is the same underlying counter that backs {@link inPlayId} and {@link mostRecentInPlayId},
      * but without their zone gating, so callers that only need to compare identity do not have to
      * pick between them.
      */
-    public override get instanceId(): number {
+    public override get identityId(): number {
         return this._mostRecentInPlayId;
     }
 

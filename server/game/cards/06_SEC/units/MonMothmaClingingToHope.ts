@@ -4,7 +4,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { CardRef } from '../../../core/lki/CardRef';
-import type { IGameStateGetter } from '../../../core/lki/GameStateGetter';
+import type { ICardStateGetter } from '../../../core/lki/CardStateGetter';
 import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 
 export default class MonMothmaClingingToHope extends NonLeaderUnitCard {
@@ -15,21 +15,21 @@ export default class MonMothmaClingingToHope extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper, gameState: IGameStateGetter) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) {
         registrar.addWhenPlayedAbility({
             title: 'Attack with any number of other units, even if those units are exhausted. They can\'t attack bases for these attacks',
-            ...this.attackWithUnitAbility([], AbilityHelper, gameState),
+            ...this.attackWithUnitAbility([], AbilityHelper, cardStates),
         });
     }
 
     /**
-     * `alreadyAttacked` holds references rather than cards, so a unit that left play and came back
-     * counts as a different unit and may be chosen again (`SWU 8.5.4`).
+     * `alreadyAttacked` holds card identities rather than cards, so a unit that left play and came
+     * back counts as a different unit and may be chosen again (`SWU 8.5.4`).
      */
     private attackWithUnitAbility(
         alreadyAttacked: readonly CardRef[],
         AbilityHelper: IAbilityHelper,
-        gameState: IGameStateGetter
+        cardStates: ICardStateGetter
     ): Omit<IThenAbilityPropsWithSystems<TriggeredAbilityContext<NonLeaderUnitCard>>, 'title'> {
         return {
             optional: true,
@@ -37,7 +37,7 @@ export default class MonMothmaClingingToHope extends NonLeaderUnitCard {
                 activePromptTitle: 'Attack with a unit even if it is exhausted. It can\'t attack bases for this attack',
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card, context) => card !== context.source && !alreadyAttacked.includes(gameState.refFor(card)),
+                cardCondition: (card, context) => card !== context.source && !alreadyAttacked.includes(cardStates.getIdentity(card)),
                 immediateEffect: AbilityHelper.immediateEffects.attack({
                     targetCondition: (card) => !card.isBase(),
                     allowExhaustedAttacker: true,
@@ -46,9 +46,9 @@ export default class MonMothmaClingingToHope extends NonLeaderUnitCard {
             ifYouDo: (context) => ({
                 title: 'Attack with a unit even if it is exhausted. It can\'t attack bases for this attack',
                 ...this.attackWithUnitAbility(
-                    [...alreadyAttacked, gameState.refFor(context.target)],
+                    [...alreadyAttacked, cardStates.getIdentity(context.target)],
                     AbilityHelper,
-                    gameState
+                    cardStates
                 ),
             }),
         };

@@ -3,7 +3,7 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { Arena } from '../../../core/Constants';
 import { CardType, WildcardCardType } from '../../../core/Constants';
-import type { IGameStateGetter } from '../../../core/lki/GameStateGetter';
+import type { ICardStateGetter } from '../../../core/lki/CardStateGetter';
 import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 
 export default class RavagerFinalImperialCommand extends NonLeaderUnitCard {
@@ -14,10 +14,10 @@ export default class RavagerFinalImperialCommand extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper, gameState: IGameStateGetter) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) {
         registrar.addTriggeredAbility({
             title: 'Deal damage equal to its power to a unit in the same arena',
-            contextTitle: (context) => `Deal ${this.playedUnitPower(context, gameState)} damage to a unit in the ${EnumHelpers.arenaName(this.playedUnitArena(context, gameState))}`,
+            contextTitle: (context) => `Deal ${this.playedUnitPower(context, cardStates)} damage to a unit in the ${EnumHelpers.arenaName(this.playedUnitArena(context, cardStates))}`,
             optional: true,
             when: {
                 onCardPlayed: (event, context) =>
@@ -26,11 +26,11 @@ export default class RavagerFinalImperialCommand extends NonLeaderUnitCard {
             },
             targetResolver: {
                 activePromptTitle: (context) =>
-                    `Deal ${this.playedUnitPower(context, gameState)} damage to a unit in the ${EnumHelpers.arenaName(this.playedUnitArena(context, gameState))}`,
+                    `Deal ${this.playedUnitPower(context, cardStates)} damage to a unit in the ${EnumHelpers.arenaName(this.playedUnitArena(context, cardStates))}`,
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card, context) => card.zoneName === this.playedUnitArena(context, gameState),
+                cardCondition: (card, context) => card.zoneName === this.playedUnitArena(context, cardStates),
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                    amount: this.playedUnitPower(context, gameState),
+                    amount: this.playedUnitPower(context, cardStates),
                     source: context.event.card
                 }))
             }
@@ -38,14 +38,14 @@ export default class RavagerFinalImperialCommand extends NonLeaderUnitCard {
     }
 
     /** The unit's power, whether it is currently in play or has just left play. */
-    private playedUnitPower(context, gameState: IGameStateGetter): number {
-        const played = gameState.getLastKnownProperties(context.event.card).asUnit();
+    private playedUnitPower(context, cardStates: ICardStateGetter): number {
+        const played = cardStates.getLastKnownProperties(context.event.card).asUnitCard();
         return played.isInPlay() ? played.power : played.printedPower;
     }
 
     /** The arena the played unit is in, or was in when it left play.*/
-    private playedUnitArena(context, gameState: IGameStateGetter): Arena {
-        const zone = gameState.getLastKnownProperties(context.event.card).zoneName;
+    private playedUnitArena(context, cardStates: ICardStateGetter): Arena {
+        const zone = cardStates.getLastKnownProperties(context.event.card).zoneName;
         return EnumHelpers.isArena(zone) ? zone : context.event.card.defaultArena;
     }
 }

@@ -5,7 +5,7 @@ import type { ICardProperties, IUnitProperties, IUnitPropertiesInPlay } from './
 import type { Player } from '../Player';
 
 /**
- * The characteristics recorded for one incarnation of a card, taken at the moment it left play.
+ * The characteristics recorded for one identity of a card, taken at the moment it left play.
  * Frozen once written and never mutated (D-17).
  */
 export interface IRecordedCardState {
@@ -71,18 +71,18 @@ export class RecordedCardProperties implements ICardProperties {
         return toCheck.some((trait) => this.record.traits.has(trait));
     }
 
-    public isUnit(): this is IUnitProperties {
+    public isUnitCard(): this is IUnitProperties {
         return this.record.isUnit;
     }
 
-    public asUnit(): IUnitProperties {
+    public asUnitCard(): IUnitProperties {
         return Contract.fail(`Expected ${this.ref} to be a unit, but it is a ${this.record.type}`);
     }
 }
 
 /** Recorded properties for a unit card. */
 export class RecordedUnitProperties extends RecordedCardProperties implements IUnitPropertiesInPlay {
-    public override asUnit(): IUnitProperties {
+    public override asUnitCard(): IUnitProperties {
         return this;
     }
 

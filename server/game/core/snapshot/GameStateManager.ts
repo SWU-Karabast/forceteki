@@ -218,7 +218,7 @@ export class GameStateManager implements IGameObjectRegistrar {
 
             // The LKI registry is transient, so rollback does not restore it. Clear the parts that
             // are timeline-dependent, otherwise a footprint minted in the abandoned timeline would
-            // be served for a re-created incarnation.
+            // be served for a re-created card identity.
             this.#game.lkiRegistry.clearForRollback();
 
             return true;

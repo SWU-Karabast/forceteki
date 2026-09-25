@@ -33,31 +33,31 @@ export class LkiRegistry {
     private readonly pending = new Map<number, Map<string, IRecordedCardState>>();
 
     /**
-     * Instances whose record has been flushed. Lets a stale read throw instead of falling
+     * Card identities whose record has been flushed. Lets a stale read throw instead of falling
      * through to live state, which would be silently wrong (D-21, SC-15).
      */
     private readonly tombstones = new Set<string>();
 
-    /** Returns the canonical reference for a card's current incarnation. */
-    public refFor(card: Card): CardRef {
-        return this.refForInstance(card, card.instanceId);
+    /** Returns the canonical reference for a card's current identity. */
+    public getIdentity(card: Card): CardRef {
+        return this.internIdentity(card, card.identityId);
     }
 
-    /** Returns the canonical reference for a specific incarnation of a card. */
-    public refForInstance(card: Card, instanceId: number): CardRef {
-        const key = CardRef.buildKey(card, instanceId);
+    /** Returns the canonical reference for a specific identity of a card. */
+    private internIdentity(card: Card, identityId: number): CardRef {
+        const key = CardRef.buildKey(card, identityId);
         const existing = this.interned.get(key);
         if (existing) {
             return existing;
         }
 
-        const ref = CardRef.createForRegistry(card, instanceId);
+        const ref = CardRef.createForRegistry(card, identityId);
         this.interned.set(key, ref);
         return ref;
     }
 
     /**
-     * Returns a properties view for the reference: recorded values if the incarnation has a
+     * Returns a properties view for the reference: recorded values if the identity has a
      * record, otherwise a live pass-through.
      */
     public getProperties(ref: CardRef): ICardProperties {
@@ -77,7 +77,7 @@ export class LkiRegistry {
         const card = ref.getCardForEngine();
         Contract.assertTrue(
             ref.isCurrent,
-            `${ref} names an incarnation that no longer exists and has no record, so nothing can be ` +
+            `${ref} names an identity that no longer exists and has no record, so nothing can be ` +
             'read from it.'
         );
 
@@ -85,16 +85,16 @@ export class LkiRegistry {
     }
 
     /**
-     * Whether a record for this incarnation exists, either committed or still staged.
+     * Whether a record for this identity exists, either committed or still staged.
      *
      * Exists for the departure assertion that lands with D-22's universal minting: a card leaving
      * play with no record means some system removed it without going through
-     * `addDepartureRecordToEvent`, and anything that later asks about that incarnation would
+     * `addDepartureRecordToEvent`, and anything that later asks about that identity would
      * silently read the wrong state. Not asserted yet — today's capture points do not cover every
      * departure, which is the gap D-22 closes (see lki-migration-register.md §G.1).
      */
-    public hasRecordFor(card: Card, instanceId: number): boolean {
-        const key = CardRef.buildKey(card, instanceId);
+    public hasRecordFor(card: Card, identityId: number): boolean {
+        const key = CardRef.buildKey(card, identityId);
         if (this.records.has(key)) {
             return true;
         }
@@ -111,7 +111,7 @@ export class LkiRegistry {
     /**
      * Resolves a reference to the live card, for engine use.
      *
-     * Returns `null` when the reference no longer names the card's current incarnation, which is how
+     * Returns `null` when the reference no longer names the card's current identity, which is how
      * an effect targeting a card that has since left and re-entered play fizzles (D-6).
      */
     public deref(ref: CardRef): Card | null {
@@ -133,7 +133,7 @@ export class LkiRegistry {
             this.pending.set(eventId, forEvent);
         }
 
-        forEvent.set(CardRef.buildKey(card, card.instanceId), LkiRegistry.buildRecord(card));
+        forEvent.set(CardRef.buildKey(card, card.identityId), LkiRegistry.buildRecord(card));
     }
 
     /**
@@ -194,11 +194,11 @@ export class LkiRegistry {
      *
      * Rollback restores tracked state but not the registry, and mid-action rollback is a first-class
      * path, so without this a record written in an abandoned timeline would be served for a
-     * re-created incarnation. Tombstones are cleared too: they record that an instance departed,
+     * re-created identity. Tombstones are cleared too: they record that an identity departed,
      * which is equally timeline-dependent, and a surviving tombstone would turn reads of a perfectly
      * live card into errors (D-29).
      *
-     * The intern map is left alone — `(card, instanceId)` identity means the same thing in any
+     * The intern map is left alone — a `(card, identityId)` pair means the same thing in any
      * timeline.
      */
     public clearForRollback(): void {
@@ -245,7 +245,7 @@ export class LkiRegistry {
             hp: card.getHp(),
             damage: card.damage,
             exhausted: card.exhausted,
-            upgrades: card.isAttached() ? [] : card.upgrades.map((upgrade) => card.game.lkiRegistry.refFor(upgrade))
+            upgrades: card.isAttached() ? [] : card.upgrades.map((upgrade) => card.game.lkiRegistry.getIdentity(upgrade))
         };
     }
 }

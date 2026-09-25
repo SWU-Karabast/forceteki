@@ -52,7 +52,7 @@ export class CloneUnitEffect extends OngoingEffectValueWrapperBase<ICardWithStan
 
         // Avoid cloning abilities from the same card to prevent duplication
         if (target.internalName !== clonedUnit.internalName) {
-            clonedUnit.setupCardAbilities(target.getAbilityRegistrar() as IUnitAbilityRegistrar<IUnitCard>, this.game.abilityHelper, this.game.gameState);
+            clonedUnit.setupCardAbilities(target.getAbilityRegistrar() as IUnitAbilityRegistrar<IUnitCard>, this.game.abilityHelper, this.game.cardStates);
         }
     }
 

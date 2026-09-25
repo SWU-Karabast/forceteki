@@ -2,7 +2,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import type { Card } from '../../../core/card/Card';
-import type { IGameStateGetter } from '../../../core/lki/GameStateGetter';
+import type { ICardStateGetter } from '../../../core/lki/CardStateGetter';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class CalculatedLethality extends EventCard {
@@ -13,7 +13,7 @@ export default class CalculatedLethality extends EventCard {
         };
     }
 
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper, gameState: IGameStateGetter) {
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) {
         registrar.setEventAbility({
             title: 'Defeat a non-leader unit that costs 3 or less',
             targetResolver: {
@@ -21,7 +21,7 @@ export default class CalculatedLethality extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.defeat(),
             },
             then: (thenContext) => {
-                const upgradeCount = thenContext.target ? this.upgradeCountWhenDefeated(thenContext.target, gameState) : 0;
+                const upgradeCount = thenContext.target ? this.upgradeCountWhenDefeated(thenContext.target, cardStates) : 0;
 
                 return {
                     title: 'For each upgrade that was on that unit, give an Experience token to a friendly unit.',
@@ -41,8 +41,8 @@ export default class CalculatedLethality extends EventCard {
      * How many upgrades the target had when it left play, or has now if it survived the defeat (for
      * example Lurking TIE Phantom). The getter resolves both cases, so no branch is needed here.
      */
-    private upgradeCountWhenDefeated(target: Card, gameState: IGameStateGetter): number {
-        const unit = gameState.getLastKnownProperties(target);
-        return unit.isUnit() && unit.isInPlay() ? unit.upgrades.length : 0;
+    private upgradeCountWhenDefeated(target: Card, cardStates: ICardStateGetter): number {
+        const unit = cardStates.getLastKnownProperties(target);
+        return unit.isUnitCard() && unit.isInPlay() ? unit.upgrades.length : 0;
     }
 }

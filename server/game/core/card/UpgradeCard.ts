@@ -20,7 +20,7 @@ import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { IBasicAbilityRegistrar, IInPlayCardAbilityRegistrar, IUpgradeAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { IConstantAbilityRegistrar } from './propertyMixins/ConstantAbilityRegistration';
 import type { IAbilityHelper } from '../../AbilityHelper';
-import type { IGameStateGetter } from '../lki/GameStateGetter';
+import type { ICardStateGetter } from '../lki/CardStateGetter';
 import { registerStateBase } from '../GameObjectUtils';
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithStandardAbilitySetup(InPlayCard)));
@@ -274,9 +274,9 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
     }
 
     protected override callSetupWithRegistrar() {
-        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.gameState);
+        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper, gameState: IGameStateGetter) { }
+    public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) { }
 }
