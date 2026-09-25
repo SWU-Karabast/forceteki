@@ -176,7 +176,7 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
             sortedTargetsWithOpportunityCost.map((t) => t.card),
             context,
             costAdjustTriggerResult,
-            this.sourcePlayer.readyResourceCount,
+            this.getPayingPlayer(context).readyResourceCount,
         )?.targetSet;
 
         Contract.assertNotNullLike(minimumTargetsSet, 'No valid target set found to pay cost with targeted cost adjuster at pay time');
@@ -220,7 +220,7 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
             handlers.unshift(() => undefined);
         }
 
-        context.game.promptWithHandlerMenu(this.sourcePlayer, {
+        context.game.promptWithHandlerMenu(this.getPayingPlayer(context), {
             activePromptTitle: `Choose pay mode for ${context.source.title}`,
             choices,
             handlers
@@ -501,7 +501,7 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
             this.getSortedTargetsFromContext(context).map((t) => t.card),
             context,
             costAdjustTriggerResult,
-            this.sourcePlayer.readyResourceCount,
+            this.getPayingPlayer(context).readyResourceCount,
             Helpers.asArray(selected)
         );
 
@@ -531,7 +531,7 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
             return false;
         }
 
-        const availableResources = this.sourcePlayer.readyResourceCount;
+        const availableResources = this.getPayingPlayer(context).readyResourceCount;
         const minimumTargetSetToPay = this.findMinimumTargetSetToPay(
             selectableCardsSorted,
             context,
@@ -551,6 +551,14 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
         return maxTargetCount == null
             ? availableTargetsCount
             : Math.min(maxTargetCount, availableTargetsCount);
+    }
+
+    /**
+     * The player paying the cost. This may not be the controller of the adjuster's source card,
+     * e.g. if a player is playing a card owned by their opponent.
+     */
+    protected getPayingPlayer(context: AbilityContext): Player {
+        return context.player;
     }
 
     /** Returns the maximum number of targets that can be selected, or null if unlimited */
