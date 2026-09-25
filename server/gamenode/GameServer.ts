@@ -2254,12 +2254,25 @@ export class GameServer {
     }
 
     private async startTestGame(filename: string) {
+        const testJSONPath = path.resolve(__dirname, `../../../test/gameSetups/${filename}`);
+        Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
+        const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
+
+        // A setup may pin a format and card pool so format-dependent behavior (e.g. "name a card" options) can be
+        // tested locally. Without one, test games stay Open / Unlimited.
+        const format = setupData.format != null
+            ? EnumHelpers.checkConvertToEnum(setupData.format, SwuGameFormat)[0]
+            : SwuGameFormat.Open;
+        const cardPool = setupData.cardPool != null
+            ? EnumHelpers.checkConvertToEnum(setupData.cardPool, CardPool)[0]
+            : (setupData.format != null ? CardPool.Current : CardPool.Unlimited);
+
         const lobby = new Lobby(
             'Test Game',
             MatchmakingType.PublicLobby,
-            SwuGameFormat.Open,
+            format,
             GamesToWinMode.BestOfOne,
-            CardPool.Unlimited,
+            cardPool,
             this.cardDataGetter,
             this.deckValidator,
             this,
@@ -2273,7 +2286,7 @@ export class GameServer {
         lobby.createLobbyUser(theWay);
         this.userLobbyMap.set(order66.id, { lobbyId: lobby.id, role: UserRole.Player });
         this.userLobbyMap.set(theWay.id, { lobbyId: lobby.id, role: UserRole.Player });
-        await lobby.startTestGameAsync(filename);
+        await lobby.startTestGameAsync(setupData);
     }
 
     private getTestSetupGames() {

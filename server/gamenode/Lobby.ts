@@ -3,8 +3,6 @@ import { v4 as uuid, v4 as uuidv4 } from 'uuid';
 import type Socket from '../socket';
 import { Contract } from '../game/core/utils/Contract';
 import { EnumHelpers } from '../game/core/utils/EnumHelpers';
-import fs from 'fs';
-import path from 'path';
 import { logger } from '../logger';
 import { GameChat } from '../game/core/chat/GameChat';
 import type { User } from '../utils/user/User';
@@ -1207,16 +1205,19 @@ export class Lobby {
         logger.info('Lobby: cleaning lobby', { lobbyId: this.id });
     }
 
-    public async startTestGameAsync(filename: string) {
-        const testJSONPath = path.resolve(__dirname, `../../../test/gameSetups/${filename}`);
-        Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
-
-        const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
+    public async startTestGameAsync(testSetupData: any) {
+        // cardPool is a lobby setting, not a board-setup option, so it is not passed on to the test harness
+        const { cardPool, ...setupData } = testSetupData;
         if (setupData.autoSingleTarget == null) {
             setupData.autoSingleTarget = false;
         }
 
-        Contract.assertNotNullLike(this.testGameBuilder, `Attempting to start a test game from file ${filename} but local test tools were not found`);
+        // Only a setup that pins a format gets its "name a card" options filtered, matching real games in that format
+        const legalCardTitles = setupData.format != null
+            ? this.deckValidator.getLegalCardTitles(this.gameFormat, this.cardPool)
+            : undefined;
+
+        Contract.assertNotNullLike(this.testGameBuilder, 'Attempting to start a test game but local test tools were not found');
 
         // TODO to address this a refactor and change router to lobby
         // eslint-disable-next-line
@@ -1228,7 +1229,8 @@ export class Lobby {
             router,
             { id: 'exe66', username: 'Order66' },
             { id: 'th3w4y', username: 'ThisIsTheWay' },
-            UndoMode.Free
+            UndoMode.Free,
+            legalCardTitles
         );
 
         this.game = game;
@@ -1473,6 +1475,7 @@ export class Lobby {
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
+            legalCardTitles: this.deckValidator.getLegalCardTitles(this.gameFormat, this.cardPool),
             useActionTimer: this.useActionTimers,
             preselectedFirstPlayerId: this.determineFirstPlayer(),
             pushUpdate: () => this.sendGameState(this.game),
