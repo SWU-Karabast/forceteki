@@ -130,20 +130,8 @@ export class GameEvent {
         this.handler = newHandler;
     }
 
-    public cancel() {
-        this.resolutionStatus = EventResolutionStatus.CANCELLED;
-        if (this._window) {
-            this._window.removeEvent(this);
-        }
-    }
-
-    /**
-     * Marks this event as replaced without attaching a replacement event, e.g. when a replacement
-     * effect fully prevents the event's effect. A replaced event still counts as resolved for the
-     * purposes of "if you do" conditions (see SWU CR 8.9.2).
-     */
-    public markAsReplaced() {
-        this.resolutionStatus = EventResolutionStatus.REPLACED;
+    public cancel({ wasReplaced } = { wasReplaced: false }) {
+        this.resolutionStatus = wasReplaced ? EventResolutionStatus.REPLACED : EventResolutionStatus.CANCELLED;
         if (this._window) {
             this._window.removeEvent(this);
         }

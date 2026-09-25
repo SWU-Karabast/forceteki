@@ -32,7 +32,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             return;
         }
 
-        const eventBeingReplaced = event.context.event;
+        const eventBeingReplaced = event.context.event as GameEvent;
         const replacementImmediateEffect = event.replacementImmediateEffect;
         if (replacementImmediateEffect) {
             const eventWindow = eventBeingReplaced.window;
@@ -62,11 +62,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         // "if you do" conditions, so it is marked as replaced (SWU CR 8.9.2). other events nullified by
         // a replacement effect with no replacement event are cancelled entirely - their standard
         // resolution is ignored (SWU CR 7.7.5.D)
-        if (eventBeingReplaced.name === EventName.OnDamageDealt) {
-            eventBeingReplaced.markAsReplaced();
-        } else {
-            eventBeingReplaced.cancel();
-        }
+        eventBeingReplaced.cancel({ wasReplaced: eventBeingReplaced.name === EventName.OnDamageDealt });
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}) {
