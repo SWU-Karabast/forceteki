@@ -1,11 +1,12 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
+import type { IGameStateGetter } from '../../lki/GameStateGetter';
 import { registerStateBase } from '../../GameObjectUtils';
 import { Contract } from '../../utils/Contract';
 import type { IBasicAbilityRegistrar } from '../AbilityRegistrationInterfaces';
 import type { Card, CardConstructor } from '../Card';
 
 export interface ICardWithStandardAbilitySetup<T extends Card> extends Card {
-    setupCardAbilities(registrar: IBasicAbilityRegistrar<T>, AbilityHelper: IAbilityHelper): void;
+    setupCardAbilities(registrar: IBasicAbilityRegistrar<T>, AbilityHelper: IAbilityHelper, gameState: IGameStateGetter): void;
 }
 
 /** Mixin function that creates a version of the base class that is a Token. */
@@ -51,7 +52,7 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor>(Bas
          * Create card abilities by calling subsequent methods with appropriate properties
          */
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        public setupCardAbilities(registrar: IBasicAbilityRegistrar<this>, AbilityHelper: IAbilityHelper) { }
+        public setupCardAbilities(registrar: IBasicAbilityRegistrar<this>, AbilityHelper: IAbilityHelper, gameState: IGameStateGetter) { }
     }
 
     return WithStandardAbilitySetup;

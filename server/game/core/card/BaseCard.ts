@@ -15,6 +15,7 @@ import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import { EpicActionAbility } from '../../abilities/EpicActionAbility';
 import type { IBaseAbilityRegistrar, IBasicAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import type { IGameStateGetter } from '../lki/GameStateGetter';
 import type { ICardWithCaptureZone } from '../zone/CaptureZone';
 import { CaptureZone } from '../zone/CaptureZone';
 import { registerStateBase, statePrimitive, stateRef, stateRefArray } from '../GameObjectUtils';
@@ -156,11 +157,11 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     }
 
     protected override callSetupWithRegistrar() {
-        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
+        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.gameState);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
+    public override setupCardAbilities(registrar: IBaseAbilityRegistrar, AbilityHelper: IAbilityHelper, gameState: IGameStateGetter) { }
 
     private initializeCaptureZone() {
         this._captureZone = new CaptureZone(this.game, this.owner, this);

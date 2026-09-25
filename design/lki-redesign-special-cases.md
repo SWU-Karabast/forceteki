@@ -173,7 +173,7 @@ validation belongs: a reference whose instance no longer matches is not a legal 
 explains that when the source is *still in play*, the event must be regenerated so its LKI reflects
 current stats rather than a stale snapshot — otherwise a re-use (Thrawn copying Helgait's ability)
 reads power captured before the first resolution. Under the new model no footprint exists for an
-in-play card, so `getPropertiesOrLki` returns a **live accessor** that reads current stats by
+in-play card, so `getLastKnownProperties` returns a **live accessor** that reads current stats by
 construction. The manual regeneration becomes unnecessary.
 
 **Pre-existing bug at UseWhenDefeatedSystem.ts:75.**
@@ -922,7 +922,7 @@ throw to a compile-time error. Card code is close to unchanged:
 
 ```ts
 matchTarget: (cardRef, context) => {
-    const card = gameState.getPropertiesOrLki(cardRef);
+    const card = gameState.getLastKnownProperties(cardRef);
     return card.isUnit() && card.isInPlay() && card.isAttacking() &&
         card.activeAttack.getAllTargets().includes(/* … */);
 }

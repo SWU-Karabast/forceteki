@@ -38,7 +38,7 @@ Three object kinds, with a strict separation of who may hold which:
 **Card authors never touch a `Card`.** They receive a `CardRef` and exchange it for properties:
 
 ```ts
-const unit = gameState.getPropertiesOrLki(context.event.card);
+const unit = gameState.getLastKnownProperties(context.event.card);
 if (unit.isInPlay()) {
     /* unit.power is reachable only here */
 }
@@ -98,14 +98,16 @@ reference fizzle (D-6, D-7).
 | D-16 | Is a reference an independent copy, or a lookup into the live registry? | **A lookup.** A reference holds only `(card, instance)` and carries no data, so it is a *name*, not a *value* — with direct consequences for retention. D-18 then moved card authors onto values; D-25 refined *how* those values are backed. | Decided |
 | D-17 | Are footprints mutable once minted? | **No — deeply immutable.** Collection reads return frozen collections or defensive copies. See below. | Decided |
 | D-18 | Do card authors hold references or materialized values? | **Values.** This revises D-1. Authors extract a properties object and read from it; the reference itself is an opaque token. See below. | Decided |
-| D-19 | How is extraction expressed? | **An external getter keyed by the reference** — `gameState.getPropertiesOrLki(cardRef)` — not a method on the reference. Names provisional; see D-24. | Decided |
+| D-19 | How is extraction expressed? | **An external getter keyed by the reference** — `gameState.getLastKnownProperties(cardRef)` — not a method on the reference. | Decided |
+| D-32 | Vocabulary for the stored state | **"record" / "recorded"**, not "captured" or "snapshot". "Capture" is an SWU game mechanic and "snapshot" belongs to the undo system, so either would be ambiguous in this codebase. "Discard" is avoided for the drop operation for the same reason. | Decided |
+| D-33 | How does a card implementation obtain the getter? | **A third parameter on the setup methods** — `setupCardAbilities(registrar, AbilityHelper, gameState)` — since setup is the only point at which it is relevant. Non-migrated cards are unaffected, because TypeScript permits an override to declare fewer parameters than its base. | Decided |
 | D-20 | When are footprints flushed? | **At the action boundary.** LKI is only meaningful between a trigger and its resolution, and no ability resolution spans an action boundary — so after it, any LKI read through a reference is definitionally a bug. Retention would mask those bugs. | Decided |
 | D-21 | How is a flushed-but-referenced instance detected? | **Tombstones** — retain the instance key after dropping its data, so a stale read throws instead of silently reading live. Tombstones persist for the game but are **cleared on rollback** (D-29). | Decided |
 | D-22 | Is minting universal or opt-in? | **Universal**, and the trigger is **information loss**, not merely leaving play: an in-play footprint when a card leaves the arena, and an out-of-play footprint when it moves from a visible zone to a hidden one. Both are minted at `preResolutionEffects` (SC-14, R4). | Decided |
 | D-23 | May a `CardRef` enter tracked state? | **No — refs are transient** and must never appear in undo snapshots. Tracked state stores `(uuid, instance)` primitives and rehydrates on read. | Decided |
-| D-24 | API surface: getter name, type name, relation traversal, location queries | `getPropertiesOrLki(ref)` returning `IUnitProperties`; getter supplied as a **setup-time parameter**; card-valued relations routed **through the getter**; location questions asked of the game, not the properties object. See below. | Decided |
+| D-24 | API surface: getter name, type name, relation traversal, location queries | `getLastKnownProperties(ref)` returning `IUnitProperties`; getter supplied as a **setup-time parameter**; card-valued relations routed **through the getter**; location questions asked of the game, not the properties object. See below. | Decided |
 | D-25 | How is the cost of materializing properties controlled? | **Polymorphic properties object**: a *live* variant holding a card reference with lazy pass-through getters, or a *snapshot* variant holding frozen captured values. No global memoization or invalidation. See below. | Decided |
-| D-26 | Are the two variants one type or two? | **Two concrete types sharing one interface** — `IUnitPropertiesCaptured` and `IUnitPropertiesAccessor`, both satisfying `IUnitProperties`. Consumers that require durability (state watchers) declare the captured type explicitly. Names provisional. See below. | Decided |
+| D-26 | Are the two variants one type or two? | **Two concrete types sharing one interface** — `IUnitPropertiesRecorded` and `IUnitPropertiesAccessor`, both satisfying `IUnitProperties`. Consumers that require durability (state watchers) declare the captured type explicitly. Names provisional. See below. | Decided |
 | D-27 | How are in-play-only properties (`power`, `upgrades`, `activeAttack`) exposed? | **Type-level split with a narrowing guard**, preserving the existing `isInPlay()` guards and upgrading them from runtime throw to compile-time error. `power` and `printedPower` stay distinct concepts. See SC-17. | Decided |
 | D-28 | How is the live `Card` kept out of reach of card authors? | **No live card on the event at all.** `event.card` is the single field and holds a `CardRef` whose `_card` is private. Engine code obtains the live object via a `deref` capability that is absent from the card-facing facade. Enforced by facade typing plus two lint rules; typed events are explicitly **not** a prerequisite. See below. | Decided |
 | D-29 | What happens to the registry on rollback? | **Footprints and tombstones are cleared; the intern map survives.** Rollback restores tracked state only, and mid-action rollback is a first-class path, so without this a footprint from an abandoned timeline would be served for a re-created instance. See below. | Decided |
@@ -479,20 +481,20 @@ public override setupCardAbilities(
         targetResolver: {
             controller: RelativePlayer.Opponent,
             cardCondition: (cardRef, context) => {
-                const card = gameState.getPropertiesOrLki(cardRef);
-                const source = gameState.getPropertiesOrLki(context.source);
-                const attachedUnit = gameState.getPropertiesOrLki(source.parentUnit);
+                const card = gameState.getLastKnownProperties(cardRef);
+                const source = gameState.getLastKnownProperties(context.source);
+                const attachedUnit = gameState.getLastKnownProperties(source.parentUnit);
                 return card.isUnit() && card.remainingHp < attachedUnit.remainingHp;
             },
             immediateEffect: AbilityHelper.immediateEffects.capture((context) => ({
-                captor: gameState.getPropertiesOrLki(context.source).parentUnit
+                captor: gameState.getLastKnownProperties(context.source).parentUnit
             }))
         }
     });
 }
 ```
 
-- **Getter name `getPropertiesOrLki`** — provisional. It names the disjunction explicitly, which
+- **Getter name `getLastKnownProperties`** — provisional. It names the disjunction explicitly, which
   favours visibility; the counter-argument is that D-18's premise is that authors should *not* need
   to reason about which case they got. Left as-is for now.
 - **Type name `IUnitProperties`**, not `IUnitState`. `I*State` is an established convention in this
@@ -583,8 +585,8 @@ class  UnitPropertiesCaptured implements IUnitProperties { … }     // frozen v
 class  UnitPropertiesAccessor implements IUnitProperties { … }     // live pass-through
 ```
 
-`getPropertiesOrLki(ref)` returns `IUnitProperties`; consumers that require durability declare
-`IUnitPropertiesCaptured` explicitly.
+`getLastKnownProperties(ref)` returns `IUnitProperties`; consumers that require durability declare
+`IUnitPropertiesRecorded` explicitly.
 
 **This collapses what looked like a third form.** D-25 noted that watchers need a "durable
 materialization distinct from the view" — but that durable form *is* the captured type. A footprint
@@ -598,11 +600,11 @@ and a watcher's stored properties are the same concept, so there are two types, 
 | Watcher's declared intent | implicit | explicit in the signature |
 | What card authors write | unchanged | unchanged |
 
-**Capture becomes a named operation:** `gameState.capture(properties): IUnitPropertiesCaptured` —
+**Capture becomes a named operation:** `gameState.capture(properties): IUnitPropertiesRecorded` —
 identity for an already-captured object, full materialization for an accessor. This is what watchers
 call, and it is the one place the distinction surfaces for anyone outside the engine.
 
-**A serialization form still exists, but it is mechanical.** `IUnitPropertiesCaptured` holds
+**A serialization form still exists, but it is mechanical.** `IUnitPropertiesRecorded` holds
 card-valued relations (`parentCard`, `upgrades`) as references, which D-23 forbids in tracked state.
 Watchers therefore store a state form with `(uuid, instance)` primitives and rehydrate on read —
 exactly the existing `GameObjectId` / `UnwrapRef` pattern already used for every watcher entry type.
@@ -645,7 +647,7 @@ Engine code obtains the live object through a capability that card code does not
 ```ts
 // given to card implementations at setup
 interface IGameStateGetter {
-    getPropertiesOrLki(ref: CardRef): IUnitProperties;
+    getLastKnownProperties(ref: CardRef): IUnitProperties;
     isInPlay(ref: CardRef): boolean;
 }
 
@@ -670,7 +672,7 @@ card property names that throw a directive message:
 
 ```ts
 get power(): never {
-    throw new Error("'power' is not available on a CardRef — use gameState.getPropertiesOrLki(ref).power");
+    throw new Error("'power' is not available on a CardRef — use gameState.getLastKnownProperties(ref).power");
 }
 ```
 
@@ -1446,7 +1448,7 @@ now resolved; three non-blocking items remain, noted inline.
 |---|---|---|
 | **R5** | **D-25's "cached per reference" contradicts "no invalidation needed."** The *choice of backing* is not invariant: cache `ref → LiveProperties` before departure, mint a footprint, and the cache serves live values forever — requirement 7's exact failure mode. Same issue without a cache for any properties object held across a departure within one resolution. | D-25 |
 | **R7** | ~~**D-27 narrowing verified feasible, with caveats.**~~ **Accepted as a known constraint.** `isInPlay()` lives only on the kind interfaces (declaring it on both base and kind is a hard `TS2320`), so `isUnit() && isInPlay()` compiles and the reverse does not — **zero** bad-order sites exist today and the failure is a compile error. Remaining notes: `.filter()` needs an explicit type predicate to narrow elements, and D-26's "~40 types" undercounts because in-play is a third axis. | D-26, D-27 |
-| **R11** | ~~**D-22 drops two non-leave-play LKI producers, and two engine consumers are uncatalogued.**~~ **Resolved — no design change needed.** (1) `TriggeredAbility.ts:184-185`'s LKI special case **dissolves**: reading `controller` through the properties object returns the footprint value automatically. Confirms engine code needs both `getPropertiesOrLki` and `deref`; note the `event.card === context.source` comparison is a high-traffic engine-side ref-vs-`Card` site. (2) `TargetedCostAdjuster.ts:395-398` already holds **captured values**, satisfying requirement 11 — it only lies about the type (`IUnitCard[]`), and becomes `IUnitPropertiesCaptured[]`. Not phase-long: `playEvent.costs['exploit']` is read in the same action by [CountDookuFallenJedi](../server/game/cards/03_TWI/units/CountDookuFallenJedi.ts). (3) `DamageSystem.ts:317-322`'s damage-event LKI is **redundant and can be deleted** — its sole consumer [LetsCallItWar.ts:38-39](../server/game/cards/06_SEC/events/LetsCallItWar.ts) reads only `arena`, which is correct from either the defeat footprint or a live accessor. This also moots the D-3 timepoint concern, since no consumer depends on pre- versus post-damage capture. Also: `event.defendersLastKnownInformation` is built but consumed nowhere — dead code. | D-3, D-22, SC-2 |
+| **R11** | ~~**D-22 drops two non-leave-play LKI producers, and two engine consumers are uncatalogued.**~~ **Resolved — no design change needed.** (1) `TriggeredAbility.ts:184-185`'s LKI special case **dissolves**: reading `controller` through the properties object returns the footprint value automatically. Confirms engine code needs both `getLastKnownProperties` and `deref`; note the `event.card === context.source` comparison is a high-traffic engine-side ref-vs-`Card` site. (2) `TargetedCostAdjuster.ts:395-398` already holds **captured values**, satisfying requirement 11 — it only lies about the type (`IUnitCard[]`), and becomes `IUnitPropertiesRecorded[]`. Not phase-long: `playEvent.costs['exploit']` is read in the same action by [CountDookuFallenJedi](../server/game/cards/03_TWI/units/CountDookuFallenJedi.ts). (3) `DamageSystem.ts:317-322`'s damage-event LKI is **redundant and can be deleted** — its sole consumer [LetsCallItWar.ts:38-39](../server/game/cards/06_SEC/events/LetsCallItWar.ts) reads only `arena`, which is correct from either the defeat footprint or a live accessor. This also moots the D-3 timepoint concern, since no consumer depends on pre- versus post-damage capture. Also: `event.defendersLastKnownInformation` is built but consumed nowhere — dead code. | D-3, D-22, SC-2 |
 | **R12** | **SC-16 is specified against a card that does not exist.** "The Pointless Cycle" is hypothetical, so the test cannot "pass today" and cannot gate the migration until rebuilt from real cards. The scenario *shape* is validated (`TriggeredAbilityWindow.ts:20-25` forces the sub-window as described). | SC-16 |
 
 ### Confirmed sound
@@ -1495,7 +1497,7 @@ A second principle governs the engine/card split:
 
 Concretely, phase 1's minting should replicate today's LKI capture points *exactly*, so engine-side
 refactors (for example `TriggeredAbility.controllerMeetsRequirements` switching to
-`getPropertiesOrLki`) are no-ops and can land globally without per-card opt-in. D-22's universal
+`getLastKnownProperties`) are no-ops and can land globally without per-card opt-in. D-22's universal
 minting and R4's visible→hidden expansion are deliberate behavior changes that come later, with
 their own tests.
 
@@ -1526,7 +1528,7 @@ remain unchanged; cards opt in individually.
 | `CardRef.ts` | Opaque interned reference. The card is a **private** field, so implementations cannot reach the live object through one (D-28). |
 | `CardPropertiesInterfaces.ts` | `ICardProperties` → `IUnitProperties` → `IUnitPropertiesInPlay`. `isInPlay()` is declared only on the kind interface, per R7's `TS2320` constraint. |
 | `LiveCardProperties.ts` | Lazy pass-through variant. |
-| `CapturedCardProperties.ts` | Frozen-footprint variant, throwing on uncaptured fields (D-13, D-14). |
+| `RecordedCardProperties.ts` | Frozen-footprint variant, throwing on uncaptured fields (D-13, D-14). |
 | `LkiRegistry.ts` | Intern map, footprints, pending captures, tombstones, with the three lifetimes from D-29. |
 | `GameStateGetter.ts` | `IGameStateGetter` (card-facing) and `IGameStateInternal` (adds `deref`). |
 
@@ -1544,8 +1546,8 @@ the existing `_mostRecentInPlayId` counter. Giving event cards and bases a real 
 to phase 3 and marked with a TODO — no phase-1 card exercises it.
 
 **Opt-in.** A protected `Card.gameState` accessor, so a card opts in simply by calling
-`this.gameState.getPropertiesOrLki(...)`. No setup signatures changed, so non-migrated cards are
-untouched. `getPropertiesOrLki` transitionally accepts a live `Card` as well as a `CardRef`, since
+`this.gameState.getLastKnownProperties(...)`. No setup signatures changed, so non-migrated cards are
+untouched. `getLastKnownProperties` transitionally accepts a live `Card` as well as a `CardRef`, since
 events still carry card objects until phase 2.
 
 **Cards migrated so far:**
@@ -1574,7 +1576,7 @@ silently falling back: after the defeat the unit's `upgrades` are nulled out, so
 ### Phase 2 — the mechanical sweep
 
 One noisy PR converting every card implementation to the new signatures. **Surface-level only:**
-`event.card.cost` becomes `getPropertiesOrLki(event.card).cost`, and for a card that has not opted
+`event.card.cost` becomes `getLastKnownProperties(event.card).cost`, and for a card that has not opted
 in the getter returns a **live accessor**, which is exactly today's behavior.
 
 Scope (measured): **654** files use selector callbacks, **365** read card properties off
@@ -1608,7 +1610,7 @@ export default class MyCard extends NonLeaderUnitCard {
 
 | | `false` (default) | `true` |
 |---|---|---|
-| `getPropertiesOrLki(ref)` | always returns a **live accessor**; footprints ignored | consults the registry |
+| `getLastKnownProperties(ref)` | always returns a **live accessor**; footprints ignored | consults the registry |
 | Behavior | identical to today | new LKI semantics |
 | `event.lastKnownInformation` | still available for legacy use | unused |
 

@@ -49,7 +49,7 @@ by `test/scenarios/lki/LastKnownInformation.spec.ts`.
 
 | Site | Change | Status |
 |---|---|---|
-| [TargetedCostAdjuster.ts:33,398](../server/game/core/cost/TargetedCostAdjuster.ts) | `selectedTargets?: IUnitCard[]` actually holds LKI structs and is read back as `ILastKnownInformation[]` by `CostHelpers.getExploitedUnits`. Becomes `IUnitPropertiesCaptured[]`. The existing code already holds **captured values**, which satisfies requirement 11 — only the declared type is wrong (R11). | pending |
+| [TargetedCostAdjuster.ts:33,398](../server/game/core/cost/TargetedCostAdjuster.ts) | `selectedTargets?: IUnitCard[]` actually holds LKI structs and is read back as `ILastKnownInformation[]` by `CostHelpers.getExploitedUnits`. Becomes `IUnitPropertiesRecorded[]`. The existing code already holds **captured values**, which satisfies requirement 11 — only the declared type is wrong (R11). | pending |
 
 ---
 

@@ -215,9 +215,9 @@ export class EventWindow extends BaseStepWithPipeline {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution
             event.checkCondition();
             if (event.canResolve) {
-                // Commit this event's captured last known information now that we know it will
+                // Commit this event's recorded last known information now that we know it will
                 // actually resolve. Events replaced or cancelled earlier never reach here, so they
-                // leave no footprint behind.
+                // leave no record behind.
                 this.game.lkiRegistry.commitPending(event.eventId);
 
                 this.game.emit(event.name + ':preResolve', event);
@@ -293,10 +293,10 @@ export class EventWindow extends BaseStepWithPipeline {
             event.cleanup();
         }
 
-        // Drop captures belonging to events that never resolved, so a card that survived a replaced
-        // or cancelled defeat is not left answering with frozen characteristics.
+        // Drop pending records belonging to events that never resolved, so a card that survived a
+        // replaced or cancelled defeat is not left answering with frozen characteristics.
         for (const event of this._events) {
-            this.game.lkiRegistry.discardPending(event.eventId);
+            this.game.lkiRegistry.dropPending(event.eventId);
         }
 
         if (this.parentWindow) {

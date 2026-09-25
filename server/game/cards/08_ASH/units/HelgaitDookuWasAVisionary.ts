@@ -3,7 +3,7 @@ import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbi
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
-import { Contract } from '../../../core/utils/Contract';
+import type { IGameStateGetter } from '../../../core/lki/GameStateGetter';
 
 export default class HelgaitDookuWasAVisionary extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,28 +13,22 @@ export default class HelgaitDookuWasAVisionary extends NonLeaderUnitCard {
         };
     }
 
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper, gameState: IGameStateGetter) {
+        // Power as of the moment this unit left play. If the ability was used without actually
+        // defeating it (e.g. via Chimaera), there is no record and this reads live state instead.
+        const powerWhenDefeated = (context: TriggeredAbilityContext) =>
+            gameState.getLastKnownProperties(context.event.card).asUnit()
+                .asInPlay().power;
+
         registrar.addWhenDefeatedAbility({
             title: 'Distribute a number of Advantage tokens equal to this unit\'s power among friendly units',
-            contextTitle: (context) => `Distribute ${this.powerWhenDefeated(context)} Advantage tokens among friendly units`,
+            contextTitle: (context) => `Distribute ${powerWhenDefeated(context)} Advantage tokens among friendly units`,
             immediateEffect: abilityHelper.immediateEffects.distributeAdvantageAmong((context) => ({
-                amountToDistribute: this.powerWhenDefeated(context),
+                amountToDistribute: powerWhenDefeated(context),
                 canChooseNoTargets: true,
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
             }))
         });
-    }
-
-    /**
-     * This unit's power at the moment it left play. Reading it through the game state getter means
-     * the value comes from the last known information captured at that instant, or from live state
-     * if the ability was used without actually defeating this unit.
-     */
-    private powerWhenDefeated(context: TriggeredAbilityContext): number {
-        const defeated = this.gameState.getPropertiesOrLki(context.event.card);
-
-        Contract.assertTrue(defeated.isUnit() && defeated.isInPlay());
-        return defeated.power;
     }
 }

@@ -92,7 +92,7 @@ export function addLastKnownInformationToEvent(event: GameEvent, card: Card): vo
 
         // Mirror the capture into the LKI registry at exactly the same instant, so the registry can
         // be validated as behavior-preserving before anything reads from it.
-        event.context.game.lkiRegistry.capturePending(event.eventId, card);
+        event.context.game.lkiRegistry.recordPending(event.eventId, card);
     });
 }
 

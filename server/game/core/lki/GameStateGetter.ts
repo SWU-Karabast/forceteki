@@ -17,14 +17,14 @@ export interface IGameStateGetter {
      * represents.
      *
      * While the card is current this reads live state; once it has left play the values come from
-     * the footprint captured at that instant. Call sites do not need to know which, and should not
+     * the record written at that instant. Call sites do not need to know which, and should not
      * branch on it.
      *
      * A live {@link Card} is accepted transitionally, while events and contexts still carry card
      * objects rather than references. Once they carry references this overload goes away and the
      * parameter narrows to {@link CardRef}.
      */
-    getPropertiesOrLki(refOrCard: CardRef | Card): ICardProperties;
+    getLastKnownProperties(refOrCard: CardRef | Card): ICardProperties;
 }
 
 /** Adds engine-only capabilities that card implementations must not have. */
@@ -44,13 +44,13 @@ export interface IGameStateInternal extends IGameStateGetter {
 /**
  * Concrete facade over the registry.
  *
- * Resolves the registry lazily through the game rather than capturing it, because a card's setup
- * runs once at construction while the registry belongs to the current game state.
+ * Resolves the registry lazily through the game rather than holding it, because a card's setup runs
+ * once at construction while the registry belongs to the current game state.
  */
 export class GameStateGetter implements IGameStateInternal {
     public constructor(private readonly getRegistry: () => LkiRegistry) {}
 
-    public getPropertiesOrLki(refOrCard: CardRef | Card): ICardProperties {
+    public getLastKnownProperties(refOrCard: CardRef | Card): ICardProperties {
         const registry = this.getRegistry();
         const ref = refOrCard instanceof CardRef ? refOrCard : registry.refFor(refOrCard);
         return registry.getProperties(ref);

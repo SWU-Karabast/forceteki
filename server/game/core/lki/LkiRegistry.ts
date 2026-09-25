@@ -2,8 +2,8 @@ import { ZoneName } from '../Constants';
 import type { Card } from '../card/Card';
 import { CardRef } from './CardRef';
 import type { ICardProperties } from './CardPropertiesInterfaces';
-import type { ICapturedCardState } from './CapturedCardProperties';
-import { CapturedCardProperties, CapturedUnitProperties } from './CapturedCardProperties';
+import type { IRecordedCardState } from './RecordedCardProperties';
+import { RecordedCardProperties, RecordedUnitProperties } from './RecordedCardProperties';
 import { LiveCardProperties, LiveUnitProperties } from './LiveCardProperties';
 import { Contract } from '../utils/Contract';
 import { EnumHelpers } from '../utils/EnumHelpers';
@@ -15,11 +15,11 @@ import { EnumHelpers } from '../utils/EnumHelpers';
  *
  * | Structure   | Flushed at action boundary | Cleared on rollback |
  * |-------------|----------------------------|---------------------|
- * | footprints  | yes                        | yes                 |
+ * | records  | yes                        | yes                 |
  * | tombstones  | no                         | yes                 |
  * | intern map  | no                         | no                  |
  *
- * Footprints are scoped to an action because last known information only matters between a trigger
+ * records are scoped to an action because last known information only matters between a trigger
  * and its resolution, and no ability resolution spans an action boundary. Retaining them longer
  * would silently serve stale data to code that should not be asking (D-20).
  *
@@ -27,13 +27,13 @@ import { EnumHelpers } from '../utils/EnumHelpers';
  */
 export class LkiRegistry {
     private readonly interned = new Map<string, CardRef>();
-    private readonly footprints = new Map<string, ICapturedCardState>();
+    private readonly records = new Map<string, IRecordedCardState>();
 
-    /** Captures not yet committed, grouped by the event that made them; see {@link commitPending} (D-30). */
-    private readonly pending = new Map<number, Map<string, ICapturedCardState>>();
+    /** Records not yet committed, grouped by the event that wrote them; see {@link commitPending} (D-30). */
+    private readonly pending = new Map<number, Map<string, IRecordedCardState>>();
 
     /**
-     * Instances whose footprint has been flushed. Lets a stale read throw instead of falling
+     * Instances whose record has been flushed. Lets a stale read throw instead of falling
      * through to live state, which would be silently wrong (D-21, SC-15).
      */
     private readonly tombstones = new Set<string>();
@@ -57,27 +57,26 @@ export class LkiRegistry {
     }
 
     /**
-     * Returns a properties view for the reference: captured values if the incarnation has a
-     * footprint, otherwise a live pass-through.
+     * Returns a properties view for the reference: recorded values if the incarnation has a`n     * record, otherwise a live pass-through.
      */
     public getProperties(ref: CardRef): ICardProperties {
-        const footprint = this.footprints.get(ref.key);
-        if (footprint) {
-            return footprint.isUnit
-                ? new CapturedUnitProperties(ref, footprint)
-                : new CapturedCardProperties(ref, footprint);
+        const record = this.records.get(ref.key);
+        if (record) {
+            return record.isUnit
+                ? new RecordedUnitProperties(ref, record)
+                : new RecordedCardProperties(ref, record);
         }
 
         Contract.assertFalse(
             this.tombstones.has(ref.key),
-            `The footprint for ${ref} was flushed at an action boundary, so its last known information ` +
-            'is no longer available. Long-lived holders must capture values rather than holding a reference.'
+            `The record for ${ref} was flushed at an action boundary, so its last known information ` +
+            'is no longer available. Long-lived holders must store recorded values rather than holding a reference.'
         );
 
         const card = ref.getCardForEngine();
         Contract.assertTrue(
             ref.isCurrent,
-            `${ref} names an incarnation that no longer exists and has no footprint, so nothing can be ` +
+            `${ref} names an incarnation that no longer exists and has no record, so nothing can be ` +
             'read from it.'
         );
 
@@ -95,28 +94,28 @@ export class LkiRegistry {
     }
 
     /**
-     * Captures a card's characteristics into the pending set for `eventId`.
+     * Records a card's characteristics into the pending set for `eventId`.
      *
      * Called from the event window's pre-resolution step so that every card leaving play in the same
-     * window is captured before any of them is removed, which is what preserves simultaneous-defeat
-     * semantics (SC-5). The capture is only kept if the event actually resolves — see
+     * window is recorded before any of them is removed, which is what preserves simultaneous-defeat
+     * semantics (SC-5). The record is only kept if the event actually resolves — see
      * {@link commitPending}.
      */
-    public capturePending(eventId: number, card: Card): void {
+    public recordPending(eventId: number, card: Card): void {
         let forEvent = this.pending.get(eventId);
         if (!forEvent) {
-            forEvent = new Map<string, ICapturedCardState>();
+            forEvent = new Map<string, IRecordedCardState>();
             this.pending.set(eventId, forEvent);
         }
 
-        forEvent.set(CardRef.buildKey(card, card.instanceId), LkiRegistry.captureState(card));
+        forEvent.set(CardRef.buildKey(card, card.instanceId), LkiRegistry.buildRecord(card));
     }
 
     /**
-     * Promotes an event's pending captures to committed footprints.
+     * Promotes an event's pending records to committed ones.
      *
      * Called immediately before the event's handler runs. Events that were replaced or cancelled
-     * never reach this point, so they leave no footprint behind — without this a unit that survived
+     * never reach this point, so they leave no record behind — without this a unit that survived
      * a replaced defeat would answer with frozen characteristics for the rest of the action (D-30).
      */
     public commitPending(eventId: number): void {
@@ -125,23 +124,23 @@ export class LkiRegistry {
             return;
         }
 
-        for (const [key, captured] of forEvent) {
-            this.footprints.set(key, captured);
+        for (const [key, record] of forEvent) {
+            this.records.set(key, record);
         }
         this.pending.delete(eventId);
     }
 
-    /** Drops an event's captures because it never resolved. */
-    public discardPending(eventId: number): void {
+    /** Drops an event's pending records because it never resolved. */
+    public dropPending(eventId: number): void {
         this.pending.delete(eventId);
     }
 
-    /** Flushes footprints at an action boundary, leaving a tombstone for each (D-20, D-21). */
-    public flushFootprints(): void {
-        for (const key of this.footprints.keys()) {
+    /** Flushes records at an action boundary, leaving a tombstone for each (D-20, D-21). */
+    public flushRecords(): void {
+        for (const key of this.records.keys()) {
             this.tombstones.add(key);
         }
-        this.footprints.clear();
+        this.records.clear();
         this.pending.clear();
     }
 
@@ -149,7 +148,7 @@ export class LkiRegistry {
      * Clears all timeline-dependent state after a rollback.
      *
      * Rollback restores tracked state but not the registry, and mid-action rollback is a first-class
-     * path, so without this a footprint minted in an abandoned timeline would be served for a
+     * path, so without this a record written in an abandoned timeline would be served for a
      * re-created incarnation. Tombstones are cleared too: they record that an instance departed,
      * which is equally timeline-dependent, and a surviving tombstone would turn reads of a perfectly
      * live card into errors (D-29).
@@ -158,12 +157,12 @@ export class LkiRegistry {
      * timeline.
      */
     public clearForRollback(): void {
-        this.footprints.clear();
+        this.records.clear();
         this.pending.clear();
         this.tombstones.clear();
     }
 
-    private static captureState(card: Card): ICapturedCardState {
+    private static buildRecord(card: Card): IRecordedCardState {
         const wasInPlay = EnumHelpers.isArena(card.zoneName) ||
           (card.zoneName === ZoneName.Base && card.isUpgrade());
 
@@ -171,7 +170,7 @@ export class LkiRegistry {
             title: card.title,
             type: card.type,
             controller: card.controller,
-            // Copy the set: the card rebuilds its own on each read, but the footprint must not hand
+            // Copy the set: the card rebuilds its own on each read, but the record must not hand
             // out a collection that a caller could mutate for every other reader (D-17).
             traits: new Set(card.traits),
             cost: card.hasCost() ? card.cost : null,

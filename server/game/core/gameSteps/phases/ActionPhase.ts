@@ -63,8 +63,8 @@ export class ActionPhase extends Phase {
     private queueNextAction(actionNumber: number) {
         // An action boundary is the point at which every trigger from the previous action has
         // resolved, so no reference can legitimately ask for last known information any more.
-        // Holding footprints past here would silently serve stale data (D-20).
-        this.game.lkiRegistry.flushFootprints();
+        // Holding records past here would silently serve stale data (D-20).
+        this.game.lkiRegistry.flushRecords();
 
         this.game.queueStep(new ActionWindow(
             this.game,

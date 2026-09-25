@@ -1,8 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { Contract } from '../../../core/utils/Contract';
+import type { IGameStateGetter } from '../../../core/lki/GameStateGetter';
 
 export default class TargetedForRemoval extends UpgradeCard {
     protected override getImplementationId () {
@@ -12,21 +11,14 @@ export default class TargetedForRemoval extends UpgradeCard {
         };
     }
 
-    public override setupCardAbilities (registrar: IUpgradeAbilityRegistrar, abilityHelper: IAbilityHelper) {
+    public override setupCardAbilities (registrar: IUpgradeAbilityRegistrar, abilityHelper: IAbilityHelper, gameState: IGameStateGetter) {
         registrar.addGainWhenDefeatedAbilityTargetingAttached({
             title: 'An opponent creates Credit tokens equal to this unit\'s cost',
             immediateEffect: abilityHelper.immediateEffects.createCreditToken((context) => ({
-                amount: this.costWhenDefeated(context),
+                // The attached unit's cost as of the moment it left play.
+                amount: gameState.getLastKnownProperties(context.event.card).asUnit().cost,
                 target: context.player.opponent
             }))
         });
-    }
-
-    /** The attached unit's cost as of the moment it left play. */
-    private costWhenDefeated(context: TriggeredAbilityContext): number {
-        const { cost } = this.gameState.getPropertiesOrLki(context.event.card);
-
-        Contract.assertNotNullLike(cost, 'Expected the defeated unit to have a cost');
-        return cost;
     }
 }

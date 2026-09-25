@@ -14,10 +14,10 @@ import type { Card } from '../card/Card';
  *
  * References are transient and must never be written into tracked state or an undo snapshot.
  * Anything that outlives the action it was created in must store `(uuid, instanceId)` primitives
- * and rehydrate, or hold captured property values instead.
+ * and rehydrate, or hold recorded property values instead.
  */
 export class CardRef {
-    /** Key identifying the incarnation this reference names. Also the registry's footprint key. */
+    /** Key identifying the incarnation this reference names. Also the registry's record key. */
     public readonly key: string;
 
     /**

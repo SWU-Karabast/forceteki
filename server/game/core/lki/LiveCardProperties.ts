@@ -9,11 +9,11 @@ import type { ICardProperties, IUnitProperties, IUnitPropertiesInPlay } from './
 /**
  * Properties backed by the live card: every read passes through, so the view can never be stale.
  *
- * Used whenever no footprint exists for the reference, which is the overwhelmingly common case.
+ * Used whenever no record exists for the reference, which is the overwhelmingly common case.
  * Reads are lazy, so a predicate that only looks at one characteristic pays only for that one.
  *
  * Must not be retained beyond the current evaluation — it holds a card pointer, so storing it in
- * tracked state would break undo (D-23). Long-lived holders capture values instead (D-16).
+ * tracked state would break undo (D-23). Long-lived holders store recorded values instead (D-16).
  */
 export class LiveCardProperties implements ICardProperties {
     public constructor(
@@ -52,6 +52,10 @@ export class LiveCardProperties implements ICardProperties {
     public isUnit(): this is IUnitProperties {
         return false;
     }
+
+    public asUnit(): IUnitProperties {
+        return Contract.fail(`Expected ${this.ref} to be a unit, but it is a ${this.card.type}`);
+    }
 }
 
 /** Live properties for a unit card. In-play characteristics are gated behind {@link isInPlay}. */
@@ -66,8 +70,21 @@ export class LiveUnitProperties extends LiveCardProperties implements IUnitPrope
         return true;
     }
 
+    public override asUnit(): IUnitProperties {
+        return this;
+    }
+
     public isInPlay(): this is IUnitPropertiesInPlay {
         return this.card.isInPlay();
+    }
+
+    public asInPlay(): IUnitPropertiesInPlay {
+        Contract.assertTrue(this.card.isInPlay(), `Expected ${this.ref} to be in play, but it is in ${this.card.zoneName}`);
+        return this;
+    }
+
+    public override get cost(): number {
+        return this.card.cost;
     }
 
     public get printedPower(): number {

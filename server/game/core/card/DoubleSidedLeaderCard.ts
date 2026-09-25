@@ -12,6 +12,7 @@ import type { Card } from './Card';
 import type { TriggeredAbilityBase } from '../ability/TriggeredAbility';
 import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import type { IGameStateGetter } from '../lki/GameStateGetter';
 import type { ConstantAbility } from '../ability/ConstantAbility';
 import { registerStateBase } from '../GameObjectUtils';
 
@@ -63,11 +64,11 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
     }
 
     protected override callSetupLeaderWithRegistrar() {
-        this.setupLeaderSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
+        this.setupLeaderSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.gameState);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected override setupLeaderSideAbilities(registrar: ILeaderAbilityRegistrar<IDoubleSidedLeaderCard>, AbilityHelper: IAbilityHelper) {}
+    protected override setupLeaderSideAbilities(registrar: ILeaderAbilityRegistrar<IDoubleSidedLeaderCard>, AbilityHelper: IAbilityHelper, gameState: IGameStateGetter) {}
 
     /**
      * Create card abilities for the second leader side by calling subsequent methods with appropriate properties
