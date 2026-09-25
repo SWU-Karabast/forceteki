@@ -25,6 +25,15 @@ export interface IGameStateGetter {
      * parameter narrows to {@link CardRef}.
      */
     getLastKnownProperties(refOrCard: CardRef | Card): ICardProperties;
+
+    /**
+     * Returns the canonical reference for a card's current incarnation.
+     *
+     * Useful when an ability needs to remember *which* card it acted on across steps: references
+     * compare by incarnation, so a card that left play and returned is correctly treated as a
+     * different one (`SWU 8.5.4`).
+     */
+    refFor(card: Card): CardRef;
 }
 
 /** Adds engine-only capabilities that card implementations must not have. */
@@ -36,9 +45,6 @@ export interface IGameStateInternal extends IGameStateGetter {
      * re-entered play (D-6).
      */
     deref(ref: CardRef): Card | null;
-
-    /** Returns the canonical reference for a card's current incarnation. */
-    refFor(card: Card): CardRef;
 }
 
 /**

@@ -3,13 +3,10 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { Arena } from '../../../core/Constants';
 import { CardType, WildcardCardType } from '../../../core/Constants';
-import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { IGameStateGetter } from '../../../core/lki/GameStateGetter';
 import { EnumHelpers } from '../../../core/utils/EnumHelpers';
-import type { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
 
 export default class RavagerFinalImperialCommand extends NonLeaderUnitCard {
-    private cardsLeftPlayThisPhaseWatcher: CardsLeftPlayThisPhaseWatcher;
-
     protected override getImplementationId() {
         return {
             id: '4828998087',
@@ -17,14 +14,10 @@ export default class RavagerFinalImperialCommand extends NonLeaderUnitCard {
         };
     }
 
-    protected override setupStateWatchers(registrar: StateWatcherRegistrar, abilityHelper: IAbilityHelper): void {
-        this.cardsLeftPlayThisPhaseWatcher = abilityHelper.stateWatchers.cardsLeftPlayThisPhase();
-    }
-
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper, gameState: IGameStateGetter) {
         registrar.addTriggeredAbility({
             title: 'Deal damage equal to its power to a unit in the same arena',
-            contextTitle: (context) => `Deal ${this.playedUnitPower(context)} damage to a unit in the ${EnumHelpers.arenaName(this.playedUnitArena(context))}`,
+            contextTitle: (context) => `Deal ${this.playedUnitPower(context, gameState)} damage to a unit in the ${EnumHelpers.arenaName(this.playedUnitArena(context, gameState))}`,
             optional: true,
             when: {
                 onCardPlayed: (event, context) =>
@@ -33,11 +26,11 @@ export default class RavagerFinalImperialCommand extends NonLeaderUnitCard {
             },
             targetResolver: {
                 activePromptTitle: (context) =>
-                    `Deal ${this.playedUnitPower(context)} damage to a unit in the ${EnumHelpers.arenaName(this.playedUnitArena(context))}`,
+                    `Deal ${this.playedUnitPower(context, gameState)} damage to a unit in the ${EnumHelpers.arenaName(this.playedUnitArena(context, gameState))}`,
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card, context) => card.zoneName === this.playedUnitArena(context),
+                cardCondition: (card, context) => card.zoneName === this.playedUnitArena(context, gameState),
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                    amount: this.playedUnitPower(context),
+                    amount: this.playedUnitPower(context, gameState),
                     source: context.event.card
                 }))
             }
@@ -45,21 +38,14 @@ export default class RavagerFinalImperialCommand extends NonLeaderUnitCard {
     }
 
     /** The unit's power, whether it is currently in play or has just left play. */
-    private playedUnitPower(context): number {
-        const playedCard = context.event.card;
-        if (playedCard.isInPlay()) {
-            return playedCard.getPower();
-        }
-        return this.cardsLeftPlayThisPhaseWatcher.getLeftPlayEntry(playedCard)?.lastKnownInformation.power ?? playedCard.getPrintedPower();
+    private playedUnitPower(context, gameState: IGameStateGetter): number {
+        const played = gameState.getLastKnownProperties(context.event.card).asUnit();
+        return played.isInPlay() ? played.power : played.printedPower;
     }
 
     /** The arena the played unit is in, or was in when it left play.*/
-    private playedUnitArena(context): Arena {
-        const playedCard = context.event.card;
-        if (playedCard.isInPlay()) {
-            return playedCard.zoneName;
-        }
-        const arena = this.cardsLeftPlayThisPhaseWatcher.getLeftPlayEntry(playedCard)?.lastKnownInformation.arena;
-        return EnumHelpers.isArena(arena) ? arena : playedCard.defaultArena;
+    private playedUnitArena(context, gameState: IGameStateGetter): Arena {
+        const zone = gameState.getLastKnownProperties(context.event.card).zoneName;
+        return EnumHelpers.isArena(zone) ? zone : context.event.card.defaultArena;
     }
 }

@@ -293,11 +293,11 @@ export class EventWindow extends BaseStepWithPipeline {
             event.cleanup();
         }
 
-        // Drop pending records belonging to events that never resolved, so a card that survived a
-        // replaced or cancelled defeat is not left answering with frozen characteristics.
-        for (const event of this._events) {
-            this.game.lkiRegistry.dropPending(event.eventId);
-        }
+        // Anything still staged belongs to an event that never resolved — cancelled, replaced, or
+        // removed from the window — so it must not become a record. Without this a card that is
+        // still in play would answer with the characteristics it would have had if that event had
+        // happened.
+        this.game.lkiRegistry.dropPending();
 
         if (this.parentWindow) {
             this.parentWindow.checkEventCondition();

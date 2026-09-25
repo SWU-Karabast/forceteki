@@ -112,13 +112,13 @@ queueGenerateEventGameSteps(events, context, addlProps)        GameSystem.ts:229
   └─ targets(context, addlProps)                               GameSystem.ts:348
       └─ generatePropertiesFromContext(...)                    GameSystem.ts:121  ← DEREFERENCE HERE
   └─ for each target:
-       canAffect(target, ...)                                  GameSystem.ts:170  ← legality, phase 1
+       canAffect(target, ...)                                  GameSystem.ts:170  ← legality, stage 1
        generateRetargetedEvent(target, ...)                    GameSystem.ts:260
          └─ createEvent(...)                                   GameSystem.ts:314
          └─ updateEvent(...)                                   GameSystem.ts:324
               └─ addPropertiesToEvent(...)                     CardTargetSystem.ts:178 → event.card = card
               └─ event.setHandler(...)                         → eventHandler runs at resolution
-              └─ event.condition = checkEventCondition         ← legality, phase 2
+              └─ event.condition = checkEventCondition         ← legality, stage 2
 ```
 
 #### Why `generatePropertiesFromContext` is the seam
@@ -840,7 +840,7 @@ orphan. Concretely:
 
 ---
 
-### SC-16 — Regression test to add: multi-footprint trigger cascade
+### SC-16 — Regression test to add: multi-footprint trigger cascade ✅ built
 
 **Add a test reproducing SC-13** before migrating to the registry.
 
@@ -857,7 +857,27 @@ Shape:
   sub-windows and at least one resolves later in the *parent* window
 - Assert the parent-window resolution uses the **first** incarnation's value, not the latest
 
-`test/scenarios/timingWindows/` is the natural home, alongside `DefeatTiming.spec.ts`.
+**Built as "When the same card leaves play twice in one action"** in
+[LastKnownInformation.spec.ts](../test/scenarios/lki/LastKnownInformation.spec.ts). The construction
+that worked:
+
+- **Stolen Landspeeder** owned by player1 but controlled by player2. Its Bounty replays it from
+  discard **under its owner's control**, which is what makes the two incarnations differ in a way an
+  ability can read — no stat upgrade needed, the differing characteristic is `controller`
+- **Two Supreme Leader Snokes** on player2's side give −4/−4 to enemy non-leaders, so the replayed
+  Landspeeder (3/2, +1/+1 from its own Experience token) is defeated the instant it arrives. That
+  second defeat writes a second record for the same physical card *before* the first defeat's peer
+  trigger has resolved
+- **HK-47** reads `controller` off the record and damages that player's base. It survives the two
+  Snokes only because of two Experience tokens
+
+Assert: player2's base takes the damage (the incarnation HK-47 triggered on), not player1's (the
+replayed one). Mutation-verified — collapsing `CardRef` keys from `uuid:instanceId` to `uuid` makes
+the trigger set itself diverge, so the test fails.
+
+An earlier attempt using **Old Daka** failed for an instructive reason: the action-boundary flush
+fires when the acting player's action completes, so any assertion written after the last click is
+already past the flush. The scenario has to make the *game* observe the difference, not the test.
 
 ---
 
@@ -950,7 +970,167 @@ a moment, and it keeps the existing guard syntax unchanged across the migration.
 
 ---
 
-## Template for new entries
+### SC-18 — The targeting side is unguarded, and `Attack` is the only precedent
+
+**What.** Everything above concerns *reading* a departed card's characteristics. The mirror-image
+problem is *acting on* a card that left play and came back: an ability captures a target, the target
+departs and returns as a new copy, and the ability's later step then applies to the new copy — which
+by SWU 8.5 is a different unit and should not be affected.
+
+**Where.** [Attack.ts](../server/game/core/attack/Attack.ts) is the **only** place in the engine that
+guards this:
+
+```ts
+public isTargetStillInPlay(target: IAttackableCard): boolean {
+    return target.isBase() || (
+        target.isInPlay() &&
+        // If inPlayId has changed, the target has left and re-entered play
+        this.targetInPlayMap.get(target) === target.inPlayId
+    );
+}
+```
+
+`Attack` captures `attackerInPlayId` and a `targetInPlayMap` at construction and re-checks them
+before applying damage. **No game system does the equivalent.** A search for `inPlayId` across
+`server/` finds it only in `Attack`, in state watchers, in `LastKnownInformation`, and hand-rolled
+inside ~10 individual cards. `server/game/gameSystems/` contains **zero** occurrences.
+
+So a delayed system such as `sequential([playCardFromHand, defeat()])` re-derives legality purely
+from `hasLegalTarget`, which is zone-based. A replayed copy is in play, so it passes, and the effect
+lands on the wrong unit.
+
+**Why it is a special case.** It shares the identity machinery with LKI but sits on the write path,
+so it is not fixed by anything in the properties layer. D-6/D-7 already route it correctly — instance
+validation belongs in `checkEventCondition`, which is universal — and `Attack`'s existing guard is
+the proof that the check is both necessary and sufficient. Phase 2 should be able to delete
+`Attack`'s bespoke version once the generic one exists.
+
+**Decision / action.** Out of scope for phase 1; no registry component changes. Flagged here because
+it is easy to mistake for an LKI bug when it surfaces.
+
+**Test note.** An attempt to build a regression case via *Maul, Old Master* ("Play a unit from your
+hand. It costs 1 resource less. Then, defeat it.") plus Stolen Landspeeder and Snoke does **not**
+work, for an ordering reason worth recording:
+
+- Maul's ability is `sequential([playCardFromHand, defeat()])`, and the **whole sequential resolves
+  before the trigger window opens**. Verified directly: after the play, the Landspeeder is already in
+  the discard and only then does the "both players have triggered abilities" prompt appear. The same
+  ordering is visible in the existing [MaulOldMaster.spec.ts](../test/server/cards/09_HMW/leaders/MaulOldMaster.spec.ts)
+  case using Val, where Val is in the discard before its own when-played triggers resolve
+- Because the control-change trigger never gets to run, the Landspeeder is defeated while **player1**
+  controls it, so player2 collects the Bounty, does not own the card, and the replay never fires
+- Putting the Snoke on either side does not change this. An enemy Snoke kills the Landspeeder on
+  entry via state check, which still happens under player1's control
+
+The construction therefore needs a trigger window *between* capture and application, which
+`sequential` does not provide. The realistic shapes are an attack (already guarded) or two triggers
+in one window, as in SC-16.
+
+---
+
+### SC-19 — State watchers are a back-channel for LKI the event never carried
+
+**What.** Two watchers keep their own lossy copy of last known information:
+[CardsLeftPlayThisPhaseWatcher](../server/game/stateWatchers/CardsLeftPlayThisPhaseWatcher.ts) and
+[CardsDefeatedThisPhaseWatcher](../server/game/stateWatchers/CardsDefeatedThisPhaseWatcher.ts). Both
+populate it straight from `event.lastKnownInformation`, narrowed to an `IStateWatcherLKIEntry` of
+`traits, type, power, arena, upgrades`.
+
+**Why it is a special case.** The obvious reading is that this exists because watcher data outlives
+the action. That is true but incomplete. The sharper reason showed up while migrating
+[RavagerFinalImperialCommand](../server/game/cards/08_ASH/units/RavagerFinalImperialCommand.ts):
+
+> `event.lastKnownInformation` is only attached to defeat and leave-play events. Ravager triggers on
+> **`onCardPlayed`**, whose event carries no LKI at all — so to read the power of a unit that was
+> played and then immediately defeated in the same action, it had to reach sideways into a watcher
+> that happened to have recorded it.
+
+That is a back-channel, not a use of phase-scoped history. The registry removes the need for it
+because records are keyed by `(card, instance)` rather than by event, so it does not matter which
+event wrote the record. Ravager's two helpers went from:
+
+```ts
+private playedUnitPower(context): number {
+    const playedCard = context.event.card;
+    if (playedCard.isInPlay()) {
+        return playedCard.getPower();
+    }
+    return this.cardsLeftPlayThisPhaseWatcher.getLeftPlayEntry(playedCard)
+        ?.lastKnownInformation.power ?? playedCard.getPrintedPower();
+}
+```
+
+to:
+
+```ts
+private playedUnitPower(context, gameState: IGameStateGetter): number {
+    const played = gameState.getLastKnownProperties(context.event.card).asUnit();
+    return played.isInPlay() ? played.power : played.printedPower;
+}
+```
+
+The three-way fallback collapses to two, and the surviving branch is exactly SC-17's distinction —
+`power` for a unit that was in play, `printedPower` for one that never was. The state-watcher
+dependency disappears entirely, along with `setupStateWatchers`.
+
+**Mutation-verified.** Making the registry miss its records turns the existing spec's "Deal 4 damage"
+prompt into "Deal 3 damage" — General Veers's +1 collapsing back to printed power — so the card
+demonstrably reads the record and not live state.
+
+**Decision / action.** Watchers keep their own copy for now; they are phase-scoped and the registry
+is action-scoped, so there is no shared lifetime to unify (D-20). But the *cards* reading LKI through
+a watcher should migrate to the registry, and the audit for phase 3 should look for the Ravager shape
+specifically: a watcher lookup used to answer a within-action question.
+
+---
+
+### SC-20 — Delayed effects cannot hold a reference and read properties later
+
+**What.** A delayed effect is created now and fires later. A survey of all ~37 cards using
+`delayedCardEffect`, `delayedPlayerEffect` or `whenSourceLeavesPlayDelayedCardEffect` found that
+**every one of them spans at least one action boundary** — most fire at the start of the regroup
+phase, the rest when their source leaves play.
+
+**Why it is a special case.** This is the one category that structurally collides with D-20. Records
+flush at the action boundary and leave a tombstone, so a delayed effect that stored a `CardRef` and
+called `getLastKnownProperties` on it at fire time would **throw**, by design. The three lifetimes
+have to be used deliberately:
+
+| Need | Mechanism | Lifetime |
+|---|---|---|
+| Characteristics as of leaving play, read in the same action | registry records | action |
+| History across actions within a phase | state watcher | phase |
+| Identity ("is this the same copy?") over any span | `CardRef` / intern map | game |
+
+So a delayed effect may hold a `CardRef` indefinitely — identity is timeline-independent and the
+intern map is never flushed — but it must **store any values it needs eagerly** rather than expecting
+to read them later. The tombstone assertion message already says this.
+
+**Not migratable at card level in phase 1.** The identity-sensitive part of these cards is not in
+card code. `Commandeer` passes its target to `delayedCardEffect`, and the engine's `matchTarget`
+resolves it at fire time; the card never touches it again. Fixing that means teaching target
+resolution to compare references, which is phase 2. The two cards that *do* hold a reference in card
+code — [MaulMasterOfTheShadowCollective](../server/game/cards/07_LAW/units/MaulMasterOfTheShadowCollective.ts)
+and [DjBlatantThief](../server/game/cards/02_SHD/units/DjBlatantThief.ts) — capture it in a closure
+and hand it back as a `target`, which again needs `deref`, an engine-only capability.
+
+**Latent bugs flagged, not fixed.** Neither `Commandeer` nor `Maul, Master of the Shadow Collective`
+revalidates copy identity. If the affected unit leaves play and returns before the delayed effect
+fires, the effect applies to the new copy, which by `SWU 8.5.4` is a different unit. This is the same
+class of bug as SC-18 and the same fix resolves both. `Commandeer` has an existing spec; the others
+do not.
+
+**Counter-example worth keeping.** `DjBlatantThief` carries this comment:
+
+```ts
+// we use a context handler here to force evaluation of the target's exhausted state to happen
+// when the delayed effect resolves, instead of when it's created
+readyResource: !sequentialContext.events[0]?.card.exhausted
+```
+
+It deliberately wants **live** state at fire time, not last known information. A blanket codemod that
+rewrote every delayed-effect property read into a recorded read would break it. Delayed effects have
+to be migrated by hand.
 
 ---
 

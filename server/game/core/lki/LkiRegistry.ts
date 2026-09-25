@@ -57,7 +57,8 @@ export class LkiRegistry {
     }
 
     /**
-     * Returns a properties view for the reference: recorded values if the incarnation has a`n     * record, otherwise a live pass-through.
+     * Returns a properties view for the reference: recorded values if the incarnation has a
+     * record, otherwise a live pass-through.
      */
     public getProperties(ref: CardRef): ICardProperties {
         const record = this.records.get(ref.key);
@@ -130,9 +131,24 @@ export class LkiRegistry {
         this.pending.delete(eventId);
     }
 
-    /** Drops an event's pending records because it never resolved. */
-    public dropPending(eventId: number): void {
-        this.pending.delete(eventId);
+    /**
+     * Drops every record still staged and not committed.
+     *
+     * Called when an event window finishes. Anything left staged at that point belongs to an event
+     * that never resolved — it was cancelled, replaced, or removed from the window — so keeping it
+     * would let a card that is still in play answer with the characteristics it would have had if
+     * that event had happened (D-30).
+     */
+    public dropPending(): void {
+        this.pending.clear();
+    }
+
+    /**
+     * How many events still have records staged but not committed. Always zero once an event window
+     * has finished.
+     */
+    public get pendingEventCount(): number {
+        return this.pending.size;
     }
 
     /** Flushes records at an action boundary, leaving a tombstone for each (D-20, D-21). */

@@ -90,9 +90,13 @@ export function addLastKnownInformationToEvent(event: GameEvent, card: Card): vo
     event.setPreResolutionEffect((event) => {
         event.lastKnownInformation = buildLastKnownInformation(card);
 
-        // Mirror the capture into the LKI registry at exactly the same instant, so the registry can
-        // be validated as behavior-preserving before anything reads from it.
-        event.context.game.lkiRegistry.recordPending(event.eventId, card);
+        const registry = event.context.game.lkiRegistry;
+        registry.recordPending(event.eventId, card);
+
+        // Bind the reference now, while the card is still the incarnation this event is about. The
+        // card may leave play and come back within the same action, so resolving it later would
+        // name the wrong incarnation (SC-13, invariant I2).
+        event.cardRef = registry.refFor(card);
     });
 }
 

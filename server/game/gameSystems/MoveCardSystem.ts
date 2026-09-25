@@ -11,6 +11,7 @@ import {
     ZoneName
 } from '../core/Constants';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
+import { addLastKnownInformationToEvent } from '../core/event/LastKnownInformation';
 import { Helpers } from '../core/utils/Helpers.js';
 import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { AttachedUpgradeOverrideHandler } from '../core/gameSystem/CardTargetSystem';
@@ -134,6 +135,11 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         // Check if the card is leaving play
         if (this.isLeavingPlay(card, event.destination)) {
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties, attachedUpgradeOverrideHandler);
+        } else if (this.losesCardInformation(card, event.destination)) {
+            // Moving from a visible zone into a hidden one is not a leave-play, but it does make the
+            // card a new copy (`SWU 8.5.4`), so anything holding a reference to the old one needs its
+            // last known information recorded before the move.
+            addLastKnownInformationToEvent(event, card);
         }
     }
 
@@ -153,6 +159,14 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         return card.canBeInPlay() &&
           card.isInPlay() &&
           !EnumHelpers.isInPlayZone(destination as ZoneFilter);
+    }
+
+    /**
+     * True if this move discards the information the game had about the card — for example moving it
+     * from the discard pile back to hand — making it a new copy even though it never left play.
+     */
+    private losesCardInformation(card: Card, destination: MoveZoneDestination): boolean {
+        return EnumHelpers.zoneMoveLosesCardInformation(card.zoneName, EnumHelpers.asConcreteZone(destination));
     }
 
     public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IMoveCardProperties>): void {

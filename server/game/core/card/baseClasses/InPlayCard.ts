@@ -441,7 +441,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             this.setPendingDefeatEnabled(false);
 
             // if we're moving from a visible zone (discard, capture) to a hidden zone, increment the in-play id to represent the loss of information (card becomes a new copy)
-            if (EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self) && !EnumHelpers.isHiddenFromOpponent(prevZone, RelativePlayer.Self)) {
+            if (EnumHelpers.zoneMoveLosesCardInformation(prevZone, this.zoneName)) {
                 this._mostRecentInPlayId += 1;
             }
         }

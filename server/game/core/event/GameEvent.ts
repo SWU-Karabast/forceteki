@@ -3,6 +3,7 @@ import { Contract } from '../utils/Contract';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import type { EventWindow } from './EventWindow';
 import type { AbilityContext } from '../ability/AbilityContext';
+import type { CardRef } from '../lki/CardRef';
 
 export enum EventResolutionStatus {
     CREATED = 'created',
@@ -18,6 +19,13 @@ export class GameEvent {
     public order = 0;
     public isContingent = false;
     public readonly name: string;
+
+    /**
+     * Reference to the card this event is about, bound while the event resolves so later reads name
+     * the incarnation the event fired on rather than whatever occupies that card now. Only set on
+     * events that record last known information.
+     */
+    public cardRef?: CardRef;
 
     public get eventId() {
         return this._eventId;

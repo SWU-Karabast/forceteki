@@ -1,6 +1,6 @@
 # LKI Migration Register
 
-Sites that must **not** be migrated mechanically by the phase-2 codemod. Each needs individual
+Sites that must **not** be migrated mechanically by the phase-3 codemod. Each needs individual
 review, and most need a behavior decision rather than a syntax change.
 
 See [lki-redesign-decisions-and-insights.md](./lki-redesign-decisions-and-insights.md) §7 for the
@@ -42,6 +42,22 @@ by `test/scenarios/lki/LastKnownInformation.spec.ts`.
 | [UseWhenDefeatedSystem.ts:75](../server/game/gameSystems/UseWhenDefeatedSystem.ts) | `generateEvent(event.context, whenDefeatedSource, true)` passes a `Card` in the `additionalProperties` slot. Line 102 passes `{}` correctly. Harmless today because `this.properties` is assigned last and wins. | pending |
 | [IStateWatcherLKIEntry](../server/game/core/stateWatcher/StateWatcher.ts) | `upgrades` is stored as `GameObjectId<IUpgradeCard>[]` with **no instance component**, so rehydration yields whatever instance the upgrade is at now rather than the captured one. `CardLeftPlayEntry` gets this right by storing `card` and `inPlayId` separately (D-23). | pending |
 | [CardsDefeatedThisPhaseWatcher.ts:134](../server/game/stateWatchers/CardsDefeatedThisPhaseWatcher.ts), [CardsLeftPlayThisPhaseWatcher.ts:112](../server/game/stateWatchers/CardsLeftPlayThisPhaseWatcher.ts) | Store the event's `traits` `Set` **instance** directly into tracked state, so multiple readers share a mutable collection (D-17). | pending |
+
+### B.1 Copy-identity gaps on the targeting path (SC-18, SC-20)
+
+All of these hold a card reference across a gap and act on it later **without revalidating that it
+is still the same copy**. By `SWU 8.5.4` a unit that left play and returned is a different unit and
+the effect should fizzle. One generic instance check in `checkEventCondition` (D-6, D-7) resolves the
+whole table, so these are deliberately **not** being fixed individually — they are listed so the
+phase-2 change can be verified against a known set.
+
+| Site | Gap | Status |
+|---|---|---|
+| `server/game/gameSystems/` (all) | **Zero** occurrences of `inPlayId` anywhere in the directory. Delayed and multi-step systems re-derive legality from `hasLegalTarget`, which is zone-based, so a replayed copy passes. This is the root cause for every row below. | pending |
+| [Attack.ts:170](../server/game/core/attack/Attack.ts) | The **only** correct implementation in the engine: captures `attackerInPlayId` and a `targetInPlayMap`, then re-checks before applying damage. Not a bug — the reference implementation. **Delete once the generic check lands**, so there is one mechanism rather than two. | pending |
+| [Commandeer.ts](../server/game/cards/04_JTL/events/Commandeer.ts) | Passes its target to `delayedCardEffect`; the engine's `matchTarget` resolves it at regroup. If the unit leaves and returns first, the wrong copy is returned to hand. Has an existing spec to extend. | pending |
+| [MaulMasterOfTheShadowCollective.ts:39](../server/game/cards/07_LAW/units/MaulMasterOfTheShadowCollective.ts) | Captures `selectCardContext.target` in a closure and hands it back as the delayed effect's `target` when Maul leaves play. No spec. | pending |
+| [DjBlatantThief.ts:22](../server/game/cards/02_SHD/units/DjBlatantThief.ts) | Same closure-capture shape for a resource. **Migrate by hand** — the inline comment shows it deliberately wants *live* `exhausted` state at fire time, so a blanket rewrite to recorded reads would break it. | pending |
 
 ---
 
