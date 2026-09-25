@@ -16,7 +16,7 @@ import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
 import type { IAbilityPropsWithType, IDamageModificationEffectAbilityPropsWithType, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
-import type { IExhaustUnitsCostAdjusterProperties, IExploitCostAdjusterProperties, IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties, IModifyPayStageCostAdjusterProperties } from '../core/cost/CostAdjuster';
+import type { ICostAdjusterProperties, IDefeatResourcesCostAdjusterProperties, IExhaustUnitsCostAdjusterProperties, IExploitCostAdjusterProperties, IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties, IModifyPayStageCostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { ProvidedAspects } from '../core/ongoingEffect/effectImpl/ProvidedAspects';
 import { CostAdjustType } from '../core/cost/CostAdjuster';
 import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
@@ -291,6 +291,8 @@ export = {
     //         apply: (player) => (player.actionPhasePriority = true),
     //         unapply: (player) => (player.actionPhasePriority = false)
     //     }),
+    /** Applies a cost adjuster of any type supported by `CostAdjusterFactory.create` */
+    adjustCost: (properties: ICostAdjusterProperties) => modifyCost(properties),
     increaseCost: (properties: Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Increase, ...properties }),
     forFree: (properties: Omit<IForFreeCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Free, ...properties }),
     modifyPayStageCost: (properties: Omit<IModifyPayStageCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.ModifyPayStage, ...properties }),
@@ -304,6 +306,8 @@ export = {
     addExploit: (properties: Omit<IExploitCostAdjusterProperties, 'costAdjustType'>) => addExploit({ ...properties, costAdjustType: CostAdjustType.Exploit }),
     canExhaustUnitsInsteadOfResources: (properties: Omit<IExhaustUnitsCostAdjusterProperties, 'costAdjustType'>) =>
         exhaustUnitsInsteadOfResources({ ...properties, costAdjustType: CostAdjustType.ExhaustUnits }),
+    canDefeatResourcesToDecreaseCost: (properties: Omit<IDefeatResourcesCostAdjusterProperties, 'costAdjustType'>) =>
+        modifyCost({ ...properties, costAdjustType: CostAdjustType.DefeatResources }),
     canLookAtTopOfDeck: (player: RelativePlayerFilter = RelativePlayer.Self) => OngoingEffectBuilder.player.static(EffectName.ShowTopCard, player),
     doubleDeckSearchCount: () => OngoingEffectBuilder.player.static(EffectName.DoubleDeckSearchCount, true),
     // modifyCardsDrawnInDrawPhase: (amount) =>
