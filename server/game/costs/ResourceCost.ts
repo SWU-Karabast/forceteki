@@ -45,8 +45,8 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
 
     /** Returns true if this.payer(context) has enough ready resources to pay the cost, accounting for adjustments */
     public canPay(context: AbilityContext<TCard>): boolean {
-        const minCost = this.getAdjustedCost(context);
-        return this.payingPlayer(context).readyResourceCount >= minCost;
+        const requiredReadyResources = this.resolveCostAdjustments(context).adjustedCost.requiredReadyResources;
+        return this.payingPlayer(context).readyResourceCount >= requiredReadyResources;
     }
 
     /**
@@ -64,7 +64,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         const costAdjustmentEvaluation = this.resolveCostAdjustments(context);
 
         const availableResources = this.payingPlayer(context).readyResourceCount;
-        if (costAdjustmentEvaluation.adjustedCost.value > availableResources) {
+        if (costAdjustmentEvaluation.adjustedCost.requiredReadyResources > availableResources) {
             abilityCostResult.cancelled = true;
         } else {
             abilityCostResult.costAdjustments = costAdjustmentEvaluation;
