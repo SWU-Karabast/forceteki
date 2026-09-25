@@ -1,4 +1,4 @@
-import {AbilityRestriction, EffectName, EventName, PhaseName, ZoneName} from '../../Constants';
+import { AbilityRestriction, EffectName, EventName, PhaseName, ZoneName } from '../../Constants';
 import type { Game } from '../../Game';
 import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
@@ -53,8 +53,16 @@ export class RegroupPhase extends Phase {
         const drawEvents: GameEvent[] = [];
 
         for (const player of players) {
-            const drawCardsAmount = player.getOngoingEffectValues<number>(EffectName.ModifyCardsDrawnInDrawPhase)[0] ?? 2;
-            const drawSystem = new DrawSystem({ amount: drawCardsAmount });
+            const standardDrawCount = 2;
+
+            // Check if the player has any effects that allow them to draw additional cards in the regroup phase
+            const additionalDrawCount = player.getOngoingEffectValues<number>(EffectName.DrawAdditionalCardsInRegroup)
+                .reduce((total, value) => total + value, 0);
+
+            const drawSystem = new DrawSystem({
+                amount: standardDrawCount + additionalDrawCount
+            });
+
             drawSystem.queueGenerateEventGameSteps(
                 drawEvents,
                 this.game.getFrameworkContext(player)

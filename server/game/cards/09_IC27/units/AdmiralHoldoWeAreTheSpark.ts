@@ -13,7 +13,7 @@ export default class AdmiralHoldoWeAreTheSpark extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: 'Draw 1 more card during the regroup phase',
-            ongoingEffect: AbilityHelper.ongoingEffects.modifyCardsDrawnInDrawPhase(3),
+            ongoingEffect: AbilityHelper.ongoingEffects.drawAdditionalCardsInRegroup(1),
         });
     }
 }
