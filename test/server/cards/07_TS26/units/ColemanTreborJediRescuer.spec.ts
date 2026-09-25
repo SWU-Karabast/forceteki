@@ -21,7 +21,7 @@ describe('Coleman Trebor, Jedi Rescuer', function() {
             expect(context.p2Base.damage).toBe(3);
         });
 
-        it('Coleman Trebor\'s ability should try to deal 1 damage to enemy base, if not succeed, it should not heal 1 damage from our base', async function () {
+        it('Coleman Trebor\'s ability should heal 1 damage from our base even if the damage to enemy base is fully prevented (SWU CR 8.9.2)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -43,7 +43,8 @@ describe('Coleman Trebor, Jedi Rescuer', function() {
             context.player1.clickCard(context.colemanTrebor);
 
             expect(context.player2).toBeActivePlayer();
-            expect(context.p1Base.damage).toBe(2);
+            // the damage was prevented, but the "if you do" condition is still met (SWU CR 8.9.2)
+            expect(context.p1Base.damage).toBe(1);
             expect(context.p2Base.damage).toBe(2);
         });
     });

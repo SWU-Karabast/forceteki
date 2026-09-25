@@ -96,6 +96,13 @@ export class DamageModificationSystem<
                 return null;
             case DamageModificationType.Reduce:
                 Contract.assertPositiveNonZero(properties.amount, `preventionAmount must be a positive non-zero number for DamageModificationType.Reduce. Found: ${properties.amount}`);
+
+                // if the damage is fully prevented there is nothing to replace it with - the event is
+                // simply marked as replaced, which still counts as resolved for "if you do" effects
+                if (context.event.amount != null && context.event.amount - properties.amount <= 0) {
+                    return null;
+                }
+
                 return new DamageSystem((context) => ({
                     target: context.event.card,
                     amount: Math.max(context.event.amount - properties.amount, 0),

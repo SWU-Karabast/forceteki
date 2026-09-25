@@ -130,8 +130,8 @@ export class GameEvent {
         this.handler = newHandler;
     }
 
-    public cancel() {
-        this.resolutionStatus = EventResolutionStatus.CANCELLED;
+    public cancel({ wasReplaced } = { wasReplaced: false }) {
+        this.resolutionStatus = wasReplaced ? EventResolutionStatus.REPLACED : EventResolutionStatus.CANCELLED;
         if (this._window) {
             this._window.removeEvent(this);
         }
