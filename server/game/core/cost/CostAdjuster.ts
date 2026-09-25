@@ -33,7 +33,8 @@ export enum CostAdjustType {
     ModifyPayStage = 'modifyPayStage',
     Exploit = 'exploit',
     ExhaustUnits = 'exhaustUnits',
-    DefeatCreditTokens = 'defeatCreditTokens'
+    DefeatCreditTokens = 'defeatCreditTokens',
+    DefeatResources = 'defeatResources'
 }
 
 // TODO: refactor so we can add TContext for attachTargetCondition
@@ -85,6 +86,16 @@ export interface IExhaustUnitsCostAdjusterProperties extends ICostAdjusterProper
     canExhaustUnitCondition: (card: IUnitCard, context: AbilityContext) => boolean;
 }
 
+export interface IDefeatResourcesCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.DefeatResources;
+
+    /** The amount the cost is reduced by for each resource defeated */
+    amountPerResource: number;
+
+    /** If true, only ready resources can be defeated (e.g. "defeat any number of ready resources you control"). Defaults to false. */
+    readyResourcesOnly?: boolean;
+}
+
 export interface IIgnoreAllAspectsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
     costAdjustType: CostAdjustType.IgnoreAllAspects;
 }
@@ -126,11 +137,13 @@ export type ICostAdjusterProperties =
   | IModifyPayStageCostAdjusterProperties
   | IExploitCostAdjusterProperties
   | IExhaustUnitsCostAdjusterProperties
-  | IDefeatCreditTokensCostAdjusterProperties;
+  | IDefeatCreditTokensCostAdjusterProperties
+  | IDefeatResourcesCostAdjusterProperties;
 
 export type ITargetedCostAdjusterProperties =
   | IExploitCostAdjusterProperties
-  | IExhaustUnitsCostAdjusterProperties;
+  | IExhaustUnitsCostAdjusterProperties
+  | IDefeatResourcesCostAdjusterProperties;
 
 export interface ICanAdjustProperties {
     attachTargets?: Card[];

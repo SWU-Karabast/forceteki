@@ -198,7 +198,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
             getTotalResourceCost: (includeAspectPenalties) => costTracker.getTotalResourceCost(includeAspectPenalties),
             getPenaltyAspects: (filter?: IPenaltyAspectFilters) => costTracker.penaltyAspects(filter),
             adjustedCost: costTracker,
-            adjustStage: CostAdjustStage.Increase_6,
+            adjustStage: CostAdjustStage.Increase_7,
             matchingAdjusters: new Map<CostAdjustStage, CostAdjuster[]>(),
             resourceCostType: this.resourceCostType,
             costAdjusterTargets,
