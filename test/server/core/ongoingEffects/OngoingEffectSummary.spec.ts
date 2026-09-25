@@ -319,5 +319,28 @@ describe('Ongoing effect summary', function() {
                 expect(context.gnkPowerDroid).toHaveNoOngoingEffects();
             });
         });
+
+        describe('a leader with the Hidden keyword on its unit side', function() {
+            it('does not source a Hidden ongoing effect while undeployed', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { leader: 'third-sister#seething-with-ambition' }
+                });
+                const { context } = contextRef;
+
+                // Hidden is printed on the leader unit side, so an undeployed leader surfaces no effect for it
+                expect(context.thirdSister).toHaveNoOngoingEffects();
+            });
+
+            it('sources the Hidden ongoing effect once deployed as a unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { leader: { card: 'third-sister#seething-with-ambition', deployed: true } }
+                });
+                const { context } = contextRef;
+
+                expect(context.thirdSister).toHaveOngoingEffect('Hidden');
+            });
+        });
     });
 });

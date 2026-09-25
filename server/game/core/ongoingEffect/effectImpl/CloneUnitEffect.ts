@@ -7,14 +7,14 @@ import type { ICardWithStandardAbilitySetup } from '../../card/propertyMixins/St
 import type { IUnitAbilityRegistrar, IUnitCard } from '../../card/propertyMixins/UnitProperties';
 import type { Game } from '../../Game';
 
-import { registerState } from '../../GameObjectUtils';
+import { registerState, stateValue } from '../../GameObjectUtils';
 
 @registerState()
 export class CloneUnitEffect extends OngoingEffectValueWrapperBase<ICardWithStandardAbilitySetup<Card>> {
-    private printedActionAbilitiesUuidByTargetCard?: Set<string>;
-    private printedTriggeredAbilitiesUuidByTargetCard?: Set<string>;
-    private printedConstantAbilitiesUuidByTargetCard?: Set<string>;
-    private printedPreEnterPlayAbilitiesUuidByTargetCard?: Set<string>;
+    @stateValue() private accessor _preCloneActionAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+    @stateValue() private accessor _preCloneTriggeredAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+    @stateValue() private accessor _preCloneConstantAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+    @stateValue() private accessor _preClonePreEnterPlayAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
 
     public constructor(game: Game, clonedUnit: Card) {
         // If we are cloning a unit that is itself a clone, we need to find the original unit
@@ -38,15 +38,15 @@ export class CloneUnitEffect extends OngoingEffectValueWrapperBase<ICardWithStan
         super.apply(target);
 
         Contract.assertTrue(target.isClone(), 'CloneUnitEffect can only be use to clone a Clone');
-        Contract.assertIsNullLike(this.printedActionAbilitiesUuidByTargetCard, `Attempting to clone action abilities with ${target.internalName} twice`);
-        Contract.assertIsNullLike(this.printedTriggeredAbilitiesUuidByTargetCard, `Attempting to clone triggered abilities with ${target.internalName} twice`);
-        Contract.assertIsNullLike(this.printedConstantAbilitiesUuidByTargetCard, `Attempting to clone constant abilities with ${target.internalName} twice`);
-        Contract.assertIsNullLike(this.printedPreEnterPlayAbilitiesUuidByTargetCard, `Attempting to clone pre-enter play abilities with ${target.internalName} twice`);
+        Contract.assertDoesNotHaveKey(this._preCloneActionAbilityUuidsByTargetCard, target.uuid, `Attempting to clone action abilities with ${target.internalName} twice`);
+        Contract.assertDoesNotHaveKey(this._preCloneTriggeredAbilityUuidsByTargetCard, target.uuid, `Attempting to clone triggered abilities with ${target.internalName} twice`);
+        Contract.assertDoesNotHaveKey(this._preCloneConstantAbilityUuidsByTargetCard, target.uuid, `Attempting to clone constant abilities with ${target.internalName} twice`);
+        Contract.assertDoesNotHaveKey(this._preClonePreEnterPlayAbilityUuidsByTargetCard, target.uuid, `Attempting to clone pre-enter play abilities with ${target.internalName} twice`);
 
-        this.printedActionAbilitiesUuidByTargetCard = new Set(target.getPrintedActionAbilities().map((ability) => ability.uuid));
-        this.printedTriggeredAbilitiesUuidByTargetCard = new Set(target.getPrintedTriggeredAbilities().map((ability) => ability.uuid));
-        this.printedConstantAbilitiesUuidByTargetCard = new Set(target.getPrintedConstantAbilities().map((ability) => ability.uuid));
-        this.printedPreEnterPlayAbilitiesUuidByTargetCard = new Set(target.getPrintedPreEnterPlayAbilities().map((ability) => ability.uuid));
+        this._preCloneActionAbilityUuidsByTargetCard.set(target.uuid, target.getPrintedActionAbilities().map((ability) => ability.uuid));
+        this._preCloneTriggeredAbilityUuidsByTargetCard.set(target.uuid, target.getPrintedTriggeredAbilities().map((ability) => ability.uuid));
+        this._preCloneConstantAbilityUuidsByTargetCard.set(target.uuid, target.getPrintedConstantAbilities().map((ability) => ability.uuid));
+        this._preClonePreEnterPlayAbilityUuidsByTargetCard.set(target.uuid, target.getPrintedPreEnterPlayAbilities().map((ability) => ability.uuid));
 
         const clonedUnit = this.getValue();
 
@@ -59,37 +59,41 @@ export class CloneUnitEffect extends OngoingEffectValueWrapperBase<ICardWithStan
     public override unapply(target: IUnitCard): void {
         super.unapply(target);
 
-        Contract.assertNotNullLike(this.printedActionAbilitiesUuidByTargetCard, `Attempting to unapply cloned action abilities from ${target.internalName} but it is not applied`);
-        Contract.assertNotNullLike(this.printedTriggeredAbilitiesUuidByTargetCard, `Attempting to unapply cloned triggered abilities from ${target.internalName} but it is not applied`);
-        Contract.assertNotNullLike(this.printedConstantAbilitiesUuidByTargetCard, `Attempting to unapply cloned constant abilities from ${target.internalName} but it is not applied`);
-        Contract.assertNotNullLike(this.printedPreEnterPlayAbilitiesUuidByTargetCard, `Attempting to unapply cloned pre-enter play abilities from ${target.internalName} but it is not applied`);
+        Contract.assertMapHasKey(this._preCloneActionAbilityUuidsByTargetCard, target.uuid, `Attempting to unapply cloned action abilities from ${target.internalName} but it is not applied`);
+        Contract.assertMapHasKey(this._preCloneTriggeredAbilityUuidsByTargetCard, target.uuid, `Attempting to unapply cloned triggered abilities from ${target.internalName} but it is not applied`);
+        Contract.assertMapHasKey(this._preCloneConstantAbilityUuidsByTargetCard, target.uuid, `Attempting to unapply cloned constant abilities from ${target.internalName} but it is not applied`);
+        Contract.assertMapHasKey(this._preClonePreEnterPlayAbilityUuidsByTargetCard, target.uuid, `Attempting to unapply cloned pre-enter play abilities from ${target.internalName} but it is not applied`);
 
+        const preCloneActionAbilityUuids = new Set(this._preCloneActionAbilityUuidsByTargetCard.get(target.uuid));
         if (target.canRegisterActionAbilities()) {
-            for (const ability of target.getPrintedActionAbilities().filter((ability) => !(this.printedActionAbilitiesUuidByTargetCard ?? new Set()).has(ability.uuid))) {
+            for (const ability of target.getPrintedActionAbilities().filter((ability) => !preCloneActionAbilityUuids.has(ability.uuid))) {
                 target.removePrintedActionAbility(ability.uuid);
             }
         }
-        this.printedActionAbilitiesUuidByTargetCard = undefined;
+        this._preCloneActionAbilityUuidsByTargetCard.delete(target.uuid);
 
+        const preCloneTriggeredAbilityUuids = new Set(this._preCloneTriggeredAbilityUuidsByTargetCard.get(target.uuid));
         if (target.canRegisterTriggeredAbilities()) {
-            for (const ability of target.getPrintedTriggeredAbilities().filter((ability) => !(this.printedTriggeredAbilitiesUuidByTargetCard ?? new Set()).has(ability.uuid))) {
+            for (const ability of target.getPrintedTriggeredAbilities().filter((ability) => !preCloneTriggeredAbilityUuids.has(ability.uuid))) {
                 target.removePrintedTriggeredAbility(ability.uuid);
             }
         }
-        this.printedTriggeredAbilitiesUuidByTargetCard = undefined;
+        this._preCloneTriggeredAbilityUuidsByTargetCard.delete(target.uuid);
 
+        const preCloneConstantAbilityUuids = new Set(this._preCloneConstantAbilityUuidsByTargetCard.get(target.uuid));
         if (target.canRegisterConstantAbilities()) {
-            for (const ability of target.getPrintedConstantAbilities().filter((ability) => !(this.printedConstantAbilitiesUuidByTargetCard ?? new Set()).has(ability.uuid))) {
+            for (const ability of target.getPrintedConstantAbilities().filter((ability) => !preCloneConstantAbilityUuids.has(ability.uuid))) {
                 target.removePrintedConstantAbility(ability.uuid);
             }
         }
-        this.printedConstantAbilitiesUuidByTargetCard = undefined;
+        this._preCloneConstantAbilityUuidsByTargetCard.delete(target.uuid);
 
+        const preClonePreEnterPlayAbilityUuids = new Set(this._preClonePreEnterPlayAbilityUuidsByTargetCard.get(target.uuid));
         if (target.canRegisterPreEnterPlayAbilities()) {
-            for (const ability of target.getPrintedConstantAbilities().filter((ability) => !(this.printedPreEnterPlayAbilitiesUuidByTargetCard ?? new Set()).has(ability.uuid))) {
+            for (const ability of target.getPrintedPreEnterPlayAbilities().filter((ability) => !preClonePreEnterPlayAbilityUuids.has(ability.uuid))) {
                 target.removePrintedPreEnterPlayAbility(ability.uuid);
             }
         }
-        this.printedPreEnterPlayAbilitiesUuidByTargetCard = undefined;
+        this._preClonePreEnterPlayAbilityUuidsByTargetCard.delete(target.uuid);
     }
 }
