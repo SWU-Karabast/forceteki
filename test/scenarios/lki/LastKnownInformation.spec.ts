@@ -9,6 +9,36 @@
  * within a single action, and the two reads could disagree.
  */
 
+const flushProbes = new WeakMap<object, { maxPendingBeforeFlush: number }>();
+
+/**
+ * Starts sampling how many records are staged immediately before each flush, and returns the sample.
+ *
+ * The flush clears staged records along with committed ones, so the staged count has to be read as
+ * each flush happens rather than after the fact.
+ *
+ * Patched by hand rather than with `spyOn` because undo mode replays a spec body against the same
+ * registry object, and a second `spyOn` of the same method throws. Installing once and resetting the
+ * sample per run keeps both runs meaningful.
+ */
+function probeStagedRecordsBeforeFlush(registry) {
+    if (!flushProbes.has(registry)) {
+        const probe = { maxPendingBeforeFlush: 0 };
+        const realFlush = registry.flushRecords.bind(registry);
+
+        registry.flushRecords = () => {
+            probe.maxPendingBeforeFlush = Math.max(probe.maxPendingBeforeFlush, registry.pendingEventCount);
+            realFlush();
+        };
+
+        flushProbes.set(registry, probe);
+    }
+
+    const probe = flushProbes.get(registry);
+    probe.maxPendingBeforeFlush = 0;
+    return probe;
+}
+
 describe('Last known information', function () {
     integration(function (contextRef) {
         describe('When a "When Defeated" ability is used while its source is still in play', function () {
@@ -289,15 +319,7 @@ describe('Last known information', function () {
 
                 const { context } = contextRef;
                 const registry = context.game.lkiRegistry;
-
-                // The action-boundary flush clears staged records as well as committed ones, so
-                // sample the staged count as each window finishes rather than at the end.
-                let maxPendingAfterWindowCleanup = 0;
-                const flushRecords = registry.flushRecords.bind(registry);
-                spyOn(registry, 'flushRecords').and.callFake(() => {
-                    maxPendingAfterWindowCleanup = Math.max(maxPendingAfterWindowCleanup, registry.pendingEventCount);
-                    flushRecords();
-                });
+                const stagedRecords = probeStagedRecordsBeforeFlush(registry);
 
                 // Kelnacca deals two simultaneous damage instances at the same unit, so both
                 // generate a defeat for its single Shield token in one window. The first resolves;
@@ -314,7 +336,7 @@ describe('Last known information', function () {
                 // The cancelled defeat's staged record must not survive its window. If it did, the
                 // next event to reach a commit would promote it, and the Shield would report a
                 // defeat that never happened.
-                expect(maxPendingAfterWindowCleanup).toBe(0);
+                expect(stagedRecords.maxPendingBeforeFlush).toBe(0);
                 expect(registry.pendingEventCount).toBe(0);
             });
         });
