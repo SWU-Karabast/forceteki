@@ -45,6 +45,15 @@ export class EventWindow extends BaseStepWithPipeline {
         return this._triggeredAbilityWindow;
     }
 
+    /**
+     * Every event this window has ever held, including ones later removed or replaced.
+     *
+     * Staged records are keyed by event, and the registry's staging area is shared by all windows,
+     * so cleanup must drop only what this window put there. Clearing it wholesale would let a nested
+     * window erase records its parent staged and is still going to commit.
+     */
+    private readonly _ownedEventIds = new Set<number>();
+
     /** Creates an object holding one or more GameEvents that occur at the same time.
      *  @param game - The game object.
      *  @param {GameEvent[]} events - Events belonging to this window.
@@ -89,6 +98,7 @@ export class EventWindow extends BaseStepWithPipeline {
     public addEvent(event) {
         event.setWindow(this);
         this._events.push(event);
+        this._ownedEventIds.add(event.eventId);
         return event;
     }
 
@@ -296,8 +306,8 @@ export class EventWindow extends BaseStepWithPipeline {
         // Anything still staged belongs to an event that never resolved — cancelled, replaced, or
         // removed from the window — so it must not become a record. Without this a card that is
         // still in play would answer with the characteristics it would have had if that event had
-        // happened.
-        this.game.lkiRegistry.dropPending();
+        // happened. Scoped to this window's own events so a nested window cannot drop its parent's.
+        this.game.lkiRegistry.dropPending(this._ownedEventIds);
 
         if (this.parentWindow) {
             this.parentWindow.checkEventCondition();

@@ -15,8 +15,10 @@ export default class TargetedForRemoval extends UpgradeCard {
         registrar.addGainWhenDefeatedAbilityTargetingAttached({
             title: 'An opponent creates Credit tokens equal to this unit\'s cost',
             immediateEffect: abilityHelper.immediateEffects.createCreditToken((context) => ({
-                // The attached unit's cost as of the moment it left play.
-                amount: gameState.getLastKnownProperties(context.event.card).asUnit().cost,
+                // The attached unit's cost as of the moment it left play. Read through the
+                // event-bound reference so a unit that has since moved on still resolves to the
+                // incarnation this ability fired on (SC-13).
+                amount: gameState.getLastKnownProperties(context.event.cardRef).asUnit().cost,
                 target: context.player.opponent
             }))
         });

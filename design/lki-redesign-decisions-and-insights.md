@@ -1670,7 +1670,13 @@ touches a handful of engine files rather than 800 card files.
 - Land the generic instance check in `checkEventCondition` (D-6, D-7), which runs before every
   handler and therefore covers every game system at once.
 - Delete `Attack`'s bespoke `targetInPlayMap` guard, so there is one mechanism rather than two.
-- Fix the card-level gaps tabulated in [lki-migration-register.md](./lki-migration-register.md) §B.1.
+- Fix the card-level gaps tabulated in [lki-migration-register.md](./lki-migration-register.md) §B.1
+  and §B.2.
+- **Complete the flush boundary.** Phase 1 flushes between actions (`ActionPhase.queueNextAction`)
+  and at every phase start (`Phase.startPhase`). Two windows remain uncovered: records created by
+  end-of-phase triggers survive through `OnPhaseEnded`, and records created during regroup persist
+  for the rest of regroup. Closing these properly means an explicit resolution-transaction boundary
+  rather than more flush sites bolted onto phase steps.
 
 Independent of the sweep **in both directions**: the codemod does not need this check, and this check
 does not need the codemod. Landing it first means the sweep runs against already-correct semantics,
@@ -1713,8 +1719,10 @@ decision rather than a mechanical rewrite.
 
 Also covers the delayed effects skipped in phase 3.
 
-Ends with: delete the opt-in flag, remove `ILastKnownInformation` and the legacy fields, apply
-D-28's lint rules, and remove `event.card`'s live-card fallback.
+Ends with: delete the opt-in flag, remove `ILastKnownInformation` and the legacy fields, collapse the
+LKI helpers back to the single `addDepartureRecordToEvent`
+([register §D.1](./lki-migration-register.md)), apply D-28's lint rules, and remove `event.card`'s
+live-card fallback.
 
 ### The opt-in mechanism
 

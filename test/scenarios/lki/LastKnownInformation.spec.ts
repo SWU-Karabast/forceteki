@@ -319,6 +319,46 @@ describe('Last known information', function () {
             });
         });
 
+        describe('When a card takes damage it survives', function () {
+            it('leaves no record behind, so later reads still see the live card', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['chimaera#reinforcing-the-center'],
+                        groundArena: ['helgait#dooku-was-a-visionary'],
+                        resources: 10
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        hand: ['daring-raid'],
+                        resources: 10
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Daring Raid deals 2 damage; Helgait is 6/4, so it survives.
+                context.player2.clickCard(context.daringRaid);
+                context.player2.clickCard(context.helgait);
+                expect(context.helgait.damage).toBe(2);
+                expect(context.helgait).toBeInZone('groundArena');
+
+                // Every non-base damage event captures last known information. If that capture also
+                // wrote a registry record, this still-live unit would answer with its pre-damage
+                // values for the rest of the action, and the action boundary would then tombstone
+                // its current incarnation — turning the read below into a hard crash.
+                context.player1.clickCard(context.chimaera);
+                context.player1.clickCard(context.helgait);
+
+                expect(context.player1).toHavePrompt('Distribute 6 Advantage tokens among targets');
+                context.player1.setDistributeTokenUpgradePromptState(new Map([
+                    [context.helgait, 6]
+                ]));
+
+                expect(context.helgait.getPower()).toBe(12);
+            });
+        });
+
         describe('Record lifecycle', function () {
             it('flushes the record at the action boundary and refuses stale reads afterwards', async function () {
                 await contextRef.setupTestAsync({

@@ -303,7 +303,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
      *
      * Cards that can never be in play have no incarnation to track and report a constant.
      *
-     * TODO (LKI migration phase 3): give event cards and bases a real counter so that an event card
+     * TODO (LKI migration phase 4): give event cards and bases a real counter so that an event card
      * bouncing between a visible zone and a hidden one is correctly treated as a new instance.
      * See design/lki-redesign-decisions-and-insights.md (D-8) and §3.18.
      */

@@ -11,7 +11,7 @@ import {
     ZoneName
 } from '../core/Constants';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
-import { addLastKnownInformationToEvent } from '../core/event/LastKnownInformation';
+import { addDepartureRecordToEvent } from '../core/event/LastKnownInformation';
 import { Helpers } from '../core/utils/Helpers.js';
 import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { AttachedUpgradeOverrideHandler } from '../core/gameSystem/CardTargetSystem';
@@ -139,7 +139,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
             // Moving from a visible zone into a hidden one is not a leave-play, but it does make the
             // card a new copy (`SWU 8.5.4`), so anything holding a reference to the old one needs its
             // last known information recorded before the move.
-            addLastKnownInformationToEvent(event, card);
+            addDepartureRecordToEvent(event, card);
         }
     }
 

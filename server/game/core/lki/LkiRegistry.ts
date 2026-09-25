@@ -85,6 +85,30 @@ export class LkiRegistry {
     }
 
     /**
+     * Whether a record for this incarnation exists, either committed or still staged.
+     *
+     * Exists for the departure assertion that lands with D-22's universal minting: a card leaving
+     * play with no record means some system removed it without going through
+     * `addDepartureRecordToEvent`, and anything that later asks about that incarnation would
+     * silently read the wrong state. Not asserted yet — today's capture points do not cover every
+     * departure, which is the gap D-22 closes (see lki-migration-register.md §G.1).
+     */
+    public hasRecordFor(card: Card, instanceId: number): boolean {
+        const key = CardRef.buildKey(card, instanceId);
+        if (this.records.has(key)) {
+            return true;
+        }
+
+        for (const forEvent of this.pending.values()) {
+            if (forEvent.has(key)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Resolves a reference to the live card, for engine use.
      *
      * Returns `null` when the reference no longer names the card's current incarnation, which is how
@@ -132,15 +156,20 @@ export class LkiRegistry {
     }
 
     /**
-     * Drops every record still staged and not committed.
+     * Drops the staged records belonging to `eventIds`, for events that never resolved.
      *
-     * Called when an event window finishes. Anything left staged at that point belongs to an event
-     * that never resolved — it was cancelled, replaced, or removed from the window — so keeping it
-     * would let a card that is still in play answer with the characteristics it would have had if
-     * that event had happened (D-30).
+     * Called when an event window finishes, with that window's own event IDs. Anything of its still
+     * staged at that point belongs to an event that was cancelled, replaced, or removed from the
+     * window — so keeping it would let a card that is still in play answer with the characteristics
+     * it would have had if that event had happened (D-30).
+     *
+     * Scoped rather than wholesale because the staging area is shared across windows: a nested
+     * window finishing must not discard what an ancestor staged and is still going to commit.
      */
-    public dropPending(): void {
-        this.pending.clear();
+    public dropPending(eventIds: ReadonlySet<number>): void {
+        for (const eventId of eventIds) {
+            this.pending.delete(eventId);
+        }
     }
 
     /**

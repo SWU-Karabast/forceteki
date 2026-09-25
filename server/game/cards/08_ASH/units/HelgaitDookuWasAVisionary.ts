@@ -16,8 +16,10 @@ export default class HelgaitDookuWasAVisionary extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper, gameState: IGameStateGetter) {
         // Power as of the moment this unit left play. If the ability was used without actually
         // defeating it (e.g. via Chimaera), there is no record and this reads live state instead.
+        // The reference is bound to the event, not resolved from the live card, so a unit that has
+        // since moved on to another zone or incarnation still reads the right one (SC-13).
         const powerWhenDefeated = (context: TriggeredAbilityContext) =>
-            gameState.getLastKnownProperties(context.event.card).asUnit()
+            gameState.getLastKnownProperties(context.event.cardRef).asUnit()
                 .asInPlay().power;
 
         registrar.addWhenDefeatedAbility({

@@ -2,6 +2,7 @@ import type { Card } from '../card/Card';
 import { CardRef } from './CardRef';
 import type { ICardProperties } from './CardPropertiesInterfaces';
 import type { LkiRegistry } from './LkiRegistry';
+import { Contract } from '../utils/Contract';
 
 /**
  * The card-facing view of game state.
@@ -57,6 +58,12 @@ export class GameStateGetter implements IGameStateInternal {
     public constructor(private readonly getRegistry: () => LkiRegistry) {}
 
     public getLastKnownProperties(refOrCard: CardRef | Card): ICardProperties {
+        Contract.assertNotNullLike(
+            refOrCard,
+            'No card or reference supplied. If this came from `event.cardRef`, that event never had ' +
+            'last known information captured — see LastKnownInformation.addDepartureRecordToEvent.'
+        );
+
         const registry = this.getRegistry();
         const ref = refOrCard instanceof CardRef ? refOrCard : registry.refFor(refOrCard);
         return registry.getProperties(ref);

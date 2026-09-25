@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
 import type { MsgArg } from '../core/chat/GameChat';
 import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
-import { addLastKnownInformationToEvent } from '../core/event/LastKnownInformation';
+import { addDepartureRecordToEvent } from '../core/event/LastKnownInformation';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { PlayerOrCard } from '../core/gameSystem/GameSystem';
 import { Contract } from '../core/utils/Contract';
@@ -167,7 +167,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         if (card.zoneName !== ZoneName.Resource) {
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
         } else {
-            addLastKnownInformationToEvent(event, card);
+            addDepartureRecordToEvent(event, card);
         }
     }
 }
