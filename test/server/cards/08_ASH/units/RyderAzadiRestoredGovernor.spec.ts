@@ -132,5 +132,120 @@ describe('Ryder Azadi, Restored Governor', function () {
 
             expect(context.daggerSquadronPilot).not.toHaveAvailableActionWhenClickedBy(context.player1);
         });
+
+        it('should allow Topple the Summit to be played via Plot once Ryder Azadi is defeated by the same deploy\'s damage', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['ryder-azadi#restored-governor'],
+                },
+                player2: {
+                    leader: 'boba-fett#any-methods-necessary',
+                    hand: ['daring-raid'],
+                    groundArena: ['war-juggernaut'],
+                    resources: ['topple-the-summit', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // player1 plays Ryder Azadi and names Topple the Summit, so player2 can't play it while Azadi is in play
+            context.player1.clickCard(context.ryderAzadi);
+            context.player1.chooseListOption('Topple the Summit');
+            expect(context.player2).toBeActivePlayer();
+
+            // player2 chips 2 damage into Azadi with Daring Raid
+            context.player2.clickCard(context.daringRaid);
+            context.player2.clickCard(context.ryderAzadi);
+            expect(context.ryderAzadi.damage).toBe(2);
+
+            // decline Boba's undeployed "exhaust to deal 1 indirect damage" trigger off the non-combat damage
+            expect(context.player2).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
+            context.player2.clickPrompt('Pass');
+
+            context.player1.passAction();
+
+            // player2 deploys Boba Fett as a Pilot on War Juggernaut, which triggers both
+            // Boba's own damage ability and Topple the Summit's Plot ability off the same leader-deploy event
+            context.player2.clickCard(context.bobaFett);
+            context.player2.clickPrompt('Deploy Boba Fett as a Pilot');
+            context.player2.clickCard(context.warJuggernaut);
+
+            // two triggers are now pending for player2: Boba's damage ability and Topple's Plot ability
+            expect(context.player2).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+
+            // resolve Boba's damage ability first, defeating Azadi (2 + 4 >= 5 hp)
+            context.player2.clickPrompt('Deal up to 4 damage divided as you choose among any number of units.');
+            context.player2.setDistributeDamagePromptState(new Map([
+                [context.ryderAzadi, 4],
+            ]));
+            expect(context.ryderAzadi).toBeInZone('discard');
+
+            // Azadi is gone, so its "opponents can't play" restriction should no longer apply -
+            // Topple the Summit's Plot trigger should now be offered and playable
+            expect(context.player2).toHavePassAbilityPrompt('Play Topple the Summit using Plot');
+            context.player2.clickPrompt('Trigger');
+
+            expect(context.toppleTheSummit).toBeInZone('discard');
+        });
+
+        it('should allow Cinta Kaz (a Plot unit) to be played via Plot once Ryder Azadi is defeated by the same deploy\'s damage', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['ryder-azadi#restored-governor'],
+                },
+                player2: {
+                    leader: 'boba-fett#any-methods-necessary',
+                    hand: ['daring-raid'],
+                    groundArena: ['war-juggernaut'],
+                    resources: ['cinta-kaz#the-struggle-comes-first', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // player1 plays Ryder Azadi and names Cinta Kaz, so player2 can't play it while Azadi is in play
+            context.player1.clickCard(context.ryderAzadi);
+            context.player1.chooseListOption('Cinta Kaz');
+            expect(context.player2).toBeActivePlayer();
+
+            // player2 chips 2 damage into Azadi with Daring Raid
+            context.player2.clickCard(context.daringRaid);
+            context.player2.clickCard(context.ryderAzadi);
+            expect(context.ryderAzadi.damage).toBe(2);
+
+            // decline Boba's undeployed "exhaust to deal 1 indirect damage" trigger off the non-combat damage
+            expect(context.player2).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
+            context.player2.clickPrompt('Pass');
+
+            context.player1.passAction();
+
+            // player2 deploys Boba Fett as a Pilot on War Juggernaut, which triggers both
+            // Boba's own damage ability and Cinta Kaz's Plot ability off the same leader-deploy event
+            context.player2.clickCard(context.bobaFett);
+            context.player2.clickPrompt('Deploy Boba Fett as a Pilot');
+            context.player2.clickCard(context.warJuggernaut);
+
+            // two triggers are now pending for player2: Boba's damage ability and Cinta Kaz's Plot ability
+            expect(context.player2).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+
+            // resolve Boba's damage ability first, defeating Azadi (2 + 4 >= 5 hp)
+            context.player2.clickPrompt('Deal up to 4 damage divided as you choose among any number of units.');
+            context.player2.setDistributeDamagePromptState(new Map([
+                [context.ryderAzadi, 4],
+            ]));
+            expect(context.ryderAzadi).toBeInZone('discard');
+
+            // Azadi is gone, so its "opponents can't play" restriction should no longer apply -
+            // Cinta Kaz's Plot trigger should now be offered and playable, same as an event Plot card
+            expect(context.player2).toHavePassAbilityPrompt('Play Cinta Kaz using Plot');
+            context.player2.clickPrompt('Trigger');
+
+            // Cinta Kaz's own "When Played" ability offers an attack; decline it
+            context.player2.clickPrompt('Pass');
+
+            expect(context.cintaKaz).toBeInZone('groundArena');
+        });
     });
 });

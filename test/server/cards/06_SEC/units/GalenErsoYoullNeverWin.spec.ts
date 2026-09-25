@@ -1048,6 +1048,61 @@ describe('Galen Erso - You\'ll Never Win', function() {
 
                 expect(context.player1).toBeActivePlayer();
             });
+
+            it('should still not be playable with Plot even if Galen is defeated by the same deploy\'s damage that opens the Plot window', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                    },
+                    player2: {
+                        leader: 'boba-fett#any-methods-necessary',
+                        hand: ['daring-raid'],
+                        groundArena: ['war-juggernaut'],
+                        resources: ['topple-the-summit', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // player1 plays Galen Erso and names Topple the Summit - unlike Ryder Azadi's restriction,
+                // this blanks Topple's abilities (including Plot) entirely while Galen is in play
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Topple the Summit');
+                expect(context.player2).toBeActivePlayer();
+
+                // player2 chips 2 damage into Galen with Daring Raid
+                context.player2.clickCard(context.daringRaid);
+                context.player2.clickCard(context.galenErso);
+                expect(context.galenErso.damage).toBe(2);
+
+                // decline Boba's undeployed "exhaust to deal 1 indirect damage" trigger off the non-combat damage
+                expect(context.player2).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
+                context.player2.clickPrompt('Pass');
+
+                context.player1.passAction();
+
+                // player2 deploys Boba Fett as a Pilot on War Juggernaut, which would trigger both Boba's own
+                // damage ability and Topple the Summit's Plot ability off the same leader-deploy event -
+                // except Topple's Plot ability is blanked at the moment the event fires, so it never
+                // registers as a pending trigger, unlike the Ryder Azadi restriction case
+                context.player2.clickCard(context.bobaFett);
+                context.player2.clickPrompt('Deploy Boba Fett as a Pilot');
+                context.player2.clickCard(context.warJuggernaut);
+
+                // only one trigger is pending (Boba's), so there's no "choose which to resolve first" prompt -
+                // it goes straight to Boba's distribute-damage prompt
+                context.player2.setDistributeDamagePromptState(new Map([
+                    [context.galenErso, 4],
+                ]));
+                expect(context.galenErso).toBeInZone('discard');
+
+                // Galen is gone, but his blanking of Topple already caused the Plot trigger to miss its
+                // window entirely - it does not come back just because the blanking source left play
+                expect(context.player2).not.toHavePassAbilityPrompt('Play Topple the Summit using Plot');
+                expect(context.player1).toBeActivePlayer();
+                expect(context.toppleTheSummit).toBeInZone('resource');
+            });
         });
 
         describe('Galen Erso - You\'ll Never Win\'s ability should name a card. While he is in play, named friendly events', function() {
