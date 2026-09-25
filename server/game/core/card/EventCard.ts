@@ -19,6 +19,7 @@ import type { InitializeCardStateOption } from './Card';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { IBasicAbilityRegistrar, IEventAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import type { ICardStateGetter } from '../lki/CardStateGetter';
 import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import type { ConstantAbility } from '../ability/ConstantAbility';
@@ -135,11 +136,11 @@ export class EventCard extends EventCardParent implements IEventCard {
     }
 
     protected override callSetupWithRegistrar() {
-        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
+        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) { }
 
     private setEventAbility(properties: IEventAbilityProps) {
         properties.cardName = this.title;

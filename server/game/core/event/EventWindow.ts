@@ -45,6 +45,15 @@ export class EventWindow extends BaseStepWithPipeline {
         return this._triggeredAbilityWindow;
     }
 
+    /**
+     * Every event this window has ever held, including ones later removed or replaced.
+     *
+     * Staged records are keyed by event, and the registry's staging area is shared by all windows,
+     * so cleanup must drop only what this window put there. Clearing it wholesale would let a nested
+     * window erase records its parent staged and is still going to commit.
+     */
+    private readonly _ownedEventIds = new Set<number>();
+
     /** Creates an object holding one or more GameEvents that occur at the same time.
      *  @param game - The game object.
      *  @param {GameEvent[]} events - Events belonging to this window.
@@ -101,6 +110,7 @@ export class EventWindow extends BaseStepWithPipeline {
     public addEvent(event) {
         event.setWindow(this);
         this._events.push(event);
+        this._ownedEventIds.add(event.eventId);
         return event;
     }
 
@@ -227,6 +237,11 @@ export class EventWindow extends BaseStepWithPipeline {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution
             event.checkCondition();
             if (event.canResolve) {
+                // Commit this event's recorded last known information now that we know it will
+                // actually resolve. Events replaced or cancelled earlier never reach here, so they
+                // leave no record behind.
+                this.game.lkiRegistry.commitPending(event.eventId);
+
                 this.game.emit(event.name + ':preResolve', event);
                 event.executeHandler();
                 this.game.emit(event.name, event);
@@ -299,6 +314,12 @@ export class EventWindow extends BaseStepWithPipeline {
         for (const event of this.resolvedEvents) {
             event.cleanup();
         }
+
+        // Anything still staged belongs to an event that never resolved — cancelled, replaced, or
+        // removed from the window — so it must not become a record. Without this a card that is
+        // still in play would answer with the characteristics it would have had if that event had
+        // happened. Scoped to this window's own events so a nested window cannot drop its parent's.
+        this.game.lkiRegistry.dropPending(this._ownedEventIds);
 
         if (this.parentWindow) {
             this.parentWindow.checkEventCondition();

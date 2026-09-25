@@ -1,4 +1,5 @@
 import type { Player } from '../Player';
+import type { ICardStateGetter } from '../lki/CardStateGetter';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import { Contract } from '../utils/Contract';
 import { CardType, PlayType, ZoneName } from '../Constants';
@@ -101,9 +102,9 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
     }
 
     protected override callSetupWithRegistrar() {
-        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
+        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
+    public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) { }
 }

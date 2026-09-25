@@ -70,6 +70,9 @@ import { Helpers } from './utils/Helpers';
 import type { CostAdjuster } from './cost/CostAdjuster';
 import { logger } from '../../logger';
 import { SnapshotManager, UndoMode } from './snapshot/SnapshotManager';
+import { LkiRegistry } from './lki/LkiRegistry';
+import type { ICardStateInternal } from './lki/CardStateGetter';
+import { CardStateGetter } from './lki/CardStateGetter';
 import { getAbilityHelper } from '../AbilityHelper';
 import type { IAbilityHelper } from '../AbilityHelper';
 import { PhaseInitializeMode } from './gameSteps/phases/Phase';
@@ -297,6 +300,16 @@ export class Game extends EventEmitter {
         return this._snapshotManager.gameObjectManager;
     }
 
+    /** Serves card properties, resolving reads against last known information where appropriate. */
+    public get lkiRegistry(): LkiRegistry {
+        return this._lkiRegistry;
+    }
+
+    /** Engine-facing card state accessor. Card implementations receive the narrower facade. */
+    public get cardStates(): ICardStateInternal {
+        return this._cardStateGetter;
+    }
+
     public get randomGenerator(): IRandomness {
         return this._randomGenerator;
     }
@@ -328,6 +341,8 @@ export class Game extends EventEmitter {
     private readonly _snapshotManager: SnapshotManager;
     private readonly _randomGenerator: IRandomness;
     private readonly _router: Lobby;
+    private readonly _lkiRegistry: LkiRegistry;
+    private readonly _cardStateGetter: CardStateGetter;
 
     public ongoingEffectEngine: OngoingEffectEngine;
     public abilityHelper: IAbilityHelper;
@@ -389,6 +404,8 @@ export class Game extends EventEmitter {
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
         this._randomGenerator = new Randomness();
         this._router = options.router;
+        this._lkiRegistry = new LkiRegistry();
+        this._cardStateGetter = new CardStateGetter(() => this._lkiRegistry);
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
         this.abilityHelper = getAbilityHelper(this);

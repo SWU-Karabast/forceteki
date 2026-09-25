@@ -294,6 +294,28 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         return this.id;
     }
 
+    /**
+     * Distinguishes successive identities of this physical card (`SWU 8.5.4`).
+     *
+     * A card that leaves play and returns is a different card as far as the game is concerned, and
+     * this counter is what tells the two apart. It also changes when a card moves somewhere hidden,
+     * because tracking information is lost at that point.
+     *
+     * Unlike {@link IInPlayCard.inPlayId} and {@link IInPlayCard.mostRecentInPlayId}, this is safe to
+     * read in any zone and never throws, so it can be used to compare two references to the same
+     * physical card and determine whether they refer to the same identity.
+     *
+     * Cards that can never be in play have only one identity, and report a constant.
+     *
+     * TODO (LKI migration phase 4): give event cards and bases a real counter so that an event card
+     * bouncing between a visible zone and a hidden one is correctly treated as a new identity.
+     * See design/lki-redesign-decisions-and-insights.md (D-8) and §3.18.
+     */
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style -- must be a getter so InPlayCard can override it with the real counter
+    public get identityId(): number {
+        return 0;
+    }
+
     public get traits(): Set<Trait> {
         return this.getTraits();
     }
