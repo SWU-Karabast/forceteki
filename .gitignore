@@ -23,3 +23,7 @@ Dockerfile.test
 .claude/agent-memory/
 CLAUDE.local.md
 *.code-workspace
+
+# gstack/superpowers tooling state
+.superpowers/
+docs/superpowers/

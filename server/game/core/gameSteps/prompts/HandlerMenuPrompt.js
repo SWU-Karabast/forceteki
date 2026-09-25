@@ -1,6 +1,7 @@
 const { AbilityContext } = require('../../ability/AbilityContext.js');
 const { OngoingEffectSource } = require('../../ongoingEffect/OngoingEffectSource.js');
 const { UiPrompt } = require('./UiPrompt.js');
+const { EventName } = require('../../Constants.js');
 
 /**
  * General purpose menu prompt. Takes a choices object with menu options and
@@ -159,8 +160,29 @@ class HandlerMenuPrompt extends UiPrompt {
             return false;
         }
 
+        // Snapshot the offered options and the chosen index BEFORE invoking the handler. A handler
+        // is free to mutate this.properties.choices (e.g. rebuild the menu), which would make a
+        // post-handler read of `offered` wrong. Capturing here keeps the recorded MODAL_CHOICE
+        // faithful to what the player actually saw and picked.
+        const offered = Array.isArray(this.properties.choices)
+            ? this.properties.choices.map((choice) => String(choice))
+            : [];
+        const chose = arg;
+
         if (this.properties.handlers[arg]() === false) {
             return false;
+        }
+        // Surface the resolved menu/button selection for the SWU-PGN recorder (pure-log; does not
+        // affect gameplay). This is a fixed-option-list (modal) choice, so the recorder maps it to
+        // MODAL_CHOICE. `offered` is the human-readable choice labels; `chose` is the selected index.
+        // Only the numeric-index (button) branch reaches here; card-button selections (string arg)
+        // return earlier and are covered by card-play/selection events, so we don't emit for them.
+        //
+        // Opt-OUT gate: system/housekeeping prompts (e.g. the undo Allow/Deny confirmation) set
+        // `pgnLog: false` so their administrative menu choices never appear in the PGN. Default is
+        // to emit, so gameplay ability/choice menus still log.
+        if (this.properties.pgnLog !== false) {
+            this.game.emit(EventName.OnModalChoice, { player: this.player, offered, chose });
         }
         this.complete();
         return true;
