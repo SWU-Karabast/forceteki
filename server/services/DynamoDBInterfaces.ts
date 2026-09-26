@@ -35,6 +35,16 @@ export interface IUserDataEntity {
     moderation?: IModerationAction;
     undoPopupSeenDate?: string;
     timerPopupSeenDate?: string;
+
+    /**
+     * Id of the ReportingDisabled mod action whose one-time notice the user has acknowledged.
+     * Stored on the profile (not the action) so it is authoritative across server instances and
+     * survives cache refreshes; a re-issued restriction has a new id and so shows the notice again.
+     */
+    reportingDisabledSeenActionId?: string;
+
+    /** @deprecated Superseded by the ReportingDisabled mod action. Removed by scripts/migrateReportingDisabled.ts. */
+    reportingDisabled?: ModerationFieldState;
 }
 
 /**
@@ -164,11 +174,56 @@ export enum ModActionType {
 }
 
 /**
- * Action types that are tracked as "active" — indexed in the ACTIVE_MODACTION sparse GSI and held in
- * the in-memory ModActionService cache. This is distinct from having a duration: Mute is timed, while
- * Rename and ReportingDisabled are indefinite but still tracked. Warning is untracked (paper trail).
+ * Per-type behaviour for mod actions. This is the single source of truth — validation, GSI indexing,
+ * caching and the dashboard UI all derive from it rather than enumerating action types themselves.
+ *
+ * `tracked` means indexed in the ACTIVE_MODACTION sparse GSI and held in the ModActionService cache.
+ * That is distinct from having a duration: Mute is timed, while Rename and ReportingDisabled are
+ * indefinite but still tracked. Warning is untracked (paper trail only).
  */
-export type TrackedModActionType = ModActionType.Mute | ModActionType.Rename | ModActionType.ReportingDisabled;
+export interface IModActionDefinition {
+    tracked: boolean;
+    requiresNote: boolean;
+    requiresDuration: boolean;
+
+    /** Resolves on its own (expiry or user action) rather than requiring a moderator to cancel it. */
+    selfResolving: boolean;
+    cancellable: boolean;
+}
+
+export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> = {
+    [ModActionType.Mute]: {
+        tracked: true,
+        requiresNote: true,
+        requiresDuration: true,
+        selfResolving: true,
+        cancellable: true,
+    },
+    [ModActionType.Warning]: {
+        tracked: false,
+        requiresNote: true,
+        requiresDuration: false,
+        selfResolving: false,
+        cancellable: false,
+    },
+    [ModActionType.Rename]: {
+        tracked: true,
+        requiresNote: false,
+        requiresDuration: false,
+        selfResolving: true,
+        cancellable: false,
+    },
+    [ModActionType.ReportingDisabled]: {
+        tracked: true,
+        requiresNote: true,
+        requiresDuration: false,
+        selfResolving: false,
+        cancellable: true,
+    },
+};
+
+export const isTrackedModAction = (actionType: ModActionType): boolean =>
+    ModActionDefinitions[actionType]?.tracked === true;
 
 export interface IModActionEntity {
     id: string;
@@ -184,9 +239,6 @@ export interface IModActionEntity {
     cancelledAt?: string;
     cancelledById?: string;
     cancelledByUsername?: string;
-    // Notification-style flag, currently only meaningful for ReportingDisabled: whether the user has
-    // seen the one-time popup informing them of the restriction.
-    hasSeen?: boolean;
 }
 
 export interface IActiveModActionCacheEntry {
@@ -196,7 +248,6 @@ export interface IActiveModActionCacheEntry {
     startedAt?: string;
     expiresAt?: string;
     modActionId: string;
-    hasSeen?: boolean;
 }
 
 export enum UsernameChangeSource {

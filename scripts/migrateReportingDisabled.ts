@@ -2,69 +2,85 @@
 
 // One-time migration script that converts the legacy `reportingDisabled` user-profile field into a
 // first-class ReportingDisabled mod action (aligning it with Mute / Rename). For each profile that has
-// the legacy field set, it creates a MODACTION# item indexed in the ACTIVE_MODACTION GSI and clears the
-// legacy field from the profile.
+// the legacy field set, it creates a MODACTION# item indexed in the ACTIVE_MODACTION GSI and removes
+// the legacy field from the profile.
 //
 // This is intended to be run once, during deployment downtime, AFTER the new code is deployed and BEFORE
 // the server starts serving traffic (so no user ever loses the restriction during cutover).
 //
-// For it to work in production you'll need to set the environment variables for the DynamoDB (API_KEY and
-// SECRET) and you'll need to set USE_LOCAL_DYNAMODB == false and use ENVIRONMENT for production.
-// Additionally set DRY_RUN to false if you want the changes to actually happen.
+// Writes are deliberately per-user and ordered action-first: the legacy field is only removed once the
+// mod action is durably written, so an interrupted run always leaves users in a re-runnable state.
 //
-// Usage: ts-node scripts/migrateReportingDisabled.ts
+// Configuration is by environment variable (no source edits needed):
+//   MIGRATION_TARGET      'local' (default) or 'production'
+//   MIGRATION_APPLY       'true' to actually write; anything else is a dry run
+//   MIGRATION_MODERATOR_ID / MIGRATION_MODERATOR_USERNAME   attribution for the created actions
+//
+// For production you also need the usual DynamoDB credentials (API_KEY / SECRET) and ENVIRONMENT set to
+// the production value so DynamoDBService does not redirect to local DynamoDB.
+//
+// Usage: MIGRATION_TARGET=production MIGRATION_APPLY=true ts-node scripts/migrateReportingDisabled.ts
 
 import { v4 as uuid } from 'uuid';
 import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
-import { ModActionType, ModerationFieldState } from '../server/services/DynamoDBInterfaces';
+import { type IModActionEntity, ModActionType, ModerationFieldState } from '../server/services/DynamoDBInterfaces';
 import '../server/env';
 
-const DRY_RUN = true; // set to false to actually write
-const BATCH_SIZE = 25; // 25 per BatchWriteItem docs - https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
+const TARGET = process.env.MIGRATION_TARGET ?? 'local';
+const APPLY = process.env.MIGRATION_APPLY === 'true';
 
-// Moderator to attribute the migrated actions to. Override these to inject a real moderator's identity.
-const MODERATOR_ID = 'migration';
-const MODERATOR_USERNAME = 'migration';
+const MODERATOR_ID = process.env.MIGRATION_MODERATOR_ID ?? 'migration';
+const MODERATOR_USERNAME = process.env.MIGRATION_MODERATOR_USERNAME ?? 'migration';
 const MIGRATION_NOTE = 'Migrated from legacy reportingDisabled field';
 
-async function run() {
-    if (process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB !== 'true') {
-        throw new Error('Environmental variables ENVIRONMENT and USE_LOCAL_DYNAMODB need to be set.');
+const LEGACY_FIELD = 'reportingDisabled';
+
+function assertEnvironmentMatchesTarget(isLocalMode: boolean) {
+    if (TARGET !== 'local' && TARGET !== 'production') {
+        throw new Error(`MIGRATION_TARGET must be 'local' or 'production', got '${TARGET}'.`);
     }
 
+    // DynamoDBService decides local-vs-real purely from ENVIRONMENT. Fail loudly on a mismatch so a
+    // production run can never silently succeed against an empty local table.
+    if (TARGET === 'production' && isLocalMode) {
+        throw new Error(
+            'MIGRATION_TARGET=production but DynamoDB is in local mode (ENVIRONMENT=development). ' +
+            'Set ENVIRONMENT to the production value so the script talks to the real table.'
+        );
+    }
+    if (TARGET === 'local' && !isLocalMode) {
+        throw new Error(
+            'MIGRATION_TARGET=local but DynamoDB is not in local mode. ' +
+            'Set ENVIRONMENT=development, or pass MIGRATION_TARGET=production if that was intended.'
+        );
+    }
+}
+
+async function run() {
     const service = await getDynamoDbServiceAsync();
     if (!service) {
         throw new Error('DynamoDB service not available.');
     }
 
-    console.log(`Starting reportingDisabled migration${DRY_RUN ? ' (DRY RUN)' : ''}...`);
+    assertEnvironmentMatchesTarget(service.isLocalMode);
+
+    console.log(`Starting reportingDisabled migration against ${TARGET}${APPLY ? '' : ' (DRY RUN)'}...`);
+    console.log(`Attributing created actions to ${MODERATOR_USERNAME} (${MODERATOR_ID}).`);
 
     const profiles = await service.getAllUserProfilesAsync();
     console.log(`Found ${profiles.length} profiles to scan.\n`);
 
+    if (TARGET === 'production' && profiles.length === 0) {
+        throw new Error('Scanned zero profiles in production. Refusing to report success; check the table configuration.');
+    }
+
     let created = 0;
     let skipped = 0;
     let alreadyMigrated = 0;
-    let errors = 0;
-    let modActionBatch: Record<string, any>[] = [];
-
-    const flushBatchAsync = async () => {
-        if (modActionBatch.length === 0) {
-            return;
-        }
-        try {
-            await service.batchWriteItemsAsync(modActionBatch);
-        } catch (error) {
-            console.error('Batch write failed:', error.message);
-            errors += modActionBatch.length;
-            created -= modActionBatch.length;
-        }
-        modActionBatch = [];
-    };
+    const failedUserIds: string[] = [];
 
     for (const profile of profiles) {
-        // The legacy field has been removed from the typed interface; read it via a narrow cast.
-        const legacy = (profile as { reportingDisabled?: ModerationFieldState }).reportingDisabled;
+        const legacy = profile.reportingDisabled;
         if (!profile.id || !legacy) {
             skipped++;
             continue;
@@ -80,46 +96,44 @@ async function run() {
             continue;
         }
 
-        const now = new Date().toISOString();
-        const modActionId = uuid();
-        const item: Record<string, any> = {
-            pk: `USER#${profile.id}`,
-            sk: `MODACTION#${modActionId}`,
-            id: modActionId,
+        const modAction: IModActionEntity = {
+            id: uuid(),
             playerId: profile.id,
             actionType: ModActionType.ReportingDisabled,
             note: MIGRATION_NOTE,
             moderatorId: MODERATOR_ID,
             moderatorUsername: MODERATOR_USERNAME,
-            createdAt: now,
-            startedAt: now,
-            hasSeen: legacy === ModerationFieldState.EnabledAndSeen,
-            GSI_PK: 'ACTIVE_MODACTION',
+            createdAt: new Date().toISOString(),
         };
 
-        if (DRY_RUN) {
+        if (!APPLY) {
             created++;
             continue;
         }
 
-        modActionBatch.push(item);
-        created++;
-
-        if (modActionBatch.length >= BATCH_SIZE) {
-            await flushBatchAsync();
-        }
-
-        // Clear the legacy field from the profile (individual update; can't be batched with the put).
+        // Order matters: the restriction must exist before the legacy field is removed, otherwise a
+        // failure here leaves the user unrestricted with nothing left to re-run against.
         try {
-            await service.updateUserProfileAsync(profile.id, { reportingDisabled: null } as any);
+            await service.saveModActionAsync(modAction);
         } catch (error) {
-            console.error(`Failed to clear legacy field for ${profile.id}:`, error.message);
-            errors++;
+            console.error(`Failed to create mod action for ${profile.id}:`, error.message);
+            failedUserIds.push(profile.id);
+            continue;
         }
-    }
 
-    if (!DRY_RUN) {
-        await flushBatchAsync();
+        // Carry over the legacy acknowledgement so already-notified users don't see the popup again.
+        try {
+            if (legacy === ModerationFieldState.EnabledAndSeen) {
+                await service.updateUserProfileAsync(profile.id, { reportingDisabledSeenActionId: modAction.id });
+            }
+            await service.removeUserProfileAttributeAsync(profile.id, LEGACY_FIELD);
+        } catch (error) {
+            console.error(`Created mod action for ${profile.id} but failed to update profile:`, error.message);
+            failedUserIds.push(profile.id);
+            continue;
+        }
+
+        created++;
     }
 
     console.log('\n--- Migration Summary ---');
@@ -127,9 +141,12 @@ async function run() {
     console.log(`ReportingDisabled actions created: ${created}`);
     console.log(`Already migrated (skipped): ${alreadyMigrated}`);
     console.log(`Skipped (no legacy field): ${skipped}`);
-    console.log(`Errors: ${errors}`);
-    if (DRY_RUN) {
-        console.log('\nThis was a DRY RUN. Set DRY_RUN = false to write to the database.');
+    console.log(`Failed: ${failedUserIds.length}`);
+    if (failedUserIds.length > 0) {
+        console.log(`Failed user IDs (safe to re-run):\n${failedUserIds.join('\n')}`);
+    }
+    if (!APPLY) {
+        console.log('\nThis was a DRY RUN. Set MIGRATION_APPLY=true to write to the database.');
     }
 }
 

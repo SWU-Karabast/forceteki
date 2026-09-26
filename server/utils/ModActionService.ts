@@ -4,10 +4,9 @@ import { getDynamoDbServiceAsync } from '../services/DynamoDBService';
 import {
     type IActiveModActionCacheEntry,
     type IModActionEntity,
-    type IReportingDisabledState,
+    isTrackedModAction,
     ModActionType
 } from '../services/DynamoDBInterfaces';
-import { isTrackedModAction } from '../game/core/utils/EnumHelpers';
 import { Contract } from '../game/core/utils/Contract';
 import { v4 as uuid } from 'uuid';
 
@@ -19,8 +18,7 @@ import { v4 as uuid } from 'uuid';
  *   Pending mutes activate on the user's first login.
  *   If multiple mutes exist, the one with the longer duration/later expiresAt stays active.
  * - Rename: no expiry, stays active until user renames or mod cancels it.
- * - ReportingDisabled: no expiry, indefinite; stays active until a mod cancels it. Carries a `hasSeen`
- *   flag driving a one-time notification popup for the user.
+ * - ReportingDisabled: no expiry, indefinite; stays active until a mod cancels it.
  * - Warning: not cached (just a paper trail).
  */
 type ModActionCacheMap = Map<string, Map<ModActionType, IActiveModActionCacheEntry>>;
@@ -31,7 +29,7 @@ type ModActionCacheMap = Map<string, Map<ModActionType, IActiveModActionCacheEnt
  *
  * Lifecycle:
  * 1. Initialization (server start): Query GSI, build cache, clean up expired entries in DB
- * 2. Periodic full refresh (every 24h): Same — query GSI, rebuild cache, clean up expired entries
+ * 2. Periodic full refresh (every REFRESH_INTERVAL_MINUTES): Same — query GSI, rebuild cache, clean up expired entries
  * 3. Write-through on mod actions:
  *    - submit-action: Upsert cache entry. For Mute, deactivate the shorter one in DB.
  *    - cancel-action: Remove entry if it was the cached one.
@@ -41,8 +39,15 @@ type ModActionCacheMap = Map<string, Map<ModActionType, IActiveModActionCacheEnt
 export class ModActionService {
     private cache: TimedCache<ModActionCacheMap>;
     private dbServicePromise = getDynamoDbServiceAsync();
-    private static readonly REFRESH_INTERVAL_MINUTES = 10; // 24 * 60; // 24 hours
+    private static readonly REFRESH_INTERVAL_MINUTES = 10;
     private static readonly MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+    /**
+     * Write-through mutations that happened while a refresh was in flight. The refresh reads the GSI
+     * and then replaces the map wholesale, so without this a cancel/submit issued mid-fetch would be
+     * reverted by data that was already stale when it was read.
+     */
+    private pendingMutations: Map<string, IActiveModActionCacheEntry | null> | null = null;
 
     public static async createAsync(): Promise<ModActionService> {
         const modActionCacheInstance = new ModActionService();
@@ -73,10 +78,11 @@ export class ModActionService {
 
     /**
      * Fetch function passed to TimedCache.
-     * Runs on init and every 24h refresh.
+     * Runs on init and on every periodic refresh.
      * 1. Queries all active mod actions from the GSI
      * 2. Cleans up expired entries in DB (removes GSI_PK)
-     * 3. Builds and returns the cache map
+     * 3. Builds and returns the cache map, re-applying any write-through mutations that landed
+     *    while the query was in flight (those are newer than anything the query could have seen)
      */
     private async fetchAndCleanupAsync(): Promise<ModActionCacheMap> {
         const db = await this.dbServicePromise;
@@ -84,31 +90,79 @@ export class ModActionService {
         // Full resync: build a fresh cache entirely from the ACTIVE_MODACTION GSI.
         // The old cache is discarded — TimedCache replaces it with the returned map.
         const newCache: ModActionCacheMap = new Map();
-        const activeActions = await db.getModActionsAsync();
-        const now = new Date();
-        let cleanedCount = 0;
+        this.pendingMutations = new Map();
 
-        for (const action of activeActions) {
-            // Clean up expired entries in DB (only those that have been activated)
-            if (action.expiresAt && new Date(action.expiresAt) <= now) {
-                try {
-                    await db.removeModActionFromActiveIndexAsync(action.playerId, action.id);
-                    cleanedCount++;
-                } catch (error) {
-                    logger.error(`ModActionService: Failed to clean up expired action ${action.id}`, {
-                        error: { message: error.message, stack: error.stack }
-                    });
+        try {
+            const activeActions = await db.getModActionsAsync();
+            const now = new Date();
+            let cleanedCount = 0;
+
+            for (const action of activeActions) {
+                // Clean up expired entries in DB (only those that have been activated)
+                if (action.expiresAt && new Date(action.expiresAt) <= now) {
+                    try {
+                        await db.removeModActionFromActiveIndexAsync(action.playerId, action.id);
+                        cleanedCount++;
+                    } catch (error) {
+                        logger.error(`ModActionService: Failed to clean up expired action ${action.id}`, {
+                            error: { message: error.message, stack: error.stack }
+                        });
+                    }
+                    continue;
                 }
+                this.setOrAddUserAction(action.playerId, action, newCache);
+            }
+
+            if (cleanedCount > 0) {
+                logger.info(`ModActionService: Cleaned up ${cleanedCount} expired mod actions from DB`);
+            }
+
+            this.applyPendingMutations(newCache);
+            return newCache;
+        } finally {
+            this.pendingMutations = null;
+        }
+    }
+
+    /**
+     * Re-applies mutations recorded during an in-flight refresh onto the freshly built map.
+     */
+    private applyPendingMutations(newCache: ModActionCacheMap): void {
+        if (!this.pendingMutations?.size) {
+            return;
+        }
+
+        for (const [key, entry] of this.pendingMutations) {
+            const separatorIndex = key.indexOf('|');
+            const playerId = key.slice(0, separatorIndex);
+            const actionType = key.slice(separatorIndex + 1) as ModActionType;
+
+            if (entry) {
+                if (!newCache.has(playerId)) {
+                    newCache.set(playerId, new Map());
+                }
+                newCache.get(playerId).set(actionType, entry);
                 continue;
             }
-            this.setOrAddUserAction(action.playerId, action, newCache);
+
+            const playerActions = newCache.get(playerId);
+            if (playerActions) {
+                playerActions.delete(actionType);
+                if (playerActions.size === 0) {
+                    newCache.delete(playerId);
+                }
+            }
         }
 
-        if (cleanedCount > 0) {
-            logger.info(`ModActionService: Cleaned up ${cleanedCount} expired mod actions from DB`);
-        }
+        logger.info(`ModActionService: Re-applied ${this.pendingMutations.size} mutation(s) that raced the refresh`);
+    }
 
-        return newCache;
+    /**
+     * Records a write-through mutation so it survives a refresh that is currently in flight.
+     * `entry` is null for removals.
+     */
+    private recordMutation(playerId: string, actionType: ModActionType, entry: IActiveModActionCacheEntry | null): void {
+        this.pendingMutations?.set(`${playerId}|${actionType}`, entry);
     }
 
     // ==================== Private Helpers ====================
@@ -127,15 +181,21 @@ export class ModActionService {
             cacheMap.set(playerId, new Map());
         }
 
-        cacheMap.get(playerId).set(modAction.actionType, {
+        const entry: IActiveModActionCacheEntry = {
             id: modAction.id,
             actionType: modAction.actionType,
             durationDays: modAction.durationDays,
             startedAt: modAction.startedAt,
             expiresAt: modAction.expiresAt,
             modActionId: modAction.id,
-            hasSeen: modAction.hasSeen,
-        });
+        };
+
+        cacheMap.get(playerId).set(modAction.actionType, entry);
+
+        // Only write-through calls target the live map; refresh builds its own and reconciles separately.
+        if (cacheMap === this.cache?.getValue()) {
+            this.recordMutation(playerId, modAction.actionType, entry);
+        }
     }
 
     private logCacheContents(): void {
@@ -245,11 +305,14 @@ export class ModActionService {
     private removeFromCache(playerId: string, actionType: ModActionType): IActiveModActionCacheEntry | null {
         const playerActions = this.getPlayerActions(playerId);
         if (!playerActions) {
+            // Still record it: a refresh in flight may be about to re-add the action we just removed in DB.
+            this.recordMutation(playerId, actionType, null);
             return null;
         }
 
         const entry = playerActions.get(actionType) ?? null;
         playerActions.delete(actionType);
+        this.recordMutation(playerId, actionType, null);
 
         if (playerActions.size === 0) {
             this.cache.getValue()?.delete(playerId);
@@ -356,45 +419,11 @@ export class ModActionService {
     }
 
     /**
-     * Gets the client-facing ReportingDisabled state for a player, or null if reporting is not disabled.
-     * `hasSeen` drives the one-time notification popup.
+     * Id of the player's active ReportingDisabled action, or null if reporting is not disabled.
+     * Callers compare this against the profile's acknowledged id to decide whether to show the notice.
      */
-    public getReportingDisabledState(playerId: string): IReportingDisabledState | null {
-        const entry = this.getPlayerActions(playerId)?.get(ModActionType.ReportingDisabled);
-        if (!entry) {
-            return null;
-        }
-        return { hasSeen: !!entry.hasSeen };
-    }
-
-    /**
-     * Marks a player's active ReportingDisabled restriction as seen (sets hasSeen in both DB and cache).
-     * @returns True if there was an active restriction to update, false otherwise.
-     */
-    public async markReportingDisabledSeenAsync(playerId: string): Promise<boolean> {
-        const entry = this.getPlayerActions(playerId)?.get(ModActionType.ReportingDisabled);
-        if (!entry) {
-            return false;
-        }
-
-        // Already seen — nothing to do
-        if (entry.hasSeen) {
-            return true;
-        }
-
-        const db = await this.dbServicePromise;
-        try {
-            await db.setModActionSeenAsync(playerId, entry.modActionId);
-        } catch (error) {
-            logger.error(`ModActionService: Failed to mark ReportingDisabled seen for player ${playerId}`, {
-                error: { message: error.message, stack: error.stack },
-                userId: playerId,
-            });
-            return false;
-        }
-
-        entry.hasSeen = true;
-        return true;
+    public getActiveReportingDisabledActionId(playerId: string): string | null {
+        return this.getPlayerActions(playerId)?.get(ModActionType.ReportingDisabled)?.modActionId ?? null;
     }
 
     // ==================== Mute Activation ====================
@@ -434,15 +463,19 @@ export class ModActionService {
             return null;
         }
 
-        // Update cache
-        muteEntry.startedAt = startedAt;
-        muteEntry.expiresAt = expiresAt;
+        // Re-read: a refresh may have replaced the map while the DB write was in flight.
+        const currentEntry = this.getPlayerActions(playerId)?.get(ModActionType.Mute);
+        const target = currentEntry?.modActionId === muteEntry.modActionId ? currentEntry : muteEntry;
+
+        target.startedAt = startedAt;
+        target.expiresAt = expiresAt;
+        this.recordMutation(playerId, ModActionType.Mute, target);
 
         logger.info(`ModActionCache: Activated pending mute for player ${playerId} (expires ${expiresAt})`, {
             userId: playerId,
         });
 
-        return muteEntry;
+        return target;
     }
 
     // ==================== Write-Through Methods ====================

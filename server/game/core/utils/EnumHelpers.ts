@@ -2,8 +2,6 @@ import type { CardTypeFilter, ZoneFilter, MoveZoneDestination, TokenName } from 
 import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName, TokenCardName, TokenUpgradeName, TokenUnitName } from '../Constants';
 import type { Player } from '../Player';
 import { Helpers } from './Helpers';
-import type { TrackedModActionType } from '../../../services/DynamoDBInterfaces';
-import { ModActionType } from '../../../services/DynamoDBInterfaces';
 
 // Cache for enum lookup maps (lowercase string -> enum value)
 const enumLookupCache = new Map<object, Map<string, unknown>>();
@@ -341,7 +339,3 @@ export namespace EnumHelpers {
         }
     };
 }
-
-export const isTrackedModAction = (actionType: ModActionType): actionType is TrackedModActionType => {
-    return actionType === ModActionType.Mute || actionType === ModActionType.Rename || actionType === ModActionType.ReportingDisabled;
-};
