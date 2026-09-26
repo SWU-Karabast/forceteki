@@ -1510,5 +1510,44 @@ describe('Galen Erso - You\'ll Never Win', function() {
                 });
             });
         });
+
+        describe('Galen Erso - You\'ll Never Win\'s ability, when the named unit defeats him', function() {
+            it('should not let the named unit trigger "when this unit attacks and defeats a unit" off his own defeat', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        groundArena: ['mace-windu#party-crasher']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Mace Windu');
+                expect(context.maceWindu.isBlank()).toBeTrue();
+
+                // Mace defeats Galen. His abilities come back because Galen left play, but he had no
+                // "when this unit attacks and defeats a unit" ability at the moment Galen was defeated
+                context.player2.clickCard(context.maceWindu);
+                context.player2.clickCard(context.galenErso);
+
+                expect(context.galenErso).toBeInZone('discard', context.player1);
+                expect(context.maceWindu.isBlank()).toBeFalse();
+                expect(context.maceWindu.exhausted).toBeTrue();
+                expect(context.player1).toBeActivePlayer();
+
+                // Abilities are back for later attacks
+                context.player1.passAction();
+                context.readyCard(context.maceWindu);
+                context.player2.clickCard(context.maceWindu);
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeInZone('discard', context.player1);
+                expect(context.maceWindu.exhausted).toBeFalse();
+            });
+        });
     });
 });

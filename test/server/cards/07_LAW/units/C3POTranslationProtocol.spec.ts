@@ -118,5 +118,39 @@ describe('C-3PO, Translation Protocol', function () {
             expect(context.player2).toBeActivePlayer();
             expect(context.greenSquadronAwing).toHaveExactUpgradeNames(['experience']);
         });
+
+        it('should count traits from both leaders in Faux Suns', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                format: 'fauxSuns',
+                player1: {
+                    leader: 'chewbacca#walking-carpet', // Underworld, Wookiee
+                    secondLeader: 'darth-vader#dark-lord-of-the-sith', // Force, Imperial, Sith
+                    groundArena: [
+                        'c3po#translation-protocol',
+                        'pyke-sentinel', // Underworld — shares with Chewbacca
+                        'death-trooper', // Imperial — shares with Darth Vader
+                        'wampa' // Creature — shares with neither leader
+                    ]
+                },
+                player2: {
+                    leader: 'luke-skywalker#faithful-friend'
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.c3po);
+            context.player1.clickCard(context.p2Base);
+
+            // Both leaders' traits are pooled: the Underworld unit (Chewbacca) and the Imperial unit
+            // (Darth Vader) are both valid; the Creature unit matches neither leader.
+            expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.deathTrooper]);
+            expect(context.player1).toHavePassAbilityButton();
+            context.player1.clickCard(context.deathTrooper);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.deathTrooper).toHaveExactUpgradeNames(['experience']);
+        });
     });
 });

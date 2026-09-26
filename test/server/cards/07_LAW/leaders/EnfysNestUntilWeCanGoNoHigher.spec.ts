@@ -336,8 +336,8 @@ describe('Enfys Nest, Until We Can Go No Higher', function() {
                 // Attack with Coruscant Dissident to trigger its On Attack ability
                 context.player1.clickCard(context.coruscantDissident);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toHavePassAbilityPrompt('Ready a resource');
-                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toHavePrompt('Choose a player to ready a resource');
+                context.player1.clickPrompt('You');
 
                 // Enfys Nest does not trigger again this round
                 expect(context.player1).not.toHavePassAbilityPrompt(`Use ${context.coruscantDissident.title}'s "On Attack" ability again`);

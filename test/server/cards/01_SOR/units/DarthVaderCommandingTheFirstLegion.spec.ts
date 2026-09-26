@@ -70,6 +70,9 @@ describe('Darth Vader, Commanding the First Legion', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Play cards in selection order');
 
                 context.player1.clickPrompt('Play cards in selection order');
+
+                // ISB Agent enters play with no event to reveal, so skip its masking pause
+                context.player1.clickPrompt('Skip');
                 expect([context.isbAgent, context.deathStarStormtrooper]).toAllBeInZone('groundArena');
                 expect(context.tielnFighter).toBeInZone('spaceArena');
                 expect(context.player1.exhaustedResourceCount).toBe(7);

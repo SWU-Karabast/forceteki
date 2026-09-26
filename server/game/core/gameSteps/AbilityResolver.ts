@@ -1,6 +1,6 @@
 import { BaseStepWithPipeline } from './BaseStepWithPipeline.js';
 import { SimpleStep } from './SimpleStep.js';
-import { ZoneName, Stage, EventName, RelativePlayer, GameErrorSeverity } from '../Constants.js';
+import { Stage, EventName, RelativePlayer, GameErrorSeverity } from '../Constants.js';
 import { GameEvent } from '../event/GameEvent.js';
 import type { Game } from '../Game.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
@@ -108,6 +108,18 @@ export class AbilityResolver extends BaseStepWithPipeline {
         }
 
         this.context.stage = Stage.PreTarget;
+
+        // If a triggered reveal-from-hidden-zone ability has no card to reveal, queue a masking pause before any
+        // cancellation below. This happens regardless of how the ability then resolves (cancelled for no legal
+        // effect, or resolving a dependent "then"/"if you do" to nothing), so the pause is indistinguishable from a
+        // player who could reveal but declined and never leaks that their hidden cards can't satisfy the reveal.
+        const revealMaskingPlayer = this.context.ability.getRevealMaskingPlayer(this.context);
+        if (revealMaskingPlayer) {
+            this.game.promptForPassDelay(revealMaskingPlayer, {
+                source: this.context.source.name,
+                activePromptTitle: 'Pausing for Reveal'
+            });
+        }
 
         if (this.context.ability.meetsRequirements(this.context, this.ignoredRequirements, true) !== '') {
             this.cancelled = true;
@@ -347,27 +359,19 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
             // if the ability was cancelled after costs were paid, the limit is still used
             if (this.resolutionCommitted && this.context.ability.getCosts(this.context).length > 0) {
-                this.incrementLimit();
+                this.context.incrementLimit();
             }
             return;
         }
 
         this.context.player.hasResolvedAbilityThisTimepoint = true;
 
-        this.incrementLimit();
+        this.context.incrementLimit();
 
         this.context.ability.displayMessage(this.context);
         this.context.stage = Stage.Effect;
 
         this.context.ability.executeHandler(this.context);
-    }
-
-    // Increment limits (limits aren't used up on cards in hand)
-    private incrementLimit() {
-        if (this.context.ability.limit && this.context.source.zoneName !== ZoneName.Hand &&
-          (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.zoneName === this.context.source.zoneName)) {
-            this.context.ability.limit.increment(this.context.player);
-        }
     }
 
     private resetGameAbilityResolver() {

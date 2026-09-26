@@ -112,7 +112,8 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
                     traits: event.lastKnownInformation.traits,
                     type: event.lastKnownInformation.type,
                     power: event.lastKnownInformation.power,
-                    arena: event.lastKnownInformation.arena
+                    arena: event.lastKnownInformation.arena,
+                    upgrades: event.lastKnownInformation.upgrades?.map((upgrade) => upgrade.getObjectId())
                 }
             })
         });

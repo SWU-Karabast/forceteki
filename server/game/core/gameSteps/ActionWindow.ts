@@ -1,5 +1,5 @@
 import { UiPrompt } from './prompts/UiPrompt.js';
-import { EventName, EffectName, SnapshotType, SubStepCheck } from '../Constants.js';
+import { ClaimCounterType, EffectName, EventName, SnapshotType, SubStepCheck, SwuGameFormat } from '../Constants.js';
 import { EnumHelpers } from '../utils/EnumHelpers.js';
 import { Contract } from '../utils/Contract.js';
 import type { Game } from '../Game.js';
@@ -137,12 +137,21 @@ export class ActionWindow extends UiPrompt {
 
     public override activePromptInternal(player: Player): IPlayerPromptStateProperties {
         const { mustTakeCardAction, overrideActionPromptTitle } = this.getSelectableCards();
+        const isFauxSuns = this.game.format === SwuGameFormat.FauxSuns;
+        const mustClaimToken = this.game.hasUnclaimedClaimableCounter();
 
         const buttons: IButton[] = [
-            { text: 'Pass', arg: 'pass', disabled: mustTakeCardAction },
+            { text: 'Pass', arg: 'pass', disabled: mustTakeCardAction || mustClaimToken },
         ];
         if (!this.game.isInitiativeClaimed) {
             buttons.push({ text: 'Claim Initiative', arg: 'claimInitiative', disabled: mustTakeCardAction });
+        }
+        if (isFauxSuns && !this.game.isPlanCounterClaimed) {
+            // eslint-disable-next-line forceteki/no-raw-token-text -- "Plan" refers to the TwinSuns Plan counter, not the Plan trait
+            buttons.push({ text: 'Claim Plan', arg: 'claimPlan', disabled: mustTakeCardAction });
+        }
+        if (isFauxSuns && !this.game.isBlastCounterClaimed) {
+            buttons.push({ text: 'Claim Blast', arg: 'claimBlast', disabled: mustTakeCardAction });
         }
         if (this.game.manualMode) {
             buttons.unshift({ text: 'Manual Action', arg: 'manual', disabled: mustTakeCardAction });
@@ -182,7 +191,15 @@ export class ActionWindow extends UiPrompt {
                 return true;
 
             case 'claimInitiative':
-                this.claimInitiative();
+                this.claimCounter(ClaimCounterType.Initiative);
+                return true;
+
+            case 'claimPlan':
+                this.claimCounter(ClaimCounterType.Plan);
+                return true;
+
+            case 'claimBlast':
+                this.claimCounter(ClaimCounterType.Blast);
                 return true;
 
             default:
@@ -196,11 +213,11 @@ export class ActionWindow extends UiPrompt {
         }
 
         if (this.prevPlayerPassed) {
-            // in the (unusual) case that both players pass without claiming initiative, phase ends and initiative stays where it is
+            // Both players have consecutively passed → action phase ends
             this.activePlayer.passedActionPhase = true;
             this.activePlayer.opponent.passedActionPhase = true;
         } else if (this.activePlayer.opponent.passedActionPhase) {
-            // if opponent already claimed initiative, we're done
+            // Opponent has already permanently passed (e.g. claimed a token) → active player is done too
             this.activePlayer.passedActionPhase = true;
         } else {
             this.setPassStatus(true);
@@ -219,9 +236,16 @@ export class ActionWindow extends UiPrompt {
         // }
     }
 
-    public claimInitiative() {
-        this.game.addMessage('{0} claims initiative and passes', this.activePlayer);
-        this.game.claimInitiative(this.activePlayer);
+    private static readonly claimCounterMessageByType: Record<ClaimCounterType, string> = {
+        [ClaimCounterType.Initiative]: '{0} claims initiative and passes',
+        // eslint-disable-next-line forceteki/no-raw-token-text -- "Plan" refers to the TwinSuns Plan counter, not the Plan trait
+        [ClaimCounterType.Plan]: '{0} claims the Plan counter and passes',
+        [ClaimCounterType.Blast]: '{0} claims the Blast counter and passes',
+    };
+
+    public claimCounter(counterType: ClaimCounterType) {
+        this.game.addMessage(ActionWindow.claimCounterMessageByType[counterType], this.activePlayer);
+        this.game.claimCounter(this.activePlayer, counterType);
 
         // Calls this.complete()
         this.pass(false);

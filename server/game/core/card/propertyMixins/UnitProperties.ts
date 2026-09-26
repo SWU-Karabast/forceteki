@@ -715,7 +715,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._whileInPlayKeywordAbilities = [...this._whileInPlayKeywordAbilities, coordinateKeywordAbility];
             }
 
-            if (this.hasSomeKeyword(KeywordName.Hidden)) {
+            // Hidden is a unit-side keyword; the isUnit() guard keeps it off an undeployed leader, which
+            // also runs this block from the base zone (for leader-side Coordinate). See issue #2880.
+            if (this.hasSomeKeyword(KeywordName.Hidden) && this.isUnit()) {
                 const hiddenKeywordAbilityProps: IConstantAbilityProps<this> = {
                     title: `${TextHelper.Hidden}`,
                     condition: (context) =>

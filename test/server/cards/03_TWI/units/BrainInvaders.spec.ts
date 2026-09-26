@@ -290,6 +290,40 @@ describe('Brain Invaders', () => {
         });
 
         describe('When Brain Invaders is removed', function() {
+            it('does not let a blanked leader unit trigger off the defeat of Brain Invaders itself', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'iden-versio#inferno-squad-commander', deployed: true },
+                        groundArena: ['atst'],
+                        base: { card: 'echo-base', damage: 5 }
+                    },
+                    player2: {
+                        groundArena: ['brain-invaders', 'wampa']
+                    },
+                });
+
+                const { context } = contextRef;
+                expect(context.idenVersio.isBlank()).toBeTrue();
+
+                // Iden defeats Brain Invaders. Her abilities come back because Brain Invaders left play,
+                // but she had no "when an opponent's unit is defeated" ability at the moment it was defeated
+                context.player1.clickCard(context.idenVersio);
+                context.player1.clickCard(context.brainInvaders);
+
+                expect(context.brainInvaders).toBeInZone('discard', context.player2);
+                expect(context.idenVersio.isBlank()).toBeFalse();
+                expect(context.p1Base.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
+
+                // Abilities are back for later events
+                context.player2.passAction();
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('discard', context.player2);
+                expect(context.p1Base.damage).toBe(4);
+            });
+
             it('undeployed leaders regain their action abilities', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

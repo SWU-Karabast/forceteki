@@ -57,6 +57,7 @@ export interface ILeaderBaseInternal {
 
 export type IDecklistInternal = ILeaderBaseInternal & IDeckListBase & {
     name?: string;
+    secondLeader?: IInternalCardEntry;
     deck: IInternalCardEntry[];
     sideboard?: IInternalCardEntry[];
 };
@@ -68,6 +69,7 @@ export interface IDeckListForLoading {
     tokens: GameObjectId<ITokenCard>[];
     base: GameObjectId<IBaseCard> | undefined;
     leader: GameObjectId<ILeaderCard> | undefined;
+    secondLeader?: GameObjectId<ILeaderCard>;
     allCards: GameObjectId<Card>[];
 }
 
@@ -114,25 +116,34 @@ export enum DeckValidationFailureReason {
      */
     IllegalInFormat = 'illegalInFormat',
 
+    /** TwinSuns only: the two leaders are the same card (or different printings of the same card). */
+    DuplicateLeaders = 'duplicateLeaders',
+
     /** Deck object is null, missing required fields, or contains a negative card count. */
     InvalidDeckData = 'invalidDeckData',
 
     /** Card appears in the wrong zone (e.g. a leader in the main deck, or a unit in the leader slot). */
     InvalidDecklistLocation = 'invalidCardLocation',
 
-    /** Sideboard exceeds the format maximum (10 in Premier/Eternal; unrestricted in Open). */
+    /** Sideboard exceeds the format maximum (10 in Premier/Eternal; unrestricted in Open/TwinSuns). */
     MaxSideboardSizeExceeded = 'maxSideboardSizeExceeded',
 
-    /** Total card count (main deck + sideboard) is below the format minimum. */
+    /** Total card count (main deck + sideboard) is below the format minimum (50 Premier/Eternal, 80 TwinSuns). */
     MinDecklistSizeNotMet = 'minDecklistSizeNotMet',
 
     /** Main deck alone is below the format minimum even though the sideboard brings the combined total up to it. */
     MinMainboardSizeNotMet = 'minMainboardSizeNotMet',
 
-    /** One or more cards exceed the per-card copy limit for this format (3× Premier/Eternal, with per-card overrides). */
+    /** TwinSuns only: deck has a primary leader but is missing a secondary leader. */
+    MissingSecondLeader = 'missingSecondLeader',
+
+    /** TwinSuns only: one leader has the Heroism aspect and the other has Villainy — an illegal pairing. */
+    MixedAlignmentLeaders = 'mixedAlignmentLeaders',
+
+    /** One or more cards exceed the per-card copy limit for this format (3× Premier/Eternal, 1× TwinSuns, with per-card overrides). */
     TooManyCopiesOfCard = 'tooManyCopiesOfCard',
 
-    /** SWUDB import: a secondleader field was present in the deck submission. */
+    /** SWUDB import: a secondleader field was present in a non-TwinSuns deck submission. */
     TooManyLeaders = 'tooManyLeaders',
 
     /** A card's set code was not found in the card database. */
@@ -143,6 +154,9 @@ export interface IDeckValidationFailures {
 
     /** Cards that cannot be played in this format. Each entry's `reason` field distinguishes between `NotLegalInFormat`, `Suspended`, and `UnknownSet`. */
     [DeckValidationFailureReason.IllegalInFormat]?: IIllegalCardEntry[];
+
+    /** Twin Suns only: the two leaders are the same card (or different printings of the same card). */
+    [DeckValidationFailureReason.DuplicateLeaders]?: boolean;
 
     /** The deck object itself is malformed — null, missing required fields, or contains a negative card count. */
     [DeckValidationFailureReason.InvalidDeckData]?: boolean;
@@ -159,10 +173,16 @@ export interface IDeckValidationFailures {
     /** The main deck alone is below the format minimum even though the sideboard brings the combined total up to it. Includes both the minimum and the actual boarded count. */
     [DeckValidationFailureReason.MinMainboardSizeNotMet]?: { minBoardedSize: number; actualBoardedSize: number };
 
+    /** Twin Suns only: the deck has a primary leader but no secondary leader. */
+    [DeckValidationFailureReason.MissingSecondLeader]?: boolean;
+
+    /** Twin Suns only: one leader has the Heroism aspect and the other has Villainy — an illegal pairing. */
+    [DeckValidationFailureReason.MixedAlignmentLeaders]?: boolean;
+
     /** One or more cards exceed the per-card copy limit for this format. Each entry includes the card, the limit, and the actual count. */
     [DeckValidationFailureReason.TooManyCopiesOfCard]?: { card: ICardIdAndName; maxCopies: number; actualCopies: number }[];
 
-    /** SWUDB import only: a `secondleader` field was present in the submitted deck. */
+    /** SWUDB import only: a `secondleader` field was present in a deck submitted for a non-FauxSuns format. */
     [DeckValidationFailureReason.TooManyLeaders]?: boolean;
 
     /** A card's set code could not be found in the card database. Includes the unrecognized set code. */
