@@ -55,6 +55,75 @@ const mockCards = [
         internalName: 'moff-gideon#cold-calling'
     }),
     buildMockCard({
+        title: 'Admiral Holdo',
+        subtitle: 'We Are The Spark',
+        cost: 5,
+        power: 3,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['resistance', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 38
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'admiral-holdo#we-are-the-spark'
+    }),
+    buildMockCard({
+        title: 'Grand Inquisitor',
+        subtitle: 'How The Mighty Will Fall',
+        cost: 4,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        traits: ['force', 'imperial', 'inquisitor'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 103
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'grand-inquisitor#how-the-mighty-will-fall'
+    }),
+    buildMockCard({
+        title: 'Captain Rex',
+        subtitle: 'Staunch Advocate',
+        cost: 7,
+        power: 7,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['republic', 'clone', 'trooper'],
+        keywords: ['sentinel', 'shielded', 'restore 3'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 41
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'captain-rex#staunch-advocate'
+    }),
+    buildMockCard({
+        title: 'I\'ve Got A Bad Feeling',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['innate'],
+        types: ['event'],
+        setId: {
+            set: 'IC27',
+            number: 166
+        },
+        unique: false,
+        internalName: 'ive-got-a-bad-feeling'
+    }),
+    buildMockCard({
         title: 'Darth Sidious',
         subtitle: 'Move Against the Jedi',
         cost: 7,
@@ -233,10 +302,47 @@ const mockCards = [
         arena: 'ground',
         internalName: 'jar-jar-binks#bumbling-representative'
     }),
+    buildMockCard({
+        title: 'Grand Admiral Thrawn',
+        subtitle: 'Listen to Me Carefully',
+        cost: 6,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['imperial', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 24
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'grand-admiral-thrawn#listen-to-me-carefully'
+    }),
+    buildMockCard({
+        title: 'Qui-Gon Jinn',
+        subtitle: 'Unwavering Belief',
+        cost: 5,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        keywords: ['sentinel'],
+        traits: ['republic', 'force', 'jedi'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 79
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'quigon-jinn#unwavering-belief'
+    }),
     // -------- End Mock Cards --------
 ];
 
-/** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
+/** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string, text: string?, deployBox: string?, epicAction: string?, backSideTitle: string?, backSideSubtitle: string?, backSideTraits: string[]?, backSideAspects: string[]? }} cardData */
 function buildMockCard(cardData) {
     let textElements = [];
     let keywords = [];
@@ -260,6 +366,14 @@ function buildMockCard(cardData) {
         text = abilityText;
     }
 
+    if (cardData.text != null) {
+        text = cardData.text;
+    }
+
+    if (cardData.deployBox != null) {
+        deployBox = cardData.deployBox;
+    }
+
     const data = {
         title: cardData.title,
         subtitle: cardData.subtitle || '',
@@ -268,7 +382,7 @@ function buildMockCard(cardData) {
         power: cardData.power ?? null,
         text,
         deployBox,
-        epicAction: '',
+        epicAction: cardData.epicAction ?? '',
         unique: cardData.unique,
         rules: null,
         upgradePower: cardData.upgradePower ?? null,
@@ -282,6 +396,20 @@ function buildMockCard(cardData) {
         internalName: cardData.internalName,
         arena: cardData.arena || null,
     };
+
+    // Optional back-side attributes for leaders whose deployed side differs from the leader side.
+    if (cardData.backSideTitle != null) {
+        data.backSideTitle = cardData.backSideTitle;
+    }
+    if (cardData.backSideSubtitle != null) {
+        data.backSideSubtitle = cardData.backSideSubtitle;
+    }
+    if (cardData.backSideTraits != null) {
+        data.backSideTraits = cardData.backSideTraits;
+    }
+    if (cardData.backSideAspects != null) {
+        data.backSideAspects = cardData.backSideAspects;
+    }
 
     if (!data.types.includes('token')) {
         // Don't set this property for tokens

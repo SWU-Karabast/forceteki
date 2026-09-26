@@ -1,8 +1,7 @@
 import type { CardType, Trait } from '../Constants';
 import { ZoneName } from '../Constants';
 import type { Card } from '../card/Card';
-import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
-import type { IUpgradeCard } from '../card/CardInterfaces';
+import type { ICardWithUpgrades, IUpgradeCard } from '../card/CardInterfaces';
 import type { Player } from '../Player';
 import { Contract } from '../utils/Contract';
 import type { GameEvent } from './GameEvent';
@@ -19,10 +18,11 @@ export interface ILastKnownInformation {
     hp?: number;
     type?: CardType;
     damage?: number;
-    parentCard?: IUnitCard;
+    parentCard?: ICardWithUpgrades;
     upgrades?: IUpgradeCard[];
     traits: Set<Trait>;
     exhausted?: boolean;
+    inPlayId?: number;
 }
 
 /**
@@ -56,7 +56,8 @@ export function buildLastKnownInformation(card: Card): ILastKnownInformation {
             damage: card.damage,
             upgrades: card.upgrades,
             traits: card.traits,
-            exhausted: card.exhausted
+            exhausted: card.exhausted,
+            inPlayId: card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId,
         };
     }
 
@@ -71,7 +72,8 @@ export function buildLastKnownInformation(card: Card): ILastKnownInformation {
             arena: card.zoneName,
             controller: card.controller,
             parentCard: card.parentCard,
-            traits: card.traits
+            traits: card.traits,
+            inPlayId: card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId,
         };
     }
 

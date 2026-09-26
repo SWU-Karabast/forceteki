@@ -13,6 +13,8 @@ import { RegroupPhase } from './gameSteps/phases/RegroupPhase';
 import { SimpleStep } from './gameSteps/SimpleStep';
 import MenuPrompt from './gameSteps/prompts/MenuPrompt';
 import HandlerMenuPrompt from './gameSteps/prompts/HandlerMenuPrompt';
+import { OptionalTriggerPrompt } from './gameSteps/prompts/OptionalTriggerPrompt';
+import type { IOptionalTriggerPromptProperties } from './gameSteps/prompts/OptionalTriggerPrompt';
 import GameOverPrompt from './gameSteps/prompts/GameOverPrompt';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import { GameEvent } from './event/GameEvent';
@@ -32,14 +34,16 @@ import {
     RollbackRoundEntryPoint,
     RollbackSetupEntryPoint,
     SnapshotType,
+    SwuGameFormat,
     TokenCardName,
     TokenUpgradeName,
     TokenUnitName,
+    Trait,
     WildcardCardType,
     WildcardZoneName,
     ZoneName
 } from './Constants';
-import type { TokenName, Trait } from './Constants';
+import type { ClaimCounterType, TokenName } from './Constants';
 import { StateWatcherRegistrar } from './stateWatcher/StateWatcherRegistrar';
 import { DistributeAmongTargetsPrompt } from './gameSteps/prompts/DistributeAmongTargetsPrompt';
 import HandlerMenuMultipleSelectionPrompt from './gameSteps/prompts/HandlerMenuMultipleSelectionPrompt';
@@ -53,7 +57,6 @@ import { GroundArenaZone } from './zone/GroundArenaZone';
 import { SpaceArenaZone } from './zone/SpaceArenaZone';
 import { AllArenasZone } from './zone/AllArenasZone';
 import type { IAllArenasZoneCardFilterProperties, IAllArenasSpecificTypeCardFilterProperties } from './zone/AllArenasZone';
-import { EnumHelpers } from './utils/EnumHelpers';
 import { SelectCardPrompt } from './gameSteps/prompts/SelectCardPrompt';
 import { DisplayCardsWithButtonsPrompt } from './gameSteps/prompts/DisplayCardsWithButtonsPrompt';
 import { DisplayCardsForSelectionPrompt } from './gameSteps/prompts/DisplayCardsForSelectionPrompt';
@@ -99,11 +102,11 @@ import type {
     IDistributeAmongTargetsPromptProperties,
     IStatefulPromptResults
 } from './gameSteps/PromptInterfaces';
-import type { GameMode } from '../../GameMode';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
 import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
+import { ClaimCounterSystem } from '../gameSystems/ClaimCounterSystem';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
 
@@ -147,6 +150,49 @@ export class Game extends EventEmitter {
 
     public set isInitiativeClaimed(value: boolean) {
         this.state.isInitiativeClaimed = value;
+    }
+
+    public get isPlanCounterClaimed() {
+        this.assertFauxSuns('isPlanCounterClaimed');
+        return this.state.isPlanCounterClaimed;
+    }
+
+    public set isPlanCounterClaimed(value: boolean) {
+        this.assertFauxSuns('isPlanCounterClaimed');
+        this.state.isPlanCounterClaimed = value;
+    }
+
+    public get isBlastCounterClaimed() {
+        this.assertFauxSuns('isBlastCounterClaimed');
+        return this.state.isBlastCounterClaimed;
+    }
+
+    public set isBlastCounterClaimed(value: boolean) {
+        this.assertFauxSuns('isBlastCounterClaimed');
+        this.state.isBlastCounterClaimed = value;
+    }
+
+    /** Throws if this game isn't running the Faux Suns format. Guards state that's only meaningful there. */
+    private assertFauxSuns(propertyName: string): void {
+        Contract.assertTrue(this.format === SwuGameFormat.FauxSuns, `${propertyName} is only valid in the FauxSuns format, but this game's format is ${this.format}`);
+    }
+
+    /**
+     * Whether at least one claim counter (Initiative/Plan/Blast) can still be claimed this round, per rule
+     * 12.6.1.A: a player may pass only if no counter is available or they already took one. Claiming a
+     * counter immediately ends that player's turn for the phase, so each player can claim at most one
+     * counter per round — meaning at most `min(3, player count)` of the three counters can ever be claimed
+     * in a single round, regardless of how many total counters exist. Always false outside FauxSuns.
+     */
+    public hasUnclaimedClaimableCounter(): boolean {
+        if (this.format !== SwuGameFormat.FauxSuns) {
+            return false;
+        }
+
+        const claimedCount = [this.isInitiativeClaimed, this.isPlanCounterClaimed, this.isBlastCounterClaimed]
+            .filter(Boolean).length;
+        const maxClaimableCounters = Math.min(3, this.getPlayers().length);
+        return claimedCount < maxClaimableCounters;
     }
 
     public get roundNumber() {
@@ -307,7 +353,7 @@ export class Game extends EventEmitter {
     public readonly preselectedFirstPlayerId: string | undefined;
     public readonly onBo3SetForfeit?: (losingPlayerId: string) => void;
     public manualMode: boolean;
-    public gameMode: GameMode;
+    public format: SwuGameFormat;
     public currentlyResolving: ICurrentlyResolving;
     public state: IGameState;
     public tokenFactories: Record<string, (player: Player, additionalProperties?: any) => ITokenCard> | null;
@@ -315,6 +361,11 @@ export class Game extends EventEmitter {
     public cardDataGetter: CardDataGetter;
     public playableCardTitles: string[];
     public allNonLeaderCardTitles: string[];
+
+    /** Title Case display name of every {@link Trait}, sorted alphabetically, for "name a trait" abilities */
+    public readonly traitNames: string[] = Object.values(Trait).map((trait) => Helpers.titleCase(trait))
+        .sort();
+
     public readonly statsTracker: IGameStatisticsTracker;
     public clientUIProperties: IClientUIProperties;
     public spaceArena: SpaceArenaZone;
@@ -375,7 +426,7 @@ export class Game extends EventEmitter {
         this._experimental = {};
 
         this.manualMode = false;
-        this.gameMode = details.gameMode;
+        this.format = details.format ?? SwuGameFormat.Premier;
 
         this.initializeCurrentlyResolving();
 
@@ -385,6 +436,8 @@ export class Game extends EventEmitter {
             actionPhaseActivePlayer: null,
             roundNumber: 0,
             isInitiativeClaimed: false,
+            isPlanCounterClaimed: false,
+            isBlastCounterClaimed: false,
             allCards: [],
             actionNumber: 0,
             winnerNames: [],
@@ -526,15 +579,15 @@ export class Game extends EventEmitter {
     /**
      * Checks if a player is a spectator
      */
-    public isSpectator(player: Player | Spectator): player is Spectator {
-        return player.constructor === Spectator;
+    public isSpectator(player: Player | Spectator | AnonymousSpectator): player is Spectator | AnonymousSpectator {
+        return !this.isPlayer(player);
     }
 
     /**
      * Checks if a player is a player
      */
-    public isPlayer(player: Player | Spectator): player is Player {
-        return !this.isSpectator(player);
+    public isPlayer(player: Player | Spectator | AnonymousSpectator): player is Player {
+        return player.constructor === Player;
     }
 
     /**
@@ -774,7 +827,7 @@ export class Game extends EventEmitter {
         }
 
         player.opponent.actionTimer.stop();
-        this.addAlert(AlertType.Notification, `Game ended due to ${player.name} timing out.`);
+        this.addAlert(AlertType.Notification, 'Game ended due to {0} timing out.', player);
 
         if (player.opponent.actionTimer.totalTimeRemainingSeconds < 3) {
             // Both players nearly timed out - treat as draw, don't forfeit Bo3 set
@@ -815,7 +868,7 @@ export class Game extends EventEmitter {
      * Check to see if a base (or both bases) has been destroyed
      */
     public checkWinCondition(): void {
-        const losingPlayers = this.getPlayers().filter((player) => player.base.damage >= player.base.getHp());
+        const losingPlayers = this.getPlayers().filter((player) => player.base.damage >= player.base.getHp() || player.base.defeated);
         if (losingPlayers.length === 1) {
             this.endGame(losingPlayers[0].opponent, GameEndReason.GameRules);
         } else if (losingPlayers.length === 2) { // draw game
@@ -994,6 +1047,16 @@ export class Game extends EventEmitter {
         } else {
             this.queueStep(new HandlerMenuPrompt(this, player, properties));
         }
+    }
+
+    /**
+     * Prompts a player to resolve or decline a single optional triggered ability, rendering its source
+     * card as the Trigger button.
+     */
+    public promptWithOptionalTrigger(player: Player, properties: IOptionalTriggerPromptProperties): void {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new OptionalTriggerPrompt(this, player, properties));
     }
 
     public promptDisplayCardsWithButtons(player: Player, properties: IDisplayCardsWithButtonsPromptProperties): void {
@@ -1339,14 +1402,13 @@ export class Game extends EventEmitter {
         return this.actionNumber;
     }
 
-    public claimInitiative(player: Player): void {
-        this.initiativePlayer = player;
-        this.isInitiativeClaimed = true;
-        player.passedActionPhase = true;
-        this.createEventAndOpenWindow(EventName.OnClaimInitiative, null, { player }, TriggerHandlingMode.ResolvesTriggers);
-
-        // update game state for the sake of constant abilities that check initiative
-        this.resolveGameState();
+    // TSTODO: update Blast to blast all opponents
+    public claimCounter(player: Player, counterType: ClaimCounterType): void {
+        new ClaimCounterSystem({ counterType }).resolve(
+            player,
+            this.getFrameworkContext(player),
+            TriggerHandlingMode.ResolvesTriggers
+        );
     }
 
     /**
@@ -1367,8 +1429,8 @@ export class Game extends EventEmitter {
     /**
      * Resolves a card ability
      */
-    public resolveAbility(context: AbilityContext, ignoredRequirements: string[] = []): AbilityResolver {
-        const resolver = new AbilityResolver(this, context, false, null, null, ignoredRequirements);
+    public resolveAbility(context: AbilityContext, ignoredRequirements: string[] = [], canCancel?: boolean): AbilityResolver {
+        const resolver = new AbilityResolver(this, context, false, canCancel, null, ignoredRequirements);
         this.queueStep(resolver);
         return resolver;
     }
@@ -1527,14 +1589,14 @@ export class Game extends EventEmitter {
         const checkedCards: Card[] = [];
 
         for (const movedCard of this.state.movedCards.map((id) => this.getFromId(id))) {
-            if (EnumHelpers.isArena(movedCard.zoneName) && movedCard.unique) {
+            if (movedCard.unique && movedCard.canBeInPlay() && movedCard.isInPlay()) {
                 const existingCard = checkedCards.find((otherCard) =>
                     otherCard.title === movedCard.title &&
                     otherCard.subtitle === movedCard.subtitle &&
                     otherCard.controller === movedCard.controller
                 );
 
-                if (!existingCard && movedCard.canBeInPlay()) {
+                if (!existingCard) {
                     checkedCards.push(movedCard);
                     movedCard.checkUnique();
                 }
@@ -1688,6 +1750,7 @@ export class Game extends EventEmitter {
                     clientUIProperties: {},
                     spectators: {},
                     winners: [],
+                    ongoingEffects: [],
                 };
             }
 
@@ -1697,6 +1760,7 @@ export class Game extends EventEmitter {
                     playerState[player.id] = player.getStateSummary(activePlayer);
                 }
 
+                const ongoingEffects = this.ongoingEffectEngine.summarizeOngoingEffectsForState(this.isPlayer(activePlayer) ? activePlayer : null);
                 const allMessages = this.gameChat.messages;
                 const totalMessages = allMessages.length;
                 const newMessages = allMessages.slice(lastMessageOffset);
@@ -1720,9 +1784,10 @@ export class Game extends EventEmitter {
                         };
                     }),
                     started: this.started,
-                    gameMode: this.gameMode,
+                    format: this.format,
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
+                    ongoingEffects,
                 };
 
                 // Advance the offset for this participant

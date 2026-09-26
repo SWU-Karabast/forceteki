@@ -19,6 +19,7 @@ export default class TheTreeRemembers extends EventCard {
                 controller: RelativePlayer.Opponent,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                        title: 'Loses all abilities for this phase',
                         effect: AbilityHelper.ongoingEffects.loseAllAbilities(),
                         ongoingEffectDescription: 'remove all abilities from'
                     }),

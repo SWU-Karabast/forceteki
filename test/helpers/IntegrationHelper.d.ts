@@ -67,8 +67,10 @@ interface SwuTestContext {
     player2: PlayerInteractionWrapper;
     p1Base: IBaseCard;
     p1Leader: ILeaderCard;
+    p1SecondLeader: ILeaderCard | null;
     p2Base: IBaseCard;
     p2Leader: ILeaderCard;
+    p2SecondLeader: ILeaderCard | null;
 
     ignoreUnresolvedActionPhasePrompts: boolean;
     requireResolvedRegroupPhasePrompts: boolean;
@@ -77,6 +79,7 @@ interface SwuTestContext {
     allPlayersInInitiativeOrder(): PlayerInteractionWrapper[];
     getAllNonLeaderCardTitles(): string[];
     getPlayableCardTitles();
+    getTraitNames(): string[];
     getChatLog(numbBack = 0);
     getChatLogs(numbBack = 1, inOrder = false);
     getPromptedPlayer(title: string);
@@ -119,6 +122,9 @@ interface SwuSetupTestOptions extends Omit<ISerializedGameState, 'player1' | 'pl
     testUndo?: boolean;
     enableConfirmationToUndo?: boolean;
 
+    /** Deck/rules format being played. Defaults to Premier. Use 'fauxSuns' for 1v1 Twin Suns. Accepts SwuGameFormat enum values or their string equivalents. */
+    format?: import('../../server/game/core/Constants').SwuGameFormat | string;
+
     [field: string]: any;
 }
 
@@ -160,6 +166,12 @@ declare namespace jasmine {
         toBeCapturedBy(card: any): boolean;
         toBeAttachedTo(card: any): boolean;
         toHaveExactUpgradeNames(upgradeNames: any[]): boolean;
+        toHaveExactOngoingEffects(expectedEffects: (string | { description: string; targets?: Card[] })[]): boolean;
+        toHaveOngoingEffect(expectedEffect: string | { description: string; targets?: Card[] }): boolean;
+        toHaveNoOngoingEffects(): boolean;
+        toHaveExactOngoingEffectsForPlayer(player: PlayerInteractionWrapper, expectedEffects: (string | { description: string; targets?: Card[] })[]): boolean;
+        toHaveOngoingEffectForPlayer(player: PlayerInteractionWrapper, expectedEffect: string | { description: string; targets?: Card[] }): boolean;
+        toHaveNoOngoingEffectsForPlayer(player: PlayerInteractionWrapper): boolean;
         toHaveExactPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, buttons: any[]): boolean;
         toHaveExactDropdownListOptions<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedOptions: any[]): boolean;
         toHaveNumericPromptRange<T extends PlayerInteractionWrapper>(this: Matchers<T>, min: number, max: number): boolean;

@@ -32,7 +32,7 @@ export abstract class CardAbility extends CardAbilityStep {
         this.abilityIdentifier = properties.abilityIdentifier || `${this.card.internalName}_anonymous`;
     }
 
-    private zoneOrDefault(card, zone): ZoneFilter {
+    private zoneOrDefault(card, zone): ZoneFilter | ZoneFilter[] {
         if (zone != null) {
             return zone;
         }
@@ -49,7 +49,11 @@ export abstract class CardAbility extends CardAbilityStep {
         if (card.isBase()) {
             return ZoneName.Base;
         }
-        if (card.isUnit() || card.isUpgrade()) {
+        if (card.isUpgrade()) {
+            // an upgrade is in play either attached to a unit (an arena) or, via Fortify, attached to a base
+            return [WildcardZoneName.AnyArena, ZoneName.Base];
+        }
+        if (card.isUnit()) {
             return WildcardZoneName.AnyArena;
         }
 
@@ -85,7 +89,7 @@ export abstract class CardAbility extends CardAbilityStep {
             return 'cannotInitiate';
         }
 
-        if (!ignoredRequirements.includes('limit') && this.limit.isAtMax(context.player)) {
+        if (!ignoredRequirements.includes('limit') && context.isAtLimit()) {
             return 'limit';
         }
 
@@ -95,6 +99,10 @@ export abstract class CardAbility extends CardAbilityStep {
     public getAdjustedCost(context: AbilityContext) {
         const resourceCost = this.getCosts(context).find((cost) => cost.isResourceCost());
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
+    }
+
+    public resetLimit(): void {
+        this.limit.reset();
     }
 
     protected isInValidZone(context) {

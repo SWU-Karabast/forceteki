@@ -28,5 +28,28 @@ describe('System Shock', function () {
             expect(context.greenSquadronAwing.damage).toBe(1);
             expect(context.greenSquadronAwing).toHaveExactUpgradeNames(['wedge-antilles#leader-of-red-squadron']);
         });
+
+        it('cannot target a Fortify upgrade attached to a base', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['system-shock'],
+                },
+                player2: {
+                    base: { card: 'echo-base', upgrades: ['alliance-shield-generator'] },
+                    spaceArena: [{ card: 'green-squadron-awing', upgrades: ['experience'] }],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.systemShock);
+
+            // The base upgrade is not "attached to a unit" and can't be targeted
+            expect(context.player1).toBeAbleToSelectExactly([context.experience]);
+            context.player1.clickCard(context.experience);
+
+            expect(context.p2Base).toHaveExactUpgradeNames(['alliance-shield-generator']);
+        });
     });
 });

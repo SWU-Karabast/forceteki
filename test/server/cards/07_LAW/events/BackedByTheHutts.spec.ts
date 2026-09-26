@@ -24,7 +24,7 @@ describe('Backed By The Hutts', function() {
                 expect(context.player1.credits).toBe(1);
 
                 // Should prompt to optionally deal damage
-                expect(context.player1).toHavePrompt('Trigger the ability \'Deal damage to a unit equal to the number of friendly Credit tokens\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Deal damage to a unit equal to the number of friendly Credit tokens');
                 expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
 
                 context.player1.clickPrompt('Trigger');

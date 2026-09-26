@@ -54,6 +54,7 @@ import type { IGameStatisticsTrackable } from '../../../gameStatistics/GameStati
 import { registerStateBase, stateRefArray, stateRef, statePrimitive } from '../GameObjectUtils';
 import type { ZoneAbstract } from '../zone/ZoneAbstract';
 import type Advantage from '../../cards/08_ASH/tokens/Advantage';
+import type Weakness from '../../cards/09_HMW/tokens/Weakness';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -110,6 +111,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     protected readonly _aspects: Aspect[] = [];
     protected readonly _backSideAspects: Aspect[];
     protected readonly _backSideTitle?: string;
+    protected readonly _backSideSubtitle?: string;
     protected readonly _internalName: string;
     protected readonly _subtitle?: string;
     protected readonly _title: string;
@@ -201,6 +203,10 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
     public get backSideTitle(): string {
         return this._backSideTitle;
+    }
+
+    public get backSideSubtitle(): string {
+        return this._backSideSubtitle;
     }
 
     @stateRef()
@@ -349,6 +355,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         this._subtitle = cardData.subtitle === '' ? null : cardData.subtitle;
         this._title = cardData.title;
         this._backSideTitle = cardData.backSideTitle;
+        this._backSideSubtitle = cardData.backSideSubtitle === '' ? null : cardData.backSideSubtitle;
         this._unique = cardData.unique;
         this._printedType = Card.buildTypeFromPrinted(cardData.types);
 
@@ -391,24 +398,13 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
      * abilities have a cost in brackets that must be paid in order to use the ability.
      */
     public getActionAbilities(): ActionAbilityBase[] {
-        const deduplicatedActionAbilities: ActionAbilityBase[] = [];
-
-        // Add any gained action abilities, deduplicating by any identical gained action abilities from
-        // the same source card (e.g., two Heroic Resolve actions)
-        const seenCardNameSources = new Set<string>();
-        for (const action of this.actionAbilities) {
-            if (action.printedAbility) {
-                deduplicatedActionAbilities.push(action);
-            } else if (!seenCardNameSources.has(action.gainAbilitySource.internalName)) {
-                deduplicatedActionAbilities.push(action);
-                seenCardNameSources.add(action.gainAbilitySource.internalName);
-            }
+        // Duplicate gained abilities are deduplicated against legal actions in ActionWindow.getCardLegalActions,
+        // after use limits are checked, so a still-usable copy isn't hidden by one that's at its limit.
+        if (this.isBlank()) {
+            return this.actionAbilities.filter((action) => action.isEpicAction);
         }
 
-        const epicActionAbilities = deduplicatedActionAbilities
-            .filter((action) => action.isEpicAction);
-
-        return this.isBlank() ? epicActionAbilities : deduplicatedActionAbilities;
+        return [...this.actionAbilities];
     }
 
     public getPrintedActionAbilities(): ActionAbilityBase[] {
@@ -644,6 +640,10 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         return false;
     }
 
+    public isWeakness(): this is Weakness {
+        return false;
+    }
+
     /** Returns true if the card is of a type that can legally be damaged. Note that the card might still be in a zone where damage is not legal. */
     public canBeDamaged(): this is ICardWithDamageProperty {
         return false;
@@ -722,6 +722,8 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
         keywordInstances = keywordInstances.filter((instance) => !instance.isBlank);
 
+        keywordInstances = KeywordHelpers.applyKeywordReplacements(keywordInstances, this.getOngoingEffectValues(EffectName.ReplaceKeyword), this);
+
         return KeywordHelpers.dedupeKeywords(keywordInstances, this);
     }
 
@@ -745,6 +747,11 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
     /** Optimized check for a single keyword - avoids array allocation from getKeywords() */
     private hasSingleKeyword(keyword: KeywordName): boolean {
+        // the fast path below can't account for keywords being replaced by other keywords, so fall back to the full calculation
+        if (this.hasOngoingEffect(EffectName.ReplaceKeyword)) {
+            return this.getKeywords().some((instance) => instance.name === keyword);
+        }
+
         // Check printed keywords first (fast path)
         const printedKeywords = this.printedKeywords;
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
@@ -812,7 +819,14 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         const traits = this.getPrintedTraits();
 
         for (const gainedTrait of this.getOngoingEffectValues(EffectName.GainTrait)) {
-            traits.add(gainedTrait);
+            // gainTrait provides a single Trait; gainTraits (dynamic) provides an array of Traits
+            if (Array.isArray(gainedTrait)) {
+                for (const trait of gainedTrait) {
+                    traits.add(trait);
+                }
+            } else {
+                traits.add(gainedTrait);
+            }
         }
         for (const lostTrait of this.getOngoingEffectValues(EffectName.LoseTrait)) {
             traits.delete(lostTrait);
@@ -987,11 +1001,13 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     protected removeFromCurrentZone() {
         if (this.zone.name === ZoneName.Base) {
             if (this.isLeader()) {
-                this.zone.removeLeader();
+                this.zone.removeLeader(this);
             } else if (this.isForceToken()) {
                 this.zone.removeForceToken();
             } else if (this.isCreditToken()) {
                 this.zone.removeCreditToken(this);
+            } else if (this.isUpgrade()) {
+                this.zone.removeUpgrade(this);
             } else {
                 Contract.fail(`Attempting to move card ${this.internalName} from ${this.zone}`);
             }
@@ -1042,8 +1058,10 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                     this.zone.setForceToken(this);
                 } else if (this.isCreditToken()) {
                     this.zone.addCreditToken(this);
+                } else if (this.isUpgrade()) {
+                    this.zone.addUpgrade(this);
                 } else {
-                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader, force token, or credit token`);
+                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader, force token, credit token, or upgrade`);
                 }
 
                 break;
@@ -1119,9 +1137,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     protected updateActionAbilitiesForZoneInternal(actionAbilities: ActionAbilityBase[], from: ZoneName, to: ZoneName) {
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const action of actionAbilities) {
-                if (action.limit) {
-                    action.limit.reset();
-                }
+                action.resetLimit();
             }
         }
     }
@@ -1131,12 +1147,9 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     }
 
     protected updateTriggeredAbilityEventsInternal(triggeredAbilities: TriggeredAbilityBase[], from: ZoneName, to: ZoneName) {
-        // STATE TODO: Gonna be a little hard to track, but also not a big blocker.
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const triggeredAbility of triggeredAbilities) {
-                if (triggeredAbility.limit) {
-                    triggeredAbility.limit.reset();
-                }
+                triggeredAbility.resetLimitForNewZone();
             }
         }
 
@@ -1338,7 +1351,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                 return false;
             }
         }
-        return false;
+        return true;
     }
 
     private asSetOrArray<T>(valueOrValuesToCheck: T | Set<T> | T[]): Set<T> | T[] {
@@ -1412,7 +1425,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                 ownerId: this.owner.id,
                 aspects: this.aspects,
                 zone: this.zoneName,
-                name: this.cardData.title,
+                name: this.title,
                 power: this.cardData.power,
                 hp: this.cardData.hp,
                 unimplemented: !this.isImplemented || undefined,    // don't bother sending "unimplemented: false" to the client

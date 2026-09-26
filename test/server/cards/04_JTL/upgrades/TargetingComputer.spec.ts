@@ -59,5 +59,28 @@ describe('Targeting Computer', function () {
             expect(context.p2Base.damage).toBe(2);
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('should give the attached unit a gained constant ability for units like Rex that count abilities', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['targeting-computer'],
+                    groundArena: ['rex#outserved-his-purpose', 'battlefield-marine']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Vanilla 3/3 Battlefield Marine has no abilities, so Rex buffs it to 4/4.
+            expect(context.battlefieldMarine.getPower()).toBe(4);
+            expect(context.battlefieldMarine.getHp()).toBe(4);
+
+            context.player1.clickCard(context.targetingComputer);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            // Loses +1/+1 from Rex's ability, gains +1/+1 from Targeting Computer upgrade stats
+            expect(context.battlefieldMarine.getPower()).toBe(4);
+            expect(context.battlefieldMarine.getHp()).toBe(4);
+        });
     });
 });

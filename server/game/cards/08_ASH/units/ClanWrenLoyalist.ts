@@ -13,10 +13,10 @@ export default class ClanWrenLoyalist extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Search the top 5 cards of your deck for a unit that shares a trait with a friendly unit, reveal it, and draw it',
+            title: 'Search the top 5 cards of your deck for a card that shares a trait with a friendly unit, reveal it, and draw it',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,
-                cardCondition: (card, context) => card.isUnit() && context.player.isTraitInPlay([...card.traits]),
+                cardCondition: (card, context) => context.player.isTraitInPlay([...card.traits]),
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.revealAndDraw({
                     useDisplayPrompt: true,
                     promptedPlayer: RelativePlayer.Opponent

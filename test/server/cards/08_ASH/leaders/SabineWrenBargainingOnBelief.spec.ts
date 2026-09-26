@@ -21,7 +21,7 @@ describe('Sabine Wren, Bargaining On Belief', function() {
                 context.player1.clickPrompt('An opponent gives 2 Advantage tokens to a unit they control. If they do, the next unit you play this phase gains Shielded for this phase');
 
                 expect(context.player1).toHavePrompt('Waiting for opponent to select a unit for Sabine Wren\'s ability');
-                expect(context.player2).toHavePrompt('Choose a unit to give 2 Advantage tokens. The next unit your opponent plays this phase gains Shielded for this phase');
+                expect(context.player2).toHavePrompt('Give 2 Advantage tokens to a unit. The next unit your opponent plays this phase gains Shielded for this phase');
 
                 expect(context.player2).toBeAbleToSelectExactly([context.atst, context.awing]);
                 expect(context.player2).not.toHavePassAbilityButton();

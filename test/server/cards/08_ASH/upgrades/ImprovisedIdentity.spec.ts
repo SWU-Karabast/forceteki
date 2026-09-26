@@ -328,6 +328,40 @@ describe('Improvised Identity', function() {
                     context.player1.clickPrompt('Take nothing');
                     context.player1.clickPrompt('Pass attack');
                 });
+
+                it('should allow the action to be used twice when two copies are attached (each copy has its own limit)', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            groundArena: [{ card: 'wampa', upgrades: ['improvised-identity', 'improvised-identity'] }],
+                            deck: ['battlefield-marine', 'pyke-sentinel', 'takedown', 'cartel-spacer', 'atst']
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    // First copy's use
+                    context.player1.clickCard(context.wampa);
+                    context.player1.clickPrompt(abilityTitle);
+                    context.player1.clickPrompt('Take nothing');
+                    context.player1.clickPrompt('Pass attack');
+
+                    context.player2.passAction();
+
+                    // Second copy still has its own once-per-round use available
+                    context.player1.clickCard(context.wampa);
+                    expect(context.player1).toHaveEnabledPromptButton(abilityTitle);
+                    context.player1.clickPrompt(abilityTitle);
+                    context.player1.clickPrompt('Take nothing');
+                    context.player1.clickPrompt('Pass attack');
+
+                    context.player2.passAction();
+
+                    // Both copies are now exhausted for the round — only the default attack remains
+                    context.player1.clickCard(context.wampa);
+                    expect(context.player1).not.toHaveEnabledPromptButton(abilityTitle);
+                    context.player1.clickPrompt('Cancel');
+                });
             });
 
             it('should still allow the search/discard step when the attached unit is exhausted', async function() {

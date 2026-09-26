@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { TokenUnitName } from '../core/Constants';
 import { EffectName, EntryType, EventName } from '../core/Constants';
+import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
@@ -8,6 +9,7 @@ import { ChatHelpers } from '../core/chat/ChatHelpers';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
 import { Helpers } from '../core/utils/Helpers';
 import type { FormatMessage } from '../core/chat/GameChat';
+import { EnumHelpers } from '../core/utils/EnumHelpers';
 
 export interface ICreateTokenUnitRequiredProperties {
     amount: number;
@@ -15,12 +17,17 @@ export interface ICreateTokenUnitRequiredProperties {
 }
 
 export interface ICreateTokenUnitProperties extends IPlayerTargetSystemProperties, Partial<ICreateTokenUnitRequiredProperties> {
+    tokenType: TokenUnitName;
+
+    /** Effect(s) resolved as each created token enters play. See {@link IPutIntoPlayProperties.enterPlayEffect}. */
+    enterPlayEffect?: GameSystem | GameSystem[];
 }
 
-/** Base class for managing the logic for creating token units and putting them into play */
-export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ICreateTokenUnitProperties> {
+/** Handles the logic for creating token units and putting them into play. The specific token is set via `tokenType` (see the create* factory methods in GameSystemLibrary). */
+export class CreateTokenUnitSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ICreateTokenUnitProperties> {
+    public override readonly name = 'createTokenUnit';
     public override readonly eventName = EventName.OnTokensCreated;
-    protected override readonly defaultProperties: ICreateTokenUnitProperties = {
+    protected override readonly defaultProperties: Omit<ICreateTokenUnitProperties, 'tokenType'> = {
         amount: 1,
         entersReady: false
     };
@@ -32,8 +39,8 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         const players = Helpers.asArray(properties.target);
-        const tokenTitle = context.game.cardDataGetter.tokenData[this.getTokenType()]?.title ?? this.getTokenType();
-        const indefiniteArticle = this.getTokenType() === TokenUnitName.XWing ? 'an' : 'a';
+        const tokenTitle = EnumHelpers.tokenTitle[properties.tokenType];
+        const indefiniteArticle = properties.tokenType === TokenUnitName.XWing ? 'an' : 'a';
 
         const effectMessage = (player: Player): FormatMessage => {
             const targetIsSelf = player === context.player;
@@ -55,8 +62,6 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
         return [ChatHelpers.formatWithLength(players.length, 'to '), players.map((player) => effectMessage(player))];
     }
 
-    protected abstract getTokenType(): TokenUnitName;
-
     protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<ICreateTokenUnitProperties>): void {
         super.updateEvent(event, player, context, additionalProperties);
 
@@ -66,7 +71,7 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
         // it's fine if this event ends up being cancelled, unused tokens are cleaned up at the end of every round
         event.generatedTokens = [];
         for (let i = 0; i < properties.amount; i++) {
-            event.generatedTokens.push(context.game.generateToken(player, this.getTokenType()));
+            event.generatedTokens.push(context.game.generateToken(player, properties.tokenType));
         }
 
         // add contingent events for putting the generated unit token(s) into play
@@ -79,6 +84,7 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
                     target: token,
                     entersReady: event.entersReady || player.hasOngoingEffect(EffectName.TokenUnitsEnterPlayReady),
                     entryType: EntryType.Created,
+                    enterPlayEffect: event.enterPlayEffect,
                 }).generateEvent(event.context);
 
                 putIntoPlayEvent.order = event.order + 1;
@@ -100,7 +106,8 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         event.amount = properties.amount;
-        event.tokenType = this.getTokenType();
+        event.tokenType = properties.tokenType;
         event.entersReady = properties.entersReady;
+        event.enterPlayEffect = properties.enterPlayEffect;
     }
 }

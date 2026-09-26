@@ -11,6 +11,14 @@ interface ILastingEffectPropertiesAnyDuration extends IGameSystemProperties {
     effect?: IOngoingEffectGenerator | IOngoingEffectGenerator[];
     ongoingEffectDescription?: string;
     ongoingEffectTargetDescription?: string;
+
+    /**
+     * Optional standalone description of this lasting effect. Set this when the creating ability's own
+     * title isn't specific enough — e.g. the effect is built inside a `Select`/`choices` handler or modal
+     * option, or when the ability title describes multiple effects. This property will get priority for in
+     * the ongoing effect summary.
+     */
+    title?: string;
 }
 
 interface ILastingEffectPropertiesSetDuration extends ILastingEffectPropertiesAnyDuration {

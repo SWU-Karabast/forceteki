@@ -6,8 +6,8 @@ import { AbilityType } from '../../Constants';
 import type { Game } from '../../Game';
 import type { IGameObjectBaseState } from '../../GameObjectBase';
 import { Contract } from '../../utils/Contract';
-import { TextHelper } from '../../utils/TextHelper';
 import { OngoingEffectValueWrapperBase } from './OngoingEffectValueWrapper';
+import { describeGainedAbility, gainedAbilityTriggerLabel } from './GainAbilityDescription';
 import { registerState, stateRef, stateValue, statePrimitive, type GameObjectId } from '../../GameObjectUtils';
 
 export interface IGainAbilityState extends IGameObjectBaseState {
@@ -36,24 +36,10 @@ export class GainAbility extends OngoingEffectValueWrapperBase<IAbilityPropsWith
     }
 
     private static abilityDescription?(props: IAbilityPropsWithType): string {
-        if (props.type === AbilityType.Triggered && 'when' in props) {
-            const triggers: string[] = [];
-            if (props.when.whenPlayed) {
-                triggers.push('When Played');
-            }
-            if (props.when.whenPlayedUsingSmuggle) {
-                triggers.push(`When Played using ${TextHelper.Smuggle}`);
-            }
-            if (props.when.onAttack) {
-                triggers.push('On Attack');
-            }
-            if (props.when.whenDefeated) {
-                triggers.push('When Defeated');
-            }
-            if (triggers.length === 0) {
-                return undefined;
-            }
-            return `“${triggers.join('/')}: ${props.title}”`;
+        // Only triggered abilities with a recognized trigger produce a fallback description here;
+        // the quoted "Trigger: title" text is shared with the attached-unit effect titles.
+        if (props.type === AbilityType.Triggered && gainedAbilityTriggerLabel(props)) {
+            return `“${describeGainedAbility(props)}”`;
         }
         return undefined;
     }

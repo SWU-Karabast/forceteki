@@ -17,7 +17,7 @@ const LEADER = 'luke-skywalker#faithful-friend'; // SOR — legal in Open
 const BASE = 'kestro-city';                      // SOR — legal in Open
 
 // Cards on the Eternal ban list, used to confirm Open enforces no ban list of its own.
-const ETERNAL_BANNED_CARDS = [...formatRules.get(SwuGameFormat.Eternal).bannedCards.values()];
+const ETERNAL_BANNED_CARDS = [...formatRules.get(SwuGameFormat.Eternal).bannedCards.values()].map((b) => b.name);
 
 describe('Open deck validation', function () {
     let validator: DeckValidator;

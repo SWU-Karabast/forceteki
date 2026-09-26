@@ -21,6 +21,7 @@ export default class DeathStarPlans extends UpgradeCard {
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addTriggeredAbility({
+            // eslint-disable-next-line forceteki/no-raw-token-text
             title: 'Take control of Death Star Plans and attach it to a unit you control',
             canBeTriggeredBy: RelativePlayer.Opponent,
             when: {

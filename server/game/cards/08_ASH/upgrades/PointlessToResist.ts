@@ -13,7 +13,7 @@ export default class PointlessToResist extends UpgradeCard {
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbilityTargetingAttached({
             title: 'Attached unit gets -3/-0 while attacking a base',
-            condition: (context) => context.source.parentCard.isAttacking() && context.source.parentCard.activeAttack?.getAllTargets().some((target) => target.isBase()),
+            condition: (context) => context.source.parentUnit.isAttacking() && context.source.parentUnit.activeAttack?.getAllTargets().some((target) => target.isBase()),
             ongoingEffect: abilityHelper.ongoingEffects.modifyStats({ power: -3, hp: 0 })
         });
     }

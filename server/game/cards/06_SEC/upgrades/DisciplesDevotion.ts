@@ -15,7 +15,7 @@ export default class DisciplesDevotion extends UpgradeCard {
     public override setupCardAbilities (registrar: IUpgradeAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbilityTargetingAttached({
             title: `While attached unit is exhausted, it gains ${TextHelper.Sentinel}`,
-            condition: (context) => context.source.parentCard.exhausted,
+            condition: (context) => context.source.parentUnit.exhausted,
             ongoingEffect: abilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });
     }

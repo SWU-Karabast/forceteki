@@ -27,6 +27,7 @@ export class EventWindow extends BaseStepWithPipeline {
     private subwindowEvents: any[] = [];
     private subAbilityStepFn?: () => AbilityContext = null;
     private windowDepth?: number = null;
+    private postEventResolutionCallbacks: (() => void)[] = [];
 
     public get events() {
         return this._events;
@@ -85,6 +86,18 @@ export class EventWindow extends BaseStepWithPipeline {
         ]);
     }
 
+    public override continue() {
+        const complete = super.continue();
+
+        // A pause for player input breaks an automatic loop. Count only the
+        // uninterrupted nesting depth so voluntary repeated combos can continue.
+        if (!complete) {
+            this.windowDepth = 0;
+        }
+
+        return complete;
+    }
+
     public addEvent(event) {
         event.setWindow(this);
         this._events.push(event);
@@ -115,6 +128,17 @@ export class EventWindow extends BaseStepWithPipeline {
      */
     public addSubwindowEvents(events) {
         this.subwindowEvents = this.subwindowEvents.concat(events);
+    }
+
+    /**
+     * Registers a callback to be invoked after every event in this window has finished resolving,
+     * but before {@link resolveGameState} runs. Used to defer work that needs to happen "after the
+     * simultaneous batch" — for example, defeat checks triggered by damage. Deferring lets all
+     * simultaneous events in the same window (such as an HP-buffing upgrade attaching) apply their
+     * effects before the defeat decision is locked in.
+     */
+    public addPostEventResolutionCallback(callback: () => void) {
+        this.postEventResolutionCallbacks.push(callback);
     }
 
     /** Set parent event window and initialize triggering window based on configured rules and parent window settings (if relevant) */
@@ -209,6 +233,15 @@ export class EventWindow extends BaseStepWithPipeline {
 
                 this.resolvedEvents.push(event);
             }
+        }
+
+        // Run any callbacks deferred from event handlers (e.g. damage-driven defeat checks).
+        // These run after every event in this window has resolved so they see the unit's final
+        // HP, damage, and upgrade state for the batch — preserving simultaneous-resolution semantics.
+        const callbacks = this.postEventResolutionCallbacks;
+        this.postEventResolutionCallbacks = [];
+        for (const callback of callbacks) {
+            callback();
         }
     }
 

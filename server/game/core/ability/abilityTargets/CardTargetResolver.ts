@@ -99,6 +99,24 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return this.selector.hasEnoughTargets(context);
     }
 
+    /**
+     * True when this resolver reveals cards from a zone hidden from the opponent but the choosing player has no card
+     * that can be revealed. Used to decide when a triggered reveal ability should show a masking pause instead of
+     * silently passing, which would leak that the player's hidden cards can't satisfy the reveal (see
+     * {@link PlayerOrCardAbility.getRevealMaskingPlayer}). Only considers this resolver's own reveal effect, so it
+     * does not interfere with reveals nested inside other systems (e.g. the SelectCardSystem used by disclose).
+     */
+    public override isMissingRevealTargetForMasking(context: AbilityContext): boolean {
+        return this.immediateEffect?.isReveal() === true &&
+          !this.selector.hasEnoughTargets(context) &&
+          this.isChoosingFromHidden([], context);
+    }
+
+    /** True if this resolver permits selecting zero cards */
+    public get allowsChoosingNoCards(): boolean {
+        return this.selector.optional;
+    }
+
     public getAllLegalTargets(context: AbilityContext): Card[] {
         return this.selector.getAllLegalTargets(context);
     }
@@ -266,8 +284,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     private promptForSingleOptionalTarget(player: Player, context: AbilityContext, target: Card) {
-        const effectName = this.properties.activePromptTitle ? this.properties.activePromptTitle : context.ability.getTitle(context);
-
+        const effectName = super.buildConcreteActivePromptTitle(context) ?? context.ability?.getTitle(context);
         const activePromptTitle = `Trigger the effect '${effectName}' on target '${target.title}' or pass${this.selector.appendToDefaultTitle ? ' ' + this.selector.appendToDefaultTitle : ''}`;
 
         context.game.promptWithHandlerMenu(player, {
@@ -275,8 +292,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             choices: [`${effectName} -> ${target.title}`, 'Pass'],
             handlers: [
                 () => this.setTargetResult(context, target),
-                // finalize the resolution with no target so the resolver doesn't re-prompt (mirrors the "choose nothing" path)
-                () => this.setTargetResult(context, null)
+                // matches the "Choose nothing" behavior of the standard multi-card prompt
+                () => this.setTargetResult(context, [])
             ]
         });
     }

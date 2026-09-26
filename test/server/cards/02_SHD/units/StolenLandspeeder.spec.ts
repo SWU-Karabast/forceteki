@@ -46,6 +46,43 @@ describe('Stolen Landspeeder', function () {
             expect(context.stolenLandspeeder).toBeInZone('discard', context.player1);
         });
 
+        it('Stolen Landspeeder replayed via its bounty should survive Supreme Leader Snoke because the Experience token is given as it enters play', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['stolen-landspeeder'],
+                    groundArena: ['super-battle-droid'],
+                },
+                player2: {
+                    hand: ['supreme-leader-snoke#shadow-ruler']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Player 1 plays Stolen Landspeeder from hand and player 2 takes control of it
+            context.player1.clickCard(context.stolenLandspeeder);
+            expect(context.stolenLandspeeder).toBeInZone('groundArena', context.player2);
+
+            // Player 2 plays Snoke, giving Player 1's units -2/-2 (Snoke's own controller's Landspeeder is unaffected)
+            context.player2.clickCard(context.supremeLeaderSnokeShadowRuler);
+
+            // Player 1 defeats the enemy-controlled Stolen Landspeeder to collect the bounty
+            context.player1.clickCard(context.superBattleDroid);
+            context.player1.clickCard(context.stolenLandspeeder);
+
+            expect(context.player1).toHavePassAbilityPrompt(bountyPrompt);
+            context.player1.clickPrompt('Trigger');
+
+            // Stolen Landspeeder (3/2) + Experience is 4/3; re-entering under Snoke's -2/-2 it survives at 2/1.
+            expect(context.stolenLandspeeder).toBeInZone('groundArena', context.player1);
+            expect(context.stolenLandspeeder).toHaveExactUpgradeNames(['experience']);
+            expect(context.player2).toBeActivePlayer();
+
+            // the enter-play effect from the bounty replay is logged crediting Stolen Landspeeder itself
+            expect(context.getChatLogs(5)).toContain('player1 uses Stolen Landspeeder to give an Experience token to Stolen Landspeeder');
+        });
+
         it('Stolen Landspeeder\'s ability should not allow opponent to take control of it when played from out of hand', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

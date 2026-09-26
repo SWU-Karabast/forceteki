@@ -1,15 +1,8 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { Aspect, PlayType, WildcardCardType } from '../../../core/Constants';
-import { PlayEventActionBase } from '../../../actions/PlayEventAction';
-import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
-import { CostAdjustType } from '../../../core/cost/CostAdjuster';
-import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
-import * as CostAdjusterFactory from '../../../core/cost/CostAdjusterFactory';
+import { Aspect, WildcardCardType } from '../../../core/Constants';
 import { TextHelper } from '../../../core/utils/TextHelper';
-
-import { registerState } from '../../../core/GameObjectUtils';
 
 export default class Bamboozle extends EventCard {
     protected override getImplementationId() {
@@ -17,21 +10,6 @@ export default class Bamboozle extends EventCard {
             id: '9644107128',
             internalName: 'bamboozle',
         };
-    }
-
-    protected override buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null) {
-        const playActions = super.buildPlayCardActions(playType, propertyOverrides);
-
-        // TODO: Probably try to find a more generic way to handle this sort of thing
-        if (this.isBlankOutOfPlay()) {
-            return playActions;
-        }
-
-        const bamboozleAction = playType === PlayType.Smuggle || playType === PlayType.Piloting
-            ? []
-            : [this.game.gameObjectManager.createWithoutRefsUnsafe(() => new PlayBamboozleAction(this, { playType }, this.game.abilityHelper))];
-
-        return playActions.concat(bamboozleAction);
     }
 
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -48,37 +26,12 @@ export default class Bamboozle extends EventCard {
                 ])
             }
         });
-    }
-}
 
-@registerState()
-class PlayBamboozleAction extends PlayEventActionBase {
-    private abilityHelper: IAbilityHelper;
-
-    private static generateProperties(card: Bamboozle, properties: IPlayCardActionProperties, AbilityHelper: IAbilityHelper) {
-        const discardCost = AbilityHelper.costs.discardCardFromOwnHand({ cardCondition: (c) => c !== card && c.hasSomeAspect(Aspect.Cunning) });
-
-        return {
+        registrar.addAlternatePlayCost({
             title: `Play Bamboozle by discarding a ${TextHelper.Cunning} card`,
-            costAdjusters: [CostAdjusterFactory.create(card.game, card, { costAdjustType: CostAdjustType.Free })],
-            additionalCosts: [discardCost],
-            ...properties,
-        };
-    }
-
-    public constructor(card: Bamboozle, properties: IPlayCardActionProperties, AbilityHelper: IAbilityHelper) {
-        super(card.game, card, PlayBamboozleAction.generateProperties(card, properties, AbilityHelper));
-        this.abilityHelper = AbilityHelper;
-    }
-
-    public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
-        return new PlayBamboozleAction(
-            this.card as Bamboozle,
-            PlayBamboozleAction.generateProperties(this.card as Bamboozle,
-                {
-                    ...this.createdWithProperties,
-                    ...overrideProperties
-                }, this.abilityHelper)
-            , this.abilityHelper);
+            cost: AbilityHelper.costs.discardCardFromOwnHand({
+                cardCondition: (card, context) => card !== context.source && card.hasSomeAspect(Aspect.Cunning)
+            })
+        });
     }
 }

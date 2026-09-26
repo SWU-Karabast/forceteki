@@ -10,6 +10,9 @@ import type { MsgArg } from '../core/chat/GameChat';
 export interface IPlayModalCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     amountOfChoices: number;
     choices: IChoicesInterface | ((context: TContext) => IChoicesInterface);
+
+    /** If true, the player may select the same option more than once. Defaults to false. */
+    canChooseSameOptionMoreThanOnce?: boolean;
 }
 
 export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IPlayModalCardProperties> {
@@ -55,7 +58,8 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
                     context,
                     amountOfRemainingChoices,
                     listOfAvailableEffects,
-                    choiceHandler
+                    choiceHandler,
+                    !!properties.canChooseSameOptionMoreThanOnce
                 ))
             });
         };
@@ -71,6 +75,7 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
         amountOfRemainingChoices: number,
         listOfAvailableEffects: IChoicesInterface,
         choiceHandler: (player: Player, choices: IChoicesInterface, amountOfChoices: number) => void,
+        canChooseSameOptionMoreThanOnce: boolean,
     ) {
         // Add generate event to perform the gameSystem selected
         context.game.queueSimpleStep(() => {
@@ -89,9 +94,14 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
             }, `open event window for playModalCard system ${selectedSystem.name}`);
         }, `check and add events for playModalCard system ${selectedSystem.name}`);
 
-        // remove the selected choice from the list
-        const { [selectedPrompt]: removedKey, ...reducedListOfAvailableEffects } = listOfAvailableEffects;
-        choiceHandler(context.player, reducedListOfAvailableEffects, (amountOfRemainingChoices - 1));
+        // remove the selected choice from the list, unless the player is allowed to choose the same option again
+        const nextListOfAvailableEffects = canChooseSameOptionMoreThanOnce
+            ? listOfAvailableEffects
+            : (() => {
+                const { [selectedPrompt]: _removedKey, ...reducedListOfAvailableEffects } = listOfAvailableEffects;
+                return reducedListOfAvailableEffects;
+            })();
+        choiceHandler(context.player, nextListOfAvailableEffects, (amountOfRemainingChoices - 1));
     }
 
     private addOnSelectEffectMessage(
