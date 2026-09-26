@@ -306,8 +306,7 @@ export = {
         exhaustUnitsInsteadOfResources({ ...properties, costAdjustType: CostAdjustType.ExhaustUnits }),
     canLookAtTopOfDeck: (player: RelativePlayerFilter = RelativePlayer.Self) => OngoingEffectBuilder.player.static(EffectName.ShowTopCard, player),
     doubleDeckSearchCount: () => OngoingEffectBuilder.player.static(EffectName.DoubleDeckSearchCount, true),
-    // modifyCardsDrawnInDrawPhase: (amount) =>
-    //     OngoingEffectBuilder.player.flexible(EffectName.ModifyCardsDrawnInDrawPhase, amount),
+    drawAdditionalCardsInRegroup: (amount: number) => OngoingEffectBuilder.player.static(EffectName.DrawAdditionalCardsInRegroup, amount),
     // playerCannot: (properties) =>
     //     OngoingEffectBuilder.player.static(
     //         EffectName.AbilityRestrictions,

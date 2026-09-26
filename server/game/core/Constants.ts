@@ -116,6 +116,7 @@ export enum EffectName {
     DoesNotReady = 'doesNotReady',
     DamageDealtByThisCardIsUnpreventable = 'damageDealtByThisCardIsUnpreventable',
     DealsCombatDamageFirst = 'dealsCombatDamageFirst',
+    DrawAdditionalCardsInRegroup = 'drawAdditionalCardsInRegroup',
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
