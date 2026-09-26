@@ -8,7 +8,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class TyYorrickMonsterHunter extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'ty-yorrick#monster-hunter-id',
+            id: '1425091321',
             internalName: 'ty-yorrick#monster-hunter',
         };
     }
@@ -25,13 +25,13 @@ export default class TyYorrickMonsterHunter extends NonLeaderUnitCard {
         });
 
         registrar.addDamageModificationAbility({
-            title: 'If a friendly ability would deal damage, you may have that ability deal that much damage plus 1 instead',
+            title: 'Increase damage by 1',
             modificationType: DamageModificationType.Increase,
             amount: 1,
             optional: true,
             damageOfType: DamageSourceType.Ability,
             onlyFromPlayer: RelativePlayer.Self,
-            shouldCardHaveDamageModification: () => true,
+            applyAtAbilityInitiation: true,
         });
     }
 }
