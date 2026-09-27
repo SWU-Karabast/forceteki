@@ -113,8 +113,8 @@ describe('GameServer anonymous user restrictions', function () {
                 .post('/api/spectate-game')
                 .send({ gameId: 'some-lobby', user: harness.anonymousUser() });
 
-            // the lobby does not exist, so this gets past the anonymous check and fails on lookup instead
-            expect(response.status).not.toBe(401);
+            // past the anonymous check, so it fails on the lobby lookup instead
+            expect(response.status).toBe(404);
         });
     });
 });

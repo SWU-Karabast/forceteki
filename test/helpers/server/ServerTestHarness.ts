@@ -106,6 +106,10 @@ export class ServerTestHarness {
 
         this.hasShutDown = true;
         await this.server.shutdownAsync();
+
+        // structural rather than remembered: a spec that never calls this would otherwise pass while
+        // background work was failing on every tick
+        this.assertNoScheduledErrors();
     }
 
     /**

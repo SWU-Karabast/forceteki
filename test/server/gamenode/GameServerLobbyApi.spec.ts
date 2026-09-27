@@ -5,9 +5,9 @@ import { ServerTestHarness } from '../../helpers/server/ServerTestHarness';
  * Phase 0 vertical slice for the gamenode test suite.
  *
  * These specs prove the foundation the rest of the suite is built on: a `GameServer` can be stood up
- * in-process without binding a port or starting background tasks, its API can be driven over HTTP,
- * and it can be torn down cleanly. The assertions deliberately stay on observable API behaviour
- * rather than the server's internal maps.
+ * in-process on a port it owns, without needing AWS credentials or the deployed card data, its API
+ * can be driven over HTTP, and it can be torn down cleanly. The assertions deliberately stay on
+ * observable API behaviour rather than the server's internal maps.
  */
 describe('GameServer lobby API', function () {
     let harness: ServerTestHarness;

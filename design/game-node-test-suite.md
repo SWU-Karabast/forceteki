@@ -109,6 +109,38 @@ cannot take the node down, but a test that swallowed silently would report a fal
 **Gates:** `test-parallel` 8698/0 · `test-parallel-undo` 8520/0 · `validate-cards` · `eslint`.
 Branch diff: 23 files, +1671 / −136; production footprint ~330 lines across 9 files.
 
+### Pre-PR review — fixes applied ✅
+
+A design review of the branch found three blocking defects in the scheduler, all confirmed
+empirically and since fixed:
+
+1. **The error guard did not cover async callbacks.** `runGuarded` was a synchronous `try/catch`, but
+   `Lobby.quickLobbyCountdownAsync` and `GameServer.matchmakeAllQueuesAsync` are async and their
+   promises were discarded. A rejection from either became an unhandled rejection — which terminates
+   the process on Node 22, the exact failure the guard exists to prevent. There is no
+   `unhandledRejection` handler anywhere in the repo. Reproduced by crashing a probe process.
+   `ScheduledCallback` now returns `unknown` and both implementations attach a rejection handler.
+
+2. **`TestScheduler.advanceAsync` hung forever on a non-positive interval.** A repeating entry with
+   `intervalMs <= 0` never advanced past its own due time. Worse, the loop only awaited microtasks,
+   so jasmine's spec timeout could never fire — CI would hang with no diagnostic. Delays are now
+   clamped to 1ms (matching Node) and a task cap turns a runaway loop into a clear failure.
+
+3. **`advanceAsync` only flushed microtasks.** Anything awaiting a macrotask (`setImmediate`, I/O, a
+   socket.io ack) was still pending when the advance returned. Harmless today, but every Phase 4
+   scenario runs through `startGameAsync`; specs would have observed stale state and the natural
+   workaround is the ad-hoc `setTimeout(0)` sprinkling this harness exists to eliminate. Renamed to
+   `settlePendingWorkAsync` and now yields to the macrotask queue.
+
+Also addressed: `assertNoScheduledErrors()` now runs from `shutdownAsync()` so it is structural
+rather than opt-in; the card suite uses a `NoopScheduler` to preserve its previous
+"a live timer is impossible" invariant; `RealScheduler` gained direct test coverage (it had none,
+despite being the production safety claim); and two inaccurate spec assertions were tightened.
+
+Known and accepted: `ServerTestEnv` sets `ENVIRONMENT=development` for the whole suite, which in CI
+was previously unset. This enables some dev-only engine validation that was already active locally —
+call it out in the PR description.
+
 ## Remaining work
 
 ### Phase 2 — fake transport and test client
@@ -186,6 +218,20 @@ Behaviours found while building the suite, characterised in tests but **not fixe
    `JSON.stringify`-based and therefore property-order sensitive.
 
 4. **`this[command]` dispatch** (see Phase 3) — arbitrary method invocation by any connected client.
+
+5. **Timers that nothing can cancel.** The disconnect-grace timeout (`GameServer.onSocketDisconnected`)
+   and the requeue-after-disconnect timeout (`Lobby.handleMatchmakingDisconnect`) discard their
+   `IScheduledTask`, and `Lobby.cleanLobby()` does not stop a running game's `GameActionTimer`s. So
+   `shutdownAsync()` leaks one timer per disconnected socket and per cleaned lobby with a live game.
+   Harmless in production (the node does not shut down) but the `'cancels every scheduled task on
+   shutdown'` spec will start failing once Phase 2 introduces real disconnects — which is the correct
+   outcome, and the fix belongs with that work.
+
+6. **Three scheduled callbacks still swallow their own errors** (`cleanupInvalidTokens`,
+   `QueueHandler.cleanupPreviousMatchEntries`, `QueueHandler.sendHeartbeat`), so the scheduler's guard
+   — and therefore `assertNoScheduledErrors()` — cannot see them. These are defensive at the method
+   level and reachable from non-timer callers, so removing the inner catches is a behaviour change
+   rather than a simplification; revisit when those paths get direct coverage.
 
 ## Future test suites
 
