@@ -35,6 +35,8 @@ import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 import { ModerationType } from '../services/DynamoDBInterfaces';
 import type { ISerializedMessage } from '../game/Interfaces';
+import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
+import type { IGameNodeConfig } from './GameNodeConfig';
 import { PlayerReportType, ReportType } from '../game/Interfaces';
 import type { IStatsMessageFormat } from '../utils/stats/statsMessages';
 import {
@@ -142,10 +144,12 @@ export class Lobby {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly server: GameServer;
-    private readonly lobbyCreateTime: Date = new Date();
+    private readonly lobbyCreateTime: Date;
     private readonly swuStatsEnabled: boolean = true;
     private readonly swuBaseEnabled: boolean = true;
     private readonly discordDispatcher: DiscordDispatcher;
+    private readonly scheduler: IScheduler;
+    private readonly config: IGameNodeConfig;
     private readonly previousAuthenticatedStatusByUser = new Map<string, boolean>();
     public readonly cardPool: CardPool;
 
@@ -163,14 +167,14 @@ export class Lobby {
     private rematchRequest?: RematchRequest = null;
     private userLastActivity = new Map<string, Date>();
     private matchingCountdownText?: string;
-    private matchingCountdownTimeoutHandle?: NodeJS.Timeout;
+    private matchingCountdownTask?: IScheduledTask;
     private usersLeftCount = 0;
     private gameMessageErrorCount = 0;
     private statsUpdateStatus = new Map<string, Map<StatsSource, IStatsMessageFormat>>();
 
     private winHistory: IGameWinHistory;
     private bo3NextGameConfirmedBy?: Set<string>;
-    private bo3TransitionTimer?: NodeJS.Timeout;
+    private bo3TransitionTask?: IScheduledTask;
     private bo3LobbyReadyTimer?: SimpleActionTimer;
     private bo3LobbyLoadedAt?: Date;
 
@@ -184,12 +188,17 @@ export class Lobby {
         deckValidator: DeckValidator,
         gameServer: GameServer,
         discordDispatcher: DiscordDispatcher,
+        scheduler: IScheduler,
+        config: IGameNodeConfig,
         testGameBuilder?: any
     ) {
         Contract.assertTrue(
             [MatchmakingType.PublicLobby, MatchmakingType.PrivateLobby, MatchmakingType.Quick].includes(matchmakingType),
             `Lobby game type ${matchmakingType} doesn't match any MatchmakingType values`
         );
+        this.scheduler = scheduler;
+        this.config = config;
+        this.lobbyCreateTime = scheduler.currentDate();
         this._id = uuid();
         this._lobbyName = lobbyName || `Game #${this._id.substring(0, 6)}`;
         this.gameChat = new GameChat(() => this.sendLobbyState());
@@ -245,7 +254,7 @@ export class Lobby {
     private get useActionTimers(): boolean {
         return (
             (this.matchmakingType === MatchmakingType.Quick || this.matchmakingType === MatchmakingType.PublicLobby) &&
-            (process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_ACTION_TIMER === 'true')
+            this.config.actionTimersEnabled
         );
     }
 
@@ -406,22 +415,18 @@ export class Lobby {
     }
 
     private createLobbyLink(): string {
-        return process.env.ENVIRONMENT === 'development'
-            ? `http://localhost:3000/lobby?lobbyId=${this._id}`
-            : `https://karabast.net/lobby?lobbyId=${this._id}`;
+        return `${this.config.clientBaseUrl}/lobby?lobbyId=${this._id}`;
     }
 
     private createSpectateLink(): string {
-        return process.env.ENVIRONMENT === 'development'
-            ? `http://localhost:3000/spectate?lobbyId=${this._id}`
-            : `https://karabast.net/spectate?lobbyId=${this._id}`;
+        return `${this.config.clientBaseUrl}/spectate?lobbyId=${this._id}`;
     }
 
     private updateUserLastActivity(id: string): void {
         // if we received a message we know the user is connected
         this.getUser(id).state = 'connected';
 
-        const now = new Date();
+        const now = this.scheduler.currentDate();
         this.userLastActivity.set(id, now);
 
         if (this.game) {
@@ -580,7 +585,7 @@ export class Lobby {
                 );
             }
 
-            if (this.matchingCountdownTimeoutHandle == null) {
+            if (this.matchingCountdownTask == null) {
                 await this.quickLobbyCountdownAsync();
             }
 
@@ -618,7 +623,7 @@ export class Lobby {
             return Promise.resolve();
         }
 
-        this.matchingCountdownTimeoutHandle =
+        this.matchingCountdownTask =
             this.buildSafeTimeout(() => this.quickLobbyCountdownAsync(remainingSeconds - 1), 1000, 'Lobby: error during quick lobby countdown');
 
         this.sendLobbyState(true);
@@ -678,7 +683,7 @@ export class Lobby {
             const defaultDurationSeconds = 30;
             const minimumTotalSeconds = 120;
             const elapsedSeconds = this.bo3LobbyLoadedAt
-                ? Math.floor((Date.now() - this.bo3LobbyLoadedAt.getTime()) / 1000)
+                ? Math.floor((this.scheduler.now() - this.bo3LobbyLoadedAt.getTime()) / 1000)
                 : 0;
             const timerDurationSeconds = Math.max(defaultDurationSeconds, minimumTotalSeconds - elapsedSeconds);
 
@@ -1167,7 +1172,7 @@ export class Lobby {
     private checkIncrementUsersLeftCount() {
         this.usersLeftCount++;
         if (this.usersLeftCount > 4) {
-            const minutesSinceLobbyCreation = Math.floor((new Date().getTime() - this.lobbyCreateTime.getTime()) / 1000 / 60);
+            const minutesSinceLobbyCreation = Math.floor((this.scheduler.now() - this.lobbyCreateTime.getTime()) / 1000 / 60);
 
             if (minutesSinceLobbyCreation >= 5) {
                 logger.warn(`Lobby: cleaning lobby ${this.id} after more than 5 minutes of inactivity and 5 users left`, { lobbyId: this.id });
@@ -1195,7 +1200,7 @@ export class Lobby {
             return;
         }
 
-        this.server.recordExpiringMatchmakingEntry(leavingPlayerId, otherPlayer.id, Date.now());
+        this.server.recordExpiringMatchmakingEntry(leavingPlayerId, otherPlayer.id, this.scheduler.now());
     }
 
     public cleanLobby(): void {
@@ -1204,9 +1209,9 @@ export class Lobby {
 
         // the quick-lobby countdown reschedules itself every second, so it has to be stopped here or
         // it keeps firing against an emptied lobby after cleanup
-        if (this.matchingCountdownTimeoutHandle) {
-            clearTimeout(this.matchingCountdownTimeoutHandle);
-            this.matchingCountdownTimeoutHandle = undefined;
+        if (this.matchingCountdownTask) {
+            this.matchingCountdownTask.cancel();
+            this.matchingCountdownTask = undefined;
         }
 
         this.game = null;
@@ -1484,8 +1489,7 @@ export class Lobby {
             useActionTimer: this.useActionTimers,
             preselectedFirstPlayerId: this.determineFirstPlayer(),
             pushUpdate: () => this.sendGameState(this.game),
-            buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) =>
-                this.buildSafeTimeout(callback, delayMs, errorMessage),
+            scheduler: this.scheduler,
             userTimeoutDisconnect: (userId: string) => this.userTimeoutDisconnect(userId),
             onBo3SetForfeit: this.gamesToWinMode === GamesToWinMode.BestOfThree
                 ? (losingPlayerId: string) => this.concedeBo3ByUserId(losingPlayerId)
@@ -1609,8 +1613,8 @@ export class Lobby {
             return;
         }
 
-        if (this.matchingCountdownTimeoutHandle) {
-            clearTimeout(this.matchingCountdownTimeoutHandle);
+        if (this.matchingCountdownTask) {
+            this.matchingCountdownTask.cancel();
         }
 
         this.matchingCountdownText = 'Opponent has disconnected, re-entering queue';
@@ -1633,15 +1637,16 @@ export class Lobby {
         2000, 'Lobby: error requeueing user after disconnect');
     }
 
-    private buildSafeTimeout(callback: () => void, delayMs: number, errorMessage: string): NodeJS.Timeout {
-        const timeout = setTimeout(() => {
-            try {
-                callback();
-            } catch (error) {
-                logger.error(errorMessage, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
-            }
-        }, delayMs);
-        return timeout;
+    /**
+     * Schedules lobby-owned work, tagging it so that anything the callback throws is attributed to
+     * this lobby in the logs. The guard itself lives in the scheduler, so scheduling is safe whether
+     * or not a caller comes through here.
+     */
+    private buildSafeTimeout(callback: () => void, delayMs: number, errorMessage: string): IScheduledTask {
+        return this.scheduler.setTimeout(callback, delayMs, {
+            message: errorMessage,
+            metadata: { lobbyId: this.id },
+        });
     }
 
     public handleError(game: Game, error: Error, severity = GameErrorSeverity.Normal) {
@@ -2112,7 +2117,7 @@ export class Lobby {
     private startBo3TransitionTimer(): void {
         this.clearBo3TransitionTimer();
 
-        this.bo3TransitionTimer = this.buildSafeTimeout(
+        this.bo3TransitionTask = this.buildSafeTimeout(
             () => this.onBo3TransitionTimerExpired(),
             30 * 1000,
             'Lobby: error in Bo3 transition timer'
@@ -2126,9 +2131,9 @@ export class Lobby {
      * Clears the Bo3 transition timer if it exists.
      */
     private clearBo3TransitionTimer(): void {
-        if (this.bo3TransitionTimer) {
-            clearTimeout(this.bo3TransitionTimer);
-            this.bo3TransitionTimer = undefined;
+        if (this.bo3TransitionTask) {
+            this.bo3TransitionTask.cancel();
+            this.bo3TransitionTask = undefined;
             logger.info('Lobby: cleared Bo3 transition timer', { lobbyId: this.id });
         }
     }
@@ -2154,7 +2159,7 @@ export class Lobby {
         });
 
         // Track when lobby was loaded for timer calculation
-        this.bo3LobbyLoadedAt = new Date();
+        this.bo3LobbyLoadedAt = this.scheduler.currentDate();
 
         this.gameChat.addAlert(AlertType.Notification, `${alertPrefix}. Proceeding to game ${this.winHistory.currentGameNumber}.`);
         logger.info(`Lobby: ${alertPrefix.toLowerCase()}, proceeding to Bo3 game ${this.winHistory.currentGameNumber}`, { lobbyId: this.id });
@@ -2173,7 +2178,8 @@ export class Lobby {
 
         this.bo3LobbyReadyTimer = new SimpleActionTimer(
             30,
-            (callback, delayMs) => this.buildSafeTimeout(callback, delayMs, 'Lobby: error in Bo3 lobby ready timer')
+            this.scheduler,
+            { message: 'Lobby: error in Bo3 lobby ready timer', metadata: { lobbyId: this.id } }
         );
 
         // Handler at 20 seconds remaining (warning)

@@ -3,8 +3,9 @@ import request from 'supertest';
 
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
 import { DecklistFixtures } from './DecklistFixtures';
-import type { ITestGameServerSetup } from './TestGameServer';
+import type { ITestGameServerSetup, TestConfigOverrides } from './TestGameServer';
 import { TestGameServer } from './TestGameServer';
+import type { TestScheduler } from './TestScheduler';
 
 /**
  * Identity a test client presents to the API. Mirrors the payload the real client builds in
@@ -48,16 +49,19 @@ export class ServerTestHarness {
     private anonymousUserCounter = 0;
     private lobbyNameCounter = 0;
 
+    /** Guards against the double shutdown that happens when a spec tears down and `afterEach` follows. */
+    private hasShutDown = false;
+
     private constructor(
         public readonly server: TestGameServer,
         public readonly decklists: DecklistFixtures
     ) {}
 
-    public static async createAsync(): Promise<ServerTestHarness> {
+    public static async createAsync(configOverrides?: TestConfigOverrides): Promise<ServerTestHarness> {
         const setup = await getSharedSetupAsync();
 
         return new ServerTestHarness(
-            await TestGameServer.startAsync(setup),
+            await TestGameServer.startAsync(setup, configOverrides),
             new DecklistFixtures(setup.testGameBuilder.cardDataGetter, setup.deckValidator)
         );
     }
@@ -65,6 +69,15 @@ export class ServerTestHarness {
     /** An HTTP client pointed at this harness's server. */
     public get api(): ReturnType<typeof request> {
         return request(this.server.baseUrl);
+    }
+
+    /**
+     * The virtual clock driving every timer in the server and its lobbies. Advance it to exercise
+     * anything time-dependent - disconnect grace periods, countdowns, heartbeats, cleanup passes -
+     * instantly and deterministically.
+     */
+    public get clock(): TestScheduler {
+        return this.server.testScheduler;
     }
 
     /**
@@ -87,6 +100,21 @@ export class ServerTestHarness {
     }
 
     public async shutdownAsync(): Promise<void> {
+        if (this.hasShutDown) {
+            return;
+        }
+
+        this.hasShutDown = true;
         await this.server.shutdownAsync();
+    }
+
+    /**
+     * Fails if any scheduled callback threw during the spec.
+     *
+     * The scheduler deliberately swallows these so that one failure cannot take the node down, which
+     * means a spec would otherwise pass while background work was failing every tick.
+     */
+    public assertNoScheduledErrors(): void {
+        this.clock.assertNoCapturedErrors();
     }
 }

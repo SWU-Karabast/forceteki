@@ -8,6 +8,7 @@ const allNonLeaderCardTitles = require('../json/_allNonLeaderCardTitles.json');
 const playableCardTitles = require('../json/_playableCardTitles.json');
 const Util = require('./Util.js');
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager.js');
+const { RealScheduler } = require('../../server/utils/RealScheduler.js');
 
 class GameFlowWrapper {
     /**
@@ -30,7 +31,7 @@ class GameFlowWrapper {
             ],
             cardDataGetter,
             pushUpdate: () => true,
-            buildSafeTimeout: () => undefined,
+            scheduler: new RealScheduler(),
             userTimeoutDisconnect: () => undefined,
             undoMode
         };

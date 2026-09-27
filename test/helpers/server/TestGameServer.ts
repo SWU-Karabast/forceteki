@@ -1,5 +1,7 @@
 import { GameServer } from '../../../server/gamenode/GameServer';
+import type { IGameNodeConfig } from '../../../server/gamenode/GameNodeConfig';
 import type { DeckValidator } from '../../../server/utils/deck/DeckValidator';
+import { TestScheduler } from './TestScheduler';
 
 /**
  * Collaborators the harness supplies so the expensive card data and deck validator setup can be
@@ -11,14 +13,41 @@ export interface ITestGameServerSetup {
 }
 
 /**
+ * Behaviour a spec wants that differs from the default deployed-environment profile.
+ */
+export type TestConfigOverrides = Partial<IGameNodeConfig>;
+
+/**
+ * Defaults to the restrictive, deployed-environment behaviour rather than the permissive local-dev
+ * behaviour, so specs exercise the rules that actually run in production - in particular the
+ * anonymous-user restrictions, which local dev switches off entirely. Individual specs opt into the
+ * permissive side explicitly when that is what they mean to test.
+ */
+function buildTestConfig(overrides: TestConfigOverrides = {}): IGameNodeConfig {
+    return {
+        allowAnonymousSpectators: false,
+        allowAnonymousBestOfThree: false,
+        enforceRematchCooldown: true,
+
+        // off by default so lobbies do not start timers a spec did not ask for
+        actionTimersEnabled: false,
+
+        clientBaseUrl: 'http://localhost:3000',
+        metricsLoggingEnabled: false,
+        ...overrides,
+    };
+}
+
+/**
  * A {@link GameServer} wired for tests.
  *
  * Everything test-specific lives here rather than on the production class: the card data comes from
  * the local test fixtures, the DynamoDB-backed caches are all left undefined (the same state a local
- * dev box runs in, so no AWS credentials are needed), and the configured port is never bound.
+ * dev box runs in, so no AWS credentials are needed), the configured port is never bound, and all
+ * timers run on a {@link TestScheduler} the spec drives by hand.
  */
 export class TestGameServer extends GameServer {
-    private constructor(setup: ITestGameServerSetup) {
+    private constructor(setup: ITestGameServerSetup, scheduler: TestScheduler, config: IGameNodeConfig) {
         super(
             setup.testGameBuilder.cardDataGetter,
             setup.deckValidator,
@@ -27,11 +56,21 @@ export class TestGameServer extends GameServer {
             undefined,
             undefined,
             setup.testGameBuilder,
-
-            // TODO: drop `backgroundTasks` once the scheduler is injected, so these tasks run under
-            // a controllable clock in tests rather than being switched off.
-            { listen: false, backgroundTasks: false }
+            { listen: false, scheduler, config }
         );
+    }
+
+    /**
+     * The virtual clock driving every timer in this server and its lobbies. Specs advance it to
+     * exercise disconnect grace periods, countdowns, heartbeats and cleanup passes.
+     */
+    public get testScheduler(): TestScheduler {
+        return this.scheduler as TestScheduler;
+    }
+
+    /** The behavioural switches this server was built with. */
+    public get testConfig(): IGameNodeConfig {
+        return this.config;
     }
 
     /**
@@ -40,8 +79,8 @@ export class TestGameServer extends GameServer {
      * Named `startAsync` rather than `createAsync` because the base class already has a static
      * `createAsync` for the production construction path, and statics are inherited.
      */
-    public static async startAsync(setup: ITestGameServerSetup): Promise<TestGameServer> {
-        const server = new TestGameServer(setup);
+    public static async startAsync(setup: ITestGameServerSetup, configOverrides?: TestConfigOverrides): Promise<TestGameServer> {
+        const server = new TestGameServer(setup, new TestScheduler(), buildTestConfig(configOverrides));
         await server.listenOnEphemeralPortAsync();
         return server;
     }
