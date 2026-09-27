@@ -1201,6 +1201,14 @@ export class Lobby {
     public cleanLobby(): void {
         this.clearBo3TransitionTimer();
         this.bo3LobbyReadyTimer?.stop();
+
+        // the quick-lobby countdown reschedules itself every second, so it has to be stopped here or
+        // it keeps firing against an emptied lobby after cleanup
+        if (this.matchingCountdownTimeoutHandle) {
+            clearTimeout(this.matchingCountdownTimeoutHandle);
+            this.matchingCountdownTimeoutHandle = undefined;
+        }
+
         this.game = null;
         this.users = [];
         this.spectators = [];

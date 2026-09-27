@@ -57,6 +57,7 @@
     "@types/eslint__js": "^8.42.3",
     "@types/jasmine": "^5.1.4",
     "@types/node": "^20.19.11",
+    "@types/supertest": "^7.2.1",
     "@types/underscore": "^1.11.15",
     "concurrently": "^9.1.0",
     "cpy-cli": "^5.0.0",
@@ -64,6 +65,7 @@
     "eslint-import-resolver-typescript": "^3.7.0",
     "eslint-plugin-import-x": "^4.6.1",
     "eslint-plugin-unused-imports": "^4.1.4",
+    "supertest": "^7.3.0",
     "ts-node": "^10.9.2",
     "ts-to-zod": "^3.15.0"
   }

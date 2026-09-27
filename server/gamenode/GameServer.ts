@@ -92,6 +92,28 @@ export interface IToken {
     timeToLiveSeconds: number;
 }
 
+/**
+ * Construction-time switches for the side effects the constructor would otherwise always perform.
+ * Both default to the production behaviour, so `createAsync()` is unaffected.
+ */
+export interface IGameServerOptions {
+
+    /**
+     * When false, the HTTP server and its socket.io server are built but never bound to the
+     * configured port, leaving the caller to bind them when and where it wants to.
+     */
+    listen?: boolean;
+
+    /**
+     * When false, the recurring background tasks (queue heartbeat, token cleanup, metrics sampling)
+     * are not started.
+     *
+     * TODO: remove this once the scheduler is injected. Callers that want to observe or drive these
+     * tasks should be able to control the clock rather than having to switch the tasks off.
+     */
+    backgroundTasks?: boolean;
+}
+
 // Interface for GC performance entries using the modern 'detail' property
 interface GCPerformanceEntry {
     name: string;
@@ -218,24 +240,37 @@ export class GameServer {
     public readonly swuDbDeckFetcher: SwuDbDeckFetcher;
     public readonly meleeDeckFetcher: MeleeDeckFetcher;
     private readonly discordDispatcher = new DiscordDispatcher();
-    private readonly tokenCleanupInterval: NodeJS.Timeout;
+
+    /** Every recurring task started by the constructor, retained so that {@link shutdownAsync} can stop them. */
+    private readonly backgroundIntervals: NodeJS.Timeout[] = [];
+
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
     public readonly serverSettingsCache?: ServerSettingsCache;
     public readonly modActionService?: ModActionService;
 
-    private constructor(
+    /**
+     * The HTTP server carrying both the API and the socket.io server. Subclasses may bind it
+     * themselves when constructed with `listen: false`.
+     */
+    protected readonly httpServer: http.Server;
+
+    protected constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         serverRoleUsersCache?: ServerRoleUsersCache,
         serverSettingsCache?: ServerSettingsCache,
         cosmeticsService?: CosmeticsService,
         modActionCache?: ModActionService,
-        testGameBuilder?: any
+        testGameBuilder?: any,
+        options: IGameServerOptions = {}
     ) {
+        const { listen = true, backgroundTasks = true } = options;
+
         const app = express();
         app.use(express.json());
         const server = http.createServer(app);
 
+        this.httpServer = server;
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
@@ -287,8 +322,10 @@ export class GameServer {
         });
 
 
-        server.listen(env.gameNodeSocketIoPort);
-        logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
+        if (listen) {
+            server.listen(env.gameNodeSocketIoPort);
+            logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
+        }
         logger.info(`GameServer: Detected ${cpus().length} logical CPU cores.`);
 
         // check if NEXTAUTH variable is set
@@ -300,9 +337,11 @@ export class GameServer {
         );
 
         // TOKEN CLEANUP
-        this.tokenCleanupInterval = setInterval(() => {
-            this.cleanupInvalidTokens();
-        }, 3600000); // 1 hour
+        if (backgroundTasks) {
+            this.backgroundIntervals.push(setInterval(() => {
+                this.cleanupInvalidTokens();
+            }, 3600000)); // 1 hour
+        }
 
         // Setup socket server
         this.io = new IOServer(server, {
@@ -382,10 +421,12 @@ export class GameServer {
         this.swuStatsHandler = new SwuStatsHandler(this.userFactory);
         this.swuBaseHandler = new SwuBaseHandler(this.userFactory);
 
-        // set up queue heartbeat once a second
-        setInterval(() => this.queue.sendHeartbeat(), 500);
+        if (backgroundTasks) {
+            // set up queue heartbeat once a second
+            this.backgroundIntervals.push(setInterval(() => this.queue.sendHeartbeat(), 500));
+        }
 
-        if (process.env.ENVIRONMENT !== 'development' || process.env.FORCE_ENABLE_STATS_LOGGING === 'true') {
+        if (backgroundTasks && (process.env.ENVIRONMENT !== 'development' || process.env.FORCE_ENABLE_STATS_LOGGING === 'true')) {
             // initialize cpu usage and event loop stats
             this.lastCpuUsage = process.cpuUsage();
             this.lastCpuUsageTime = process.hrtime.bigint();
@@ -400,18 +441,18 @@ export class GameServer {
             this.logHeapStats();
 
             // set up periodic memory, cpu and event loop monitoring for every 30 seconds
-            setInterval(() => {
+            this.backgroundIntervals.push(setInterval(() => {
                 this.logHeapStats();
                 this.logCpuUsage();
                 this.logEventLoopStats();
                 this.logPlayerStats();
                 this.logGCStats();
-            }, 30000);
+            }, 30000));
 
             // emit daily active user count and reset every 24 hours
-            setInterval(() => {
+            this.backgroundIntervals.push(setInterval(() => {
                 this.logAndResetDailyActiveUsers();
-            }, 86_400_000); // 24 hours
+            }, 86_400_000)); // 24 hours
         }
     }
 
@@ -2696,6 +2737,39 @@ export class GameServer {
         }
 
         lobby.cleanLobby();
+    }
+
+    /**
+     * Releases every long-lived handle the server owns: recurring background tasks, the pending
+     * matchmaking retry, all lobbies (and the timers they hold), the socket.io server and the HTTP
+     * listener. Tests call this in teardown so the process is left with nothing keeping it alive.
+     */
+    public async shutdownAsync(): Promise<void> {
+        for (const interval of this.backgroundIntervals) {
+            clearInterval(interval);
+        }
+        this.backgroundIntervals.length = 0;
+
+        this.queue.shutdown();
+
+        if (this.matchmakingTimer) {
+            clearTimeout(this.matchmakingTimer);
+            this.matchmakingTimer = undefined;
+        }
+
+        for (const lobby of Array.from(this.lobbies.values())) {
+            lobby.cleanLobby();
+        }
+        this.lobbies.clear();
+        this.userLobbyMap.clear();
+
+        this.loopDelayHistogram?.disable();
+
+        await new Promise<void>((resolve) => this.io.close(() => resolve()));
+
+        if (this.httpServer.listening) {
+            await new Promise<void>((resolve) => this.httpServer.close(() => resolve()));
+        }
     }
 
     public onQueueSocketDisconnected(

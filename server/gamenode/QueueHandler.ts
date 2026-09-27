@@ -46,6 +46,7 @@ export class QueueHandler {
     private readonly queues: Map<string, QueuedPlayer[]>;
     private playersWaitingToConnect: QueuedPlayerEntry[] = [];
     private playerPreviousMatch: Map<string, PreviousMatchEntry>;
+    private readonly previousMatchCleanupInterval: NodeJS.Timeout;
 
     /** Cooldown interval (in seconds) for rematch prevention */
     public static readonly COOLDOWN_INTERVAL_SECONDS = 15;
@@ -64,7 +65,12 @@ export class QueueHandler {
         }
 
         // Cleanup previous match entries periodically
-        setInterval(() => this.cleanupPreviousMatchEntries(), 3600000); // 1 hour
+        this.previousMatchCleanupInterval = setInterval(() => this.cleanupPreviousMatchEntries(), 3600000); // 1 hour
+    }
+
+    /** Stops the recurring cleanup task so the handler leaves nothing keeping the process alive. */
+    public shutdown() {
+        clearInterval(this.previousMatchCleanupInterval);
     }
 
     /** Adds an entry for a player, but they can't match until they actually connect */
