@@ -15,21 +15,20 @@ export default class Nightfall extends EventCard {
     public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.setEventAbility({
             title: `Deal 1 damage to an enemy unit. If you control an ${TextHelper.Trait.Endor} base, you may attack with a unit. It gets +2/+0 for this attack`,
-            targetResolvers: {
-                damageUnit: {
-                    activePromptTitle: 'Deal 1 damage to an enemy unit',
-                    cardTypeFilter: WildcardCardType.Unit,
-                    controller: RelativePlayer.Opponent,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                },
-                attackUnit: {
+            targetResolver: {
+                activePromptTitle: 'Deal 1 damage to an enemy unit',
+                cardTypeFilter: WildcardCardType.Unit,
+                controller: RelativePlayer.Opponent,
+                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
+            },
+            then: {
+                title: 'Attack with a unit. It gets +2/+0 for this attack',
+                thenCondition: (context) => context.player.base.hasSomeTrait(Trait.Endor),
+                optional: true,
+                targetResolver: {
                     activePromptTitle: 'Attack with a unit. It gets +2/+0 for this attack',
-                    optional: true,
-                    immediateEffect: AbilityHelper.immediateEffects.conditional({
-                        condition: (c) => c.player.base.hasSomeTrait(Trait.Endor),
-                        onTrue: AbilityHelper.immediateEffects.attack({
-                            attackerLastingEffects: { effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }) }
-                        })
+                    immediateEffect: AbilityHelper.immediateEffects.attack({
+                        attackerLastingEffects: { effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }) }
                     })
                 }
             }

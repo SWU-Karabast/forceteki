@@ -51,7 +51,7 @@ describe('Nightfall', function() {
                 context.player1.clickCard(context.atst);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing]);
-                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
 
@@ -85,8 +85,8 @@ describe('Nightfall', function() {
                 context.player1.clickCard(context.atst);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing]);
-                expect(context.player1).toHaveChooseNothingButton();
-                context.player1.clickPrompt('Choose nothing');
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.atst.damage).toBe(1);
@@ -112,7 +112,7 @@ describe('Nightfall', function() {
                 context.player1.clickCard(context.nightfall);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing]);
-                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
 
@@ -145,7 +145,7 @@ describe('Nightfall', function() {
                 context.player1.clickCard(context.lurkingTiePhantom);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing]);
-                expect(context.player1).toHaveChooseNothingButton();
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
 
@@ -155,6 +155,38 @@ describe('Nightfall', function() {
                 expect(context.p1Base.damage).toBe(0);
                 expect(context.p2Base.damage).toBe(5);
                 expect(context.battlefieldMarine.getPower()).toBe(3);
+            });
+
+            it('should allow attacking the base after the damage defeats an enemy Sentinel unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['nightfall'],
+                        groundArena: ['battlefield-marine'],
+                        base: 'shield-generator-complex'
+                    },
+                    player2: {
+                        groundArena: ['b1-security-team', 'atst']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.nightfall);
+                expect(context.player1).toBeAbleToSelectExactly([context.b1SecurityTeam, context.atst]);
+                context.player1.clickCard(context.b1SecurityTeam);
+
+                expect(context.b1SecurityTeam).toBeInZone('discard', context.player2);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // B1 Security Team was defeated by the damage before the attack, so its Sentinel no longer restricts it
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p2Base.damage).toBe(5);
             });
         });
     });
