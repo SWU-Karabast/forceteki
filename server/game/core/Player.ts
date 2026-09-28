@@ -1355,9 +1355,9 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
                     .filter((card) => !card.isLeaderUnit() && !card.isAttached())
                     .map((card) => Helpers.safeSerialize(this.game, () => card.captureCardState(), card.internalName));
             }
-            // Discard pile
+            // Discard pile, top card first to match the test setup format (the zone stores the top card last)
             if (this.discardZone.count > 0) {
-                state.discard = this.discardZone.cards.map((card) => card.internalName);
+                state.discard = [...this.discardZone.cards].reverse().map((card) => card.internalName);
             }
 
             // Deck (top few cards only to avoid excessive data)
