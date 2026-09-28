@@ -191,6 +191,37 @@ Plus 3–5 real `socket.io-client` tests over a real port to guard the fake's fi
 
 ### Phase 6 — CI wiring and parallel-safety review
 
+## CI structure
+
+The suite is partitioned by a single property: **does the spec drive a `Game` through the
+`integration()` harness?** That is what determines whether the undo suite is meaningful for it.
+
+| Group | Config | Contents | Specs |
+|---|---|---|---|
+| Game | `jasmine-game.json` | cards, core, actions, gameSystems, scenarios | 8562 |
+| Non-game | `jasmine-nongame.json` | `server/utils/**` (deck validation, fetchers, scheduler), `server/gamenode/**` | 148 |
+
+The boundary is clean today: every spec under `server/utils/**` and `server/gamenode/**` uses no
+`integration()` block, and every spec outside them does (bar two engine unit tests in `core/` that
+are engine-adjacent and cost nothing to leave in the game group). The two configs are verified to
+partition the suite exactly — 8562 + 148 = 8710, with no spec lost or double-run.
+
+`jasmine.json` still runs everything and remains what CI uses, so this changes no gate today. The
+intended split, when the server suite grows enough to be worth a second runner:
+
+- `test-parallel-game` and `test-parallel-nongame` as separate jobs
+- `test-parallel-undo` pointed at `jasmine-game.json`, since undo mode does nothing for specs that
+  never construct a `Game` — it is wasted work in the non-game group
+
+**Path-based filtering was considered and rejected.** GitHub Actions supports it, but workflow-level
+`paths` never reports its checks, which would block a repo using merge queues; and job-level gating
+needs a `dorny/paths-filter` step whose filter list would have to enumerate engine paths, because
+the coupling runs both ways. `DecklistFixtures` scans the live card catalogue and validates through
+the real `DeckValidator`, so a card-data or legality change can break the server suite; and this very
+PR shows gamenode work reaching into `Game.ts` and `SimpleActionTimer.ts`. A hand-maintained path
+list guarding that relationship would rot silently. Splitting by *what a spec needs* is stable;
+splitting by *what changed* is not.
+
 ## Open findings
 
 Behaviours found while building the suite, characterised in tests but **not fixed**:
