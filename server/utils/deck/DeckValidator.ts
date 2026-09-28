@@ -96,8 +96,9 @@ export class DeckValidator {
     public static getLegalSets(format: SwuGameFormat, cardPool: CardPool, catalog: ISetCatalog = defaultSetCatalog): Set<SwuSetId> {
         const { rotationBlocks, nonRotatingSets, formatRules } = catalog;
 
-        // Open/Unlimited: all sets including previews, always
-        if (format === SwuGameFormat.Open) {
+        // Open/Unlimited: all sets including previews, always. Faux Suns with the Unlimited card pool
+        // behaves the same way, while keeping its own deck-construction rules (min size, copy limit, leader count).
+        if (format === SwuGameFormat.Open || (format === SwuGameFormat.FauxSuns && cardPool === CardPool.Unlimited)) {
             const all = new Set<SwuSetId>(rotationBlocks.flatMap((block) => block.sets.map((s) => s.id)));
             for (const nrs of nonRotatingSets) {
                 all.add(nrs.id);
