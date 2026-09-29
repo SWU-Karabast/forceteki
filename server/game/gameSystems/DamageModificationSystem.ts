@@ -157,4 +157,12 @@ export class DamageModificationSystem<
         }
         return true;
     }
+
+    /**
+     * Preventing damage is a replacement effect, so fully prevented damage still counts as resolved for
+     * "if you do" (CR 8.9). This includes "can't be damaged" effects, which are ruled to be prevent effects.
+     */
+    protected override nullifiedEventCountsAsResolved(): boolean {
+        return true;
+    }
 }

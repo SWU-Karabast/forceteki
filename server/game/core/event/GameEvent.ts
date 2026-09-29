@@ -74,6 +74,11 @@ export class GameEvent {
             return false;
         }
 
+        // an event replaced with no replacement events (see replaceWithNoEffect) counts as resolved
+        if (this.replacementEvents.length === 0) {
+            return true;
+        }
+
         return this.replacementEvents.every((event) => event.isResolvedOrReplacementResolved);
     }
 
@@ -130,8 +135,20 @@ export class GameEvent {
         this.handler = newHandler;
     }
 
-    public cancel({ wasReplaced } = { wasReplaced: false }) {
-        this.resolutionStatus = wasReplaced ? EventResolutionStatus.REPLACED : EventResolutionStatus.CANCELLED;
+    public cancel() {
+        this.removeFromWindowWithStatus(EventResolutionStatus.CANCELLED);
+    }
+
+    /**
+     * Marks this event as fully replaced by an effect with no replacement event (e.g. "prevent that damage").
+     * It will not resolve or trigger abilities, but counts as resolved for "if you do" (CR 8.9).
+     */
+    public replaceWithNoEffect() {
+        this.removeFromWindowWithStatus(EventResolutionStatus.REPLACED);
+    }
+
+    private removeFromWindowWithStatus(status: EventResolutionStatus) {
+        this.resolutionStatus = status;
         if (this._window) {
             this._window.removeEvent(this);
         }
