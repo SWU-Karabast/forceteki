@@ -19,10 +19,14 @@ describe('Coleman Trebor, Jedi Rescuer', function() {
             expect(context.player2).toBeActivePlayer();
             expect(context.p1Base.damage).toBe(1);
             expect(context.p2Base.damage).toBe(3);
+            expect(context.getChatLogs(3)).toEqual([
+                'player1 plays Coleman Trebor',
+                'player1 uses Coleman Trebor to deal 1 damage to player2\'s base',
+                'player1 uses Coleman Trebor to heal 1 damage from their base'
+            ]);
         });
 
-        // TODO: re-enable once Coleman Trebor heals for each damage actually dealt instead of using "if you do"
-        xit('Coleman Trebor\'s ability should try to deal 1 damage to enemy base, if not succeed, it should not heal 1 damage from our base', async function () {
+        it('Coleman Trebor\'s ability should not heal when the damage it would deal is prevented', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -46,6 +50,13 @@ describe('Coleman Trebor, Jedi Rescuer', function() {
             expect(context.player2).toBeActivePlayer();
             expect(context.p1Base.damage).toBe(2);
             expect(context.p2Base.damage).toBe(2);
+
+            // no heal message: no damage was dealt, so there is nothing to heal for
+            expect(context.getChatLogs(3)).toEqual([
+                'player1 plays Coleman Trebor',
+                'player1 uses Coleman Trebor to deal 1 damage to player2\'s base',
+                'player2 uses Echo Base\'s gained ability from Close the Shield Gate to prevent all damage to their base'
+            ]);
         });
     });
 });
