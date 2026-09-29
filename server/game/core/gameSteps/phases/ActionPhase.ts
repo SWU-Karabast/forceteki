@@ -98,6 +98,8 @@ export class ActionPhase extends Phase {
         if (this.game.format === SwuGameFormat.FauxSuns) {
             this.game.isPlanCounterClaimed = false;
             this.game.isBlastCounterClaimed = false;
+            this.game.planCounterClaimedByPlayer = null;
+            this.game.blastCounterClaimedByPlayer = null;
         }
         this.game.prevActionPhasePlayerPassed = null;
     }
