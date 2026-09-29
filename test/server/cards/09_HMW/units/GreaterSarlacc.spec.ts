@@ -28,6 +28,7 @@ describe('Greater Sarlacc', function() {
                 expect(context.greaterSarlacc).toBeInZone('groundArena');
                 expect(context.player1.resources.length).toBe(12);
                 expect(context.player1.exhaustedResourceCount).toBe(9);
+                expect(context.getChatLogs(3)).not.toContain(jasmine.stringContaining('defeats'));
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -272,10 +273,14 @@ describe('Greater Sarlacc', function() {
                 context.player1.clickCard(context.greaterSarlacc);
                 expect(context.player1).toHavePrompt(defeatReadyResourcesPrompt(3));
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.pykeSentinel, context.atst, context.cartelSpacer]);
+                expect(context.player1).toHaveExactPromptButtons(['Done', 'Cancel']);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
                 // Defeat 2 resources, then pay the remaining 3 with player1's own resources
                 context.player1.clickCard(context.wampa);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
                 context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
                 context.player1.clickPrompt('Done');
 
                 // The card is played under player1's control, paid entirely from player1's resources; player2's are untouched
@@ -286,6 +291,63 @@ describe('Greater Sarlacc', function() {
                 expect(context.player1.readyResourceCount).toBe(0);
                 expect(context.player2.resources.length).toBe(20);
                 expect(context.player2.exhaustedResourceCount).toBe(0);
+            });
+
+            it('does not prompt to defeat resources when played for free', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galactic-ambition', 'greater-sarlacc'],
+                        resources: 12
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Galactic Ambition plays Greater Sarlacc for free, so there's nothing to reduce and no defeat prompt
+                context.player1.clickCard(context.galacticAmbition);
+                context.player1.clickCard(context.greaterSarlacc);
+
+                // No resources are defeated, and the base takes damage equal to Sarlacc's cost
+                expect(context.greaterSarlacc).toBeInZone('groundArena');
+                expect(context.player1.resources.length).toBe(12);
+                expect(context.p1Base.damage).toBe(9);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('requires the minimum number of resources to be defeated when played by another card\'s ability', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'maz-kanata#eclectic-pirate-queen', // Avoids aspect penalties
+                        hand: ['sneak-attack', 'greater-sarlacc'],
+                        resources: ['wampa', 'battlefield-marine', 'pyke-sentinel', 'atst', 'cartel-spacer', 'death-star-stormtrooper']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Sneak Attack uses 2 resources, then plays Greater Sarlacc for 3 less
+                context.player1.clickCard(context.sneakAttack);
+                context.player1.clickCard(context.greaterSarlacc);
+
+                // Sarlacc costs 6 with 4 ready resources left: must defeat at least 1 to reduce the cost to 3 and pay with the remaining 3
+                expect(context.player1).toHavePrompt(defeatReadyResourcesPrompt(2));
+                expect(context.player1).toHaveExactPromptButtons(['Done']);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+
+                // Defeat 1 resource, which satisfies the minimum
+                context.player1.clickCard(context.wampa);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickPrompt('Done');
+
+                // Sarlacc enters play ready, paid with the 3 remaining resources
+                expect(context.greaterSarlacc).toBeInZone('groundArena');
+                expect(context.greaterSarlacc.exhausted).toBeFalse();
+                expect(context.wampa).toBeInZone('discard');
+                expect(context.player1.resources.length).toBe(5);
+                expect(context.player1.readyResourceCount).toBe(0);
+                expect(context.getChatLogs(3)).toContain('player1 defeats a ready resource to pay 3 resources less for Greater Sarlacc');
             });
 
             describe('when The Starhawk halves the cost', function() {
