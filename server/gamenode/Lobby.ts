@@ -3,8 +3,6 @@ import { v4 as uuid, v4 as uuidv4 } from 'uuid';
 import type Socket from '../socket';
 import { Contract } from '../game/core/utils/Contract';
 import { EnumHelpers } from '../game/core/utils/EnumHelpers';
-import fs from 'fs';
-import path from 'path';
 import { logger } from '../logger';
 import { GameChat } from '../game/core/chat/GameChat';
 import type { User } from '../utils/user/User';
@@ -16,7 +14,6 @@ import { DeckValidator } from '../utils/deck/DeckValidator';
 import type { IDeckValidationFailures, IDeckValidationProperties, ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import { DeckSource, DeckValidationFailureReason, ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
-import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import type { CardPool } from '../game/core/Constants';
@@ -1089,8 +1086,10 @@ export class Lobby {
                 isPrivate: this.isPrivate,
                 allowSpectators: this.spectationAllowed,
                 player1Leader: player1.deck.leader,
+                player1SecondLeader: player1.deck.secondLeader,
                 player1Base: player1.deck.base,
                 player2Leader: player2.deck.leader,
+                player2SecondLeader: player2.deck.secondLeader,
                 player2Base: player2.deck.base,
                 format: this.gameFormat,
                 cardPool: this.cardPool,
@@ -1208,16 +1207,19 @@ export class Lobby {
         logger.info('Lobby: cleaning lobby', { lobbyId: this.id });
     }
 
-    public async startTestGameAsync(filename: string) {
-        const testJSONPath = path.resolve(__dirname, `../../../test/gameSetups/${filename}`);
-        Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
-
-        const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
+    public async startTestGameAsync(testSetupData: any) {
+        // cardPool is a lobby setting, not a board-setup option, so it is not passed on to the test harness
+        const { cardPool, ...setupData } = testSetupData;
         if (setupData.autoSingleTarget == null) {
             setupData.autoSingleTarget = false;
         }
 
-        Contract.assertNotNullLike(this.testGameBuilder, `Attempting to start a test game from file ${filename} but local test tools were not found`);
+        // Only a setup that pins a format gets its "name a card" options filtered, matching real games in that format
+        const legalCardTitles = setupData.format != null
+            ? this.deckValidator.getLegalCardTitles(this.gameFormat, this.cardPool)
+            : undefined;
+
+        Contract.assertNotNullLike(this.testGameBuilder, 'Attempting to start a test game but local test tools were not found');
 
         // TODO to address this a refactor and change router to lobby
         // eslint-disable-next-line
@@ -1229,7 +1231,8 @@ export class Lobby {
             router,
             { id: 'exe66', username: 'Order66' },
             { id: 'th3w4y', username: 'ThisIsTheWay' },
-            UndoMode.Free
+            UndoMode.Free,
+            legalCardTitles
         );
 
         this.game = game;
@@ -1312,17 +1315,23 @@ export class Lobby {
     /**
      * Deck-validation failures that indicate an illegal deck to actually play with (as opposed
      * to in-progress editing state). These are the failures that in-lobby flows filter out at
-     * import time, so they must be re-checked before a game can start.
+     * import time (deck size) or that could only be introduced by a later change such as the
+     * lobby's format (Twin Suns leader-pair invariants), so they must be re-checked before a
+     * game can start.
      */
-    private static readonly startBlockingDeckSizeFailures: readonly DeckValidationFailureReason[] = [
+    private static readonly startBlockingFailures: readonly DeckValidationFailureReason[] = [
         DeckValidationFailureReason.MinMainboardSizeNotMet,
         DeckValidationFailureReason.MinDecklistSizeNotMet,
         DeckValidationFailureReason.MaxSideboardSizeExceeded,
+        DeckValidationFailureReason.MissingSecondLeader,
+        DeckValidationFailureReason.MixedAlignmentLeaders,
+        DeckValidationFailureReason.DuplicateLeaders,
     ];
 
     /**
      * Returns the lobby users whose active deck cannot legally start a game because of its size
-     * (missing deck, undersized mainboard/decklist, or oversized sideboard). Also refreshes each
+     * (missing deck, undersized mainboard/decklist, or oversized sideboard) or a Twin Suns
+     * leader-pair invariant (missing/duplicate/mismatched second leader). Also refreshes each
      * user's `deckValidationErrors` so the current state is surfaced to clients.
      */
     private getUsersWithInvalidDeckSize(): LobbyUserWrapper[] {
@@ -1338,7 +1347,7 @@ export class Lobby {
             const errors = this.deckValidator.validateInternalDeck(user.deck.getDecklist(), validationProperties);
             user.deckValidationErrors = errors;
 
-            if (Lobby.startBlockingDeckSizeFailures.some((reason) => reason in errors)) {
+            if (Lobby.startBlockingFailures.some((reason) => reason in errors)) {
                 invalidUsers.push(user);
             }
         }
@@ -1464,10 +1473,11 @@ export class Lobby {
             id: uuidv4(),
             allowSpectators: false,
             owner: 'Order66',
-            gameMode: GameMode.Premier,
+            format: this.gameFormat,
             players,
             undoMode: this.undoMode,
             cardDataGetter: this.cardDataGetter,
+            legalCardTitles: this.deckValidator.getLegalCardTitles(this.gameFormat, this.cardPool),
             useActionTimer: this.useActionTimers,
             preselectedFirstPlayerId: this.determineFirstPlayer(),
             pushUpdate: () => this.sendGameState(this.game),

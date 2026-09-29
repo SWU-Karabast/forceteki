@@ -196,6 +196,11 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         return false;
     }
 
+    /** Whether this system reveals cards. Overridden by {@link RevealSystem}; used to decide when to mask hidden information. */
+    public isReveal(): boolean {
+        return false;
+    }
+
     /**
      * Evaluates whether all of the provided targets for this {@link GameSystem} are legal for this system to act on
      * given the current game state. See {@link GameSystem.generatePropertiesFromContext} for details on target generation.

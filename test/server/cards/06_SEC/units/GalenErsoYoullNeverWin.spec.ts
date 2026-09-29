@@ -1048,6 +1048,61 @@ describe('Galen Erso - You\'ll Never Win', function() {
 
                 expect(context.player1).toBeActivePlayer();
             });
+
+            it('should still not be playable with Plot even if Galen is defeated by the same deploy\'s damage that opens the Plot window', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                    },
+                    player2: {
+                        leader: 'boba-fett#any-methods-necessary',
+                        hand: ['daring-raid'],
+                        groundArena: ['war-juggernaut'],
+                        resources: ['topple-the-summit', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // player1 plays Galen Erso and names Topple the Summit - unlike Ryder Azadi's restriction,
+                // this blanks Topple's abilities (including Plot) entirely while Galen is in play
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Topple the Summit');
+                expect(context.player2).toBeActivePlayer();
+
+                // player2 chips 2 damage into Galen with Daring Raid
+                context.player2.clickCard(context.daringRaid);
+                context.player2.clickCard(context.galenErso);
+                expect(context.galenErso.damage).toBe(2);
+
+                // decline Boba's undeployed "exhaust to deal 1 indirect damage" trigger off the non-combat damage
+                expect(context.player2).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
+                context.player2.clickPrompt('Pass');
+
+                context.player1.passAction();
+
+                // player2 deploys Boba Fett as a Pilot on War Juggernaut, which would trigger both Boba's own
+                // damage ability and Topple the Summit's Plot ability off the same leader-deploy event -
+                // except Topple's Plot ability is blanked at the moment the event fires, so it never
+                // registers as a pending trigger, unlike the Ryder Azadi restriction case
+                context.player2.clickCard(context.bobaFett);
+                context.player2.clickPrompt('Deploy Boba Fett as a Pilot');
+                context.player2.clickCard(context.warJuggernaut);
+
+                // only one trigger is pending (Boba's), so there's no "choose which to resolve first" prompt -
+                // it goes straight to Boba's distribute-damage prompt
+                context.player2.setDistributeDamagePromptState(new Map([
+                    [context.galenErso, 4],
+                ]));
+                expect(context.galenErso).toBeInZone('discard');
+
+                // Galen is gone, but his blanking of Topple already caused the Plot trigger to miss its
+                // window entirely - it does not come back just because the blanking source left play
+                expect(context.player2).not.toHavePassAbilityPrompt('Play Topple the Summit using Plot');
+                expect(context.player1).toBeActivePlayer();
+                expect(context.toppleTheSummit).toBeInZone('resource');
+            });
         });
 
         describe('Galen Erso - You\'ll Never Win\'s ability should name a card. While he is in play, named friendly events', function() {
@@ -1508,6 +1563,45 @@ describe('Galen Erso - You\'ll Never Win', function() {
                     expect(context.player1.credits).toBe(0);
                     expect(context.jawaScavenger).toBeInZone('groundArena');
                 });
+            });
+        });
+
+        describe('Galen Erso - You\'ll Never Win\'s ability, when the named unit defeats him', function() {
+            it('should not let the named unit trigger "when this unit attacks and defeats a unit" off his own defeat', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['galen-erso#youll-never-win'],
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        groundArena: ['mace-windu#party-crasher']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.galenErso);
+                context.player1.chooseListOption('Mace Windu');
+                expect(context.maceWindu.isBlank()).toBeTrue();
+
+                // Mace defeats Galen. His abilities come back because Galen left play, but he had no
+                // "when this unit attacks and defeats a unit" ability at the moment Galen was defeated
+                context.player2.clickCard(context.maceWindu);
+                context.player2.clickCard(context.galenErso);
+
+                expect(context.galenErso).toBeInZone('discard', context.player1);
+                expect(context.maceWindu.isBlank()).toBeFalse();
+                expect(context.maceWindu.exhausted).toBeTrue();
+                expect(context.player1).toBeActivePlayer();
+
+                // Abilities are back for later attacks
+                context.player1.passAction();
+                context.readyCard(context.maceWindu);
+                context.player2.clickCard(context.maceWindu);
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeInZone('discard', context.player1);
+                expect(context.maceWindu.exhausted).toBeFalse();
             });
         });
     });

@@ -33,7 +33,9 @@ If a triggered ability is not activating in response to the expected trigger, st
 
 3. If you see that the relevant card ability is triggered, you can inspect the `event` parameter's properties to confirm that the emitted event matches what is expected.
 
-4. Code execution must reach the line [`window.addToWindow(context);`](https://github.com/AMMayberry1/forceteki/blob/418d09a36bf24e3905e3d3e6d1cd00793ef17d1b/server/game/core/ability/TriggeredAbility.ts#L88) for the ability to be resolved. Step through the code and determine whether any of the checks that happen before that line are failing.
+4. If the breakpoint is hit for other abilities but never for yours even though `eventHandler()` is being called, the ability was not active on its card when the event was emitted (e.g. the card was blanked) - see `isActiveForEvents()` just above the loop. An ability that is inactive when the event is first emitted stays ineligible when the event is emitted again post-resolution.
+
+5. Code execution must reach the line [`window.addToWindow(context);`](https://github.com/AMMayberry1/forceteki/blob/418d09a36bf24e3905e3d3e6d1cd00793ef17d1b/server/game/core/ability/TriggeredAbility.ts#L88) for the ability to be resolved. Step through the code and determine whether any of the checks that happen before that line are failing.
 
 5. If [`window.addToWindow(context);`](https://github.com/AMMayberry1/forceteki/blob/418d09a36bf24e3905e3d3e6d1cd00793ef17d1b/server/game/core/ability/TriggeredAbility.ts#L88) is reached, then the trigger is working properly and the triggered ability is being queued for resolution. Move on [debugging the game system(s)](#gamesystem-not-executing-correctly) and the pipeline to determine what is causing resolution of the ability to fail.
 

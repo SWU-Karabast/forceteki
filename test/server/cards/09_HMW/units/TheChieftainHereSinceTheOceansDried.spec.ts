@@ -120,6 +120,9 @@ describe('The Chieftain, Here Since The Oceans Dried', function() {
 
                 // Play a second friendly Tusken unit, granting the Chieftain Raid 1
                 context.player1.clickCard(context.stormchaser);
+
+                // Stormchaser can't reveal a Disaster card, so skip its masking pause
+                context.player1.clickPrompt('Skip');
                 context.player2.passAction();
 
                 // Attack the base with the Chieftain

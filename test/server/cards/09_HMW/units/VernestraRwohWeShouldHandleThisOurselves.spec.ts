@@ -258,5 +258,108 @@ describe('Vernestra Rwoh, We Should Handle This Ourselves', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('the copied "When Played" abilities are gained only for the phase', function() {
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'lando-calrissian#full-sabacc',
+                        base: 'echo-base',
+                        discard: ['veteran-fleet-officer'],
+                        deck: ['wampa'],
+                        hand: [
+                            'vernestra-rwoh#we-should-handle-this-ourselves',
+                            'fives#i-have-proof'
+                        ],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Vernestra copies Veteran Fleet Officer's "When Played: Create an X-Wing token"
+                context.player1.clickCard(context.vernestraRwoh);
+                context.player1.clickCard(context.veteranFleetOfficer);
+                context.player1.clickPrompt('Done');
+
+                expect(context.vernestraRwoh).toBeInZone('groundArena');
+                expect(context.player1.findCardsByName('xwing').length).toBe(1);
+            });
+
+            it('can be copied by Fives in the same phase Vernestra was played', function() {
+                const { context } = contextRef;
+
+                context.player2.passAction();
+
+                // Play Fives, copying Vernestra's gained When Played ability
+                context.player1.clickCard(context.fives);
+
+                // Vernestra still has her gained "When Played" ability this phase
+                expect(context.player1).toBeAbleToSelectExactly([context.vernestraRwoh]);
+                context.player1.clickCard(context.vernestraRwoh);
+
+                // TODO: This ability does not fire (GH Issue #2886)
+                // expect(context.player1.findCardsByName('xwing').length).toBe(2);
+                expect(context.fives).toBeInZone('groundArena');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('cannot be copied by Fives in a later phase because they expire at end of phase', function() {
+                const { context } = contextRef;
+
+                context.moveToNextActionPhase();
+
+                // Play Fives
+                context.player1.clickCard(context.fives);
+
+                // Vernestra is not selectable because she no longer has the When Played abilities from the previous phase
+                expect(context.player1).not.toBeAbleToSelect(context.vernestraRwoh);
+
+                expect(context.fives).toBeInZone('groundArena');
+                expect(context.player1.findCardsByName('xwing').length).toBe(1);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
+        describe('when Nightbrother plays her from the discard pile', function() {
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['nightbrother#mauls-gauntlet'],
+                        discard: ['vernestra-rwoh#we-should-handle-this-ourselves', 'veteran-fleet-officer', 'youngling-padawan'],
+                        deck: ['wampa']
+                    },
+                    player2: {}
+                });
+            });
+
+            it('still pays her additional cost and copies the bottomed units\' "When Played" abilities', function() {
+                const { context } = contextRef;
+
+                // Nightbrother: "Play a unit from your discard pile. It costs 3 less and enters play ready."
+                context.player1.clickCard(context.nightbrother);
+                expect(context.player1).toHavePrompt('Choose a unit');
+                context.player1.clickCard(context.vernestraRwoh);
+
+                // Vernestra's additional play cost still resolves when she is played from the discard pile
+                expect(context.player1).toHavePrompt('Put up to 2 units on the bottom of your deck');
+                context.player1.clickCard(context.veteranFleetOfficer);
+                context.player1.clickCard(context.younglingPadawan);
+                context.player1.clickPrompt('Done');
+
+                // Both copied "When Played" abilities fire as she enters play
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                expect(context.player1).toHaveExactPromptButtons(['Create an X-Wing token', 'The Force is with you']);
+                context.player1.clickPrompt('Create an X-Wing token');
+
+                expect(context.vernestraRwoh).toBeInZone('groundArena');
+                expect(context.veteranFleetOfficer).toBeInZone('deck');
+                expect(context.younglingPadawan).toBeInZone('deck');
+                expect(context.player1.findCardsByName('xwing').length).toBe(1);
+                expect(context.player1.hasTheForce).toBe(true);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });

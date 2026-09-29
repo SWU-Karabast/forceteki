@@ -16,6 +16,7 @@ export default class CoronaSquadronXWing extends NonLeaderUnitCard {
             title: 'Ready a resource',
             optional: true,
             targetResolver: {
+                activePromptTitle: 'Choose a player to ready a resource',
                 mode: TargetMode.Player,
                 immediateEffect: AbilityHelper.immediateEffects.readyResources({ amount: 1 })
             }

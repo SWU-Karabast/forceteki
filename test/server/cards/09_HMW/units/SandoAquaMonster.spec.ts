@@ -65,6 +65,31 @@ describe('Sando Aqua Monster', function() {
                 expect(context.sandoAquaMonster.damage).toBe(7);
             });
 
+            it('should do nothing when choosing no units', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['sando-aqua-monster'],
+                        base: 'great-grass-plains'
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sandoAquaMonster);
+
+                expect(context.player1).toHaveChooseNothingButton();
+                context.player1.clickPrompt('Choose nothing');
+
+                expect(context.wampa).toBeInZone('groundArena', context.player2);
+                expect(context.sandoAquaMonster).toBeInZone('groundArena', context.player1);
+                expect(context.sandoAquaMonster.damage).toBe(0);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should do nothing when passed', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

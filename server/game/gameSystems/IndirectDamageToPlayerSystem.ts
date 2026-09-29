@@ -42,7 +42,7 @@ export class IndirectDamageToPlayerSystem<TContext extends AbilityContext = Abil
             .getOngoingEffectValues<IndirectDamageModifier>(EffectName.ModifyIndirectDamage)
             .reduce((totalIndirectDamage, value) =>
                 totalIndirectDamage + (value.opponentsOnly && context.player === targetPlayer ? 0 : value.amount),
-            baseAmount);
+            baseAmount + context.pendingAbilityDamageIncrease);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {

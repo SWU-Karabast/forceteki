@@ -31,6 +31,39 @@ describe('Inquisitor\'s Lightsaber', function () {
             expect(context.rey.damage).toBe(5); // 2+1+2
         });
 
+        it('should not give +2/+0 if the attached unit has lost all abilities', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                    hand: ['inquisitors-lightsaber'],
+                    groundArena: ['battlefield-marine'],
+                },
+                player2: {
+                    groundArena: ['rey#keeping-the-past'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Remove all abilities from Battlefield Marine for the round, then attach the lightsaber to it
+            context.player1.clickCard(context.kazudaXiono);
+            context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
+            context.player1.clickCard(context.battlefieldMarine);
+
+            context.player1.clickCard(context.inquisitorsLightsaber);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            context.player2.passAction();
+
+            // Battlefield Marine attacks a Force unit; it still has the lightsaber's flat +1/+3, but the gained
+            // "+2/+0 while attacking a Force unit" ability was lost along with its other abilities
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.rey);
+
+            expect(context.rey.damage).toBe(4);
+        });
+
         it('Inquisitor\'s Lightsaber\'s should give +2/+0 while attacking at least one force unit (TWI Darth Maul test)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

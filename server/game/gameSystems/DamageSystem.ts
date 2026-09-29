@@ -46,6 +46,13 @@ export interface IAbilityDamageProperties extends IDamagePropertiesBase {
     isIndirect?: boolean;
 
     isUnpreventable?: boolean;
+
+    /**
+     * If true, this damage event does not consume {@link AbilityContext.pendingAbilityDamageIncrease}.
+     * Used for damage events generated as portions of a distribution, where the increase has already
+     * been applied to the total amount being distributed.
+     */
+    ignoreAbilityDamageIncrease?: boolean;
 }
 
 /** Used for abilities that use the excess damage from another instance of damage (currently just Blizzard Assault AT-AT) */
@@ -291,6 +298,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
         Contract.assertNotNullLike(properties.amount);
         event.amount = typeof properties.amount === 'function' ? (properties.amount as (Event) => number)(card) : properties.amount;
+
+        if (context.pendingAbilityDamageIncrease > 0 && !properties.ignoreAbilityDamageIncrease) {
+            event.amount += context.pendingAbilityDamageIncrease;
+        }
     }
 
     private sourcesMakeDamageUnpreventable(event: any): boolean {

@@ -8,7 +8,7 @@ import type { IUnitAbilityRegistrar, IUnitCard } from '../../card/propertyMixins
 import type { Game } from '../../Game';
 import { Helpers } from '../../utils/Helpers';
 
-import { registerState } from '../../GameObjectUtils';
+import { registerState, stateValue } from '../../GameObjectUtils';
 
 const abilityTypeToRegistrarMethod: Record<StandardTriggeredAbilityType, string> = {
     [StandardTriggeredAbilityType.WhenPlayed]: 'addWhenPlayedAbility',
@@ -28,7 +28,7 @@ const abilityTypeDisplayName: Record<StandardTriggeredAbilityType, string> = {
 
 @registerState()
 export class CopyStandardTriggeredAbilitiesEffect extends OngoingEffectValueWrapperBase<ICardWithStandardAbilitySetup<Card>[]> {
-    private printedTriggeredAbilitiesUuidByTargetCard?: Set<string>;
+    @stateValue() private accessor _preCopyTriggeredAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
     private readonly abilityType: StandardTriggeredAbilityType;
 
     public constructor(game: Game, sourceUnits: Card | Card[], abilityType: StandardTriggeredAbilityType) {
@@ -52,10 +52,11 @@ export class CopyStandardTriggeredAbilitiesEffect extends OngoingEffectValueWrap
     public override apply(target: IUnitCard): void {
         super.apply(target);
 
-        Contract.assertIsNullLike(this.printedTriggeredAbilitiesUuidByTargetCard, `Attempting to copy triggered abilities to ${target.internalName} twice`);
+        Contract.assertDoesNotHaveKey(this._preCopyTriggeredAbilityUuidsByTargetCard, target.uuid, `Attempting to copy triggered abilities to ${target.internalName} twice`);
 
         // Snapshot existing triggered ability UUIDs on the target before copying
-        this.printedTriggeredAbilitiesUuidByTargetCard = new Set(
+        this._preCopyTriggeredAbilityUuidsByTargetCard.set(
+            target.uuid,
             target.getPrintedTriggeredAbilities().map((ability) => ability.uuid)
         );
 
@@ -75,16 +76,17 @@ export class CopyStandardTriggeredAbilitiesEffect extends OngoingEffectValueWrap
     public override unapply(target: IUnitCard): void {
         super.unapply(target);
 
-        Contract.assertNotNullLike(this.printedTriggeredAbilitiesUuidByTargetCard, `Attempting to unapply copied triggered abilities from ${target.internalName} but it is not applied`);
+        Contract.assertMapHasKey(this._preCopyTriggeredAbilityUuidsByTargetCard, target.uuid, `Attempting to unapply copied triggered abilities from ${target.internalName} but it is not applied`);
 
+        const preCopyUuids = new Set(this._preCopyTriggeredAbilityUuidsByTargetCard.get(target.uuid));
         if (target.canRegisterTriggeredAbilities()) {
             for (const ability of target.getPrintedTriggeredAbilities().filter(
-                (ability) => !(this.printedTriggeredAbilitiesUuidByTargetCard ?? new Set()).has(ability.uuid)
+                (ability) => !preCopyUuids.has(ability.uuid)
             )) {
                 target.removePrintedTriggeredAbility(ability.uuid);
             }
         }
-        this.printedTriggeredAbilitiesUuidByTargetCard = undefined;
+        this._preCopyTriggeredAbilityUuidsByTargetCard.delete(target.uuid);
     }
 
     /**
