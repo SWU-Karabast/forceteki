@@ -450,8 +450,8 @@ export class Game extends EventEmitter {
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.cardDataGetter = details.cardDataGetter;
-        this.playableCardTitles = this.cardDataGetter.playableCardTitles;
-        this.allNonLeaderCardTitles = this.cardDataGetter.allNonLeaderCardTitles;
+        this.playableCardTitles = Game.filterToLegalTitles(this.cardDataGetter.playableCardTitles, details.legalCardTitles);
+        this.allNonLeaderCardTitles = Game.filterToLegalTitles(this.cardDataGetter.allNonLeaderCardTitles, details.legalCardTitles);
 
         this.statsTracker = new GameStatisticsLogger(this);
 
@@ -484,6 +484,11 @@ export class Game extends EventEmitter {
         this.allArenas = new AllArenasZone(this, this.groundArena, this.spaceArena);
 
         this.setMaxListeners(0);
+    }
+
+    /** Keeps only the titles legal in this game's format, preserving order. With no legal set given, all titles are kept. */
+    private static filterToLegalTitles(titles: string[], legalCardTitles?: ReadonlySet<string>): string[] {
+        return legalCardTitles ? titles.filter((title) => legalCardTitles.has(title)) : titles;
     }
 
     /**

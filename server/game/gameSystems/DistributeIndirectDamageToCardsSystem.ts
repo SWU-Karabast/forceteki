@@ -29,7 +29,8 @@ export class DistributeIndirectDamageToCardsSystem<TContext extends AbilityConte
     }
 
     protected override generateEffectSystem(target: Card = null, amount = 1): DamageSystem {
-        return new DamageSystem({ type: DamageType.Ability, target, amount, isIndirect: true });
+        // the pending ability damage increase (e.g. Ty Yorrick) is already included in the distributed total
+        return new DamageSystem({ type: DamageType.Ability, target, amount, isIndirect: true, ignoreAbilityDamageIncrease: true });
     }
 
     protected override canDistributeLessDefault(): boolean {

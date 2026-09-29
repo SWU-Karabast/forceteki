@@ -20,6 +20,12 @@ export interface GameConfiguration {
     /** The deck/rules format being played. Defaults to Premier when omitted. */
     format?: SwuGameFormat;
     cardDataGetter: CardDataGetter;
+
+    /**
+     * Card titles legal in this game's format and card pool, used to restrict "name a card" options.
+     * When omitted, every card title is available.
+     */
+    legalCardTitles?: ReadonlySet<string>;
     useActionTimer?: boolean;
     pushUpdate: () => void;
     buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;

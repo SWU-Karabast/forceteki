@@ -18,6 +18,7 @@ import * as CostHelpers from './CostHelpers';
 import type { TargetedCostAdjuster } from './TargetedCostAdjuster';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';
+import type { SimpleAdjustedCost } from './evaluation/SimpleAdjustedCost';
 import type { DefeatCreditTokensCostAdjuster } from './DefeatCreditTokensCostAdjuster';
 
 // TODO: move all these enums + interfaces to CostInterfaces.ts
@@ -32,7 +33,8 @@ export enum CostAdjustType {
     ModifyPayStage = 'modifyPayStage',
     Exploit = 'exploit',
     ExhaustUnits = 'exhaustUnits',
-    DefeatCreditTokens = 'defeatCreditTokens'
+    DefeatCreditTokens = 'defeatCreditTokens',
+    DefeatResources = 'defeatResources'
 }
 
 // TODO: refactor so we can add TContext for attachTargetCondition
@@ -84,6 +86,16 @@ export interface IExhaustUnitsCostAdjusterProperties extends ICostAdjusterProper
     canExhaustUnitCondition: (card: IUnitCard, context: AbilityContext) => boolean;
 }
 
+export interface IDefeatResourcesCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.DefeatResources;
+
+    /** The amount the cost is reduced by for each resource defeated */
+    amountPerResource: number;
+
+    /** If true, only ready resources can be defeated (e.g. "defeat any number of ready resources you control"). Defaults to false. */
+    readyResourcesOnly?: boolean;
+}
+
 export interface IIgnoreAllAspectsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
     costAdjustType: CostAdjustType.IgnoreAllAspects;
 }
@@ -125,11 +137,13 @@ export type ICostAdjusterProperties =
   | IModifyPayStageCostAdjusterProperties
   | IExploitCostAdjusterProperties
   | IExhaustUnitsCostAdjusterProperties
-  | IDefeatCreditTokensCostAdjusterProperties;
+  | IDefeatCreditTokensCostAdjusterProperties
+  | IDefeatResourcesCostAdjusterProperties;
 
 export type ITargetedCostAdjusterProperties =
   | IExploitCostAdjusterProperties
-  | IExhaustUnitsCostAdjusterProperties;
+  | IExhaustUnitsCostAdjusterProperties
+  | IDefeatResourcesCostAdjusterProperties;
 
 export interface ICanAdjustProperties {
     attachTargets?: Card[];
@@ -323,12 +337,17 @@ export abstract class CostAdjuster extends GameObjectBase {
         return Math.max(currentCost - amountToSubtract, 0);
     }
 
-    protected getMinimumPossibleRemainingCost(
+    /**
+     * Simulates applying the maximum adjustment for every stage after the current one and returns the resulting cost tracker.
+     * Use `value` on the result for the minimum possible remaining cost, and `requiredReadyResources` to check whether it can be paid
+     * (this also accounts for any resources that downstream adjusters would consume).
+     */
+    protected simulateRemainingAdjustments(
         context: AbilityContext,
         adjustResult: ICostAdjustTriggerResult,
         thisStageDiscount: number = 0,
         previousTargetSelections?: ITriggerStageTargetSelection[]
-    ): number {
+    ): SimpleAdjustedCost {
         const adjustResultCopy = { ...adjustResult, adjustedCost: adjustResult.adjustedCost.copy() };
         adjustResultCopy.adjustedCost.applyStaticDecrease(thisStageDiscount);
 
@@ -346,7 +365,7 @@ export abstract class CostAdjuster extends GameObjectBase {
             }
         }
 
-        return adjustResultCopy.adjustedCost.value;
+        return adjustResultCopy.adjustedCost;
     }
 
     protected getAmount(card: Card, player: Player, context: AbilityContext): number {
