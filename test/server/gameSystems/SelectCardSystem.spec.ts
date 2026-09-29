@@ -48,9 +48,13 @@ describe('Select card system messages', function() {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.battlefieldMarine);
 
-                const logs = context.getChatLogs(5);
-                expect(logs).toContain('player1 uses Overgrowth to deal 4 damage to Battlefield Marine');
-                expect(logs).not.toContain('player1 uses Overgrowth to choose a target for Wampa');
+                // The middle message is the one that was missing entirely before this fix. There is no
+                // "uses Overgrowth to choose a target for Wampa" line from the outer selection
+                expect(context.getChatLogs(3)).toEqual([
+                    'player1 plays Overgrowth to choose a target for Overgrowth and then to move Overgrowth to their resources',
+                    'player1 uses Overgrowth to deal 4 damage to Battlefield Marine',
+                    'player2\'s Battlefield Marine is defeated by player1 due to having no remaining HP'
+                ]);
             });
         });
 
@@ -72,8 +76,13 @@ describe('Select card system messages', function() {
                 context.player1.clickCard(context.wampa);
 
                 expect(context.wampa).toBeInZone('groundArena', context.player1);
-                expect(context.getChatLog()).toBe('player1 plays Wampa');
-                expect(context.getChatLogs(5)).not.toContain('player1 uses Now There Are Two of Them to play Wampa from their hand');
+
+                // Wampa's play is reported once, by the play itself. Before this fix the selection
+                // added 'player1 uses Now There Are Two of Them to play Wampa from their hand' above it
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 plays Now There Are Two of Them to choose a target for Now There Are Two of Them',
+                    'player1 plays Wampa'
+                ]);
             });
 
             it('does not duplicate the play message when playing several cards', async function() {
