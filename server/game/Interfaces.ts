@@ -62,6 +62,14 @@ export type IDamageModificationAbilityProps<TSource extends Card = Card> = Omit<
      * This is used for damage modification that requires some other system to resolve before modifying the damage, such as defeating a unit
      */
     onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
+
+    /**
+     * If true, the modification is applied when the initiating ability resolves rather than to each
+     * damage event. The trigger fires once on ability initiation (all-or-nothing) and the amount is
+     * added to the ability's total damage output: each damage event for per-target effects, or the
+     * total amount before distribution for indirect / distribute-damage effects.
+     */
+    applyAtAbilityInitiation?: boolean;
 };
 
 export type IWhenAttackEndsAbilityProps<TSource extends Card = Card> = ITriggeredAbilityProps<TSource> & {

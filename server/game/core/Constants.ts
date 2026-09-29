@@ -370,6 +370,7 @@ export enum MetaEventName {
     DistributeTokenUpgrade = 'distributeTokenUpgrade',
     ExecuteHandler = 'executeHandler',
     InitiateAttack = 'initiateAttack',
+    IncreaseAbilityDamage = 'increaseAbilityDamage',
     GameLost = 'gameLost',
     GameWon = 'gameWon',
     NoAction = 'noAction',
