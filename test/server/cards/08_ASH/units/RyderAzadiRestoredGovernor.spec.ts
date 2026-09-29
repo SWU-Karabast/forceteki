@@ -171,8 +171,13 @@ describe('Ryder Azadi, Restored Governor', function () {
             context.player2.clickPrompt('Deploy Boba Fett as a Pilot');
             context.player2.clickCard(context.warJuggernaut);
 
-            // two triggers are now pending for player2: Boba's damage ability and Topple's Plot ability
+            // two triggers are now pending for player2: Boba's damage ability and Topple's Plot ability.
+            // Azadi is still alive here, so the Plot trigger is offered but marked as having no effect
             expect(context.player2).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+            expect(context.player2).toHaveExactPromptButtons([
+                'Deal up to 4 damage divided as you choose among any number of units.',
+                '(No effect) Play Topple the Summit using Plot',
+            ]);
 
             // resolve Boba's damage ability first, defeating Azadi (2 + 4 >= 5 hp)
             context.player2.clickPrompt('Deal up to 4 damage divided as you choose among any number of units.');
@@ -227,8 +232,13 @@ describe('Ryder Azadi, Restored Governor', function () {
             context.player2.clickPrompt('Deploy Boba Fett as a Pilot');
             context.player2.clickCard(context.warJuggernaut);
 
-            // two triggers are now pending for player2: Boba's damage ability and Cinta Kaz's Plot ability
+            // two triggers are now pending for player2: Boba's damage ability and Cinta Kaz's Plot ability.
+            // Azadi is still alive here, so the Plot trigger is offered but marked as having no effect
             expect(context.player2).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+            expect(context.player2).toHaveExactPromptButtons([
+                'Deal up to 4 damage divided as you choose among any number of units.',
+                '(No effect) Play Cinta Kaz using Plot',
+            ]);
 
             // resolve Boba's damage ability first, defeating Azadi (2 + 4 >= 5 hp)
             context.player2.clickPrompt('Deal up to 4 damage divided as you choose among any number of units.');
