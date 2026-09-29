@@ -174,11 +174,25 @@ export class DefeatResourcesCostAdjuster extends TargetedCostAdjuster {
         );
     }
 
-    protected override buildActivePromptTitleHandler(triggerResult: ICostAdjustTriggerResult): (context: AbilityContext, selectedCards: Card[]) => string {
-        return (context: AbilityContext) => {
-            const maxTargets = this.getNumberOfLegalTargets(this.defaultTargetResolver, context, triggerResult);
-            return `Defeat up to ${maxTargets} ${this.readyResourcesOnly ? 'ready ' : ''}${maxTargets === 1 ? 'resource' : 'resources'}`;
-        };
+    /** "Defeat up to K resources", "Defeat K resources" or "Defeat between J and K resources", depending on the required minimum */
+    protected override buildActivePromptTitleHandler(
+        triggerResult: ICostAdjustTriggerResult,
+        context: AbilityContext,
+        minimumTargets: number
+    ): (context: AbilityContext, selectedCards: Card[]) => string {
+        const maxTargets = this.getNumberOfLegalTargets(this.defaultTargetResolver, context, triggerResult);
+        const resourcesText = `${this.readyResourcesOnly ? 'ready ' : ''}${maxTargets === 1 ? 'resource' : 'resources'}`;
+
+        let title: string;
+        if (minimumTargets === 0) {
+            title = `Defeat up to ${maxTargets} ${resourcesText}`;
+        } else if (minimumTargets === maxTargets) {
+            title = `Defeat ${maxTargets} ${resourcesText}`;
+        } else {
+            title = `Defeat between ${minimumTargets} and ${maxTargets} ${resourcesText}`;
+        }
+
+        return () => title;
     }
 
     private applyAdjustmentForTargetCount(targetCount: number, result: ICostAdjustResult, context: AbilityContext) {

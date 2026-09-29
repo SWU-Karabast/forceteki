@@ -1,7 +1,6 @@
 describe('Greater Sarlacc', function() {
     integration(function(contextRef) {
         describe('Greater Sarlacc\'s cost adjustment ability', function() {
-            const defeatReadyResourcesPrompt = (count) => `Defeat up to ${count} ready resources`;
             const defeatResourcesChatLog = (count, discount) =>
                 `player1 defeats ${count} ready resources to pay ${discount} resources less for Greater Sarlacc`;
 
@@ -19,7 +18,7 @@ describe('Greater Sarlacc', function() {
 
                 // Playing Greater Sarlacc prompts to defeat resources, capped at the amount that would reduce the cost to 0
                 context.player1.clickCard(context.greaterSarlacc);
-                expect(context.player1).toHavePrompt(defeatReadyResourcesPrompt(3));
+                expect(context.player1).toHavePrompt('Defeat up to 3 ready resources');
                 expect(context.player1).toHaveExactPromptButtons(['Choose nothing', 'Cancel']);
 
                 // Choose not to defeat any resources, paying the full cost instead
@@ -44,9 +43,9 @@ describe('Greater Sarlacc', function() {
 
                 const { context } = contextRef;
 
-                // All 6 ready resources are selectable, but only 3 are needed to fully pay for the card
+                // All 6 ready resources are selectable, but only 3 are needed to fully pay for the card (and at least 2 to afford it)
                 context.player1.clickCard(context.greaterSarlacc);
-                expect(context.player1).toHavePrompt(defeatReadyResourcesPrompt(3));
+                expect(context.player1).toHavePrompt('Defeat between 2 and 3 ready resources');
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.wampa, context.battlefieldMarine, context.pykeSentinel, context.atst, context.cartelSpacer, context.deathStarStormtrooper
                 ]);
@@ -55,6 +54,7 @@ describe('Greater Sarlacc', function() {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.pykeSentinel);
+                expect(context.player1).toHavePrompt('Defeat between 2 and 3 ready resources');
                 expect(context.player1).not.toBeAbleToSelect(context.atst);
                 context.player1.clickPrompt('Done');
 
@@ -87,6 +87,7 @@ describe('Greater Sarlacc', function() {
 
                 // With 5 ready resources, defeating none isn't enough to afford the card, so there's no "Choose nothing" option
                 context.player1.clickCard(context.greaterSarlacc);
+                expect(context.player1).toHavePrompt('Defeat between 2 and 3 ready resources');
                 expect(context.player1).toHaveExactPromptButtons(['Done', 'Cancel']);
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
@@ -138,6 +139,7 @@ describe('Greater Sarlacc', function() {
 
                 // Defeat all 3 ready resources, reducing the cost to 0
                 context.player1.clickCard(context.greaterSarlacc);
+                expect(context.player1).toHavePrompt('Defeat 3 ready resources');
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.pykeSentinel);
@@ -169,6 +171,7 @@ describe('Greater Sarlacc', function() {
 
                 // Every resource is selectable, ready or not, since resources can be freely rearranged (rule 1.7.4)
                 context.player1.clickCard(context.greaterSarlacc);
+                expect(context.player1).toHavePrompt('Defeat between 2 and 3 ready resources');
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.wampa, context.battlefieldMarine, context.pykeSentinel, context.atst, context.cartelSpacer, context.deathStarStormtrooper, context.allianceXwing
                 ]);
@@ -207,7 +210,7 @@ describe('Greater Sarlacc', function() {
 
                 // With 2 ready resources, defeat both to reduce the cost to 3, then pay with Credit tokens
                 context.player1.clickCard(context.greaterSarlacc);
-                expect(context.player1).toHavePrompt(defeatReadyResourcesPrompt(2));
+                expect(context.player1).toHavePrompt('Defeat 2 ready resources');
 
                 // The cap is reached after 2 selections, so the exhausted ATST can't be added even though it exists
                 context.player1.clickCard(context.wampa);
@@ -271,7 +274,7 @@ describe('Greater Sarlacc', function() {
 
                 // 5 ready resources: must defeat at least 2 to reduce the cost to 3 and pay with the remaining 3
                 context.player1.clickCard(context.greaterSarlacc);
-                expect(context.player1).toHavePrompt(defeatReadyResourcesPrompt(3));
+                expect(context.player1).toHavePrompt('Defeat between 2 and 3 ready resources');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.pykeSentinel, context.atst, context.cartelSpacer]);
                 expect(context.player1).toHaveExactPromptButtons(['Done', 'Cancel']);
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
@@ -332,7 +335,7 @@ describe('Greater Sarlacc', function() {
                 context.player1.clickCard(context.greaterSarlacc);
 
                 // Sarlacc costs 6 with 4 ready resources left: must defeat at least 1 to reduce the cost to 3 and pay with the remaining 3
-                expect(context.player1).toHavePrompt(defeatReadyResourcesPrompt(2));
+                expect(context.player1).toHavePrompt('Defeat between 1 and 2 ready resources');
                 expect(context.player1).toHaveExactPromptButtons(['Done']);
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
@@ -380,7 +383,7 @@ describe('Greater Sarlacc', function() {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.greaterSarlacc);
-                    expect(context.player1).toHavePrompt(defeatReadyResourcesPrompt(5));
+                    expect(context.player1).toHavePrompt('Defeat between 3 and 5 ready resources');
 
                     // Costs 13 with aspect penalties: defeating 3 reduces it to 4, halved to 2, paid with the remaining 2
                     context.player1.clickCard(context.wampa);
@@ -410,6 +413,7 @@ describe('Greater Sarlacc', function() {
 
                 // Smuggle cost is 11 (printed cost + 2): with 6 ready resources, must defeat 3 others to reduce it to 2
                 context.player1.clickCard(context.greaterSarlacc);
+                expect(context.player1).toHavePrompt('Defeat between 3 and 4 ready resources');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.pykeSentinel, context.atst, context.cartelSpacer]);
 
                 // Greater Sarlacc itself is excluded from the selectable resources, since it can't defeat itself to pay for itself

@@ -193,9 +193,14 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
         const usePayModePrompt = this.usesPayModePrompt();
         const canChooseNoTargets = !usePayModePrompt && minimumTargetsRequiredToPay === 0;
 
+        // with a pay mode prompt, choosing to use the adjuster means choosing at least one target
+        const minimumTargets = usePayModePrompt
+            ? Math.max(1, minimumTargetsRequiredToPay)
+            : minimumTargetsRequiredToPay;
+
         let targetResolver: CardTargetResolver;
         if (useOpportunityCost) {
-            targetResolver = this.buildOpportunityCostTriggerStageTargetResolver(costAdjustTriggerResult, context, canChooseNoTargets);
+            targetResolver = this.buildOpportunityCostTriggerStageTargetResolver(costAdjustTriggerResult, context, canChooseNoTargets, minimumTargets);
         } else if (canChooseNoTargets) {
             targetResolver = this.buildTargetResolverCommon(undefined, undefined, undefined, costAdjustTriggerResult, true);
         } else {
@@ -203,9 +208,7 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
         }
 
         const maxTargetableUnitsCount = this.getNumberOfLegalTargets(targetResolver, context, costAdjustTriggerResult);
-        costProps.minimumTargets = usePayModePrompt
-            ? Math.max(1, minimumTargetsRequiredToPay)
-            : minimumTargetsRequiredToPay;
+        costProps.minimumTargets = minimumTargets;
 
         // payment shouldn't have been triggered if there aren't enough targetable units available to pay the minimum
         Contract.assertTrue(maxTargetableUnitsCount >= minimumTargetsRequiredToPay);
@@ -479,7 +482,8 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
     private buildOpportunityCostTriggerStageTargetResolver(
         triggerResult: ICostAdjustTriggerResult,
         context: AbilityContext,
-        canChooseNoTargets: boolean
+        canChooseNoTargets: boolean,
+        minimumTargets: number
     ): CardTargetResolver {
         const sortedTargets = this.getSortedTargetsFromContext(context).map((t) => t.card);
 
@@ -495,7 +499,7 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
         const onSelectionSetChanged = (selected: Card | Card[], context: AbilityContext) =>
             this.updateMinimumTargetsInContext(selected, triggerResult, context);
 
-        const activePromptTitle = this.buildActivePromptTitleHandler(triggerResult);
+        const activePromptTitle = this.buildActivePromptTitleHandler(triggerResult, context, minimumTargets);
 
         return this.buildTargetResolverCommon(multiSelectCardCondition, onSelectionSetChanged, activePromptTitle, triggerResult, canChooseNoTargets);
     }
@@ -652,8 +656,16 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
         return simulatedCost.value;
     }
 
+    /**
+     * Optionally builds a handler for a dynamic target prompt title.
+     *
+     * `minimumTargets` is the number of targets required when the prompt opens. The minimum stored on the context changes as
+     * targets are selected, so this should be used instead when the title describes the overall selection range.
+     */
     protected buildActivePromptTitleHandler(
-        _triggerResult: ICostAdjustTriggerResult
+        _triggerResult: ICostAdjustTriggerResult,
+        _context: AbilityContext,
+        _minimumTargets: number
     ): ((context: AbilityContext, selectedCards: Card[]) => string) | null {
         return null;
     }
