@@ -146,5 +146,6 @@ This repo carries a depth layer for card-development work with Claude Code. It i
 - `.claude/reference/test-conventions/` — baseline spec-file conventions (read-only seed for `test-auditor`).
 - `.claude/agents/` — `card-implementer`, `card-test-writer`, `card-librarian`, `swu-rules-expert`, `test-auditor`.
 - `.claude/skills/implement-card/` — end-to-end "implement a new card" workflow that orchestrates the agents above.
+- `.claude/skills/patch-notes/` — drafts player-facing patch notes from the git history for a commit range.
 - `.claude/agent-memory/` — per-agent local learnings; **gitignored** (never committed), so it never shows up in feature diffs.
 
