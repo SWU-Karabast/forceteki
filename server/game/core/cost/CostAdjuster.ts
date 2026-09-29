@@ -18,6 +18,7 @@ import * as CostHelpers from './CostHelpers';
 import type { TargetedCostAdjuster } from './TargetedCostAdjuster';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';
+import type { SimpleAdjustedCost } from './evaluation/SimpleAdjustedCost';
 import type { DefeatCreditTokensCostAdjuster } from './DefeatCreditTokensCostAdjuster';
 
 // TODO: move all these enums + interfaces to CostInterfaces.ts
@@ -323,12 +324,17 @@ export abstract class CostAdjuster extends GameObjectBase {
         return Math.max(currentCost - amountToSubtract, 0);
     }
 
-    protected getMinimumPossibleRemainingCost(
+    /**
+     * Simulates applying the maximum adjustment for every stage after the current one and returns the resulting cost tracker.
+     * Use `value` on the result for the minimum possible remaining cost, and `requiredReadyResources` to check whether it can be paid
+     * (this also accounts for any resources that downstream adjusters would consume).
+     */
+    protected simulateRemainingAdjustments(
         context: AbilityContext,
         adjustResult: ICostAdjustTriggerResult,
         thisStageDiscount: number = 0,
         previousTargetSelections?: ITriggerStageTargetSelection[]
-    ): number {
+    ): SimpleAdjustedCost {
         const adjustResultCopy = { ...adjustResult, adjustedCost: adjustResult.adjustedCost.copy() };
         adjustResultCopy.adjustedCost.applyStaticDecrease(thisStageDiscount);
 
@@ -346,7 +352,7 @@ export abstract class CostAdjuster extends GameObjectBase {
             }
         }
 
-        return adjustResultCopy.adjustedCost.value;
+        return adjustResultCopy.adjustedCost;
     }
 
     protected getAmount(card: Card, player: Player, context: AbilityContext): number {
