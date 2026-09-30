@@ -326,7 +326,7 @@ describe('Ty Yorrick, Monster Hunter', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should optionally increase the damage dealt to each target of a friendly ability by 1 (IG-2000)', async function() {
+            it('should increase damage dealt by Arena Nexu and Darth Sidious\' abilities', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -336,27 +336,41 @@ describe('Ty Yorrick, Monster Hunter', function() {
                 });
 
                 const { context } = contextRef;
-                context.player1.clickCard(context.arenaNexu)
-                context.player1.clickCard(context.p2Base)
+                context.player1.clickCard(context.arenaNexu);
+                context.player1.clickCard(context.p2Base);
 
+                // trigger ability of Arena Nexu to deal 3 damage to a Creature unit and ready it
                 context.player1.clickPrompt('Trigger');
-                context.player1.clickCard(context.arenaNexu)
+
+                // the optional increase happens when the ability is initiated, before the selectCard prompt in its effect
+                expect(context.player1).toHavePassAbilityPrompt('Increase damage by 1');
+                context.player1.clickPrompt('Trigger');
+
+                context.player1.clickCard(context.arenaNexu);
+
+                // Arena Nexu takes 4 damage from its own ability and the attack deals more than 4 to the enemy base,
+                // each triggering Darth Sidious. The trigger on Arena Nexu's ability damage resolves first,
+                // so Arena Nexu itself is not a legal target.
+                expect(context.player1).toHavePrompt('Deal 1 damage to a different unit or base');
+                expect(context.player1).toBeAbleToSelectExactly([context.tyYorrick, context.darthSidious, context.p1Base, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHavePassAbilityPrompt('Increase damage by 1');
                 context.player1.clickPrompt('Trigger');
 
+                // Sidious's second trigger (on the attack damage dealt to the enemy base) resolves next
                 expect(context.player1).toHavePrompt('Deal 1 damage to a different unit or base');
-                expect(context.player1).toBeAbleToSelectExactly([context.tyYorrick, context.arenaNexu, context.p1Base, context.darthSidious]);
-                context.player1.clickCard(context.p1Base)
+                expect(context.player1).toBeAbleToSelectExactly([context.tyYorrick, context.arenaNexu, context.darthSidious, context.p1Base]);
+                context.player1.clickCard(context.p1Base);
 
                 expect(context.player1).toHavePassAbilityPrompt('Increase damage by 1');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.arenaNexu.damage).toBe(4)
+                expect(context.arenaNexu.damage).toBe(4);
                 expect(context.arenaNexu.exhausted).toBeFalse();
-                expect(context.p1Base.damage).toBe(2)
-                expect(context.p2Base.damage).toBe(6)
+                expect(context.p1Base.damage).toBe(2);
+                expect(context.p2Base.damage).toBe(8);
             });
         });
     });
