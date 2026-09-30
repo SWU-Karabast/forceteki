@@ -40,7 +40,7 @@ export class DistributeTokenUpgradeSystem<TContext extends AbilityContext = Abil
 
     protected override getDistributionType(amount: number, context: TContext): string | FormatMessage {
         const tokenTitle = EnumHelpers.tokenTitle[this.generatePropertiesFromContext(context).tokenType];
-        return ChatHelpers.pluralize(amount, `${tokenTitle} token`, `${tokenTitle} tokens`);
+        return ChatHelpers.pluralize(amount, `${tokenTitle} token`, `${tokenTitle} tokens`, false);
     }
 
     protected override getDistributionVerb(): string {

@@ -22,6 +22,7 @@ export default class C3POProtocolDroid extends NonLeaderUnitCard {
                 mode: TargetMode.ChooseNumber,
                 min: 0,
                 max: 20,
+                selectionVerb: 'names',
                 condition: (context) => context.player.drawDeck.length > 0   // skip ability if deck is empty
             },
             then: (thenContext) => ({

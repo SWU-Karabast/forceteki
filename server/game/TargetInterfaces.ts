@@ -74,6 +74,8 @@ export interface INumberTargetResolver<TContext extends AbilityContext> extends 
     max: number | ((context: TContext) => number);
     condition?: (context: AbilityContext) => boolean;
     logSelection?: boolean;
+    /** Verb used in the selection chat log ('{player} {verb} {choice} using {card}'). Defaults to 'chooses'. */
+    selectionVerb?: 'names' | 'chooses';
 }
 
 export interface IDropdownListTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
