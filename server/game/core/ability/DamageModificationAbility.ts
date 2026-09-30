@@ -5,7 +5,7 @@ import type { Card } from '../card/Card';
 import type { PlayerOrCardAbility } from './PlayerOrCardAbility';
 import type { AbilityContext } from './AbilityContext';
 import type { Game } from '../Game';
-import type { GameSystem } from '../gameSystem/GameSystem';
+import { GameSystem } from '../gameSystem/GameSystem';
 import { AggregateSystem } from '../gameSystem/AggregateSystem';
 import { DamageSystem } from '../../gameSystems/DamageSystem';
 import { IndirectDamageToPlayerSystem } from '../../gameSystems/IndirectDamageToPlayerSystem';
@@ -102,6 +102,12 @@ export default class DamageModificationAbility extends ReplacementAbilityBase {
         const onFalse = (properties as any).onFalse;
         if (onTrue || onFalse) {
             return this.systemDealsDamage(onTrue, context) || this.systemDealsDamage(onFalse, context);
+        }
+
+        // wrapper systems such as SelectCardSystem hold their inner system in `immediateEffect`
+        const immediateEffect = (properties as any).immediateEffect;
+        if (immediateEffect) {
+            return Helpers.asArray(immediateEffect).some((innerSystem) => innerSystem instanceof GameSystem && this.systemDealsDamage(innerSystem, context));
         }
 
         return false;
