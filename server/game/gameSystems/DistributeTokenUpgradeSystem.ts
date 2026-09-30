@@ -7,9 +7,7 @@ import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
 import type { IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
 import { DistributeAmongTargetsSystem } from './DistributeAmongTargetsSystem';
 import { GiveTokenUpgradeSystem } from './GiveTokenUpgradeSystem';
-import { ChatHelpers } from '../core/chat/ChatHelpers';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
-import type { FormatMessage } from '../core/chat/GameChat';
 
 export interface IDistributeTokenUpgradeSystemProperties<TContext extends AbilityContext = AbilityContext> extends IDistributeAmongTargetsSystemProperties<TContext> {
     tokenType: TokenUpgradeName;
@@ -38,9 +36,9 @@ export class DistributeTokenUpgradeSystem<TContext extends AbilityContext = Abil
         return event.amount;
     }
 
-    protected override getDistributionType(amount: number, context: TContext): string | FormatMessage {
+    protected override getDistributionNouns(context: TContext): { singular: string; plural: string } {
         const tokenTitle = EnumHelpers.tokenTitle[this.generatePropertiesFromContext(context).tokenType];
-        return ChatHelpers.pluralize(amount, `${tokenTitle} token`, `${tokenTitle} tokens`, false);
+        return { singular: `${tokenTitle} token`, plural: `${tokenTitle} tokens` };
     }
 
     protected override getDistributionVerb(): string {

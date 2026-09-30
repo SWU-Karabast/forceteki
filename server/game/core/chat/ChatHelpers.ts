@@ -21,17 +21,9 @@ export namespace ChatHelpers {
         return message;
     }
 
-    /**
-     * Returns `singular` when count is 1, otherwise the plural form. By default the plural form
-     * includes the count (e.g. '3 cards'); pass `includeCount: false` to get the bare noun
-     * (e.g. 'cards') for messages that already state the amount separately.
-     */
-    export function pluralize(count: number, singular: string, plural: string, includeCount: boolean = true): string | FormatMessage {
+    export function pluralize(count: number, singular: string, plural: string): string | FormatMessage {
         if (count === 1) {
             return singular;
-        }
-        if (!includeCount) {
-            return plural;
         }
         return { format: '{0} {1}', args: [count.toString(), plural] };
     }
