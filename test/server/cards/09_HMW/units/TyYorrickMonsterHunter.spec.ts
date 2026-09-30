@@ -325,6 +325,39 @@ describe('Ty Yorrick, Monster Hunter', function() {
                 expect(context.yoda.damage).toBe(2);
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should optionally increase the damage dealt to each target of a friendly ability by 1 (IG-2000)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'darth-sidious#there-is-no-mercy', deployed: true },
+                        groundArena: ['ty-yorrick#monster-hunter', 'arena-nexu#starved-for-prey']
+                    },
+                });
+
+                const { context } = contextRef;
+                context.player1.clickCard(context.arenaNexu)
+                context.player1.clickCard(context.p2Base)
+
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.arenaNexu)
+
+                expect(context.player1).toHavePassAbilityPrompt('Increase damage by 1');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1).toHavePrompt('Deal 1 damage to a different unit or base');
+                expect(context.player1).toBeAbleToSelectExactly([context.tyYorrick, context.arenaNexu, context.p1Base, context.darthSidious]);
+                context.player1.clickCard(context.p1Base)
+
+                expect(context.player1).toHavePassAbilityPrompt('Increase damage by 1');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.arenaNexu.damage).toBe(4)
+                expect(context.arenaNexu.exhausted).toBeFalse();
+                expect(context.p1Base.damage).toBe(2)
+                expect(context.p2Base.damage).toBe(6)
+            });
         });
     });
 });
