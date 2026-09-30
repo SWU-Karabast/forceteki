@@ -2012,6 +2012,7 @@ describe('Clone', function() {
             // and then discards same-named cards (e.g. JTL Annihilator) searches for the name of the
             // card the Clone was copying while in play, not "Clone".
             xit('is treated by Annihilator as having the name of the copied card (LKI)', function () {
+                pending('Not yet implemented');
                 // A Clone in play is copying a named unit (e.g. Chewbacca). Annihilator's When Played
                 // defeats the Clone, then discards cards sharing the copied card's name (Chewbacca)
                 // from the opponent's hand/deck — not cards named "Clone".
@@ -2024,6 +2025,7 @@ describe('Clone', function() {
             // with LKI, which covers information like names for resolving abilities; here a trait-based
             // "when a <trait> unit is defeated" effect does not see the copied trait.)
             xit('is not eligible for trait-based defeat effects for traits it only had while copying', function () {
+                pending('Not yet implemented');
                 // A Clone is copying a unit with a distinctive trait, and an effect cares about "when a
                 // <trait> unit is defeated". When the Clone is defeated, it reverts completely, so that
                 // trait-based defeat effect does not apply to it (it no longer counts as having the

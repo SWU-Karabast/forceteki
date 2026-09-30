@@ -316,6 +316,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
             // protection does not apply — Luke is removed from the vehicle anyway (the leader returns to
             // base, undeployed). His "move to ground" / can't-be-defeated protection never fires.
             xit('is removed by Bamboozle despite the "can\'t be defeated by enemy card abilities" protection', function () {
+                pending('Not yet implemented');
                 // Deploy Luke (Hero of Yavin) as a pilot upgrade on a friendly vehicle. The opponent
                 // plays Bamboozle on that vehicle. Because Bamboozle returns the upgrade (rather than
                 // defeating it), Luke's protection does not prevent it — Luke is detached and the

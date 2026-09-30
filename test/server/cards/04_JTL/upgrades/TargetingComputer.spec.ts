@@ -66,6 +66,7 @@ describe('Targeting Computer', function () {
         // when the attached unit is defeated and resolves a When-Defeated indirect-damage ability —
         // the controller cannot assign that indirect damage via Targeting Computer.
         xit('does not let you assign indirect damage from a When Defeated ability (it is not active from the discard)', function () {
+            pending('Not yet implemented');
             // A unit has Targeting Computer attached and a "When Defeated: deal indirect damage" ability
             // (e.g. Droid Missile Platform / General Krell-granted). The unit is defeated and its When
             // Defeated indirect damage resolves. Targeting Computer's assign-indirect-damage ability is

@@ -67,6 +67,7 @@ describe('Commandeer', function() {
             // readied). The final sentence is not under "if you do," so it is still returned to its
             // owner's hand at the start of the next regroup phase.
             xit('does not ready the unit but still returns it to its owner\'s hand at regroup', function () {
+                pending('Not yet implemented');
                 // Player 1 controls an exhausted friendly Vehicle (cost 6 or less, no Pilot) and plays
                 // Commandeer targeting it. It stays exhausted (not readied) but is still returned to
                 // Player 1's hand at the start of the next regroup phase.

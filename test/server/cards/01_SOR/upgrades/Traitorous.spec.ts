@@ -172,6 +172,7 @@ describe('Traitorous', function() {
             // to its owner even though it remains attached to the opponent's unit.
 
             xit('returns control to the owner after L3-37\'s defeat-replacement attaches her to the controller\'s vehicle', function () {
+                pending('Not yet implemented');
                 // Player 1 plays Traitorous on Player 2's L3-37 (taking control of her).
                 // Player 2 plays Takedown defeating L3-37; Player 1 uses her replacement effect to
                 // attach her as a pilot to a friendly Vehicle. Traitorous is defeated by the attach.
@@ -180,6 +181,7 @@ describe('Traitorous', function() {
             });
 
             xit('returns control to the owner after Corvus\'s When Played attaches a stolen pilot, who can later redeploy under the owner\'s control', function () {
+                pending('Not yet implemented');
                 // Player 1 plays Traitorous on Player 2's Luke Skywalker (You Still With Me?) pilot
                 // unit, then plays Corvus and attaches Luke with its When Played ability. Once the
                 // When Played finishes resolving, Luke's owner (Player 2) takes control of the

@@ -51,6 +51,7 @@ describe('Millennium Falcon, Get Out And Push', function() {
         // either order, including when one is a leader pilot (deployed as an upgrade) and one is a
         // non-leader pilot (played via Piloting).
         xit('allows a leader pilot and a non-leader pilot to be attached to the Falcon in either order', function () {
+            pending('Not yet implemented');
             // With the Millennium Falcon (Get Out And Push, which can hold an additional pilot), attach
             // a leader pilot (deployed as an upgrade) and a non-leader pilot (played via Piloting).
             // Both orders — leader first then non-leader, and non-leader first then leader — should be

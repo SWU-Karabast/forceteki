@@ -294,6 +294,7 @@ describe('Fully Armed And Operational', function() {
         // card (e.g. Ezra Bridger completing an attack on the base and then playing the top card of the
         // deck), the opponent is still considered to have attacked the base during their previous action.
         xit('still counts as attacking the base when a card was played via a nested trigger during that same attack (Ezra)', function () {
+            pending('Not yet implemented');
             // The opponent attacks the base with Ezra Bridger (Resourceful Troublemaker). His "when this
             // unit completes an attack" trigger plays the top card of the deck (a nested play within the
             // attack action). On the player's turn, Fully Armed and Operational still triggers, because

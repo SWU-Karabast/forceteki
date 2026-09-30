@@ -68,6 +68,7 @@ describe('Curious Flock', function () {
         // Ruling 2026-05-06: defeating a Credit token does not count as "paying resources," so it does
         // not grant an Experience token via Curious Flock's "for each resource paid this way" ability.
         xit('does not grant Experience for Credit tokens defeated (they are not "paying resources")', function () {
+            pending('Not yet implemented');
             // With Credit tokens available, play Curious Flock and pay resources for its ability.
             // Defeating Credit tokens toward the payment does not add Experience tokens — only actual
             // resources paid count.

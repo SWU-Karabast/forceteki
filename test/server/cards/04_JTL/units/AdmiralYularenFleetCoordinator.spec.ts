@@ -252,6 +252,7 @@ describe('Admiral Yularen, Fleet Coordinator', function() {
             // Vehicles already in play AND to friendly Vehicles played after his ability triggers, for
             // as long as Yularen remains in play.
             xit('grants the chosen keyword to a friendly Vehicle played after Yularen\'s ability triggers', function () {
+                pending('Not yet implemented');
                 // Play Yularen and choose a keyword. Then play another friendly Vehicle unit later that
                 // phase. The later-played Vehicle should also gain the chosen keyword while Yularen is in
                 // play (constant-ability behavior, per the errata).

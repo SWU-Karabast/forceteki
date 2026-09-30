@@ -550,6 +550,7 @@ describe('Defeat attribution', function () {
             // defeated). So defeating an upgrade that was providing HP (dropping the unit to 0 remaining
             // HP) makes the player who defeated that upgrade responsible for defeating the unit.
             xit('the player who defeats the HP-providing upgrade is responsible for the resulting unit defeat', function () {
+                pending('Not yet implemented');
                 // A unit is only alive because of an upgrade granting it +HP (its remaining HP would be 0
                 // without the upgrade). An opponent defeats that upgrade, dropping the unit to 0 remaining
                 // HP and defeating it. That opponent is considered responsible for defeating the unit

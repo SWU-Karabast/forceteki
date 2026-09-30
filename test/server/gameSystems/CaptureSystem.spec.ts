@@ -239,6 +239,7 @@ describe('Capture system', function() {
             // moment it is set aside (rather than the token simply ceasing to exist), and the bounty is
             // collectable as part of that capture.
             xit('counts the token as captured when set aside and lets the opponent collect its bounty', function () {
+                pending('Not yet implemented');
                 // A token unit that has a bounty (e.g. a bounty upgrade attached, or a token created with
                 // a bounty) is captured. It is treated as captured when set aside, and the opponent of
                 // the token's controller may collect its bounty.

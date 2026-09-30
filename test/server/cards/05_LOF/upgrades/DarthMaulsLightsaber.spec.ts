@@ -271,6 +271,7 @@ describe('Darth Maul\'s Lightsaber', () => {
             // to a unit, then "if attached unit is Darth Maul" cannot be satisfied and it does not grant
             // the attack.
             xit('does not grant the attack if the Lightsaber is defeated by uniqueness (no attached unit at resolution)', function () {
+                pending('Not yet implemented');
                 // A Darth Maul unit has a Darth Maul's Lightsaber attached. Play a second Darth Maul's
                 // Lightsaber and choose (via the uniqueness rule) to defeat one of them so that the copy
                 // whose When Played is resolving is no longer attached to a unit. Because it is not

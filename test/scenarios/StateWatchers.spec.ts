@@ -10,8 +10,7 @@ describe('State watchers', function() {
                         leader: 'chewbacca#walking-carpet',
                         base: 'jedha-city',
                         hand: ['a-fine-addition', 'congress-of-malastare', 'on-top-of-things'],
-                        groundArena: ['wampa'],
-                        resources: 20
+                        groundArena: ['wampa']
                     },
                     player2: {
                         groundArena: ['battlefield-marine'],

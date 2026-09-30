@@ -670,11 +670,13 @@ describe('Brain Invaders', () => {
 
         describe('When Brain Invaders is played via a leader ability that is still resolving', function() {
             // Ruling 2025-05-19: Brain Invaders cannot blank a currently-resolving ability. If JTL
-            // Lando (Buying Time) uses his leader ability to play Brain Invaders, his ability has
+            // Lando (Buying Time) uses his leader-side ability to play Brain Invaders, his ability has
             // already begun resolving, so it finishes in full and still gives the Shield token.
             xit('does not prevent JTL Lando\'s leader ability from finishing (the Shield is still placed)', function () {
-                // JTL Lando (Buying Time) is deployed, controlling both a ground and a space unit. He
-                // uses his leader ability to play Brain Invaders from hand. Even though Brain Invaders
+                pending('Not yet implemented');
+                // JTL Lando (Buying Time) is undeployed (the Shield ability is on his leader side; the
+                // deployed side is a pilot upgrade), controlling both a ground and a space unit. He uses
+                // his leader-side action to play Brain Invaders from hand. Even though Brain Invaders
                 // blanks leaders on entry, Lando's already-resolving ability still gives a Shield token.
             });
         });

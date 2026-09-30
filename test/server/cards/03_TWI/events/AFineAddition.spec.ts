@@ -276,6 +276,7 @@ describe('A Fine Addition', function () {
         // exists in any player's discard — when an enemy was defeated this phase and a playable upgrade
         // is available, the player must play one and cannot choose nothing / pass.
         xit('cannot be played as a soft pass when an eligible upgrade exists in a discard pile', function () {
+            pending('Not yet implemented');
             // An enemy was defeated this phase and an eligible upgrade exists in a discard pile. Playing
             // A Fine Addition must play an upgrade — there is no "Choose nothing" / pass option.
         });

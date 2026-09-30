@@ -144,6 +144,7 @@ describe('L3-37, Get Out of my seat', function() {
             // game object and is still in play as an upgrade. (Same principle as Iden + Corvus + Sneak
             // Attack.)
             xit('is still defeated by Heroic Sacrifice\'s "Defeat it" after becoming a pilot upgrade', function () {
+                pending('Not yet implemented');
                 // L3-37 is in play as a unit with a friendly Vehicle (no Pilot) available. Play Heroic
                 // Sacrifice to attack with L3-37 (gains "When this unit deals combat damage: Defeat it").
                 // She would be defeated in combat, so her replacement attaches her as a pilot upgrade to

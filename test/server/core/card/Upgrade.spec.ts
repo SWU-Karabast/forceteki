@@ -225,6 +225,7 @@ describe('Upgrade cards', function() {
             // upgrade with the restriction "Attach to a Force unit" stays attached even if the host
             // temporarily loses the Force trait.
             xit('stays attached when the host loses the trait its attachment restriction requires', function () {
+                pending('Not yet implemented');
                 // Attach an upgrade with a trait-based attachment restriction (e.g. "Attach to a Force
                 // unit") to a valid host. The host then loses that trait (e.g. via a lasting effect that
                 // removes the Force trait). The upgrade remains attached — eligibility is not re-checked

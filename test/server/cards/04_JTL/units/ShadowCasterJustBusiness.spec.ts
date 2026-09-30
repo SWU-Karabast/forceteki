@@ -245,6 +245,7 @@ describe('Shadow Caster, Just Business', function() {
             // it (e.g. by Grim Valor). So Shadow Caster can double a "When Defeated" ability that was
             // granted to the unit by Grim Valor, not only printed ones.
             xit('can double a "When Defeated" ability granted to the unit by Grim Valor (LKI)', function () {
+                pending('Not yet implemented');
                 // A friendly unit has Grim Valor attached (granting it a "When Defeated" ability). Shadow
                 // Caster is in play. When that unit is defeated, Shadow Caster can use the granted "When
                 // Defeated" ability again, since LKI covers that the unit had that ability.

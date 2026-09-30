@@ -238,6 +238,7 @@ describe('Let\'s Talk', function () {
         // times — captures can be directed at other units (to be errata'd to "different enemy non-leader
         // unit"). So the player can avoid triggering IG-11's defeat-and-damage replacement.
         xit('does not force the player to attempt capturing IG-11 (can direct captures to other units)', function () {
+            pending('Not yet implemented');
             // With multiple friendly units and an enemy IG-11 ("I Cannot Be Captured") plus other
             // enemy units, the player can choose to capture the other enemy units instead of IG-11,
             // avoiding IG-11's "defeat him and deal 3 to each enemy ground unit" replacement.

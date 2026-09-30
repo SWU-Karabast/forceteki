@@ -6,6 +6,7 @@ describe('Attack interactions', function() {
         // initiates further attacks, those attacks are nested and resolve inside the current attack,
         // before the controlling ability proceeds to its next attack.
         xit('Ezra\'s completed-attack trigger plays Rebel Assault, whose attacks nest inside Leia\'s first attack before her second', function () {
+            pending('Not yet implemented');
             // Player 1 activates Leia Organa (Alliance General) to attack with two Rebel units. The first
             // attack is made with Ezra Bridger (Resourceful Troublemaker). When Ezra completes that
             // attack, his ability plays Rebel Assault from the top of the deck, which itself initiates

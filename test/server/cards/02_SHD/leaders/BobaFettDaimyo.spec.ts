@@ -231,11 +231,14 @@ describe('Boba Fett, Daimyo', function () {
         });
 
         describe('Boba Fett\'s ability with Pilot units', function () {
-            // Ruling (JTL): a Pilot card in play as a unit still counts as having the Pilot keyword,
-            // so it is affected by Daimyō Boba Fett's ability that cares about Pilot units.
-            xit('counts a Pilot card in play as a unit as having the Pilot keyword', function () {
-                // A Pilot card is in play as a unit (not attached as an upgrade). Daimyō Boba Fett's
-                // ability that benefits Pilots should apply to it, since it still counts as a Pilot.
+            // Ruling (JTL): a Pilot card in play as a unit still has the Piloting keyword, so it counts as
+            // a unit with "1 or more keywords" for deployed Daimyō Boba Fett's ability (each other friendly
+            // unit that has 1 or more keywords gets +1/+0).
+            xit('counts a Pilot card in play as a unit as having the Piloting keyword (so Boba\'s "1 or more keywords" buff applies)', function () {
+                pending('Not yet implemented');
+                // A Pilot card is in play as a unit (not attached as an upgrade); it still has the Piloting
+                // keyword. Deployed Daimyō Boba Fett's +1/+0 to each other friendly unit with 1 or more
+                // keywords should apply to it.
             });
         });
     });

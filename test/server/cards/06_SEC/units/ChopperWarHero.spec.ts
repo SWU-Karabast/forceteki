@@ -44,6 +44,7 @@ describe('Chopper, War Hero', function() {
         // sequentially (starting with the active player), which could leak information. Documents the
         // intended simultaneous-choice behavior.
         xit('has both players choose their discard simultaneously (no information leak between players)', function () {
+            pending('Not yet implemented');
             // Chopper deals combat damage to a base, making each player discard a card. Each player
             // selects their discard without seeing the other player's choice first, and both cards are
             // discarded simultaneously.

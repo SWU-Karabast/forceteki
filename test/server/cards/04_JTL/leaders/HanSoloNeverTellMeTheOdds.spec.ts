@@ -279,6 +279,7 @@ describe('Han Solo, Never Tell Me the Odds', function() {
             // consistent while resolving Plots — and Han's "ready a resource per odd-cost unit/upgrade"
             // can be sequenced with Plot resolution to ready resources for subsequent Plots.
             xit('interacts with Plot: resources readied by Han\'s deploy can be sequenced with Plot cards', function () {
+                pending('Not yet implemented');
                 // Deploy Han (Never Tell Me The Odds) as a pilot upgrade with one or more Plot cards
                 // available. The Plot cards are revealed on deploy and played one at a time; Han's
                 // "ready a resource for each friendly odd-cost unit or upgrade" trigger readies resources

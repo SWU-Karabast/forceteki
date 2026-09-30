@@ -96,6 +96,7 @@ describe('Dooku, It Is Too Late', function () {
             // every unit with Hidden at that moment stays protected for the phase, even if its Hidden
             // is removed afterward (the lasting effect does not dynamically update).
             xit('keeps protecting a unit even after its Hidden keyword is removed', function () {
+                pending('Not yet implemented');
                 // A friendly unit has Hidden granted by another source (e.g. Grand Inquisitor granting
                 // Fifth Brother Hidden) when Dooku's When Played resolves. The opponent then removes the
                 // Hidden source (e.g. Waylay on Grand Inquisitor). Fifth Brother is still protected from

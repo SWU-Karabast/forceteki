@@ -57,6 +57,7 @@ describe('Desperate Commando', function () {
         // resolves when the action phase is already over, so the -1/-1 lasts until the end of the
         // regroup phase instead.
         xit('its When-Defeated -1/-1 lasts into the regroup phase when it is defeated by a buff expiring at end of action phase', function () {
+            pending('Not yet implemented');
             // Desperate Commando has 2 damage and is buffed by Overwhelming Barrage (+2/+2). At the end
             // of the action phase, the buff expires and Desperate Commando is defeated. Its When-Defeated
             // -1/-1 is applied to a unit, and because the action phase is already over, that debuff

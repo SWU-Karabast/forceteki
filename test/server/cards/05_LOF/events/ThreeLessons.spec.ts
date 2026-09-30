@@ -189,6 +189,7 @@ describe('Three Lessons', function () {
         // low-HP unit can survive an enemy -X/-X aura that would otherwise defeat it on entry,
         // because the +1/+1 Experience (and Shield) are applied at the same time it enters.
         xit('a low-HP unit played under an enemy -2/-2 aura (Snoke) survives because the Experience is given simultaneously', function () {
+            pending('Not yet implemented');
             // Opponent controls Supreme Leader Snoke (each enemy non-leader unit gets -2/-2). Play a
             // 2-HP unit via Three Lessons. The unit enters and is given Experience (+1/+1) and a
             // Shield simultaneously, so it is not defeated by Snoke's -2/-2 on entry.

@@ -127,6 +127,7 @@ describe('Fire Across the Galaxy', function () {
         // ability resolves) and only then resolves them. This documents the intended choose-as-you-go
         // behavior.
         xit('lets the player resolve one Spectre When Played ability and see the result before choosing the next', function () {
+            pending('Not yet implemented');
             // Play Fire Across the Galaxy with multiple friendly Spectre units that have When Played
             // abilities. The player chooses and resolves one ability, observes its outcome, and only
             // then chooses the next ability to use (rather than committing to the whole set up front).

@@ -179,20 +179,22 @@ describe('Umbaran Mobile Cannon', function () {
             expect(context.umbaranMobileCannon).toHaveExactUpgradeNames(['entrenched']);
         });
 
-        // Ruling 2026-02-10: damage being prevented by ANOTHER replacement effect does not change
-        // whether it is the "first" or "next" time the Cannon would take damage. If the Cannon's first
-        // damage this phase is prevented by a different replacement (e.g. Vigil, or a Shield), the
-        // Cannon's own "first time would take damage" is still considered to have occurred — so a later
-        // hit this phase is the "second time" and is NOT prevented by the Cannon's ability.
+        // Ruling 2026-02-10: damage being reduced/prevented by ANOTHER effect does not change whether it
+        // is the "first" or "next" time the Cannon would take damage. If the Cannon's first damage this
+        // phase is prevented by a different effect (Vigil), the Cannon's own "first time would take damage"
+        // is still considered to have occurred — so a later hit this phase is the "second time" and is NOT
+        // prevented by the Cannon's ability. (The ruling only answers the Vigil case; the Shield case in
+        // the NOTE below is by analogy.)
         // NOTE: possible engine/ruling mismatch — the existing "(choose shield instead of prevent
         // ability)" test above prevents the first damage with a Shield and then shows a second hit still
         // leaving the Cannon at 0 damage, which suggests the Cannon's "first time" is NOT being consumed
-        // by the other replacement. This documents the intended behavior.
-        xit('has its "first time would take damage" consumed even when another replacement (Vigil) prevents that first damage', function () {
-            // Umbaran Mobile Cannon and a source of Vigil's "prevent 1 damage to another friendly unit"
-            // replacement are in play. The Cannon would take its first damage this phase; the player uses
-            // Vigil's replacement to prevent it instead of the Cannon's own. The Cannon's "first time"
-            // is still consumed, so a later hit this phase is the second time and is dealt to the Cannon.
+        // by the other effect. This documents the intended behavior.
+        xit('has its "first time would take damage" consumed even when another effect (Vigil) prevents that first damage', function () {
+            pending('Not yet implemented');
+            // Umbaran Mobile Cannon and Vigil (Securing The Future) are in play; Vigil reduces all damage
+            // dealt to friendly non-Vigil units by 1. The Cannon takes its first damage this phase — it
+            // must be exactly 1, so Vigil fully reduces it to 0. The Cannon's own "first time would take
+            // damage" is still consumed, so a later hit this phase is the second time and is dealt to the Cannon.
         });
     });
 });

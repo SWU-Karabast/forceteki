@@ -167,6 +167,7 @@ describe('Ambush keyword', function() {
             // attack. Because the attack is still ongoing, all "while attacking" abilities — including
             // Raid — remain active on the attacker during the nested ambush.
             xit('resolves the nested ambush within the attack, with the attacker\'s "while attacking" abilities (Raid) still active', function () {
+                pending('Not yet implemented');
                 // Player A controls a stolen Wedge Antilles (friendly Vehicles get +1/+1 and Ambush) and
                 // Chimaera (When Defeated: create 2 TIE Fighter tokens) at near-lethal HP. Player B
                 // attacks with a Jedi Starfighter (Clone Cohort attached, Raid 2) into Chimaera and uses

@@ -219,6 +219,7 @@ describe('Sneak Attack', function() {
             // unit), it is not in play in time to see the "when the regroup phase starts" trigger window,
             // so its own start-of-regroup ability does not trigger.
             xit('does not trigger a rescued unit\'s "when the regroup phase starts" ability when it is freed at regroup start', function () {
+                pending('Not yet implemented');
                 // Play Discerning Veteran via Sneak Attack, capturing an enemy Contracted Hunter. At the
                 // start of the regroup phase, Sneak Attack's delayed effect defeats Discerning Veteran,
                 // rescuing Contracted Hunter at that same moment. Contracted Hunter's "When the regroup

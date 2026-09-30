@@ -167,6 +167,7 @@ describe('Overwhelm keyword', function() {
             // Overwhelm at that point, so excess damage is NOT dealt to the base.
             // NOTE: needs a concrete conditional-Overwhelm source that can be turned off mid-attack.
             xit('does not deal excess damage to the base if the attacker loses conditional Overwhelm before damage resolution', function () {
+                pending('Not yet implemented');
                 // An attacker has Overwhelm granted by a conditional effect (e.g. "while <condition>,
                 // this unit has Overwhelm") and attacks a defender it will over-kill. The condition
                 // becomes false before the combat damage step resolves, so the attacker no longer has
@@ -183,6 +184,7 @@ describe('Overwhelm keyword', function() {
             // excess (attacker power minus that defender's HP) carries to the base via Overwhelm, and the
             // attacker takes combat damage from BOTH defenders.
             xit('applies excess to the base and full return damage when Amidala defeats the other defender to prevent her own damage', function () {
+                pending('Not yet implemented');
                 // Player A: Darth Maul (Revenge At Last) with Darth Maul's Lightsaber (gains Overwhelm,
                 // attacks 2 units, power 9). Player B: Queen Amidala (Championing Her People, 5/3) and a
                 // trait-sharing Furtive Handmaiden (2/2). Maul attacks both Amidala and the Handmaiden.

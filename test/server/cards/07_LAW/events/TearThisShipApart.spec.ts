@@ -240,6 +240,7 @@ describe('Tear This Ship Apart', function() {
             // See the related TODO at ~line 191 ("follow clarifications for the order of resolving
             // nested and if you do") with its commented-out expectations.
             xit('finishes playing the selected card before the "If you do" resources the top card (recursive Tear This Ship Apart)', function () {
+                pending('Not yet implemented');
                 // Player 1 plays Tear This Ship Apart and chooses to play a second Tear This Ship Apart
                 // from the opponent's resources. That second Tear This Ship Apart resolves fully (looking
                 // only at the resources present at that moment) before the first one's "If you do" causes

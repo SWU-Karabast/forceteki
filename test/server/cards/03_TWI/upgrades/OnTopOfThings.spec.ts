@@ -41,6 +41,7 @@ describe('On Top of Things', function() {
             // Played ability that creates a lasting effect locked onto the unit at resolution. It
             // persists for the phase even if the On Top of Things upgrade is later defeated.
             xit('keeps protecting the unit for the phase even after the On Top of Things upgrade is defeated', function () {
+                pending('Not yet implemented');
                 // Play On Top of Things on a friendly unit, then the opponent defeats the upgrade (e.g.
                 // Confiscate). The "can't be attacked this phase" lasting effect still protects that unit
                 // for the rest of the phase, so the opponent still cannot attack it.

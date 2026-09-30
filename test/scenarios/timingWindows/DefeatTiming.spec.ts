@@ -221,6 +221,7 @@ describe('Defeat timing', function() {
             // pending (e.g. a unit whose constant ability grants +HP or an aura that changes the outcome
             // of that check).
             xit('its constant abilities are active immediately, even while a uniqueness or 0-HP defeat check is pending', function () {
+                pending('Not yet implemented');
                 // A unit enters play with a constant ability. At that instant a game-state check is
                 // pending (e.g. the uniqueness rule, or a "0 remaining HP → defeat" check). The unit's
                 // constant ability is already active and can affect the outcome of that pending check.

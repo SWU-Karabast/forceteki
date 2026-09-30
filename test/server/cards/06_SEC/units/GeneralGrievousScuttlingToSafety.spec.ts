@@ -83,6 +83,7 @@ describe('General Grievous, Scuttling to Safety', function() {
             // attacker with Overwhelm still deals its combat damage to the enemy base (even though
             // Grievous was not defeated, since he is no longer in play).
             xit('lets an attacker with Overwhelm damage the base when Grievous returns himself to hand', function () {
+                pending('Not yet implemented');
                 // An enemy unit with Overwhelm attacks Grievous. His "when attacked" returns him to hand
                 // before damage. Because the defender left play and the attacker has Overwhelm, the
                 // attacker's full combat damage is dealt to the defending base.

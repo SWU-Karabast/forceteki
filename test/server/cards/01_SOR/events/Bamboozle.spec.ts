@@ -247,6 +247,7 @@ describe('Bamboozle', function () {
         // Ruling (JTL): a pilot leader attached as an upgrade is defeated by Bamboozle (it is treated
         // as an upgrade, so Bamboozle's "return/defeat" affects it like any other upgrade).
         xit('defeats a pilot leader that is attached as an upgrade', function () {
+            pending('Not yet implemented');
             // A pilot leader is deployed as a pilot upgrade on a friendly vehicle. Bamboozle targeting
             // that vehicle defeats the pilot leader upgrade (the leader returns to the base, undeployed).
         });

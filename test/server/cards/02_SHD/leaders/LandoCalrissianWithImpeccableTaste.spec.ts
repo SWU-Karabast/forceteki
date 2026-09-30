@@ -115,6 +115,7 @@ describe('Lando Calrissian With Impeccable Taste', function () {
         // Intervention, the "defeat a resource you own and control" cost is paid before the Ambush
         // attack from the played unit resolves.
         xit('defeats the resource prior to resolving Ambush when playing a unit via Timely Intervention', function () {
+            pending('Not yet implemented');
             // Use Lando's leader ability to play Timely Intervention, which plays a unit with Ambush
             // from hand. The resource is defeated (Lando's cost) before the Ambush attack resolves.
         });
