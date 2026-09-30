@@ -7,18 +7,31 @@ import type { AbilityContext } from './AbilityContext';
 import type { Game } from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import { AggregateSystem } from '../gameSystem/AggregateSystem';
-import { DamageSystem } from '../../gameSystems/DamageSystem';
+import { DamageSystem, type IHypotheticalDamageEvent } from '../../gameSystems/DamageSystem';
 import { IndirectDamageToPlayerSystem } from '../../gameSystems/IndirectDamageToPlayerSystem';
 import { DistributeDamageSystem } from '../../gameSystems/DistributeDamageSystem';
 import { DistributeIndirectDamageToCardsSystem } from '../../gameSystems/DistributeIndirectDamageToCardsSystem';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import { Helpers } from '../utils/Helpers';
+import { Contract } from '../utils/Contract';
 import { DamageSourceType } from '../../IDamageOrDefeatSource';
 import ReplacementAbilityBase from './ReplacementAbilityBase';
 import { registerState } from '../GameObjectUtils';
+import { DamageModificationType, EventName } from '../Constants';
+
+export interface IPredictedDamageModification {
+
+    /** True if a player may choose not to apply the modification */
+    optional: boolean;
+
+    /** The amount of damage that would be dealt after the modification, where 0 means the damage is prevented or replaced */
+    modifiedAmount: number;
+}
 
 @registerState()
 export default class DamageModificationAbility extends ReplacementAbilityBase {
+    private readonly modificationProperties: IDamageModificationAbilityProps;
+
     public constructor(game: Game, card: Card, properties: IDamageModificationAbilityProps) {
         const { onlyIfYouDoEffect, ...otherProps } = properties;
 
@@ -34,6 +47,70 @@ export default class DamageModificationAbility extends ReplacementAbilityBase {
             : new DamageModificationSystem(otherProps);
 
         super(game, card, properties, replacementSystem, whenTrigger);
+
+        this.modificationProperties = properties;
+    }
+
+    public override isDamageModificationAbility(): this is DamageModificationAbility {
+        return true;
+    }
+
+    /**
+     * Predicts how this ability would modify a damage event before the damage is dealt, using the same trigger conditions as
+     * the real event. Returns null if the ability would not trigger.
+     *
+     * Abilities that apply at ability initiation (e.g. Ty Yorrick) have already been applied to the event's amount by the time
+     * damage is dealt, so they are never predicted here.
+     *
+     * @param damageEvent A hypothetical damage event from {@link DamageSystem.buildHypotheticalDamageEvent}
+     */
+    public predictModification(damageEvent: IHypotheticalDamageEvent): IPredictedDamageModification | null {
+        if (
+            this.modificationProperties.applyAtAbilityInitiation ||
+            !this.isListeningForEvents ||
+            !this.card.canRegisterTriggeredAbilities() ||
+            !this.card.getTriggeredAbilities().includes(this)
+        ) {
+            return null;
+        }
+
+        const listener = this.when?.[EventName.OnDamageDealt];
+        if (!listener) {
+            return null;
+        }
+
+        for (const player of this.game.getPlayers()) {
+            const context = this.createContext(player, damageEvent);
+            if (listener(damageEvent, context) && this.meetsRequirements(context) === '' && this.checkGameActionsForPotential(context)) {
+                return {
+                    optional: !!this.modificationProperties.optional || !!this.modificationProperties.onlyIfYouDoEffect,
+                    modifiedAmount: this.getModifiedDamageAmount(damageEvent)
+                };
+            }
+        }
+
+        return null;
+    }
+
+    /** Mirrors {@link DamageModificationSystem} to compute the damage that would be dealt after this modification */
+    private getModifiedDamageAmount(damageEvent: IHypotheticalDamageEvent): number {
+        const { modificationType, amount } = this.modificationProperties;
+
+        switch (modificationType) {
+            case DamageModificationType.Increase:
+                return damageEvent.amount + amount;
+            case DamageModificationType.Multiply:
+                return damageEvent.amount * amount;
+            case DamageModificationType.Cap:
+                return damageEvent.isUnpreventable ? damageEvent.amount : Math.min(damageEvent.amount, amount);
+            case DamageModificationType.Reduce:
+                return damageEvent.isUnpreventable ? damageEvent.amount : Math.max(damageEvent.amount - amount, 0);
+            case DamageModificationType.PreventAll:
+            case DamageModificationType.Replace:
+                return damageEvent.isUnpreventable ? damageEvent.amount : 0;
+            default:
+                Contract.fail(`Unknown modificationType ${modificationType} for DamageModificationAbility`);
+        }
     }
 
     private buildAbilityInitiatedTrigger(event, context, properties: IDamageModificationAbilityProps): boolean {
@@ -70,7 +147,11 @@ export default class DamageModificationAbility extends ReplacementAbilityBase {
             ? ability.targetResolvers.flatMap((target) => Helpers.asArray(target.getGameSystems(context)))
             : Helpers.asArray(ability.immediateEffect);
 
-        return systems.some((system) => this.systemDealsDamage(system, context));
+        // cost adjusters can also deal damage while the ability's costs are paid (e.g. Marauder)
+        const costAdjusterSystems = ability.getCosts(context)
+            .flatMap((cost) => (cost.isResourceCost() ? cost.getTargetedCostAdjusterEffectSystems(context) : []));
+
+        return systems.concat(costAdjusterSystems).some((system) => this.systemDealsDamage(system, context));
     }
 
     private systemDealsDamage(system: GameSystem<AbilityContext>, context: AbilityContext): boolean {

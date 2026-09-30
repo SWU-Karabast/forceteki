@@ -68,6 +68,8 @@ import type { GameConfiguration, GameOptions, ICurrentlyResolving } from './Game
 import type { GameObjectBase } from './GameObjectBase';
 import { Helpers } from './utils/Helpers';
 import type { CostAdjuster } from './cost/CostAdjuster';
+import { defaultCostPaymentRecoveryPolicy } from './cost/CostPaymentRecovery';
+import type { ICostPaymentRecoveryPolicy, ICostPaymentRecoveryRequest } from './cost/CostPaymentRecovery';
 import { logger } from '../../logger';
 import { SnapshotManager, UndoMode } from './snapshot/SnapshotManager';
 import { getAbilityHelper } from '../AbilityHelper';
@@ -345,6 +347,15 @@ export class Game extends EventEmitter {
     public createdAt: Date;
     public preUndoStateForError: { gameState: ISerializedGameState; settings: IGetSnapshotSettings } | null;
     public undoConfirmationOpen: boolean;
+
+    /** Decides how a player can recover when they can no longer pay a cost (see `CostPaymentRecovery`) */
+    public costPaymentRecoveryPolicy: ICostPaymentRecoveryPolicy = defaultCostPaymentRecoveryPolicy;
+
+    /**
+     * Number of cost payment recovery rollbacks used by each player, keyed by player id and the snapshot id of the action rolled back to.
+     * Intentionally not part of the game state, since it must survive the rollbacks it counts.
+     */
+    private readonly costPaymentRecoveryRollbackCounts = new Map<string, number>();
     private _serializationFailure: boolean;
     private _lastAttackId: number;
     public playerHasBeenPrompted: Map<string, boolean>;
@@ -1959,6 +1970,98 @@ export class Game extends EventEmitter {
         }
 
         return !!opponent.hasResolvedAbilityThisTimepoint;
+    }
+
+    /**
+     * Prompts `player`, who can no longer pay a cost for `context`, to either undo to the start of the current action or abandon
+     * the payment, as allowed by {@link costPaymentRecoveryPolicy}. See `CostPaymentRecovery`.
+     */
+    public queueCostPaymentRecovery(player: Player, context: AbilityContext): void {
+        const request = this.buildCostPaymentRecoveryRequest(player, context);
+        const rollbackSettings = this.getCostPaymentRecoveryRollbackSettings();
+
+        const rollbackNeedsApproval = rollbackSettings != null &&
+          this.costPaymentRecoveryPolicy.rollbackRequiresApproval(request) &&
+          this.confirmationRequiredForRollback(player.id, this.snapshotManager.getRollbackInformation(rollbackSettings));
+
+        const rollbackAvailable = rollbackSettings != null &&
+          this.costPaymentRecoveryPolicy.allowRollback(request) &&
+          !(rollbackNeedsApproval && player.undoRequestsBlocked);
+
+        // there must always be a way forward, so abandoning is allowed whenever undoing is not
+        const abandonAvailable = !rollbackAvailable || this.costPaymentRecoveryPolicy.allowAbandon(request, rollbackAvailable);
+
+        this.addMessage('{0} is no longer able to pay the cost for {1}', player, context.source);
+
+        const choices: string[] = [];
+        const handlers: (() => void)[] = [];
+
+        if (rollbackAvailable) {
+            choices.push(rollbackNeedsApproval ? 'Request undo' : 'Undo');
+            handlers.push(() => this.rollbackForCostPaymentRecovery(player, context));
+        }
+
+        // if the player doesn't undo, the payment is abandoned by the ability resolver once this prompt completes
+        if (abandonAvailable) {
+            choices.push('Abandon');
+            handlers.push(() => undefined);
+        }
+
+        this.promptWithHandlerMenu(player, {
+            activePromptTitle: `You can no longer pay the cost for ${context.source.title}`,
+            waitingPromptTitle: 'Waiting for opponent to recover from being unable to pay a cost',
+            choices,
+            handlers
+        });
+    }
+
+    private rollbackForCostPaymentRecovery(player: Player, context: AbilityContext): void {
+        const settings = this.getCostPaymentRecoveryRollbackSettings();
+        Contract.assertNotNullLike(settings, 'Expected a snapshot for the start of the current action to be available for cost payment recovery');
+
+        const request = this.buildCostPaymentRecoveryRequest(player, context);
+        if (this.costPaymentRecoveryPolicy.rollbackRequiresApproval(request)) {
+            this.rollbackToSnapshot(player.id, settings);
+            return;
+        }
+
+        const countKey = this.getCostPaymentRecoveryCountKey(player);
+        const rolledBack = this.rollbackToSnapshotInternal(settings, this._snapshotManager.buildRollbackHandler(settings));
+        if (rolledBack) {
+            this.costPaymentRecoveryRollbackCounts.set(countKey, request.previousRecoveryRollbacks + 1);
+            this.addAlert(AlertType.Notification, '{0} could not pay the cost for {1} and rolled back to the start of the action', player, context.source);
+        }
+    }
+
+    private buildCostPaymentRecoveryRequest(player: Player, context: AbilityContext): ICostPaymentRecoveryRequest {
+        const settings = this.getCostPaymentRecoveryRollbackSettings();
+
+        return {
+            player,
+            context,
+            previousRecoveryRollbacks: this.costPaymentRecoveryRollbackCounts.get(this.getCostPaymentRecoveryCountKey(player)) ?? 0,
+            informationRevealedSinceRollbackPoint: settings == null || this.snapshotManager.getRollbackInformation(settings).requiresConfirmation
+        };
+    }
+
+    /** Returns the settings for rolling back to the start of the current action, or null if there is no snapshot for it */
+    private getCostPaymentRecoveryRollbackSettings(): IGetSnapshotSettings | null {
+        if (!this.isUndoEnabled || this.currentPhase !== PhaseName.Action || this.actionPhaseActivePlayer == null) {
+            return null;
+        }
+
+        const settings: IGetSnapshotSettings = { type: SnapshotType.Action, playerId: this.actionPhaseActivePlayer.id };
+
+        // only roll back as far as the start of the current action
+        if (!this.snapshotManager.getRollbackInformation(settings).isSameTimepoint) {
+            return null;
+        }
+
+        return settings;
+    }
+
+    private getCostPaymentRecoveryCountKey(player: Player): string {
+        return `${player.id}:${this.snapshotManager.currentSnapshotId}`;
     }
 
     private rollbackToSnapshotInternal(settings: IGetSnapshotSettings, rollbackHandler: (() => any) | null = null): boolean {

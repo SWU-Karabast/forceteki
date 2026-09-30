@@ -15,6 +15,7 @@ import { CostAdjusterWithGameSteps } from './CostAdjusterWithGameSteps';
 import type { CostAdjustStage, IAbilityCostAdjustmentProperties, ICostAdjustEvaluationIntermediateResult, ICostAdjustEvaluationResult, ICostAdjustResult, ICostAdjustTriggerResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import type { ICostResult } from './ICost';
 import type { ICardTargetsResolver } from '../../TargetInterfaces';
+import * as CostPaymentRecovery from './CostPaymentRecovery';
 
 import { registerStateBase } from '../GameObjectUtils';
 
@@ -129,6 +130,11 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
         return true;
     }
 
+    /** The game system applied to each target chosen for this adjustment (e.g. defeat for Exploit, damage for Marauder) */
+    public getTargetEffectSystem(): GameSystem<AbilityContext<IUnitCard>> {
+        return this.effectSystem;
+    }
+
     protected override canAdjust(card: Card, context: AbilityContext<ICardWithCostProperty>, evaluationResult: ICostAdjustEvaluationIntermediateResult) {
         // check available legal targets
         if (!this.defaultTargetResolver.hasLegalTarget(context)) {
@@ -186,7 +192,13 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
             this.getPayingPlayer(context).readyResourceCount,
         )?.targetSet;
 
-        Contract.assertNotNullLike(minimumTargetsSet, 'No valid target set found to pay cost with targeted cost adjuster at pay time');
+        // the game state may have changed since the cost was evaluated in a way that we couldn't predict (e.g. a replacement effect
+        // defeating a unit that provided a cost adjustment), so it may no longer be possible to pay
+        if (minimumTargetsSet == null) {
+            CostPaymentRecovery.queueUnpayableCostRecovery(context, abilityCostResult, this.getPayingPlayer(context));
+            return;
+        }
+
         const minimumTargetsRequiredToPay = minimumTargetsSet.length;
 
         // without a pay mode prompt, the player goes directly to target selection and may choose nothing if no targets are required
@@ -210,8 +222,11 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
         const maxTargetableUnitsCount = this.getNumberOfLegalTargets(targetResolver, context, costAdjustTriggerResult);
         costProps.minimumTargets = minimumTargets;
 
-        // payment shouldn't have been triggered if there aren't enough targetable units available to pay the minimum
-        Contract.assertTrue(maxTargetableUnitsCount >= minimumTargetsRequiredToPay);
+        // not enough targetable units available to pay the minimum, see above
+        if (maxTargetableUnitsCount < minimumTargetsRequiredToPay) {
+            CostPaymentRecovery.queueUnpayableCostRecovery(context, abilityCostResult, this.getPayingPlayer(context));
+            return;
+        }
 
         // if no targetable units, shortcut past target prompt
         if (maxTargetableUnitsCount === 0) {
@@ -304,12 +319,15 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
     protected buildSortedTargets(result: ICostAdjustEvaluationResult, context: AbilityContext): IOpportunityCostTarget[] {
         const targets: IOpportunityCostTarget[] = [];
 
+        // at pay time the evaluation result may be stale, e.g. if an upstream stage defeated some of the units in it
+        const legalTargets = new Set(this.defaultTargetResolver.getAllLegalTargets(context));
+
         for (const { unit, opportunityCost: opportunityCostMap } of result.costAdjusterTargets) {
-            if (this.targetCondition && !this.targetCondition(unit, context)) {
+            if (!legalTargets.has(unit)) {
                 continue;
             }
 
-            const opportunityCost = opportunityCostMap?.get(this.costAdjustStage) ?? { max: 0 };
+            const opportunityCost = this.getOpportunityCostForTarget(unit, opportunityCostMap, context);
 
             targets.push({ card: unit, opportunityCost });
         }
@@ -317,6 +335,26 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
         targets.sort((a, b) => a.opportunityCost.max - b.opportunityCost.max);
 
         return targets;
+    }
+
+    /**
+     * Returns the opportunity cost of choosing `card` as a target, i.e. the max downstream discount that would be lost by applying this
+     * adjuster's effect to it. By default, reads the opportunity cost registered by downstream adjusters for this adjuster's stage.
+     */
+    protected getOpportunityCostForTarget(
+        _card: Card,
+        opportunityCostMap: Map<CostAdjustStage, IEvaluationOpportunityCost> | undefined,
+        _context: AbilityContext
+    ): IEvaluationOpportunityCost {
+        return opportunityCostMap?.get(this.costAdjustStage) ?? { max: 0 };
+    }
+
+    /**
+     * Whether choosing `card` as a target removes it from play, which would also remove any downstream cost adjusters it is the source of.
+     * Defaults to true, override for adjusters whose effect only sometimes removes the target (e.g. dealing damage).
+     */
+    protected targetSelectionRemovesUnit(_card: Card, _context: AbilityContext): boolean {
+        return true;
     }
 
     /**
@@ -338,7 +376,7 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
         const potentialTargetSet: ITriggerStageTargetSelection[] = [];
         const preselectedTargetSet = new Set<Card>();
         for (const card of preSelectedTargets ?? []) {
-            potentialTargetSet.push({ card, stage: this.costAdjustStage });
+            potentialTargetSet.push(this.buildTargetSelection(card, context));
             preselectedTargetSet.add(card);
         }
 
@@ -378,10 +416,14 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
                 }
             } while (preselectedTargetSet.has(nextCard));
 
-            potentialTargetSet.push({ card: nextCard, stage: this.costAdjustStage });
+            potentialTargetSet.push(this.buildTargetSelection(nextCard, context));
         } while (potentialTargetSet.length <= maxTargetableConcrete);
 
         return null;
+    }
+
+    private buildTargetSelection(card: Card, context: AbilityContext): ITriggerStageTargetSelection {
+        return { card, stage: this.costAdjustStage, removesUnit: this.targetSelectionRemovesUnit(card, context) };
     }
 
     /**
