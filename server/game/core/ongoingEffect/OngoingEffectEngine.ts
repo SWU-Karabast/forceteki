@@ -339,9 +339,20 @@ export class OngoingEffectEngine extends GameObjectBase {
         return summaries;
     }
 
+    /**
+     * Events that have already been evaluated for each delayed effect. Ancestor windows' events are
+     * presented at every descendant window's check until consumed, so an event can appear in the
+     * batch multiple times.
+     */
+    private readonly delayedEffectCheckedEvents = new WeakMap<OngoingEffect<any>, Set<GameEvent>>();
+
+    /** The unchecked event batch each delayed effect was triggered with, for building its context. */
+    private readonly delayedEffectTriggerEvents = new Map<OngoingEffect<any>, GameEvent[]>();
+
     public checkDelayedEffects(events: GameEvent[]) {
         const effectsToTrigger: OngoingEffect<any>[] = [];
         const effectsToRemove: OngoingEffect<any>[] = [];
+        this.delayedEffectTriggerEvents.clear();
 
         for (const effect of this.effects.filter(
             (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
@@ -352,18 +363,45 @@ export class OngoingEffectEngine extends GameObjectBase {
                     effectsToTrigger.push(effect);
                 }
             } else {
-                const triggeringEvents = events.filter((event) => properties.when[event.name]);
-                if (triggeringEvents.length > 0) {
-                    if (triggeringEvents.some((event) => properties.when[event.name](event, effect.context))) {
-                        effectsToTrigger.push(effect);
+                let checkedEvents = this.delayedEffectCheckedEvents.get(effect);
+                if (checkedEvents == null) {
+                    checkedEvents = new Set<GameEvent>();
+                    this.delayedEffectCheckedEvents.set(effect, checkedEvents);
+                }
+
+                const uncheckedEvents = events.filter((event) => !checkedEvents.has(event));
+                const triggeringEvents = uncheckedEvents.filter((event) => properties.when[event.name]);
+                const matchedEvent = triggeringEvents.find((event) => properties.when[event.name](event, effect.context));
+
+                // events evaluated without matching are fully processed and must not be re-evaluated
+                for (const event of triggeringEvents) {
+                    if (event === matchedEvent) {
+                        break;
                     }
+                    checkedEvents.add(event);
+                }
+
+                if (matchedEvent != null) {
+                    if (matchedEvent.window != null && !matchedEvent.window.delayedEffectCheckComplete) {
+                        // the earliest match resolved in an ancestor window that has not reached this
+                        // check yet - leave it unchecked so the effect triggers on it once that window
+                        // gets here, preserving resolution order over window completion order
+                        continue;
+                    }
+                    checkedEvents.add(matchedEvent);
+                    this.delayedEffectTriggerEvents.set(effect, uncheckedEvents);
+                    effectsToTrigger.push(effect);
                 }
             }
         }
 
         const effectTriggers = effectsToTrigger.map((effect) => {
             const properties = effect.impl.getValue();
-            const context = effect.context.createCopy({ events });
+            // use the effect's unchecked event batch, not the raw batch: 'events' re-includes ancestor
+            // windows' resolvedEvents at every descendant check, so it can hold already-consumed events
+            // that would shadow the actual triggering event in context.events (e.g. a .find by name).
+            // condition-based effects have no batch and fall back to 'events' as before.
+            const context = effect.context.createCopy({ events: this.delayedEffectTriggerEvents.get(effect) ?? events });
             const targets = effect.targets;
 
             return {
