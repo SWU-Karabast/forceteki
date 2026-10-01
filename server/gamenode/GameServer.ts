@@ -693,7 +693,8 @@ export class GameServer {
                         message: 'Authentication required to retrieve canchangeUsername info'
                     });
                 }
-                const result = await this.userFactory.canChangeUsernameAsync(user.getId());
+                const hasActiveForcedRename = !!this.modActionService?.playerActiveRename(user.getId());
+                const result = await this.userFactory.canChangeUsernameAsync(user.getId(), hasActiveForcedRename);
                 return res.status(200).json({
                     success: true,
                     result: result,
