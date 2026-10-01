@@ -18,7 +18,7 @@ import type { IOptionalTriggerPromptProperties } from './gameSteps/prompts/Optio
 import GameOverPrompt from './gameSteps/prompts/GameOverPrompt';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import { GameEvent } from './event/GameEvent';
-import { EventWindow, TriggerHandlingMode } from './event/EventWindow';
+import { EventWindow, SubwindowEventHandlingMode, TriggerHandlingMode } from './event/EventWindow';
 import { AbilityResolver } from './gameSteps/AbilityResolver';
 import { AbilityContext } from './ability/AbilityContext';
 import { Contract } from './utils/Contract';
@@ -1467,11 +1467,15 @@ export class Game extends EventEmitter {
      * Creates an EventWindow which will open windows for each kind of triggered
      * ability which can respond any passed events, and execute their handlers.
      */
-    public openEventWindow(events: GameEvent | GameEvent[], triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow): EventWindow {
+    public openEventWindow(
+        events: GameEvent | GameEvent[],
+        triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow,
+        subwindowEventHandlingMode: SubwindowEventHandlingMode = SubwindowEventHandlingMode.ResolvesSubwindowEvents
+    ): EventWindow {
         if (!Array.isArray(events)) {
             events = [events];
         }
-        return this.queueStep(new EventWindow(this, events, triggerHandlingMode));
+        return this.queueStep(new EventWindow(this, events, triggerHandlingMode, subwindowEventHandlingMode));
     }
 
     /**
