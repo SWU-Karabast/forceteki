@@ -1,7 +1,8 @@
 {
     "spec_dir": "build/test",
     "spec_files": [
-        "**/*[sS]pec.js"
+        "server/utils/**/*[sS]pec.js",
+        "server/gamenode/**/*[sS]pec.js"
     ],
     "helpers": [
         "helpers/server/ServerTestEnv.js",

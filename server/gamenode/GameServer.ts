@@ -64,6 +64,10 @@ import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 import { ModActionService } from '../utils/ModActionService';
 import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema, ServerSettingsUpdateSchema } from '../services/DynamoDBInterfaceSchemas';
+import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
+import { RealScheduler } from '../utils/RealScheduler';
+import type { IGameNodeConfig } from './GameNodeConfig';
+import { buildGameNodeConfigFromEnvironment } from './GameNodeConfig';
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -90,6 +94,33 @@ export interface IToken {
     refreshToken: string;
     creationDateTime: Date;
     timeToLiveSeconds: number;
+}
+
+/**
+ * Construction-time switches for the side effects the constructor would otherwise always perform.
+ * All default to the production behaviour, so `createAsync()` is unaffected.
+ */
+export interface IGameServerOptions {
+
+    /**
+     * When false, the HTTP server and its socket.io server are built but never bound to the
+     * configured port, leaving the caller to bind them when and where it wants to.
+     */
+    listen?: boolean;
+
+    /**
+     * Supplies timers and the clock. Defaults to {@link RealScheduler}. Tests pass an implementation
+     * that lets them drive time forward on demand, so recurring work and delayed work stay active
+     * and observable rather than having to be switched off.
+     */
+    scheduler?: IScheduler;
+
+    /**
+     * Behavioural switches for the node. Defaults to the values derived from the environment, so
+     * production is unaffected. Tests set these explicitly so they exercise a chosen behaviour
+     * rather than whichever one the environment happens to select.
+     */
+    config?: IGameNodeConfig;
 }
 
 // Interface for GC performance entries using the modern 'detail' property
@@ -187,12 +218,14 @@ export class GameServer {
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
-    private readonly queue: QueueHandler = new QueueHandler();
+    protected readonly scheduler: IScheduler;
+    protected readonly config: IGameNodeConfig;
+    private readonly queue: QueueHandler;
     private lastCpuUsage: NodeJS.CpuUsage;
     private lastCpuUsageTime: bigint;
     private loopDelayHistogram: IntervalHistogram;
     private lastLoopUtilization: EventLoopUtilization;
-    private matchmakingTimer?: NodeJS.Timeout;
+    private matchmakingRetryTask?: IScheduledTask;
     private gcStats = {
         totalDuration: 0,
         scavengeCount: 0,
@@ -218,24 +251,44 @@ export class GameServer {
     public readonly swuDbDeckFetcher: SwuDbDeckFetcher;
     public readonly meleeDeckFetcher: MeleeDeckFetcher;
     private readonly discordDispatcher = new DiscordDispatcher();
-    private readonly tokenCleanupInterval: NodeJS.Timeout;
+
+    /** Every recurring task started by the constructor, retained so that {@link shutdownAsync} can stop them. */
+    private readonly backgroundTasks: IScheduledTask[] = [];
+
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
     public readonly serverSettingsCache?: ServerSettingsCache;
     public readonly modActionService?: ModActionService;
 
-    private constructor(
+    /**
+     * The HTTP server carrying both the API and the socket.io server. Subclasses may bind it
+     * themselves when constructed with `listen: false`.
+     */
+    protected readonly httpServer: http.Server;
+
+    protected constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         serverRoleUsersCache?: ServerRoleUsersCache,
         serverSettingsCache?: ServerSettingsCache,
         cosmeticsService?: CosmeticsService,
         modActionCache?: ModActionService,
-        testGameBuilder?: any
+        testGameBuilder?: any,
+        options: IGameServerOptions = {}
     ) {
+        const {
+            listen = true,
+            scheduler = new RealScheduler(),
+            config = buildGameNodeConfigFromEnvironment()
+        } = options;
+
         const app = express();
         app.use(express.json());
         const server = http.createServer(app);
 
+        this.scheduler = scheduler;
+        this.config = config;
+        this.queue = new QueueHandler(scheduler, config);
+        this.httpServer = server;
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
@@ -287,8 +340,10 @@ export class GameServer {
         });
 
 
-        server.listen(env.gameNodeSocketIoPort);
-        logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
+        if (listen) {
+            server.listen(env.gameNodeSocketIoPort);
+            logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
+        }
         logger.info(`GameServer: Detected ${cpus().length} logical CPU cores.`);
 
         // check if NEXTAUTH variable is set
@@ -300,9 +355,11 @@ export class GameServer {
         );
 
         // TOKEN CLEANUP
-        this.tokenCleanupInterval = setInterval(() => {
-            this.cleanupInvalidTokens();
-        }, 3600000); // 1 hour
+        this.backgroundTasks.push(this.scheduler.setInterval(
+            () => this.cleanupInvalidTokens(),
+            3600000, // 1 hour
+            { message: 'GameServer: error during token cleanup' }
+        ));
 
         // Setup socket server
         this.io = new IOServer(server, {
@@ -383,9 +440,13 @@ export class GameServer {
         this.swuBaseHandler = new SwuBaseHandler(this.userFactory);
 
         // set up queue heartbeat once a second
-        setInterval(() => this.queue.sendHeartbeat(), 500);
+        this.backgroundTasks.push(this.scheduler.setInterval(
+            () => this.queue.sendHeartbeat(),
+            500,
+            { message: 'GameServer: error sending queue heartbeat' }
+        ));
 
-        if (process.env.ENVIRONMENT !== 'development' || process.env.FORCE_ENABLE_STATS_LOGGING === 'true') {
+        if (this.config.metricsLoggingEnabled) {
             // initialize cpu usage and event loop stats
             this.lastCpuUsage = process.cpuUsage();
             this.lastCpuUsageTime = process.hrtime.bigint();
@@ -400,18 +461,20 @@ export class GameServer {
             this.logHeapStats();
 
             // set up periodic memory, cpu and event loop monitoring for every 30 seconds
-            setInterval(() => {
+            this.backgroundTasks.push(this.scheduler.setInterval(() => {
                 this.logHeapStats();
                 this.logCpuUsage();
                 this.logEventLoopStats();
                 this.logPlayerStats();
                 this.logGCStats();
-            }, 30000);
+            }, 30000, { message: 'GameServer: error logging periodic server metrics' }));
 
             // emit daily active user count and reset every 24 hours
-            setInterval(() => {
-                this.logAndResetDailyActiveUsers();
-            }, 86_400_000); // 24 hours
+            this.backgroundTasks.push(this.scheduler.setInterval(
+                () => this.logAndResetDailyActiveUsers(),
+                86_400_000, // 24 hours
+                { message: 'GameServer: error logging daily active users' }
+            ));
         }
     }
 
@@ -437,7 +500,7 @@ export class GameServer {
                     this.dailyActiveUserIds.add(req.user.getId());
                 }
 
-                if (process.env.ENVIRONMENT !== 'development' && user.isAnonymousUser()) {
+                if (!this.config.allowAnonymousSpectators && user.isAnonymousUser()) {
                     logger.error(`GameServer (spectate-game): Anonymous user ${user.getId()} is attempting to spectate a game.`);
                     return res.status(401).json({
                         success: false,
@@ -2008,7 +2071,7 @@ export class GameServer {
         // player ditched out of a matchmaking game, make them wait 20s
         const playerLeftMatchmakingTime = this.playerMatchmakingDisconnectedTime.get(userId);
         if (playerLeftMatchmakingTime) {
-            const elapsedSeconds = Math.floor((Date.now() - playerLeftMatchmakingTime.getTime()) / 1000);
+            const elapsedSeconds = Math.floor((this.scheduler.now() - playerLeftMatchmakingTime.getTime()) / 1000);
             if (elapsedSeconds < 20) {
                 logger.info(`GameServer: user ${userId} blocked from joining due to leaving a matchmaking game during coundown`);
                 return false;
@@ -2030,7 +2093,7 @@ export class GameServer {
                         return true;
                     }
 
-                    const elapsedSeconds = Math.floor((Date.now() - userLastActivity.getTime()) / 1000);
+                    const elapsedSeconds = Math.floor((this.scheduler.now() - userLastActivity.getTime()) / 1000);
                     if (elapsedSeconds < 60) {
                         logger.info(`GameServer: user ${userId} blocked from joining due to still being in lobby ${previousLobby.id}`);
                         return false;
@@ -2068,8 +2131,8 @@ export class GameServer {
         if (isPrivate || user.isAuthenticatedUser()) {
             return null; // Private lobby or authenticated user, allowed
         }
-        // In development mode, allow anonymous Bo3 access unless explicitly blocked
-        if (process.env.ENVIRONMENT === 'development' && process.env.FORCE_BLOCK_BO3_ANON_LOCAL !== 'true') {
+        // some environments allow anonymous Bo3 access
+        if (this.config.allowAnonymousBestOfThree) {
             return null;
         }
         return `You must be logged in to ${operation}`;
@@ -2248,6 +2311,8 @@ export class GameServer {
             this.deckValidator,
             this,
             this.discordDispatcher,
+            this.scheduler,
+            this.config,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -2280,6 +2345,8 @@ export class GameServer {
             this.deckValidator,
             this,
             this.discordDispatcher,
+            this.scheduler,
+            this.config,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -2342,7 +2409,7 @@ export class GameServer {
         const lobbyUserEntry = this.userLobbyMap.get(user.getId());
         // 0. If user is spectator
         if (isSpectator) {
-            if (process.env.ENVIRONMENT !== 'development' && user.isAnonymousUser()) {
+            if (!this.config.allowAnonymousSpectators && user.isAnonymousUser()) {
                 logger.warn(`GameServer: anonymous user ${user.getId()} attempted to connect as spectator to a lobby, disconnecting`);
                 ioSocket.disconnect();
                 return Promise.resolve();
@@ -2540,9 +2607,9 @@ export class GameServer {
 
     private async matchmakeAllQueuesAsync(): Promise<void> {
         // If there's a pending timer-based matchmaking task, clear it out
-        if (this.matchmakingTimer) {
-            clearTimeout(this.matchmakingTimer);
-            this.matchmakingTimer = undefined;
+        if (this.matchmakingRetryTask) {
+            this.matchmakingRetryTask.cancel();
+            this.matchmakingRetryTask = undefined;
         }
 
         const formatsWithMatches = this.queue.findReadyFormats();
@@ -2584,16 +2651,11 @@ export class GameServer {
         }
 
         if (needsTimedRetry) {
-            this.matchmakingTimer = setTimeout(() => {
-                try {
-                    this.matchmakeAllQueuesAsync();
-                } catch (error) {
-                    logger.error(
-                        'GameServer: Error in scheduled matchmaking retry:',
-                        { error: { message: error.message, stack: error.stack } }
-                    );
-                }
-            }, QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000);
+            this.matchmakingRetryTask = this.scheduler.setTimeout(
+                () => this.matchmakeAllQueuesAsync(),
+                QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000,
+                { message: 'GameServer: Error in scheduled matchmaking retry' }
+            );
         }
 
         return Promise.resolve();
@@ -2614,7 +2676,9 @@ export class GameServer {
             this.cardDataGetter,
             this.deckValidator,
             this,
-            this.discordDispatcher
+            this.discordDispatcher,
+            this.scheduler,
+            this.config
         );
 
         this.lobbies.set(lobby.id, lobby);
@@ -2714,6 +2778,39 @@ export class GameServer {
         lobby.cleanLobby();
     }
 
+    /**
+     * Releases every long-lived handle the server owns: recurring background tasks, the pending
+     * matchmaking retry, all lobbies (and the timers they hold), the socket.io server and the HTTP
+     * listener. Tests call this in teardown so the process is left with nothing keeping it alive.
+     */
+    public async shutdownAsync(): Promise<void> {
+        for (const task of this.backgroundTasks) {
+            task.cancel();
+        }
+        this.backgroundTasks.length = 0;
+
+        this.queue.shutdown();
+
+        if (this.matchmakingRetryTask) {
+            this.matchmakingRetryTask.cancel();
+            this.matchmakingRetryTask = undefined;
+        }
+
+        for (const lobby of Array.from(this.lobbies.values())) {
+            lobby.cleanLobby();
+        }
+        this.lobbies.clear();
+        this.userLobbyMap.clear();
+
+        this.loopDelayHistogram?.disable();
+
+        await new Promise<void>((resolve) => this.io.close(() => resolve()));
+
+        if (this.httpServer.listening) {
+            await new Promise<void>((resolve) => this.httpServer.close(() => resolve()));
+        }
+    }
+
     public onQueueSocketDisconnected(
         socket: Socket,
         player: QueuedPlayer
@@ -2759,35 +2856,31 @@ export class GameServer {
 
             const timeoutValue = timeoutSeconds * 1000;
 
-            setTimeout(() => {
-                try {
-                    if (isMatchmaking && !this.queue.isConnected(id, socket.id)) {
-                        this.queue.removePlayer(id, `Timeout disconnect on socket id ${socket.id}`);
-                    }
-
-                    // Check if the user is still disconnected after the timer
-                    if (lobby?.isDisconnected(id, socket.id)) {
-                        logger.info(`GameServer: User ${id} on socket id ${socket.id} is disconnected from lobby ${lobby.id} for more than ${timeoutSeconds}s, removing from lobby`, { userId: id, lobbyId: lobby.id });
-
-                        this.userLobbyMap.delete(id);
-
-                        if (isMatchmaking) {
-                            logger.info(
-                                `GameServer: User ${id} disconnected from matchmaking during countdown for lobby ${lobby.id}, setting 20s restriction for joining new game`,
-                                { userId: id, lobbyId: lobby.id }
-                            );
-                            this.playerMatchmakingDisconnectedTime.set(id, new Date());
-
-                            lobby.removeUser(id);
-                            lobby.handleMatchmakingDisconnect();
-                        } else {
-                            this.removeUserMaybeCleanupLobby(lobby, id);
-                        }
-                    }
-                } catch (err) {
-                    logger.error('GameServer: Error in setTimeout for onSocketDisconnected:', err);
+            this.scheduler.setTimeout(() => {
+                if (isMatchmaking && !this.queue.isConnected(id, socket.id)) {
+                    this.queue.removePlayer(id, `Timeout disconnect on socket id ${socket.id}`);
                 }
-            }, timeoutValue);
+
+                // Check if the user is still disconnected after the timer
+                if (lobby?.isDisconnected(id, socket.id)) {
+                    logger.info(`GameServer: User ${id} on socket id ${socket.id} is disconnected from lobby ${lobby.id} for more than ${timeoutSeconds}s, removing from lobby`, { userId: id, lobbyId: lobby.id });
+
+                    this.userLobbyMap.delete(id);
+
+                    if (isMatchmaking) {
+                        logger.info(
+                            `GameServer: User ${id} disconnected from matchmaking during countdown for lobby ${lobby.id}, setting 20s restriction for joining new game`,
+                            { userId: id, lobbyId: lobby.id }
+                        );
+                        this.playerMatchmakingDisconnectedTime.set(id, this.scheduler.currentDate());
+
+                        lobby.removeUser(id);
+                        lobby.handleMatchmakingDisconnect();
+                    } else {
+                        this.removeUserMaybeCleanupLobby(lobby, id);
+                    }
+                }
+            }, timeoutValue, { message: 'GameServer: Error in disconnect timeout for onSocketDisconnected', metadata: { userId: id } });
         } catch (err) {
             logger.error('GameServer: Error in onSocketDisconnected:', err);
         }

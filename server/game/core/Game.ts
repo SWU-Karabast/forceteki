@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 
+import type { IScheduler } from '../../utils/IScheduler';
 import { GameChat } from './chat/GameChat';
 import type { MsgArg } from './chat/GameChat';
 import { OngoingEffectEngine } from './ongoingEffect/OngoingEffectEngine';
@@ -368,7 +369,9 @@ export class Game extends EventEmitter {
     private _serializationFailure: boolean;
     private _lastAttackId: number;
     public playerHasBeenPrompted: Map<string, boolean>;
-    public readonly buildSafeTimeoutHandler: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
+
+    /** Supplies timers and the clock. Callbacks scheduled through it are error-guarded. */
+    public readonly scheduler: IScheduler;
     public readonly userTimeoutDisconnect: (userId: string) => void;
     public readonly preselectedFirstPlayerId: string | undefined;
     public readonly onBo3SetForfeit?: (losingPlayerId: string) => void;
@@ -435,7 +438,7 @@ export class Game extends EventEmitter {
         this._lastAttackId = -1;
         this.playerHasBeenPrompted = new Map();
 
-        this.buildSafeTimeoutHandler = details.buildSafeTimeout;
+        this.scheduler = details.scheduler;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
         this.preselectedFirstPlayerId = details.preselectedFirstPlayerId;
         this.onBo3SetForfeit = details.onBo3SetForfeit;
@@ -550,13 +553,6 @@ export class Game extends EventEmitter {
      */
     public addAlert(type: AlertType, message: string, ...args: MsgArg[]): void {
         this.gameChat.addAlert(type, message, ...args);
-    }
-
-    /**
-     * Build a timeout that will log an error on failure and not crash the server process
-     */
-    public buildSafeTimeout(callback: () => void, delayMs: number, errorMessage: string): NodeJS.Timeout {
-        return this.buildSafeTimeoutHandler(callback, delayMs, errorMessage);
     }
 
     public initializeCurrentlyResolving(): void {
