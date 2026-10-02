@@ -105,6 +105,7 @@ export interface IUserProfileDataEntity extends IUserDataEntity {
 
 export interface ILocalStorageDeckData {
     leader: { id: string };
+    secondLeader?: { id: string };
     base: { id: string };
     name: string;
     favourite: boolean;
@@ -121,6 +122,7 @@ export interface IDeckDataEntity {
     userId: string;
     deck: {
         leader: { id: string };
+        secondLeader?: { id: string };
         base: { id: string };
         name: string;
         favourite: boolean;
