@@ -52,5 +52,50 @@ describe('In Defense of Kamino', function () {
             expect(cloneTroopers).toAllBeInZone('groundArena', context.player1);
             expect(cloneTroopers.every((cloneTrooper) => cloneTrooper.exhausted)).toBeTrue();
         });
+
+        // Ruling 2024: In Defense of Kamino only applies to friendly Republic units in play when the
+        // event resolves. A Republic unit played later in the phase does not get Restore 2 or the
+        // "When Defeated: Create a Clone Trooper token" grant.
+        it('does not apply to Republic units played after the event resolves', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: { card: 'echo-base', damage: 5 },
+                    hand: ['in-defense-of-kamino', 'phase-i-clone-trooper'],
+                    groundArena: ['advanced-recon-commando']
+                },
+                player2: {
+                    groundArena: ['b2-legionnaires', 'super-battle-droid']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Resolve In Defense of Kamino while only the ARC is in play (it gets the grant)
+            context.player1.clickCard(context.inDefenseOfKamino);
+            context.player2.passAction();
+
+            // Play a Republic unit (Phase I Clone Trooper) after the event has resolved
+            context.player1.clickCard(context.phaseICloneTrooper);
+
+            // Negative control: player 2 defeats the later-played clone trooper, which did NOT get the grant
+            context.player2.clickCard(context.superBattleDroid);
+            context.player2.clickCard(context.phaseICloneTrooper);
+            expect(context.phaseICloneTrooper).toBeInZone('discard');
+            expect(context.player1.findCardsByName('clone-trooper').filter((card) => card.zoneName === 'groundArena').length).toBe(0);
+
+            // Positive control: the ARC WAS in play when the event resolved, so it got the grant. Attacking
+            // triggers its Restore 2 (base 5 -> 3), and being defeated (by 5/4 B2 Legionnaires, exactly
+            // lethal so its Overwhelm spills no excess) creates a Clone Trooper token.
+            context.player1.clickCard(context.advancedReconCommando);
+            context.player1.clickCard(context.b2Legionnaires);
+            expect(context.advancedReconCommando).toBeInZone('discard');
+            expect(context.p1Base.damage).toBe(3); // Restore 2 from the ARC's attack
+
+            const cloneTroopers = context.player1.findCardsByName('clone-trooper').filter((card) => card.zoneName === 'groundArena');
+            expect(cloneTroopers.length).toBe(1); // ARC's granted "When Defeated: Create a Clone Trooper token"
+            expect(cloneTroopers).toAllBeInZone('groundArena', context.player1);
+            expect(cloneTroopers.every((cloneTrooper) => cloneTrooper.exhausted)).toBeTrue();
+        });
     });
 });

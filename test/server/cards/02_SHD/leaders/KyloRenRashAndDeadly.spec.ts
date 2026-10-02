@@ -152,5 +152,35 @@ describe('Kylo Ren, Rash And Deadly', function() {
                 expect(context.p2Base.damage).toBe(8); // suprise strike and 5 power
             });
         });
+
+        describe('Kylo Ren\'s interaction with Force Lightning', function() {
+            // Ruling (SHD): playing Force Lightning ("loses all abilities for this phase") on your own
+            // deployed Kylo Ren removes his -1/0-per-card-in-hand constant ability, nullifying the
+            // self-debuff and restoring him to 5 power for the phase.
+            it('can have its -1/0 self-debuff nullified by a friendly Force Lightning', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['force-lightning', 'atst', 'wampa', 'battlefield-marine'],
+                        leader: { card: 'kylo-ren#rash-and-deadly', deployed: true },
+                        resources: 6
+                    },
+                    player2: {}
+                });
+
+                const { context } = contextRef;
+
+                // With 4 cards in hand, Kylo is reduced to 1 power (5 - 4)
+                expect(context.kyloRenRashAndDeadly.getPower()).toBe(1);
+
+                // Play Force Lightning on friendly Kylo (hand now 3 cards)
+                context.player1.clickCard(context.forceLightning);
+                context.player1.clickCard(context.kyloRenRashAndDeadly);
+                context.player1.chooseListOption('0'); // deal no damage
+
+                // Kylo's -1/0 constant ability is blanked, so his power returns to base 5
+                expect(context.kyloRenRashAndDeadly.getPower()).toBe(5);
+            });
+        });
     });
 });
