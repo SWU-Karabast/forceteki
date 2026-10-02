@@ -15,6 +15,7 @@ import { registerState, registerStateBase, statePrimitive } from '../GameObjectU
 import type { IGameObjectBaseState } from '../GameObjectBase';
 import * as AttackHelpers from '../attack/AttackHelpers';
 import { UnlimitedAbilityLimit } from './AbilityLimit';
+import type DamageModificationAbility from './DamageModificationAbility';
 
 // STATE: Interface needed for onAfterSetState and cleanupOnRemove.
 export interface ITriggeredAbilityState extends IGameObjectBaseState {
@@ -63,6 +64,15 @@ export abstract class TriggeredAbilityBase extends CardAbility {
     private readonly effectCondition?: (context: TriggeredAbilityContext) => boolean;
 
     @statePrimitive() private accessor isRegistered: boolean = false;
+
+    /** Whether the ability is currently listening for its triggering events (i.e. it is active on a card that is in play) */
+    public get isListeningForEvents(): boolean {
+        return this.isRegistered;
+    }
+
+    public isDamageModificationAbility(): this is DamageModificationAbility {
+        return false;
+    }
 
     public get isOnAttackAbility() {
         return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.OnAttack);

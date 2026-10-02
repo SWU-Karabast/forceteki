@@ -5,11 +5,12 @@ import { CostAdjustStage } from './CostInterfaces';
 
 export function getCostAdjustStagesInEvaluationOrder(): CostAdjustStage[] {
     return [
-        CostAdjustStage.Increase_7,
-        CostAdjustStage.DefeatCredits_6,
-        CostAdjustStage.ExhaustUnits_5,
-        CostAdjustStage.PayStage_4,
-        CostAdjustStage.DefeatResources_3,
+        CostAdjustStage.Increase_8,
+        CostAdjustStage.DefeatCredits_7,
+        CostAdjustStage.ExhaustUnits_6,
+        CostAdjustStage.PayStage_5,
+        CostAdjustStage.DefeatResources_4,
+        CostAdjustStage.DamageUnits_3,
         CostAdjustStage.Exploit_2,
         CostAdjustStage.IgnoreWildcard_1,
         CostAdjustStage.Standard_0
@@ -21,10 +22,11 @@ export function getCostAdjustStagesInTriggerOrder(): CostAdjustStage[] {
         CostAdjustStage.Standard_0,
         CostAdjustStage.IgnoreWildcard_1,
         CostAdjustStage.Exploit_2,
-        CostAdjustStage.DefeatResources_3,
-        CostAdjustStage.PayStage_4,
-        CostAdjustStage.ExhaustUnits_5,
-        CostAdjustStage.DefeatCredits_6
+        CostAdjustStage.DamageUnits_3,
+        CostAdjustStage.DefeatResources_4,
+        CostAdjustStage.PayStage_5,
+        CostAdjustStage.ExhaustUnits_6,
+        CostAdjustStage.DefeatCredits_7
         // we do not run the increase step during triggering / payment, it was added on during the evaluation pass
     ];
 }
@@ -32,18 +34,31 @@ export function getCostAdjustStagesInTriggerOrder(): CostAdjustStage[] {
 export function isInteractiveCostAdjusterStage(stage: CostAdjustStage): boolean {
     switch (stage) {
         case CostAdjustStage.Exploit_2:
-        case CostAdjustStage.DefeatResources_3:
-        case CostAdjustStage.ExhaustUnits_5:
-        case CostAdjustStage.DefeatCredits_6:
+        case CostAdjustStage.DamageUnits_3:
+        case CostAdjustStage.DefeatResources_4:
+        case CostAdjustStage.ExhaustUnits_6:
+        case CostAdjustStage.DefeatCredits_7:
             return true;
         case CostAdjustStage.Standard_0:
         case CostAdjustStage.IgnoreWildcard_1:
-        case CostAdjustStage.PayStage_4:
-        case CostAdjustStage.Increase_7:
+        case CostAdjustStage.PayStage_5:
+        case CostAdjustStage.Increase_8:
             return false;
         default:
             Contract.fail(`Unknown CostAdjustStage value: ${stage}`);
     }
+}
+
+/**
+ * Stages whose effect may remove a friendly unit from play, which in turn removes any downstream cost adjusters
+ * that the unit is the source of (e.g. Exploit defeating The Starhawk). Used when accounting for the "opportunity cost"
+ * of a target selection.
+ *
+ * Note that {@link CostAdjustStage.DamageUnits_3} only removes a unit if the damage would defeat it. This is determined
+ * per target via `ITriggerStageTargetSelection.removesUnit`.
+ */
+export function isUnitRemovingStage(stage: CostAdjustStage): boolean {
+    return stage === CostAdjustStage.Exploit_2 || stage === CostAdjustStage.DamageUnits_3;
 }
 
 export function getExploitedUnits(playEvent: any): ILastKnownInformation[] {

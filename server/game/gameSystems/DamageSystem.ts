@@ -87,6 +87,18 @@ export type IDamageProperties =
   | IExcessDamageProperties
   | IOverwhelmDamageProperties;
 
+/**
+ * A detached description of a damage event which has not been (and may never be) created, for predicting how the damage
+ * would resolve. Has the same properties as a real damage event (card, amount, damageSource, etc.).
+ */
+export type IHypotheticalDamageEvent = Record<string, any> & {
+    name: EventName.OnDamageDealt;
+    card: Card;
+    amount: number;
+    isUnpreventable: boolean;
+    canResolve: true;
+};
+
 // TODO: for this and the heal system, need to figure out how to handle the situation where 0 damage
 // is dealt / healed. Since the card is technically still a legal target but no damage was technically
 // dealt / healed per the rules (SWU 8.31.3)
@@ -102,6 +114,24 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         isIndirect: false,
         isUnpreventable: false
     };
+
+    /**
+     * Builds the properties of the damage event this system would generate for `card`, without creating a real {@link GameEvent}
+     * (which would advance game state). The amount includes any pending ability damage increase on the context (e.g. Ty Yorrick).
+     */
+    public buildHypotheticalDamageEvent(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}): IHypotheticalDamageEvent {
+        const event: any = {
+            name: EventName.OnDamageDealt,
+            context,
+            canResolve: true,
+            isReplacementEvent: false,
+            isCancelledOrReplaced: false
+        };
+
+        this.addPropertiesToEvent(event, card, context, additionalProperties);
+
+        return event;
+    }
 
     public eventHandler(event): void {
         const eventDamageAmount = this.getDamageAmountFromEvent(event);

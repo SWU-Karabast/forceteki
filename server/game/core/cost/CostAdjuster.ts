@@ -34,7 +34,8 @@ export enum CostAdjustType {
     Exploit = 'exploit',
     ExhaustUnits = 'exhaustUnits',
     DefeatCreditTokens = 'defeatCreditTokens',
-    DefeatResources = 'defeatResources'
+    DefeatResources = 'defeatResources',
+    DamageUnits = 'damageUnits'
 }
 
 // TODO: refactor so we can add TContext for attachTargetCondition
@@ -96,6 +97,19 @@ export interface IDefeatResourcesCostAdjusterProperties extends ICostAdjusterPro
     readyResourcesOnly?: boolean;
 }
 
+export interface IDamageUnitsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.DamageUnits;
+
+    /** The amount of damage dealt to each unit chosen */
+    damagePerUnit: number;
+
+    /** The amount the cost is reduced by for each unit chosen */
+    amountPerUnit: number;
+
+    /** Optional condition for which friendly units may be chosen. Defaults to any friendly unit. */
+    canDamageUnitCondition?: (card: IUnitCard, context: AbilityContext) => boolean;
+}
+
 export interface IIgnoreAllAspectsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
     costAdjustType: CostAdjustType.IgnoreAllAspects;
 }
@@ -138,12 +152,14 @@ export type ICostAdjusterProperties =
   | IExploitCostAdjusterProperties
   | IExhaustUnitsCostAdjusterProperties
   | IDefeatCreditTokensCostAdjusterProperties
-  | IDefeatResourcesCostAdjusterProperties;
+  | IDefeatResourcesCostAdjusterProperties
+  | IDamageUnitsCostAdjusterProperties;
 
 export type ITargetedCostAdjusterProperties =
   | IExploitCostAdjusterProperties
   | IExhaustUnitsCostAdjusterProperties
-  | IDefeatResourcesCostAdjusterProperties;
+  | IDefeatResourcesCostAdjusterProperties
+  | IDamageUnitsCostAdjusterProperties;
 
 export interface ICanAdjustProperties {
     attachTargets?: Card[];
@@ -159,6 +175,13 @@ export interface ICostAdjusterState extends IGameObjectBaseState {
 export interface ITriggerStageTargetSelection {
     card: Card;
     stage: CostAdjustStage;
+
+    /**
+     * Whether selecting this target removes the card from play, which also removes any downstream cost adjusters it is the
+     * source of. Defaults to `true` (e.g. Exploit always defeats its targets). For {@link CostAdjustStage.DamageUnits_3} this
+     * is `false` if the damage is not predicted to defeat the unit.
+     */
+    removesUnit?: boolean;
 }
 
 export enum CostAdjustResolutionMode {
@@ -351,13 +374,22 @@ export abstract class CostAdjuster extends GameObjectBase {
         const adjustResultCopy = { ...adjustResult, adjustedCost: adjustResult.adjustedCost.copy() };
         adjustResultCopy.adjustedCost.applyStaticDecrease(thisStageDiscount);
 
+        // only selections that remove their card from play can affect downstream adjusters (e.g. a unit that survives
+        // being damaged still provides its cost adjustment)
+        const removingSelections = previousTargetSelections?.filter((selection) => selection.removesUnit !== false);
+
         const triggerStages = CostHelpers.getCostAdjustStagesInTriggerOrder();
         const remainingStages = triggerStages.slice(triggerStages.indexOf(adjustResult.adjustStage) + 1);
 
         for (const stage of remainingStages) {
             const adjustersForStage = adjustResultCopy.matchingAdjusters.get(stage) || [];
             for (const adjuster of adjustersForStage) {
-                adjuster.applyMaxAdjustmentAmount(context.source, context, adjustResultCopy, previousTargetSelections);
+                // the adjuster's source may have left play during payment (e.g. defeated by an upstream stage)
+                if (adjuster.isCancelled) {
+                    continue;
+                }
+
+                adjuster.applyMaxAdjustmentAmount(context.source, context, adjustResultCopy, removingSelections);
 
                 if (adjustResultCopy.adjustedCost.value === 0) {
                     break;

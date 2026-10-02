@@ -13,6 +13,7 @@ import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, Wi
 
 import type {
     ICostAdjusterProperties,
+    IDamageUnitsCostAdjusterProperties,
     IDefeatResourcesCostAdjusterProperties,
     IForFreeCostAdjusterProperties,
     IIgnoreAllAspectsCostAdjusterProperties,
@@ -50,7 +51,8 @@ type ISelfCostAdjusterProperties =
   | IIgnoreSpecificAspectsCostAdjusterProperties
   | IIgnoreWildcardAspectsCostAdjusterProperties
   | IModifyPayStageCostAdjusterProperties
-  | IDefeatResourcesCostAdjusterProperties;
+  | IDefeatResourcesCostAdjusterProperties
+  | IDamageUnitsCostAdjusterProperties;
 
 /**
  * Properties for a constant ability that adjusts the cost to play the card itself. The type of adjustment is selected
