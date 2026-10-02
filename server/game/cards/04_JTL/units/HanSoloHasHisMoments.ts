@@ -21,7 +21,7 @@ export default class HanSoloHasHisMoments extends NonLeaderUnitCard {
             },
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.attack((context) => ({
-                target: context.source.parentCard,
+                target: context.source.isAttached() ? context.source.parentCard : null,
                 attackerLastingEffects: [{
                     effect: AbilityHelper.ongoingEffects.dealsCombatDamageFirst(),
                     condition: (attack: Attack) => attack.attacker.title === 'Millennium Falcon'
