@@ -250,11 +250,29 @@ export class EventWindow extends BaseStepWithPipeline {
         this.game.checkUniqueRule();
     }
 
+    /**
+     * Whether this window has reached its delayed-effect check. An event may only trigger a delayed
+     * effect once the window it resolved in has reached this step — a nested window can finish before
+     * an ancestor window holding an earlier-resolved event, and the earlier event must take precedence.
+     */
+    public delayedEffectCheckComplete = false;
+
     // resolve game state and emit triggers again
     // this is to catch triggers on cards that entered play or gained abilities during event resolution
     private resolveGameState() {
-        // TODO: understand if resolveGameState really needs the resolvedEvents array or not
-        this.game.resolveGameState(this.resolvedEvents.some((event) => event.handler), this.resolvedEvents);
+        this.delayedEffectCheckComplete = true;
+
+        // Collect resolved events from in-flight ancestor windows in addition to this window's own.
+        // Ability steps queued by event handlers can resolve entire nested chains before this step
+        // runs, so ancestor windows may hold events that resolved earlier but have not yet been
+        // presented to delayed effects. Presenting them in window order preserves chronology.
+        const inFlightWindows: EventWindow[] = [];
+        for (let window = this.parentWindow; window != null; window = window.parentWindow) {
+            inFlightWindows.unshift(window);
+        }
+        const events = inFlightWindows.flatMap((window) => window.resolvedEvents)
+            .concat(this.resolvedEvents);
+        this.game.resolveGameState(this.resolvedEvents.some((event) => event.handler), events);
     }
 
     private postResolutionTriggers() {
