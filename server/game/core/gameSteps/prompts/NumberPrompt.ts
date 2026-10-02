@@ -69,7 +69,7 @@ export class NumberPrompt extends UiPrompt {
         Contract.assertTrue(Number.isInteger(value), `Number prompt value must be an integer, instead received ${arg}`);
         Contract.assertTrue(value >= this.properties.min && value <= this.properties.max, `Number prompt value ${value} is outside range ${this.properties.min}-${this.properties.max}`);
 
-        this.properties.choiceHandler(arg);
+        this.properties.choiceHandler(value.toString());
         this.complete();
 
         return true;

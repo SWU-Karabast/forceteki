@@ -56,8 +56,8 @@ export class DistributeDamageSystem<
         return event.damageDealt;
     }
 
-    protected override getDistributionType(): string {
-        return 'damage';
+    protected override getDistributionNouns(): { singular: string } {
+        return { singular: 'damage' };
     }
 
     protected override getDistributionVerb(): string {

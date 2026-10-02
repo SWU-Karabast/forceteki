@@ -58,8 +58,8 @@ export class DistributeIndirectDamageToCardsSystem<TContext extends AbilityConte
         return properties;
     }
 
-    protected override getDistributionType(): string {
-        return 'indirect damage';
+    protected override getDistributionNouns(): { singular: string } {
+        return { singular: 'indirect damage' };
     }
 
     protected override getDistributionVerb(): string {
