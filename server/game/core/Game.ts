@@ -18,7 +18,7 @@ import type { IOptionalTriggerPromptProperties } from './gameSteps/prompts/Optio
 import GameOverPrompt from './gameSteps/prompts/GameOverPrompt';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import { GameEvent } from './event/GameEvent';
-import { EventWindow, TriggerHandlingMode } from './event/EventWindow';
+import { EventWindow, SubwindowEventHandlingMode, TriggerHandlingMode } from './event/EventWindow';
 import { AbilityResolver } from './gameSteps/AbilityResolver';
 import { AbilityContext } from './ability/AbilityContext';
 import { Contract } from './utils/Contract';
@@ -170,6 +170,26 @@ export class Game extends EventEmitter {
     public set isBlastCounterClaimed(value: boolean) {
         this.assertFauxSuns('isBlastCounterClaimed');
         this.state.isBlastCounterClaimed = value;
+    }
+
+    public get planCounterClaimedByPlayer(): Player | null {
+        this.assertFauxSuns('planCounterClaimedByPlayer');
+        return this.gameObjectManager.get(this.state.planCounterClaimedByPlayer);
+    }
+
+    public set planCounterClaimedByPlayer(value: Player | null) {
+        this.assertFauxSuns('planCounterClaimedByPlayer');
+        this.state.planCounterClaimedByPlayer = value?.getObjectId();
+    }
+
+    public get blastCounterClaimedByPlayer(): Player | null {
+        this.assertFauxSuns('blastCounterClaimedByPlayer');
+        return this.gameObjectManager.get(this.state.blastCounterClaimedByPlayer);
+    }
+
+    public set blastCounterClaimedByPlayer(value: Player | null) {
+        this.assertFauxSuns('blastCounterClaimedByPlayer');
+        this.state.blastCounterClaimedByPlayer = value?.getObjectId();
     }
 
     /** Throws if this game isn't running the Faux Suns format. Guards state that's only meaningful there. */
@@ -438,6 +458,8 @@ export class Game extends EventEmitter {
             isInitiativeClaimed: false,
             isPlanCounterClaimed: false,
             isBlastCounterClaimed: false,
+            planCounterClaimedByPlayer: null,
+            blastCounterClaimedByPlayer: null,
             allCards: [],
             actionNumber: 0,
             winnerNames: [],
@@ -1467,11 +1489,15 @@ export class Game extends EventEmitter {
      * Creates an EventWindow which will open windows for each kind of triggered
      * ability which can respond any passed events, and execute their handlers.
      */
-    public openEventWindow(events: GameEvent | GameEvent[], triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow): EventWindow {
+    public openEventWindow(
+        events: GameEvent | GameEvent[],
+        triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow,
+        subwindowEventHandlingMode: SubwindowEventHandlingMode = SubwindowEventHandlingMode.ResolvesSubwindowEvents
+    ): EventWindow {
         if (!Array.isArray(events)) {
             events = [events];
         }
-        return this.queueStep(new EventWindow(this, events, triggerHandlingMode));
+        return this.queueStep(new EventWindow(this, events, triggerHandlingMode, subwindowEventHandlingMode));
     }
 
     /**

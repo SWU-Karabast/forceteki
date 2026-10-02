@@ -16,6 +16,7 @@ import {
     PhaseName,
     PlayType,
     RelativePlayer,
+    SwuGameFormat,
     TokenCardName,
     WildcardCardType,
     WildcardRelativePlayer,
@@ -572,6 +573,14 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
 
     public hasInitiative() {
         return this.game.initiativePlayer === this;
+    }
+
+    public hasClaimedPlan() {
+        return this.game.format === SwuGameFormat.FauxSuns && this.game.planCounterClaimedByPlayer === this;
+    }
+
+    public hasClaimedBlast() {
+        return this.game.format === SwuGameFormat.FauxSuns && this.game.blastCounterClaimedByPlayer === this;
     }
 
     public assignIndirectDamageDealtToOpponents() {
@@ -1244,6 +1253,8 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             },
             disconnected: this.disconnected,
             hasInitiative: this.hasInitiative(),
+            hasClaimedPlan: this.game.format === SwuGameFormat.FauxSuns ? this.hasClaimedPlan() : undefined,
+            hasClaimedBlast: this.game.format === SwuGameFormat.FauxSuns ? this.hasClaimedBlast() : undefined,
             availableResources: this.readyResourceCount,
             leaders: this.getAllDeckLeaders().map((l) => l.getSummary(activePlayer)),
             base: this.base?.getSummary(activePlayer),
