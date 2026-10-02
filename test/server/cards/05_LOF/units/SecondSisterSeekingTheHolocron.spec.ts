@@ -11,6 +11,13 @@ describe('Second Sister, Seeking the Holocron', function() {
                     groundArena: ['second-sister#seeking-the-holocron'],
                     deck: ['dooku#it-is-too-late', 'kylo-ren#i-know-your-story', 'atst']
                 },
+
+                player2: {
+                    resources: {
+                        exhaustedCount: 3,
+                        readyCount: 0
+                    },
+                }
             });
             const { context } = contextRef;
 
@@ -22,6 +29,9 @@ describe('Second Sister, Seeking the Holocron', function() {
             expect(context.player1).toHavePassAbilityPrompt('Discard 2 cards from your deck. For each Force card discarded this way, ready a resource');
             context.player1.clickPrompt('Trigger');
 
+            expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+            context.player1.clickPrompt('You');
+
             expect(context.player2).toBeActivePlayer();
 
             // Both cards should be discarded
@@ -31,6 +41,51 @@ describe('Second Sister, Seeking the Holocron', function() {
 
             // Both cards are Force cards, so 2 resources should be readied
             expect(context.player1.exhaustedResourceCount).toBe(1);
+            expect(context.player2.exhaustedResourceCount).toBe(3);
+        });
+
+        it('Second Sister\'s ability should discard 2 cards from deck and ready a resource for each Force card discarded (2 Force cards) choosing opponent', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    resources: {
+                        exhaustedCount: 3,
+                        readyCount: 0
+                    },
+                    groundArena: ['second-sister#seeking-the-holocron'],
+                    deck: ['dooku#it-is-too-late', 'kylo-ren#i-know-your-story', 'atst']
+                },
+
+                player2: {
+                    resources: {
+                        exhaustedCount: 3,
+                        readyCount: 0
+                    },
+                }
+            });
+            const { context } = contextRef;
+
+            // Attack with Second Sister
+            context.player1.clickCard(context.secondSister);
+            context.player1.clickCard(context.p2Base);
+
+            // Trigger the ability
+            expect(context.player1).toHavePassAbilityPrompt('Discard 2 cards from your deck. For each Force card discarded this way, ready a resource');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+            context.player1.clickPrompt('Opponent');
+
+            expect(context.player2).toBeActivePlayer();
+
+            // Both cards should be discarded
+            expect(context.dooku).toBeInZone('discard', context.player1);
+            expect(context.kyloRen).toBeInZone('discard', context.player1);
+            expect(context.atst).toBeInZone('deck', context.player1);
+
+            // Both cards are Force cards, so 2 resources should be readied
+            expect(context.player1.exhaustedResourceCount).toBe(3);
+            expect(context.player2.exhaustedResourceCount).toBe(1);
         });
 
         it('Second Sister\'s ability can be skip', async function () {
@@ -86,6 +141,9 @@ describe('Second Sister, Seeking the Holocron', function() {
             expect(context.player1).toHavePassAbilityPrompt('Discard 2 cards from your deck. For each Force card discarded this way, ready a resource');
             context.player1.clickPrompt('Trigger');
 
+            expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+            context.player1.clickPrompt('You');
+
             expect(context.player2).toBeActivePlayer();
 
             // Both cards should be discarded
@@ -119,6 +177,9 @@ describe('Second Sister, Seeking the Holocron', function() {
             expect(context.player1).toHavePassAbilityPrompt('Discard 2 cards from your deck. For each Force card discarded this way, ready a resource');
             context.player1.clickPrompt('Trigger');
 
+            expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+            context.player1.clickPrompt('You');
+
             expect(context.player2).toBeActivePlayer();
 
             expect(context.dooku).toBeInZone('discard', context.player1);
@@ -144,10 +205,6 @@ describe('Second Sister, Seeking the Holocron', function() {
             // Attack with Second Sister
             context.player1.clickCard(context.secondSister);
             context.player1.clickCard(context.p2Base);
-
-            // Trigger the ability
-            expect(context.player1).toHavePassAbilityPrompt('Discard 2 cards from your deck. For each Force card discarded this way, ready a resource');
-            context.player1.clickPrompt('Trigger');
 
             expect(context.player2).toBeActivePlayer();
 
