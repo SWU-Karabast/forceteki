@@ -22,7 +22,8 @@ export default class HomeOneAllianceFlagship extends NonLeaderUnitCard {
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 },
-                    playAsType: WildcardCardType.Unit
+                    playAsType: WildcardCardType.Unit,
+                    canPlayFromAnyZone: true,
                 }),
             }
         });

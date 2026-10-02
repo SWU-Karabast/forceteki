@@ -24,6 +24,7 @@ export default class SalvagedMaterials extends EventCard {
                     abilityHelper.immediateEffects.playCardFromOutOfPlay({
                         adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 },
                         playAsType: WildcardCardType.Upgrade,
+                        canPlayFromAnyZone: true,
                     }),
                     abilityHelper.immediateEffects.delayedCardEffect({
                         title: 'Defeat this upgrade',

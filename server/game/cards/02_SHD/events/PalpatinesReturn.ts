@@ -26,10 +26,12 @@ export default class PalpatinesReturn extends EventCard {
                     onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                         adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 8 },
                         playAsType: WildcardCardType.Unit,
+                        canPlayFromAnyZone: true,
                     }),
                     onFalse: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                         adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 6 },
                         playAsType: WildcardCardType.Unit,
+                        canPlayFromAnyZone: true,
                     })
                 }),
             }

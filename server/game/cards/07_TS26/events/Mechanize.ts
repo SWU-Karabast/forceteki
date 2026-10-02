@@ -22,7 +22,7 @@ export default class Mechanize extends EventCard {
                 cardCondition: (card) => !card.hasSomeTrait(Trait.Vehicle),
                 immediateEffect: abilityHelper.immediateEffects.sequential({
                     gameSystems: [
-                        abilityHelper.immediateEffects.playCardFromOutOfPlay({ playAsType: WildcardCardType.Unit }),
+                        abilityHelper.immediateEffects.playCardFromOutOfPlay({ playAsType: WildcardCardType.Unit, canPlayFromAnyZone: true }),
                         abilityHelper.immediateEffects.giveExperience({ amount: 1 }),
                     ],
                 })

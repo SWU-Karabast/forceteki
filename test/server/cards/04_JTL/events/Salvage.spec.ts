@@ -85,5 +85,30 @@ describe('Salvage', function() {
             expect(context.heroicArc170.damage).toBe(1);
             expect(context.atst.damage).toBe(2);
         });
+
+        it('Salvage should play a Vehicle unit from discard and deal 1 damage to it before any trigger', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['salvage'],
+                    spaceArena: ['stolen-athauler']
+                },
+                player2: {
+                    hand: ['takedown'],
+                    hasInitiative: true,
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.takedown);
+            context.player2.clickCard(context.stolenAthauler);
+
+            context.player1.clickCard(context.salvage);
+            context.player1.clickCard(context.stolenAthauler);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+        });
     });
 });

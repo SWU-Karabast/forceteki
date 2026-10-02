@@ -33,6 +33,7 @@ export default class UnnaturalLife extends EventCard {
                     entersReady: true,
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 2 },
                     playAsType: WildcardCardType.Unit,
+                    canPlayFromAnyZone: true,
                 }),
             },
             ifYouDo: (ifYouDoContext) => ({
