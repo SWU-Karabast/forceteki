@@ -2496,6 +2496,33 @@ export class Lobby {
                 chatMessages = this.gameChat.getPlayerChatMessages();
             }
 
+            // Player reports are stored for the mod tools dashboard; only bug reports still go to Discord
+            if (reportType === ReportType.PlayerReport) {
+                await this.server.playerReportService.createReportAsync({
+                    reporter: { id: socket.user.getId(), username: socket.user.getUsername() },
+                    reportedPlayer: opponent,
+                    offense: playerReportType ?? PlayerReportType.Other,
+                    description: parsedDescription,
+                    lobbyId: this.id,
+                    gameId: this.game?.id,
+                    gameFormat: String(this.gameFormat),
+                    matchType: String(this.matchmakingType),
+                    gameStepsSinceLastUndo: this.game?.snapshotManager.gameStepsSinceLastUndo,
+                    screenResolution,
+                    viewport,
+                    gameMessages,
+                    chatMessages: chatMessages ?? [],
+                });
+
+                socket.send(resultEvent, {
+                    id: uuid(),
+                    success: true,
+                    message: `Successfully sent ${reportLabel}`
+                });
+                this.sendLobbyState();
+                return;
+            }
+
             const report = this.discordDispatcher.formatReport(
                 parsedDescription,
                 gameState,

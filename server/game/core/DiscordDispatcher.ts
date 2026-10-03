@@ -555,39 +555,45 @@ export class DiscordDispatcher implements IDiscordDispatcher {
      * @returns Formatted text string
      */
     private static formatMessagesToText(messages: ISerializedMessage[], reporter: string, opponent: string, reporterUsername: string, opponentUsername: string): string {
-        return messages.map((messageEntry) => {
-            let message = messageEntry.message;
+        return messages.map((messageEntry) =>
+            DiscordDispatcher.formatMessageToText(messageEntry, reporter, opponent, reporterUsername, opponentUsername)
+        ).join('\n');
+    }
 
-            // Handle alert messages
-            if (typeof message === 'object' && 'alert' in message) {
-                message = [`[ALERT - ${message.alert.type}] `, ...Helpers.asArray(message.alert.message)];
-            }
+    /**
+     * Formats a single game or chat message as one line of text. Player references are rendered with the
+     * reporter/opponent usernames passed in, chat lines as `<username>: text`.
+     */
+    public static formatMessageToText(messageEntry: ISerializedMessage, reporter: string, opponent: string, reporterUsername: string, opponentUsername: string): string {
+        let message = messageEntry.message;
 
-            // Handle regular messages (arrays)
-            if (Array.isArray(message)) {
-                // Convert message array to string, handling objects within the array
-                const messageText = message.map((part) => {
-                    if (typeof part === 'string' || typeof part === 'number') {
-                        return part;
-                    } else if (part && typeof part === 'object' && 'name' in part) {
-                        if ('type' in part && part['type'] === 'playerChat') {
-                            return `<${part['id'] === reporter ? reporterUsername : part['id'] === opponent ? opponentUsername : part['name']}>`;
-                        }
-                        return part['id'] === reporter ? reporterUsername : part['id'] === opponent ? opponentUsername : part['name'];
+        // Handle alert messages
+        if (typeof message === 'object' && 'alert' in message) {
+            message = [`[ALERT - ${message.alert.type}] `, ...Helpers.asArray(message.alert.message)];
+        }
+
+        // Handle regular messages (arrays)
+        if (Array.isArray(message)) {
+            // Convert message array to string, handling objects within the array
+            return message.map((part) => {
+                if (typeof part === 'string' || typeof part === 'number') {
+                    return part;
+                } else if (part && typeof part === 'object' && 'name' in part) {
+                    if ('type' in part && part['type'] === 'playerChat') {
+                        return `<${part['id'] === reporter ? reporterUsername : part['id'] === opponent ? opponentUsername : part['name']}>`;
                     }
-                    return '';
-                }).join('');
+                    return part['id'] === reporter ? reporterUsername : part['id'] === opponent ? opponentUsername : part['name'];
+                }
+                return '';
+            }).join('');
+        }
 
-                return `${messageText}`;
-            }
+        // Handle string messages
+        if (typeof message === 'string') {
+            return `${message}`;
+        }
 
-            // Handle string messages
-            if (typeof message === 'string') {
-                return `${message}`;
-            }
-
-            return '[Unknown message format]';
-        }).join('\n');
+        return '[Unknown message format]';
     }
 
     /**

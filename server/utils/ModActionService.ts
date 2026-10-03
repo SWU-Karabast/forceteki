@@ -257,6 +257,7 @@ export class ModActionService {
         moderatorUsername: string,
         note: string,
         durationDays?: number,
+        relatedReportId?: string,
     ): Promise<IModActionEntity> {
         try {
             const dbService = await this.dbServicePromise;
@@ -274,6 +275,7 @@ export class ModActionService {
                 moderatorId,
                 moderatorUsername,
                 createdAt: new Date().toISOString(),
+                relatedReportId,
             };
 
             await dbService.saveModActionAsync(modAction);
@@ -491,7 +493,8 @@ export class ModActionService {
         moderatorId: string,
         moderatorUsername: string,
         note: string,
-        durationDays?: number
+        durationDays?: number,
+        relatedReportId?: string
     ): Promise<{ success: boolean; message: string }> {
         const existing = this.getPlayerActions(playerId)?.get(actionType);
         if (existing) {
@@ -501,7 +504,7 @@ export class ModActionService {
             };
         }
 
-        const modAction = await this.submitModActionAsync(playerId, actionType, moderatorId, moderatorUsername, note, durationDays);
+        const modAction = await this.submitModActionAsync(playerId, actionType, moderatorId, moderatorUsername, note, durationDays, relatedReportId);
 
         if (!isTrackedModAction(modAction.actionType)) {
             return {

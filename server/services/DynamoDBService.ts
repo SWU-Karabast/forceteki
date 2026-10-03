@@ -13,7 +13,13 @@ import { logger } from '../logger';
 import { Contract } from '../game/core/utils/Contract';
 import type {
     IModActionEntity,
-    IUsernameChangeEntity
+    IPlayerReportEntity,
+    IPlayerReportIndexEntity,
+    IPlayerReportLogEntity,
+    IUsernameChangeEntity,
+    PlayerReportOutcome,
+    PlayerReportRole,
+    PlayerReportStatus
 } from './DynamoDBInterfaces';
 import {
     type IDeckDataEntity,
@@ -25,7 +31,15 @@ import {
     isTrackedModAction
 } from './DynamoDBInterfaces';
 import { z } from 'zod';
-import { IDeckDataEntitySchema, IDeckStatsEntitySchema, ModActionEntitySchema, UsernameChangeEntitySchema } from './DynamoDBInterfaceSchemas';
+import {
+    IDeckDataEntitySchema,
+    IDeckStatsEntitySchema,
+    ModActionEntitySchema,
+    PlayerReportEntitySchema,
+    PlayerReportIndexEntitySchema,
+    PlayerReportLogEntitySchema,
+    UsernameChangeEntitySchema
+} from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
 import { type ICosmeticEntity, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 
@@ -64,6 +78,19 @@ export async function getDynamoDbServiceAsync() {
     return dynamoDbService;
 }
 
+/**
+ * The document client is not configured with removeUndefinedValues, so optional fields that are
+ * undefined have to be dropped before writing.
+ */
+const withoutUndefined = <T extends Record<string, any>>(item: T): T =>
+    Object.fromEntries(Object.entries(item).filter(([, value]) => value !== undefined)) as T;
+
+/** GSI bucket holding every open player report */
+export const OPEN_PLAYER_REPORT_GSI_KEY = 'OPEN_PLAYER_REPORT';
+
+/** GSI bucket for player reports closed in the given YYYY-MM month */
+export const closedPlayerReportGsiKey = (month: string): string => `CLOSED_PLAYER_REPORT#${month}`;
+
 class DynamoDBService {
     private client: DynamoDBDocumentClient;
     private tableName: string;
@@ -101,6 +128,22 @@ class DynamoDBService {
 
         const dbClient = new DynamoDBClient(dbClientConfig);
         this.client = DynamoDBDocumentClient.from(dbClient);
+    }
+
+    /**
+     * Validate a list of items, skipping (and logging) invalid ones so a single bad record
+     * cannot make a whole listing fail.
+     */
+    private async validateEachAsync<T>(schema: z.ZodType<T>, items: unknown[], context: (item: any) => string): Promise<T[]> {
+        const results = await Promise.all(items.map(async (item) => {
+            try {
+                return await this.validateAndHandleAsync<T>(schema, item, context(item));
+            } catch {
+                // validateAndHandleAsync has already logged the validation error
+                return undefined;
+            }
+        }));
+        return results.filter(Boolean);
     }
 
     private async validateAndHandleAsync<T>(
@@ -879,11 +922,11 @@ class DynamoDBService {
      */
     public saveModActionAsync(modAction: IModActionEntity) {
         return this.executeDbOperationAsync(() => {
-            const item: Record<string, any> = {
+            const item: Record<string, any> = withoutUndefined({
                 pk: `USER#${modAction.playerId}`,
                 sk: `MODACTION#${modAction.id}`,
                 ...modAction,
-            };
+            });
 
             // Active action types (Mute, Rename, ReportingDisabled) get indexed via the sparse GSI
             if (isTrackedModAction(modAction.actionType) && !modAction.cancelledAt) {
@@ -971,6 +1014,159 @@ class DynamoDBService {
 
             return this.client.send(command);
         }, 'Error removing mod action from active index');
+    }
+
+    // Player Reports
+    // Layout:
+    //   REPORT#<id> / META                    the report (GSI_PK = open or closed-per-month bucket)
+    //   REPORT#<id> / LOG#<kind>              chat and game log captured when the report was submitted
+    //   USER#<playerId> / PLAYERREPORT#<role>#<id>   pointer so reports by/against a player can be listed
+
+    private static playerReportIndexSortKey(role: PlayerReportRole, reportId: string): string {
+        return `PLAYERREPORT#${role}#${reportId}`;
+    }
+
+    /**
+     * Save a new player report together with its logs and the per-player index entries.
+     */
+    public savePlayerReportAsync(report: IPlayerReportEntity, logs: IPlayerReportLogEntity[], indexEntries: IPlayerReportIndexEntity[]) {
+        return this.executeDbOperationAsync(() => {
+            const items: Record<string, any>[] = [
+                { pk: `REPORT#${report.id}`, sk: 'META', ...report, GSI_PK: OPEN_PLAYER_REPORT_GSI_KEY },
+                ...logs.map((log) => ({ pk: `REPORT#${report.id}`, sk: `LOG#${log.kind}`, ...log })),
+                ...indexEntries.map((entry) => ({
+                    pk: `USER#${entry.playerId}`,
+                    sk: DynamoDBService.playerReportIndexSortKey(entry.role, entry.reportId),
+                    ...entry,
+                })),
+            ].map(withoutUndefined);
+
+            return this.batchWriteItemsAsync(items);
+        }, 'Error saving player report');
+    }
+
+    /**
+     * Get a player report and its logs. Returns null if the report does not exist.
+     */
+    public getPlayerReportAsync(reportId: string): Promise<{ report: IPlayerReportEntity; logs: IPlayerReportLogEntity[] } | null> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryItemsAsync(`REPORT#${reportId}`);
+            const items = result.Items || [];
+
+            const metaItem = items.find((item: any) => item.sk === 'META');
+            if (!metaItem) {
+                return null;
+            }
+
+            const report = await this.validateAndHandleAsync<IPlayerReportEntity>(PlayerReportEntitySchema, metaItem, `getPlayerReportAsync (report ${reportId})`);
+            if (!report) {
+                return null;
+            }
+
+            const logs = await this.validateEachAsync<IPlayerReportLogEntity>(
+                PlayerReportLogEntitySchema,
+                items.filter((item: any) => typeof item.sk === 'string' && item.sk.startsWith('LOG#')),
+                (item) => `getPlayerReportAsync (log ${item.sk})`
+            );
+
+            return { report, logs };
+        }, 'Error getting player report');
+    }
+
+    /**
+     * Get all player reports in a GSI bucket (open reports, or reports closed in one month).
+     */
+    public getPlayerReportsByGsiKeyAsync(gsiKey: string): Promise<IPlayerReportEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryByGSIAsync(gsiKey);
+
+            return this.validateEachAsync<IPlayerReportEntity>(
+                PlayerReportEntitySchema,
+                result.Items || [],
+                (item) => `getPlayerReportsByGsiKeyAsync (report ${item.id})`
+            );
+        }, 'Error getting player reports');
+    }
+
+    /**
+     * Get the report index entries (reports filed by and against) for a player.
+     */
+    public getPlayerReportIndexAsync(playerId: string): Promise<IPlayerReportIndexEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryItemsAsync(`USER#${playerId}`, { beginsWith: 'PLAYERREPORT#' });
+
+            return this.validateEachAsync<IPlayerReportIndexEntity>(
+                PlayerReportIndexEntitySchema,
+                result.Items || [],
+                (item) => `getPlayerReportIndexAsync (${item.sk})`
+            );
+        }, 'Error getting player report index');
+    }
+
+    /**
+     * Update fields of a player report, optionally moving it to another GSI bucket.
+     * The update only applies while the report has `expectedStatus`; otherwise DynamoDB throws
+     * a ConditionalCheckFailedException, which protects against two moderators racing on one ticket.
+     * @returns the updated report
+     */
+    public updatePlayerReportAsync(
+        reportId: string,
+        expectedStatus: PlayerReportStatus,
+        set: Partial<IPlayerReportEntity>,
+        remove: (keyof IPlayerReportEntity)[],
+        gsiKey?: string,
+    ): Promise<IPlayerReportEntity> {
+        return this.executeDbOperationAsync(async () => {
+            const names: Record<string, string> = { '#status': 'status' };
+            const values: Record<string, any> = { ':expectedStatus': expectedStatus };
+            const setClauses: string[] = [];
+
+            const setFields: Record<string, any> = withoutUndefined({ ...set });
+            if (gsiKey) {
+                setFields.GSI_PK = gsiKey;
+            }
+            Object.entries(setFields).forEach(([key, value], index) => {
+                names[`#s${index}`] = key;
+                values[`:s${index}`] = value;
+                setClauses.push(`#s${index} = :s${index}`);
+            });
+            const removeClauses = remove.map((key, index) => {
+                names[`#r${index}`] = key;
+                return `#r${index}`;
+            });
+
+            let updateExpression = '';
+            if (setClauses.length > 0) {
+                updateExpression += `SET ${setClauses.join(', ')}`;
+            }
+            if (removeClauses.length > 0) {
+                updateExpression += ` REMOVE ${removeClauses.join(', ')}`;
+            }
+
+            const result = await this.client.send(new UpdateCommand({
+                TableName: this.tableName,
+                Key: { pk: `REPORT#${reportId}`, sk: 'META' },
+                UpdateExpression: updateExpression.trim(),
+                ConditionExpression: 'attribute_exists(pk) AND #status = :expectedStatus',
+                ExpressionAttributeNames: names,
+                ExpressionAttributeValues: values,
+                ReturnValues: 'ALL_NEW',
+            }));
+
+            return this.validateAndHandleAsync<IPlayerReportEntity>(PlayerReportEntitySchema, result.Attributes, `updatePlayerReportAsync (report ${reportId})`);
+        }, 'Error updating player report');
+    }
+
+    /**
+     * Mirror a report's status/outcome onto one of its per-player index entries.
+     */
+    public updatePlayerReportIndexAsync(playerId: string, role: PlayerReportRole, reportId: string, status: PlayerReportStatus, outcome?: PlayerReportOutcome) {
+        return this.executeDbOperationAsync(() => {
+            const sk = DynamoDBService.playerReportIndexSortKey(role, reportId);
+            return outcome
+                ? this.updateItemAsync(`USER#${playerId}`, sk, 'SET #status = :status, outcome = :outcome', { ':status': status, ':outcome': outcome }, { '#status': 'status' })
+                : this.updateItemAsync(`USER#${playerId}`, sk, 'SET #status = :status REMOVE outcome', { ':status': status }, { '#status': 'status' });
+        }, 'Error updating player report index');
     }
 
     // Username
