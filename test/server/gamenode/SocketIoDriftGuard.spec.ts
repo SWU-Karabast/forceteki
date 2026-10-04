@@ -12,7 +12,7 @@ import { ServerTestHarness } from '../../helpers/server/ServerTestHarness';
  * server attached to that same port is genuinely reachable - these tests use that rather than adding
  * a second real server.
  */
-describe('Socket transport fidelity (real socket.io-client)', function () {
+describe('socketio drift guard', function () {
     let harness: ServerTestHarness;
     let clientSockets: ClientSocket[];
 

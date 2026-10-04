@@ -171,7 +171,7 @@ DB access). HTTP helpers mirror the FE's actual calls (`createLobbyAsync`, `join
 `gameState`, `connectionErrors` and raw `receivedEvents`. `serverIntegration()` mirrors the card
 suite's `integration()` ergonomics, handing the harness to the spec body via a `contextRef`.
 
-**Fidelity guard.** `SocketTransportFidelity.spec.ts` runs a handful of specs over a *real*
+**Fidelity guard.** `SocketIoDriftGuard.spec.ts` runs a handful of specs over a *real*
 `socket.io-client` against `TestGameServer`'s real bound port (lobbystate reachability, invalid-JWT
 rejection, valid-JWT-but-nowhere-to-go rejection) to catch drift between the fake transport and the
 real one.
@@ -191,7 +191,7 @@ together against a *suspected, not confirmed* flaky-connection bug; the other th
 something, this one never did. Removed outright — the callback argument, `safeSetUserConnected`, and
 the comment describing it — rather than carried forward as a characterised-but-unfixed finding.
 
-**`GameServerConnectionHandoff.spec.ts`** is the first scenario spec built on the full stack: public
+**`LobbyConnectionManagement.spec.ts`** is the first scenario spec built on the full stack: public
 lobby browse-and-join, lobby-full stops advertising, private lobby via connection-link only (no HTTP
 join call), private lobby invisible to browsing, and graceful leave updating the other user's
 `lobbystate`.
@@ -215,7 +215,7 @@ inference and work regardless of the strictness setting. **Use this pattern for 
 discriminated-union code in this project** until/unless `strictNullChecks` is enabled project-wide.
 
 **Gates:** targeted specs green — `GameServerLobbyApi`, `GameServerScheduling`,
-`GameServerAnonymousRestrictions`, `SocketTransportFidelity`, `GameServerConnectionHandoff` (31
+`GameServerAnonymousRestrictions`, `SocketIoDriftGuard`, `LobbyConnectionManagement` (31
 specs, 0 failures); `tsc --noEmit` clean on both `tsconfig.json` and `test/tsconfig.json`; `eslint
 --quiet` clean repo-wide; `validate-cards` clean; `test-parallel` 8814/0 (9 pre-existing pending) ·
 `test-parallel-undo` 8636/0 (15 pre-existing pending). Diff: 11 files, +1311 / −238; production
@@ -286,6 +286,15 @@ against instead of an open-ended surface.
 Add `validateMatchConfiguration(format, cardPool, gamesToWinMode, context)` mirroring the FE's
 `LobbyFormatConfigs` / `QueueFormatConfigs`. See the game-mode matrix gap below.
 
+**Interface migration to do alongside this:** `IMatchConfiguration` (`{ format, cardPool,
+gamesToWinMode }`, currently test-only in `TestClient.ts`) mirrors fields `create-lobby` /
+`enter-queue` destructure untyped off `req.body` - migrate it to production (precedent:
+`IDeckValidationProperties` already does this for two of the three fields) and have
+`validateMatchConfiguration` take it as its parameter, with `TestClient` importing the real type
+instead of keeping a parallel copy. Weaker but related: `ITestUserPayload` (`{ id, username }`,
+`ServerTestHarness.ts`) mirrors the entirely untyped `queryUser` in
+`UserFactory.createAnonymousUserFromQuery` - worth a look in the same pass but lower priority.
+
 ### Phase 4 — Tier 1 scenarios
 
 - Create lobby (public/private) → connect → `lobbystate`; owner assignment
@@ -308,7 +317,7 @@ double-connect / multi-tab · deck gates (`change-deck`, start-time deck size) �
 matchmaking cooldown · ack-less client.
 
 The fidelity suite guarding the fake transport against drift landed early, in Phase 2
-(`SocketTransportFidelity.spec.ts`), since the handoff spec needed it as a safety net from the start.
+(`SocketIoDriftGuard.spec.ts`), since the handoff spec needed it as a safety net from the start.
 
 ### Phase 6 — CI wiring and parallel-safety review
 

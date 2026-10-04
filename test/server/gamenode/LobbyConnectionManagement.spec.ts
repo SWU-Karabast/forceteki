@@ -8,7 +8,7 @@ import { serverIntegration } from '../../helpers/server/ServerIntegrationHelper'
  * following a private lobby's link - exactly as `forceteki-client` does, and both of the production
  * branches `GameServer.onConnectionAsync` dispatches on for them.
  */
-describe('GameServer connection handoff', function () {
+describe('Lobby connection management', function () {
     serverIntegration(function (contextRef) {
         function matchConfig() {
             return {
