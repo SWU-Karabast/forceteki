@@ -1,7 +1,7 @@
 # Game Node Test Suite
 
 Status: **in progress** — Phases 0 and 1 landed on `ammayberry1/lobby-test-suite` (merged, PR #2934);
-Phase 2 ✅ complete on `ammayberry1/lobby-tests-2`, pending PR.
+Phases 2 and 2.5 ✅ complete on `ammayberry1/lobby-tests-2`, pending PR.
 
 ## Why this exists
 
@@ -222,6 +222,57 @@ specs, 0 failures); `tsc --noEmit` clean on both `tsconfig.json` and `test/tscon
 footprint is `GameServer.ts` alone, +145 / −61 (net +84, almost entirely extraction of existing
 logic into named methods).
 
+### Phase 2.5 — external stats HTTP mocking seam ✅
+
+Raised while scoping Phase 4: `SwuStatsHandler` / `SwuBaseHandler` called the global `fetch` directly
+and were constructed inline in `GameServer`'s constructor (`new SwuStatsHandler(this.userFactory)`),
+with no injection seam — unlike every other external boundary, which the scheduler/config work
+already covered. Without this, "external stats: exact payloads to SwuStats/SwuBase" (Phase 4) had no
+way to intercept the request or control the response.
+
+**Production seam**, mirroring `IScheduler`/`RealScheduler` exactly: `IHttpClient` (one method,
+`fetch(url, init?)`) and `RealHttpClient` (a thin pass-through to the global `fetch`) in
+`server/utils/`. `IGameServerOptions.httpClient` defaults to `new RealHttpClient()`; `GameServer`
+stores it and passes it to both handlers' constructors, which now take `httpClient: IHttpClient` as
+a required parameter (no default there, matching `QueueHandler`'s existing `scheduler` parameter) and
+call `this.httpClient.fetch(...)` at all seven call sites (three in `SwuStatsHandler`, four in
+`SwuBaseHandler`) instead of the bare global.
+
+**`FakeHttpClient`** records every request (`requests` / `requestsTo(urlSubstring)`) and answers with
+a configurable canned response (`setResponse` / `setDefaultResponse`), defaulting to a 200 with an
+empty JSON body so a test only configures one when it cares about something else. Responses are real
+`Response` instances (the global class), so handler code reading `.ok` / `.status` / `.json()` /
+`.text()` gets genuinely spec-compliant behaviour rather than a hand-rolled approximation - the same
+"mock the outside world, keep the inside real" principle as `TestScheduler` and `FakeIoSocket`.
+`TestGameServer` creates one and exposes it as `testHttpClient`; `ServerTestHarness` re-exposes it as
+`statsHttpClient`, named to read unambiguously alongside `api` (the opposite direction of traffic).
+
+**`ServerTestEnv.ts`** gained dummy `SWUSTATS_*` / `SWUBASE_*` credentials. Both handlers read these
+at construction time to populate fields sent in outgoing payloads (`apiKey`, `client_id`, ...); left
+unset, every harness-built server would send `undefined` in those fields regardless of what a test
+configures, which would silently misrepresent production.
+
+**Demonstration specs** (not the Phase 4 scenario work itself, just proof the seam works):
+`RealHttpClient.spec.ts` against a real local server, mirroring `RealScheduler.spec.ts`'s role; and
+`SwuStatsHandler.spec.ts` / `SwuBaseHandler.spec.ts`, each constructing the handler directly with a
+`FakeHttpClient` and covering one or two representative methods end-to-end (request sent, response
+parsed, cache/error branches). `SwuStatsHandler.spec.ts` additionally confirms the harness-wired
+instance (`harness.server.swuStatsHandler`) actually uses `harness.statsHttpClient`, proving the
+injection chain itself; `SwuBaseHandler.spec.ts` skips repeating that check since the wiring is
+identical for both handlers. Exhaustive per-method and full-game-flow coverage remains Phase 4's job.
+
+**Scope note:** `SwuDbDeckFetcher` and `MeleeDeckFetcher` (external deck-link resolution) have the
+identical bare-`fetch` pattern and could reuse `IHttpClient` the same way, but were left untouched -
+out of scope for stats mocking and more naturally picked up alongside the "Deck management" future
+test suite below, which already needs its own fixtures for the sources it resolves links against.
+
+**Gates:** 13 new specs green (3 `RealHttpClient` + 6 `SwuStatsHandler` + 4 `SwuBaseHandler`);
+`tsc --noEmit` and `eslint --quiet` clean on both touched trees; all of `test/server/gamenode/` +
+`test/server/utils/` run together - every pre-existing spec in both directories plus these 13 -
+196/0. Full `test-parallel` / `test-parallel-undo` / `validate-cards` intentionally not re-run for
+this step - nothing under `server/game/**` changed, so the card suite is not in play; see the CI
+structure section below, which already documents this exact split.
+
 ## Remaining work
 
 ### Phase 3 — protocol surface
@@ -244,7 +295,8 @@ Add `validateMatchConfiguration(format, cardPool, gamesToWinMode, context)` mirr
 - Reconnect inside grace window (socket swap); beyond grace (removal); matchmaking variant (requeue + `matchmakingFailed`)
 - Inactivity kick → `inactiveDisconnect` + `forceDisconnect`, no re-entry
 - Anonymous vs authenticated: chat enabled/disabled, Bo3 gating, spectator gating
-- External stats: exact payloads to SwuStats/SwuBase/DeckService; `LoggedInOnly` / `SavedDecksOnly` skips
+- External stats: exact payloads to SwuStats/SwuBase/DeckService; `LoggedInOnly` / `SavedDecksOnly`
+  skips (mocking seam ready - see Phase 2.5)
 - Internal stats: `statsSubmitNotification` payloads including the repeated-send path
 - **Game-mode configuration matrix** (see below)
 

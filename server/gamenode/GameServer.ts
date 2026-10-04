@@ -68,6 +68,8 @@ import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema, ServerSet
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import { RealScheduler } from '../utils/RealScheduler';
 import type { IGameNodeConfig } from './GameNodeConfig';
+import type { IHttpClient } from '../utils/IHttpClient';
+import { RealHttpClient } from '../utils/RealHttpClient';
 import { buildGameNodeConfigFromEnvironment } from './GameNodeConfig';
 
 /**
@@ -166,6 +168,14 @@ export interface IGameServerOptions {
      * rather than whichever one the environment happens to select.
      */
     config?: IGameNodeConfig;
+
+    /**
+     * The network boundary for outbound calls to external stat sites (SWUStats, SWUBase). Defaults
+     * to {@link RealHttpClient}. Tests pass a fake that records requests and returns configurable
+     * responses, so the payload-building and response-handling logic in `SwuStatsHandler` /
+     * `SwuBaseHandler` still runs for real while the actual network call does not.
+     */
+    httpClient?: IHttpClient;
 }
 
 // Interface for GC performance entries using the modern 'detail' property
@@ -265,6 +275,7 @@ export class GameServer {
     private readonly testGameBuilder?: any;
     protected readonly scheduler: IScheduler;
     protected readonly config: IGameNodeConfig;
+    protected readonly httpClient: IHttpClient;
     private readonly queue: QueueHandler;
     private lastCpuUsage: NodeJS.CpuUsage;
     private lastCpuUsageTime: bigint;
@@ -323,7 +334,8 @@ export class GameServer {
         const {
             listen = true,
             scheduler = new RealScheduler(),
-            config = buildGameNodeConfigFromEnvironment()
+            config = buildGameNodeConfigFromEnvironment(),
+            httpClient = new RealHttpClient()
         } = options;
 
         const app = express();
@@ -332,6 +344,7 @@ export class GameServer {
 
         this.scheduler = scheduler;
         this.config = config;
+        this.httpClient = httpClient;
         this.queue = new QueueHandler(scheduler, config);
         this.httpServer = server;
         this.cardDataGetter = cardDataGetter;
@@ -426,8 +439,8 @@ export class GameServer {
         this.io.on('connection', (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) =>
             this.handleSocketConnectionAsync(socket));
 
-        this.swuStatsHandler = new SwuStatsHandler(this.userFactory);
-        this.swuBaseHandler = new SwuBaseHandler(this.userFactory);
+        this.swuStatsHandler = new SwuStatsHandler(this.userFactory, httpClient);
+        this.swuBaseHandler = new SwuBaseHandler(this.userFactory, httpClient);
 
         // set up queue heartbeat once a second
         this.backgroundTasks.push(this.scheduler.setInterval(

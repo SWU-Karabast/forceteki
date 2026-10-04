@@ -6,6 +6,7 @@ import { DecklistFixtures } from './DecklistFixtures';
 import type { ITestGameServerSetup, TestConfigOverrides } from './TestGameServer';
 import { TestGameServer } from './TestGameServer';
 import type { TestScheduler } from './TestScheduler';
+import type { FakeHttpClient } from './FakeHttpClient';
 import type { ITestClientOptions } from './TestClient';
 import { TestClient } from './TestClient';
 
@@ -72,6 +73,16 @@ export class ServerTestHarness {
     /** An HTTP client pointed at this harness's server. */
     public get api(): ReturnType<typeof request> {
         return request(this.server.baseUrl);
+    }
+
+    /**
+     * The fake standing in for outbound calls the server makes to external stat sites (SWUStats,
+     * SWUBase) - the opposite direction from {@link api}. Assert on
+     * `statsHttpClient.requests`/`requestsTo(...)` to check what was sent, and configure
+     * `statsHttpClient.setResponse(...)` to control what the handler sees back.
+     */
+    public get statsHttpClient(): FakeHttpClient {
+        return this.server.testHttpClient;
     }
 
     /**

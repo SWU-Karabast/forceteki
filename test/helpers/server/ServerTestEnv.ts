@@ -35,6 +35,16 @@ const testEnvVars: Record<string, string> = {
     NEXTAUTH_SECRET: testNextAuthSecret,
     USE_LOCAL_DYNAMODB: 'false',
     FORCE_ENABLE_STATS_LOGGING: 'false',
+
+    // Dummy values so `SwuStatsHandler`/`SwuBaseHandler` construct with non-empty credentials, the
+    // same as they would in production. No request driven by these ever reaches the real network -
+    // `GameServer`'s injected `IHttpClient` is a fake in every test - so these values are never
+    // validated against anything, only echoed into outgoing payloads a test may assert on.
+    SWUSTATS_API_KEY: 'test-swustats-api-key',
+    SWUSTATS_CLIENT_ID: 'test-swustats-client-id',
+    SWUSTATS_CLIENT_SECRET: 'test-swustats-client-secret',
+    SWUBASE_CLIENT_ID: 'test-swubase-client-id',
+    SWUBASE_CLIENT_SECRET: 'test-swubase-client-secret',
 };
 
 for (const [key, value] of Object.entries(testEnvVars)) {
