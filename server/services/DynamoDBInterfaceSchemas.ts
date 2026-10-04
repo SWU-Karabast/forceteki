@@ -173,6 +173,7 @@ export const PlayerReportEntitySchema = z.object({
     closingNote: z.string().optional(),
     reopenedAt: z.string().optional(),
     reopenedByUsername: z.string().optional(),
+    logsDeletedAt: z.string().optional(),
 }) as z.ZodType<IPlayerReportEntity>;
 
 export const PlayerReportLogEntitySchema = z.object({

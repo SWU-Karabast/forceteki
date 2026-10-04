@@ -471,6 +471,12 @@ export class GameServer {
             { message: 'GameServer: error sending queue heartbeat' }
         ));
 
+        // delete expired player report data: once shortly after startup, then periodically
+        const runReportRetentionCleanup = () => this.playerReportService.runRetentionCleanupAsync(this.scheduler.currentDate());
+        const reportCleanupErrorContext = { message: 'GameServer: error during player report retention cleanup' };
+        this.backgroundTasks.push(this.scheduler.setTimeout(runReportRetentionCleanup, 60_000, reportCleanupErrorContext));
+        this.backgroundTasks.push(this.scheduler.setInterval(runReportRetentionCleanup, PlayerReportService.CleanupIntervalMs, reportCleanupErrorContext));
+
         if (this.config.metricsLoggingEnabled) {
             // initialize cpu usage and event loop stats
             this.lastCpuUsage = process.cpuUsage();

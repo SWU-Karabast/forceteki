@@ -1,6 +1,7 @@
 import * as DynamoDBServiceModule from '../../../server/services/DynamoDBService';
 import type {
     IModActionEntity,
+    IPlayerReportCleanupCursor,
     IPlayerReportEntity,
     IPlayerReportIndexEntity,
     IPlayerReportLogEntity
@@ -27,7 +28,10 @@ type DynamoDBService = Awaited<ReturnType<typeof DynamoDBServiceModule.getDynamo
 class FakeReportDb {
     public reports = new Map<string, { report: IPlayerReportEntity; gsiKey: string }>();
     public logs = new Map<string, IPlayerReportLogEntity[]>();
+    public logExpiry = new Map<string, string>();
     public index: IPlayerReportIndexEntity[] = [];
+    public cursor: IPlayerReportCleanupCursor | null = null;
+    public queriedGsiKeys: string[] = [];
 
     public savePlayerReportAsync(report: IPlayerReportEntity, logs: IPlayerReportLogEntity[], entries: IPlayerReportIndexEntity[]) {
         this.reports.set(report.id, { report: { ...report }, gsiKey: DynamoDBServiceModule.OPEN_PLAYER_REPORT_GSI_KEY });
@@ -67,6 +71,53 @@ class FakeReportDb {
         const entry = this.index.find((e) => e.playerId === playerId && e.role === role && e.reportId === reportId);
         entry.status = status;
         entry.outcome = outcome;
+        return Promise.resolve();
+    }
+
+    public setPlayerReportLogExpiryAsync(reportId: string, expiryGsiKey: string | null) {
+        if (this.logs.has(reportId)) {
+            if (expiryGsiKey) {
+                this.logExpiry.set(reportId, expiryGsiKey);
+            } else {
+                this.logExpiry.delete(reportId);
+            }
+        }
+        return Promise.resolve();
+    }
+
+    public queryAttributesByGsiAsync(gsiKey: string) {
+        this.queriedGsiKeys.push(gsiKey);
+        const fromLogs = [...this.logExpiry.entries()].filter(([, key]) => key === gsiKey).map(([reportId]) => ({ reportId }));
+        const fromReports = [...this.reports.values()].filter((stored) => stored.gsiKey === gsiKey).map((stored) => ({
+            id: stored.report.id, reporterId: stored.report.reporterId, reportedPlayerId: stored.report.reportedPlayerId,
+        }));
+        return Promise.resolve([...fromLogs, ...fromReports]);
+    }
+
+    public deletePlayerReportLogsAsync(reportId: string, deletedAt: string) {
+        this.logs.delete(reportId);
+        this.logExpiry.delete(reportId);
+        const stored = this.reports.get(reportId);
+        if (stored) {
+            stored.report = { ...stored.report, logsDeletedAt: deletedAt };
+        }
+        return Promise.resolve();
+    }
+
+    public deletePlayerReportAsync(reportId: string) {
+        this.reports.delete(reportId);
+        this.logs.delete(reportId);
+        this.logExpiry.delete(reportId);
+        this.index = this.index.filter((entry) => entry.reportId !== reportId);
+        return Promise.resolve();
+    }
+
+    public getPlayerReportCleanupCursorAsync() {
+        return Promise.resolve(this.cursor);
+    }
+
+    public savePlayerReportCleanupCursorAsync(cursor: IPlayerReportCleanupCursor) {
+        this.cursor = { ...cursor };
         return Promise.resolve();
     }
 
@@ -324,6 +375,95 @@ describe('PlayerReportService', function() {
             } finally {
                 jasmine.clock().uninstall();
             }
+        });
+    });
+
+    describe('retention', function() {
+        const DAY_MS = 24 * 60 * 60 * 1000;
+
+        const closeAt = async (closedAt: string) => {
+            const report = await service.createReportAsync(newReport());
+            jasmine.clock().mockDate(new Date(closedAt));
+            await service.closeReportAsync(report.id, PlayerReportOutcome.Punished, undefined, moderator);
+            return report.id;
+        };
+
+        beforeEach(function() {
+            jasmine.clock().install();
+        });
+
+        afterEach(function() {
+            jasmine.clock().uninstall();
+        });
+
+        it('puts the logs of a closed ticket into the bucket of the day they expire and takes them out on reopen', async function() {
+            const reportId = await closeAt('2026-10-05T18:00:00.000Z');
+
+            expect(db.logExpiry.get(reportId)).toBe(DynamoDBServiceModule.playerReportLogExpiryGsiKey('2026-11-04'));
+
+            await service.reopenReportAsync(reportId, moderator);
+
+            expect(db.logExpiry.has(reportId)).toBeFalse();
+        });
+
+        it('deletes logs only after the retention period and keeps the report itself', async function() {
+            const expired = await closeAt('2026-10-05T18:00:00.000Z');
+            const notYet = await closeAt('2026-10-06T09:00:00.000Z');
+
+            // 2026-11-05: the 2026-11-04 bucket is complete, the 2026-11-05 bucket is not processed yet
+            const result = await service.runRetentionCleanupAsync(new Date('2026-11-05T08:00:00.000Z'));
+
+            expect(result).toEqual({ logsDeleted: 1, reportsDeleted: 0 });
+            expect(db.logs.has(expired)).toBeFalse();
+            expect(db.reports.get(expired).report.logsDeletedAt).toBe('2026-11-05T08:00:00.000Z');
+            expect(db.logs.has(notYet)).toBeTrue();
+            expect(db.cursor.lastLogDay).toBe('2026-11-04');
+
+            const nextDay = await service.runRetentionCleanupAsync(new Date('2026-11-06T08:00:00.000Z'));
+            expect(nextDay.logsDeleted).toBe(1);
+            expect(db.logs.has(notYet)).toBeFalse();
+        });
+
+        it('never deletes the logs of open tickets', async function() {
+            const open = await service.createReportAsync(newReport());
+
+            await service.runRetentionCleanupAsync(new Date(Date.now() + 400 * DAY_MS));
+
+            expect(db.logs.has(open.id)).toBeTrue();
+        });
+
+        it('only queries buckets it has not processed yet', async function() {
+            await service.runRetentionCleanupAsync(new Date('2026-10-10T08:00:00.000Z'));
+            db.queriedGsiKeys = [];
+
+            await service.runRetentionCleanupAsync(new Date('2026-10-12T08:00:00.000Z'));
+
+            expect(db.queriedGsiKeys).toEqual([
+                DynamoDBServiceModule.playerReportLogExpiryGsiKey('2026-10-10'),
+                DynamoDBServiceModule.playerReportLogExpiryGsiKey('2026-10-11'),
+            ]);
+        });
+
+        it('deletes whole reports once they have been closed for the metadata retention period', async function() {
+            const old = await closeAt('2026-10-20T12:00:00.000Z');
+            const recent = await closeAt('2026-11-02T12:00:00.000Z');
+
+            // October 2026 is more than 12 months before November 2027, November 2026 is not
+            const result = await service.runRetentionCleanupAsync(new Date('2027-11-01T08:00:00.000Z'));
+
+            expect(result.reportsDeleted).toBe(1);
+            expect(db.reports.has(old)).toBeFalse();
+            expect(db.index.some((entry) => entry.reportId === old)).toBeFalse();
+            expect(db.reports.has(recent)).toBeTrue();
+            expect(db.cursor.lastMetadataMonth).toBe('2026-10');
+        });
+
+        it('does nothing without DynamoDB', async function() {
+            (DynamoDBServiceModule.getDynamoDbServiceAsync as jasmine.Spy).and.resolveTo(null);
+            const noUserFactory: Partial<UserFactory> = {};
+            const serviceWithoutDb = new PlayerReportService(noUserFactory as UserFactory, () => undefined);
+
+            expect(await serviceWithoutDb.runRetentionCleanupAsync()).toEqual({ logsDeleted: 0, reportsDeleted: 0 });
         });
     });
 

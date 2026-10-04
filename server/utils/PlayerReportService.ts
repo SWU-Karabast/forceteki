@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { logger } from '../logger';
-import { closedPlayerReportGsiKey, getDynamoDbServiceAsync, OPEN_PLAYER_REPORT_GSI_KEY } from '../services/DynamoDBService';
+import { closedPlayerReportGsiKey, getDynamoDbServiceAsync, OPEN_PLAYER_REPORT_GSI_KEY, playerReportLogExpiryGsiKey } from '../services/DynamoDBService';
 import type {
     IActiveModActionCacheEntry,
     IModActionEntity,
@@ -80,6 +80,11 @@ export type PlayerReportUpdateResult =
   | { success: true; report: IPlayerReportEntity }
   | { success: false; reason: 'notFound' | 'conflict'; message: string };
 
+export interface IRetentionCleanupResult {
+    logsDeleted: number;
+    reportsDeleted: number;
+}
+
 export interface IModerator {
     id: string;
     username: string;
@@ -92,6 +97,15 @@ export interface IModerator {
 export class PlayerReportService {
     /** Player reports were first stored in this month, so closed-report paging stops here */
     public static readonly FirstReportMonth = '2026-10';
+
+    /** Chat and game logs are deleted this many days after a ticket is closed */
+    public static readonly LogRetentionDays = 30;
+
+    /** Closed reports (without logs) are kept at least this many months for repeat-offender history */
+    public static readonly MetadataRetentionMonths = 12;
+
+    /** How often the backend runs the retention cleanup */
+    public static readonly CleanupIntervalMs = 6 * 60 * 60 * 1000;
 
     /** Months scanned per closed-report page */
     private static readonly ClosedMonthsPerPage = 3;
@@ -274,6 +288,8 @@ export class PlayerReportService {
         );
         if (result.success) {
             await this.syncIndexAsync(result.report);
+            const dbService = await this.dbServicePromise;
+            await dbService.setPlayerReportLogExpiryAsync(reportId, playerReportLogExpiryGsiKey(PlayerReportService.logExpiryDay(closedAt)));
             logger.info(`PlayerReportService: Moderator ${moderator.username} closed report ${reportId} as ${outcome}`, { reportId, outcome });
         }
         return result;
@@ -297,9 +313,81 @@ export class PlayerReportService {
         );
         if (result.success) {
             await this.syncIndexAsync(result.report);
+            const dbService = await this.dbServicePromise;
+            await dbService.setPlayerReportLogExpiryAsync(reportId, null);
             logger.info(`PlayerReportService: Moderator ${moderator.username} reopened report ${reportId}`, { reportId });
         }
         return result;
+    }
+
+    // ==================== Retention ====================
+
+    /**
+     * Deletes expired data: chat and game logs of tickets closed more than LogRetentionDays ago, and
+     * whole reports closed more than MetadataRetentionMonths ago. Expired items are found through
+     * their day/month GSI buckets, and a stored cursor makes each run only look at buckets it has not
+     * processed yet, so a run is a handful of small queries and never a table scan.
+     */
+    public async runRetentionCleanupAsync(now: Date = new Date()): Promise<IRetentionCleanupResult> {
+        const dbService = await this.dbServicePromise;
+        if (!dbService) {
+            return { logsDeleted: 0, reportsDeleted: 0 };
+        }
+
+        const cursor = await dbService.getPlayerReportCleanupCursorAsync() ?? {
+            lastLogDay: PlayerReportService.addDays(`${PlayerReportService.FirstReportMonth}-01`, -1),
+            lastMetadataMonth: PlayerReportService.previousMonth(PlayerReportService.FirstReportMonth),
+        };
+
+        // Only buckets for days before today, so logs are always kept for at least LogRetentionDays
+        const lastLogDay = PlayerReportService.addDays(PlayerReportService.dayOf(now), -1);
+        let logsDeleted = 0;
+        for (let day = PlayerReportService.addDays(cursor.lastLogDay, 1); day <= lastLogDay; day = PlayerReportService.addDays(day, 1)) {
+            const logs = await dbService.queryAttributesByGsiAsync(playerReportLogExpiryGsiKey(day), ['reportId']);
+            for (const reportId of new Set(logs.map((log) => log.reportId as string))) {
+                await dbService.deletePlayerReportLogsAsync(reportId, now.toISOString());
+                logsDeleted++;
+            }
+        }
+
+        // A month bucket is deleted once every report in it is at least MetadataRetentionMonths old
+        let lastMetadataMonth = PlayerReportService.monthOf(now);
+        for (let i = 0; i <= PlayerReportService.MetadataRetentionMonths; i++) {
+            lastMetadataMonth = PlayerReportService.previousMonth(lastMetadataMonth);
+        }
+        let reportsDeleted = 0;
+        for (let month = PlayerReportService.nextMonth(cursor.lastMetadataMonth); month <= lastMetadataMonth; month = PlayerReportService.nextMonth(month)) {
+            const reports = await dbService.queryAttributesByGsiAsync(closedPlayerReportGsiKey(month), ['id', 'reporterId', 'reportedPlayerId']);
+            for (const report of reports) {
+                await dbService.deletePlayerReportAsync(report.id, report.reporterId, report.reportedPlayerId);
+                reportsDeleted++;
+            }
+        }
+
+        await dbService.savePlayerReportCleanupCursorAsync({
+            lastLogDay: lastLogDay > cursor.lastLogDay ? lastLogDay : cursor.lastLogDay,
+            lastMetadataMonth: lastMetadataMonth > cursor.lastMetadataMonth ? lastMetadataMonth : cursor.lastMetadataMonth,
+        });
+
+        if (logsDeleted > 0 || reportsDeleted > 0) {
+            logger.info(`PlayerReportService: Retention cleanup deleted logs of ${logsDeleted} reports and ${reportsDeleted} reports`);
+        }
+        return { logsDeleted, reportsDeleted };
+    }
+
+    /** YYYY-MM-DD bucket on which the logs of a ticket closed at `closedAt` expire */
+    public static logExpiryDay(closedAt: string): string {
+        return PlayerReportService.addDays(PlayerReportService.dayOf(new Date(closedAt)), PlayerReportService.LogRetentionDays);
+    }
+
+    /** YYYY-MM-DD in UTC */
+    public static dayOf(date: Date): string {
+        return date.toISOString().substring(0, 10);
+    }
+
+    public static addDays(day: string, days: number): string {
+        const [year, month, dayOfMonth] = day.split('-').map(Number);
+        return PlayerReportService.dayOf(new Date(Date.UTC(year, month - 1, dayOfMonth + days)));
     }
 
     // ==================== Helpers ====================

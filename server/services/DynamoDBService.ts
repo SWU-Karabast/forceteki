@@ -15,6 +15,7 @@ import type {
     IModActionEntity,
     IPlayerReportEntity,
     IPlayerReportIndexEntity,
+    IPlayerReportCleanupCursor,
     IPlayerReportLogEntity,
     IUsernameChangeEntity,
     PlayerReportOutcome,
@@ -90,6 +91,11 @@ export const OPEN_PLAYER_REPORT_GSI_KEY = 'OPEN_PLAYER_REPORT';
 
 /** GSI bucket for player reports closed in the given YYYY-MM month */
 export const closedPlayerReportGsiKey = (month: string): string => `CLOSED_PLAYER_REPORT#${month}`;
+
+/** GSI bucket for player report logs that expire on the given YYYY-MM-DD day */
+export const playerReportLogExpiryGsiKey = (day: string): string => `REPORT_LOG_EXPIRY#${day}`;
+
+const PLAYER_REPORT_LOG_KINDS = ['Chat', 'Game'] as const;
 
 class DynamoDBService {
     private client: DynamoDBDocumentClient;
@@ -1160,6 +1166,111 @@ class DynamoDBService {
     /**
      * Mirror a report's status/outcome onto one of its per-player index entries.
      */
+    /**
+     * Put a report's log items into a log expiry bucket, or take them out again (null) when the ticket is reopened.
+     * Logs that were already deleted are skipped.
+     */
+    public setPlayerReportLogExpiryAsync(reportId: string, expiryGsiKey: string | null) {
+        return this.executeDbOperationAsync(async () => {
+            for (const kind of PLAYER_REPORT_LOG_KINDS) {
+                try {
+                    await this.client.send(new UpdateCommand({
+                        TableName: this.tableName,
+                        Key: { pk: `REPORT#${reportId}`, sk: `LOG#${kind}` },
+                        UpdateExpression: expiryGsiKey ? 'SET GSI_PK = :gsiPk' : 'REMOVE GSI_PK',
+                        ConditionExpression: 'attribute_exists(pk)',
+                        ...(expiryGsiKey ? { ExpressionAttributeValues: { ':gsiPk': expiryGsiKey } } : {}),
+                    }));
+                } catch (error) {
+                    if (error?.name !== 'ConditionalCheckFailedException') {
+                        throw error;
+                    }
+                }
+            }
+        }, 'Error setting player report log expiry');
+    }
+
+    /**
+     * Get only the requested attributes of every item in a GSI bucket, following pagination.
+     * Used by cleanup, which must not load full log contents just to find their keys.
+     */
+    public queryAttributesByGsiAsync(gsiKey: string, attributes: string[]): Promise<Record<string, any>[]> {
+        return this.executeDbOperationAsync(async () => {
+            const names = Object.fromEntries(attributes.map((attribute, index) => [`#a${index}`, attribute]));
+            const items: Record<string, any>[] = [];
+            let exclusiveStartKey: Record<string, any> | undefined;
+            do {
+                const result = await this.client.send(new QueryCommand({
+                    TableName: this.tableName,
+                    IndexName: 'GSI_PK_INDEX',
+                    KeyConditionExpression: 'GSI_PK = :gsiPk',
+                    ExpressionAttributeValues: { ':gsiPk': gsiKey },
+                    ExpressionAttributeNames: names,
+                    ProjectionExpression: Object.keys(names).join(', '),
+                    ExclusiveStartKey: exclusiveStartKey,
+                }));
+                items.push(...(result.Items || []));
+                exclusiveStartKey = result.LastEvaluatedKey;
+            } while (exclusiveStartKey);
+            return items;
+        }, 'Error querying GSI attributes');
+    }
+
+    /**
+     * Delete a report's chat and game logs and note on the report when that happened.
+     */
+    public deletePlayerReportLogsAsync(reportId: string, deletedAt: string) {
+        return this.executeDbOperationAsync(async () => {
+            for (const kind of PLAYER_REPORT_LOG_KINDS) {
+                await this.deleteItemAsync(`REPORT#${reportId}`, `LOG#${kind}`);
+            }
+            try {
+                await this.client.send(new UpdateCommand({
+                    TableName: this.tableName,
+                    Key: { pk: `REPORT#${reportId}`, sk: 'META' },
+                    UpdateExpression: 'SET logsDeletedAt = :deletedAt',
+                    ConditionExpression: 'attribute_exists(pk)',
+                    ExpressionAttributeValues: { ':deletedAt': deletedAt },
+                }));
+            } catch (error) {
+                if (error?.name !== 'ConditionalCheckFailedException') {
+                    throw error;
+                }
+            }
+        }, 'Error deleting player report logs');
+    }
+
+    /**
+     * Delete a report completely: the report, its logs and the index entries of both players.
+     */
+    public deletePlayerReportAsync(reportId: string, reporterId: string, reportedPlayerId: string) {
+        return this.executeDbOperationAsync(async () => {
+            await this.deleteItemAsync(`REPORT#${reportId}`, 'META');
+            for (const kind of PLAYER_REPORT_LOG_KINDS) {
+                await this.deleteItemAsync(`REPORT#${reportId}`, `LOG#${kind}`);
+            }
+            await this.deleteItemAsync(`USER#${reporterId}`, DynamoDBService.playerReportIndexSortKey('Reporter' as PlayerReportRole, reportId));
+            await this.deleteItemAsync(`USER#${reportedPlayerId}`, DynamoDBService.playerReportIndexSortKey('Reported' as PlayerReportRole, reportId));
+        }, 'Error deleting player report');
+    }
+
+    public getPlayerReportCleanupCursorAsync(): Promise<IPlayerReportCleanupCursor | null> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.getItemAsync('SYSTEM', 'PLAYER_REPORT_CLEANUP');
+            if (!result.Item) {
+                return null;
+            }
+            return { lastLogDay: result.Item.lastLogDay, lastMetadataMonth: result.Item.lastMetadataMonth };
+        }, 'Error getting player report cleanup cursor');
+    }
+
+    public savePlayerReportCleanupCursorAsync(cursor: IPlayerReportCleanupCursor) {
+        return this.executeDbOperationAsync(
+            () => this.putItemAsync({ pk: 'SYSTEM', sk: 'PLAYER_REPORT_CLEANUP', ...cursor }),
+            'Error saving player report cleanup cursor'
+        );
+    }
+
     public updatePlayerReportIndexAsync(playerId: string, role: PlayerReportRole, reportId: string, status: PlayerReportStatus, outcome?: PlayerReportOutcome) {
         return this.executeDbOperationAsync(() => {
             const sk = DynamoDBService.playerReportIndexSortKey(role, reportId);

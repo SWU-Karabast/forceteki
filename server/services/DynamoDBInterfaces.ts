@@ -347,6 +347,19 @@ export interface IPlayerReportEntity {
 
     reopenedAt?: string;
     reopenedByUsername?: string;
+
+    /** Set when the retention cleanup removed the chat and game logs */
+    logsDeletedAt?: string;
+}
+
+/** Progress of the player report retention cleanup, so each run only looks at new expiry buckets */
+export interface IPlayerReportCleanupCursor {
+
+    /** Last YYYY-MM-DD log expiry bucket that has been processed */
+    lastLogDay: string;
+
+    /** Last YYYY-MM closed-report bucket whose reports have been deleted */
+    lastMetadataMonth: string;
 }
 
 export interface IPlayerReportLogLine {
