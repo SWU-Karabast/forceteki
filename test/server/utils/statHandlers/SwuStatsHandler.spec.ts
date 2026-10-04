@@ -9,6 +9,11 @@ import { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
  * Demonstrates the `IHttpClient` seam `SwuStatsHandler` calls through instead of the global `fetch`:
  * the handler's own payload-building and response-interpreting logic runs for real, while
  * `FakeHttpClient` stands in for the network, recording requests and returning canned responses.
+ *
+ * Covers `refreshTokensAsync` and `getAccessTokenAsync` as a representative sample proving the seam
+ * works end to end; it is not yet exhaustive. `sendSWUStatsGameResultAsync` (the actual game-result
+ * payload) and `fetchUserDecksAsync` have no coverage here yet - that and full per-method coverage
+ * is Phase 4 work (see the "External stats" scenario in the design doc).
  */
 describe('SwuStatsHandler', function () {
     let httpClient: FakeHttpClient;

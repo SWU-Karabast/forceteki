@@ -7,6 +7,11 @@ import { serverIntegration } from '../../helpers/server/ServerIntegrationHelper'
  * the two ways a real user reaches a lobby - browsing `/api/available-lobbies` and joining, or
  * following a private lobby's link - exactly as `forceteki-client` does, and both of the production
  * branches `GameServer.onConnectionAsync` dispatches on for them.
+ *
+ * This is the first scenario coverage on the full stack, not the complete set - it proves the stack
+ * works end to end rather than covering every connection scenario. Phase 4's remaining Tier 1
+ * scenarios (queue/matchmaking, reconnect inside and beyond the grace window, inactivity kick,
+ * anonymous vs authenticated behaviour, ...) belong here and in sibling files as they land.
  */
 describe('Lobby connection management', function () {
     serverIntegration(function (contextRef) {

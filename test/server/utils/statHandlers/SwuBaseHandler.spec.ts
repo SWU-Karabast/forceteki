@@ -6,6 +6,10 @@ import { FakeHttpClient } from '../../../helpers/server/FakeHttpClient';
  * Lighter sibling of `SwuStatsHandler.spec.ts`: proves the same `IHttpClient` seam works for the
  * second external stat site. `getAccessTokenAsync`'s cache/refresh branching is identical in shape to
  * `SwuStatsHandler`'s (already covered there), so this focuses on the calls unique to this handler.
+ *
+ * Also not yet exhaustive: `sendGameResultAsync` (the actual game-result payload) has no coverage
+ * here yet. Full per-method coverage is Phase 4 work (see the "External stats" scenario in the
+ * design doc).
  */
 describe('SwuBaseHandler', function () {
     let httpClient: FakeHttpClient;
