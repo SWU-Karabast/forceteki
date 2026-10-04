@@ -174,7 +174,22 @@ suite's `integration()` ergonomics, handing the harness to the spec body via a `
 **Fidelity guard.** `SocketTransportFidelity.spec.ts` runs a handful of specs over a *real*
 `socket.io-client` against `TestGameServer`'s real bound port (lobbystate reachability, invalid-JWT
 rejection, valid-JWT-but-nowhere-to-go rejection) to catch drift between the fake transport and the
-real one, plus the ack regression lock described in Open findings below.
+real one.
+
+**Dead code found and removed: `gamestate`'s ack callback never fired against the real client.**
+While building the fidelity guard, a library-level probe (real `socket.io`/`socket.io-client`, no
+`TestGameServer` involved) confirmed that a server `emit(event, data, ackCallback)` only invokes
+`ackCallback` if the receiving listener explicitly calls the extra trailing argument socket.io
+injects. The FE's `gamestate` listener (`forceteki-client`'s `Game.context.tsx`) declares only one
+parameter, so `Lobby.sendGameState`'s ack (`() => this.safeSetUserConnected(...)`) never fired
+against a real client. Tracing every consumer of `user.state` showed nothing actually depended on
+it: a genuine reconnect always gets a brand-new socket (no `connectionStateRecovery` configured) and
+sets `state = 'connected'` directly in `addLobbyUserAsync`, and any inbound message already does the
+same via `updateUserLastActivity` — both independent of the ack. Git history (`928673b64`, "Connection
+improvements during matchmaking countdown") showed it was one of four defensive measures landed
+together against a *suspected, not confirmed* flaky-connection bug; the other three still do
+something, this one never did. Removed outright — the callback argument, `safeSetUserConnected`, and
+the comment describing it — rather than carried forward as a characterised-but-unfixed finding.
 
 **`GameServerConnectionHandoff.spec.ts`** is the first scenario spec built on the full stack: public
 lobby browse-and-join, lobby-full stops advertising, private lobby via connection-link only (no HTTP
@@ -321,17 +336,6 @@ Behaviours found while building the suite, characterised in tests but **not fixe
    — and therefore `assertNoScheduledErrors()` — cannot see them. These are defensive at the method
    level and reachable from non-timer callers, so removing the inner catches is a behaviour change
    rather than a simplification; revisit when those paths get direct coverage.
-
-7. **`gamestate`'s ack callback never fires against the real client.** `Lobby.sendGameState` emits
-   `gamestate` with an ack callback (`() => this.safeSetUserConnected(...)`), but socket.io only
-   invokes a server-side ack if the receiving listener declares and calls the extra trailing
-   callback parameter socket.io injects. The FE's `gamestate` listener declares only one parameter,
-   so it never acknowledges — confirmed with a live server+client probe against the project's actual
-   installed socket.io version. `safeSetUserConnected` therefore never runs against a real client
-   today; this is a pre-existing production characteristic, not something introduced by this suite.
-   `FakeIoSocket` defaults to the same behaviour (records the ack, never auto-fires it), and
-   `SocketTransportFidelity.spec.ts` locks it in with a dedicated library-level regression test so
-   the suite would catch it if a future socket.io upgrade changed this.
 
 ## Future test suites
 
