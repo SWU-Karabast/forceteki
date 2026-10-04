@@ -13,6 +13,7 @@ import { Contract } from '../core/utils/Contract';
 import { Helpers } from '../core/utils/Helpers';
 import type { GiveTokenUpgradeSystem } from './GiveTokenUpgradeSystem';
 import type { FormatMessage } from '../core/chat/GameChat';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 
 export interface IDistributeAmongTargetsSystemProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     amountToDistribute: number | ((context: TContext) => number);
@@ -53,7 +54,18 @@ export abstract class DistributeAmongTargetsSystem<
     protected abstract canDistributeLessDefault(): boolean;
     protected abstract generateEffectSystem(target?: Card, amount?: number, properties?): DamageSystem | HealSystem | GiveTokenUpgradeSystem;
     protected abstract getDistributedAmountFromEvent(event: any): number;
-    protected abstract getDistributionType(amount: number, context: TContext): string | FormatMessage;
+
+    /**
+     * Singular and plural noun for the distributed resource, e.g. `{ singular: 'Weakness token', plural: 'Weakness tokens' }`
+     * or just `{ singular: 'damage' }` for uncountable nouns. Used to build the counted phrases in chat messages.
+     */
+    protected abstract getDistributionNouns(context: TContext): { singular: string; plural?: string };
+
+    /** The counted noun phrase used in chat messages, e.g. '3 damage' / '1 Weakness token' / '2 Weakness tokens'. */
+    private getCountedDistributionType(amount: number, context: TContext): string | FormatMessage {
+        const nouns = this.getDistributionNouns(context);
+        return ChatHelpers.pluralize(amount, `1 ${nouns.singular}`, nouns.plural ?? nouns.singular);
+    }
 
     protected getDistributionVerb(): string {
         return 'distribute';
@@ -102,16 +114,17 @@ export abstract class DistributeAmongTargetsSystem<
 
             if (amount !== 0) {
                 targets.push({
-                    format: '{0} {1} to {2}',
-                    args: [`${amount}`, this.getDistributionType(amount, context), this.getTargetMessage(individualEvent.card, context)],
+                    format: '{0} to {1}',
+                    args: [this.getCountedDistributionType(amount, context), this.getTargetMessage(individualEvent.card, context)],
                 });
             }
         }
 
         if (targets.length === 0) {
+            const nouns = this.getDistributionNouns(context);
             targets.push({
                 format: 'no effective {0}',
-                args: [this.getDistributionType(0, context)],
+                args: [nouns.plural ?? nouns.singular],
             });
         }
 
@@ -135,14 +148,14 @@ export abstract class DistributeAmongTargetsSystem<
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         const amountToDistribute = Helpers.derive(properties.amountToDistribute, context);
-        const amountDescription = properties.canDistributeLess ? `up to ${amountToDistribute}` : `${amountToDistribute}`;
+        const amountDescription = properties.canDistributeLess ? 'up to ' : '';
 
         if (properties.maxTargets && properties.maxTargets === 1) {
             const filterDescription = BaseCardSelector.cardTypeFilterDescription(properties.cardTypeFilter || [], false);
             const controllerDescriptor = properties.controller === RelativePlayer.Self ? 'a friendly' : properties.controller === RelativePlayer.Opponent ? 'an enemy' : filterDescription.article;
             return [
-                'distribute {0} {1} to {2} {3}',
-                [amountDescription, this.getDistributionType(amountToDistribute, context), controllerDescriptor, filterDescription.description],
+                'distribute {0}{1} to {2} {3}',
+                [amountDescription, this.getCountedDistributionType(amountToDistribute, context), controllerDescriptor, filterDescription.description],
             ];
         }
 
@@ -150,8 +163,8 @@ export abstract class DistributeAmongTargetsSystem<
         const controllerDescriptor = properties.controller === RelativePlayer.Self ? 'friendly ' : properties.controller === RelativePlayer.Opponent ? 'enemy ' : '';
 
         return [
-            'distribute {0} {1} among {2}{3}',
-            [amountDescription, this.getDistributionType(amountToDistribute, context), controllerDescriptor, filterDescription.description],
+            'distribute {0}{1} among {2}{3}',
+            [amountDescription, this.getCountedDistributionType(amountToDistribute, context), controllerDescriptor, filterDescription.description],
         ];
     }
 

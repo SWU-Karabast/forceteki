@@ -14,6 +14,7 @@ import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { Player } from '../core/Player';
 import type { UnitsEnterPlayReadyForPlayer } from '../core/playerEffect/UnitsEnterPlayReadyForPlayer';
 import { ChatHelpers } from '../core/chat/ChatHelpers';
+import { SubwindowEventHandlingMode, TriggerHandlingMode } from '../core/event/EventWindow';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { Helpers } from '../core/utils/Helpers';
 
@@ -79,6 +80,9 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
      * event window. Opening it from this handler front-inserts it into the current window's pipeline, so it resolves
      * after the unit is in play but before this window's defeat check (`resolveGameState`). The unit is already in play
      * when these effects are generated, so effects and any replacement effects reacting to them target it correctly.
+     *
+     * Any defeats caused by these effects are deferred to this window, so the unit is still in play when this window
+     * emits its triggers (e.g. the unit's own "When Played" abilities).
      */
     private resolveEnterPlayEffects(event): void {
         const enterPlayEffects = Helpers.asArray(event.enterPlayEffect).filter((system) => system != null) as GameSystem[];
@@ -97,7 +101,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         this.logEnterPlayEffects(enterPlayEffects, context, event.enterPlayEffectSource ?? context.source);
 
         const effectEvents = enterPlayEffects.map((system) => system.generateRetargetedEvent(unit, context));
-        context.game.openEventWindow(effectEvents);
+        context.game.openEventWindow(effectEvents, TriggerHandlingMode.PassesTriggersToParentWindow, SubwindowEventHandlingMode.PassesSubwindowEventsToParentWindow);
     }
 
     /** Adds a chat line for the enter-play effects, matching the `{player} uses {source} to {effect}` format used for ability effects. */

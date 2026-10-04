@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 
+import type { IScheduler } from '../../utils/IScheduler';
 import { GameChat } from './chat/GameChat';
 import type { MsgArg } from './chat/GameChat';
 import { OngoingEffectEngine } from './ongoingEffect/OngoingEffectEngine';
@@ -18,7 +19,7 @@ import type { IOptionalTriggerPromptProperties } from './gameSteps/prompts/Optio
 import GameOverPrompt from './gameSteps/prompts/GameOverPrompt';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import { GameEvent } from './event/GameEvent';
-import { EventWindow, TriggerHandlingMode } from './event/EventWindow';
+import { EventWindow, SubwindowEventHandlingMode, TriggerHandlingMode } from './event/EventWindow';
 import { AbilityResolver } from './gameSteps/AbilityResolver';
 import { AbilityContext } from './ability/AbilityContext';
 import { Contract } from './utils/Contract';
@@ -170,6 +171,26 @@ export class Game extends EventEmitter {
     public set isBlastCounterClaimed(value: boolean) {
         this.assertFauxSuns('isBlastCounterClaimed');
         this.state.isBlastCounterClaimed = value;
+    }
+
+    public get planCounterClaimedByPlayer(): Player | null {
+        this.assertFauxSuns('planCounterClaimedByPlayer');
+        return this.gameObjectManager.get(this.state.planCounterClaimedByPlayer);
+    }
+
+    public set planCounterClaimedByPlayer(value: Player | null) {
+        this.assertFauxSuns('planCounterClaimedByPlayer');
+        this.state.planCounterClaimedByPlayer = value?.getObjectId();
+    }
+
+    public get blastCounterClaimedByPlayer(): Player | null {
+        this.assertFauxSuns('blastCounterClaimedByPlayer');
+        return this.gameObjectManager.get(this.state.blastCounterClaimedByPlayer);
+    }
+
+    public set blastCounterClaimedByPlayer(value: Player | null) {
+        this.assertFauxSuns('blastCounterClaimedByPlayer');
+        this.state.blastCounterClaimedByPlayer = value?.getObjectId();
     }
 
     /** Throws if this game isn't running the Faux Suns format. Guards state that's only meaningful there. */
@@ -348,7 +369,9 @@ export class Game extends EventEmitter {
     private _serializationFailure: boolean;
     private _lastAttackId: number;
     public playerHasBeenPrompted: Map<string, boolean>;
-    public readonly buildSafeTimeoutHandler: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
+
+    /** Supplies timers and the clock. Callbacks scheduled through it are error-guarded. */
+    public readonly scheduler: IScheduler;
     public readonly userTimeoutDisconnect: (userId: string) => void;
     public readonly preselectedFirstPlayerId: string | undefined;
     public readonly onBo3SetForfeit?: (losingPlayerId: string) => void;
@@ -415,7 +438,7 @@ export class Game extends EventEmitter {
         this._lastAttackId = -1;
         this.playerHasBeenPrompted = new Map();
 
-        this.buildSafeTimeoutHandler = details.buildSafeTimeout;
+        this.scheduler = details.scheduler;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
         this.preselectedFirstPlayerId = details.preselectedFirstPlayerId;
         this.onBo3SetForfeit = details.onBo3SetForfeit;
@@ -438,6 +461,8 @@ export class Game extends EventEmitter {
             isInitiativeClaimed: false,
             isPlanCounterClaimed: false,
             isBlastCounterClaimed: false,
+            planCounterClaimedByPlayer: null,
+            blastCounterClaimedByPlayer: null,
             allCards: [],
             actionNumber: 0,
             winnerNames: [],
@@ -450,8 +475,8 @@ export class Game extends EventEmitter {
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.cardDataGetter = details.cardDataGetter;
-        this.playableCardTitles = this.cardDataGetter.playableCardTitles;
-        this.allNonLeaderCardTitles = this.cardDataGetter.allNonLeaderCardTitles;
+        this.playableCardTitles = Game.filterToLegalTitles(this.cardDataGetter.playableCardTitles, details.legalCardTitles);
+        this.allNonLeaderCardTitles = Game.filterToLegalTitles(this.cardDataGetter.allNonLeaderCardTitles, details.legalCardTitles);
 
         this.statsTracker = new GameStatisticsLogger(this);
 
@@ -484,6 +509,11 @@ export class Game extends EventEmitter {
         this.allArenas = new AllArenasZone(this, this.groundArena, this.spaceArena);
 
         this.setMaxListeners(0);
+    }
+
+    /** Keeps only the titles legal in this game's format, preserving order. With no legal set given, all titles are kept. */
+    private static filterToLegalTitles(titles: string[], legalCardTitles?: ReadonlySet<string>): string[] {
+        return legalCardTitles ? titles.filter((title) => legalCardTitles.has(title)) : titles;
     }
 
     /**
@@ -523,13 +553,6 @@ export class Game extends EventEmitter {
      */
     public addAlert(type: AlertType, message: string, ...args: MsgArg[]): void {
         this.gameChat.addAlert(type, message, ...args);
-    }
-
-    /**
-     * Build a timeout that will log an error on failure and not crash the server process
-     */
-    public buildSafeTimeout(callback: () => void, delayMs: number, errorMessage: string): NodeJS.Timeout {
-        return this.buildSafeTimeoutHandler(callback, delayMs, errorMessage);
     }
 
     public initializeCurrentlyResolving(): void {
@@ -1462,11 +1485,15 @@ export class Game extends EventEmitter {
      * Creates an EventWindow which will open windows for each kind of triggered
      * ability which can respond any passed events, and execute their handlers.
      */
-    public openEventWindow(events: GameEvent | GameEvent[], triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow): EventWindow {
+    public openEventWindow(
+        events: GameEvent | GameEvent[],
+        triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow,
+        subwindowEventHandlingMode: SubwindowEventHandlingMode = SubwindowEventHandlingMode.ResolvesSubwindowEvents
+    ): EventWindow {
         if (!Array.isArray(events)) {
             events = [events];
         }
-        return this.queueStep(new EventWindow(this, events, triggerHandlingMode));
+        return this.queueStep(new EventWindow(this, events, triggerHandlingMode, subwindowEventHandlingMode));
     }
 
     /**

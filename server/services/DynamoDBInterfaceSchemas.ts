@@ -30,6 +30,9 @@ export const IDeckDataEntitySchema = z.object({
         leader: z.object({
             id: z.string(),
         }),
+        secondLeader: z.object({
+            id: z.string(),
+        }).optional(),
         base: z.object({
             id: z.string(),
         }),
