@@ -2421,10 +2421,6 @@ export class GameServer {
      * Authenticates a newly connecting socket, deriving a {@link User} from its handshake: a NextAuth
      * JWT plus pre-authenticated user data (no DB access), a JWT alone (requires a DB lookup), or -
      * with no token - anonymous query data.
-     *
-     * Lifted out of `io.use` into its own method (rather than left as an inline closure) so that the
-     * test suite's fake in-process transport can run the exact same authentication logic without a
-     * real socket.io connection.
      */
     public async authenticateSocketAsync(socket: IRawGameSocket): Promise<ISocketAuthResult> {
         try {
@@ -2473,8 +2469,6 @@ export class GameServer {
     /**
      * Handles a newly established socket connection: routes it to a lobby, queue entry or spectator
      * slot via {@link onConnectionAsync}, then registers the `manualDisconnect` app-level event.
-     *
-     * Lifted out of `io.on('connection')` for the same reason as {@link authenticateSocketAsync}.
      */
     public async handleSocketConnectionAsync(socket: IRawGameSocket): Promise<void> {
         try {
