@@ -6,6 +6,8 @@ import { DecklistFixtures } from './DecklistFixtures';
 import type { ITestGameServerSetup, TestConfigOverrides } from './TestGameServer';
 import { TestGameServer } from './TestGameServer';
 import type { TestScheduler } from './TestScheduler';
+import type { ITestClientOptions } from './TestClient';
+import { TestClient } from './TestClient';
 
 /**
  * Identity a test client presents to the API. Mirrors the payload the real client builds in
@@ -48,6 +50,7 @@ async function getSharedSetupAsync(): Promise<ITestGameServerSetup> {
 export class ServerTestHarness {
     private anonymousUserCounter = 0;
     private lobbyNameCounter = 0;
+    private clientIdCounter = 0;
 
     /** Guards against the double shutdown that happens when a spec tears down and `afterEach` follows. */
     private hasShutDown = false;
@@ -97,6 +100,19 @@ export class ServerTestHarness {
         this.lobbyNameCounter++;
         return `${prefix}-${this.lobbyNameCounter}-${Math.random().toString(36)
             .slice(2, 8)}`;
+    }
+
+    /**
+     * A simulated client bound to this harness, anonymous by default. Ids are unique per harness for
+     * the same reason {@link anonymousUser}'s are.
+     */
+    public createClient(options: ITestClientOptions = {}): TestClient {
+        this.clientIdCounter++;
+        const prefix = options.authenticated ? 'auth' : 'anon';
+        const id = `${prefix}-${this.clientIdCounter}-${Math.random().toString(36)
+            .slice(2, 10)}`;
+
+        return TestClient.create(this, id, options);
     }
 
     public async shutdownAsync(): Promise<void> {
