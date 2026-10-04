@@ -520,13 +520,11 @@ export interface IReportPlayer {
 export interface ISerializedReportState {
     description: string;
     gameState: ISerializedGameState;
-    playerReportType: PlayerReportType;
     reporter: IReportPlayer;
     opponent: IReportPlayer;
     lobbyId: string;
     timestamp: string;
     messages: ISerializedMessage[];
-    chatMessages?: ISerializedMessage[];
     gameStepsSinceLastUndo: string;
     gameId?: string;
     screenResolution?: { width: number; height: number } | null;
