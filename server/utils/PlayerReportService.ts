@@ -50,6 +50,9 @@ export interface IPlayerReportPlayerContext {
     createdAt?: string;
     isMuted: boolean;
     activeRename: IActiveModActionCacheEntry | null;
+
+    /** Id of the active ReportingDisabled mod action, if the player may currently not file reports */
+    activeReportingDisabledId: string | null;
     modActions: IModActionEntity[];
     reportsAgainst: IPlayerReportIndexEntity[];
     reportsFiled: IPlayerReportIndexEntity[];
@@ -350,6 +353,7 @@ export class PlayerReportService {
             createdAt: profile?.createdAt,
             isMuted: modActionService?.isPlayerMuted(playerId) ?? false,
             activeRename: modActionService?.playerActiveRename(playerId) ?? null,
+            activeReportingDisabledId: modActionService?.getActiveReportingDisabledActionId(playerId) ?? null,
             modActions,
             reportsAgainst: reportIndex.filter((entry) => entry.role === PlayerReportRole.Reported).sort(newestFirst),
             reportsFiled: reportIndex.filter((entry) => entry.role === PlayerReportRole.Reporter).sort(newestFirst),

@@ -122,6 +122,7 @@ describe('PlayerReportService', function() {
         const modActionService = {
             isPlayerMuted: (playerId: string) => playerId === reportedPlayer.id,
             playerActiveRename: () => null,
+            getActiveReportingDisabledActionId: (playerId: string) => (playerId === reporter.id ? 'reporting-disabled-action' : null),
         } as unknown as ModActionService;
 
         service = new PlayerReportService(userFactory, () => modActionService);
@@ -273,6 +274,8 @@ describe('PlayerReportService', function() {
             const detail = await service.getReportDetailAsync(report.id);
 
             expect(detail.reportedPlayer.isMuted).toBeTrue();
+            expect(detail.reporter.activeReportingDisabledId).toBe('reporting-disabled-action');
+            expect(detail.reportedPlayer.activeReportingDisabledId).toBeNull();
             expect(detail.reportedPlayer.username).toBe('current-reported-id');
             expect(detail.reportedPlayer.reportsAgainst.length).toBe(1);
             expect(detail.reporter.reportsFiled.length).toBe(1);
