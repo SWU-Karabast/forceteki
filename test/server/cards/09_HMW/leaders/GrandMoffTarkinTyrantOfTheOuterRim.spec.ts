@@ -202,6 +202,29 @@ describe('Grand Moff Tarkin, Tyrant of the Outer Rim', function() {
                 expect(context.game).toBeOver();
                 expect(context.player1).toBeGameWinner();
             });
+
+            it('may still trigger even as a ground unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'grand-moff-tarkin#tyrant-of-the-outer-rim', deployed: true },
+                    },
+                    player2: {
+                        base: { card: 'administrators-tower', damage: 20 }
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Simulates moving the deployed leader to the ground arena,
+                // such as with a card like Low Altitude Combat
+                context.player1.moveCard(context.grandMoffTarkin, 'groundArena');
+
+                // Move to the regroup phase, triggering the ability
+                context.moveToRegroupPhase();
+
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base]);
+            });
         });
 
         describe('the control check for cards titled "Grand Moff Tarkin" (via The Tarkin Doctrine)', function() {
