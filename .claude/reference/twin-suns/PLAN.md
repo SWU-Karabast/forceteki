@@ -62,7 +62,7 @@ Test harness
 4. **Full card review**, using official card text only (see above).
 
 ## Next steps
-1. Rules & interactions pass with `swu-rules-expert`: resolve "an opponent" targeting policy, "each opponent" vs "the opponent", Sentinel per-player scope, mid-attack control change, elimination (what is "removed", captured units, lasting effects, initiative return), end-of-phase game end and tiebreaks, counter/pass rules in 3p vs 4p. Record rulings here.
+1. Rules & interactions pass with `swu-rules-expert`: **first pass done, see `rules-rulings.md`** (judge rulings recorded; 4 items still open: gaps 2, 3a, 8c, 11). Original scope: resolve "an opponent" targeting policy, "each opponent" vs "the opponent", Sentinel per-player scope, mid-attack control change, elimination (what is "removed", captured units, lasting effects, initiative return), end-of-phase game end and tiebreaks, counter/pass rules in 3p vs 4p. Record rulings here.
 2. Card review, set by set, from official text. Process to be defined by Anthony.
 3. Engine seam: `opponents` list + seating order + `TwinSuns` format key, no 2p behavior change.
 
