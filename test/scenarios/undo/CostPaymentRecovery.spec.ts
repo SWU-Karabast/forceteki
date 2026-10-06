@@ -46,6 +46,7 @@ describe('Cost payment recovery', function() {
             expect(context.theStarhawk).toBeInZone('discard');
             expect(context.player1).toHavePrompt('You can no longer pay the cost for The Marauder');
             expect(context.player1).toHaveExactPromptButtons(['Undo']);
+            expect(context.getChatLogs(1)[0]).toContain('player1 is no longer able to pay the cost for The Marauder: the remaining cost after discounts is 6 resources, but they only have 3 ready resources');
 
             context.player1.clickPrompt('Undo');
             expectStateAtStartOfAction();
@@ -61,6 +62,45 @@ describe('Cost payment recovery', function() {
             expect(context.theStarhawk).toBeInZone('spaceArena');
             expect(context.player1.exhaustedResourceCount).toBe(3);
             expect(context.player2).toBeActivePlayer();
+        });
+
+        it('lets the player undo if the damage defeats a chosen unit that was providing a cost adjustment', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'hera-syndulla#spectre-two',
+                    hand: ['the-marauder#a-new-home'],
+                    groundArena: ['battlefield-marine'],
+                    spaceArena: [{ card: 'the-starhawk#prototype-battleship', damage: 8 }],
+                    resources: 3
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.theMarauder);
+            context.player1.clickCard(context.theStarhawk);
+            context.player1.clickPrompt('Done');
+
+            expect(context.theStarhawk).toBeInZone('discard');
+            expect(context.player1).toHavePrompt('You can no longer pay the cost for The Marauder');
+            expect(context.player1).toHaveExactPromptButtons(['Undo']);
+
+            context.player1.clickPrompt('Undo');
+
+            expect(context.player1).toBeActivePlayer();
+            expect(context.theMarauder).toBeInZone('hand');
+            expect(context.theStarhawk).toBeInZone('spaceArena');
+            expect(context.theStarhawk.damage).toBe(8);
+            expect(context.player1.readyResourceCount).toBe(3);
+
+            context.player1.clickCard(context.theMarauder);
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickPrompt('Done');
+
+            expect(context.theMarauder).toBeInZone('spaceArena');
+            expect(context.theStarhawk).toBeInZone('spaceArena');
+            expect(context.player1.exhaustedResourceCount).toBe(3);
         });
 
         it('lets the player undo if the cost becomes unpayable at a targeted cost adjustment stage', async function() {
@@ -90,6 +130,7 @@ describe('Cost payment recovery', function() {
             expect(context.superBattleDroid).toBeInZone('discard');
             expect(context.player1).toHavePrompt('You can no longer pay the cost for The Marauder');
             expect(context.player1).toHaveExactPromptButtons(['Undo']);
+            expect(context.getChatLogs(1)[0]).toContain('player1 is no longer able to pay the cost for The Marauder: the remaining cost after discounts is 6 resources, but they only have 5 ready resources');
 
             context.player1.clickPrompt('Undo');
 

@@ -176,7 +176,7 @@ describe('The Marauder, A New Home', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(3);
             });
 
-            it('cannot choose The Starhawk if the damage would defeat it and its discount is needed to pay', async function() {
+            it('can choose The Starhawk even if the damage would defeat it', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -190,9 +190,10 @@ describe('The Marauder, A New Home', function() {
 
                 const { context } = contextRef;
 
+                // the damage is assumed not to defeat The Starhawk, so choosing it is allowed (see CostPaymentRecovery.spec.ts for what happens if it does)
                 context.player1.clickCard(context.theMarauder);
                 expect(context.player1).toHavePrompt('Choose at least 1 friendly unit to deal 1 damage to');
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.theStarhawk]);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickPrompt('Done');
 
@@ -202,7 +203,7 @@ describe('The Marauder, A New Home', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(3);
             });
 
-            it('can choose a damaged Starhawk if a Shield would prevent the damage', async function() {
+            it('keeps The Starhawk\'s discount if a Shield prevents damage that would have defeated it', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -227,31 +228,7 @@ describe('The Marauder, A New Home', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(3);
             });
 
-            it('cannot choose The Starhawk if Deadly Vulnerability would make the damage defeat it', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'hera-syndulla#spectre-two',
-                        hand: ['the-marauder#a-new-home'],
-                        groundArena: ['battlefield-marine'],
-                        spaceArena: [{ card: 'the-starhawk#prototype-battleship', damage: 7, upgrades: ['deadly-vulnerability'] }],
-                        resources: 3
-                    }
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.theMarauder);
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
-                context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickPrompt('Done');
-
-                expect(context.theMarauder).toBeInZone('spaceArena');
-                expect(context.theStarhawk.damage).toBe(7);
-                expect(context.player1.exhaustedResourceCount).toBe(3);
-            });
-
-            it('cannot choose Vuutun Palaa if the damage would defeat it and exhausting Droids is needed to pay', async function() {
+            it('can choose Vuutun Palaa even if the damage would defeat it', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -265,10 +242,10 @@ describe('The Marauder, A New Home', function() {
 
                 const { context } = contextRef;
 
-                // 7 - 2 for choosing both Droids - 2 for exhausting them = 3. Defeating Vuutun Palaa would lose 2 to gain 1.
+                // 7 - 2 for choosing both Droids - 2 for exhausting them = 3
                 context.player1.clickCard(context.theMarauder);
                 expect(context.player1).toHavePrompt('Choose at least 2 friendly units to deal 1 damage to');
-                expect(context.player1).toBeAbleToSelectExactly([context.superBattleDroid, context.r2d2]);
+                expect(context.player1).toBeAbleToSelectExactly([context.superBattleDroid, context.r2d2, context.vuutunPalaa]);
                 context.player1.clickCard(context.superBattleDroid);
                 context.player1.clickCard(context.r2d2);
                 context.player1.clickPrompt('Done');
@@ -338,60 +315,6 @@ describe('The Marauder, A New Home', function() {
                 expect(context.battlefieldMarine.damage).toBe(2);
                 expect(context.player1.exhaustedResourceCount).toBe(6);
                 expect(context.getChatLogs(3)).toContain('player1 deals 2 damage to Battlefield Marine to pay 1 resource less for The Marauder');
-            });
-
-            it('accounts for Ty Yorrick\'s extra damage when determining whether a unit would be defeated', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'hera-syndulla#spectre-two',
-                        hand: ['the-marauder#a-new-home'],
-                        groundArena: ['ty-yorrick#monster-hunter'],
-                        spaceArena: [{ card: 'the-starhawk#prototype-battleship', damage: 7 }],
-                        resources: 3
-                    }
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.theMarauder);
-                context.player1.clickPrompt('Trigger');
-
-                // with 2 damage The Starhawk would be defeated, so only Ty Yorrick can be chosen
-                expect(context.player1).toBeAbleToSelectExactly([context.tyYorrick]);
-                context.player1.clickCard(context.tyYorrick);
-                context.player1.clickPrompt('Done');
-
-                expect(context.theMarauder).toBeInZone('spaceArena');
-                expect(context.tyYorrick.damage).toBe(2);
-                expect(context.theStarhawk.damage).toBe(7);
-                expect(context.player1.exhaustedResourceCount).toBe(3);
-            });
-
-            it('can choose a unit that would only be defeated with Ty Yorrick\'s extra damage if the ability is not used', async function() {
-                await contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'hera-syndulla#spectre-two',
-                        hand: ['the-marauder#a-new-home'],
-                        groundArena: ['ty-yorrick#monster-hunter'],
-                        spaceArena: [{ card: 'the-starhawk#prototype-battleship', damage: 7 }],
-                        resources: 3
-                    }
-                });
-
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.theMarauder);
-                context.player1.clickPrompt('Pass');
-
-                expect(context.player1).toBeAbleToSelectExactly([context.tyYorrick, context.theStarhawk]);
-                context.player1.clickCard(context.theStarhawk);
-                context.player1.clickPrompt('Done');
-
-                expect(context.theMarauder).toBeInZone('spaceArena');
-                expect(context.theStarhawk.damage).toBe(8);
-                expect(context.player1.exhaustedResourceCount).toBe(3);
             });
         });
     });

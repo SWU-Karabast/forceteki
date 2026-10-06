@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 
 import { GameChat } from './chat/GameChat';
-import type { MsgArg } from './chat/GameChat';
+import type { FormatMessage, MsgArg } from './chat/GameChat';
 import { OngoingEffectEngine } from './ongoingEffect/OngoingEffectEngine';
 import { Player } from './Player';
 import { Spectator } from '../../Spectator';
@@ -356,6 +356,12 @@ export class Game extends EventEmitter {
      * Intentionally not part of the game state, since it must survive the rollbacks it counts.
      */
     private readonly costPaymentRecoveryRollbackCounts = new Map<string, number>();
+
+    /**
+     * Set while rolling back for cost payment recovery, so that the rebuilt action window resumes the active player's action timer
+     * instead of restarting it. Not part of the game state, since it must survive the rollback.
+     */
+    private _resumeActionTimerAfterRollback = false;
     private _serializationFailure: boolean;
     private _lastAttackId: number;
     public playerHasBeenPrompted: Map<string, boolean>;
@@ -823,6 +829,10 @@ export class Game extends EventEmitter {
         for (const player of this.getPlayers()) {
             player.hasResolvedAbilityThisTimepoint = false;
         }
+    }
+
+    public get resumeActionTimerAfterRollback(): boolean {
+        return this._resumeActionTimerAfterRollback;
     }
 
     public restartAllActionTimers(): void {
@@ -1976,7 +1986,7 @@ export class Game extends EventEmitter {
      * Prompts `player`, who can no longer pay a cost for `context`, to either undo to the start of the current action or abandon
      * the payment, as allowed by {@link costPaymentRecoveryPolicy}. See `CostPaymentRecovery`.
      */
-    public queueCostPaymentRecovery(player: Player, context: AbilityContext): void {
+    public queueCostPaymentRecovery(player: Player, context: AbilityContext, reason: FormatMessage): void {
         const request = this.buildCostPaymentRecoveryRequest(player, context);
         const rollbackSettings = this.getCostPaymentRecoveryRollbackSettings();
 
@@ -1991,7 +2001,7 @@ export class Game extends EventEmitter {
         // there must always be a way forward, so abandoning is allowed whenever undoing is not
         const abandonAvailable = !rollbackAvailable || this.costPaymentRecoveryPolicy.allowAbandon(request, rollbackAvailable);
 
-        this.addMessage('{0} is no longer able to pay the cost for {1}', player, context.source);
+        this.addMessage('{0} is no longer able to pay the cost for {1}: {2}', player, context.source, reason);
 
         const choices: string[] = [];
         const handlers: (() => void)[] = [];
@@ -2026,7 +2036,18 @@ export class Game extends EventEmitter {
         }
 
         const countKey = this.getCostPaymentRecoveryCountKey(player);
-        const rolledBack = this.rollbackToSnapshotInternal(settings, this._snapshotManager.buildRollbackHandler(settings));
+
+        // the player's action timer continues from where it was, so that the free undo doesn't also give them more time
+        player.actionTimer.pause();
+        this._resumeActionTimerAfterRollback = true;
+
+        let rolledBack: boolean;
+        try {
+            rolledBack = this.rollbackToSnapshotInternal(settings, this._snapshotManager.buildRollbackHandler(settings));
+        } finally {
+            this._resumeActionTimerAfterRollback = false;
+        }
+
         if (rolledBack) {
             this.costPaymentRecoveryRollbackCounts.set(countKey, request.previousRecoveryRollbacks + 1);
             this.addAlert(AlertType.Notification, '{0} could not pay the cost for {1} and rolled back to the start of the action', player, context.source);

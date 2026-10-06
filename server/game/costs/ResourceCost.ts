@@ -142,8 +142,14 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
 
             // the game state may have changed during payment in a way that couldn't be predicted when the cost was evaluated
             // (e.g. a replacement effect defeating a unit that was providing a cost adjustment)
-            if (this.payingPlayer(context).readyResourceCount < costAdjustTriggerResult.adjustedCost.value) {
-                CostPaymentRecovery.queueUnpayableCostRecovery(context, abilityCostResult, this.payingPlayer(context));
+            const readyResourceCount = this.payingPlayer(context).readyResourceCount;
+            if (readyResourceCount < costAdjustTriggerResult.adjustedCost.value) {
+                CostPaymentRecovery.queueUnpayableCostRecovery(
+                    context,
+                    abilityCostResult,
+                    this.payingPlayer(context),
+                    CostPaymentRecovery.buildInsufficientResourcesReason(costAdjustTriggerResult.adjustedCost.value, readyResourceCount)
+                );
                 return;
             }
 

@@ -1,5 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { CardTargetResolver } from '../ability/abilityTargets/CardTargetResolver';
+import { ChatHelpers } from '../chat/ChatHelpers';
 import type { Card } from '../card/Card';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
@@ -185,17 +186,32 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
 
         this.checkAddAdjusterToTriggerList(context.source, costAdjustTriggerResult);
 
+        const sortedTargetCards = sortedTargetsWithOpportunityCost.map((t) => t.card);
+        const readyResourceCount = this.getPayingPlayer(context).readyResourceCount;
+
         const minimumTargetsSet = this.findMinimumTargetSetToPay(
-            sortedTargetsWithOpportunityCost.map((t) => t.card),
+            sortedTargetCards,
             context,
             costAdjustTriggerResult,
-            this.getPayingPlayer(context).readyResourceCount,
+            readyResourceCount,
         )?.targetSet;
 
         // the game state may have changed since the cost was evaluated in a way that we couldn't predict (e.g. a replacement effect
         // defeating a unit that provided a cost adjustment), so it may no longer be possible to pay
         if (minimumTargetsSet == null) {
-            CostPaymentRecovery.queueUnpayableCostRecovery(context, abilityCostResult, this.getPayingPlayer(context));
+            const maxTargetSet = sortedTargetCards.slice(0, this.getMaxTargetCount(context, costAdjustTriggerResult) ?? sortedTargetCards.length);
+            const { requiredReadyResources } = this.getCostAfterChoosingTargets(
+                maxTargetSet.map((card) => ({ card, stage: this.costAdjustStage })),
+                context,
+                costAdjustTriggerResult
+            );
+
+            CostPaymentRecovery.queueUnpayableCostRecovery(
+                context,
+                abilityCostResult,
+                this.getPayingPlayer(context),
+                CostPaymentRecovery.buildInsufficientResourcesReason(requiredReadyResources, readyResourceCount)
+            );
             return;
         }
 
@@ -224,7 +240,15 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
 
         // not enough targetable units available to pay the minimum, see above
         if (maxTargetableUnitsCount < minimumTargetsRequiredToPay) {
-            CostPaymentRecovery.queueUnpayableCostRecovery(context, abilityCostResult, this.getPayingPlayer(context));
+            CostPaymentRecovery.queueUnpayableCostRecovery(
+                context,
+                abilityCostResult,
+                this.getPayingPlayer(context),
+                {
+                    format: 'at least {0} must be chosen to pay it, but only {1} can be chosen',
+                    args: [ChatHelpers.pluralize(minimumTargetsRequiredToPay, '1 target', 'targets'), maxTargetableUnitsCount]
+                }
+            );
             return;
         }
 
@@ -327,7 +351,7 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
                 continue;
             }
 
-            const opportunityCost = this.getOpportunityCostForTarget(unit, opportunityCostMap, context);
+            const opportunityCost = opportunityCostMap?.get(this.costAdjustStage) ?? { max: 0 };
 
             targets.push({ card: unit, opportunityCost });
         }
@@ -335,26 +359,6 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
         targets.sort((a, b) => a.opportunityCost.max - b.opportunityCost.max);
 
         return targets;
-    }
-
-    /**
-     * Returns the opportunity cost of choosing `card` as a target, i.e. the max downstream discount that would be lost by applying this
-     * adjuster's effect to it. By default, reads the opportunity cost registered by downstream adjusters for this adjuster's stage.
-     */
-    protected getOpportunityCostForTarget(
-        _card: Card,
-        opportunityCostMap: Map<CostAdjustStage, IEvaluationOpportunityCost> | undefined,
-        _context: AbilityContext
-    ): IEvaluationOpportunityCost {
-        return opportunityCostMap?.get(this.costAdjustStage) ?? { max: 0 };
-    }
-
-    /**
-     * Whether choosing `card` as a target removes it from play, which would also remove any downstream cost adjusters it is the source of.
-     * Defaults to true, override for adjusters whose effect only sometimes removes the target (e.g. dealing damage).
-     */
-    protected targetSelectionRemovesUnit(_card: Card, _context: AbilityContext): boolean {
-        return true;
     }
 
     /**
@@ -376,32 +380,15 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
         const potentialTargetSet: ITriggerStageTargetSelection[] = [];
         const preselectedTargetSet = new Set<Card>();
         for (const card of preSelectedTargets ?? []) {
-            potentialTargetSet.push(this.buildTargetSelection(card, context));
+            potentialTargetSet.push({ card, stage: this.costAdjustStage });
             preselectedTargetSet.add(card);
         }
 
         const maxTargetableConcrete = this.getMaxTargetCount(context, adjustResult) ?? availableCopy.length;
-        const staticRemainingCostAfterOtherAdjustments =
-            context.costs[this.costPropertyName]?.remainingCostAfterOtherDiscounts;
 
         do {
             const adjustAmountForTargetSet = potentialTargetSet.length * this.adjustAmountPerTarget;
-
-            // small optimization: if we're not using opportunity costs, we can use the precomputed discounts from other adjusters
-            // instead of re-running the downstream adjusters for every addition to the target set
-            let minimumPossibleRemainingCost: number;
-            let requiredReadyResources: number;
-            if (staticRemainingCostAfterOtherAdjustments != null) {
-                minimumPossibleRemainingCost = Math.max(0, staticRemainingCostAfterOtherAdjustments - adjustAmountForTargetSet);
-                requiredReadyResources = minimumPossibleRemainingCost;
-            } else {
-                const simulatedCost = this.simulateRemainingAdjustments(context, adjustResult, adjustAmountForTargetSet, potentialTargetSet);
-                minimumPossibleRemainingCost = simulatedCost.value;
-                requiredReadyResources = simulatedCost.requiredReadyResources;
-            }
-
-            // account for any ready resources consumed by the targets of this adjuster itself
-            requiredReadyResources += this.getResourcesConsumedByTargets(potentialTargetSet.length, context);
+            const { minimumPossibleRemainingCost, requiredReadyResources } = this.getCostAfterChoosingTargets(potentialTargetSet, context, adjustResult);
 
             if (requiredReadyResources <= availableResources) {
                 const otherDiscountsAmount = (adjustResult.getTotalResourceCost() - minimumPossibleRemainingCost) - adjustAmountForTargetSet;
@@ -416,14 +403,42 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
                 }
             } while (preselectedTargetSet.has(nextCard));
 
-            potentialTargetSet.push(this.buildTargetSelection(nextCard, context));
+            potentialTargetSet.push({ card: nextCard, stage: this.costAdjustStage });
         } while (potentialTargetSet.length <= maxTargetableConcrete);
 
         return null;
     }
 
-    private buildTargetSelection(card: Card, context: AbilityContext): ITriggerStageTargetSelection {
-        return { card, stage: this.costAdjustStage, removesUnit: this.targetSelectionRemovesUnit(card, context) };
+    /**
+     * Computes the minimum possible remaining cost if `targetSelections` are chosen at this stage, and the number of ready resources
+     * needed to pay it (which also accounts for any resources consumed by this or downstream adjusters).
+     */
+    private getCostAfterChoosingTargets(
+        targetSelections: ITriggerStageTargetSelection[],
+        context: AbilityContext,
+        adjustResult: ICostAdjustTriggerResult
+    ): { minimumPossibleRemainingCost: number; requiredReadyResources: number } {
+        const adjustAmountForTargetSet = targetSelections.length * this.adjustAmountPerTarget;
+        const staticRemainingCostAfterOtherAdjustments =
+            context.costs[this.costPropertyName]?.remainingCostAfterOtherDiscounts;
+
+        // small optimization: if we're not using opportunity costs, we can use the precomputed discounts from other adjusters
+        // instead of re-running the downstream adjusters for every addition to the target set
+        let minimumPossibleRemainingCost: number;
+        let requiredReadyResources: number;
+        if (staticRemainingCostAfterOtherAdjustments != null) {
+            minimumPossibleRemainingCost = Math.max(0, staticRemainingCostAfterOtherAdjustments - adjustAmountForTargetSet);
+            requiredReadyResources = minimumPossibleRemainingCost;
+        } else {
+            const simulatedCost = this.simulateRemainingAdjustments(context, adjustResult, adjustAmountForTargetSet, targetSelections);
+            minimumPossibleRemainingCost = simulatedCost.value;
+            requiredReadyResources = simulatedCost.requiredReadyResources;
+        }
+
+        // account for any ready resources consumed by the targets of this adjuster itself
+        requiredReadyResources += this.getResourcesConsumedByTargets(targetSelections.length, context);
+
+        return { minimumPossibleRemainingCost, requiredReadyResources };
     }
 
     /**

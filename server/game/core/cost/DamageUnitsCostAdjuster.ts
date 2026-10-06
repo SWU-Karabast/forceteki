@@ -6,12 +6,11 @@ import { DamageType, EventName } from '../Constants';
 import type { Game } from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import { DamageSystem } from '../../gameSystems/DamageSystem';
-import * as DamagePredictionHelpers from '../../gameSystems/helpers/DamagePredictionHelpers';
 import { TextHelper } from '../utils/TextHelper';
 import type { IDamageUnitsCostAdjusterProperties, ITriggerStageTargetSelection } from './CostAdjuster';
 import { CostAdjustType } from './CostAdjuster';
 import * as CostHelpers from './CostHelpers';
-import type { ICostAdjustTriggerResult, IEvaluationOpportunityCost } from './CostInterfaces';
+import type { ICostAdjustTriggerResult } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 import { TargetedCostAdjuster } from './TargetedCostAdjuster';
 
@@ -22,13 +21,11 @@ import { registerState } from '../GameObjectUtils';
  * (e.g. Marauder: "While playing this unit, you may choose any number of friendly units. Deal 1 damage to each of them.
  * For each unit chosen this way, this unit costs 1 resource less.").
  *
- * This behaves like Exploit, except that damage only removes a unit from play if it defeats it. So choosing a unit only has
- * an "opportunity cost" (losing a downstream cost adjustment that the unit provides, e.g. The Starhawk) if the damage is predicted
- * to defeat it, accounting for damage modification effects such as Shield tokens or Deadly Vulnerability.
- *
- * The prediction can't account for every player choice made while the damage resolves (e.g. Queen Amidala defeating a different
- * friendly unit to prevent the damage), so it is possible for the cost to become unpayable. That case is handled by the cost
- * payment recovery flow at the next payment stage (see `CostPaymentRecovery`).
+ * This behaves like Exploit, except that damage only removes a unit from play if it defeats it. Whether it does depends on
+ * damage modification effects and on choices made while the damage resolves (e.g. a Shield preventing it, or Queen Amidala
+ * defeating a different friendly unit instead), which can't be reliably predicted. So when evaluating the cost, choosing a unit
+ * is assumed not to remove it. If it does remove a unit that was providing a downstream cost adjustment (e.g. The Starhawk) and
+ * the cost becomes unpayable as a result, that is handled by the cost payment recovery flow (see `CostPaymentRecovery`).
  *
  * The discount is for each unit chosen, not each unit damaged, so it still applies if the damage is prevented.
  */
@@ -67,10 +64,7 @@ export class DamageUnitsCostAdjuster extends TargetedCostAdjuster {
         });
     }
 
-    /**
-     * Always evaluate downstream adjusters in full, both for opportunity costs (Starhawk, Vuutun Palaa) and so that the
-     * target prompt can show how many units are required to pay.
-     */
+    /** Always evaluate downstream adjusters in full, so that the target prompt can show how many units are required to pay */
     protected override doesAdjustmentUseOpportunityCost(): boolean {
         return true;
     }
@@ -80,32 +74,11 @@ export class DamageUnitsCostAdjuster extends TargetedCostAdjuster {
         return false;
     }
 
-    /**
-     * Defeating a unit with damage has the same downstream effect as defeating it with Exploit, so this reuses the opportunity
-     * costs that downstream adjusters register for the Exploit stage. Units that will survive the damage have no opportunity cost.
-     */
-    protected override getOpportunityCostForTarget(
-        card: Card,
-        opportunityCostMap: Map<CostAdjustStage, IEvaluationOpportunityCost> | undefined,
-        context: AbilityContext
-    ): IEvaluationOpportunityCost {
-        if (!this.wouldDefeatTarget(card, context)) {
-            return { max: 0 };
-        }
-
-        return opportunityCostMap?.get(CostAdjustStage.Exploit_2) ?? { max: 0 };
-    }
-
-    protected override targetSelectionRemovesUnit(card: Card, context: AbilityContext): boolean {
-        return this.wouldDefeatTarget(card, context);
-    }
-
     /** Counts units that could have been chosen but were removed by an upstream stage (e.g. Exploit) */
     protected override getNumberOfRemovedTargets(previousTargetSelections: ITriggerStageTargetSelection[], context: AbilityContext): number {
         const legalTargets = new Set(this.defaultTargetResolver.getAllLegalTargets(context));
 
         return previousTargetSelections.filter((selection) =>
-            selection.stage !== this.costAdjustStage &&
             CostHelpers.isUnitRemovingStage(selection.stage) &&
             legalTargets.has(selection.card)
         ).length;
@@ -143,14 +116,5 @@ export class DamageUnitsCostAdjuster extends TargetedCostAdjuster {
         }
 
         return () => title;
-    }
-
-    private wouldDefeatTarget(card: Card, context: AbilityContext): boolean {
-        if (!card.isUnit()) {
-            return false;
-        }
-
-        const damageSystem = this.effectSystem as DamageSystem<AbilityContext<IUnitCard>>;
-        return DamagePredictionHelpers.predictDamageOutcome(damageSystem, card, context as AbilityContext<IUnitCard>).wouldBeDefeated;
     }
 }

@@ -54,11 +54,11 @@ export function isInteractiveCostAdjusterStage(stage: CostAdjustStage): boolean 
  * that the unit is the source of (e.g. Exploit defeating The Starhawk). Used when accounting for the "opportunity cost"
  * of a target selection.
  *
- * Note that {@link CostAdjustStage.DamageUnits_3} only removes a unit if the damage would defeat it. This is determined
- * per target via `ITriggerStageTargetSelection.removesUnit`.
+ * {@link CostAdjustStage.DamageUnits_3} is not included: whether damage defeats a unit can't be reliably predicted, so
+ * it is assumed not to (see `DamageUnitsCostAdjuster`).
  */
 export function isUnitRemovingStage(stage: CostAdjustStage): boolean {
-    return stage === CostAdjustStage.Exploit_2 || stage === CostAdjustStage.DamageUnits_3;
+    return stage === CostAdjustStage.Exploit_2;
 }
 
 export function getExploitedUnits(playEvent: any): ILastKnownInformation[] {

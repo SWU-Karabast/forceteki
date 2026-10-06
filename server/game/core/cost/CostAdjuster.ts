@@ -11,9 +11,8 @@ import { EnumHelpers } from '../utils/EnumHelpers';
 import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerStateBase, stateRef, statePrimitive, type GameObjectId } from '../GameObjectUtils';
-import { ResourceCostType, type ICostAdjustEvaluationIntermediateResult, type ICostAdjustTriggerResult } from './CostInterfaces';
+import { CostAdjustStage, ResourceCostType, type ICostAdjustEvaluationIntermediateResult, type ICostAdjustTriggerResult } from './CostInterfaces';
 import type { ICostAdjusterEvaluationTarget, ICostAdjustmentResolutionProperties, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
-import type { CostAdjustStage } from './CostInterfaces';
 import * as CostHelpers from './CostHelpers';
 import type { TargetedCostAdjuster } from './TargetedCostAdjuster';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
@@ -175,13 +174,6 @@ export interface ICostAdjusterState extends IGameObjectBaseState {
 export interface ITriggerStageTargetSelection {
     card: Card;
     stage: CostAdjustStage;
-
-    /**
-     * Whether selecting this target removes the card from play, which also removes any downstream cost adjusters it is the
-     * source of. Defaults to `true` (e.g. Exploit always defeats its targets). For {@link CostAdjustStage.DamageUnits_3} this
-     * is `false` if the damage is not predicted to defeat the unit.
-     */
-    removesUnit?: boolean;
 }
 
 export enum CostAdjustResolutionMode {
@@ -374,9 +366,8 @@ export abstract class CostAdjuster extends GameObjectBase {
         const adjustResultCopy = { ...adjustResult, adjustedCost: adjustResult.adjustedCost.copy() };
         adjustResultCopy.adjustedCost.applyStaticDecrease(thisStageDiscount);
 
-        // only selections that remove their card from play can affect downstream adjusters (e.g. a unit that survives
-        // being damaged still provides its cost adjustment)
-        const removingSelections = previousTargetSelections?.filter((selection) => selection.removesUnit !== false);
+        // units chosen to be damaged are assumed to survive and still provide their cost adjustments (see DamageUnitsCostAdjuster)
+        const removingSelections = previousTargetSelections?.filter((selection) => selection.stage !== CostAdjustStage.DamageUnits_3);
 
         const triggerStages = CostHelpers.getCostAdjustStagesInTriggerOrder();
         const remainingStages = triggerStages.slice(triggerStages.indexOf(adjustResult.adjustStage) + 1);
