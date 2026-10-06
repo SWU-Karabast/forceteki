@@ -88,6 +88,9 @@ export interface IUserPreferences {
         muteChat?: boolean;
         cardLanguage?: CardImageLocale;
         timerVisibility?: TimerVisibility;
+
+        // Currently only relevant for moderators: it is used by the mod tools (user management,
+        // server controls). Outside of those, it only affects the username-change cooldown message.
         dateFormat?: DateFormat;
 
         // Prompt-reduction settings: auto-resolve prompts that have only one sensible outcome.
