@@ -46,7 +46,7 @@ describe('Cost payment recovery', function() {
             expect(context.theStarhawk).toBeInZone('discard');
             expect(context.player1).toHavePrompt('You can no longer pay the cost for The Marauder');
             expect(context.player1).toHaveExactPromptButtons(['Undo']);
-            expect(context.getChatLogs(1)[0]).toContain('player1 is no longer able to pay the cost for The Marauder: the remaining cost after discounts is 6 resources, but they only have 3 ready resources');
+            expect(context.getChatLogs(1)[0]).toContain('player1 is no longer able to pay the cost for The Marauder (remaining cost after discounts: 6 resources, ready resources: 3)');
 
             context.player1.clickPrompt('Undo');
             expectStateAtStartOfAction();
@@ -130,7 +130,7 @@ describe('Cost payment recovery', function() {
             expect(context.superBattleDroid).toBeInZone('discard');
             expect(context.player1).toHavePrompt('You can no longer pay the cost for The Marauder');
             expect(context.player1).toHaveExactPromptButtons(['Undo']);
-            expect(context.getChatLogs(1)[0]).toContain('player1 is no longer able to pay the cost for The Marauder: the remaining cost after discounts is 6 resources, but they only have 5 ready resources');
+            expect(context.getChatLogs(1)[0]).toContain('player1 is no longer able to pay the cost for The Marauder (remaining cost after discounts: 6 resources, ready resources: 5)');
 
             context.player1.clickPrompt('Undo');
 

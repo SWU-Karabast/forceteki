@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 
 import { GameChat } from './chat/GameChat';
-import type { FormatMessage, MsgArg } from './chat/GameChat';
+import type { MsgArg } from './chat/GameChat';
 import { OngoingEffectEngine } from './ongoingEffect/OngoingEffectEngine';
 import { Player } from './Player';
 import { Spectator } from '../../Spectator';
@@ -1986,7 +1986,7 @@ export class Game extends EventEmitter {
      * Prompts `player`, who can no longer pay a cost for `context`, to either undo to the start of the current action or abandon
      * the payment, as allowed by {@link costPaymentRecoveryPolicy}. See `CostPaymentRecovery`.
      */
-    public queueCostPaymentRecovery(player: Player, context: AbilityContext, reason: FormatMessage): void {
+    public queueCostPaymentRecovery(player: Player, context: AbilityContext, reason: string): void {
         const request = this.buildCostPaymentRecoveryRequest(player, context);
         const rollbackSettings = this.getCostPaymentRecoveryRollbackSettings();
 
@@ -2001,7 +2001,7 @@ export class Game extends EventEmitter {
         // there must always be a way forward, so abandoning is allowed whenever undoing is not
         const abandonAvailable = !rollbackAvailable || this.costPaymentRecoveryPolicy.allowAbandon(request, rollbackAvailable);
 
-        this.addMessage('{0} is no longer able to pay the cost for {1}: {2}', player, context.source, reason);
+        this.addMessage('{0} is no longer able to pay the cost for {1} ({2})', player, context.source, reason);
 
         const choices: string[] = [];
         const handlers: (() => void)[] = [];

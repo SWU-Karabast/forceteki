@@ -1,6 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { CardTargetResolver } from '../ability/abilityTargets/CardTargetResolver';
-import { ChatHelpers } from '../chat/ChatHelpers';
 import type { Card } from '../card/Card';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
@@ -244,10 +243,7 @@ export abstract class TargetedCostAdjuster extends CostAdjusterWithGameSteps {
                 context,
                 abilityCostResult,
                 this.getPayingPlayer(context),
-                {
-                    format: 'at least {0} must be chosen to pay it, but only {1} can be chosen',
-                    args: [ChatHelpers.pluralize(minimumTargetsRequiredToPay, '1 target', 'targets'), maxTargetableUnitsCount]
-                }
+                `targets required to pay: ${minimumTargetsRequiredToPay}, targets that can be chosen: ${maxTargetableUnitsCount}`
             );
             return;
         }

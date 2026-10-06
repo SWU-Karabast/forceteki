@@ -1,5 +1,4 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import type { FormatMessage } from '../chat/GameChat';
 import type { Player } from '../Player';
 import { TextHelper } from '../utils/TextHelper';
 import type { ICostResult } from './ICost';
@@ -67,19 +66,17 @@ export const defaultCostPaymentRecoveryPolicy: ICostPaymentRecoveryPolicy = {
  * Stops payment of a cost that can no longer be paid and prompts `player` to recover, either by undoing to the start of the
  * current action or by abandoning the payment. Any remaining payment steps are skipped.
  *
- * @param reason Explains why the cost can't be paid, for the game log (see {@link buildInsufficientResourcesReason})
+ * @param reason Explains why the cost can't be paid (see {@link buildInsufficientResourcesReason}). Worded to make sense
+ * without a subject, e.g. "remaining cost after discounts: 4 resources, ready resources: 3".
  */
-export function queueUnpayableCostRecovery(context: AbilityContext, abilityCostResult: ICostResult, player: Player, reason: FormatMessage): void {
+export function queueUnpayableCostRecovery(context: AbilityContext, abilityCostResult: ICostResult, player: Player, reason: string): void {
     abilityCostResult.cancelled = true;
     abilityCostResult.unpayable = true;
 
     context.game.queueCostPaymentRecovery(player, context, reason);
 }
 
-/** e.g. "the remaining cost after discounts is 4 resources, but they only have 2 ready resources" */
-export function buildInsufficientResourcesReason(requiredResources: number, readyResources: number): FormatMessage {
-    return {
-        format: 'the remaining cost after discounts is {0}, but they only have {1} ready {2}',
-        args: [TextHelper.resource(requiredResources), readyResources, readyResources === 1 ? 'resource' : 'resources']
-    };
+/** e.g. "remaining cost after discounts: 4 resources, ready resources: 2" */
+export function buildInsufficientResourcesReason(requiredResources: number, readyResources: number): string {
+    return `remaining cost after discounts: ${TextHelper.resource(requiredResources)}, ready resources: ${readyResources}`;
 }
