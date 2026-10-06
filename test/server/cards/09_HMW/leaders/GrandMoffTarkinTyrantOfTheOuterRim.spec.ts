@@ -203,27 +203,32 @@ describe('Grand Moff Tarkin, Tyrant of the Outer Rim', function() {
                 expect(context.player1).toBeGameWinner();
             });
 
-            it('may still trigger even as a ground unit', async function() {
+            it('may still trigger after being moved to ground area with low altitude combat', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        leader: { card: 'grand-moff-tarkin#tyrant-of-the-outer-rim', deployed: true },
+                        base: { card: 'administrators-tower', damage: 20 },
+                        hand: ['low-altitude-combat']
                     },
                     player2: {
-                        base: { card: 'administrators-tower', damage: 20 }
+                        leader: { card: 'grand-moff-tarkin#tyrant-of-the-outer-rim', deployed: true },
                     }
                 });
 
                 const { context } = contextRef;
 
-                // Simulates moving the deployed leader to the ground arena,
-                // such as with a card like Low Altitude Combat
-                context.player1.moveCard(context.grandMoffTarkin, 'groundArena');
+                // Player 1 plays low altitude combat, moving the deployed leader to the ground arena
+                context.player1.clickCard(context.lowAltitudeCombat);
+                context.player1.clickCard(context.grandMoffTarkin);
 
                 // Move to the regroup phase, triggering the ability
                 context.moveToRegroupPhase();
 
-                expect(context.player1).toBeAbleToSelectExactly([context.p2Base]);
+                // Death star targets enemy base and destroys it to win
+                context.player2.clickCard(context.p1Base);
+
+                expect(context.game).toBeOver();
+                expect(context.player2).toBeGameWinner();
             });
         });
 
