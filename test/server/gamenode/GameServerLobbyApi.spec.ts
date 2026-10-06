@@ -40,6 +40,28 @@ describe('GameServer lobby API', function () {
                 expect(response.body.success).toBe(true);
             });
 
+            it('uses distinct deterministic lobby names even when random text would fail profanity validation', async function () {
+                spyOn(Math, 'random').and.returnValue(Number.parseInt('fat22a', 36) / (36 ** 6));
+                const lobbyNames = [harness.uniqueLobbyName(), harness.uniqueLobbyName()];
+
+                expect(lobbyNames).toEqual(['test-lobby-1', 'test-lobby-2']);
+
+                for (const lobbyName of lobbyNames) {
+                    const response = await harness.api
+                        .post('/api/create-lobby')
+                        .send(createLobbyBody({ lobbyName }));
+
+                    expect(response.status).withContext(JSON.stringify(response.body))
+                        .toBe(200);
+                    expect(response.body.success).toBe(true);
+                }
+
+                const response = await harness.api.get('/api/available-lobbies');
+
+                expect(response.status).toBe(200);
+                expect(response.body.map((lobby) => lobby.name).sort()).toEqual(lobbyNames);
+            });
+
             it('rejects a deck that is too small to be legal', async function () {
                 const response = await harness.api
                     .post('/api/create-lobby')

@@ -1,3 +1,5 @@
+import { jsonOnlyLogger, logger } from '../../../server/logger';
+
 /**
  * Populates the environment variables that `server/env.ts` validates at import time.
  *
@@ -50,3 +52,7 @@ const testEnvVars: Record<string, string> = {
 for (const [key, value] of Object.entries(testEnvVars)) {
     process.env[key] = value;
 }
+
+// Keep application logs out of Jasmine output; specs can still spy on logger calls.
+logger.silent = true;
+jsonOnlyLogger.silent = true;
