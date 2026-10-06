@@ -62,9 +62,17 @@ Test harness
 4. **Full card review**, using official card text only (see above).
 
 ## Next steps
-1. Rules & interactions pass with `swu-rules-expert`: **first pass done, see `rules-rulings.md`** (judge rulings recorded; 4 items still open: gaps 2, 3a, 8c, 11). Original scope: resolve "an opponent" targeting policy, "each opponent" vs "the opponent", Sentinel per-player scope, mid-attack control change, elimination (what is "removed", captured units, lasting effects, initiative return), end-of-phase game end and tiebreaks, counter/pass rules in 3p vs 4p. Record rulings here.
+1. Rules & interactions pass with `swu-rules-expert`: **first pass done, see `rules-rulings.md`** (judge rulings recorded; gaps 2, 3a, 8c, 11 deferred as questions to determine later). Original scope: resolve "an opponent" targeting policy, "each opponent" vs "the opponent", Sentinel per-player scope, mid-attack control change, elimination (what is "removed", captured units, lasting effects, initiative return), end-of-phase game end and tiebreaks, counter/pass rules in 3p vs 4p. Record rulings here.
 2. Card review, set by set, from official text. Process to be defined by Anthony.
 3. Engine seam: `opponents` list + seating order + `TwinSuns` format key, no 2p behavior change.
 
 ## Open questions
 1. ~~Does the single `Player.opponent` value appear in any client payload?~~ Likely yes, but UI is out of scope for now. The N-player payload shape and client changes will be handled in a separate coordination PR with the UI; until then the 2p payload stays unchanged.
+
+## Ownership / coordination
+- **Opponent refactor (phase 1 seam) is owned by another contributor:** `Player.opponent` becomes `opponents: Player[]`, and in 2-player games it shortcuts to the single opponent so existing behavior is unchanged. Do not duplicate this work; coordinate before touching `Player.opponent`, `Game.getOtherPlayer`, `RelativePlayer`, or the ~300 card call sites. Remaining engine phases (harness, flow, combat, elimination, lobby) build on top of it.
+
+## Card test planning
+- Pattern catalog and conventions: `test-patterns.md`. 3-4p card tests go in a nested `describe` inside each card's **existing** spec; engine mechanics go in `test/scenarios/TwinSuns/`.
+- Each `card-reviews/` entry has a `Multiplayer tests:` line (`TBD` by default, `None` for cards with no text), filled with pattern tags during review.
+- Plan only for now; specs are written after the opponent refactor and the N-player harness land.

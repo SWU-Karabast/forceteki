@@ -12,7 +12,7 @@ Reading caveats from the agent:
 | # | Gap | Ruling |
 |---|---|---|
 | 1 | Choosing "an opponent" | The player playing the card / using the ability (the active player) chooses the opponent. The chosen opponent **persists** through the rest of the ability unless a later clause says to choose a different opponent / choose an opponent. |
-| 2 | Attacker takes control of the defending unit mid-attack | **TBD.** No printed card does this today (hypothetical; would require a triggered ability firing during an attack and taking control of a non-leader defender). Low priority. |
+| 2 | Attacker takes control of the defending unit mid-attack | **Deferred: potential future scenario question; not a concern for now.** No printed card does this today (it would need a triggered ability firing during an attack that takes control of a non-leader defender). Agent-suggested interim engine behavior if it ever arises: skip combat damage, resolve the remaining steps (matches the defender-leaves-play rule). |
 | 3a | Elimination: which cards are removed | All cards the eliminated player **owns** are removed. Cards they **control but do not own** go to their owner's discard pile. **Tentative; action item: confirm the controlled-not-owned ruling.** |
 | 3b | Upgrades / counters of an eliminated player | Their upgrades attached to surviving units are removed. Blast/Plan counters they held go to center but stay "taken" (cannot be retaken this round). |
 | 4 | Simultaneous elimination | The player responsible for bringing each base to 0 heals 5 (per base they brought to 0). |
@@ -27,7 +27,7 @@ Reading caveats from the agent:
 | 11 | Can an eliminated player win/share a win (e.g. all bases at 0)? | **Open: ruling to be written in by Anthony.** |
 
 ### Remaining open items
-- Gap 2 (TBD), Gap 3a (confirm controlled-not-owned), Gap 8c (per-card, during card review), Gap 11 (ruling pending).
+- Deferred as questions to determine later: Gap 2 (future scenario), Gap 3a (confirm controlled-not-owned), Gap 8c (per-card, during card review), Gap 11 (eliminated player winning).
 
 ## Status by question
 
