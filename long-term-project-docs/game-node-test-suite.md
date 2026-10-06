@@ -77,6 +77,10 @@ Test infrastructure: `ServerTestEnv` (env bootstrap, ordered first in `jasmine.j
 `TestGameServer`, `ServerTestHarness`, `DecklistFixtures` (self-validating, built from live card
 data). `supertest` added as a devDependency.
 
+Lobby names use per-harness counters, not random text that could trip the real profanity filter.
+`ServerTestEnv` silences application log output during tests; production logging is unchanged, and
+specs can still assert logger calls with spies. Scheduled errors remain checked at harness teardown.
+
 ### Phase 1 — scheduler and config injection ✅
 
 Commit: `Add timer injection`
@@ -136,6 +140,10 @@ Also addressed: `assertNoScheduledErrors()` now runs from `shutdownAsync()` so i
 rather than opt-in; the card suite uses a `NoopScheduler` to preserve its previous
 "a live timer is impossible" invariant; `RealScheduler` gained direct test coverage (it had none,
 despite being the production safety claim); and two inaccurate spec assertions were tightened.
+
+`RealScheduler` specs exercise the production implementation with Jasmine-controlled timers rather
+than wall-clock sleeps. Error-guard specs assert the reported error and context through a logger spy,
+so deliberately thrown errors neither flood CI logs nor pass without checking the callback ran.
 
 Known and accepted: `ServerTestEnv` sets `ENVIRONMENT=development` for the whole suite, which in CI
 was previously unset. This enables some dev-only engine validation that was already active locally —

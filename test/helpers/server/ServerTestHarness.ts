@@ -95,8 +95,7 @@ export class ServerTestHarness {
     /** A lobby name unique within this harness, for locating lobbies via `/api/available-lobbies`. */
     public uniqueLobbyName(prefix = 'test-lobby'): string {
         this.lobbyNameCounter++;
-        return `${prefix}-${this.lobbyNameCounter}-${Math.random().toString(36)
-            .slice(2, 8)}`;
+        return `${prefix}-${this.lobbyNameCounter}`;
     }
 
     public async shutdownAsync(): Promise<void> {

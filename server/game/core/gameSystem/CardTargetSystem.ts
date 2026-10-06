@@ -239,7 +239,10 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         // events that resolved before they re-entered play (e.g. the captor's defeat)
         const rescueEvents = this.generateRescueEvents(card, context, event);
         if (rescueEvents.length > 0) {
-            event.window.addSubwindowEvents(rescueEvents);
+            // this method is invoked during the window's contingent events generation, so `game.currentEventWindow`
+            // is always the window that will contain `event` — we can't use `event.window` since it isn't set yet
+            // for events that are themselves contingent events (e.g. an Exploit defeat)
+            context.game.addSubwindowEvents(rescueEvents);
         }
 
         return contingentEvents;

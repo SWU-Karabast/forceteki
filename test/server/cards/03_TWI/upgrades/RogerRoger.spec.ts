@@ -96,8 +96,51 @@ describe('Roger Roger\'s when defeated ability', function() {
 
             expect(rogerRoger).toBeInZone('discard');
             expect(context.player1.discard.length).toBe(3); // Droid Deployment, Takedown, Roger Roger
+        });
 
-            // TODO: Test that Roger Roger works correctly if stolen with Evidence of the Crime
+        it('should attach to the new controller\'s Battle Droid when defeated after being stolen with Evidence of the Crime', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [
+                        'battle-droid',
+                        { card: 'super-battle-droid', upgrades: ['roger-roger'] },
+                    ]
+                },
+                player2: {
+                    hand: ['evidence-of-the-crime', 'confiscate'],
+                    groundArena: ['battle-droid', 'wampa'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            const p1BattleDroid = context.player1.findCardByName('battle-droid');
+            const p2BattleDroid = context.player2.findCardByName('battle-droid');
+            const rogerRoger = context.player1.findCardByName('roger-roger');
+
+            // Player 2 steals Roger Roger and attaches it to their own Wampa
+            context.player2.clickCard(context.evidenceOfTheCrime);
+            context.player2.clickCard(rogerRoger);
+            context.player2.clickCard(context.wampa);
+
+            expect(rogerRoger.controller).toBe(context.player2Object);
+            expect(context.wampa).toHaveExactUpgradeNames(['roger-roger']);
+
+            context.player1.passAction();
+
+            // Defeat the stolen Roger Roger: player 2 now controls its When Defeated ability,
+            // so it can only attach to player 2's Battle Droid
+            context.player2.clickCard(context.confiscate);
+            context.player2.clickCard(rogerRoger);
+
+            expect(context.player2).toBeAbleToSelectExactly([p2BattleDroid]);
+            context.player2.clickCard(p2BattleDroid);
+
+            expect(p2BattleDroid).toHaveExactUpgradeNames(['roger-roger']);
+            expect(p1BattleDroid).toHaveExactUpgradeNames([]);
+            expect(context.wampa).toHaveExactUpgradeNames([]);
         });
     });
 });
