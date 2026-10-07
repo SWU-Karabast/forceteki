@@ -310,7 +310,17 @@ export class AbilityResolver extends BaseStepWithPipeline {
 
         this.game.queueSimpleStep(() => {
             if (this.costResults.cancelled) {
-                if (this.resolutionCommitted) {
+                if (this.costResults.unpayable) {
+                    // payment could not be completed and the player didn't undo, so it is abandoned (see CostPaymentRecovery).
+                    // costs already paid are not refunded, so the resolution is still committed
+                    this.resolutionCommitted = true;
+                    this.game.addMessage(
+                        '{0} abandons {1} {2}. Costs already paid are not refunded',
+                        this.context.player,
+                        this.context.ability.isPlayCardAbility() ? 'playing' : 'using',
+                        this.context.source
+                    );
+                } else if (this.resolutionCommitted) {
                     this.game.addMessage('{0} attempted to use {1}, but did not successfully pay the required costs', this.context.player, this.context.source);
                 }
                 this.cancelled = true;
