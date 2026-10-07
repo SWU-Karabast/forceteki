@@ -9,7 +9,7 @@ import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { TextHelper } from '../core/utils/TextHelper';
 import { ChatHelpers } from '../core/chat/ChatHelpers';
 import { Helpers } from '../core/utils/Helpers';
-import { AbilityRestriction, CardType, KeywordName, MetaEventName, PlayType, WildcardCardType } from '../core/Constants';
+import { AbilityRestriction, CardType, type CardTypeFilter, KeywordName, MetaEventName, PlayType, WildcardCardType } from '../core/Constants';
 import type { PlayCardAction } from '../core/ability/PlayCardAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';
 import type { ICostAdjusterProperties } from '../core/cost/CostAdjuster';
@@ -104,6 +104,18 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         event.playCardAbilities = this.generateLegalPlayCardAbilities(target, properties, context);
         event.optional = properties.optional ?? context.ability.optional;
         event.ignoredRequirements = properties.ignoredRequirements ?? [];
+    }
+
+    /**
+     * Playing a card is always a selective choice: playability, `playAsType`, and cost requirements can all
+     * exclude candidate cards, so the player must be allowed to choose nothing when selecting from a hidden zone.
+     */
+    public override isTargetSelective(): boolean {
+        return true;
+    }
+
+    public override getTargetTypeFilter(context: TContext): CardTypeFilter | CardTypeFilter[] | null {
+        return this.generatePropertiesFromContext(context).playAsType ?? null;
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IPlayCardProperties> = {}): boolean {
