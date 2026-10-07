@@ -1,11 +1,10 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import type { IWhenAttackEndsAbilityProps } from '../../../Interfaces';
 import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
 import { EnumHelpers } from '../../../core/utils/EnumHelpers';
-import { EventName, TargetMode } from '../../../core/Constants';
+import { TargetMode } from '../../../core/Constants';
 
 export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
     private cardsLeftPlayThisPhaseWatcher: CardsLeftPlayThisPhaseWatcher;
@@ -32,7 +31,7 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
             ifYouDo: {
                 title: 'Ready a resource',
-                ifYouDoCondition: (context) => context.player.resources.some((resource) => resource.exhausted),
+                ifYouDoCondition: (context) => context.game.getPlayers().some((player) => player.exhaustedResourceCount > 0),
                 targetResolver: {
                     activePromptTitle: 'Choose a player to ready a resource',
                     mode: TargetMode.Player,
@@ -43,49 +42,23 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        const ability: IWhenAttackEndsAbilityProps<this> = {
+        registrar.addWhenAttackEndsAbility({
             title: 'Ready up to 2 resources',
             attackerMustSurvive: true,
-            optional: true,
-            when: {
-                [EventName.OnAttackEnd]: (event, context) => {
-                    const isBobaAttack = event.attack.attacker === context.source;
-                    const opponentHadAUnitLeavePlay = this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({ controller: context.player.opponent });
-                    const playerHasResourcesToReady = context.player.resources.some((resource) => resource.exhausted);
-                    const attackDamage = event.attack.getAttackerCombatDamage(context);
-                    const attackWillDefeatEnemyUnit = attackDamage !== null && event.attack.getAllTargets().some((target) =>
-                        target.isUnit() &&
-                        target.controller === context.player.opponent &&
-                        target.isInPlay() &&
-                        !target.hasShield() &&
-                        attackDamage >= target.remainingHp
-                    );
-
-                    return isBobaAttack && (opponentHadAUnitLeavePlay || attackWillDefeatEnemyUnit) && playerHasResourcesToReady;
-                },
-            },
-            targetResolvers: {
-                player: {
+            immediateEffect: AbilityHelper.immediateEffects.conditional({
+                condition: (context) => this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({ controller: context.player.opponent }),
+                onTrue: AbilityHelper.immediateEffects.selectPlayer({
                     activePromptTitle: 'Choose a player to ready resources',
-                    mode: TargetMode.Player,
-                },
-                target: {
-                    activePromptTitle: 'Choose how many resources to ready',
-                    mode: TargetMode.ChooseNumber,
-                    min: 0,
-                    max: (context) => Math.min(2, context.targets.player?.exhaustedResourceCount ?? 0),
-                    immediateEffect: AbilityHelper.immediateEffects.conditional({
-                        condition: (context) => Number(context.select) > 0,
-                        onTrue: AbilityHelper.immediateEffects.readyResources((context) => ({
-                            amount: Number(context.select),
-                            target: context.targets.player,
-                        })),
-                        onFalse: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true }),
-                    }),
-                }
-            }
-        };
-
-        registrar.addTriggeredAbility(ability);
+                    immediateEffect: AbilityHelper.immediateEffects.chooseNumber({
+                        activePromptTitle: 'Choose how many resources to ready',
+                        min: 0,
+                        max: 2,
+                        immediateEffect: AbilityHelper.immediateEffects.readyResources((context) => ({
+                            amount: Number(context.select)
+                        }))
+                    })
+                })
+            })
+        });
     }
 }

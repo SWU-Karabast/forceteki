@@ -109,6 +109,7 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 const { context } = contextRef;
 
                 // Case 4 - when there are no exhausted resources
+                context.player2.readyResources(1);
                 context.player1.clickCard(context.deathStarStormtrooper);
                 context.player1.clickCard(context.cellBlockGuard);
 
@@ -116,6 +117,22 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 context.player1.clickPrompt('Trigger');
                 expect(context.bobaFett.exhausted).toBeTrue();
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should be able to ready an enemy resource when the player has no exhausted resources', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.deathStarStormtrooper);
+                context.player1.clickCard(context.cellBlockGuard);
+
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1).toHavePrompt('Choose a player to ready a resource');
+                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+                context.player1.clickPrompt('Opponent');
+
+                expect(context.player2.exhaustedResourceCount).toBe(0);
+                expect(context.bobaFett.exhausted).toBeTrue();
             });
 
             it('should not ready a resource when a friendly unit is defeated', function() {
@@ -193,7 +210,7 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 context.player1.clickCard(context.battlefieldMarine);
 
                 expect(context.player1).toHavePrompt('Choose a player to ready resources');
-                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent', 'Pass']);
+                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
                 context.player1.clickPrompt('You');
                 expect(context.player1).toHavePrompt('Choose how many resources to ready');
                 context.player1.chooseListOption('2');
@@ -242,28 +259,12 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 context.player1.clickCard(context.battlefieldMarine);
 
                 expect(context.player1).toHavePrompt('Choose a player to ready resources');
-                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent', 'Pass']);
+                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
                 context.player1.clickPrompt('Opponent');
                 expect(context.player1).toHavePrompt('Choose how many resources to ready');
                 context.player1.chooseListOption('2');
 
                 expect(context.player2.readyResourceCount).toBe(12);
-            });
-
-            it('should be able to be passed', function() {
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.atst);
-                context.player2.passAction();
-                context.player1.clickCard(context.bobaFett);
-                context.player1.clickCard(context.battlefieldMarine);
-
-                expect(context.player1).toHavePrompt('Choose a player to ready resources');
-                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent', 'Pass']);
-                context.player1.clickPrompt('Pass');
-
-                expect(context.player2.readyResourceCount).toBe(10);
-                expect(context.player1.exhaustedResourceCount).toBe(6);
             });
 
             it('should not ready resources if Boba Fett dies while attacking, even if an enemy unit left play this turn', function() {
@@ -306,12 +307,59 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHavePrompt('Choose a player to ready resources');
-                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent', 'Pass']);
+                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
                 context.player1.clickPrompt('You');
                 expect(context.player1).toHavePrompt('Choose how many resources to ready');
                 context.player1.chooseListOption('2');
 
                 expect(context.player1.exhaustedResourceCount).toBe(4);
+            });
+        });
+
+        describe('Boba Fett\'s leader unit ability with no resources to ready', function() {
+            it('should not trigger if neither player has exhausted resources', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'boba-fett#collecting-the-bounty', deployed: true },
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'],
+                    },
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.bobaFett);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not prompt for a number if the chosen player has no exhausted resources', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'boba-fett#collecting-the-bounty', deployed: true },
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'],
+                        resources: {
+                            readyCount: 10,
+                            exhaustedCount: 2
+                        }
+                    },
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.bobaFett);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player1).toHavePrompt('Choose a player to ready resources');
+                context.player1.clickPrompt('You');
+
+                expect(context.player2.exhaustedResourceCount).toBe(2);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });
