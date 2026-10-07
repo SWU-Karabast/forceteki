@@ -1,5 +1,6 @@
 import { CardPool, GamesToWinMode, SwuGameFormat } from '../../../server/game/core/Constants';
 import { ServerTestHarness } from '../../helpers/server/ServerTestHarness';
+import { AnonymousUser } from '../../../server/utils/user/User';
 
 /**
  * Phase 0 vertical slice for the gamenode test suite.
@@ -98,6 +99,66 @@ describe('GameServer lobby API', function () {
 
             expect(second.status).toBe(403);
             expect(second.body.success).toBe(false);
+        });
+
+        describe('after the user closed the tab of their previous lobby', function () {
+            /**
+             * Does what the server does when the socket of a lobby user disconnects (see `Lobby.setUserDisconnected`).
+             * The harness can't open sockets yet, so this reaches into the lobby the user is in.
+             */
+            function getLobbyOf(userId: string) {
+                const lobbyId = harness.server['userLobbyMap'].get(userId).lobbyId;
+                return harness.server['lobbies'].get(lobbyId);
+            }
+
+            function simulateTabClosed(userId: string) {
+                getLobbyOf(userId).users.find((user) => user.id === userId).state = 'disconnected';
+            }
+
+            it('lets the user create a new lobby right away if nobody else was in the previous one', async function () {
+                const user = harness.anonymousUser();
+                const firstLobbyName = harness.uniqueLobbyName();
+
+                const first = await harness.api
+                    .post('/api/create-lobby')
+                    .send(createLobbyBody({ user, lobbyName: firstLobbyName }));
+                expect(first.status).toBe(200);
+
+                simulateTabClosed(user.id);
+
+                const second = await harness.api
+                    .post('/api/create-lobby')
+                    .send(createLobbyBody({ user }));
+
+                expect(second.status).withContext(JSON.stringify(second.body))
+                    .toBe(200);
+                expect(second.body.success).toBe(true);
+
+                const lobbies = await harness.api.get('/api/available-lobbies');
+                expect(lobbies.body.some((lobby) => lobby.name === firstLobbyName)).toBe(false);
+            });
+
+            it('still blocks the user while another player is in the previous lobby', async function () {
+                const host = harness.anonymousUser();
+
+                const created = await harness.api
+                    .post('/api/create-lobby')
+                    .send(createLobbyBody({ user: host }));
+                expect(created.status).toBe(200);
+
+                // a joining player only becomes a lobby user once their socket connects, which the harness can't do yet
+                const opponent = harness.anonymousUser();
+                getLobbyOf(host.id).createLobbyUser(new AnonymousUser(opponent.id, opponent.username, true));
+
+                simulateTabClosed(host.id);
+
+                const second = await harness.api
+                    .post('/api/create-lobby')
+                    .send(createLobbyBody({ user: host }));
+
+                expect(second.status).toBe(403);
+                expect(second.body.success).toBe(false);
+            });
         });
     });
 

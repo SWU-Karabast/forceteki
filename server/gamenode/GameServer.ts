@@ -2093,8 +2093,9 @@ export class GameServer {
                         return true;
                     }
 
+                    // nobody is waiting on a user who left a lobby they were alone in, so let them go right away
                     const elapsedSeconds = Math.floor((this.scheduler.now() - userLastActivity.getTime()) / 1000);
-                    if (elapsedSeconds < 60) {
+                    if (elapsedSeconds < 60 && !previousLobby.isAbandonedBy(userId)) {
                         logger.info(`GameServer: user ${userId} blocked from joining due to still being in lobby ${previousLobby.id}`);
                         return false;
                     }
