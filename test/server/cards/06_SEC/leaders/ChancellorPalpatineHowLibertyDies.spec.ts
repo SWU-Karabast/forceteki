@@ -204,5 +204,74 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('Chancellor Palpatine\'s deploy ability with a Plot card that becomes free', function () {
+            const lostReadyResourceWarning = 'Jar Jar Binks is a ready resource and costs nothing to play, so the resource replacing it enters exhausted. You will have one fewer ready resource.';
+
+            async function setupAsync(jarJarExhausted = false) {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'chancellor-palpatine#how-liberty-dies',
+                        base: 'data-vault',
+                        resources: [
+                            { card: 'jar-jar-binks#mesa-propose', exhausted: jarJarExhausted },
+                            'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa'
+                        ],
+                        deck: ['pyke-sentinel', 'moisture-farmer']
+                    }
+                });
+
+                const { context } = contextRef;
+                context.player1.clickCard(context.chancellorPalpatine);
+                context.player1.clickPrompt('Deploy Chancellor Palpatine');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'The next card you play using Plot this phase costs 3 resources less.',
+                    'Play Jar Jar Binks using Plot'
+                ]);
+                return context;
+            }
+
+            it('should warn in the trigger prompt that a ready resource is lost, without asking a second time', async function () {
+                const context = await setupAsync();
+
+                context.player1.clickPrompt('The next card you play using Plot this phase costs 3 resources less.');
+
+                expect(context.player1).toHavePassAbilityPrompt('Play Jar Jar Binks using Plot');
+                expect(context.player1.currentPrompt().warningText).toBe(lostReadyResourceWarning);
+
+                const readyResourcesBefore = context.player1.readyResourceCount;
+                context.player1.clickPrompt('Trigger');
+
+                // straight to Jar Jar's own ability, no separate confirmation
+                expect(context.player1).toHavePrompt('Give another friendly unit +2/+2 for this phase');
+                expect(context.player1).toHaveEnabledPromptButton('Pass');
+                context.player1.clickPrompt('Pass');
+
+                expect(context.jarJarBinks).toBeInZone('groundArena');
+                expect(context.pykeSentinel).toBeInZone('resource');
+                expect(context.player1.readyResourceCount).toBe(readyResourcesBefore - 1);
+            });
+
+            it('should not warn when the Plot card is played before the discount', async function () {
+                const context = await setupAsync();
+
+                context.player1.clickPrompt('Play Jar Jar Binks using Plot');
+
+                expect(context.player1).toHavePassAbilityPrompt('Play Jar Jar Binks using Plot');
+                expect(context.player1.currentPrompt().warningText).toBeNull();
+                context.player1.clickPrompt('Pass');
+            });
+
+            it('should not warn when the Plot card is already exhausted', async function () {
+                const context = await setupAsync(true);
+
+                context.player1.clickPrompt('The next card you play using Plot this phase costs 3 resources less.');
+
+                expect(context.player1).toHavePassAbilityPrompt('Play Jar Jar Binks using Plot');
+                expect(context.player1.currentPrompt().warningText).toBeNull();
+                context.player1.clickPrompt('Pass');
+            });
+        });
     });
 });

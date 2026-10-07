@@ -20,6 +20,9 @@ export interface IPlayerPromptStateProperties {
     perCardButtons?: IButton[];
     isOpponentEffect?: boolean;
 
+    /** Optional warning shown with the prompt, e.g. about a non-obvious consequence of a choice */
+    warningText?: string;
+
     // not included in the state passed to the FE
     attackTargetingHighlightAttacker?: Card;
 }
@@ -47,6 +50,7 @@ export class PlayerPromptState {
     public perCardButtons: IButton[] = [];
     public isOpponentEffect = null;
     public playerIsNewlyActive = false;
+    public warningText?: string = null;
 
     // not included in the state passed to the FE
     public attackTargetingHighlightAttacker?: Card = null;
@@ -96,6 +100,7 @@ export class PlayerPromptState {
         this.perCardButtons = prompt.perCardButtons ?? [];
         this.isOpponentEffect = prompt.isOpponentEffect;
         this.playerIsNewlyActive = prompt.playerIsNewlyActive;
+        this.warningText = prompt.warningText ?? null;
 
         // not included in the state passed to the FE
         this.attackTargetingHighlightAttacker = prompt.attackTargetingHighlightAttacker;
@@ -105,6 +110,7 @@ export class PlayerPromptState {
         this.selectCardMode = null;
         this.menuTitle = '';
         this.buttons = [];
+        this.warningText = null;
         this.clearSelectableCards();
         this.clearSelectedCards();
     }
@@ -148,6 +154,7 @@ export class PlayerPromptState {
             perCardButtons: this.perCardButtons,
             isOpponentEffect: this.isOpponentEffect,
             playerIsNewlyActive: this.playerIsNewlyActive,
+            warningText: this.warningText,
             // attackTargetingHighlightAttacker is explicitly not included, it's not for passing to the FE
         };
     }
