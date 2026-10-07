@@ -2152,8 +2152,9 @@ export class GameServer {
                         return true;
                     }
 
+                    // a user whose match is over isn't holding anyone up, e.g. when their requeue message got lost
                     const elapsedSeconds = Math.floor((this.scheduler.now() - userLastActivity.getTime()) / 1000);
-                    if (elapsedSeconds < 60) {
+                    if (elapsedSeconds < 60 && !previousLobby.isMatchOver()) {
                         logger.info(`GameServer: user ${userId} blocked from joining due to still being in lobby ${previousLobby.id}`);
                         return false;
                     }
@@ -3049,11 +3050,13 @@ export class GameServer {
                     this.userLobbyMap.delete(id);
 
                     if (isMatchmaking) {
-                        logger.info(
-                            `GameServer: User ${id} disconnected from matchmaking during countdown for lobby ${lobby.id}, setting 20s restriction for joining new game`,
-                            { userId: id, lobbyId: lobby.id }
-                        );
-                        this.playerMatchmakingDisconnectedTime.set(id, this.scheduler.currentDate());
+                        if (!lobby.isMatchOver()) {
+                            logger.info(
+                                `GameServer: User ${id} disconnected from matchmaking during countdown for lobby ${lobby.id}, setting 20s restriction for joining new game`,
+                                { userId: id, lobbyId: lobby.id }
+                            );
+                            this.playerMatchmakingDisconnectedTime.set(id, this.scheduler.currentDate());
+                        }
 
                         lobby.removeUser(id);
                         lobby.handleMatchmakingDisconnect();
