@@ -213,6 +213,35 @@ describe('Han Solo, Never Tell Me the Odds', function() {
                 expect(context.player1.readyResourceCount).toBe(3);
             });
 
+            it('counts friendly odd-costed upgrades attached to the base', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'han-solo#never-tell-me-the-odds',
+                        base: {
+                            card: 'origin-tree',
+                            upgrades: ['insurgent-camp']
+                        },
+                        hand: ['republic-attack-pod'],
+                        resources: 6
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Spend all 6 resources
+                context.player1.clickCard(context.republicAttackPod);
+                expect(context.player1.readyResourceCount).toBe(0);
+                context.player2.passAction();
+
+                context.player1.clickCard(context.hanSolo);
+                context.player1.clickPrompt('Deploy Han Solo as a Pilot');
+                context.player1.clickCard(context.republicAttackPod);
+
+                // Han should ready 2 resources - for himself and Insurgent Camp
+                expect(context.player1.readyResourceCount).toBe(2);
+            });
+
             it('does not count friendly even-costed units or upgrades', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
