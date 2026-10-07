@@ -1186,6 +1186,20 @@ export class Lobby {
         return this.users.length === 0;
     }
 
+    /** Whether the current game has ended and, in a best-of-three, the set is decided, so nobody is still waiting to play */
+    public isMatchOver(): boolean {
+        if (this.game?.finishedAt == null) {
+            return false;
+        }
+
+        if (this.winHistory.gamesToWinMode === GamesToWinMode.BestOfOne) {
+            return true;
+        }
+
+        return this.winHistory.setEndResult != null ||
+          Object.values(this.countWinsPerPlayer(this.winHistory.winnerIdsInOrder)).some((wins) => wins >= 2);
+    }
+
     /**
      * Records a matchmaking entry if this is a quick match, to prevent immediate rematches.
      * Uses the current time as the entry timestamp.
