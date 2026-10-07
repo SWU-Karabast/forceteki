@@ -132,6 +132,8 @@ import type { IDeployAndAttachLeaderPilotProperties as IDeployAndAttachPilotLead
 import { DeployAndAttachPilotLeaderSystem as DeployAndAttachPilotLeaderSystem } from './DeployAndAttachPilotLeaderSystem';
 import type { ISelectPlayerProperties } from './SelectPlayerSystem';
 import { SelectPlayerSystem } from './SelectPlayerSystem';
+import type { IChooseNumberProperties } from './ChooseNumberSystem';
+import { ChooseNumberSystem } from './ChooseNumberSystem';
 import type { ICardRoundLastingEffectProperties } from './CardRoundLastingEffectSystem';
 import { CardRoundLastingEffectSystem } from './CardRoundLastingEffectSystem';
 import type { IFlipAndAttachLeaderPilotProperties } from './FlipAndAttachPilotLeaderSystem';
@@ -774,6 +776,9 @@ export function selectCard<TContext extends AbilityContext = AbilityContext>(pro
 }
 export function selectPlayer<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISelectPlayerProperties<TContext>, TContext>) {
     return new SelectPlayerSystem<TContext>(propertyFactory);
+}
+export function chooseNumber<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IChooseNumberProperties<TContext>, TContext>) {
+    return new ChooseNumberSystem<TContext>(propertyFactory);
 }
 // export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>) {
 //     return new SelectTokenAction(propertyFactory);
