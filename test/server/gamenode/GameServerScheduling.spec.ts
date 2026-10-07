@@ -1,4 +1,5 @@
 import type { IToken } from '../../../server/gamenode/GameServer';
+import { CardPool, GamesToWinMode, SwuGameFormat } from '../../../server/game/core/Constants';
 import { ServerTestHarness } from '../../helpers/server/ServerTestHarness';
 import { TestScheduler } from '../../helpers/server/TestScheduler';
 
@@ -76,6 +77,73 @@ describe('GameServer scheduling', function () {
 
             expect(harness.server.swuStatsTokenMapping.has('later-expired-user')).toBe(false);
             expect(harness.server.swuStatsTokenMapping.has('valid-user')).toBe(true);
+        });
+    });
+
+    describe('the stale game cleanup', function () {
+        const minutes = (count: number) => count * 60 * 1000;
+
+        async function startGameAsync() {
+            const response = await harness.api
+                .post('/api/start-test-game')
+                .send({ filename: 'testGameTemplate.json' });
+            expect(response.status).withContext(JSON.stringify(response.body))
+                .toBe(200);
+        }
+
+        async function countOngoingGamesAsync(): Promise<number> {
+            const response = await harness.api.get('/api/ongoing-games');
+            return response.body.numberOfOngoingGames;
+        }
+
+        it('removes a game nobody has done anything in for two hours', async function () {
+            await startGameAsync();
+            expect(await countOngoingGamesAsync()).toBe(1);
+
+            await harness.clock.advanceAsync(minutes(120));
+
+            expect(await countOngoingGamesAsync()).toBe(0);
+        });
+
+        it('keeps a game that has been idle for less than two hours', async function () {
+            await startGameAsync();
+
+            await harness.clock.advanceAsync(minutes(90));
+
+            expect(await countOngoingGamesAsync()).toBe(1);
+        });
+
+        it('counts the time from the last player activity, not from the start of the game', async function () {
+            await startGameAsync();
+            await harness.clock.advanceAsync(minutes(90));
+
+            // what any game action by a player does
+            const lobby = harness.server['lobbies'].get(harness.server['userLobbyMap'].get('exe66').lobbyId);
+            lobby['updateUserLastActivity']('exe66');
+            await harness.clock.advanceAsync(minutes(90));
+
+            expect(await countOngoingGamesAsync()).toBe(1);
+        });
+
+        it('leaves lobbies without a game alone', async function () {
+            const lobbyName = harness.uniqueLobbyName();
+            const created = await harness.api
+                .post('/api/create-lobby')
+                .send({
+                    user: harness.anonymousUser(),
+                    deck: harness.decklists.validDecklist(),
+                    lobbyName,
+                    format: SwuGameFormat.Premier,
+                    cardPool: CardPool.Current,
+                    gamesToWinMode: GamesToWinMode.BestOfOne,
+                    isPrivate: false,
+                });
+            expect(created.status).toBe(200);
+
+            await harness.clock.advanceAsync(minutes(180));
+
+            const lobbies = await harness.api.get('/api/available-lobbies');
+            expect(lobbies.body.some((lobby) => lobby.name === lobbyName)).toBe(true);
         });
     });
 
