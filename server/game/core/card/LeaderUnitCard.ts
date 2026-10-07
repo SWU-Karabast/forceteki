@@ -7,7 +7,7 @@ import type { IUnitAbilityRegistrar, IUnitCard } from './propertyMixins/UnitProp
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import { TextHelper } from '../utils/TextHelper';
-import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps, IAbilityPropsWithType } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps, IAbilityPropsWithType, ISerializedCardState } from '../../Interfaces';
 import { Helpers } from '../utils/Helpers';
 import { Contract } from '../utils/Contract';
 import { EpicActionLimit } from '../ability/AbilityLimit';
@@ -332,8 +332,11 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
         };
     }
 
-    public override getCardState(): any {
-        return { ...super.getCardState(),
-            deployed: this.deployed };
+    protected override buildSerializedCardState(): ISerializedCardState {
+        const state = super.buildSerializedCardState();
+        if (this.deployed) {
+            state.deployed = true;
+        }
+        return state;
     }
 }

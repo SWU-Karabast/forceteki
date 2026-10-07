@@ -1,6 +1,6 @@
 import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
 import { PlotAbility } from '../../../abilities/keyword/PlotAbility';
-import type { IAbilityPropsWithSystems, IConstantAbilityProps, IOngoingEffectGenerator, IPlayCostProperties, NumericKeywordName } from '../../../Interfaces';
+import type { IAbilityPropsWithSystems, IConstantAbilityProps, IOngoingEffectGenerator, IPlayCostProperties, ISerializedCardState, NumericKeywordName } from '../../../Interfaces';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
@@ -455,9 +455,12 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             exhausted: this._exhausted };
     }
 
-    public override getCardState(): any {
-        return { ...super.getCardState(),
-            exhausted: this._exhausted };
+    protected override buildSerializedCardState(): ISerializedCardState {
+        const state = super.buildSerializedCardState();
+        if (this._exhausted) {
+            state.exhausted = true;
+        }
+        return state;
     }
 
     protected setExhaustEnabled(enabledStatus: boolean) {
