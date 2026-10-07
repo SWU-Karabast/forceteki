@@ -666,6 +666,41 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should offer to re-use Luke Skywalker\'s piloting replacement effect', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grand-admiral-thrawn#how-unfortunate',
+                        groundArena: [{ card: 'snowspeeder', upgrades: ['luke-skywalker#you-still-with-me'] }]
+                    },
+                    player2: {
+                        hand: ['rivals-fall']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.rivalsFall);
+                context.player2.clickCard(context.snowspeeder);
+
+                // Luke's replacement effect resolves - he detaches to the ground arena
+                expect(context.player1).toHavePassAbilityPrompt('Move Luke Skywalker to the ground arena instead of being defeated');
+                context.player1.clickPrompt('Trigger');
+                expect(context.lukeSkywalker).toBeInZone('groundArena');
+                expect(context.snowspeeder).toBeInZone('discard');
+
+                // Luke's piloting ability is a When Defeated ability, so Thrawn offers to use it again
+                expect(context.player1).toHavePassAbilityPrompt(whenDefeatedPrompt(context.lukeSkywalker.title));
+                context.player1.clickPrompt('Trigger');
+                expect(context.grandAdmiralThrawn.exhausted).toBe(true);
+
+                // Re-use is a no-op: Luke is already detached and exhausted in the ground arena
+                expect(context.lukeSkywalker).toBeInZone('groundArena');
+                expect(context.lukeSkywalker.exhausted).toBeTrue();
+                expect(context.player1).toBeActivePlayer();
+            });
+
             it('should not trigger when playing a unit with played/defeated trigger that was defeated this phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

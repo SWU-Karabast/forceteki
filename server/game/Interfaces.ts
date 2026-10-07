@@ -564,7 +564,7 @@ type ITriggeredAbilityAggregateWhenProps<TSource extends Card> = ITriggeredAbili
 };
 
 interface IReplacementEffectAbilityWhenProps<TSource extends Card> extends IReplacementEffectAbilityBaseProps<TSource> {
-    when: WhenType<TSource>;
+    when: WhenTypeOrStandard<TSource>;
 }
 
 interface IReplacementEffectAbilityAggregateWhenProps<TSource extends Card> extends IReplacementEffectAbilityBaseProps<TSource> {
