@@ -17,7 +17,8 @@ export default class LeiaOrganaDefiantPrincess extends NonLeaderUnitCard {
             targetResolver: {
                 mode: TargetMode.Select,
                 choices: {
-                    ['Ready a resource']: AbilityHelper.immediateEffects.readyResources({ amount: 1 }),
+                    ['Ready a friendly resource']: AbilityHelper.immediateEffects.readyResources({ amount: 1 }),
+                    ['Ready an enemy resource']: AbilityHelper.immediateEffects.readyResources((context) => ({ amount: 1, target: context.player.opponent })),
                     ['Exhaust a unit']: AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
                         immediateEffect: AbilityHelper.immediateEffects.exhaust()
