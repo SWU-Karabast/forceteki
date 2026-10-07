@@ -1049,5 +1049,41 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
             // Verify that the ability does not trigger again
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('does not use a "When Played" ability again if the effect was created while that ability was resolving', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['snapshot-reflexes', 'leia-organa#defiant-princess'],
+                    spaceArena: ['quigon-jinns-aethersprite#guided-by-the-force'],
+                },
+            });
+
+            const { context } = contextRef;
+
+            // Snapshot Reflexes' "When Played" attack creates the Aethersprite effect
+            context.player1.clickCard(context.snapshotReflexes);
+            context.player1.clickCard(context.quigonJinnsAethersprite);
+            expect(context.player1).toHavePassAbilityPrompt('Attack with attached unit');
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player1).not.toHavePassAbilityPrompt(prompt);
+            expect(context.player2).toBeActivePlayer();
+
+            context.player2.passAction();
+
+            // The effect is still waiting for the next "When Played" ability
+            context.player1.clickCard(context.leiaOrgana);
+            context.player1.clickPrompt('Ready a friendly resource');
+
+            expect(context.player1).toHavePassAbilityPrompt(prompt);
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.player1).toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
+            context.player1.clickPrompt('Ready a friendly resource');
+
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

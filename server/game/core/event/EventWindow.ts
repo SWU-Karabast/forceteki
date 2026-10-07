@@ -5,6 +5,7 @@ import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbil
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
 import { Contract } from '../utils/Contract';
+import type { OngoingEffect } from '../ongoingEffect/OngoingEffect';
 
 export enum TriggerHandlingMode {
 
@@ -36,6 +37,7 @@ export class EventWindow extends BaseStepWithPipeline {
 
     private parentWindow?: EventWindow = null;
     private resolvedEvents: any[] = [];
+    private claimedDelayedEffects: OngoingEffect<any>[] = [];
     private subwindowEvents: any[] = [];
     private subAbilityStepFn?: () => AbilityContext = null;
     private windowDepth?: number = null;
@@ -266,6 +268,12 @@ export class EventWindow extends BaseStepWithPipeline {
         for (const callback of callbacks) {
             callback();
         }
+
+        // match delayed effects now, before any steps queued by event handlers (e.g. an initiated ability's
+        // resolution) run; the claimed effects fire at this window's game state check
+        if (this.resolvedEvents.length > 0) {
+            this.claimedDelayedEffects = this.game.ongoingEffectEngine.claimDelayedEffects(this.resolvedEvents);
+        }
     }
 
     // check for duplicates of unique cards
@@ -277,7 +285,7 @@ export class EventWindow extends BaseStepWithPipeline {
     // this is to catch triggers on cards that entered play or gained abilities during event resolution
     private resolveGameState() {
         // TODO: understand if resolveGameState really needs the resolvedEvents array or not
-        this.game.resolveGameState(this.resolvedEvents.some((event) => event.handler), this.resolvedEvents);
+        this.game.resolveGameState(this.resolvedEvents.some((event) => event.handler), this.resolvedEvents, this.claimedDelayedEffects);
     }
 
     private postResolutionTriggers() {

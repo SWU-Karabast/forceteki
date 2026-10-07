@@ -19,6 +19,7 @@ import type { IOptionalTriggerPromptProperties } from './gameSteps/prompts/Optio
 import GameOverPrompt from './gameSteps/prompts/GameOverPrompt';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import { GameEvent } from './event/GameEvent';
+import type { OngoingEffect } from './ongoingEffect/OngoingEffect';
 import { EventWindow, SubwindowEventHandlingMode, TriggerHandlingMode } from './event/EventWindow';
 import { AbilityResolver } from './gameSteps/AbilityResolver';
 import { AbilityContext } from './ability/AbilityContext';
@@ -1652,7 +1653,7 @@ export class Game extends EventEmitter {
         }
     }
 
-    public resolveGameState(hasChanged = false, events: GameEvent[] = []): void {
+    public resolveGameState(hasChanged = false, events: GameEvent[] = [], claimedDelayedEffects: OngoingEffect<any>[] = []): void {
         // first go through and enable / disabled abilities for cards that have been moved in or out of the arena
         for (const movedCard of this.state.movedCards.map((id) => this.getFromId(id))) {
             movedCard.resolveAbilitiesForNewZone();
@@ -1661,7 +1662,7 @@ export class Game extends EventEmitter {
 
         if (events.length > 0) {
             // check for any delayed effects which need to fire
-            this.ongoingEffectEngine.checkDelayedEffects(events);
+            this.ongoingEffectEngine.checkDelayedEffects(events, claimedDelayedEffects);
         }
 
         // check for a game state change (recalculating attack stats if necessary)

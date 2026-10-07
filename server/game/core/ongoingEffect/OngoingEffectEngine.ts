@@ -339,9 +339,35 @@ export class OngoingEffectEngine extends GameObjectBase {
         return summaries;
     }
 
-    public checkDelayedEffects(events: GameEvent[]) {
+    /**
+     * Matches 'when'-based delayed effects against events at the moment they resolve, marking each matched
+     * effect pending so a later-resolving (e.g. nested) event cannot also claim it. Claimed effects
+     * fire later, at the owning window's game state check.
+     */
+    public claimDelayedEffects(events: GameEvent[]): OngoingEffect<any>[] {
+        const claimed: OngoingEffect<any>[] = [];
+        for (const effect of this.effects.filter(
+            (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
+        )) {
+            const properties = effect.impl.getValue();
+            if (properties.condition || effect.delayedTriggerPending) {
+                continue;
+            }
+            if (events.some((event) => properties.when[event.name]?.(event, effect.context))) {
+                effect.delayedTriggerPending = true;
+                claimed.push(effect);
+            }
+        }
+        return claimed;
+    }
+
+    public checkDelayedEffects(events: GameEvent[], claimedEffects: OngoingEffect<any>[]) {
         const effectsToTrigger: OngoingEffect<any>[] = [];
         const effectsToRemove: OngoingEffect<any>[] = [];
+
+        for (const effect of claimedEffects) {
+            effect.delayedTriggerPending = false;
+        }
 
         for (const effect of this.effects.filter(
             (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
@@ -351,13 +377,8 @@ export class OngoingEffectEngine extends GameObjectBase {
                 if (properties.condition(effect.context)) {
                     effectsToTrigger.push(effect);
                 }
-            } else {
-                const triggeringEvents = events.filter((event) => properties.when[event.name]);
-                if (triggeringEvents.length > 0) {
-                    if (triggeringEvents.some((event) => properties.when[event.name](event, effect.context))) {
-                        effectsToTrigger.push(effect);
-                    }
-                }
+            } else if (claimedEffects.includes(effect)) {
+                effectsToTrigger.push(effect);
             }
         }
 
@@ -401,16 +422,10 @@ export class OngoingEffectEngine extends GameObjectBase {
             });
         }
 
-        for (const effect of this.effects.filter(
-            (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
-        )) {
+        for (const effect of effectsToTrigger) {
             const properties = effect.impl.getValue();
-            const triggeringEvents = events.filter((event) => properties.when[event.name]);
-
-            if (triggeringEvents.length > 0) {
-                if (properties.limit.isAtMax(effect.source.owner)) {
-                    effectsToRemove.push(effect);
-                }
+            if (properties.limit.isAtMax(effect.context.player)) {
+                effectsToRemove.push(effect);
             }
         }
 
