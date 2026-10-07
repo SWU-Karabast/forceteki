@@ -600,7 +600,7 @@ var customMatchers = {
 
                 const expected = expectedEntries.map(normalizeTriggerDescriptor);
                 const actual = (prompt.buttons ?? []).map((button) => ({
-                    title: Util.stripNoEffectPrefix(button.text),
+                    title: button.text,
                     optional: !!button.optional,
                     hasEffect: !!button.hasLegalEffects,
                     count: button.count ?? 1,
@@ -1506,7 +1506,7 @@ function triggerButtonMatches(button, abilityText, sourceCard) {
     const wanted = abilityText.toLowerCase();
     const textMatches = [button.text, button.label]
         .filter((value) => value != null)
-        .map((value) => Util.stripNoEffectPrefix(value).toLowerCase())
+        .map((value) => String(value).toLowerCase())
         .includes(wanted);
     return textMatches && (sourceCard == null || button.sourceCard?.uuid === sourceCard.uuid);
 }

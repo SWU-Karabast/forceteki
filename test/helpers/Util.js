@@ -64,11 +64,6 @@ function formatTriggerSource(sourceCard) {
     return sourceCard != null ? ` (${sourceCard.name})` : '';
 }
 
-/** Removes the "(No effect) " prefix that trigger buttons may carry when they have no legal effect. */
-function stripNoEffectPrefix(text) {
-    return (text ?? '').toString().replace(/^\(No effect\) /, '');
-}
-
 function formatSelectNumberPromptData(prompt) {
     return prompt.selectNumber ? `number range: ${prompt.selectNumber.min}-${prompt.selectNumber.max}\n` : '';
 }
@@ -207,7 +202,6 @@ module.exports = {
     formatDropdownListOptions,
     formatBothPlayerPrompts,
     formatTriggerSource,
-    stripNoEffectPrefix,
     isTokenUnit,
     isTokenUpgrade,
     refreshGameState,

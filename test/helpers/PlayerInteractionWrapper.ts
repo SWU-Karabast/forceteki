@@ -872,7 +872,7 @@ export class PlayerInteractionWrapper {
         const wanted = abilityText.toLowerCase();
         const textMatches = [button.text, button.label]
             .filter((value) => value != null)
-            .map((value) => Util.stripNoEffectPrefix(value).toLowerCase())
+            .map((value) => String(value).toLowerCase())
             .includes(wanted);
         return textMatches && (sourceCard == null || button.sourceCard?.uuid === sourceCard.uuid);
     }
