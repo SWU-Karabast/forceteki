@@ -73,14 +73,18 @@ describe('Boba Fett, Disintegrator', function() {
                 context.player2.passAction();
 
                 // Case 4 Ability should activate when attacking leader deployed previous phase
-                // TODO QIRA The card enteres play event doesn't handle leader deployment correctly so we need to wait for the fix before uncommenting this test.
-                /* context.exhaustCard(context.lukeSkywalker);
+                context.exhaustCard(context.lukeSkywalker);
                 context.player1.clickCard(context.bobaFett);
                 context.player1.clickCard(context.lukeSkywalker);
 
                 // check board state
                 expect(context.lukeSkywalker.damage).toBe(6);
-                expect(context.bobaFett.damage).toBe(4);*/
+                expect(context.bobaFett.damage).toBe(4);
+
+                // reset state
+                reset();
+
+                context.player2.passAction();
 
                 // Case 5 Ability shouldn't activate when selecting BobaFett's ability first.
                 context.player1.clickCard(context.vambraceGrappleshot);
