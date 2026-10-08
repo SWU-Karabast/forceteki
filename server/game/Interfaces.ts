@@ -105,8 +105,8 @@ export interface IOngoingEffectProps<TTarget> {
     until?: WhenType;
     ability?: PlayerOrCardAbility;
 
-    /** The player resolving the ability that created a lasting effect */
-    abilityPlayer?: Player;
+    /** The player resolving the ability that created this lasting effect */
+    createdByPlayer?: Player;
     target?: TTarget | TTarget[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
