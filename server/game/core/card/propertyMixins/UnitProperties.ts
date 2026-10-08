@@ -39,7 +39,6 @@ import type { ILeaderCard } from './LeaderProperties';
 import type { ILeaderUnitCard } from '../LeaderUnitCard';
 import type { PilotLimitModifier } from '../../ongoingEffect/effectImpl/PilotLimitModifier';
 import type { AbilityContext } from '../../ability/AbilityContext';
-import type { PlayUpgradeAction } from '../../../actions/PlayUpgradeAction';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/LeadersDeployedThisPhaseWatcher';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
@@ -1075,9 +1074,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 return false;
             }
             if (context.playType === PlayType.Piloting && this.hasSomeKeyword(KeywordName.Piloting)) {
-                // This is needed for abilities that let you play Pilots from the opponent's discard
-                const canPlayFromAnyZone = (context.ability as PlayUpgradeAction).canPlayFromAnyZone;
-                return targetCard.canAttachPilot(this) && (targetCard.controller === controller || canPlayFromAnyZone);
+                return targetCard.canAttachPilot(this) && targetCard.controller === controller;
             }
             if (this.hasSomeTrait(Trait.Pilot) && this.isAttached()) {
                 // A pilot upgrade being moved by an ability (e.g. Survivors' Gauntlet) retains the
