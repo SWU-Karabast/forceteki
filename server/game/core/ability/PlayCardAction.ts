@@ -2,7 +2,7 @@ import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import type { IActionTargetResolver } from '../../TargetInterfaces';
 import type { Card } from '../card/Card';
 import type { Aspect, CardType } from '../Constants';
-import { EffectName, EventName, KeywordName, PhaseName, PlayType } from '../Constants';
+import { EffectName, EventName, KeywordName, PhaseName, PlayType, ZoneName } from '../Constants';
 import type { ICost } from '../cost/ICost';
 import type { AbilityContext } from './AbilityContext';
 import { PlayerAction } from './PlayerAction';
@@ -18,6 +18,8 @@ import type { Game } from '../Game';
 import type { Player } from '../Player';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 import { registerStateBase } from '../GameObjectUtils';
+import type { IPlayFromDiscardPermission } from '../ongoingEffect/effectImpl/PlayFromDiscardPermission';
+import { describePlayFromDiscardPermission } from '../ongoingEffect/effectImpl/PlayFromDiscardPermission';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -29,6 +31,9 @@ export interface IPlayCardActionPropertiesBase {
     exploitValue?: number;
     canPlayFromAnyZone?: boolean;
     attachTargetCondition?: (attachTarget: Card, context: AbilityContext) => boolean;
+
+    /** The lasting play-from-discard permission this action uses, if any */
+    playPermission?: IPlayFromDiscardPermission;
 }
 
 interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
@@ -59,6 +64,7 @@ export abstract class PlayCardAction extends PlayerAction {
     public readonly exploitValue?: number;
     public readonly playType: PlayType;
     public readonly canPlayFromAnyZone: boolean;
+    public readonly playPermission?: IPlayFromDiscardPermission;
 
     protected readonly playCost: PlayCardResourceCost;
 
@@ -106,7 +112,7 @@ export abstract class PlayCardAction extends PlayerAction {
         super(
             game,
             card,
-            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, appendToTitle),
+            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, appendToTitle, properties.playPermission),
             propertiesWithDefaults.additionalCosts.concat(playCost),
             propertiesWithDefaults.targetResolver,
             propertiesWithDefaults.triggerHandlingMode
@@ -118,13 +124,14 @@ export abstract class PlayCardAction extends PlayerAction {
         this.exploitValue = properties.exploitValue;
         this.createdWithProperties = { ...properties };
         this.canPlayFromAnyZone = !!properties.canPlayFromAnyZone;
+        this.playPermission = properties.playPermission;
     }
 
     protected usesExploit(context: AbilityContext<ICardWithCostProperty>) {
         return this.playCost.usesExploit(context);
     }
 
-    private static getTitle(title: string, playType: PlayType, appendToTitle: boolean = true): string {
+    private static getTitle(title: string, playType: PlayType, appendToTitle: boolean = true, playPermission?: IPlayFromDiscardPermission): string {
         let updatedTitle = title;
 
         switch (playType) {
@@ -144,6 +151,10 @@ export abstract class PlayCardAction extends PlayerAction {
                 Contract.fail(`Unknown play type: ${playType}`);
         }
 
+        if (playPermission) {
+            updatedTitle += describePlayFromDiscardPermission(playPermission);
+        }
+
         return updatedTitle;
     }
 
@@ -156,10 +167,7 @@ export abstract class PlayCardAction extends PlayerAction {
         ) {
             return 'phase';
         }
-        if (
-            !ignoredRequirements.includes('zone') && !this.canPlayFromAnyZone &&
-            !context.player.isCardInPlayableZone(context.source, this.playType)
-        ) {
+        if (!ignoredRequirements.includes('zone') && !this.isInPlayableZone(context)) {
             return 'zone';
         }
         if (
@@ -178,6 +186,14 @@ export abstract class PlayCardAction extends PlayerAction {
             return 'smuggleKeyword';
         }
         return super.meetsRequirements(context, ignoredRequirements);
+    }
+
+    private isInPlayableZone(context: AbilityContext): boolean {
+        if (this.playPermission) {
+            return context.source.zoneName === ZoneName.Discard && this.playPermission.permittedPlayers.includes(context.player);
+        }
+
+        return this.canPlayFromAnyZone || context.player.isCardInPlayableZone(context.source, this.playType);
     }
 
     public override getContextProperties(player: Player, event: any) {
