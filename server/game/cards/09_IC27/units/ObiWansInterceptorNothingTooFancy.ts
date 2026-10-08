@@ -14,7 +14,7 @@ export default class ObiWansInterceptorNothingTooFancy extends NonLeaderUnitCard
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
-            title: `Other friendly ${TextHelper.Trait.Republic} units get 0+/+1`,
+            title: `Other friendly ${TextHelper.Trait.Republic} units get +0/+1`,
             matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.Republic),
             ongoingEffect: abilityHelper.ongoingEffects.modifyStats({ power: 0, hp: 1 })
         });
