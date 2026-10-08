@@ -257,6 +257,46 @@ describe('Deceptive Shade', function () {
                 expect(context.battlefieldMarine).toBeInZone('discard');
                 expect(context.wampa.damage).toBe(3);
             });
+
+            it('gives Ambush to an opponent-owned unit played from their discard pile', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['takedown'],
+                        groundArena: ['deceptive-shade'],
+                    },
+                    player2: {
+                        groundArena: ['consular-security-force'],
+                        spaceArena: ['stolen-athauler', 'cartel-spacer'],
+                        hasInitiative: true,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Player 2 attacks and defeats Deceptive Shade
+                context.player2.clickCard(context.consularSecurityForce);
+                context.player2.clickCard(context.deceptiveShade);
+                expect(context.deceptiveShade).toBeInZone('discard');
+
+                // Defeat the opponent's Stolen AT-Hauler so player1 may play it from player2's discard pile
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                // Player 1 plays Stolen AT-Hauler from player2's discard pile, it gains Ambush
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.cartelSpacer);
+
+                expect(context.cartelSpacer).toBeInZone('discard');
+                expect(context.stolenAthauler.damage).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

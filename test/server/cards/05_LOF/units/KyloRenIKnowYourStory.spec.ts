@@ -64,5 +64,43 @@ describe('Kylo Ren, I Know Your Story', function() {
 
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('Kylo Ren\'s ability should trigger when I play an opponent-owned upgrade from their discard pile on him', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hasForceToken: true,
+                    hand: ['a-fine-addition'],
+                    groundArena: ['kylo-ren#i-know-your-story', 'wampa'],
+                    deck: ['porg']
+                },
+                player2: {
+                    groundArena: ['battlefield-marine'],
+                    discard: ['academy-training']
+                }
+            });
+            const { context } = contextRef;
+
+            // Defeat an enemy unit to enable A Fine Addition
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
+
+            context.player2.passAction();
+
+            // Play Academy Training from player2's discard pile on Kylo Ren
+            context.player1.clickCard(context.aFineAddition);
+            context.player1.clickCard(context.academyTraining);
+            context.player1.clickCard(context.kyloRen);
+            expect(context.kyloRen).toHaveExactUpgradeNames(['academy-training']);
+
+            // Use the Force to draw a card
+            expect(context.player1).toHavePassAbilityPrompt('Use the Force to draw a card');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.player1.hasTheForce).toBeFalse();
+            expect(context.porg).toBeInZone('hand', context.player1);
+        });
     });
 });
