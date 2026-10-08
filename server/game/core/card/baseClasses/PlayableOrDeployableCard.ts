@@ -25,7 +25,7 @@ import type {
 import { CostAdjustType } from '../../cost/CostAdjuster';
 import * as CostAdjusterFactory from '../../cost/CostAdjusterFactory';
 import type { Restriction } from '../../ongoingEffect/effectImpl/Restriction';
-import type { IPlayFromDiscardPermission } from '../../ongoingEffect/effectImpl/PlayFromDiscardPermission';
+import type { IPlayPermission } from '../../ongoingEffect/effectImpl/PlayPermission';
 import type { IPlayUnitActionProperties } from '../../../actions/PlayUnitAction';
 import { registerStateBase, statePrimitive } from '../../GameObjectUtils';
 import type { Player } from '../../Player';
@@ -163,7 +163,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     public override getActions(): PlayerOrCardAbility[] {
         return super.getActions()
             .concat(this.getPlayCardActions())
-            .concat(this.getPlayFromDiscardPermissionActions());
+            .concat(this.getPlayPermissionActions());
     }
 
     /**
@@ -171,7 +171,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
      *
      * Note that if the card is currently in an out-of-play zone, this will return nothing since cards cannot be played from out of play in normal circumstances.
      * If using an ability to grant an out-of-play action, use `getPlayCardFromOutOfPlayActions` which will generate the appropriate actions.
-     * Actions granted by lasting play-from-discard permissions come from `getPlayFromDiscardPermissionActions`.
+     * Actions granted by lasting play permissions come from `getPlayPermissionActions`.
      */
     public getPlayCardActions(propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
         let playCardActions: PlayCardAction[] = [];
@@ -191,16 +191,13 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     }
 
     /**
-     * Get the "play card" actions granted by lasting play-from-discard permissions on this card (e.g. Cobb Vanth).
+     * Get the "play card" actions granted by lasting play permissions on this card that apply to its current zone (e.g. Cobb Vanth).
      * Each permission is a separate modified play action, carrying only that permission's cost adjustment and
      * enter-play effect. Which player may use each action is checked by the action's requirements.
      */
-    public getPlayFromDiscardPermissionActions(): PlayCardAction[] {
-        if (this.zoneName !== ZoneName.Discard) {
-            return [];
-        }
-
-        return this.getOngoingEffectValues<IPlayFromDiscardPermission>(EffectName.CanPlayFromDiscard)
+    public getPlayPermissionActions(): PlayCardAction[] {
+        return this.getOngoingEffectValues<IPlayPermission>(EffectName.GainPlayPermission)
+            .filter((permission) => permission.zone === this.zoneName)
             .flatMap((permission) => this.getPlayCardFromOutOfPlayActions({
                 playPermission: permission,
                 costAdjusters: permission.adjustCost

@@ -1,5 +1,5 @@
 import type { Card } from '../../card/Card';
-import type { RelativePlayerFilter } from '../../Constants';
+import type { RelativePlayerFilter, ZoneName } from '../../Constants';
 import { RelativePlayer, WildcardRelativePlayer } from '../../Constants';
 import { CostAdjustType } from '../../cost/CostAdjuster';
 import type { GameSystem } from '../../gameSystem/GameSystem';
@@ -7,13 +7,19 @@ import type { Player } from '../../Player';
 import { Contract } from '../../utils/Contract';
 import { TextHelper } from '../../utils/TextHelper';
 
-/** The cost modification a play-from-discard permission applies to the play it grants */
-export type PlayFromDiscardPermissionCostAdjustment =
+/** The out-of-play zones a card can be granted permission to be played from */
+export type PlayPermissionZone = ZoneName.Discard;
+
+/** The cost modification a play permission applies to the play it grants */
+export type PlayPermissionCostAdjustment =
   | { costAdjustType: CostAdjustType.Free }
   | { costAdjustType: CostAdjustType.Decrease; amount: number }
   | { costAdjustType: CostAdjustType.IgnoreAllAspects };
 
-export interface IPlayFromDiscardPermissionProperties {
+export interface IPlayPermissionProperties {
+
+    /** The zone the card may be played from */
+    zone: PlayPermissionZone;
 
     /**
      * The player(s) allowed to use the permission. A relative value is resolved against the player
@@ -22,34 +28,36 @@ export interface IPlayFromDiscardPermissionProperties {
     player: Player | RelativePlayerFilter;
 
     /** Cost modification applied only when the card is played using this permission */
-    adjustCost?: PlayFromDiscardPermissionCostAdjustment;
+    adjustCost?: PlayPermissionCostAdjustment;
 
     /** Effect(s) resolved as the unit enters play, only when played using this permission */
     enterPlayEffect?: GameSystem | GameSystem[];
 }
 
 /**
- * A lasting permission to play a specific card from the discard pile. Each permission is its own
+ * A lasting permission to play a specific card from an out-of-play zone. Each permission is its own
  * modified "play a card" action: its cost modification and enter-play effect apply only when the
  * card is played using that permission, and don't combine with other permissions or with abilities
  * that play the card directly.
  */
-export interface IPlayFromDiscardPermission {
+export interface IPlayPermission {
 
     /** The card credited for the permission (for a gained ability, the card that granted it) */
     readonly source: Card;
+    readonly zone: PlayPermissionZone;
     readonly permittedPlayers: readonly Player[];
-    readonly adjustCost?: PlayFromDiscardPermissionCostAdjustment;
+    readonly adjustCost?: PlayPermissionCostAdjustment;
     readonly enterPlayEffect?: GameSystem | GameSystem[];
 }
 
-export function createPlayFromDiscardPermission(
-    properties: IPlayFromDiscardPermissionProperties,
+export function createPlayPermission(
+    properties: IPlayPermissionProperties,
     source: Card,
     abilityPlayer?: Player
-): IPlayFromDiscardPermission {
+): IPlayPermission {
     return {
         source,
+        zone: properties.zone,
         permittedPlayers: resolvePermittedPlayers(properties.player, abilityPlayer),
         adjustCost: properties.adjustCost,
         enterPlayEffect: properties.enterPlayEffect
@@ -57,7 +65,7 @@ export function createPlayFromDiscardPermission(
 }
 
 /** Describes the permission's modifications for the play action title, e.g. "for free (via Cobb Vanth)" */
-export function describePlayFromDiscardPermission(permission: IPlayFromDiscardPermission): string {
+export function describePlayPermission(permission: IPlayPermission): string {
     const sourceDescription = `(via ${permission.source.title})`;
 
     switch (permission.adjustCost?.costAdjustType) {
@@ -70,7 +78,7 @@ export function describePlayFromDiscardPermission(permission: IPlayFromDiscardPe
         case CostAdjustType.IgnoreAllAspects:
             return `, ignoring its aspect penalties ${sourceDescription}`;
         default:
-            Contract.fail(`Unknown cost adjustment for play from discard permission: ${(permission.adjustCost as any).costAdjustType}`);
+            Contract.fail(`Unknown cost adjustment for play permission: ${(permission.adjustCost as any).costAdjustType}`);
     }
 }
 
@@ -79,7 +87,7 @@ function resolvePermittedPlayers(player: Player | RelativePlayerFilter, abilityP
         return [player];
     }
 
-    Contract.assertNotNullLike(abilityPlayer, `Cannot resolve relative player '${player}' for a play from discard permission without the player resolving the ability`);
+    Contract.assertNotNullLike(abilityPlayer, `Cannot resolve relative player '${player}' for a play permission without the player resolving the ability`);
 
     switch (player) {
         case RelativePlayer.Self:

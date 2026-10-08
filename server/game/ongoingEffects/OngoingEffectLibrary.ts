@@ -11,7 +11,7 @@ import { unitsEnterPlayReady } from './UnitsEnterPlayReady';
 import { addExploit, exhaustUnitsInsteadOfResources, modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
 import type { PhaseName, RelativePlayerFilter, Trait, StandardTriggeredAbilityType } from '../core/Constants';
-import { KeywordName, RelativePlayer } from '../core/Constants';
+import { KeywordName, RelativePlayer, ZoneName } from '../core/Constants';
 import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
 import type { IAbilityPropsWithType, IDamageModificationEffectAbilityPropsWithType, IOngoingCardEffectGenerator, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
@@ -25,8 +25,8 @@ import type { PilotLimitModifier } from '../core/ongoingEffect/effectImpl/PilotL
 import type { StartingHandSizeModifier } from '../core/ongoingEffect/effectImpl/StartingHandSizeModifier';
 import type { IndirectDamageModifier } from '../core/ongoingEffect/effectImpl/IndirectDamageModifier';
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { IPlayFromDiscardPermissionProperties } from '../core/ongoingEffect/effectImpl/PlayFromDiscardPermission';
-import { createPlayFromDiscardPermission } from '../core/ongoingEffect/effectImpl/PlayFromDiscardPermission';
+import type { IPlayPermissionProperties } from '../core/ongoingEffect/effectImpl/PlayPermission';
+import { createPlayPermission } from '../core/ongoingEffect/effectImpl/PlayPermission';
 import type { CanAttackMultipleUnitsSimultaneously } from '../core/ongoingEffect/effectImpl/CanAttackMultipleUnitsSimultaneously';
 import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
 import { GainKeyword } from '../core/ongoingEffect/effectImpl/GainKeyword';
@@ -87,13 +87,13 @@ export = {
 
     canAttackBaseWhileUsingAmbush: () => OngoingEffectBuilder.card.static(EffectName.CanAttackBaseWhileUsingAmbush),
     canAttackMultipleUnitsSimultaneously: (effectImpl: CanAttackMultipleUnitsSimultaneously) => OngoingEffectBuilder.card.static(EffectName.CanAttackMultipleUnitsSimultaneously, effectImpl),
-    canPlayFromDiscard: (properties: IPlayFromDiscardPermissionProperties): IOngoingCardEffectGenerator =>
+    canPlayFromDiscard: (properties: Omit<IPlayPermissionProperties, 'zone'>): IOngoingCardEffectGenerator =>
         (game, source, effectProps) => {
             const permissionSource = effectProps.ability?.isCardAbility() && effectProps.ability.gainAbilitySource
                 ? effectProps.ability.gainAbilitySource
                 : source;
-            const permission = createPlayFromDiscardPermission(properties, permissionSource, effectProps.abilityPlayer);
-            return OngoingEffectBuilder.card.static(EffectName.CanPlayFromDiscard, permission)(game, source, effectProps);
+            const permission = createPlayPermission({ ...properties, zone: ZoneName.Discard }, permissionSource, effectProps.abilityPlayer);
+            return OngoingEffectBuilder.card.static(EffectName.GainPlayPermission, permission)(game, source, effectProps);
         },
     // canBeSeenWhenFacedown: () => OngoingEffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
     // canBeTriggeredByOpponent: () => OngoingEffectBuilder.card.static(EffectName.CanBeTriggeredByOpponent),

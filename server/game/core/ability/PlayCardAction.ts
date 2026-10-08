@@ -2,7 +2,7 @@ import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import type { IActionTargetResolver } from '../../TargetInterfaces';
 import type { Card } from '../card/Card';
 import type { Aspect, CardType } from '../Constants';
-import { EffectName, EventName, KeywordName, PhaseName, PlayType, ZoneName } from '../Constants';
+import { EffectName, EventName, KeywordName, PhaseName, PlayType } from '../Constants';
 import type { ICost } from '../cost/ICost';
 import type { AbilityContext } from './AbilityContext';
 import { PlayerAction } from './PlayerAction';
@@ -18,8 +18,8 @@ import type { Game } from '../Game';
 import type { Player } from '../Player';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 import { registerStateBase } from '../GameObjectUtils';
-import type { IPlayFromDiscardPermission } from '../ongoingEffect/effectImpl/PlayFromDiscardPermission';
-import { describePlayFromDiscardPermission } from '../ongoingEffect/effectImpl/PlayFromDiscardPermission';
+import type { IPlayPermission } from '../ongoingEffect/effectImpl/PlayPermission';
+import { describePlayPermission } from '../ongoingEffect/effectImpl/PlayPermission';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -31,8 +31,8 @@ export interface IPlayCardActionPropertiesBase {
     exploitValue?: number;
     attachTargetCondition?: (attachTarget: Card, context: AbilityContext) => boolean;
 
-    /** The lasting play-from-discard permission this action uses, if any */
-    playPermission?: IPlayFromDiscardPermission;
+    /** The lasting play permission this action uses, if any */
+    playPermission?: IPlayPermission;
 }
 
 interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
@@ -62,7 +62,7 @@ export abstract class PlayCardAction extends PlayerAction {
     public readonly costAdjusters: CostAdjuster[];
     public readonly exploitValue?: number;
     public readonly playType: PlayType;
-    public readonly playPermission?: IPlayFromDiscardPermission;
+    public readonly playPermission?: IPlayPermission;
 
     protected readonly playCost: PlayCardResourceCost;
 
@@ -128,7 +128,7 @@ export abstract class PlayCardAction extends PlayerAction {
         return this.playCost.usesExploit(context);
     }
 
-    private static getTitle(title: string, playType: PlayType, appendToTitle: boolean = true, playPermission?: IPlayFromDiscardPermission): string {
+    private static getTitle(title: string, playType: PlayType, appendToTitle: boolean = true, playPermission?: IPlayPermission): string {
         let updatedTitle = title;
 
         switch (playType) {
@@ -149,7 +149,7 @@ export abstract class PlayCardAction extends PlayerAction {
         }
 
         if (playPermission) {
-            updatedTitle += describePlayFromDiscardPermission(playPermission);
+            updatedTitle += describePlayPermission(playPermission);
         }
 
         return updatedTitle;
@@ -187,7 +187,7 @@ export abstract class PlayCardAction extends PlayerAction {
 
     private isInPlayableZone(context: AbilityContext): boolean {
         if (this.playPermission) {
-            return context.source.zoneName === ZoneName.Discard && this.playPermission.permittedPlayers.includes(context.player);
+            return context.source.zoneName === this.playPermission.zone && this.playPermission.permittedPlayers.includes(context.player);
         }
 
         return context.player.isCardInPlayableZone(context.source, this.playType);
