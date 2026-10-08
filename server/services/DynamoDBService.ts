@@ -367,6 +367,18 @@ class DynamoDBService {
         }, 'Error updating user profile');
     }
 
+    public removeUserProfileAttributeAsync(userId: string, attributeName: keyof IUserProfileDataEntity) {
+        return this.executeDbOperationAsync(() => {
+            const command = new UpdateCommand({
+                TableName: this.tableName,
+                Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
+                UpdateExpression: 'REMOVE #attribute',
+                ExpressionAttributeNames: { '#attribute': attributeName }
+            });
+            return this.client.send(command);
+        }, 'Error removing user profile attribute');
+    }
+
     /**
      * Put an item with a condition expression
      */
