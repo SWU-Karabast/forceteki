@@ -2414,28 +2414,23 @@ export class Lobby {
         const resultEvent = reportType === ReportType.BugReport ? 'bugReportResult' : 'playerReportResult';
         const reportLabel = reportType === ReportType.BugReport ? 'bug report' : 'player report';
 
-        // Reporting can be disabled for a player as a moderation action. Enforce it server-side so it
-        // can't be bypassed by a modified client (the FE also hides the report entry points).
-        // Only player reports are restricted; bug reports stay available to everyone.
-        if (reportType === ReportType.PlayerReport) {
-            const modActionService = this.server.modActionService;
-            if (!modActionService) {
-                logger.error('Lobby (submitReport): mod action service unavailable, allowing report without checking restrictions', {
-                    lobbyId: this.id,
-                    userId: socket.user.getId(),
-                });
-            } else if (modActionService.isReportingDisabled(socket.user.getId())) {
-                logger.info(`Lobby (submitReport): Blocked player report from ${socket.user.getId()}, reporting is disabled`, {
-                    lobbyId: this.id,
-                    userId: socket.user.getId(),
-                });
-                socket.send(resultEvent, {
-                    id: uuid(),
-                    success: false,
-                    message: 'Reporting has been disabled for your account'
-                });
-                return;
-            }
+        const modActionService = this.server.modActionService;
+        if (!modActionService) {
+            logger.error('Lobby (submitReport): mod action service unavailable, allowing report without checking restrictions', {
+                lobbyId: this.id,
+                userId: socket.user.getId(),
+            });
+        } else if (modActionService.isReportingDisabled(socket.user.getId())) {
+            logger.info(`Lobby (submitReport): Blocked ${reportLabel} from ${socket.user.getId()}, reporting is disabled`, {
+                lobbyId: this.id,
+                userId: socket.user.getId(),
+            });
+            socket.send(resultEvent, {
+                id: uuid(),
+                success: false,
+                message: 'Reporting has been disabled for your account'
+            });
+            return;
         }
 
         try {

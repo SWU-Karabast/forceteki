@@ -236,12 +236,10 @@ class DynamoDBService {
 
     /**
      * Batch write multiple items to DynamoDB.
-     * Handles chunking into batches of 25 (DynamoDB limit) and retries unprocessed items with
-     * exponential backoff. Throws if items remain unprocessed after MAX_BATCH_RETRIES.
+     * Handles chunking into batches of 25 (DynamoDB limit) and retries unprocessed items.
      */
     public batchWriteItemsAsync(items: Record<string, any>[]) {
         return this.executeDbOperationAsync(async () => {
-            const MAX_BATCH_RETRIES = 8;
             const chunks = [];
             for (let i = 0; i < items.length; i += 25) {
                 chunks.push(items.slice(i, i + 25));
@@ -249,7 +247,6 @@ class DynamoDBService {
 
             for (const chunk of chunks) {
                 let unprocessed = chunk;
-                let attempt = 0;
 
                 while (unprocessed.length > 0) {
                     const result = await this.client.send(new BatchWriteCommand({
@@ -261,18 +258,14 @@ class DynamoDBService {
                     }));
 
                     const retryItems = result.UnprocessedItems?.[this.tableName];
-                    if (!retryItems || retryItems.length === 0) {
+                    if (retryItems && retryItems.length > 0) {
+                        logger.info(`Retrying ${retryItems.length} unprocessed items...`);
+                        unprocessed = retryItems.map((r: any) => r.PutRequest.Item);
+                        // Back off before retry
+                        await new Promise((resolve) => setTimeout(resolve, 500));
+                    } else {
                         break;
                     }
-
-                    attempt++;
-                    if (attempt > MAX_BATCH_RETRIES) {
-                        throw new Error(`Batch write gave up after ${MAX_BATCH_RETRIES} retries with ${retryItems.length} item(s) still unprocessed`);
-                    }
-
-                    logger.info(`Retrying ${retryItems.length} unprocessed items (attempt ${attempt}/${MAX_BATCH_RETRIES})...`);
-                    unprocessed = retryItems.map((r: any) => r.PutRequest.Item);
-                    await new Promise((resolve) => setTimeout(resolve, 100 * Math.pow(2, attempt)));
                 }
             }
         }, 'Error in batch write');
@@ -782,30 +775,19 @@ class DynamoDBService {
 
     // Mod Actions
     /**
-     * Query items using the GSI_PK_INDEX, paging through all results.
+     * Query items using the GSI_PK_INDEX
      * @param gsiPkValue The value for the GSI_PK partition key
      */
     public queryByGSIAsync(gsiPkValue: string) {
-        return this.executeDbOperationAsync(async () => {
-            const items: Record<string, any>[] = [];
-            let lastEvaluatedKey: Record<string, any> | undefined;
+        return this.executeDbOperationAsync(() => {
+            const command = new QueryCommand({
+                TableName: this.tableName,
+                IndexName: 'GSI_PK_INDEX',
+                KeyConditionExpression: 'GSI_PK = :gsiPk',
+                ExpressionAttributeValues: { ':gsiPk': gsiPkValue }
+            });
 
-            do {
-                const result = await this.client.send(new QueryCommand({
-                    TableName: this.tableName,
-                    IndexName: 'GSI_PK_INDEX',
-                    KeyConditionExpression: 'GSI_PK = :gsiPk',
-                    ExpressionAttributeValues: { ':gsiPk': gsiPkValue },
-                    ExclusiveStartKey: lastEvaluatedKey
-                }));
-
-                if (result.Items) {
-                    items.push(...result.Items);
-                }
-                lastEvaluatedKey = result.LastEvaluatedKey;
-            } while (lastEvaluatedKey);
-
-            return { Items: items };
+            return this.client.send(command);
         }, 'DynamoDB queryByGSI error');
     }
 
@@ -885,7 +867,6 @@ class DynamoDBService {
                 ...modAction,
             };
 
-            // Active action types (Mute, Rename, ReportingDisabled) get indexed via the sparse GSI
             if (isTrackedModAction(modAction.actionType) && !modAction.cancelledAt) {
                 item.GSI_PK = 'ACTIVE_MODACTION';
             }
@@ -910,21 +891,6 @@ class DynamoDBService {
                 }
             );
         }, 'Error activating mute');
-    }
-
-    /**
-     * Remove a single attribute from a user's profile item.
-     */
-    public removeUserProfileAttributeAsync(userId: string, attributeName: string) {
-        return this.executeDbOperationAsync(() => {
-            const command = new UpdateCommand({
-                TableName: this.tableName,
-                Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
-                UpdateExpression: 'REMOVE #attr',
-                ExpressionAttributeNames: { '#attr': attributeName },
-            });
-            return this.client.send(command);
-        }, 'Error removing user profile attribute');
     }
 
     /**
