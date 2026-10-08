@@ -28,5 +28,31 @@ describe('Maarva Andor, We\'ve Been Sleeping', function() {
             // Enemy Rebel (Battlefield Marine) should not receive one
             expect(context.battlefieldMarine.isUpgraded()).toBeFalse();
         });
+
+        it('should give an Experience token to each Rebel unit friendly to the player who controlled her when defeated by No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['maarva-andor#weve-been-sleeping', 'battlefield-marine']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['rebel-pathfinder', 'wampa'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.maarvaAndor);
+
+            // player2 controlled Maarva when she was defeated, so player2's Rebel units get the Experience token
+            expect(context.rebelPathfinder).toHaveExactUpgradeNames(['experience']);
+            expect(context.wampa.isUpgraded()).toBeFalse();
+            expect(context.battlefieldMarine.isUpgraded()).toBeFalse();
+            expect(context.maarvaAndor).toBeInZone('discard', context.player1);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });
