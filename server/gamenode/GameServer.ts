@@ -137,6 +137,12 @@ interface GCPerformanceEntry {
 export class GameServer {
     private static readonly DOCKER_CARD_DATA_PATH = '/app/data';
 
+    /** How often to look for games nobody is playing anymore */
+    private static readonly STALE_GAME_CHECK_INTERVAL_MS = 30 * 60 * 1000;
+
+    /** How long a game can go without any activity before it is removed */
+    private static readonly STALE_GAME_INACTIVITY_MS = 2 * 60 * 60 * 1000;
+
     public static async createAsync(): Promise<GameServer> {
         let cardDataGetter: CardDataGetter;
         let testGameBuilder: any = null;
@@ -359,6 +365,13 @@ export class GameServer {
             () => this.cleanupInvalidTokens(),
             3600000, // 1 hour
             { message: 'GameServer: error during token cleanup' }
+        ));
+
+        // STALE GAME CLEANUP
+        this.backgroundTasks.push(this.scheduler.setInterval(
+            () => this.removeStaleGames(),
+            GameServer.STALE_GAME_CHECK_INTERVAL_MS,
+            { message: 'GameServer: error during stale game cleanup' }
         ));
 
         // Setup socket server
@@ -2989,6 +3002,25 @@ export class GameServer {
     /**
      * Clean up invalid/expired tokens from the user token map
      */
+    /**
+     * Removes games nobody has done anything in for a long time. A lobby is normally removed when its game ends or
+     * its players leave, but if that never happens the game stays in the spectate list forever with a blank board.
+     */
+    private removeStaleGames(): void {
+        const now = this.scheduler.now();
+        for (const lobby of Array.from(this.lobbies.values())) {
+            if (!lobby.hasOngoingGame()) {
+                continue;
+            }
+
+            const inactiveMs = now - lobby.getLastActivity().getTime();
+            if (inactiveMs >= GameServer.STALE_GAME_INACTIVITY_MS) {
+                logger.warn(`GameServer: removing lobby ${lobby.id}, its game had no activity for ${Math.round(inactiveMs / 60000)} minutes`, { lobbyId: lobby.id });
+                this.removeLobby(lobby, 'This game was closed because nobody played for a long time');
+            }
+        }
+    }
+
     private cleanupInvalidTokens(): void {
         try {
             const newTokenMapping = new Map<string, IToken>();

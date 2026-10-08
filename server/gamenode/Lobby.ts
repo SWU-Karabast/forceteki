@@ -412,6 +412,17 @@ export class Lobby {
         return this.userLastActivity.get(userId);
     }
 
+    /** When anyone last did something in this lobby, or when it was created if nobody has yet */
+    public getLastActivity(): Date {
+        let lastActivity = this.lobbyCreateTime;
+        for (const activity of this.userLastActivity.values()) {
+            if (activity > lastActivity) {
+                lastActivity = activity;
+            }
+        }
+        return lastActivity;
+    }
+
     private createLobbyLink(): string {
         return `${this.config.clientBaseUrl}/lobby?lobbyId=${this._id}`;
     }
