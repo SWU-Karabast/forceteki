@@ -281,6 +281,51 @@ test suite below, which already needs its own fixtures for the sources it resolv
 this step - nothing under `server/game/**` changed, so the card suite is not in play; see the CI
 structure section below, which already documents this exact split.
 
+### Pre-PR review (round 2) — fixes applied ✅
+
+A second design review, focused on the fake transport built in Phase 2, found two real gaps - both
+confirmed empirically by deliberately reverting the fix and watching a new test fail before
+restoring it:
+
+1. **`FakeIoSocket.simulateClientEmit` dispatched to handlers even on an already-disconnected
+   socket.** Real socket.io removes a socket from its namespace on disconnect, so nothing reaches a
+   handler for it again; the fake had no equivalent check. This mattered because every lobby/game
+   message runs `Lobby.updateUserLastActivity`, which unconditionally marks the user `'connected'` -
+   so a single stale message after disconnect could silently cancel a pending grace-window removal,
+   and the test would just look like the removal hadn't happened *yet* rather than failing outright.
+   Fixed by throwing from `simulateClientEmit` when the socket is disconnected, except for
+   `'disconnect'` itself (which `disconnect()` dispatches after already flipping the flag).
+
+2. **`TestClient` had no way to observe what happened to a socket it reconnected away from.**
+   `connectAsync` overwrote `_socket` outright, so a spec could never check that production actually
+   disconnected the stale one (`Lobby.checkUpdateSocket`'s `user.socket.disconnect()` call) - that
+   line could be deleted and nothing would notice. Added `TestClient.previousSocket`, capturing the
+   prior socket on every reconnect, so a spec can assert `previousSocket.connected === false`. This
+   also covers the Phase 5 multi-tab case, since a reconnect and a second tab are the same thing
+   server-side.
+
+Both landed as new specs in `LobbyConnectionManagement.spec.ts` rather than fixes alone, closing two
+scenarios that section's own note had flagged as not yet written: an abrupt disconnect surviving to
+(and being removed at) the grace window, and a reconnect swapping sockets. One spec in the first
+scenario doubles as the regression lock for finding 1 (it deliberately attempts a stale send and
+asserts it is rejected instead of reviving the user); the reconnect spec is the regression lock for
+finding 2.
+
+Not changed: `checkUpdateSocket` also calls `removeEventsListeners(['disconnect'])` on the old socket
+before disconnecting it, and losing *that* line is just as invisible to every test above - but it's
+genuinely harmless. Traced through `addLobbyUserAsync`: `existingUser.state = 'connected'` runs
+before `checkUpdateSocket`, and `updateUserLastActivity` (which also sets `state = 'connected'`) runs
+unconditionally right after it returns - so even if the old socket's stale disconnect listener fired
+and flipped `state` back to `'disconnected'` in between, the very next line in the same synchronous
+call overwrites it before anything else can observe it. Confirmed by reasoning through the exact
+call order rather than adding a test for it, since the only way to assert it would mean asserting on
+internal dispatch plumbing rather than observable behaviour (design goal 2).
+
+**Gates:** both new specs fail when their respective fix is reverted (confirmed by deliberately
+reverting each and restoring it), and pass with the fix in place; full `test/server/gamenode/` +
+`test/server/utils/` sweep - 200/0; `tsc --noEmit` and `eslint --quiet` clean repo-wide. No
+production code changed - both fixes are entirely in the test helpers.
+
 ## Remaining work
 
 ### Phase 3 — protocol surface

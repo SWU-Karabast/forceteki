@@ -62,6 +62,7 @@ export interface IMatchConfiguration {
  */
 export class TestClient {
     private _socket: FakeIoSocket | null = null;
+    private _previousSocket: FakeIoSocket | null = null;
 
     private constructor(
         private readonly harness: ServerTestHarness,
@@ -107,6 +108,17 @@ export class TestClient {
 
     public get isConnected(): boolean {
         return this._socket !== null && this._socket.connected;
+    }
+
+    /**
+     * The socket this client used before its most recent {@link connectAsync} /
+     * {@link attemptConnectAsync}, or `null` if it has never reconnected. Production disconnects a
+     * stale socket on reconnect (`Lobby.checkUpdateSocket`); this lets a test confirm that actually
+     * happened rather than just trusting it did, which matters for the Phase 5 multi-tab case too -
+     * a reconnect and a second tab are the same thing server-side.
+     */
+    public get previousSocket(): FakeIoSocket | null {
+        return this._previousSocket;
     }
 
     // ---- Identity payloads ----
@@ -230,6 +242,7 @@ export class TestClient {
         }
 
         fakeSocket.data.user = authResult.user;
+        this._previousSocket = this._socket;
         this._socket = fakeSocket;
 
         await this.harness.server.handleSocketConnectionAsync(fakeSocket);

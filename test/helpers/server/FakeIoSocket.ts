@@ -133,11 +133,22 @@ export class FakeIoSocket implements IRawGameSocket {
      * sending a lobby command calls `fakeSocket.simulateClientEmit('lobby', 'sendChatMessage', 'hi')`,
      * which invokes the handler `Lobby.addLobbyUserAsync` registered for the `'lobby'` event.
      *
+     * Throws if the socket is already disconnected, for every event except `'disconnect'` itself
+     * (which {@link disconnect} dispatches after already marking the socket disconnected). Real
+     * socket.io removes a disconnected socket from its namespace, so nothing reaches a handler for
+     * it again - without this check, a test could call this after disconnecting and silently revive
+     * state a handler sets on every message (e.g. `Lobby.updateUserLastActivity` marking the user
+     * `'connected'`), masking bugs in timeout/grace-window behaviour that depends on that state.
+     *
      * Real socket.io handler registration can be asynchronous (`Socket.registerEvent` in
      * `server/socket.js` wraps the callback in an `async` function), so any listener's returned
      * promise is awaited here - a test that awaits this method sees the handler's effects settled.
      */
     public async simulateClientEmit(event: string, ...args: any[]): Promise<void> {
+        if (!this._connected && event !== 'disconnect') {
+            throw new Error(`FakeIoSocket: cannot simulate inbound '${event}' - socket ${this.id} is already disconnected`);
+        }
+
         const listeners = this.inboundListeners.get(event) ?? [];
         for (const listener of listeners) {
             await listener(...args);
