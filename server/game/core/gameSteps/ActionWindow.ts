@@ -305,7 +305,7 @@ export class ActionWindow extends UiPrompt {
         const legalActions = actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
 
         // Show one button per source for gained abilities from multiple copies of the same card, and one button
-        // for identical play-from-discard permissions (e.g. two Boga triggers on the same card).
+        // for identical play permissions (e.g. two Boga triggers on the same card).
         // Deduplicating after the requirements filter keeps a copy at its use limit from hiding a usable one.
         const seenGainedSources = new Set<string>();
         const seenPermissionTitles = new Set<string>();
