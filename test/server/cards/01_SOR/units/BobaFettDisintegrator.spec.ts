@@ -108,8 +108,55 @@ describe('Boba Fett, Disintegrator', function() {
 
                 // check game state
                 expect(context.consularSecurityForce.damage).toBe(8);
+            });
+        });
 
-                // TODO check with units rescued from being captured
+        describe('Boba Fett, Disintegrator\'s ability, when attacking a unit rescued from being captured', function () {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['boba-fett#disintegrator', { card: 'battlefield-marine', capturedUnits: ['consular-security-force'] }],
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        hasInitiative: true,
+                    }
+                });
+            });
+
+            it('should not deal 3 damage if the defender was rescued this round, but should in a later round', function () {
+                const { context } = contextRef;
+
+                // Defeat the guard to rescue Consular Security Force, which enters play exhausted
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.consularSecurityForce).toBeInZone('groundArena', context.player2);
+                expect(context.consularSecurityForce.exhausted).toBeTrue();
+
+                // Case 1: the rescued unit entered play this round
+                context.player1.clickCard(context.bobaFett);
+                context.player1.clickCard(context.consularSecurityForce);
+
+                expect(context.consularSecurityForce.damage).toBe(3);
+                expect(context.bobaFett.damage).toBe(3);
+                expect(context.player2).toBeActivePlayer();
+
+                // Case 2: the rescued unit entered play in a previous round
+                context.moveToNextActionPhase();
+                context.setDamage(context.bobaFett, 0);
+                context.setDamage(context.consularSecurityForce, 0);
+                context.exhaustCard(context.consularSecurityForce);
+
+                context.player2.passAction();
+                context.player1.clickCard(context.bobaFett);
+                context.player1.clickCard(context.consularSecurityForce);
+
+                expect(context.consularSecurityForce.damage).toBe(6);
+                expect(context.bobaFett.damage).toBe(3);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });
