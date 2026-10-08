@@ -607,18 +607,6 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
      * @param {PlayType} [playingType]
      */
     public isCardInPlayableZone(card: Card, playingType: PlayType = null) {
-        // Check if card can be legally played by this player out of discard from an ongoing effect
-        if (
-            card.zoneName === ZoneName.Discard &&
-            card.hasOngoingEffect(EffectName.CanPlayFromDiscard)
-        ) {
-            return card
-                .getOngoingEffectValues(EffectName.CanPlayFromDiscard)
-                .map((value) => value.player ?? card.owner)
-                .includes(this);
-        }
-
-        // Default to checking if there is a zone that matches play type and includes the card
         return this.playableZones.some(
             (zone) => (!playingType || zone.playingType === playingType) && zone.includes(card)
         );
