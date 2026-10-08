@@ -20,7 +20,6 @@ export default class TearThisShipApart extends EventCard {
                 canChooseFewer: true,
                 immediateEffect: abilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Free },
-                    canPlayFromAnyZone: true,
                     playAsType: WildcardCardType.Any,
                 }),
             })),

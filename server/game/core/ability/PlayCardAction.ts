@@ -29,7 +29,6 @@ export interface IPlayCardActionPropertiesBase {
     targetResolver?: IActionTargetResolver;
     additionalCosts?: ICost[];
     exploitValue?: number;
-    canPlayFromAnyZone?: boolean;
     attachTargetCondition?: (attachTarget: Card, context: AbilityContext) => boolean;
 
     /** The lasting play-from-discard permission this action uses, if any */
@@ -63,7 +62,6 @@ export abstract class PlayCardAction extends PlayerAction {
     public readonly costAdjusters: CostAdjuster[];
     public readonly exploitValue?: number;
     public readonly playType: PlayType;
-    public readonly canPlayFromAnyZone: boolean;
     public readonly playPermission?: IPlayFromDiscardPermission;
 
     protected readonly playCost: PlayCardResourceCost;
@@ -123,7 +121,6 @@ export abstract class PlayCardAction extends PlayerAction {
         this.costAdjusters = Helpers.asArray(propertiesWithDefaults.costAdjusters);
         this.exploitValue = properties.exploitValue;
         this.createdWithProperties = { ...properties };
-        this.canPlayFromAnyZone = !!properties.canPlayFromAnyZone;
         this.playPermission = properties.playPermission;
     }
 
@@ -193,7 +190,7 @@ export abstract class PlayCardAction extends PlayerAction {
             return context.source.zoneName === ZoneName.Discard && this.playPermission.permittedPlayers.includes(context.player);
         }
 
-        return this.canPlayFromAnyZone || context.player.isCardInPlayableZone(context.source, this.playType);
+        return context.player.isCardInPlayableZone(context.source, this.playType);
     }
 
     public override getContextProperties(player: Player, event: any) {
