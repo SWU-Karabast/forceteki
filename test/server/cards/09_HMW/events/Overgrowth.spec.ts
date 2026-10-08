@@ -147,6 +147,31 @@ describe('Overgrowth', function() {
             expect(context.overgrowth.exhausted).toBeTrue();
         });
 
+        it('Overgrowth\'s ability should attribute the damage to the chosen friendly unit', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['overgrowth'],
+                    spaceArena: ['gorian-shards-corsair#pirate-warship', 'cartel-spacer'],
+                    base: 'origin-tree'
+                },
+                player2: {
+                    groundArena: [{ card: 'wampa', upgrades: ['shield'] }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.overgrowth);
+            context.player1.clickCard(context.cartelSpacer);
+            context.player1.clickCard(context.wampa);
+
+            // Cartel Spacer is Underworld, so with Gorian Shard's Corsair its damage is unpreventable and bypasses the Shield
+            expect(context.player2).toBeActivePlayer();
+            expect(context.wampa).toHaveExactUpgradeNames(['shield']);
+            expect(context.wampa.damage).toBe(2);
+        });
+
         it('Overgrowth\'s ability should resource this event when the opponent controls no unit', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',

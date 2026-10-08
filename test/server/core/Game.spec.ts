@@ -16,6 +16,35 @@ describe('Overall game mechanics', function() {
         });
     });
 
+    describe('"name a card" title lists', function() {
+        function buildGame(legalCardTitles?: ReadonlySet<string>) {
+            return new GameFlowWrapper(
+                new UnitTestCardDataGetter('test/json'),
+                jasmine.createSpyObj('router', ['handleError', 'handleSerializationFailure']),
+                { id: 'player1', username: 'player1' },
+                { id: 'player2', username: 'player2' },
+                undefined,
+                legalCardTitles
+            ).game;
+        }
+
+        it('should offer every title when no legal titles are given', function() {
+            const cardDataGetter = new UnitTestCardDataGetter('test/json');
+            const game = buildGame();
+
+            expect(game.playableCardTitles).toEqual(cardDataGetter.playableCardTitles);
+            expect(game.allNonLeaderCardTitles).toEqual(cardDataGetter.allNonLeaderCardTitles);
+        });
+
+        it('should offer only the legal titles, in their original order', function() {
+            // 'Echo Base' is a base: only in the all-non-leader list, never in the playable one
+            const game = buildGame(new Set(['Wampa', 'Echo Base', 'Battlefield Marine']));
+
+            expect(game.playableCardTitles).toEqual(['Battlefield Marine', 'Wampa']);
+            expect(game.allNonLeaderCardTitles).toEqual(['Battlefield Marine', 'Echo Base', 'Wampa']);
+        });
+    });
+
     integration(function(contextRef) {
         describe('Game initialization', function() {
             beforeEach(function () {

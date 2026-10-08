@@ -47,15 +47,17 @@ class GameStateBuilder {
      * @param {PlayerInfo} player1Info
      * @param {PlayerInfo} player2Info
      * @param {UndoMode} undoMode
+     * @param {ReadonlySet<string>} [legalCardTitles] restricts "name a card" options; all titles when omitted
      * @returns {Game}
      */
-    async setUpTestGameAsync(setupTestOptions, cardDataGetter, router, player1Info, player2Info, undoMode) {
+    async setUpTestGameAsync(setupTestOptions, cardDataGetter, router, player1Info, player2Info, undoMode, legalCardTitles = undefined) {
         const gameFlowWrapper = new GameFlowWrapper(
             cardDataGetter,
             router,
             { id: player1Info.id, username: player1Info.username },
             { id: player2Info.id, username: player2Info.username },
-            undoMode
+            undoMode,
+            legalCardTitles
         );
 
         const testContext = {};

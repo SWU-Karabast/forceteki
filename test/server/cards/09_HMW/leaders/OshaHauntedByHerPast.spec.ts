@@ -150,6 +150,37 @@ describe('Osha, Haunted By Her Past', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('is not satisfied when a friendly Heroism unit was taken and defeated with No Glory, Only Results', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'osha#haunted-by-her-past',
+                        base: 'lake-country',
+                        groundArena: ['battlefield-marine'],
+                        resources: 3
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P2 takes control of Battlefield Marine (Heroism), then defeats it while controlling it
+                context.player1.passAction();
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeInZone('discard', context.player1);
+
+                // Osha's condition is not satisfied since the unit was controlled by the opponent when it was defeated
+                context.player1.clickCard(context.osha);
+                expect(context.player1).toHaveExactPromptButtons(['Use it anyway', 'Cancel']);
+                context.player1.clickPrompt('Use it anyway');
+
+                expect(context.osha.exhausted).toBe(true);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('is not satisfied when only a friendly non-Heroism unit was defeated', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

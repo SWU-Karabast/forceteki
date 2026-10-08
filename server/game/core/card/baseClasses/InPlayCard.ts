@@ -24,7 +24,7 @@ import type { ICardWithPreEnterPlayAbilities } from '../propertyMixins/PreEnterP
 import type { ICardWithTriggeredAbilities, ITriggeredAbilityRegistrar } from '../propertyMixins/TriggeredAbilityRegistration';
 import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { ICardWithUpgrades } from '../CardInterfaces';
-import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
+import type { IAdjustCostAbilityProps, IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import { registerStateBase, stateRef, stateRefArray, statePrimitive } from '../../GameObjectUtils';
@@ -373,6 +373,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             ...registrar,
             addAdditionalPlayCost: (properties) => this.registerAdditionalPlayCost(properties),
             addAlternatePlayCost: (properties) => this.registerAlternatePlayCost(properties),
+            addAdjustCostAbility: (properties) => this.addAdjustCostAbility(properties, registrar),
             addDecreaseCostAbility: (properties) => this.addDecreaseCostAbility(properties, registrar),
             addWhenPlayedAbility: (properties) => this.addWhenPlayedAbility(properties, registrar),
             addWhenDefeatedAbility: (properties) => this.addWhenDefeatedAbility(properties, registrar),
@@ -390,6 +391,11 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenDefeated]: true };
         const triggeredProperties = Object.assign(properties, { when });
         return registrar.addTriggeredAbility(triggeredProperties);
+    }
+
+    /** Add a constant ability on the card that adjusts its own cost under the given condition */
+    private addAdjustCostAbility(properties: IAdjustCostAbilityProps<this>, registrar: IConstantAbilityRegistrar<this>): IConstantAbilityProps<this> {
+        return registrar.addConstantAbility(this.generateAdjustCostAbilityProps(properties));
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */

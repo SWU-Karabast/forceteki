@@ -447,6 +447,32 @@ describe('Chimaera, Reinforcing the Center', function() {
                 expect(tieFighters.every((tieFighter) => tieFighter.exhausted)).toBeTrue();
                 expect(context.player2.getArenaCards().length).toBe(0);
             });
+
+            it('should create 2 TIE Fighters for the new controller when defeated by No Glory, Only Results', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['chimaera#reinforcing-the-center'],
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.chimaera);
+
+                const tieFighters = context.player2.findCardsByName('tie-fighter');
+                expect(tieFighters.length).toBe(2);
+                expect(tieFighters).toAllBeInZone('spaceArena', context.player2);
+                expect(tieFighters.every((tieFighter) => tieFighter.exhausted)).toBeTrue();
+                expect(context.player1.findCardsByName('tie-fighter').length).toBe(0);
+                expect(context.chimaera).toBeInZone('discard', context.player1);
+                expect(context.player1).toBeActivePlayer();
+            });
         });
     });
 });

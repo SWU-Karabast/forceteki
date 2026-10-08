@@ -117,6 +117,7 @@ export class DeckService {
                     userId: userId,
                     deck: {
                         leader: { id: unsyncedDeck.leader.id },
+                        ...(unsyncedDeck.secondLeader ? { secondLeader: { id: unsyncedDeck.secondLeader.id } } : {}),
                         base: { id: unsyncedDeck.base.id },
                         name: unsyncedDeck.name,
                         favourite: unsyncedDeck.favourite,

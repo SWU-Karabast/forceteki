@@ -18,6 +18,18 @@ export enum TriggerHandlingMode {
     CannotHaveTriggers = 'cannotHaveTriggers',
 }
 
+export enum SubwindowEventHandlingMode {
+
+    /** Sub-window events (typically defeats) queued during this event window are resolved in a new window once this window's events have resolved */
+    ResolvesSubwindowEvents = 'resolvesSubwindowEvents',
+
+    /**
+     * Sub-window events queued during this event window are passed to the parent window, so they resolve only after the parent window's
+     * events have resolved and emitted their triggers
+     */
+    PassesSubwindowEventsToParentWindow = 'passesSubwindowEventsToParentWindow',
+}
+
 export class EventWindow extends BaseStepWithPipeline {
     protected _events: any[] = [];
     protected _triggeredAbilityWindow?: TriggeredAbilityWindow = null;
@@ -37,6 +49,10 @@ export class EventWindow extends BaseStepWithPipeline {
         return this._triggerHandlingMode;
     }
 
+    public get subwindowEventHandlingMode() {
+        return this._subwindowEventHandlingMode;
+    }
+
     public get triggeredAbilityWindow() {
         if (this.triggerHandlingMode === TriggerHandlingMode.CannotHaveTriggers) {
             Contract.fail(`Attempting to access triggered ability window for type(s) ${this} which cannot trigger abilities`);
@@ -51,11 +67,14 @@ export class EventWindow extends BaseStepWithPipeline {
      *  @param {TriggerHandlingMode} triggerHandlingMode - Whether this event window should create its own TriggeredAbilityWindow which will resolve after its events (and any nested events).
      * If set to {@link TriggerHandlingMode.PassesTriggersToParentWindow}, this window will borrow its parent EventWindow's TriggeredAbilityWindow, which will receive any triggers that trigger
      * during this EventWindow's events, to be resolved after all nested events of its owner are done.
+     *  @param {SubwindowEventHandlingMode} subwindowEventHandlingMode - Whether sub-window events (typically defeats) queued during this window are resolved by
+     * this window or passed to its parent window.
      */
     public constructor(
         game,
         events,
-        private _triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow
+        private _triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow,
+        private _subwindowEventHandlingMode: SubwindowEventHandlingMode = SubwindowEventHandlingMode.ResolvesSubwindowEvents
     ) {
         super(game);
 
@@ -155,6 +174,10 @@ export class EventWindow extends BaseStepWithPipeline {
         if (this._triggerHandlingMode === TriggerHandlingMode.PassesTriggersToParentWindow) {
             Contract.assertNotNullLike(this.parentWindow, `Attempting to create event window ${this} as a child window but no parent window exists`);
             Contract.assertFalse(this.parentWindow.triggerHandlingMode === TriggerHandlingMode.CannotHaveTriggers, `${this} is attempting pass triggers to ${this.parentWindow} which cannot have ability triggers`);
+        }
+
+        if (this._subwindowEventHandlingMode === SubwindowEventHandlingMode.PassesSubwindowEventsToParentWindow) {
+            Contract.assertNotNullLike(this.parentWindow, `Attempting to pass sub-window events of ${this} to a parent window but no parent window exists`);
         }
 
         switch (this.triggerHandlingMode) {
@@ -272,8 +295,20 @@ export class EventWindow extends BaseStepWithPipeline {
 
     // resolve any events queued for a subwindow (typically defeat events)
     private resolveSubwindowEvents() {
-        if (this.subwindowEvents.length > 0) {
-            this.queueStep(new EventWindow(this.game, this.subwindowEvents));
+        if (this.subwindowEvents.length === 0) {
+            return;
+        }
+
+        switch (this.subwindowEventHandlingMode) {
+            case SubwindowEventHandlingMode.ResolvesSubwindowEvents:
+                this.queueStep(new EventWindow(this.game, this.subwindowEvents));
+                break;
+            case SubwindowEventHandlingMode.PassesSubwindowEventsToParentWindow:
+                this.parentWindow.addSubwindowEvents(this.subwindowEvents);
+                this.subwindowEvents = [];
+                break;
+            default:
+                Contract.fail(`Unknown value for subwindowEventHandlingMode: ${this.subwindowEventHandlingMode}`);
         }
     }
 
