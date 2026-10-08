@@ -51,6 +51,39 @@ describe('Moff Gideon, Indomitable Warlord', function () {
                 expect(context.clonePilot).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(1);
             });
+
+            it('should count an enemy Imperial unit as friendly when it was taken and defeated with No Glory, Only Results', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['no-glory-only-results', 'clone-pilot'],
+                        leader: 'moff-gideon#indomitable-warlord',
+                        resources: 10,
+                    },
+                    player2: {
+                        spaceArena: ['tie-advanced']
+                    }
+                });
+                const { context } = contextRef;
+
+                // P1 takes control of the enemy TIE Advanced (Imperial), then defeats it while controlling it
+                context.player1.clickCard(context.noGloryOnlyResults);
+                context.player1.clickCard(context.tieAdvanced);
+                expect(context.tieAdvanced).toBeInZone('discard', context.player2);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.moffGideon);
+                context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less.');
+                expect(context.player1).toBeAbleToSelectExactly([context.clonePilot]);
+                context.player1.clickCard(context.clonePilot);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.moffGideon.exhausted).toBeTrue();
+                expect(context.clonePilot).toBeInZone('groundArena', context.player1);
+                expect(context.player1.exhaustedResourceCount).toBe(8);
+            });
         });
 
         describe('leader unit side ability', function () {

@@ -133,5 +133,43 @@ describe('Captain Vaughn, Search the Tunnels', function() {
 
             expect(context.player1).toBeActivePlayer();
         });
+
+        it('Captain Vaughn\'s When Defeated ability should search the deck of the player who controlled him when defeated by No Glory, Only Results', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['captain-vaughn#search-the-tunnels'],
+                    hand: ['atst'],
+                    deck: ['cartel-spacer', 'alliance-xwing', 'rebel-pathfinder', 'wampa']
+                },
+                player2: {
+                    hand: ['no-glory-only-results', 'pyke-sentinel'],
+                    deck: ['batch-brothers', 'perilous-position', 'battlefield-marine', 'consular-security-force'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.captainVaughn);
+
+            // player2 controlled Captain Vaughn when he was defeated, so player2 searches their own deck
+            expect(context.player2).toHaveExactDisplayPromptCards({
+                selectable: [context.batchBrothers, context.perilousPosition, context.battlefieldMarine]
+            });
+            context.player2.clickCardInDisplayCardPrompt(context.battlefieldMarine);
+            expect(context.battlefieldMarine).toBeInZone('hand', context.player2);
+
+            // Then player2 puts a card from their own hand on top of their deck
+            expect(context.player2).toBeAbleToSelectExactly([context.pykeSentinel, context.battlefieldMarine]);
+            context.player2.clickCard(context.pykeSentinel);
+            expect(context.player2.deck[0]).toBe(context.pykeSentinel);
+
+            expect(context.captainVaughn).toBeInZone('discard', context.player1);
+            expect(context.atst).toBeInZone('hand', context.player1);
+            expect(context.player1.deck.length).toBe(4);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

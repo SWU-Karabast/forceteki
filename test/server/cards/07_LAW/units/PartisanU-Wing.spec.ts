@@ -82,6 +82,34 @@ describe('Partisan U-Wing', function () {
                 expect(context.player1.credits).toBe(1);
                 expect(context.player2.credits).toBe(1);
             });
+
+            it('should not create a Credit when a friendly unit was taken and defeated with No Glory, Only Results by the opponent', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['partisan-uwing'],
+                        groundArena: ['isb-agent'],
+                        credits: 0
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P2 takes control of P1's ISB Agent and defeats it, so it was not a friendly unit of P1 when defeated
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.isbAgent);
+                expect(context.isbAgent).toBeInZone('discard', context.player1);
+
+                context.player1.clickCard(context.partisanUwing);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.credits).toBe(0);
+                expect(context.player2.credits).toBe(0);
+            });
         });
     });
 });

@@ -59,5 +59,35 @@ describe('Brutal Traditions', function() {
                 expect(context.player1).not.toBeAbleToSelect(context.brutalTraditions);
             });
         });
+
+        it('should be able to play it from the discard pile when a friendly unit was taken and defeated by the opponent with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['atst', 'wampa'],
+                    discard: ['brutal-traditions']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            expect(context.player1).not.toBeAbleToSelect(context.brutalTraditions);
+
+            // AT-ST is defeated while player2 controls it, so it counts as an enemy unit for player1
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.atst);
+            expect(context.atst).toBeInZone('discard', context.player1);
+
+            expect(context.player1).toBeAbleToSelect(context.brutalTraditions);
+            context.player1.clickCard(context.brutalTraditions);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.wampa).toHaveExactUpgradeNames(['brutal-traditions']);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

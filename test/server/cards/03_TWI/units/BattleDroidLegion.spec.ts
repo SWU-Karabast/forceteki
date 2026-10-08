@@ -26,5 +26,31 @@ describe('Battle Droid Legion', function() {
                 expect(battleDroids.every((battleDroid) => battleDroid.exhausted)).toBeTrue();
             });
         });
+
+        it('should create the Battle Droid tokens for the opponent when defeated with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['battle-droid-legion']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    hasInitiative: true
+                }
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.battleDroidLegion);
+
+            expect(context.battleDroidLegion).toBeInZone('discard', context.player1);
+            expect(context.player1.findCardsByName('battle-droid').length).toBe(0);
+
+            const battleDroids = context.player2.findCardsByName('battle-droid');
+            expect(battleDroids.length).toBe(3);
+            expect(battleDroids).toAllBeInZone('groundArena', context.player2);
+            expect(battleDroids.every((battleDroid) => battleDroid.exhausted)).toBeTrue();
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

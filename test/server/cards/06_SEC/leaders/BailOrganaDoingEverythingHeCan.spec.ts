@@ -54,6 +54,37 @@ describe('Bail Organa, Doing Everything He Can', function () {
                 expect(context.entrenched).toBeInZone('deck');
             });
 
+            it('will do nothing if a friendly unit was taken and defeated by the opponent with No Glory, Only Results', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'bail-organa#doing-everything-he-can',
+                        deck: ['entrenched', 'r2d2#ignoring-protocol'],
+                        groundArena: ['battlefield-marine'],
+                        resources: 3,
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Battlefield Marine is defeated while player2 controls it, so it is not a friendly unit for player1
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeInZone('discard', context.player1);
+
+                context.player1.clickCard(context.bailOrgana);
+                expect(context.player1).toHaveNoEffectAbilityPrompt(bailLeaderPromptTitle);
+                expect(context.player1).toHaveExactPromptButtons(['Use it anyway', 'Cancel']);
+                context.player1.clickPrompt('Use it anyway');
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+                expect(context.entrenched).toBeInZone('deck');
+            });
+
             it('will allow Bail to return a resource to hand and resource the top card of the deck if a friendly unit was defeated this phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

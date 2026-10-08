@@ -1,7 +1,7 @@
 import type { Player } from '../Player';
 import type { ZoneFilter } from '../Constants';
 import { CardType, DeployType, EffectName, RelativePlayer, Trait, WildcardCardType } from '../Constants';
-import { AbilityType, ZoneName } from '../Constants';
+import { AbilityType, WildcardZoneName, ZoneName } from '../Constants';
 import { getPrintedAttributesOverride } from '../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { IUnitAbilityRegistrar, IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
@@ -290,7 +290,8 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
     }
 
     private getAbilityZonesForSide(propertyZone: ZoneFilter | ZoneFilter[]) {
-        const abilityZone = this.setupLeaderUnitSide ? this.defaultArena : ZoneName.Base;
+        // A deployed leader retains its unit-side abilities when moved to the other arena.
+        const abilityZone = this.setupLeaderUnitSide ? WildcardZoneName.AnyArena : ZoneName.Base;
 
         return propertyZone
             ? Helpers.asArray(propertyZone).concat([abilityZone])

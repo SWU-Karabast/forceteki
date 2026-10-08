@@ -50,5 +50,35 @@ describe('Desperate Commando', function () {
             context.player1.clickCard(context.battleDroid);
             expect(context.battleDroid).toBeInZone('outsideTheGame');
         });
+
+        it('Desperate Commando\'s ability should be resolved by the new controller when defeated by No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['desperate-commando', 'battlefield-marine']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['pyke-sentinel'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.desperateCommando);
+
+            // player2 controlled Desperate Commando when it was defeated, so player2 resolves the ability
+            expect(context.player2).toHavePassAbilityButton();
+            expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.pykeSentinel]);
+            context.player2.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine.getPower()).toBe(2);
+            expect(context.battlefieldMarine.getHp()).toBe(2);
+            expect(context.pykeSentinel.getPower()).toBe(2);
+            expect(context.desperateCommando).toBeInZone('discard', context.player1);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });
