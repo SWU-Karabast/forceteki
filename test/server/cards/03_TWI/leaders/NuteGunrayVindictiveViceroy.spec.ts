@@ -78,5 +78,39 @@ describe('Nute Gunray, Vindictive Viceroy', function () {
                 expect(battleDroid[0]).toBeInZone('groundArena');
             });
         });
+
+        it('Nute Gunray\'s leader undeployed ability should count an enemy unit taken and defeated with No Glory, Only Results as a friendly unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'nute-gunray#vindictive-viceroy',
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['battlefield-marine'],
+                    resources: 5
+                },
+                player2: {
+                    groundArena: ['wampa', 'atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // player1 takes control of Wampa and defeats it, so it was a friendly unit when it was defeated
+            context.player1.clickCard(context.noGloryOnlyResults);
+            context.player1.clickCard(context.wampa);
+            expect(context.wampa).toBeInZone('discard', context.player2);
+
+            // second friendly unit defeated
+            context.player2.clickCard(context.atst);
+            context.player2.clickCard(context.battlefieldMarine);
+            expect(context.battlefieldMarine).toBeInZone('discard', context.player1);
+
+            context.player1.clickCard(context.nuteGunray);
+            expect(context.nuteGunray.exhausted).toBeTrue();
+            const battleDroids = context.player1.findCardsByName('battle-droid');
+            expect(battleDroids.length).toBe(1);
+            expect(battleDroids[0]).toBeInZone('groundArena', context.player1);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
