@@ -346,5 +346,40 @@ describe('Ravager, Final Imperial Command', function () {
                 context.player1.clickCardNonChecking(context.reinforcementWalker);
             });
         });
+
+        describe('When you play a unit owned by the opponent', function () {
+            it('should deal damage equal to its power when the player plays it from the opponent\'s discard pile', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['ravager#final-imperial-command'],
+                        hand: ['takedown'],
+                    },
+                    player2: {
+                        spaceArena: ['stolen-athauler', 'cartel-spacer']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Defeat player2's Stolen AT-Hauler so player1 may play it from player2's discard pile
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+
+                // Ravager triggers for player1, who played the unit
+                expect(context.player1).toHavePrompt('Deal 4 damage to a unit in the space arena');
+                expect(context.player1).toBeAbleToSelectExactly([context.ravager, context.stolenAthauler, context.cartelSpacer]);
+                context.player1.clickCard(context.cartelSpacer);
+
+                expect(context.cartelSpacer).toBeInZone('discard', context.player2);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });

@@ -290,5 +290,36 @@ describe('Tireless Magnaguard', function() {
                 expect(context.tirelessMagnaguard).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
         });
+
+        describe('Tireless Magnaguard played by an opponent', function() {
+            it('should not give Weakness tokens when the opponent plays it from its owner\'s discard pile with Unrefusable Offer\'s Bounty', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['vanquish']
+                    },
+                    player2: {
+                        groundArena: [{ card: 'tireless-magnaguard', upgrades: ['unrefusable-offer'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Player1 defeats player2's Tireless Magnaguard while it has 5 power and collects the Bounty
+                context.player1.clickCard(context.vanquish);
+                context.player1.clickCard(context.tirelessMagnaguard);
+
+                // Both players have triggers (player1's Bounty, player2's When Defeated); player1 resolves first
+                context.player1.clickPrompt('You');
+                expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it');
+                context.player1.clickPrompt('Trigger');
+
+                // Player1 played it, so the delayed effect created for player2 must not give it Weakness tokens
+                expect(context.tirelessMagnaguard).toBeInZone('groundArena', context.player1);
+                expect(context.tirelessMagnaguard).toHaveExactUpgradeNames([]);
+                expect(context.tirelessMagnaguard.getPower()).toBe(5);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
