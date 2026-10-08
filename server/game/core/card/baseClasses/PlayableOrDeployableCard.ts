@@ -499,7 +499,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
      *
      * @returns true if the controller was changed, false if it was the same
      */
-    public takeControl(newController: Player, moveTo: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource = null): boolean {
+    public takeControl(newController: Player, moveTo: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource | ZoneName.Base = null): boolean {
         if (newController === this.controller) {
             return false;
         }
@@ -512,7 +512,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         const moveDestination = moveTo || this.zone.name;
 
         Contract.assertTrue(
-            moveDestination === ZoneName.SpaceArena || moveDestination === ZoneName.GroundArena || moveDestination === ZoneName.Resource,
+            moveDestination === ZoneName.SpaceArena || moveDestination === ZoneName.GroundArena || moveDestination === ZoneName.Resource || moveDestination === ZoneName.Base,
             `Attempting to take control of card ${this.internalName} for player ${newController.name} in invalid zone: ${moveDestination}`
         );
 
