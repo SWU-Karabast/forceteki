@@ -623,6 +623,7 @@ export enum StateWatcherName {
     CardsEnteredPlayThisPhase = 'cardsEnteredPlayThisPhase',
     CardsLeftPlayThisPhase = 'cardsLeftPlayThisPhase',
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
+    CardsPlayedThisRound = 'cardsPlayedThisRound',
     DamageDealtThisPhase = 'damageDealtThisPhase',
     ForceUsedThisPhase = 'forceUsedThisPhase',
     LeadersDeployedThisPhase = 'leadersDeployedThisPhase',

@@ -3,12 +3,12 @@ import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityR
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, Trait } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import type { CardsPlayedThisRoundWatcher } from '../../../stateWatchers/CardsPlayedThisRoundWatcher';
 import type { Player } from '../../../core/Player';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class TheMasterCodebreakerHighStakes extends NonLeaderUnitCard {
-    private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
+    private cardsPlayedThisRoundWatcher: CardsPlayedThisRoundWatcher;
 
     protected override getImplementationId () {
         return {
@@ -18,7 +18,7 @@ export default class TheMasterCodebreakerHighStakes extends NonLeaderUnitCard {
     }
 
     protected override setupStateWatchers (registrar: StateWatcherRegistrar, abilityHelper: IAbilityHelper): void {
-        this.cardsPlayedThisPhaseWatcher = abilityHelper.stateWatchers.cardsPlayedThisPhase();
+        this.cardsPlayedThisRoundWatcher = abilityHelper.stateWatchers.cardsPlayedThisRound();
     }
 
     public override setupCardAbilities (registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
@@ -44,7 +44,7 @@ export default class TheMasterCodebreakerHighStakes extends NonLeaderUnitCard {
     }
 
     private isFirstGambitYouPlayedThisPhase (player: Player): boolean {
-        return !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
+        return !this.cardsPlayedThisRoundWatcher.someCardPlayed((playedCardEntry) =>
             playedCardEntry.card.hasSomeTrait(Trait.Gambit) && playedCardEntry.playedBy === player
         );
     }
