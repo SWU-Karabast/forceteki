@@ -1,20 +1,20 @@
+import type { AbilityContext } from '../../ability/AbilityContext';
 import type { Card } from '../../card/Card';
 import type { RelativePlayerFilter, ZoneName } from '../../Constants';
 import { RelativePlayer, WildcardRelativePlayer } from '../../Constants';
+import type { ICostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
 import type { GameSystem } from '../../gameSystem/GameSystem';
 import type { Player } from '../../Player';
 import { Contract } from '../../utils/Contract';
 import { TextHelper } from '../../utils/TextHelper';
 
-/** The out-of-play zones a card can be granted permission to be played from */
+/**
+ * The out-of-play zones a card can be granted permission to be played from.
+ *
+ * Currently, only the discard zone is supported.
+ */
 export type PlayPermissionZone = ZoneName.Discard;
-
-/** The cost modification a play permission applies to the play it grants */
-export type PlayPermissionCostAdjustment =
-  | { costAdjustType: CostAdjustType.Free }
-  | { costAdjustType: CostAdjustType.Decrease; amount: number }
-  | { costAdjustType: CostAdjustType.IgnoreAllAspects };
 
 export interface IPlayPermissionProperties {
 
@@ -28,7 +28,7 @@ export interface IPlayPermissionProperties {
     player: Player | RelativePlayerFilter;
 
     /** Cost modification applied only when the card is played using this permission */
-    adjustCost?: PlayPermissionCostAdjustment;
+    adjustCost?: ICostAdjusterProperties;
 
     /** Effect(s) resolved as the unit enters play, only when played using this permission */
     enterPlayEffect?: GameSystem | GameSystem[];
@@ -46,57 +46,78 @@ export interface IPlayPermission {
     readonly source: Card;
     readonly zone: PlayPermissionZone;
     readonly permittedPlayers: readonly Player[];
-    readonly adjustCost?: PlayPermissionCostAdjustment;
+    readonly adjustCost?: ICostAdjusterProperties;
     readonly enterPlayEffect?: GameSystem | GameSystem[];
 }
 
-export function createPlayPermission(
-    properties: IPlayPermissionProperties,
-    source: Card,
-    abilityPlayer?: Player
-): IPlayPermission {
-    return {
-        source,
-        zone: properties.zone,
-        permittedPlayers: resolvePermittedPlayers(properties.player, abilityPlayer),
-        adjustCost: properties.adjustCost,
-        enterPlayEffect: properties.enterPlayEffect
-    };
-}
-
-/** Describes the permission's modifications for the play action title, e.g. "for free (via Cobb Vanth)" */
-export function describePlayPermission(permission: IPlayPermission): string {
-    const sourceDescription = `(via ${permission.source.title})`;
-
-    switch (permission.adjustCost?.costAdjustType) {
-        case undefined:
-            return ` ${sourceDescription}`;
-        case CostAdjustType.Free:
-            return ` for free ${sourceDescription}`;
-        case CostAdjustType.Decrease:
-            return ` for ${TextHelper.resource(permission.adjustCost.amount)} less ${sourceDescription}`;
-        case CostAdjustType.IgnoreAllAspects:
-            return `, ignoring its aspect penalties ${sourceDescription}`;
-        default:
-            Contract.fail(`Unknown cost adjustment for play permission: ${(permission.adjustCost as any).costAdjustType}`);
-    }
-}
-
-function resolvePermittedPlayers(player: Player | RelativePlayerFilter, abilityPlayer?: Player): Player[] {
-    if (typeof player === 'object') {
-        return [player];
+export namespace PlayPermissionHelpers {
+    export function create(
+        properties: IPlayPermissionProperties,
+        source: Card,
+        createdByPlayer?: Player
+    ): IPlayPermission {
+        return {
+            source,
+            zone: properties.zone,
+            permittedPlayers: resolvePermittedPlayers(properties.player, createdByPlayer),
+            adjustCost: properties.adjustCost,
+            enterPlayEffect: properties.enterPlayEffect
+        };
     }
 
-    Contract.assertNotNullLike(abilityPlayer, `Cannot resolve relative player '${player}' for a play permission without the player resolving the ability`);
+    /**
+     * Describes the permission's modifications for the play action title, e.g. "for free (via Cobb Vanth)".
+     * A cost amount computed from game state is only included when the context of the play is provided.
+     */
+    export function describe(permission: IPlayPermission, context?: AbilityContext): string {
+        return `${describeCostAdjustment(permission.adjustCost, context)} (via ${permission.source.title})`;
+    }
 
-    switch (player) {
-        case RelativePlayer.Self:
-            return [abilityPlayer];
-        case RelativePlayer.Opponent:
-            return [abilityPlayer.opponent];
-        case WildcardRelativePlayer.Any:
-            return [abilityPlayer, abilityPlayer.opponent];
-        default:
-            Contract.fail(`Unknown relative player: ${player}`);
+    function describeCostAdjustment(adjustCost: ICostAdjusterProperties | undefined, context?: AbilityContext): string {
+        switch (adjustCost?.costAdjustType) {
+            case CostAdjustType.Free:
+                return ' for free';
+            case CostAdjustType.Decrease:
+            case CostAdjustType.Increase: {
+                const amount = resolveAmount(adjustCost, context);
+                if (amount == null) {
+                    return '';
+                }
+                return ` for ${TextHelper.resource(amount)} ${adjustCost.costAdjustType === CostAdjustType.Decrease ? 'less' : 'more'}`;
+            }
+            case CostAdjustType.IgnoreAllAspects:
+                return ', ignoring its aspect penalties';
+            case CostAdjustType.IgnoreSpecificAspects:
+                return `, ignoring its ${TextHelper.aspect(adjustCost.ignoredAspect)} aspect penalty`;
+            default:
+                return '';
+        }
+    }
+
+    function resolveAmount(adjustCost: IIncreaseOrDecreaseCostAdjusterProperties, context?: AbilityContext): number | null {
+        if (typeof adjustCost.amount === 'function') {
+            return context ? adjustCost.amount(context.source, context.player, context) : null;
+        }
+
+        return adjustCost.amount ?? null;
+    }
+
+    function resolvePermittedPlayers(player: Player | RelativePlayerFilter, createdByPlayer?: Player): Player[] {
+        if (typeof player === 'object') {
+            return [player];
+        }
+
+        Contract.assertNotNullLike(createdByPlayer, `Cannot resolve relative player '${player}' for a play permission without the player resolving the ability`);
+
+        switch (player) {
+            case RelativePlayer.Self:
+                return [createdByPlayer];
+            case RelativePlayer.Opponent:
+                return [createdByPlayer.opponent];
+            case WildcardRelativePlayer.Any:
+                return [createdByPlayer, createdByPlayer.opponent];
+            default:
+                Contract.fail(`Unknown relative player: ${player}`);
+        }
     }
 }

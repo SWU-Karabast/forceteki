@@ -26,7 +26,7 @@ import type { StartingHandSizeModifier } from '../core/ongoingEffect/effectImpl/
 import type { IndirectDamageModifier } from '../core/ongoingEffect/effectImpl/IndirectDamageModifier';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { IPlayPermissionProperties } from '../core/ongoingEffect/effectImpl/PlayPermission';
-import { createPlayPermission } from '../core/ongoingEffect/effectImpl/PlayPermission';
+import { PlayPermissionHelpers } from '../core/ongoingEffect/effectImpl/PlayPermission';
 import type { CanAttackMultipleUnitsSimultaneously } from '../core/ongoingEffect/effectImpl/CanAttackMultipleUnitsSimultaneously';
 import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
 import { GainKeyword } from '../core/ongoingEffect/effectImpl/GainKeyword';
@@ -92,7 +92,7 @@ export = {
             const permissionSource = effectProps.ability?.isCardAbility() && effectProps.ability.gainAbilitySource
                 ? effectProps.ability.gainAbilitySource
                 : source;
-            const permission = createPlayPermission({ ...properties, zone: ZoneName.Discard }, permissionSource, effectProps.abilityPlayer);
+            const permission = PlayPermissionHelpers.create({ ...properties, zone: ZoneName.Discard }, permissionSource, effectProps.createdByPlayer);
             return OngoingEffectBuilder.card.static(EffectName.GainPlayPermission, permission)(game, source, effectProps);
         },
     // canBeSeenWhenFacedown: () => OngoingEffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),

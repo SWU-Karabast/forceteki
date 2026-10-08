@@ -19,7 +19,7 @@ import type { Player } from '../Player';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 import { registerStateBase } from '../GameObjectUtils';
 import type { IPlayPermission } from '../ongoingEffect/effectImpl/PlayPermission';
-import { describePlayPermission } from '../ongoingEffect/effectImpl/PlayPermission';
+import { PlayPermissionHelpers } from '../ongoingEffect/effectImpl/PlayPermission';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -66,6 +66,9 @@ export abstract class PlayCardAction extends PlayerAction {
 
     protected readonly playCost: PlayCardResourceCost;
 
+    /** The action's title without the description of its play permission */
+    private readonly titleWithoutPermission: string;
+
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
     public constructor(game: Game, card: Card, properties: IPlayCardActionProperties) {
@@ -106,11 +109,14 @@ export abstract class PlayCardAction extends PlayerAction {
         }
 
         const playCost = new PlayCardResourceCost(propertiesWithDefaults.playType, cost, aspects);
+        const titleWithoutPermission = PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, appendToTitle);
 
         super(
             game,
             card,
-            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, appendToTitle, properties.playPermission),
+            properties.playPermission
+                ? titleWithoutPermission + PlayPermissionHelpers.describe(properties.playPermission)
+                : titleWithoutPermission,
             propertiesWithDefaults.additionalCosts.concat(playCost),
             propertiesWithDefaults.targetResolver,
             propertiesWithDefaults.triggerHandlingMode
@@ -122,13 +128,23 @@ export abstract class PlayCardAction extends PlayerAction {
         this.exploitValue = properties.exploitValue;
         this.createdWithProperties = { ...properties };
         this.playPermission = properties.playPermission;
+        this.titleWithoutPermission = titleWithoutPermission;
+    }
+
+    public override getTitle<T extends AbilityContext>(context?: T): string {
+        // the permission's cost amount may depend on the game state when the card is played
+        if (this.playPermission && context) {
+            return this.titleWithoutPermission + PlayPermissionHelpers.describe(this.playPermission, context);
+        }
+
+        return super.getTitle(context);
     }
 
     protected usesExploit(context: AbilityContext<ICardWithCostProperty>) {
         return this.playCost.usesExploit(context);
     }
 
-    private static getTitle(title: string, playType: PlayType, appendToTitle: boolean = true, playPermission?: IPlayPermission): string {
+    private static getTitle(title: string, playType: PlayType, appendToTitle: boolean = true): string {
         let updatedTitle = title;
 
         switch (playType) {
@@ -146,10 +162,6 @@ export abstract class PlayCardAction extends PlayerAction {
                 break;
             default:
                 Contract.fail(`Unknown play type: ${playType}`);
-        }
-
-        if (playPermission) {
-            updatedTitle += describePlayPermission(playPermission);
         }
 
         return updatedTitle;
