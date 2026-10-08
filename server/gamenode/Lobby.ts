@@ -29,6 +29,7 @@ import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import type { Player } from '../game/core/Player';
 import type { IQueueFormatKey } from './QueueHandler';
+import type { IMatchmakingSearchContext } from './MatchmakingRules';
 import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 import { ModerationType } from '../services/DynamoDBInterfaces';
@@ -117,6 +118,7 @@ export interface LobbyUserWrapper extends LobbySpectatorWrapper {
     deckValidationErrors?: IDeckValidationFailures;
     importDeckValidationErrors?: IDeckValidationFailures;
     reportedBugs: number;
+    matchmakingSearchContext?: IMatchmakingSearchContext;
 }
 
 export enum MatchmakingType {
@@ -436,11 +438,14 @@ export class Lobby {
         return this.users.some((u) => u.id === id);
     }
 
-    public createLobbyUser(user: User, decklist = null): void {
+    public createLobbyUser(user: User, decklist = null, matchmakingSearchContext?: IMatchmakingSearchContext): void {
         const existingUser = this.users.find((u) => u.id === user.getId());
         const deck = decklist ? new Deck(decklist, this.cardDataGetter) : null;
         if (existingUser) {
             existingUser.deck = deck;
+            if (matchmakingSearchContext) {
+                existingUser.matchmakingSearchContext = matchmakingSearchContext;
+            }
             return;
         }
         this.users.push(({
@@ -453,6 +458,7 @@ export class Lobby {
                 ? this.deckValidator.validateInternalDeck(deck.getDecklist(), { format: this.gameFormat, cardPool: this.cardPool })
                 : {},
             deck,
+            matchmakingSearchContext,
             reportedBugs: 0
         }));
         logger.info(`Lobby: creating username: ${user.getUsername()}, id: ${user.getId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
@@ -578,7 +584,13 @@ export class Lobby {
                             socket.send('connection_error', 'Unable to requeue: deck not found');
                             return;
                         }
-                        this.server.requeueUser(socket, this.queueFormatKey, user, existingUser.deck.originalDeckList);
+                        this.server.requeueUser(
+                            socket,
+                            this.queueFormatKey,
+                            user,
+                            existingUser.deck.originalDeckList,
+                            existingUser.matchmakingSearchContext?.preference
+                        );
                     }
                 );
             }
@@ -1633,7 +1645,14 @@ export class Lobby {
                     user.socket.send('connection_error', 'Unable to requeue: deck not found');
                     continue;
                 }
-                this.server.requeueUser(user.socket, this.queueFormatKey, user.socket.user, user.deck.originalDeckList);
+                this.server.requeueUser(
+                    user.socket,
+                    this.queueFormatKey,
+                    user.socket.user,
+                    user.deck.originalDeckList,
+                    user.matchmakingSearchContext?.preference,
+                    user.matchmakingSearchContext?.searchStartedAt
+                );
                 user.socket.send('matchmakingFailed', 'Player disconnected');
             }
 

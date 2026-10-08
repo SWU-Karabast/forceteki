@@ -6,16 +6,21 @@ import type { ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import { CardPool } from '../game/core/Constants';
 import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
+import { MatchmakingPreference } from '../game/core/Constants';
+import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 
 import type { IMatchmakingPlayerEntry, IMatchmakingRule } from './MatchmakingRules';
-import { MatchmakingRule } from './MatchmakingRules';
+import { getMatchmakingSearchContext, getQueueMatchmakingStatus, MatchmakingRule } from './MatchmakingRules';
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
-import type { IGameNodeConfig } from './GameNodeConfig';
+import type { IGameNodeConfig, IMatchmakingPreferencePolicy } from './GameNodeConfig';
+import { defaultMatchmakingPreferencePolicy } from './GameNodeConfig';
 
 export interface QueuedPlayerToAdd {
     deck: ISwuDbFormatDecklist;
     socket?: Socket;
     user: User;
+    matchmakingPreference?: MatchmakingPreference;
+    searchStartedAt?: number;
 }
 
 export enum QueuedPlayerState {
@@ -25,6 +30,8 @@ export enum QueuedPlayerState {
 
 export interface QueuedPlayer extends QueuedPlayerToAdd {
     state: QueuedPlayerState;
+    matchmakingPreference: MatchmakingPreference;
+    disconnectedSocketId?: string;
 }
 
 interface QueuedPlayerEntry {
@@ -50,6 +57,7 @@ export class QueueHandler {
     private playerPreviousMatch: Map<string, PreviousMatchEntry>;
     private readonly scheduler: IScheduler;
     private readonly config: IGameNodeConfig;
+    private readonly preferencePolicy: Readonly<IMatchmakingPreferencePolicy>;
     private readonly previousMatchCleanupTask: IScheduledTask;
 
     /** Cooldown interval (in seconds) for rematch prevention */
@@ -58,6 +66,11 @@ export class QueueHandler {
     public constructor(scheduler: IScheduler, config: IGameNodeConfig) {
         this.scheduler = scheduler;
         this.config = config;
+        this.preferencePolicy = { ...(config.matchmakingPreferencePolicy ?? defaultMatchmakingPreferencePolicy) };
+        for (const name of ['samePreferenceOnlyDurationMs', 'noPreferenceDurationMs'] as const) {
+            const durationMs = this.preferencePolicy[name];
+            Contract.assertTrue(Number.isSafeInteger(durationMs) && durationMs >= 0, `Invalid matchmaking preference duration ${name}: ${durationMs}`);
+        }
         this.queues = new Map<string, QueuedPlayer[]>();
         this.playerPreviousMatch = new Map<string, PreviousMatchEntry>();
 
@@ -87,6 +100,11 @@ export class QueueHandler {
     public addPlayer(format: IQueueFormatKey, player: QueuedPlayerToAdd) {
         Contract.assertNotNullLike(player);
         Contract.assertNotNullLike(format);
+        const { matchmakingPreference = MatchmakingPreference.NoPreference } = player;
+        Contract.assertTrue(EnumHelpers.isEnumValue(matchmakingPreference, MatchmakingPreference), `Invalid matchmaking preference ${matchmakingPreference}`);
+        if (player.searchStartedAt !== undefined) {
+            Contract.assertTrue(Number.isSafeInteger(player.searchStartedAt), `Invalid matchmaking search start ${player.searchStartedAt}`);
+        }
 
         const queueEntry = this.findPlayerInQueue(player.user.getId());
         if (queueEntry) {
@@ -102,7 +120,7 @@ export class QueueHandler {
 
         this.playersWaitingToConnect.push({
             format,
-            player: { ...player, state: QueuedPlayerState.WaitingForConnection }
+            player: { ...player, matchmakingPreference, state: QueuedPlayerState.WaitingForConnection }
         });
         logger.info(`QueueHandler: Added user ${player.user.getId()} to waiting list for format ${this.queueKeyToString(format)} until they connect`);
 
@@ -134,9 +152,12 @@ export class QueueHandler {
 
         playerEntry.player.state = QueuedPlayerState.Connected;
         playerEntry.player.socket = socket;
+        playerEntry.player.disconnectedSocketId = undefined;
+        playerEntry.player.searchStartedAt ??= this.scheduler.now();
 
         this.getQueueByFormat(playerEntry.format)?.push(playerEntry.player);
         logger.info(`QueueHandler: User ${userId} connected with socket id ${socket.id}, added to queue for format ${this.queueKeyToString(playerEntry.format)}`);
+        this.sendPlayerHeartbeat(playerEntry.player);
     }
 
     /** If the user exists in the queue and is connected, temporarily move them into a disconnected state while waiting for reconnection */
@@ -144,8 +165,21 @@ export class QueueHandler {
         const queueEntry = this.findPlayerInQueue(userId);
         if (queueEntry && queueEntry.player?.socket?.id === socketId) {
             this.removePlayer(userId, `Temporarily disconnected on socket id ${socketId}`);
-            this.addPlayer(queueEntry.format, { user: queueEntry.player.user, deck: queueEntry.player.deck });
+            this.playersWaitingToConnect.push({
+                format: queueEntry.format,
+                player: {
+                    ...queueEntry.player,
+                    state: QueuedPlayerState.WaitingForConnection,
+                    socket: undefined,
+                    disconnectedSocketId: socketId,
+                },
+            });
+            logger.info(`QueueHandler: User ${userId} is waiting to reconnect after socket ${socketId} disconnected`);
         }
+    }
+
+    public isWaitingForReconnection(userId: string, socketId: string): boolean {
+        return this.findNotConnectedPlayer(userId)?.player.disconnectedSocketId === socketId;
     }
 
     public isConnected(userId: string, socketId: string): boolean {
@@ -209,13 +243,19 @@ export class QueueHandler {
             for (const [_queueKey, queue] of this.iterateQueues()) {
                 for (const player of queue) {
                     if (player.socket) {
-                        player.socket.send('queueHeartbeat', this.scheduler.now());
+                        this.sendPlayerHeartbeat(player);
                     }
                 }
             }
         } catch (error) {
             logger.error(`QueueHandler: Error sending heartbeat: ${error}`);
         }
+    }
+
+    private sendPlayerHeartbeat(player: QueuedPlayer) {
+        Contract.assertNotNullLike(player.socket);
+        const serverTime = this.scheduler.now();
+        player.socket.send('queueHeartbeat', serverTime, getQueueMatchmakingStatus(player, this.preferencePolicy, serverTime));
     }
 
     private findPlayerInQueue(userId: string): QueuedPlayerEntry | null {
@@ -244,9 +284,47 @@ export class QueueHandler {
             return null;
         }
 
-        return this.findMatchInQueue(queue, [
-            MatchmakingRule.rematchCooldown(QueueHandler.COOLDOWN_INTERVAL_SECONDS, this.scheduler, this.config.enforceRematchCooldown)
-        ]);
+        return this.findMatchInQueue(queue, this.getMatchmakingRules());
+    }
+
+    public getNextMatchAvailableAt(format: IQueueFormatKey): number | null {
+        const queue = this.getQueueByFormat(format);
+        if (!queue || queue.length < 2) {
+            return null;
+        }
+
+        const rules = this.getMatchmakingRules();
+        let nextMatchAvailableAt: number | null = null;
+
+        for (let i = 0; i < queue.length; i++) {
+            const player1 = this.buildMatchmakingPlayerEntry(queue[i]);
+            for (let j = i + 1; j < queue.length; j++) {
+                const player2 = this.buildMatchmakingPlayerEntry(queue[j]);
+                const availableAt = Math.max(...rules.map((rule) => rule.getMatchAvailableAt(player1, player2)));
+                nextMatchAvailableAt = nextMatchAvailableAt === null ? availableAt : Math.min(nextMatchAvailableAt, availableAt);
+            }
+        }
+
+        return nextMatchAvailableAt;
+    }
+
+    private getMatchmakingRules(): IMatchmakingRule[] {
+        return [
+            MatchmakingRule.rematchCooldown(QueueHandler.COOLDOWN_INTERVAL_SECONDS, this.scheduler, this.config.enforceRematchCooldown),
+            MatchmakingRule.preference(this.preferencePolicy, this.scheduler),
+        ];
+    }
+
+    private buildMatchmakingPlayerEntry(player: QueuedPlayer): IMatchmakingPlayerEntry {
+        return { player, previousMatch: this.playerPreviousMatch.get(player.user.getId()) };
+    }
+
+    private getOpponentPreferenceRank(player: QueuedPlayer, opponent: QueuedPlayer): number {
+        if (player.matchmakingPreference === MatchmakingPreference.NoPreference || player.matchmakingPreference === opponent.matchmakingPreference) {
+            return 0;
+        }
+
+        return opponent.matchmakingPreference === MatchmakingPreference.NoPreference ? 1 : 2;
     }
 
     /**
@@ -257,23 +335,39 @@ export class QueueHandler {
      * @returns A tuple of the matched players, or null if no match is found
      */
     private findMatchInQueue(queue: QueuedPlayer[], rules: IMatchmakingRule[]): [QueuedPlayer, QueuedPlayer] | null {
-        for (let i = 0; i < queue.length; i++) {
-            for (let j = i + 1; j < queue.length; j++) {
-                const player1 = queue[i];
-                const player2 = queue[j];
-                const p1Entry: IMatchmakingPlayerEntry = { player: player1, previousMatch: this.playerPreviousMatch.get(player1.user.getId()) };
-                const p2Entry: IMatchmakingPlayerEntry = { player: player2, previousMatch: this.playerPreviousMatch.get(player2.user.getId()) };
+        const playersBySearchAge = [...queue].sort((player1, player2) =>
+            getMatchmakingSearchContext(player1).searchStartedAt - getMatchmakingSearchContext(player2).searchStartedAt
+        );
 
-                const canMatch = rules.every((rule) => rule.canMatch(p1Entry, p2Entry));
+        for (let i = 0; i < playersBySearchAge.length; i++) {
+            const player1 = playersBySearchAge[i];
+            const p1Entry = this.buildMatchmakingPlayerEntry(player1);
+            let bestOpponent: QueuedPlayer | null = null;
+            let bestRank = 3;
 
-                if (canMatch) {
-                    // Remove matched players from the queue
-                    queue.splice(j, 1);
-                    queue.splice(i, 1);
-                    return [player1, player2];
+            for (let j = i + 1; j < playersBySearchAge.length; j++) {
+                const player2 = playersBySearchAge[j];
+                const rank = this.getOpponentPreferenceRank(player1, player2);
+                if (rank >= bestRank) {
+                    continue;
                 }
 
-                logger.info(`QueueHandler: Players ${player1.user.getId()} and ${player2.user.getId()} cannot match due to matchmaking rules`);
+                const p2Entry = this.buildMatchmakingPlayerEntry(player2);
+                if (rules.every((rule) => rule.canMatch(p1Entry, p2Entry))) {
+                    bestOpponent = player2;
+                    bestRank = rank;
+                    if (rank === 0) {
+                        break;
+                    }
+                } else {
+                    logger.info(`QueueHandler: Players ${player1.user.getId()} and ${player2.user.getId()} cannot match due to matchmaking rules`);
+                }
+            }
+
+            if (bestOpponent) {
+                queue.splice(queue.indexOf(bestOpponent), 1);
+                queue.splice(queue.indexOf(player1), 1);
+                return [player1, bestOpponent];
             }
         }
 

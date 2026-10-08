@@ -34,6 +34,7 @@ import { DeckFetchError } from '../utils/deck/DeckFetchError';
 import { DeckLinkResolver } from '../utils/deck/DeckLinkResolver';
 import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
+import { getMatchmakingSearchContext } from './MatchmakingRules';
 import { Helpers } from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
@@ -59,12 +60,13 @@ import {
 } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
-import { CardPool, SwuGameFormat } from '../game/core/Constants';
+import { CardPool, MatchmakingPreference, SwuGameFormat } from '../game/core/Constants';
 import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 import { ModActionService } from '../utils/ModActionService';
 import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema, ServerSettingsUpdateSchema } from '../services/DynamoDBInterfaceSchemas';
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
+import { minimumSchedulerDelayMs } from '../utils/IScheduler';
 import { RealScheduler } from '../utils/RealScheduler';
 import type { IGameNodeConfig } from './GameNodeConfig';
 import { buildGameNodeConfigFromEnvironment } from './GameNodeConfig';
@@ -226,6 +228,9 @@ export class GameServer {
     private loopDelayHistogram: IntervalHistogram;
     private lastLoopUtilization: EventLoopUtilization;
     private matchmakingRetryTask?: IScheduledTask;
+    private matchmakingInProgress = false;
+    private matchmakingRequested = false;
+    private shuttingDown = false;
     private gcStats = {
         totalDuration: 0,
         scavengeCount: 0,
@@ -1608,7 +1613,7 @@ export class GameServer {
                     return this.sendGamesDisabledResponse(res);
                 }
 
-                const { format, cardPool, gamesToWinMode, deck, swudbLink } = req.body;
+                const { format, cardPool, gamesToWinMode, deck, swudbLink, matchmakingPreference = MatchmakingPreference.NoPreference } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1636,6 +1641,11 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid card pool '${cardPool}'` });
                 }
 
+                if (!EnumHelpers.isEnumValue(matchmakingPreference, MatchmakingPreference)) {
+                    logger.error(`GameServer (enter-queue): Invalid matchmaking preference parameter ${matchmakingPreference}`);
+                    return res.status(400).json({ success: false, message: `Invalid matchmaking preference '${matchmakingPreference}'` });
+                }
+
                 // Check Bo3 access restrictions for anonymous users (queue is always public)
                 const bo3AccessError = this.validateBo3Access(user, gamesToWinMode, false, 'queue for a best of three match');
                 if (bo3AccessError) {
@@ -1649,7 +1659,7 @@ export class GameServer {
                 }
 
                 await this.processDeckValidation(resolvedDeck, false, { format, cardPool }, res, () => {
-                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, resolvedDeck);
+                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, resolvedDeck, matchmakingPreference);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(500).json({ success: false, message: 'Failed to enter queue' });
@@ -2489,7 +2499,13 @@ export class GameServer {
             if (lobby.matchmakingType === MatchmakingType.Quick) {
                 if (!socket.eventContainsListener('requeue')) {
                     const lobbyUser = lobby.users.find((u) => u.id === user.getId());
-                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.queueFormatKey, user, lobbyUser?.deck?.originalDeckList));
+                    socket.registerEvent('requeue', () => this.requeueUser(
+                        socket,
+                        lobby.queueFormatKey,
+                        user,
+                        lobbyUser?.deck?.originalDeckList,
+                        lobbyUser?.matchmakingSearchContext?.preference
+                    ));
                 }
             }
 
@@ -2585,7 +2601,8 @@ export class GameServer {
         cardPool: CardPool,
         gamesToWinMode: GamesToWinMode,
         user: User,
-        deck: ISwuDbFormatDecklist
+        deck: ISwuDbFormatDecklist,
+        matchmakingPreference: MatchmakingPreference
     ): boolean {
         const formatKey: IQueueFormatKey = {
             format,
@@ -2598,6 +2615,7 @@ export class GameServer {
             {
                 user,
                 deck,
+                matchmakingPreference,
                 socket: null
             }
         );
@@ -2606,6 +2624,27 @@ export class GameServer {
     }
 
     private async matchmakeAllQueuesAsync(): Promise<void> {
+        if (this.shuttingDown) {
+            return;
+        }
+
+        if (this.matchmakingInProgress) {
+            this.matchmakingRequested = true;
+            return;
+        }
+
+        this.matchmakingInProgress = true;
+        try {
+            do {
+                this.matchmakingRequested = false;
+                await this.matchmakeReadyQueuesAsync();
+            } while (this.matchmakingRequested && !this.shuttingDown);
+        } finally {
+            this.matchmakingInProgress = false;
+        }
+    }
+
+    private async matchmakeReadyQueuesAsync(): Promise<void> {
         // If there's a pending timer-based matchmaking task, clear it out
         if (this.matchmakingRetryTask) {
             this.matchmakingRetryTask.cancel();
@@ -2613,13 +2652,13 @@ export class GameServer {
         }
 
         const formatsWithMatches = this.queue.findReadyFormats();
-        let needsTimedRetry = false;
+        const formatsNeedingRetry: IQueueFormatKey[] = [];
 
         for (const format of formatsWithMatches) {
             // track exceptions to avoid getting stuck in a loop
             let exceptionCount = 0;
 
-            while (true) {
+            while (!this.shuttingDown) {
                 let matchedPlayers: [QueuedPlayer, QueuedPlayer];
 
                 // try-catch here so that all matchmaking doesn't halt on a single failure
@@ -2627,8 +2666,7 @@ export class GameServer {
                     matchedPlayers = this.queue.getNextMatchPair(format);
 
                     if (!matchedPlayers) {
-                        // If matchmaking failed to find a pair, flag that we need a timed retry
-                        needsTimedRetry = true;
+                        formatsNeedingRetry.push(format);
                         break;
                     }
 
@@ -2650,10 +2688,14 @@ export class GameServer {
             }
         }
 
-        if (needsTimedRetry) {
+        const retryTimes = formatsNeedingRetry
+            .map((format) => this.queue.getNextMatchAvailableAt(format))
+            .filter((availableAt): availableAt is number => availableAt !== null);
+        if (!this.shuttingDown && retryTimes.length > 0) {
+            const delayMs = Math.max(minimumSchedulerDelayMs, Math.min(...retryTimes) - this.scheduler.now());
             this.matchmakingRetryTask = this.scheduler.setTimeout(
                 () => this.matchmakeAllQueuesAsync(),
-                QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000,
+                delayMs,
                 { message: 'GameServer: Error in scheduled matchmaking retry' }
             );
         }
@@ -2684,8 +2726,8 @@ export class GameServer {
         this.lobbies.set(lobby.id, lobby);
 
         // Create the 2 lobby users
-        lobby.createLobbyUser(p1.user, p1.deck);
-        lobby.createLobbyUser(p2.user, p2.deck);
+        lobby.createLobbyUser(p1.user, p1.deck, getMatchmakingSearchContext(p1));
+        lobby.createLobbyUser(p2.user, p2.deck, getMatchmakingSearchContext(p2));
 
         // Save user => lobby mapping
         this.userLobbyMap.set(p1.user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
@@ -2711,9 +2753,9 @@ export class GameServer {
         }
 
         await lobby.addLobbyUserAsync(player.user, socket);
-        socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket.socket, player));
+        socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket, player));
         if (!socket.eventContainsListener('requeue')) {
-            socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck));
+            socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck, player.matchmakingPreference));
         }
 
         return Promise.resolve();
@@ -2721,8 +2763,16 @@ export class GameServer {
 
     /**
      * requeues the user and removes them from the previous lobby. If the lobby is empty, it cleans it up.
+     * Passing searchStartedAt resumes a failed search; omitting it starts a new search.
      */
-    public requeueUser(socket: Socket, format: IQueueFormatKey, user: User, deck: ISwuDbFormatDecklist) {
+    public requeueUser(
+        socket: Socket,
+        format: IQueueFormatKey,
+        user: User,
+        deck: ISwuDbFormatDecklist,
+        matchmakingPreference = MatchmakingPreference.NoPreference,
+        searchStartedAt?: number
+    ) {
         try {
             // Gated here rather than on the 'requeue' socket event, since this is also reached by
             // the automatic requeue paths in Lobby (e.g. when a matched opponent disconnects).
@@ -2748,9 +2798,9 @@ export class GameServer {
             }
 
             // add user to queue
-            this.queue.addPlayer(format, { user, deck, socket });
+            this.queue.addPlayer(format, { user, deck, socket, matchmakingPreference, searchStartedAt });
 
-            this.matchmakeAllQueuesAsync();
+            this.matchmakeAllQueuesAsync().catch((err) => logger.error('GameServer: Error matchmaking requeued user:', err));
         } catch (err) {
             logger.error('GameServer: Error in requeueUser:', err);
         }
@@ -2784,6 +2834,7 @@ export class GameServer {
      * listener. Tests call this in teardown so the process is left with nothing keeping it alive.
      */
     public async shutdownAsync(): Promise<void> {
+        this.shuttingDown = true;
         for (const task of this.backgroundTasks) {
             task.cancel();
         }
@@ -2830,6 +2881,10 @@ export class GameServer {
         timeoutSeconds = 20,
         isMatchmaking = false
     ) {
+        if (this.shuttingDown) {
+            return;
+        }
+
         try {
             if (!!socket?.data?.forceDisconnect) {
                 return;
@@ -2857,7 +2912,7 @@ export class GameServer {
             const timeoutValue = timeoutSeconds * 1000;
 
             this.scheduler.setTimeout(() => {
-                if (isMatchmaking && !this.queue.isConnected(id, socket.id)) {
+                if (isMatchmaking && this.queue.isWaitingForReconnection(id, socket.id)) {
                     this.queue.removePlayer(id, `Timeout disconnect on socket id ${socket.id}`);
                 }
 

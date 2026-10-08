@@ -1,5 +1,15 @@
+export interface IMatchmakingPreferencePolicy {
+    samePreferenceOnlyDurationMs: number;
+    noPreferenceDurationMs: number;
+}
+
+export const defaultMatchmakingPreferencePolicy: Readonly<IMatchmakingPreferencePolicy> = {
+    samePreferenceOnlyDurationMs: 15_000,
+    noPreferenceDurationMs: 15_000,
+};
+
 /**
- * Behavioural switches for the game node.
+ * Behavioural configuration for the game node.
  *
  * These were previously read from `process.env.ENVIRONMENT` at each use site, which made them
  * invisible to callers and impossible to exercise: a test process has to run as `development` to
@@ -19,6 +29,9 @@ export interface IGameNodeConfig {
 
     /** Whether the cooldown that stops two players immediately rematching is applied. */
     enforceRematchCooldown: boolean;
+
+    /** Preference search windows; omitted policies use defaultMatchmakingPreferencePolicy. */
+    matchmakingPreferencePolicy?: Readonly<IMatchmakingPreferencePolicy>;
 
     /** Whether public and quick-match games use action timers. */
     actionTimersEnabled: boolean;
@@ -42,6 +55,7 @@ export function buildGameNodeConfigFromEnvironment(): IGameNodeConfig {
         allowAnonymousSpectators: isDevelopment,
         allowAnonymousBestOfThree: isDevelopment && process.env.FORCE_BLOCK_BO3_ANON_LOCAL !== 'true',
         enforceRematchCooldown: !isDevelopment,
+        matchmakingPreferencePolicy: { ...defaultMatchmakingPreferencePolicy },
         actionTimersEnabled: !isDevelopment || process.env.USE_LOCAL_ACTION_TIMER === 'true',
         clientBaseUrl: isDevelopment ? 'http://localhost:3000' : 'https://karabast.net',
         metricsLoggingEnabled: !isDevelopment || process.env.FORCE_ENABLE_STATS_LOGGING === 'true',
