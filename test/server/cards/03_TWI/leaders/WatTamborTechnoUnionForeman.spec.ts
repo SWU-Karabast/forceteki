@@ -118,5 +118,38 @@ describe('Wat Tambor, Techno Union Foreman', function () {
                 expect(context.battlefieldMarine.getHp()).toBe(3);
             });
         });
+
+        it('Wat Tambor\'s leader undeployed ability should count an enemy unit taken and defeated with No Glory, Only Results as a friendly unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'wat-tambor#techno-union-foreman',
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // player1 takes control of Wampa and defeats it, so it was a friendly unit when it was defeated
+            context.player1.clickCard(context.noGloryOnlyResults);
+            context.player1.clickCard(context.wampa);
+            expect(context.wampa).toBeInZone('discard', context.player2);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.watTambor);
+            context.player1.clickPrompt('If a friendly unit was defeated this phase, give a unit +2/+2 for this phase');
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine.getPower()).toBe(5);
+            expect(context.battlefieldMarine.getHp()).toBe(5);
+            expect(context.watTambor.exhausted).toBeTrue();
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

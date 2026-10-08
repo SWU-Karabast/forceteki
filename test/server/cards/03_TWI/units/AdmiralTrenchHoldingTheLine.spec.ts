@@ -1,93 +1,128 @@
 describe('Admiral Trench, Holding the Line', function () {
     integration(function (contextRef) {
-        beforeEach(async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    hand: ['superlaser-blast', 'pillage'],
-                    groundArena: ['wampa'],
-                },
-                player2: {
-                    hand: ['admiral-trench#holding-the-line', 'the-emperors-legion', 'death-star-stormtrooper'],
-                    groundArena: ['first-legion-snowtrooper', 'maul#shadow-collective-visionary', { card: 'fifth-brother#fear-hunter', upgrades: ['fallen-lightsaber'] }],
-                    spaceArena: ['imperial-interceptor'],
-                    discard: ['open-fire', 'ruthless-raider']
-                }
+        describe('Admiral Trench\'s ability', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['superlaser-blast', 'pillage'],
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        hand: ['admiral-trench#holding-the-line', 'the-emperors-legion', 'death-star-stormtrooper'],
+                        groundArena: ['first-legion-snowtrooper', 'maul#shadow-collective-visionary', { card: 'fifth-brother#fear-hunter', upgrades: ['fallen-lightsaber'] }],
+                        spaceArena: ['imperial-interceptor'],
+                        discard: ['open-fire', 'ruthless-raider']
+                    }
+                });
+            });
+
+            it('should return up to 3 units defeated this phase to player hand from a discard pile', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.superlaserBlast);
+                expect(context.player2).toBeActivePlayer();
+
+                context.player2.clickCard(context.admiralTrenchHoldingTheLine);
+                expect(context.player2).toHavePrompt('Return up to 3 units that were defeated this phase from your discard pile to your hand.');
+                expect(context.player2).toBeAbleToSelectExactly([context.firstLegionSnowtrooper, context.maul, context.fifthBrother, context.imperialInterceptor]);
+                expect(context.player2).toHaveEnabledPromptButtons(['Done', 'Choose nothing']);
+
+                context.player2.clickCard(context.firstLegionSnowtrooper);
+                context.player2.clickCard(context.maul);
+                context.player2.clickCard(context.fifthBrother);
+                context.player2.clickCardNonChecking(context.imperialInterceptor);
+                context.player2.clickDone();
+
+                expect(context.player2.hand).toContain(context.firstLegionSnowtrooper);
+                expect(context.player2.hand).toContain(context.maul);
+                expect(context.player2.hand).toContain(context.fifthBrother);
+                expect(context.player2.hand).not.toContain(context.imperialInterceptor);
+                expect(context.imperialInterceptor).toBeInZone('discard', context.player2);
+            });
+
+            it('should return exploited unit since it was defeated this phase', function () {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.admiralTrenchHoldingTheLine);
+                context.player2.clickPrompt('Trigger exploit');
+
+                expect(context.player2).toHavePrompt('Select a unit to exploit');
+
+                context.player2.clickCard(context.firstLegionSnowtrooper);
+                context.player2.clickDone();
+
+                expect(context.player2).toHavePrompt('Return up to 3 units that were defeated this phase from your discard pile to your hand.');
+                expect(context.player2).toBeAbleToSelectExactly([context.firstLegionSnowtrooper]);
+                expect(context.player2).toHaveEnabledPromptButtons(['Done', 'Choose nothing']);
+
+                context.player2.clickCard(context.firstLegionSnowtrooper);
+                context.player2.clickDone();
+
+                expect(context.player2.hand).toContain(context.firstLegionSnowtrooper);
+            });
+
+            it('should not return that was defeated this phase if it become a new copy of a unit', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.firstLegionSnowtrooper);
+
+                expect(context.firstLegionSnowtrooper).toBeInZone('discard', context.player2);
+
+                context.player2.clickCard(context.theEmperorsLegion);
+
+                expect(context.player2.hand).toContain(context.firstLegionSnowtrooper);
+
+                context.player1.clickCard(context.pillage);
+                context.player1.clickPrompt('Opponent discards');
+                context.player2.clickCard(context.deathStarStormtrooper);
+                context.player2.clickCard(context.firstLegionSnowtrooper);
+                context.player2.clickDone();
+
+                expect(context.deathStarStormtrooper).toBeInZone('discard', context.player2);
+                expect(context.firstLegionSnowtrooper).toBeInZone('discard', context.player2);
+
+                context.player2.clickCard(context.admiralTrenchHoldingTheLine);
+                context.player2.clickPrompt('Play without Exploit');
+
+                // Should not be able to return any cards since First Legion Snowtrooper is a new copy and was not defeated this phase
+                expect(context.player1).toBeActivePlayer();
             });
         });
 
-        it('should return up to 3 units defeated this phase to player hand from a discard pile', function () {
+        it('should return a unit that was taken and defeated with No Glory, Only Results to its owner\'s hand', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['no-glory-only-results']
+                },
+                player2: {
+                    hand: ['admiral-trench#holding-the-line'],
+                    groundArena: ['wampa'],
+                    discard: ['battlefield-marine']
+                }
+            });
+
             const { context } = contextRef;
 
-            context.player1.clickCard(context.superlaserBlast);
-            expect(context.player2).toBeActivePlayer();
-
-            context.player2.clickCard(context.admiralTrenchHoldingTheLine);
-            expect(context.player2).toHavePrompt('Return up to 3 units that were defeated this phase from your discard pile to your hand.');
-            expect(context.player2).toBeAbleToSelectExactly([context.firstLegionSnowtrooper, context.maul, context.fifthBrother, context.imperialInterceptor]);
-            expect(context.player2).toHaveEnabledPromptButtons(['Done', 'Choose nothing']);
-
-            context.player2.clickCard(context.firstLegionSnowtrooper);
-            context.player2.clickCard(context.maul);
-            context.player2.clickCard(context.fifthBrother);
-            context.player2.clickCardNonChecking(context.imperialInterceptor);
-            context.player2.clickDone();
-
-            expect(context.player2.hand).toContain(context.firstLegionSnowtrooper);
-            expect(context.player2.hand).toContain(context.maul);
-            expect(context.player2.hand).toContain(context.fifthBrother);
-            expect(context.player2.hand).not.toContain(context.imperialInterceptor);
-            expect(context.imperialInterceptor).toBeInZone('discard', context.player2);
-        });
-
-        it('should return exploited unit since it was defeated this phase', function () {
-            const { context } = contextRef;
-
-            context.player1.passAction();
-
-            context.player2.clickCard(context.admiralTrenchHoldingTheLine);
-            context.player2.clickPrompt('Trigger exploit');
-
-            expect(context.player2).toHavePrompt('Select a unit to exploit');
-
-            context.player2.clickCard(context.firstLegionSnowtrooper);
-            context.player2.clickDone();
-
-            expect(context.player2).toHavePrompt('Return up to 3 units that were defeated this phase from your discard pile to your hand.');
-            expect(context.player2).toBeAbleToSelectExactly([context.firstLegionSnowtrooper]);
-            expect(context.player2).toHaveEnabledPromptButtons(['Done', 'Choose nothing']);
-
-            context.player2.clickCard(context.firstLegionSnowtrooper);
-            context.player2.clickDone();
-
-            expect(context.player2.hand).toContain(context.firstLegionSnowtrooper);
-        });
-
-        it('should not return that was defeated this phase if it become a new copy of a unit', function () {
-            const { context } = contextRef;
-
+            // player1 takes control of Wampa and defeats it, it goes to its owner's discard pile
+            context.player1.clickCard(context.noGloryOnlyResults);
             context.player1.clickCard(context.wampa);
-            context.player1.clickCard(context.firstLegionSnowtrooper);
+            expect(context.wampa).toBeInZone('discard', context.player2);
 
-            expect(context.firstLegionSnowtrooper).toBeInZone('discard', context.player2);
+            // Wampa was defeated this phase and is in player2's discard pile, so Admiral Trench can return it
+            context.player2.clickCard(context.admiralTrenchHoldingTheLine);
+            expect(context.player2).toHavePrompt('Return up to 3 units that were defeated this phase from your discard pile to your hand.');
+            expect(context.player2).toBeAbleToSelectExactly([context.wampa]);
 
-            context.player2.clickCard(context.theEmperorsLegion);
-
-            expect(context.player2.hand).toContain(context.firstLegionSnowtrooper);
-
-            context.player1.clickCard(context.pillage);
-            context.player1.clickPrompt('Opponent discards');
-            context.player2.clickCard(context.deathStarStormtrooper);
-            context.player2.clickCard(context.firstLegionSnowtrooper);
+            context.player2.clickCard(context.wampa);
             context.player2.clickDone();
 
-            expect(context.deathStarStormtrooper).toBeInZone('discard', context.player2);
-            expect(context.firstLegionSnowtrooper).toBeInZone('discard', context.player2);
-
-            context.player2.clickCard(context.admiralTrenchHoldingTheLine);
-            context.player2.clickPrompt('Play without Exploit');
-
-            // Should not be able to return any cards since First Legion Snowtrooper is a new copy and was not defeated this phase
+            expect(context.wampa).toBeInZone('hand', context.player2);
+            expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
             expect(context.player1).toBeActivePlayer();
         });
     });
