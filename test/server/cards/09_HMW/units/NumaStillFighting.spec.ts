@@ -160,4 +160,53 @@ describe('Numa, Still Fighting', function() {
             });
         });
     });
+
+    integration(function(contextRef) {
+        it('should prevent 1 of the excess damage dealt by Blizzard Assault AT-AT', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['blizzard-assault-atat']
+                },
+                player2: {
+                    groundArena: ['wampa', 'numa#still-fighting']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Blizzard Assault AT-AT deals 9 damage to Wampa, 4 of it is excess damage
+            context.player1.clickCard(context.blizzardAssaultAtat);
+            context.player1.clickCard(context.wampa);
+            expect(context.wampa).toBeInZone('discard');
+
+            context.player1.clickCard(context.numa);
+
+            expect(context.numa.damage).toBe(3);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should still credit the reduced excess damage to Blizzard Assault AT-AT\'s controller', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['blizzard-assault-atat']
+                },
+                player2: {
+                    groundArena: ['wampa', { card: 'numa#still-fighting', damage: 1 }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.blizzardAssaultAtat);
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.numa);
+
+            // 4 excess damage, 1 prevented, defeats Numa with 1 damage already on her
+            expect(context.numa).toBeInZone('discard');
+            expect(context.getChatLogs(1)[0]).toContain('Numa is defeated by player1');
+            expect(context.player2).toBeActivePlayer();
+        });
+    });
 });
