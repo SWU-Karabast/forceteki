@@ -51,7 +51,8 @@ import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import { RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 import type { IActiveModActionCacheEntry,
     IDeckDataEntity,
-    IModerationAction } from '../services/DynamoDBInterfaces';
+    IModerationAction,
+    IReportingDisabledState } from '../services/DynamoDBInterfaces';
 import { ModActionType } from '../services/DynamoDBInterfaces';
 import {
     ModerationType,
@@ -321,6 +322,19 @@ export class GameServer {
      */
     protected readonly httpServer: http.Server;
 
+    /**
+     * Moderation state lives in the mod action cache; if it is missing we cannot evaluate restrictions
+     * at all. Callers degrade to "unrestricted", so log loudly to make a misconfiguration visible
+     * rather than silently permissive.
+     */
+    private getModActionService(context: string): ModActionService | null {
+        if (!this.modActionService) {
+            logger.error(`GameServer (${context}): mod action service unavailable, moderation state cannot be evaluated`);
+            return null;
+        }
+        return this.modActionService;
+    }
+
     protected constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
@@ -545,10 +559,19 @@ export class GameServer {
                 // Start with legacy values (backwards compatibility)
                 let moderation = user.getModeration();
                 let needsUsernameChange = user.needsUsernameChange();
+                let reportingDisabled: IReportingDisabledState | null = null;
 
-                if (user.isAuthenticatedUser()) {
+                const modActionService = this.getModActionService('get-user');
+                if (user.isAuthenticatedUser() && modActionService) {
                     const userId = user.getId();
-                    const activeActions = this.modActionService.getActiveActionsForPlayer(userId);
+                    const activeActions = modActionService.getActiveActionsForPlayer(userId);
+
+                    const reportingDisabledActionId = modActionService.getActiveReportingDisabledActionId(userId);
+                    if (reportingDisabledActionId) {
+                        reportingDisabled = {
+                            hasSeen: user.reportingDisabledSeenActionId() === reportingDisabledActionId,
+                        };
+                    }
 
                     if (activeActions) {
                         if (activeActions.some((action) => action.actionType === ModActionType.Rename)) {
@@ -562,7 +585,7 @@ export class GameServer {
                             if (muteEntry) {
                                 // Pending mute — activate it (sets startedAt + expiresAt)
                                 if (!muteEntry.startedAt) {
-                                    const activated = await this.modActionService.activatePendingMuteAsync(userId);
+                                    const activated = await modActionService.activatePendingMuteAsync(userId);
                                     moderation = this.buildModerationFromCacheEntry(activated, false);
                                 } else if (muteEntry.expiresAt) {
                                     // Already active — just build the moderation object
@@ -584,7 +607,7 @@ export class GameServer {
                         ? this.cosmeticsService.resolveActiveCosmetics(user.getPreferences()?.cosmetics)
                         : CosmeticsService.resolveDefaultCosmetics(user.getPreferences()?.cosmetics),
                     mustRequestUsernameChange: user.mustRequestUsernameChange(),
-                    reportingDisabled: user.reportingDisabled(),
+                    reportingDisabled,
                     needsUsernameChange,
                     moderation
                 } });
@@ -804,13 +827,14 @@ export class GameServer {
                 }
 
                 // Call the changeUsername method
-                const activeRename = this.modActionService?.playerActiveRename(user.getId()) ?? null;
+                const modActionService = this.getModActionService('change-username');
+                const activeRename = modActionService?.playerActiveRename(user.getId()) ?? null;
                 const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername, {
                     source: activeRename ? UsernameChangeSource.ForcedRename : UsernameChangeSource.UserInitiated,
                     relatedModActionId: activeRename?.modActionId,
                 });
                 if (result.success) {
-                    await this.modActionService.onRenameCompleted(user.getId());
+                    await modActionService?.onRenameCompleted(user.getId());
                     return res.status(200).json({
                         succeess: true,
                         message: 'Username successfully changed',
@@ -888,10 +912,23 @@ export class GameServer {
                     });
                 }
 
-                const result = await this.userFactory.setReportingDisabledSeenAsync(user.getId());
+                const modActionService = this.getModActionService('set-reporting-disabled-seen');
+                if (!modActionService) {
+                    return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
+                }
+
+                const modActionId = modActionService.getActiveReportingDisabledActionId(user.getId());
+                if (!modActionId) {
+                    return res.status(200).json({
+                        success: true,
+                        message: 'No active reporting-disabled restriction to acknowledge'
+                    });
+                }
+
+                await this.userFactory.setReportingDisabledSeenAsync(user.getId(), modActionId);
 
                 return res.status(200).json({
-                    success: result,
+                    success: true,
                     message: 'Reporting-disabled seen status updated'
                 });
             } catch (err) {
@@ -1809,13 +1846,15 @@ export class GameServer {
                     });
                 }
 
+                const modActionService = this.getModActionService('mod-find-user');
                 const players = profiles.map((profile) => ({
                     id: profile.id,
                     username: profile.username,
                     createdAt: profile.createdAt,
                     lastLogin: profile.lastLogin,
-                    isMuted: this.modActionService?.isPlayerMuted(profile.id) ?? false,
-                    activeRename: this.modActionService?.playerActiveRename(profile.id) ?? null,
+                    isMuted: modActionService?.isPlayerMuted(profile.id) ?? false,
+                    activeRename: modActionService?.playerActiveRename(profile.id) ?? null,
+                    activeReportingDisabledId: modActionService?.getActiveReportingDisabledActionId(profile.id) ?? null,
                 }));
 
                 // If single match, include mod actions directly
@@ -1855,12 +1894,13 @@ export class GameServer {
                 const moderatorId = req.user.getId();
                 const moderatorUsername = req.user.getUsername();
 
-                if (!this.modActionService) {
+                const modActionService = this.getModActionService('mod-submit-action');
+                if (!modActionService) {
                     return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
                 }
 
                 // Write-through to cache
-                const modActionResult = await this.modActionService.onActionSubmitted(
+                const modActionResult = await modActionService.onActionSubmitted(
                     playerId,
                     actionType,
                     moderatorId,
@@ -1893,10 +1933,14 @@ export class GameServer {
                 const { modActionId, playerId } = parseResult.data;
                 const cancelledById = req.user.getId();
                 const cancelledByUsername = req.user.getUsername();
-                // Write-through to cache
-                if (this.modActionService) {
-                    await this.modActionService.onActionCancelled(playerId, modActionId, cancelledById, cancelledByUsername);
+
+                const modActionService = this.getModActionService('mod-cancel-action');
+                if (!modActionService) {
+                    return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
                 }
+
+                // Write-through to cache
+                await modActionService.onActionCancelled(playerId, modActionId, cancelledById, cancelledByUsername);
 
                 return res.status(200).json({
                     success: true,

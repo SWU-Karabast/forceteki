@@ -2423,6 +2423,25 @@ export class Lobby {
         const resultEvent = reportType === ReportType.BugReport ? 'bugReportResult' : 'playerReportResult';
         const reportLabel = reportType === ReportType.BugReport ? 'bug report' : 'player report';
 
+        const modActionService = this.server.modActionService;
+        if (!modActionService) {
+            logger.error('Lobby (submitReport): mod action service unavailable, allowing report without checking restrictions', {
+                lobbyId: this.id,
+                userId: socket.user.getId(),
+            });
+        } else if (modActionService.isReportingDisabled(socket.user.getId())) {
+            logger.info(`Lobby (submitReport): Blocked ${reportLabel} from ${socket.user.getId()}, reporting is disabled`, {
+                lobbyId: this.id,
+                userId: socket.user.getId(),
+            });
+            socket.send(resultEvent, {
+                id: uuid(),
+                success: false,
+                message: 'Reporting has been disabled for your account'
+            });
+            return;
+        }
+
         try {
             let parsedDescription = '';
             let screenResolution = null;
