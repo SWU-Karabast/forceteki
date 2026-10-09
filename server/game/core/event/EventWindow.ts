@@ -53,6 +53,10 @@ export class EventWindow extends BaseStepWithPipeline {
         return this._subwindowEventHandlingMode;
     }
 
+    public get parentEventWindow(): EventWindow | null {
+        return this.parentWindow;
+    }
+
     public get triggeredAbilityWindow() {
         if (this.triggerHandlingMode === TriggerHandlingMode.CannotHaveTriggers) {
             Contract.fail(`Attempting to access triggered ability window for type(s) ${this} which cannot trigger abilities`);
