@@ -21,13 +21,13 @@ import {
     type IUserProfileDataEntity,
     type IUserPreferences,
     type IServerRoleUsersListsEntity,
-    type IServerSettingsEntity
+    type IServerSettingsEntity,
+    isTrackedModAction
 } from './DynamoDBInterfaces';
 import { z } from 'zod';
 import { IDeckDataEntitySchema, IDeckStatsEntitySchema, ModActionEntitySchema, UsernameChangeEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
 import { type ICosmeticEntity, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
-import { isTimedModAction } from '../game/core/utils/EnumHelpers';
 
 // global variable
 let dynamoDbService: DynamoDBService;
@@ -365,6 +365,18 @@ class DynamoDBService {
                 expressionAttributeValues
             );
         }, 'Error updating user profile');
+    }
+
+    public removeUserProfileAttributeAsync(userId: string, attributeName: keyof IUserProfileDataEntity) {
+        return this.executeDbOperationAsync(() => {
+            const command = new UpdateCommand({
+                TableName: this.tableName,
+                Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
+                UpdateExpression: 'REMOVE #attribute',
+                ExpressionAttributeNames: { '#attribute': attributeName }
+            });
+            return this.client.send(command);
+        }, 'Error removing user profile attribute');
     }
 
     /**
@@ -867,8 +879,7 @@ class DynamoDBService {
                 ...modAction,
             };
 
-            // Active action types (Mute, Rename) get indexed via the sparse GSI
-            if (isTimedModAction(modAction.actionType) && !modAction.cancelledAt) {
+            if (isTrackedModAction(modAction.actionType) && !modAction.cancelledAt) {
                 item.GSI_PK = 'ACTIVE_MODACTION';
             }
 

@@ -2298,15 +2298,14 @@ export class Lobby {
 
     public sendGameState(game: Game, forceSend = false): void {
         // we send the game state to all users and spectators
-        // if the message is ack'd, we set the user state to connected in case they were incorrectly marked as disconnected
         for (const user of this.users) {
             if (user.socket && (user.socket.socket.connected || forceSend)) {
-                user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
+                user.socket.send('gamestate', game.getState(user.id));
             }
         }
         for (const spectator of this.spectators) {
             if (spectator.socket && (spectator.socket.socket.connected || forceSend)) {
-                spectator.socket.send('gamestate', game.getState(spectator.id), () => this.safeSetUserConnected(spectator.id));
+                spectator.socket.send('gamestate', game.getState(spectator.id));
             }
         }
     }
@@ -2337,15 +2336,6 @@ export class Lobby {
             startIndex: safeStart,
             totalCount: totalCount
         });
-    }
-
-    private safeSetUserConnected(userId: string): void {
-        try {
-            const user = this.getUser(userId);
-            user.state = 'connected';
-        } catch (error) {
-            logger.error(`Lobby: error setting user ${userId} connected`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId });
-        }
     }
 
     public sendLobbyState(forceSend = false): void {
@@ -2451,6 +2441,25 @@ export class Lobby {
         const playerReportType = Object.values(PlayerReportType).includes(args[2]) ? args[2] as PlayerReportType : null;
         const resultEvent = reportType === ReportType.BugReport ? 'bugReportResult' : 'playerReportResult';
         const reportLabel = reportType === ReportType.BugReport ? 'bug report' : 'player report';
+
+        const modActionService = this.server.modActionService;
+        if (!modActionService) {
+            logger.error('Lobby (submitReport): mod action service unavailable, allowing report without checking restrictions', {
+                lobbyId: this.id,
+                userId: socket.user.getId(),
+            });
+        } else if (modActionService.isReportingDisabled(socket.user.getId())) {
+            logger.info(`Lobby (submitReport): Blocked ${reportLabel} from ${socket.user.getId()}, reporting is disabled`, {
+                lobbyId: this.id,
+                userId: socket.user.getId(),
+            });
+            socket.send(resultEvent, {
+                id: uuid(),
+                success: false,
+                message: 'Reporting has been disabled for your account'
+            });
+            return;
+        }
 
         try {
             let parsedDescription = '';
