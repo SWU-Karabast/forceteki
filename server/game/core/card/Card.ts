@@ -1450,14 +1450,6 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         return { ...state, ...selectionState };
     }
 
-    public getCardState(): any {
-        return {
-            internalName: this.internalName,
-            controllerId: this.controller.id,
-            type: this.type
-        };
-    }
-
     public override getShortSummary() {
         return {
             ...super.getShortSummary(),
@@ -1492,53 +1484,17 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     }
 
     /**
-     * Captures a card's state
-     * @returns A simplified card state representation
+     * Captures a card's state in the test setup format, e.g. for bug reports
+     * @returns The card's internal name if it has no other state, otherwise the full state. Upgrades return null since they are captured with their parent.
      */
     public captureCardState(): string | ISerializedCardState {
         try {
             if (this.isUpgrade()) {
                 return null;
             }
-            const currentCardState = this.getCardState();
-            if (this.isLeader() && !currentCardState.deployed) {
-                return { card: this.internalName, exhausted: this.exhausted };
-            }
-            // If the card is completely simple with no additional properties, just return its internal name
-            if (!currentCardState.damage &&
-              !currentCardState.upgrades &&
-              !currentCardState.exhausted &&
-              !currentCardState.capturedUnits) {
-                return currentCardState.internalName;
-            }
-            // Return a more detailed card state
-            const cardState: ISerializedCardState = {
-                card: currentCardState.internalName
-            };
 
-            // Add all available properties from ISerializedCardState
-            if (currentCardState.damage !== undefined) {
-                cardState.damage = currentCardState.damage;
-            }
-
-            if (currentCardState.exhausted !== undefined) {
-                cardState.exhausted = currentCardState.exhausted;
-            }
-
-            // Capture upgrades
-            if (currentCardState.upgrades && currentCardState.upgrades.length > 0) {
-                cardState.upgrades = currentCardState.upgrades.map((upgrade) => upgrade.internalName);
-            }
-
-            // Capture captured units if present
-            if (currentCardState.capturedUnits && currentCardState.capturedUnits.length > 0) {
-                cardState.capturedUnits = currentCardState.capturedUnits.map((unit) => unit.internalName);
-            }
-            // if leader unit then it is deployed
-            if (currentCardState.deployed) {
-                cardState.deployed = currentCardState.deployed;
-            }
-            return cardState;
+            const cardState = this.buildSerializedCardState();
+            return Object.keys(cardState).length === 1 ? cardState.card : cardState;
         } catch (error) {
             logger.error('Error capturing card state for bug report', {
                 error: { message: error.message, stack: error.stack },
@@ -1546,6 +1502,14 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
             });
             throw error;
         }
+    }
+
+    /**
+     * Builds the state captured by {@link captureCardState}. Each class that owns a piece of state
+     * adds it in an override, and only when it differs from the test setup default.
+     */
+    protected buildSerializedCardState(): ISerializedCardState {
+        return { card: this.internalName };
     }
 
     public override toString() {

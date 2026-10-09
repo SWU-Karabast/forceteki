@@ -13,7 +13,7 @@ import { WithPrintedPower } from './PrintedPower';
 import { EnumHelpers } from '../../utils/EnumHelpers';
 import type { Card } from '../Card';
 import { InitializeCardStateOption } from '../Card';
-import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, ITriggeredAbilityPropsWithGainCondition, IWhenAttackEndsAbilityProps, WhenTypeOrStandard } from '../../../Interfaces';
+import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ISerializedCardState, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, ITriggeredAbilityPropsWithGainCondition, IWhenAttackEndsAbilityProps, WhenTypeOrStandard } from '../../../Interfaces';
 import type { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
@@ -1198,14 +1198,17 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             };
         }
 
-        public override getCardState(): any {
+        protected override buildSerializedCardState(): ISerializedCardState {
+            const state = super.buildSerializedCardState();
             if (this.isInPlay()) {
-                return {
-                    ...super.getCardState(),
-                    upgrades: this.upgrades,
-                    capturedUnits: this.capturedUnits
-                };
+                if (this.upgrades.length > 0) {
+                    state.upgrades = this.upgrades.map((upgrade) => upgrade.internalName);
+                }
+                if (this.capturedUnits.length > 0) {
+                    state.capturedUnits = this.capturedUnits.map((unit) => unit.internalName);
+                }
             }
+            return state;
         }
 
         public override addOngoingEffect(ongoingEffect: OngoingCardEffect): void {

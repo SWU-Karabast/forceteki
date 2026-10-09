@@ -1,7 +1,7 @@
 import type { Player } from '../Player';
 import type { Aspect, Trait } from '../Constants';
 import { ZoneName } from '../Constants';
-import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ISerializedCardState, ITriggeredAbilityProps } from '../../Interfaces';
 import { WithLeaderProperties, type ILeaderCard } from './propertyMixins/LeaderProperties';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { WithAllAbilityTypes } from './propertyMixins/AllAbilityTypeRegistrations';
@@ -86,6 +86,14 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         // leaders are always in a zone where they are allowed to be exhausted
         this.setExhaustEnabled(true);
         this.resolveAbilitiesForNewZone();
+    }
+
+    protected override buildSerializedCardState(): ISerializedCardState {
+        const state = super.buildSerializedCardState();
+        if (!this.onStartingSide) {
+            state.flipped = true;
+        }
+        return state;
     }
 
     public override getSummary(activePlayer: Player, overrideHidden: boolean = false): string {
