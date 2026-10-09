@@ -1,5 +1,6 @@
 import type { IToken } from '../../../server/gamenode/GameServer';
-import { ServerTestHarness } from '../../helpers/server/ServerTestHarness';
+import { serverIntegration } from '../../helpers/server/ServerIntegrationHelper';
+import type { ServerTestHarness } from '../../helpers/server/ServerTestHarness';
 import { TestScheduler } from '../../helpers/server/TestScheduler';
 
 /**
@@ -12,92 +13,89 @@ import { TestScheduler } from '../../helpers/server/TestScheduler';
  * them.
  */
 describe('GameServer scheduling', function () {
-    let harness: ServerTestHarness;
-
-    beforeEach(async function () {
-        harness = await ServerTestHarness.createAsync();
-    });
-
-    afterEach(async function () {
-        await harness.shutdownAsync();
-    });
-
-    function buildToken(timeToLiveSeconds: number): IToken {
-        return {
-            accessToken: 'access',
-            refreshToken: 'refresh',
-            creationDateTime: new Date(),
-            timeToLiveSeconds,
-        };
-    }
-
-    it('keeps recurring background tasks registered rather than disabling them for tests', function () {
-        expect(harness.clock.pendingTaskCount).toBeGreaterThan(0);
-    });
-
-    it('does not let real time drive scheduled work', async function () {
-        const before = harness.clock.now();
-
-        // no clock advance, so nothing should come due no matter how many turns of the event loop pass
-        await harness.clock.settlePendingWorkAsync();
-
-        expect(harness.clock.now()).toBe(before);
-        expect(harness.clock.pendingTaskCount).toBeGreaterThan(0);
-    });
-
-    describe('the hourly token cleanup', function () {
-        // A TTL shorter than the handler's 5 minute expiry buffer is already invalid; a long TTL is
-        // comfortably valid. Both are judged against real time, so only the scheduling is virtual.
+    serverIntegration(function (contextRef) {
+        let harness: ServerTestHarness;
         beforeEach(function () {
-            harness.server.swuStatsTokenMapping.set('expired-user', buildToken(60));
-            harness.server.swuStatsTokenMapping.set('valid-user', buildToken(24 * 60 * 60));
+            harness = contextRef.harness;
         });
 
-        it('leaves tokens alone until an hour has passed', async function () {
-            await harness.clock.advanceAsync(59 * 60 * 1000);
+        function buildToken(timeToLiveSeconds: number): IToken {
+            return {
+                accessToken: 'access',
+                refreshToken: 'refresh',
+                creationDateTime: new Date(),
+                timeToLiveSeconds,
+            };
+        }
 
-            expect(harness.server.swuStatsTokenMapping.has('expired-user')).toBe(true);
-            expect(harness.server.swuStatsTokenMapping.has('valid-user')).toBe(true);
+        it('keeps recurring background tasks registered rather than disabling them for tests', function () {
+            expect(harness.clock.pendingTaskCount).toBeGreaterThan(0);
         });
 
-        it('drops expired tokens once an hour has passed', async function () {
-            await harness.clock.advanceAsync(60 * 60 * 1000);
+        it('does not let real time drive scheduled work', async function () {
+            const before = harness.clock.now();
 
-            expect(harness.server.swuStatsTokenMapping.has('expired-user')).toBe(false);
-            expect(harness.server.swuStatsTokenMapping.has('valid-user')).toBe(true);
+            // no clock advance, so nothing should come due no matter how many turns of the event loop pass
+            await harness.clock.settlePendingWorkAsync();
+
+            expect(harness.clock.now()).toBe(before);
+            expect(harness.clock.pendingTaskCount).toBeGreaterThan(0);
         });
 
-        it('repeats every hour rather than running only once', async function () {
-            await harness.clock.advanceAsync(60 * 60 * 1000);
-            expect(harness.server.swuStatsTokenMapping.has('expired-user')).toBe(false);
+        describe('the hourly token cleanup', function () {
+            // A TTL shorter than the handler's 5 minute expiry buffer is already invalid; a long TTL is
+            // comfortably valid. Both are judged against real time, so only the scheduling is virtual.
+            beforeEach(function () {
+                harness.server.swuStatsTokenMapping.set('expired-user', buildToken(60));
+                harness.server.swuStatsTokenMapping.set('valid-user', buildToken(24 * 60 * 60));
+            });
 
-            harness.server.swuStatsTokenMapping.set('later-expired-user', buildToken(60));
-            await harness.clock.advanceAsync(60 * 60 * 1000);
+            it('leaves tokens alone until an hour has passed', async function () {
+                await harness.clock.advanceAsync(59 * 60 * 1000);
 
-            expect(harness.server.swuStatsTokenMapping.has('later-expired-user')).toBe(false);
-            expect(harness.server.swuStatsTokenMapping.has('valid-user')).toBe(true);
+                expect(harness.server.swuStatsTokenMapping.has('expired-user')).toBe(true);
+                expect(harness.server.swuStatsTokenMapping.has('valid-user')).toBe(true);
+            });
+
+            it('drops expired tokens once an hour has passed', async function () {
+                await harness.clock.advanceAsync(60 * 60 * 1000);
+
+                expect(harness.server.swuStatsTokenMapping.has('expired-user')).toBe(false);
+                expect(harness.server.swuStatsTokenMapping.has('valid-user')).toBe(true);
+            });
+
+            it('repeats every hour rather than running only once', async function () {
+                await harness.clock.advanceAsync(60 * 60 * 1000);
+                expect(harness.server.swuStatsTokenMapping.has('expired-user')).toBe(false);
+
+                harness.server.swuStatsTokenMapping.set('later-expired-user', buildToken(60));
+                await harness.clock.advanceAsync(60 * 60 * 1000);
+
+                expect(harness.server.swuStatsTokenMapping.has('later-expired-user')).toBe(false);
+                expect(harness.server.swuStatsTokenMapping.has('valid-user')).toBe(true);
+            });
         });
-    });
 
-    it('cancels every scheduled task on shutdown', async function () {
-        expect(harness.clock.pendingTaskCount).toBeGreaterThan(0);
+        it('cancels every scheduled task on shutdown', async function () {
+            expect(harness.clock.pendingTaskCount).toBeGreaterThan(0);
 
-        await harness.shutdownAsync();
+            await harness.shutdownAsync();
 
-        expect(harness.clock.pendingTaskCount).toBe(0);
-    });
+            expect(harness.clock.pendingTaskCount).toBe(0);
+        });
 
-    it('fails a spec whose background work threw, rather than passing silently', async function () {
-        harness.clock.setTimeout(() => {
-            throw new Error('boom');
-        }, 1000, { message: 'test: throwing timeout' });
+        it('fails a spec whose background work threw, rather than passing silently', async function () {
+            harness.clock.setTimeout(() => {
+                throw new Error('boom');
+            }, 1000, { message: 'test: throwing timeout' });
 
-        await harness.clock.advanceAsync(1000);
+            await harness.clock.advanceAsync(1000);
 
-        expect(() => harness.assertNoScheduledErrors()).toThrowError(/test: throwing timeout/);
+            expect(() => harness.assertNoScheduledErrors()).toThrowError(/test: throwing timeout/);
 
-        // acknowledged, so teardown's own check does not fail this spec
-        harness.clock.clearCapturedErrors();
+            // acknowledged, so teardown's own check does not fail this spec
+            harness.clock.clearCapturedErrors();
+        });
     });
 });
 

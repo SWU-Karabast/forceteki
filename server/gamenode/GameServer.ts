@@ -1,9 +1,10 @@
+import type { ParsedUrlQuery } from 'node:querystring';
 import fs from 'fs';
 import path from 'path';
 import http from 'http';
 import express, { type Response } from 'express';
 import cors from 'cors';
-import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
+import type { DefaultEventsMap, ExtendedError, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
 import { constants as zlibConstants } from 'zlib';
 import { getHeapSpaceStatistics, getHeapStatistics } from 'v8';
@@ -67,16 +68,62 @@ import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema, ServerSet
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import { RealScheduler } from '../utils/RealScheduler';
 import type { IGameNodeConfig } from './GameNodeConfig';
+import type { IHttpClient } from '../utils/IHttpClient';
+import { RealHttpClient } from '../utils/RealHttpClient';
 import { buildGameNodeConfigFromEnvironment } from './GameNodeConfig';
 
 /**
  * Represents additional Socket types we can leverage these later.
  */
 
-interface SocketData {
+export interface SocketData {
     manualDisconnect?: boolean;
     forceDisconnect?: boolean;
     user?: User;
+}
+
+/**
+ * The subset of a socket.io `Socket`'s surface that the game node's authentication and connection
+ * handling depend on (including everything the `Socket` wrapper in `server/socket.js` needs).
+ *
+ * A real socket.io `Socket` satisfies this structurally, and so does the in-process fake socket the
+ * test suite's fake transport uses, which lets {@link GameServer.authenticateSocketAsync} and
+ * {@link GameServer.handleSocketConnectionAsync} - and therefore {@link GameServer.onConnectionAsync}
+ * - run identically against either one.
+ */
+export interface IRawGameSocket {
+    readonly id: string;
+    readonly connected: boolean;
+    data: SocketData;
+    handshake: {
+        auth: { token?: string };
+        query: ParsedUrlQuery;
+    };
+    emit(event: string, ...args: any[]): boolean;
+    on(event: string, listener: (...args: any[]) => void): this;
+    removeAllListeners(event?: string): this;
+    eventNames(): (string | symbol)[];
+    join(room: string): any;
+    leave(room: string): any;
+    disconnect(close?: boolean): this;
+}
+
+/** Result of {@link GameServer.authenticateSocketAsync}. */
+export type ISocketAuthResult =
+  | { success: true; user: User }
+  | { success: false; errorMessage: string };
+
+/**
+ * Type guard for {@link ISocketAuthResult}.
+ *
+ * This project does not enable `strictNullChecks`, and TypeScript's control-flow narrowing for
+ * discriminated unions (`if (result.success) { ... }`) depends on it - without it, `result` is not
+ * narrowed in either branch and property access on the non-common fields fails to compile. An
+ * explicit predicate sidesteps this: the caller trusts the asserted type rather than deriving it
+ * structurally from the property check, which works regardless of `strictNullChecks`.
+ */
+export function isSuccessfulSocketAuth(result: ISocketAuthResult): result is { success: true; user: User } {
+    return result.success;
 }
 
 enum UserRole {
@@ -121,6 +168,14 @@ export interface IGameServerOptions {
      * rather than whichever one the environment happens to select.
      */
     config?: IGameNodeConfig;
+
+    /**
+     * The network boundary for outbound calls to external stat sites (SWUStats, SWUBase). Defaults
+     * to {@link RealHttpClient}. Tests pass a fake that records requests and returns configurable
+     * responses, so the payload-building and response-handling logic in `SwuStatsHandler` /
+     * `SwuBaseHandler` still runs for real while the actual network call does not.
+     */
+    httpClient?: IHttpClient;
 }
 
 // Interface for GC performance entries using the modern 'detail' property
@@ -220,6 +275,7 @@ export class GameServer {
     private readonly testGameBuilder?: any;
     protected readonly scheduler: IScheduler;
     protected readonly config: IGameNodeConfig;
+    protected readonly httpClient: IHttpClient;
     private readonly queue: QueueHandler;
     private lastCpuUsage: NodeJS.CpuUsage;
     private lastCpuUsageTime: bigint;
@@ -278,7 +334,8 @@ export class GameServer {
         const {
             listen = true,
             scheduler = new RealScheduler(),
-            config = buildGameNodeConfigFromEnvironment()
+            config = buildGameNodeConfigFromEnvironment(),
+            httpClient = new RealHttpClient()
         } = options;
 
         const app = express();
@@ -287,6 +344,7 @@ export class GameServer {
 
         this.scheduler = scheduler;
         this.config = config;
+        this.httpClient = httpClient;
         this.queue = new QueueHandler(scheduler, config);
         this.httpServer = server;
         this.cardDataGetter = cardDataGetter;
@@ -376,68 +434,13 @@ export class GameServer {
         });
 
         // Setup Socket.IO middleware for Next-auth token verification
-        this.io.use(async (socket, next) => {
-            try {
-                // Get token from handshake auth
-                const token = socket.handshake.auth.token;
-                let user;
-
-                // Case 1: Token is present - attempt authenticated user flow
-                if (token) {
-                    const queryUser = socket.handshake.query.user;
-                    if (queryUser) {
-                        // Parse user data from query parameter
-                        const userData = typeof queryUser === 'string'
-                            ? JSON.parse(queryUser)
-                            : queryUser;
-
-                        // If client sent pre-authenticated user data, use it directly
-                        if (userData.authenticated) {
-                            user = this.userFactory.verifyTokenAndCreateAuthenticatedUser(token, userData);
-                        } else {
-                            // User data exists but not marked as authenticated
-                            // Verify with token instead
-                            user = await this.userFactory.createUserFromTokenAsync(token);
-                        }
-                    } else {
-                        // No user data in query, authenticate using token only
-                        user = await this.userFactory.createUserFromTokenAsync(token);
-                    }
-                // Case 2: No token - create anonymous user
-                } else {
-                    user = this.userFactory.createAnonymousUserFromQuery(socket.handshake.query);
-                }
-                // we check if we have an actual user
-                if (user.isAnonymousUser() || user.isAuthenticatedUser()) {
-                    socket.data.user = user;
-                    return next();
-                }
-                logger.error('Socket connection rejected: Error when creating user, no valid authentication provided');
-                return next(new Error('Authentication failed'));
-            } catch (error) {
-                logger.error('Socket auth middleware error:', error);
-                next(new Error('Authentication error'));
-            }
-        });
+        this.io.use((socket, next) => this.runSocketAuthMiddlewareAsync(socket, next));
         // Currently for IOSockets we can use DefaultEventsMap but later we can customize these.
-        this.io.on('connection', async (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
-            try {
-                await this.onConnectionAsync(socket);
-                socket.on('manualDisconnect', () => {
-                    try {
-                        socket.data.manualDisconnect = true;
-                        socket.disconnect();
-                    } catch (err) {
-                        logger.error('GameServer: Error in manualDisconnect:', err);
-                    }
-                });
-            } catch (err) {
-                logger.error('GameServer: Error in socket connection:', err);
-            }
-        });
+        this.io.on('connection', (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) =>
+            this.handleSocketConnectionAsync(socket));
 
-        this.swuStatsHandler = new SwuStatsHandler(this.userFactory);
-        this.swuBaseHandler = new SwuBaseHandler(this.userFactory);
+        this.swuStatsHandler = new SwuStatsHandler(this.userFactory, httpClient);
+        this.swuBaseHandler = new SwuBaseHandler(this.userFactory, httpClient);
 
         // set up queue heartbeat once a second
         this.backgroundTasks.push(this.scheduler.setInterval(
@@ -2395,7 +2398,95 @@ export class GameServer {
         });
     }
 
-    public async onConnectionAsync(ioSocket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>): Promise<void> {
+    /**
+     * Runs the socket.io authentication middleware: authenticates the socket and signals the result
+     * via the middleware `next` callback. A thin wrapper around {@link authenticateSocketAsync},
+     * kept as its own method so it is directly testable without going through socket.io's
+     * callback-style `next`.
+     */
+    public async runSocketAuthMiddlewareAsync(
+        socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>,
+        next: (err?: ExtendedError) => void
+    ): Promise<void> {
+        const result = await this.authenticateSocketAsync(socket);
+        if (isSuccessfulSocketAuth(result)) {
+            socket.data.user = result.user;
+            next();
+        } else {
+            next(new Error(result.errorMessage));
+        }
+    }
+
+    /**
+     * Authenticates a newly connecting socket, deriving a {@link User} from its handshake: a NextAuth
+     * JWT plus pre-authenticated user data (no DB access), a JWT alone (requires a DB lookup), or -
+     * with no token - anonymous query data.
+     */
+    public async authenticateSocketAsync(socket: IRawGameSocket): Promise<ISocketAuthResult> {
+        try {
+            // Get token from handshake auth
+            const token = socket.handshake.auth.token;
+            let user: User;
+
+            // Case 1: Token is present - attempt authenticated user flow
+            if (token) {
+                const queryUser = socket.handshake.query.user;
+                if (queryUser) {
+                    // Parse user data from query parameter
+                    const userData = typeof queryUser === 'string'
+                        ? JSON.parse(queryUser)
+                        : queryUser;
+
+                    // If client sent pre-authenticated user data, use it directly
+                    if (userData.authenticated) {
+                        user = this.userFactory.verifyTokenAndCreateAuthenticatedUser(token, userData);
+                    } else {
+                        // User data exists but not marked as authenticated
+                        // Verify with token instead
+                        user = await this.userFactory.createUserFromTokenAsync(token);
+                    }
+                } else {
+                    // No user data in query, authenticate using token only
+                    user = await this.userFactory.createUserFromTokenAsync(token);
+                }
+            // Case 2: No token - create anonymous user
+            } else {
+                user = this.userFactory.createAnonymousUserFromQuery(socket.handshake.query);
+            }
+
+            // we check if we have an actual user
+            if (user.isAnonymousUser() || user.isAuthenticatedUser()) {
+                return { success: true, user };
+            }
+            logger.error('Socket connection rejected: Error when creating user, no valid authentication provided');
+            return { success: false, errorMessage: 'Authentication failed' };
+        } catch (error) {
+            logger.error('Socket auth middleware error:', error);
+            return { success: false, errorMessage: 'Authentication error' };
+        }
+    }
+
+    /**
+     * Handles a newly established socket connection: routes it to a lobby, queue entry or spectator
+     * slot via {@link onConnectionAsync}, then registers the `manualDisconnect` app-level event.
+     */
+    public async handleSocketConnectionAsync(socket: IRawGameSocket): Promise<void> {
+        try {
+            await this.onConnectionAsync(socket);
+            socket.on('manualDisconnect', () => {
+                try {
+                    socket.data.manualDisconnect = true;
+                    socket.disconnect();
+                } catch (err) {
+                    logger.error('GameServer: Error in manualDisconnect:', err);
+                }
+            });
+        } catch (err) {
+            logger.error('GameServer: Error in socket connection:', err);
+        }
+    }
+
+    public async onConnectionAsync(ioSocket: IRawGameSocket): Promise<void> {
         const user = ioSocket.data.user as User;
         const requestedLobby = JSON.parse(Helpers.getSingleOrThrow(ioSocket.handshake.query.lobby));
         const isSpectator = ioSocket.handshake.query.spectator === 'true';

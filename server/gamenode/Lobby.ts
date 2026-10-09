@@ -2279,15 +2279,14 @@ export class Lobby {
 
     public sendGameState(game: Game, forceSend = false): void {
         // we send the game state to all users and spectators
-        // if the message is ack'd, we set the user state to connected in case they were incorrectly marked as disconnected
         for (const user of this.users) {
             if (user.socket && (user.socket.socket.connected || forceSend)) {
-                user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
+                user.socket.send('gamestate', game.getState(user.id));
             }
         }
         for (const spectator of this.spectators) {
             if (spectator.socket && (spectator.socket.socket.connected || forceSend)) {
-                spectator.socket.send('gamestate', game.getState(spectator.id), () => this.safeSetUserConnected(spectator.id));
+                spectator.socket.send('gamestate', game.getState(spectator.id));
             }
         }
     }
@@ -2318,15 +2317,6 @@ export class Lobby {
             startIndex: safeStart,
             totalCount: totalCount
         });
-    }
-
-    private safeSetUserConnected(userId: string): void {
-        try {
-            const user = this.getUser(userId);
-            user.state = 'connected';
-        } catch (error) {
-            logger.error(`Lobby: error setting user ${userId} connected`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId });
-        }
     }
 
     public sendLobbyState(forceSend = false): void {
