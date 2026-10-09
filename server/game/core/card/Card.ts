@@ -309,7 +309,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
      *
      * TODO (LKI migration phase 4): give event cards and bases a real counter so that an event card
      * bouncing between a visible zone and a hidden one is correctly treated as a new identity.
-     * See design/lki-redesign-decisions-and-insights.md (D-8) and §3.18.
+     * See long-term-project-docs/lki-redesign-decisions-and-insights.md (D-8) and §3.18.
      */
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style -- must be a getter so InPlayCard can override it with the real counter
     public get identityId(): number {

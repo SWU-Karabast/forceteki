@@ -93,7 +93,7 @@ export function buildLastKnownInformation(card: Card): ILastKnownInformation {
  * @deprecated Serves the legacy `event.lastKnownInformation` struct for events that are not
  * departures. Its sole caller — `DamageSystem.updateEvent` — is itself slated for removal in phase 4
  * of the LKI migration, leaving {@link addDepartureRecordToEvent} as the only helper. Do not add new
- * call sites. See design/lki-migration-register.md §D.1.
+ * call sites. See long-term-project-docs/lki-migration-register.md §D.1.
  */
 export function addLastKnownInformationToEvent(event: GameEvent, card: Card): void {
     event.setPreResolutionEffect((event) => {

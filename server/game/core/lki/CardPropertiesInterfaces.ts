@@ -7,7 +7,7 @@ import type { CardRef } from './CardRef';
  *
  * For a live view that moment is *now*; for a recorded view it is the instant the card left play.
  * Both satisfy the same interface, so call sites do not branch on which they hold — see
- * design/lki-redesign-decisions-and-insights.md (D-25, D-26).
+ * long-term-project-docs/lki-redesign-decisions-and-insights.md (D-25, D-26).
  *
  * Location is a characteristic like any other (D-31): `zoneName` answers about the represented
  * moment, so the record for a defeated unit reports the arena it was in, not the discard pile it

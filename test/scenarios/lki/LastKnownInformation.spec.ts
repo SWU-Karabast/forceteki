@@ -2,7 +2,7 @@
  * Baseline characterization tests for "last known information" (LKI) behavior.
  *
  * These lock in the CURRENT behavior of the engine before the LKI registry refactor, so that the
- * refactor can be validated as behavior-preserving. See design/lki-redesign-decisions-and-insights.md
+ * refactor can be validated as behavior-preserving. See long-term-project-docs/lki-redesign-decisions-and-insights.md
  * (phase 0 of the migration plan) for context.
  *
  * The scenarios here exercise cases where a card's last known information is read more than once
