@@ -1,7 +1,7 @@
 import FormData from 'form-data';
 import type { User } from '../../utils/user/User';
 import { httpPostFormData } from '../../Util';
-import type { ISerializedGameState, ISerializedMessage, ISerializedReportState, ISerializedUndoFailureState,
+import type { IGameErrorHistory, ISerializedGameState, ISerializedMessage, ISerializedReportState, ISerializedUndoFailureState,
     MessageText, PlayerReportType } from '../Interfaces';
 import { ReportType } from '../Interfaces';
 import { logger } from '../../logger';
@@ -134,6 +134,10 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             Object.assign(logData, { viewport: report.viewport });
         }
 
+        if (report.gameErrors?.totalCount > 0) {
+            Object.assign(logData, { gameErrorCount: report.gameErrors.totalCount });
+        }
+
         logger.info(`Report received from user ${report.reporter.username}`, logData);
 
         if (!webhookLink) {
@@ -226,6 +230,11 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         // Add game state field
         if (reportType === ReportType.BugReport) {
             fields.push({
+                name: 'Game Errors',
+                value: `${report.gameErrors?.totalCount ?? 0}`,
+                inline: true
+            });
+            fields.push({
                 name: 'Game State',
                 value: 'See attached JSON file for complete game state',
                 inline: false
@@ -255,6 +264,9 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         if (reportType === ReportType.BugReport) {
             this.addGameStateToForm(formData, report.gameState, report.lobbyId, timestamp);
             this.addGameMessagesToForm(formData, report.messages, report.lobbyId, report.reporter.id, report.opponent.id, timestamp);
+            if (report.gameErrors?.totalCount > 0) {
+                this.addGameErrorsToForm(formData, report.gameErrors, report.lobbyId, timestamp);
+            }
         } else {
             this.addGameMessagesToForm(formData, report.messages, report.lobbyId, report.reporter.id, report.opponent.id, timestamp, report.reporter.username, report.opponent.username);
             if (report.chatMessages) {
@@ -288,6 +300,25 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             filename: fileName,
             contentType: 'application/json',
         });
+    }
+
+    private addGameErrorsToForm(formData: FormData, gameErrors: IGameErrorHistory, lobbyId: string, timestamp: number): void {
+        const fileName = `game-errors-${lobbyId}-${timestamp}.txt`;
+        formData.append('files[2]', Buffer.from(DiscordDispatcher.formatGameErrorsToText(gameErrors)), {
+            filename: fileName,
+            contentType: 'text/plain',
+        });
+    }
+
+    /** Formats the errors of a game for a bug report attachment, oldest first */
+    public static formatGameErrorsToText(gameErrors: IGameErrorHistory): string {
+        const header = gameErrors.totalCount > gameErrors.errors.length
+            ? `Showing the last ${gameErrors.errors.length} of ${gameErrors.totalCount} errors\n\n`
+            : '';
+
+        return header + gameErrors.errors
+            .map((error) => `[${error.timestamp}] (${error.severity}) ${error.message}${error.stack ? `\n${error.stack}` : ''}`)
+            .join('\n\n');
     }
 
     private addGameMessagesToForm(formData: FormData, messages: ISerializedMessage[], lobbyId: string, reporterId: string, opponentId: string, timestamp: number, reporterUsername = 'Player1', opponentUsername = 'Player2', fileField = 'files[1]', fileNamePrefix = 'report-messages'): void {
@@ -605,6 +636,8 @@ export class DiscordDispatcher implements IDiscordDispatcher {
      * @param gameId Optional ID of the game where the bug occurred
      * @param screenResolution Optional screen resolution information
      * @param viewport Optional viewport information
+     * @param chatMessages Optional player chat messages, for player reports
+     * @param gameErrors Optional errors that happened earlier in the game, for bug reports
      * @returns Formatted bug report object
      */
     public formatReport(
@@ -621,7 +654,8 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         gameId?: string,
         screenResolution?: { width: number; height: number } | null,
         viewport?: { width: number; height: number } | null,
-        chatMessages?: ISerializedMessage[]
+        chatMessages?: ISerializedMessage[],
+        gameErrors?: IGameErrorHistory
     ): ISerializedReportState {
         return {
             description: sanitizeForJson(description),
@@ -646,7 +680,8 @@ export class DiscordDispatcher implements IDiscordDispatcher {
             viewport,
             gameStepsSinceLastUndo: gameStepsSinceLastUndo == null ? 'N/A' : gameStepsSinceLastUndo.toString(),
             gameFormat,
-            matchType
+            matchType,
+            gameErrors
         };
     }
 }

@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import type { Aspect, DamageModificationType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType, SwuGameFormat, Trait } from './core/Constants';
+import type { Aspect, DamageModificationType, Duration, GameErrorSeverity, RelativePlayerFilter, StandardTriggeredAbilityType, SwuGameFormat, Trait } from './core/Constants';
 import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ICardTargetResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
@@ -533,6 +533,21 @@ export interface ISerializedReportState {
     viewport?: { width: number; height: number } | null;
     gameFormat: SwuGameFormat;
     matchType: MatchmakingType;
+    gameErrors?: IGameErrorHistory;
+}
+
+/** An error the engine reported while a game was running */
+export interface IGameErrorRecord {
+    timestamp: string;
+    severity: GameErrorSeverity;
+    message: string;
+    stack?: string;
+}
+
+/** The most recent errors of a game, plus how many there were in total */
+export interface IGameErrorHistory {
+    totalCount: number;
+    errors: IGameErrorRecord[];
 }
 
 export interface ISerializedUndoFailureState {
