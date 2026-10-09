@@ -29,6 +29,30 @@ describe('Sneak Attack', function() {
                 expect(context.getChatLogs(2)).toContain('player1 uses a delayed effect applied by Sneak Attack to defeat Sabine Wren');
             });
 
+            it('should allow the player to choose nothing since the hand is hidden information', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['sneak-attack', 'sabine-wren#you-can-count-on-me', 'recruit'],
+                        groundArena: ['battlefield-marine'],
+                        base: 'administrators-tower',
+                        leader: 'luke-skywalker#faithful-friend',
+                        resources: 3
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sneakAttack);
+                expect(context.player1).toBeAbleToSelectExactly([context.sabineWren]);
+                expect(context.player1).toHaveChooseNothingButton();
+
+                context.player1.clickPrompt('Choose nothing');
+
+                expect(context.sabineWren).toBeInZone('hand');
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should not bug if there is no legal card to be played', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

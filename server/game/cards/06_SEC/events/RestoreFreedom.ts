@@ -17,8 +17,6 @@ export default class RestoreFreedom extends EventCard {
         registrar.setEventAbility({
             title: `Play a unit from your hand. It costs ${TextHelper.resource(1)} less for each ${TextHelper.Heroism} aspect icon among friendly units.`,
             targetResolver: {
-                // TODO remove cardTypeFilter but fix Choose nothing button before
-                cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand((context) => {
