@@ -25,6 +25,8 @@ import type {
 import { CostAdjustType } from '../../cost/CostAdjuster';
 import * as CostAdjusterFactory from '../../cost/CostAdjusterFactory';
 import type { Restriction } from '../../ongoingEffect/effectImpl/Restriction';
+import type { IPlayPermission } from '../../ongoingEffect/effectImpl/PlayPermission';
+import type { IPlayUnitActionProperties } from '../../../actions/PlayUnitAction';
 import { registerStateBase, statePrimitive } from '../../GameObjectUtils';
 import type { Player } from '../../Player';
 import { Contract } from '../../utils/Contract';
@@ -38,7 +40,8 @@ import { GameSystemCost } from '../../cost/GameSystemCost';
 import type { CardTargetSystem } from '../../gameSystem/CardTargetSystem';
 import { getSelectCost } from '../../../costs/CostLibrary';
 
-export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
+export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'> &
+  Pick<IPlayUnitActionProperties, 'enterPlayEffect' | 'enterPlayEffectSource'>;
 
 // required for mixins to be based on this class
 export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
@@ -159,14 +162,16 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
     public override getActions(): PlayerOrCardAbility[] {
         return super.getActions()
-            .concat(this.getPlayCardActions());
+            .concat(this.getPlayCardActions())
+            .concat(this.getPlayPermissionActions());
     }
 
     /**
      * Get the available "play card" actions for this card in its current zone. If `propertyOverrides` is provided, will generate the actions using the included overrides.
      *
-     * Note that if the card is currently in an out-of-play zone, by default this will return nothing since cards cannot be played from out of play in normal circumstances.
+     * Note that if the card is currently in an out-of-play zone, this will return nothing since cards cannot be played from out of play in normal circumstances.
      * If using an ability to grant an out-of-play action, use `getPlayCardFromOutOfPlayActions` which will generate the appropriate actions.
+     * Actions granted by lasting play permissions come from `getPlayPermissionActions`.
      */
     public getPlayCardActions(propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
         let playCardActions: PlayCardAction[] = [];
@@ -182,16 +187,25 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides));
         }
 
-        if (this.zoneName === ZoneName.Discard) {
-            if (this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
-                playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
-                if (this.hasSomeKeyword(KeywordName.Piloting)) {
-                    playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
-                }
-            }
-        }
-
         return playCardActions;
+    }
+
+    /**
+     * Get the "play card" actions granted by lasting play permissions on this card that apply to its current zone (e.g. Cobb Vanth).
+     * Each permission is a separate modified play action, carrying only that permission's cost adjustment and
+     * enter-play effect. Which player may use each action is checked by the action's requirements.
+     */
+    public getPlayPermissionActions(): PlayCardAction[] {
+        return this.getOngoingEffectValues<IPlayPermission>(EffectName.GainPlayPermission)
+            .filter((permission) => permission.zone === this.zoneName)
+            .flatMap((permission) => this.getPlayCardFromOutOfPlayActions({
+                playPermission: permission,
+                costAdjusters: permission.adjustCost
+                    ? [CostAdjusterFactory.create(this.game, permission.source, permission.adjustCost)]
+                    : [],
+                enterPlayEffect: permission.enterPlayEffect,
+                enterPlayEffectSource: permission.source
+            }));
     }
 
     /**

@@ -11,10 +11,10 @@ import { unitsEnterPlayReady } from './UnitsEnterPlayReady';
 import { addExploit, exhaustUnitsInsteadOfResources, modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
 import type { PhaseName, RelativePlayerFilter, Trait, StandardTriggeredAbilityType } from '../core/Constants';
-import { KeywordName, RelativePlayer } from '../core/Constants';
+import { KeywordName, RelativePlayer, ZoneName } from '../core/Constants';
 import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
-import type { IAbilityPropsWithType, IDamageModificationEffectAbilityPropsWithType, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
+import type { IAbilityPropsWithType, IDamageModificationEffectAbilityPropsWithType, IOngoingCardEffectGenerator, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
 import type { ICostAdjusterProperties, IDefeatResourcesCostAdjusterProperties, IExhaustUnitsCostAdjusterProperties, IExploitCostAdjusterProperties, IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties, IModifyPayStageCostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { ProvidedAspects } from '../core/ongoingEffect/effectImpl/ProvidedAspects';
@@ -25,7 +25,8 @@ import type { PilotLimitModifier } from '../core/ongoingEffect/effectImpl/PilotL
 import type { StartingHandSizeModifier } from '../core/ongoingEffect/effectImpl/StartingHandSizeModifier';
 import type { IndirectDamageModifier } from '../core/ongoingEffect/effectImpl/IndirectDamageModifier';
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { PlayFromDiscardProperties } from '../core/ongoingEffect/effectImpl/PlayFromDiscardProperties';
+import type { IPlayPermissionProperties } from '../core/ongoingEffect/effectImpl/PlayPermission';
+import { PlayPermissionHelpers } from '../core/ongoingEffect/effectImpl/PlayPermission';
 import type { CanAttackMultipleUnitsSimultaneously } from '../core/ongoingEffect/effectImpl/CanAttackMultipleUnitsSimultaneously';
 import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
 import { GainKeyword } from '../core/ongoingEffect/effectImpl/GainKeyword';
@@ -86,8 +87,14 @@ export = {
 
     canAttackBaseWhileUsingAmbush: () => OngoingEffectBuilder.card.static(EffectName.CanAttackBaseWhileUsingAmbush),
     canAttackMultipleUnitsSimultaneously: (effectImpl: CanAttackMultipleUnitsSimultaneously) => OngoingEffectBuilder.card.static(EffectName.CanAttackMultipleUnitsSimultaneously, effectImpl),
-    canPlayFromDiscard: (properties: PlayFromDiscardProperties = {}) => OngoingEffectBuilder.card
-        .static(EffectName.CanPlayFromDiscard, properties),
+    canPlayFromDiscard: (properties: Omit<IPlayPermissionProperties, 'zone'>): IOngoingCardEffectGenerator =>
+        (game, source, effectProps) => {
+            const permissionSource = effectProps.ability?.isCardAbility() && effectProps.ability.gainAbilitySource
+                ? effectProps.ability.gainAbilitySource
+                : source;
+            const permission = PlayPermissionHelpers.create({ ...properties, zone: ZoneName.Discard }, permissionSource, effectProps.createdByPlayer);
+            return OngoingEffectBuilder.card.static(EffectName.GainPlayPermission, permission)(game, source, effectProps);
+        },
     // canBeSeenWhenFacedown: () => OngoingEffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
     // canBeTriggeredByOpponent: () => OngoingEffectBuilder.card.static(EffectName.CanBeTriggeredByOpponent),
     // canOnlyBeDeclaredAsAttackerWithElement: (element) =>

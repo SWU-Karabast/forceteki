@@ -374,12 +374,12 @@ describe('Obi-Wan Kenobi, Finding What Doesn\'t Exist', function() {
             // P1 can play Darth Vader from P2's discard as a unit or Pilot
             expect(context.darthVader).toHaveAvailableActionWhenClickedBy(context.player1);
             expect(context.player1).toHaveExactPromptButtons([
-                'Play Darth Vader',
-                'Play Darth Vader with Piloting',
+                'Play Darth Vader, ignoring its aspect penalties (via Obi-Wan Kenobi)',
+                'Play Darth Vader with Piloting, ignoring its aspect penalties (via Obi-Wan Kenobi)',
                 'Cancel'
             ]);
 
-            context.player1.clickPrompt('Play Darth Vader with Piloting');
+            context.player1.clickPrompt('Play Darth Vader with Piloting, ignoring its aspect penalties (via Obi-Wan Kenobi)');
 
             expect(context.player1).toBeAbleToSelectExactly(context.stolenAthauler);
             context.player1.clickCard(context.stolenAthauler);

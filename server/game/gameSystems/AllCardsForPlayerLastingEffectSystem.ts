@@ -70,6 +70,7 @@ export class AllCardsForPlayerLastingEffectSystem<TContext extends AbilityContex
             cardTargetMode,
             isLastingEffect: true,
             ability: context.ability,
+            createdByPlayer: context.player,
             ...otherProperties
         });
 

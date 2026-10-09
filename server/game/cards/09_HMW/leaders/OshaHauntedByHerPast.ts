@@ -39,7 +39,6 @@ export default class OshaHauntedByHerPast extends LeaderUnitCard {
                     condition: (context) => this.friendlyHeroismUnitDefeatedThisPhase(context),
                     onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                         playAsType: WildcardCardType.Unit,
-                        canPlayFromAnyZone: true,
                         adjustCost: {
                             costAdjustType: CostAdjustType.IgnoreSpecificAspects,
                             ignoredAspect: Aspect.Villainy
@@ -62,7 +61,6 @@ export default class OshaHauntedByHerPast extends LeaderUnitCard {
                 cardCondition: (card, _) => card.hasSomeAspect(Aspect.Villainy),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     playAsType: WildcardCardType.Unit,
-                    canPlayFromAnyZone: true,
                     adjustCost: {
                         costAdjustType: CostAdjustType.IgnoreSpecificAspects,
                         ignoredAspect: Aspect.Villainy
