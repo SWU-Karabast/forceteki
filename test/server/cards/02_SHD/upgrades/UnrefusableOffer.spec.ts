@@ -266,7 +266,7 @@ describe('Unrefusable Offer', function () {
             expect(context.sabineWren).toBeInZone('discard');
         });
 
-        it('Unrefusable Offer\'s Bounty ability should play defeated unit (enters ready) and defeat it at the start of regroup phase', async function () {
+        it('should let player1 collect the Bounty on an enemy Superlaser Technician, play it ready and attack with it, then defeat it again at the start of the regroup phase', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {

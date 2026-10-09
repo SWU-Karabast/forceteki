@@ -146,10 +146,8 @@ describe('Iden Version, Inferno Squad Commander', function() {
                 expect(context.p1Base.damage).toBe(5);
             });
         });
-    });
 
-    integration(function(contextRef) {
-        describe('Iden\'s deployed ability', function() {
+        describe('Iden\'s deployed ability with simultaneous defeats', function() {
             it('should heal 1 from base when she is defeated at the same time as the enemy unit she attacks', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
