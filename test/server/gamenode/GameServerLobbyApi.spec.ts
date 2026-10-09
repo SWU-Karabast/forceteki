@@ -1,4 +1,4 @@
-import { CardPool, GamesToWinMode, SwuGameFormat } from '../../../server/game/core/Constants';
+import { CardPool, GameEndReason, GamesToWinMode, SwuGameFormat } from '../../../server/game/core/Constants';
 import { ServerTestHarness } from '../../helpers/server/ServerTestHarness';
 
 /**
@@ -98,6 +98,85 @@ describe('GameServer lobby API', function () {
 
             expect(second.status).toBe(403);
             expect(second.body.success).toBe(false);
+        });
+    });
+
+    describe('after a game in the previous lobby', function () {
+        // '/api/start-test-game' always seats these two players
+        const player = { id: 'exe66', username: 'Order66' };
+        const opponentId = 'th3w4y';
+
+        async function startGameAsync() {
+            const response = await harness.api
+                .post('/api/start-test-game')
+                .send({ filename: 'testGameTemplate.json' });
+            expect(response.status).withContext(JSON.stringify(response.body))
+                .toBe(200);
+
+            const lobby = harness.server['lobbies'].get(harness.server['userLobbyMap'].get(player.id).lobbyId);
+
+            // what any game action by the player does, so the "still in a lobby" check applies to them
+            lobby['updateUserLastActivity'](player.id);
+            return lobby;
+        }
+
+        function endGame(lobby) {
+            const game = lobby['game'];
+            game.endGame(game.getPlayerById(opponentId), GameEndReason.Concede);
+        }
+
+        function createLobbyAsync() {
+            return harness.api
+                .post('/api/create-lobby')
+                .send(createLobbyBody({ user: player }));
+        }
+
+        it('lets the player start something new right away once the game is over', async function () {
+            const lobby = await startGameAsync();
+            endGame(lobby);
+
+            const response = await createLobbyAsync();
+
+            expect(response.status).withContext(JSON.stringify(response.body))
+                .toBe(200);
+            expect(response.body.success).toBe(true);
+        });
+
+        it('still blocks the player while the game is running', async function () {
+            await startGameAsync();
+
+            const response = await createLobbyAsync();
+
+            expect(response.status).toBe(403);
+        });
+
+        it('still blocks the player between games of a best-of-three set that is not decided yet', async function () {
+            const lobby = await startGameAsync();
+            endGame(lobby);
+            lobby['winHistory'] = {
+                gamesToWinMode: GamesToWinMode.BestOfThree,
+                currentGameNumber: 1,
+                winnerIdsInOrder: [opponentId],
+            };
+
+            const response = await createLobbyAsync();
+
+            expect(response.status).toBe(403);
+        });
+
+        it('lets the player go once a best-of-three set is decided', async function () {
+            const lobby = await startGameAsync();
+            endGame(lobby);
+            lobby['winHistory'] = {
+                gamesToWinMode: GamesToWinMode.BestOfThree,
+                currentGameNumber: 2,
+                winnerIdsInOrder: [opponentId, opponentId],
+            };
+
+            const response = await createLobbyAsync();
+
+            expect(response.status).withContext(JSON.stringify(response.body))
+                .toBe(200);
         });
     });
 
