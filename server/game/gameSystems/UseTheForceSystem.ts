@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, GameStateChangeRequired, ZoneName } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
-import { addLastKnownInformationToEvent } from '../core/event/LastKnownInformation';
+import { addDepartureRecordToEvent } from '../core/event/LastKnownInformation';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
@@ -59,7 +59,7 @@ export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext,
             )
         ]);
 
-        addLastKnownInformationToEvent(event, player.baseZone.forceToken);
+        addDepartureRecordToEvent(event, player.baseZone.forceToken);
     }
 
     protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<TProperties>): void {

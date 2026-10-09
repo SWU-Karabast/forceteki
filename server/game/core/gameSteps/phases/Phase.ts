@@ -79,6 +79,12 @@ export abstract class Phase extends BaseStepWithPipeline {
     }
 
     protected startPhase(): void {
+        // A phase boundary is an action boundary too: every trigger from the previous phase has
+        // resolved by now. ActionPhase flushes between its own actions, but nothing was flushing
+        // between the last action of a phase and the next phase, so records could survive into the
+        // window below — exactly where delayed effects fire (D-20, SC-20).
+        this.game.lkiRegistry.flushRecords();
+
         // reset trackers indicating if a player has been prompted
         this.game.resetPromptedPlayersTracking();
 
