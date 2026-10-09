@@ -1050,7 +1050,9 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     private addSelfToZone(zoneName: MoveZoneDestination) {
         switch (zoneName) {
             case ZoneName.Base:
-                this.zone = this.owner.baseZone;
+                // like resources, the base zone is in play, so the card goes to its controller's base
+                // (e.g. an opponent's Fortify upgrade played with A Fine Addition)
+                this.zone = this.controller.baseZone;
 
                 if (this.isLeader()) {
                     this.zone.setLeader(this);

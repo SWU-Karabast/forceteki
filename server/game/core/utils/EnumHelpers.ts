@@ -181,7 +181,8 @@ export namespace EnumHelpers {
 
     export const zoneMoveRequiresControllerReset = (prevZone: ZoneName, nextZone: MoveZoneDestination): boolean => {
         const nextZoneName = asConcreteZone(nextZone);
-        return (isArena(prevZone) || prevZone === ZoneName.Resource) && !(isArena(nextZoneName) || nextZoneName === ZoneName.Resource);
+        // the base zone only counts on the way out (e.g. a base upgrade going to the discard pile), so that undeploying a leader keeps resetting control
+        return (isArena(prevZone) || prevZone === ZoneName.Resource || prevZone === ZoneName.Base) && !(isArena(nextZoneName) || nextZoneName === ZoneName.Resource);
     };
 
     export const isUnit = (cardType: CardTypeFilter): cardType is WildcardCardType.Unit | WildcardCardType.NonLeaderUnit | WildcardCardType.LeaderUnit | CardType.BasicUnit | CardType.NonTokenLeaderUnit | CardType.TokenLeaderUnit | CardType.TokenUnit => {
