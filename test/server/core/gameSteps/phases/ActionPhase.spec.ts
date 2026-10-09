@@ -92,6 +92,37 @@ describe('Action Phase', function() {
                 context.player2.passAction();
                 expect(context.player1.currentActionTargets).not.toContain(context.kylosTieSilencer);
             });
+
+            it('the prompt before playing an opponent\'s card from their discard pile and after should be different.', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['takedown'],
+                    },
+                    player2: {
+                        spaceArena: ['stolen-athauler'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // defeat player2's Stolen AT-Hauler, its When Defeated lets player1 play it this phase
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                // play from the opponent's discard pile action, for free
+                const readyResources = context.player1.readyResourceCount;
+                expect(context.player1.currentActionTargets).toContain(context.stolenAthauler);
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+                expect(context.player1.readyResourceCount).toBe(readyResources);
+
+                context.player2.passAction();
+                expect(context.player1.currentActionTargets).not.toContain(context.stolenAthauler);
+            });
         });
     });
 });
