@@ -1,5 +1,6 @@
 import { CardPool, GamesToWinMode, MatchmakingPreference, SwuGameFormat } from '../../../server/game/core/Constants';
 import type { IGameNodeConfig } from '../../../server/gamenode/GameNodeConfig';
+import { MatchmakingPreferencePolicyKey } from '../../../server/gamenode/GameNodeConfig';
 import type { IQueueFormatKey, QueuedPlayer } from '../../../server/gamenode/QueueHandler';
 import { QueueHandler, QueuedPlayerState } from '../../../server/gamenode/QueueHandler';
 import Socket from '../../../server/socket';
@@ -226,9 +227,21 @@ describe('QueueHandler matchmaking preferences', function () {
         it('takes the later of preference eligibility and rematch eligibility', function () {
             const competitive = addPlayer('competitive', MatchmakingPreference.CompetitiveTesting);
             addPlayer('no-preference', MatchmakingPreference.NoPreference);
+            queue.setPreviousMatchEntry('competitive', 'no-preference', clock.now() + 5_000);
+
+            expect(queue.getNextMatchAvailableAt(format)).toBe(competitive.searchStartedAt + 20_000);
+        });
+
+        it('admits a pair at the exact shared preference and rematch deadline', async function () {
+            const competitive = addPlayer('competitive', MatchmakingPreference.CompetitiveTesting);
+            const noPreference = addPlayer('no-preference', MatchmakingPreference.NoPreference);
             queue.setPreviousMatchEntry('competitive', 'no-preference', clock.now());
 
-            expect(queue.getNextMatchAvailableAt(format)).toBe(competitive.searchStartedAt + 15_001);
+            expect(queue.getNextMatchAvailableAt(format)).toBe(competitive.searchStartedAt + 15_000);
+            await clock.advanceAsync(14_999);
+            expect(queue.getNextMatchPair(format)).toBeNull();
+            await clock.advanceAsync(1);
+            expect(queue.getNextMatchPair(format)).toEqual([competitive, noPreference]);
         });
     });
 
@@ -263,8 +276,8 @@ describe('QueueHandler matchmaking preferences', function () {
             queue = new QueueHandler(clock, {
                 ...config,
                 matchmakingPreferencePolicy: {
-                    samePreferenceOnlyDurationMs: 2_000,
-                    noPreferenceDurationMs: 3_000,
+                    [MatchmakingPreferencePolicyKey.SamePreferenceOnlyDurationMs]: 2_000,
+                    [MatchmakingPreferencePolicyKey.NoPreferenceDurationMs]: 3_000,
                 },
             });
         });
@@ -296,8 +309,8 @@ describe('QueueHandler matchmaking preferences', function () {
             queue = new QueueHandler(clock, {
                 ...config,
                 matchmakingPreferencePolicy: {
-                    samePreferenceOnlyDurationMs: 0,
-                    noPreferenceDurationMs: 0,
+                    [MatchmakingPreferencePolicyKey.SamePreferenceOnlyDurationMs]: 0,
+                    [MatchmakingPreferencePolicyKey.NoPreferenceDurationMs]: 0,
                 },
             });
             const competitive = addPlayer('competitive', MatchmakingPreference.CompetitiveTesting);

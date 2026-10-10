@@ -5,7 +5,8 @@ import {
     MatchmakingSearchStage,
     SwuGameFormat
 } from '../../../server/game/core/Constants';
-import { MatchmakingType } from '../../../server/gamenode/Lobby';
+import { Lobby, MatchmakingType } from '../../../server/gamenode/Lobby';
+import { MatchmakingPreferencePolicyKey } from '../../../server/gamenode/GameNodeConfig';
 import { serverIntegration } from '../../helpers/server/ServerIntegrationHelper';
 import type { ServerTestHarness } from '../../helpers/server/ServerTestHarness';
 import type { IMatchConfiguration, ITestClientOptions, TestClient } from '../../helpers/server/TestClient';
@@ -211,7 +212,7 @@ describe('GameServer matchmaking preferences', function () {
                     await player.connectAsync();
                 }
 
-                await harness.clock.advanceAsync(15_000);
+                await harness.clock.advanceAsync(14_999);
                 expect(player1.lobbyState).toBeUndefined();
                 expect(player2.lobbyState).toBeUndefined();
 
@@ -221,6 +222,50 @@ describe('GameServer matchmaking preferences', function () {
         });
 
         describe('absolute retry scheduling', function () {
+            it('runs another pass when a new format becomes ready during awaited lobby setup', async function () {
+                const { harness } = contextRef;
+                const player1 = await queueClientAsync(harness, MatchmakingPreference.CompetitiveTesting);
+                const addLobbyUserAsync = Lobby.prototype.addLobbyUserAsync;
+                let notifySetupStarted: () => void;
+                let resumeSetup: () => void;
+                const setupStarted = new Promise<void>((resolve) => notifySetupStarted = resolve);
+                const setupPaused = new Promise<void>((resolve) => resumeSetup = resolve);
+                let paused = false;
+                const addLobbyUserSpy = spyOn(Lobby.prototype, 'addLobbyUserAsync');
+                addLobbyUserSpy.and.callFake(async (user, socket) => {
+                    const lobby = addLobbyUserSpy.calls.mostRecent().object;
+                    if (!(lobby instanceof Lobby)) {
+                        throw new Error('Expected lobby setup to be called on a Lobby');
+                    }
+                    if (!paused) {
+                        paused = true;
+                        notifySetupStarted();
+                        await setupPaused;
+                    }
+                    await addLobbyUserAsync.call(lobby, user, socket);
+                });
+
+                const player2Connecting = queueClientAsync(harness, MatchmakingPreference.CompetitiveTesting);
+                let eternalPlayer1: TestClient;
+                let eternalPlayer2: TestClient;
+                try {
+                    await setupStarted;
+                    const eternalConfig = { ...matchConfig, format: SwuGameFormat.Eternal };
+                    eternalPlayer1 = await queueClientAsync(harness, MatchmakingPreference.CasualBrewing, {}, eternalConfig);
+                    eternalPlayer2 = await queueClientAsync(harness, MatchmakingPreference.CasualBrewing, {}, eternalConfig);
+                    expect(eternalPlayer1.lobbyState).toBeUndefined();
+                    expect(eternalPlayer2.lobbyState).toBeUndefined();
+                } finally {
+                    resumeSetup();
+                }
+
+                const player2 = await player2Connecting;
+                await harness.clock.settlePendingWorkAsync();
+                expectMatched(player1, player2);
+                expectMatched(eternalPlayer1, eternalPlayer2);
+                expect(eternalPlayer1.lobbyState.id).not.toBe(player1.lobbyState.id);
+            });
+
             it('does not postpone an existing deadline when another player arrives', async function () {
                 const { harness } = contextRef;
                 const competitive = await queueClientAsync(harness, MatchmakingPreference.CompetitiveTesting);
@@ -288,6 +333,54 @@ describe('GameServer matchmaking preferences', function () {
                 await harness.clock.advanceAsync(30_000);
                 expect(competitive.lobbyState).toBeUndefined();
                 expect(casual.lobbyState).toBeUndefined();
+            });
+
+            it('waits for active matchmaking before cleanup and prevents timers from surviving shutdown', async function () {
+                const { harness } = contextRef;
+                const player1 = await queueClientAsync(harness, MatchmakingPreference.CompetitiveTesting);
+                const addLobbyUserAsync = Lobby.prototype.addLobbyUserAsync;
+                let notifySetupStarted: () => void;
+                let resumeSetup: () => void;
+                const setupStarted = new Promise<void>((resolve) => notifySetupStarted = resolve);
+                const setupPaused = new Promise<void>((resolve) => resumeSetup = resolve);
+                let paused = false;
+                const addLobbyUserSpy = spyOn(Lobby.prototype, 'addLobbyUserAsync');
+                addLobbyUserSpy.and.callFake(async (user, socket) => {
+                    const lobby = addLobbyUserSpy.calls.mostRecent().object;
+                    if (!(lobby instanceof Lobby)) {
+                        throw new Error('Expected lobby setup to be called on a Lobby');
+                    }
+                    if (!paused) {
+                        paused = true;
+                        notifySetupStarted();
+                        await setupPaused;
+                    }
+                    await addLobbyUserAsync.call(lobby, user, socket);
+                });
+
+                const player2Connecting = queueClientAsync(harness, MatchmakingPreference.CompetitiveTesting);
+                await setupStarted;
+                let shutdownFinished = false;
+                const shutdown = harness.shutdownAsync().then(() => shutdownFinished = true);
+                try {
+                    await harness.clock.settlePendingWorkAsync();
+                    expect(shutdownFinished).toBeFalse();
+                    expect(harness.clock.pendingTaskCount).toBe(0);
+                } finally {
+                    resumeSetup();
+                }
+
+                const player2 = await player2Connecting;
+                await shutdown;
+                expect(shutdownFinished).toBeTrue();
+                expectMatched(player1, player2);
+                expect(harness.server.getUserLobbyId(player1.id)).toBeUndefined();
+                expect(harness.server.getUserLobbyId(player2.id)).toBeUndefined();
+
+                await player1.disconnectTransportAsync();
+                await player2.disconnectTransportAsync();
+                await harness.clock.advanceAsync(30_000);
+                expect(harness.clock.pendingTaskCount).toBe(0);
             });
         });
 
@@ -556,8 +649,8 @@ describe('GameServer matchmaking preferences', function () {
             });
         }, {
             matchmakingPreferencePolicy: {
-                samePreferenceOnlyDurationMs: 2_000,
-                noPreferenceDurationMs: 3_000,
+                [MatchmakingPreferencePolicyKey.SamePreferenceOnlyDurationMs]: 2_000,
+                [MatchmakingPreferencePolicyKey.NoPreferenceDurationMs]: 3_000,
             },
         });
     });

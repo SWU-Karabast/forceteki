@@ -48,7 +48,7 @@ function buildTestConfig(overrides: TestConfigOverrides = {}): IGameNodeConfig {
  * timers run on a {@link TestScheduler} the spec drives by hand.
  */
 export class TestGameServer extends GameServer {
-    private constructor(setup: ITestGameServerSetup, scheduler: TestScheduler, config: IGameNodeConfig, httpClient: FakeHttpClient) {
+    private constructor(setup: ITestGameServerSetup, private readonly clock: TestScheduler, config: IGameNodeConfig, httpClient: FakeHttpClient) {
         super(
             setup.testGameBuilder.cardDataGetter,
             setup.deckValidator,
@@ -57,7 +57,7 @@ export class TestGameServer extends GameServer {
             undefined,
             undefined,
             setup.testGameBuilder,
-            { listen: false, scheduler, config, httpClient }
+            { listen: false, scheduler: clock, config, httpClient }
         );
     }
 
@@ -66,7 +66,7 @@ export class TestGameServer extends GameServer {
      * exercise disconnect grace periods, countdowns, heartbeats and cleanup passes.
      */
     public get testScheduler(): TestScheduler {
-        return this.scheduler as TestScheduler;
+        return this.clock;
     }
 
     /** The behavioural switches this server was built with. */

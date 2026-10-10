@@ -70,6 +70,7 @@ import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema, ServerSet
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import { minimumSchedulerDelayMs } from '../utils/IScheduler';
 import { RealScheduler } from '../utils/RealScheduler';
+import { SchedulerTaskScope } from '../utils/SchedulerTaskScope';
 import type { IGameNodeConfig } from './GameNodeConfig';
 import type { IHttpClient } from '../utils/IHttpClient';
 import { RealHttpClient } from '../utils/RealHttpClient';
@@ -277,6 +278,7 @@ export class GameServer {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     protected readonly scheduler: IScheduler;
+    private readonly taskScope: SchedulerTaskScope;
     protected readonly config: IGameNodeConfig;
     protected readonly httpClient: IHttpClient;
     private readonly queue: QueueHandler;
@@ -286,8 +288,9 @@ export class GameServer {
     private lastLoopUtilization: EventLoopUtilization;
     private matchmakingRetryTask?: IScheduledTask;
     private matchmakingInProgress = false;
+
+    /** A request arriving during awaited lobby setup needs a fresh pass over all format queues. */
     private matchmakingRequested = false;
-    private shuttingDown = false;
     private gcStats = {
         totalDuration: 0,
         scavengeCount: 0,
@@ -313,9 +316,6 @@ export class GameServer {
     public readonly swuDbDeckFetcher: SwuDbDeckFetcher;
     public readonly meleeDeckFetcher: MeleeDeckFetcher;
     private readonly discordDispatcher = new DiscordDispatcher();
-
-    /** Every recurring task started by the constructor, retained so that {@link shutdownAsync} can stop them. */
-    private readonly backgroundTasks: IScheduledTask[] = [];
 
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
     public readonly serverSettingsCache?: ServerSettingsCache;
@@ -361,10 +361,11 @@ export class GameServer {
         app.use(express.json());
         const server = http.createServer(app);
 
-        this.scheduler = scheduler;
+        this.taskScope = new SchedulerTaskScope(scheduler);
+        this.scheduler = this.taskScope;
         this.config = config;
         this.httpClient = httpClient;
-        this.queue = new QueueHandler(scheduler, config);
+        this.queue = new QueueHandler(this.scheduler, config);
         this.httpServer = server;
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
@@ -432,11 +433,11 @@ export class GameServer {
         );
 
         // TOKEN CLEANUP
-        this.backgroundTasks.push(this.scheduler.setInterval(
+        this.scheduler.setInterval(
             () => this.cleanupInvalidTokens(),
             3600000, // 1 hour
             { message: 'GameServer: error during token cleanup' }
-        ));
+        );
 
         // Setup socket server
         this.io = new IOServer(server, {
@@ -462,11 +463,11 @@ export class GameServer {
         this.swuBaseHandler = new SwuBaseHandler(this.userFactory, httpClient);
 
         // set up queue heartbeat once a second
-        this.backgroundTasks.push(this.scheduler.setInterval(
+        this.scheduler.setInterval(
             () => this.queue.sendHeartbeat(),
             500,
             { message: 'GameServer: error sending queue heartbeat' }
-        ));
+        );
 
         if (this.config.metricsLoggingEnabled) {
             // initialize cpu usage and event loop stats
@@ -483,20 +484,20 @@ export class GameServer {
             this.logHeapStats();
 
             // set up periodic memory, cpu and event loop monitoring for every 30 seconds
-            this.backgroundTasks.push(this.scheduler.setInterval(() => {
+            this.scheduler.setInterval(() => {
                 this.logHeapStats();
                 this.logCpuUsage();
                 this.logEventLoopStats();
                 this.logPlayerStats();
                 this.logGCStats();
-            }, 30000, { message: 'GameServer: error logging periodic server metrics' }));
+            }, 30000, { message: 'GameServer: error logging periodic server metrics' });
 
             // emit daily active user count and reset every 24 hours
-            this.backgroundTasks.push(this.scheduler.setInterval(
+            this.scheduler.setInterval(
                 () => this.logAndResetDailyActiveUsers(),
                 86_400_000, // 24 hours
                 { message: 'GameServer: error logging daily active users' }
-            ));
+            );
         }
     }
 
@@ -2759,24 +2760,22 @@ export class GameServer {
     }
 
     private async matchmakeAllQueuesAsync(): Promise<void> {
-        if (this.shuttingDown) {
-            return;
-        }
+        await this.taskScope.runAsync(async () => {
+            if (this.matchmakingInProgress) {
+                this.matchmakingRequested = true;
+                return;
+            }
 
-        if (this.matchmakingInProgress) {
-            this.matchmakingRequested = true;
-            return;
-        }
-
-        this.matchmakingInProgress = true;
-        try {
-            do {
-                this.matchmakingRequested = false;
-                await this.matchmakeReadyQueuesAsync();
-            } while (this.matchmakingRequested && !this.shuttingDown);
-        } finally {
-            this.matchmakingInProgress = false;
-        }
+            this.matchmakingInProgress = true;
+            try {
+                do {
+                    this.matchmakingRequested = false;
+                    await this.matchmakeReadyQueuesAsync();
+                } while (this.matchmakingRequested);
+            } finally {
+                this.matchmakingInProgress = false;
+            }
+        });
     }
 
     private async matchmakeReadyQueuesAsync(): Promise<void> {
@@ -2793,7 +2792,7 @@ export class GameServer {
             // track exceptions to avoid getting stuck in a loop
             let exceptionCount = 0;
 
-            while (!this.shuttingDown) {
+            while (true) {
                 let matchedPlayers: [QueuedPlayer, QueuedPlayer];
 
                 // try-catch here so that all matchmaking doesn't halt on a single failure
@@ -2826,7 +2825,7 @@ export class GameServer {
         const retryTimes = formatsNeedingRetry
             .map((format) => this.queue.getNextMatchAvailableAt(format))
             .filter((availableAt): availableAt is number => availableAt !== null);
-        if (!this.shuttingDown && retryTimes.length > 0) {
+        if (retryTimes.length > 0) {
             const delayMs = Math.max(minimumSchedulerDelayMs, Math.min(...retryTimes) - this.scheduler.now());
             this.matchmakingRetryTask = this.scheduler.setTimeout(
                 () => this.matchmakeAllQueuesAsync(),
@@ -2969,31 +2968,25 @@ export class GameServer {
      * listener. Tests call this in teardown so the process is left with nothing keeping it alive.
      */
     public async shutdownAsync(): Promise<void> {
-        this.shuttingDown = true;
-        for (const task of this.backgroundTasks) {
-            task.cancel();
-        }
-        this.backgroundTasks.length = 0;
-
-        this.queue.shutdown();
-
-        if (this.matchmakingRetryTask) {
-            this.matchmakingRetryTask.cancel();
+        try {
+            await this.taskScope.cancelAsync();
+        } finally {
+            this.queue.shutdown();
             this.matchmakingRetryTask = undefined;
-        }
 
-        for (const lobby of Array.from(this.lobbies.values())) {
-            lobby.cleanLobby();
-        }
-        this.lobbies.clear();
-        this.userLobbyMap.clear();
+            for (const lobby of Array.from(this.lobbies.values())) {
+                lobby.cleanLobby();
+            }
+            this.lobbies.clear();
+            this.userLobbyMap.clear();
 
-        this.loopDelayHistogram?.disable();
+            this.loopDelayHistogram?.disable();
 
-        await new Promise<void>((resolve) => this.io.close(() => resolve()));
+            await new Promise<void>((resolve) => this.io.close(() => resolve()));
 
-        if (this.httpServer.listening) {
-            await new Promise<void>((resolve) => this.httpServer.close(() => resolve()));
+            if (this.httpServer.listening) {
+                await new Promise<void>((resolve) => this.httpServer.close(() => resolve()));
+            }
         }
     }
 
@@ -3016,10 +3009,6 @@ export class GameServer {
         timeoutSeconds = 20,
         isMatchmaking = false
     ) {
-        if (this.shuttingDown) {
-            return;
-        }
-
         try {
             if (!!socket?.data?.forceDisconnect) {
                 return;

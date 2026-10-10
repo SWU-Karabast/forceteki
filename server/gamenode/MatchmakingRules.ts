@@ -3,6 +3,7 @@ import type { IScheduler } from '../utils/IScheduler';
 import { MatchmakingPreference, MatchmakingSearchStage } from '../game/core/Constants';
 import { Contract } from '../game/core/utils/Contract';
 import type { IMatchmakingPreferencePolicy } from './GameNodeConfig';
+import { MatchmakingPreferencePolicyKey } from './GameNodeConfig';
 
 export interface IMatchmakingSearchContext {
     preference: MatchmakingPreference;
@@ -24,7 +25,7 @@ export interface IMatchmakingPlayerEntry {
 export interface IMatchmakingRule {
     canMatch(player1: IMatchmakingPlayerEntry, player2: IMatchmakingPlayerEntry): boolean;
 
-    /** Earliest eligible epoch millisecond; zero means this rule imposes no delay. */
+    /** Rules allow matching at now >= this deadline; zero means this rule imposes no delay. */
     getMatchAvailableAt(player1: IMatchmakingPlayerEntry, player2: IMatchmakingPlayerEntry): number;
 }
 
@@ -44,10 +45,10 @@ function getOpponentPreferenceAvailableAt(
         return player.searchStartedAt;
     }
 
-    const noPreferenceAvailableAt = player.searchStartedAt + policy.samePreferenceOnlyDurationMs;
+    const noPreferenceAvailableAt = player.searchStartedAt + policy[MatchmakingPreferencePolicyKey.SamePreferenceOnlyDurationMs];
     return opponentPreference === MatchmakingPreference.NoPreference
         ? noPreferenceAvailableAt
-        : noPreferenceAvailableAt + policy.noPreferenceDurationMs;
+        : noPreferenceAvailableAt + policy[MatchmakingPreferencePolicyKey.NoPreferenceDurationMs];
 }
 
 export function getQueueMatchmakingStatus(
@@ -142,13 +143,12 @@ class RematchCooldownRule implements IMatchmakingRule {
         const p2PreviousMatch = playerEntry2.previousMatch;
         let availableAt = 0;
 
-        // Rematch cooldown includes its final millisecond, unlike the preference windows.
         if (p1PreviousMatch && p1PreviousMatch.opponentUserId === playerEntry2.player.user.getId()) {
-            availableAt = Math.floor(p1PreviousMatch.endTimestamp + this.cooldownMs) + 1;
+            availableAt = p1PreviousMatch.endTimestamp + this.cooldownMs;
         }
 
         if (p2PreviousMatch && p2PreviousMatch.opponentUserId === playerEntry1.player.user.getId()) {
-            availableAt = Math.max(availableAt, Math.floor(p2PreviousMatch.endTimestamp + this.cooldownMs) + 1);
+            availableAt = Math.max(availableAt, p2PreviousMatch.endTimestamp + this.cooldownMs);
         }
 
         return availableAt;

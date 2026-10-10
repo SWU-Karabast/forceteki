@@ -13,7 +13,7 @@ import type { IMatchmakingPlayerEntry, IMatchmakingRule } from './MatchmakingRul
 import { getMatchmakingSearchContext, getQueueMatchmakingStatus, MatchmakingRule } from './MatchmakingRules';
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import type { IGameNodeConfig, IMatchmakingPreferencePolicy } from './GameNodeConfig';
-import { defaultMatchmakingPreferencePolicy } from './GameNodeConfig';
+import { defaultMatchmakingPreferencePolicy, MatchmakingPreferencePolicyKey } from './GameNodeConfig';
 
 export interface QueuedPlayerToAdd {
     deck: ISwuDbFormatDecklist;
@@ -67,7 +67,7 @@ export class QueueHandler {
         this.scheduler = scheduler;
         this.config = config;
         this.preferencePolicy = { ...(config.matchmakingPreferencePolicy ?? defaultMatchmakingPreferencePolicy) };
-        for (const name of ['samePreferenceOnlyDurationMs', 'noPreferenceDurationMs'] as const) {
+        for (const name of Object.values(MatchmakingPreferencePolicyKey)) {
             const durationMs = this.preferencePolicy[name];
             Contract.assertTrue(Number.isSafeInteger(durationMs) && durationMs >= 0, `Invalid matchmaking preference duration ${name}: ${durationMs}`);
         }
@@ -228,7 +228,7 @@ export class QueueHandler {
             const now = this.scheduler.now();
             const cooldownMs = QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000;
             for (const [userId, matchEntry] of this.playerPreviousMatch.entries()) {
-                if (now - matchEntry.endTimestamp > cooldownMs) {
+                if (now - matchEntry.endTimestamp >= cooldownMs) {
                     this.playerPreviousMatch.delete(userId);
                 }
             }
