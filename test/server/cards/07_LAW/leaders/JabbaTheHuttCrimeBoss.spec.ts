@@ -235,7 +235,7 @@ describe('Jabba the Hutt, Crime Boss', function() {
 
                 // Use Jabba's unit-side action ability
                 context.player1.clickCard(context.jabbaTheHutt);
-                expect(context.player1).toHavePrompt('Choose an action:');
+                expect(context.player1).toHavePrompt('Choose an action for Jabba the Hutt');
                 expect(context.player1).toHaveExactPromptButtons([
                     'Play an Underworld unit unit from your hand',
                     'Attack',

@@ -22,7 +22,10 @@ export interface IActionSelectionChoice {
 
 export interface IActionSelectionPromptProperties {
 
-    /** Name of the clicked card, shown as the prompt's title. */
+    /** Prompt header, e.g. "Choose an action for Kazuda Xiono". */
+    title: string;
+
+    /** Name of the clicked card. */
     sourceCardName: string;
 
     choices: IActionSelectionChoice[];
@@ -57,7 +60,7 @@ export class ActionSelectionPrompt extends UiPrompt {
         buttons.push({ text: 'Cancel', arg: 'cancel' });
 
         return {
-            menuTitle: 'Choose an action:',
+            menuTitle: this.properties.title,
             buttons,
             promptTitle: this.properties.sourceCardName,
             promptUuid: this.uuid,

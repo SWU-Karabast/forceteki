@@ -18,7 +18,7 @@ describe('T6 Shuttle 1974, With A Mentor\'s Dedication', function() {
                 context.player1.clickCard(context.t6Shuttle1974);
 
                 // Choose the action ability (not attack)
-                expect(context.player1).toHavePrompt('Choose an action:');
+                expect(context.player1).toHavePrompt('Choose an action for T-6 Shuttle 1974');
                 context.player1.clickPrompt('Give another unit +2/+2 for this phase. You may attack with that unit');
 
                 // Select another unit to buff
@@ -92,7 +92,7 @@ describe('T6 Shuttle 1974, With A Mentor\'s Dedication', function() {
                 context.player1.clickCard(context.t6Shuttle1974);
 
                 // Choose the action ability (not attack)
-                expect(context.player1).toHavePrompt('Choose an action:');
+                expect(context.player1).toHavePrompt('Choose an action for T-6 Shuttle 1974');
                 context.player1.clickPrompt('Give another unit +2/+2 for this phase. You may attack with that unit');
 
                 context.player1.clickCard(context.battlefieldMarine);
@@ -120,7 +120,7 @@ describe('T6 Shuttle 1974, With A Mentor\'s Dedication', function() {
 
                 context.player1.clickCard(context.t6Shuttle1974);
 
-                expect(context.player1).toHavePrompt('Choose an action:');
+                expect(context.player1).toHavePrompt('Choose an action for T-6 Shuttle 1974');
                 context.player1.clickPrompt('Give another unit +2/+2 for this phase. You may attack with that unit');
                 context.player1.clickCard(context.battlefieldMarine);
 

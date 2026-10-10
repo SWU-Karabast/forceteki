@@ -72,6 +72,9 @@ export class ActionWindow extends UiPrompt {
         }
 
         this.game.promptWithActionSelection(player, {
+            title: legalActions.every((action) => action.isPlayCardAbility())
+                ? `Choose how to play ${card.title}`
+                : `Choose an action for ${card.title}`,
             sourceCardName: card.title,
             choices: legalActions.map((action) => {
                 const context = action.createContext(player);
