@@ -5,10 +5,10 @@ import { CardType, RelativePlayer, Trait, WildcardCardType, WildcardZoneName } f
 import type { Player } from '../../../core/Player';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { TextHelper } from '../../../core/utils/TextHelper';
-import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import type { CardsPlayedThisRoundWatcher } from '../../../stateWatchers/CardsPlayedThisRoundWatcher';
 
 export default class OriginTreeShyyyo extends NonLeaderUnitCard {
-    private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
+    private cardsPlayedThisRoundWatcher: CardsPlayedThisRoundWatcher;
 
     protected override getImplementationId() {
         return {
@@ -18,7 +18,7 @@ export default class OriginTreeShyyyo extends NonLeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase();
+        this.cardsPlayedThisRoundWatcher = AbilityHelper.stateWatchers.cardsPlayedThisRound();
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -37,7 +37,7 @@ export default class OriginTreeShyyyo extends NonLeaderUnitCard {
     }
 
     private getUnitsPlayedThisRoundCount(player: Player): number {
-        return this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
+        return this.cardsPlayedThisRoundWatcher.getCardsPlayed((playedCardEntry) =>
             playedCardEntry.playedAsType === CardType.BasicUnit &&
             playedCardEntry.playedBy === player
         ).length;

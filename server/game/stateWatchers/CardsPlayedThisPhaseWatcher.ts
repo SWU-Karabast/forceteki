@@ -9,7 +9,7 @@ import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployabl
 import type { Game } from '../core/Game';
 import type { UnwrapRef } from '../core/GameObjectBase';
 
-import { registerState, type GameObjectId } from '../core/GameObjectUtils';
+import { registerState, registerStateBase, type GameObjectId } from '../core/GameObjectUtils';
 
 export interface PlayedCardEntry {
     card: GameObjectId<IPlayableCard>;
@@ -24,14 +24,9 @@ export interface PlayedCardEntry {
     playedAsType: CardType;
 }
 
-@registerState()
-export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry> {
-    public constructor(
-        game: Game,
-        registrar: StateWatcherRegistrar) {
-        super(game, StateWatcherName.CardsPlayedThisPhase, registrar);
-    }
-
+/** Tracks the cards played, shared by the phase and the round version of the watcher */
+@registerStateBase()
+export abstract class CardsPlayedWatcherBase extends StateWatcher<PlayedCardEntry> {
     protected override mapCurrentValue(stateValue: PlayedCardEntry[]): UnwrapRef<PlayedCardEntry[]> {
         return stateValue.map((x) => ({ ...x, card: this.game.getFromId(x.card), playedBy: this.game.getFromId(x.playedBy), parentCard: this.game.getFromId(x.parentCard) }));
     }
@@ -79,5 +74,14 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry> {
 
     protected override getResetValue(): PlayedCardEntry[] {
         return [];
+    }
+}
+
+@registerState()
+export class CardsPlayedThisPhaseWatcher extends CardsPlayedWatcherBase {
+    public constructor(
+        game: Game,
+        registrar: StateWatcherRegistrar) {
+        super(game, StateWatcherName.CardsPlayedThisPhase, registrar);
     }
 }
