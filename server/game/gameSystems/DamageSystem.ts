@@ -59,6 +59,12 @@ export interface IAbilityDamageProperties extends IDamagePropertiesBase {
 export interface IExcessDamageProperties extends IDamagePropertiesBase {
     type: DamageType.Excess;
     sourceEventForExcessDamage: any;
+
+    /** Overrides the excess damage amount, e.g. when a damage modification effect changes it */
+    amount?: number;
+
+    /** The source of the damage, if different from the card that triggered the ability */
+    source?: Card;
 }
 
 /** Used for "standard" Overwhelm when the event will be using the excess damage from a resolved attack damage event */
@@ -104,7 +110,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
     };
 
     public eventHandler(event): void {
-        const eventDamageAmount = this.getDamageAmountFromEvent(event);
+        const eventDamageAmount = DamageSystem.getDamageAmountFromEvent(event);
 
         event.damageDealt = event.card.addDamage(eventDamageAmount, event.damageSource);
 
@@ -117,7 +123,8 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         event.availableExcessDamage = eventDamageAmount - event.damageDealt;
     }
 
-    private getDamageAmountFromEvent(event: any): number {
+    /** The amount of damage a damage event deals. Excess and Overwhelm damage events may read it from the event they came from. */
+    public static getDamageAmountFromEvent(event: any): number {
         if (event.amount != null) {
             return event.amount;
         }
@@ -201,7 +208,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
         Contract.assertTrue(card.canBeDamaged());
 
-        const damageAmount = this.getDamageAmountFromEvent(event);
+        const damageAmount = DamageSystem.getDamageAmountFromEvent(event);
         event.availableExcessDamage = damageAmount - Math.min(damageAmount, card.remainingHp);
 
         // Check if the damage will defeat the card, this can be used by abilities (e.g. Tarfful) to determine if the card will be defeated or not
@@ -269,13 +276,17 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
     private addExcessDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: IExcessDamageProperties): void {
         const excessDamageSource: IDamagedOrDefeatedByAbility = {
             type: DamageSourceType.Ability,
-            player: context.player,
-            card: context.source,
+            player: properties.source?.controller ?? context.player,
+            card: properties.source ?? context.source,
             event
         };
 
         event.damageSource = excessDamageSource;
         event.sourceEventForExcessDamage = properties.sourceEventForExcessDamage;
+
+        if (properties.amount != null) {
+            event.amount = properties.amount;
+        }
     }
 
     private addAbilityDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: IAbilityDamageProperties): void {
