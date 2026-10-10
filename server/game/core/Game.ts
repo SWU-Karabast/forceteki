@@ -112,6 +112,8 @@ import type { Deck } from '../../utils/deck/Deck';
 import { ClaimCounterSystem } from '../gameSystems/ClaimCounterSystem';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
+import { AnimationRecorder } from './animation/AnimationRecorder';
+import { buildAnimationDescriptors } from './animation/AnimationLibrary';
 
 export class Game extends EventEmitter {
     private _debug: { pipeline: boolean };
@@ -357,6 +359,7 @@ export class Game extends EventEmitter {
     public playersAndSpectators: Record<string, Player | Spectator>;
     public chatMessageOffsets: Map<string, number>;
     public gameChat: GameChat;
+    public readonly animations: AnimationRecorder;
     public pipeline: GamePipeline;
     public id: string;
     public allowSpectators: boolean;
@@ -436,6 +439,7 @@ export class Game extends EventEmitter {
         this.playersAndSpectators = {};
         this.chatMessageOffsets = new Map();
         this.gameChat = new GameChat(details.pushUpdate);
+        this.animations = new AnimationRecorder(this, buildAnimationDescriptors());
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.allowSpectators = details.allowSpectators;
@@ -1836,6 +1840,7 @@ export class Game extends EventEmitter {
                     winners: this.winnerNames,
                     undoEnabled: this.isUndoEnabled,
                     ongoingEffects,
+                    ...this.animations.readFor(notInactivePlayerId, this.isPlayer(activePlayer) ? activePlayer : null),
                 };
 
                 // Advance the offset for this participant

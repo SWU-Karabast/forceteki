@@ -82,6 +82,7 @@ interface SwuTestContext {
     getTraitNames(): string[];
     getChatLog(numbBack = 0);
     getChatLogs(numbBack = 1, inOrder = false);
+    getAnimationRecords(from?: number): any[];
     getPromptedPlayer(title: string);
     keepStartingHand();
     moveToNextActionPhase();
