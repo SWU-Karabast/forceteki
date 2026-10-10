@@ -1,7 +1,8 @@
 import jwt from 'jsonwebtoken';
 import type { Response as SupertestResponse } from 'supertest';
 
-import type { CardPool, GamesToWinMode, SwuGameFormat } from '../../../server/game/core/Constants';
+import type { CardPool, GamesToWinMode, MatchmakingPreference, SwuGameFormat } from '../../../server/game/core/Constants';
+import type { IQueueMatchmakingStatus } from '../../../server/gamenode/MatchmakingRules';
 import type { IUserDataEntity } from '../../../server/services/DynamoDBInterfaces';
 import type { ISwuDbFormatDecklist } from '../../../server/utils/deck/DeckInterfaces';
 import { FakeIoSocket } from './FakeIoSocket';
@@ -179,6 +180,7 @@ export class TestClient {
         format: SwuGameFormat;
         cardPool: CardPool;
         gamesToWinMode: GamesToWinMode;
+        matchmakingPreference?: MatchmakingPreference;
     }): Promise<SupertestResponse> {
         return await this.withAuthCookie(this.harness.api.post('/api/enter-queue')).send({
             user: this.userPayload(),
@@ -186,6 +188,7 @@ export class TestClient {
             format: options.format,
             cardPool: options.cardPool,
             gamesToWinMode: options.gamesToWinMode,
+            matchmakingPreference: options.matchmakingPreference,
         });
     }
 
@@ -306,6 +309,12 @@ export class TestClient {
     /** The most recent `gamestate` payload received, or `undefined` if none yet. */
     public get gameState(): any | undefined {
         return this.lastPayload('gamestate');
+    }
+
+    /** The most recent matching status supplied as the second queueHeartbeat argument. */
+    public get queueMatchmakingStatus(): IQueueMatchmakingStatus | undefined {
+        const heartbeats = this.receivedEvents('queueHeartbeat');
+        return heartbeats.length > 0 ? heartbeats[heartbeats.length - 1].args[1] : undefined;
     }
 
     /** Every `connection_error` message received so far. */
