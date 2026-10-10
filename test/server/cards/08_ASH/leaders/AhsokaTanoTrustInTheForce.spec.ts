@@ -56,7 +56,7 @@ describe('Ahsoka Tano, Trust In The Force', function() {
                 context.player1.clickCard(context.ahsokaTano);
 
                 // When clicking undeployed leader with no valid targets, shows confirmation prompt
-                expect(context.player1).toHavePrompt('Play Ahsoka Tano:');
+                expect(context.player1).toHavePrompt('Choose an action:');
                 context.player1.clickPrompt('(No effect) Choose a unit with less power than a friendly unit. It gets +2/+0 for this phase');
 
                 // Confirm using the ability even though it has no effect
