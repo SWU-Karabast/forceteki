@@ -61,6 +61,15 @@ export interface ITriggerWindowButton extends IButtonWithSourceCard {
 
     /** Number of similar triggers this button represents (> 1 when several were grouped into one choice) */
     count?: number;
+
+    /** Whether or not this trigger button represents an optional ability that can be passed by the player */
+    optional?: boolean;
+
+    /** Command arg the client sends to decline an optional trigger; only set when {@link optional} is true. */
+    passArg?: string;
+
+    /** Label for the inline decline button (respects an ability's custom pass text); only set when {@link optional} is true. */
+    passText?: string;
 }
 
 /**
@@ -78,6 +87,21 @@ export interface IResolutionChoice {
 
     /** Number of grouped triggers this choice represents; omitted or 1 for an ungrouped single trigger */
     count?: number;
+
+    /**
+     * Present only when this choice is an optional ("may") trigger whose owner is the currently resolving
+     * player, so the Trigger/Pass decision can be made inline in the resolution-order prompt instead of via
+     * a follow-up interstitial. `onTrigger` resolves the ability without re-prompting to opt in; `onPass`
+     * declines it (running any "if you do not" clause). When absent, {@link handler} is used, which preserves
+     * the interstitial for the single-trigger fast path and for non-inline optionals.
+     */
+    optional?: {
+        onTrigger: () => void;
+        onPass: () => void;
+
+        /** Label for the decline button, respecting an ability's custom pass text (defaults to "Pass"). */
+        passButtonText: string;
+    };
 }
 
 /**
