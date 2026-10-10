@@ -76,10 +76,12 @@ export class ActionWindow extends UiPrompt {
             choices: legalActions.map((action) => {
                 const context = action.createContext(player);
                 const gainAbilitySource = action.isCardAbility() && !action.printedAbility ? action.gainAbilitySource : null;
+                const sourceCard = gainAbilitySource ?? card;
                 return {
                     title: action.getTitle(context),
-                    sourceCard: getTriggerSourceCardSummary(gainAbilitySource ?? card),
+                    sourceCard: getTriggerSourceCardSummary(sourceCard),
                     hasLegalEffects: action.hasAnyLegalEffects(context, SubStepCheck.All),
+                    gained: sourceCard !== card,
                     handler: () => this.resolveAbility(action.createContext(player))
                 };
             })
