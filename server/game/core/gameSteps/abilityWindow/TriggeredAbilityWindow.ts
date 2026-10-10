@@ -1,8 +1,9 @@
 import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
-import { AbilityType } from '../../Constants';
+import { AbilityType, RelativePlayer } from '../../Constants';
 import type { EventWindow } from '../../event/EventWindow';
 import type { Game } from '../../Game';
-import type { PreResolvedOptionalChoice } from '../AbilityResolver';
+import { PreResolvedOptionalChoice } from '../AbilityResolver';
+import type { IResolutionChoice } from '../PromptInterfaces';
 import { TriggerWindowBase } from './TriggerWindowBase';
 
 export class TriggeredAbilityWindow extends TriggerWindowBase {
@@ -16,10 +17,6 @@ export class TriggeredAbilityWindow extends TriggerWindowBase {
 
     public override shouldCleanUpTriggers(): boolean {
         return !this.choosePlayerResolutionOrderComplete;
-    }
-
-    protected override supportsInlineOptionalResolution(): boolean {
-        return true;
     }
 
     public override addTriggeredAbilityToWindow(context: TriggeredAbilityContext) {
@@ -38,6 +35,30 @@ export class TriggeredAbilityWindow extends TriggerWindowBase {
                 this.postResolutionUpdate(resolver);
             }
         }, `Check resolution of triggered ability ${resolver.context.ability}`);
+    }
+
+    /**
+     * An optional ("may") trigger gets its Trigger/Pass decision inline in the resolution-order prompt, skipping
+     * the interstitial "You may trigger this ability" prompt. When the opponent is the chooser
+     * (`playerChoosingOptional`), the choice is left without inline handlers and falls back to the interstitial.
+     */
+    protected override buildContextChoice(context: TriggeredAbilityContext): IResolutionChoice {
+        const choice = super.buildContextChoice(context);
+
+        const chooser = context.ability.playerChoosingOptional ?? RelativePlayer.Self;
+        if (!context.ability.optional || chooser !== RelativePlayer.Self) {
+            return choice;
+        }
+
+        return {
+            ...choice,
+            optional: {
+                onTrigger: () => this.resolveAbility(context, PreResolvedOptionalChoice.Trigger),
+                onPass: () => this.resolveAbility(context, PreResolvedOptionalChoice.Pass),
+                passButtonText: context.ability.optionalButtonTextOverride ??
+                  (context.ability.isAttackAction() ? 'Pass attack' : 'Pass'),
+            },
+        };
     }
 
     public override toString() {
