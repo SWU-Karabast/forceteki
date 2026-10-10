@@ -124,5 +124,45 @@ describe('Tobias Beckett, I Trust No One', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(7);
             });
         });
+
+        it('should trigger when its controller plays an opponent-owned upgrade from the discard pile with A Fine Addition', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['a-fine-addition'],
+                    groundArena: ['tobias-beckett#i-trust-no-one', 'wampa'],
+                },
+                player2: {
+                    groundArena: ['death-star-stormtrooper', 'battlefield-marine'],
+                    discard: ['academy-training']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Defeat an enemy unit to enable A Fine Addition
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.deathStarStormtrooper);
+            expect(context.deathStarStormtrooper).toBeInZone('discard', context.player2);
+
+            context.player2.passAction();
+
+            // Play the opponent's upgrade (cost 2) from their discard pile
+            context.player1.clickCard(context.aFineAddition);
+            context.player1.clickCard(context.academyTraining);
+            context.player1.clickCard(context.wampa);
+            expect(context.wampa).toHaveExactUpgradeNames(['academy-training']);
+
+            // Tobias Beckett triggers for both A Fine Addition (cost 0) and the opponent-owned upgrade (cost 2)
+            context.player1.clickPrompt('Resolve next');
+
+            // Battlefield Marine (cost 2) can only be chosen because of the opponent-owned upgrade
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+            expect(context.player1).toHavePassAbilityButton();
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine.exhausted).toBeTrue();
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

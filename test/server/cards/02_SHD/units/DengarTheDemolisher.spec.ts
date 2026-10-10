@@ -64,5 +64,41 @@ describe('Dengar, The Demolisher', function () {
                 expect(context.p1Base).toHaveExactUpgradeNames(['alliance-shield-generator']);
             });
         });
+
+        it('should trigger when its controller plays an opponent-owned upgrade from the discard pile with A Fine Addition', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['a-fine-addition'],
+                    groundArena: ['dengar#the-demolisher', 'wampa'],
+                },
+                player2: {
+                    groundArena: ['death-star-stormtrooper', 'battlefield-marine'],
+                    discard: ['academy-training']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Defeat an enemy unit to enable A Fine Addition
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.deathStarStormtrooper);
+            expect(context.deathStarStormtrooper).toBeInZone('discard', context.player2);
+
+            context.player2.passAction();
+
+            // Play the opponent's upgrade from their discard pile on an enemy unit
+            context.player1.clickCard(context.aFineAddition);
+            context.player1.clickCard(context.academyTraining);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.battlefieldMarine).toHaveExactUpgradeNames(['academy-training']);
+
+            // Dengar reacts to player1 playing the opponent-owned upgrade
+            expect(context.player1).toHaveEnabledPromptButtons(['Deal 1 damage to the upgraded unit', 'Pass']);
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.battlefieldMarine.damage).toBe(1);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
