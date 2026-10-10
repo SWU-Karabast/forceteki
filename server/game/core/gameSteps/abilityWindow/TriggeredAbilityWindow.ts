@@ -2,6 +2,7 @@ import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityCont
 import { AbilityType } from '../../Constants';
 import type { EventWindow } from '../../event/EventWindow';
 import type { Game } from '../../Game';
+import type { PreResolvedOptionalChoice } from '../AbilityResolver';
 import { TriggerWindowBase } from './TriggerWindowBase';
 
 export class TriggeredAbilityWindow extends TriggerWindowBase {
@@ -17,6 +18,10 @@ export class TriggeredAbilityWindow extends TriggerWindowBase {
         return !this.choosePlayerResolutionOrderComplete;
     }
 
+    protected override supportsInlineOptionalResolution(): boolean {
+        return true;
+    }
+
     public override addTriggeredAbilityToWindow(context: TriggeredAbilityContext) {
         // new triggers can't be added to a regular triggered ability window once it's started resolving, they all should have happened during event resolution
         this.assertWindowResolutionNotStarted('ability', context.source);
@@ -24,10 +29,10 @@ export class TriggeredAbilityWindow extends TriggerWindowBase {
         super.addTriggeredAbilityToWindow(context);
     }
 
-    protected resolveAbility(context: TriggeredAbilityContext) {
+    protected resolveAbility(context: TriggeredAbilityContext, preResolvedOptional?: PreResolvedOptionalChoice) {
         // Triggered abilities can't be cancelled once they resolve (an optional one is declined via its
         // "Pass" button), so suppress the spurious "Cancel" button that a top-level resolver would show.
-        const resolver = this.game.resolveAbility(context, ['player'], false);
+        const resolver = this.game.resolveAbility(context, ['player'], false, preResolvedOptional);
         this.game.queueSimpleStep(() => {
             if (resolver.resolutionCommitted) {
                 this.postResolutionUpdate(resolver);
