@@ -249,5 +249,65 @@ describe('Stolen AT-Hauler', () => {
                 expect(context.player1.readyResourceCount).toBe(p1ReadyResources - 3);
             });
         });
+
+        describe('When another ability plays Stolen AT-Hauler from the discard pile', function() {
+            it('allows its owner to play it with an ability while the opponent may play it', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'boba-fett#collecting-the-bounty',
+                        hand: ['nightbrother#mauls-gauntlet'],
+                        spaceArena: ['stolen-athauler']
+                    },
+                    player2: {
+                        hand: ['takedown'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('discard', context.player1);
+
+                // Player 1 uses Nightbrother to play the Stolen AT-Hauler from their own discard pile
+                context.player1.clickCard(context.nightbrother);
+                expect(context.player1).toBeAbleToSelectExactly([context.stolenAthauler]);
+                context.player1.clickCard(context.stolenAthauler);
+
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+                expect(context.stolenAthauler.exhausted).toBeFalse();
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('does not make it free for its owner', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grand-moff-tarkin#oversector-governor',
+                        base: 'administrators-tower',
+                        hand: ['salvage'],
+                        spaceArena: ['stolen-athauler']
+                    },
+                    player2: {
+                        hand: ['takedown'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.stolenAthauler);
+
+                // Player 1 uses Salvage to play the Stolen AT-Hauler, paying its cost
+                context.player1.clickCard(context.salvage);
+                context.player1.clickCard(context.stolenAthauler);
+
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+                expect(context.player1.exhaustedResourceCount).toBe(3);
+            });
+        });
     });
 });

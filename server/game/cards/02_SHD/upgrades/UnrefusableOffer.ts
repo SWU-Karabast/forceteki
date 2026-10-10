@@ -26,7 +26,6 @@ export default class UnrefusableOffer extends UpgradeCard {
                         adjustCost: { costAdjustType: CostAdjustType.Free },
                         playType: PlayType.PlayFromOutOfPlay,
                         playAsType: WildcardCardType.Unit,
-                        canPlayFromAnyZone: true,
                     })
                 }),
                 ifYouDo: (ifYouDoContext) => ({

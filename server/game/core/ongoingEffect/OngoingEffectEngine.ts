@@ -108,7 +108,7 @@ const summaryExcludedEffectNames: ReadonlySet<EffectName> = new Set([
  * Effect types that only matter while their source card is in a zone it can be played from, mapped to
  * those zones. Such an effect is included only when its source is in a listed zone, and suppressed once
  * the card moves elsewhere (e.g. R2-D2's "can be played on a Vehicle with a Pilot" is only relevant in
- * hand). Effects that are only ever created in the zone they matter in (e.g. CanPlayFromDiscard) don't
+ * hand). Effects that are only ever created in the zone they matter in (e.g. GainPlayPermission) don't
  * need an entry.
  */
 const playModifierEffectRelevantZones: ReadonlyMap<EffectName, ReadonlySet<ZoneName>> = new Map([

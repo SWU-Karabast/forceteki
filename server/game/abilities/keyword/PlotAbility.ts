@@ -23,7 +23,6 @@ export class PlotAbility extends TriggeredAbilityBase {
             },
             zoneFilter: ZoneName.Resource,
             immediateEffect: new PlayCardSystem((context) => ({
-                canPlayFromAnyZone: true,
                 playType: PlayType.Plot,
                 playAsType: WildcardCardType.Any,
                 target: context.source

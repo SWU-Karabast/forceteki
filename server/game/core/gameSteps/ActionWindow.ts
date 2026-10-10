@@ -304,10 +304,21 @@ export class ActionWindow extends UiPrompt {
         const actions = card.getActions();
         const legalActions = actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
 
-        // Show one button per source for gained abilities from multiple copies of the same card.
+        // Show one button per source for gained abilities from multiple copies of the same card, and one button
+        // for identical play permissions (e.g. two Boga triggers on the same card).
         // Deduplicating after the requirements filter keeps a copy at its use limit from hiding a usable one.
         const seenGainedSources = new Set<string>();
+        const seenPermissionTitles = new Set<string>();
         return legalActions.filter((action) => {
+            if (action.isPlayCardAbility() && action.playPermission) {
+                const title = action.getTitle(action.createContext(player));
+                if (seenPermissionTitles.has(title)) {
+                    return false;
+                }
+                seenPermissionTitles.add(title);
+                return true;
+            }
+
             const gainAbilitySource = action.isCardAbility() && !action.printedAbility ? action.gainAbilitySource : null;
             if (!gainAbilitySource) {
                 return true;

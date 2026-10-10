@@ -20,8 +20,7 @@ export default class Salvage extends EventCard {
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Vehicle),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
-                    playAsType: WildcardCardType.Unit,
-                    canPlayFromAnyZone: true
+                    playAsType: WildcardCardType.Unit
                 })
             },
             then: (thenContext) => ({
