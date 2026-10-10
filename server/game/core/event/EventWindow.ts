@@ -37,7 +37,7 @@ export class EventWindow extends BaseStepWithPipeline {
 
     private parentWindow?: EventWindow = null;
     private resolvedEvents: any[] = [];
-    private claimedDelayedEffects: OngoingEffect<any>[] = [];
+    private triggeredDelayedEffects: OngoingEffect<any>[] = [];
     private subwindowEvents: any[] = [];
     private subAbilityStepFn?: () => AbilityContext = null;
     private windowDepth?: number = null;
@@ -162,6 +162,11 @@ export class EventWindow extends BaseStepWithPipeline {
         this.postEventResolutionCallbacks.push(callback);
     }
 
+    /** Registers a delayed effect triggered by one of this window's events, to be fired at this window's {@link resolveGameState} */
+    public addTriggeredDelayedEffect(effect: OngoingEffect<any>) {
+        this.triggeredDelayedEffects.push(effect);
+    }
+
     /** Set parent event window and initialize triggering window based on configured rules and parent window settings (if relevant) */
     private setParentEventWindow() {
         this.parentWindow = this.game.currentEventWindow;
@@ -269,10 +274,10 @@ export class EventWindow extends BaseStepWithPipeline {
             callback();
         }
 
-        // match delayed effects now, before any steps queued by event handlers (e.g. an initiated ability's
-        // resolution) run; the claimed effects fire at this window's game state check
-        if (this.resolvedEvents.length > 0) {
-            this.claimedDelayedEffects = this.game.ongoingEffectEngine.claimDelayedEffects(this.resolvedEvents);
+        // emit for delayed effects now, before any steps queued by event handlers (e.g. an initiated ability's
+        // resolution) run; any delayed effects triggered here fire at this window's game state check
+        for (const event of this.resolvedEvents) {
+            this.game.emit(event.name + ':' + AbilityType.DelayedEffect, event, this);
         }
     }
 
@@ -285,7 +290,7 @@ export class EventWindow extends BaseStepWithPipeline {
     // this is to catch triggers on cards that entered play or gained abilities during event resolution
     private resolveGameState() {
         // TODO: understand if resolveGameState really needs the resolvedEvents array or not
-        this.game.resolveGameState(this.resolvedEvents.some((event) => event.handler), this.resolvedEvents, this.claimedDelayedEffects);
+        this.game.resolveGameState(this.resolvedEvents.some((event) => event.handler), this.resolvedEvents, this.triggeredDelayedEffects);
     }
 
     private postResolutionTriggers() {
