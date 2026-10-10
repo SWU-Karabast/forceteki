@@ -84,6 +84,11 @@ export enum TimerVisibility {
     HideAll = 'hideAll',
 }
 
+export enum DateFormat {
+    MonthFirst = 'monthFirst', // MM/DD/YYYY
+    DayFirst = 'dayFirst', // DD/MM/YYYY
+}
+
 export interface IUserPreferences {
     sound?: {
         muteAllSound?: boolean;
@@ -100,6 +105,10 @@ export interface IUserPreferences {
         muteChat?: boolean;
         cardLanguage?: CardImageLocale;
         timerVisibility?: TimerVisibility;
+
+        // Currently only relevant for moderators: it is used by the mod tools (user management,
+        // server controls). Outside of those, it only affects the username-change cooldown message.
+        dateFormat?: DateFormat;
 
         // Prompt-reduction settings: auto-resolve prompts that have only one sensible outcome.
         // Grouped so future automations (e.g. auto-select opponent for indirect damage,
