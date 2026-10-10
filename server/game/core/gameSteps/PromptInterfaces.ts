@@ -26,6 +26,7 @@ export enum PromptType {
     PassDelay = 'passDelay',
     BatchTriggerResolution = 'batchTriggerResolution',
     OptionalTrigger = 'optionalTrigger',
+    ActionSelection = 'actionSelection',
 }
 
 export interface IButton {
@@ -70,6 +71,11 @@ export interface ITriggerWindowButton extends IButtonWithSourceCard {
 
     /** Label for the inline decline button (respects an ability's custom pass text); only set when {@link optional} is true. */
     passText?: string;
+}
+
+/** A card button for one of a clicked card's available actions in the action-selection prompt. */
+export interface IActionSelectionButton extends IButtonWithSourceCard {
+    hasLegalEffects: boolean;
 }
 
 /**

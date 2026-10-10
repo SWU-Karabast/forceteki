@@ -16,6 +16,8 @@ import MenuPrompt from './gameSteps/prompts/MenuPrompt';
 import HandlerMenuPrompt from './gameSteps/prompts/HandlerMenuPrompt';
 import { OptionalTriggerPrompt } from './gameSteps/prompts/OptionalTriggerPrompt';
 import type { IOptionalTriggerPromptProperties } from './gameSteps/prompts/OptionalTriggerPrompt';
+import { ActionSelectionPrompt } from './gameSteps/prompts/ActionSelectionPrompt';
+import type { IActionSelectionPromptProperties } from './gameSteps/prompts/ActionSelectionPrompt';
 import GameOverPrompt from './gameSteps/prompts/GameOverPrompt';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import { GameEvent } from './event/GameEvent';
@@ -1102,6 +1104,15 @@ export class Game extends EventEmitter {
         Contract.assertNotNullLike(player);
 
         this.queueStep(new OptionalTriggerPrompt(this, player, properties));
+    }
+
+    /**
+     * Prompts a player to choose one of a clicked card's available actions, rendering each action as a card button.
+     */
+    public promptWithActionSelection(player: Player, properties: IActionSelectionPromptProperties): void {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new ActionSelectionPrompt(this, player, properties));
     }
 
     public promptDisplayCardsWithButtons(player: Player, properties: IDisplayCardsWithButtonsPromptProperties): void {

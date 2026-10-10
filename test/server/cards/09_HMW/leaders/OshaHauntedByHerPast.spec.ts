@@ -469,7 +469,7 @@ describe('Osha, Haunted By Her Past', function () {
 
                 // Osha is ready, so both the action ability and Attack are legal options
                 context.player1.clickCard(context.osha);
-                expect(context.player1).toHavePrompt('Choose an ability:');
+                expect(context.player1).toHavePrompt('Choose an action:');
                 expect(context.player1).toHaveExactPromptButtons([unitSideAbilityTitle, 'Attack', 'Cancel']);
                 context.player1.clickPrompt(unitSideAbilityTitle);
 

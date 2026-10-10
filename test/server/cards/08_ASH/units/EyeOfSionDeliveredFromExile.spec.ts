@@ -26,7 +26,7 @@ describe('Eye of Sion, Delivered From Exile', function() {
             const readyResources = context.player1.readyResourceCount;
 
             context.player1.clickCard(context.eyeOfSion);
-            expect(context.player1).toHavePrompt('Choose an ability:');
+            expect(context.player1).toHavePrompt('Choose an action:');
             context.player1.clickPrompt(abilityTitle(5));
 
             expect(context.player1).toHaveExactDisplayPromptCards({
