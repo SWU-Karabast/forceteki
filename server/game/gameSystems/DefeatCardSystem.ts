@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
 import type { MsgArg } from '../core/chat/GameChat';
@@ -39,7 +40,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
     public override effectDescription = 'defeat {0}';
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event, CardType.TokenCard];
 
-    protected override readonly defaultProperties: Partial<IDefeatCardPropertiesBase> = {
+    protected override readonly defaultProperties: IGameSystemInput<Partial<IDefeatCardPropertiesBase>> = {
         defeatSource: DefeatSourceType.Ability,
         preserveResourceReadyState: false
     };
@@ -61,7 +62,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         return undefined;
     }
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         const card: Card = event.card;
 
         if (card.zoneName === ZoneName.Resource) {
@@ -83,8 +84,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         }
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties?: Partial<TProperties>): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override getEffectMessageInternal(context: TContext, properties: TProperties): [string, any[]] {
         return ['defeat {0}{1}', [this.getTargetMessage(properties.target, context), ChatHelpers.getTargetLocationMessage(properties.target, context)]];
     }
 
@@ -103,22 +103,22 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         });
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    protected override canAffectInternal(card: Card, context: TContext, properties: TProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!(card.isForceToken() || card.isCreditToken()) && card.zoneName !== ZoneName.Resource && (!card.canBeInPlay() || !card.isInPlay())) {
             return false;
         }
-        const properties = this.generatePropertiesFromContext(context);
+
         if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.BeDefeated, context)) {
             return false;
         }
-        return super.canAffectInternal(card, context);
+        return super.canAffectInternal(card, context, properties, GameStateChangeRequired.None);
     }
 
-    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<TProperties>): void {
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, properties: TProperties): void {
+        super.addPropertiesToEvent(event, card, context, properties);
         this.addDefeatSourceToEvent(event, card, context);
 
-        const { preserveResourceReadyState } = this.generatePropertiesFromContext(context, additionalProperties);
+        const { preserveResourceReadyState } = properties;
         event.preserveResourceReadyState = !!preserveResourceReadyState;
     }
 
@@ -174,8 +174,8 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         };
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<TProperties>): void {
-        super.updateEvent(event, card, context, additionalProperties);
+    protected override updateEvent(event, card: Card, context: TContext, properties: TProperties, additionalProperties: Partial<IGameSystemInput<TProperties>> = {}): void {
+        super.updateEvent(event, card, context, properties, additionalProperties);
 
         if (card.zoneName !== ZoneName.Resource) {
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);

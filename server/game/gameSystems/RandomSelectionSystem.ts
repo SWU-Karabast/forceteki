@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { GameStateChangeRequired, MetaEventName, RelativePlayer } from '../core/Constants';
@@ -32,8 +33,9 @@ export class RandomSelectionSystem<TContext extends AbilityContext = AbilityCont
         return [properties.innerSystem];
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IRandomSelectionSystemProperties<TContext>>): IRandomSelectionSystemProperties<TContext> {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+    protected override prepareProperties(context: TContext, properties: IRandomSelectionSystemProperties<TContext>): void {
+        super.prepareProperties(context, properties);
+
         properties.count = properties.count ?? 1;
 
         if (!context.targets.randomTarget) {
@@ -44,12 +46,9 @@ export class RandomSelectionSystem<TContext extends AbilityContext = AbilityCont
         }
 
         properties.innerSystem.setDefaultTargetFn(() => context.targets.randomTarget);
-
-        return properties;
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties: Partial<IRandomSelectionSystemProperties<TContext>> = {}): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override getEffectMessageInternal(context: TContext, properties: IRandomSelectionSystemProperties<TContext>, additionalProperties: Partial<IGameSystemInput<IRandomSelectionSystemProperties<TContext>>> = {}): [string, any[]] {
         const options = properties.target;
         const targets = Helpers.asArray(context.targets.randomTarget);
 
@@ -64,21 +63,15 @@ export class RandomSelectionSystem<TContext extends AbilityContext = AbilityCont
         return ['randomly select {0} from {1}, and to {2}', [targetMessage, this.getTargetMessage(options, context), { format: innerEffectMessage, args: innerEffectArgs }]];
     }
 
-    public override canAffectInternal(target: Player | Card, context: TContext, additionalProperties: Partial<IRandomSelectionSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override canAffectInternal(target: Player | Card, context: TContext, properties: IRandomSelectionSystemProperties<TContext>, mustChangeGameState = GameStateChangeRequired.None, additionalProperties: Partial<IGameSystemInput<IRandomSelectionSystemProperties<TContext>>> = {}): boolean {
         return properties.innerSystem.canAffect(target, context, additionalProperties, mustChangeGameState);
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IRandomSelectionSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override hasLegalTargetInternal(context: TContext, properties: IRandomSelectionSystemProperties<TContext>, mustChangeGameState = GameStateChangeRequired.None, additionalProperties: Partial<IGameSystemInput<IRandomSelectionSystemProperties<TContext>>> = {}): boolean {
         return properties.innerSystem.hasLegalTarget(context, additionalProperties, mustChangeGameState);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IRandomSelectionSystemProperties<TContext>> = {}): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IRandomSelectionSystemProperties<TContext>, additionalProperties: Partial<IGameSystemInput<IRandomSelectionSystemProperties<TContext>>> = {}): void {
         for (const player of context.game.getPlayers()) {
             context.game.snapshotManager.setRequiresConfirmationToRollbackCurrentSnapshot(player.id);
         }

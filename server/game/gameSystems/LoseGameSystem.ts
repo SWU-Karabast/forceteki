@@ -5,7 +5,7 @@ import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
 import type { Player } from '../core/Player.js';
 
 export interface ILoseGameProperties extends IPlayerTargetSystemProperties {
-    target: Player;
+    target: Player[];
 }
 
 export class LoseGameSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ILoseGameProperties> {
@@ -13,7 +13,7 @@ export class LoseGameSystem<TContext extends AbilityContext = AbilityContext> ex
     public override readonly eventName = MetaEventName.GameLost;
     public override readonly effectDescription = 'lose the game';
 
-    public eventHandler(event: any): void {
+    protected override eventHandlerInternal(event: any): void {
         const player = event.player as Player;
         player.game.endGame(player.opponent, event.endGameReason);
     }
@@ -22,8 +22,8 @@ export class LoseGameSystem<TContext extends AbilityContext = AbilityContext> ex
         return [context.player];
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<ILoseGameProperties> = {}): void {
-        super.addPropertiesToEvent(event, player, context, additionalProperties);
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, properties: ILoseGameProperties): void {
+        super.addPropertiesToEvent(event, player, context, properties);
         event.endGameReason = context.source.title;
     }
 }

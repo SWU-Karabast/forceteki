@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, GameStateChangeRequired, TokenCardName, ZoneName } from '../core/Constants';
 import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
@@ -13,16 +14,14 @@ export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityCon
     public override readonly eventName = EventName.OnTokensCreated;
     public override readonly effectDescription = 'gain the Force';
 
-    public override eventHandler(event, additionalProperties: Partial<ICreateForceTokenProperties> = {}): void {
+    protected override eventHandlerInternal(event): void {
         for (const token of event.generatedTokens) {
             token.moveTo(ZoneName.Base);
         }
     }
 
-    protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<ICreateForceTokenProperties>): void {
-        super.updateEvent(event, player, context, additionalProperties);
-
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override updateEvent(event, player: Player, context: TContext, properties: ICreateForceTokenProperties, additionalProperties: Partial<IGameSystemInput<ICreateForceTokenProperties>> = {}): void {
+        super.updateEvent(event, player, context, properties, additionalProperties);
 
         event.generatedTokens = [];
 
@@ -44,19 +43,17 @@ export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityCon
         return [context.player];
     }
 
-    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties: Partial<ICreateForceTokenProperties>): void {
-        super.addPropertiesToEvent(event, player, context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, properties: ICreateForceTokenProperties): void {
+        super.addPropertiesToEvent(event, player, context, properties);
 
         event.tokenType = TokenCardName.Force;
     }
 
-    public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<ICreateForceTokenProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context);
-
+    protected override canAffectInternal(player: Player, context: TContext, properties: ICreateForceTokenProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && context.player.hasTheForce) {
             return false;
         }
 
-        return super.canAffectInternal(player, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(player, context, properties, mustChangeGameState);
     }
 }

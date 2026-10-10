@@ -1,3 +1,4 @@
+import { GameStateChangeRequired } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { EventName, ZoneName } from '../core/Constants';
@@ -13,16 +14,16 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
     public override readonly effectDescription = 'discard {0}';
     public override readonly eventName = EventName.OnCardDiscarded;
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         event.card.moveTo(ZoneName.Discard);
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Record<string, any> = {}): boolean {
-        return card.zoneName !== ZoneName.Discard && super.canAffectInternal(card, context, additionalProperties);
+    protected override canAffectInternal(card: Card, context: TContext, properties: IDiscardSpecificCardProperties): boolean {
+        return card.zoneName !== ZoneName.Discard && super.canAffectInternal(card, context, properties, GameStateChangeRequired.None);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Record<string, any> = {}): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, properties: IDiscardSpecificCardProperties): void {
         event.discardedFromZone = card.zoneName;
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+        super.addPropertiesToEvent(event, card, context, properties);
     }
 }

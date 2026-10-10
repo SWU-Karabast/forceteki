@@ -3,7 +3,7 @@ import type { Card } from '../core/card/Card';
 import { DamageType, MetaEventName } from '../core/Constants';
 import type { DistributePromptType } from '../core/gameSteps/PromptInterfaces';
 import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
-import { DamageSystem } from './DamageSystem';
+import { DamageSystem, type IAbilityDamageProperties } from './DamageSystem';
 import type { IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
 import { DistributeAmongTargetsSystem } from './DistributeAmongTargetsSystem';
 import type { HealSystem } from './HealSystem';
@@ -32,19 +32,17 @@ export class DistributeDamageSystem<
      * Applies any pending ability damage increase (e.g. Ty Yorrick, Monster Hunter) to the total amount
      * being distributed so the player distributes the increased total.
      */
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<TProperties> = {}): TProperties {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+    protected override prepareProperties(context: TContext, properties: TProperties): void {
+        super.prepareProperties(context, properties);
 
         if (context.pendingAbilityDamageIncrease > 0) {
             properties.amountToDistribute = Helpers.derive(properties.amountToDistribute, context) + context.pendingAbilityDamageIncrease;
         }
-
-        return properties;
     }
 
     protected override generateEffectSystem(target: Card = null, amount = 1, properties?): DamageSystem | HealSystem {
         const { source } = properties;
-        return new DamageSystem({ type: DamageType.Ability, target, amount, source, ignoreAbilityDamageIncrease: true });
+        return new DamageSystem<AbilityContext, IAbilityDamageProperties>({ type: DamageType.Ability, target, amount, source, ignoreAbilityDamageIncrease: true });
     }
 
     // most "distribute damage" abilities require all damage to be dealt

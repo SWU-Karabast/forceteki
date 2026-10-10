@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { GameStateChangeRequired, ZoneName, WildcardCardType, EventName, AbilityRestriction } from '../core/Constants';
@@ -22,16 +23,15 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
     public override readonly effectDescription = 'capture {0}';
     protected override readonly targetTypeFilter = [WildcardCardType.NonLeaderUnit];
 
-    protected override defaultProperties: ICaptureProperties = {
+    protected override defaultProperties: IGameSystemInput<ICaptureProperties> = {
         fromOutOfPlay: false,
     };
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         this.leavesPlayEventHandler(event.card, ZoneName.Capture, event.context, () => event.card.moveToCaptureZone(event.captor.captureZone));
     }
 
-    public override canAffectInternal(card: Card, context: TContext, _additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override canAffectInternal(card: Card, context: TContext, properties: TProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!card.isUnit() || (!properties.fromOutOfPlay && !card.isInPlay())) {
             return false;
         }
@@ -44,18 +44,21 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
             return false;
         }
 
-        return super.canAffectInternal(card, context);
+        return super.canAffectInternal(card, context, properties, GameStateChangeRequired.None);
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties?: Partial<TProperties>) {
-        return super.generatePropertiesFromContext(context, { captor: context.source, ...additionalProperties });
+    protected override prepareProperties(context: TContext, properties: TProperties): void {
+        super.prepareProperties(context, properties);
+        if (!('captor' in properties)) {
+            Object.assign(properties, { captor: context.source });
+        }
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const { captor, target } = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: TProperties): [string, any[]] {
+        const { captor, target } = properties;
 
         if (captor === context.source) {
-            return super.getEffectMessage(context);
+            return super.getEffectMessageInternal(context, properties);
         }
 
         if (captor.controller !== context.source.controller) {
@@ -71,9 +74,9 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
         ]];
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<TProperties>): void {
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
-        const { captor } = this.generatePropertiesFromContext(context);
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, properties: TProperties): void {
+        super.addPropertiesToEvent(event, card, context, properties);
+        const { captor } = properties;
 
         Contract.assertTrue(
             (captor.isUnit() && captor.isInPlay()) || captor.isBase(),
@@ -83,8 +86,8 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
         event.captor = captor;
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<TProperties>): void {
-        super.updateEvent(event, card, context, additionalProperties);
+    protected override updateEvent(event, card: Card, context: TContext, properties: TProperties, additionalProperties: Partial<IGameSystemInput<TProperties>> = {}): void {
+        super.updateEvent(event, card, context, properties, additionalProperties);
         if (card.canBeInPlay() && card.isInPlay()) {
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
         }

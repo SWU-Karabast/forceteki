@@ -12,6 +12,7 @@ import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties.js';
 import { GameCardMetric } from '../../gameStatistics/GameStatisticsTracker.js';
 import { registerState } from '../core/GameObjectUtils';
 import type { IInitiateAttackProperties } from '../gameSystems/InitiateAttackSystem.js';
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 
 /**
  * Implements the action for a player to initiate an attack from a unit.
@@ -24,7 +25,7 @@ import type { IInitiateAttackProperties } from '../gameSystems/InitiateAttackSys
 export class InitiateAttackAction extends PlayerAction {
     public readonly initiateAttackSource?: Card;
 
-    public constructor(game: Game, card: Card, private attackProperties?: IInitiateAttackProperties, initiateAttackSource?: Card) {
+    public constructor(game: Game, card: Card, private attackProperties?: IGameSystemInput<IInitiateAttackProperties>, initiateAttackSource?: Card) {
         const exhaustCost = attackProperties?.allowExhaustedAttacker
             ? new GameSystemCost(new ExhaustSystem({ isCost: true }), true)
             : exhaustSelf();

@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { EventName, GameStateChangeRequired, Stage, WildcardCardType, ZoneName } from '../core/Constants';
@@ -19,12 +20,12 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
     public override effectDescription = 'use {0}\'s When Defeated ability';
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade];
 
-    protected override defaultProperties: IUseWhenDefeatedProperties = {
+    protected override defaultProperties: IGameSystemInput<IUseWhenDefeatedProperties> = {
         triggerAll: false,
         resolvedAbilityEvent: null
     };
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         const whenDefeatedSource = event.whenDefeatedSource;
         const triggerAll = event.triggerAll; // TODO: Will use with Shadow Caster
         const onDefeatEvent = event.onDefeatEvent;
@@ -72,7 +73,7 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
         const sourceStillInPlay = whenDefeatedSource.canBeInPlay() && whenDefeatedSource.isInPlay();
         const whenDefeatedEvent = (onDefeatEvent && !sourceStillInPlay)
             ? onDefeatEvent
-            : new DefeatCardSystem(whenDefeatedProps).generateEvent(event.context, whenDefeatedSource, true);
+            : new DefeatCardSystem(whenDefeatedProps).generateEvent(event.context, {}, true);
 
         // Mark this as a manually activated ability (not naturally triggered by game events)
         const context = ability.createContext(event.context.player, whenDefeatedEvent);
@@ -81,8 +82,8 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
     }
 
     // Since the actual When Defeated effect is resolved in a sub-window, we don't check its effects here
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IUseWhenDefeatedProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const { resolvedAbilityEvent } = this.generatePropertiesFromContext(context);
+    protected override canAffectInternal(card: Card, context: TContext, properties: IUseWhenDefeatedProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        const { resolvedAbilityEvent } = properties;
 
         if (resolvedAbilityEvent === null) {
             if (
@@ -120,17 +121,17 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
             }
         }
 
-        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, properties, mustChangeGameState);
     }
 
     private getOnDefeatEvent(resolvedAbilityEvent: any) {
         return resolvedAbilityEvent?.context.event;
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, properties: IUseWhenDefeatedProperties): void {
+        super.addPropertiesToEvent(event, card, context, properties);
 
-        const { triggerAll, resolvedAbilityEvent } = this.generatePropertiesFromContext(context, additionalProperties);
+        const { triggerAll, resolvedAbilityEvent } = properties;
         event.triggerAll = triggerAll;
         event.onDefeatEvent = this.getOnDefeatEvent(resolvedAbilityEvent);
         event.resolvedAbility = (resolvedAbilityEvent as any)?.ability;

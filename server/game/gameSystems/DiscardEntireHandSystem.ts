@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import { EventName, ZoneName } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Helpers } from '../core/utils/Helpers.js';
@@ -21,12 +22,11 @@ export class DiscardEntireHandSystem<TContext extends AbilityContext = AbilityCo
     public override readonly eventName = EventName.OnEntireHandDiscarded;
     public override readonly costDescription: string = 'discard hand';
 
-    public override eventHandler(): void {
+    protected override eventHandlerInternal(): void {
         // Do nothing
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: IDiscardEntireHandSystemProperties): [string, any[]] {
         const players = Helpers.asArray(properties.target);
 
         const effectMessage = (player: Player): FormatMessage => {
@@ -43,9 +43,7 @@ export class DiscardEntireHandSystem<TContext extends AbilityContext = AbilityCo
         return [ChatHelpers.formatWithLength(players.length, 'to '), players.map((player) => effectMessage(player))];
     }
 
-    public override queueGenerateEventGameSteps(events: any[], context: TContext, additionalProperties: Record<string, any> = {}): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override queueGenerateEventGameStepsInternal(events: any[], context: TContext, properties: IDiscardEntireHandSystemProperties, additionalProperties: Partial<IGameSystemInput<IDiscardEntireHandSystemProperties>> = {}): void {
         for (const player of Helpers.asArray(properties.target) as Player[]) {
             // TODO: Understand if checking canAffect here is necessary or not. The superclass implementation does this
             // so it seems a good idea to do it here as well but we should understand if it's really necessary or not.

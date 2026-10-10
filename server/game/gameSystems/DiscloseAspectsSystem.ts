@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { Aspect, GameStateChangeRequired } from '../core/Constants';
@@ -31,9 +32,9 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
     public override readonly eventName = EventName.OnAspectsDisclosed;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public eventHandler(): void {}
+    protected override eventHandlerInternal(): void {}
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IDiscloseAspectsProperties> = {}): void {
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IDiscloseAspectsProperties, additionalProperties: Partial<IGameSystemInput<IDiscloseAspectsProperties>> = {}): void {
         const generatedEvents = [];
         for (const target of this.targets(context, additionalProperties)) {
             if (target.isPlayer() && this.canSatisfyDisclose(target, context, additionalProperties)) {
@@ -72,12 +73,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
         return [context.player];
     }
 
-    public override canAffectInternal(
-        player: Player,
-        context: TContext,
-        additionalProperties?: Partial<IDiscloseAspectsProperties>,
-        mustChangeGameState?: GameStateChangeRequired
-    ): boolean {
+    protected override canAffectInternal(player: Player, context: TContext, properties: IDiscloseAspectsProperties, mustChangeGameState: GameStateChangeRequired, additionalProperties: Partial<IGameSystemInput<IDiscloseAspectsProperties>> = {}): boolean {
         // For a triggered/automatic disclose we always treat disclosing as a legal action so that the
         // ability triggers even when the hand can't satisfy the requirement. This lets us show a masking
         // pause during resolution (see queueGenerateEventGameSteps) instead of silently passing, which
@@ -96,7 +92,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
     private canSatisfyDisclose(
         player: Player,
         context: TContext,
-        additionalProperties?: Partial<IDiscloseAspectsProperties>,
+        additionalProperties?: Partial<IGameSystemInput<IDiscloseAspectsProperties>>,
         mustChangeGameState?: GameStateChangeRequired
     ): boolean {
         const newContext = context.copy({ player }) as TContext;
@@ -115,7 +111,7 @@ export class DiscloseAspectsSystem<TContext extends AbilityContext = AbilityCont
 
     private generateSelectCardSystem(
         context: TContext,
-        additionalProperties: Partial<IDiscloseAspectsProperties> = {},
+        additionalProperties: Partial<IGameSystemInput<IDiscloseAspectsProperties>> = {},
         events = []
     ): SelectCardSystem<TContext> {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);

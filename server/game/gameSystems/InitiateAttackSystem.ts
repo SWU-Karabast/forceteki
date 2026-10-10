@@ -1,3 +1,5 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
+import { GameStateChangeRequired } from '../core/Constants';
 import type { Card } from '../core/card/Card';
 import { AbilityResolver } from '../core/gameSteps/AbilityResolver';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -34,14 +36,14 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
     public override readonly name = 'initiateUnitAttack';
     public override readonly eventName = MetaEventName.InitiateAttack;
     public override readonly effectDescription = 'initiate an attack with {0}';
-    protected override readonly defaultProperties: IInitiateAttackProperties = {
+    protected override readonly defaultProperties: IGameSystemInput<IInitiateAttackProperties> = {
         ignoredRequirements: [],
         attackerCondition: () => true,
         isAmbush: false,
         allowExhaustedAttacker: false
     };
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         const context = event.context as AbilityContext;
         const player = event.player;
         const newContext = (event.attackAbility as InitiateAttackAction).createContext(player);
@@ -60,22 +62,20 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
         }, 'copy active attack id to parent context');
     }
 
-    protected override addPropertiesToEvent(event, attacker: IUnitCard, context: TContext, additionalProperties: Partial<IInitiateAttackProperties<TContext>> = {}): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override addPropertiesToEvent(event, attacker: IUnitCard, context: TContext, properties: IInitiateAttackProperties<TContext>): void {
         Contract.assertTrue(attacker.isUnit());
 
-        super.addPropertiesToEvent(event, attacker, context, additionalProperties);
+        super.addPropertiesToEvent(event, attacker, context, properties);
 
         event.attackAbility = this.generateAttackAbilityNoTarget(attacker, properties, context.source);
         event.optional = properties.optional ?? context.ability.optional;
         event.attackerLastingEffects = properties.attackerLastingEffects;
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IInitiateAttackProperties<TContext>> = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override canAffectInternal(card: Card, context: TContext, properties: IInitiateAttackProperties<TContext>): boolean {
         if (
             !card.isUnit() ||
-            !super.canAffectInternal(card, context) ||
+            !super.canAffectInternal(card, context, properties, GameStateChangeRequired.None) ||
             !properties.attackerCondition(card, context)
         ) {
             return false;

@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { CardTypeFilter, ZoneFilter, RelativePlayerFilter, TokenUpgradeName } from '../core/Constants';
@@ -42,7 +43,7 @@ export abstract class DistributeAmongTargetsSystem<
     TProperties extends IDistributeAmongTargetsSystemProperties<TContext> = IDistributeAmongTargetsSystemProperties<TContext>
 > extends CardTargetSystem<TContext, TProperties> {
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
-    protected override defaultProperties: IDistributeAmongTargetsSystemProperties<TContext> = {
+    protected override defaultProperties: IGameSystemInput<IDistributeAmongTargetsSystemProperties<TContext>> = {
         amountToDistribute: null,
         cardCondition: () => true,
         canChooseNoTargets: null,
@@ -80,7 +81,7 @@ export abstract class DistributeAmongTargetsSystem<
         return false;
     }
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event, properties: TProperties): void {
         const context: TContext = event.context;
         event.totalDistributed =
             (event.individualEvents as GameEvent[])
@@ -96,11 +97,7 @@ export abstract class DistributeAmongTargetsSystem<
         return `{0} uses {1} to ${this.getDistributionVerb()} {2}`;
     }
 
-    protected getChatMessageArgs(
-        individualEvents: any[],
-        context: TContext,
-        additionalProperties: Partial<TProperties>,
-        enforceResolvedEvents: boolean = true
+    protected getChatMessageArgs(individualEvents: any[], context: TContext, additionalProperties: Partial<IGameSystemInput<TProperties>>, enforceResolvedEvents: boolean = true
     ): any[] {
         const targets: FormatMessage[] = [];
         const eventsToConsider = enforceResolvedEvents
@@ -138,15 +135,13 @@ export abstract class DistributeAmongTargetsSystem<
     private generateDistributedEffectMessage(
         individualEvents: GameEvent[],
         context: TContext,
-        additionalProperties: Partial<TProperties>,
+        additionalProperties: Partial<IGameSystemInput<TProperties>>,
         enforceResolvedEvents: boolean = true
     ) {
         context.game.addMessage(this.getChatMessage(), ...this.getChatMessageArgs(individualEvents, context, additionalProperties, enforceResolvedEvents));
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties?: Partial<TProperties>): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override getEffectMessageInternal(context: TContext, properties: TProperties): [string, any[]] {
         const amountToDistribute = Helpers.derive(properties.amountToDistribute, context);
         const amountDescription = properties.canDistributeLess ? 'up to ' : '';
 
@@ -168,8 +163,7 @@ export abstract class DistributeAmongTargetsSystem<
         ];
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: TProperties, additionalProperties: Partial<IGameSystemInput<TProperties>> = {}): void {
         if (properties.player === RelativePlayer.Opponent && !context.player.opponent) {
             return;
         }
@@ -234,8 +228,8 @@ export abstract class DistributeAmongTargetsSystem<
         context.game.promptDistributeAmongTargets(player, promptProperties);
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<TProperties> = {}) {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+    protected override prepareProperties(context: TContext, properties: TProperties): void {
+        super.prepareProperties(context, properties);
 
         Contract.assertFalse(properties.canDistributeLess && !properties.canChooseNoTargets, 'Must set properties.canDistributeLess to true if properties.canChooseNoTargets is true');
 
@@ -245,16 +239,13 @@ export abstract class DistributeAmongTargetsSystem<
                 effectSystem.canAffect(card, context) && properties.cardCondition(card, context);
             properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition, mode: TargetMode.Unlimited }));
         }
-        return properties;
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override canAffectInternal(card: Card, context: TContext, properties: TProperties): boolean {
         return properties.selector.canTarget(card, context);
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override hasLegalTargetInternal(context: TContext, properties: TProperties): boolean {
         return properties.selector.hasEnoughTargets(context);
     }
 

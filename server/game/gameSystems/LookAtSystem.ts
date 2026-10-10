@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, ZoneName } from '../core/Constants';
 import type { Player } from '../core/Player';
@@ -13,14 +14,13 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
     public override readonly name = 'lookAt';
     public override readonly eventName = EventName.OnLookAtCard;
 
-    protected override defaultProperties: IViewCardProperties = {
+    protected override defaultProperties: IGameSystemInput<IViewCardProperties> = {
         interactMode: ViewCardInteractMode.ViewOnly,
         message: '{0} sees {1}',
         useDisplayPrompt: null
     };
 
-    public override getEffectMessage(context: TContext, additionalProperties?: Partial<ILookAtProperties>): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override getEffectMessageInternal(context: TContext, properties: IViewCardProperties): [string, any[]] {
         const targetCount = Helpers.asArray(properties.target).length;
         let effectArg: string | FormatMessage = ChatHelpers.pluralize(targetCount, 'a card', 'cards');
 
@@ -48,7 +48,7 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
         return properties.player || context.player;
     }
 
-    public override checkEventCondition(): boolean {
+    protected override checkEventConditionInternal(): boolean {
         return true;
     }
 }

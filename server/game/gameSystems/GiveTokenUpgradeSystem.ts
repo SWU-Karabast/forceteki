@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { CardTypeFilter } from '../core/Constants';
@@ -29,17 +30,16 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
     public override readonly name = 'giveTokenUpgrade';
     public override readonly eventName = EventName.OnTokensCreated;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit];
-    protected override readonly defaultProperties: Omit<IGiveTokenUpgradeProperties, 'tokenType'> = {
+    protected override readonly defaultProperties: IGameSystemInput<Omit<IGiveTokenUpgradeProperties, 'tokenType'>> = {
         amount: 1,
         createdBy: RelativePlayer.Self
     };
 
     // event handler doesn't do anything since the tokens were generated in updateEvent
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler(event): void { }
+    protected override eventHandlerInternal(): void { }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: IGiveTokenUpgradeProperties): [string, any[]] {
         const tokenTitle = EnumHelpers.tokenTitle[properties.tokenType];
         const indefiniteArticle = new Set([TokenUpgradeName.Experience, TokenUpgradeName.Advantage])
             .has(properties.tokenType) ? 'an' : 'a';
@@ -47,9 +47,7 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
         return ['give {0} to {1}', [ChatHelpers.pluralize(properties.amount, `${indefiniteArticle} ${tokenTitle} token`, `${tokenTitle} tokens`), this.getTargetMessage(properties.target, context)]];
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties> = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context);
-
+    protected override canAffectInternal(card: Card, context: TContext, properties: IGiveTokenUpgradeProperties): boolean {
         Contract.assertNotNullLike(context);
         Contract.assertNotNullLike(context.player);
         Contract.assertNotNullLike(card);
@@ -62,7 +60,7 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
             return false;
         }
 
-        return super.canAffectInternal(card, context);
+        return super.canAffectInternal(card, context, properties, GameStateChangeRequired.None);
     }
 
     /**
@@ -70,8 +68,8 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
      * {@link EventName.OnTokensCreated} event covering every target (rather than the default one-event-per-target),
      * so that effects which replace a token-creation event (e.g. Moff Jerjerrod) see and replace the whole event.
      */
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties> = {}): void {
-        const { target } = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IGiveTokenUpgradeProperties, additionalProperties: Partial<IGameSystemInput<IGiveTokenUpgradeProperties>> = {}): void {
+        const { target } = properties;
         const cards = Helpers.asArray(target).filter((card) => this.canAffect(card, context, additionalProperties));
 
         if (cards.length === 0) {
@@ -85,9 +83,9 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
 
     // a batched give can target multiple units, so condition on whether any targeted unit can still be affected
     // (the base reads the single `event.card`, which is the whole array for a multi-target give)
-    public override checkEventCondition(event: any, additionalProperties: Partial<IGiveTokenUpgradeProperties> = {}): boolean {
+    protected override checkEventConditionInternal(event: any, properties: IGiveTokenUpgradeProperties, additionalProperties: Partial<IGameSystemInput<IGiveTokenUpgradeProperties>> = {}): boolean {
         return Helpers.asArray(event.cards).some((card: Card) =>
-            this.canAffect(card, event.context, additionalProperties, GameStateChangeRequired.MustFullyResolve));
+            this.canAffectWithProperties(card, event.context, properties, GameStateChangeRequired.MustFullyResolve, additionalProperties));
     }
 
     protected generateToken(context: TContext, owner: Player) {
@@ -100,10 +98,8 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
     // standard updateEvent override: let the base set the common properties/handler/condition, then generate the tokens
     // and the contingent attach events. `cards` is a single card on the single-target generateEvent path (e.g. from
     // DistributeAmongTargetsSystem) and an array on the batched queueGenerateEventGameSteps path.
-    protected override updateEvent(event, cards: Card | Card[], context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties> = {}): void {
-        super.updateEvent(event, cards, context, additionalProperties);
-
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override updateEvent(event, cards: Card | Card[], context: TContext, properties: IGiveTokenUpgradeProperties, additionalProperties: Partial<IGameSystemInput<IGiveTokenUpgradeProperties>> = {}): void {
+        super.updateEvent(event, cards, context, properties, additionalProperties);
 
         // generate the tokens here so they can be used in the contingent events
         // it's fine if this event ends up being cancelled, unused tokens are cleaned up at the end of every round
@@ -140,7 +136,7 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
         });
     }
 
-    protected override addPropertiesToEvent(event: any, cards: Card | Card[], context: TContext, additionalProperties?: Partial<IGiveTokenUpgradeProperties>): void {
+    protected override addPropertiesToEvent(event: any, cards: Card | Card[], context: TContext, properties: IGiveTokenUpgradeProperties): void {
         const cardsArray = Helpers.asArray(cards);
 
         Contract.assertTrue(cardsArray.length > 0, 'Attempting to give a token upgrade with no target units');
@@ -150,15 +146,13 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
             Contract.assertTrue(card.isInPlay());
         }
 
-        super.addPropertiesToEvent(event, cards, context, additionalProperties);
+        super.addPropertiesToEvent(event, cards, context, properties);
 
         // A batched give can target multiple units. `event.cards` is the full set of targets; `event.card` keeps the
         // single-target convention (read as a scalar Card by e.g. DistributeAmongTargetsSystem's chat message and the
         // replacement-effect prompt title) and is null when several units are targeted, so callers read `event.cards`.
         event.cards = cardsArray;
         event.card = cardsArray.length === 1 ? cardsArray[0] : null;
-
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (properties.createdBy === RelativePlayer.Opponent && context.player.opponent) {
             event.player = context.player.opponent;

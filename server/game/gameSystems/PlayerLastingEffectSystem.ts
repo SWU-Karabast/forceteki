@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, GameStateChangeRequired } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -17,7 +18,7 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
     public override readonly name: string = 'applyPlayerLastingEffect';
     public override readonly eventName: EventName = EventName.OnEffectApplied;
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         /* eslint-disable @typescript-eslint/prefer-for-of */
         const propsArray = Helpers.asArray(event.effectProperties) as IOngoingPlayerEffectProps[];
         const factories = event.effectFactories as IOngoingPlayerEffectGenerator[];
@@ -35,8 +36,8 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
         /* eslint-enable @typescript-eslint/prefer-for-of */
     }
 
-    public override addPropertiesToEvent(event: any, target: Player, context: TContext, additionalProperties?: Partial<IPlayerLastingEffectProperties>): void {
-        super.addPropertiesToEvent(event, target, context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, target: Player, context: TContext, properties: IPlayerLastingEffectProperties, additionalProperties: Partial<IGameSystemInput<IPlayerLastingEffectProperties>> = {}): void {
+        super.addPropertiesToEvent(event, target, context, properties);
 
         const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(target, context, additionalProperties);
 
@@ -44,10 +45,10 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
         event.effectProperties = effectProperties;
     }
 
-    private getEffectFactoriesAndProperties(target: Player, context: TContext, additionalProperties?: Partial<IPlayerLastingEffectProperties>): { effectFactories: IOngoingPlayerEffectGenerator[]; effectProperties: IOngoingPlayerEffectProps };
-    private getEffectFactoriesAndProperties(target: Player[], context: TContext, additionalProperties?: Partial<IPlayerLastingEffectProperties>): { effectFactories: IOngoingPlayerEffectGenerator[]; effectProperties: IOngoingPlayerEffectProps[] };
-    private getEffectFactoriesAndProperties(target: Player | Player[], context: TContext, additionalProperties?: Partial<IPlayerLastingEffectProperties>): { effectFactories: IOngoingPlayerEffectGenerator[]; effectProperties: IOngoingPlayerEffectProps | IOngoingPlayerEffectProps[] };
-    private getEffectFactoriesAndProperties(target: Player | Player[], context: TContext, additionalProperties?: Partial<IPlayerLastingEffectProperties>): { effectFactories: IOngoingPlayerEffectGenerator[]; effectProperties: IOngoingPlayerEffectProps | IOngoingPlayerEffectProps[] } {
+    private getEffectFactoriesAndProperties(target: Player, context: TContext, additionalProperties?: Partial<IGameSystemInput<IPlayerLastingEffectProperties>>): { effectFactories: IOngoingPlayerEffectGenerator[]; effectProperties: IOngoingPlayerEffectProps };
+    private getEffectFactoriesAndProperties(target: Player[], context: TContext, additionalProperties?: Partial<IGameSystemInput<IPlayerLastingEffectProperties>>): { effectFactories: IOngoingPlayerEffectGenerator[]; effectProperties: IOngoingPlayerEffectProps[] };
+    private getEffectFactoriesAndProperties(target: Player | Player[], context: TContext, additionalProperties?: Partial<IGameSystemInput<IPlayerLastingEffectProperties>>): { effectFactories: IOngoingPlayerEffectGenerator[]; effectProperties: IOngoingPlayerEffectProps | IOngoingPlayerEffectProps[] };
+    private getEffectFactoriesAndProperties(target: Player | Player[], context: TContext, additionalProperties?: Partial<IGameSystemInput<IPlayerLastingEffectProperties>>): { effectFactories: IOngoingPlayerEffectGenerator[]; effectProperties: IOngoingPlayerEffectProps | IOngoingPlayerEffectProps[] } {
         const { effect, ...otherProperties } = this.generatePropertiesFromContext(context, additionalProperties);
 
         const effectProperties: (target: Player) => IOngoingPlayerEffectProps = (target) => ({ matchTarget: target, isLastingEffect: true, ability: context.ability, ...otherProperties });
@@ -59,12 +60,11 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
         return { effectFactories: Helpers.asArray(effect), effectProperties: effectProperties(target as Player) };
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IPlayerLastingEffectProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return properties.effect.length > 0 && super.hasLegalTarget(context, additionalProperties, mustChangeGameState);
+    protected override hasLegalTargetInternal(context: TContext, properties: IPlayerLastingEffectProperties, mustChangeGameState = GameStateChangeRequired.None, additionalProperties: Partial<IGameSystemInput<IPlayerLastingEffectProperties>> = {}): boolean {
+        return properties.effect.length > 0 && super.hasLegalTargetInternal(context, properties, mustChangeGameState, additionalProperties);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IPlayerLastingEffectProperties>): void {
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IPlayerLastingEffectProperties, additionalProperties: Partial<IGameSystemInput<IPlayerLastingEffectProperties>> = {}): void {
         if (this.hasLegalTarget(context, additionalProperties)) {
             events.push(this.generateEvent(context, additionalProperties));
         }
@@ -74,9 +74,7 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
         return context.player ? [context.player] : [];
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties?: Partial<IPlayerLastingEffectProperties>): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override getEffectMessageInternal(context: TContext, properties: IPlayerLastingEffectProperties, additionalProperties: Partial<IGameSystemInput<IPlayerLastingEffectProperties>> = {}): [string, any[]] {
         return LastingEffectSystemHelpers.getEffectMessage(
             this,
             context,

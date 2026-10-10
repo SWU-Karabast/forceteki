@@ -18,11 +18,9 @@ export class CardEffectResourcePaymentSystem<TContext extends AbilityContext = A
     public override readonly eventName = EventName.OnExhaustResources;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler(event): void {}
+    protected override eventHandlerInternal(): void {}
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
-
+    protected override getEffectMessageInternal(context: TContext, properties: ICardEffectResourcePaymentProperties): [string, any[]] {
         if (Helpers.asArray(properties.target).length === 1 && Helpers.asArray(properties.target)[0] === context.player) {
             return ['pay {0}', [TextHelper.resource(properties.amount)]];
         }
@@ -30,14 +28,7 @@ export class CardEffectResourcePaymentSystem<TContext extends AbilityContext = A
         return ['make {0} pay {1}', [this.getTargetMessage(properties.target, context), TextHelper.resource(properties.amount)]];
     }
 
-    public override canAffectInternal(
-        target: Player | Player[],
-        context: TContext,
-        additionalProperties?: Partial<ICardEffectResourcePaymentProperties>,
-        mustChangeGameState?: GameStateChangeRequired
-    ): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override canAffectInternal(target: Player | Player[], context: TContext, properties: ICardEffectResourcePaymentProperties, mustChangeGameState: GameStateChangeRequired): boolean {
         if (!properties.amount || properties.amount === 0) {
             return false;
         }
@@ -51,15 +42,10 @@ export class CardEffectResourcePaymentSystem<TContext extends AbilityContext = A
             return false;
         }
 
-        return super.canAffectInternal(target, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(target, context, properties, mustChangeGameState);
     }
 
-    public override queueGenerateEventGameSteps(
-        events: GameEvent[],
-        context: TContext,
-        additionalProperties?: Partial<ICardEffectResourcePaymentProperties>
-    ): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: ICardEffectResourcePaymentProperties): void {
         const targetsArray = Helpers.asArray(properties.target);
 
         for (const target of targetsArray) {
@@ -80,14 +66,8 @@ export class CardEffectResourcePaymentSystem<TContext extends AbilityContext = A
         }
     }
 
-    protected override addPropertiesToEvent(
-        event: any,
-        player: Player,
-        context: TContext,
-        additionalProperties?: Partial<ICardEffectResourcePaymentProperties>
-    ): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        super.addPropertiesToEvent(event, player, context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, properties: ICardEffectResourcePaymentProperties): void {
+        super.addPropertiesToEvent(event, player, context, properties);
         event.amount = properties.amount;
     }
 }

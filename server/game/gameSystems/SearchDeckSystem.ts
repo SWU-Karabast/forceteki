@@ -1,3 +1,5 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
+import { GameStateChangeRequired } from '../core/Constants';
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
 
@@ -59,7 +61,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
     public override readonly name = 'deckSearch';
     public override readonly eventName = EventName.OnDeckSearch;
 
-    protected override defaultProperties: ISearchDeckProperties = {
+    protected override defaultProperties: IGameSystemInput<ISearchDeckProperties> = {
         selectCount: 1,
         searchWholeDeck: false,
         targetMode: TargetMode.UpTo,
@@ -72,7 +74,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         remainingCardsImmediateEffect: null
     };
 
-    public override eventHandler(event: any, additionalProperties: Partial<TProperties> = {}): void {
+    protected override eventHandlerInternal(event: any, properties: TProperties, additionalProperties: Partial<IGameSystemInput<TProperties>> = {}): void {
         const player = event.player;
         this.emitModifiedSearchCountMessage(event);
         const deckLength = this.getDeck(player).length;
@@ -82,17 +84,16 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         this.promptSelectCards(event, additionalProperties, cards, new Set());
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override hasLegalTargetInternal(context: TContext, properties: TProperties): boolean {
         const player = this.getSingleTarget(properties.target);
         if (this.computeModifiedSearchCount(properties.searchCount, player, context) === 0) {
             return false;
         }
-        return this.getDeck(player).length > 0 && super.canAffectInternal(player, context);
+        return this.getDeck(player).length > 0 && super.canAffectInternal(player, context, properties, GameStateChangeRequired.None);
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<TProperties> = {}) {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+    protected override prepareProperties(context: TContext, properties: TProperties): void {
+        super.prepareProperties(context, properties);
 
         properties.cardCondition = properties.cardCondition || (() => true);
 
@@ -102,12 +103,9 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         } else {
             Contract.assertNotNullLike(searchCount, 'searchCount is required unless searchWholeDeck is true');
         }
-
-        return properties;
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: TProperties): [string, any[]] {
         const player = this.getSingleTarget(properties.target);
         const searchCountAmount = this.computeModifiedSearchCount(properties.searchCount, player, context);
 
@@ -128,9 +126,8 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         return [context.player];
     }
 
-    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties: Partial<TProperties>): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        super.addPropertiesToEvent(event, player, context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, properties: TProperties): void {
+        super.addPropertiesToEvent(event, player, context, properties);
         event.searchWholeDeck = properties.searchWholeDeck;
         event.amount = properties.searchWholeDeck
             ? null
@@ -138,8 +135,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         event.searchProperties = properties;
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: TProperties, additionalProperties: Partial<IGameSystemInput<TProperties>> = {}): void {
         const player = this.getSingleTarget(properties.target);
         const event = this.generateRetargetedEvent(player, context, additionalProperties) as any;
         events.push(event);
@@ -195,7 +191,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         return player.drawDeck;
     }
 
-    private promptSelectCards(event: any, additionalProperties: Partial<TProperties>, cards: Card[], selectedCards: Set<Card>): void {
+    private promptSelectCards(event: any, additionalProperties: Partial<IGameSystemInput<TProperties>>, cards: Card[], selectedCards: Set<Card>): void {
         const context: TContext = event.context;
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         let selectAmount: number;
@@ -252,7 +248,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         title: string,
         selectAmount: number,
         event: any,
-        additionalProperties: Partial<TProperties>
+        additionalProperties: Partial<IGameSystemInput<TProperties>>
     ): IDisplayCardsSelectProperties | null {
         return {
             activePromptTitle: title,

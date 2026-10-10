@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { Card } from '../core/card/Card.js';
 import type { CardType, WildcardCardType } from '../core/Constants.js';
@@ -25,8 +26,8 @@ export interface IPlayMultipleCardsFromDeckProperties<TContext extends AbilityCo
 }
 
 export class PlayMultipleCardsFromDeckSystem<TContext extends AbilityContext = AbilityContext> extends SearchDeckSystem<TContext, IPlayMultipleCardsFromDeckProperties<TContext>> {
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IPlayMultipleCardsFromDeckProperties<TContext>> = {}): IPlayMultipleCardsFromDeckProperties<TContext> {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+    protected override prepareProperties(context: TContext, properties: IPlayMultipleCardsFromDeckProperties<TContext>): void {
+        super.prepareProperties(context, properties);
 
         const selectedCardsImmediateEffect = new PlayCardSystem({
             playType: PlayType.PlayFromOutOfPlay,
@@ -38,9 +39,7 @@ export class PlayMultipleCardsFromDeckSystem<TContext extends AbilityContext = A
             enterPlayEffect: properties.playedCardEnterPlayEffect,
         });
 
-        const propsWithViewType = { ...properties, selectedCardsImmediateEffect: selectedCardsImmediateEffect };
-
-        return propsWithViewType as IPlayMultipleCardsFromDeckProperties<TContext>;
+        Object.assign(properties, { selectedCardsImmediateEffect });
     }
 
     protected override buildPromptProperties(
@@ -50,7 +49,7 @@ export class PlayMultipleCardsFromDeckSystem<TContext extends AbilityContext = A
         title: string,
         selectAmount: number,
         event: any,
-        additionalProperties: Partial<IPlayMultipleCardsFromDeckProperties<TContext>>
+        additionalProperties: Partial<IGameSystemInput<IPlayMultipleCardsFromDeckProperties<TContext>>>
     ): IDisplayCardsSelectProperties | null {
         return {
             ...super.buildPromptProperties(cards, properties, context, title, selectAmount, event, additionalProperties),

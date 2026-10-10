@@ -1,3 +1,5 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
+import { GameStateChangeRequired } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { EventName, WildcardCardType } from '../core/Constants';
@@ -16,7 +18,7 @@ export class FlipAndAttachPilotLeaderSystem<TContext extends AbilityContext = Ab
 
     protected override readonly targetTypeFilter = [WildcardCardType.NonLeaderUnit];
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         Contract.assertNotNullLike(event.leaderAttachTarget);
         Contract.assertTrue(event.leaderAttachTarget.isUnit());
         Contract.assertTrue(event.leaderAttachTarget.canAttachPilot(event.card));
@@ -25,14 +27,11 @@ export class FlipAndAttachPilotLeaderSystem<TContext extends AbilityContext = Ab
         event.card.attachTo(event.leaderAttachTarget);
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties: Partial<IFlipAndAttachLeaderPilotProperties> = {}): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override getEffectMessageInternal(context: TContext, properties: IFlipAndAttachLeaderPilotProperties): [string, any[]] {
         return ['flip {0} and attach it to {1}', [properties.leaderPilotCard, this.getTargetMessage(properties.target, context)]];
     }
 
-    public override canAffectInternal(card: Card, context: TContext): boolean {
-        const properties = this.generatePropertiesFromContext(context);
-
+    protected override canAffectInternal(card: Card, context: TContext, properties: IFlipAndAttachLeaderPilotProperties): boolean {
         if (!card.isUnit()) {
             return false;
         }
@@ -41,22 +40,21 @@ export class FlipAndAttachPilotLeaderSystem<TContext extends AbilityContext = Ab
             return false;
         }
 
-        return super.canAffectInternal(card, context);
+        return super.canAffectInternal(card, context, properties, GameStateChangeRequired.None);
     }
 
-    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IFlipAndAttachLeaderPilotProperties>): void {
-        const properties = this.generatePropertiesFromContext(context);
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, properties: IFlipAndAttachLeaderPilotProperties): void {
+        super.addPropertiesToEvent(event, card, context, properties);
         event.card = properties.leaderPilotCard;
         event.leaderAttachTarget = card;
     }
 
-    public override checkEventCondition(event: any, additionalProperties: Partial<IFlipAndAttachLeaderPilotProperties> = {}): boolean {
+    protected override checkEventConditionInternal(): boolean {
         return true;
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IFlipAndAttachLeaderPilotProperties> = {}) {
-        super.updateEvent(event, card, context, additionalProperties);
+    protected override updateEvent(event, card: Card, context: TContext, properties: IFlipAndAttachLeaderPilotProperties, additionalProperties: Partial<IGameSystemInput<IFlipAndAttachLeaderPilotProperties>> = {}) {
+        super.updateEvent(event, card, context, properties, additionalProperties);
         event.setContingentEventsGenerator(() => {
             const properties = this.generatePropertiesFromContext(context, additionalProperties);
             const entersPlayEvent = new GameEvent(EventName.OnUnitEntersPlay, context, {

@@ -1,3 +1,5 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
+import { GameStateChangeRequired } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { DeployType, EventName, WildcardCardType } from '../core/Constants';
@@ -16,7 +18,7 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
 
     protected override readonly targetTypeFilter = [WildcardCardType.NonLeaderUnit];
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         Contract.assertNotNullLike(event.leaderAttachTarget);
         Contract.assertEqual(DeployType.LeaderUpgrade, event.type);
         Contract.assertTrue(event.leaderAttachTarget.isUnit());
@@ -29,35 +31,31 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
         });
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties: Partial<IDeployAndAttachLeaderPilotProperties> = {}): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: IDeployAndAttachLeaderPilotProperties): [string, any[]] {
         return ['deploy {0} as a pilot upgrade on {1}', [properties.leaderPilotCard, this.getTargetMessage(properties.target, context)]];
     }
 
-    public override canAffectInternal(card: Card, context: TContext): boolean {
-        const properties = this.generatePropertiesFromContext(context);
-
+    protected override canAffectInternal(card: Card, context: TContext, properties: IDeployAndAttachLeaderPilotProperties): boolean {
         if (!card.isUnit() || !card.canAttachPilot(properties.leaderPilotCard)) {
             return false;
         }
 
-        return super.canAffectInternal(card, context);
+        return super.canAffectInternal(card, context, properties, GameStateChangeRequired.None);
     }
 
-    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IDeployAndAttachLeaderPilotProperties>): void {
-        const properties = this.generatePropertiesFromContext(context);
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, properties: IDeployAndAttachLeaderPilotProperties): void {
+        super.addPropertiesToEvent(event, card, context, properties);
         event.card = properties.leaderPilotCard;
         event.leaderAttachTarget = card;
         event.type = DeployType.LeaderUpgrade;
     }
 
-    public override checkEventCondition(event: any, additionalProperties: Partial<IDeployAndAttachLeaderPilotProperties> = {}): boolean {
+    protected override checkEventConditionInternal(): boolean {
         return true;
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IDeployAndAttachLeaderPilotProperties> = {}) {
-        super.updateEvent(event, card, context, additionalProperties);
+    protected override updateEvent(event, card: Card, context: TContext, properties: IDeployAndAttachLeaderPilotProperties, additionalProperties: Partial<IGameSystemInput<IDeployAndAttachLeaderPilotProperties>> = {}) {
+        super.updateEvent(event, card, context, properties, additionalProperties);
         event.setContingentEventsGenerator(() => {
             const properties = this.generatePropertiesFromContext(context);
             const entersPlayEvent = new GameEvent(EventName.OnUnitEntersPlay, context, {

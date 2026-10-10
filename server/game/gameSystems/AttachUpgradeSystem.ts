@@ -1,3 +1,5 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
+import { GameStateChangeRequired } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
@@ -19,7 +21,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
     public override readonly eventName = EventName.OnUpgradeAttached;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit, CardType.Base];
 
-    public override eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         const upgradeCard = (event.upgradeCard as InPlayCard);
         const parentCard = (event.parentCard as Card);
 
@@ -35,8 +37,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         upgradeCard.attachTo(parentCard, event.newController);
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: IAttachUpgradeProperties): [string, any[]] {
         const finalController = this.getFinalController(properties, context);
 
         if (properties.upgrade && properties.upgrade.isInPlay() && properties.upgrade.controller !== finalController) {
@@ -46,8 +47,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         return ['attach {1} to {0}', [this.getTargetMessage(properties.target, context), properties.upgrade]];
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IAttachUpgradeProperties> = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override canAffectInternal(card: Card, context: TContext, properties: IAttachUpgradeProperties): boolean {
         const contextCopy = context.copy({ source: card });
 
         const upgrade = properties.upgrade;
@@ -74,17 +74,16 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
             return false;
         }
 
-        return super.canAffectInternal(card, context);
+        return super.canAffectInternal(card, context, properties, GameStateChangeRequired.None);
     }
 
-    public override checkEventCondition(event, additionalProperties: Partial<IAttachUpgradeProperties>): boolean {
-        return this.canAffect(event.parentCard, event.context, additionalProperties);
+    protected override checkEventConditionInternal(event, properties: IAttachUpgradeProperties, additionalProperties: Partial<IGameSystemInput<IAttachUpgradeProperties>> = {}): boolean {
+        return this.canAffectWithProperties(event.parentCard, event.context, properties, GameStateChangeRequired.None, additionalProperties);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<IAttachUpgradeProperties>): void {
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, properties: IAttachUpgradeProperties): void {
+        super.addPropertiesToEvent(event, card, context, properties);
 
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const upgrade = properties.upgrade;
 
         event.parentCard = card;
@@ -92,10 +91,9 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         event.newController = this.getFinalController(properties, context);
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IAttachUpgradeProperties>): void {
-        super.updateEvent(event, card, context, additionalProperties);
+    protected override updateEvent(event, card: Card, context: TContext, properties: IAttachUpgradeProperties, additionalProperties: Partial<IGameSystemInput<IAttachUpgradeProperties>> = {}): void {
+        super.updateEvent(event, card, context, properties, additionalProperties);
 
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const upgrade = properties.upgrade;
 
         event.setContingentEventsGenerator(() => {

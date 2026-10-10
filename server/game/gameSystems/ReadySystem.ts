@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { ICardWithExhaustProperty } from '../core/card/baseClasses/PlayableOrDeployableCard';
 import type { Card } from '../core/card/Card';
@@ -14,20 +15,20 @@ export class ReadySystem<TContext extends AbilityContext = AbilityContext> exten
     public override readonly eventName = EventName.OnCardReadied;
     public override readonly costDescription = 'readying {0}';
     public override readonly effectDescription = 'ready {0}';
-    protected override readonly defaultProperties: IReadySystemProperties = {
+    protected override readonly defaultProperties: IGameSystemInput<IReadySystemProperties> = {
         isRegroupPhaseReadyStep: false
     };
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         event.card.ready();
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IReadySystemProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        if (!super.canAffectInternal(card, context)) {
+    protected override canAffectInternal(card: Card, context: TContext, properties: IReadySystemProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        if (!super.canAffectInternal(card, context, properties, GameStateChangeRequired.None)) {
             return false;
         }
 
-        const { isCost } = this.generatePropertiesFromContext(context);
+        const { isCost } = properties;
 
         // can safely cast here b/c the type was checked in super.canAffectInternal
         if ((isCost || mustChangeGameState !== GameStateChangeRequired.None) && !(card as ICardWithExhaustProperty).exhausted) {

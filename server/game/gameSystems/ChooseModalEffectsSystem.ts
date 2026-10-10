@@ -20,10 +20,9 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
     public override readonly eventName = MetaEventName.ChooseModalEffects;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler(event): void { }
+    protected override eventHandlerInternal(): void { }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext): void {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IPlayModalCardProperties): void {
         const listOfAvailableEffects =
             typeof properties.choices === 'function'
                 ? properties.choices(context)

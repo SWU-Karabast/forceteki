@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { EventName, PhaseName, WildcardCardType } from '../core/Constants';
@@ -10,7 +11,6 @@ import { DefeatCardSystem } from './DefeatCardSystem';
 export interface IFrameworkDefeatCardProperties extends ICardTargetSystemProperties {
     defeatSource: IDamageSource | DefeatSourceType.UniqueRule | DefeatSourceType.FrameworkEffect;
     defeatedByExpiringLastingEffect?: boolean;
-    target?: Card | Card[];
 }
 
 /**
@@ -22,13 +22,11 @@ export class FrameworkDefeatCardSystem<TContext extends AbilityContext = Ability
     public override readonly eventName = EventName.OnCardDefeated;
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade];
 
-    protected override readonly defaultProperties: Partial<IFrameworkDefeatCardProperties> = {
+    protected override readonly defaultProperties: IGameSystemInput<Partial<IFrameworkDefeatCardProperties>> = {
         defeatedByExpiringLastingEffect: false,
     };
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
-
+    protected override getEffectMessageInternal(context: TContext, properties: IFrameworkDefeatCardProperties): [string, any[]] {
         let causeStr: string;
         switch (properties.defeatSource) {
             case DefeatSourceType.UniqueRule:
@@ -45,7 +43,7 @@ export class FrameworkDefeatCardSystem<TContext extends AbilityContext = Ability
     }
 
     // fully override the base canAffect method since nothing can interrupt defeat due to framework effect
-    public override canAffectInternal(card: Card): boolean {
+    protected override canAffectInternal(card: Card, context: TContext, properties: IFrameworkDefeatCardProperties): boolean {
         return card.canBeInPlay() && card.isInPlay();
     }
 

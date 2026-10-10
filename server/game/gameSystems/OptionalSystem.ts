@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameStateChangeRequired, MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -20,27 +21,20 @@ export class OptionalSystem<TContext extends AbilityContext = AbilityContext> ex
         return [properties.innerSystem];
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties: Partial<IOptionalSystemProperties<TContext>> = {}): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override getEffectMessageInternal(context: TContext, properties: IOptionalSystemProperties<TContext>): [string, any[]] {
         const [format, args] = properties.innerSystem.getEffectMessage(context);
         return [`choose if they want to ${format}`, args];
     }
 
-    public override canAffectInternal(target: Player | Card, context: TContext, additionalProperties: Partial<IOptionalSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override canAffectInternal(target: Player | Card, context: TContext, properties: IOptionalSystemProperties<TContext>, mustChangeGameState = GameStateChangeRequired.None, additionalProperties: Partial<IGameSystemInput<IOptionalSystemProperties<TContext>>> = {}): boolean {
         return properties.innerSystem.canAffect(target, context, additionalProperties, mustChangeGameState);
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IOptionalSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override hasLegalTargetInternal(context: TContext, properties: IOptionalSystemProperties<TContext>, mustChangeGameState = GameStateChangeRequired.None, additionalProperties: Partial<IGameSystemInput<IOptionalSystemProperties<TContext>>> = {}): boolean {
         return properties.innerSystem.hasLegalTarget(context, additionalProperties, mustChangeGameState);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IOptionalSystemProperties<TContext>> = {}): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IOptionalSystemProperties<TContext>, additionalProperties: Partial<IGameSystemInput<IOptionalSystemProperties<TContext>>> = {}): void {
         const sourceCard = getTriggerSourceCardSummary(context.source);
 
         context.game.promptWithOptionalTrigger(context.player, {
@@ -59,7 +53,7 @@ export class OptionalSystem<TContext extends AbilityContext = AbilityContext> ex
         });
     }
 
-    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<IOptionalSystemProperties<TContext>> = {}): boolean {
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<IGameSystemInput<IOptionalSystemProperties<TContext>>> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         return properties.innerSystem.hasTargetsChosenByPlayer(

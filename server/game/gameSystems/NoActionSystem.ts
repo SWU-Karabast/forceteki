@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameSystem, type IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import type { Card } from '../core/card/Card';
@@ -14,20 +15,20 @@ export interface INoActionSystemProperties extends IGameSystemProperties {
  */
 export class NoActionSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, INoActionSystemProperties> {
     public override readonly eventName = MetaEventName.NoAction;
-    protected override readonly defaultProperties: INoActionSystemProperties = {
+    protected override readonly defaultProperties: IGameSystemInput<INoActionSystemProperties> = {
         hasLegalTarget: false
     };
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public eventHandler(event): void {}
+    protected override eventHandlerInternal(): void {}
 
-    public override hasLegalTarget(context): boolean {
-        const { hasLegalTarget: allowTargetSelection } = this.generatePropertiesFromContext(context);
+    protected override hasLegalTargetInternal(context, properties: INoActionSystemProperties): boolean {
+        const { hasLegalTarget: allowTargetSelection } = properties;
         return allowTargetSelection;
     }
 
-    public override canAffectInternal(card: Card, context: TContext): boolean {
-        const { hasLegalTarget: allowTargetSelection } = this.generatePropertiesFromContext(context);
+    protected override canAffectInternal(card: Card, context: TContext, properties: INoActionSystemProperties): boolean {
+        const { hasLegalTarget: allowTargetSelection } = properties;
         return allowTargetSelection;
     }
 

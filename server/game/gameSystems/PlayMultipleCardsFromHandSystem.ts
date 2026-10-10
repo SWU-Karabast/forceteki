@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameStateChangeRequired, MetaEventName, PlayType, RelativePlayer, TargetMode, ZoneName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -51,41 +52,39 @@ export class PlayMultipleCardsFromHandSystem<TContext extends AbilityContext = A
     public override readonly eventName = MetaEventName.PlayMultipleCardsFromHand;
     public override readonly effectDescription = 'play multiple cards from their hand';
 
-    protected override readonly defaultProperties: Partial<IPlayMultipleCardsFromHandProperties<TContext>> = {
+    protected override readonly defaultProperties: IGameSystemInput<Partial<IPlayMultipleCardsFromHandProperties<TContext>>> = {
         optional: true,
     };
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public eventHandler(): void { }
+    protected override eventHandlerInternal(): void { }
 
     protected override isTargetTypeValid(): boolean {
         return false;
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties: Partial<IPlayMultipleCardsFromHandProperties<TContext>> = {}): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override getEffectMessageInternal(context: TContext, properties: IPlayMultipleCardsFromHandProperties<TContext>): [string, any[]] {
         return [this.effectDescription, [properties.maxCards]];
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IPlayMultipleCardsFromHandProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override hasLegalTargetInternal(context: TContext, properties: IPlayMultipleCardsFromHandProperties<TContext>, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (properties.maxCards != null && properties.maxCards <= 0) {
             return false;
         }
         return this.buildSelectCardSystem(context, properties, `${this.name}-probe`).hasLegalTarget(context, {}, mustChangeGameState);
     }
 
-    public override canAffect(target: GameObject | GameObject[], context: TContext, additionalProperties: Partial<IPlayMultipleCardsFromHandProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffect(target: GameObject | GameObject[], context: TContext, additionalProperties: Partial<IGameSystemInput<IPlayMultipleCardsFromHandProperties<TContext>>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         return this.hasLegalTarget(context, additionalProperties, mustChangeGameState);
     }
 
-    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<IPlayMultipleCardsFromHandProperties<TContext>> = {}): boolean {
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<IGameSystemInput<IPlayMultipleCardsFromHandProperties<TContext>>> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
         return this.buildSelectCardSystem(context, properties, `${this.name}-probe`).hasTargetsChosenByPlayer(context, player);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IPlayMultipleCardsFromHandProperties<TContext>> = {}): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IPlayMultipleCardsFromHandProperties<TContext>): void {
         const maxCards = properties.maxCards ?? Number.POSITIVE_INFINITY;
 
         this.queuePlayCardStep(context, properties, 0, maxCards);
@@ -129,7 +128,7 @@ export class PlayMultipleCardsFromHandSystem<TContext extends AbilityContext = A
         properties: IPlayMultipleCardsFromHandProperties<TContext>,
         selectName: string
     ): SelectCardSystem<TContext> {
-        const selectProperties: ISelectCardProperties<TContext> = {
+        const selectProperties: IGameSystemInput<ISelectCardProperties<TContext>> = {
             activePromptTitle: properties.activePromptTitle,
             mode: TargetMode.Single,
             optional: true,

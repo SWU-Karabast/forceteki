@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, TokenCardName, ZoneName } from '../core/Constants';
 import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
@@ -12,18 +13,17 @@ export interface ICreateCreditTokenProperties extends IPlayerTargetSystemPropert
 
 export class CreateCreditTokenSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ICreateCreditTokenProperties> {
     public override readonly eventName = EventName.OnTokensCreated;
-    protected override readonly defaultProperties: ICreateCreditTokenProperties = {
+    protected override readonly defaultProperties: IGameSystemInput<ICreateCreditTokenProperties> = {
         amount: 1
     };
 
-    public override eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         for (const token of event.generatedTokens) {
             token.moveTo(ZoneName.Base);
         }
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: ICreateCreditTokenProperties): [string, any[]] {
         const players = Helpers.asArray(properties.target);
 
         const effectMessage = (player: Player): FormatMessage => {
@@ -46,10 +46,8 @@ export class CreateCreditTokenSystem<TContext extends AbilityContext = AbilityCo
         return [ChatHelpers.formatWithLength(players.length, 'to '), players.map((player) => effectMessage(player))];
     }
 
-    protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<ICreateCreditTokenProperties>): void {
-        super.updateEvent(event, player, context, additionalProperties);
-
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override updateEvent(event, player: Player, context: TContext, properties: ICreateCreditTokenProperties, additionalProperties: Partial<IGameSystemInput<ICreateCreditTokenProperties>> = {}): void {
+        super.updateEvent(event, player, context, properties, additionalProperties);
 
         event.generatedTokens = [];
 
@@ -62,10 +60,8 @@ export class CreateCreditTokenSystem<TContext extends AbilityContext = AbilityCo
         return [context.player];
     }
 
-    public override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<ICreateCreditTokenProperties>): void {
-        super.addPropertiesToEvent(event, player, context, additionalProperties);
-
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, properties: ICreateCreditTokenProperties): void {
+        super.addPropertiesToEvent(event, player, context, properties);
 
         event.amount = properties.amount;
         event.tokenType = TokenCardName.Credit;

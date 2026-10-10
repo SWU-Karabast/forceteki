@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { EventName, GameStateChangeRequired } from '../core/Constants';
@@ -28,14 +29,14 @@ export type IAllCardsForPlayerLastingEffectProperties = DistributiveOmit<ILastin
 export class AllCardsForPlayerLastingEffectSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IAllCardsForPlayerLastingEffectProperties> {
     public override readonly name = 'applyAllCardsForPlayerLastingEffect';
     public override readonly eventName = EventName.OnEffectApplied;
-    protected override readonly defaultProperties: IAllCardsForPlayerLastingEffectProperties = {
+    protected override readonly defaultProperties: IGameSystemInput<IAllCardsForPlayerLastingEffectProperties> = {
         duration: null,
         effect: [],
         matchCondition: null,
         cardTargetMode: AllCardsTargetMode.OnlyOwned
     };
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         const effects = Helpers.asArray(event.effectProperties).flatMap((props: IOngoingPlayerEffectProps) =>
             (event.effectFactories as IOngoingPlayerEffectGenerator[]).map((factory) =>
                 factory(event.context.game, event.context.source, props)
@@ -47,8 +48,8 @@ export class AllCardsForPlayerLastingEffectSystem<TContext extends AbilityContex
         }
     }
 
-    public override addPropertiesToEvent(event: any, target: Player, context: TContext, additionalProperties?: Partial<IAllCardsForPlayerLastingEffectProperties>): void {
-        super.addPropertiesToEvent(event, target, context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, target: Player, context: TContext, properties: IAllCardsForPlayerLastingEffectProperties, additionalProperties: Partial<IGameSystemInput<IAllCardsForPlayerLastingEffectProperties>> = {}): void {
+        super.addPropertiesToEvent(event, target, context, properties);
 
         const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(target, context, additionalProperties);
 
@@ -56,10 +57,10 @@ export class AllCardsForPlayerLastingEffectSystem<TContext extends AbilityContex
         event.effectProperties = effectProperties;
     }
 
-    private getEffectFactoriesAndProperties(target: Player, context: TContext, additionalProperties?: Partial<IAllCardsForPlayerLastingEffectProperties>): { effectFactories: IOngoingAllCardsForPlayerEffectGenerator[]; effectProperties: IOngoingAllCardsForPlayerEffectProps };
-    private getEffectFactoriesAndProperties(target: Player[], context: TContext, additionalProperties?: Partial<IAllCardsForPlayerLastingEffectProperties>): { effectFactories: IOngoingAllCardsForPlayerEffectGenerator[]; effectProperties: IOngoingAllCardsForPlayerEffectProps[] };
-    private getEffectFactoriesAndProperties(target: Player | Player[], context: TContext, additionalProperties?: Partial<IAllCardsForPlayerLastingEffectProperties>): { effectFactories: IOngoingAllCardsForPlayerEffectGenerator[]; effectProperties: IOngoingAllCardsForPlayerEffectProps | IOngoingAllCardsForPlayerEffectProps[] };
-    private getEffectFactoriesAndProperties(target: Player | Player[], context: TContext, additionalProperties?: Partial<IAllCardsForPlayerLastingEffectProperties>): { effectFactories: IOngoingAllCardsForPlayerEffectGenerator[]; effectProperties: IOngoingAllCardsForPlayerEffectProps | IOngoingAllCardsForPlayerEffectProps[] } {
+    private getEffectFactoriesAndProperties(target: Player, context: TContext, additionalProperties?: Partial<IGameSystemInput<IAllCardsForPlayerLastingEffectProperties>>): { effectFactories: IOngoingAllCardsForPlayerEffectGenerator[]; effectProperties: IOngoingAllCardsForPlayerEffectProps };
+    private getEffectFactoriesAndProperties(target: Player[], context: TContext, additionalProperties?: Partial<IGameSystemInput<IAllCardsForPlayerLastingEffectProperties>>): { effectFactories: IOngoingAllCardsForPlayerEffectGenerator[]; effectProperties: IOngoingAllCardsForPlayerEffectProps[] };
+    private getEffectFactoriesAndProperties(target: Player | Player[], context: TContext, additionalProperties?: Partial<IGameSystemInput<IAllCardsForPlayerLastingEffectProperties>>): { effectFactories: IOngoingAllCardsForPlayerEffectGenerator[]; effectProperties: IOngoingAllCardsForPlayerEffectProps | IOngoingAllCardsForPlayerEffectProps[] };
+    private getEffectFactoriesAndProperties(target: Player | Player[], context: TContext, additionalProperties?: Partial<IGameSystemInput<IAllCardsForPlayerLastingEffectProperties>>): { effectFactories: IOngoingAllCardsForPlayerEffectGenerator[]; effectProperties: IOngoingAllCardsForPlayerEffectProps | IOngoingAllCardsForPlayerEffectProps[] } {
         const { effect, matchCondition, cardTargetMode, target: _propsTarget, ...otherProperties } = this.generatePropertiesFromContext(context, additionalProperties);
 
         const matchTarget = (target: Card) => matchCondition == null || matchCondition(target);
@@ -80,12 +81,11 @@ export class AllCardsForPlayerLastingEffectSystem<TContext extends AbilityContex
         return { effectFactories: Helpers.asArray(effect), effectProperties: effectProperties(target) };
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IAllCardsForPlayerLastingEffectProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return properties.effect.length > 0 && super.hasLegalTarget(context, additionalProperties, mustChangeGameState);
+    protected override hasLegalTargetInternal(context: TContext, properties: IAllCardsForPlayerLastingEffectProperties, mustChangeGameState = GameStateChangeRequired.None, additionalProperties: Partial<IGameSystemInput<IAllCardsForPlayerLastingEffectProperties>> = {}): boolean {
+        return properties.effect.length > 0 && super.hasLegalTargetInternal(context, properties, mustChangeGameState, additionalProperties);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IAllCardsForPlayerLastingEffectProperties>): void {
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IAllCardsForPlayerLastingEffectProperties, additionalProperties: Partial<IGameSystemInput<IAllCardsForPlayerLastingEffectProperties>> = {}): void {
         if (this.hasLegalTarget(context, additionalProperties)) {
             events.push(this.generateEvent(context, additionalProperties));
         }
@@ -95,9 +95,7 @@ export class AllCardsForPlayerLastingEffectSystem<TContext extends AbilityContex
         return context.player ? [context.player] : [];
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties?: Partial<IAllCardsForPlayerLastingEffectProperties>): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override getEffectMessageInternal(context: TContext, properties: IAllCardsForPlayerLastingEffectProperties, additionalProperties: Partial<IGameSystemInput<IAllCardsForPlayerLastingEffectProperties>> = {}): [string, any[]] {
         return LastingEffectSystemHelpers.getEffectMessage<TContext, IAllCardsForPlayerLastingEffectProperties>(
             this,
             context,

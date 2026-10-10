@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { MoveZoneDestination, ZoneFilter } from '../core/Constants';
@@ -42,12 +43,12 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public override readonly eventName = EventName.OnCardMoved;
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
 
-    protected override defaultProperties: IMoveCardProperties = {
+    protected override defaultProperties: IGameSystemInput<IMoveCardProperties> = {
         destination: null,
         shuffle: false,
     };
 
-    public eventHandler(event: any): void {
+    protected override eventHandlerInternal(event: any): void {
         const card = event.card as Card;
         Contract.assertTrue(card.canBeExhausted());
 
@@ -68,14 +69,12 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         }
     }
 
-    public override getCostMessage(context: TContext): [string, any[]] {
+    protected override getCostMessageInternal(context: TContext): [string, any[]] {
         // Since this is the cost message, always set isCost to true
         return this.getEffectMessage(context, { isCost: true });
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties: Partial<IMoveCardProperties> = {}): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
-
+    protected override getEffectMessageInternal(context: TContext, properties: IMoveCardProperties): [string, any[]] {
         const targetOwners = new Set(Helpers.asArray(properties.target).map((card) => card.owner));
         let destination: FormatMessage = { format: 'their {0}', args: [properties.destination] };
         if (properties.destination === ZoneName.Hand || EnumHelpers.isDeckMoveZone(properties.destination)) {
@@ -127,9 +126,9 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         ];
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IMoveCardProperties>): void {
-        super.updateEvent(event, card, context, additionalProperties);
-        const { attachedUpgradeOverrideHandler } = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override updateEvent(event, card: Card, context: TContext, properties: IMoveCardProperties, additionalProperties: Partial<IGameSystemInput<IMoveCardProperties>> = {}): void {
+        super.updateEvent(event, card, context, properties, additionalProperties);
+        const { attachedUpgradeOverrideHandler } = properties;
 
         // Check if the card is leaving play
         if (this.isLeavingPlay(card, event.destination)) {
@@ -155,16 +154,14 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
           !EnumHelpers.isInPlayZone(destination as ZoneFilter);
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IMoveCardProperties>): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, properties: IMoveCardProperties): void {
+        super.addPropertiesToEvent(event, card, context, properties);
 
         event.destination = properties.destination;
         event.shuffle = properties.shuffle;
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IMoveCardProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
+    protected override canAffectInternal(card: Card, context: TContext, properties: IMoveCardProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { destination } = properties;
 
         Contract.assertNotNullLike(destination);
@@ -198,7 +195,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         }
 
         // Call the super implementation
-        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, properties, mustChangeGameState);
     }
 
     protected override processTargets(target: Card | Card[], context: TContext) {

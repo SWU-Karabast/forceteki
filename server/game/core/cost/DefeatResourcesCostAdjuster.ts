@@ -4,7 +4,7 @@ import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import { EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../Constants';
 import type { Game } from '../Game';
-import type { GameSystem } from '../gameSystem/GameSystem';
+import type { GameSystem, IGameSystemInput } from '../gameSystem/GameSystem';
 import type { IDefeatCardProperties } from '../../gameSystems/DefeatCardSystem';
 import { DefeatCardSystem } from '../../gameSystems/DefeatCardSystem';
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
@@ -78,7 +78,7 @@ export class DefeatResourcesCostAdjuster extends TargetedCostAdjuster {
 
     protected override buildEffectSystem(): GameSystem<AbilityContext<IUnitCard>> {
         // the chosen resources are rearranged into the correct state before being defeated, so don't swap their state again
-        const defeatProps: IDefeatCardProperties = { defeatSource: DefeatSourceType.Ability, preserveResourceReadyState: true };
+        const defeatProps: IGameSystemInput<IDefeatCardProperties> = { defeatSource: DefeatSourceType.Ability, preserveResourceReadyState: true };
         return new DefeatCardSystem(defeatProps);
     }
 

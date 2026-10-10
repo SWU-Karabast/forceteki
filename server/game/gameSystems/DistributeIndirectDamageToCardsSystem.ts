@@ -1,9 +1,10 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { DamageType, EffectName, MetaEventName, RelativePlayer } from '../core/Constants';
 import type { DistributePromptType } from '../core/gameSteps/PromptInterfaces';
 import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
-import { DamageSystem } from './DamageSystem';
+import { DamageSystem, type IAbilityDamageProperties } from './DamageSystem';
 import type { IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
 import { DistributeAmongTargetsSystem } from './DistributeAmongTargetsSystem';
 
@@ -20,7 +21,7 @@ export class DistributeIndirectDamageToCardsSystem<TContext extends AbilityConte
 
     public override promptType: DistributePromptType = StatefulPromptType.DistributeIndirectDamage;
 
-    public constructor(properties: IDistributeIndirectDamageToCardsSystemProperties<TContext>) {
+    public constructor(properties: IGameSystemInput<IDistributeIndirectDamageToCardsSystemProperties<TContext>>) {
         super({
             ...properties,
             canChooseNoTargets: false,
@@ -30,7 +31,7 @@ export class DistributeIndirectDamageToCardsSystem<TContext extends AbilityConte
 
     protected override generateEffectSystem(target: Card = null, amount = 1): DamageSystem {
         // the pending ability damage increase (e.g. Ty Yorrick) is already included in the distributed total
-        return new DamageSystem({ type: DamageType.Ability, target, amount, isIndirect: true, ignoreAbilityDamageIncrease: true });
+        return new DamageSystem<AbilityContext, IAbilityDamageProperties>({ type: DamageType.Ability, target, amount, isIndirect: true, ignoreAbilityDamageIncrease: true });
     }
 
     protected override canDistributeLessDefault(): boolean {
@@ -41,12 +42,10 @@ export class DistributeIndirectDamageToCardsSystem<TContext extends AbilityConte
         return event.damageDealt;
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IDistributeIndirectDamageToCardsSystemProperties<TContext>> = {}): IDistributeAmongTargetsSystemProperties<AbilityContext<Card>> {
-        const properties = super.generatePropertiesFromContext(context, {
-            ...additionalProperties,
-            player: RelativePlayer.Opponent,
-            controller: this.properties.player ?? RelativePlayer.Opponent,
-        });
+    protected override prepareProperties(context: TContext, properties: IDistributeAmongTargetsSystemProperties<TContext>): void {
+        properties.player = this.properties.player ?? RelativePlayer.Opponent;
+        properties.controller = this.properties.player ?? RelativePlayer.Opponent;
+        super.prepareProperties(context, properties);
 
         if (context.player.assignIndirectDamageDealtToOpponents()) {
             properties.player = RelativePlayer.Self;
@@ -54,8 +53,6 @@ export class DistributeIndirectDamageToCardsSystem<TContext extends AbilityConte
         if (context.source.isUnit() && context.source.hasOngoingEffect(EffectName.AssignIndirectDamageDealtByUnit)) {
             properties.player = RelativePlayer.Self;
         }
-
-        return properties;
     }
 
     protected override getDistributionNouns(): { singular: string } {

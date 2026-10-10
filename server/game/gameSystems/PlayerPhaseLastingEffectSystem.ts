@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Duration, EventName } from '../core/Constants';
 import { GameSystem } from '../core/gameSystem/GameSystem';
@@ -13,14 +14,14 @@ export type IPlayerPhaseLastingEffectProperties = Omit<IPlayerLastingEffectPrope
 export class PlayerPhaseLastingEffectSystem<TContext extends AbilityContext = AbilityContext> extends PlayerLastingEffectSystem<TContext> {
     public override readonly name = 'applyPlayerPhaseLastingEffect';
     public override readonly eventName = EventName.OnEffectApplied;
-    protected override readonly defaultProperties: IPlayerLastingEffectProperties = {
+    protected override readonly defaultProperties: IGameSystemInput<IPlayerLastingEffectProperties> = {
         duration: null,
         effect: [],
     };
 
     // constructor needs to do some extra work to ensure that the passed props object ends up as valid for the parent class
-    public constructor(propertiesOrPropertyFactory: IPlayerPhaseLastingEffectProperties | ((context?: AbilityContext) => IPlayerPhaseLastingEffectProperties)) {
-        const propertyWithDurationType = GameSystem.appendToPropertiesOrPropertyFactory<IPlayerLastingEffectProperties, 'duration'>(propertiesOrPropertyFactory, { duration: Duration.UntilEndOfPhase });
+    public constructor(propertiesOrPropertyFactory: IGameSystemInput<IPlayerPhaseLastingEffectProperties> | ((context?: AbilityContext) => IGameSystemInput<IPlayerPhaseLastingEffectProperties>)) {
+        const propertyWithDurationType = GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IPlayerLastingEffectProperties>, 'duration'>(propertiesOrPropertyFactory, { duration: Duration.UntilEndOfPhase });
         super(propertyWithDurationType);
     }
 }

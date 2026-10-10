@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import { ClaimCounterType, DamageType, EventName } from '../core/Constants.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
@@ -29,7 +30,7 @@ export class ClaimCounterSystem<TContext extends AbilityContext = AbilityContext
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public override eventHandler(event: any): void {
+    protected override eventHandlerInternal(event: any): void {
         const player = event.player as Player;
         const game = event.context.game;
 
@@ -53,18 +54,15 @@ export class ClaimCounterSystem<TContext extends AbilityContext = AbilityContext
         player.passedActionPhase = true;
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<IClaimCounterProperties> = {}): void {
-        super.addPropertiesToEvent(event, player, context, additionalProperties);
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, properties: IClaimCounterProperties): void {
+        super.addPropertiesToEvent(event, player, context, properties);
 
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         event.counterType = properties.counterType;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    protected override updateEvent(event: any, player: Player, context: TContext, additionalProperties: Partial<IClaimCounterProperties>): void {
-        super.updateEvent(event, player, context, additionalProperties);
-
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override updateEvent(event: any, player: Player, context: TContext, properties: IClaimCounterProperties, additionalProperties: Partial<IGameSystemInput<IClaimCounterProperties>> = {}): void {
+        super.updateEvent(event, player, context, properties, additionalProperties);
 
         switch (properties.counterType) {
             case ClaimCounterType.Plan:

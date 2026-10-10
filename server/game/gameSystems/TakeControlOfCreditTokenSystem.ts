@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameStateChangeRequired } from '../core/Constants';
 import { EventName } from '../core/Constants';
@@ -20,12 +21,12 @@ export interface ITakeControlOfCreditTokenProperties extends IPlayerTargetSystem
 export class TakeControlOfCreditTokenSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ITakeControlOfCreditTokenProperties> {
     public override readonly name = 'takeControl';
     public override readonly eventName = EventName.OnTakeControl;
-    protected override readonly defaultProperties: ITakeControlOfCreditTokenProperties = {
+    protected override readonly defaultProperties: IGameSystemInput<ITakeControlOfCreditTokenProperties> = {
         amount: 1,
         newController: null
     };
 
-    public override eventHandler(event, additionalProperties: Partial<ITakeControlOfCreditTokenProperties>): void {
+    protected override eventHandlerInternal(event): void {
         const newController = event.newController as Player;
         const actualAmount = Math.min(event.amount, event.player.creditTokenCount);
 
@@ -34,9 +35,7 @@ export class TakeControlOfCreditTokenSystem<TContext extends AbilityContext = Ab
         }
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties?: Partial<ITakeControlOfCreditTokenProperties>): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override getEffectMessageInternal(context: TContext, properties: ITakeControlOfCreditTokenProperties): [string, any[]] {
         const newController = properties.newController;
         const players = Helpers.asArray(properties.target);
 
@@ -56,14 +55,8 @@ export class TakeControlOfCreditTokenSystem<TContext extends AbilityContext = Ab
         return [ChatHelpers.formatWithLength(players.length, 'to '), players.map((player) => effectMessage(player))];
     }
 
-    public override canAffectInternal(
-        target: Player | Player[],
-        context: TContext,
-        additionalProperties?: Partial<ITakeControlOfCreditTokenProperties>,
-        mustChangeGameState?: GameStateChangeRequired
-    ): boolean {
+    protected override canAffectInternal(target: Player | Player[], context: TContext, properties: ITakeControlOfCreditTokenProperties, mustChangeGameState: GameStateChangeRequired): boolean {
         const targets = Helpers.asArray(target);
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         const wouldHaveNoEffect = properties.amount === 0 ||
           targets.every((p) => p.creditTokenCount === 0) ||
@@ -73,13 +66,11 @@ export class TakeControlOfCreditTokenSystem<TContext extends AbilityContext = Ab
             return false;
         }
 
-        return super.canAffectInternal(target, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(target, context, properties, mustChangeGameState);
     }
 
-    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<ITakeControlOfCreditTokenProperties>): void {
-        super.addPropertiesToEvent(event, player, context, additionalProperties);
-
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, properties: ITakeControlOfCreditTokenProperties): void {
+        super.addPropertiesToEvent(event, player, context, properties);
 
         event.newController = properties.newController;
         event.amount = properties.amount;

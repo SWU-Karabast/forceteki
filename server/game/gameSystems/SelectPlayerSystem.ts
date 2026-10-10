@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { PlayerTargetResolver } from '../core/ability/abilityTargets/PlayerTargetResolver';
 import type { GameStateChangeRequired, MetaEventName } from '../core/Constants';
@@ -20,29 +21,25 @@ export class SelectPlayerSystem<TContext extends AbilityContext = AbilityContext
     public override readonly name: string = 'selectPlayer';
     public override readonly effectDescription: string = 'choose a player';
     public override readonly eventName: MetaEventName.SelectPlayer;
-    protected override readonly defaultProperties: Partial<ISelectPlayerProperties<TContext>> = {
+    protected override readonly defaultProperties: IGameSystemInput<Partial<ISelectPlayerProperties<TContext>>> = {
         mode: TargetMode.Player,
         name: 'target',
     };
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public eventHandler(event): void {}
+    protected override eventHandlerInternal(): void {}
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<ISelectPlayerProperties<TContext>> = {}) {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+    protected override prepareProperties(context: TContext, properties: ISelectPlayerProperties<TContext>): void {
+        super.prepareProperties(context, properties);
+
         properties.immediateEffect.setDefaultTargetFn(() => properties.target);
-
-        return properties;
     }
 
-    public override canAffectInternal(target: Player | Player[], context: TContext, additionalProperties?: Partial<ISelectPlayerProperties<TContext>>, mustChangeGameState?: GameStateChangeRequired): boolean {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+    protected override canAffectInternal(target: Player | Player[], context: TContext, properties: ISelectPlayerProperties<TContext>, mustChangeGameState: GameStateChangeRequired, additionalProperties: Partial<IGameSystemInput<ISelectPlayerProperties<TContext>>> = {}): boolean {
         return properties.immediateEffect.canAffect(target, context, additionalProperties, mustChangeGameState);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<ISelectPlayerProperties<TContext>> = {}): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: ISelectPlayerProperties<TContext>, additionalProperties: Partial<IGameSystemInput<ISelectPlayerProperties<TContext>>> = {}): void {
         const targetResolver = new PlayerTargetResolver(properties.name, { mode: TargetMode.Player, ...properties }, context.ability);
         const targetResults = context.ability.getDefaultTargetResults(context, false);
         targetResolver.resolve(context, targetResults);

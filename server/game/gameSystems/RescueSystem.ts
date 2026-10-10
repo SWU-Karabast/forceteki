@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { GameStateChangeRequired, WildcardCardType, EventName, EffectName, EntryType } from '../core/Constants';
@@ -22,20 +23,20 @@ export class RescueSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     // Nothing to do in the event handler, the PutIntoPlaySystem event does the work
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public eventHandler(event): void {}
+    protected override eventHandlerInternal(): void {}
 
-    public override canAffectInternal(card: Card, context: TContext, _additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    protected override canAffectInternal(card: Card, context: TContext, properties: TProperties): boolean {
         if (!card.isUnit() || !card.isCaptured()) {
             return false;
         }
 
-        return super.canAffectInternal(card, context);
+        return super.canAffectInternal(card, context, properties, GameStateChangeRequired.None);
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
-        super.updateEvent(event, card, context, additionalProperties);
+    protected override updateEvent(event, card: Card, context: TContext, properties: TProperties, additionalProperties: Partial<IGameSystemInput<TProperties>> = {}): void {
+        super.updateEvent(event, card, context, properties, additionalProperties);
 
-        const { enterPlayEffect } = this.generatePropertiesFromContext(context, additionalProperties);
+        const { enterPlayEffect } = properties;
 
         // add contingent event for putting the rescued unit back into play
         event.setContingentEventsGenerator((event) => [

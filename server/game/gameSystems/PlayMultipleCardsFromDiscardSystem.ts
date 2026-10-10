@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameStateChangeRequired, MetaEventName, PlayType, RelativePlayer, TargetMode, ZoneName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -51,41 +52,39 @@ export class PlayMultipleCardsFromDiscardSystem<TContext extends AbilityContext 
     public override readonly eventName = MetaEventName.PlayMultipleCardsFromDiscard;
     public override readonly effectDescription = 'play multiple cards from the discard pile';
 
-    protected override readonly defaultProperties: Partial<IPlayMultipleCardsFromDiscardProperties<TContext>> = {
+    protected override readonly defaultProperties: IGameSystemInput<Partial<IPlayMultipleCardsFromDiscardProperties<TContext>>> = {
         optional: true,
     };
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public eventHandler(): void { }
+    protected override eventHandlerInternal(): void { }
 
     protected override isTargetTypeValid(): boolean {
         return false;
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties: Partial<IPlayMultipleCardsFromDiscardProperties<TContext>> = {}): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override getEffectMessageInternal(context: TContext, properties: IPlayMultipleCardsFromDiscardProperties<TContext>): [string, any[]] {
         return [this.effectDescription, [properties.maxCards]];
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IPlayMultipleCardsFromDiscardProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override hasLegalTargetInternal(context: TContext, properties: IPlayMultipleCardsFromDiscardProperties<TContext>, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (properties.maxCards != null && properties.maxCards <= 0) {
             return false;
         }
         return this.buildSelectCardSystem(context, properties, `${this.name}-probe`).hasLegalTarget(context, {}, mustChangeGameState);
     }
 
-    public override canAffect(target: GameObject | GameObject[], context: TContext, additionalProperties: Partial<IPlayMultipleCardsFromDiscardProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffect(target: GameObject | GameObject[], context: TContext, additionalProperties: Partial<IGameSystemInput<IPlayMultipleCardsFromDiscardProperties<TContext>>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         return this.hasLegalTarget(context, additionalProperties, mustChangeGameState);
     }
 
-    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<IPlayMultipleCardsFromDiscardProperties<TContext>> = {}): boolean {
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<IGameSystemInput<IPlayMultipleCardsFromDiscardProperties<TContext>>> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
         return this.buildSelectCardSystem(context, properties, `${this.name}-probe`).hasTargetsChosenByPlayer(context, player);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IPlayMultipleCardsFromDiscardProperties<TContext>> = {}): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IPlayMultipleCardsFromDiscardProperties<TContext>): void {
         const maxCards = properties.maxCards ?? Number.POSITIVE_INFINITY;
 
         this.queuePlayCardStep(context, properties, 0, maxCards);
@@ -129,7 +128,7 @@ export class PlayMultipleCardsFromDiscardSystem<TContext extends AbilityContext 
         properties: IPlayMultipleCardsFromDiscardProperties<TContext>,
         selectName: string
     ): SelectCardSystem<TContext> {
-        const selectProperties: ISelectCardProperties<TContext> = {
+        const selectProperties: IGameSystemInput<ISelectCardProperties<TContext>> = {
             activePromptTitle: properties.activePromptTitle,
             mode: TargetMode.Single,
             optional: true,

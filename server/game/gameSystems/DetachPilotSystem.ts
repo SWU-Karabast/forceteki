@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { InitializeCardStateOption, type Card } from '../core/card/Card';
 import {
@@ -20,13 +21,13 @@ export class DetachPilotSystem<TContext extends AbilityContext = AbilityContext>
     public override readonly effectDescription = 'detach {0} and move it to the ground arena';
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.UnitUpgrade];
 
-    public eventHandler(event: any): void {
+    protected override eventHandlerInternal(event: any): void {
         event.card.unattach(event);
         event.card.moveTo(ZoneName.GroundArena, InitializeCardStateOption.ForceInitialize);
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IDetachPilotProperties>): void {
-        super.updateEvent(event, card, context, additionalProperties);
+    protected override updateEvent(event, card: Card, context: TContext, properties: IDetachPilotProperties, additionalProperties: Partial<IGameSystemInput<IDetachPilotProperties>> = {}): void {
+        super.updateEvent(event, card, context, properties, additionalProperties);
 
         Contract.assertTrue(card.isUpgrade());
 
@@ -43,11 +44,11 @@ export class DetachPilotSystem<TContext extends AbilityContext = AbilityContext>
         ]);
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IDetachPilotProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    protected override canAffectInternal(card: Card, context: TContext, properties: IDetachPilotProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!EnumHelpers.isUnitUpgrade(card.type)) {
             return false;
         }
 
-        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, properties, mustChangeGameState);
     }
 }

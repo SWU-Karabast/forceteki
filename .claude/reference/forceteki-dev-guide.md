@@ -95,12 +95,20 @@ Reachable from the injected `AbilityHelper`:
 
 - `AbilityHelper.immediateEffects.*` → `GameSystem` implementations (damage, defeat, draw, exhaust, …) in
   `server/game/gameSystems/` (`GameSystemLibrary.ts`). Each has `canAffect()` (called repeatedly; must
-  return true *every* time for the target to be legal) and `eventHandler()`. First place to debug an
-  ability that triggers but does nothing.
+  return true *every* time for the target to be legal) and `eventHandler()`. These framework entry
+  points supply merged properties to `canAffectInternal()` and `eventHandlerInternal()`, which are
+  the first places to debug an ability that triggers but does nothing.
 - `AbilityHelper.ongoingEffects.*` → `OngoingEffectLibrary.ts`; used by constant abilities; apply/remove is automatic.
 - `AbilityHelper.costs.*` → `CostLibrary.ts`.
 - `AbilityHelper.stateWatchers.*` → phase-scoped event history (`StateWatcherLibrary.ts`); declare watchers
   in `setupStateWatchers(registrar, AbilityHelper)`.
+
+System implementations use canonical properties: `target` is always an array. Constructors and
+factories accept `IGameSystemInput<TProperties>` / `GameSystemPropsFactory<TProperties, TContext>`,
+which permit scalar, array, or omitted targets. Customize merged properties in `prepareProperties()`,
+not an override of `generatePropertiesFromContext()`. Legality hooks still evaluate individual
+candidate cards or players, and normal per-target events carry scalar recipients. Wrapper systems
+forward the caller's additional properties to children rather than forwarding all parent defaults.
 
 ---
 

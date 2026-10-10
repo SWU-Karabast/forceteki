@@ -1,3 +1,4 @@
+import { GameStateChangeRequired } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardType, EventName } from '../core/Constants';
@@ -13,16 +14,16 @@ export class FlipDoubleSidedLeaderSystem<TContext extends AbilityContext = Abili
     public override readonly effectDescription = 'flip {0}';
     protected override readonly targetTypeFilter = [CardType.Leader];
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         Contract.assertTrue(event.card.isDoubleSidedLeader(), event.card.internalName);
         Contract.assertFalse(event.card.isDeployableLeader(), event.card.internalName);
         event.card.flipLeader();
     }
 
-    public override canAffectInternal(card: Card, context: TContext): boolean {
+    protected override canAffectInternal(card: Card, context: TContext, properties: IFlipDoubleSidedLeaderProperties): boolean {
         if (!card.isDoubleSidedLeader()) {
             return false;
         }
-        return super.canAffectInternal(card, context);
+        return super.canAffectInternal(card, context, properties, GameStateChangeRequired.None);
     }
 }

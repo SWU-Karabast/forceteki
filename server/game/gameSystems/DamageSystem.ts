@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import {
@@ -11,6 +12,7 @@ import {
 } from '../core/Constants';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { Helpers } from '../core/utils/Helpers';
+import { ChatHelpers } from '../core/chat/ChatHelpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { addLastKnownInformationToEvent } from '../core/event/LastKnownInformation';
 import { Contract } from '../core/utils/Contract';
@@ -96,14 +98,14 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
 
-    protected override defaultProperties: IAbilityDamageProperties = {
+    protected override defaultProperties: IGameSystemInput<IAbilityDamageProperties> = {
         amount: null,
         type: DamageType.Ability,
         isIndirect: false,
         isUnpreventable: false
     };
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         const eventDamageAmount = this.getDamageAmountFromEvent(event);
 
         event.damageDealt = event.card.addDamage(eventDamageAmount, event.damageSource);
@@ -128,8 +130,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         return event.sourceEventForExcessDamage.availableExcessDamage;
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override canAffectInternal(card: Card, context: TContext, properties: TProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (
             properties.type === DamageType.Overwhelm && 'contingentSourceEvent' in properties &&
             properties.contingentSourceEvent.availableExcessDamage === 0
@@ -169,12 +170,11 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             }
         }
 
-        return super.canAffectInternal(card, context);
+        return super.canAffectInternal(card, context, properties, GameStateChangeRequired.None);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<TProperties>) {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, properties: TProperties) {
+        super.addPropertiesToEvent(event, card, context, properties);
 
         event.type = properties.type;
 
@@ -325,28 +325,36 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         }
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
-        super.updateEvent(event, card, context, additionalProperties);
+    protected override updateEvent(event, card: Card, context: TContext, properties: TProperties, additionalProperties: Partial<IGameSystemInput<TProperties>> = {}): void {
+        super.updateEvent(event, card, context, properties, additionalProperties);
 
         if (!card.isBase()) {
             addLastKnownInformationToEvent(event, card);
         }
     }
 
-    public override getCostMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
-
+    protected override getCostMessageInternal(context: TContext, properties: TProperties): [string, any[]] {
         if (properties.type === DamageType.Ability) {
-            return ['dealing {0} damage to {1}', [Helpers.derive(properties.amount, properties.target), this.getTargetMessage(properties.target, context)]];
+            const amount = properties.amount;
+            if (typeof amount !== 'function') {
+                return ['dealing {0} damage to {1}', [amount, this.getTargetMessage(properties.target, context)]];
+            }
+
+            const costs = properties.target.map((card) => {
+                Contract.assertTrue(card.isUnit());
+                return {
+                    format: 'dealing {0} damage to {1}',
+                    args: [amount(card), this.getTargetMessage(card, context)]
+                };
+            });
+            return [ChatHelpers.formatWithLength(costs.length), costs];
         }
 
-        return super.getCostMessage(context);
+        return super.getCostMessageInternal(context, properties);
     }
 
     // TODO: might need to refactor getEffectMessage generally so that it has access to the event, doesn't really work for some of the damage scenarios currently
-    public override getEffectMessage(context: TContext, additionalProperties?: Partial<TProperties>): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override getEffectMessageInternal(context: TContext, properties: TProperties): [string, any[]] {
         let amountStr = '';
         if ('amount' in properties && typeof properties.amount === 'number') {
             amountStr = `${properties.amount} `;

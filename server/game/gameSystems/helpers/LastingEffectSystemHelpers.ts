@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../../core/ability/AbilityContext';
 import type { FormatMessage } from '../../core/chat/GameChat';
 import { Duration, EffectName } from '../../core/Constants';
@@ -15,8 +16,8 @@ export function getEffectMessage<TContext extends AbilityContext, TProperties ex
     gameSystem: GameSystem<TContext, TProperties>,
     context: TContext,
     properties: TProperties,
-    additionalProperties: Partial<TProperties> = {},
-    getEffectFactoriesAndProperties: (target: TargetOf<TProperties>, context: TContext, additionalProperties?: Partial<TProperties>) => { effectFactories: IOngoingCardOrPlayerEffectGenerator<Flatten<TargetOf<TProperties>>>[]; effectProperties: IOngoingCardOrPlayerEffectProps<Flatten<TargetOf<TProperties>>> | IOngoingCardOrPlayerEffectProps<Flatten<TargetOf<TProperties>>>[] },
+    additionalProperties: Partial<IGameSystemInput<TProperties>> = {},
+    getEffectFactoriesAndProperties: (target: TargetOf<TProperties>, context: TContext, additionalProperties?: Partial<IGameSystemInput<TProperties>>) => { effectFactories: IOngoingCardOrPlayerEffectGenerator<Flatten<TargetOf<TProperties>>>[]; effectProperties: IOngoingCardOrPlayerEffectProps<Flatten<TargetOf<TProperties>>> | IOngoingCardOrPlayerEffectProps<Flatten<TargetOf<TProperties>>>[] },
     filterApplicableEffects: (target: Flatten<TargetOf<TProperties>>, effects: IOngoingCardOrPlayerEffect<Flatten<TargetOf<TProperties>>>[], context: TContext) => IOngoingCardOrPlayerEffect<Flatten<TargetOf<TProperties>>>[] = (_target, effects) => effects,
 ): [string, any[]] {
     const targetDescription = properties.ongoingEffectTargetDescription ?? gameSystem.getTargetMessage(properties.target, context);

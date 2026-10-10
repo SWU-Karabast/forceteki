@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { NumberTargetResolver } from '../core/ability/abilityTargets/NumberTargetResolver';
 import { SelectChoice } from '../core/ability/abilityTargets/SelectChoice';
@@ -28,7 +29,7 @@ export class ChooseNumberSystem<TContext extends AbilityContext = AbilityContext
     public override readonly name: string = 'chooseNumber';
     public override readonly effectDescription: string = 'choose a number';
     public override readonly eventName = MetaEventName.ChooseNumber;
-    protected override readonly defaultProperties: Partial<IChooseNumberProperties<TContext>> = {
+    protected override readonly defaultProperties: IGameSystemInput<Partial<IChooseNumberProperties<TContext>>> = {
         name: 'target',
     };
 
@@ -36,27 +37,23 @@ export class ChooseNumberSystem<TContext extends AbilityContext = AbilityContext
         return [properties.immediateEffect];
     }
 
-    public override canAffectInternal(target: GameObject | GameObject[], context: TContext, additionalProperties: Partial<IChooseNumberProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override canAffectInternal(target: GameObject | GameObject[], context: TContext, properties: IChooseNumberProperties<TContext>, mustChangeGameState = GameStateChangeRequired.None, additionalProperties: Partial<IGameSystemInput<IChooseNumberProperties<TContext>>> = {}): boolean {
         return this.getCandidateContexts(context, properties).some((candidateContext) =>
             properties.immediateEffect.canAffect(target, candidateContext, additionalProperties, mustChangeGameState)
         );
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IChooseNumberProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override hasLegalTargetInternal(context: TContext, properties: IChooseNumberProperties<TContext>, mustChangeGameState = GameStateChangeRequired.None, additionalProperties: Partial<IGameSystemInput<IChooseNumberProperties<TContext>>> = {}): boolean {
         return this.getCandidateContexts(context, properties).some((candidateContext) =>
             properties.immediateEffect.hasLegalTarget(candidateContext, additionalProperties, mustChangeGameState)
         );
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IChooseNumberProperties<TContext>> = {}): void {
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IChooseNumberProperties<TContext>, additionalProperties: Partial<IGameSystemInput<IChooseNumberProperties<TContext>>> = {}): void {
         // skip the prompt entirely if no choice of number would change the game state
         if (!this.hasLegalTarget(context, additionalProperties, GameStateChangeRequired.MustFullyOrPartiallyResolve)) {
             return;
         }
-
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         const targetResolver = new NumberTargetResolver(properties.name, { ...properties, mode: TargetMode.ChooseNumber }, context.ability);
         const targetResults = context.ability.getDefaultTargetResults(context, false);
@@ -69,8 +66,9 @@ export class ChooseNumberSystem<TContext extends AbilityContext = AbilityContext
         }, `Execute immediate effect for choose number system "${properties.name}"`);
     }
 
-    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<IChooseNumberProperties<TContext>> = {}): boolean {
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<IGameSystemInput<IChooseNumberProperties<TContext>>> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
         const choosingPlayer = typeof properties.choosingPlayer === 'function' ? properties.choosingPlayer(context) : properties.choosingPlayer;
 
         if ((choosingPlayer ?? RelativePlayer.Self) === EnumHelpers.asRelativePlayer(context.player, player)) {

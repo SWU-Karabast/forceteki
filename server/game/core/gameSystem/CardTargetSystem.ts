@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from './GameSystem';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import type { CardTypeFilter } from '../Constants';
@@ -16,7 +17,7 @@ import type { IUpgradeCard } from '../card/CardInterfaces';
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
-    target?: Card | Card[];
+    target: Card[];
 }
 
 /**
@@ -43,9 +44,8 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return Helpers.asArray(target).length > 0;
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
-        let { target } = this.generatePropertiesFromContext(context, additionalProperties);
-        target = this.processTargets(target, context);
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: TProperties, additionalProperties: Partial<IGameSystemInput<TProperties>> = {}): void {
+        const target = this.processTargets(properties.target, context);
         for (const card of Helpers.asArray(target)) {
             let allCostsPaid = true;
             const additionalCosts = card
@@ -135,48 +135,38 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         }
     }
 
-    // override the base class behavior with a version that forces properties.target to be a scalar value
-    public override generateEvent(context: TContext, additionalProperties: Partial<TProperties> = {}, addLastKnownInformation: boolean = false): GameEvent {
-        const { target } = this.generatePropertiesFromContext(context, additionalProperties);
+    // Single-card events carry a scalar card; configured targets remain an array.
+    protected override generateEventInternal(context: TContext, properties: TProperties, addLastKnownInformation: boolean = false, additionalProperties: Partial<IGameSystemInput<TProperties>> = {}): GameEvent {
+        const { target } = properties;
 
-        Contract.assertNotNullLike(target, 'Attempting to generate card target event with no provided target');
-
-        let nonArrayTarget: any;
-        if (Array.isArray(target)) {
-            // need to use queueGenerateEventGameSteps for multiple-target scenarios
-            Contract.assertTrue(target.length === 1, `CardTargetSystem must have 'target' property with exactly 1 target, instead found ${target.length}`);
-            nonArrayTarget = target[0];
-        } else {
-            Contract.assertNotNullLike(target, 'CardTargetSystem must have non-null \'target\' propery');
-            nonArrayTarget = target;
-        }
-
-        const event = this.createEvent(nonArrayTarget, context, additionalProperties);
+        Contract.assertArraySize(target, 1, `CardTargetSystem must have 'target' property with exactly 1 target, instead found ${target.length}`);
+        const card = target[0];
+        const event = this.createEvent(card, context, properties, additionalProperties);
         if (addLastKnownInformation) {
-            (event as any).lastKnownInformation = buildLastKnownInformation(nonArrayTarget);
+            Object.assign(event, { lastKnownInformation: buildLastKnownInformation(card) });
         }
-        this.updateEvent(event, nonArrayTarget, context, additionalProperties);
+        this.updateEvent(event, card, context, properties, additionalProperties);
         return event;
     }
 
-    public override checkEventCondition(event: any, additionalProperties: Partial<TProperties> = {}): boolean {
+    protected override checkEventConditionInternal(event: any, properties: TProperties, additionalProperties: Partial<IGameSystemInput<TProperties>> = {}): boolean {
         // TODO Migrate game state check to somewhere more universal
-        return this.canAffect(event.card, event.context, additionalProperties, GameStateChangeRequired.MustFullyResolve);
+        return this.canAffectWithProperties(event.card, event.context, properties, GameStateChangeRequired.MustFullyResolve, additionalProperties);
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    protected override canAffectInternal(card: Card, context: TContext, properties: TProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
         // if a unit is pending defeat (damage >= hp but defeat not yet resolved), always return canAffect() = false unless
         // we're the system that is enacting the defeat
         if (card.isUnit() && card.isInPlay() && card.pendingDefeat) {
             return false;
         }
 
-        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, properties, mustChangeGameState);
     }
 
     // `card` is typed as a scalar-or-array because some batched systems (e.g. ViewCardSystem) pass an array of targets here
-    protected override addPropertiesToEvent(event, card: Card | Card[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event, card: Card | Card[], context: TContext, properties: TProperties): void {
+        super.addPropertiesToEvent(event, card, context, properties);
         event.card = card;
     }
 
@@ -184,12 +174,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return [context.source];
     }
 
-    protected addLeavesPlayPropertiesToEvent(
-        event,
-        card: Card,
-        context: TContext,
-        additionalProperties,
-        attachedUpgradeOverrideHandler?: AttachedUpgradeOverrideHandler,
+    protected addLeavesPlayPropertiesToEvent(event, card: Card, context: TContext, additionalProperties, attachedUpgradeOverrideHandler?: AttachedUpgradeOverrideHandler
     ): void {
         Contract.assertTrue(
             card.isForceToken() || card.isCreditToken() || (card.canBeInPlay() && card.isInPlay()),

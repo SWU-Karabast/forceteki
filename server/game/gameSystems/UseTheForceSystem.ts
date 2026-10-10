@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, GameStateChangeRequired, ZoneName } from '../core/Constants';
 import { GameEvent } from '../core/event/GameEvent';
@@ -14,7 +15,7 @@ export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext,
     public override readonly costDescription: string = 'using the Force';
     public override readonly effectDescription: string = 'use the Force';
 
-    public override eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         const forceToken = event.card;
 
         Contract.assertNotNullLike(forceToken, `Force token should not be null for player ${event.context.player.name}.`);
@@ -22,11 +23,9 @@ export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext,
         forceToken.moveTo(ZoneName.OutsideTheGame);
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties?: Partial<TProperties>): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override getEffectMessageInternal(context: TContext, properties: TProperties): [string, any[]] {
         if (Helpers.asArray(properties.target).length === 1 && context.player === Helpers.asArray(properties.target)[0]) {
-            return super.getEffectMessage(context);
+            return super.getEffectMessageInternal(context, properties);
         }
 
         return ['make {0} use the Force', [this.getTargetMessage(properties.target, context)]];
@@ -36,18 +35,16 @@ export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext,
         return context.player.hasTheForce ? [context.player] : [];
     }
 
-    public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override canAffectInternal(player: Player, context: TContext, properties: TProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && !player.hasTheForce) {
             return false;
         }
 
-        return super.canAffectInternal(player, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(player, context, properties, mustChangeGameState);
     }
 
-    protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<TProperties>): void {
-        super.updateEvent(event, player, context, additionalProperties);
+    protected override updateEvent(event, player: Player, context: TContext, properties: TProperties, additionalProperties: Partial<IGameSystemInput<TProperties>> = {}): void {
+        super.updateEvent(event, player, context, properties, additionalProperties);
 
         Contract.assertTrue(player.hasTheForce);
 
@@ -62,8 +59,8 @@ export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext,
         addLastKnownInformationToEvent(event, player.baseZone.forceToken);
     }
 
-    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<TProperties>): void {
-        super.addPropertiesToEvent(event, player, context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, properties: TProperties): void {
+        super.addPropertiesToEvent(event, player, context, properties);
 
         event.card = player.baseZone.forceToken;
     }

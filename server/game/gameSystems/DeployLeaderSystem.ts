@@ -1,3 +1,5 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
+import { GameStateChangeRequired } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { DeployType } from '../core/Constants';
@@ -16,21 +18,21 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
 
     protected override readonly targetTypeFilter = [CardType.Leader];
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         Contract.assertTrue(event.card.isDeployableLeader());
 
         event.card.deploy({ type: DeployType.LeaderUnit });
     }
 
-    public override canAffectInternal(card: Card, context: TContext): boolean {
+    protected override canAffectInternal(card: Card, context: TContext, properties: IDeployLeaderProperties): boolean {
         if (!card.isLeader() || card.isDeployableLeader() && card.deployed) {
             return false;
         }
-        return super.canAffectInternal(card, context);
+        return super.canAffectInternal(card, context, properties, GameStateChangeRequired.None);
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IDeployLeaderProperties> = {}) {
-        super.updateEvent(event, card, context, additionalProperties);
+    protected override updateEvent(event, card: Card, context: TContext, properties: IDeployLeaderProperties, additionalProperties: Partial<IGameSystemInput<IDeployLeaderProperties>> = {}) {
+        super.updateEvent(event, card, context, properties, additionalProperties);
         event.setContingentEventsGenerator(() => {
             const entersPlayEvent = new GameEvent(EventName.OnUnitEntersPlay, context, {
                 player: context.player,

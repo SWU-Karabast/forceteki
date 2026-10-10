@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { GameStateChangeRequired } from '../core/Constants';
@@ -17,11 +18,9 @@ export class PayCardPrintedCostSystem<TContext extends AbilityContext = AbilityC
     public override readonly eventName = MetaEventName.PayCardPrintedCost;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler(): void {}
+    protected override eventHandlerInternal(): void {}
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties?: Partial<IPayCardPrintedCostProperties>, mustChangeGameState?: GameStateChangeRequired): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override canAffectInternal(card: Card, context: TContext, properties: IPayCardPrintedCostProperties, mustChangeGameState: GameStateChangeRequired): boolean {
         if (!card.hasCost()) {
             return false;
         }
@@ -30,17 +29,16 @@ export class PayCardPrintedCostSystem<TContext extends AbilityContext = AbilityC
             amount: card.cost
         }).canAffect(properties.player, context, {}, mustChangeGameState);
 
-        return canPayCost && super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
+        return canPayCost && super.canAffectInternal(card, context, properties, mustChangeGameState);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties?: Partial<IPayCardPrintedCostProperties>): void {
-        super.queueGenerateEventGameSteps(events, context, additionalProperties);
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IPayCardPrintedCostProperties, additionalProperties: Partial<IGameSystemInput<IPayCardPrintedCostProperties>> = {}): void {
+        super.queueGenerateEventGameStepsInternal(events, context, properties, additionalProperties);
 
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
-        if (properties.target[0].cost > 0) {
+        const target = properties.target[0];
+        if (target.hasCost() && target.cost > 0) {
             new CardEffectResourcePaymentSystem({
-                amount: properties.target[0].cost,
+                amount: target.cost,
                 target: properties.player,
             }).queueGenerateEventGameSteps(events, context);
         }

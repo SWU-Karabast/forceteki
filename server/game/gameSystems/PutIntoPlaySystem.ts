@@ -1,3 +1,5 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
+import { GameStateChangeRequired } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import {
     AbilityRestriction, EffectName,
@@ -52,14 +54,14 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
     public override readonly costDescription = 'putting {0} into play';
 
     protected override readonly targetTypeFilter = [WildcardCardType.Unit];
-    protected override defaultProperties: IPutIntoPlayProperties = {
+    protected override defaultProperties: IGameSystemInput<IPutIntoPlayProperties> = {
         controller: RelativePlayer.Self,
         overrideZone: null,
         entersReady: false,
         entryType: EntryType.Played
     };
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         if (event.newController && event.newController !== event.card.controller) {
             event.card.takeControl(event.newController, event.card.defaultArena);
         } else {
@@ -128,10 +130,10 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         context.game.addMessage('{0} uses {1} to {2}', context.player, source, { format: effectMessage, args: effectArgs });
     }
 
-    public override canAffectInternal(card: Card, context: TContext): boolean {
+    protected override canAffectInternal(card: Card, context: TContext, properties: IPutIntoPlayProperties): boolean {
         const contextCopy = context.copy({ source: card });
         const player = this.getPutIntoPlayPlayer(contextCopy, card);
-        if (!super.canAffectInternal(card, context)) {
+        if (!super.canAffectInternal(card, context, properties, GameStateChangeRequired.None)) {
             return false;
         } else if (!card.canBeInPlay() || card.isInPlay()) {
             return false;
@@ -148,13 +150,10 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         return true;
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<IPutIntoPlayProperties>): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, properties: IPutIntoPlayProperties): void {
         // TODO:rename this class and all related classes / methods as PutUnitIntoPlay
-        const { controller, overrideZone, entersReady, entryType, enterPlayEffect, enterPlayEffectSource } = this.generatePropertiesFromContext(
-            context,
-            additionalProperties
-        ) as IPutIntoPlayProperties;
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+        const { controller, overrideZone, entersReady, entryType, enterPlayEffect, enterPlayEffectSource } = properties;
+        super.addPropertiesToEvent(event, card, context, properties);
         const newController = EnumHelpers.asConcretePlayer(controller, context.player);
         event.controller = controller;
         event.originalZone = overrideZone || card.zoneName;

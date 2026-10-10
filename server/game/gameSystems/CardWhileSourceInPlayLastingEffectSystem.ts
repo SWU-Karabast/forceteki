@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Duration, EventName } from '../core/Constants';
 import { GameSystem } from '../core/gameSystem/GameSystem';
@@ -15,14 +16,14 @@ export type ICardWhileSourceInPlayLastingEffectProperties = Omit<ICardLastingEff
 export class CardWhileSourceInPlayLastingEffectSystem<TContext extends AbilityContext = AbilityContext> extends CardLastingEffectSystem<TContext> {
     public override readonly name = 'applyCardWhileSourceInPlayLastingEffect';
     public override readonly eventName = EventName.OnEffectApplied;
-    protected override readonly defaultProperties: ICardLastingEffectProperties = {
+    protected override readonly defaultProperties: IGameSystemInput<ICardLastingEffectProperties> = {
         duration: null,
         effect: [],
     };
 
     // constructor needs to do some extra work to ensure that the passed props object ends up as valid for the parent class
-    public constructor(propertiesOrPropertyFactory: ICardWhileSourceInPlayLastingEffectProperties | ((context?: AbilityContext) => ICardWhileSourceInPlayLastingEffectProperties)) {
-        const propertyWithDurationType = GameSystem.appendToPropertiesOrPropertyFactory<ICardLastingEffectProperties, 'duration'>(propertiesOrPropertyFactory, { duration: Duration.WhileSourceInPlay });
+    public constructor(propertiesOrPropertyFactory: IGameSystemInput<ICardWhileSourceInPlayLastingEffectProperties> | ((context?: AbilityContext) => IGameSystemInput<ICardWhileSourceInPlayLastingEffectProperties>)) {
+        const propertyWithDurationType = GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<ICardLastingEffectProperties>, 'duration'>(propertiesOrPropertyFactory, { duration: Duration.WhileSourceInPlay });
         super(propertyWithDurationType);
     }
 

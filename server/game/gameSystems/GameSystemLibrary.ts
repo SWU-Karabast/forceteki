@@ -1,4 +1,5 @@
 import { GameSystem } from '../core/gameSystem/GameSystem';
+import type { GameSystemPropsFactory as PropsFactory, IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { ZoneName, DeckZoneDestination, PlayType, RelativePlayer, DamageType, TokenUnitName, TokenUpgradeName } from '../core/Constants';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
@@ -164,7 +165,6 @@ import type { ITakeControlOfCreditTokenProperties } from './TakeControlOfCreditT
 import { TakeControlOfCreditTokenSystem } from './TakeControlOfCreditTokenSystem';
 import type { IRevealAndDrawProperties } from './RevealAndDrawSystem';
 import { RevealAndDrawSystem } from './RevealAndDrawSystem';
-import type { PropsFactory } from '../Interfaces';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -193,7 +193,7 @@ export function collectBounty<TContext extends AbilityContext = AbilityContext>(
 /** Helper specifically for cases when the dealt damage needs to count as combat damage (these cases are very rare, use damage() by default) */
 export function combatDamage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<ICombatDamageProperties, 'type'>, TContext>) {
     return new DamageSystem<TContext, IDamageProperties>(
-        GameSystem.appendToPropertiesOrPropertyFactory<ICombatDamageProperties, 'type'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<ICombatDamageProperties>, 'type'>(
             propertyFactory,
             { type: DamageType.Combat }
         ));
@@ -201,7 +201,7 @@ export function combatDamage<TContext extends AbilityContext = AbilityContext>(p
 export type ICreateTokenUnitFactoryProperties = Omit<ICreateTokenUnitProperties, 'tokenType'>;
 function createTokenUnit<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTokenUnitFactoryProperties, TContext>, tokenType: TokenUnitName) {
     return new CreateTokenUnitSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<ICreateTokenUnitProperties, 'tokenType'>(propertyFactory, { tokenType })
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<ICreateTokenUnitProperties>, 'tokenType'>(propertyFactory, { tokenType })
     );
 }
 export function createBattleDroid<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTokenUnitFactoryProperties, TContext> = {}) {
@@ -236,14 +236,14 @@ export function useTheForce<TContext extends AbilityContext = AbilityContext>(pr
 }
 export function damage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IAbilityDamageProperties, 'type' | 'indirect'>, TContext>) {
     return new DamageSystem<TContext, IDamageProperties>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IAbilityDamageProperties, 'type'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IAbilityDamageProperties>, 'type'>(
             propertyFactory,
             { type: DamageType.Ability }
         ));
 }
 export function delayedCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDelayedEffectProperties, 'delayedEffectType'>>) {
     return new DelayedEffectSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IDelayedEffectProperties, 'delayedEffectType'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IDelayedEffectProperties>, 'delayedEffectType'>(
             propertyFactory,
             { delayedEffectType: DelayedEffectType.Card }
         ));
@@ -260,7 +260,7 @@ export function distributeHealingAmong<TContext extends AbilityContext = Ability
 export type IDistributeTokenUpgradeFactoryProperties<TContext extends AbilityContext = AbilityContext> = Omit<IDistributeTokenUpgradeSystemProperties<TContext>, 'tokenType'>;
 function distributeTokenUpgradeAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeTokenUpgradeFactoryProperties<TContext>, TContext>, tokenType: TokenUpgradeName) {
     return new DistributeTokenUpgradeSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IDistributeTokenUpgradeSystemProperties<TContext>, 'tokenType'>(propertyFactory, { tokenType })
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IDistributeTokenUpgradeSystemProperties<TContext>>, 'tokenType'>(propertyFactory, { tokenType })
     );
 }
 export function distributeExperienceAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeTokenUpgradeFactoryProperties<TContext>, TContext>) {
@@ -293,7 +293,7 @@ export function discardSpecificCard<TContext extends AbilityContext = AbilityCon
 /** Helper specifically for cases when the dealt damage needs to count as excess combat damage (these cases are very rare, use damage() by default) */
 export function excessDamage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IExcessDamageProperties, 'type'>, TContext>) {
     return new DamageSystem<TContext, IDamageProperties>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IExcessDamageProperties, 'type'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IExcessDamageProperties>, 'type'>(
             propertyFactory,
             { type: DamageType.Excess }
         ));
@@ -333,7 +333,7 @@ export function giveTokenUpgrade<TContext extends AbilityContext = AbilityContex
 }
 function giveTokenUpgradeOfType<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext>, tokenType: TokenUpgradeName) {
     return giveTokenUpgrade<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IGiveTokenUpgradeProperties, 'tokenType'>(propertyFactory, { tokenType })
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IGiveTokenUpgradeProperties>, 'tokenType'>(propertyFactory, { tokenType })
     );
 }
 export function giveExperience<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext> = {}) {
@@ -356,7 +356,7 @@ export function indirectDamageToPlayer<TContext extends AbilityContext = Ability
 }
 export function lookAt<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<ILookAtProperties, 'interactMode'>, TContext> = {}) {
     return new LookAtSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<ILookAtProperties, 'interactMode'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<ILookAtProperties>, 'interactMode'>(
             propertyFactory,
             { interactMode: ViewCardInteractMode.ViewOnly }
         )
@@ -364,7 +364,7 @@ export function lookAt<TContext extends AbilityContext = AbilityContext>(propert
 }
 export function lookAtAndChooseOption<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IViewCardWithPerCardButtonsProperties, 'interactMode'>, TContext>) {
     return new LookAtSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IViewCardWithPerCardButtonsProperties, 'interactMode'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IViewCardWithPerCardButtonsProperties>, 'interactMode'>(
             propertyFactory,
             { interactMode: ViewCardInteractMode.PerCardButtons }
         )
@@ -372,7 +372,7 @@ export function lookAtAndChooseOption<TContext extends AbilityContext = AbilityC
 }
 export function lookAtAndSelectCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IViewAndSelectCardsProperties, 'interactMode'>, TContext>) {
     return new LookAtSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IViewAndSelectCardsProperties, 'interactMode'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IViewAndSelectCardsProperties>, 'interactMode'>(
             propertyFactory,
             { interactMode: ViewCardInteractMode.SelectCards }
         )
@@ -386,7 +386,7 @@ export function moveCard<TContext extends AbilityContext = AbilityContext>(prope
 }
 export function moveToBottomOfDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: Omit<PropsFactory<IMoveCardProperties, TContext>, 'destination'> = {}) {
     return new MoveCardSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IMoveCardProperties>, 'destination'>(
             propertyFactory,
             { destination: DeckZoneDestination.DeckBottom }
         )
@@ -394,7 +394,7 @@ export function moveToBottomOfDeck<TContext extends AbilityContext = AbilityCont
 }
 export function moveToTopOfDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext> = {}) {
     return new MoveCardSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IMoveCardProperties>, 'destination'>(
             propertyFactory,
             { destination: DeckZoneDestination.DeckTop }
         )
@@ -402,7 +402,7 @@ export function moveToTopOfDeck<TContext extends AbilityContext = AbilityContext
 }
 export function moveUnitFromGroundToSpace<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IMoveUnitBetweenArenasProperties, 'moveType'>, TContext> = {}) {
     return new MoveUnitBetweenArenasSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IMoveUnitBetweenArenasProperties, 'moveType'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IMoveUnitBetweenArenasProperties>, 'moveType'>(
             propertyFactory,
             { moveType: MoveArenaType.GroundToSpace }
         )
@@ -410,7 +410,7 @@ export function moveUnitFromGroundToSpace<TContext extends AbilityContext = Abil
 }
 export function moveUnitFromSpaceToGround<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IMoveUnitBetweenArenasProperties, 'moveType'>, TContext> = {}) {
     return new MoveUnitBetweenArenasSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IMoveUnitBetweenArenasProperties, 'moveType'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IMoveUnitBetweenArenasProperties>, 'moveType'>(
             propertyFactory,
             { moveType: MoveArenaType.SpaceToGround }
         )
@@ -433,7 +433,7 @@ export function playCardFromHand<TContext extends AbilityContext = AbilityContex
 }
 export function playCardFromOutOfPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'playType' | 'optional'>, TContext>) {
     return new PlayCardSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IPlayCardProperties, 'playType'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IPlayCardProperties>, 'playType'>(
             propertyFactory,
             { playType: PlayType.PlayFromOutOfPlay }
         )
@@ -473,7 +473,7 @@ export function payResourcesWithoutAdjustment<TContext extends AbilityContext = 
     // for the effect with credits. For example, Emergency Powers cannot grant experience tokens if the player pays with
     // credits, only with resources. So we want to avoid getting the cost adjuster logic involved at all for those cases.
     return new ExhaustResourcesSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IExhaustResourcesProperties, 'isCost'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IExhaustResourcesProperties>, 'isCost'>(
             propertyFactory,
             { isCost: true }
         )
@@ -523,7 +523,7 @@ export function resourceCard<TContext extends AbilityContext = AbilityContext>(p
  */
 export function returnToHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IMoveCardProperties, 'destination' | 'shuffle' | 'shuffleMovedCards'>, TContext> = {}) {
     return new MoveCardSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IMoveCardProperties>, 'destination'>(
             propertyFactory,
             { destination: ZoneName.Hand }
         )
@@ -536,7 +536,7 @@ export function disclose<TContext extends AbilityContext = AbilityContext>(prope
 
 export function reveal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IRevealProperties, 'interactMode'>, TContext> = {}) {
     return new RevealSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IRevealProperties, 'interactMode'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IRevealProperties>, 'interactMode'>(
             propertyFactory,
             { interactMode: ViewCardInteractMode.ViewOnly }
         )
@@ -544,7 +544,7 @@ export function reveal<TContext extends AbilityContext = AbilityContext>(propert
 }
 export function revealAndChooseOption<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IViewCardWithPerCardButtonsProperties, 'interactMode'>, TContext>) {
     return new RevealSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IRevealProperties, 'interactMode'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IRevealProperties>, 'interactMode'>(
             propertyFactory,
             { interactMode: ViewCardInteractMode.PerCardButtons }
         )
@@ -552,7 +552,7 @@ export function revealAndChooseOption<TContext extends AbilityContext = AbilityC
 }
 export function revealAndSelectCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IViewAndSelectCardsProperties, 'interactMode'>, TContext>) {
     return new RevealSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IViewAndSelectCardsProperties, 'interactMode'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IViewAndSelectCardsProperties>, 'interactMode'>(
             propertyFactory,
             { interactMode: ViewCardInteractMode.SelectCards }
         )
@@ -560,7 +560,7 @@ export function revealAndSelectCard<TContext extends AbilityContext = AbilityCon
 }
 export function revealAndDraw<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IRevealAndDrawProperties, 'interactMode'>, TContext> = {}) {
     return new RevealAndDrawSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IRevealAndDrawProperties, 'interactMode'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IRevealAndDrawProperties>, 'interactMode'>(
             propertyFactory,
             { interactMode: ViewCardInteractMode.ViewOnly }
         )
@@ -592,7 +592,7 @@ export function whileSourceInPlayCardEffect<TContext extends AbilityContext = Ab
 }
 export function whenSourceLeavesPlayDelayedCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IWhenSourceLeavesPlayDelayedEffectProperties, 'delayedEffectType'>>) {
     return new WhenSourceLeavesPlayDelayedEffectSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IWhenSourceLeavesPlayDelayedEffectProperties, 'delayedEffectType'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IWhenSourceLeavesPlayDelayedEffectProperties>, 'delayedEffectType'>(
             propertyFactory,
             { delayedEffectType: DelayedEffectType.Card }
         ));
@@ -702,7 +702,7 @@ export function playMultipleCardsFromHand<TContext extends AbilityContext = Abil
 }
 export function delayedPlayerEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDelayedEffectProperties, 'delayedEffectType'>>) {
     return new DelayedEffectSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IDelayedEffectProperties, 'delayedEffectType'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IDelayedEffectProperties>, 'delayedEffectType'>(
             propertyFactory,
             { delayedEffectType: DelayedEffectType.Player }
         ));
@@ -784,11 +784,11 @@ export function chooseNumber<TContext extends AbilityContext = AbilityContext>(p
 //     return new SelectTokenAction(propertyFactory);
 // }
 export function sequential<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISequentialSystemProperties<TContext> | GameSystem<TContext>[], TContext>) {
-    const makeProps = (props: ISequentialSystemProperties<TContext> | GameSystem<TContext>[]) => (!Array.isArray(props) ? props : { gameSystems: props });
+    const makeProps = (props: IGameSystemInput<ISequentialSystemProperties<TContext>> | GameSystem<TContext>[]) => (!Array.isArray(props) ? props : { gameSystems: props });
     return new SequentialSystem<TContext>(typeof propertyFactory !== 'function' ? makeProps(propertyFactory) : (context: TContext) => makeProps(propertyFactory(context)));
 }
 export function simultaneous<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISimultaneousSystemProperties<TContext> | GameSystem<TContext>[], TContext>) {
-    const makeProps = (props: ISimultaneousSystemProperties<TContext> | GameSystem<TContext>[]) => (!Array.isArray(props) ? props : { gameSystems: props });
+    const makeProps = (props: IGameSystemInput<ISimultaneousSystemProperties<TContext>> | GameSystem<TContext>[]) => (!Array.isArray(props) ? props : { gameSystems: props });
     return new SimultaneousSystem<TContext>(typeof propertyFactory !== 'function' ? makeProps(propertyFactory) : (context: TContext) => makeProps(propertyFactory(context)));
 }
 

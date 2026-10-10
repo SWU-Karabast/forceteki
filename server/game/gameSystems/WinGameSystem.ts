@@ -14,7 +14,7 @@ export class WinGameSystem<TContext extends AbilityContext = AbilityContext> ext
     public override readonly eventName = MetaEventName.GameWon;
     public override readonly effectDescription = 'win the game';
 
-    public eventHandler(event: any): void {
+    protected override eventHandlerInternal(event: any): void {
         const context = event.context;
 
         context.game.addMessage(event.gameWinMessage.format, ...event.gameWinMessage.args);
@@ -25,8 +25,8 @@ export class WinGameSystem<TContext extends AbilityContext = AbilityContext> ext
         return [context.player];
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<IWinGameProperties> = {}): void {
-        super.addPropertiesToEvent(event, player, context, additionalProperties);
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, properties: IWinGameProperties): void {
+        super.addPropertiesToEvent(event, player, context, properties);
         event.endGameReason = context.source.title;
         event.gameWinMessage = this.generateGameWinMessage(context, event.player);
     }

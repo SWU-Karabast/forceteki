@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { MetaEventName } from '../core/Constants';
 import { Contract } from '../core/utils/Contract';
@@ -13,12 +14,12 @@ export type ISimultaneousSystemProperties<TContext extends AbilityContext = Abil
 export class SimultaneousSystem<TContext extends AbilityContext = AbilityContext> extends SimultaneousOrSequentialSystem<ISimultaneousSystemProperties<TContext>, TContext> {
     public override readonly eventName: MetaEventName.Simultaneous;
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const { gameSystems } = this.generatePropertiesFromContext(context);
-        const legalSystems = gameSystems.filter((system) => system.hasLegalTarget(context));
+    protected override getEffectMessageInternal(context: TContext, properties: ISimultaneousSystemProperties<TContext>, additionalProperties: Partial<IGameSystemInput<ISimultaneousSystemProperties<TContext>>> = {}): [string, any[]] {
+        const { gameSystems } = properties;
+        const legalSystems = gameSystems.filter((system) => system.hasLegalTarget(context, additionalProperties));
         const message = ChatHelpers.formatWithLength(legalSystems.length, 'to ');
         const legalSystemsMessages = legalSystems.map((system) => {
-            const [format, args] = system.getEffectMessage(context);
+            const [format, args] = system.getEffectMessage(context, additionalProperties);
             return {
                 format: format,
                 args: args
@@ -27,15 +28,13 @@ export class SimultaneousSystem<TContext extends AbilityContext = AbilityContext
 
         // Don't show anything if there are no legal systems or none of them have messages
         if (legalSystemsMessages.length === 0 || legalSystemsMessages.every((msg) => msg.format === '')) {
-            return super.getEffectMessage(context);
+            return super.getEffectMessageInternal(context, properties, additionalProperties);
         }
 
         return [message, legalSystemsMessages];
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<ISimultaneousSystemProperties<TContext>> = {}): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: ISimultaneousSystemProperties<TContext>, additionalProperties: Partial<IGameSystemInput<ISimultaneousSystemProperties<TContext>>> = {}): void {
         let queueGenerateEventGameStepsFn: (gameSystem: GameSystem<TContext>) => () => void;
         let generateStepName: (gameSystem: GameSystem<TContext>) => string;
 

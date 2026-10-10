@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardType, EffectName, EventName, ZoneName, RelativePlayer, WildcardCardType, GameStateChangeRequired, PlayType } from '../core/Constants';
@@ -20,14 +21,14 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
     public override readonly eventName = EventName.OnCardResourced;
 
-    protected override defaultProperties: IResourceCardProperties = {
+    protected override defaultProperties: IGameSystemInput<IResourceCardProperties> = {
         // TODO: remove completely if faceup logic is not needed
         // faceup: false,
         targetPlayer: RelativePlayer.Self,
         readyResource: false
     };
 
-    public eventHandler(event: any): void {
+    protected override eventHandlerInternal(event: any): void {
         // TODO: remove this completely if determined we don't need card snapshots
         // event.cardStateWhenMoved = card.createSnapshot();
 
@@ -42,8 +43,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         }
     }
 
-    public override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties?: Partial<IResourceCardProperties>): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override updateEvent(event: GameEvent, target: any, context: TContext, properties: IResourceCardProperties, additionalProperties: Partial<IGameSystemInput<IResourceCardProperties>> = {}): void {
         const targets = Array.isArray(properties.target) ? properties.target : [properties.target];
 
         if (properties.readyResource) {
@@ -52,16 +52,14 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
                 return [...targets.map((x) => new ReadySystem({ target: x }).generateEvent(context))];
             });
         }
-        super.updateEvent(event, target, context, additionalProperties);
+        super.updateEvent(event, target, context, properties, additionalProperties);
     }
 
-    public override getCostMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context) as IResourceCardProperties;
+    protected override getCostMessageInternal(context: TContext, properties: IResourceCardProperties): [string, any[]] {
         return ['moving {0} to resources', [this.getTargetMessage(properties.target, context)]];
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context) as IResourceCardProperties;
+    protected override getEffectMessageInternal(context: TContext, properties: IResourceCardProperties): [string, any[]] {
         const card = Array.isArray(properties.target) ? properties.target[0] : properties.target;
         const numberOfTargets = Helpers.asArray(properties.target).length;
 
@@ -90,17 +88,14 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         return [`move {0} to {1}'s resources${suffix}`, [ChatHelpers.pluralize(numberOfTargets, 'a card', 'cards'), context.player.opponent]];
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IResourceCardProperties>): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, properties: IResourceCardProperties): void {
+        super.addPropertiesToEvent(event, card, context, properties);
 
         event.resourceControllingPlayer = this.getResourceControllingPlayer(properties, context);
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IResourceCardProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const { targetPlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
-
-        const resourceControllingPlayer = this.getResourceControllingPlayer({ targetPlayer }, context);
+    protected override canAffectInternal(card: Card, context: TContext, properties: IResourceCardProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        const resourceControllingPlayer = this.getResourceControllingPlayer(properties, context);
 
         // if the card is already resourced by the target player, no game state change will occur
         if (
@@ -120,7 +115,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
             return false;
         }
 
-        return super.canAffectInternal(card, context);
+        return super.canAffectInternal(card, context, properties, GameStateChangeRequired.None);
     }
 
     private getResourceControllingPlayer(properties: IResourceCardProperties, context: TContext) {

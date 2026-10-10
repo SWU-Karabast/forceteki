@@ -1,3 +1,5 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
+import { GameStateChangeRequired } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { CardTypeFilter } from '../core/Constants';
 import {
@@ -68,11 +70,11 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     public override readonly name = 'attack';
     public override readonly eventName = MetaEventName.AttackSteps;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit, CardType.Base];
-    protected override readonly defaultProperties: IAttackProperties<TContext> = {
+    protected override readonly defaultProperties: IGameSystemInput<IAttackProperties<TContext>> = {
         targetCondition: () => true
     };
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         const context: TContext = event.context;
         const target = event.target;
         const attacker = event.attacker;
@@ -147,16 +149,15 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         context.game.addMessage(ChatHelpers.formatWithLength(attackMessage.length), ...attackMessage);
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IAttackProperties<TContext>> = {}) {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+    protected override prepareProperties(context: TContext, properties: IAttackProperties<TContext>): void {
+        super.prepareProperties(context, properties);
+
         if (!properties.attacker) {
             properties.attacker = context.source;
         }
-        return properties;
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: IAttackProperties<TContext>): [string, any[]] {
         return [
             'initiate attack against {1} with {0}',
             [properties.attacker, this.getTargetMessage(properties.target, context)]
@@ -164,19 +165,18 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     }
 
     /** This method is checking whether cards are a valid target for an attack. */
-    public override canAffectInternal(targetCard: Card, context: TContext, additionalProperties: Partial<IAttackProperties<TContext>> = {}): boolean {
+    protected override canAffectInternal(targetCard: Card, context: TContext, properties: IAttackProperties<TContext>): boolean {
         if (!targetCard.isBase() && (!targetCard.isUnit() || !targetCard.isInPlay())) {
             return false;
         }
 
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         Contract.assertNotNullLike(properties.attacker);
         Contract.assertTrue(properties.attacker.isUnit());
 
         if (!properties.attacker.isInPlay()) {
             return false;
         }
-        if (!super.canAffectInternal(targetCard, context)) {
+        if (!super.canAffectInternal(targetCard, context, properties, GameStateChangeRequired.None)) {
             return false;
         }
         if (targetCard === properties.attacker || targetCard.controller === properties.attacker.controller) {
@@ -222,7 +222,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         if (properties.attacker.hasOngoingEffect(EffectName.MustAttack)) {
             const mustAttackProperties = properties.attacker.getOngoingEffectValues<MustAttackProperties>(EffectName.MustAttack)[0];
             const targetUnitIfAble = mustAttackProperties.targetUnitIfAble ?? false;
-            if (!targetCard.isUnit() && targetUnitIfAble && targetCard.controller.hasSomeArenaUnit({ condition: (card) => this.canAffectInternal(card, context, additionalProperties) })) {
+            if (!targetCard.isUnit() && targetUnitIfAble && targetCard.controller.hasSomeArenaUnit({ condition: (card) => this.canAffectInternal(card, context, properties) })) {
                 return false;
             }
         }
@@ -230,16 +230,13 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         return true;
     }
 
-    public attackCosts(prompt, context: TContext, additionalProperties: Partial<IAttackProperties<TContext>> = {}): void {
+    public attackCosts(prompt, context: TContext, additionalProperties: Partial<IGameSystemInput<IAttackProperties<TContext>>> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         properties.costHandler(context, prompt);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IAttackProperties<TContext>> = {}): void {
-        const { attacker, target } = this.generatePropertiesFromContext(
-            context,
-            additionalProperties
-        );
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IAttackProperties<TContext>, additionalProperties: Partial<IGameSystemInput<IAttackProperties<TContext>>> = {}): void {
+        const { attacker, target } = properties;
 
         const cards = Helpers.asArray(target).filter((card) => this.canAffect(card, context));
         if (cards.length < 1) {
@@ -247,14 +244,13 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         }
         Contract.assertTrue(attacker.isUnit() && attacker.getMaxUnitAttackLimit() >= cards.length, 'Card cannot attack ' + cards.length + ' targets');
 
-        const event = this.createEvent(null, context, additionalProperties);
-        this.updateEvent(event, cards, context, additionalProperties);
+        const event = this.createEvent(null, context, properties, additionalProperties);
+        this.updateEvent(event, cards, context, properties, additionalProperties);
         events.push(event);
     }
 
-    protected override addPropertiesToEvent(event, target: Card, context: TContext, additionalProperties: Partial<IAttackProperties<TContext>>): void {
-        super.addPropertiesToEvent(event, target, context, additionalProperties);
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override addPropertiesToEvent(event, target: Card, context: TContext, properties: IAttackProperties<TContext>): void {
+        super.addPropertiesToEvent(event, target, context, properties);
 
         Contract.assertTrue(properties.attacker.isUnit(), `Attacking card '${properties.attacker.internalName}' is not a unit`);
 
@@ -289,9 +285,9 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         event.defenderLastingEffects = properties.defenderLastingEffects;
     }
 
-    public override checkEventCondition(event, additionalProperties: Partial<IAttackProperties<TContext>>): boolean {
+    protected override checkEventConditionInternal(event, properties: IAttackProperties<TContext>, additionalProperties: Partial<IGameSystemInput<IAttackProperties<TContext>>> = {}): boolean {
         for (const target of Helpers.asArray(event.target)) {
-            if (!this.canAffect(target, event.context, additionalProperties)) {
+            if (!this.canAffectWithProperties(target, event.context, properties, GameStateChangeRequired.None, additionalProperties)) {
                 return false;
             }
         }

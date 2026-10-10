@@ -1,4 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import { DamageType, RelativePlayer, WildcardCardType, WildcardZoneName, ZoneName } from '../core/Constants';
 import type { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { ICost } from '../core/cost/ICost';
@@ -20,7 +21,7 @@ import { DiscardFromDeckSystem } from '../gameSystems/DiscardFromDeckSystem';
 import { type DistributiveOmit } from '../core/utils/Helpers';
 import { ReadySystem } from '../gameSystems/ReadySystem';
 
-type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = DistributiveOmit<ISelectCardProperties<TContext>, 'immediateEffect'>;
+type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = DistributiveOmit<IGameSystemInput<ISelectCardProperties<TContext>>, 'immediateEffect'>;
 
 // TODO: we need to update the various cost generators to automatically inject { isCost: true } using additionalProperties so we don't have
 // to do it explicitly in each method. However, that requires doing a pass to make sure that additionalProperties is being respected everywhere.

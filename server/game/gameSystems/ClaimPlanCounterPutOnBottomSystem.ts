@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import { DeckZoneDestination, EventName, RelativePlayer, SwuGameFormat, TargetMode, ZoneName } from '../core/Constants.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
@@ -32,13 +33,13 @@ export class ClaimPlanCounterPutOnBottomSystem<TContext extends AbilityContext =
         return context.player ? [context.player] : [];
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IClaimPlanCounterPutOnBottomProperties> = {}): void {
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IClaimPlanCounterPutOnBottomProperties, additionalProperties: Partial<IGameSystemInput<IClaimPlanCounterPutOnBottomProperties>> = {}): void {
         Contract.assertTrue(context.game.format === SwuGameFormat.FauxSuns, `${this.name} should only be created in the FauxSuns format, but this game's format is ${context.game.format}`);
-        super.queueGenerateEventGameSteps(events, context, additionalProperties);
+        super.queueGenerateEventGameStepsInternal(events, context, properties, additionalProperties);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public override eventHandler(event: any): void {
+    protected override eventHandlerInternal(event: any): void {
         const player = event.player as Player;
         const game = event.context.game;
         const context = event.context;

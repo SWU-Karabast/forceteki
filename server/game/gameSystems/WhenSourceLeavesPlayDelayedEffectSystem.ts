@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -14,8 +15,8 @@ export type IWhenSourceLeavesPlayDelayedEffectProperties = Omit<IDelayedEffectPr
  */
 export class WhenSourceLeavesPlayDelayedEffectSystem<TContext extends AbilityContext = AbilityContext> extends DelayedEffectSystem<TContext> {
     // constructor needs to do some extra work to ensure that the passed props object ends up as valid for the parent class
-    public constructor(propertiesOrPropertyFactory: IWhenSourceLeavesPlayDelayedEffectProperties | ((context?: AbilityContext) => IWhenSourceLeavesPlayDelayedEffectProperties)) {
-        const propsWithWhen = GameSystem.appendToPropertiesOrPropertyFactory<IDelayedEffectProperties, 'when' | 'duration'>(
+    public constructor(propertiesOrPropertyFactory: IGameSystemInput<IWhenSourceLeavesPlayDelayedEffectProperties> | ((context?: AbilityContext) => IGameSystemInput<IWhenSourceLeavesPlayDelayedEffectProperties>)) {
+        const propsWithWhen = GameSystem.appendToPropertiesOrPropertyFactory<IGameSystemInput<IDelayedEffectProperties>, 'when' | 'duration'>(
             propertiesOrPropertyFactory,
             {
                 when: { onCardLeavesPlay: (event, context) => event.card === context.source },
@@ -25,7 +26,7 @@ export class WhenSourceLeavesPlayDelayedEffectSystem<TContext extends AbilityCon
         super(propsWithWhen);
     }
 
-    public override eventHandler(event: any, additionalProperties: Partial<IWhenSourceLeavesPlayDelayedEffectProperties>): void {
+    protected override eventHandlerInternal(event: any, properties: IDelayedEffectProperties, additionalProperties: Partial<IGameSystemInput<IDelayedEffectProperties>> = {}): void {
         const delayedEffectSource = event.sourceCard as Card;
 
         const effectProperties = event.effectProperties;

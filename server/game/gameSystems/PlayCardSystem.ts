@@ -1,3 +1,5 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
+import { GameStateChangeRequired } from '../core/Constants';
 import type { Card } from '../core/card/Card';
 import { AbilityResolver } from '../core/gameSteps/AbilityResolver';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
@@ -53,7 +55,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public override readonly eventName = MetaEventName.PlayCard;
     public override effectDescription = 'play {0}';
     protected override readonly targetTypeFilter = [CardType.BasicUnit, CardType.BasicUpgrade, CardType.Event];
-    protected override readonly defaultProperties: IPlayCardProperties = {
+    protected override readonly defaultProperties: IGameSystemInput<IPlayCardProperties> = {
         ignoredRequirements: ['phase'],
         optional: false,
         entersReady: false,
@@ -63,7 +65,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         canPlayFromAnyZone: false,
     };
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         const availablePlayCardAbilities = event.playCardAbilities as PlayCardAction[];
 
         if (availablePlayCardAbilities.length === 1) {
@@ -80,9 +82,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         }
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties?: Partial<IPlayCardProperties>): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override getEffectMessageInternal(context: TContext, properties: IPlayCardProperties): [string, any[]] {
         if (properties.playType && properties.playType === PlayType.Plot) {
             return [`${this.effectDescription}{1} using ${TextHelper.Plot}`, [this.getTargetMessage(properties.target, context), ChatHelpers.getTargetLocationMessage(properties.target, context)]];
         }
@@ -96,22 +96,18 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional, false, null, event.ignoredRequirements));
     }
 
-    protected override addPropertiesToEvent(event, target, context: TContext, additionalProperties: Partial<IPlayCardProperties> = {}): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
-        super.addPropertiesToEvent(event, target, context, additionalProperties);
+    protected override addPropertiesToEvent(event, target, context: TContext, properties: IPlayCardProperties): void {
+        super.addPropertiesToEvent(event, target, context, properties);
 
         event.playCardAbilities = this.generateLegalPlayCardAbilities(target, properties, context);
         event.optional = properties.optional ?? context.ability.optional;
         event.ignoredRequirements = properties.ignoredRequirements ?? [];
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IPlayCardProperties> = {}): boolean {
+    protected override canAffectInternal(card: Card, context: TContext, properties: IPlayCardProperties): boolean {
         if (!card.isPlayable()) {
             return false;
         }
-
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (properties.playAsType != null) {
             if ((properties.playAsType === WildcardCardType.Upgrade || properties.playAsType === WildcardCardType.NonUnit) && card.isUnit()) {
@@ -125,7 +121,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             }
         }
 
-        if (!super.canAffectInternal(card, context)) {
+        if (!super.canAffectInternal(card, context, properties, GameStateChangeRequired.None)) {
             return false;
         }
 

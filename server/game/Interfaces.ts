@@ -1,6 +1,6 @@
 import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
-import type { GameSystem } from './core/gameSystem/GameSystem';
+import type { GameSystem, GameSystemPropsFactory, IGameSystemInput } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
 import type { Aspect, DamageModificationType, Duration, RelativePlayerFilter, StandardTriggeredAbilityType, SwuGameFormat, Trait } from './core/Constants';
 import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
@@ -192,7 +192,7 @@ export interface IAbilityPropsWithSystems<TContext extends AbilityContext> exten
      * Can either be an {@link IInitiateAttackProperties} property object or a function that creates one from
      * an {@link AbilityContext}.
      */
-    initiateAttack?: IInitiateAttackProperties | ((context: TContext) => IInitiateAttackProperties);
+    initiateAttack?: IGameSystemInput<IInitiateAttackProperties> | ((context: TContext) => IGameSystemInput<IInitiateAttackProperties>);
 }
 
 /**
@@ -551,7 +551,7 @@ export interface IEventRegistration<Handler = () => void> {
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler' | 'then' | 'ifYouDo' | 'ifYouDoNot'
 > {
-    replaceWith?: PropsFactory<IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>, TriggeredAbilityContext<TSource>>;
+    replaceWith?: GameSystemPropsFactory<IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>, TriggeredAbilityContext<TSource>>;
     onlyIfYouDoEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
 }
 

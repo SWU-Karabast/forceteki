@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { TokenUnitName } from '../core/Constants';
 import { EffectName, EntryType, EventName } from '../core/Constants';
@@ -27,17 +28,16 @@ export interface ICreateTokenUnitProperties extends IPlayerTargetSystemPropertie
 export class CreateTokenUnitSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ICreateTokenUnitProperties> {
     public override readonly name = 'createTokenUnit';
     public override readonly eventName = EventName.OnTokensCreated;
-    protected override readonly defaultProperties: Omit<ICreateTokenUnitProperties, 'tokenType'> = {
+    protected override readonly defaultProperties: IGameSystemInput<Omit<ICreateTokenUnitProperties, 'tokenType'>> = {
         amount: 1,
         entersReady: false
     };
 
     // event handler doesn't do anything since the tokens were generated in updateEvent
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler(event): void { }
+    protected override eventHandlerInternal(): void { }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: ICreateTokenUnitProperties): [string, any[]] {
         const players = Helpers.asArray(properties.target);
         const tokenTitle = EnumHelpers.tokenTitle[properties.tokenType];
         const indefiniteArticle = properties.tokenType === TokenUnitName.XWing ? 'an' : 'a';
@@ -62,10 +62,8 @@ export class CreateTokenUnitSystem<TContext extends AbilityContext = AbilityCont
         return [ChatHelpers.formatWithLength(players.length, 'to '), players.map((player) => effectMessage(player))];
     }
 
-    protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<ICreateTokenUnitProperties>): void {
-        super.updateEvent(event, player, context, additionalProperties);
-
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override updateEvent(event, player: Player, context: TContext, properties: ICreateTokenUnitProperties, additionalProperties: Partial<IGameSystemInput<ICreateTokenUnitProperties>> = {}): void {
+        super.updateEvent(event, player, context, properties, additionalProperties);
 
         // generate the tokens here so they can be used in the contingent events
         // it's fine if this event ends up being cancelled, unused tokens are cleaned up at the end of every round
@@ -100,10 +98,8 @@ export class CreateTokenUnitSystem<TContext extends AbilityContext = AbilityCont
         return [context.player];
     }
 
-    public override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<ICreateTokenUnitProperties>): void {
-        super.addPropertiesToEvent(event, player, context, additionalProperties);
-
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, properties: ICreateTokenUnitProperties): void {
+        super.addPropertiesToEvent(event, player, context, properties);
 
         event.amount = properties.amount;
         event.tokenType = properties.tokenType;

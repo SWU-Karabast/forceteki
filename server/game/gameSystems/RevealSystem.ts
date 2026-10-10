@@ -1,3 +1,5 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
+import { GameStateChangeRequired } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { RelativePlayer } from '../core/Constants';
@@ -16,7 +18,7 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
     public override readonly costDescription = 'revealing {0}';
     public override readonly effectDescription = 'reveal {0}';
 
-    protected override readonly defaultProperties: IRevealProperties = {
+    protected override readonly defaultProperties: IGameSystemInput<IRevealProperties> = {
         interactMode: ViewCardInteractMode.ViewOnly,
         promptedPlayer: RelativePlayer.Self,
         useDisplayPrompt: null
@@ -26,9 +28,9 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
         return true;
     }
 
-    public override checkEventCondition(event): boolean {
+    protected override checkEventConditionInternal(event, properties: IRevealProperties, additionalProperties: Partial<IGameSystemInput<IRevealProperties>> = {}): boolean {
         for (const card of event.cards) {
-            if (!this.canAffect(card, event.context)) {
+            if (!this.canAffectWithProperties(card, event.context, properties, GameStateChangeRequired.None, additionalProperties)) {
                 return false;
             }
         }
@@ -36,9 +38,9 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
         return true;
     }
 
-    public override canAffectInternal(card: Card, context: TContext): boolean {
+    protected override canAffectInternal(card: Card, context: TContext, properties: IRevealProperties): boolean {
         if (card.zoneName === ZoneName.Deck || card.zoneName === ZoneName.Hand || card.zoneName === ZoneName.Resource) {
-            return super.canAffectInternal(card, context);
+            return super.canAffectInternal(card, context, properties, GameStateChangeRequired.None);
         }
         return false;
     }
@@ -58,8 +60,8 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
         }
     }
 
-    public override addPropertiesToEvent(event, cards, context: TContext, additionalProperties: Record<string, any> = {}): void {
-        super.addPropertiesToEvent(event, cards, context, additionalProperties);
+    protected override addPropertiesToEvent(event, cards, context: TContext, properties: IRevealProperties): void {
+        super.addPropertiesToEvent(event, cards, context, properties);
 
         const eventCards: Card[] = event.cards;
         const zones = eventCards.map((card) => card.zoneName);

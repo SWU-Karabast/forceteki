@@ -16,16 +16,16 @@ export class ExhaustSystem<TContext extends AbilityContext = AbilityContext> ext
     public override readonly costDescription = 'exhausting {0}';
     public override readonly effectDescription = 'exhaust {0}';
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         event.card.exhaust();
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IExhaustSystemProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        if (!super.canAffectInternal(card, context, additionalProperties, mustChangeGameState)) {
+    protected override canAffectInternal(card: Card, context: TContext, properties: IExhaustSystemProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        if (!super.canAffectInternal(card, context, properties, mustChangeGameState)) {
             return false;
         }
 
-        const { isCost } = this.generatePropertiesFromContext(context);
+        const { isCost } = properties;
 
         // can safely cast here b/c the type was checked in super.canAffectInternal
         if ((isCost || mustChangeGameState !== GameStateChangeRequired.None) && (card as ICardWithExhaustProperty).exhausted) {
@@ -39,9 +39,8 @@ export class ExhaustSystem<TContext extends AbilityContext = AbilityContext> ext
         return true;
     }
 
-    public override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties?: Partial<IExhaustSystemProperties>) {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, properties: IExhaustSystemProperties) {
+        super.addPropertiesToEvent(event, card, context, properties);
 
         const exhaustSource: IExhaustSource = {
             type: properties.isCost ? ExhaustSourceType.Cost : ExhaustSourceType.Ability,

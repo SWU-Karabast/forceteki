@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { MetaEventName, RelativePlayer } from '../core/Constants';
@@ -35,40 +36,38 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
     public override readonly name: string = 'selectCard';
     public override readonly eventName: MetaEventName.SelectCard;
     public override readonly effectDescription = 'choose a target for {0}';
-    protected override readonly defaultProperties: Partial<ISelectCardProperties<TContext>> = {
+    protected override readonly defaultProperties: IGameSystemInput<Partial<ISelectCardProperties<TContext>>> = {
         cardCondition: () => true,
         optional: false,
     };
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public eventHandler(event): void { }
+    protected override eventHandlerInternal(): void { }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const { target, effect, effectArgs } = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: ISelectCardProperties<TContext>): [string, any[]] {
+        const { effect, effectArgs } = properties;
 
         if (effect) {
             return [effect, effectArgs ? effectArgs(context) : []];
         }
 
-        return super.getEffectMessage(context);
+        return super.getEffectMessageInternal(context, properties);
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}) {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+    protected override prepareProperties(context: TContext, properties: ISelectCardProperties<TContext>): void {
+        super.prepareProperties(context, properties);
 
         if (!properties.name) {
             properties.name = properties.isCost ? 'cost' : 'target';
         }
-
-        return properties;
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    protected override canAffectInternal(card: Card, context: TContext, properties: ISelectCardProperties<TContext>, mustChangeGameState = GameStateChangeRequired.None, additionalProperties: Partial<IGameSystemInput<ISelectCardProperties<TContext>>> = {}): boolean {
         const targetResolver = this.generateTargetResolver(context, additionalProperties, mustChangeGameState);
         return targetResolver.canTarget(card, context);
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    protected override hasLegalTargetInternal(context: TContext, properties: ISelectCardProperties<TContext>, mustChangeGameState = GameStateChangeRequired.None, additionalProperties: Partial<IGameSystemInput<ISelectCardProperties<TContext>>> = {}): boolean {
         const targetResolver = this.generateTargetResolver(context, additionalProperties, mustChangeGameState);
         return targetResolver.hasLegalTarget(context);
     }
@@ -76,16 +75,15 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
     /**
      * True if this selection can be legally resolved by choosing zero cards (e.g. {@link TargetMode.UpTo}).
      */
-    public selectionAllowsChoosingNoCards(context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}): boolean {
+    public selectionAllowsChoosingNoCards(context: TContext, additionalProperties: Partial<IGameSystemInput<ISelectCardProperties<TContext>>> = {}): boolean {
         return this.generateTargetResolver(context, additionalProperties).allowsChoosingNoCards;
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}): void {
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: ISelectCardProperties<TContext>, additionalProperties: Partial<IGameSystemInput<ISelectCardProperties<TContext>>> = {}): void {
         if (!this.hasLegalTarget(context, additionalProperties)) {
             return;
         }
 
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const canCancel = properties.cancelHandler != null;
 
         const targetResolver = this.generateTargetResolver(context, additionalProperties);
@@ -150,7 +148,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         context.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
     }
 
-    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}): boolean {
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<IGameSystemInput<ISelectCardProperties<TContext>>> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (properties.player === EnumHelpers.asRelativePlayer(context.player, player)) {
@@ -160,7 +158,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         return properties.immediateEffect.hasTargetsChosenByPlayer(context, player, additionalProperties);
     }
 
-    private generateTargetResolver(context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}, mustChangeGameState?: GameStateChangeRequired): CardTargetResolver {
+    private generateTargetResolver(context: TContext, additionalProperties: Partial<IGameSystemInput<ISelectCardProperties<TContext>>> = {}, mustChangeGameState?: GameStateChangeRequired): CardTargetResolver {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         const targetResolverProperties = { choosingPlayer: properties.player, mustChangeGameState, ...properties };

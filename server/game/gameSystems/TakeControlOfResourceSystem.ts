@@ -20,7 +20,7 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
     public override readonly name = 'takeControl';
     public override readonly eventName = EventName.OnTakeControl;
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         const card = event.card as Card;
         Contract.assertTrue(card.canBeExhausted() && card.canChangeController());
 
@@ -39,26 +39,26 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
         }
     }
 
-    public override canAffectInternal(player: Player | Player[], context: TContext, _additionalProperties: Partial<ITakeControlOfResourceProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    protected override canAffectInternal(player: Player | Player[], context: TContext, properties: ITakeControlOfResourceProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const takingResourcePlayer = this.playerFromArray(player);
 
         if (mustChangeGameState !== GameStateChangeRequired.None && takingResourcePlayer.opponent.resources.length === 0) {
             return false;
         }
 
-        return super.canAffectInternal(takingResourcePlayer, context);
+        return super.canAffectInternal(takingResourcePlayer, context, properties, GameStateChangeRequired.None);
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const { target } = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: ITakeControlOfResourceProperties): [string, any[]] {
+        const { target } = properties;
 
         const takingResourcePlayer = this.playerFromArray(target);
 
         return ['take control of a resource from {0}', [this.getTargetMessage(takingResourcePlayer.opponent, context)]];
     }
 
-    public override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<ITakeControlOfResourceProperties>): void {
-        super.addPropertiesToEvent(event, player, context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, properties: ITakeControlOfResourceProperties): void {
+        super.addPropertiesToEvent(event, player, context, properties);
 
         event.newController = player;
 

@@ -20,7 +20,7 @@ export class CollectBountySystem<TContext extends AbilityContext = AbilityContex
     public override readonly eventName = EventName.OnBountyCollected;
     protected override readonly targetTypeFilter = [WildcardCardType.Unit];
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         // force optional to false since the player has already chosen to resolve the bounty
         const bountyAbilities = (event.bountyProperties as ITriggeredAbilityBaseProps[]).map((bountyProperties) => event.context.game.gameObjectManager.createWithoutRefsUnsafe(() => new BountyAbility(
             event.context.game,
@@ -69,9 +69,7 @@ export class CollectBountySystem<TContext extends AbilityContext = AbilityContex
     }
 
     // since the actual effect of the bounty is resolved in a sub-window, we don't check its effects here
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<ICollectBountyProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override canAffectInternal(card: Card, context: TContext, properties: ICollectBountyProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (properties.forceResolve) {
             return true;
         }
@@ -85,10 +83,10 @@ export class CollectBountySystem<TContext extends AbilityContext = AbilityContex
         return card === properties.bountySource;
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<ICollectBountyProperties>): void {
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, properties: ICollectBountyProperties): void {
+        super.addPropertiesToEvent(event, card, context, properties);
 
-        const { bountyProperties, bountySource } = this.generatePropertiesFromContext(context, additionalProperties);
+        const { bountyProperties, bountySource } = properties;
         event.bountyProperties = Helpers.asArray(bountyProperties);
         event.bountySource = bountySource ?? card;
     }

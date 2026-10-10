@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { CardTypeFilter } from '../core/Constants';
 import { EventName, GameStateChangeRequired, TargetMode, WildcardCardType, ZoneName } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
@@ -27,7 +28,7 @@ export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProp
 }
 
 export class DiscardCardsFromHandSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IDiscardCardsFromHandProperties> {
-    protected override defaultProperties: IDiscardCardsFromHandProperties = {
+    protected override defaultProperties: IGameSystemInput<IDiscardCardsFromHandProperties> = {
         amount: 1,
         random: false,
         cardTypeFilter: WildcardCardType.Any,
@@ -38,10 +39,9 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
     public override readonly eventName = EventName.OnCardsDiscardedFromHand;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler(_event): void { }
+    protected override eventHandlerInternal(): void { }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: IDiscardCardsFromHandProperties): [string, any[]] {
         const players = Helpers.asArray(properties.target);
 
         const effectMessage = (player: Player): FormatMessage => {
@@ -58,9 +58,8 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
         return [ChatHelpers.formatWithLength(players.length, 'to '), players.map((player) => effectMessage(player))];
     }
 
-    public override canAffectInternal(playerOrPlayers: Player | Player[], context: TContext, additionalProperties: Partial<IDiscardCardsFromHandProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    protected override canAffectInternal(playerOrPlayers: Player | Player[], context: TContext, properties: IDiscardCardsFromHandProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
         for (const player of Helpers.asArray(playerOrPlayers)) {
-            const properties = this.generatePropertiesFromContext(context, additionalProperties);
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context) && EnumHelpers.cardTypeMatches(card.type, properties.cardTypeFilter));
 
             if (mustChangeGameState !== GameStateChangeRequired.None && (availableHand.length === 0 || properties.amount === 0)) {
@@ -71,16 +70,15 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 return false;
             }
 
-            if (!super.canAffectInternal(player, context, additionalProperties)) {
+            if (!super.canAffectInternal(player, context, properties, GameStateChangeRequired.None)) {
                 return false;
             }
         }
         return true;
     }
 
-    public override queueGenerateEventGameSteps(events: any[], context: TContext, additionalProperties: Partial<IDiscardCardsFromHandProperties> = {}): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        for (const player of properties.target as Player[]) {
+    protected override queueGenerateEventGameStepsInternal(events: any[], context: TContext, properties: IDiscardCardsFromHandProperties, additionalProperties: Partial<IGameSystemInput<IDiscardCardsFromHandProperties>> = {}): void {
+        for (const player of properties.target) {
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context));
             const choosingPlayer = player;
 
@@ -134,8 +132,8 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
         }
     }
 
-    protected override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties: Partial<IDiscardCardsFromHandProperties> = {}): void {
-        super.updateEvent(event, target, context, additionalProperties);
+    protected override updateEvent(event: GameEvent, target: any, context: TContext, properties: IDiscardCardsFromHandProperties, additionalProperties: Partial<IGameSystemInput<IDiscardCardsFromHandProperties>> = {}): void {
+        super.updateEvent(event, target, context, properties, additionalProperties);
 
         // all the work for this system happens in the queueGenerateEventGameSteps method and the generated discard events,
         // so the top-level discard event should just auto-succeed
@@ -159,7 +157,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
         );
     }
 
-    private generateEventsForCards(cards: Card[], context: TContext, events: any[], additionalProperties: Partial<IDiscardCardsFromHandProperties>): void {
+    private generateEventsForCards(cards: Card[], context: TContext, events: any[], additionalProperties: Partial<IGameSystemInput<IDiscardCardsFromHandProperties>>): void {
         for (const card of cards) {
             const specificDiscardEvent = new DiscardSpecificCardSystem({ target: card }).generateEvent(context);
             events.push(specificDiscardEvent);

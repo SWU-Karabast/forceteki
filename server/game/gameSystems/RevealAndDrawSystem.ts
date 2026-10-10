@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { GameStateChangeRequired } from '../core/Constants';
@@ -21,10 +22,9 @@ export class RevealAndDrawSystem<TContext extends AbilityContext = AbilityContex
     public override readonly eventName = MetaEventName.RevealAndDrawCard;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler(event): void { }
+    protected override eventHandlerInternal(): void { }
 
-    public override getEffectMessage(context: TContext, additionalProperties?: Partial<IRevealProperties>): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override getEffectMessageInternal(context: TContext, properties: IRevealAndDrawProperties): [string, any[]] {
         const targetsArray = Helpers.asArray(properties.target);
         const targetMessage: FormatMessage = {
             format: ChatHelpers.formatWithLength(targetsArray.length),
@@ -37,28 +37,19 @@ export class RevealAndDrawSystem<TContext extends AbilityContext = AbilityContex
         ];
     }
 
-    public override canAffectInternal(
-        card: Card,
-        context: TContext,
-        additionalProperties?: Partial<IRevealProperties>,
-        mustChangeGameState?: GameStateChangeRequired
-    ): boolean {
+    protected override canAffectInternal(card: Card, context: TContext, properties: IRevealAndDrawProperties, mustChangeGameState: GameStateChangeRequired, additionalProperties: Partial<IGameSystemInput<IRevealAndDrawProperties>> = {}): boolean {
         return this.generateSimultaneousSystem(context, additionalProperties)
-            .canAffectInternal(card, context, additionalProperties, mustChangeGameState);
+            .canAffect(card, context, additionalProperties, mustChangeGameState);
     }
 
-    public override queueGenerateEventGameSteps(
-        events: GameEvent[],
-        context: TContext,
-        additionalProperties?: Partial<IRevealProperties>
-    ): void {
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IRevealAndDrawProperties, additionalProperties: Partial<IGameSystemInput<IRevealAndDrawProperties>> = {}): void {
         this.generateSimultaneousSystem(context, additionalProperties)
             .queueGenerateEventGameSteps(events, context);
     }
 
     private generateSimultaneousSystem(
         context: TContext,
-        additionalProperties: Partial<IRevealAndDrawProperties> = {}
+        additionalProperties: Partial<IGameSystemInput<IRevealAndDrawProperties>> = {}
     ): SimultaneousSystem<TContext> {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 

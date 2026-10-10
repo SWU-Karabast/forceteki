@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../gameSystem/GameSystem';
 import { InitiateAttackSystem, type IInitiateAttackProperties } from '../../gameSystems/InitiateAttackSystem';
 import type { CardsDefeatedThisPhaseWatcher } from '../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 import type { Attack } from './Attack';
@@ -21,7 +22,7 @@ export function addInitiateAttackProperties(properties): void {
     };
 }
 
-function getProperties(properties, context): IInitiateAttackProperties {
+function getProperties(properties, context): IGameSystemInput<IInitiateAttackProperties> {
     if (typeof properties.initiateAttack === 'function') {
         return properties.initiateAttack(context);
     }

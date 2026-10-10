@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { MsgArg } from '../core/chat/GameChat';
@@ -66,7 +67,7 @@ export interface IViewCardWithPerCardButtonsProperties extends IViewCardProperti
 export type IViewCardProperties = IViewCardOnlyProperties | IViewAndSelectCardsProperties | IViewCardWithPerCardButtonsProperties;
 
 export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IViewCardProperties = IViewCardProperties> extends CardTargetSystem<TContext, TProperties> {
-    public override eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         if (event.promptHandler) {
             event.promptHandler();
         }
@@ -74,14 +75,14 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
 
     protected abstract getPromptedPlayer(properties: IViewCardProperties, context: TContext): Player;
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
-        const { target } = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: TProperties, additionalProperties: Partial<IGameSystemInput<TProperties>> = {}): void {
+        const { target } = properties;
         const cards = Helpers.asArray(target).filter((card) => this.canAffect(card, context));
         if (cards.length === 0) {
             return;
         }
-        const event = this.createEvent(null, context, additionalProperties);
-        this.updateEvent(event, cards, context, additionalProperties);
+        const event = this.createEvent(null, context, properties, additionalProperties);
+        this.updateEvent(event, cards, context, properties, additionalProperties);
         events.push(event);
 
         const isViewingOpponentCards = cards.some((card) => card.controller !== context.player);
@@ -91,9 +92,8 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         }
     }
 
-    public override addPropertiesToEvent(event, cards, context: TContext, additionalProperties): void {
-        super.addPropertiesToEvent(event, cards, context, additionalProperties);
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override addPropertiesToEvent(event, cards, context: TContext, properties: TProperties): void {
+        super.addPropertiesToEvent(event, cards, context, properties);
 
         if (!cards) {
             cards = properties.target;

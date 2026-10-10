@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -22,9 +23,9 @@ export class IncreaseAbilityDamageSystem<TContext extends TriggeredAbilityContex
     public override readonly name = 'increaseAbilityDamage';
     public override readonly effectDescription = 'increase ability damage';
 
-    public override eventHandler(event: GameEvent, additionalProperties: Partial<IIncreaseAbilityDamageSystemProperties> = {}): void {
+    protected override eventHandlerInternal(event: GameEvent, properties: IIncreaseAbilityDamageSystemProperties): void {
         const context = event.context as TContext;
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
         const abilityContext = context.event?.context;
 
         Contract.assertNotNullLike(abilityContext, 'Attempting to increase ability damage outside of a triggered event');
@@ -32,21 +33,20 @@ export class IncreaseAbilityDamageSystem<TContext extends TriggeredAbilityContex
         abilityContext.pendingAbilityDamageIncrease = (abilityContext.pendingAbilityDamageIncrease ?? 0) + properties.amount;
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IIncreaseAbilityDamageSystemProperties> = {}) {
-        const event = this.createEvent(null, context, additionalProperties);
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IIncreaseAbilityDamageSystemProperties, additionalProperties: Partial<IGameSystemInput<IIncreaseAbilityDamageSystemProperties>> = {}) {
+        const event = this.createEvent(null, context, properties, additionalProperties);
 
-        this.addPropertiesToEvent(event, null, context, additionalProperties);
+        this.addPropertiesToEvent(event, null, context, properties, additionalProperties);
         event.setHandler((e) => this.eventHandler(e, additionalProperties));
 
         events.push(event);
     }
 
-    public override hasLegalTarget(context: TContext): boolean {
+    protected override hasLegalTargetInternal(context: TContext, properties: IIncreaseAbilityDamageSystemProperties): boolean {
         return context.event?.canResolve ?? false;
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: IIncreaseAbilityDamageSystemProperties): [string, any[]] {
         return ['increase damage by {0}', [properties.amount]];
     }
 

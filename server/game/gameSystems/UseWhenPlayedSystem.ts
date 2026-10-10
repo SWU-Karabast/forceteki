@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { EventName, GameStateChangeRequired, Stage, WildcardCardType, ZoneName } from '../core/Constants';
@@ -19,12 +20,12 @@ export class UseWhenPlayedSystem<TContext extends AbilityContext = AbilityContex
     public override readonly effectDescription = 'use {0}\'s When Played ability';
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade];
 
-    protected override defaultProperties: IUseWhenPlayedProperties = {
+    protected override defaultProperties: IGameSystemInput<IUseWhenPlayedProperties> = {
         triggerAll: false,
         resolvedAbilityEvent: null
     };
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         const whenPlayedSource = event.whenPlayedSource;
         const triggerAll = event.triggerAll;
         const onCardPlayedEvent = event.onCardPlayedEvent;
@@ -72,8 +73,8 @@ export class UseWhenPlayedSystem<TContext extends AbilityContext = AbilityContex
     }
 
     // Since the actual When Played effect is resolved in a sub-window, we don't check its effects here
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IUseWhenPlayedProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const { resolvedAbilityEvent } = this.generatePropertiesFromContext(context);
+    protected override canAffectInternal(card: Card, context: TContext, properties: IUseWhenPlayedProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        const { resolvedAbilityEvent } = properties;
 
         if (resolvedAbilityEvent === null) {
             if (
@@ -114,17 +115,17 @@ export class UseWhenPlayedSystem<TContext extends AbilityContext = AbilityContex
             }
         }
 
-        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, properties, mustChangeGameState);
     }
 
     private getOnCardPlayedEvent(resolvedAbilityEvent: any) {
         return resolvedAbilityEvent?.context.event;
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, properties: IUseWhenPlayedProperties): void {
+        super.addPropertiesToEvent(event, card, context, properties);
 
-        const { triggerAll, resolvedAbilityEvent } = this.generatePropertiesFromContext(context, additionalProperties);
+        const { triggerAll, resolvedAbilityEvent } = properties;
         event.triggerAll = triggerAll;
         event.onCardPlayedEvent = this.getOnCardPlayedEvent(resolvedAbilityEvent);
         event.resolvedAbility = (resolvedAbilityEvent as any)?.ability;

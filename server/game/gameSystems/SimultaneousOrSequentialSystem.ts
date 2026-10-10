@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameStateChangeRequired } from '../core/Constants';
 import type { GameObject } from '../core/GameObject';
@@ -21,21 +22,19 @@ export enum ResolutionMode {
 }
 
 export abstract class SimultaneousOrSequentialSystem<TProps extends ISimultaneousOrSequentialSystemProperties<TContext>, TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, TProps> {
-    protected override readonly defaultProperties: ISimultaneousOrSequentialSystemProperties<TContext> = {
+    protected override readonly defaultProperties: IGameSystemInput<ISimultaneousOrSequentialSystemProperties<TContext>> = {
         gameSystems: [],
         resolutionMode: ResolutionMode.SomeGameSystemsMustBeLegal,
     };
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler() {}
+    protected override eventHandlerInternal() {}
 
     public override getInnerSystems(properties: TProps) {
         return properties.gameSystems;
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProps> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override hasLegalTargetInternal(context: TContext, properties: TProps, mustChangeGameState = GameStateChangeRequired.None, additionalProperties: Partial<IGameSystemInput<TProps>> = {}): boolean {
         if (properties.resolutionMode === ResolutionMode.AlwaysResolve) {
             return true;
         } else if (properties.resolutionMode === ResolutionMode.AllGameSystemsMustBeLegal) {
@@ -45,9 +44,7 @@ export abstract class SimultaneousOrSequentialSystem<TProps extends ISimultaneou
         return properties.gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
     }
 
-    public override canAffectInternal(target: GameObject, context: TContext, additionalProperties: Partial<TProps> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
+    protected override canAffectInternal(target: GameObject, context: TContext, properties: TProps, mustChangeGameState = GameStateChangeRequired.None, additionalProperties: Partial<IGameSystemInput<TProps>> = {}): boolean {
         if (properties.resolutionMode === ResolutionMode.AllGameSystemsMustBeLegal) {
             return properties.gameSystems.every((gameSystem) => gameSystem.canAffect(target, context, additionalProperties, mustChangeGameState));
         }
@@ -55,16 +52,16 @@ export abstract class SimultaneousOrSequentialSystem<TProps extends ISimultaneou
         return properties.gameSystems.some((gameSystem) => gameSystem.canAffect(target, context, additionalProperties, mustChangeGameState));
     }
 
-    public override allTargetsLegal(context: TContext, additionalProperties: Partial<TProps> = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override allTargetsLegalInternal(context: TContext, properties: TProps, mustChangeGameState = GameStateChangeRequired.None, additionalProperties: Partial<IGameSystemInput<TProps>> = {}): boolean {
         if (properties.resolutionMode === ResolutionMode.AllGameSystemsMustBeLegal) {
             return properties.gameSystems.every((gameSystem) => gameSystem.allTargetsLegal(context, additionalProperties));
         }
         return properties.gameSystems.some((gameSystem) => gameSystem.allTargetsLegal(context, additionalProperties));
     }
 
-    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<TProps> = {}) {
-        const properties = this.generatePropertiesFromContext(context);
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<IGameSystemInput<TProps>> = {}) {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
         return properties.gameSystems.some((gameSystem) =>
             gameSystem.hasTargetsChosenByPlayer(context, player, additionalProperties)
         );

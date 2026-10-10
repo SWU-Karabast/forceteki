@@ -16,17 +16,17 @@ export class DefeatBaseSystem<TContext extends AbilityContext = AbilityContext, 
     public override readonly effectDescription = 'defeat {0}';
     protected override readonly targetTypeFilter = [CardType.Base];
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         const base: Card = event.card;
         Contract.assertTrue(base.isBase());
         base.defeatBase();
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    protected override canAffectInternal(card: Card, context: TContext, properties: TProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!card.isBase() || card.defeated) {
             return false;
         }
 
-        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, properties, mustChangeGameState);
     }
 }

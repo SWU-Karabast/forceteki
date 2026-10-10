@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { GameStateChangeRequired, EventName, WildcardCardType } from '../core/Constants';
@@ -27,7 +28,7 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
     public override readonly effectDescription = 'take control of {0}';
     protected override readonly targetTypeFilter = [WildcardCardType.Unit];
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         event.card.takeControl(event.newController);
 
         for (const upgrade of event.card.upgrades.filter((u) => u.isTokenUpgrade())) {
@@ -35,12 +36,10 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
         }
     }
 
-    public override canAffectInternal(card: Card, context: TContext, _additionalProperties: Partial<ITakeControlOfUnitProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    protected override canAffectInternal(card: Card, context: TContext, properties: ITakeControlOfUnitProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!card.canBeInPlay() || !card.isInPlay()) {
             return false;
         }
-
-        const properties = this.generatePropertiesFromContext(context);
 
         if (
             mustChangeGameState !== GameStateChangeRequired.None && (
@@ -51,27 +50,25 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
             return false;
         }
 
-        return super.canAffectInternal(card, context);
+        return super.canAffectInternal(card, context, properties, GameStateChangeRequired.None);
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const { newController, target } = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: ITakeControlOfUnitProperties): [string, any[]] {
+        const { newController, target } = properties;
         if (newController === context.player) {
-            return super.getEffectMessage(context);
+            return super.getEffectMessageInternal(context, properties);
         }
         return ['give control of {0} to {1}', [this.getTargetMessage(target, context), newController]];
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<ITakeControlOfUnitProperties>): void {
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
-
-        const properties = this.generatePropertiesFromContext(context);
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, properties: ITakeControlOfUnitProperties): void {
+        super.addPropertiesToEvent(event, card, context, properties);
 
         event.newController = properties.newController;
     }
 
-    protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<ITakeControlOfUnitProperties>): void {
-        super.updateEvent(event, player, context, additionalProperties);
+    protected override updateEvent(event, player: Player, context: TContext, properties: ITakeControlOfUnitProperties, additionalProperties: Partial<IGameSystemInput<ITakeControlOfUnitProperties>> = {}): void {
+        super.updateEvent(event, player, context, properties, additionalProperties);
 
         // By rule, leader units are always defeated instead of changing control (CR 3.4.6)
         event.setReplacementEventsGenerator((event) => {
@@ -92,13 +89,11 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
         });
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties?: Partial<ITakeControlOfUnitProperties>): ITakeControlOfUnitProperties {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+    protected override prepareProperties(context: TContext, properties: ITakeControlOfUnitProperties): void {
+        super.prepareProperties(context, properties);
 
         // By default, we exclude leader units from participating in this system, but there are some cases where we need to allow it
         // (e.g. when a unit becomes a leader unit after control changes, due to piloting)
         properties.excludeLeaderUnit = properties.excludeLeaderUnit ?? true;
-
-        return properties;
     }
 }

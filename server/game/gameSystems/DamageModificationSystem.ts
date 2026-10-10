@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { DamageModificationType, DamageType } from '../core/Constants';
 import { MetaEventName } from '../core/Constants';
@@ -22,9 +23,7 @@ export class DamageModificationSystem<
 > extends ReplacementEffectSystem<TContext, TProperties> {
     public override readonly eventName = MetaEventName.ReplacementEffect;
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
-
+    protected override getEffectMessageInternal(context: TContext, properties: TProperties): [string, any[]] {
         const effectMessage = (): FormatMessage => {
             if (context.event.isUnpreventable) {
                 // if there is a limit, in case of unpreventable, limit should be updated
@@ -75,7 +74,7 @@ export class DamageModificationSystem<
         return [ChatHelpers.formatWithLength(1, 'to '), [effectMessage()]];
     }
 
-    protected override getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<TProperties> = {}): GameSystem<TContext> {
+    protected override getReplacementImmediateEffect(context: TContext, additionalProperties: Partial<IGameSystemInput<TProperties>> = {}): GameSystem<TContext> {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (properties.onlyIfYouDoEffect) {

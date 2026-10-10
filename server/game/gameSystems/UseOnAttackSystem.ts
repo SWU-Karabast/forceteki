@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { EventName, GameStateChangeRequired, Stage, WildcardCardType, ZoneName } from '../core/Constants';
@@ -18,11 +19,11 @@ export class UseOnAttackSystem<TContext extends AbilityContext = AbilityContext>
     public override readonly effectDescription = 'use {0}\'s On Attack ability';
     protected override readonly targetTypeFilter = [WildcardCardType.Unit];
 
-    protected override defaultProperties: IUseOnAttackProperties = {
+    protected override defaultProperties: IGameSystemInput<IUseOnAttackProperties> = {
         resolvedAbilityEvent: null
     };
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         const onAttackSource = event.onAttackSource;
         const triggerAll = event.triggerAll;
         const onAttackDeclaredEvent = event.onAttackDeclaredEvent;
@@ -65,8 +66,8 @@ export class UseOnAttackSystem<TContext extends AbilityContext = AbilityContext>
     }
 
     // Since the actual On Attack effect is resolved in a sub-window, we don't check its effects here
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IUseOnAttackProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const { resolvedAbilityEvent } = this.generatePropertiesFromContext(context);
+    protected override canAffectInternal(card: Card, context: TContext, properties: IUseOnAttackProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        const { resolvedAbilityEvent } = properties;
 
         if (resolvedAbilityEvent === null) {
             if (
@@ -106,17 +107,17 @@ export class UseOnAttackSystem<TContext extends AbilityContext = AbilityContext>
             }
         }
 
-        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, properties, mustChangeGameState);
     }
 
     private getOnAttackDeclaredEvent(resolvedAbilityEvent: any) {
         return resolvedAbilityEvent?.context.event;
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, properties: IUseOnAttackProperties): void {
+        super.addPropertiesToEvent(event, card, context, properties);
 
-        const { resolvedAbilityEvent } = this.generatePropertiesFromContext(context, additionalProperties);
+        const { resolvedAbilityEvent } = properties;
         event.onAttackDeclaredEvent = this.getOnAttackDeclaredEvent(resolvedAbilityEvent);
         event.resolvedAbility = (resolvedAbilityEvent as any)?.ability;
         event.onAttackSource = card;

@@ -22,10 +22,10 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
     public override readonly eventName = EventName.OnLookMoveDeckCardsTopOrBottom;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler(event): void { }
+    protected override eventHandlerInternal(): void { }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext): void {
-        const { amount, target } = this.generatePropertiesFromContext(context);
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: ILookMoveDeckCardsTopOrBottomProperties): void {
+        const { amount, target } = properties;
         const player = this.getSingleTarget(target);
         const deckLength = player.drawDeck.length;
 
@@ -65,14 +65,14 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         return [context.player];
     }
 
-    public override canAffectInternal(target: Player | Player[], context: TContext, additionalProperties?: Partial<ILookMoveDeckCardsTopOrBottomProperties>, mustChangeGameState?: GameStateChangeRequired): boolean {
+    protected override canAffectInternal(target: Player | Player[], context: TContext, properties: ILookMoveDeckCardsTopOrBottomProperties, mustChangeGameState: GameStateChangeRequired): boolean {
         const nonAraTarget = this.getSingleTarget(target);
 
         if (mustChangeGameState !== GameStateChangeRequired.None && nonAraTarget.drawDeck.length === 0) {
             return false;
         }
 
-        return super.canAffectInternal(target, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(target, context, properties, mustChangeGameState);
     }
 
     private getSingleTarget(target: Player | Player[]): Player {
@@ -112,8 +112,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         events.push(moveCardEvent);
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: ILookMoveDeckCardsTopOrBottomProperties): [string, any[]] {
         const player = this.getSingleTarget(properties.target);
 
         if (properties.amount === 0) {

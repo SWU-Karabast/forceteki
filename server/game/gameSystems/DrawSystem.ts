@@ -1,3 +1,5 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
+import { GameStateChangeRequired } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { DamageType, EventName } from '../core/Constants';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
@@ -18,11 +20,11 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
     public override readonly name = 'draw';
     public override readonly eventName = EventName.OnCardsDrawn;
 
-    protected override defaultProperties: IDrawProperties = {
+    protected override defaultProperties: IGameSystemInput<IDrawProperties> = {
         amount: 1
     };
 
-    public eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         const gameEvent = event as GameEvent;
         Contract.assertNotNullLike(gameEvent.context);
         Contract.assertNotNullLike(gameEvent.context.player);
@@ -35,8 +37,7 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
         event.player.drawCardsToHand(event.amount);
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: IDrawProperties): [string, any[]] {
         const effects: FormatMessage[] = Helpers.asArray(properties.target).map((target) => {
             const cardAmount = ChatHelpers.pluralize(properties.amount, 'a card', 'cards');
             if (target === context.player) {
@@ -53,23 +54,22 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
         return [ChatHelpers.formatWithLength(effects.length, 'to '), effects];
     }
 
-    public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<IDrawProperties> = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return properties.amount !== 0 && super.canAffectInternal(player, context);
+    protected override canAffectInternal(player: Player, context: TContext, properties: IDrawProperties): boolean {
+        return properties.amount !== 0 && super.canAffectInternal(player, context, properties, GameStateChangeRequired.None);
     }
 
     public override defaultTargets(context: TContext): Player[] {
         return [context.player];
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<IDrawProperties>): void {
-        const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
-        super.addPropertiesToEvent(event, player, context, additionalProperties);
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, properties: IDrawProperties): void {
+        const { amount } = properties;
+        super.addPropertiesToEvent(event, player, context, properties);
         event.amount = amount;
     }
 
-    protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<IDrawProperties>): void {
-        super.updateEvent(event, player, context, additionalProperties);
+    protected override updateEvent(event, player: Player, context: TContext, properties: IDrawProperties, additionalProperties: Partial<IGameSystemInput<IDrawProperties>> = {}): void {
+        super.updateEvent(event, player, context, properties, additionalProperties);
 
         // TODO: convert damage on draw to be a real replacement effect once we have partial replacement working
         event.setContingentEventsGenerator((event) => {

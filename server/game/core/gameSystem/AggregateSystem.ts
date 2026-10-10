@@ -14,12 +14,12 @@ export type ISystemArrayOrFactory<TContext extends AbilityContext> = (GameSystem
  */
 export abstract class AggregateSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IGameSystemProperties = IGameSystemProperties> extends GameSystem<TContext, TProperties> {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler() {}
+    protected override eventHandlerInternal() {}
 
     public abstract getInnerSystems(properties: TProperties): GameSystem<TContext>[];
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<TProperties> = {}) {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+    protected override prepareProperties(context: TContext, properties: TProperties): void {
+        super.prepareProperties(context, properties);
 
         // TODO: this seems to cause issues with player target system defaults when the list includes both a card target and player target system
         // if we have an assigned target, overwrite the default target on all inner systems
@@ -30,11 +30,9 @@ export abstract class AggregateSystem<TContext extends AbilityContext = AbilityC
                 gameSystem.setDefaultTargetFn(() => gameSystem.defaultTargets(context));
             }
         }
-
-        return properties;
     }
 
-    public abstract override hasLegalTarget(context: TContext, additionalProperties?: Partial<TProperties>, mustChangeGameState?: GameStateChangeRequired): boolean;
+    protected abstract override hasLegalTargetInternal(context: TContext, properties: TProperties, mustChangeGameState: GameStateChangeRequired): boolean;
 
     // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
     protected override isTargetTypeValid(target: GameObject): boolean {

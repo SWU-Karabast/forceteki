@@ -1,7 +1,6 @@
 # Twin Suns: Generic Player Handling
 
-Status: **pre-pass order approved** - discussing workstream 1; concrete designs and implementation
-remain open.
+Status: **pre-pass 1 complete (review follow-ups applied)** - remaining workstreams are pending.
 
 Initial investigation: 2026-10-10.
 
@@ -12,7 +11,7 @@ format requires making player handling more generic without enabling four-player
 
 This living document tracks the major architecture areas identified during the initial repository
 investigation and the agreed preparatory work. The architecture inventory remains a discovery
-baseline; the pre-pass order is approved, but concrete designs and implementation remain open.
+baseline. The pre-pass order and workstream 1 design are approved; later concrete designs remain open.
 
 ## Current scope
 
@@ -34,7 +33,7 @@ focused regression coverage.
 
 ### Pre-pass 1. Existing target/system contract inconsistencies
 
-Status: **design discussion**.
+Status: **complete**.
 
 - Investigate and resolve inconsistencies in currently supported target handling, normalization,
   and effect execution.
@@ -44,6 +43,110 @@ Status: **design discussion**.
 - Defer any individual fix that requires those future recipient-cardinality decisions.
 
 This provides a more reliable underlying effect contract for the resolver work that follows.
+
+#### Approved design and implementation
+
+- Ordinary system properties describe the operational representation: `target` is a required array.
+  Shared `IGameSystemInput<TProperties>` and `GameSystemPropsFactory<TProperties, TContext>` types
+  retain scalar-or-array and omitted-target convenience at configuration boundaries. This applies
+  to both card and player systems.
+- The base class owns property merging and normalization. System-specific customization moved to
+  `prepareProperties()` hooks. Existing explicit/factory, additional-property, and default
+  precedence is preserved.
+- Legality, message, and event implementation hooks receive the effective properties instead of
+  independently re-merging optional additional properties. Wrapper systems retain the caller's
+  additional properties for child calls without copying all parent defaults into children.
+- Individual legality candidates remain scalar. Single-card events and singleton player events
+  carry scalar recipients, while existing batched player-effect event construction is preserved.
+  No recipient-cardinality audit or multiple-opponent behavior was added.
+- Default target-choice metadata queries remain lazy: they must not evaluate factories depending
+  on targets that have not yet been selected.
+- Resource-readying checks, shuffle messages, and captor handling honor effective overrides.
+  Function-valued damage costs receive individual units, not the configured target array.
+- Legality checks and event-condition checks share one guard: an error is reported once and the
+  check counts as failed (a failed event condition cancels that event) instead of being thrown,
+  even if the error reporter itself throws. Event handlers remain unguarded, as before; they run
+  immediately after the same event's condition check.
+- An event condition generates the effective properties once and reuses them for its per-candidate
+  legality checks.
+
+#### Behavior changes worth reviewing
+
+The refactor is intended to preserve 1v1 behavior. These are the places where behavior is
+deliberately or incidentally different from before, so reviewers can focus on them:
+
+- **Eager property generation at resolution time.** Every system now generates its effective
+  properties when its handler runs and when its event condition is checked. Previously only 4 of
+  71 handlers did (three directly, `SearchDeckSystem` through a helper), and only card- and
+  player-targeting systems did so for the condition, so the property factories of other systems
+  were not evaluated at that point. Those factories must now remain valid at resolution time. A
+  factory that throws there now cancels that event with a reported error. Whether to keep this
+  eager model or make it lazy is still an open question.
+- **Additional properties are honored consistently.** About 58 hooks used to ignore
+  `additionalProperties` (19 of them had it in scope). Only five production call sites inject
+  non-empty additional properties (`MetaActionCost`, `ExhaustUnitsCostAdjuster`,
+  `MoveCardSystem` cost messages, and the `replacementEffect` flag from `ReplacementEffectSystem`
+  and `SimultaneousSystem`), and no difference is reachable from them today beyond the cases
+  covered by regressions: resource-readying legality honoring `isCost`, shuffle messages honoring
+  an additional target, and captor handling.
+- **`UseWhenDefeatedSystem`** used to pass a `Card` where additional properties were expected; it
+  now passes none.
+- **`DamageSystem` cost messages** evaluate function-valued amounts per unit, matching legality.
+- **`PayCardPrintedCostSystem`** narrows with `hasCost()` rather than assuming a printed cost.
+- **`SelectPlayerSystem.canAffect`** now rebinds its inner default-target function, which the old
+  path skipped. No reachable path where this matters was found.
+- **`ReplacementEffectSystem` and `SimultaneousOrSequentialSystem`** now forward
+  `additionalProperties`, like the other wrapper systems.
+- The `getSelectCost` TODO in [CostLibrary](../server/game/costs/CostLibrary.ts) (inject
+  `isCost` through additional properties) names a precondition that is now met, since hooks respect
+  additional properties. It was intentionally not acted on here.
+
+Relevant implementation:
+[GameSystem](../server/game/core/gameSystem/GameSystem.ts),
+[CardTargetSystem](../server/game/core/gameSystem/CardTargetSystem.ts),
+[PlayerTargetSystem](../server/game/core/gameSystem/PlayerTargetSystem.ts), and
+[contract regressions](../test/server/gameSystems/GameSystemProperties.spec.ts).
+
+#### Verification
+
+- Server and test compilation passed.
+- Added 26 contract regressions: 23 with the initial work plus three event-condition regressions
+  (single property generation for player-targeting and card-targeting conditions, and report-and-
+  cancel for a factory that throws at resolution time). Those three fail against the pre-fix code.
+- Full current-branch suite: 8,989 specs, zero failures, nine existing pending specs.
+- CI-equivalent repo-wide `npx eslint --quiet` passed.
+- Structural card validation passed: 2,071 card files and 2,048 test files checked.
+- Full undo suite: 8,801 specs, zero failures, 16 pending specs (including dedicated undo suites
+  intentionally skipped in whole-suite undo mode).
+- Lint diagnostics in the changed areas ended below the pre-change level (about 310 before the
+  work, 499 right after the migration, 286 after cleanup).
+
+The initial full-suite run encountered two orphaned compiled matchmaking specs from a different
+source-tree state. Only those generated spec files were removed; the current source suite passed
+on rerun.
+
+#### Review follow-ups
+
+Applied after an independent review of the implementation (no high-confidence defects were found):
+
+- Event-condition checks run under the same report-and-fail guard as legality checks, and reuse
+  already-generated properties instead of generating twice.
+- `PayCardPrintedCostSystem` no longer throws for a card without a printed cost.
+- Cleanup: removed unused trailing hook parameters, collapsed leftover blank lines, corrected the
+  `AttackHelpers` property annotation, and documented the property-generation and
+  `prepareProperties` contract. Hook signatures on the base class and on intermediate classes
+  that are extended keep their full parameter lists, so a few unused-parameter warnings remain by
+  design.
+
+Still open, deliberately not changed here:
+
+- How to reduce the `IGameSystemInput<...>` annotation load. Options: a short alias, the
+  `Record<string, any>` already suggested by a TODO in `GameSystem`, or typing `defaultProperties`
+  as `Partial<TProperties>`.
+- Eager versus lazy property generation at event resolution (see behavior changes above).
+- How to split this large diff for review.
+- The new spec has not been through the `test-auditor` readability pass (the agent was unavailable
+  when launched).
 
 ### Pre-pass 2. Player-target resolver correctness
 

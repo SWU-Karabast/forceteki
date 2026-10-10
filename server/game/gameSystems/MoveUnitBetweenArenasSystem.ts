@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { InitializeCardStateOption, type Card } from '../core/card/Card';
 import {
@@ -24,12 +25,12 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
     public override readonly eventName = EventName.OnCardMoved;
     public override targetTypeFilter = [WildcardCardType.Unit];
 
-    public eventHandler(event: any): void {
+    protected override eventHandlerInternal(event: any): void {
         (event.card as Card).moveTo(event.destination, InitializeCardStateOption.DoNotInitialize);
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const { moveType, target } = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: IMoveUnitBetweenArenasProperties): [string, any[]] {
+        const { moveType, target } = properties;
         const moveTypeString = moveType === MoveArenaType.SpaceToGround
             ? 'from the space arena to the ground arena'
             : 'from the ground arena to the space arena';
@@ -37,8 +38,8 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
         return [`move {0} ${moveTypeString}`, [this.getTargetMessage(target, context)]];
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IMoveUnitBetweenArenasProperties>): void {
-        super.updateEvent(event, card, context, additionalProperties);
+    protected override updateEvent(event, card: Card, context: TContext, properties: IMoveUnitBetweenArenasProperties, additionalProperties: Partial<IGameSystemInput<IMoveUnitBetweenArenasProperties>> = {}): void {
+        super.updateEvent(event, card, context, properties, additionalProperties);
 
         Contract.assertTrue(card.isUnit());
 
@@ -66,16 +67,15 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
         });
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IMoveUnitBetweenArenasProperties>): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, properties: IMoveUnitBetweenArenasProperties): void {
+        super.addPropertiesToEvent(event, card, context, properties);
 
         event.moveType = properties.moveType;
         event.destination = this.getDestination(properties);
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IMoveUnitBetweenArenasProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const { moveType } = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override canAffectInternal(card: Card, context: TContext, properties: IMoveUnitBetweenArenasProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        const { moveType } = properties;
 
         if (
             (moveType === MoveArenaType.SpaceToGround && card.zoneName !== ZoneName.SpaceArena) ||
@@ -84,7 +84,7 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
             return false;
         }
 
-        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, properties, mustChangeGameState);
     }
 
     private getDestination(properties: IMoveUnitBetweenArenasProperties): ZoneName {

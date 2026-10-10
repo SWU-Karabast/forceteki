@@ -13,17 +13,17 @@ export class ReadyResourcesSystem<TContext extends AbilityContext = AbilityConte
     public override readonly name = 'readyResources';
     public override readonly eventName = EventName.OnReadyResources;
 
-    public override eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         event.player.readyResources(event.amount);
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const { amount } = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: TProperties): [string, any[]] {
+        const { amount } = properties;
         return ['ready {0}', [ChatHelpers.pluralize(amount, 'a resource', 'resources')]];
     }
 
-    public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const { isCost, amount } = this.generatePropertiesFromContext(context);
+    protected override canAffectInternal(player: Player, context: TContext, properties: TProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        const { isCost, amount } = properties;
 
         // if this is a cost or an "if you do" condition, must ready all required resources
         if ((isCost || mustChangeGameState === GameStateChangeRequired.MustFullyResolve) && player.exhaustedResourceCount < amount) {
@@ -35,16 +35,16 @@ export class ReadyResourcesSystem<TContext extends AbilityContext = AbilityConte
             return false;
         }
 
-        return super.canAffectInternal(player, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(player, context, properties, mustChangeGameState);
     }
 
     public override defaultTargets(context: TContext): Player[] {
         return [context.player];
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<TProperties>): void {
-        const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
-        super.addPropertiesToEvent(event, player, context, additionalProperties);
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, properties: TProperties): void {
+        const { amount } = properties;
+        super.addPropertiesToEvent(event, player, context, properties);
         event.amount = amount;
     }
 }

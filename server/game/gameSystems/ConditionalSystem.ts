@@ -1,3 +1,4 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameStateChangeRequired, MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -17,9 +18,9 @@ export interface IConditionalSystemProperties<TContext extends AbilityContext = 
 export class ConditionalSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, IConditionalSystemProperties<TContext>> {
     public override readonly eventName = MetaEventName.Conditional;
 
-    protected declare readonly defaultProperties: IConditionalSystemProperties<TContext>;
+    protected declare readonly defaultProperties: IGameSystemInput<IConditionalSystemProperties<TContext>>;
 
-    public constructor(propertiesOrPropertyFactory: IConditionalSystemProperties<TContext> | ((context?: TContext) => IConditionalSystemProperties<TContext>)) {
+    public constructor(propertiesOrPropertyFactory: IGameSystemInput<IConditionalSystemProperties<TContext>> | ((context?: TContext) => IGameSystemInput<IConditionalSystemProperties<TContext>>)) {
         super(propertiesOrPropertyFactory);
 
         this.defaultProperties = {
@@ -33,32 +34,32 @@ export class ConditionalSystem<TContext extends AbilityContext = AbilityContext>
         return [properties.onTrue, properties.onFalse];
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        return this.getGameAction(context).getEffectMessage(context);
+    protected override getEffectMessageInternal(context: TContext, properties: IConditionalSystemProperties<TContext>, additionalProperties: Partial<IGameSystemInput<IConditionalSystemProperties<TContext>>> = {}): [string, any[]] {
+        return this.getGameAction(context, properties).getEffectMessage(context, additionalProperties);
     }
 
-    public override canAffectInternal(target: any, context: TContext, additionalProperties: Partial<IConditionalSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        return this.getGameAction(context, additionalProperties).canAffect(target, context, additionalProperties, mustChangeGameState);
+    protected override canAffectInternal(target: any, context: TContext, properties: IConditionalSystemProperties<TContext>, mustChangeGameState = GameStateChangeRequired.None, additionalProperties: Partial<IGameSystemInput<IConditionalSystemProperties<TContext>>> = {}): boolean {
+        return this.getGameAction(context, properties).canAffect(target, context, additionalProperties, mustChangeGameState);
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IConditionalSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        return this.getGameAction(context, additionalProperties).hasLegalTarget(context, additionalProperties, mustChangeGameState);
+    protected override hasLegalTargetInternal(context: TContext, properties: IConditionalSystemProperties<TContext>, mustChangeGameState = GameStateChangeRequired.None, additionalProperties: Partial<IGameSystemInput<IConditionalSystemProperties<TContext>>> = {}): boolean {
+        return this.getGameAction(context, properties).hasLegalTarget(context, additionalProperties, mustChangeGameState);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IConditionalSystemProperties<TContext>> = {}): void {
-        this.getGameAction(context, additionalProperties).queueGenerateEventGameSteps(events, context, additionalProperties);
+    protected override queueGenerateEventGameStepsInternal(events: GameEvent[], context: TContext, properties: IConditionalSystemProperties<TContext>, additionalProperties: Partial<IGameSystemInput<IConditionalSystemProperties<TContext>>> = {}): void {
+        this.getGameAction(context, properties).queueGenerateEventGameSteps(events, context, additionalProperties);
     }
 
-    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<IConditionalSystemProperties<TContext>> = {}): boolean {
-        return this.getGameAction(context, additionalProperties).hasTargetsChosenByPlayer(
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<IGameSystemInput<IConditionalSystemProperties<TContext>>> = {}): boolean {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        return this.getGameAction(context, properties).hasTargetsChosenByPlayer(
             context,
             player,
             additionalProperties
         );
     }
 
-    private getGameAction(context: TContext, additionalProperties: Partial<IConditionalSystemProperties<TContext>> = {}) {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    private getGameAction(context: TContext, properties: IConditionalSystemProperties<TContext>) {
         let condition = properties.condition;
         if (typeof condition === 'function') {
             condition = condition(context, properties);
@@ -66,11 +67,9 @@ export class ConditionalSystem<TContext extends AbilityContext = AbilityContext>
         return condition ? properties.onTrue : properties.onFalse;
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IConditionalSystemProperties<TContext>> = {}) {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+    protected override prepareProperties(context: TContext, properties: IConditionalSystemProperties<TContext>): void {
+        super.prepareProperties(context, properties);
 
         Contract.assertFalse(properties.onTrue instanceof NoActionSystem && properties.onFalse instanceof NoActionSystem, 'You must provide onTrue or onFalse for ConditionalSystem');
-
-        return properties;
     }
 }

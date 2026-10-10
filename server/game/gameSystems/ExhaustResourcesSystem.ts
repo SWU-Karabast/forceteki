@@ -15,12 +15,11 @@ export class ExhaustResourcesSystem<TContext extends AbilityContext = AbilityCon
     public override readonly name = 'exhaustResources';
     public override readonly eventName = EventName.OnExhaustResources;
 
-    public override eventHandler(event): void {
+    protected override eventHandlerInternal(event): void {
         event.player.exhaustResources(event.amount);
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    protected override getEffectMessageInternal(context: TContext, properties: IExhaustResourcesProperties): [string, any[]] {
         const verb = properties.isCost ? 'pay' : 'exhaust';
         const resourceString = properties.isCost
             ? TextHelper.resource(properties.amount)
@@ -33,8 +32,8 @@ export class ExhaustResourcesSystem<TContext extends AbilityContext = AbilityCon
         return [`make {0} ${verb} {1}`, [this.getTargetMessage(properties.target, context), resourceString]];
     }
 
-    public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<IExhaustResourcesProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const { isCost, amount } = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override canAffectInternal(player: Player, context: TContext, properties: IExhaustResourcesProperties, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        const { isCost, amount } = properties;
 
         if (amount === 0) {
             return false;
@@ -48,12 +47,12 @@ export class ExhaustResourcesSystem<TContext extends AbilityContext = AbilityCon
             return false;
         }
 
-        return super.canAffectInternal(player, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(player, context, properties, mustChangeGameState);
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<IExhaustResourcesProperties>): void {
-        const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
-        super.addPropertiesToEvent(event, player, context, additionalProperties);
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, properties: IExhaustResourcesProperties): void {
+        const { amount } = properties;
+        super.addPropertiesToEvent(event, player, context, properties);
         event.amount = amount;
     }
 }

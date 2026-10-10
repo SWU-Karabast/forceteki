@@ -1,3 +1,5 @@
+import type { IGameSystemInput } from '../core/gameSystem/GameSystem';
+import { GameStateChangeRequired } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardType, EffectName, EventName, WildcardCardType, ZoneName } from '../core/Constants';
@@ -21,15 +23,14 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
     public override readonly eventName = EventName.OnCardsDrawn;
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
 
-    protected override defaultProperties: IDrawSpecificCardProperties = {
+    protected override defaultProperties: IGameSystemInput<IDrawSpecificCardProperties> = {
         switch: false,
         switchTarget: null,
         shuffle: false,
         changePlayer: false,
     };
 
-    public override getEffectMessage(context: TContext, additionalProperties?: Partial<IDrawSpecificCardProperties>): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+    protected override getEffectMessageInternal(context: TContext, properties: IDrawSpecificCardProperties): [string, any[]] {
         const targetsArray = Helpers.asArray(properties.target);
 
         return [
@@ -38,12 +39,12 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
         ];
     }
 
-    public eventHandler(event: any, additionalProperties: Partial<IDrawSpecificCardProperties> = {}): void {
+    protected override eventHandlerInternal(event: any, properties: IDrawSpecificCardProperties): void {
         const context = event.context;
         const card = event.card;
         // TODO: remove this completely if determined we don't need card snapshots
         // event.cardStateWhenMoved = card.createSnapshot();
-        const properties = this.generatePropertiesFromContext(context, additionalProperties) as IDrawSpecificCardProperties;
+
         card.moveTo(ZoneName.Hand);
 
         const target = properties.target;
@@ -61,21 +62,20 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
         }
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IDrawSpecificCardProperties> = {}): boolean {
-        const { changePlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IDrawSpecificCardProperties;
+    protected override canAffectInternal(card: Card, context: TContext, properties: IDrawSpecificCardProperties): boolean {
+        const { changePlayer } = properties;
         return (
             (!changePlayer ||
               (!card.hasRestriction(EffectName.TakeControl, context) &&
                 !card.anotherUniqueInPlay(context.player))) &&
                 (context.player.isLegalZoneForCardType(card.type, ZoneName.Hand)) &&
                 !EnumHelpers.isArena(card.zoneName) &&
-                super.canAffectInternal(card, context)
+                super.canAffectInternal(card, context, properties, GameStateChangeRequired.None)
         );
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<IDrawSpecificCardProperties> = {}): void {
-        const properties = this.generatePropertiesFromContext(context) as IDrawSpecificCardProperties;
-        super.addPropertiesToEvent(event, card, context, additionalProperties);
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, properties: IDrawSpecificCardProperties): void {
+        super.addPropertiesToEvent(event, card, context, properties);
         // add amount and player to have same properties than drawn event from DrawSystem
         event.amount = Array.isArray(properties.target) ? properties.target.length : 1;
         event.player = context.player;
