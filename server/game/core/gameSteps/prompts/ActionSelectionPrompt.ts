@@ -13,6 +13,10 @@ export interface IActionSelectionChoice {
     sourceCard: ITriggerWindowSourceCard;
 
     hasLegalEffects: boolean;
+
+    /** True when the action was gained from another card, i.e. {@link sourceCard} is not the clicked card. */
+    gained: boolean;
+
     handler: () => void;
 }
 
@@ -32,12 +36,16 @@ export interface IActionSelectionPromptProperties {
 export class ActionSelectionPrompt extends UiPrompt {
     private readonly player: Player;
     private readonly properties: IActionSelectionPromptProperties;
+    private readonly choices: IActionSelectionChoice[];
 
     public constructor(game: Game, player: Player, properties: IActionSelectionPromptProperties) {
         super(game);
 
         this.player = player;
         this.properties = properties;
+
+        // sort so that choices that can actually do something are presented first
+        this.choices = [...properties.choices].sort((a, b) => Number(b.hasLegalEffects) - Number(a.hasLegalEffects));
     }
 
     public override activeCondition(player: Player): boolean {
@@ -45,7 +53,7 @@ export class ActionSelectionPrompt extends UiPrompt {
     }
 
     public override activePromptInternal(): IPlayerPromptStateProperties {
-        const buttons: (IActionSelectionButton | IButton)[] = this.properties.choices.map((choice, index) => this.makeChoiceButton(choice, index));
+        const buttons: (IActionSelectionButton | IButton)[] = this.choices.map((choice, index) => this.makeChoiceButton(choice, index));
         buttons.push({ text: 'Cancel', arg: 'cancel' });
 
         return {
@@ -65,7 +73,8 @@ export class ActionSelectionPrompt extends UiPrompt {
             text: `${noEffectPrefix}${choice.title}`,
             arg: index.toString(),
             sourceCard: choice.sourceCard,
-            hasLegalEffects: choice.hasLegalEffects
+            hasLegalEffects: choice.hasLegalEffects,
+            gained: choice.gained
         };
     }
 
@@ -82,7 +91,7 @@ export class ActionSelectionPrompt extends UiPrompt {
             return true;
         }
 
-        const choice = this.properties.choices[Number(arg)];
+        const choice = this.choices[Number(arg)];
         if (!choice) {
             return false;
         }

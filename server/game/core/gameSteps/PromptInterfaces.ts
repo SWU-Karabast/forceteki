@@ -76,6 +76,9 @@ export interface ITriggerWindowButton extends IButtonWithSourceCard {
 /** A card button for one of a clicked card's available actions in the action-selection prompt. */
 export interface IActionSelectionButton extends IButtonWithSourceCard {
     hasLegalEffects: boolean;
+
+    /** True when the action was gained from another card, which is the {@link sourceCard} shown in place of the clicked card. */
+    gained: boolean;
 }
 
 /**
