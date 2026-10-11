@@ -27,6 +27,7 @@ export enum PromptType {
     BatchTriggerResolution = 'batchTriggerResolution',
     OptionalTrigger = 'optionalTrigger',
     ActionSelection = 'actionSelection',
+    ModalEffectSelection = 'modalEffectSelection',
 }
 
 export interface IButton {
@@ -79,6 +80,11 @@ export interface IActionSelectionButton extends IButtonWithSourceCard {
 
     /** True when the action was gained from another card, which is the {@link sourceCard} shown in place of the clicked card. */
     gained: boolean;
+}
+
+/** A card button for one of a modal ability's options in the modal-effect selection prompt. */
+export interface IModalEffectSelectionButton extends IButtonWithSourceCard {
+    hasLegalEffects: boolean;
 }
 
 /**

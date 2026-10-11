@@ -4,6 +4,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import { MetaEventName } from '../core/Constants';
 import type { IChoicesInterface } from '../TargetInterfaces';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
+import { getTriggerSourceCardSummary } from '../core/gameSteps/abilityWindow/TriggerWindowBase';
 import type { Player } from '../core/Player';
 import type { MsgArg } from '../core/chat/GameChat';
 
@@ -39,28 +40,24 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
                 return;
             }
 
-            // Create a mapping of original labels to annotated display labels
-            const choiceMapping = new Map<string, string>();
-            for (const [label, system] of Object.entries(listOfAvailableEffects)) {
-                const hasEffect = this.modalChoiceHasAnyLegalEffect(system, context);
-                const displayLabel = hasEffect ? label : `(No effect) ${label}`;
-                choiceMapping.set(label, displayLabel);
-            }
-
-            // setup the choices for the modal card
-            context.game.promptWithHandlerMenu(player, {
-                activePromptTitle: `Choose ${amountOfRemainingChoices} of the following`,
-                choices: Array.from(choiceMapping.values()),
-                handlers: Object.entries(listOfAvailableEffects).map((selectedEffect: [string, GameSystem]) => () => this.pushEvent(
-                    events,
-                    selectedEffect[0],
-                    selectedEffect[1],
-                    context,
-                    amountOfRemainingChoices,
-                    listOfAvailableEffects,
-                    choiceHandler,
-                    !!properties.canChooseSameOptionMoreThanOnce
-                ))
+            context.game.promptWithModalEffectSelection(player, {
+                title: `Choose ${amountOfRemainingChoices} ${amountOfRemainingChoices === 1 ? 'effect' : 'effects'} for ${context.source.title}`,
+                description: this.getPromptDescription(properties),
+                sourceCard: getTriggerSourceCardSummary(context.source),
+                choices: Object.entries(listOfAvailableEffects).map(([label, system]) => ({
+                    title: label,
+                    hasLegalEffects: () => this.modalChoiceHasAnyLegalEffect(system, context),
+                    handler: () => this.pushEvent(
+                        events,
+                        label,
+                        system,
+                        context,
+                        amountOfRemainingChoices,
+                        listOfAvailableEffects,
+                        choiceHandler,
+                        !!properties.canChooseSameOptionMoreThanOnce
+                    )
+                }))
             });
         };
         choiceHandler(context.player, listOfAvailableEffects, properties.amountOfChoices);
@@ -116,6 +113,16 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
 
         const messageArgs: MsgArg[] = [context.player, ' uses ', context.source, ' to ', { format: effectMessage, args: effectArgs }];
         context.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
+    }
+
+    private getPromptDescription(properties: IPlayModalCardProperties): string | undefined {
+        if (properties.amountOfChoices <= 1) {
+            return undefined;
+        }
+
+        return properties.canChooseSameOptionMoreThanOnce
+            ? 'You may choose the same option more than once.'
+            : 'Each option can only be chosen once.';
     }
 
     private modalChoiceHasAnyLegalEffect(system: GameSystem, context: TContext): boolean {
