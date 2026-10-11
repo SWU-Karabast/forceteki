@@ -140,12 +140,13 @@ describe('QueueHandler matchmaking preferences', function () {
             expect(queue.findPlayer(competitive.user.getId()).player).toBe(competitive);
         });
 
-        it('skips a same-preference opponent blocked by rematch cooldown instead of overriding the cooldown', function () {
+        it('skips a same-preference opponent blocked by rematch cooldown instead of overriding the cooldown', async function () {
             const searchStartedAt = clock.now() - 30_000;
             const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive, searchStartedAt);
             addPlayer('previous-opponent', MatchmakingCompetitivenessPreference.Competitive, searchStartedAt);
             const noPreference = addPlayer('no-preference', MatchmakingCompetitivenessPreference.NoPreference, searchStartedAt);
             queue.setPreviousMatchEntry('competitive', 'previous-opponent', clock.now());
+            await clock.advanceAsync(1_500);
 
             expect(queue.getNextMatchPair(format)).toEqual([competitive, noPreference]);
         });
@@ -232,16 +233,35 @@ describe('QueueHandler matchmaking preferences', function () {
             expect(queue.getNextMatchAvailableAt(format)).toBe(competitive.searchStartedAt + 20_000);
         });
 
-        it('admits a pair at the exact shared preference and rematch deadline', async function () {
+        it('previews an expanded category before the exact shared preference and rematch deadline', async function () {
             const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
             const noPreference = addPlayer('no-preference', MatchmakingCompetitivenessPreference.NoPreference);
             queue.setPreviousMatchEntry('competitive', 'no-preference', clock.now());
 
             expect(queue.getNextMatchAvailableAt(format)).toBe(competitive.searchStartedAt + 15_000);
-            await clock.advanceAsync(14_999);
+            await clock.advanceAsync(13_499);
+            expect(queue.getNextMatchPair(format)).toBeNull();
+            await clock.advanceAsync(1);
+            expect(queue.getNextMatchPair(format)).toBeNull();
+            expect(competitive.preferencesPublishedAt[MatchmakingCompetitivenessPreference.NoPreference]).toBe(clock.now());
+            await clock.advanceAsync(1_499);
             expect(queue.getNextMatchPair(format)).toBeNull();
             await clock.advanceAsync(1);
             expect(queue.getNextMatchPair(format)).toEqual([competitive, noPreference]);
+        });
+
+        it('starts the grace at publication rather than backdating it to an elapsed expansion deadline', async function () {
+            const searchStartedAt = clock.now() - 30_000;
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive, searchStartedAt);
+            const casual = addPlayer('casual', MatchmakingCompetitivenessPreference.Casual, searchStartedAt);
+
+            expect(queue.getNextMatchPair(format)).toBeNull();
+            expect(competitive.preferencesPublishedAt[MatchmakingCompetitivenessPreference.Casual]).toBe(clock.now());
+            expect(queue.getNextMatchAvailableAt(format)).toBe(clock.now() + 1_500);
+            await clock.advanceAsync(1_499);
+            expect(queue.getNextMatchPair(format)).toBeNull();
+            await clock.advanceAsync(1);
+            expect(queue.getNextMatchPair(format)).toEqual([competitive, casual]);
         });
     });
 

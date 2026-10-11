@@ -1651,7 +1651,8 @@ export class Lobby {
                     user.socket.user,
                     user.deck.originalDeckList,
                     user.matchmakingSearchContext?.preference,
-                    user.matchmakingSearchContext?.searchStartedAt
+                    user.matchmakingSearchContext?.searchStartedAt,
+                    user.matchmakingSearchContext?.preferencesPublishedAt
                 );
                 user.socket.send('matchmakingFailed', 'Player disconnected');
             }

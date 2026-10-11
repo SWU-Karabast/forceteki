@@ -109,21 +109,29 @@ describe('GameServer matchmaking preferences', function () {
             }
 
             for (const preference of [MatchmakingCompetitivenessPreference.Competitive, MatchmakingCompetitivenessPreference.Casual]) {
-                it(`admits no preference at exactly 15 seconds for ${preference}`, async function () {
+                it(`previews no preference at 13.5 seconds and matches at 15 seconds for ${preference}`, async function () {
                     const { harness } = contextRef;
                     const preferred = await queueClientAsync(harness, preference);
                     const noPreference = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.NoPreference);
 
-                    await harness.clock.advanceAsync(14_999);
+                    await harness.clock.advanceAsync(13_499);
                     expect(preferred.lobbyState).toBeUndefined();
                     expect(noPreference.lobbyState).toBeUndefined();
 
+                    await harness.clock.advanceAsync(1);
+                    expect(preferred.queueMatchmakingStatus.allowedOpponentPreferences).toContain(MatchmakingCompetitivenessPreference.NoPreference);
+                    expect(preferred.lobbyState).toBeUndefined();
+                    expect(noPreference.lobbyState).toBeUndefined();
+
+                    await harness.clock.advanceAsync(1_499);
+                    expect(preferred.lobbyState).toBeUndefined();
+                    expect(noPreference.lobbyState).toBeUndefined();
                     await harness.clock.advanceAsync(1);
                     expectMatched(preferred, noPreference);
                 });
             }
 
-            it('admits opposite preferences at exactly 30 seconds without waiting for another arrival', async function () {
+            it('previews opposite preferences at 28.5 seconds and matches at 30 seconds without needing another arrival', async function () {
                 const { harness } = contextRef;
                 const competitive = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive);
                 const casual = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual);
@@ -131,10 +139,18 @@ describe('GameServer matchmaking preferences', function () {
                 await harness.clock.advanceAsync(15_000);
                 expect(competitive.lobbyState).toBeUndefined();
                 expect(casual.lobbyState).toBeUndefined();
-                await harness.clock.advanceAsync(14_999);
+                await harness.clock.advanceAsync(13_499);
                 expect(competitive.lobbyState).toBeUndefined();
                 expect(casual.lobbyState).toBeUndefined();
 
+                await harness.clock.advanceAsync(1);
+                expect(competitive.queueMatchmakingStatus.allowedOpponentPreferences).toContain(MatchmakingCompetitivenessPreference.Casual);
+                expect(casual.queueMatchmakingStatus.allowedOpponentPreferences).toContain(MatchmakingCompetitivenessPreference.Competitive);
+                expect(competitive.lobbyState).toBeUndefined();
+                expect(casual.lobbyState).toBeUndefined();
+                await harness.clock.advanceAsync(1_499);
+                expect(competitive.lobbyState).toBeUndefined();
+                expect(casual.lobbyState).toBeUndefined();
                 await harness.clock.advanceAsync(1);
                 expectMatched(competitive, casual);
             });
@@ -172,6 +188,69 @@ describe('GameServer matchmaking preferences', function () {
                 const { harness } = contextRef;
                 const competitive = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive);
                 await harness.clock.advanceAsync(15_000);
+                const noPreference = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.NoPreference);
+
+                expectMatched(competitive, noPreference);
+            });
+
+            it('schedules the preview exactly 1.5 seconds before eligibility when the search starts between heartbeat ticks', async function () {
+                const { harness } = contextRef;
+                await harness.clock.advanceAsync(123);
+                const competitive = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive);
+                const noPreference = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.NoPreference);
+                const searchStartedAt = harness.clock.now();
+
+                await harness.clock.advanceAsync(13_499);
+                expect(competitive.queueMatchmakingStatus.stage).toBe(MatchmakingCompetitivenessPreferenceSearchStage.SamePreferenceOnly);
+                await harness.clock.advanceAsync(1);
+                const firstExpansion = competitive.receivedEvents('queueHeartbeat').find((event) =>
+                    event.args[1].allowedOpponentPreferences.includes(MatchmakingCompetitivenessPreference.NoPreference)
+                );
+                expect(firstExpansion.args[1].serverTime).toBe(searchStartedAt + 13_500);
+                expect(competitive.lobbyState).toBeUndefined();
+                expect(noPreference.lobbyState).toBeUndefined();
+
+                await harness.clock.advanceAsync(1_499);
+                expect(competitive.lobbyState).toBeUndefined();
+                expect(noPreference.lobbyState).toBeUndefined();
+                await harness.clock.advanceAsync(1);
+                expect(harness.clock.now()).toBe(searchStartedAt + 15_000);
+                expectMatched(competitive, noPreference);
+            });
+
+            it('still matches a same-preference arrival immediately while a new category is in its visibility grace', async function () {
+                const { harness } = contextRef;
+                const competitive = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive);
+                const noPreference = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.NoPreference);
+                await harness.clock.advanceAsync(13_500);
+
+                expect(competitive.queueMatchmakingStatus.allowedOpponentPreferences).toContain(MatchmakingCompetitivenessPreference.NoPreference);
+                expect(competitive.lobbyState).toBeUndefined();
+                const samePreference = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive);
+
+                expectMatched(competitive, samePreference);
+                expect(noPreference.lobbyState).toBeUndefined();
+            });
+
+            it('does not restart the grace when an opponent arrives after the new category was published', async function () {
+                const { harness } = contextRef;
+                const competitive = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive);
+                await harness.clock.advanceAsync(14_500);
+                const noPreference = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.NoPreference);
+
+                await harness.clock.advanceAsync(499);
+                expect(competitive.lobbyState).toBeUndefined();
+                expect(noPreference.lobbyState).toBeUndefined();
+                await harness.clock.advanceAsync(1);
+                expectMatched(competitive, noPreference);
+            });
+
+            it('does not pause a previously admitted category when the opposite preference is newly announced', async function () {
+                const { harness } = contextRef;
+                const competitive = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive);
+                await harness.clock.advanceAsync(28_500);
+
+                expect(competitive.queueMatchmakingStatus.stage).toBe(MatchmakingCompetitivenessPreferenceSearchStage.AnyPreference);
                 const noPreference = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.NoPreference);
 
                 expectMatched(competitive, noPreference);
@@ -283,16 +362,35 @@ describe('GameServer matchmaking preferences', function () {
                 expect(newcomer.lobbyState).toBeUndefined();
             });
 
-            it('does not start a retry timer for a lone player', async function () {
+            it('uses only an announcement timer for a lone preferred player', async function () {
                 const { harness } = contextRef;
                 const backgroundTaskCount = harness.clock.pendingTaskCount;
                 const competitive = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive);
 
-                expect(harness.clock.pendingTaskCount).toBe(backgroundTaskCount);
+                expect(harness.clock.pendingTaskCount).toBe(backgroundTaskCount + 1);
                 await harness.clock.advanceAsync(30_000);
                 expect(harness.clock.pendingTaskCount).toBe(backgroundTaskCount);
                 expect(competitive.lobbyState).toBeUndefined();
                 expect(competitive.queueMatchmakingStatus.stage).toBe(MatchmakingCompetitivenessPreferenceSearchStage.AnyPreference);
+            });
+
+            it('shares one announcement timer across formats without postponing the oldest preview', async function () {
+                const { harness } = contextRef;
+                const backgroundTaskCount = harness.clock.pendingTaskCount;
+                const competitive = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive);
+                const searchStartedAt = harness.clock.now();
+                await harness.clock.advanceAsync(10_000);
+                const eternalConfig = { ...matchConfig, format: SwuGameFormat.Eternal };
+                const casual = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual, {}, eternalConfig);
+
+                expect(harness.clock.pendingTaskCount).toBe(backgroundTaskCount + 1);
+                await harness.clock.advanceAsync(3_499);
+                expect(competitive.queueMatchmakingStatus.stage).toBe(MatchmakingCompetitivenessPreferenceSearchStage.SamePreferenceOnly);
+                await harness.clock.advanceAsync(1);
+                expect(competitive.queueMatchmakingStatus.serverTime).toBe(searchStartedAt + 13_500);
+                expect(competitive.queueMatchmakingStatus.stage).toBe(MatchmakingCompetitivenessPreferenceSearchStage.IncludesNoPreference);
+                expect(casual.queueMatchmakingStatus.stage).toBe(MatchmakingCompetitivenessPreferenceSearchStage.SamePreferenceOnly);
+                expect(harness.clock.pendingTaskCount).toBe(backgroundTaskCount + 1);
             });
 
             it('matches separate formats at their own deadlines without losing the later retry', async function () {
@@ -326,7 +424,7 @@ describe('GameServer matchmaking preferences', function () {
                 const competitive = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive);
                 const casual = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual);
 
-                expect(harness.clock.pendingTaskCount).toBe(backgroundTaskCount + 1);
+                expect(harness.clock.pendingTaskCount).toBe(backgroundTaskCount + 2);
                 await harness.shutdownAsync();
                 expect(harness.clock.pendingTaskCount).toBe(0);
 
@@ -398,20 +496,20 @@ describe('GameServer matchmaking preferences', function () {
                             serverTime: searchStartedAt,
                             stage: MatchmakingCompetitivenessPreferenceSearchStage.SamePreferenceOnly,
                             allowedOpponentPreferences: [preference],
-                            nextExpansionAt: searchStartedAt + 15_000,
+                            nextExpansionAt: searchStartedAt + 13_500,
                         },
                     ]);
 
-                    await harness.clock.advanceAsync(14_999);
+                    await harness.clock.advanceAsync(13_499);
                     expect(client.queueMatchmakingStatus.stage).toBe(MatchmakingCompetitivenessPreferenceSearchStage.SamePreferenceOnly);
                     await harness.clock.advanceAsync(1);
                     expect(client.queueMatchmakingStatus).toEqual({
                         preference,
                         searchStartedAt,
-                        serverTime: searchStartedAt + 15_000,
+                        serverTime: searchStartedAt + 13_500,
                         stage: MatchmakingCompetitivenessPreferenceSearchStage.IncludesNoPreference,
                         allowedOpponentPreferences: [preference, MatchmakingCompetitivenessPreference.NoPreference],
-                        nextExpansionAt: searchStartedAt + 30_000,
+                        nextExpansionAt: searchStartedAt + 28_500,
                     });
 
                     await harness.clock.advanceAsync(14_999);
@@ -420,7 +518,7 @@ describe('GameServer matchmaking preferences', function () {
                     expect(client.queueMatchmakingStatus).toEqual({
                         preference,
                         searchStartedAt,
-                        serverTime: searchStartedAt + 30_000,
+                        serverTime: searchStartedAt + 28_500,
                         stage: MatchmakingCompetitivenessPreferenceSearchStage.AnyPreference,
                         allowedOpponentPreferences: Object.values(MatchmakingCompetitivenessPreference),
                         nextExpansionAt: null,
@@ -474,7 +572,7 @@ describe('GameServer matchmaking preferences', function () {
                     preference: MatchmakingCompetitivenessPreference.Competitive,
                     searchStartedAt,
                     stage: MatchmakingCompetitivenessPreferenceSearchStage.SamePreferenceOnly,
-                    nextExpansionAt: searchStartedAt + 15_000,
+                    nextExpansionAt: searchStartedAt + 13_500,
                 }));
 
                 await harness.clock.advanceAsync(3_999);
@@ -496,22 +594,42 @@ describe('GameServer matchmaking preferences', function () {
                 expect(competitive.queueMatchmakingStatus).toEqual(jasmine.objectContaining({
                     preference: MatchmakingCompetitivenessPreference.Competitive,
                     searchStartedAt,
-                    nextExpansionAt: searchStartedAt + 15_000,
+                    nextExpansionAt: searchStartedAt + 13_500,
                 }));
             });
 
-            it('does not match a disconnected player at the preference deadline, but resumes immediately on reconnection', async function () {
+            it('preserves an elapsed expansion grace on reconnect instead of imposing another delay', async function () {
+                const { harness } = contextRef;
+                const competitive = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive);
+                const searchStartedAt = harness.clock.now();
+                await harness.clock.advanceAsync(17_000);
+                await competitive.disconnectTransportAsync();
+                await harness.clock.advanceAsync(1_000);
+                await competitive.connectAsync();
+
+                expect(competitive.queueMatchmakingStatus.searchStartedAt).toBe(searchStartedAt);
+                const noPreference = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.NoPreference);
+
+                expectMatched(competitive, noPreference);
+            });
+
+            it('announces an expansion missed during disconnection and waits before matching on reconnection', async function () {
                 const { harness } = contextRef;
                 const competitive = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive);
                 const noPreference = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.NoPreference);
                 const searchStartedAt = harness.clock.now();
-                await harness.clock.advanceAsync(14_000);
+                await harness.clock.advanceAsync(12_500);
                 await competitive.disconnectTransportAsync();
-                await harness.clock.advanceAsync(1_000);
+                await harness.clock.advanceAsync(2_000);
 
                 expect(noPreference.lobbyState).toBeUndefined();
                 await competitive.connectAsync();
                 expect(competitive.queueMatchmakingStatus.searchStartedAt).toBe(searchStartedAt);
+                expect(competitive.queueMatchmakingStatus.stage).toBe(MatchmakingCompetitivenessPreferenceSearchStage.IncludesNoPreference);
+                expect(competitive.lobbyState).toBeUndefined();
+                await harness.clock.advanceAsync(1_499);
+                expect(competitive.lobbyState).toBeUndefined();
+                await harness.clock.advanceAsync(1);
                 expectMatched(competitive, noPreference);
             });
 
@@ -537,7 +655,7 @@ describe('GameServer matchmaking preferences', function () {
                     preference: MatchmakingCompetitivenessPreference.Casual,
                     searchStartedAt: harness.clock.now(),
                     stage: MatchmakingCompetitivenessPreferenceSearchStage.SamePreferenceOnly,
-                    nextExpansionAt: harness.clock.now() + 15_000,
+                    nextExpansionAt: harness.clock.now() + 13_500,
                 }));
             });
 
@@ -582,7 +700,7 @@ describe('GameServer matchmaking preferences', function () {
                         preference: MatchmakingCompetitivenessPreference.Casual,
                         searchStartedAt,
                         stage: MatchmakingCompetitivenessPreferenceSearchStage.SamePreferenceOnly,
-                        nextExpansionAt: searchStartedAt + 15_000,
+                        nextExpansionAt: searchStartedAt + 13_500,
                     }));
                     const noPreference = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.NoPreference);
                     expect(noPreference.lobbyState).toBeUndefined();
@@ -615,7 +733,7 @@ describe('GameServer matchmaking preferences', function () {
                         preference: MatchmakingCompetitivenessPreference.Competitive,
                         searchStartedAt,
                         stage: MatchmakingCompetitivenessPreferenceSearchStage.IncludesNoPreference,
-                        nextExpansionAt: searchStartedAt + 30_000,
+                        nextExpansionAt: searchStartedAt + 28_500,
                     }));
 
                     const replacement = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.NoPreference);
@@ -632,14 +750,14 @@ describe('GameServer matchmaking preferences', function () {
                 const competitive = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive);
                 const casual = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual);
                 const searchStartedAt = harness.clock.now();
-                expect(competitive.queueMatchmakingStatus.nextExpansionAt).toBe(searchStartedAt + 2_000);
+                expect(competitive.queueMatchmakingStatus.nextExpansionAt).toBe(searchStartedAt + 500);
 
                 await harness.clock.advanceAsync(2_000);
                 expect(competitive.lobbyState).toBeUndefined();
                 expect(competitive.queueMatchmakingStatus).toEqual(jasmine.objectContaining({
                     stage: MatchmakingCompetitivenessPreferenceSearchStage.IncludesNoPreference,
                     allowedOpponentPreferences: [MatchmakingCompetitivenessPreference.Competitive, MatchmakingCompetitivenessPreference.NoPreference],
-                    nextExpansionAt: searchStartedAt + 5_000,
+                    nextExpansionAt: searchStartedAt + 3_500,
                 }));
                 await harness.clock.advanceAsync(2_999);
                 expect(competitive.lobbyState).toBeUndefined();

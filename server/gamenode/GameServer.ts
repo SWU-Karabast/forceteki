@@ -36,6 +36,7 @@ import { DeckLinkResolver } from '../utils/deck/DeckLinkResolver';
 import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
 import { getMatchmakingSearchContext } from './MatchmakingRules';
+import type { IMatchmakingSearchContext } from './MatchmakingRules';
 import { Helpers } from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
@@ -2905,7 +2906,8 @@ export class GameServer {
         user: User,
         deck: ISwuDbFormatDecklist,
         matchmakingPreference = MatchmakingCompetitivenessPreference.NoPreference,
-        searchStartedAt?: number
+        searchStartedAt?: number,
+        preferencesPublishedAt?: IMatchmakingSearchContext['preferencesPublishedAt']
     ) {
         try {
             // Gated here rather than on the 'requeue' socket event, since this is also reached by
@@ -2932,7 +2934,7 @@ export class GameServer {
             }
 
             // add user to queue
-            this.queue.addPlayer(format, { user, deck, socket, matchmakingPreference, searchStartedAt });
+            this.queue.addPlayer(format, { user, deck, socket, matchmakingPreference, searchStartedAt, preferencesPublishedAt });
 
             this.matchmakeAllQueuesAsync().catch((err) => logger.error('GameServer: Error matchmaking requeued user:', err));
         } catch (err) {

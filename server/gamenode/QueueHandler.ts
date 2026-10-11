@@ -21,6 +21,7 @@ export interface QueuedPlayerToAdd {
     user: User;
     matchmakingPreference?: MatchmakingCompetitivenessPreference;
     searchStartedAt?: number;
+    preferencesPublishedAt?: Partial<Record<MatchmakingCompetitivenessPreference, number>>;
 }
 
 export enum QueuedPlayerState {
@@ -31,6 +32,7 @@ export enum QueuedPlayerState {
 export interface QueuedPlayer extends QueuedPlayerToAdd {
     state: QueuedPlayerState;
     matchmakingPreference: MatchmakingCompetitivenessPreference;
+    preferencesPublishedAt: Partial<Record<MatchmakingCompetitivenessPreference, number>>;
     disconnectedSocketId?: string;
 }
 
@@ -59,9 +61,12 @@ export class QueueHandler {
     private readonly config: IGameNodeConfig;
     private readonly preferencePolicy: Readonly<IMatchmakingPreferencePolicy>;
     private readonly previousMatchCleanupTask: IScheduledTask;
+    private preferenceAnnouncementTask?: IScheduledTask;
 
     /** Cooldown interval (in seconds) for rematch prevention */
     public static readonly COOLDOWN_INTERVAL_SECONDS = 15;
+
+    public static readonly PREFERENCE_EXPANSION_VISIBILITY_DELAY_MS = 1_500;
 
     public constructor(scheduler: IScheduler, config: IGameNodeConfig) {
         this.scheduler = scheduler;
@@ -91,9 +96,11 @@ export class QueueHandler {
         );
     }
 
-    /** Stops the recurring cleanup task so the handler leaves nothing keeping the process alive. */
+    /** Stops queue-owned cleanup and preference announcements. */
     public shutdown() {
         this.previousMatchCleanupTask.cancel();
+        this.preferenceAnnouncementTask?.cancel();
+        this.preferenceAnnouncementTask = undefined;
     }
 
     /** Adds an entry for a player, but they can't match until they actually connect */
@@ -120,7 +127,12 @@ export class QueueHandler {
 
         this.playersWaitingToConnect.push({
             format,
-            player: { ...player, matchmakingPreference, state: QueuedPlayerState.WaitingForConnection }
+            player: {
+                ...player,
+                matchmakingPreference,
+                preferencesPublishedAt: { ...player.preferencesPublishedAt },
+                state: QueuedPlayerState.WaitingForConnection,
+            }
         });
         logger.info(`QueueHandler: Added user ${player.user.getId()} to waiting list for format ${this.queueKeyToString(format)} until they connect`);
 
@@ -158,6 +170,7 @@ export class QueueHandler {
         this.getQueueByFormat(playerEntry.format)?.push(playerEntry.player);
         logger.info(`QueueHandler: User ${userId} connected with socket id ${socket.id}, added to queue for format ${this.queueKeyToString(playerEntry.format)}`);
         this.sendPlayerHeartbeat(playerEntry.player);
+        this.scheduleNextPreferenceAnnouncement();
     }
 
     /** If the user exists in the queue and is connected, temporarily move them into a disconnected state while waiting for reconnection */
@@ -194,6 +207,7 @@ export class QueueHandler {
                 const parsedKey: IQueueFormatKey = JSON.parse(queueKey);
                 logger.info(`QueueHandler: Removing player ${userId} from queue for format ${this.queueKeyToString(parsedKey)}. Reason: ${reasonStr}`);
                 queue.splice(index, 1);
+                this.scheduleNextPreferenceAnnouncement();
                 return;
             }
         }
@@ -255,7 +269,37 @@ export class QueueHandler {
     private sendPlayerHeartbeat(player: QueuedPlayer) {
         Contract.assertNotNullLike(player.socket);
         const serverTime = this.scheduler.now();
-        player.socket.send('queueHeartbeat', serverTime, getQueueMatchmakingStatus(player, this.preferencePolicy, serverTime));
+        const status = getQueueMatchmakingStatus(player, this.preferencePolicy, serverTime, QueueHandler.PREFERENCE_EXPANSION_VISIBILITY_DELAY_MS);
+        player.socket.send('queueHeartbeat', serverTime, status);
+        for (const preference of status.allowedOpponentPreferences) {
+            player.preferencesPublishedAt[preference] ??= serverTime;
+        }
+    }
+
+    private scheduleNextPreferenceAnnouncement() {
+        this.preferenceAnnouncementTask?.cancel();
+        this.preferenceAnnouncementTask = undefined;
+
+        const serverTime = this.scheduler.now();
+        let nextAnnouncementAt: number | null = null;
+        for (const [_queueKey, queue] of this.iterateQueues()) {
+            for (const player of queue) {
+                const status = getQueueMatchmakingStatus(player, this.preferencePolicy, serverTime, QueueHandler.PREFERENCE_EXPANSION_VISIBILITY_DELAY_MS);
+                if (status.nextExpansionAt !== null) {
+                    nextAnnouncementAt = nextAnnouncementAt === null
+                        ? status.nextExpansionAt
+                        : Math.min(nextAnnouncementAt, status.nextExpansionAt);
+                }
+            }
+        }
+
+        if (nextAnnouncementAt !== null) {
+            this.preferenceAnnouncementTask = this.scheduler.setTimeout(() => {
+                this.preferenceAnnouncementTask = undefined;
+                this.sendHeartbeat();
+                this.scheduleNextPreferenceAnnouncement();
+            }, nextAnnouncementAt - serverTime, { message: 'QueueHandler: error announcing expanded matchmaking preferences' });
+        }
     }
 
     private findPlayerInQueue(userId: string): QueuedPlayerEntry | null {
@@ -282,6 +326,14 @@ export class QueueHandler {
         const queue = this.getQueueByFormat(format);
         if (!queue || queue.length < 2) {
             return null;
+        }
+
+        const serverTime = this.scheduler.now();
+        for (const player of queue) {
+            const status = getQueueMatchmakingStatus(player, this.preferencePolicy, serverTime, QueueHandler.PREFERENCE_EXPANSION_VISIBILITY_DELAY_MS);
+            if (status.allowedOpponentPreferences.some((preference) => player.preferencesPublishedAt[preference] === undefined)) {
+                this.sendPlayerHeartbeat(player);
+            }
         }
 
         return this.findMatchInQueue(queue, this.getMatchmakingRules());
@@ -311,7 +363,7 @@ export class QueueHandler {
     private getMatchmakingRules(): IMatchmakingRule[] {
         return [
             MatchmakingRule.rematchCooldown(QueueHandler.COOLDOWN_INTERVAL_SECONDS, this.scheduler, this.config.enforceRematchCooldown),
-            MatchmakingRule.preference(this.preferencePolicy, this.scheduler),
+            MatchmakingRule.preference(this.preferencePolicy, this.scheduler, QueueHandler.PREFERENCE_EXPANSION_VISIBILITY_DELAY_MS),
         ];
     }
 
@@ -367,6 +419,7 @@ export class QueueHandler {
             if (bestOpponent) {
                 queue.splice(queue.indexOf(bestOpponent), 1);
                 queue.splice(queue.indexOf(player1), 1);
+                this.scheduleNextPreferenceAnnouncement();
                 return [player1, bestOpponent];
             }
         }
