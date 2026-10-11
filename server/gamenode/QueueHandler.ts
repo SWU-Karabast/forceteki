@@ -6,20 +6,20 @@ import type { ISwuDbFormatDecklist } from '../utils/deck/DeckInterfaces';
 import { CardPool } from '../game/core/Constants';
 import { GamesToWinMode } from '../game/core/Constants';
 import { SwuGameFormat } from '../game/core/Constants';
-import { MatchmakingPreference } from '../game/core/Constants';
+import { MatchmakingCompetitivenessPreference } from '../game/core/Constants';
 import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 
 import type { IMatchmakingPlayerEntry, IMatchmakingRule } from './MatchmakingRules';
 import { getMatchmakingSearchContext, getQueueMatchmakingStatus, MatchmakingRule } from './MatchmakingRules';
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import type { IGameNodeConfig, IMatchmakingPreferencePolicy } from './GameNodeConfig';
-import { defaultMatchmakingPreferencePolicy, MatchmakingPreferencePolicyKey } from './GameNodeConfig';
+import { defaultMatchmakingPreferencePolicy, MatchmakingCompetitivenessPreferencePolicyKey } from './GameNodeConfig';
 
 export interface QueuedPlayerToAdd {
     deck: ISwuDbFormatDecklist;
     socket?: Socket;
     user: User;
-    matchmakingPreference?: MatchmakingPreference;
+    matchmakingPreference?: MatchmakingCompetitivenessPreference;
     searchStartedAt?: number;
 }
 
@@ -30,7 +30,7 @@ export enum QueuedPlayerState {
 
 export interface QueuedPlayer extends QueuedPlayerToAdd {
     state: QueuedPlayerState;
-    matchmakingPreference: MatchmakingPreference;
+    matchmakingPreference: MatchmakingCompetitivenessPreference;
     disconnectedSocketId?: string;
 }
 
@@ -67,7 +67,7 @@ export class QueueHandler {
         this.scheduler = scheduler;
         this.config = config;
         this.preferencePolicy = { ...(config.matchmakingPreferencePolicy ?? defaultMatchmakingPreferencePolicy) };
-        for (const name of Object.values(MatchmakingPreferencePolicyKey)) {
+        for (const name of Object.values(MatchmakingCompetitivenessPreferencePolicyKey)) {
             const durationMs = this.preferencePolicy[name];
             Contract.assertTrue(Number.isSafeInteger(durationMs) && durationMs >= 0, `Invalid matchmaking preference duration ${name}: ${durationMs}`);
         }
@@ -100,8 +100,8 @@ export class QueueHandler {
     public addPlayer(format: IQueueFormatKey, player: QueuedPlayerToAdd) {
         Contract.assertNotNullLike(player);
         Contract.assertNotNullLike(format);
-        const { matchmakingPreference = MatchmakingPreference.NoPreference } = player;
-        Contract.assertTrue(EnumHelpers.isEnumValue(matchmakingPreference, MatchmakingPreference), `Invalid matchmaking preference ${matchmakingPreference}`);
+        const { matchmakingPreference = MatchmakingCompetitivenessPreference.NoPreference } = player;
+        Contract.assertTrue(EnumHelpers.isEnumValue(matchmakingPreference, MatchmakingCompetitivenessPreference), `Invalid matchmaking preference ${matchmakingPreference}`);
         if (player.searchStartedAt !== undefined) {
             Contract.assertTrue(Number.isSafeInteger(player.searchStartedAt), `Invalid matchmaking search start ${player.searchStartedAt}`);
         }
@@ -320,11 +320,11 @@ export class QueueHandler {
     }
 
     private getOpponentPreferenceRank(player: QueuedPlayer, opponent: QueuedPlayer): number {
-        if (player.matchmakingPreference === MatchmakingPreference.NoPreference || player.matchmakingPreference === opponent.matchmakingPreference) {
+        if (player.matchmakingPreference === MatchmakingCompetitivenessPreference.NoPreference || player.matchmakingPreference === opponent.matchmakingPreference) {
             return 0;
         }
 
-        return opponent.matchmakingPreference === MatchmakingPreference.NoPreference ? 1 : 2;
+        return opponent.matchmakingPreference === MatchmakingCompetitivenessPreference.NoPreference ? 1 : 2;
     }
 
     /**

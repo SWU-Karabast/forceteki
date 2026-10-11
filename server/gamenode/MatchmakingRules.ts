@@ -1,19 +1,19 @@
 import type { PreviousMatchEntry, QueuedPlayer } from './QueueHandler';
 import type { IScheduler } from '../utils/IScheduler';
-import { MatchmakingPreference, MatchmakingSearchStage } from '../game/core/Constants';
+import { MatchmakingCompetitivenessPreference, MatchmakingCompetitivenessPreferenceSearchStage } from '../game/core/Constants';
 import { Contract } from '../game/core/utils/Contract';
 import type { IMatchmakingPreferencePolicy } from './GameNodeConfig';
-import { MatchmakingPreferencePolicyKey } from './GameNodeConfig';
+import { MatchmakingCompetitivenessPreferencePolicyKey } from './GameNodeConfig';
 
 export interface IMatchmakingSearchContext {
-    preference: MatchmakingPreference;
+    preference: MatchmakingCompetitivenessPreference;
     searchStartedAt: number;
 }
 
 export interface IQueueMatchmakingStatus extends IMatchmakingSearchContext {
     serverTime: number;
-    stage: MatchmakingSearchStage;
-    allowedOpponentPreferences: MatchmakingPreference[];
+    stage: MatchmakingCompetitivenessPreferenceSearchStage;
+    allowedOpponentPreferences: MatchmakingCompetitivenessPreference[];
     nextExpansionAt: number | null;
 }
 
@@ -36,19 +36,19 @@ export function getMatchmakingSearchContext(player: QueuedPlayer): IMatchmakingS
 
 function getOpponentPreferenceAvailableAt(
     player: QueuedPlayer,
-    opponentPreference: MatchmakingPreference,
+    opponentPreference: MatchmakingCompetitivenessPreference,
     policy: Readonly<IMatchmakingPreferencePolicy>
 ): number {
     Contract.assertNotNullLike(player.searchStartedAt, `Queued player ${player.user.getId()} has not started searching`);
 
-    if (player.matchmakingPreference === MatchmakingPreference.NoPreference || player.matchmakingPreference === opponentPreference) {
+    if (player.matchmakingPreference === MatchmakingCompetitivenessPreference.NoPreference || player.matchmakingPreference === opponentPreference) {
         return player.searchStartedAt;
     }
 
-    const noPreferenceAvailableAt = player.searchStartedAt + policy[MatchmakingPreferencePolicyKey.SamePreferenceOnlyDurationMs];
-    return opponentPreference === MatchmakingPreference.NoPreference
+    const noPreferenceAvailableAt = player.searchStartedAt + policy[MatchmakingCompetitivenessPreferencePolicyKey.SamePreferenceOnlyDurationMs];
+    return opponentPreference === MatchmakingCompetitivenessPreference.NoPreference
         ? noPreferenceAvailableAt
-        : noPreferenceAvailableAt + policy[MatchmakingPreferencePolicyKey.NoPreferenceDurationMs];
+        : noPreferenceAvailableAt + policy[MatchmakingCompetitivenessPreferencePolicyKey.NoPreferenceDurationMs];
 }
 
 export function getQueueMatchmakingStatus(
@@ -56,7 +56,7 @@ export function getQueueMatchmakingStatus(
     policy: Readonly<IMatchmakingPreferencePolicy>,
     serverTime: number
 ): IQueueMatchmakingStatus {
-    const preferenceAvailability = Object.values(MatchmakingPreference).map((preference) => ({
+    const preferenceAvailability = Object.values(MatchmakingCompetitivenessPreference).map((preference) => ({
         preference,
         availableAt: getOpponentPreferenceAvailableAt(player, preference, policy),
     }));
@@ -71,10 +71,10 @@ export function getQueueMatchmakingStatus(
         ...getMatchmakingSearchContext(player),
         serverTime,
         stage: allowedOpponentPreferences.length === 3
-            ? MatchmakingSearchStage.AnyPreference
+            ? MatchmakingCompetitivenessPreferenceSearchStage.AnyPreference
             : allowedOpponentPreferences.length === 2
-                ? MatchmakingSearchStage.IncludesNoPreference
-                : MatchmakingSearchStage.SamePreferenceOnly,
+                ? MatchmakingCompetitivenessPreferenceSearchStage.IncludesNoPreference
+                : MatchmakingCompetitivenessPreferenceSearchStage.SamePreferenceOnly,
         allowedOpponentPreferences,
         nextExpansionAt: futureExpansionTimes.length > 0 ? Math.min(...futureExpansionTimes) : null,
     };

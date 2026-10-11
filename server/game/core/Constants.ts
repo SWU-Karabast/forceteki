@@ -762,13 +762,13 @@ export enum GamesToWinMode {
     BestOfThree = 'bestOfThree',
 }
 
-export enum MatchmakingPreference {
+export enum MatchmakingCompetitivenessPreference {
     CompetitiveTesting = 'competitiveTesting',
     CasualBrewing = 'casualBrewing',
     NoPreference = 'noPreference',
 }
 
-export enum MatchmakingSearchStage {
+export enum MatchmakingCompetitivenessPreferenceSearchStage {
     SamePreferenceOnly = 'samePreferenceOnly',
     IncludesNoPreference = 'includesNoPreference',
     AnyPreference = 'anyPreference',

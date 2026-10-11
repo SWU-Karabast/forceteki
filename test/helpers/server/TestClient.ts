@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import type { Response as SupertestResponse } from 'supertest';
 
-import type { CardPool, GamesToWinMode, MatchmakingPreference, SwuGameFormat } from '../../../server/game/core/Constants';
+import type { CardPool, GamesToWinMode, MatchmakingCompetitivenessPreference, SwuGameFormat } from '../../../server/game/core/Constants';
 import type { IQueueMatchmakingStatus } from '../../../server/gamenode/MatchmakingRules';
 import type { IUserDataEntity } from '../../../server/services/DynamoDBInterfaces';
 import type { ISwuDbFormatDecklist } from '../../../server/utils/deck/DeckInterfaces';
@@ -180,7 +180,7 @@ export class TestClient {
         format: SwuGameFormat;
         cardPool: CardPool;
         gamesToWinMode: GamesToWinMode;
-        matchmakingPreference?: MatchmakingPreference;
+        matchmakingPreference?: MatchmakingCompetitivenessPreference;
     }): Promise<SupertestResponse> {
         return await this.withAuthCookie(this.harness.api.post('/api/enter-queue')).send({
             user: this.userPayload(),

@@ -1,16 +1,16 @@
-export enum MatchmakingPreferencePolicyKey {
+export enum MatchmakingCompetitivenessPreferencePolicyKey {
     SamePreferenceOnlyDurationMs = 'samePreferenceOnlyDurationMs',
     NoPreferenceDurationMs = 'noPreferenceDurationMs',
 }
 
 export interface IMatchmakingPreferencePolicy {
-    [MatchmakingPreferencePolicyKey.SamePreferenceOnlyDurationMs]: number;
-    [MatchmakingPreferencePolicyKey.NoPreferenceDurationMs]: number;
+    [MatchmakingCompetitivenessPreferencePolicyKey.SamePreferenceOnlyDurationMs]: number;
+    [MatchmakingCompetitivenessPreferencePolicyKey.NoPreferenceDurationMs]: number;
 }
 
 export const defaultMatchmakingPreferencePolicy: Readonly<IMatchmakingPreferencePolicy> = {
-    [MatchmakingPreferencePolicyKey.SamePreferenceOnlyDurationMs]: 15_000,
-    [MatchmakingPreferencePolicyKey.NoPreferenceDurationMs]: 15_000,
+    [MatchmakingCompetitivenessPreferencePolicyKey.SamePreferenceOnlyDurationMs]: 15_000,
+    [MatchmakingCompetitivenessPreferencePolicyKey.NoPreferenceDurationMs]: 15_000,
 };
 
 /**

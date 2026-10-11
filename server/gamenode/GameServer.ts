@@ -62,7 +62,7 @@ import {
 } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
-import { CardPool, MatchmakingPreference, SwuGameFormat } from '../game/core/Constants';
+import { CardPool, MatchmakingCompetitivenessPreference, SwuGameFormat } from '../game/core/Constants';
 import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 import { ModActionService } from '../utils/ModActionService';
@@ -1654,7 +1654,7 @@ export class GameServer {
                     return this.sendGamesDisabledResponse(res);
                 }
 
-                const { format, cardPool, gamesToWinMode, deck, swudbLink, matchmakingPreference = MatchmakingPreference.NoPreference } = req.body;
+                const { format, cardPool, gamesToWinMode, deck, swudbLink, matchmakingPreference = MatchmakingCompetitivenessPreference.NoPreference } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1682,7 +1682,7 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid card pool '${cardPool}'` });
                 }
 
-                if (!EnumHelpers.isEnumValue(matchmakingPreference, MatchmakingPreference)) {
+                if (!EnumHelpers.isEnumValue(matchmakingPreference, MatchmakingCompetitivenessPreference)) {
                     logger.error(`GameServer (enter-queue): Invalid matchmaking preference parameter ${matchmakingPreference}`);
                     return res.status(400).json({ success: false, message: `Invalid matchmaking preference '${matchmakingPreference}'` });
                 }
@@ -2738,7 +2738,7 @@ export class GameServer {
         gamesToWinMode: GamesToWinMode,
         user: User,
         deck: ISwuDbFormatDecklist,
-        matchmakingPreference: MatchmakingPreference
+        matchmakingPreference: MatchmakingCompetitivenessPreference
     ): boolean {
         const formatKey: IQueueFormatKey = {
             format,
@@ -2904,7 +2904,7 @@ export class GameServer {
         format: IQueueFormatKey,
         user: User,
         deck: ISwuDbFormatDecklist,
-        matchmakingPreference = MatchmakingPreference.NoPreference,
+        matchmakingPreference = MatchmakingCompetitivenessPreference.NoPreference,
         searchStartedAt?: number
     ) {
         try {
