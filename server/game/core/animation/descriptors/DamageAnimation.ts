@@ -18,12 +18,11 @@ export const damageAnimation: IAnimationDescriptor = {
         // `damageDealt` is what actually landed, already capped at remaining HP. `amount` is what
         // was requested and can be larger — animating that would show damage that never happened.
         amount: event.damageDealt,
-        remainingHp: event.card.remainingHp,
         damageType: event.type,
         isLethal: !!event.willDefeat,
         isIndirect: event.isIndirect,
     }),
     // Damage only lands on cards in an arena or on a base, and neither zone is ever hidden from
     // either player, so there is nothing to withhold.
-    redact: (record) => record,
+    projectForViewer: (record) => record,
 };

@@ -40,7 +40,6 @@ describe('Animation events', function() {
                 expect(toWampa).toBeDefined();
                 expect(toWampa.amount).toBe(3);
                 expect(toWampa.source).toBe(context.battlefieldMarine.uuid);
-                expect(toWampa.remainingHp).toBe(2);
                 expect(toWampa.isLethal).toBeFalse();
             });
 
@@ -55,7 +54,7 @@ describe('Animation events', function() {
                 const toMarine = context.getAnimationRecords(before)
                     .find((record) => record.kind === AnimationKind.Damage && record.target === context.battlefieldMarine.uuid);
 
-                expect(toMarine.remainingHp).toBe(0);
+                expect(toMarine.amount).toBe(3);
             });
 
             it('groups everything an attack resolves into one batch without merging the records', function () {
@@ -217,7 +216,7 @@ describe('Animation events', function() {
                         throw new Error('descriptor blew up');
                     } },
                     build: () => null,
-                    redact: (record) => record,
+                    projectForViewer: (record) => record,
                 };
 
                 // Registers against the live game alongside the real recorder.

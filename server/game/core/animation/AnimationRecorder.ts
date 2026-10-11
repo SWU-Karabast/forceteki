@@ -26,7 +26,7 @@ export class AnimationRecorder {
 
     private readonly log = new AnimationLog();
     private readonly descriptors: IAnimationDescriptor[];
-    private readonly redactorsByKind = new Map<AnimationKind, IAnimationDescriptor['redact']>();
+    private readonly projectorsByKind = new Map<AnimationKind, IAnimationDescriptor['projectForViewer']>();
     private readonly errorCounts = new Map<string, number>();
 
     /**
@@ -42,7 +42,7 @@ export class AnimationRecorder {
         descriptors: IAnimationDescriptor[]
     ) {
         this.descriptors = descriptors;
-        this.indexRedactors();
+        this.indexProjectors();
         this.registerListeners();
     }
 
@@ -57,7 +57,7 @@ export class AnimationRecorder {
 
     /** Builds one participant's animation payload and advances their cursor. */
     public readFor(participantId: string, viewer: Player | null): IAnimationStatePayload {
-        return this.log.readFor(participantId, viewer, (record, forViewer) => this.redact(record, forViewer));
+        return this.log.readFor(participantId, viewer, (record, forViewer) => this.projectForViewer(record, forViewer));
     }
 
     /** This participant's current cursor, without advancing it. */
@@ -74,19 +74,19 @@ export class AnimationRecorder {
     }
 
     /**
-     * One redactor per record kind, resolved at construction so a missing or ambiguous one is a
+     * One projector per record kind, resolved at construction so a missing or ambiguous one is a
      * startup failure rather than a silent information leak at serialization time.
      */
-    private indexRedactors(): void {
+    private indexProjectors(): void {
         for (const descriptor of this.descriptors) {
             for (const kind of descriptor.kinds) {
-                const existing = this.redactorsByKind.get(kind);
-                if (existing != null && existing !== descriptor.redact) {
+                const existing = this.projectorsByKind.get(kind);
+                if (existing != null && existing !== descriptor.projectForViewer) {
                     throw new Error(
-                        `Animation kind "${kind}" is claimed by more than one descriptor with differing redact functions (offender: "${descriptor.name}")`
+                        `Animation kind "${kind}" is claimed by more than one descriptor with differing projectForViewer functions (offender: "${descriptor.name}")`
                     );
                 }
-                this.redactorsByKind.set(kind, descriptor.redact);
+                this.projectorsByKind.set(kind, descriptor.projectForViewer);
             }
         }
     }
@@ -170,18 +170,18 @@ export class AnimationRecorder {
         return id;
     }
 
-    private redact(record: AnimationRecord, viewer: Player | null): AnimationRecord | null {
-        const redactor = this.redactorsByKind.get(record.kind);
-        if (redactor == null) {
-            // Default deny. A record whose kind has no redactor is one nobody has decided the
+    private projectForViewer(record: AnimationRecord, viewer: Player | null): AnimationRecord | null {
+        const projector = this.projectorsByKind.get(record.kind);
+        if (projector == null) {
+            // Default deny. A record whose kind has no projector is one nobody has decided the
             // visibility rules for, so it does not go out.
             return null;
         }
 
         try {
-            return redactor(record, viewer);
+            return projector(record, viewer);
         } catch (error) {
-            this.logError(`redact:${record.kind}`, record.kind, error);
+            this.logError(`projectForViewer:${record.kind}`, record.kind, error);
             return null;
         }
     }

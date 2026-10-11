@@ -72,7 +72,7 @@ export class AnimationLog {
     public readFor(
         participantId: string,
         viewer: Player | null,
-        redact: (record: AnimationRecord, viewer: Player | null) => AnimationRecord | null
+        projectForViewer: (record: AnimationRecord, viewer: Player | null) => AnimationRecord | null
     ): IAnimationStatePayload {
         const cursor = this.cursors.get(participantId) ?? this.headIndex;
         const truncated = cursor < this.baseIndex;
@@ -80,7 +80,7 @@ export class AnimationLog {
 
         const newAnimations: AnimationRecord[] = [];
         for (const record of this.records.slice(start - this.baseIndex)) {
-            const projected = redact(record, viewer);
+            const projected = projectForViewer(record, viewer);
             if (projected != null) {
                 // Shallow copy so the payload never aliases the stored record. `Game.getState`
                 // finishes with `convertNullToUndefinedRecursiveInPlace`, which mutates whatever

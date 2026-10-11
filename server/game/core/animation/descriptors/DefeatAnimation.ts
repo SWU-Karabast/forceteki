@@ -24,5 +24,5 @@ export const defeatAnimation: IAnimationDescriptor = {
         };
     },
     // Defeated cards are in play (units, and upgrades attached to them), which both players can see.
-    redact: (record) => record,
+    projectForViewer: (record) => record,
 };

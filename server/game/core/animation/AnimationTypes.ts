@@ -56,9 +56,6 @@ export interface IDamageAnimationRecord extends IAnimationRecordBase {
     /** Damage actually applied, already capped at the target's remaining HP. */
     amount: number;
 
-    /** The target's remaining HP immediately after this event resolved. */
-    remainingHp: number;
-
     damageType: DamageType;
 
     /**
@@ -116,7 +113,7 @@ export interface IAnimationDescriptor {
     name: string;
 
     /**
-     * The record kinds this descriptor can produce. Used to resolve the redactor for a record
+     * The record kinds this descriptor can produce. Used to resolve the projector for a record
      * at serialization time; a kind with no descriptor claiming it is withheld by default.
      */
     kinds: AnimationKind[];
@@ -137,7 +134,7 @@ export interface IAnimationDescriptor {
      * leak hidden information?" to be answered for every record kind, rather than in one
      * central filter that is easy to forget to extend.
      */
-    redact: (record: AnimationRecord, viewer: Player | null) => AnimationRecord | null;
+    projectForViewer: (record: AnimationRecord, viewer: Player | null) => AnimationRecord | null;
 }
 
 /** The animation fields added to the per-player game state payload. */
