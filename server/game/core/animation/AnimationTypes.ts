@@ -113,7 +113,7 @@ export interface IAnimationDescriptor {
     name: string;
 
     /**
-     * The record kinds this descriptor can produce. Used to resolve the projector for a record
+     * The record kinds this descriptor can produce. Used to resolve the summarize for a record
      * at serialization time; a kind with no descriptor claiming it is withheld by default.
      */
     kinds: AnimationKind[];
@@ -128,13 +128,14 @@ export interface IAnimationDescriptor {
     build: (event: any) => AnimationRecordDraft | AnimationRecordDraft[] | null;
 
     /**
-     * Per-recipient projection. Return null to withhold the record from this viewer entirely.
+     * The record as this viewer should see it. Return null to withhold it from this viewer
+     * entirely.
      *
      * Mandatory even when it is the identity function. That is the point: it forces "does this
      * leak hidden information?" to be answered for every record kind, rather than in one
      * central filter that is easy to forget to extend.
      */
-    projectForViewer: (record: AnimationRecord, viewer: Player | null) => AnimationRecord | null;
+    summarizeFor: (record: AnimationRecord, viewer: Player | null) => AnimationRecord | null;
 }
 
 /** The animation fields added to the per-player game state payload. */

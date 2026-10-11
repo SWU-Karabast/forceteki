@@ -24,5 +24,5 @@ export const damageAnimation: IAnimationDescriptor = {
     }),
     // Damage only lands on cards in an arena or on a base, and neither zone is ever hidden from
     // either player, so there is nothing to withhold.
-    projectForViewer: (record) => record,
+    summarizeFor: (record) => record,
 };

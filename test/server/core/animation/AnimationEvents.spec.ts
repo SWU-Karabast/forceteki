@@ -216,7 +216,7 @@ describe('Animation events', function() {
                         throw new Error('descriptor blew up');
                     } },
                     build: () => null,
-                    projectForViewer: (record) => record,
+                    summarizeFor: (record) => record,
                 };
 
                 // Registers against the live game alongside the real recorder.
