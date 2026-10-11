@@ -57,13 +57,13 @@ describe('QueueHandler matchmaking preferences', function () {
 
     describe('partner selection', function () {
         it('prefers the same preference over older no-preference and opposite-preference opponents', async function () {
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
             await clock.advanceAsync(1);
-            const casual = addPlayer('casual', MatchmakingCompetitivenessPreference.CasualBrewing);
+            const casual = addPlayer('casual', MatchmakingCompetitivenessPreference.Casual);
             await clock.advanceAsync(1);
             const noPreference = addPlayer('no-preference', MatchmakingCompetitivenessPreference.NoPreference);
             await clock.advanceAsync(1);
-            const samePreference = addPlayer('same-preference', MatchmakingCompetitivenessPreference.CompetitiveTesting);
+            const samePreference = addPlayer('same-preference', MatchmakingCompetitivenessPreference.Competitive);
             await clock.advanceAsync(30_000);
 
             expect(queue.getNextMatchPair(format)).toEqual([competitive, samePreference]);
@@ -73,9 +73,9 @@ describe('QueueHandler matchmaking preferences', function () {
         });
 
         it('prefers no preference over an older opposite-preference opponent', async function () {
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
             await clock.advanceAsync(1);
-            addPlayer('casual', MatchmakingCompetitivenessPreference.CasualBrewing);
+            addPlayer('casual', MatchmakingCompetitivenessPreference.Casual);
             await clock.advanceAsync(1);
             const noPreference = addPlayer('no-preference', MatchmakingCompetitivenessPreference.NoPreference);
             await clock.advanceAsync(30_000);
@@ -84,38 +84,38 @@ describe('QueueHandler matchmaking preferences', function () {
         });
 
         it('uses an opposite preference once both searches are unrestricted', async function () {
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting);
-            const casual = addPlayer('casual', MatchmakingCompetitivenessPreference.CasualBrewing);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
+            const casual = addPlayer('casual', MatchmakingCompetitivenessPreference.Casual);
             await clock.advanceAsync(30_000);
 
             expect(queue.getNextMatchPair(format)).toEqual([competitive, casual]);
         });
 
         it('prioritizes the oldest eligible player rather than a newer same-preference pair', async function () {
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
             await clock.advanceAsync(1);
-            const olderCasual = addPlayer('older-casual', MatchmakingCompetitivenessPreference.CasualBrewing);
+            const olderCasual = addPlayer('older-casual', MatchmakingCompetitivenessPreference.Casual);
             await clock.advanceAsync(1);
-            addPlayer('newer-casual', MatchmakingCompetitivenessPreference.CasualBrewing);
+            addPlayer('newer-casual', MatchmakingCompetitivenessPreference.Casual);
             await clock.advanceAsync(30_000);
 
             expect(queue.getNextMatchPair(format)).toEqual([competitive, olderCasual]);
         });
 
         it('breaks ties within a preference tier by search age', async function () {
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
             await clock.advanceAsync(1);
-            const olderOpponent = addPlayer('older-opponent', MatchmakingCompetitivenessPreference.CompetitiveTesting);
+            const olderOpponent = addPlayer('older-opponent', MatchmakingCompetitivenessPreference.Competitive);
             await clock.advanceAsync(1);
-            addPlayer('newer-opponent', MatchmakingCompetitivenessPreference.CompetitiveTesting);
+            addPlayer('newer-opponent', MatchmakingCompetitivenessPreference.Competitive);
 
             expect(queue.getNextMatchPair(format)).toEqual([competitive, olderOpponent]);
         });
 
         it('preserves insertion order when search timestamps are equal', function () {
-            const first = addPlayer('first', MatchmakingCompetitivenessPreference.CasualBrewing);
-            const second = addPlayer('second', MatchmakingCompetitivenessPreference.CasualBrewing);
-            addPlayer('third', MatchmakingCompetitivenessPreference.CasualBrewing);
+            const first = addPlayer('first', MatchmakingCompetitivenessPreference.Casual);
+            const second = addPlayer('second', MatchmakingCompetitivenessPreference.Casual);
+            addPlayer('third', MatchmakingCompetitivenessPreference.Casual);
 
             expect(queue.getNextMatchPair(format)).toEqual([first, second]);
         });
@@ -123,7 +123,7 @@ describe('QueueHandler matchmaking preferences', function () {
         it('uses oldest-first opponent selection for a no-preference player without favoring another no-preference player', async function () {
             const oldest = addPlayer('oldest', MatchmakingCompetitivenessPreference.NoPreference);
             await clock.advanceAsync(1);
-            const casual = addPlayer('casual', MatchmakingCompetitivenessPreference.CasualBrewing);
+            const casual = addPlayer('casual', MatchmakingCompetitivenessPreference.Casual);
             await clock.advanceAsync(1);
             addPlayer('no-preference', MatchmakingCompetitivenessPreference.NoPreference);
             await clock.advanceAsync(15_000);
@@ -132,9 +132,9 @@ describe('QueueHandler matchmaking preferences', function () {
         });
 
         it('matches later eligible players when the oldest player has no eligible opponent', function () {
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting);
-            const casual1 = addPlayer('casual-1', MatchmakingCompetitivenessPreference.CasualBrewing);
-            const casual2 = addPlayer('casual-2', MatchmakingCompetitivenessPreference.CasualBrewing);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
+            const casual1 = addPlayer('casual-1', MatchmakingCompetitivenessPreference.Casual);
+            const casual2 = addPlayer('casual-2', MatchmakingCompetitivenessPreference.Casual);
 
             expect(queue.getNextMatchPair(format)).toEqual([casual1, casual2]);
             expect(queue.findPlayer(competitive.user.getId()).player).toBe(competitive);
@@ -142,8 +142,8 @@ describe('QueueHandler matchmaking preferences', function () {
 
         it('skips a same-preference opponent blocked by rematch cooldown instead of overriding the cooldown', function () {
             const searchStartedAt = clock.now() - 30_000;
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting, searchStartedAt);
-            addPlayer('previous-opponent', MatchmakingCompetitivenessPreference.CompetitiveTesting, searchStartedAt);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive, searchStartedAt);
+            addPlayer('previous-opponent', MatchmakingCompetitivenessPreference.Competitive, searchStartedAt);
             const noPreference = addPlayer('no-preference', MatchmakingCompetitivenessPreference.NoPreference, searchStartedAt);
             queue.setPreviousMatchEntry('competitive', 'previous-opponent', clock.now());
 
@@ -161,8 +161,8 @@ describe('QueueHandler matchmaking preferences', function () {
         });
 
         it('keeps a disconnected player out of matching without losing the original search context', function () {
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting);
-            addPlayer('opponent', MatchmakingCompetitivenessPreference.CompetitiveTesting);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
+            addPlayer('opponent', MatchmakingCompetitivenessPreference.Competitive);
             const socketId = competitive.socket.id;
             queue.disconnectPlayer('competitive', socketId);
 
@@ -171,14 +171,14 @@ describe('QueueHandler matchmaking preferences', function () {
             expect(queue.isWaitingForReconnection('competitive', socketId)).toBeTrue();
             expect(queue.findPlayer('competitive').player).toEqual(jasmine.objectContaining({
                 state: QueuedPlayerState.WaitingForConnection,
-                matchmakingPreference: MatchmakingCompetitivenessPreference.CompetitiveTesting,
+                matchmakingPreference: MatchmakingCompetitivenessPreference.Competitive,
                 searchStartedAt: competitive.searchStartedAt,
                 socket: undefined,
             }));
         });
 
         it('retains oldest-player priority after a reconnect moves the entry to the end of the queue', async function () {
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
             await clock.advanceAsync(5_000);
             const noPreference = addPlayer('no-preference', MatchmakingCompetitivenessPreference.NoPreference);
             queue.disconnectPlayer('competitive', competitive.socket.id);
@@ -193,7 +193,7 @@ describe('QueueHandler matchmaking preferences', function () {
         });
 
         it('ignores a stale disconnect for a replaced socket', function () {
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
             const oldSocketId = competitive.socket.id;
             const replacementSocket = new FakeIoSocket({ query: {} });
             replacementSocket.data.user = competitive.user;
@@ -208,15 +208,15 @@ describe('QueueHandler matchmaking preferences', function () {
     describe('retry deadlines', function () {
         it('has no match deadline for an empty queue or a lone player', function () {
             expect(queue.getNextMatchAvailableAt(format)).toBeNull();
-            addPlayer('only-player', MatchmakingCompetitivenessPreference.CompetitiveTesting);
+            addPlayer('only-player', MatchmakingCompetitivenessPreference.Competitive);
             expect(queue.getNextMatchAvailableAt(format)).toBeNull();
             expect(queue.findReadyFormats()).toEqual([]);
         });
 
         it('finds the earliest mutually eligible deadline across all queued pairs', async function () {
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
             await clock.advanceAsync(1_000);
-            addPlayer('casual', MatchmakingCompetitivenessPreference.CasualBrewing);
+            addPlayer('casual', MatchmakingCompetitivenessPreference.Casual);
             await clock.advanceAsync(1_000);
             addPlayer('no-preference', MatchmakingCompetitivenessPreference.NoPreference);
 
@@ -225,7 +225,7 @@ describe('QueueHandler matchmaking preferences', function () {
         });
 
         it('takes the later of preference eligibility and rematch eligibility', function () {
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
             addPlayer('no-preference', MatchmakingCompetitivenessPreference.NoPreference);
             queue.setPreviousMatchEntry('competitive', 'no-preference', clock.now() + 5_000);
 
@@ -233,7 +233,7 @@ describe('QueueHandler matchmaking preferences', function () {
         });
 
         it('admits a pair at the exact shared preference and rematch deadline', async function () {
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
             const noPreference = addPlayer('no-preference', MatchmakingCompetitivenessPreference.NoPreference);
             queue.setPreviousMatchEntry('competitive', 'no-preference', clock.now());
 
@@ -254,15 +254,15 @@ describe('QueueHandler matchmaking preferences', function () {
 
         for (const otherFormat of otherFormats) {
             it(`never crosses the ${otherFormat.description} boundary after preference restrictions expire`, async function () {
-                const premier = addPlayer('premier', MatchmakingCompetitivenessPreference.CompetitiveTesting);
-                const otherPlayer = addPlayer('other-player', MatchmakingCompetitivenessPreference.CompetitiveTesting, undefined, otherFormat.key);
+                const premier = addPlayer('premier', MatchmakingCompetitivenessPreference.Competitive);
+                const otherPlayer = addPlayer('other-player', MatchmakingCompetitivenessPreference.Competitive, undefined, otherFormat.key);
                 await clock.advanceAsync(30_000);
 
                 expect(queue.getNextMatchPair(format)).toBeNull();
                 expect(queue.getNextMatchPair(otherFormat.key)).toBeNull();
                 expect(queue.findReadyFormats()).toEqual([]);
 
-                const otherOpponent = addPlayer('other-opponent', MatchmakingCompetitivenessPreference.CompetitiveTesting, undefined, otherFormat.key);
+                const otherOpponent = addPlayer('other-opponent', MatchmakingCompetitivenessPreference.Competitive, undefined, otherFormat.key);
                 expect(queue.findReadyFormats()).toEqual([otherFormat.key]);
                 expect(queue.getNextMatchPair(otherFormat.key)).toEqual([otherPlayer, otherOpponent]);
                 expect(queue.findPlayer('premier').player).toBe(premier);
@@ -283,7 +283,7 @@ describe('QueueHandler matchmaking preferences', function () {
         });
 
         it('uses the configured first window rather than a hardcoded 15 seconds', async function () {
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
             const noPreference = addPlayer('no-preference', MatchmakingCompetitivenessPreference.NoPreference);
             expect(queue.getNextMatchAvailableAt(format)).toBe(competitive.searchStartedAt + 2_000);
 
@@ -294,8 +294,8 @@ describe('QueueHandler matchmaking preferences', function () {
         });
 
         it('adds both configured windows before admitting an opposite preference', async function () {
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting);
-            const casual = addPlayer('casual', MatchmakingCompetitivenessPreference.CasualBrewing);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
+            const casual = addPlayer('casual', MatchmakingCompetitivenessPreference.Casual);
             expect(queue.getNextMatchAvailableAt(format)).toBe(competitive.searchStartedAt + 5_000);
 
             await clock.advanceAsync(4_999);
@@ -313,8 +313,8 @@ describe('QueueHandler matchmaking preferences', function () {
                     [MatchmakingCompetitivenessPreferencePolicyKey.NoPreferenceDurationMs]: 0,
                 },
             });
-            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.CompetitiveTesting);
-            const casual = addPlayer('casual', MatchmakingCompetitivenessPreference.CasualBrewing);
+            const competitive = addPlayer('competitive', MatchmakingCompetitivenessPreference.Competitive);
+            const casual = addPlayer('casual', MatchmakingCompetitivenessPreference.Casual);
 
             expect(queue.getNextMatchPair(format)).toEqual([competitive, casual]);
         });

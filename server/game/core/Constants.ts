@@ -763,8 +763,8 @@ export enum GamesToWinMode {
 }
 
 export enum MatchmakingCompetitivenessPreference {
-    CompetitiveTesting = 'competitiveTesting',
-    CasualBrewing = 'casualBrewing',
+    Competitive = 'competitiveTesting',
+    Casual = 'casualBrewing',
     NoPreference = 'noPreference',
 }
 
