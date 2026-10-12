@@ -254,9 +254,9 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             this.unattach();
         }
 
-        // Base upgrades attach only to their controller's own base, so control never transfers for them;
-        // the takeControl path (and its arena-only zone parameter) applies to unit hosts only.
-        if (newController && newController !== this.controller && newParentCard.zoneName !== ZoneName.Base) {
+        // the player who plays an upgrade controls it, even if it comes from the opponent's discard pile
+        // (e.g. a Fortify upgrade played with A Fine Addition)
+        if (newController && newController !== this.controller) {
             this.takeControl(newController, newParentCard.zoneName);
         } else {
             this.moveTo(

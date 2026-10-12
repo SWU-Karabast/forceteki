@@ -1,5 +1,6 @@
-import { Duration, EffectName, EventName, RelativePlayer, ZoneName } from '../Constants';
+import { AbilityType, Duration, EffectName, EventName, RelativePlayer, ZoneName } from '../Constants';
 import type { GameEvent } from '../event/GameEvent';
+import type { EventWindow } from '../event/EventWindow';
 import type { OngoingEffect } from './OngoingEffect';
 import type { OngoingEffectSourceBase } from './OngoingEffectSource';
 import { EventRegistrar } from '../event/EventRegistrar';
@@ -12,11 +13,11 @@ import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, stateRefArray, statePrimitive, type GameObjectId } from '../GameObjectUtils';
 import type { MsgArg } from '../chat/GameChat';
-import type { IOngoingEffectSummary } from '../../Interfaces';
+import type { IOngoingEffectSummary, WhenType } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type { Player } from '../Player';
 
-interface ICustomDurationEventState extends IGameObjectBaseState {
+interface IEffectEventListenerState extends IGameObjectBaseState {
     isRegistered: boolean;
 }
 
@@ -191,8 +192,9 @@ function effectLimitReached(effect: OngoingEffect): boolean {
     return limited.length > 0 && limited.every((applied) => applied.isExpired());
 }
 
+/** A game event listener owned by an ongoing effect, kept registered across snapshot rollbacks */
 @registerState()
-class CustomDurationEvent extends GameObjectBase {
+class EffectEventListener extends GameObjectBase {
     public readonly name: string;
     public readonly handler: (...args: any[]) => void;
     public readonly effect: OngoingEffect<any>;
@@ -216,7 +218,7 @@ class CustomDurationEvent extends GameObjectBase {
         this.game.removeListener(this.name, this.handler);
     }
 
-    protected override afterSetState(oldState: ICustomDurationEventState): void {
+    protected override afterSetState(oldState: IEffectEventListenerState): void {
         if (this.isRegistered !== oldState.isRegistered) {
             if (this.isRegistered) {
                 this.registerEvent();
@@ -226,7 +228,7 @@ class CustomDurationEvent extends GameObjectBase {
         }
     }
 
-    public override cleanupOnRemove(oldState: ICustomDurationEventState): void {
+    public override cleanupOnRemove(oldState: IEffectEventListenerState): void {
         if (oldState.isRegistered) {
             this.unregisterEvent();
         }
@@ -251,7 +253,7 @@ export class OngoingEffectEngine extends GameObjectBase {
     public accessor effects: readonly OngoingEffect[] = [];
 
     @stateRefArray()
-    public accessor customDurationEvents: readonly CustomDurationEvent[] = [];
+    public accessor effectEventListeners: readonly EffectEventListener[] = [];
 
     public constructor(game: Game) {
         super(game);
@@ -266,6 +268,9 @@ export class OngoingEffectEngine extends GameObjectBase {
         this.effects = [...this.effects, effect];
         if (effect.duration === Duration.Custom) {
             this.registerCustomDurationEvents(effect);
+        }
+        if (effect.impl.type === EffectName.DelayedEffect) {
+            this.registerDelayedEffectEvents(effect);
         }
         this.effectsChangedSinceLastCheck = true;
         return effect;
@@ -339,9 +344,13 @@ export class OngoingEffectEngine extends GameObjectBase {
         return summaries;
     }
 
-    public checkDelayedEffects(events: GameEvent[]) {
+    public checkDelayedEffects(events: GameEvent[], triggeredEffects: OngoingEffect<any>[]) {
         const effectsToTrigger: OngoingEffect<any>[] = [];
         const effectsToRemove: OngoingEffect<any>[] = [];
+
+        for (const effect of triggeredEffects) {
+            effect.delayedTriggerPending = false;
+        }
 
         for (const effect of this.effects.filter(
             (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
@@ -351,13 +360,8 @@ export class OngoingEffectEngine extends GameObjectBase {
                 if (properties.condition(effect.context)) {
                     effectsToTrigger.push(effect);
                 }
-            } else {
-                const triggeringEvents = events.filter((event) => properties.when[event.name]);
-                if (triggeringEvents.length > 0) {
-                    if (triggeringEvents.some((event) => properties.when[event.name](event, effect.context))) {
-                        effectsToTrigger.push(effect);
-                    }
-                }
+            } else if (triggeredEffects.includes(effect)) {
+                effectsToTrigger.push(effect);
             }
         }
 
@@ -401,16 +405,10 @@ export class OngoingEffectEngine extends GameObjectBase {
             });
         }
 
-        for (const effect of this.effects.filter(
-            (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
-        )) {
+        for (const effect of effectsToTrigger) {
             const properties = effect.impl.getValue();
-            const triggeringEvents = events.filter((event) => properties.when[event.name]);
-
-            if (triggeringEvents.length > 0) {
-                if (properties.limit.isAtMax(effect.source.owner)) {
-                    effectsToRemove.push(effect);
-                }
+            if (properties.limit.isAtMax(effect.context.player)) {
+                effectsToRemove.push(effect);
             }
         }
 
@@ -482,9 +480,7 @@ export class OngoingEffectEngine extends GameObjectBase {
 
     private unapplyEffect(effect: OngoingEffect<any>) {
         effect.cancel();
-        if (effect.duration === Duration.Custom) {
-            this.unregisterCustomDurationEvents(effect);
-        }
+        this.unregisterEffectEventListeners(effect);
     }
 
     public unapplyAndRemove(match: (effect: OngoingEffect<any>) => boolean) {
@@ -527,30 +523,51 @@ export class OngoingEffectEngine extends GameObjectBase {
             return;
         }
 
-        const handler = this.createCustomDurationHandler(effect);
-
-        const newEvents: CustomDurationEvent[] = [];
-        for (const eventName of Object.keys(effect.until)) {
-            const newEvent = new CustomDurationEvent(this.game, eventName, handler, effect);
-            newEvent.registerEvent();
-            newEvents.push(newEvent);
-        }
-
-        this.customDurationEvents = [...this.customDurationEvents, ...newEvents];
+        this.registerEffectEventListeners(effect, Object.keys(effect.until), this.createCustomDurationHandler(effect));
     }
 
-    private unregisterCustomDurationEvents(effect: OngoingEffect<any>) {
-        const remainingEvents: CustomDurationEvent[] = [];
+    /**
+     * Delayed effects listen for their 'when' events on the post-handler emit from {@link EventWindow},
+     * which carries the emitting window so that it can fire the matched effect at its game state check
+     */
+    private registerDelayedEffectEvents(effect: OngoingEffect<any>) {
+        const when: WhenType = effect.impl.getValue().when;
+        if (!when) {
+            return;
+        }
 
-        for (const event of this.customDurationEvents) {
-            if (event.effect === effect) {
-                event.unregisterEvent();
+        const eventNames = Object.keys(when).map((eventName) => `${eventName}:${AbilityType.DelayedEffect}`);
+        this.registerEffectEventListeners(effect, eventNames, (event: GameEvent, window: EventWindow) => {
+            if (effect.isEffectActive() && !effect.delayedTriggerPending && when[event.name](event, effect.context)) {
+                effect.delayedTriggerPending = true;
+                window.addTriggeredDelayedEffect(effect);
+            }
+        });
+    }
+
+    private registerEffectEventListeners(effect: OngoingEffect<any>, eventNames: string[], handler: (...args: any[]) => void) {
+        const newListeners: EffectEventListener[] = [];
+        for (const eventName of eventNames) {
+            const newListener = new EffectEventListener(this.game, eventName, handler, effect);
+            newListener.registerEvent();
+            newListeners.push(newListener);
+        }
+
+        this.effectEventListeners = [...this.effectEventListeners, ...newListeners];
+    }
+
+    private unregisterEffectEventListeners(effect: OngoingEffect<any>) {
+        const remainingListeners: EffectEventListener[] = [];
+
+        for (const listener of this.effectEventListeners) {
+            if (listener.effect === effect) {
+                listener.unregisterEvent();
             } else {
-                remainingEvents.push(event);
+                remainingListeners.push(listener);
             }
         }
 
-        this.customDurationEvents = remainingEvents;
+        this.effectEventListeners = remainingListeners;
     }
 
     private createCustomDurationHandler(customDurationEffect: OngoingEffect<any>) {
@@ -559,7 +576,7 @@ export class OngoingEffectEngine extends GameObjectBase {
             const listener = customDurationEffect.until[event.name];
             if (listener && listener(event, customDurationEffect.context)) {
                 customDurationEffect.cancel();
-                this.unregisterCustomDurationEvents(customDurationEffect);
+                this.unregisterEffectEventListeners(customDurationEffect);
                 this.effects = this.effects.filter((effect) => effect !== customDurationEffect);
             }
         };
