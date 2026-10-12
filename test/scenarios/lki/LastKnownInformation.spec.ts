@@ -212,9 +212,15 @@ describe('Last known information', function () {
                 // Both triggers belong to player1, so player1 picks the order. Resolving the Bounty
                 // first replays the Landspeeder under player1's control with an Experience token,
                 // where player2's two Snokes (-4/-4) immediately defeat it again. That writes a
-                // second record for the same physical card, before HK-47 has resolved.
+                // second record for the same physical card, before HK-47 has resolved. The Bounty is
+                // optional, but with two triggers in the window it is chosen inline, so clicking it
+                // resolves it with no separate Trigger prompt.
                 context.player1.clickPrompt('Collect Bounty: If you own this unit, play it from your discard pile for free and give an Experience token to it');
-                context.player1.clickPrompt('Trigger');
+
+                // The replayed copy leaves two triggers pending: player1's When Played (a no-op,
+                // since it was not played from hand) and player2's Bounty on its second defeat.
+                // The order they resolve in does not matter here.
+                context.player1.clickPrompt('You');
                 context.player2.clickPrompt('Pass');
 
                 expect(landspeeder).toBeInZone('discard', context.player1);
