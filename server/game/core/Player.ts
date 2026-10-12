@@ -1375,12 +1375,14 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             }
 
             // Deck, top card first. Only a few cards from the top and bottom to avoid excessive data, since effects
-            // mostly look at either end. Loaded as a test setup, the bottom cards still end up at the bottom of the deck.
-            const deckCards = this.deckZone.cards;
-            const capturedDeckCards = deckCards.length > 2 * Player.CapturedDeckCardsPerEnd
-                ? [...deckCards.slice(0, Player.CapturedDeckCardsPerEnd), ...deckCards.slice(-Player.CapturedDeckCardsPerEnd)]
-                : deckCards;
-            state.deck = capturedDeckCards.map((card) => card.internalName);
+            // mostly look at either end. A short deck goes into `deck` completely.
+            const deckCardNames = this.deckZone.cards.map((card) => card.internalName);
+            if (deckCardNames.length > 2 * Player.CapturedDeckCardsPerEnd) {
+                state.deck = deckCardNames.slice(0, Player.CapturedDeckCardsPerEnd);
+                state.deckBottom = deckCardNames.slice(-Player.CapturedDeckCardsPerEnd);
+            } else {
+                state.deck = deckCardNames;
+            }
 
             // Resources
             if (this.resourceZone.count > 0) {

@@ -43,6 +43,7 @@ describe('Bug report game state serialization', function () {
             const state = context.game.captureGameState(context.player1.id);
 
             expect(state.player1.deck).toEqual(['atst', 'cartel-spacer', 'alliance-xwing', 'rebel-pathfinder', 'death-trooper', 'viper-probe-droid']);
+            expect(state.player1.deckBottom).toBeUndefined();
         });
 
         it('should serialize the reporting player as player1', function () {
@@ -69,15 +70,45 @@ describe('Bug report game state serialization', function () {
                 });
             });
 
-            it('should serialize the top five and bottom five deck cards in setup order', function () {
+            it('should serialize the top five cards as deck and the bottom five as deckBottom', function () {
                 const { context } = contextRef;
 
                 const state = context.game.captureGameState(context.player1.id);
 
-                expect(state.player1.deck).toEqual([
-                    'atst', 'cartel-spacer', 'alliance-xwing', 'rebel-pathfinder', 'death-trooper',
-                    'pyke-sentinel', 'battlefield-marine', 'frontier-atrt', 'consular-security-force', 'snowspeeder'
-                ]);
+                expect(state.player1.deck).toEqual(['atst', 'cartel-spacer', 'alliance-xwing', 'rebel-pathfinder', 'death-trooper']);
+                expect(state.player1.deckBottom).toEqual(['pyke-sentinel', 'battlefield-marine', 'frontier-atrt', 'consular-security-force', 'snowspeeder']);
+            });
+        });
+    });
+
+    integration(function (contextRef) {
+        describe('with deckBottom in the setup', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        deck: ['atst', 'cartel-spacer', 'alliance-xwing', 'rebel-pathfinder', 'death-trooper', 'viper-probe-droid'],
+                        deckBottom: ['pyke-sentinel', 'battlefield-marine', 'frontier-atrt', 'consular-security-force', 'snowspeeder']
+                    }
+                });
+            });
+
+            it('should place the deckBottom cards below the deck cards, last card at the very bottom', function () {
+                const { context } = contextRef;
+
+                expect(context.player1.deck.length).toBe(11);
+                expect(context.player1.deck[0]).toBe(context.atst);
+                expect(context.player1.deck[6]).toBe(context.pykeSentinel);
+                expect(context.player1.deck[10]).toBe(context.snowspeeder);
+            });
+
+            it('should serialize back into the same deck and deckBottom', function () {
+                const { context } = contextRef;
+
+                const state = context.game.captureGameState(context.player1.id);
+
+                expect(state.player1.deck).toEqual(['atst', 'cartel-spacer', 'alliance-xwing', 'rebel-pathfinder', 'death-trooper']);
+                expect(state.player1.deckBottom).toEqual(['pyke-sentinel', 'battlefield-marine', 'frontier-atrt', 'consular-security-force', 'snowspeeder']);
             });
         });
     });
