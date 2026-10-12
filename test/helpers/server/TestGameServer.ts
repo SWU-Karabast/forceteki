@@ -2,6 +2,7 @@ import { GameServer } from '../../../server/gamenode/GameServer';
 import type { IGameNodeConfig } from '../../../server/gamenode/GameNodeConfig';
 import type { DeckValidator } from '../../../server/utils/deck/DeckValidator';
 import { TestScheduler } from './TestScheduler';
+import { FakeHttpClient } from './FakeHttpClient';
 
 /**
  * Collaborators the harness supplies so the expensive card data and deck validator setup can be
@@ -47,7 +48,7 @@ function buildTestConfig(overrides: TestConfigOverrides = {}): IGameNodeConfig {
  * timers run on a {@link TestScheduler} the spec drives by hand.
  */
 export class TestGameServer extends GameServer {
-    private constructor(setup: ITestGameServerSetup, scheduler: TestScheduler, config: IGameNodeConfig) {
+    private constructor(setup: ITestGameServerSetup, scheduler: TestScheduler, config: IGameNodeConfig, httpClient: FakeHttpClient) {
         super(
             setup.testGameBuilder.cardDataGetter,
             setup.deckValidator,
@@ -56,7 +57,7 @@ export class TestGameServer extends GameServer {
             undefined,
             undefined,
             setup.testGameBuilder,
-            { listen: false, scheduler, config }
+            { listen: false, scheduler, config, httpClient }
         );
     }
 
@@ -74,13 +75,22 @@ export class TestGameServer extends GameServer {
     }
 
     /**
+     * The fake network boundary standing in for outbound calls to SWUStats / SWUBase. Specs assert
+     * on {@link FakeHttpClient.requests} and configure canned responses via
+     * {@link FakeHttpClient.setResponse}.
+     */
+    public get testHttpClient(): FakeHttpClient {
+        return this.httpClient as FakeHttpClient;
+    }
+
+    /**
      * Builds a test server and binds it to a loopback port.
      *
      * Named `startAsync` rather than `createAsync` because the base class already has a static
      * `createAsync` for the production construction path, and statics are inherited.
      */
     public static async startAsync(setup: ITestGameServerSetup, configOverrides?: TestConfigOverrides): Promise<TestGameServer> {
-        const server = new TestGameServer(setup, new TestScheduler(), buildTestConfig(configOverrides));
+        const server = new TestGameServer(setup, new TestScheduler(), buildTestConfig(configOverrides), new FakeHttpClient());
         await server.listenOnEphemeralPortAsync();
         return server;
     }

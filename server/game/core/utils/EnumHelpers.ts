@@ -2,8 +2,6 @@ import type { CardTypeFilter, ZoneFilter, MoveZoneDestination, TokenName } from 
 import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName, TokenCardName, TokenUpgradeName, TokenUnitName } from '../Constants';
 import type { Player } from '../Player';
 import { Helpers } from './Helpers';
-import type { TimedModActionType } from '../../../services/DynamoDBInterfaces';
-import { ModActionType } from '../../../services/DynamoDBInterfaces';
 
 // Cache for enum lookup maps (lowercase string -> enum value)
 const enumLookupCache = new Map<object, Map<string, unknown>>();
@@ -181,7 +179,8 @@ export namespace EnumHelpers {
 
     export const zoneMoveRequiresControllerReset = (prevZone: ZoneName, nextZone: MoveZoneDestination): boolean => {
         const nextZoneName = asConcreteZone(nextZone);
-        return (isArena(prevZone) || prevZone === ZoneName.Resource) && !(isArena(nextZoneName) || nextZoneName === ZoneName.Resource);
+        // the base zone only counts on the way out (e.g. a base upgrade going to the discard pile), so that undeploying a leader keeps resetting control
+        return (isArena(prevZone) || prevZone === ZoneName.Resource || prevZone === ZoneName.Base) && !(isArena(nextZoneName) || nextZoneName === ZoneName.Resource);
     };
 
     export const isUnit = (cardType: CardTypeFilter): cardType is WildcardCardType.Unit | WildcardCardType.NonLeaderUnit | WildcardCardType.LeaderUnit | CardType.BasicUnit | CardType.NonTokenLeaderUnit | CardType.TokenLeaderUnit | CardType.TokenUnit => {
@@ -369,7 +368,3 @@ export namespace EnumHelpers {
         }
     };
 }
-
-export const isTimedModAction = (actionType: ModActionType): actionType is TimedModActionType => {
-    return actionType === ModActionType.Mute || actionType === ModActionType.Rename;
-};
