@@ -16,6 +16,7 @@ import {
     PhaseName,
     PlayType,
     RelativePlayer,
+    SwuGameFormat,
     TokenCardName,
     WildcardCardType,
     WildcardRelativePlayer,
@@ -572,6 +573,14 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
 
     public hasInitiative() {
         return this.game.initiativePlayer === this;
+    }
+
+    public hasClaimedPlan() {
+        return this.game.format === SwuGameFormat.FauxSuns && this.game.planCounterClaimedByPlayer === this;
+    }
+
+    public hasClaimedBlast() {
+        return this.game.format === SwuGameFormat.FauxSuns && this.game.blastCounterClaimedByPlayer === this;
     }
 
     public assignIndirectDamageDealtToOpponents() {
@@ -1244,6 +1253,8 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
             },
             disconnected: this.disconnected,
             hasInitiative: this.hasInitiative(),
+            hasClaimedPlan: this.game.format === SwuGameFormat.FauxSuns ? this.hasClaimedPlan() : undefined,
+            hasClaimedBlast: this.game.format === SwuGameFormat.FauxSuns ? this.hasClaimedBlast() : undefined,
             availableResources: this.readyResourceCount,
             leaders: this.getAllDeckLeaders().map((l) => l.getSummary(activePlayer)),
             base: this.base?.getSummary(activePlayer),
@@ -1355,9 +1366,9 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
                     .filter((card) => !card.isLeaderUnit() && !card.isAttached())
                     .map((card) => Helpers.safeSerialize(this.game, () => card.captureCardState(), card.internalName));
             }
-            // Discard pile
+            // Discard pile, top card first to match the test setup format (the zone stores the top card last)
             if (this.discardZone.count > 0) {
-                state.discard = this.discardZone.cards.map((card) => card.internalName);
+                state.discard = [...this.discardZone.cards].reverse().map((card) => card.internalName);
             }
 
             // Deck (top few cards only to avoid excessive data)

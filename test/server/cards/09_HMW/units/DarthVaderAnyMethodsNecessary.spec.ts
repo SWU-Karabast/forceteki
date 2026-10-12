@@ -85,6 +85,61 @@ describe('Darth Vader Any Methods Necessary', function() {
                 expect(context.getChatLogs(10)).toContain('player1 uses Darth Vader to deal 2 damage to Cavern Angels X-Wing');
             });
 
+            it('should resolve When Played abilities of units defeated by the damage', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['darth-vader#any-methods-necessary'],
+                        deck: ['disposable-b1', 'ant-droid', 'atst', 'protector', 'rebel-pathfinder', 'resupply', 'porg', 'yoda#old-master', 'wampa', 'battlefield-marine']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthVader);
+
+                context.player1.clickCardInDisplayCardPrompt(context.disposableB1);
+                context.player1.clickCardInDisplayCardPrompt(context.antDroid);
+                context.player1.clickPrompt('Play cards in selection order');
+
+                expect(context.disposableB1).toBeInZone('discard');
+                expect(context.antDroid).toBeInZone('discard');
+
+                // Disposable B1 draws (Darth Vader entered play this phase) and Ant Droid draws on defeat
+                expect(context.getChatLogs(10)).toContain('player1 uses Disposable B1 to draw a card');
+                expect(context.getChatLogs(10)).toContain('player1 uses Ant Droid to draw a card');
+                expect(context.player1.handSize).toBe(2);
+                expect(context.wampa).toBeInZone('hand');
+                expect(context.battlefieldMarine).toBeInZone('hand');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should resolve both When Played and When Defeated abilities of a unit defeated by the damage', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['darth-vader#any-methods-necessary'],
+                        deck: ['battle-droid-escort', 'atst', 'protector', 'rebel-pathfinder', 'resupply', 'porg', 'yoda#old-master', 'wampa']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthVader);
+
+                context.player1.clickCardInDisplayCardPrompt(context.battleDroidEscort);
+                context.player1.clickPrompt('Play cards in selection order');
+
+                expect(context.battleDroidEscort).toBeInZone('discard');
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve all (2)');
+
+                const battleDroids = context.player1.findCardsByName('battle-droid');
+                expect(battleDroids.length).toBe(2);
+                expect(battleDroids).toAllBeInZone('groundArena');
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should play units, dealing damage before any When Played trigger', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

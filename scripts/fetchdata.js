@@ -159,6 +159,17 @@ function populateMissingData(attributes, id) {
         case '9349017358':
             attributes.title = 'C-3PO';
             break;
+        case '6565211534': // Mayor's Majordomo - No Problem Groveling (errata: add Twi'lek trait)
+            attributes.traits = {
+                data: [{ attributes: {
+                    name: 'Official'
+                } },
+                { attributes: {
+                    name: 'Twi\'lek'
+                } },
+                ]
+            };
+            break;
     }
 
     // Plot cards from Secrets of Power

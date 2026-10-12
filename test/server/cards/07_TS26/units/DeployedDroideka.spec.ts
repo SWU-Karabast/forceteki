@@ -16,7 +16,7 @@ describe('Deployed Droideka', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.deployedDroideka);
-                context.player1.clickPrompt('(No effect) Ambush');
+                context.player1.clickPrompt('Ambush');
                 expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to give an Experience token and a Shield token to this unit');
                 context.player1.clickPrompt('Trigger');
 
@@ -29,7 +29,7 @@ describe('Deployed Droideka', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.deployedDroideka);
-                context.player1.clickPrompt('(No effect) Ambush');
+                context.player1.clickPrompt('Ambush');
                 context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();

@@ -143,5 +143,40 @@ describe('The Legacy Run, Doomed Debris', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
+        it('The Legacy Run\'s ability should deal damage among units that are enemy to the player who controlled it when defeated by No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['battlefield-marine', 'wampa'],
+                    spaceArena: ['the-legacy-run#doomed-debris']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['consular-security-force'],
+                    spaceArena: ['tieln-fighter'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.theLegacyRun);
+
+            // player2 controlled The Legacy Run when it was defeated, so player1's units are the enemy units
+            expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa]);
+            context.player2.setDistributeDamagePromptState(new Map([
+                [context.battlefieldMarine, 3],
+                [context.wampa, 3]
+            ]));
+
+            expect(context.battlefieldMarine).toBeInZone('discard', context.player1);
+            expect(context.wampa.damage).toBe(3);
+            expect(context.consularSecurityForce.damage).toBe(0);
+            expect(context.tielnFighter.damage).toBe(0);
+            expect(context.theLegacyRun).toBeInZone('discard', context.player1);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

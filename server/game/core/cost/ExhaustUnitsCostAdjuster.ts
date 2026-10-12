@@ -8,6 +8,7 @@ import { Contract } from '../utils/Contract.js';
 import type { IAbilityCostAdjustmentProperties, ICostAdjustEvaluationIntermediateResult, ICostAdjustResult, IEvaluationOpportunityCost } from './CostInterfaces';
 import { CostAdjustStage } from './CostInterfaces';
 import { TargetedCostAdjuster } from './TargetedCostAdjuster';
+import * as CostHelpers from './CostHelpers';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import { ExhaustSystem } from '../../gameSystems/ExhaustSystem';
@@ -32,7 +33,7 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
         source: ICardWithCostProperty,
         properties: IExhaustUnitsCostAdjusterProperties
     ) {
-        super(game, source, CostAdjustStage.ExhaustUnits_4,
+        super(game, source, CostAdjustStage.ExhaustUnits_6,
             {
                 ...properties,
                 costAdjustType: CostAdjustType.ExhaustUnits,
@@ -61,9 +62,9 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
     protected override applyMaxAdjustmentAmount(_card: Card, _context: AbilityContext, result: ICostAdjustResult, previousTargetSelections?: ITriggerStageTargetSelection[]) {
         Contract.assertTrue(result.resolutionMode === CostAdjustResolutionMode.Trigger, `Must only be called at Trigger stage, instead got ${result.resolutionMode}`);
 
-        // if the source (Vuutun Palaa) was removed via Exploit, no adjustment available
+        // if the source (Vuutun Palaa) was removed by an upstream stage (e.g. Exploit), no adjustment available
         if (previousTargetSelections?.some(
-            (selection) => selection.stage === CostAdjustStage.Exploit_2 && selection.card === this.sourceCard
+            (selection) => CostHelpers.isUnitRemovingStage(selection.stage) && selection.card === this.sourceCard
         )) {
             return;
         }
@@ -71,13 +72,13 @@ export class ExhaustUnitsCostAdjuster extends TargetedCostAdjuster {
         super.applyMaxAdjustmentAmount(_card, _context, result, previousTargetSelections);
     }
 
-    /** Counts how many Droids which could have been paid with that were removed via Exploit choices */
+    /** Counts how many Droids which could have been paid with that were removed by upstream choices (e.g. Exploit) */
     protected override getNumberOfRemovedTargets(previousTargetSelections: ITriggerStageTargetSelection[], context: AbilityContext): number {
         let numRemoved = 0;
         for (const selection of previousTargetSelections) {
             if (
                 this.isTargetableForExhaust(selection.card, context) &&
-                selection.stage === CostAdjustStage.Exploit_2
+                CostHelpers.isUnitRemovingStage(selection.stage)
             ) {
                 numRemoved++;
             }

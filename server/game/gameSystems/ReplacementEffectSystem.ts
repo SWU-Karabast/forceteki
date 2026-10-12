@@ -32,7 +32,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             return;
         }
 
-        const eventBeingReplaced = event.context.event;
+        const eventBeingReplaced = event.context.event as GameEvent;
         const replacementImmediateEffect = event.replacementImmediateEffect;
         if (replacementImmediateEffect) {
             const eventWindow = eventBeingReplaced.window;
@@ -58,7 +58,11 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             }, 'replacementEffect: add replacement event to window');
         }
 
-        event.context.cancel();
+        if (!replacementImmediateEffect && this.nullifiedEventCountsAsResolved()) {
+            eventBeingReplaced.replaceWithNoEffect();
+        } else {
+            eventBeingReplaced.cancel();
+        }
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}) {
@@ -118,6 +122,14 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
 
     protected shouldReplace (context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
         return true;
+    }
+
+    /**
+     * Whether an event nullified by this effect (no replacement event) still counts as resolved for
+     * "if you do" (CR 8.9). False by default: non-damage no-op replacements model "can't" effects.
+     */
+    protected nullifiedEventCountsAsResolved(): boolean {
+        return false;
     }
 
     public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProperties> = {}, _mustChangeGameState): boolean {

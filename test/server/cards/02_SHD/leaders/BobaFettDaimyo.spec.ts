@@ -150,7 +150,6 @@ describe('Boba Fett, Daimyo', function () {
 
             expect(context.player1).toHaveExactPromptButtons(['Ambush', 'Exhaust this leader to give a friendly unit +1/+0 for this phase']);
             context.player1.clickPrompt('Exhaust this leader to give a friendly unit +1/+0 for this phase');
-            context.player1.clickPrompt('Trigger');
             context.player1.clickCard(context.battlefieldMarine);
 
             context.player1.clickPrompt('Trigger');

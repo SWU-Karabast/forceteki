@@ -43,8 +43,8 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
 
                 // Play Leia Organa to trigger her "When Played" ability
                 context.player1.clickCard(context.leiaOrgana);
-                expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
-                context.player1.clickPrompt('Ready a resource');
+                expect(context.player1).toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
+                context.player1.clickPrompt('Ready a friendly resource');
 
                 expect(context.player1.exhaustedResourceCount).toBe(1);
 
@@ -54,8 +54,8 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 context.player1.clickPrompt('Trigger');
 
                 // Leia Organa's ability can be used again
-                expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
-                context.player1.clickPrompt('Ready a resource');
+                expect(context.player1).toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
+                context.player1.clickPrompt('Ready a friendly resource');
 
                 expect(context.player1.exhaustedResourceCount).toBe(0);
 
@@ -84,8 +84,8 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
 
                 // Play Leia Organa to trigger her "When Played" ability
                 context.player1.clickCard(context.leiaOrgana);
-                expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
-                context.player1.clickPrompt('Ready a resource');
+                expect(context.player1).toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
+                context.player1.clickPrompt('Ready a friendly resource');
 
                 // Aethersprite's ability is triggered
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
@@ -93,7 +93,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 context.player1.clickPrompt('Pass');
 
                 // Leia Organa's ability cannot be used again
-                expect(context.player1).not.toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
+                expect(context.player1).not.toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
                 expect(context.player2).toBeActivePlayer();
 
                 context.player2.passAction();
@@ -128,19 +128,18 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
 
                 // Play Leia Organa to trigger her "When Played" ability
                 context.player1.clickCard(context.leiaOrgana);
-                expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
-                context.player1.clickPrompt('Ready a resource');
+                expect(context.player1).toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
+                context.player1.clickPrompt('Ready a friendly resource');
 
                 expect(context.player1.exhaustedResourceCount).toBe(2); // Dogfight costs 1 resource
 
                 // Aethersprite's ability is triggered
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
                 context.player1.clickPrompt('Trigger');
 
                 // Leia Organa's ability can be used again
-                expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
-                context.player1.clickPrompt('Ready a resource');
+                expect(context.player1).toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
+                context.player1.clickPrompt('Ready a friendly resource');
 
                 expect(context.player1.exhaustedResourceCount).toBe(1);
 
@@ -150,7 +149,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 context.player1.clickPrompt('Trigger');
 
                 // Leia Organa's ability can be used again
-                expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
+                expect(context.player1).toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
                 context.player1.clickPrompt('Exhaust a unit');
                 context.player1.clickCard(context.phoenixSquadronAwing);
 
@@ -169,19 +168,18 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
 
                 // Play Leia Organa to trigger her "When Played" ability
                 context.player1.clickCard(context.leiaOrgana);
-                expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
-                context.player1.clickPrompt('Ready a resource');
+                expect(context.player1).toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
+                context.player1.clickPrompt('Ready a friendly resource');
 
                 expect(context.player1.exhaustedResourceCount).toBe(1);
 
                 // Aethersprite's ability is triggered
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
                 context.player1.clickPrompt('Trigger');
 
                 // Leia Organa's ability can be used again
-                expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
-                context.player1.clickPrompt('Ready a resource');
+                expect(context.player1).toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
+                context.player1.clickPrompt('Ready a friendly resource');
 
                 expect(context.player1.exhaustedResourceCount).toBe(0);
 
@@ -228,8 +226,8 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
 
                 // Play Leia Organa to trigger her "When Played" ability
                 context.player1.clickCard(context.leiaOrgana);
-                expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
-                context.player1.clickPrompt('Ready a resource');
+                expect(context.player1).toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
+                context.player1.clickPrompt('Ready a friendly resource');
 
                 expect(context.player1.exhaustedResourceCount).toBe(1);
                 expect(context.player1).not.toHavePassAbilityPrompt(prompt);
@@ -251,8 +249,8 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
 
                 // Play Leia Organa to trigger her "When Played" ability
                 context.player1.clickCard(context.leiaOrgana);
-                expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
-                context.player1.clickPrompt('Ready a resource');
+                expect(context.player1).toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
+                context.player1.clickPrompt('Ready a friendly resource');
 
                 expect(context.player1.exhaustedResourceCount).toBe(1);
 
@@ -262,8 +260,8 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 context.player1.clickPrompt('Trigger');
 
                 // Leia Organa's ability can be used again
-                expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
-                context.player1.clickPrompt('Ready a resource');
+                expect(context.player1).toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
+                context.player1.clickPrompt('Ready a friendly resource');
 
                 expect(context.player1.exhaustedResourceCount).toBe(0);
                 expect(context.player2).toBeActivePlayer();
@@ -767,11 +765,12 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
 
                 context.player2.passAction();
 
-                // Play Blue Leader, moving to the ground arena and giving 2 Experience tokens
+                // Play Blue Leader, moving to the ground arena and giving 2 Experience tokens. The move
+                // ability shares the When Played window with Ambush, so it triggers inline.
                 context.player1.clickCard(context.blueLeader);
-                context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
                 const readyResources = context.player1.readyResourceCount;
-                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toHavePassableTriggerPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
+                context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
 
                 expect(context.player1.readyResourceCount).toBe(readyResources - 2);
                 expect(context.blueLeader).toBeInZone('groundArena');
@@ -965,8 +964,8 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
             context.player1.clickCard(context.clone);
             context.player1.clickCard(context.leiaOrgana);
             expect(context.clone).toBeCloneOf(context.leiaOrgana);
-            expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
-            context.player1.clickPrompt('Ready a resource');
+            expect(context.player1).toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
+            context.player1.clickPrompt('Ready a friendly resource');
 
             expect(context.player1.exhaustedResourceCount).toBe(6);
 
@@ -976,8 +975,8 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
             context.player1.clickPrompt('Trigger');
 
             // Leia Organa's ability can be used again
-            expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
-            context.player1.clickPrompt('Ready a resource');
+            expect(context.player1).toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
+            context.player1.clickPrompt('Ready a friendly resource');
 
             expect(context.player1.exhaustedResourceCount).toBe(5);
 
@@ -1049,6 +1048,42 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
             context.player1.clickCard(context.greenSquadronAwing);
 
             // Verify that the ability does not trigger again
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('does not use a "When Played" ability again if the effect was created while that ability was resolving', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['snapshot-reflexes', 'leia-organa#defiant-princess'],
+                    spaceArena: ['quigon-jinns-aethersprite#guided-by-the-force'],
+                },
+            });
+
+            const { context } = contextRef;
+
+            // Snapshot Reflexes' "When Played" attack creates the Aethersprite effect
+            context.player1.clickCard(context.snapshotReflexes);
+            context.player1.clickCard(context.quigonJinnsAethersprite);
+            expect(context.player1).toHavePassAbilityPrompt('Attack with attached unit');
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player1).not.toHavePassAbilityPrompt(prompt);
+            expect(context.player2).toBeActivePlayer();
+
+            context.player2.passAction();
+
+            // The effect is still waiting for the next "When Played" ability
+            context.player1.clickCard(context.leiaOrgana);
+            context.player1.clickPrompt('Ready a friendly resource');
+
+            expect(context.player1).toHavePassAbilityPrompt(prompt);
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.player1).toHaveExactPromptButtons(['Ready a friendly resource', 'Ready an enemy resource', 'Exhaust a unit']);
+            context.player1.clickPrompt('Ready a friendly resource');
+
             expect(context.player2).toBeActivePlayer();
         });
     });

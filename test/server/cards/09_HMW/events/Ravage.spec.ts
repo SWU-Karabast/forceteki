@@ -83,6 +83,22 @@ describe('Ravage', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should log the distribution without duplicating the token amount', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.ravage);
+                context.player1.setDistributeTokenUpgradePromptState(new Map([
+                    [context.wampa, 2],
+                    [context.battlefieldMarine, 1]
+                ]));
+
+                const logs = context.getChatLogs(4).join('\n');
+                expect(logs).toContain('distribute up to 3 Weakness tokens among units');
+                expect(logs).toContain('give 2 Weakness tokens to Wampa and 1 Weakness token to Battlefield Marine');
+                expect(logs).not.toContain('3 3');
+                expect(logs).not.toContain('2 2');
+            });
+
             it('should allow distributing fewer than 3 Weakness tokens', function() {
                 const { context } = contextRef;
 

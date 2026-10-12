@@ -74,6 +74,7 @@ export interface IDiscordDispatcher {
 export class DiscordDispatcher implements IDiscordDispatcher {
     private static readonly MaxServerErrorCount = 3;
     private static readonly MaxUndoErrorCount = 3;
+    public static readonly EmptyMessagesPlaceholder = '(no messages)';
     private readonly _bugReportWebhookUrl: string;
     private readonly _serverErrorWebhookUrl: string;
     private readonly _playerReportWebhookUrl: string;
@@ -290,7 +291,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
     }
 
     private addGameMessagesToForm(formData: FormData, messages: ISerializedMessage[], lobbyId: string, reporterId: string, opponentId: string, timestamp: number, reporterUsername = 'Player1', opponentUsername = 'Player2', fileField = 'files[1]', fileNamePrefix = 'report-messages'): void {
-        const messagesText = DiscordDispatcher.formatMessagesToText(messages, reporterId, opponentId, reporterUsername, opponentUsername);
+        const messagesText = DiscordDispatcher.formatMessagesToAttachmentText(messages, reporterId, opponentId, reporterUsername, opponentUsername);
         const fileName = `${fileNamePrefix}-${lobbyId}-${timestamp}.txt`;
         formData.append(fileField, Buffer.from(messagesText), {
             filename: fileName,
@@ -458,7 +459,7 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         this.addGameMessagesToForm(formData, messages, lobbyId, player1Id, player2Id, timestamp);
 
         const fileName = `server-error-stack-trace-${lobbyId}-${timestamp}.txt`;
-        formData.append('files[2]', Buffer.from(error.stack || ''), {
+        formData.append('files[2]', Buffer.from(error.stack || error.message || '(no stack trace)'), {
             filename: fileName,
             contentType: 'text/plain',
         });
@@ -529,12 +530,22 @@ export class DiscordDispatcher implements IDiscordDispatcher {
         const timestamp = new Date().getTime();
 
         const fileName = `server-error-stack-trace-${lobbyId}-${timestamp}.txt`;
-        formData.append('files[0]', Buffer.from(error.stack || ''), {
+        formData.append('files[0]', Buffer.from(error.stack || error.message || '(no stack trace)'), {
             filename: fileName,
             contentType: 'text/plain',
         });
 
         return httpPostFormData(this._serverErrorWebhookUrl, formData);
+    }
+
+    /**
+     * Discord stores attachments on S3 and fetches a byte range for its inline text preview. A 0-byte file makes
+     * that range request fail, so the preview shows S3's `InvalidRange` XML error instead of the content.
+     * Always produce a non-empty file, with an explicit placeholder when there is nothing to show.
+     */
+    public static formatMessagesToAttachmentText(messages: ISerializedMessage[], reporter: string, opponent: string, reporterUsername: string, opponentUsername: string): string {
+        const messagesText = DiscordDispatcher.formatMessagesToText(messages ?? [], reporter, opponent, reporterUsername, opponentUsername);
+        return messagesText.trim().length > 0 ? messagesText : DiscordDispatcher.EmptyMessagesPlaceholder;
     }
 
     /**

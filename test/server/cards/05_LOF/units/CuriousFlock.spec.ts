@@ -20,7 +20,7 @@ describe('Curious Flock', function () {
             expect(context.curiousFlock).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
             expect(context.getChatLogs(3)).toEqual([
                 'player1 plays Curious Flock',
-                'player1 names 3 using Curious Flock',
+                'player1 chooses 3 using Curious Flock',
                 'player1 uses Curious Flock to pay 3 resources and then to give 3 Experience tokens to Curious Flock',
             ]);
         });

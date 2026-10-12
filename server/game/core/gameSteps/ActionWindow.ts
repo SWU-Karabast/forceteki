@@ -37,8 +37,11 @@ export class ActionWindow extends UiPrompt {
 
         this.activePlayer = this.game.actionPhaseActivePlayer;
 
-        // always restart the player's action timer when their action starts
-        this.activePlayer.actionTimer.stop();
+        // always restart the player's action timer when their action starts, unless the action is being restarted by
+        // a cost payment recovery undo (in which case the paused timer resumes when the player is prompted)
+        if (!this.game.resumeActionTimerAfterRollback) {
+            this.activePlayer.actionTimer.stop();
+        }
 
         Contract.assertNotNullLike(this.activePlayer);
     }

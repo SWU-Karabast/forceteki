@@ -79,5 +79,34 @@ describe('Tantive IV, Carrying Hope', function () {
             expect(context.player1.base.damage).toBe(5);
             expect(context.player2).toBeActivePlayer();
         });
+        it('Tantive IV\'s When Played ability should heal 4 from base if an enemy unit was taken and defeated with No Glory, Only Results this phase', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['no-glory-only-results', 'tantive-iv#carrying-hope'],
+                    resources: 20,
+                    base: { card: 'echo-base', damage: 5 }
+                },
+                player2: {
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Player 1 takes control of Wampa and defeats it, so it was a friendly unit of Player 1 when defeated
+            context.player1.clickCard(context.noGloryOnlyResults);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.wampa).toBeInZone('discard', context.player2);
+
+            context.player2.passAction();
+
+            // Now play Tantive IV
+            context.player1.clickCard(context.tantiveIv);
+
+            expect(context.player1.base.damage).toBe(1); // 5 - 4 = 1
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

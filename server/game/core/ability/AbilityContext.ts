@@ -60,6 +60,13 @@ export class AbilityContext<TSource extends Card = Card> {
     public selectedPromptCards: Card[] = [];
     public activeAttackId?: number;
 
+    /**
+     * Pending increase to the damage dealt by the ability being resolved in this context.
+     * Set by replacement effects that apply when the ability is initiated (e.g. Ty Yorrick, Monster Hunter)
+     * and consumed by damage-generating systems when their damage events are created.
+     */
+    public pendingAbilityDamageIncrease = 0;
+
     // Capture the limit for this resolution. A card leaving and returning can
     // replace its live limit while existing contexts still share the old one.
     private readonly limit?: AbilityLimit;

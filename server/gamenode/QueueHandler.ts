@@ -9,6 +9,8 @@ import { SwuGameFormat } from '../game/core/Constants';
 
 import type { IMatchmakingPlayerEntry, IMatchmakingRule } from './MatchmakingRules';
 import { MatchmakingRule } from './MatchmakingRules';
+import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
+import type { IGameNodeConfig } from './GameNodeConfig';
 
 export interface QueuedPlayerToAdd {
     deck: ISwuDbFormatDecklist;
@@ -46,11 +48,16 @@ export class QueueHandler {
     private readonly queues: Map<string, QueuedPlayer[]>;
     private playersWaitingToConnect: QueuedPlayerEntry[] = [];
     private playerPreviousMatch: Map<string, PreviousMatchEntry>;
+    private readonly scheduler: IScheduler;
+    private readonly config: IGameNodeConfig;
+    private readonly previousMatchCleanupTask: IScheduledTask;
 
     /** Cooldown interval (in seconds) for rematch prevention */
     public static readonly COOLDOWN_INTERVAL_SECONDS = 15;
 
-    public constructor() {
+    public constructor(scheduler: IScheduler, config: IGameNodeConfig) {
+        this.scheduler = scheduler;
+        this.config = config;
         this.queues = new Map<string, QueuedPlayer[]>();
         this.playerPreviousMatch = new Map<string, PreviousMatchEntry>();
 
@@ -64,7 +71,16 @@ export class QueueHandler {
         }
 
         // Cleanup previous match entries periodically
-        setInterval(() => this.cleanupPreviousMatchEntries(), 3600000); // 1 hour
+        this.previousMatchCleanupTask = this.scheduler.setInterval(
+            () => this.cleanupPreviousMatchEntries(),
+            3600000, // 1 hour
+            { message: 'QueueHandler: error cleaning up previous match entries' }
+        );
+    }
+
+    /** Stops the recurring cleanup task so the handler leaves nothing keeping the process alive. */
+    public shutdown() {
+        this.previousMatchCleanupTask.cancel();
     }
 
     /** Adds an entry for a player, but they can't match until they actually connect */
@@ -175,7 +191,7 @@ export class QueueHandler {
 
     private cleanupPreviousMatchEntries() {
         try {
-            const now = Date.now();
+            const now = this.scheduler.now();
             const cooldownMs = QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000;
             for (const [userId, matchEntry] of this.playerPreviousMatch.entries()) {
                 if (now - matchEntry.endTimestamp > cooldownMs) {
@@ -193,7 +209,7 @@ export class QueueHandler {
             for (const [_queueKey, queue] of this.iterateQueues()) {
                 for (const player of queue) {
                     if (player.socket) {
-                        player.socket.send('queueHeartbeat', Date.now());
+                        player.socket.send('queueHeartbeat', this.scheduler.now());
                     }
                 }
             }
@@ -228,7 +244,9 @@ export class QueueHandler {
             return null;
         }
 
-        return this.findMatchInQueue(queue, [MatchmakingRule.rematchCooldown(QueueHandler.COOLDOWN_INTERVAL_SECONDS)]);
+        return this.findMatchInQueue(queue, [
+            MatchmakingRule.rematchCooldown(QueueHandler.COOLDOWN_INTERVAL_SECONDS, this.scheduler, this.config.enforceRematchCooldown)
+        ]);
     }
 
     /**

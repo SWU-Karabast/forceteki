@@ -214,6 +214,38 @@ describe('A Fine Addition', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
+        it('A Fine Addition\'s ability should count a friendly unit that was taken and defeated with No Glory, Only Results as an enemy unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['a-fine-addition', 'jedi-lightsaber'],
+                    groundArena: ['battlefield-marine', 'wampa']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['pyke-sentinel'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            // player2 takes control of Wampa and defeats it, so it was an enemy unit for player1 when it was defeated
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.wampa);
+            expect(context.wampa).toBeInZone('discard', context.player1);
+
+            context.player1.clickCard(context.aFineAddition);
+            expect(context.player1).toBeAbleToSelectExactly([context.jediLightsaber]);
+            context.player1.clickCard(context.jediLightsaber);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.pykeSentinel]);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber']);
+            expect(context.player2).toBeActivePlayer();
+        });
+
         describe('Interaction with upgrades that have friendly unit restrictions', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({

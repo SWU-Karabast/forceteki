@@ -92,5 +92,35 @@ describe('Corona Four, Justice for Alderaan', function() {
                 expect(context.grogu).toBeInZone('groundArena', context.player2);
             });
         });
+
+        it('When Defeated ability should be resolved by the player who controlled it when defeated by No Glory, Only Results', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['corona-four#justice-for-alderaan'],
+                    groundArena: ['cantina-braggart', 'wampa']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['compassionate-senator', 'battlefield-marine'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.coronaFour);
+
+            // player2 controlled Corona Four when it was defeated, so player2 chooses which 0-power unit to defeat
+            expect(context.player2).toBeAbleToSelectExactly([context.cantinaBraggart, context.compassionateSenator]);
+            expect(context.player2).toHavePassAbilityButton();
+            context.player2.clickCard(context.cantinaBraggart);
+
+            expect(context.coronaFour).toBeInZone('discard', context.player1);
+            expect(context.cantinaBraggart).toBeInZone('discard', context.player1);
+            expect(context.compassionateSenator).toBeInZone('groundArena', context.player2);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

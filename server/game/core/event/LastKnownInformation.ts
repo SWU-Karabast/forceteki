@@ -20,6 +20,9 @@ export interface ILastKnownInformation {
     type?: CardType;
     damage?: number;
     parentCard?: ICardWithUpgrades;
+
+    /** Who controlled the parent card at that moment. `parentCard.controller` may have changed by the time it's read, e.g. once a stolen unit is back in its owner's discard pile. */
+    parentCardController?: Player;
     upgrades?: IUpgradeCard[];
     traits: Set<Trait>;
     exhausted?: boolean;
@@ -73,6 +76,7 @@ export function buildLastKnownInformation(card: Card): ILastKnownInformation {
             arena: card.zoneName,
             controller: card.controller,
             parentCard: card.parentCard,
+            parentCardController: card.parentCard?.controller,
             traits: card.traits,
             inPlayId: card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId,
         };

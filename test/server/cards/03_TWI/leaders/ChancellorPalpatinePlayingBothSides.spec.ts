@@ -63,6 +63,36 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
             });
 
+            it('flips when an enemy Heroism unit was taken and defeated with No Glory, Only Results', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'chancellor-palpatine#playing-both-sides',
+                        base: { card: 'echo-base', damage: 5 },
+                        hand: ['no-glory-only-results']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // player1 takes control of Battlefield Marine and defeats it, so it was a friendly Heroism unit when it was defeated
+                context.player1.clickCard(context.noGloryOnlyResults);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.chancellorPalpatine);
+                expect(context.chancellorPalpatine.exhausted).toBe(true);
+                expect(context.p1Base.damage).toBe(3);
+                expect(context.player1.hand.length).toBe(1);
+                expect(context.chancellorPalpatine.onStartingSide).toBe(false);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('is not activated by a Heroic Pilot upgrade being defeated', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
