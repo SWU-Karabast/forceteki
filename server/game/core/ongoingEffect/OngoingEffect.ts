@@ -9,7 +9,7 @@ import type { IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import { Contract } from '../utils/Contract';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
-import { registerStateBase, stateRefArray, type GameObjectId } from '../GameObjectUtils';
+import { registerStateBase, statePrimitive, stateRefArray, type GameObjectId } from '../GameObjectUtils';
 import type { Player } from '../Player';
 
 export interface IOngoingEffectState<TTarget extends GameObject> extends IGameObjectBaseState {
@@ -58,6 +58,10 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject> ext
 
     @stateRefArray()
     public accessor targets: readonly TTarget[] = [];
+
+    /** Set when a delayed effect has matched a resolved event and is waiting for that event's window to fire it */
+    @statePrimitive()
+    public accessor delayedTriggerPending: boolean = false;
 
     public get type() {
         return this.impl.type;

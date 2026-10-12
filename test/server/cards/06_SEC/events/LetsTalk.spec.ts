@@ -30,6 +30,38 @@ describe('Let\'s Talk', function () {
             expect(context.player1.exhaustedResourceCount).toBe(9);
         });
 
+        it('Let\'s Talk costs 3 less when an enemy unit was taken and defeated with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['battlefield-marine'],
+                    hand: ['no-glory-only-results', 'lets-talk']
+                },
+                player2: {
+                    groundArena: ['wampa', 'atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // AT-ST leaves play while player1 controls it, so it counts as a friendly unit
+            context.player1.clickCard(context.noGloryOnlyResults);
+            context.player1.clickCard(context.atst);
+            expect(context.atst).toBeInZone('discard', context.player2);
+
+            context.player2.passAction();
+            context.player1.readyResources(20);
+
+            context.player1.clickCard(context.letsTalk);
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.wampa).toBeCapturedBy(context.battlefieldMarine);
+            // 9 + 2 aspect penalty - 3 reduction
+            expect(context.player1.exhaustedResourceCount).toBe(8);
+            expect(context.player2).toBeActivePlayer();
+        });
+
         it('Let\'s Talk selection order matches capture order', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

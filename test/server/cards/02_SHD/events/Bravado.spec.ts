@@ -30,5 +30,36 @@ describe('Bravado', function () {
             expect(context.player1.exhaustedResourceCount).toBe(5);
             expect(context.battlefieldMarine.exhausted).toBe(false);
         });
+
+        it('Bravado does not get the cost reduction when an enemy unit was taken and defeated with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [{ card: 'battlefield-marine', exhausted: true }],
+                    hand: ['no-glory-only-results', 'bravado']
+                },
+                player2: {
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Wampa is defeated while player1 controls it, so it was not an enemy unit
+            context.player1.clickCard(context.noGloryOnlyResults);
+            context.player1.clickCard(context.wampa);
+            expect(context.wampa).toBeInZone('discard', context.player2);
+
+            context.player2.passAction();
+            context.player1.readyResources(20);
+
+            context.player1.clickCard(context.bravado);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            // full cost of 5, no reduction
+            expect(context.player1.exhaustedResourceCount).toBe(5);
+            expect(context.battlefieldMarine.exhausted).toBe(false);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
