@@ -10,7 +10,7 @@ import { MatchmakingCompetitivenessPreference } from '../game/core/Constants';
 import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 
 import type { IMatchmakingPlayerEntry, IMatchmakingRule } from './MatchmakingRules';
-import { getMatchmakingSearchContext, getQueueMatchmakingStatus, MatchmakingRule } from './MatchmakingRules';
+import { getQueueMatchmakingStatus, MatchmakingRule } from './MatchmakingRules';
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import type { IGameNodeConfig, IMatchmakingPreferencePolicy } from './GameNodeConfig';
 import { defaultMatchmakingPreferencePolicy, MatchmakingCompetitivenessPreferencePolicyKey } from './GameNodeConfig';
@@ -271,7 +271,7 @@ export class QueueHandler {
         const serverTime = this.scheduler.now();
         const status = getQueueMatchmakingStatus(player, this.preferencePolicy, serverTime, QueueHandler.PREFERENCE_EXPANSION_VISIBILITY_DELAY_MS);
         player.socket.send('queueHeartbeat', serverTime, status);
-        for (const preference of status.allowedOpponentPreferences) {
+        for (const preference of status.competitiveness.allowedOpponentPreferences) {
             player.preferencesPublishedAt[preference] ??= serverTime;
         }
     }
@@ -285,10 +285,10 @@ export class QueueHandler {
         for (const [_queueKey, queue] of this.iterateQueues()) {
             for (const player of queue) {
                 const status = getQueueMatchmakingStatus(player, this.preferencePolicy, serverTime, QueueHandler.PREFERENCE_EXPANSION_VISIBILITY_DELAY_MS);
-                if (status.nextExpansionAt !== null) {
+                if (status.competitiveness.nextExpansionAt !== null) {
                     nextAnnouncementAt = nextAnnouncementAt === null
-                        ? status.nextExpansionAt
-                        : Math.min(nextAnnouncementAt, status.nextExpansionAt);
+                        ? status.competitiveness.nextExpansionAt
+                        : Math.min(nextAnnouncementAt, status.competitiveness.nextExpansionAt);
                 }
             }
         }
@@ -331,7 +331,7 @@ export class QueueHandler {
         const serverTime = this.scheduler.now();
         for (const player of queue) {
             const status = getQueueMatchmakingStatus(player, this.preferencePolicy, serverTime, QueueHandler.PREFERENCE_EXPANSION_VISIBILITY_DELAY_MS);
-            if (status.allowedOpponentPreferences.some((preference) => player.preferencesPublishedAt[preference] === undefined)) {
+            if (status.competitiveness.allowedOpponentPreferences.some((preference) => player.preferencesPublishedAt[preference] === undefined)) {
                 this.sendPlayerHeartbeat(player);
             }
         }
@@ -387,9 +387,11 @@ export class QueueHandler {
      * @returns A tuple of the matched players, or null if no match is found
      */
     private findMatchInQueue(queue: QueuedPlayer[], rules: IMatchmakingRule[]): [QueuedPlayer, QueuedPlayer] | null {
-        const playersBySearchAge = [...queue].sort((player1, player2) =>
-            getMatchmakingSearchContext(player1).searchStartedAt - getMatchmakingSearchContext(player2).searchStartedAt
-        );
+        const playersBySearchAge = [...queue];
+        for (const player of playersBySearchAge) {
+            Contract.assertNotNullLike(player.searchStartedAt, `Queued player ${player.user.getId()} has not started searching`);
+        }
+        playersBySearchAge.sort((player1, player2) => player1.searchStartedAt - player2.searchStartedAt);
 
         for (let i = 0; i < playersBySearchAge.length; i++) {
             const player1 = playersBySearchAge[i];

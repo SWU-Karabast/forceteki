@@ -180,7 +180,7 @@ export class TestClient {
         format: SwuGameFormat;
         cardPool: CardPool;
         gamesToWinMode: GamesToWinMode;
-        matchmakingPreference?: MatchmakingCompetitivenessPreference;
+        matchmakingCompetitivenessPreference?: MatchmakingCompetitivenessPreference;
     }): Promise<SupertestResponse> {
         return await this.withAuthCookie(this.harness.api.post('/api/enter-queue')).send({
             user: this.userPayload(),
@@ -188,7 +188,7 @@ export class TestClient {
             format: options.format,
             cardPool: options.cardPool,
             gamesToWinMode: options.gamesToWinMode,
-            matchmakingPreference: options.matchmakingPreference,
+            matchmakingCompetitivenessPreference: options.matchmakingCompetitivenessPreference,
         });
     }
 

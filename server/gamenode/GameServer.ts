@@ -1655,7 +1655,7 @@ export class GameServer {
                     return this.sendGamesDisabledResponse(res);
                 }
 
-                const { format, cardPool, gamesToWinMode, deck, swudbLink, matchmakingPreference = MatchmakingCompetitivenessPreference.NoPreference } = req.body;
+                const { format, cardPool, gamesToWinMode, deck, swudbLink, matchmakingCompetitivenessPreference = MatchmakingCompetitivenessPreference.NoPreference } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1683,9 +1683,9 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid card pool '${cardPool}'` });
                 }
 
-                if (!EnumHelpers.isEnumValue(matchmakingPreference, MatchmakingCompetitivenessPreference)) {
-                    logger.error(`GameServer (enter-queue): Invalid matchmaking preference parameter ${matchmakingPreference}`);
-                    return res.status(400).json({ success: false, message: `Invalid matchmaking preference '${matchmakingPreference}'` });
+                if (!EnumHelpers.isEnumValue(matchmakingCompetitivenessPreference, MatchmakingCompetitivenessPreference)) {
+                    logger.error(`GameServer (enter-queue): Invalid matchmaking competitiveness preference parameter ${matchmakingCompetitivenessPreference}`);
+                    return res.status(400).json({ success: false, message: `Invalid matchmaking competitiveness preference '${matchmakingCompetitivenessPreference}'` });
                 }
 
                 // Check Bo3 access restrictions for anonymous users (queue is always public)
@@ -1701,7 +1701,7 @@ export class GameServer {
                 }
 
                 await this.processDeckValidation(resolvedDeck, false, { format, cardPool }, res, () => {
-                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, resolvedDeck, matchmakingPreference);
+                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, resolvedDeck, matchmakingCompetitivenessPreference);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(500).json({ success: false, message: 'Failed to enter queue' });

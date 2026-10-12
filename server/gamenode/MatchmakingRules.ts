@@ -11,10 +11,8 @@ export interface IMatchmakingSearchContext {
     preferencesPublishedAt?: Partial<Record<MatchmakingCompetitivenessPreference, number>>;
 }
 
-export interface IQueueMatchmakingStatus {
+export interface IMatchmakingCompetitivenessStatus {
     preference: MatchmakingCompetitivenessPreference;
-    searchStartedAt: number;
-    serverTime: number;
     stage: MatchmakingCompetitivenessPreferenceSearchStage;
 
     /** Displayed categories; expansions are previewed before they become matchable. */
@@ -22,6 +20,12 @@ export interface IQueueMatchmakingStatus {
 
     /** Epoch time of the next preview update, not the actual matching deadline. */
     nextExpansionAt: number | null;
+}
+
+export interface IQueueMatchmakingStatus {
+    searchStartedAt: number;
+    serverTime: number;
+    competitiveness: IMatchmakingCompetitivenessStatus;
 }
 
 export interface IMatchmakingPlayerEntry {
@@ -100,16 +104,18 @@ export function getQueueMatchmakingStatus(
         .map(({ availableAt }) => availableAt);
 
     return {
-        preference: player.matchmakingPreference,
         searchStartedAt: player.searchStartedAt,
         serverTime,
-        stage: allowedOpponentPreferences.length === 3
-            ? MatchmakingCompetitivenessPreferenceSearchStage.AnyPreference
-            : allowedOpponentPreferences.length === 2
-                ? MatchmakingCompetitivenessPreferenceSearchStage.IncludesNoPreference
-                : MatchmakingCompetitivenessPreferenceSearchStage.SamePreferenceOnly,
-        allowedOpponentPreferences,
-        nextExpansionAt: futureExpansionTimes.length > 0 ? Math.min(...futureExpansionTimes) : null,
+        competitiveness: {
+            preference: player.matchmakingPreference,
+            stage: allowedOpponentPreferences.length === 3
+                ? MatchmakingCompetitivenessPreferenceSearchStage.AnyPreference
+                : allowedOpponentPreferences.length === 2
+                    ? MatchmakingCompetitivenessPreferenceSearchStage.IncludesNoPreference
+                    : MatchmakingCompetitivenessPreferenceSearchStage.SamePreferenceOnly,
+            allowedOpponentPreferences,
+            nextExpansionAt: futureExpansionTimes.length > 0 ? Math.min(...futureExpansionTimes) : null,
+        },
     };
 }
 
