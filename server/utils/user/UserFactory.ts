@@ -9,6 +9,7 @@ import type { ParsedUrlQuery } from 'node:querystring';
 import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModActionEntity, IUsernameChangeEntity } from '../../services/DynamoDBInterfaces';
 import { CardImageLocale, ModerationFieldState, ModerationType, TimerVisibility, UsernameChangeSource } from '../../services/DynamoDBInterfaces';
 import { RefreshTokenSource } from '../statHandlers/StatHandlerTypes';
+import { getUsernameValidationError } from './UsernameValidation';
 
 
 const getDefaultSoundPreferences = () => ({
@@ -251,6 +252,15 @@ export class UserFactory {
             daysRemaining?: number;
         }> {
         try {
+            // The client validates too, but a request can skip it
+            const validationError = getUsernameValidationError(newUsername);
+            if (validationError) {
+                return {
+                    success: false,
+                    message: validationError
+                };
+            }
+
             const dbService = await this.dbServicePromise;
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
