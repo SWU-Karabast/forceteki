@@ -1,4 +1,4 @@
-// scripts/migrateMustRequestUsernameChange.ts
+// scripts/migration/migrateMustRequestUsernameChange.ts
 
 // One-time migration script that converts the legacy `mustRequestUsernameChange` user-profile field into a
 // first-class UsernameChangesBlocked mod action (aligning it with Mute / Rename / ReportingDisabled). For each
@@ -19,11 +19,11 @@
 // For production you also need the usual DynamoDB credentials (API_KEY / SECRET) and ENVIRONMENT set to
 // the production value so DynamoDBService does not redirect to local DynamoDB.
 //
-// Usage: MIGRATION_TARGET=production MIGRATION_APPLY=true ts-node scripts/migrateMustRequestUsernameChange.ts
+// Usage: MIGRATION_TARGET=production MIGRATION_APPLY=true ts-node scripts/migration/migrateMustRequestUsernameChange.ts
 
-import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
-import { migrateMustRequestUsernameChangeAsync } from './lib/usernameBlockMigration';
-import '../server/env';
+import { getDynamoDbServiceAsync } from '../../server/services/DynamoDBService';
+import { migrateMustRequestUsernameChangeAsync } from './usernameBlockMigration';
+import '../../server/env';
 
 const TARGET = process.env.MIGRATION_TARGET ?? 'local';
 const APPLY = process.env.MIGRATION_APPLY === 'true';

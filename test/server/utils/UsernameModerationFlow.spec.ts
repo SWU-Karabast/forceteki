@@ -6,7 +6,7 @@ import { ModActionService } from '../../../server/utils/ModActionService';
 import type { IModActionSubmission } from '../../../server/utils/ModActionSubmissionHandler';
 import { ModActionSubmissionHandler } from '../../../server/utils/ModActionSubmissionHandler';
 import { UserFactory } from '../../../server/utils/user/UserFactory';
-import { migrateMustRequestUsernameChangeAsync } from '../../../scripts/lib/usernameBlockMigration';
+import { migrateMustRequestUsernameChangeAsync } from '../../../scripts/migration/usernameBlockMigration';
 
 type DynamoDBService = Awaited<ReturnType<typeof DynamoDBServiceModule.getDynamoDbServiceAsync>>;
 

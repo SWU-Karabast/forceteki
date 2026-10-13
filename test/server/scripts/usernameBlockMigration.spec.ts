@@ -1,11 +1,11 @@
 import type { IModActionEntity, IUserProfileDataEntity } from '../../../server/services/DynamoDBInterfaces';
 import { ModActionType, ModerationFieldState } from '../../../server/services/DynamoDBInterfaces';
-import type { IUsernameBlockMigrationDb } from '../../../scripts/lib/usernameBlockMigration';
+import type { IUsernameBlockMigrationDb } from '../../../scripts/migration/usernameBlockMigration';
 import {
     LEGACY_USERNAME_BLOCK_FIELD,
     migrateMustRequestUsernameChangeAsync,
     USERNAME_BLOCK_MIGRATION_NOTE
-} from '../../../scripts/lib/usernameBlockMigration';
+} from '../../../scripts/migration/usernameBlockMigration';
 
 describe('migrateMustRequestUsernameChangeAsync', function() {
     const options = { apply: true, moderatorId: 'migration-mod-id', moderatorUsername: 'MigrationMod' };

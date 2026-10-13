@@ -42,13 +42,13 @@ export interface IUserDataEntity {
      */
     reportingDisabledSeenActionId?: string;
 
-    /** @deprecated Superseded by the ReportingDisabled mod action. Removed by scripts/migrateReportingDisabled.ts. */
+    /** @deprecated Superseded by the ReportingDisabled mod action. Removed by scripts/migration/migrateReportingDisabled.ts. */
     reportingDisabled?: ModerationFieldState;
 
     /** Same as {@link reportingDisabledSeenActionId}, for the UsernameChangesBlocked mod action. */
     usernameChangesBlockedSeenActionId?: string;
 
-    /** @deprecated Superseded by the UsernameChangesBlocked mod action. Removed by scripts/migrateMustRequestUsernameChange.ts. */
+    /** @deprecated Superseded by the UsernameChangesBlocked mod action. Removed by scripts/migration/migrateMustRequestUsernameChange.ts. */
     mustRequestUsernameChange?: ModerationFieldState;
 }
 
