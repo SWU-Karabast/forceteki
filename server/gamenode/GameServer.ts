@@ -447,11 +447,11 @@ export class GameServer {
         );
 
         // STALE GAME CLEANUP
-        this.backgroundTasks.push(this.scheduler.setInterval(
+        this.scheduler.setInterval(
             () => this.removeStaleGames(),
             GameServer.STALE_GAME_CHECK_INTERVAL_MS,
             { message: 'GameServer: error during stale game cleanup' }
-        ));
+        );
 
         // Setup socket server
         this.io = new IOServer(server, {
@@ -3181,9 +3181,6 @@ export class GameServer {
     }
 
     /**
-     * Clean up invalid/expired tokens from the user token map
-     */
-    /**
      * Removes games nobody has done anything in for a long time. A lobby is normally removed when its game ends or
      * its players leave, but if that never happens the game stays in the spectate list forever with a blank board.
      */
@@ -3202,6 +3199,9 @@ export class GameServer {
         }
     }
 
+    /**
+     * Clean up invalid/expired tokens from the user token map
+     */
     private cleanupInvalidTokens(): void {
         try {
             const newTokenMapping = new Map<string, IToken>();
