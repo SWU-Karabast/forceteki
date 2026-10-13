@@ -762,6 +762,18 @@ export enum GamesToWinMode {
     BestOfThree = 'bestOfThree',
 }
 
+export enum MatchmakingCompetitivenessPreference {
+    Competitive = 'competitiveTesting',
+    Casual = 'casualBrewing',
+    NoPreference = 'noPreference',
+}
+
+export enum MatchmakingCompetitivenessPreferenceSearchStage {
+    SamePreferenceOnly = 'samePreferenceOnly',
+    IncludesNoPreference = 'includesNoPreference',
+    AnyPreference = 'anyPreference',
+}
+
 export enum RematchMode {
     Regular = 'regular',
     Reset = 'reset',
