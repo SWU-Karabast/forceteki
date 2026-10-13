@@ -1,6 +1,7 @@
 # Game Node Test Suite
 
-Status: **in progress** — Phases 0 and 1 landed on `ammayberry1/lobby-test-suite`.
+Status: **in progress** — Phases 0 and 1 landed on `ammayberry1/lobby-test-suite` (merged, PR #2934);
+Phases 2 and 2.5 ✅ complete on `ammayberry1/lobby-tests-2`, pending PR.
 
 ## Why this exists
 
@@ -149,19 +150,183 @@ Known and accepted: `ServerTestEnv` sets `ENVIRONMENT=development` for the whole
 was previously unset. This enables some dev-only engine validation that was already active locally —
 call it out in the PR description.
 
+### Phase 2 — fake transport and test client ✅
+
+Commit: `Add fake transport and TestClient for socket connection testing`
+
+**Production seam.** `GameServer`'s inline `io.use(...)` / `io.on('connection', ...)` closures are
+now named methods — `authenticateSocketAsync()`, `runSocketAuthMiddlewareAsync()`,
+`handleSocketConnectionAsync()` — operating against a new `IRawGameSocket` interface (the subset of
+socket.io's `Socket` that production code actually touches) instead of the concrete socket.io
+generic type. `onConnectionAsync` now takes an `IRawGameSocket` rather than a real socket. This is
+the seam the fake transport plugs into; behaviour is unchanged, confirmed by the existing Phase 0/1
+specs passing unmodified throughout.
+
+**`FakeIoSocket`.** An in-process implementation of `IRawGameSocket` that runs the *real* auth
+middleware and *real* `onConnectionAsync` with no network involved — the "hybrid transport" the
+Approach section above describes. Inbound (client→server) and outbound (server→client) traffic are
+modelled as two independent surfaces: `inboundListeners` (populated by production code's `.on()`
+calls, driven by tests via `simulateClientEmit()`) and `emittedEvents` (populated by production
+code's `.emit()` calls, read by tests via `TestClient`'s inbox). `disconnect()` stays synchronous to
+satisfy the real `Socket.disconnect(): this` signature structurally, but captures its async dispatch
+chain in a promise a caller can await via `waitForDisconnectHandlingAsync()`.
+
+**`TestClient`.** One per simulated user — anonymous or JWT-authenticated (mints a token against the
+test secret, exercising the real `verifyTokenAndCreateAuthenticatedUser` path the FE uses, with no
+DB access). HTTP helpers mirror the FE's actual calls (`createLobbyAsync`, `joinLobbyAsync`,
+`enterQueueAsync`, `spectateGameAsync`, `findAvailableLobbyAsync`); `connectAsync` /
+`attemptConnectAsync` drive the fake socket through the real seam; an inbox exposes `lobbyState`,
+`gameState`, `connectionErrors` and raw `receivedEvents`. `serverIntegration()` mirrors the card
+suite's `integration()` ergonomics, handing the harness to the spec body via a `contextRef`.
+
+**Fidelity guard.** `SocketIoDriftGuard.spec.ts` runs a handful of specs over a *real*
+`socket.io-client` against `TestGameServer`'s real bound port (lobbystate reachability, invalid-JWT
+rejection, valid-JWT-but-nowhere-to-go rejection) to catch drift between the fake transport and the
+real one.
+
+**Dead code found and removed: `gamestate`'s ack callback never fired against the real client.**
+While building the fidelity guard, a library-level probe (real `socket.io`/`socket.io-client`, no
+`TestGameServer` involved) confirmed that a server `emit(event, data, ackCallback)` only invokes
+`ackCallback` if the receiving listener explicitly calls the extra trailing argument socket.io
+injects. The FE's `gamestate` listener (`forceteki-client`'s `Game.context.tsx`) declares only one
+parameter, so `Lobby.sendGameState`'s ack (`() => this.safeSetUserConnected(...)`) never fired
+against a real client. Tracing every consumer of `user.state` showed nothing actually depended on
+it: a genuine reconnect always gets a brand-new socket (no `connectionStateRecovery` configured) and
+sets `state = 'connected'` directly in `addLobbyUserAsync`, and any inbound message already does the
+same via `updateUserLastActivity` — both independent of the ack. Git history (`928673b64`, "Connection
+improvements during matchmaking countdown") showed it was one of four defensive measures landed
+together against a *suspected, not confirmed* flaky-connection bug; the other three still do
+something, this one never did. Removed outright — the callback argument, `safeSetUserConnected`, and
+the comment describing it — rather than carried forward as a characterised-but-unfixed finding.
+
+**`LobbyConnectionManagement.spec.ts`** is the first scenario spec built on the full stack: public
+lobby browse-and-join, lobby-full stops advertising, private lobby via connection-link only (no HTTP
+join call), private lobby invisible to browsing, and graceful leave updating the other user's
+`lobbystate`.
+
+**Retrofit.** The two Phase 0/1 specs that use one fixed harness for the whole file
+(`GameServerLobbyApi.spec.ts`, `GameServerScheduling.spec.ts`) now use `serverIntegration()`.
+`GameServerAnonymousRestrictions.spec.ts` was deliberately left as-is — several of its scenarios need
+a different config override per test or per `describe` block, which `serverIntegration()`'s
+single-harness-per-file shape does not fit, and forcing it in would make that file worse, not
+better.
+
+**Established convention: discriminated-union narrowing needs an explicit type predicate.** This
+project's `tsconfig.json` has no `strict` / `strictNullChecks`, and TypeScript's control-flow
+narrowing of discriminated unions (`if (result.success) { ... } else { ... }`) depends on
+`strictNullChecks` being on — without it, both branches keep seeing the full, un-narrowed union.
+Confirmed in isolation: an extracted repro fails identically to the real failure under `tsc --noEmit`
+without `--strict`, and compiles clean with `--strictNullChecks` added. `ISocketAuthResult`'s two
+shapes are instead narrowed with explicit `function isX(result): result is {...}` predicates
+(`isSuccessfulSocketAuth`, `isConnectionRejected`), which narrow by assertion rather than structural
+inference and work regardless of the strictness setting. **Use this pattern for any new
+discriminated-union code in this project** until/unless `strictNullChecks` is enabled project-wide.
+
+**Gates:** targeted specs green — `GameServerLobbyApi`, `GameServerScheduling`,
+`GameServerAnonymousRestrictions`, `SocketIoDriftGuard`, `LobbyConnectionManagement` (31
+specs, 0 failures); `tsc --noEmit` clean on both `tsconfig.json` and `test/tsconfig.json`; `eslint
+--quiet` clean repo-wide; `validate-cards` clean; `test-parallel` 8814/0 (9 pre-existing pending) ·
+`test-parallel-undo` 8636/0 (15 pre-existing pending). Diff: 11 files, +1311 / −238; production
+footprint is `GameServer.ts` alone, +145 / −61 (net +84, almost entirely extraction of existing
+logic into named methods).
+
+### Phase 2.5 — external stats HTTP mocking seam ✅
+
+Raised while scoping Phase 4: `SwuStatsHandler` / `SwuBaseHandler` called the global `fetch` directly
+and were constructed inline in `GameServer`'s constructor (`new SwuStatsHandler(this.userFactory)`),
+with no injection seam — unlike every other external boundary, which the scheduler/config work
+already covered. Without this, "external stats: exact payloads to SwuStats/SwuBase" (Phase 4) had no
+way to intercept the request or control the response.
+
+**Production seam**, mirroring `IScheduler`/`RealScheduler` exactly: `IHttpClient` (one method,
+`fetch(url, init?)`) and `RealHttpClient` (a thin pass-through to the global `fetch`) in
+`server/utils/`. `IGameServerOptions.httpClient` defaults to `new RealHttpClient()`; `GameServer`
+stores it and passes it to both handlers' constructors, which now take `httpClient: IHttpClient` as
+a required parameter (no default there, matching `QueueHandler`'s existing `scheduler` parameter) and
+call `this.httpClient.fetch(...)` at all seven call sites (three in `SwuStatsHandler`, four in
+`SwuBaseHandler`) instead of the bare global.
+
+**`FakeHttpClient`** records every request (`requests` / `requestsTo(urlSubstring)`) and answers with
+a configurable canned response (`setResponse` / `setDefaultResponse`), defaulting to a 200 with an
+empty JSON body so a test only configures one when it cares about something else. Responses are real
+`Response` instances (the global class), so handler code reading `.ok` / `.status` / `.json()` /
+`.text()` gets genuinely spec-compliant behaviour rather than a hand-rolled approximation - the same
+"mock the outside world, keep the inside real" principle as `TestScheduler` and `FakeIoSocket`.
+`TestGameServer` creates one and exposes it as `testHttpClient`; `ServerTestHarness` re-exposes it as
+`statsHttpClient`, named to read unambiguously alongside `api` (the opposite direction of traffic).
+
+**`ServerTestEnv.ts`** gained dummy `SWUSTATS_*` / `SWUBASE_*` credentials. Both handlers read these
+at construction time to populate fields sent in outgoing payloads (`apiKey`, `client_id`, ...); left
+unset, every harness-built server would send `undefined` in those fields regardless of what a test
+configures, which would silently misrepresent production.
+
+**Demonstration specs** (not the Phase 4 scenario work itself, just proof the seam works):
+`RealHttpClient.spec.ts` against a real local server, mirroring `RealScheduler.spec.ts`'s role; and
+`SwuStatsHandler.spec.ts` / `SwuBaseHandler.spec.ts`, each constructing the handler directly with a
+`FakeHttpClient` and covering one or two representative methods end-to-end (request sent, response
+parsed, cache/error branches). `SwuStatsHandler.spec.ts` additionally confirms the harness-wired
+instance (`harness.server.swuStatsHandler`) actually uses `harness.statsHttpClient`, proving the
+injection chain itself; `SwuBaseHandler.spec.ts` skips repeating that check since the wiring is
+identical for both handlers. Exhaustive per-method and full-game-flow coverage remains Phase 4's job.
+
+**Scope note:** `SwuDbDeckFetcher` and `MeleeDeckFetcher` (external deck-link resolution) have the
+identical bare-`fetch` pattern and could reuse `IHttpClient` the same way, but were left untouched -
+out of scope for stats mocking and more naturally picked up alongside the "Deck management" future
+test suite below, which already needs its own fixtures for the sources it resolves links against.
+
+**Gates:** 13 new specs green (3 `RealHttpClient` + 6 `SwuStatsHandler` + 4 `SwuBaseHandler`);
+`tsc --noEmit` and `eslint --quiet` clean on both touched trees; all of `test/server/gamenode/` +
+`test/server/utils/` run together - every pre-existing spec in both directories plus these 13 -
+196/0. Full `test-parallel` / `test-parallel-undo` / `validate-cards` intentionally not re-run for
+this step - nothing under `server/game/**` changed, so the card suite is not in play; see the CI
+structure section below, which already documents this exact split.
+
+### Pre-PR review (round 2) — fixes applied ✅
+
+A second design review, focused on the fake transport built in Phase 2, found two real gaps - both
+confirmed empirically by deliberately reverting the fix and watching a new test fail before
+restoring it:
+
+1. **`FakeIoSocket.simulateClientEmit` dispatched to handlers even on an already-disconnected
+   socket.** Real socket.io removes a socket from its namespace on disconnect, so nothing reaches a
+   handler for it again; the fake had no equivalent check. This mattered because every lobby/game
+   message runs `Lobby.updateUserLastActivity`, which unconditionally marks the user `'connected'` -
+   so a single stale message after disconnect could silently cancel a pending grace-window removal,
+   and the test would just look like the removal hadn't happened *yet* rather than failing outright.
+   Fixed by throwing from `simulateClientEmit` when the socket is disconnected, except for
+   `'disconnect'` itself (which `disconnect()` dispatches after already flipping the flag).
+
+2. **`TestClient` had no way to observe what happened to a socket it reconnected away from.**
+   `connectAsync` overwrote `_socket` outright, so a spec could never check that production actually
+   disconnected the stale one (`Lobby.checkUpdateSocket`'s `user.socket.disconnect()` call) - that
+   line could be deleted and nothing would notice. Added `TestClient.previousSocket`, capturing the
+   prior socket on every reconnect, so a spec can assert `previousSocket.connected === false`. This
+   also covers the Phase 5 multi-tab case, since a reconnect and a second tab are the same thing
+   server-side.
+
+Both landed as new specs in `LobbyConnectionManagement.spec.ts` rather than fixes alone, closing two
+scenarios that section's own note had flagged as not yet written: an abrupt disconnect surviving to
+(and being removed at) the grace window, and a reconnect swapping sockets. One spec in the first
+scenario doubles as the regression lock for finding 1 (it deliberately attempts a stale send and
+asserts it is rejected instead of reviving the user); the reconnect spec is the regression lock for
+finding 2.
+
+Not changed: `checkUpdateSocket` also calls `removeEventsListeners(['disconnect'])` on the old socket
+before disconnecting it, and losing *that* line is just as invisible to every test above - but it's
+genuinely harmless. Traced through `addLobbyUserAsync`: `existingUser.state = 'connected'` runs
+before `checkUpdateSocket`, and `updateUserLastActivity` (which also sets `state = 'connected'`) runs
+unconditionally right after it returns - so even if the old socket's stale disconnect listener fired
+and flipped `state` back to `'disconnected'` in between, the very next line in the same synchronous
+call overwrites it before anything else can observe it. Confirmed by reasoning through the exact
+call order rather than adding a test for it, since the only way to assert it would mean asserting on
+internal dispatch plumbing rather than observable behaviour (design goal 2).
+
+**Gates:** both new specs fail when their respective fix is reverted (confirmed by deliberately
+reverting each and restoring it), and pass with the fix in place; full `test/server/gamenode/` +
+`test/server/utils/` sweep - 200/0; `tsc --noEmit` and `eslint --quiet` clean repo-wide. No
+production code changed - both fixes are entirely in the test helpers.
+
 ## Remaining work
-
-### Phase 2 — fake transport and test client
-
-`FakeSocketIo` implementing only the surface production touches — `io.use` chain, `connection`, and
-per-socket `id` / `data` / `connected` / `emit` / `on` / `removeAllListeners` / `eventNames` /
-`join` / `leave` / `disconnect`. **Must model ack callbacks**: `sendGameState` emits with an ack
-whose absence is meaningful, and a test needs to be able to withhold it to simulate a wedged client.
-
-`TestClient` — one per user, anonymous or authenticated (minting a real JWT against the test secret,
-exercising the real `verifyTokenAndCreateAuthenticatedUser` path the FE uses, with no DB access).
-Records every inbound event in an inbox. Plus a `serverIntegration()` global mirroring the existing
-`integration()` ergonomics.
 
 ### Phase 3 — protocol surface
 
@@ -174,6 +339,15 @@ against instead of an open-ended surface.
 Add `validateMatchConfiguration(format, cardPool, gamesToWinMode, context)` mirroring the FE's
 `LobbyFormatConfigs` / `QueueFormatConfigs`. See the game-mode matrix gap below.
 
+**Interface migration to do alongside this:** `IMatchConfiguration` (`{ format, cardPool,
+gamesToWinMode }`, currently test-only in `TestClient.ts`) mirrors fields `create-lobby` /
+`enter-queue` destructure untyped off `req.body` - migrate it to production (precedent:
+`IDeckValidationProperties` already does this for two of the three fields) and have
+`validateMatchConfiguration` take it as its parameter, with `TestClient` importing the real type
+instead of keeping a parallel copy. Weaker but related: `ITestUserPayload` (`{ id, username }`,
+`ServerTestHarness.ts`) mirrors the entirely untyped `queryUser` in
+`UserFactory.createAnonymousUserFromQuery` - worth a look in the same pass but lower priority.
+
 ### Phase 4 — Tier 1 scenarios
 
 - Create lobby (public/private) → connect → `lobbystate`; owner assignment
@@ -183,19 +357,20 @@ Add `validateMatchConfiguration(format, cardPool, gamesToWinMode, context)` mirr
 - Reconnect inside grace window (socket swap); beyond grace (removal); matchmaking variant (requeue + `matchmakingFailed`)
 - Inactivity kick → `inactiveDisconnect` + `forceDisconnect`, no re-entry
 - Anonymous vs authenticated: chat enabled/disabled, Bo3 gating, spectator gating
-- External stats: exact payloads to SwuStats/SwuBase/DeckService; `LoggedInOnly` / `SavedDecksOnly` skips
+- External stats: exact payloads to SwuStats/SwuBase/DeckService; `LoggedInOnly` / `SavedDecksOnly`
+  skips (mocking seam ready - see Phase 2.5)
 - Internal stats: `statsSubmitNotification` payloads including the repeated-send path
 - **Game-mode configuration matrix** (see below)
 
-### Phase 5 — Tier 2 scenarios and fidelity suite
+### Phase 5 — Tier 2 scenarios
 
 Command allowlist enforcement · spectator flows and `allowSpectators` · socket auth failures ·
 double-connect / multi-tab · deck gates (`change-deck`, start-time deck size) · maintenance mode
 (503 across all four entry points) · discovery endpoint filtering · lobby name profanity/length ·
 matchmaking cooldown · ack-less client.
 
-Plus 3–5 real `socket.io-client` tests over a real port to guard the fake's fidelity.
-`TestGameServer` already binds socket.io on its ephemeral port, so this path is reachable.
+The fidelity suite guarding the fake transport against drift landed early, in Phase 2
+(`SocketIoDriftGuard.spec.ts`), since the handoff spec needed it as a safety net from the start.
 
 ### Phase 6 — CI wiring and parallel-safety review
 
@@ -263,8 +438,12 @@ Behaviours found while building the suite, characterised in tests but **not fixe
    `IScheduledTask`, and `Lobby.cleanLobby()` does not stop a running game's `GameActionTimer`s. So
    `shutdownAsync()` leaks one timer per disconnected socket and per cleaned lobby with a live game.
    Harmless in production (the node does not shut down) but the `'cancels every scheduled task on
-   shutdown'` spec will start failing once Phase 2 introduces real disconnects — which is the correct
-   outcome, and the fix belongs with that work.
+   shutdown'` spec will start failing once a spec exercises an abrupt disconnect that reaches this
+   branch — which is the correct outcome, and the fix belongs with that work. Still not triggered as
+   of Phase 2: the one disconnect scenario built so far (`TestClient.manualDisconnectAsync`) takes
+   `onSocketDisconnected`'s early-return "intentional disconnect" branch, which never registers the
+   grace timer. The abrupt-drop variant (`TestClient.disconnectTransportAsync` exists but is not yet
+   used by a spec) is Phase 4's "beyond grace window" scenario and will be the one to watch.
 
 6. **Three scheduled callbacks still swallow their own errors** (`cleanupInvalidTokens`,
    `QueueHandler.cleanupPreviousMatchEntries`, `QueueHandler.sendHeartbeat`), so the scheduler's guard

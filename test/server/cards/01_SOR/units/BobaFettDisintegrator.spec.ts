@@ -73,14 +73,18 @@ describe('Boba Fett, Disintegrator', function() {
                 context.player2.passAction();
 
                 // Case 4 Ability should activate when attacking leader deployed previous phase
-                // TODO QIRA The card enteres play event doesn't handle leader deployment correctly so we need to wait for the fix before uncommenting this test.
-                /* context.exhaustCard(context.lukeSkywalker);
+                context.exhaustCard(context.lukeSkywalker);
                 context.player1.clickCard(context.bobaFett);
                 context.player1.clickCard(context.lukeSkywalker);
 
                 // check board state
                 expect(context.lukeSkywalker.damage).toBe(6);
-                expect(context.bobaFett.damage).toBe(4);*/
+                expect(context.bobaFett.damage).toBe(4);
+
+                // reset state
+                reset();
+
+                context.player2.passAction();
 
                 // Case 5 Ability shouldn't activate when selecting BobaFett's ability first.
                 context.player1.clickCard(context.vambraceGrappleshot);
@@ -89,7 +93,7 @@ describe('Boba Fett, Disintegrator', function() {
 
                 context.player1.clickCard(context.bobaFett);
                 context.player1.clickCard(context.consularSecurityForce);
-                context.player1.clickPrompt('(No effect) If this unit is attacking an exhausted unit that didn\'t enter play this round, deal 3 damage to the defender.');
+                context.player1.clickPrompt('If this unit is attacking an exhausted unit that didn\'t enter play this round, deal 3 damage to the defender.');
 
                 // check game state
                 expect(context.consularSecurityForce.damage).toBe(5);
@@ -108,8 +112,52 @@ describe('Boba Fett, Disintegrator', function() {
 
                 // check game state
                 expect(context.consularSecurityForce.damage).toBe(8);
+            });
+        });
 
-                // TODO check with units rescued from being captured
+        describe('Boba Fett, Disintegrator\'s ability, when attacking a unit rescued from being captured', function () {
+            it('should not deal 3 damage to an exhausted unit that was captured in a previous round and rescued this round', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['take-captive'],
+                        groundArena: ['boba-fett#disintegrator', 'battlefield-marine'],
+                    },
+                    player2: {
+                        hand: ['wampa'],
+                        groundArena: ['atst'],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Round 1: player2 plays Wampa and player1 captures it with Battlefield Marine
+                context.player2.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('groundArena', context.player2);
+
+                context.player1.clickCard(context.takeCaptive);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeCapturedBy(context.battlefieldMarine);
+
+                // Round 2: player2 defeats the guard, rescuing Wampa, which enters play again exhausted
+                context.moveToNextActionPhase();
+
+                context.player2.clickCard(context.atst);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.wampa).toBeInZone('groundArena', context.player2);
+                expect(context.wampa.exhausted).toBeTrue();
+
+                // Wampa entered play this round, so Boba's ability doesn't deal the extra 3 damage
+                context.player1.clickCard(context.bobaFett);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa.damage).toBe(3);
+                expect(context.bobaFett.damage).toBe(4);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });
