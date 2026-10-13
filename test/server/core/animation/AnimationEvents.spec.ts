@@ -28,28 +28,28 @@ describe('Animation events', function() {
                 const damage = context.getAnimationRecords(before)
                     .filter((record) => record.kind === AnimationKind.Damage);
 
-                const toMarine = damage.find((record) => record.target === context.battlefieldMarine.uuid);
+                const toMarine = damage.find((record) => record.cardId === context.battlefieldMarine.uuid);
                 expect(toMarine).toBeDefined();
-                // 4 power against 3 hp: the record reports the 3 that landed, not the 4 requested.
+                // 4 power against 3 hp: 3 lands.
                 expect(toMarine.amount).toBe(3);
-                expect(toMarine.sources).toEqual([context.wampa.uuid]);
+                expect(toMarine.sourceCardIds).toEqual([context.wampa.uuid]);
 
-                const toWampa = damage.find((record) => record.target === context.wampa.uuid);
+                const toWampa = damage.find((record) => record.cardId === context.wampa.uuid);
                 expect(toWampa).toBeDefined();
                 expect(toWampa.amount).toBe(3);
-                expect(toWampa.sources).toEqual([context.battlefieldMarine.uuid]);
+                expect(toWampa.sourceCardIds).toEqual([context.battlefieldMarine.uuid]);
             });
 
             it('reports the damage actually applied, not the amount requested', function () {
                 const { context } = contextRef;
                 const before = context.getAnimationRecords().length;
 
-                // The marine has 3 hp and takes 4 power of combat damage; only 3 can land.
+                // 4 power against 3 hp: 3 lands.
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.battlefieldMarine);
 
                 const toMarine = context.getAnimationRecords(before)
-                    .find((record) => record.kind === AnimationKind.Damage && record.target === context.battlefieldMarine.uuid);
+                    .find((record) => record.kind === AnimationKind.Damage && record.cardId === context.battlefieldMarine.uuid);
 
                 expect(toMarine.amount).toBe(3);
             });
@@ -64,9 +64,7 @@ describe('Animation events', function() {
                 const damage = context.getAnimationRecords(before)
                     .filter((record) => record.kind === AnimationKind.Damage);
 
-                // Wampa has Overwhelm, so the attack yields three separate records: the hit on the
-                // marine, the marine's return hit, and the excess rolling onto the base. The server
-                // neither sums nor dedupes them, and all three share one batch.
+                // Wampa -> marine, marine -> Wampa, and Overwhelm onto the base.
                 expect(damage.length).toBe(3);
                 expect(new Set(damage.map((record) => record.batch)).size).toBe(1);
             });
@@ -79,12 +77,12 @@ describe('Animation events', function() {
                 context.player1.clickCard(context.battlefieldMarine);
 
                 const overwhelm = context.getAnimationRecords(before)
-                    .find((record) => record.kind === AnimationKind.Damage && record.target === context.p2Base.uuid);
+                    .find((record) => record.kind === AnimationKind.Damage && record.cardId === context.p2Base.uuid);
 
                 expect(overwhelm).toBeDefined();
-                expect(overwhelm.target).toBe(context.p2Base.uuid);
+                expect(overwhelm.cardId).toBe(context.p2Base.uuid);
                 expect(overwhelm.amount).toBe(1);
-                expect(overwhelm.sources).toEqual([context.wampa.uuid]);
+                expect(overwhelm.sourceCardIds).toEqual([context.wampa.uuid]);
             });
         });
 
@@ -100,7 +98,7 @@ describe('Animation events', function() {
                     .filter((record) => record.kind === AnimationKind.Defeat);
 
                 expect(defeats.length).toBe(1);
-                expect(defeats[0].card).toBe(context.battlefieldMarine.uuid);
+                expect(defeats[0].cardId).toBe(context.battlefieldMarine.uuid);
             });
 
             it('puts a damage-driven defeat in the batch right after the damage', function () {
@@ -112,13 +110,11 @@ describe('Animation events', function() {
 
                 const records = context.getAnimationRecords(before);
                 const lethalDamage = records.find((record) =>
-                    record.kind === AnimationKind.Damage && record.target === context.battlefieldMarine.uuid);
+                    record.kind === AnimationKind.Damage && record.cardId === context.battlefieldMarine.uuid);
                 const defeat = records.find((record) => record.kind === AnimationKind.Defeat);
 
-                // The defeat resolves in a subwindow after the damage window, so it is the next batch.
                 expect(defeat.batch).toBe(lethalDamage.batch + 1);
 
-                // Batch ids never decrease along the log, so the client can pace batches in order.
                 for (let i = 1; i < records.length; i++) {
                     expect(records[i].batch).toBeGreaterThanOrEqual(records[i - 1].batch);
                 }
@@ -129,8 +125,7 @@ describe('Animation events', function() {
             it('delivers the same records to both players', function () {
                 const { context } = contextRef;
 
-                // In production every participant is served state at game start, which seats their
-                // cursor at zero before anything has happened. Tests never serialize, so do it here.
+                // Read once first so each player has a cursor before the attack.
                 context.game.getState(context.player1.id);
                 context.game.getState(context.player2.id);
 
@@ -166,12 +161,7 @@ describe('Animation events', function() {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.battlefieldMarine);
 
-                // A spectator who joins mid-game wants the chat backlog but not every animation
-                // the game has produced so far.
-                //
-                // The id must be unique per invocation: under ENABLE_UNDO_ALL_TESTS the body runs
-                // twice, and a reused id is a KNOWN participant on the second pass, which correctly
-                // receives everything since its cursor.
+                // Unique per run, because undo mode runs the body twice.
                 const joiner = context.game.getState(`spectator-${Date.now()}-${Math.random()}`) as any;
 
                 expect(joiner.newAnimations).toEqual([]);
@@ -195,7 +185,6 @@ describe('Animation events', function() {
                 expect(context.game.animations.records.length).toBe(0);
                 expect(context.game.animations.epoch).toBe(epochBefore + 1);
 
-                // Anyone reading after the reset sees the new epoch and nothing to play.
                 const state = context.game.getState(context.player1.id) as any;
                 expect(state.newAnimations).toEqual([]);
                 expect(state.animationEpoch).toBe(epochBefore + 1);
@@ -216,7 +205,6 @@ describe('Animation events', function() {
                     summarizeFor: (record) => record,
                 };
 
-                // Registers against the live game alongside the real recorder.
                 // eslint-disable-next-line no-new
                 new AnimationRecorder(context.game, [exploding]);
 
@@ -254,13 +242,12 @@ describe('Animation events with a multi-target attack', function() {
             context.player1.clickDone();
 
             const toMaul = context.getAnimationRecords(before)
-                .filter((record) => record.kind === AnimationKind.Damage && record.target === context.darthMaul.uuid);
+                .filter((record) => record.kind === AnimationKind.Damage && record.cardId === context.darthMaul.uuid);
 
-            // Both defenders strike back at once, which the engine resolves as one damage event.
-            // 4 + 3 = 7 combined, capped at the 6 hp Maul has.
+            // 4 + 3 = 7 combined, capped at Maul's 6 hp.
             expect(toMaul.length).toBe(1);
             expect(toMaul[0].amount).toBe(6);
-            expect(toMaul[0].sources).toEqual(jasmine.arrayWithExactContents([context.wampa.uuid, context.battlefieldMarine.uuid]));
+            expect(toMaul[0].sourceCardIds).toEqual(jasmine.arrayWithExactContents([context.wampa.uuid, context.battlefieldMarine.uuid]));
         });
     });
 });

@@ -12,15 +12,7 @@ import type {
     IAnimationStatePayload,
 } from './AnimationTypes';
 
-/**
- * Subscribes the registered animation descriptors to the engine's event emitter and turns the
- * events they care about into animation records.
- *
- * Game systems know nothing about this. They emit the `EventName.*` events they already emit;
- * everything animation-specific lives in the descriptor library. That is the difference from
- * PR #1948, which needed matching edits inside `DamageSystem`, `HealSystem`, `DefeatCardSystem`
- * and `AttachUpgradeSystem` for its four animations.
- */
+/** Listens for engine events and records the ones the descriptors handle into an {@link AnimationLog}. */
 export class AnimationRecorder {
     private static readonly MaxLoggedErrorsPerDescriptor = 5;
 
@@ -29,11 +21,7 @@ export class AnimationRecorder {
     private readonly summarizersByKind = new Map<AnimationKind, IAnimationDescriptor['summarizeFor']>();
     private readonly errorCounts = new Map<string, number>();
 
-    /**
-     * The window the previous record came from, compared by identity to decide whether the next
-     * record starts a new batch. Safe to hold because `EventWindow` extends `BaseStep` — a plain
-     * class, not a `GameObjectBase` — so it is never snapshotted or restored.
-     */
+    /** The event window the previous record came from. */
     private lastWindow: EventWindow | null = null;
     private batchId = 0;
 
@@ -50,7 +38,7 @@ export class AnimationRecorder {
         return this.log.epoch;
     }
 
-    /** Retained records, newest last. For tests and debugging. */
+    /** Retained records, oldest first. For tests and debugging. */
     public get records(): readonly AnimationRecord[] {
         return this.log.retainedRecords;
     }
@@ -65,18 +53,17 @@ export class AnimationRecorder {
         return this.log.peekOffset(participantId);
     }
 
+    /** Moves this participant's cursor to the newest record without delivering anything. */
     public resyncParticipant(participantId: string): void {
         this.log.resyncParticipant(participantId);
     }
 
+    /** Drops all retained records, moves every cursor to the newest record and increments the epoch. */
     public resetForRollback(): void {
         this.log.resetForRollback();
     }
 
-    /**
-     * One summarizer per record kind, resolved at construction so a missing or ambiguous one is a
-     * startup failure rather than a silent information leak at serialization time.
-     */
+    /** Maps each record kind to its descriptor's `summarizeFor`. Throws if two descriptors disagree. */
     private indexSummarizers(): void {
         for (const descriptor of this.descriptors) {
             for (const kind of descriptor.kinds) {
@@ -111,8 +98,6 @@ export class AnimationRecorder {
                 continue;
             }
 
-            // Every descriptor call is isolated: an animation is cosmetic, and a bug in one must
-            // never propagate into the rules engine and break the game for both players.
             try {
                 if (!predicate(event)) {
                     continue;
@@ -140,10 +125,9 @@ export class AnimationRecorder {
     }
 
     /**
-     * The batch for a record about to be appended. A batch is a run of consecutive records from
-     * the same event window, so batch ids only ever increase along the log and a batch is never
-     * split by another one. Records emitted outside any window (e.g. `Game.emitEvent`) each get a
-     * batch of their own.
+     * Returns the batch id for the next record: the current one if it comes from the same event
+     * window as the previous record, otherwise a new one. Records outside any window always get a
+     * new one.
      */
     private currentBatch(): number {
         const window = this.game.currentEventWindow;
@@ -154,11 +138,10 @@ export class AnimationRecorder {
         return this.batchId;
     }
 
+    /** Returns the record for this viewer, or null if its kind has no `summarizeFor` or it throws. */
     private summarizeFor(record: AnimationRecord, viewer: Player | null): AnimationRecord | null {
         const summarize = this.summarizersByKind.get(record.kind);
         if (summarize == null) {
-            // Default deny. A record whose kind has no summarizer is one nobody has decided the
-            // visibility rules for, so it does not go out.
             return null;
         }
 
