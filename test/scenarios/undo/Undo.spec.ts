@@ -1028,7 +1028,6 @@ describe('Undo', function() {
                         context.player2.clickCard(context.kananJarrus);
                         context.player2.clickCard(context.p1Base);
                         context.player2.clickPrompt('Discard 1 card from the defending player\'s deck. Heal 1 damage for each aspect among the discarded cards.');
-                        context.player2.clickPrompt('Trigger');
                         expect(context.kylosTieSilencer).toBeInZone('discard', context.player1);
                         expect(context.player1.currentActionTargets).toContain(context.kylosTieSilencer);
 
@@ -1213,7 +1212,7 @@ describe('Undo', function() {
 
                         context.player1.clickCard(context.bobaFett);
                         context.player1.clickCard(context.consularSecurityForce);
-                        context.player1.clickPrompt('(No effect) If this unit is attacking an exhausted unit that didn\'t enter play this round, deal 3 damage to the defender.');
+                        context.player1.clickPrompt('If this unit is attacking an exhausted unit that didn\'t enter play this round, deal 3 damage to the defender.');
 
                         // check game state
                         expect(context.consularSecurityForce.damage).toBe(5);

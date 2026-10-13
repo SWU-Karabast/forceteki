@@ -256,5 +256,38 @@ describe('Krayt Dragon', function () {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        it('should deal damage when an opponent plays a unit owned by Krayt Dragon\'s controller with Unrefusable Offer', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['krayt-dragon', { card: 'battlefield-marine', upgrades: ['unrefusable-offer'] }],
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.passAction();
+
+            // Opponent defeats player1's unit and collects the bounty to play it under their control
+            context.player2.clickCard(context.wampa);
+            context.player2.clickCard(context.battlefieldMarine);
+            expect(context.player2).toHavePassAbilityPrompt('Collect Bounty: Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it');
+            context.player2.clickPrompt('Trigger');
+
+            expect(context.battlefieldMarine).toBeInZone('groundArena', context.player2);
+            expect(context.battlefieldMarine.owner).toBe(context.player1.player);
+
+            // Krayt Dragon reacts to the opponent playing the card, even though player1 owns it
+            expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa, context.battlefieldMarine]);
+            expect(context.player1).toHavePassAbilityButton();
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.p2Base.damage).toBe(2);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });
