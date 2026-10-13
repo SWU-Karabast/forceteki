@@ -254,11 +254,14 @@ describe('Chancellor Palpatine, How Liberty Dies', function () {
             it('should not warn when the Plot card is played before the discount', async function () {
                 const context = await setupAsync();
 
+                // choosing it in the resolution-order prompt triggers it right away, and since it still costs
+                // resources there is no confirmation either
                 context.player1.clickPrompt('Play Jar Jar Binks using Plot');
 
-                expect(context.player1).toHavePassAbilityPrompt('Play Jar Jar Binks using Plot');
-                expect(context.player1.currentPrompt().warningText).toBeNull();
+                expect(context.player1).toHavePrompt('Give another friendly unit +2/+2 for this phase');
                 context.player1.clickPrompt('Pass');
+
+                expect(context.jarJarBinks).toBeInZone('groundArena');
             });
 
             it('should not warn when the Plot card is already exhausted', async function () {
