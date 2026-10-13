@@ -63,7 +63,10 @@ export abstract class User {
 
     public abstract mustRequestUsernameChange(): ModerationFieldState | null;
 
-    public abstract reportingDisabled(): ModerationFieldState | null;
+    /**
+     * Id of the ReportingDisabled mod action whose one-time notice this user has acknowledged.
+     */
+    public abstract reportingDisabledSeenActionId(): string | null;
 
     /**
      * Gets the user's moderation status
@@ -139,8 +142,8 @@ export class AuthenticatedUser extends User {
         return this.userData.mustRequestUsernameChange ?? null;
     }
 
-    public reportingDisabled(): ModerationFieldState | null {
-        return this.userData.reportingDisabled ?? null;
+    public reportingDisabledSeenActionId(): string | null {
+        return this.userData.reportingDisabledSeenActionId ?? null;
     }
 
     public getModeration(): IModerationAction | null {
@@ -204,7 +207,7 @@ export class AnonymousUser extends User {
         return null;
     }
 
-    public reportingDisabled(): ModerationFieldState | null {
+    public reportingDisabledSeenActionId(): string | null {
         return null;
     }
 

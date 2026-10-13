@@ -315,6 +315,7 @@ export enum EventName {
     OnClaimInitiative = 'onClaimInitiative',
     OnDamageDealt = 'onDamageDealt',
     OnDamageHealed = 'onDamageHealed',
+    OnDamageUnitsToPayCost = 'onDamageUnitsToPayCost',
     OnDeckSearch = 'onDeckSearch',
     OnDeckShuffled = 'onDeckShuffled',
     OnDefeatCreditsToPayCost = 'onDefeatCreditsToPayCost',
@@ -365,6 +366,7 @@ export enum MetaEventName {
     AttackSteps = 'attackSteps',
     Conditional = 'conditional',
     ChooseModalEffects = 'ChooseModalEffects',
+    ChooseNumber = 'chooseNumber',
     DistributeDamage = 'distributeDamage',
     DistributeIndirectDamageToCards = 'distributeIndirectDamageToCards',
     DistributeHealing = 'distributeHealing',
@@ -758,6 +760,18 @@ export enum CardPool {
 export enum GamesToWinMode {
     BestOfOne = 'bestOfOne',
     BestOfThree = 'bestOfThree',
+}
+
+export enum MatchmakingCompetitivenessPreference {
+    Competitive = 'competitiveTesting',
+    Casual = 'casualBrewing',
+    NoPreference = 'noPreference',
+}
+
+export enum MatchmakingCompetitivenessPreferenceSearchStage {
+    SamePreferenceOnly = 'samePreferenceOnly',
+    IncludesNoPreference = 'includesNoPreference',
+    AnyPreference = 'anyPreference',
 }
 
 export enum RematchMode {

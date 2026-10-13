@@ -150,7 +150,6 @@ describe('Boba Fett, Daimyo', function () {
 
             expect(context.player1).toHaveExactPromptButtons(['Ambush', 'Exhaust this leader to give a friendly unit +1/+0 for this phase']);
             context.player1.clickPrompt('Exhaust this leader to give a friendly unit +1/+0 for this phase');
-            context.player1.clickPrompt('Trigger');
             context.player1.clickCard(context.battlefieldMarine);
 
             context.player1.clickPrompt('Trigger');
@@ -240,6 +239,40 @@ describe('Boba Fett, Daimyo', function () {
                 // keyword. Deployed Daimyō Boba Fett's +1/+0 to each other friendly unit with 1 or more
                 // keywords should apply to it.
             });
+        });
+
+        it('Boba Fett\'s leader ability should trigger when its controller plays an opponent-owned unit with a keyword with Unrefusable Offer', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['wampa'],
+                    leader: 'boba-fett#daimyo',
+                },
+                player2: {
+                    groundArena: [{ card: 'pyke-sentinel', upgrades: ['unrefusable-offer'] }],
+                },
+            });
+
+            const { context } = contextRef;
+
+            // Defeat the opponent's Sentinel unit and collect the bounty to play it under player1's control
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.pykeSentinel);
+            expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.pykeSentinel).toBeInZone('groundArena', context.player1);
+            expect(context.pykeSentinel.owner).toBe(context.player2.player);
+
+            // Boba Fett reacts to player1 playing the opponent-owned unit with a keyword
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give a friendly unit +1/+0 for this phase');
+            context.player1.clickPrompt('Trigger');
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel]);
+            context.player1.clickCard(context.pykeSentinel);
+
+            expect(context.bobaFett.exhausted).toBeTrue();
+            expect(context.pykeSentinel.getPower()).toBe(3);
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });

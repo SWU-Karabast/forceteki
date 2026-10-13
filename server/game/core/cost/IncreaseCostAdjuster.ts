@@ -19,7 +19,7 @@ export class IncreaseCostAdjuster extends CostAdjuster {
             ...properties,
             costAdjustType: CostAdjustType.Increase
         };
-        super(game, source, CostAdjustStage.Increase_7, propsWithType);
+        super(game, source, CostAdjustStage.Increase_8, propsWithType);
     }
 
     protected override applyMaxAdjustmentAmount(card: Card, context: AbilityContext, result: ICostAdjustmentResolutionProperties) {

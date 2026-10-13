@@ -70,7 +70,11 @@ export default class DamageModificationAbility extends ReplacementAbilityBase {
             ? ability.targetResolvers.flatMap((target) => Helpers.asArray(target.getGameSystems(context)))
             : Helpers.asArray(ability.immediateEffect);
 
-        return systems.some((system) => this.systemDealsDamage(system, context));
+        // cost adjusters can also deal damage while the ability's costs are paid (e.g. Marauder)
+        const costAdjusterSystems = ability.getCosts(context)
+            .flatMap((cost) => (cost.isResourceCost() ? cost.getTargetedCostAdjusterEffectSystems(context) : []));
+
+        return systems.concat(costAdjusterSystems).some((system) => this.systemDealsDamage(system, context));
     }
 
     private systemDealsDamage(system: GameSystem<AbilityContext>, context: AbilityContext): boolean {

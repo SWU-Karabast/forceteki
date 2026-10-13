@@ -26,6 +26,34 @@ describe('OOM-Series Officer', function () {
                 expect(context.p2Base.damage).toBe(2);
                 expect(context.oomseriesOfficer).toBeInZone('discard');
             });
+
+            it('should let the new controller choose the base when defeated with No Glory, Only Results', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['oomseries-officer'],
+                        base: 'droid-manufactory'
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results'],
+                        base: 'sundari',
+                        hasInitiative: true
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.oomseriesOfficer);
+
+                // Player 2 controlled the Officer when it was defeated, so they resolve the When Defeated ability
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+                context.player2.clickCard(context.p1Base);
+
+                expect(context.p1Base.damage).toBe(2);
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.oomseriesOfficer).toBeInZone('discard', context.player1);
+                expect(context.player1).toBeActivePlayer();
+            });
         });
     });
 });

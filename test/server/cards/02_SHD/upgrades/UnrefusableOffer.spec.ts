@@ -274,7 +274,7 @@ describe('Unrefusable Offer', function () {
         // (entering ready), so the Technician's own When Defeated finds it no longer in the discard and does
         // nothing. At the start of the regroup phase the delayed effect defeats it, and its When Defeated
         // then triggers for player1 (its current controller), who declines it here.
-        it('Unrefusable Offer\'s Bounty ability should play defeated unit (enters ready) and defeat it at the start of regroup phase', async function () {
+        it('should let player1 collect the Bounty on an enemy Superlaser Technician, play it ready and attack with it, then defeat it again at the start of the regroup phase', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -311,8 +311,11 @@ describe('Unrefusable Offer', function () {
             expect(context.p2Base.damage).toBe(2);
 
             context.moveToRegroupPhase();
+
             // The Bounty-played Technician is defeated at the start of the regroup phase; its own When
-            // Defeated now triggers for player1 (its current controller). Decline it so the unit is discarded.
+            // Defeated ability is now controlled by player1 (its current controller). Decline it so the
+            // unit is discarded.
+            expect(context.player1).toHavePassAbilityPrompt('Put Superlaser Technician into play as a resource and ready it');
             context.player1.clickPrompt('Pass');
             expect(context.superlaserTechnician).toBeInZone('discard');
         });

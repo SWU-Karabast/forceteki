@@ -48,7 +48,7 @@ export class DefeatResourcesCostAdjuster extends TargetedCostAdjuster {
         // which only holds (e.g. after Starhawk halves the cost) if each one reduces the cost by at least 2
         Contract.assertTrue(properties.amountPerResource >= 2, `Defeat resources cost adjustment must be at least 2 per resource, instead got ${properties.amountPerResource}`);
 
-        super(game, source, CostAdjustStage.DefeatResources_3,
+        super(game, source, CostAdjustStage.DefeatResources_4,
             {
                 ...properties,
                 costAdjustType: CostAdjustType.DefeatResources,

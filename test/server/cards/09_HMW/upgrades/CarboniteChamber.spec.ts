@@ -68,4 +68,42 @@ describe('Carbonite Chamber', function() {
             expect(context.wampa.exhausted).toBeFalse();
         });
     });
+
+    integration(function(contextRef) {
+        it('should be controlled by the player who played it from the opponent\'s discard pile and go back to its owner\'s discard pile', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['a-fine-addition'],
+                    groundArena: ['wampa'],
+                },
+                player2: {
+                    groundArena: ['death-star-stormtrooper', 'battlefield-marine'],
+                    discard: ['carbonite-chamber'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Defeat an enemy unit to enable A Fine Addition
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.deathStarStormtrooper);
+            context.player2.passAction();
+
+            // Play player2's Carbonite Chamber from their discard pile onto player1's base
+            context.player1.clickCard(context.aFineAddition);
+            context.player1.clickCard(context.carboniteChamber);
+            context.player1.clickCard(context.p1Base);
+            expect(context.carboniteChamber).toBeAttachedTo(context.p1Base);
+            expect(context.carboniteChamber.controller).toBe(context.player1.player);
+            context.player2.passAction();
+
+            // player1 controls the upgrade and can use its action, which defeats it
+            context.player1.clickCard(context.carboniteChamber);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.carboniteChamber).toBeInZone('discard', context.player2);
+            expect(context.player2).toBeActivePlayer();
+        });
+    });
 });

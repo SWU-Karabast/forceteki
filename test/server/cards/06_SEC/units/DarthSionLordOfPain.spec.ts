@@ -89,5 +89,27 @@ describe('Darth Sion, Lord of Pain', function () {
                 expect(context.darthSionLordOfPain.zoneName).toBe('hand');
             });
         });
+
+        it('Darth Sion\'s when defeated ability should return him to his owner\'s hand when defeated by No Glory, Only Results with 7 or more power', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [{ card: 'darth-sion#lord-of-pain', upgrades: ['experience', 'experience'] }]
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.darthSionLordOfPain);
+
+            expect(context.darthSionLordOfPain).toBeInZone('hand', context.player1);
+            expect(context.player2.hand.length).toBe(0);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

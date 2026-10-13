@@ -8,6 +8,7 @@ import type { AbilityResolver } from './gameSteps/AbilityResolver';
 import type { ActionWindow } from './gameSteps/ActionWindow';
 import type { UiPrompt } from './gameSteps/prompts/UiPrompt';
 import type { UndoMode } from './snapshot/SnapshotManager';
+import type { IScheduler } from '../../utils/IScheduler';
 import { Contract } from './utils/Contract';
 
 export interface GameConfiguration {
@@ -28,7 +29,9 @@ export interface GameConfiguration {
     legalCardTitles?: ReadonlySet<string>;
     useActionTimer?: boolean;
     pushUpdate: () => void;
-    buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
+
+    /** Supplies timers and the clock. Callbacks scheduled through it are error-guarded. */
+    scheduler: IScheduler;
     userTimeoutDisconnect: (userId: string) => void;
     undoMode?: UndoMode;
 
@@ -53,7 +56,7 @@ export function validateGameConfiguration(configuration: GameConfiguration): voi
     Contract.assertNotNullLike(configuration.players);
     Contract.assertNotNullLike(configuration.cardDataGetter);
     Contract.assertNotNullLike(configuration.pushUpdate);
-    Contract.assertNotNullLike(configuration.buildSafeTimeout);
+    Contract.assertNotNullLike(configuration.scheduler);
     Contract.assertNotNullLike(configuration.userTimeoutDisconnect);
 }
 

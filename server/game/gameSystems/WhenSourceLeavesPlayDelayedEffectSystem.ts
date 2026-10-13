@@ -1,5 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
+import type { GameEvent } from '../core/event/GameEvent';
 import { Duration } from '../core/Constants';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import { Contract } from '../core/utils/Contract';
@@ -34,9 +35,9 @@ export class WhenSourceLeavesPlayDelayedEffectSystem<TContext extends AbilityCon
 
         // if the source card has already left play, trigger the effects immediately
         if (!delayedEffectSource.isInPlay()) {
-            event.context.game.addSubwindowEvents(
-                event.immediateEffect.generateEvent(event.context, additionalProperties)
-            );
+            const events: GameEvent[] = [];
+            event.immediateEffect.queueGenerateEventGameSteps(events, event.context, additionalProperties);
+            event.context.game.addSubwindowEvents(events);
             return;
         }
 
