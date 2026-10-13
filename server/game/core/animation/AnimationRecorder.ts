@@ -30,12 +30,12 @@ export class AnimationRecorder {
     private readonly errorCounts = new Map<string, number>();
 
     /**
-     * Batch id per event window. Keyed by object identity, which is safe here because
-     * `EventWindow` extends `BaseStep` — a plain class, not a `GameObjectBase` — so instances
-     * are never snapshotted or restored. A `WeakMap` keeps this from pinning finished windows.
+     * The window the previous record came from, compared by identity to decide whether the next
+     * record starts a new batch. Safe to hold because `EventWindow` extends `BaseStep` — a plain
+     * class, not a `GameObjectBase` — so it is never snapshotted or restored.
      */
-    private readonly batchIds = new WeakMap<EventWindow, number>();
-    private nextBatchId = 0;
+    private lastWindow: EventWindow | null = null;
+    private batchId = 0;
 
     public constructor(
         private readonly game: Game,
@@ -124,9 +124,9 @@ export class AnimationRecorder {
                 }
 
                 const drafts = Array.isArray(built) ? built : [built];
-                const { batch, parentBatch } = this.currentBatch();
+                const batch = this.currentBatch();
                 for (const draft of drafts) {
-                    this.appendDraft(draft, batch, parentBatch);
+                    this.appendDraft(draft, batch);
                 }
             } catch (error) {
                 this.logError(descriptor.name, eventName, error);
@@ -134,40 +134,24 @@ export class AnimationRecorder {
         }
     }
 
-    private appendDraft(draft: AnimationRecordDraft, batch: number, parentBatch?: number): void {
-        const stamped: AnimationRecordPreSeq = { ...draft, batch, parentBatch };
+    private appendDraft(draft: AnimationRecordDraft, batch: number): void {
+        const stamped: AnimationRecordPreSeq = { ...draft, batch };
         this.log.append(stamped);
     }
 
     /**
-     * Resolves the batch id for whatever is resolving right now, plus its parent's.
-     *
-     * The parent matters more than it looks: a unit's damage and the defeat that damage causes
-     * land in DIFFERENT windows by design (`UnitProperties.addDamage` defers the defeat check to
-     * a post-event-resolution callback, and `checkDefeated` routes the defeat through
-     * `game.addSubwindowEvents`). Without `parentBatch` the client has no way to tie the two
-     * halves of the commonest animation in the game back together.
+     * The batch for a record about to be appended. A batch is a run of consecutive records from
+     * the same event window, so batch ids only ever increase along the log and a batch is never
+     * split by another one. Records emitted outside any window (e.g. `Game.emitEvent`) each get a
+     * batch of their own.
      */
-    private currentBatch(): { batch: number; parentBatch?: number } {
+    private currentBatch(): number {
         const window = this.game.currentEventWindow;
-        if (window == null) {
-            // Emitted outside any window (e.g. `Game.emitEvent`). Give it a batch of its own.
-            return { batch: ++this.nextBatchId };
+        if (window == null || window !== this.lastWindow) {
+            this.batchId++;
         }
-
-        return {
-            batch: this.batchIdFor(window),
-            parentBatch: window.parentEventWindow ? this.batchIdFor(window.parentEventWindow) : undefined,
-        };
-    }
-
-    private batchIdFor(window: EventWindow): number {
-        let id = this.batchIds.get(window);
-        if (id === undefined) {
-            id = ++this.nextBatchId;
-            this.batchIds.set(window, id);
-        }
-        return id;
+        this.lastWindow = window;
+        return this.batchId;
     }
 
     private summarizeFor(record: AnimationRecord, viewer: Player | null): AnimationRecord | null {

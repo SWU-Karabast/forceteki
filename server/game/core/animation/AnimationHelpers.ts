@@ -50,23 +50,6 @@ export function resolveDamageSourceCard(event: any): Card | undefined {
 }
 
 /**
- * Who defeated the card. Kept local rather than calling `DefeatCardSystem.defeatSourceCard`
- * because that helper asserts on the event name and throws on a malformed source.
- */
-export function resolveDefeatSourceCard(event: any): Card | undefined {
-    const defeatSource = event?.defeatSource;
-    if (defeatSource == null) {
-        return undefined;
-    }
-
-    if (defeatSource.type === DamageSourceType.Attack) {
-        return defeatSource.attack?.attacker;
-    }
-
-    return defeatSource.card;
-}
-
-/**
  * A card being defeated is only worth animating if it is a real card on the board.
  *
  * Token UPGRADES (shield, experience, advantage, weakness) are removed by being defeated, so they

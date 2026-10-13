@@ -1,5 +1,3 @@
-import type { DamageType, ZoneName } from '../Constants';
-import type { DefeatSourceType } from '../../IDamageOrDefeatSource';
 import type { Player } from '../Player';
 
 /**
@@ -22,24 +20,12 @@ export interface IAnimationRecordBase {
     seq: number;
 
     /**
-     * Id of the resolution batch (one {@link EventWindow}) this record came from. Records
-     * sharing a batch happened simultaneously as far as the rules are concerned. The server
-     * never merges or reorders them — the client decides what to play together.
-     *
-     * Opaque: ids are allocated when a window is first seen, so a parent window can carry a
-     * HIGHER id than its child. Order by {@link seq}, never by this.
+     * Records sharing a batch came from the same engine resolution step and happened
+     * simultaneously as far as the rules are concerned. Batches are consecutive runs of the log:
+     * ids only increase along it, and a batch is never interrupted by another. The server never
+     * merges or reorders records — the client decides how to pace one batch against the next.
      */
     batch: number;
-
-    /**
-     * Batch id of the enclosing window, when there is one.
-     *
-     * Needed because a unit's damage and the defeat it causes deliberately land in DIFFERENT
-     * batches: `UnitProperties.addDamage` defers the defeat check to a post-event-resolution
-     * callback, and `checkDefeated` routes the defeat through `game.addSubwindowEvents`, which
-     * resolves in a fresh window. `parentBatch` is what lets the client tie the two together.
-     */
-    parentBatch?: number;
 
     kind: AnimationKind;
 }
@@ -55,17 +41,6 @@ export interface IDamageAnimationRecord extends IAnimationRecordBase {
 
     /** Damage actually applied, already capped at the target's remaining HP. */
     amount: number;
-
-    damageType: DamageType;
-
-    /**
-     * Whether this damage is expected to defeat the target. Lets the client hold a damage
-     * animation open for the defeat that will arrive in a later batch.
-     */
-    isLethal: boolean;
-
-    /** Only set on the ability damage path; absent for combat, overwhelm and excess damage. */
-    isIndirect?: boolean;
 }
 
 export interface IDefeatAnimationRecord extends IAnimationRecordBase {
@@ -73,20 +48,6 @@ export interface IDefeatAnimationRecord extends IAnimationRecordBase {
 
     /** uuid of the defeated card. */
     card: string;
-
-    /** Player id of the card's controller, taken from last known information. */
-    controller?: string;
-
-    /**
-     * The arena the card was in before it left play, from last known information. By the time
-     * this record is built the card has already moved to discard, so its live zone is useless.
-     */
-    arena?: ZoneName;
-
-    reason: DefeatSourceType | 'unknown';
-
-    /** uuid of the card responsible, when one can be resolved. */
-    defeatedBy?: string;
 }
 
 export type AnimationRecord = IDamageAnimationRecord | IDefeatAnimationRecord;
@@ -98,8 +59,8 @@ export type AnimationRecordPreSeq =
 
 /** A record as a descriptor builds it, before the recorder stamps identity onto it. */
 export type AnimationRecordDraft =
-  | Omit<IDamageAnimationRecord, 'seq' | 'batch' | 'parentBatch'>
-  | Omit<IDefeatAnimationRecord, 'seq' | 'batch' | 'parentBatch'>;
+  | Omit<IDamageAnimationRecord, 'seq' | 'batch'>
+  | Omit<IDefeatAnimationRecord, 'seq' | 'batch'>;
 
 /**
  * One animation definition.
