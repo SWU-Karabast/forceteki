@@ -1,7 +1,7 @@
 import { EventName } from '../../Constants';
+import type { IDamageSource } from '../../../IDamageOrDefeatSource';
 import { AnimationKind } from '../AnimationTypes';
 import type { IAnimationDescriptor } from '../AnimationTypes';
-import { resolveDamageSourceCard } from '../AnimationHelpers';
 
 export const damageAnimation: IAnimationDescriptor = {
     name: 'damage',
@@ -11,14 +11,23 @@ export const damageAnimation: IAnimationDescriptor = {
         // here and keeps cancelled/replaced events from producing phantom animations.
         [EventName.OnDamageDealt]: (event) => event?.isResolved && event?.damageDealt > 0,
     },
-    build: (event) => ({
-        kind: AnimationKind.Damage,
-        target: event.card.uuid,
-        source: resolveDamageSourceCard(event)?.uuid,
-        // `damageDealt` is what actually landed, already capped at remaining HP. `amount` is what
-        // was requested and can be larger — animating that would show damage that never happened.
-        amount: event.damageDealt,
-    }),
+    build: (event) => {
+        // `DamageSystem` sets this on every damage event: combat and overwhelm damage carry the
+        // dealing units in `damageDealtBy`, ability and excess damage carry the card in `card`.
+        // Narrowed by field rather than by `type`, since the attack variant's `type` spans two enums.
+        const damageSource: IDamageSource = event.damageSource;
+
+        return {
+            kind: AnimationKind.Damage,
+            target: event.card.uuid,
+            source: 'damageDealtBy' in damageSource
+                ? damageSource.damageDealtBy[0]?.uuid
+                : damageSource.card?.uuid,
+            // `damageDealt` is what actually landed, already capped at remaining HP. `amount` is what
+            // was requested and can be larger — animating that would show damage that never happened.
+            amount: event.damageDealt,
+        };
+    },
     // Damage only lands on cards in an arena or on a base, and neither zone is ever hidden from
     // either player, so there is nothing to withhold.
     summarizeFor: (record) => record,
