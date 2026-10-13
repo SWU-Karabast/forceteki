@@ -40,6 +40,7 @@ import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
 import { ServerSettingsCache } from '../utils/ServerSettingsCache';
 import { UserFactory } from '../utils/user/UserFactory';
+import { validateUsernameFormat } from '../utils/user/UsernameRules';
 import { DeckService } from '../utils/deck/DeckService';
 import { userOrLobbyNameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
 import { SwuStatsHandler } from '../utils/statHandlers/SwuStatsHandler';
@@ -52,7 +53,8 @@ import { RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 import type { IActiveModActionCacheEntry,
     IDeckDataEntity,
     IModerationAction,
-    IReportingDisabledState } from '../services/DynamoDBInterfaces';
+    IReportingDisabledState,
+    IUsernameChangesBlockedState } from '../services/DynamoDBInterfaces';
 import { ModActionType } from '../services/DynamoDBInterfaces';
 import {
     ModerationType,
@@ -65,6 +67,7 @@ import { CardPool, SwuGameFormat } from '../game/core/Constants';
 import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 import { ModActionService } from '../utils/ModActionService';
+import { ModActionSubmissionHandler } from '../utils/ModActionSubmissionHandler';
 import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema, ServerSettingsUpdateSchema } from '../services/DynamoDBInterfaceSchemas';
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import { RealScheduler } from '../utils/RealScheduler';
@@ -315,6 +318,7 @@ export class GameServer {
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
     public readonly serverSettingsCache?: ServerSettingsCache;
     public readonly modActionService?: ModActionService;
+    private readonly modActionSubmissionHandler?: ModActionSubmissionHandler;
 
     /**
      * The HTTP server carrying both the API and the socket.io server. Subclasses may bind it
@@ -370,6 +374,7 @@ export class GameServer {
         this.serverSettingsCache = serverSettingsCache;
         this.cosmeticsService = cosmeticsService;
         this.modActionService = modActionCache;
+        this.modActionSubmissionHandler = modActionCache ? new ModActionSubmissionHandler(modActionCache, this.userFactory) : undefined;
 
         const corsOptions = {
             origin: env.corsOrigins,
@@ -560,6 +565,7 @@ export class GameServer {
                 let moderation = user.getModeration();
                 let needsUsernameChange = user.needsUsernameChange();
                 let reportingDisabled: IReportingDisabledState | null = null;
+                let usernameChangesBlocked: IUsernameChangesBlockedState | null = null;
 
                 const modActionService = this.getModActionService('get-user');
                 if (user.isAuthenticatedUser() && modActionService) {
@@ -570,6 +576,13 @@ export class GameServer {
                     if (reportingDisabledActionId) {
                         reportingDisabled = {
                             hasSeen: user.reportingDisabledSeenActionId() === reportingDisabledActionId,
+                        };
+                    }
+
+                    const usernameChangesBlockedActionId = modActionService.getActiveUsernameChangesBlockedActionId(userId);
+                    if (usernameChangesBlockedActionId) {
+                        usernameChangesBlocked = {
+                            hasSeen: user.usernameChangesBlockedSeenActionId() === usernameChangesBlockedActionId,
                         };
                     }
 
@@ -606,7 +619,7 @@ export class GameServer {
                     activeCosmetics: this.cosmeticsService
                         ? this.cosmeticsService.resolveActiveCosmetics(user.getPreferences()?.cosmetics)
                         : CosmeticsService.resolveDefaultCosmetics(user.getPreferences()?.cosmetics),
-                    mustRequestUsernameChange: user.mustRequestUsernameChange(),
+                    usernameChangesBlocked,
                     reportingDisabled,
                     needsUsernameChange,
                     moderation
@@ -782,8 +795,10 @@ export class GameServer {
                         message: 'Authentication required to retrieve canchangeUsername info'
                     });
                 }
-                const hasActiveForcedRename = !!this.modActionService?.playerActiveRename(user.getId());
-                const result = await this.userFactory.canChangeUsernameAsync(user.getId(), hasActiveForcedRename);
+                const result = await this.userFactory.canChangeUsernameAsync(user.getId(), {
+                    hasActiveForcedRename: !!this.modActionService?.playerActiveRename(user.getId()),
+                    usernameChangesBlocked: this.modActionService?.isUsernameChangesBlocked(user.getId()) ?? false,
+                });
                 return res.status(200).json({
                     success: true,
                     result: result,
@@ -817,6 +832,15 @@ export class GameServer {
                     });
                 }
 
+                const formatError = validateUsernameFormat(newUsername);
+                if (formatError) {
+                    logger.warn(`GameServer (change-username): User ${user.getId()} submitted a username that fails the format rules: ${newUsername}`);
+                    return res.status(400).json({
+                        success: false,
+                        message: formatError
+                    });
+                }
+
                 // Check for profanity
                 if (userOrLobbyNameContainsProfanity(newUsername)) {
                     logger.warn(`GameServer (change-username): User ${user.getId()} attempted to use a username containing profanity: ${newUsername}`);
@@ -832,6 +856,7 @@ export class GameServer {
                 const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername, {
                     source: activeRename ? UsernameChangeSource.ForcedRename : UsernameChangeSource.UserInitiated,
                     relatedModActionId: activeRename?.modActionId,
+                    usernameChangesBlocked: modActionService?.isUsernameChangesBlocked(user.getId()) ?? false,
                 });
                 if (result.success) {
                     await modActionService?.onRenameCompleted(user.getId());
@@ -876,26 +901,39 @@ export class GameServer {
             }
         });
 
-        app.post('/api/set-must-request-username-change-seen', this.buildAuthMiddleware(), async (req, res, next) => {
+        app.post('/api/set-username-changes-blocked-seen', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;
 
                 if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (set-must-request-username-change-seen): Anonymous user ${user.getId()} attempted to set must-request-username-change seen`, { userId: user.getId() });
+                    logger.error(`GameServer (set-username-changes-blocked-seen): Anonymous user ${user.getId()} attempted to set username-changes-blocked seen`, { userId: user.getId() });
                     return res.status(403).json({
                         success: false,
                         message: 'Authentication required'
                     });
                 }
 
-                const result = await this.userFactory.setMustRequestUsernameChangeSeenAsync(user.getId());
+                const modActionService = this.getModActionService('set-username-changes-blocked-seen');
+                if (!modActionService) {
+                    return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
+                }
+
+                const modActionId = modActionService.getActiveUsernameChangesBlockedActionId(user.getId());
+                if (!modActionId) {
+                    return res.status(200).json({
+                        success: true,
+                        message: 'No active username-changes-blocked restriction to acknowledge'
+                    });
+                }
+
+                await this.userFactory.setUsernameChangesBlockedSeenAsync(user.getId(), modActionId);
 
                 return res.status(200).json({
-                    success: result,
-                    message: 'Must-request-username-change seen status updated'
+                    success: true,
+                    message: 'Username-changes-blocked seen status updated'
                 });
             } catch (err) {
-                logger.error('GameServer (set-must-request-username-change-seen) Server Error: ', err);
+                logger.error('GameServer (set-username-changes-blocked-seen) Server Error: ', err);
                 next(err);
             }
         });
@@ -1855,6 +1893,7 @@ export class GameServer {
                     isMuted: modActionService?.isPlayerMuted(profile.id) ?? false,
                     activeRename: modActionService?.playerActiveRename(profile.id) ?? null,
                     activeReportingDisabledId: modActionService?.getActiveReportingDisabledActionId(profile.id) ?? null,
+                    activeUsernameChangesBlockedId: modActionService?.getActiveUsernameChangesBlockedActionId(profile.id) ?? null,
                 }));
 
                 // If single match, include mod actions directly
@@ -1890,24 +1929,23 @@ export class GameServer {
                     });
                 }
 
-                const { playerId, actionType, durationDays, note } = parseResult.data;
+                const { playerId, actionType, durationDays, note, newUsername } = parseResult.data;
                 const moderatorId = req.user.getId();
                 const moderatorUsername = req.user.getUsername();
 
-                const modActionService = this.getModActionService('mod-submit-action');
-                if (!modActionService) {
+                if (!this.getModActionService('mod-submit-action') || !this.modActionSubmissionHandler) {
                     return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
                 }
 
-                // Write-through to cache
-                const modActionResult = await modActionService.onActionSubmitted(
+                const modActionResult = await this.modActionSubmissionHandler.submitAsync({
                     playerId,
                     actionType,
                     moderatorId,
                     moderatorUsername,
                     note,
-                    durationDays ?? undefined,
-                );
+                    durationDays: durationDays ?? undefined,
+                    newUsername,
+                });
 
                 return res.status(200).json({
                     success: modActionResult.success,
