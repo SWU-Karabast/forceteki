@@ -10,7 +10,8 @@ describe('UsernameRules', function() {
 
     describe('validateUsernameFormat', function() {
         // Parity with the client's validateDiscordUsername (forceteki-client/src/app/_validators/UsernameValidation)
-        const validNames = ['abc', 'Karabast_User', 'KarabastUser', 'a.b', 'User.Name_1', 'a'.repeat(32)];
+        // KaraUser0427 is the shape of the moderator dashboard's reset name
+        const validNames = ['abc', 'Karabast_User', 'KaraUser0427', 'a.b', 'User.Name_1', 'a'.repeat(32)];
         for (const name of validNames) {
             it(`accepts '${name}'`, function() {
                 expect(validateUsernameFormat(name)).toBeNull();

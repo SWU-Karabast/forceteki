@@ -2,7 +2,6 @@ import { logger } from '../logger';
 import { Contract } from '../game/core/utils/Contract';
 import type { ModActionType } from '../services/DynamoDBInterfaces';
 import { ModActionDefinitions } from '../services/DynamoDBInterfaces';
-import { userOrLobbyNameContainsProfanity } from './profanityFilter/ProfanityFilter';
 import { validateUsernameFormat } from './user/UsernameRules';
 
 export interface IModActionSubmission {
@@ -81,8 +80,8 @@ export class ModActionSubmissionHandler {
 
     private async submitChangeUsernameAsync(request: IModActionSubmission): Promise<IModActionSubmissionResult> {
         const newUsername = request.newUsername;
-        const validationError = validateUsernameFormat(newUsername) ??
-          (userOrLobbyNameContainsProfanity(newUsername) ? 'Username contains inappropriate words.' : null);
+        // Moderators may set names the profanity filter would reject, so only the format is checked
+        const validationError = validateUsernameFormat(newUsername);
         if (validationError) {
             return { success: false, message: validationError };
         }

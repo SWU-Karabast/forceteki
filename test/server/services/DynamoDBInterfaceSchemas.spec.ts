@@ -44,8 +44,8 @@ describe('ModActionSubmitSchema', function() {
             expect(issuePaths(body)).toEqual(['durationDays']);
         });
 
-        it('accepts KarabastUser through the standard username-change field', function() {
-            const body = { ...base, actionType: ModActionType.ChangeUsername, newUsername: 'KarabastUser' };
+        it('accepts a KaraUser reset name through the standard username-change field', function() {
+            const body = { ...base, actionType: ModActionType.ChangeUsername, newUsername: 'KaraUser0427' };
 
             expect(ModActionSubmitSchema.parse(body)).toEqual(body);
         });

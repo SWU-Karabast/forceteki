@@ -108,13 +108,14 @@ describe('ModActionSubmissionHandler', function() {
             expect(callOrder).toEqual([]);
         });
 
-        it('rejects a name the profanity filter flags before doing any work', async function() {
-            spyOn(ProfanityFilterModule, 'userOrLobbyNameContainsProfanity').and.returnValue(true);
+        it('does not apply the profanity filter to a moderator-set name', async function() {
+            const profanityCheck = spyOn(ProfanityFilterModule, 'userOrLobbyNameContainsProfanity').and.returnValue(true);
 
             const result = await handler.submitAsync(changeUsernameRequest());
 
-            expect(result).toEqual({ success: false, message: 'Username contains inappropriate words.' });
-            expect(callOrder).toEqual([]);
+            expect(result.success).toBeTrue();
+            expect(profanityCheck).not.toHaveBeenCalled();
+            expect(renamer.changeUsernameByModeratorAsync).toHaveBeenCalledOnceWith('player-1', 'ApprovedName', 'action-1');
         });
 
         it('rejects an unknown player without saving anything', async function() {
@@ -222,9 +223,9 @@ describe('ModActionSubmissionHandler', function() {
             });
         });
 
-        it('attributes the KarabastUser change to its own action and resolves a pending Rename', async function() {
+        it('attributes the reset-name change to its own action and resolves a pending Rename', async function() {
             const blockResult = await handler.submitAsync(blockRequest());
-            const changeResult = await handler.submitAsync(changeUsernameRequest({ newUsername: 'KarabastUser', note: 'offensive name' }));
+            const changeResult = await handler.submitAsync(changeUsernameRequest({ newUsername: 'KaraUser0427', note: 'offensive name' }));
 
             expect(blockResult.success).toBeTrue();
             expect(changeResult.success).toBeTrue();
@@ -233,14 +234,14 @@ describe('ModActionSubmissionHandler', function() {
                 ['player-1', ModActionType.UsernameChangesBlocked, 'mod-1', 'ModOne', 'offensive name', undefined],
                 ['player-1', ModActionType.ChangeUsername, 'mod-1', 'ModOne', 'offensive name', undefined],
             ]);
-            expect(renamer.changeUsernameByModeratorAsync).toHaveBeenCalledOnceWith('player-1', 'KarabastUser', 'change-1');
+            expect(renamer.changeUsernameByModeratorAsync).toHaveBeenCalledOnceWith('player-1', 'KaraUser0427', 'change-1');
         });
 
         it('cancels only the failed username-change action, leaving the previously submitted block intact', async function() {
             const blockResult = await handler.submitAsync(blockRequest());
             renamer.changeUsernameByModeratorAsync.and.rejectWith(new Error('db down'));
 
-            const changeResult = await handler.submitAsync(changeUsernameRequest({ newUsername: 'KarabastUser' }));
+            const changeResult = await handler.submitAsync(changeUsernameRequest({ newUsername: 'KaraUser0427' }));
 
             expect(blockResult.success).toBeTrue();
             expect(changeResult.success).toBeFalse();
@@ -253,7 +254,7 @@ describe('ModActionSubmissionHandler', function() {
             const blockResult = await handler.submitAsync(blockRequest());
             renamer.changeUsernameByModeratorAsync.and.resolveTo({ success: true, previousUsername: 'OldName', historyRecorded: false });
 
-            const changeResult = await handler.submitAsync(changeUsernameRequest({ newUsername: 'KarabastUser' }));
+            const changeResult = await handler.submitAsync(changeUsernameRequest({ newUsername: 'KaraUser0427' }));
 
             expect(blockResult.success).toBeTrue();
             expect(changeResult.success).toBeFalse();

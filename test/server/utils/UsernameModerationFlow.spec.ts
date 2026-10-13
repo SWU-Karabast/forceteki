@@ -146,9 +146,9 @@ describe('Username moderation flow (real services over an in-memory DB)', functi
     });
 
     describe('Block Username Changes with a separate ChangeUsername action', function() {
-        it('blocks the player, sets KarabastUser, and links username history to the username-change action', async function() {
+        it('blocks the player, resets the username, and links username history to the username-change action', async function() {
             const blockResult = await submit({ actionType: ModActionType.UsernameChangesBlocked });
-            const changeResult = await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'KarabastUser' });
+            const changeResult = await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'KaraUser0427' });
             const changeAction = db.actionsOfType(ModActionType.ChangeUsername)[0];
 
             expect(blockResult.success).toBeTrue();
@@ -156,11 +156,11 @@ describe('Username moderation flow (real services over an in-memory DB)', functi
             expect(modActions.isUsernameChangesBlocked(playerId)).toBeTrue();
             expect(changeAction.active).toBeFalse();
             expect(changeAction.id).not.toBe(modActions.getActiveUsernameChangesBlockedActionId(playerId));
-            expect(profile().username).toBe('KarabastUser');
-            expect([...db.usernameLinks]).toEqual([`karabastuser#${playerId}`]);
+            expect(profile().username).toBe('KaraUser0427');
+            expect([...db.usernameLinks]).toEqual([`karauser0427#${playerId}`]);
             expect(db.usernameChanges).toEqual([jasmine.objectContaining({
                 previousUsername: 'BadName',
-                newUsername: 'KarabastUser',
+                newUsername: 'KaraUser0427',
                 source: UsernameChangeSource.UsernameChangedByModerator,
                 relatedModActionId: changeAction.id,
             })]);
@@ -168,7 +168,7 @@ describe('Username moderation flow (real services over an in-memory DB)', functi
 
         it('keeps the player from renaming themselves, using the block state the cache reports', async function() {
             await submit({ actionType: ModActionType.UsernameChangesBlocked });
-            await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'KarabastUser' });
+            await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'KaraUser0427' });
             const usernameChangesBlocked = modActions.isUsernameChangesBlocked(playerId);
 
             const eligibility = await userFactory.canChangeUsernameAsync(playerId, { usernameChangesBlocked });
@@ -176,14 +176,14 @@ describe('Username moderation flow (real services over an in-memory DB)', functi
 
             expect(eligibility.canChange).toBeFalse();
             expect(attempt.success).toBeFalse();
-            expect(profile().username).toBe('KarabastUser');
+            expect(profile().username).toBe('KaraUser0427');
         });
 
         it('does not count the reset against the player\'s own rename cooldown', async function() {
             const before = profile().usernameLastUpdatedAt;
 
             await submit({ actionType: ModActionType.UsernameChangesBlocked });
-            await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'KarabastUser' });
+            await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'KaraUser0427' });
 
             expect(profile().usernameLastUpdatedAt).toBe(before);
         });
@@ -200,7 +200,7 @@ describe('Username moderation flow (real services over an in-memory DB)', functi
     describe('Change Username', function() {
         it('applies an approved rename while the block stays in place', async function() {
             await submit({ actionType: ModActionType.UsernameChangesBlocked });
-            await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'KarabastUser' });
+            await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'KaraUser0427' });
             const blockId = modActions.getActiveUsernameChangesBlockedActionId(playerId);
 
             const result = await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'ApprovedName', note: 'approved in ticket 123' });
@@ -214,7 +214,7 @@ describe('Username moderation flow (real services over an in-memory DB)', functi
             expect(changeActions[1].active).toBeFalse();
             expect(changeActions[1].cancelledAt).toBeUndefined();
             expect(db.usernameChanges[1]).toEqual(jasmine.objectContaining({
-                previousUsername: 'KarabastUser',
+                previousUsername: 'KaraUser0427',
                 newUsername: 'ApprovedName',
                 source: UsernameChangeSource.UsernameChangedByModerator,
                 relatedModActionId: changeActions[1].id,
@@ -302,11 +302,11 @@ describe('Username moderation flow (real services over an in-memory DB)', functi
             expect(db.actionsOfType(ModActionType.Rename)[0].active).toBeFalse();
         });
 
-        it('is resolved by the KarabastUser reset', async function() {
+        it('is resolved by the username reset', async function() {
             await modActions.onActionSubmitted(playerId, ModActionType.Rename, moderator.moderatorId, moderator.moderatorUsername, '');
 
             await submit({ actionType: ModActionType.UsernameChangesBlocked });
-            await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'KarabastUser' });
+            await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'KaraUser0427' });
 
             expect(modActions.playerActiveRename(playerId)).toBeFalsy();
             expect(modActions.isUsernameChangesBlocked(playerId)).toBeTrue();
@@ -334,7 +334,7 @@ describe('Username moderation flow (real services over an in-memory DB)', functi
     describe('restarting the server', function() {
         it('rebuilds the block from the active index, and does not resurrect a cancelled one', async function() {
             await submit({ actionType: ModActionType.UsernameChangesBlocked });
-            await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'KarabastUser' });
+            await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'KaraUser0427' });
             await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'ApprovedName' });
 
             const restarted = await ModActionService.createAsync();
@@ -347,7 +347,7 @@ describe('Username moderation flow (real services over an in-memory DB)', functi
 
         it('serves the full mod action history, including the new action types', async function() {
             await submit({ actionType: ModActionType.UsernameChangesBlocked });
-            await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'KarabastUser' });
+            await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'KaraUser0427' });
             await submit({ actionType: ModActionType.ChangeUsername, newUsername: 'ApprovedName' });
 
             const history = await userFactory.getModActionHistoryAsync(playerId);

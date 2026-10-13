@@ -195,30 +195,30 @@ describe('UserFactory username changes', function() {
         const modActionId = 'moderator-action-id';
 
         it('renames inside the cooldown, moving the lookup link and updating the profile', async function() {
-            const result = await userFactory.changeUsernameByModeratorAsync(userId, 'KarabastUser', modActionId);
+            const result = await userFactory.changeUsernameByModeratorAsync(userId, 'KaraUser0427', modActionId);
 
             expect(result).toEqual({ success: true, previousUsername: 'OldName', historyRecorded: true });
             expect(fakeDb.deleteUsernameLinkAsync).toHaveBeenCalledOnceWith('OldName', userId);
-            expect(fakeDb.saveUsernameLinkAsync).toHaveBeenCalledOnceWith('KarabastUser', userId);
-            expect(fakeDb.updateUserProfileAsync).toHaveBeenCalledOnceWith(userId, jasmine.objectContaining({ username: 'KarabastUser' }));
+            expect(fakeDb.saveUsernameLinkAsync).toHaveBeenCalledOnceWith('KaraUser0427', userId);
+            expect(fakeDb.updateUserProfileAsync).toHaveBeenCalledOnceWith(userId, jasmine.objectContaining({ username: 'KaraUser0427' }));
         });
 
         it('never starts the cooldown and clears the legacy forced-rename flag', async function() {
             profile.needsUsernameChange = true;
 
-            await userFactory.changeUsernameByModeratorAsync(userId, 'KarabastUser', modActionId);
+            await userFactory.changeUsernameByModeratorAsync(userId, 'KaraUser0427', modActionId);
 
             expect(lastProfileUpdate().usernameLastUpdatedAt).toBeUndefined();
             expect(lastProfileUpdate().needsUsernameChange).toBeFalse();
         });
 
         it('records a moderator history entry linked to the mod action', async function() {
-            await userFactory.changeUsernameByModeratorAsync(userId, 'KarabastUser', modActionId);
+            await userFactory.changeUsernameByModeratorAsync(userId, 'KaraUser0427', modActionId);
 
             expect(fakeDb.saveUsernameChangeAsync).toHaveBeenCalledOnceWith(jasmine.objectContaining({
                 playerId: userId,
                 previousUsername: 'OldName',
-                newUsername: 'KarabastUser',
+                newUsername: 'KaraUser0427',
                 source: UsernameChangeSource.UsernameChangedByModerator,
                 relatedModActionId: modActionId,
             }));
@@ -227,11 +227,11 @@ describe('UserFactory username changes', function() {
         it('reports a missing history entry without failing the committed rename', async function() {
             fakeDb.saveUsernameChangeAsync.and.rejectWith(new Error('history write failed'));
 
-            const result = await userFactory.changeUsernameByModeratorAsync(userId, 'KarabastUser', modActionId);
+            const result = await userFactory.changeUsernameByModeratorAsync(userId, 'KaraUser0427', modActionId);
 
             expect(result.success).toBeTrue();
             expect(result.historyRecorded).toBeFalse();
-            expect(profile.username).toBe('KarabastUser');
+            expect(profile.username).toBe('KaraUser0427');
         });
 
         it('rejects the current username without writing anything', async function() {
@@ -246,7 +246,7 @@ describe('UserFactory username changes', function() {
         it('propagates a failure to move the lookup link', async function() {
             fakeDb.saveUsernameLinkAsync.and.rejectWith(new Error('link write failed'));
 
-            await expectAsync(userFactory.changeUsernameByModeratorAsync(userId, 'KarabastUser', modActionId)).toBeRejectedWithError('link write failed');
+            await expectAsync(userFactory.changeUsernameByModeratorAsync(userId, 'KaraUser0427', modActionId)).toBeRejectedWithError('link write failed');
             expect(fakeDb.saveUsernameChangeAsync).not.toHaveBeenCalled();
         });
     });
