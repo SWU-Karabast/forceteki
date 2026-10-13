@@ -36,8 +36,12 @@ export interface IDamageAnimationRecord extends IAnimationRecordBase {
     /** uuid of the damaged card. */
     target: string;
 
-    /** uuid of the card that dealt the damage, when one can be resolved. */
-    source?: string;
+    /**
+     * uuids of the cards that dealt the damage. Usually one; several when an attack targets more
+     * than one unit, because the engine resolves all defenders' return damage as one event with
+     * one combined `amount`. Empty when no source card can be resolved.
+     */
+    sources: string[];
 
     /** Damage actually applied, already capped at the target's remaining HP. */
     amount: number;

@@ -20,9 +20,9 @@ export const damageAnimation: IAnimationDescriptor = {
         return {
             kind: AnimationKind.Damage,
             target: event.card.uuid,
-            source: 'damageDealtBy' in damageSource
-                ? damageSource.damageDealtBy[0]?.uuid
-                : damageSource.card?.uuid,
+            sources: 'damageDealtBy' in damageSource
+                ? damageSource.damageDealtBy.map((card) => card.uuid)
+                : [damageSource.card?.uuid].filter((uuid) => uuid != null),
             // `damageDealt` is what actually landed, already capped at remaining HP. `amount` is what
             // was requested and can be larger — animating that would show damage that never happened.
             amount: event.damageDealt,

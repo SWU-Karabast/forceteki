@@ -32,12 +32,12 @@ describe('Animation events', function() {
                 expect(toMarine).toBeDefined();
                 // 4 power against 3 hp: the record reports the 3 that landed, not the 4 requested.
                 expect(toMarine.amount).toBe(3);
-                expect(toMarine.source).toBe(context.wampa.uuid);
+                expect(toMarine.sources).toEqual([context.wampa.uuid]);
 
                 const toWampa = damage.find((record) => record.target === context.wampa.uuid);
                 expect(toWampa).toBeDefined();
                 expect(toWampa.amount).toBe(3);
-                expect(toWampa.source).toBe(context.battlefieldMarine.uuid);
+                expect(toWampa.sources).toEqual([context.battlefieldMarine.uuid]);
             });
 
             it('reports the damage actually applied, not the amount requested', function () {
@@ -84,7 +84,7 @@ describe('Animation events', function() {
                 expect(overwhelm).toBeDefined();
                 expect(overwhelm.target).toBe(context.p2Base.uuid);
                 expect(overwhelm.amount).toBe(1);
-                expect(overwhelm.source).toBe(context.wampa.uuid);
+                expect(overwhelm.sources).toEqual([context.wampa.uuid]);
             });
         });
 
@@ -229,6 +229,38 @@ describe('Animation events', function() {
                 expect(context.getAnimationRecords().some((record) => record.kind === AnimationKind.Damage)).toBeTrue();
                 expect(context.battlefieldMarine.zoneName).toBe('discard');
             });
+        });
+    });
+});
+
+describe('Animation events with a multi-target attack', function() {
+    integration(function (contextRef) {
+        it('names every defender as a source of the combined return damage', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['darth-maul#revenge-at-last'],
+                },
+                player2: {
+                    groundArena: ['wampa', 'battlefield-marine'],
+                }
+            });
+            const { context } = contextRef;
+            const before = context.getAnimationRecords().length;
+
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickDone();
+
+            const toMaul = context.getAnimationRecords(before)
+                .filter((record) => record.kind === AnimationKind.Damage && record.target === context.darthMaul.uuid);
+
+            // Both defenders strike back at once, which the engine resolves as one damage event.
+            // 4 + 3 = 7 combined, capped at the 6 hp Maul has.
+            expect(toMaul.length).toBe(1);
+            expect(toMaul[0].amount).toBe(6);
+            expect(toMaul[0].sources).toEqual(jasmine.arrayWithExactContents([context.wampa.uuid, context.battlefieldMarine.uuid]));
         });
     });
 });
