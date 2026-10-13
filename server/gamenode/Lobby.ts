@@ -29,6 +29,7 @@ import { UndoMode } from '../game/core/snapshot/SnapshotManager';
 import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
 import type { Player } from '../game/core/Player';
 import type { IQueueFormatKey } from './QueueHandler';
+import type { IMatchmakingSearchContext } from './MatchmakingRules';
 import { SimpleActionTimer } from '../game/core/actionTimer/SimpleActionTimer';
 import { PlayerTimeRemainingStatus } from '../game/core/actionTimer/IActionTimer';
 import { ModerationType } from '../services/DynamoDBInterfaces';
@@ -117,6 +118,7 @@ export interface LobbyUserWrapper extends LobbySpectatorWrapper {
     deckValidationErrors?: IDeckValidationFailures;
     importDeckValidationErrors?: IDeckValidationFailures;
     reportedBugs: number;
+    matchmakingSearchContext?: IMatchmakingSearchContext;
 }
 
 export enum MatchmakingType {
@@ -436,11 +438,14 @@ export class Lobby {
         return this.users.some((u) => u.id === id);
     }
 
-    public createLobbyUser(user: User, decklist = null): void {
+    public createLobbyUser(user: User, decklist = null, matchmakingSearchContext?: IMatchmakingSearchContext): void {
         const existingUser = this.users.find((u) => u.id === user.getId());
         const deck = decklist ? new Deck(decklist, this.cardDataGetter) : null;
         if (existingUser) {
             existingUser.deck = deck;
+            if (matchmakingSearchContext) {
+                existingUser.matchmakingSearchContext = matchmakingSearchContext;
+            }
             return;
         }
         this.users.push(({
@@ -453,6 +458,7 @@ export class Lobby {
                 ? this.deckValidator.validateInternalDeck(deck.getDecklist(), { format: this.gameFormat, cardPool: this.cardPool })
                 : {},
             deck,
+            matchmakingSearchContext,
             reportedBugs: 0
         }));
         logger.info(`Lobby: creating username: ${user.getUsername()}, id: ${user.getId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
@@ -578,7 +584,13 @@ export class Lobby {
                             socket.send('connection_error', 'Unable to requeue: deck not found');
                             return;
                         }
-                        this.server.requeueUser(socket, this.queueFormatKey, user, existingUser.deck.originalDeckList);
+                        this.server.requeueUser(
+                            socket,
+                            this.queueFormatKey,
+                            user,
+                            existingUser.deck.originalDeckList,
+                            existingUser.matchmakingSearchContext?.preference
+                        );
                     }
                 );
             }
@@ -1633,7 +1645,15 @@ export class Lobby {
                     user.socket.send('connection_error', 'Unable to requeue: deck not found');
                     continue;
                 }
-                this.server.requeueUser(user.socket, this.queueFormatKey, user.socket.user, user.deck.originalDeckList);
+                this.server.requeueUser(
+                    user.socket,
+                    this.queueFormatKey,
+                    user.socket.user,
+                    user.deck.originalDeckList,
+                    user.matchmakingSearchContext?.preference,
+                    user.matchmakingSearchContext?.searchStartedAt,
+                    user.matchmakingSearchContext?.preferencesPublishedAt
+                );
                 user.socket.send('matchmakingFailed', 'Player disconnected');
             }
 
@@ -2279,15 +2299,14 @@ export class Lobby {
 
     public sendGameState(game: Game, forceSend = false): void {
         // we send the game state to all users and spectators
-        // if the message is ack'd, we set the user state to connected in case they were incorrectly marked as disconnected
         for (const user of this.users) {
             if (user.socket && (user.socket.socket.connected || forceSend)) {
-                user.socket.send('gamestate', game.getState(user.id), () => this.safeSetUserConnected(user.id));
+                user.socket.send('gamestate', game.getState(user.id));
             }
         }
         for (const spectator of this.spectators) {
             if (spectator.socket && (spectator.socket.socket.connected || forceSend)) {
-                spectator.socket.send('gamestate', game.getState(spectator.id), () => this.safeSetUserConnected(spectator.id));
+                spectator.socket.send('gamestate', game.getState(spectator.id));
             }
         }
     }
@@ -2318,15 +2337,6 @@ export class Lobby {
             startIndex: safeStart,
             totalCount: totalCount
         });
-    }
-
-    private safeSetUserConnected(userId: string): void {
-        try {
-            const user = this.getUser(userId);
-            user.state = 'connected';
-        } catch (error) {
-            logger.error(`Lobby: error setting user ${userId} connected`, { error: { message: error.message, stack: error.stack }, lobbyId: this.id, userId });
-        }
     }
 
     public sendLobbyState(forceSend = false): void {
@@ -2432,6 +2442,25 @@ export class Lobby {
         const playerReportType = Object.values(PlayerReportType).includes(args[2]) ? args[2] as PlayerReportType : null;
         const resultEvent = reportType === ReportType.BugReport ? 'bugReportResult' : 'playerReportResult';
         const reportLabel = reportType === ReportType.BugReport ? 'bug report' : 'player report';
+
+        const modActionService = this.server.modActionService;
+        if (!modActionService) {
+            logger.error('Lobby (submitReport): mod action service unavailable, allowing report without checking restrictions', {
+                lobbyId: this.id,
+                userId: socket.user.getId(),
+            });
+        } else if (modActionService.isReportingDisabled(socket.user.getId())) {
+            logger.info(`Lobby (submitReport): Blocked ${reportLabel} from ${socket.user.getId()}, reporting is disabled`, {
+                lobbyId: this.id,
+                userId: socket.user.getId(),
+            });
+            socket.send(resultEvent, {
+                id: uuid(),
+                success: false,
+                message: 'Reporting has been disabled for your account'
+            });
+            return;
+        }
 
         try {
             let parsedDescription = '';

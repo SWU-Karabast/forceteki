@@ -31,7 +31,7 @@ describe('Darth Vader, Commanding the First Legion', function () {
 
                 context.player1.clickCard(context.darthVader);
 
-                context.player1.clickPrompt('(No effect) Ambush');
+                context.player1.clickPrompt('Ambush');
                 expect(context.player1).toHavePrompt(abilityPrompt);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.scoutBikePursuer, context.tielnFighter, context.isbAgent, context.deathStarStormtrooper, context.superlaserTechnician],
@@ -84,7 +84,7 @@ describe('Darth Vader, Commanding the First Legion', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.darthVader);
-                context.player1.clickPrompt('(No effect) Ambush');
+                context.player1.clickPrompt('Ambush');
 
                 expect(context.player1).toHavePrompt(abilityPrompt);
                 expect(context.player1).toHaveExactDisplayPromptCards({
@@ -115,7 +115,7 @@ describe('Darth Vader, Commanding the First Legion', function () {
 
                 context.player1.clickCard(context.darthVader);
 
-                context.player1.clickPrompt('(No effect) Ambush');
+                context.player1.clickPrompt('Ambush');
                 expect(context.player1).toHavePrompt(abilityPrompt);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.scoutBikePursuer, context.tielnFighter, context.isbAgent, context.deathStarStormtrooper, context.superlaserTechnician],
@@ -144,7 +144,7 @@ describe('Darth Vader, Commanding the First Legion', function () {
 
             context.player1.clickCard(context.darthVader);
 
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
             expect(context.player1).toHavePrompt(abilityPrompt);
             context.player1.clickCardInDisplayCardPrompt(context.salaciousCrumb);
             context.player1.clickCardInDisplayCardPrompt(context.outlandTieVanguard);
@@ -186,7 +186,7 @@ describe('Darth Vader, Commanding the First Legion', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.darthVader);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
             expect(context.player1).toHavePrompt(abilityPrompt);
 
             // play inferno four

@@ -420,7 +420,6 @@ export class UserFactory {
                 preferences: getDefaultPreferences(),
                 needsUsernameChange: false,
                 mustRequestUsernameChange: null,
-                reportingDisabled: null,
                 swuStatsRefreshToken: null,
                 swubaseRefreshToken: null,
                 moderation: null,
@@ -649,31 +648,6 @@ export class UserFactory {
         }
     }
 
-    public async setReportingDisabledSeenAsync(userId: string): Promise<boolean> {
-        try {
-            const dbService = await this.dbServicePromise;
-            const userProfile = await dbService.getUserProfileAsync(userId);
-            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
-
-            if (userProfile.reportingDisabled === ModerationFieldState.Enabled) {
-                await dbService.updateUserProfileAsync(userId, {
-                    reportingDisabled: ModerationFieldState.EnabledAndSeen
-                });
-
-                logger.info(`UserFactory: Set reportingDisabled as seen for user ${userId}`, { userId });
-                return true;
-            }
-
-            return false;
-        } catch (error) {
-            logger.error('Error setting reportingDisabled seen status:', {
-                error: { message: error.message, stack: error.stack },
-                userId
-            });
-            throw error;
-        }
-    }
-
     public async setModerationSeenAsync(userId: string): Promise<boolean> {
         try {
             const dbService = await this.dbServicePromise;
@@ -693,6 +667,37 @@ export class UserFactory {
             return false;
         } catch (error) {
             logger.error('Error setting moderation seen status:', {
+                error: { message: error.message, stack: error.stack },
+                userId
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Records that the user has seen the one-time notice for a ReportingDisabled restriction.
+     * Stored on the profile so it is authoritative across instances; a re-issued restriction has a
+     * different action id and so shows the notice again.
+     * @returns True if the profile was updated.
+     */
+    public async setReportingDisabledSeenAsync(userId: string, modActionId: string): Promise<boolean> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(userId);
+            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
+
+            if (userProfile.reportingDisabledSeenActionId === modActionId) {
+                return false;
+            }
+
+            await dbService.updateUserProfileAsync(userId, {
+                reportingDisabledSeenActionId: modActionId
+            });
+
+            logger.info(`UserFactory: Set reportingDisabled notice as seen for user ${userId}`, { userId });
+            return true;
+        } catch (error) {
+            logger.error('Error setting reportingDisabled seen status:', {
                 error: { message: error.message, stack: error.stack },
                 userId
             });
