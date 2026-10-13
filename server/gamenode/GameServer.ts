@@ -142,6 +142,9 @@ enum UserRole {
 interface ILobbyMapping {
     lobbyId: string;
     role: UserRole;
+
+    /** Login state of the user the entry was registered for, so a connection with a different login state can't claim it. */
+    isAuthenticated: boolean;
 }
 
 export interface IToken {
@@ -538,7 +541,7 @@ export class GameServer {
                 }
 
                 // if they are in a game already we give them 403 forbidden
-                if (!this.canUserJoinNewLobby(user.getId())) {
+                if (!this.canUserJoinNewLobby(user)) {
                     logger.error(`GameServer (spectate-game): User ${user.getId()} attempted to spectate a game while playing a game`);
                     return res.status(403).json({
                         success: false,
@@ -554,7 +557,7 @@ export class GameServer {
                 }
 
                 // Register this user as a spectator for the game
-                this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Spectator });
+                this.setUserLobbyMapping(user, lobby.id, UserRole.Spectator);
                 return res.status(200).json({ success: true });
             } catch (err) {
                 logger.error('GameServer (spectate-game) Server error: ', err);
@@ -1545,7 +1548,7 @@ export class GameServer {
                 }
 
                 // Check if the user is already in a lobby
-                if (!this.canUserJoinNewLobby(user.getId())) {
+                if (!this.canUserJoinNewLobby(user)) {
                     // TODO shouldn't return 403
                     logger.error(`GameServer (create-lobby): Error in create-lobby User ${user.getId()} attempted to create a different lobby while already being in a lobby`);
                     return res.status(403).json({
@@ -1629,7 +1632,7 @@ export class GameServer {
                     this.dailyActiveUserIds.add(req.user.getId());
                 }
 
-                if (!this.canUserJoinNewLobby(user.getId())) {
+                if (!this.canUserJoinNewLobby(user)) {
                     logger.error(`GameServer (join-lobby): Error in join-lobby User ${user.getId()} attempted to join a different lobby while already being in a lobby`);
                     return res.status(403).json({
                         success: false,
@@ -1654,7 +1657,7 @@ export class GameServer {
                 }
 
                 // Add the user to the lobby
-                this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+                this.setUserLobbyMapping(user, lobby.id, UserRole.Player);
                 return res.status(200).json({ success: true });
             } catch (err) {
                 logger.error('GameServer (join-lobby) Server error:', err);
@@ -1703,7 +1706,7 @@ export class GameServer {
                 }
 
                 // check if user is already in a lobby
-                if (!this.canUserJoinNewLobby(user.getId())) {
+                if (!this.canUserJoinNewLobby(user)) {
                     logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} attempted to join queue while being in a lobby`);
                     return res.status(403).json({
                         success: false,
@@ -2164,7 +2167,35 @@ export class GameServer {
         });
     }
 
-    private canUserJoinNewLobby(userId: string) {
+    private setUserLobbyMapping(user: User, lobbyId: string, role: UserRole): void {
+        this.userLobbyMap.set(user.getId(), { lobbyId, role, isAuthenticated: user.isAuthenticatedUser() });
+    }
+
+    /**
+     * Whether the user's id is already registered, in a lobby or in the queue, to a user with a different
+     * login state. Anonymous ids come from the client, so this stops an anonymous connection that presents
+     * a logged-in user's id from taking over or evicting that user's lobby seat or queue entry.
+     */
+    private isIdClaimedWithDifferentLoginState(user: User): boolean {
+        const isAuthenticated = user.isAuthenticatedUser();
+
+        const lobbyEntry = this.userLobbyMap.get(user.getId());
+        if (lobbyEntry && lobbyEntry.isAuthenticated !== isAuthenticated) {
+            return true;
+        }
+
+        const queuedUser = this.queue.findPlayer(user.getId())?.player.user;
+        return !!queuedUser && queuedUser.isAuthenticatedUser() !== isAuthenticated;
+    }
+
+    private canUserJoinNewLobby(user: User) {
+        const userId = user.getId();
+
+        if (this.isIdClaimedWithDifferentLoginState(user)) {
+            logger.warn(`GameServer: user ${userId} blocked from joining because their id is registered to a user with a different login state`, { userId });
+            return false;
+        }
+
         // player ditched out of a matchmaking game, make them wait 20s
         const playerLeftMatchmakingTime = this.playerMatchmakingDisconnectedTime.get(userId);
         if (playerLeftMatchmakingTime) {
@@ -2415,7 +2446,7 @@ export class GameServer {
         this.lobbies.set(lobby.id, lobby);
         lobby.createLobbyUser(user, deck);
         lobby.setLobbyOwner(user.getId());
-        this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+        this.setUserLobbyMapping(user, lobby.id, UserRole.Player);
     }
 
     private async startTestGame(filename: string) {
@@ -2451,8 +2482,8 @@ export class GameServer {
         const theWay = this.userFactory.createAnonymousUser('th3w4y', 'ThisIsTheWay');
         lobby.createLobbyUser(order66);
         lobby.createLobbyUser(theWay);
-        this.userLobbyMap.set(order66.id, { lobbyId: lobby.id, role: UserRole.Player });
-        this.userLobbyMap.set(theWay.id, { lobbyId: lobby.id, role: UserRole.Player });
+        this.setUserLobbyMapping(order66, lobby.id, UserRole.Player);
+        this.setUserLobbyMapping(theWay, lobby.id, UserRole.Player);
         await lobby.startTestGameAsync(setupData);
     }
 
@@ -2592,6 +2623,13 @@ export class GameServer {
         }
 
         const lobbyUserEntry = this.userLobbyMap.get(user.getId());
+
+        if (this.isIdClaimedWithDifferentLoginState(user)) {
+            logger.warn(`GameServer: user ${user.getId()} attempted to connect with an id registered to a user with a different login state, disconnecting`, { userId: user.getId() });
+            ioSocket.emit('connection_error', 'Connection error, please try again');
+            ioSocket.disconnect();
+            return Promise.resolve();
+        }
         // 0. If user is spectator
         if (isSpectator) {
             if (!this.config.allowAnonymousSpectators && user.isAnonymousUser()) {
@@ -2707,7 +2745,7 @@ export class GameServer {
             const socket = new Socket(ioSocket);
 
             // check if user is already in a lobby
-            if (!this.canUserJoinNewLobby(user.getId())) {
+            if (!this.canUserJoinNewLobby(user)) {
                 logger.warn(`GameServer: User ${user.getId()} is already in a different lobby, disconnecting`);
                 ioSocket.disconnect();
                 return Promise.resolve();
@@ -2732,7 +2770,7 @@ export class GameServer {
            }*/
 
             await lobby.addLobbyUserAsync(user, socket);
-            this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+            this.setUserLobbyMapping(user, lobby.id, UserRole.Player);
             this.registerDisconnect(socket, user.getId());
             return Promise.resolve();
         }
@@ -2903,8 +2941,8 @@ export class GameServer {
         lobby.createLobbyUser(p2.user, p2.deck, getMatchmakingSearchContext(p2));
 
         // Save user => lobby mapping
-        this.userLobbyMap.set(p1.user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
-        this.userLobbyMap.set(p2.user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+        this.setUserLobbyMapping(p1.user, lobby.id, UserRole.Player);
+        this.setUserLobbyMapping(p2.user, lobby.id, UserRole.Player);
 
         // Attach their sockets to the lobby (if they exist)
         await this.setupQueueSocketAsync(p1, lobby, format);

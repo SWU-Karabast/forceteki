@@ -365,11 +365,80 @@ export class Lobby {
     }
 
     private isUserChatDisabled(user: LobbyUserWrapper): boolean {
-        const isModerationMuted = user.socket?.user.getModeration()?.moderationType === ModerationType.Mute;
         const lobbyChatMuted = user.id === this.userWhoMutedChat;
-        const playerAccountChatSettingDisabled = user.socket?.user.getPreferences()?.gameOptions?.muteChat === true;
 
-        return isModerationMuted || lobbyChatMuted || playerAccountChatSettingDisabled;
+        return this.isUserModerationMuted(user) || lobbyChatMuted || this.hasUserDisabledChatInPreferences(user);
+    }
+
+    private isUserModerationMuted(user: LobbyUserWrapper): boolean {
+        const isLegacyModerationMuted = this.getLobbyUserAccount(user)?.getModeration()?.moderationType === ModerationType.Mute;
+        const isModActionMuted = this.server.modActionService?.isPlayerMuted(user.id) ?? false;
+
+        return isLegacyModerationMuted || isModActionMuted;
+    }
+
+    private hasUserDisabledChatInPreferences(user: LobbyUserWrapper): boolean {
+        return this.getLobbyUserAccount(user)?.getPreferences()?.gameOptions?.muteChat === true;
+    }
+
+    /** The user's account, or `undefined` for a user created ahead of their first socket connection. */
+    private getLobbyUserAccount(user: LobbyUserWrapper): User | undefined {
+        return user.socket?.user ?? user.user;
+    }
+
+    /** Matches the `authenticated` flag the client receives: dev test users count as logged in. */
+    private isLobbyUserAnonymous(user: LobbyUserWrapper): boolean {
+        const account = this.getLobbyUserAccount(user);
+        return !!account && !account.isAuthenticatedUser() && !account.isDevTestUser();
+    }
+
+    /**
+     * Server-side copy of the client's chat rules (`getChatDisabledInfo` in both `Chat` and `ChatDrawer`),
+     * so a modified client cannot send messages the official client would not let it send.
+     */
+    private getChatBlockedReason(sender: LobbyUserWrapper): string | null {
+        if (this.isPrivate) {
+            return this.hasUserDisabledChatInPreferences(sender) ? 'sender disabled chat in preferences' : null;
+        }
+
+        const opponent = this.users.find((u) => u.id !== sender.id);
+
+        if (!this.config.allowAnonymousChat && this.isLobbyUserAnonymous(sender)) {
+            return 'sender is anonymous';
+        }
+        if (this.isUserModerationMuted(sender)) {
+            return 'sender is muted';
+        }
+        if (!this.config.allowAnonymousChat && opponent && this.isLobbyUserAnonymous(opponent)) {
+            return 'opponent is anonymous';
+        }
+        if (sender.id === this.userWhoMutedChat) {
+            return 'sender muted the lobby chat';
+        }
+        if (this.hasUserDisabledChatInPreferences(sender)) {
+            return 'sender disabled chat in preferences';
+        }
+        if (opponent && this.isUserChatDisabled(opponent)) {
+            return 'opponent has chat disabled';
+        }
+
+        return null;
+    }
+
+    /** Returns whether the user may chat, logging a warning if not. */
+    private checkUserCanChat(userId: string, context: string): boolean {
+        const sender = this.users.find((u) => u.id === userId);
+        if (!sender) {
+            return false;
+        }
+
+        const blockedReason = this.getChatBlockedReason(sender);
+        if (blockedReason) {
+            logger.warn(`Lobby: dropped ${context} from user ${userId}: ${blockedReason}`, { lobbyId: this.id, userId });
+            return false;
+        }
+
+        return true;
     }
 
     private buildLobbyUserData(user: LobbyUserWrapper, fullData = false) {
@@ -709,7 +778,7 @@ export class Lobby {
         const existingUser = this.users.find((u) => u.id === socket.user.getId());
         Contract.assertNotNullLike(existingUser, `Unable to find user with id ${socket.user.getId()} in lobby ${this.id}`);
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'string', 'Chat message arguments are not present or not of type string');
-        if (!existingUser) {
+        if (!existingUser || !this.checkUserCanChat(existingUser.id, 'lobby chat message')) {
             return;
         }
 
@@ -1045,6 +1114,10 @@ export class Lobby {
 
     private typingState(socket: Socket, isTyping: boolean) {
         const userId = socket.user.getId();
+        if (isTyping && !this.checkUserCanChat(userId, 'typing state')) {
+            return;
+        }
+
         this.gameChat.setTypingState(userId, isTyping);
     }
 
@@ -1531,6 +1604,34 @@ export class Lobby {
 
     private static readonly allowedSpectatorCommands = new Set(['retransmitGameMessages']);
 
+    /** Lobby methods a player's client may invoke by name. Everything else on Lobby is server-internal. */
+    private static readonly allowedLobbyCommands = new Set([
+        'muteChat',
+        'rematch',
+        'reportScreenResolution',
+        'requestRematch',
+        'retransmitGameMessages',
+        'sendChatMessage',
+        'setReadyStatus',
+        'startGameAsync',
+        'submitReport',
+        'typingState',
+        'updateDeck',
+        'updateSetting',
+    ]);
+
+    /** Game methods a player's client may invoke by name, including the commands the engine puts on prompt buttons. */
+    private static readonly allowedGameCommands = new Set([
+        'cardClicked',
+        'chat',
+        'concede',
+        'menuButton',
+        'perCardMenuButton',
+        'rollbackToSnapshot',
+        'statefulPromptResults',
+        'toggleOptionSetting',
+    ]);
+
     private async onSpectatorLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
         try {
             if (!Lobby.allowedSpectatorCommands.has(command) || typeof this[command] !== 'function') {
@@ -1546,7 +1647,7 @@ export class Lobby {
     private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
         const start = process.hrtime.bigint();
         try {
-            if (!this[command] || typeof this[command] !== 'function') {
+            if (!Lobby.allowedLobbyCommands.has(command) || typeof this[command] !== 'function') {
                 throw new Error(`Incorrect command or command format expected function but got: ${command}`);
             }
 
@@ -1592,7 +1693,12 @@ export class Lobby {
             //     return this.onLeaveGame(socket);
             // }
 
-            if (!this.game[command] || typeof this.game[command] !== 'function') {
+            if (!Lobby.allowedGameCommands.has(command) || typeof this.game[command] !== 'function') {
+                logger.warn(`Lobby: ignoring unknown game command '${String(command).substring(0, 64)}'`, { lobbyId: this.id, userId: socket.user.getId() });
+                return;
+            }
+
+            if (command === 'chat' && !this.checkUserCanChat(socket.user.getId(), 'game chat message')) {
                 return;
             }
 

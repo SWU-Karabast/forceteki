@@ -32,6 +32,9 @@ export interface IGameNodeConfig {
     /** Whether anonymous users may create, join or queue for a public best-of-three. */
     allowAnonymousBestOfThree: boolean;
 
+    /** Whether anonymous users may chat, and whether chat stays open against an anonymous opponent. */
+    allowAnonymousChat: boolean;
+
     /** Whether the cooldown that stops two players immediately rematching is applied. */
     enforceRematchCooldown: boolean;
 
@@ -59,6 +62,7 @@ export function buildGameNodeConfigFromEnvironment(): IGameNodeConfig {
     return {
         allowAnonymousSpectators: isDevelopment,
         allowAnonymousBestOfThree: isDevelopment && process.env.FORCE_BLOCK_BO3_ANON_LOCAL !== 'true',
+        allowAnonymousChat: isDevelopment && process.env.FORCE_ENABLE_ANON_CHAT === 'true',
         enforceRematchCooldown: !isDevelopment,
         matchmakingPreferencePolicy: { ...defaultMatchmakingPreferencePolicy },
         actionTimersEnabled: !isDevelopment || process.env.USE_LOCAL_ACTION_TIMER === 'true',

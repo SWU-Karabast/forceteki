@@ -9,9 +9,12 @@ import { FakeIoSocket } from './FakeIoSocket';
 import type { ITestUserPayload, ServerTestHarness } from './ServerTestHarness';
 import { testNextAuthSecret } from './ServerTestEnv';
 import { isSuccessfulSocketAuth } from '../../../server/gamenode/GameServer';
+import { AnonymousUser } from '../../../server/utils/user/User';
 
 /** Options for {@link TestClient.create}. */
 export interface ITestClientOptions {
+
+    /** Only for authenticated clients: the server derives an anonymous user's name from their id. */
     username?: string;
 
     /** If true, this client authenticates with a signed JWT, like a logged-in real client. */
@@ -74,11 +77,14 @@ export class TestClient {
     ) {}
 
     public static create(harness: ServerTestHarness, id: string, options: ITestClientOptions = {}): TestClient {
-        const username = options.username ?? `test-user-${id.slice(0, 6)}`;
-
         if (!options.authenticated) {
-            return new TestClient(harness, id, username, null, null);
+            if (options.username) {
+                throw new Error('TestClient: an anonymous client cannot choose its username - the server derives it from the id');
+            }
+            return new TestClient(harness, id, AnonymousUser.usernameForId(id), null, null);
         }
+
+        const username = options.username ?? `test-user-${id.slice(0, 6)}`;
 
         // `verifyTokenAndCreateAuthenticatedUser` (the no-DB-access path the real client's logged-in
         // flow takes) overwrites `userData.id` with this claim regardless of what is sent alongside

@@ -1,7 +1,7 @@
 import type { User } from './User';
 import { AnonymousUser, AuthenticatedUser } from './User';
 import { logger } from '../../logger';
-import { v4 as uuid } from 'uuid';
+import { v4 as uuid, validate as isUuid } from 'uuid';
 import jwt from 'jsonwebtoken';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import { Contract } from '../../game/core/utils/Contract';
@@ -90,23 +90,36 @@ export class UserFactory {
         return new AnonymousUser(id || uuid(), name || 'Anonymous', !!id);
     }
 
+    /**
+     * Creates an anonymous user from the `user` field of a socket handshake query or request body.
+     *
+     * Only the id is taken from the client, and it must be a UUID (the dev test users excepted). The
+     * username is always derived from the id, so a client cannot choose its own anonymous name.
+     */
     public createAnonymousUserFromQuery(query?: ParsedUrlQuery): AnonymousUser {
-        if (query.user) {
-            // Check if it's a string that needs parsing
-            let queryUser;
-            if (typeof query.user === 'string') {
-                queryUser = JSON.parse(query.user);
-            } else {
-                queryUser = query.user;
-            }
-            if (queryUser) {
-                if (queryUser.username && !queryUser.username.toLowerCase().startsWith('anonymous')) {
-                    logger.info(`Auth Anon-creation: creating user with id ${queryUser.id} with non-anonymous name ${queryUser.username}`, { userId: queryUser.id });
-                }
-                return new AnonymousUser(queryUser.id, queryUser.username, true);
-            }
+        const queryUser = typeof query.user === 'string'
+            ? JSON.parse(query.user)
+            : query.user;
+
+        const id = queryUser?.id;
+        if (id == null) {
+            return new AnonymousUser(uuid(), 'AnonymousPlayer', false);
         }
-        return new AnonymousUser(uuid(), 'AnonymousPlayer', false);
+
+        if (AnonymousUser.isDevTestUserId(id)) {
+            return new AnonymousUser(id, queryUser.username, true);
+        }
+
+        if (typeof id !== 'string' || !isUuid(id)) {
+            throw new Error(`Anonymous user id is not a valid UUID: '${String(id).substring(0, 64)}'`);
+        }
+
+        const username = AnonymousUser.usernameForId(id);
+        if (queryUser.username !== username) {
+            logger.info(`Auth Anon-creation: ignoring client-supplied username '${String(queryUser.username).substring(0, 64)}' for user ${id}`, { userId: id });
+        }
+
+        return new AnonymousUser(id, username, true);
     }
 
     public async setWelcomeMessageStatus(userId: string): Promise<boolean> {
