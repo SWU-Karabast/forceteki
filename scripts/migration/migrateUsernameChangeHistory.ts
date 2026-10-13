@@ -1,4 +1,4 @@
-// scripts/migrateUsernameChangeHistory.ts
+// scripts/migration/migrateUsernameChangeHistory.ts
 
 // One-time migration script that creates an "Initial" username change history record for all existing
 // user profiles. This seeds the username change history (shown in the mod tools) with each account's
@@ -7,11 +7,11 @@
 // and you'll need to set USE_LOCAL_DYNAMODB == false and use ENVIRONMENT for production. Additionally set the DRY_RUN
 // to false if you want the changes to actually happen.
 
-// Usage: ts-node scripts/migrateUsernameChangeHistory.ts
+// Usage: ts-node scripts/migration/migrateUsernameChangeHistory.ts
 import { v4 as uuid } from 'uuid';
-import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
-import { UsernameChangeSource } from '../server/services/DynamoDBInterfaces';
-import '../server/env';
+import { getDynamoDbServiceAsync } from '../../server/services/DynamoDBService';
+import { UsernameChangeSource } from '../../server/services/DynamoDBInterfaces';
+import '../../server/env';
 
 const DRY_RUN = true; // set to false to actually write
 const BATCH_SIZE = 25; // we set to 25 per documentation - https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
