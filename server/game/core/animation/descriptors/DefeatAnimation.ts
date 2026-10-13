@@ -1,33 +1,21 @@
 import { EventName } from '../../Constants';
-import type { Card } from '../../card/Card';
 import { AnimationKind } from '../AnimationTypes';
 import type { IAnimationDescriptor } from '../AnimationTypes';
-
-/**
- * A card being defeated is only worth animating if it is a real card on the board.
- *
- * Token UPGRADES (shield, experience, advantage, weakness) are removed by being defeated, so they
- * arrive here too — a shield popping is its own animation with its own host-tracking problem, so
- * it is deliberately out of v1. Force and Credit tokens likewise. Token UNITS are real bodies in
- * an arena and must keep their defeat animation.
- */
-function isAnimatableDefeatTarget(card: Card | undefined): boolean {
-    if (card == null) {
-        return false;
-    }
-    return !card.isToken() || card.isTokenUnit();
-}
 
 export const defeatAnimation: IAnimationDescriptor = {
     name: 'defeat',
     kinds: [AnimationKind.Defeat],
     when: {
-        [EventName.OnCardDefeated]: (event) => event?.isResolved && isAnimatableDefeatTarget(event?.card),
+        // Every defeat is recorded — units, upgrades, tokens (shields, Force, Credits) and
+        // resources alike. Which of those to animate, and how, is the client's decision.
+        [EventName.OnCardDefeated]: (event) => event?.isResolved,
     },
     build: (event) => ({
         kind: AnimationKind.Defeat,
         card: event.card.uuid,
     }),
-    // Defeated cards are in play (units, and upgrades attached to them), which both players can see.
+    // A defeated card is either in play or one of its controller's resources, and it ends up in the
+    // discard pile, out of the game (tokens) or back on the base (deployed leaders) — all public.
+    // The record carries only its uuid, so it reveals nothing the next game state does not.
     summarizeFor: (record) => record,
 };
