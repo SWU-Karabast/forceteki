@@ -8,8 +8,8 @@
 - Type: Leader
 - Text: Each friendly damaged unit gets +1/+0.
 - Deployed: Restore 2 (When this unit attacks, heal 2 damage from your base.) Each friendly damaged unit gets +1/+0.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 002 - Iden Versio - Inferno Squad Commander
 
@@ -18,8 +18,8 @@
 - Text: Action [Exhaust]: If an enemy unit was defeated this phase, heal 1 damage from your base.
 - Deployed: Shielded (When you deploy this leader, give her a Shield token.) When an enemy unit is defeated: Heal 1 damage from your base.
 - Rules: Iden’s leader ability still can be used as an action even if no enemy unit left play this phase (but it heals no damage from your base). If Iden is defeated simultaneously with other enemy units, you still get to heal damage.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: ENEMY-UNIT
+- Status: Reviewed
 
 ### 003 - Chewbacca - Walking Carpet
 
@@ -28,8 +28,8 @@
 - Text: Action [exhaust]: Play a unit that costs 3 or less from your hand (paying its cost). It gains Sentinel for this phase.
 - Deployed: Sentinel (Units in this arena can't attack your non-Sentinel units or your base.) Grit (This unit gains +1/+0 for each damage on it.)
 - Rules: Abilities that refer to a card’s cost always refer to its printed cost, regardless of modifiers. Abilities that let you play a card require you to pay that card’s cost unless specified otherwise.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 004 - Chirrut Îmwe - One With The Force
 
@@ -38,8 +38,8 @@
 - Text: Action [Exhaust]: Give a unit +0/+2 for this phase.
 - Deployed: During the action phase, this unit isn’t defeated by having no remaining HP. (During the regroup phase, if he has no remaining HP, defeat him.)
 - Rules: Chirrut can be assigned more damage than his remaining HP. Chirrut is defeated passively as soon as the regroup phase starts if he has damage on him equal to or greater than his remaining HP. If Chirrut is attacked by a unit with Overwhelm, there is no excess damage if he is not defeated.
-- Multiplayer tests: TBD
-- Status: Unreviewed
+- Multiplayer tests: NONE
+- Status: Reviewed
 
 ### 005 - Luke Skywalker - Faithful Friend
 

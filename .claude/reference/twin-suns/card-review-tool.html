@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Twin Suns Card Review</title>
+<style>
+:root { --bg:#f6f7f9; --panel:#fff; --text:#1c2230; --muted:#667085; --line:#d8dce3; --accent:#2b59d9; --accent-text:#fff; --ok:#1f8a4c; --warn:#b26a00; --err:#c0392b; }
+@media (prefers-color-scheme: dark) { :root { --bg:#12151c; --panel:#1b2029; --text:#e8ebf2; --muted:#95a0b5; --line:#2e3646; --accent:#6c93ff; --accent-text:#0c1220; --ok:#4cc27f; --warn:#e0a040; --err:#ff7b6b; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+header { display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:10px 16px; background:var(--panel); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; }
+header h1 { font-size:16px; margin:0 8px 0 0; }
+select, input[type=search], textarea, button { font:inherit; color:inherit; background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:6px 10px; }
+button { cursor:pointer; }
+button.primary { background:var(--accent); color:var(--accent-text); border-color:var(--accent); font-weight:600; }
+button:disabled { opacity:.45; cursor:default; }
+.progress { color:var(--muted); margin-left:auto; font-size:13px; }
+#saveMsg { font-size:13px; }
+#saveMsg.ok { color:var(--ok); } #saveMsg.err { color:var(--err); }
+main { display:grid; grid-template-columns:minmax(220px,340px) 1fr; gap:20px; padding:16px; max-width:1100px; margin:0 auto; }
+@media (max-width:720px) { main { grid-template-columns:1fr; } }
+.imgbox { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:8px; text-align:center; align-self:start; }
+.imgbox img { max-width:100%; border-radius:8px; display:block; margin:0 auto 4px; }
+.noimg { color:var(--muted); padding:40px 12px; }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+h2 { margin:0 0 2px; font-size:20px; }
+.meta { color:var(--muted); font-size:13px; margin-bottom:10px; }
+.field { margin:6px 0; } .field b { color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.04em; display:block; }
+.rules { color:var(--muted); font-size:13px; }
+h3 { font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:16px 0 6px; }
+.chips { display:flex; flex-wrap:wrap; gap:6px; }
+.chip { border:1px solid var(--line); border-radius:999px; padding:4px 11px; font-size:13px; cursor:pointer; user-select:none; background:transparent; }
+.chip.sel { background:var(--accent); color:var(--accent-text); border-color:var(--accent); font-weight:600; }
+.chip.sug:not(.sel) { border-style:dashed; border-color:var(--accent); }
+.hint { font-size:12px; color:var(--muted); margin-top:6px; min-height:18px; }
+textarea { width:100%; min-height:64px; resize:vertical; }
+.row { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; align-items:center; }
+.badge { font-size:12px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); color:var(--muted); }
+.badge.Reviewed, .badge.Finished { color:var(--ok); border-color:var(--ok); }
+.badge.Unreviewed { color:var(--warn); border-color:var(--warn); }
+.badge.draft { color:var(--accent); border-color:var(--accent); }
+.src { font-size:12px; color:var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Twin Suns card review</h1>
+  <select id="set"></select>
+  <select id="filter"><option value="open">Needs review</option><option value="all">All cards</option><option value="done">Reviewed</option></select>
+  <input id="search" type="search" placeholder="Search name/text">
+  <button id="save" class="primary" disabled>Save</button>
+  <span id="saveMsg"></span>
+  <span class="progress" id="progress"></span>
+</header>
+<main>
+  <div class="imgbox" id="imgbox"></div>
+  <div>
+    <div class="panel" id="card"><p>Loading…</p></div>
+    <div class="row">
+      <button id="prev">&larr; Prev</button>
+      <button id="next">Next &rarr;</button>
+      <span class="hint" id="pos"></span>
+    </div>
+  </div>
+</main>
+<script>
+// Master data lives in card-reviews/*.md (served by card-review-server.js). Unsaved edits are kept as
+// drafts in localStorage until Save writes them into those files.
+let DATA = null;
+const KEY = 'twin-suns-card-review-v1';
+let store = {};
+try { store = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { store = {}; }
+const UI_KEY = 'twin-suns-card-review-ui-v1';
+let ui = {};
+try { ui = JSON.parse(localStorage.getItem(UI_KEY) || '{}'); } catch (e) { ui = {}; }
+function saveUi() { try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch (e) { /* session only */ } }
+function persist() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) { /* storage unavailable: session only */ } }
+
+const $ = (id) => document.getElementById(id);
+const setSel = $('set');
+let idx = 0, list = [];
+
+const draft = (c) => store[c.internalName] || {};
+function setDraft(c, patch) { store[c.internalName] = Object.assign({}, draft(c), patch); persist(); updateSave(); }
+function clearDraft(c) { delete store[c.internalName]; persist(); updateSave(); }
+const effTags = (c) => draft(c).tags !== undefined ? draft(c).tags : (c.saved.tags || c.suggested);
+const effNote = (c) => draft(c).note !== undefined ? draft(c).note : c.saved.note;
+const effStatus = (c) => draft(c).status !== undefined ? draft(c).status : c.status;
+const isDone = (c) => ['Reviewed', 'Finished'].includes(effStatus(c));
+
+// A draft counts as unsaved only where it differs from what the markdown already says.
+function changes(c) {
+  const d = draft(c), out = { dir: c.dir, internalName: c.internalName };
+  let any = false;
+  if (d.tags !== undefined && JSON.stringify(d.tags) !== JSON.stringify(c.saved.tags)) { out.tags = d.tags; any = true; }
+  if (d.note !== undefined && d.note.trim() !== c.saved.note.trim()) { out.note = d.note; any = true; }
+  if (d.status !== undefined && d.status !== c.status) { out.status = d.status; any = true; }
+  // Marking reviewed with accepted suggestions: record the tags that were shown.
+  if (out.status === 'Reviewed' && out.tags === undefined && !c.saved.tags) { out.tags = effTags(c); }
+  return any ? out : null;
+}
+const pending = () => (DATA ? DATA.cards.map(changes).filter(Boolean) : []);
+function updateSave() {
+  const n = pending().length;
+  $('save').disabled = n === 0;
+  $('save').textContent = n ? `Save (${n})` : 'Save';
+  if (n) { setMsg(''); }
+}
+function setMsg(text, kind) { $('saveMsg').textContent = text; $('saveMsg').className = kind || ''; }
+
+function rebuild(keepName) {
+  const q = $('search').value.trim().toLowerCase(), f = $('filter').value;
+  list = DATA.cards.filter((c) => c.dir === setSel.value)
+    .filter((c) => f === 'all' || (f === 'open' ? !isDone(c) : isDone(c)))
+    .filter((c) => !q || (c.name + ' ' + c.fields.map((x) => x[1]).join(' ')).toLowerCase().includes(q));
+  idx = keepName ? Math.max(0, list.findIndex((c) => c.internalName === keepName)) : 0;
+  render();
+}
+
+function render() {
+  if (list[idx]) { ui.card = list[idx].internalName; saveUi(); }
+  const all = DATA.cards.filter((c) => c.dir === setSel.value);
+  $('progress').textContent = `${all.filter(isDone).length} / ${all.length} done`;
+  const c = list[idx];
+  if (!c) { $('card').innerHTML = '<p>No cards match this filter.</p>'; $('imgbox').innerHTML = ''; $('pos').textContent = ''; return; }
+  $('pos').textContent = `${idx + 1} of ${list.length}`;
+  const hasImg = c.num && c.num !== 'Token';
+  // TS26 card pages use a 2-digit number (e.g. /card/TS26/01); other sets use 3 digits.
+  const pageNum = c.set === 'TS26' ? String(parseInt(c.num, 10)).padStart(2, '0') : c.num;
+  const page = hasImg ? `https://swudb.com/card/${c.set}/${pageNum}` : '';
+  // SWUDB image names are inconsistent (e.g. TS26: 1.png, 2.png, 03.png...), so try 3-digit, bare, then 2-digit.
+  const bare = String(parseInt(c.num, 10));
+  // suffixes are tried in order: e.g. a leader's deployed side is usually -back, but SOR uses -portrait.
+  const nameFor = (suffixes) => suffixes.split(',').flatMap((suffix) => [...new Set([c.num, bare, bare.padStart(2, '0')])].map((n) => `https://swudb.com/images/cards/${c.set}/${n}${suffix}.png`));
+  const isLeader = c.type.includes('Leader');
+  $('imgbox').innerHTML = hasImg
+    ? `<div class="imgslot" data-suffix=""><img referrerpolicy="no-referrer" alt="${esc(c.name)}"><div class="noimg" hidden>No image on SWUDB for this card.</div></div>` +
+      (isLeader ? `<div class="src" style="margin:8px 0 4px">Deployed</div><div class="imgslot" data-suffix="-back,-portrait"><img referrerpolicy="no-referrer" alt="${esc(c.name)} deployed"><div class="noimg" hidden>No deployed image found.</div></div>` : '') +
+      `<div class="src"><a href="${page}" target="_blank" rel="noopener">Open on SWUDB</a></div>`
+    : `<div class="noimg">No image (token).</div>`;
+  for (const slot of $('imgbox').querySelectorAll('.imgslot')) {
+    const img = slot.querySelector('img'), urls = nameFor(slot.dataset.suffix);
+    let n = 0;
+    img.onerror = () => { n++; if (n < urls.length) { img.src = urls[n]; } else { img.hidden = true; slot.querySelector('.noimg').hidden = false; } };
+    img.src = urls[0];
+  }
+  const tags = effTags(c), st = effStatus(c), unsaved = !!changes(c);
+  const fieldsHtml = c.fields.length
+    ? c.fields.map(([l, v]) => `<div class="field ${l === 'Rules' ? 'rules' : ''}"><b>${l}</b>${esc(v)}</div>`).join('')
+    : '<div class="field"><b>Text</b>(none)</div>';
+  const source = c.saved.tags ? 'saved in the markdown' : c.suggestedSource;
+  $('card').innerHTML = `
+    <h2>${esc(c.name)}</h2>
+    <div class="meta">${c.dir} #${c.num} &middot; ${c.type} &middot; <span class="badge ${st}">${st}</span>${unsaved ? ' <span class="badge draft">unsaved</span>' : ''}</div>
+    ${fieldsHtml}
+    <h3>Multiplayer test tags</h3>
+    <div class="chips" id="chips"></div>
+    <div class="hint" id="hint">Dashed = suggested (${esc(c.suggestedSource)}). Filled = selected (${esc(draft(c).tags !== undefined ? 'unsaved' : source)}). Click to add or remove.</div>
+    <h3>Note</h3>
+    <textarea id="note" placeholder="Rationale / what the test must show">${esc(effNote(c))}</textarea>
+    <div class="row">
+      <button class="primary" id="ok">Mark reviewed &amp; next</button>
+      <button id="skip">Skip</button>
+      <button id="reset">Discard unsaved changes</button>
+    </div>`;
+  const chips = $('chips');
+  for (const t of DATA.tags) {
+    const b = document.createElement('button');
+    b.className = 'chip' + (tags.includes(t.id) ? ' sel' : '') + (c.suggested.includes(t.id) ? ' sug' : '');
+    b.textContent = t.id; b.title = t.desc;
+    b.onmouseenter = () => { $('hint').textContent = t.id + ': ' + t.desc; };
+    b.onclick = () => {
+      let cur = effTags(c).slice();
+      cur = cur.includes(t.id) ? cur.filter((x) => x !== t.id) : cur.concat(t.id);
+      if (t.id === 'NONE' && cur.includes('NONE')) cur = ['NONE'];
+      else if (t.id !== 'NONE') cur = cur.filter((x) => x !== 'NONE');
+      setDraft(c, { tags: cur }); render();
+    };
+    chips.appendChild(b);
+  }
+  if (tags.includes('OTHER') && !effNote(c).trim()) { $('hint').textContent = 'OTHER selected: describe what the test must cover in the note below.'; $('hint').style.color = 'var(--warn)'; }
+  $('note').oninput = (e) => { setDraft(c, { note: e.target.value }); };
+  $('ok').onclick = () => { setDraft(c, { tags: effTags(c), note: $('note').value, status: 'Reviewed' }); advance(); };
+  $('skip').onclick = () => go(1);
+  $('reset').onclick = () => { clearDraft(c); render(); };
+}
+
+function advance() { const n = list[idx + 1] ? list[idx + 1].internalName : null; rebuild(n); if (!n && idx > list.length - 1) idx = Math.max(0, list.length - 1); render(); }
+function go(d) { idx = Math.min(Math.max(idx + d, 0), list.length - 1); render(); }
+function esc(s) { return String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch])); }
+
+async function load() {
+  const res = await fetch('/api/data', { cache: 'no-store' });
+  if (!res.ok) { throw new Error('server returned ' + res.status); }
+  DATA = await res.json();
+}
+
+async function save() {
+  const updates = pending();
+  if (!updates.length) { return; }
+  $('save').disabled = true; setMsg('Saving…');
+  try {
+    const res = await fetch('/api/save', { method: 'POST', headers: { 'content-type': 'application/json', 'x-review-tool': '1' }, body: JSON.stringify({ updates }) });
+    const out = await res.json();
+    if (!res.ok) { throw new Error(out.error || res.status); }
+    const failed = new Set(out.errors.map((e) => e.split(':')[0]));
+    for (const u of updates) { if (!failed.has(u.internalName)) { delete store[u.internalName]; } }
+    persist();
+    const keep = ui.card;
+    await load(); rebuild(keep); updateSave();
+    setMsg(out.errors.length ? `Saved ${out.saved}; ${out.errors.length} failed: ${out.errors[0]}` : `Saved ${out.saved} card${out.saved === 1 ? '' : 's'} to ${out.files.join(', ')}`, out.errors.length ? 'err' : 'ok');
+  } catch (e) {
+    updateSave(); setMsg('Save failed: ' + e.message, 'err');
+  }
+}
+
+$('prev').onclick = () => go(-1); $('next').onclick = () => go(1);
+$('save').onclick = save;
+setSel.onchange = () => { ui.set = setSel.value; ui.card = null; saveUi(); rebuild(); };
+$('filter').onchange = () => { ui.filter = $('filter').value; saveUi(); rebuild(ui.card); };
+$('search').oninput = () => rebuild();
+document.addEventListener('keydown', (e) => { if (/TEXTAREA|INPUT|SELECT/.test(e.target.tagName)) return; if (e.key === 'ArrowRight') go(1); if (e.key === 'ArrowLeft') go(-1); });
+window.addEventListener('beforeunload', (e) => { if (pending().length) { e.preventDefault(); e.returnValue = ''; } });
+
+load().then(() => {
+  setSel.innerHTML = DATA.sets.map((s) => `<option value="${s}">${s}</option>`).join('');
+  setSel.value = DATA.sets.includes(ui.set) ? ui.set : (DATA.sets.includes('07_TS26') ? '07_TS26' : DATA.sets[0]);
+  if (['open', 'all', 'done'].includes(ui.filter)) { $('filter').value = ui.filter; }
+  rebuild(ui.card); updateSave();
+}).catch((e) => {
+  $('card').innerHTML = `<p><b>Could not load card data.</b> (${esc(e.message)})<br>Start the server from <code>.claude/reference/twin-suns</code> with <code>node card-review-server.js</code> and open <code>http://localhost:8123/</code>.</p>`;
+});
+</script>
+</body>
+</html>
