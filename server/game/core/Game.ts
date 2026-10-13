@@ -22,6 +22,7 @@ import { GameEvent } from './event/GameEvent';
 import type { OngoingEffect } from './ongoingEffect/OngoingEffect';
 import { EventWindow, SubwindowEventHandlingMode, TriggerHandlingMode } from './event/EventWindow';
 import { AbilityResolver } from './gameSteps/AbilityResolver';
+import type { PreResolvedOptionalChoice } from './gameSteps/AbilityResolver';
 import { AbilityContext } from './ability/AbilityContext';
 import { Contract } from './utils/Contract';
 import { cards } from '../cards/Index';
@@ -74,6 +75,9 @@ import { defaultCostPaymentRecoveryPolicy } from './cost/CostPaymentRecovery';
 import type { ICostPaymentRecoveryPolicy, ICostPaymentRecoveryRequest } from './cost/CostPaymentRecovery';
 import { logger } from '../../logger';
 import { SnapshotManager, UndoMode } from './snapshot/SnapshotManager';
+import { LkiRegistry } from './lki/LkiRegistry';
+import type { ICardStateInternal } from './lki/CardStateGetter';
+import { CardStateGetter } from './lki/CardStateGetter';
 import { getAbilityHelper } from '../AbilityHelper';
 import type { IAbilityHelper } from '../AbilityHelper';
 import { PhaseInitializeMode } from './gameSteps/phases/Phase';
@@ -321,6 +325,16 @@ export class Game extends EventEmitter {
         return this._snapshotManager.gameObjectManager;
     }
 
+    /** Serves card properties, resolving reads against last known information where appropriate. */
+    public get lkiRegistry(): LkiRegistry {
+        return this._lkiRegistry;
+    }
+
+    /** Engine-facing card state accessor. Card implementations receive the narrower facade. */
+    public get cardStates(): ICardStateInternal {
+        return this._cardStateGetter;
+    }
+
     public get randomGenerator(): IRandomness {
         return this._randomGenerator;
     }
@@ -352,6 +366,8 @@ export class Game extends EventEmitter {
     private readonly _snapshotManager: SnapshotManager;
     private readonly _randomGenerator: IRandomness;
     private readonly _router: Lobby;
+    private readonly _lkiRegistry: LkiRegistry;
+    private readonly _cardStateGetter: CardStateGetter;
 
     public ongoingEffectEngine: OngoingEffectEngine;
     public abilityHelper: IAbilityHelper;
@@ -430,6 +446,8 @@ export class Game extends EventEmitter {
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
         this._randomGenerator = new Randomness();
         this._router = options.router;
+        this._lkiRegistry = new LkiRegistry();
+        this._cardStateGetter = new CardStateGetter(() => this._lkiRegistry);
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
         this.abilityHelper = getAbilityHelper(this);
@@ -1474,8 +1492,8 @@ export class Game extends EventEmitter {
     /**
      * Resolves a card ability
      */
-    public resolveAbility(context: AbilityContext, ignoredRequirements: string[] = [], canCancel?: boolean): AbilityResolver {
-        const resolver = new AbilityResolver(this, context, false, canCancel, null, ignoredRequirements);
+    public resolveAbility(context: AbilityContext, ignoredRequirements: string[] = [], canCancel?: boolean, preResolvedOptional?: PreResolvedOptionalChoice): AbilityResolver {
+        const resolver = new AbilityResolver(this, context, false, canCancel, null, ignoredRequirements, preResolvedOptional);
         this.queueStep(resolver);
         return resolver;
     }

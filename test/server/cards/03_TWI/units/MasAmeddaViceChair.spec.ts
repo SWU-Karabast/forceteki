@@ -109,5 +109,59 @@ describe('Mas Amedda, Vice Chair', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
+        describe('Mas Amedda\'s Ability with a unit owned by the opponent', function() {
+            it('should trigger only for the player who plays the opponent\'s unit from their discard pile, not for its owner', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['mas-amedda#vice-chair'],
+                        hand: ['takedown'],
+                        deck: ['system-patrol-craft', 'bounty-posting', 'clan-wren-rescuer', 'concord-dawn-interceptors', 'gentle-giant']
+                    },
+                    player2: {
+                        groundArena: ['mas-amedda#vice-chair'],
+                        spaceArena: ['stolen-athauler'],
+                        deck: ['price-on-your-head', 'merciless-contest', 'overwhelming-barrage', 'public-enemy', 'cargo-juggernaut']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const p1MasAmedda = context.player1.findCardByName('mas-amedda#vice-chair');
+                const p2MasAmedda = context.player2.findCardByName('mas-amedda#vice-chair');
+
+                // defeat the opponent's Stolen AT-Hauler, its When Defeated lets player1 play it from player2's discard pile
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                // play the Stolen AT-Hauler owned by player2
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this unit to search the top 4 cards of your deck for a unit, reveal it, and draw it');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.systemPatrolCraft, context.clanWrenRescuer, context.concordDawnInterceptors],
+                    invalid: [context.bountyPosting]
+                });
+                context.player1.clickCardInDisplayCardPrompt(context.systemPatrolCraft);
+
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.systemPatrolCraft]);
+                context.player2.clickDone();
+
+                expect(context.systemPatrolCraft).toBeInZone('hand', context.player1);
+                expect(p1MasAmedda.exhausted).toBeTrue();
+
+                // the owner's Mas Amedda did not trigger
+                expect(p2MasAmedda.exhausted).toBeFalse();
+                expect(context.player2.handSize).toBe(0);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
