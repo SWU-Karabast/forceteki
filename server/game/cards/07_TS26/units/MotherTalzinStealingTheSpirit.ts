@@ -1,6 +1,8 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { RelativePlayer } from '../../../core/Constants';
+import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class MotherTalzinStealingTheSpirit extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -24,17 +26,13 @@ export default class MotherTalzinStealingTheSpirit extends NonLeaderUnitCard {
             ifYouDo: (ifYouDoContext) => ({
                 title: 'For this phase you may play it from their discard pile, ignoring its aspect penalties',
                 ifYouDoCondition: () => ifYouDoContext.selectedPromptCards?.length === 1 && ifYouDoContext.selectedPromptCards[0].isUnit(),
-                immediateEffect: abilityHelper.immediateEffects.simultaneous([
-                    abilityHelper.immediateEffects.forThisPhaseCardEffect({
-                        target: ifYouDoContext.selectedPromptCards[0],
-                        effect: abilityHelper.ongoingEffects.canPlayFromDiscard({ player: ifYouDoContext.player })
-                    }),
-                    abilityHelper.immediateEffects.forThisPhasePlayerEffect({
-                        effect: abilityHelper.ongoingEffects.ignoreAllAspectPenalties({
-                            match: (card) => card === ifYouDoContext.selectedPromptCards[0],
-                        })
+                immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect({
+                    target: ifYouDoContext.selectedPromptCards[0],
+                    effect: abilityHelper.ongoingEffects.canPlayFromDiscard({
+                        player: RelativePlayer.Self,
+                        adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects }
                     })
-                ])
+                })
             })
         });
     }

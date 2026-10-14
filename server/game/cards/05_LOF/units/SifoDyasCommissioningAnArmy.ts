@@ -2,7 +2,8 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { TargetMode, Trait } from '../../../core/Constants';
+import { RelativePlayer, TargetMode, Trait } from '../../../core/Constants';
+import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import { Contract } from '../../../core/utils/Contract';
@@ -32,15 +33,12 @@ export default class SifoDyasCommissioningAnArmy extends NonLeaderUnitCard {
                 multiSelectCondition: (card, currentlySelectedCards) => this.costSum(currentlySelectedCards.concat(card)) <= 4,
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.discardSpecificCard(),
-                    AbilityHelper.immediateEffects.forThisPhaseCardEffect((deckSearchContext) => ({
-                        effect: AbilityHelper.ongoingEffects.canPlayFromDiscard({ player: deckSearchContext.player })
-                    })),
-                    AbilityHelper.immediateEffects.forThisPhasePlayerEffect((deckSearchContext) => ({
-                        effect: AbilityHelper.ongoingEffects.forFree({
-                            match: (card) => deckSearchContext.selectedPromptCards.includes(card)
-                        }),
-                        target: deckSearchContext.player
-                    })),
+                    AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                        effect: AbilityHelper.ongoingEffects.canPlayFromDiscard({
+                            player: RelativePlayer.Self,
+                            adjustCost: { costAdjustType: CostAdjustType.Free }
+                        })
+                    }),
                 ]),
             })
         });

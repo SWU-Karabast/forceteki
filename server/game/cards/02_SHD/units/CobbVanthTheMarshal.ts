@@ -1,7 +1,8 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { ZoneName } from '../../../core/Constants';
+import { RelativePlayer } from '../../../core/Constants';
+import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class CobbVanthTheMarshal extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -19,15 +20,12 @@ export default class CobbVanthTheMarshal extends NonLeaderUnitCard {
                 cardCondition: (card) => card.isUnit() && card.cost <= 2,
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.discardSpecificCard(),
-                    AbilityHelper.immediateEffects.forThisPhaseCardEffect((deckSearchContext) => ({
-                        effect: AbilityHelper.ongoingEffects.canPlayFromDiscard({ player: deckSearchContext.player })
-                    })),
-                    AbilityHelper.immediateEffects.forThisPhasePlayerEffect((deckSearchContext) => ({
-                        effect: AbilityHelper.ongoingEffects.forFree({
-                            match: (card) => deckSearchContext.selectedPromptCards.includes(card) && card.zoneName === ZoneName.Discard // note cost adjusters are attached to player, so have to refilter
-                        }),
-                        target: deckSearchContext.player
-                    })),
+                    AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                        effect: AbilityHelper.ongoingEffects.canPlayFromDiscard({
+                            player: RelativePlayer.Self,
+                            adjustCost: { costAdjustType: CostAdjustType.Free }
+                        })
+                    }),
                 ]),
             })
         });

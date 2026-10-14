@@ -193,6 +193,7 @@ describe('A Fine Addition', function () {
                 },
                 player2: {
                     groundArena: ['wampa'],
+                    spaceArena: ['tieln-fighter'],
                     discard: ['dagger-squadron-pilot'],
                 }
             });
@@ -206,6 +207,8 @@ describe('A Fine Addition', function () {
             context.player1.clickCard(context.aFineAddition);
             expect(context.player1).toBeAbleToSelectExactly([context.daggerSquadronPilot]);
             context.player1.clickCard(context.daggerSquadronPilot);
+
+            // The pilot can only be attached to a friendly Vehicle, even though it comes from the opponent's discard pile
             expect(context.player1).toBeAbleToSelectExactly([context.cartelTurncoat]);
             context.player1.clickCard(context.cartelTurncoat);
             expect(context.daggerSquadronPilot).toBeAttachedTo(context.cartelTurncoat);

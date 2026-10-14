@@ -1,7 +1,8 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { Aspect, TargetMode } from '../../../core/Constants';
+import { Aspect, RelativePlayer, TargetMode } from '../../../core/Constants';
+import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class AidFromTheInnocent extends EventCard {
@@ -24,17 +25,13 @@ export default class AidFromTheInnocent extends EventCard {
             }),
             ifYouDo: (ifYouDoContext) => ({
                 title: `For this phase, you may play the discarded cards for ${TextHelper.resource(2)} less each`,
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous(
-                    ifYouDoContext.selectedPromptCards?.flatMap((target) => [
-                        AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                            target: target,
-                            effect: AbilityHelper.ongoingEffects.canPlayFromDiscard(),
-                        }),
-                        AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
-                            effect: AbilityHelper.ongoingEffects.decreaseCost({ amount: 2, match: (card) => card === target }),
-                        })
-                    ])
-                )
+                immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                    target: ifYouDoContext.selectedPromptCards,
+                    effect: AbilityHelper.ongoingEffects.canPlayFromDiscard({
+                        player: RelativePlayer.Self,
+                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 2 }
+                    })
+                })
             })
         });
     }
