@@ -1665,31 +1665,6 @@ export class GameServer {
             }
         });
 
-        app.get('/api/test-game-setups', (_, res, next) => {
-            try {
-                const testSetupFilenames = this.getTestSetupGames();
-                return res.json(testSetupFilenames);
-            } catch (err) {
-                logger.error('GameServer: Error in test-game=setups:', err);
-                next(err);
-            }
-        });
-
-        app.post('/api/start-test-game', async (req, res, next) => {
-            const { filename } = req.body;
-            try {
-                if (!this.areGamesEnabled()) {
-                    return this.sendGamesDisabledResponse(res);
-                }
-
-                await this.startTestGame(filename);
-                return res.status(200).json({ success: true });
-            } catch (err) {
-                logger.error('GameServer: Error in start-test=game:', err);
-                next(err);
-            }
-        });
-
         app.post('/api/enter-queue', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 if (!this.areGamesEnabled()) {
@@ -2131,6 +2106,31 @@ export class GameServer {
 
     // dev only endpoints
     private setupDevAppRoutes(app: express.Application) {
+        app.get('/api/test-game-setups', (_, res, next) => {
+            try {
+                const testSetupFilenames = this.getTestSetupGames();
+                return res.json(testSetupFilenames);
+            } catch (err) {
+                logger.error('GameServer: Error in test-game=setups:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/start-test-game', async (req, res, next) => {
+            const { filename } = req.body;
+            try {
+                if (!this.areGamesEnabled()) {
+                    return this.sendGamesDisabledResponse(res);
+                }
+
+                await this.startTestGame(filename);
+                return res.status(200).json({ success: true });
+            } catch (err) {
+                logger.error('GameServer: Error in start-test=game:', err);
+                next(err);
+            }
+        });
+
         // deletes all cosmetics from the database
         app.delete('/api/cosmetics', this.buildAuthMiddleware('clear-all-cosmetics', ServerRole.Admin), async (req, res, next) => {
             try {
@@ -2484,7 +2484,8 @@ export class GameServer {
     }
 
     private async startTestGame(filename: string) {
-        const testJSONPath = path.resolve(__dirname, `../../../test/gameSetups/${filename}`);
+        // only files directly in test/gameSetups may be loaded
+        const testJSONPath = path.resolve(__dirname, '../../../test/gameSetups', path.basename(filename));
         Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
         const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
 
