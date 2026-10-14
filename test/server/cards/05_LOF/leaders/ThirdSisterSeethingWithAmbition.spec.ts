@@ -233,7 +233,7 @@ describe('Third Sister, Seething With Ambition', function () {
                 expect(context.stolenAthauler.hasSomeKeyword('hidden')).toBeTrue();
                 expect(context.player2).toBeActivePlayer();
             });
-          
+
             // Ruling 2025-09-29 (erratum): Third Sister does not grant Hidden permanently — the keyword
             // is gone after the phase, including for abilities that check for the existence of keywords.
             xit('the granted Hidden keyword no longer exists in the following phase', function () {
