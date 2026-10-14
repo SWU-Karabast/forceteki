@@ -1,4 +1,4 @@
-// scripts/migrateUsernameLinks.ts
+// scripts/migration/migrateUsernames.ts
 
 // One-time migration script that creates USERNAME# link items for all existing user profiles.
 // This enables the mod tools username search for accounts created before the feature was added.
@@ -7,9 +7,9 @@
 // to false if you want the changes to actually happen.
 
 
-// Usage: ts-node scripts/migrateUsernameLinks.ts
-import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
-import '../server/env';
+// Usage: ts-node scripts/migration/migrateUsernames.ts
+import { getDynamoDbServiceAsync } from '../../server/services/DynamoDBService';
+import '../../server/env';
 
 const DRY_RUN = true; // set to false to actually write
 const BATCH_SIZE = 25; // we set to 25 per documentation - https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html

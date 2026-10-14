@@ -1,7 +1,9 @@
 import path from 'path';
 import request from 'supertest';
+import { v4 as uuid } from 'uuid';
 
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
+import { AnonymousUser } from '../../../server/utils/user/User';
 import { DecklistFixtures } from './DecklistFixtures';
 import type { ITestGameServerSetup, TestConfigOverrides } from './TestGameServer';
 import { TestGameServer } from './TestGameServer';
@@ -49,9 +51,7 @@ async function getSharedSetupAsync(): Promise<ITestGameServerSetup> {
  * {@link shutdownAsync}, which leaves the process with no timers or sockets still open.
  */
 export class ServerTestHarness {
-    private anonymousUserCounter = 0;
     private lobbyNameCounter = 0;
-    private clientIdCounter = 0;
 
     /** Guards against the double shutdown that happens when a spec tears down and `afterEach` follows. */
     private hasShutDown = false;
@@ -98,12 +98,9 @@ export class ServerTestHarness {
      * A distinct anonymous identity. Ids are unique per harness so one spec's users can never
      * collide in the server's user/lobby bookkeeping.
      */
-    public anonymousUser(username?: string): ITestUserPayload {
-        this.anonymousUserCounter++;
-        const id = `anon-${this.anonymousUserCounter}-${Math.random().toString(36)
-            .slice(2, 10)}`;
-
-        return { id, username: username ?? `anonymous ${id.slice(0, 6)}` };
+    public anonymousUser(): ITestUserPayload {
+        const id = uuid();
+        return { id, username: AnonymousUser.usernameForId(id) };
     }
 
     /** A lobby name unique within this harness, for locating lobbies via `/api/available-lobbies`. */
@@ -117,12 +114,8 @@ export class ServerTestHarness {
      * the same reason {@link anonymousUser}'s are.
      */
     public createClient(options: ITestClientOptions = {}): TestClient {
-        this.clientIdCounter++;
-        const prefix = options.authenticated ? 'auth' : 'anon';
-        const id = `${prefix}-${this.clientIdCounter}-${Math.random().toString(36)
-            .slice(2, 10)}`;
-
-        return TestClient.create(this, id, options);
+        // UUIDs, like real account ids and the anonymous ids the real client generates
+        return TestClient.create(this, uuid(), options);
     }
 
     public async shutdownAsync(): Promise<void> {

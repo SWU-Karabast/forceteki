@@ -17,6 +17,7 @@ describe('QueueHandler matchmaking preferences', function () {
     const config: IGameNodeConfig = {
         allowAnonymousSpectators: false,
         allowAnonymousBestOfThree: false,
+        allowAnonymousChat: false,
         enforceRematchCooldown: true,
         actionTimersEnabled: false,
         clientBaseUrl: 'http://localhost:3000',

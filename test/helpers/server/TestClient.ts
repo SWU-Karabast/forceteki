@@ -9,9 +9,12 @@ import { FakeIoSocket } from './FakeIoSocket';
 import type { ITestUserPayload, ServerTestHarness } from './ServerTestHarness';
 import { testNextAuthSecret } from './ServerTestEnv';
 import { isSuccessfulSocketAuth } from '../../../server/gamenode/GameServer';
+import { AnonymousUser } from '../../../server/utils/user/User';
 
 /** Options for {@link TestClient.create}. */
 export interface ITestClientOptions {
+
+    /** Only for authenticated clients: the server derives an anonymous user's name from their id. */
     username?: string;
 
     /** If true, this client authenticates with a signed JWT, like a logged-in real client. */
@@ -74,11 +77,14 @@ export class TestClient {
     ) {}
 
     public static create(harness: ServerTestHarness, id: string, options: ITestClientOptions = {}): TestClient {
-        const username = options.username ?? `test-user-${id.slice(0, 6)}`;
-
         if (!options.authenticated) {
-            return new TestClient(harness, id, username, null, null);
+            if (options.username) {
+                throw new Error('TestClient: an anonymous client cannot choose its username - the server derives it from the id');
+            }
+            return new TestClient(harness, id, AnonymousUser.usernameForId(id), null, null);
         }
+
+        const username = options.username ?? `test-user-${id.slice(0, 6)}`;
 
         // `verifyTokenAndCreateAuthenticatedUser` (the no-DB-access path the real client's logged-in
         // flow takes) overwrites `userData.id` with this claim regardless of what is sent alongside
@@ -196,6 +202,25 @@ export class TestClient {
         // the API's own body field is misleadingly named `gameId`, but it is actually the lobby id
         return await this.withAuthCookie(this.harness.api.post('/api/spectate-game')).send({
             gameId: lobbyId,
+            user: this.userPayload(),
+        });
+    }
+
+    public async changeDeckAsync(lobbyId: string, deck: ISwuDbFormatDecklist): Promise<SupertestResponse> {
+        return await this.withAuthCookie(this.harness.api.post(`/api/lobby/${lobbyId}/change-deck`)).send({
+            deck,
+            user: this.userPayload(),
+        });
+    }
+
+    /**
+     * Saves preferences for `userId`; the real client always passes its own id. Unlike the real client
+     * this also sends the user payload, so a logged-in client authenticates without the profile lookup
+     * the test server has no database for.
+     */
+    public async savePreferencesAsync(userId: string, preferences: Record<string, unknown>): Promise<SupertestResponse> {
+        return await this.withAuthCookie(this.harness.api.put(`/api/user/${userId}/preferences`)).send({
+            preferences,
             user: this.userPayload(),
         });
     }

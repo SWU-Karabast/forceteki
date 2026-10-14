@@ -27,8 +27,8 @@ describe('Lobby connection management', function () {
         describe('a public lobby', function () {
             it('lets a second user discover and join it via /api/available-lobbies', async function () {
                 const { harness } = contextRef;
-                const owner = harness.createClient({ username: 'Owner' });
-                const joiner = harness.createClient({ username: 'Joiner' });
+                const owner = harness.createClient();
+                const joiner = harness.createClient();
                 const lobbyName = harness.uniqueLobbyName();
 
                 const created = await owner.createLobbyAsync({
@@ -39,7 +39,7 @@ describe('Lobby connection management', function () {
                 expect(created.status).toBe(200);
 
                 await owner.connectAsync();
-                expect(owner.lobbyState.users.map((u: any) => u.username)).toEqual(['Owner']);
+                expect(owner.lobbyState.users.map((u: any) => u.username)).toEqual([owner.username]);
 
                 const discovered = await joiner.findAvailableLobbyAsync((lobby) => lobby.name === lobbyName);
                 expect(discovered).toBeDefined();
@@ -51,7 +51,7 @@ describe('Lobby connection management', function () {
 
                 for (const client of [owner, joiner]) {
                     const usernames = client.lobbyState.users.map((u: any) => u.username).sort();
-                    expect(usernames).toEqual(['Joiner', 'Owner']);
+                    expect(usernames).toEqual([joiner.username, owner.username].sort());
                 }
             });
 
@@ -80,8 +80,8 @@ describe('Lobby connection management', function () {
         describe('a private lobby', function () {
             it('lets a second user join via the connection link only, with no join-lobby HTTP call', async function () {
                 const { harness } = contextRef;
-                const owner = harness.createClient({ username: 'Owner' });
-                const joiner = harness.createClient({ username: 'Joiner' });
+                const owner = harness.createClient();
+                const joiner = harness.createClient();
 
                 const created = await owner.createLobbyAsync({
                     lobbyName: harness.uniqueLobbyName(),
@@ -105,7 +105,7 @@ describe('Lobby connection management', function () {
 
                 for (const client of [owner, joiner]) {
                     const usernames = client.lobbyState.users.map((u: any) => u.username).sort();
-                    expect(usernames).toEqual(['Joiner', 'Owner']);
+                    expect(usernames).toEqual([joiner.username, owner.username].sort());
                 }
             });
 
@@ -131,8 +131,8 @@ describe('Lobby connection management', function () {
         describe('leaving a lobby', function () {
             it('updates the remaining user\'s lobbystate when the other user disconnects gracefully', async function () {
                 const { harness } = contextRef;
-                const owner = harness.createClient({ username: 'Owner' });
-                const joiner = harness.createClient({ username: 'Joiner' });
+                const owner = harness.createClient();
+                const joiner = harness.createClient();
                 const lobbyName = harness.uniqueLobbyName();
 
                 await owner.createLobbyAsync({ lobbyName, deck: harness.decklists.validDecklist(), ...matchConfig() });
@@ -144,15 +144,15 @@ describe('Lobby connection management', function () {
 
                 await joiner.manualDisconnectAsync();
 
-                expect(owner.lobbyState.users.map((u: any) => u.username)).toEqual(['Owner']);
+                expect(owner.lobbyState.users.map((u: any) => u.username)).toEqual([owner.username]);
             });
         });
 
         describe('an abrupt disconnect', function () {
             it('removes a user from the lobby once the grace window elapses', async function () {
                 const { harness } = contextRef;
-                const owner = harness.createClient({ username: 'Owner' });
-                const joiner = harness.createClient({ username: 'Joiner' });
+                const owner = harness.createClient();
+                const joiner = harness.createClient();
                 const lobbyName = harness.uniqueLobbyName();
 
                 await owner.createLobbyAsync({ lobbyName, deck: harness.decklists.validDecklist(), ...matchConfig() });
@@ -166,11 +166,11 @@ describe('Lobby connection management', function () {
 
                 // still inside GameServer.onSocketDisconnected's default 20s grace window: not removed yet
                 await harness.clock.advanceAsync(19 * 1000);
-                expect(owner.lobbyState.users.map((u: any) => u.username).sort()).toEqual(['Joiner', 'Owner']);
+                expect(owner.lobbyState.users.map((u: any) => u.username).sort()).toEqual([joiner.username, owner.username].sort());
 
                 // grace window elapses
                 await harness.clock.advanceAsync(2 * 1000);
-                expect(owner.lobbyState.users.map((u: any) => u.username)).toEqual(['Owner']);
+                expect(owner.lobbyState.users.map((u: any) => u.username)).toEqual([owner.username]);
             });
 
             // Regression test for a fake-transport bug: `simulateClientEmit` used to dispatch to
@@ -180,8 +180,8 @@ describe('Lobby connection management', function () {
             // would notice, since the lobby would just look like it hadn't removed the user *yet*.
             it('rejects a message sent on an already-disconnected socket instead of reviving the user', async function () {
                 const { harness } = contextRef;
-                const owner = harness.createClient({ username: 'Owner' });
-                const joiner = harness.createClient({ username: 'Joiner' });
+                const owner = harness.createClient();
+                const joiner = harness.createClient();
                 const lobbyName = harness.uniqueLobbyName();
 
                 await owner.createLobbyAsync({ lobbyName, deck: harness.decklists.validDecklist(), ...matchConfig() });
@@ -199,15 +199,15 @@ describe('Lobby connection management', function () {
                     .toBeRejectedWithError(/already disconnected/);
 
                 await harness.clock.advanceAsync(20 * 1000);
-                expect(owner.lobbyState.users.map((u: any) => u.username)).toEqual(['Owner']);
+                expect(owner.lobbyState.users.map((u: any) => u.username)).toEqual([owner.username]);
             });
         });
 
         describe('reconnecting', function () {
             it('disconnects the previous socket when a user reconnects with a new one', async function () {
                 const { harness } = contextRef;
-                const owner = harness.createClient({ username: 'Owner' });
-                const joiner = harness.createClient({ username: 'Joiner' });
+                const owner = harness.createClient();
+                const joiner = harness.createClient();
                 const lobbyName = harness.uniqueLobbyName();
 
                 await owner.createLobbyAsync({ lobbyName, deck: harness.decklists.validDecklist(), ...matchConfig() });

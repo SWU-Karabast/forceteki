@@ -426,6 +426,21 @@ export class ModActionService {
         return this.getPlayerActions(playerId)?.get(ModActionType.ReportingDisabled)?.modActionId ?? null;
     }
 
+    /**
+     * Checks if a player has an active UsernameChangesBlocked restriction.
+     */
+    public isUsernameChangesBlocked(playerId: string): boolean {
+        return !!this.getPlayerActions(playerId)?.get(ModActionType.UsernameChangesBlocked);
+    }
+
+    /**
+     * Id of the player's active UsernameChangesBlocked action, or null if username changes are not blocked.
+     * Callers compare this against the profile's acknowledged id to decide whether to show the notice.
+     */
+    public getActiveUsernameChangesBlockedActionId(playerId: string): string | null {
+        return this.getPlayerActions(playerId)?.get(ModActionType.UsernameChangesBlocked)?.modActionId ?? null;
+    }
+
     // ==================== Mute Activation ====================
 
     /**
@@ -492,7 +507,18 @@ export class ModActionService {
         moderatorUsername: string,
         note: string,
         durationDays?: number
-    ): Promise<{ success: boolean; message: string }> {
+    ): Promise<{ success: boolean; message: string; modActionId?: string }> {
+        if (actionType === ModActionType.Rename && this.isUsernameChangesBlocked(playerId)) {
+            logger.info(`ModActionService: Refusing Force Rename for player ${playerId} while username changes are blocked`, {
+                userId: playerId,
+                moderatorId,
+            });
+            return {
+                success: false,
+                message: 'Force Rename is unavailable while username changes are blocked. Use Change Username instead.',
+            };
+        }
+
         const existing = this.getPlayerActions(playerId)?.get(actionType);
         if (existing) {
             return {
@@ -507,6 +533,7 @@ export class ModActionService {
             return {
                 success: true,
                 message: `${modAction.actionType} submitted successfully for player ${playerId}.`,
+                modActionId: modAction.id,
             };
         }
 
@@ -527,6 +554,7 @@ export class ModActionService {
         return {
             success: true,
             message: `${modAction.actionType} submitted successfully for player ${playerId}.`,
+            modActionId: modAction.id,
         };
     }
 

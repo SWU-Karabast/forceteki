@@ -28,6 +28,7 @@ function buildTestConfig(overrides: TestConfigOverrides = {}): IGameNodeConfig {
     return {
         allowAnonymousSpectators: false,
         allowAnonymousBestOfThree: false,
+        allowAnonymousChat: false,
         enforceRematchCooldown: true,
 
         // off by default so lobbies do not start timers a spec did not ask for

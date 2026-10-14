@@ -42,6 +42,7 @@ import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
 import { ServerSettingsCache } from '../utils/ServerSettingsCache';
 import { UserFactory } from '../utils/user/UserFactory';
+import { validateUsernameFormat } from '../utils/user/UsernameRules';
 import { DeckService } from '../utils/deck/DeckService';
 import { userOrLobbyNameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
 import { SwuStatsHandler } from '../utils/statHandlers/SwuStatsHandler';
@@ -54,7 +55,8 @@ import { RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 import type { IActiveModActionCacheEntry,
     IDeckDataEntity,
     IModerationAction,
-    IReportingDisabledState } from '../services/DynamoDBInterfaces';
+    IReportingDisabledState,
+    IUsernameChangesBlockedState } from '../services/DynamoDBInterfaces';
 import { ModActionType } from '../services/DynamoDBInterfaces';
 import {
     ModerationType,
@@ -67,6 +69,7 @@ import { CardPool, MatchmakingCompetitivenessPreference, SwuGameFormat } from '.
 import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 import { ModActionService } from '../utils/ModActionService';
+import { ModActionSubmissionHandler } from '../utils/ModActionSubmissionHandler';
 import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema, ServerSettingsUpdateSchema } from '../services/DynamoDBInterfaceSchemas';
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import { minimumSchedulerDelayMs } from '../utils/IScheduler';
@@ -139,6 +142,9 @@ enum UserRole {
 interface ILobbyMapping {
     lobbyId: string;
     role: UserRole;
+
+    /** Login state of the user the entry was registered for, so a connection with a different login state can't claim it. */
+    isAuthenticated: boolean;
 }
 
 export interface IToken {
@@ -321,6 +327,7 @@ export class GameServer {
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
     public readonly serverSettingsCache?: ServerSettingsCache;
     public readonly modActionService?: ModActionService;
+    private readonly modActionSubmissionHandler?: ModActionSubmissionHandler;
 
     /**
      * The HTTP server carrying both the API and the socket.io server. Subclasses may bind it
@@ -377,6 +384,7 @@ export class GameServer {
         this.serverSettingsCache = serverSettingsCache;
         this.cosmeticsService = cosmeticsService;
         this.modActionService = modActionCache;
+        this.modActionSubmissionHandler = modActionCache ? new ModActionSubmissionHandler(modActionCache, this.userFactory) : undefined;
 
         const corsOptions = {
             origin: env.corsOrigins,
@@ -533,7 +541,7 @@ export class GameServer {
                 }
 
                 // if they are in a game already we give them 403 forbidden
-                if (!this.canUserJoinNewLobby(user.getId())) {
+                if (!this.canUserJoinNewLobby(user)) {
                     logger.error(`GameServer (spectate-game): User ${user.getId()} attempted to spectate a game while playing a game`);
                     return res.status(403).json({
                         success: false,
@@ -549,7 +557,7 @@ export class GameServer {
                 }
 
                 // Register this user as a spectator for the game
-                this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Spectator });
+                this.setUserLobbyMapping(user, lobby.id, UserRole.Spectator);
                 return res.status(200).json({ success: true });
             } catch (err) {
                 logger.error('GameServer (spectate-game) Server error: ', err);
@@ -567,6 +575,7 @@ export class GameServer {
                 let moderation = user.getModeration();
                 let needsUsernameChange = user.needsUsernameChange();
                 let reportingDisabled: IReportingDisabledState | null = null;
+                let usernameChangesBlocked: IUsernameChangesBlockedState | null = null;
 
                 const modActionService = this.getModActionService('get-user');
                 if (user.isAuthenticatedUser() && modActionService) {
@@ -577,6 +586,13 @@ export class GameServer {
                     if (reportingDisabledActionId) {
                         reportingDisabled = {
                             hasSeen: user.reportingDisabledSeenActionId() === reportingDisabledActionId,
+                        };
+                    }
+
+                    const usernameChangesBlockedActionId = modActionService.getActiveUsernameChangesBlockedActionId(userId);
+                    if (usernameChangesBlockedActionId) {
+                        usernameChangesBlocked = {
+                            hasSeen: user.usernameChangesBlockedSeenActionId() === usernameChangesBlockedActionId,
                         };
                     }
 
@@ -613,7 +629,7 @@ export class GameServer {
                     activeCosmetics: this.cosmeticsService
                         ? this.cosmeticsService.resolveActiveCosmetics(user.getPreferences()?.cosmetics)
                         : CosmeticsService.resolveDefaultCosmetics(user.getPreferences()?.cosmetics),
-                    mustRequestUsernameChange: user.mustRequestUsernameChange(),
+                    usernameChangesBlocked,
                     reportingDisabled,
                     needsUsernameChange,
                     moderation
@@ -789,8 +805,10 @@ export class GameServer {
                         message: 'Authentication required to retrieve canchangeUsername info'
                     });
                 }
-                const hasActiveForcedRename = !!this.modActionService?.playerActiveRename(user.getId());
-                const result = await this.userFactory.canChangeUsernameAsync(user.getId(), hasActiveForcedRename);
+                const result = await this.userFactory.canChangeUsernameAsync(user.getId(), {
+                    hasActiveForcedRename: !!this.modActionService?.playerActiveRename(user.getId()),
+                    usernameChangesBlocked: this.modActionService?.isUsernameChangesBlocked(user.getId()) ?? false,
+                });
                 return res.status(200).json({
                     success: true,
                     result: result,
@@ -824,6 +842,15 @@ export class GameServer {
                     });
                 }
 
+                const formatError = validateUsernameFormat(newUsername);
+                if (formatError) {
+                    logger.warn(`GameServer (change-username): User ${user.getId()} submitted a username that fails the format rules: ${newUsername}`);
+                    return res.status(400).json({
+                        success: false,
+                        message: formatError
+                    });
+                }
+
                 // Check for profanity
                 if (userOrLobbyNameContainsProfanity(newUsername)) {
                     logger.warn(`GameServer (change-username): User ${user.getId()} attempted to use a username containing profanity: ${newUsername}`);
@@ -839,6 +866,7 @@ export class GameServer {
                 const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername.trim(), {
                     source: activeRename ? UsernameChangeSource.ForcedRename : UsernameChangeSource.UserInitiated,
                     relatedModActionId: activeRename?.modActionId,
+                    usernameChangesBlocked: modActionService?.isUsernameChangesBlocked(user.getId()) ?? false,
                 });
                 if (result.success) {
                     await modActionService?.onRenameCompleted(user.getId());
@@ -883,26 +911,39 @@ export class GameServer {
             }
         });
 
-        app.post('/api/set-must-request-username-change-seen', this.buildAuthMiddleware(), async (req, res, next) => {
+        app.post('/api/set-username-changes-blocked-seen', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;
 
                 if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (set-must-request-username-change-seen): Anonymous user ${user.getId()} attempted to set must-request-username-change seen`, { userId: user.getId() });
+                    logger.error(`GameServer (set-username-changes-blocked-seen): Anonymous user ${user.getId()} attempted to set username-changes-blocked seen`, { userId: user.getId() });
                     return res.status(403).json({
                         success: false,
                         message: 'Authentication required'
                     });
                 }
 
-                const result = await this.userFactory.setMustRequestUsernameChangeSeenAsync(user.getId());
+                const modActionService = this.getModActionService('set-username-changes-blocked-seen');
+                if (!modActionService) {
+                    return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
+                }
+
+                const modActionId = modActionService.getActiveUsernameChangesBlockedActionId(user.getId());
+                if (!modActionId) {
+                    return res.status(200).json({
+                        success: true,
+                        message: 'No active username-changes-blocked restriction to acknowledge'
+                    });
+                }
+
+                await this.userFactory.setUsernameChangesBlockedSeenAsync(user.getId(), modActionId);
 
                 return res.status(200).json({
-                    success: result,
-                    message: 'Must-request-username-change seen status updated'
+                    success: true,
+                    message: 'Username-changes-blocked seen status updated'
                 });
             } catch (err) {
-                logger.error('GameServer (set-must-request-username-change-seen) Server Error: ', err);
+                logger.error('GameServer (set-username-changes-blocked-seen) Server Error: ', err);
                 next(err);
             }
         });
@@ -1052,9 +1093,9 @@ export class GameServer {
                 const { preferences } = req.body;
                 const { userId } = req.params;
                 const user = req.user as User;
-                if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (PUT-preferences): Anonymous user ${user.getId()} attempted to save preferences to dynamodb`);
-                    return res.status(401).json({
+                if (user.isAnonymousUser() || userId !== user.getId()) {
+                    logger.error(`GameServer (PUT-preferences): User ${user.getId()} attempted to save preferences for user ${userId}`);
+                    return res.status(user.isAnonymousUser() ? 401 : 403).json({
                         success: false,
                         message: 'Error attempting to save preferences'
                     });
@@ -1432,7 +1473,7 @@ export class GameServer {
                 const user = req.user as User;
 
                 const mapping = this.userLobbyMap.get(user.getId());
-                if (!mapping || mapping.lobbyId !== lobbyId || mapping.role !== UserRole.Player) {
+                if (!mapping || mapping.lobbyId !== lobbyId || mapping.role !== UserRole.Player || this.isAnonymousUserClaimingAuthenticatedId(user)) {
                     return res.status(403).json({
                         success: false,
                         error: 'Not a player in this lobby',
@@ -1507,7 +1548,7 @@ export class GameServer {
                 }
 
                 // Check if the user is already in a lobby
-                if (!this.canUserJoinNewLobby(user.getId())) {
+                if (!this.canUserJoinNewLobby(user)) {
                     // TODO shouldn't return 403
                     logger.error(`GameServer (create-lobby): Error in create-lobby User ${user.getId()} attempted to create a different lobby while already being in a lobby`);
                     return res.status(403).json({
@@ -1591,7 +1632,7 @@ export class GameServer {
                     this.dailyActiveUserIds.add(req.user.getId());
                 }
 
-                if (!this.canUserJoinNewLobby(user.getId())) {
+                if (!this.canUserJoinNewLobby(user)) {
                     logger.error(`GameServer (join-lobby): Error in join-lobby User ${user.getId()} attempted to join a different lobby while already being in a lobby`);
                     return res.status(403).json({
                         success: false,
@@ -1616,35 +1657,10 @@ export class GameServer {
                 }
 
                 // Add the user to the lobby
-                this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+                this.setUserLobbyMapping(user, lobby.id, UserRole.Player);
                 return res.status(200).json({ success: true });
             } catch (err) {
                 logger.error('GameServer (join-lobby) Server error:', err);
-                next(err);
-            }
-        });
-
-        app.get('/api/test-game-setups', (_, res, next) => {
-            try {
-                const testSetupFilenames = this.getTestSetupGames();
-                return res.json(testSetupFilenames);
-            } catch (err) {
-                logger.error('GameServer: Error in test-game=setups:', err);
-                next(err);
-            }
-        });
-
-        app.post('/api/start-test-game', async (req, res, next) => {
-            const { filename } = req.body;
-            try {
-                if (!this.areGamesEnabled()) {
-                    return this.sendGamesDisabledResponse(res);
-                }
-
-                await this.startTestGame(filename);
-                return res.status(200).json({ success: true });
-            } catch (err) {
-                logger.error('GameServer: Error in start-test=game:', err);
                 next(err);
             }
         });
@@ -1665,7 +1681,7 @@ export class GameServer {
                 }
 
                 // check if user is already in a lobby
-                if (!this.canUserJoinNewLobby(user.getId())) {
+                if (!this.canUserJoinNewLobby(user)) {
                     logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} attempted to join queue while being in a lobby`);
                     return res.status(403).json({
                         success: false,
@@ -1867,6 +1883,7 @@ export class GameServer {
                     isMuted: modActionService?.isPlayerMuted(profile.id) ?? false,
                     activeRename: modActionService?.playerActiveRename(profile.id) ?? null,
                     activeReportingDisabledId: modActionService?.getActiveReportingDisabledActionId(profile.id) ?? null,
+                    activeUsernameChangesBlockedId: modActionService?.getActiveUsernameChangesBlockedActionId(profile.id) ?? null,
                 }));
 
                 // If single match, include mod actions directly
@@ -1902,24 +1919,23 @@ export class GameServer {
                     });
                 }
 
-                const { playerId, actionType, durationDays, note } = parseResult.data;
+                const { playerId, actionType, durationDays, note, newUsername } = parseResult.data;
                 const moderatorId = req.user.getId();
                 const moderatorUsername = req.user.getUsername();
 
-                const modActionService = this.getModActionService('mod-submit-action');
-                if (!modActionService) {
+                if (!this.getModActionService('mod-submit-action') || !this.modActionSubmissionHandler) {
                     return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
                 }
 
-                // Write-through to cache
-                const modActionResult = await modActionService.onActionSubmitted(
+                const modActionResult = await this.modActionSubmissionHandler.submitAsync({
                     playerId,
                     actionType,
                     moderatorId,
                     moderatorUsername,
                     note,
-                    durationDays ?? undefined,
-                );
+                    durationDays: durationDays ?? undefined,
+                    newUsername,
+                });
 
                 return res.status(200).json({
                     success: modActionResult.success,
@@ -2090,6 +2106,31 @@ export class GameServer {
 
     // dev only endpoints
     private setupDevAppRoutes(app: express.Application) {
+        app.get('/api/test-game-setups', (_, res, next) => {
+            try {
+                const testSetupFilenames = this.getTestSetupGames();
+                return res.json(testSetupFilenames);
+            } catch (err) {
+                logger.error('GameServer: Error in test-game=setups:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/start-test-game', async (req, res, next) => {
+            const { filename } = req.body;
+            try {
+                if (!this.areGamesEnabled()) {
+                    return this.sendGamesDisabledResponse(res);
+                }
+
+                await this.startTestGame(filename);
+                return res.status(200).json({ success: true });
+            } catch (err) {
+                logger.error('GameServer: Error in start-test=game:', err);
+                next(err);
+            }
+        });
+
         // deletes all cosmetics from the database
         app.delete('/api/cosmetics', this.buildAuthMiddleware('clear-all-cosmetics', ServerRole.Admin), async (req, res, next) => {
             try {
@@ -2126,7 +2167,69 @@ export class GameServer {
         });
     }
 
-    private canUserJoinNewLobby(userId: string) {
+    private setUserLobbyMapping(user: User, lobbyId: string, role: UserRole): void {
+        this.userLobbyMap.set(user.getId(), { lobbyId, role, isAuthenticated: user.isAuthenticatedUser() });
+    }
+
+    /**
+     * Whether an anonymous user is presenting an id that is registered, in a lobby or in the queue, to a
+     * logged-in user. Anonymous ids come from the client, so this stops an anonymous request taking over
+     * that user's lobby seat or queue entry. A logged-in user's id is proven by their token, so a logged-in
+     * user is never refused here.
+     */
+    private isAnonymousUserClaimingAuthenticatedId(user: User): boolean {
+        if (user.isAuthenticatedUser()) {
+            return false;
+        }
+
+        if (this.userLobbyMap.get(user.getId())?.isAuthenticated) {
+            return true;
+        }
+
+        return !!this.queue.findPlayer(user.getId())?.player.user.isAuthenticatedUser();
+    }
+
+    /**
+     * Removes any anonymous registration of a logged-in user's id, in a lobby or in the queue. Only an
+     * anonymous request presenting that id can have made one, so the token-verified owner takes precedence.
+     */
+    private evictAnonymousClaimsOnId(user: User): void {
+        if (!user.isAuthenticatedUser()) {
+            return;
+        }
+
+        const userId = user.getId();
+
+        const lobbyEntry = this.userLobbyMap.get(userId);
+        if (lobbyEntry && !lobbyEntry.isAuthenticated) {
+            logger.warn(`GameServer: evicting an anonymous registration of logged-in user ${userId}'s id from lobby ${lobbyEntry.lobbyId}`, { userId });
+            this.userLobbyMap.delete(userId);
+
+            const lobby = this.lobbies.get(lobbyEntry.lobbyId);
+            const impostorSocket = lobby?.users.find((u) => u.id === userId)?.socket;
+            impostorSocket?.removeEventsListeners(['disconnect']);
+            impostorSocket?.disconnect();
+            this.removeUserMaybeCleanupLobby(lobby, userId);
+        }
+
+        const queueEntry = this.queue.findPlayer(userId);
+        if (queueEntry && !queueEntry.player.user.isAuthenticatedUser()) {
+            logger.warn(`GameServer: evicting an anonymous queue entry for logged-in user ${userId}'s id`, { userId });
+            queueEntry.player.socket?.removeEventsListeners(['disconnect']);
+            queueEntry.player.socket?.disconnect();
+            this.queue.removePlayer(userId, 'Anonymous registration of a logged-in user\'s id');
+        }
+    }
+
+    private canUserJoinNewLobby(user: User) {
+        const userId = user.getId();
+
+        this.evictAnonymousClaimsOnId(user);
+        if (this.isAnonymousUserClaimingAuthenticatedId(user)) {
+            logger.warn(`GameServer: anonymous user ${userId} blocked from joining because their id is registered to a logged-in user`, { userId });
+            return false;
+        }
+
         // player ditched out of a matchmaking game, make them wait 20s
         const playerLeftMatchmakingTime = this.playerMatchmakingDisconnectedTime.get(userId);
         if (playerLeftMatchmakingTime) {
@@ -2377,11 +2480,12 @@ export class GameServer {
         this.lobbies.set(lobby.id, lobby);
         lobby.createLobbyUser(user, deck);
         lobby.setLobbyOwner(user.getId());
-        this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+        this.setUserLobbyMapping(user, lobby.id, UserRole.Player);
     }
 
     private async startTestGame(filename: string) {
-        const testJSONPath = path.resolve(__dirname, `../../../test/gameSetups/${filename}`);
+        // only files directly in test/gameSetups may be loaded
+        const testJSONPath = path.resolve(__dirname, '../../../test/gameSetups', path.basename(filename));
         Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
         const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
 
@@ -2413,8 +2517,8 @@ export class GameServer {
         const theWay = this.userFactory.createAnonymousUser('th3w4y', 'ThisIsTheWay');
         lobby.createLobbyUser(order66);
         lobby.createLobbyUser(theWay);
-        this.userLobbyMap.set(order66.id, { lobbyId: lobby.id, role: UserRole.Player });
-        this.userLobbyMap.set(theWay.id, { lobbyId: lobby.id, role: UserRole.Player });
+        this.setUserLobbyMapping(order66, lobby.id, UserRole.Player);
+        this.setUserLobbyMapping(theWay, lobby.id, UserRole.Player);
         await lobby.startTestGameAsync(setupData);
     }
 
@@ -2553,7 +2657,15 @@ export class GameServer {
             return Promise.resolve();
         }
 
+        this.evictAnonymousClaimsOnId(user);
         const lobbyUserEntry = this.userLobbyMap.get(user.getId());
+
+        if (this.isAnonymousUserClaimingAuthenticatedId(user)) {
+            logger.warn(`GameServer: anonymous user ${user.getId()} attempted to connect with an id registered to a logged-in user, disconnecting`, { userId: user.getId() });
+            ioSocket.emit('connection_error', 'Connection error, please try again');
+            ioSocket.disconnect();
+            return Promise.resolve();
+        }
         // 0. If user is spectator
         if (isSpectator) {
             if (!this.config.allowAnonymousSpectators && user.isAnonymousUser()) {
@@ -2669,7 +2781,7 @@ export class GameServer {
             const socket = new Socket(ioSocket);
 
             // check if user is already in a lobby
-            if (!this.canUserJoinNewLobby(user.getId())) {
+            if (!this.canUserJoinNewLobby(user)) {
                 logger.warn(`GameServer: User ${user.getId()} is already in a different lobby, disconnecting`);
                 ioSocket.disconnect();
                 return Promise.resolve();
@@ -2694,7 +2806,7 @@ export class GameServer {
            }*/
 
             await lobby.addLobbyUserAsync(user, socket);
-            this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+            this.setUserLobbyMapping(user, lobby.id, UserRole.Player);
             this.registerDisconnect(socket, user.getId());
             return Promise.resolve();
         }
@@ -2865,8 +2977,8 @@ export class GameServer {
         lobby.createLobbyUser(p2.user, p2.deck, getMatchmakingSearchContext(p2));
 
         // Save user => lobby mapping
-        this.userLobbyMap.set(p1.user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
-        this.userLobbyMap.set(p2.user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+        this.setUserLobbyMapping(p1.user, lobby.id, UserRole.Player);
+        this.setUserLobbyMapping(p2.user, lobby.id, UserRole.Player);
 
         // Attach their sockets to the lobby (if they exist)
         await this.setupQueueSocketAsync(p1, lobby, format);
