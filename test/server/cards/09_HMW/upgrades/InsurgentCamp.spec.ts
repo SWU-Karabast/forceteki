@@ -190,5 +190,42 @@ describe('Insurgent Camp', function() {
             expect(context.rebelPathfinder.exhausted).toBeTrue();
             expect(context.player1).toBeActivePlayer();
         });
+
+        it('Insurgent Camp should trigger when its controller plays a unit owned by the opponent from the opponent\'s discard pile', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: {
+                        card: 'origin-tree',
+                        upgrades: ['insurgent-camp']
+                    },
+                    hand: ['takedown'],
+                },
+                player2: {
+                    groundArena: ['supreme-leader-snoke#shadow-ruler'],
+                    spaceArena: ['stolen-athauler'] // Printed 4/5
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Defeat player2's Stolen AT-Hauler so player1 may play it from player2's discard pile
+            context.player1.clickCard(context.takedown);
+            context.player1.clickCard(context.stolenAthauler);
+            expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+            context.player2.passAction();
+
+            // Under player1's control, Snoke reduces Stolen AT-Hauler's power to 2, triggering Insurgent Camp
+            context.player1.clickCard(context.stolenAthauler);
+            expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+
+            expect(context.player1).toHavePassAbilityPrompt(abilityPrompt('Stolen AT-Hauler'));
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.insurgentCamp).toBeInZone('discard', context.player1);
+            expect(context.stolenAthauler.exhausted).toBeFalse();
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
