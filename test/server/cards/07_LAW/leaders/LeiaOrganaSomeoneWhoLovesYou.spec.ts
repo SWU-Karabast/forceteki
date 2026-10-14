@@ -137,7 +137,6 @@ describe('Leia Organa, Someone who loves you', function() {
 
                 expect(context.player1).toHaveExactPromptButtons(['Play Tala Durith using Plot', 'Give 4 Experience tokens to a unit']);
                 context.player1.clickPrompt('Play Tala Durith using Plot');
-                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHavePrompt('Give 5 Experience tokens to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.zebOrrelios, context.hanSolo, context.jauntyLightFreighter, context.leiaOrgana, context.battlefieldMarine, context.awing, context.talaDurith]);

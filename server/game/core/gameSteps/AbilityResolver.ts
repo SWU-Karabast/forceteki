@@ -18,6 +18,23 @@ export interface IPassAbilityHandler {
     handler: () => void;
 }
 
+/**
+ * Represents the possible pre-resolved choices for an optional triggered ability. The player
+ * can make this choice in the simultaneous trigger prompt, and their pre-selected choice must
+ * be carried through to ability resolution.
+ *
+ * Carrying this choice through to ability resolution ensures the player does not see the interstitial
+ * Trigger/Pass prompt.
+ */
+export enum PreResolvedOptionalChoice {
+
+    /** The player chose to trigger the ability */
+    Trigger = 'trigger',
+
+    /** The player chose to pass the ability */
+    Pass = 'pass'
+}
+
 export class AbilityResolver extends BaseStepWithPipeline {
     public context: AbilityContext;
     public resolutionCommitted: boolean;
@@ -33,15 +50,21 @@ export class AbilityResolver extends BaseStepWithPipeline {
     private passButtonText: string;
     private passAbilityHandler?: IPassAbilityHandler;
 
+    /** Set when an optional trigger's Trigger/Pass choice was already made inline; see {@link PreResolvedOptional}. */
+    private readonly preResolvedOptional?: PreResolvedOptionalChoice;
+
     public constructor(
         game: Game,
         context: AbilityContext,
         optional = false,
         canCancel?: boolean,
         earlyTargetingOverride?: ITargetResult,
-        ignoredRequirements: string[] = []
+        ignoredRequirements: string[] = [],
+        preResolvedOptional?: PreResolvedOptionalChoice
     ) {
         super(game);
+
+        this.preResolvedOptional = preResolvedOptional;
 
         this.context = context;
         this.events = [];
@@ -77,7 +100,10 @@ export class AbilityResolver extends BaseStepWithPipeline {
             this.passButtonText = this.context.ability.isAttackAction() ? 'Pass attack' : 'Pass';
         }
 
-        this.passAbilityHandler = (!!this.context.ability.optional || optional) ? {
+        // If the player already chose to Trigger this optional ability inline (in the simultaneous-trigger
+        // prompt), skip the interstitial pass flow entirely — no pass handler is needed and no pass button
+        // should appear on target selection.
+        this.passAbilityHandler = (preResolvedOptional !== PreResolvedOptionalChoice.Trigger && (!!this.context.ability.optional || optional)) ? {
             buttonText: this.passButtonText,
             arg: 'passAbility',
             hasBeenShown: false,
@@ -122,6 +148,15 @@ export class AbilityResolver extends BaseStepWithPipeline {
         }
 
         if (this.context.ability.meetsRequirements(this.context, this.ignoredRequirements, true) !== '') {
+            this.cancelled = true;
+            this.resolutionCommitted = true;
+            return;
+        }
+
+        // The player already chose to decline this optional ability inline (in the simultaneous-trigger
+        // prompt), so cancel it here without prompting. The cancelled resolution still runs any
+        // "if you do not" clause via executeHandler -> checkResolveThenIfYouDoNot.
+        if (this.preResolvedOptional === PreResolvedOptionalChoice.Pass) {
             this.cancelled = true;
             this.resolutionCommitted = true;
             return;

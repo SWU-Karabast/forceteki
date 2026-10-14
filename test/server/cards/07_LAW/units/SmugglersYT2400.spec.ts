@@ -15,7 +15,7 @@ describe('Smuggler\'s YT-2400', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.smugglersYt2400);
-                context.player1.clickPrompt('(No effect) Ambush');
+                context.player1.clickPrompt('Ambush');
                 expect(context.player1).toHavePassAbilityPrompt('Pay 1 resource to give this unit +1/+1 for this phase');
                 context.player1.clickPrompt('Pass');
 
@@ -29,7 +29,7 @@ describe('Smuggler\'s YT-2400', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.smugglersYt2400);
-                context.player1.clickPrompt('(No effect) Ambush');
+                context.player1.clickPrompt('Ambush');
                 expect(context.player1).toHavePassAbilityPrompt('Pay 1 resource to give this unit +1/+1 for this phase');
                 context.player1.clickPrompt('Trigger');
 

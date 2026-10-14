@@ -35,11 +35,14 @@ import { DeckFetchError } from '../utils/deck/DeckFetchError';
 import { DeckLinkResolver } from '../utils/deck/DeckLinkResolver';
 import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
+import { getMatchmakingSearchContext } from './MatchmakingRules';
+import type { IMatchmakingSearchContext } from './MatchmakingRules';
 import { Helpers } from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
 import { ServerSettingsCache } from '../utils/ServerSettingsCache';
 import { UserFactory } from '../utils/user/UserFactory';
+import { validateUsernameFormat } from '../utils/user/UsernameRules';
 import { DeckService } from '../utils/deck/DeckService';
 import { userOrLobbyNameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
 import { SwuStatsHandler } from '../utils/statHandlers/SwuStatsHandler';
@@ -52,7 +55,8 @@ import { RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 import type { IActiveModActionCacheEntry,
     IDeckDataEntity,
     IModerationAction,
-    IReportingDisabledState } from '../services/DynamoDBInterfaces';
+    IReportingDisabledState,
+    IUsernameChangesBlockedState } from '../services/DynamoDBInterfaces';
 import { ModActionType } from '../services/DynamoDBInterfaces';
 import {
     ModerationType,
@@ -61,13 +65,16 @@ import {
 } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
-import { CardPool, SwuGameFormat } from '../game/core/Constants';
+import { CardPool, MatchmakingCompetitivenessPreference, SwuGameFormat } from '../game/core/Constants';
 import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 import { ModActionService } from '../utils/ModActionService';
+import { ModActionSubmissionHandler } from '../utils/ModActionSubmissionHandler';
 import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema, ServerSettingsUpdateSchema } from '../services/DynamoDBInterfaceSchemas';
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
+import { minimumSchedulerDelayMs } from '../utils/IScheduler';
 import { RealScheduler } from '../utils/RealScheduler';
+import { SchedulerTaskScope } from '../utils/SchedulerTaskScope';
 import type { IGameNodeConfig } from './GameNodeConfig';
 import type { IHttpClient } from '../utils/IHttpClient';
 import { RealHttpClient } from '../utils/RealHttpClient';
@@ -275,6 +282,7 @@ export class GameServer {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     protected readonly scheduler: IScheduler;
+    private readonly taskScope: SchedulerTaskScope;
     protected readonly config: IGameNodeConfig;
     protected readonly httpClient: IHttpClient;
     private readonly queue: QueueHandler;
@@ -283,6 +291,10 @@ export class GameServer {
     private loopDelayHistogram: IntervalHistogram;
     private lastLoopUtilization: EventLoopUtilization;
     private matchmakingRetryTask?: IScheduledTask;
+    private matchmakingInProgress = false;
+
+    /** A request arriving during awaited lobby setup needs a fresh pass over all format queues. */
+    private matchmakingRequested = false;
     private gcStats = {
         totalDuration: 0,
         scavengeCount: 0,
@@ -309,12 +321,10 @@ export class GameServer {
     public readonly meleeDeckFetcher: MeleeDeckFetcher;
     private readonly discordDispatcher = new DiscordDispatcher();
 
-    /** Every recurring task started by the constructor, retained so that {@link shutdownAsync} can stop them. */
-    private readonly backgroundTasks: IScheduledTask[] = [];
-
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
     public readonly serverSettingsCache?: ServerSettingsCache;
     public readonly modActionService?: ModActionService;
+    private readonly modActionSubmissionHandler?: ModActionSubmissionHandler;
 
     /**
      * The HTTP server carrying both the API and the socket.io server. Subclasses may bind it
@@ -356,10 +366,11 @@ export class GameServer {
         app.use(express.json());
         const server = http.createServer(app);
 
-        this.scheduler = scheduler;
+        this.taskScope = new SchedulerTaskScope(scheduler);
+        this.scheduler = this.taskScope;
         this.config = config;
         this.httpClient = httpClient;
-        this.queue = new QueueHandler(scheduler, config);
+        this.queue = new QueueHandler(this.scheduler, config);
         this.httpServer = server;
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
@@ -370,6 +381,7 @@ export class GameServer {
         this.serverSettingsCache = serverSettingsCache;
         this.cosmeticsService = cosmeticsService;
         this.modActionService = modActionCache;
+        this.modActionSubmissionHandler = modActionCache ? new ModActionSubmissionHandler(modActionCache, this.userFactory) : undefined;
 
         const corsOptions = {
             origin: env.corsOrigins,
@@ -427,11 +439,11 @@ export class GameServer {
         );
 
         // TOKEN CLEANUP
-        this.backgroundTasks.push(this.scheduler.setInterval(
+        this.scheduler.setInterval(
             () => this.cleanupInvalidTokens(),
             3600000, // 1 hour
             { message: 'GameServer: error during token cleanup' }
-        ));
+        );
 
         // Setup socket server
         this.io = new IOServer(server, {
@@ -457,11 +469,11 @@ export class GameServer {
         this.swuBaseHandler = new SwuBaseHandler(this.userFactory, httpClient);
 
         // set up queue heartbeat once a second
-        this.backgroundTasks.push(this.scheduler.setInterval(
+        this.scheduler.setInterval(
             () => this.queue.sendHeartbeat(),
             500,
             { message: 'GameServer: error sending queue heartbeat' }
-        ));
+        );
 
         if (this.config.metricsLoggingEnabled) {
             // initialize cpu usage and event loop stats
@@ -478,20 +490,20 @@ export class GameServer {
             this.logHeapStats();
 
             // set up periodic memory, cpu and event loop monitoring for every 30 seconds
-            this.backgroundTasks.push(this.scheduler.setInterval(() => {
+            this.scheduler.setInterval(() => {
                 this.logHeapStats();
                 this.logCpuUsage();
                 this.logEventLoopStats();
                 this.logPlayerStats();
                 this.logGCStats();
-            }, 30000, { message: 'GameServer: error logging periodic server metrics' }));
+            }, 30000, { message: 'GameServer: error logging periodic server metrics' });
 
             // emit daily active user count and reset every 24 hours
-            this.backgroundTasks.push(this.scheduler.setInterval(
+            this.scheduler.setInterval(
                 () => this.logAndResetDailyActiveUsers(),
                 86_400_000, // 24 hours
                 { message: 'GameServer: error logging daily active users' }
-            ));
+            );
         }
     }
 
@@ -560,6 +572,7 @@ export class GameServer {
                 let moderation = user.getModeration();
                 let needsUsernameChange = user.needsUsernameChange();
                 let reportingDisabled: IReportingDisabledState | null = null;
+                let usernameChangesBlocked: IUsernameChangesBlockedState | null = null;
 
                 const modActionService = this.getModActionService('get-user');
                 if (user.isAuthenticatedUser() && modActionService) {
@@ -570,6 +583,13 @@ export class GameServer {
                     if (reportingDisabledActionId) {
                         reportingDisabled = {
                             hasSeen: user.reportingDisabledSeenActionId() === reportingDisabledActionId,
+                        };
+                    }
+
+                    const usernameChangesBlockedActionId = modActionService.getActiveUsernameChangesBlockedActionId(userId);
+                    if (usernameChangesBlockedActionId) {
+                        usernameChangesBlocked = {
+                            hasSeen: user.usernameChangesBlockedSeenActionId() === usernameChangesBlockedActionId,
                         };
                     }
 
@@ -606,7 +626,7 @@ export class GameServer {
                     activeCosmetics: this.cosmeticsService
                         ? this.cosmeticsService.resolveActiveCosmetics(user.getPreferences()?.cosmetics)
                         : CosmeticsService.resolveDefaultCosmetics(user.getPreferences()?.cosmetics),
-                    mustRequestUsernameChange: user.mustRequestUsernameChange(),
+                    usernameChangesBlocked,
                     reportingDisabled,
                     needsUsernameChange,
                     moderation
@@ -782,8 +802,10 @@ export class GameServer {
                         message: 'Authentication required to retrieve canchangeUsername info'
                     });
                 }
-                const hasActiveForcedRename = !!this.modActionService?.playerActiveRename(user.getId());
-                const result = await this.userFactory.canChangeUsernameAsync(user.getId(), hasActiveForcedRename);
+                const result = await this.userFactory.canChangeUsernameAsync(user.getId(), {
+                    hasActiveForcedRename: !!this.modActionService?.playerActiveRename(user.getId()),
+                    usernameChangesBlocked: this.modActionService?.isUsernameChangesBlocked(user.getId()) ?? false,
+                });
                 return res.status(200).json({
                     success: true,
                     result: result,
@@ -817,6 +839,15 @@ export class GameServer {
                     });
                 }
 
+                const formatError = validateUsernameFormat(newUsername);
+                if (formatError) {
+                    logger.warn(`GameServer (change-username): User ${user.getId()} submitted a username that fails the format rules: ${newUsername}`);
+                    return res.status(400).json({
+                        success: false,
+                        message: formatError
+                    });
+                }
+
                 // Check for profanity
                 if (userOrLobbyNameContainsProfanity(newUsername)) {
                     logger.warn(`GameServer (change-username): User ${user.getId()} attempted to use a username containing profanity: ${newUsername}`);
@@ -832,6 +863,7 @@ export class GameServer {
                 const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername, {
                     source: activeRename ? UsernameChangeSource.ForcedRename : UsernameChangeSource.UserInitiated,
                     relatedModActionId: activeRename?.modActionId,
+                    usernameChangesBlocked: modActionService?.isUsernameChangesBlocked(user.getId()) ?? false,
                 });
                 if (result.success) {
                     await modActionService?.onRenameCompleted(user.getId());
@@ -876,26 +908,39 @@ export class GameServer {
             }
         });
 
-        app.post('/api/set-must-request-username-change-seen', this.buildAuthMiddleware(), async (req, res, next) => {
+        app.post('/api/set-username-changes-blocked-seen', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;
 
                 if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (set-must-request-username-change-seen): Anonymous user ${user.getId()} attempted to set must-request-username-change seen`, { userId: user.getId() });
+                    logger.error(`GameServer (set-username-changes-blocked-seen): Anonymous user ${user.getId()} attempted to set username-changes-blocked seen`, { userId: user.getId() });
                     return res.status(403).json({
                         success: false,
                         message: 'Authentication required'
                     });
                 }
 
-                const result = await this.userFactory.setMustRequestUsernameChangeSeenAsync(user.getId());
+                const modActionService = this.getModActionService('set-username-changes-blocked-seen');
+                if (!modActionService) {
+                    return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
+                }
+
+                const modActionId = modActionService.getActiveUsernameChangesBlockedActionId(user.getId());
+                if (!modActionId) {
+                    return res.status(200).json({
+                        success: true,
+                        message: 'No active username-changes-blocked restriction to acknowledge'
+                    });
+                }
+
+                await this.userFactory.setUsernameChangesBlockedSeenAsync(user.getId(), modActionId);
 
                 return res.status(200).json({
-                    success: result,
-                    message: 'Must-request-username-change seen status updated'
+                    success: true,
+                    message: 'Username-changes-blocked seen status updated'
                 });
             } catch (err) {
-                logger.error('GameServer (set-must-request-username-change-seen) Server Error: ', err);
+                logger.error('GameServer (set-username-changes-blocked-seen) Server Error: ', err);
                 next(err);
             }
         });
@@ -1648,7 +1693,7 @@ export class GameServer {
                     return this.sendGamesDisabledResponse(res);
                 }
 
-                const { format, cardPool, gamesToWinMode, deck, swudbLink } = req.body;
+                const { format, cardPool, gamesToWinMode, deck, swudbLink, matchmakingCompetitivenessPreference = MatchmakingCompetitivenessPreference.NoPreference } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1676,6 +1721,11 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid card pool '${cardPool}'` });
                 }
 
+                if (!EnumHelpers.isEnumValue(matchmakingCompetitivenessPreference, MatchmakingCompetitivenessPreference)) {
+                    logger.error(`GameServer (enter-queue): Invalid matchmaking competitiveness preference parameter ${matchmakingCompetitivenessPreference}`);
+                    return res.status(400).json({ success: false, message: `Invalid matchmaking competitiveness preference '${matchmakingCompetitivenessPreference}'` });
+                }
+
                 // Check Bo3 access restrictions for anonymous users (queue is always public)
                 const bo3AccessError = this.validateBo3Access(user, gamesToWinMode, false, 'queue for a best of three match');
                 if (bo3AccessError) {
@@ -1689,7 +1739,7 @@ export class GameServer {
                 }
 
                 await this.processDeckValidation(resolvedDeck, false, { format, cardPool }, res, () => {
-                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, resolvedDeck);
+                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, resolvedDeck, matchmakingCompetitivenessPreference);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(500).json({ success: false, message: 'Failed to enter queue' });
@@ -1855,6 +1905,7 @@ export class GameServer {
                     isMuted: modActionService?.isPlayerMuted(profile.id) ?? false,
                     activeRename: modActionService?.playerActiveRename(profile.id) ?? null,
                     activeReportingDisabledId: modActionService?.getActiveReportingDisabledActionId(profile.id) ?? null,
+                    activeUsernameChangesBlockedId: modActionService?.getActiveUsernameChangesBlockedActionId(profile.id) ?? null,
                 }));
 
                 // If single match, include mod actions directly
@@ -1890,24 +1941,23 @@ export class GameServer {
                     });
                 }
 
-                const { playerId, actionType, durationDays, note } = parseResult.data;
+                const { playerId, actionType, durationDays, note, newUsername } = parseResult.data;
                 const moderatorId = req.user.getId();
                 const moderatorUsername = req.user.getUsername();
 
-                const modActionService = this.getModActionService('mod-submit-action');
-                if (!modActionService) {
+                if (!this.getModActionService('mod-submit-action') || !this.modActionSubmissionHandler) {
                     return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
                 }
 
-                // Write-through to cache
-                const modActionResult = await modActionService.onActionSubmitted(
+                const modActionResult = await this.modActionSubmissionHandler.submitAsync({
                     playerId,
                     actionType,
                     moderatorId,
                     moderatorUsername,
                     note,
-                    durationDays ?? undefined,
-                );
+                    durationDays: durationDays ?? undefined,
+                    newUsername,
+                });
 
                 return res.status(200).json({
                     success: modActionResult.success,
@@ -2624,7 +2674,13 @@ export class GameServer {
             if (lobby.matchmakingType === MatchmakingType.Quick) {
                 if (!socket.eventContainsListener('requeue')) {
                     const lobbyUser = lobby.users.find((u) => u.id === user.getId());
-                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.queueFormatKey, user, lobbyUser?.deck?.originalDeckList));
+                    socket.registerEvent('requeue', () => this.requeueUser(
+                        socket,
+                        lobby.queueFormatKey,
+                        user,
+                        lobbyUser?.deck?.originalDeckList,
+                        lobbyUser?.matchmakingSearchContext?.preference
+                    ));
                 }
             }
 
@@ -2720,7 +2776,8 @@ export class GameServer {
         cardPool: CardPool,
         gamesToWinMode: GamesToWinMode,
         user: User,
-        deck: ISwuDbFormatDecklist
+        deck: ISwuDbFormatDecklist,
+        matchmakingPreference: MatchmakingCompetitivenessPreference
     ): boolean {
         const formatKey: IQueueFormatKey = {
             format,
@@ -2733,6 +2790,7 @@ export class GameServer {
             {
                 user,
                 deck,
+                matchmakingPreference,
                 socket: null
             }
         );
@@ -2741,6 +2799,25 @@ export class GameServer {
     }
 
     private async matchmakeAllQueuesAsync(): Promise<void> {
+        await this.taskScope.runAsync(async () => {
+            if (this.matchmakingInProgress) {
+                this.matchmakingRequested = true;
+                return;
+            }
+
+            this.matchmakingInProgress = true;
+            try {
+                do {
+                    this.matchmakingRequested = false;
+                    await this.matchmakeReadyQueuesAsync();
+                } while (this.matchmakingRequested);
+            } finally {
+                this.matchmakingInProgress = false;
+            }
+        });
+    }
+
+    private async matchmakeReadyQueuesAsync(): Promise<void> {
         // If there's a pending timer-based matchmaking task, clear it out
         if (this.matchmakingRetryTask) {
             this.matchmakingRetryTask.cancel();
@@ -2748,7 +2825,7 @@ export class GameServer {
         }
 
         const formatsWithMatches = this.queue.findReadyFormats();
-        let needsTimedRetry = false;
+        const formatsNeedingRetry: IQueueFormatKey[] = [];
 
         for (const format of formatsWithMatches) {
             // track exceptions to avoid getting stuck in a loop
@@ -2762,8 +2839,7 @@ export class GameServer {
                     matchedPlayers = this.queue.getNextMatchPair(format);
 
                     if (!matchedPlayers) {
-                        // If matchmaking failed to find a pair, flag that we need a timed retry
-                        needsTimedRetry = true;
+                        formatsNeedingRetry.push(format);
                         break;
                     }
 
@@ -2785,10 +2861,14 @@ export class GameServer {
             }
         }
 
-        if (needsTimedRetry) {
+        const retryTimes = formatsNeedingRetry
+            .map((format) => this.queue.getNextMatchAvailableAt(format))
+            .filter((availableAt): availableAt is number => availableAt !== null);
+        if (retryTimes.length > 0) {
+            const delayMs = Math.max(minimumSchedulerDelayMs, Math.min(...retryTimes) - this.scheduler.now());
             this.matchmakingRetryTask = this.scheduler.setTimeout(
                 () => this.matchmakeAllQueuesAsync(),
-                QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000,
+                delayMs,
                 { message: 'GameServer: Error in scheduled matchmaking retry' }
             );
         }
@@ -2819,8 +2899,8 @@ export class GameServer {
         this.lobbies.set(lobby.id, lobby);
 
         // Create the 2 lobby users
-        lobby.createLobbyUser(p1.user, p1.deck);
-        lobby.createLobbyUser(p2.user, p2.deck);
+        lobby.createLobbyUser(p1.user, p1.deck, getMatchmakingSearchContext(p1));
+        lobby.createLobbyUser(p2.user, p2.deck, getMatchmakingSearchContext(p2));
 
         // Save user => lobby mapping
         this.userLobbyMap.set(p1.user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
@@ -2846,9 +2926,9 @@ export class GameServer {
         }
 
         await lobby.addLobbyUserAsync(player.user, socket);
-        socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket.socket, player));
+        socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket, player));
         if (!socket.eventContainsListener('requeue')) {
-            socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck));
+            socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck, player.matchmakingPreference));
         }
 
         return Promise.resolve();
@@ -2856,8 +2936,17 @@ export class GameServer {
 
     /**
      * requeues the user and removes them from the previous lobby. If the lobby is empty, it cleans it up.
+     * Passing searchStartedAt resumes a failed search; omitting it starts a new search.
      */
-    public requeueUser(socket: Socket, format: IQueueFormatKey, user: User, deck: ISwuDbFormatDecklist) {
+    public requeueUser(
+        socket: Socket,
+        format: IQueueFormatKey,
+        user: User,
+        deck: ISwuDbFormatDecklist,
+        matchmakingPreference = MatchmakingCompetitivenessPreference.NoPreference,
+        searchStartedAt?: number,
+        preferencesPublishedAt?: IMatchmakingSearchContext['preferencesPublishedAt']
+    ) {
         try {
             // Gated here rather than on the 'requeue' socket event, since this is also reached by
             // the automatic requeue paths in Lobby (e.g. when a matched opponent disconnects).
@@ -2883,9 +2972,9 @@ export class GameServer {
             }
 
             // add user to queue
-            this.queue.addPlayer(format, { user, deck, socket });
+            this.queue.addPlayer(format, { user, deck, socket, matchmakingPreference, searchStartedAt, preferencesPublishedAt });
 
-            this.matchmakeAllQueuesAsync();
+            this.matchmakeAllQueuesAsync().catch((err) => logger.error('GameServer: Error matchmaking requeued user:', err));
         } catch (err) {
             logger.error('GameServer: Error in requeueUser:', err);
         }
@@ -2919,30 +3008,25 @@ export class GameServer {
      * listener. Tests call this in teardown so the process is left with nothing keeping it alive.
      */
     public async shutdownAsync(): Promise<void> {
-        for (const task of this.backgroundTasks) {
-            task.cancel();
-        }
-        this.backgroundTasks.length = 0;
-
-        this.queue.shutdown();
-
-        if (this.matchmakingRetryTask) {
-            this.matchmakingRetryTask.cancel();
+        try {
+            await this.taskScope.cancelAsync();
+        } finally {
+            this.queue.shutdown();
             this.matchmakingRetryTask = undefined;
-        }
 
-        for (const lobby of Array.from(this.lobbies.values())) {
-            lobby.cleanLobby();
-        }
-        this.lobbies.clear();
-        this.userLobbyMap.clear();
+            for (const lobby of Array.from(this.lobbies.values())) {
+                lobby.cleanLobby();
+            }
+            this.lobbies.clear();
+            this.userLobbyMap.clear();
 
-        this.loopDelayHistogram?.disable();
+            this.loopDelayHistogram?.disable();
 
-        await new Promise<void>((resolve) => this.io.close(() => resolve()));
+            await new Promise<void>((resolve) => this.io.close(() => resolve()));
 
-        if (this.httpServer.listening) {
-            await new Promise<void>((resolve) => this.httpServer.close(() => resolve()));
+            if (this.httpServer.listening) {
+                await new Promise<void>((resolve) => this.httpServer.close(() => resolve()));
+            }
         }
     }
 
@@ -2992,7 +3076,7 @@ export class GameServer {
             const timeoutValue = timeoutSeconds * 1000;
 
             this.scheduler.setTimeout(() => {
-                if (isMatchmaking && !this.queue.isConnected(id, socket.id)) {
+                if (isMatchmaking && this.queue.isWaitingForReconnection(id, socket.id)) {
                     this.queue.removePlayer(id, `Timeout disconnect on socket id ${socket.id}`);
                 }
 

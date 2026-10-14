@@ -1,4 +1,4 @@
-import type { IModerationAction, IUserDataEntity, IUserPreferences, ModerationFieldState } from '../../services/DynamoDBInterfaces';
+import type { IModerationAction, IUserDataEntity, IUserPreferences } from '../../services/DynamoDBInterfaces';
 
 /**
  * Abstract base User class
@@ -61,7 +61,10 @@ export abstract class User {
 
     public abstract needsUsernameChange(): boolean;
 
-    public abstract mustRequestUsernameChange(): ModerationFieldState | null;
+    /**
+     * Id of the UsernameChangesBlocked mod action whose one-time notice this user has acknowledged.
+     */
+    public abstract usernameChangesBlockedSeenActionId(): string | null;
 
     /**
      * Id of the ReportingDisabled mod action whose one-time notice this user has acknowledged.
@@ -138,8 +141,8 @@ export class AuthenticatedUser extends User {
         return !!this.userData.needsUsernameChange;
     }
 
-    public mustRequestUsernameChange(): ModerationFieldState | null {
-        return this.userData.mustRequestUsernameChange ?? null;
+    public usernameChangesBlockedSeenActionId(): string | null {
+        return this.userData.usernameChangesBlockedSeenActionId ?? null;
     }
 
     public reportingDisabledSeenActionId(): string | null {
@@ -203,7 +206,7 @@ export class AnonymousUser extends User {
         return false;
     }
 
-    public mustRequestUsernameChange(): ModerationFieldState | null {
+    public usernameChangesBlockedSeenActionId(): string | null {
         return null;
     }
 

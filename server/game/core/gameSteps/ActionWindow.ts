@@ -11,6 +11,8 @@ import type { AbilityContext } from '../ability/AbilityContext.js';
 import { PromptType, type IButton } from './PromptInterfaces.js';
 import type { SnapshotManager } from '../snapshot/SnapshotManager.js';
 import { SnapshotTimepoint } from '../snapshot/SnapshotInterfaces.js';
+import type { IPlayPermission } from '../ongoingEffect/effectImpl/PlayPermission.js';
+import { PlayPermissionHelpers } from '../ongoingEffect/effectImpl/PlayPermission.js';
 
 export class ActionWindow extends UiPrompt {
     public static readonly title = 'Action Window';
@@ -304,10 +306,22 @@ export class ActionWindow extends UiPrompt {
         const actions = card.getActions();
         const legalActions = actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
 
-        // Show one button per source for gained abilities from multiple copies of the same card.
+        // Show one button per source for gained abilities from multiple copies of the same card, and one button
+        // for equivalent play permissions (e.g. two Boga triggers on the same card).
         // Deduplicating after the requirements filter keeps a copy at its use limit from hiding a usable one.
         const seenGainedSources = new Set<string>();
+        const seenPermissionActions: { title: string; permission: IPlayPermission }[] = [];
         return legalActions.filter((action) => {
+            if (action.isPlayCardAbility() && action.playPermission) {
+                const title = action.getTitle(action.createContext(player));
+                const permission = action.playPermission;
+                if (seenPermissionActions.some((seen) => seen.title === title && PlayPermissionHelpers.isEquivalent(seen.permission, permission))) {
+                    return false;
+                }
+                seenPermissionActions.push({ title, permission });
+                return true;
+            }
+
             const gainAbilitySource = action.isCardAbility() && !action.printedAbility ? action.gainAbilitySource : null;
             if (!gainAbilitySource) {
                 return true;

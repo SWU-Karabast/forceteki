@@ -136,6 +136,39 @@ describe('Second Chance', function() {
                 expect(context.swoopRacer).toBeInZone('groundArena');
                 expect(context.player1.readyResourceCount).toBe(p1ReadyResourceCount); // No resources spent
             });
+
+            it('does not make the unit free if it is played from hand after being played from the discard pile', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'wampa', upgrades: ['second-chance'] }],
+                        base: 'tarkintown'
+                    },
+                    player2: {
+                        hand: ['vanquish', 'waylay'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.wampa);
+
+                // Wampa is played from the discard pile for free
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('groundArena', context.player1);
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+
+                context.player2.clickCard(context.waylay);
+                context.player2.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('hand', context.player1);
+
+                // Playing it from hand pays its cost
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('groundArena', context.player1);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
+            });
         });
     });
 });
