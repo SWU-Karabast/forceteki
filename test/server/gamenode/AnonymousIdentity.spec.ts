@@ -174,6 +174,69 @@ describe('Anonymous user identity', function () {
             });
         });
 
+        describe('a logged-in user whose id an anonymous request registered first', function () {
+            it('is not locked out by an anonymous join-lobby call', async function () {
+                const { harness } = contextRef;
+                const host = harness.createClient();
+                await createLobbyAsync(harness, host);
+                await host.connectAsync();
+                const hostLobbyId = new URL(host.lobbyState.connectionLink).searchParams.get('lobbyId');
+
+                const victim = harness.createClient({ authenticated: true });
+                const impostor = TestClient.create(harness, victim.id);
+                expect((await impostor.joinLobbyAsync(hostLobbyId)).status).toBe(200);
+
+                await createLobbyAsync(harness, victim);
+                await victim.connectAsync();
+
+                expect(victim.connectionErrors).toEqual([]);
+                expect(victim.lobbyState.users.map((u: any) => u.id)).toEqual([victim.id]);
+            });
+
+            it('is not locked out by an anonymous enter-queue call', async function () {
+                const { harness } = contextRef;
+                const victim = harness.createClient({ authenticated: true });
+                const impostor = TestClient.create(harness, victim.id);
+                expect((await impostor.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...matchConfig })).status).toBe(200);
+
+                const entered = await victim.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...matchConfig });
+                expect(entered.status).toBe(200);
+                await victim.connectAsync();
+
+                expect(victim.connectionErrors).toEqual([]);
+            });
+
+            it('evicts an impostor already seated under their id', async function () {
+                const { harness } = contextRef;
+                const host = harness.createClient();
+                await createLobbyAsync(harness, host, true);
+                await host.connectAsync();
+                const hostLobbyId = new URL(host.lobbyState.connectionLink).searchParams.get('lobbyId');
+
+                const victim = harness.createClient({ authenticated: true });
+                const impostor = TestClient.create(harness, victim.id);
+                await impostor.connectAsync({ lobbyId: hostLobbyId });
+                expect(host.lobbyState.users.map((u: any) => u.id)).toContain(victim.id);
+
+                await createLobbyAsync(harness, victim);
+
+                expect(impostor.socket.connected).toBeFalse();
+                expect(host.lobbyState.users.map((u: any) => u.id)).toEqual([host.id]);
+            });
+        });
+
+        it('does not let an anonymous caller change a logged-in player\'s deck', async function () {
+            const { harness } = contextRef;
+            const owner = harness.createClient({ authenticated: true });
+            await createLobbyAsync(harness, owner, true);
+            await owner.connectAsync();
+            const lobbyId = new URL(owner.lobbyState.connectionLink).searchParams.get('lobbyId');
+
+            const impostor = TestClient.create(harness, owner.id);
+            expect((await impostor.changeDeckAsync(lobbyId, harness.decklists.undersizedDecklist())).status).toBe(403);
+            expect((await owner.changeDeckAsync(lobbyId, harness.decklists.validDecklist())).status).toBe(200);
+        });
+
         it('still lets an anonymous user reconnect to their own seat', async function () {
             const { harness } = contextRef;
             const owner = harness.createClient();

@@ -163,6 +163,16 @@ describe('Chat permissions', function () {
                 expect(lobbyChatContains(owner, 'from the joiner')).toBeFalse();
             });
 
+            it('ignores a typing state that is not a boolean', async function () {
+                const { owner, joiner } = await setUpLobbyAsync(contextRef.harness, loggedIn, loggedIn);
+
+                await owner.sendLobbyMessageAsync('typingState', { payload: 'not a boolean' });
+                expect(containsText(joiner.lobbyState.gameChat.typingState, 'not a boolean')).toBeFalse();
+
+                await owner.sendLobbyMessageAsync('typingState', true);
+                expect(joiner.lobbyState.gameChat.typingState[owner.id]).toBeTrue();
+            });
+
             it('ignores the typing indicator from a user who cannot chat', async function () {
                 const { owner, joiner } = await setUpLobbyAsync(contextRef.harness, {}, loggedIn);
 
@@ -205,6 +215,16 @@ describe('Chat permissions', function () {
                 await sender.sendGameMessageAsync('chat', 'good luck');
 
                 expect(gameChatContains(opponent, 'good luck')).toBeFalse();
+            });
+
+            it('drops a message that is not a string', async function () {
+                const { sender, opponent } = await setUpGameAsync(contextRef.harness, loggedIn, loggedIn);
+
+                await sender.sendGameMessageAsync('chat', { message: [{ type: 'playerChat', id: opponent.id, name: 'IMPERSONATED' }, 'x'] });
+                await sender.sendGameMessageAsync('chat', 'good luck');
+
+                expect(gameChatContains(opponent, 'IMPERSONATED')).toBeFalse();
+                expect(gameChatContains(opponent, 'good luck')).toBeTrue();
             });
         });
     });

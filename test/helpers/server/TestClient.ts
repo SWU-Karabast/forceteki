@@ -206,6 +206,25 @@ export class TestClient {
         });
     }
 
+    public async changeDeckAsync(lobbyId: string, deck: ISwuDbFormatDecklist): Promise<SupertestResponse> {
+        return await this.withAuthCookie(this.harness.api.post(`/api/lobby/${lobbyId}/change-deck`)).send({
+            deck,
+            user: this.userPayload(),
+        });
+    }
+
+    /**
+     * Saves preferences for `userId`; the real client always passes its own id. Unlike the real client
+     * this also sends the user payload, so a logged-in client authenticates without the profile lookup
+     * the test server has no database for.
+     */
+    public async savePreferencesAsync(userId: string, preferences: Record<string, unknown>): Promise<SupertestResponse> {
+        return await this.withAuthCookie(this.harness.api.put(`/api/user/${userId}/preferences`)).send({
+            preferences,
+            user: this.userPayload(),
+        });
+    }
+
     /**
      * Finds a public lobby via `/api/available-lobbies`, the same discovery endpoint the real
      * client's lobby browser uses. Returns `undefined` if no entry matches.

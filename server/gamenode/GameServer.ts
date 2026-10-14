@@ -1093,9 +1093,9 @@ export class GameServer {
                 const { preferences } = req.body;
                 const { userId } = req.params;
                 const user = req.user as User;
-                if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (PUT-preferences): Anonymous user ${user.getId()} attempted to save preferences to dynamodb`);
-                    return res.status(401).json({
+                if (user.isAnonymousUser() || userId !== user.getId()) {
+                    logger.error(`GameServer (PUT-preferences): User ${user.getId()} attempted to save preferences for user ${userId}`);
+                    return res.status(user.isAnonymousUser() ? 401 : 403).json({
                         success: false,
                         message: 'Error attempting to save preferences'
                     });
@@ -1473,7 +1473,7 @@ export class GameServer {
                 const user = req.user as User;
 
                 const mapping = this.userLobbyMap.get(user.getId());
-                if (!mapping || mapping.lobbyId !== lobbyId || mapping.role !== UserRole.Player) {
+                if (!mapping || mapping.lobbyId !== lobbyId || mapping.role !== UserRole.Player || this.isAnonymousUserClaimingAuthenticatedId(user)) {
                     return res.status(403).json({
                         success: false,
                         error: 'Not a player in this lobby',
@@ -2172,27 +2172,61 @@ export class GameServer {
     }
 
     /**
-     * Whether the user's id is already registered, in a lobby or in the queue, to a user with a different
-     * login state. Anonymous ids come from the client, so this stops an anonymous connection that presents
-     * a logged-in user's id from taking over or evicting that user's lobby seat or queue entry.
+     * Whether an anonymous user is presenting an id that is registered, in a lobby or in the queue, to a
+     * logged-in user. Anonymous ids come from the client, so this stops an anonymous request taking over
+     * that user's lobby seat or queue entry. A logged-in user's id is proven by their token, so a logged-in
+     * user is never refused here.
      */
-    private isIdClaimedWithDifferentLoginState(user: User): boolean {
-        const isAuthenticated = user.isAuthenticatedUser();
+    private isAnonymousUserClaimingAuthenticatedId(user: User): boolean {
+        if (user.isAuthenticatedUser()) {
+            return false;
+        }
 
-        const lobbyEntry = this.userLobbyMap.get(user.getId());
-        if (lobbyEntry && lobbyEntry.isAuthenticated !== isAuthenticated) {
+        if (this.userLobbyMap.get(user.getId())?.isAuthenticated) {
             return true;
         }
 
-        const queuedUser = this.queue.findPlayer(user.getId())?.player.user;
-        return !!queuedUser && queuedUser.isAuthenticatedUser() !== isAuthenticated;
+        return !!this.queue.findPlayer(user.getId())?.player.user.isAuthenticatedUser();
+    }
+
+    /**
+     * Removes any anonymous registration of a logged-in user's id, in a lobby or in the queue. Only an
+     * anonymous request presenting that id can have made one, so the token-verified owner takes precedence.
+     */
+    private evictAnonymousClaimsOnId(user: User): void {
+        if (!user.isAuthenticatedUser()) {
+            return;
+        }
+
+        const userId = user.getId();
+
+        const lobbyEntry = this.userLobbyMap.get(userId);
+        if (lobbyEntry && !lobbyEntry.isAuthenticated) {
+            logger.warn(`GameServer: evicting an anonymous registration of logged-in user ${userId}'s id from lobby ${lobbyEntry.lobbyId}`, { userId });
+            this.userLobbyMap.delete(userId);
+
+            const lobby = this.lobbies.get(lobbyEntry.lobbyId);
+            const impostorSocket = lobby?.users.find((u) => u.id === userId)?.socket;
+            impostorSocket?.removeEventsListeners(['disconnect']);
+            impostorSocket?.disconnect();
+            this.removeUserMaybeCleanupLobby(lobby, userId);
+        }
+
+        const queueEntry = this.queue.findPlayer(userId);
+        if (queueEntry && !queueEntry.player.user.isAuthenticatedUser()) {
+            logger.warn(`GameServer: evicting an anonymous queue entry for logged-in user ${userId}'s id`, { userId });
+            queueEntry.player.socket?.removeEventsListeners(['disconnect']);
+            queueEntry.player.socket?.disconnect();
+            this.queue.removePlayer(userId, 'Anonymous registration of a logged-in user\'s id');
+        }
     }
 
     private canUserJoinNewLobby(user: User) {
         const userId = user.getId();
 
-        if (this.isIdClaimedWithDifferentLoginState(user)) {
-            logger.warn(`GameServer: user ${userId} blocked from joining because their id is registered to a user with a different login state`, { userId });
+        this.evictAnonymousClaimsOnId(user);
+        if (this.isAnonymousUserClaimingAuthenticatedId(user)) {
+            logger.warn(`GameServer: anonymous user ${userId} blocked from joining because their id is registered to a logged-in user`, { userId });
             return false;
         }
 
@@ -2622,10 +2656,11 @@ export class GameServer {
             return Promise.resolve();
         }
 
+        this.evictAnonymousClaimsOnId(user);
         const lobbyUserEntry = this.userLobbyMap.get(user.getId());
 
-        if (this.isIdClaimedWithDifferentLoginState(user)) {
-            logger.warn(`GameServer: user ${user.getId()} attempted to connect with an id registered to a user with a different login state, disconnecting`, { userId: user.getId() });
+        if (this.isAnonymousUserClaimingAuthenticatedId(user)) {
+            logger.warn(`GameServer: anonymous user ${user.getId()} attempted to connect with an id registered to a logged-in user, disconnecting`, { userId: user.getId() });
             ioSocket.emit('connection_error', 'Connection error, please try again');
             ioSocket.disconnect();
             return Promise.resolve();

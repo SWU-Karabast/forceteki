@@ -1113,6 +1113,8 @@ export class Lobby {
     }
 
     private typingState(socket: Socket, isTyping: boolean) {
+        Contract.assertTrue(typeof isTyping === 'boolean', 'Typing state argument is not a boolean');
+
         const userId = socket.user.getId();
         if (isTyping && !this.checkUserCanChat(userId, 'typing state')) {
             return;
@@ -1606,7 +1608,9 @@ export class Lobby {
 
     /** Lobby methods a player's client may invoke by name. Everything else on Lobby is server-internal. */
     private static readonly allowedLobbyCommands = new Set([
+        'concedeBo3',
         'muteChat',
+        'proceedToNextBo3Game',
         'rematch',
         'reportScreenResolution',
         'requestRematch',
@@ -1698,7 +1702,7 @@ export class Lobby {
                 return;
             }
 
-            if (command === 'chat' && !this.checkUserCanChat(socket.user.getId(), 'game chat message')) {
+            if (command === 'chat' && (typeof args[0] !== 'string' || !this.checkUserCanChat(socket.user.getId(), 'game chat message'))) {
                 return;
             }
 
@@ -2548,6 +2552,23 @@ export class Lobby {
         const playerReportType = Object.values(PlayerReportType).includes(args[2]) ? args[2] as PlayerReportType : null;
         const resultEvent = reportType === ReportType.BugReport ? 'bugReportResult' : 'playerReportResult';
         const reportLabel = reportType === ReportType.BugReport ? 'bug report' : 'player report';
+
+        // the client only offers reports to logged-in players, and player reports only against logged-in opponents
+        const sender = this.users.find((u) => u.id === socket.user.getId());
+        const opponentUser = this.users.find((u) => u.id !== socket.user.getId());
+        if ((sender && this.isLobbyUserAnonymous(sender)) ||
+          (reportType === ReportType.PlayerReport && opponentUser && this.isLobbyUserAnonymous(opponentUser))) {
+            logger.warn(`Lobby (submitReport): dropped ${reportLabel} from user ${socket.user.getId()}: anonymous reporter or reported player`, {
+                lobbyId: this.id,
+                userId: socket.user.getId(),
+            });
+            socket.send(resultEvent, {
+                id: uuid(),
+                success: false,
+                message: 'Please log in to submit reports',
+            });
+            return;
+        }
 
         const modActionService = this.server.modActionService;
         if (!modActionService) {
