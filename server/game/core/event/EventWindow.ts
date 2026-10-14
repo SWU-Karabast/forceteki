@@ -233,7 +233,11 @@ export class EventWindow extends BaseStepWithPipeline {
      * contingent generation has already run, so we repeat the process for them (e.g. a failed draw's
      * damage is replaced with another draw, which can itself fail and generate damage).
      */
-    private generateContingentEventsAndReplacementWindow() {
+    private generateContingentEventsAndReplacementWindow(passCount = 0) {
+        if (passCount >= 50) {
+            throw new Error(`Contingent event generation for ${this} has repeated ${passCount} times, likely caught in an infinite loop`);
+        }
+
         const unprocessedEvents = this._events.filter((event) => !this.contingentEventsGeneratedFor.has(event));
         if (unprocessedEvents.length === 0) {
             return;
@@ -254,7 +258,7 @@ export class EventWindow extends BaseStepWithPipeline {
         replacementEffectWindow.addTriggeringEvents(contingentEvents);
         replacementEffectWindow.emitEvents();
         this.queueStep(replacementEffectWindow);
-        this.queueStep(new SimpleStep(this.game, () => this.generateContingentEventsAndReplacementWindow(), 'generateContingentEventsAndReplacementWindow'));
+        this.queueStep(new SimpleStep(this.game, () => this.generateContingentEventsAndReplacementWindow(passCount + 1), 'generateContingentEventsAndReplacementWindow'));
     }
 
     private preResolutionEffects() {
