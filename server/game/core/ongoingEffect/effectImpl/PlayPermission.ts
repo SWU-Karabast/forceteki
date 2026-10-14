@@ -7,12 +7,15 @@ import { CostAdjustType } from '../../cost/CostAdjuster';
 import type { GameSystem } from '../../gameSystem/GameSystem';
 import type { Player } from '../../Player';
 import { Contract } from '../../utils/Contract';
+import { Helpers } from '../../utils/Helpers';
 import { TextHelper } from '../../utils/TextHelper';
 
 /**
  * The out-of-play zones a card can be granted permission to be played from.
  *
- * Currently, only the discard zone is supported.
+ * Currently, only the discard zone is supported. Adding a zone here is not enough on its own: the action window
+ * only offers actions for cards in the zones listed in `ActionWindow.getSelectableCards`, so the new zone must be
+ * added there too (and be clickable in the client).
  */
 export type PlayPermissionZone = ZoneName.Discard;
 
@@ -22,8 +25,10 @@ export interface IPlayPermissionProperties {
     zone: PlayPermissionZone;
 
     /**
-     * The player(s) allowed to use the permission. A relative value is resolved against the player
-     * resolving the ability that created the permission, at the time it is created.
+     * Who may use the permission: either a specific `Player`, or a relative value that is resolved once,
+     * when the permission is created, relative to the player resolving the ability that creates it.
+     * For example, Stolen AT-Hauler uses `RelativePlayer.Opponent`: when it's defeated, the permission goes
+     * to the opponent of the player resolving its When Defeated ability.
      */
     player: Player | RelativePlayerFilter;
 
@@ -66,6 +71,19 @@ export namespace PlayPermissionHelpers {
     }
 
     /**
+     * Whether two permissions grant the same play, so that only one of their actions needs to be offered
+     * (e.g. two Boga triggers on the same card). The cost adjustment's properties are compared by value and
+     * enter-play effects by reference, so permissions are only treated as the same when they're known to match.
+     */
+    export function isEquivalent(first: IPlayPermission, second: IPlayPermission): boolean {
+        return first.source.internalName === second.source.internalName &&
+          first.zone === second.zone &&
+          haveSameElements(first.permittedPlayers, second.permittedPlayers) &&
+          haveSameCostAdjustment(first.adjustCost, second.adjustCost) &&
+          haveSameElements(Helpers.asArray(first.enterPlayEffect), Helpers.asArray(second.enterPlayEffect));
+    }
+
+    /**
      * Describes the permission's modifications for the play action title, e.g. "for free (via Cobb Vanth)".
      * A cost amount computed from game state is only included when the context of the play is provided.
      */
@@ -100,6 +118,21 @@ export namespace PlayPermissionHelpers {
         }
 
         return adjustCost.amount ?? null;
+    }
+
+    function haveSameCostAdjustment(first: ICostAdjusterProperties | undefined, second: ICostAdjusterProperties | undefined): boolean {
+        if (first == null || second == null) {
+            return first === second;
+        }
+
+        const firstEntries = Object.entries(first);
+        const secondValues = new Map<string, unknown>(Object.entries(second));
+        return firstEntries.length === secondValues.size &&
+          firstEntries.every(([key, value]) => secondValues.has(key) && secondValues.get(key) === value);
+    }
+
+    function haveSameElements<T>(first: readonly T[], second: readonly T[]): boolean {
+        return first.length === second.length && first.every((element) => second.includes(element));
     }
 
     function resolvePermittedPlayers(player: Player | RelativePlayerFilter, createdByPlayer?: Player): Player[] {

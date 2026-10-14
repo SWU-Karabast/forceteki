@@ -370,15 +370,23 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
      * not merge in this card's registered additional play costs here (unlike the default/keyword actions).
      * Note: additional costs imposed by an opponent's ongoing effect (e.g. Saw Gerrera) are added later in
      * {@link PlayCardAction.getCosts} and are not yet circumvented — see the linked issue.
+     *
+     * Playing for free bypasses all resource modifiers, so a play permission used by these actions keeps
+     * its zone, players and enter-play effect but not its cost adjustment.
      */
     private buildAlternatePlayActions(
         playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay,
         propertyOverrides: IPlayCardActionOverrides
     ): PlayCardAction[] {
+        const playPermission = propertyOverrides?.playPermission
+            ? { ...propertyOverrides.playPermission, adjustCost: undefined }
+            : undefined;
+
         return this.alternatePlayCosts.map((alternate) =>
             this.buildPlayCardAction({
                 ...propertyOverrides,
                 playType,
+                playPermission,
                 title: alternate.title,
                 additionalCosts: this.buildPlayCost(alternate),
                 costAdjusters: [CostAdjusterFactory.create(this.game, this, { costAdjustType: CostAdjustType.Free })],

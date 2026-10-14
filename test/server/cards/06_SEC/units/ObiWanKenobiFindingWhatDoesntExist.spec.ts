@@ -387,5 +387,44 @@ describe('Obi-Wan Kenobi, Finding What Doesn\'t Exist', function() {
             expect(context.stolenAthauler).toHaveExactUpgradeNames(['darth-vader#scourge-of-squadrons']);
             expect(context.player1.exhaustedResourceCount).toBe(3); // Piloting cost is 3, ignoring aspect penalties
         });
+
+        it('allows the player to play the discarded card with its alternate cost, which is not described as ignoring aspect penalties', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'jyn-erso#resisting-oppression',
+                    hand: ['crafty-smuggler'],
+                    groundArena: ['obiwan-kenobi#finding-what-doesnt-exist']
+                },
+                player2: {
+                    deck: ['bamboozle'],
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.obiwanKenobi);
+            context.player1.clickCard(context.p2Base);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.bamboozle);
+            expect(context.player1).toHaveExactPromptButtons([
+                'Play Bamboozle, ignoring its aspect penalties (via Obi-Wan Kenobi)',
+                'Play Bamboozle by discarding a Cunning card (via Obi-Wan Kenobi)',
+                'Cancel'
+            ]);
+
+            context.player1.clickPrompt('Play Bamboozle by discarding a Cunning card (via Obi-Wan Kenobi)');
+            context.player1.clickCard(context.craftySmuggler);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.craftySmuggler).toBeInZone('discard', context.player1);
+            expect(context.bamboozle).toBeInZone('discard', context.player2);
+            expect(context.wampa.exhausted).toBeTrue();
+            expect(context.player1.exhaustedResourceCount).toBe(0);
+        });
     });
 });
