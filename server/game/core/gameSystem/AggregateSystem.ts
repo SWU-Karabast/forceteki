@@ -1,8 +1,9 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import type { GameStateChangeRequired } from '../Constants';
+import type { CardTypeFilter, GameStateChangeRequired } from '../Constants';
 import type { GameObject } from '../GameObject';
 import type { IGameSystemProperties } from './GameSystem';
 import { GameSystem } from './GameSystem';
+import { Helpers } from '../utils/Helpers';
 
 // helper type useful for some extensions of this class
 export type ISystemArrayOrFactory<TContext extends AbilityContext> = (GameSystem<TContext>)[] | ((context: TContext) => (GameSystem<TContext>)[]);
@@ -35,6 +36,35 @@ export abstract class AggregateSystem<TContext extends AbilityContext = AbilityC
     }
 
     public abstract override hasLegalTarget(context: TContext, additionalProperties?: Partial<TProperties>, mustChangeGameState?: GameStateChangeRequired): boolean;
+
+    public override isTargetSelective(context: TContext): boolean {
+        return this.getInnerSystemsForIntrospection(context).some((gameSystem) => gameSystem.isTargetSelective(context));
+    }
+
+    public override getTargetTypeFilter(context: TContext): CardTypeFilter[] | null {
+        const typeFilters = this.getInnerSystemsForIntrospection(context)
+            .filter((gameSystem) => gameSystem.isTargetSelective(context))
+            .flatMap((gameSystem) => Helpers.asArray(gameSystem.getTargetTypeFilter(context)));
+        return typeFilters.length > 0 ? [...new Set(typeFilters)] : null;
+    }
+
+    /**
+     * Returns the inner systems for introspection purposes (target selectivity, prompt descriptions) using the
+     * raw static properties only. This avoids running {@link generatePropertiesFromContext}, which can be
+     * expensive or have side effects (e.g. {@link RandomSelectionSystem} performs its random selection there),
+     * and property factories, which may depend on not-yet-chosen targets.
+     */
+    private getInnerSystemsForIntrospection(context: TContext): GameSystem<TContext>[] {
+        try {
+            if (!this.properties) {
+                return [];
+            }
+            return Helpers.asArray(this.getInnerSystems(this.properties)).filter((system) => system instanceof GameSystem);
+        } catch (err) {
+            context.game.reportError(err);
+            return [];
+        }
+    }
 
     // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
     protected override isTargetTypeValid(target: GameObject): boolean {

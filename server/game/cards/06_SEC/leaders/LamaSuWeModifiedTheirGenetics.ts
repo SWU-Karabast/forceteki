@@ -21,8 +21,6 @@ export default class LamaSuWeModifiedTheirGenetics extends LeaderUnitCard {
             title: `Play an upgrade from your hand on a friendly non-${TextHelper.Trait.Vehicle} unit. It costs ${TextHelper.resource(1)} less. If you do, deal 1 damage to that unit.`,
             cost: [abilityHelper.costs.exhaustSelf()],
             targetResolver: {
-                // TODO remove cardTypeFilter but fix Choose nothing button before
-                cardTypeFilter: WildcardCardType.Upgrade,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
                 immediateEffect: abilityHelper.immediateEffects.playCardFromHand({

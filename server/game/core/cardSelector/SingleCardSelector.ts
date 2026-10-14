@@ -17,9 +17,9 @@ export class SingleCardSelector<TContext extends AbilityContext = AbilityContext
         this.numCards = 1;
     }
 
-    public override defaultPromptString() {
+    public override defaultPromptString(context: TContext) {
         const verb = 'Choose';
-        const { description, article } = BaseCardSelector.cardTypeFilterDescription(this.cardTypeFilter, false);
+        const { description, article } = BaseCardSelector.cardTypeFilterDescription(this.cardTypeFilterForDescription(context), false);
 
         return `${verb} ${article} ${description}`;
     }
