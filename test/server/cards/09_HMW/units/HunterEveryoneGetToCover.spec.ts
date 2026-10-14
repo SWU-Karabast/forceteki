@@ -17,7 +17,8 @@ describe('Hunter, Everyone Get To Cover!', function() {
 
                 context.player1.clickCard(context.hunter);
 
-                expect(context.player1).toHavePrompt('Choose 2 of the following');
+                expect(context.player1).toHavePrompt('Choose 2 effects for Hunter');
+                expect(context.player1.currentPrompt().promptDescription).toBe('You may choose the same option more than once.');
                 expect(context.player1).toHaveEnabledPromptButtons([
                     'Give a Shield token to a unit.',
                     'Attack with a unit, even if it\'s exhausted. It can\'t attack bases for this attack.'
@@ -30,7 +31,7 @@ describe('Hunter, Everyone Get To Cover!', function() {
                 expect(context.wampa).toHaveExactUpgradeNames(['shield']);
 
                 // Second choice: attack with a unit
-                expect(context.player1).toHavePrompt('Choose 1 of the following');
+                expect(context.player1).toHavePrompt('Choose 1 effect for Hunter');
                 context.player1.clickPrompt('Attack with a unit, even if it\'s exhausted. It can\'t attack bases for this attack.');
                 expect(context.player1).toBeAbleToSelectExactly([context.hunter, context.wampa, context.battlefieldMarine]);
                 context.player1.clickCard(context.battlefieldMarine);
@@ -67,7 +68,7 @@ describe('Hunter, Everyone Get To Cover!', function() {
                 expect(context.wampa).toHaveExactUpgradeNames(['shield']);
 
                 // The Shield option remains available to choose a second time
-                expect(context.player1).toHavePrompt('Choose 1 of the following');
+                expect(context.player1).toHavePrompt('Choose 1 effect for Hunter');
                 expect(context.player1).toHaveEnabledPromptButtons([
                     'Give a Shield token to a unit.',
                     'Attack with a unit, even if it\'s exhausted. It can\'t attack bases for this attack.'
@@ -110,7 +111,7 @@ describe('Hunter, Everyone Get To Cover!', function() {
                 expect(context.wampa).toBeInZone('discard');
 
                 // Second attack: Battlefield Marine into Consular Security Force
-                expect(context.player1).toHavePrompt('Choose 1 of the following');
+                expect(context.player1).toHavePrompt('Choose 1 effect for Hunter');
                 context.player1.clickPrompt('Attack with a unit, even if it\'s exhausted. It can\'t attack bases for this attack.');
                 expect(context.player1).toBeAbleToSelectExactly([context.hunter, context.battlefieldMarine]);
                 context.player1.clickCard(context.battlefieldMarine);
@@ -154,7 +155,7 @@ describe('Hunter, Everyone Get To Cover!', function() {
                 expect(context.wampa).toBeInZone('discard');
 
                 // Second attack: Hunter itself, still exhausted from entering play
-                expect(context.player1).toHavePrompt('Choose 1 of the following');
+                expect(context.player1).toHavePrompt('Choose 1 effect for Hunter');
                 context.player1.clickPrompt('Attack with a unit, even if it\'s exhausted. It can\'t attack bases for this attack.');
                 expect(context.player1).toBeAbleToSelectExactly([context.hunter, context.battlefieldMarine]);
                 context.player1.clickCard(context.hunter);
@@ -224,7 +225,7 @@ describe('Hunter, Everyone Get To Cover!', function() {
                 // The no-effect Attack option can still be chosen; it resolves without doing anything and moves to the next choice
                 context.player1.clickPrompt('(No effect) Attack with a unit, even if it\'s exhausted. It can\'t attack bases for this attack.');
                 expect(context.p2Base.damage).toBe(0);
-                expect(context.player1).toHavePrompt('Choose 1 of the following');
+                expect(context.player1).toHavePrompt('Choose 1 effect for Hunter');
 
                 // Resolve the remaining choice
                 context.player1.clickPrompt('Give a Shield token to a unit.');
