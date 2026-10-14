@@ -168,6 +168,19 @@ export class AuthenticatedUser extends User {
  * Represents an anonymous user without an account
  */
 export class AnonymousUser extends User {
+    /**
+     * The display name for an anonymous user, derived from their id. Must stay in step with the
+     * format the client shows (`anonymous ` plus the first 6 characters of the id).
+     */
+    public static usernameForId(id: string): string {
+        return `anonymous ${id.substring(0, 6)}`;
+    }
+
+    /** Whether the id belongs to one of the local dev test users, which only exist in development. */
+    public static isDevTestUserId(id: string): boolean {
+        return process.env.ENVIRONMENT === 'development' && (id === 'exe66' || id === 'th3w4y');
+    }
+
     public id: string;
     public username: string;
     private readonly _hasClientProvidedId: boolean;
@@ -192,10 +205,7 @@ export class AnonymousUser extends User {
     }
 
     public isDevTestUser(): boolean {
-        if (process.env.ENVIRONMENT === 'development') {
-            return this.id === 'exe66' || this.id === 'th3w4y';
-        }
-        return false;
+        return AnonymousUser.isDevTestUserId(this.id);
     }
 
     public getId(): string {
