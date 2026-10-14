@@ -481,6 +481,7 @@ export interface IPlayerSerializedState {
     leader?: ISafeSerializedType<string | ISerializedCardState>;
     secondLeader?: ISafeSerializedType<string | ISerializedCardState>;
     deck?: ISafeSerializedType<number> | ISafeSerializedArrayType<string>;
+    deckBottom?: ISafeSerializedArrayType<string>;
     hasInitiative?: ISafeSerializedType<boolean>;
     hasForceToken?: ISafeSerializedType<boolean>;
     credits?: ISafeSerializedType<number>;
