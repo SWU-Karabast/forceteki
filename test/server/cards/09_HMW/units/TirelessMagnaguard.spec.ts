@@ -289,6 +289,37 @@ describe('Tireless Magnaguard', function() {
                 // Player 1 cannot play it from player 2's discard pile
                 expect(context.tirelessMagnaguard).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
+
+            it('should not be free or give it Weakness tokens when another ability plays it from the discard pile', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grand-moff-tarkin#oversector-governor',
+                        base: 'administrators-tower',
+                        hand: ['nightbrother#mauls-gauntlet'],
+                        groundArena: ['tireless-magnaguard']
+                    },
+                    player2: {
+                        hand: ['vanquish'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.tirelessMagnaguard);
+
+                // Player 1 uses Nightbrother to play Tireless Magnaguard from their discard pile for 3 less
+                context.player1.clickCard(context.nightbrother);
+                expect(context.player1.exhaustedResourceCount).toBe(7);
+                context.player1.clickCard(context.tirelessMagnaguard);
+
+                expect(context.tirelessMagnaguard).toBeInZone('groundArena', context.player1);
+                expect(context.player1.exhaustedResourceCount).toBe(8);
+                expect(context.tirelessMagnaguard.isUpgraded()).toBeFalse();
+                expect(context.tirelessMagnaguard.getPower()).toBe(5);
+            });
         });
     });
 });
