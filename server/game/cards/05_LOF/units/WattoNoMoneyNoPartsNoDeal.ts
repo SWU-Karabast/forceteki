@@ -20,6 +20,7 @@ export default class WattoNoMoneyNoPartsNoDeal extends NonLeaderUnitCard {
                 choices: {
                     ['Opponent gives an Experience token to a friendly unit']:
                         AbilityHelper.immediateEffects.selectCard({
+                            activePromptTitle: 'Give an Experience token to a friendly unit',
                             cardTypeFilter: WildcardCardType.Unit,
                             controller: RelativePlayer.Self,
                             immediateEffect: AbilityHelper.immediateEffects.giveExperience()

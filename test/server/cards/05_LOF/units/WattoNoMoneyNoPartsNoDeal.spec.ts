@@ -29,6 +29,7 @@ describe('Watto, No Money No Parts No Deal', function() {
             context.player2.clickPrompt('Opponent gives an Experience token to a friendly unit');
 
             // Player selects unit to receive experience token
+            expect(context.player1).toHavePrompt('Give an Experience token to a friendly unit');
             expect(context.player1).toBeAbleToSelectExactly([context.watto, context.battlefieldMarine]);
             context.player1.clickCard(context.battlefieldMarine);
 
