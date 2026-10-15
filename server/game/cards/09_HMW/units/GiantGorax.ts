@@ -25,7 +25,7 @@ export default class GiantGorax extends NonLeaderUnitCard {
                     amountOfChoices: 1,
                     choosingPlayer: RelativePlayer.Opponent,
                     choices: {
-                        ['Your opponent deals 3 damage to a unit or base you control']:
+                        ['Your opponent deals 3 damage to your base or a unit you control']:
                             abilityHelper.immediateEffects.selectCard({
                                 activePromptTitle: 'Deal 3 damage to an enemy unit or base',
                                 cardTypeFilter: [WildcardCardType.Unit, CardType.Base],

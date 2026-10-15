@@ -1,6 +1,6 @@
 describe('Giant Gorax', function () {
     integration(function (contextRef) {
-        const damagePrompt = 'Your opponent deals 3 damage to a unit or base you control';
+        const damagePrompt = 'Your opponent deals 3 damage to your base or a unit you control';
         const discardPrompt = 'Discard a card from your hand and defeat a resource you control';
 
         describe('Giant Gorax\'s on attack ability (controlling an Endor base)', function () {
