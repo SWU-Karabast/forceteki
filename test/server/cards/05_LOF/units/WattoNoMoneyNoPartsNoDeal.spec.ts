@@ -19,7 +19,14 @@ describe('Watto, No Money No Parts No Deal', function() {
             context.player1.clickCard(context.p2Base);
 
             // Opponent chooses to give experience token
-            context.player2.clickPrompt('Opponent give an Experience token to a friendly unit');
+            expect(context.player2).toHavePrompt('Choose an effect for Watto');
+            expect(context.player2).toHaveExactPromptButtons([
+                'Opponent gives an Experience token to a friendly unit',
+                'Opponent draws a card'
+            ]);
+            expect(context.player1).toHavePrompt('Waiting for opponent to choose an effect for Watto');
+            expect(context.player2.currentPrompt().promptDescription).toBe('You\'re choosing for your opponent\'s ability.');
+            context.player2.clickPrompt('Opponent gives an Experience token to a friendly unit');
 
             // Player selects unit to receive experience token
             expect(context.player1).toBeAbleToSelectExactly([context.watto, context.battlefieldMarine]);
@@ -47,11 +54,14 @@ describe('Watto, No Money No Parts No Deal', function() {
             context.player1.clickCard(context.p2Base);
 
             // Opponent chooses to draw a card
+            expect(context.player2).toHavePrompt('Choose an effect for Watto');
+            expect(context.player1).toHavePrompt('Waiting for opponent to choose an effect for Watto');
             context.player2.clickPrompt('Opponent draws a card');
 
             // Check that a card was drawn
             expect(context.player2).toBeActivePlayer();
             expect(context.battlefieldMarine).toBeInZone('hand');
+            expect(context.getChatLogs(3)).toContain('player2 chooses "Opponent draws a card"');
         });
     });
 });

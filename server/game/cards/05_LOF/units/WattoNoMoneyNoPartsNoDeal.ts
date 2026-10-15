@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class WattoNoMoneyNoPartsNoDeal extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,12 +13,12 @@ export default class WattoNoMoneyNoPartsNoDeal extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addOnAttackAbility({
-            title: 'An opponent chooses if you give an experience token to a friendly or draw a card',
-            targetResolver: {
-                mode: TargetMode.Select,
+            title: 'Your opponent chooses an effect',
+            immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects({
+                amountOfChoices: 1,
                 choosingPlayer: RelativePlayer.Opponent,
-                choices: () => ({
-                    ['Opponent give an Experience token to a friendly unit']:
+                choices: {
+                    ['Opponent gives an Experience token to a friendly unit']:
                         AbilityHelper.immediateEffects.selectCard({
                             cardTypeFilter: WildcardCardType.Unit,
                             controller: RelativePlayer.Self,
@@ -26,8 +26,8 @@ export default class WattoNoMoneyNoPartsNoDeal extends NonLeaderUnitCard {
                         }),
                     ['Opponent draws a card']:
                         AbilityHelper.immediateEffects.draw({ amount: 1 }),
-                })
-            }
+                }
+            })
         });
     }
 }

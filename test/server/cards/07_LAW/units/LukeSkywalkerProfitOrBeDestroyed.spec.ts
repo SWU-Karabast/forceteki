@@ -23,13 +23,16 @@ describe('Luke Skywalker, Profit Or Be Destroyed', function() {
                 expect(context.lukeSkywalker.exhausted).toBe(true);
 
                 // Opponent should be prompted to choose
+                expect(context.player2).toHavePrompt('Choose an effect for Luke Skywalker');
+                expect(context.player1).toHavePrompt('Waiting for opponent to choose an effect for Luke Skywalker');
+                expect(context.player2.currentPrompt().promptDescription).toBe('You\'re choosing for your opponent\'s ability.');
                 expect(context.player2).toHaveExactPromptButtons([
-                    `${context.player1.name} readies Luke Skywalker and you create a Credit token`,
-                    `${context.player1.name} may deal 5 damage to a unit`
+                    'Create a Credit token and ready this unit',
+                    'Your opponent may deal 5 damage to a unit'
                 ]);
 
                 // Opponent chooses to give credit and ready
-                context.player2.clickPrompt(`${context.player1.name} readies Luke Skywalker and you create a Credit token`);
+                context.player2.clickPrompt('Create a Credit token and ready this unit');
 
                 // Player 1 should have a credit token and Luke should be ready
                 expect(context.player1.credits).toBe(0);
@@ -60,8 +63,9 @@ describe('Luke Skywalker, Profit Or Be Destroyed', function() {
                 context.player1.clickCard(context.lukeSkywalker);
 
                 // Opponent chooses to let player deal damage
-                context.player2.clickPrompt(`${context.player1.name} may deal 5 damage to a unit`);
+                context.player2.clickPrompt('Your opponent may deal 5 damage to a unit');
 
+                expect(context.player1).toHavePrompt('Deal 5 damage to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.pykeSentinel, context.lukeSkywalker]);
                 expect(context.player1).toHaveChooseNothingButton();
 
@@ -93,7 +97,7 @@ describe('Luke Skywalker, Profit Or Be Destroyed', function() {
                 context.player1.clickCard(context.lukeSkywalker);
 
                 // Opponent chooses to let player deal damage
-                context.player2.clickPrompt(`${context.player1.name} may deal 5 damage to a unit`);
+                context.player2.clickPrompt('Your opponent may deal 5 damage to a unit');
 
                 // Player 1 passes on dealing damage
                 context.player1.clickPrompt('Choose nothing');

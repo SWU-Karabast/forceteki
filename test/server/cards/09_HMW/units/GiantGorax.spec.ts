@@ -1,8 +1,7 @@
 describe('Giant Gorax', function () {
     integration(function (contextRef) {
-        const damagePromptFunc = (context) => `${context.player1.name} deal 3 damage to a unit or base you control`;
-        const damagePromptFuncNgor = (context) => `${context.player2.name} deal 3 damage to a unit or base you control`;
-        const discardPrompt = 'You discard a card from your hand and defeat a resource you control';
+        const damagePrompt = 'Your opponent deals 3 damage to a unit or base you control';
+        const discardPrompt = 'Discard a card from your hand and defeat a resource you control';
 
         describe('Giant Gorax\'s on attack ability (controlling an Endor base)', function () {
             beforeEach(function () {
@@ -26,12 +25,14 @@ describe('Giant Gorax', function () {
                 context.player1.clickCard(context.giantGorax);
                 context.player1.clickCard(context.p2Base);
 
-                const damagePrompt = damagePromptFunc(context);
-
+                expect(context.player2).toHavePrompt('Choose an effect for Giant Gorax');
                 expect(context.player2).toHaveExactPromptButtons([damagePrompt, discardPrompt]);
+                expect(context.player1).toHavePrompt('Waiting for opponent to choose an effect for Giant Gorax');
+                expect(context.player2.currentPrompt().promptDescription).toBe('You\'re choosing for your opponent\'s ability.');
 
                 context.player2.clickPrompt(damagePrompt);
 
+                expect(context.player1).toHavePrompt('Deal 3 damage to an enemy unit or base');
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.p2Base]);
                 context.player1.clickCard(context.atst);
 
@@ -47,13 +48,15 @@ describe('Giant Gorax', function () {
                 context.player1.clickCard(context.giantGorax);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player2).toHaveExactPromptButtons([damagePromptFunc(context), discardPrompt]);
+                expect(context.player2).toHaveExactPromptButtons([damagePrompt, discardPrompt]);
 
                 context.player2.clickPrompt(discardPrompt);
 
+                expect(context.player2).toHavePrompt('Choose a card to discard for Giant Gorax\'s effect');
                 expect(context.player2).toBeAbleToSelectExactly([context.awing, context.protector]);
                 context.player2.clickCard(context.awing);
 
+                expect(context.player2).toHavePrompt('Defeat a resource you control');
                 expect(context.player2).toBeAbleToSelectExactly([context.yoda, context.rey]);
                 context.player2.clickCard(context.rey);
 
@@ -83,7 +86,7 @@ describe('Giant Gorax', function () {
             context.player1.clickCard(context.giantGorax);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.player2).toHaveExactPromptButtons([damagePromptFunc(context), discardPrompt]);
+            expect(context.player2).toHaveExactPromptButtons([damagePrompt, discardPrompt]);
 
             context.player2.clickPrompt(discardPrompt);
 
@@ -112,7 +115,7 @@ describe('Giant Gorax', function () {
             context.player1.clickCard(context.giantGorax);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.player2).toHaveExactPromptButtons([damagePromptFunc(context), discardPrompt]);
+            expect(context.player2).toHaveExactPromptButtons([damagePrompt, discardPrompt]);
 
             context.player2.clickPrompt(discardPrompt);
 
@@ -121,6 +124,33 @@ describe('Giant Gorax', function () {
 
             expect(context.player2).toBeActivePlayer();
             expect(context.rey).toBeInZone('discard');
+            expect(context.player2.resources.length).toBe(0);
+        });
+
+        it('Giant Gorax\'s on attack ability (controlling an Endor base) lets the opponent choose the discard option with no cards in hand or resources', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['giant-gorax'],
+                    base: 'shield-generator-complex'
+                },
+                player2: {
+                    groundArena: ['atst'],
+                    hand: [],
+                    resources: []
+                }
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.giantGorax);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player2).toHaveExactPromptButtons([damagePrompt, discardPrompt]);
+
+            context.player2.clickPrompt(discardPrompt);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.atst.damage).toBe(0);
             expect(context.player2.resources.length).toBe(0);
         });
 
@@ -147,8 +177,6 @@ describe('Giant Gorax', function () {
                 context.player2.clickCard(context.rivalsFall);
                 context.player2.clickCard(context.giantGorax);
 
-                const damagePrompt = damagePromptFunc(context);
-
                 expect(context.player2).toHaveExactPromptButtons([damagePrompt, discardPrompt]);
 
                 context.player2.clickPrompt(damagePrompt);
@@ -168,7 +196,7 @@ describe('Giant Gorax', function () {
                 context.player2.clickCard(context.rivalsFall);
                 context.player2.clickCard(context.giantGorax);
 
-                expect(context.player2).toHaveExactPromptButtons([damagePromptFunc(context), discardPrompt]);
+                expect(context.player2).toHaveExactPromptButtons([damagePrompt, discardPrompt]);
 
                 context.player2.clickPrompt(discardPrompt);
 
@@ -208,8 +236,6 @@ describe('Giant Gorax', function () {
                 context.player2.clickCard(context.noGloryOnlyResults);
                 context.player2.clickCard(context.giantGorax);
 
-                const damagePrompt = damagePromptFuncNgor(context);
-
                 expect(context.player1).toHaveExactPromptButtons([damagePrompt, discardPrompt]);
 
                 context.player1.clickPrompt(damagePrompt);
@@ -229,7 +255,7 @@ describe('Giant Gorax', function () {
                 context.player2.clickCard(context.noGloryOnlyResults);
                 context.player2.clickCard(context.giantGorax);
 
-                expect(context.player1).toHaveExactPromptButtons([damagePromptFuncNgor(context), discardPrompt]);
+                expect(context.player1).toHaveExactPromptButtons([damagePrompt, discardPrompt]);
                 context.player1.clickPrompt(discardPrompt);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.awing, context.protector]);
