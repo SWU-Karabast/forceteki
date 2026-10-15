@@ -213,6 +213,35 @@ describe('Han Solo, Never Tell Me the Odds', function() {
                 expect(context.player1.readyResourceCount).toBe(3);
             });
 
+            it('counts friendly odd-costed upgrades attached to the base', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'han-solo#never-tell-me-the-odds',
+                        base: {
+                            card: 'origin-tree',
+                            upgrades: ['insurgent-camp']
+                        },
+                        hand: ['republic-attack-pod'],
+                        resources: 6
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Spend all 6 resources
+                context.player1.clickCard(context.republicAttackPod);
+                expect(context.player1.readyResourceCount).toBe(0);
+                context.player2.passAction();
+
+                context.player1.clickCard(context.hanSolo);
+                context.player1.clickPrompt('Deploy Han Solo as a Pilot');
+                context.player1.clickCard(context.republicAttackPod);
+
+                // Han should ready 2 resources - for himself and Insurgent Camp
+                expect(context.player1.readyResourceCount).toBe(2);
+            });
+
             it('does not count friendly even-costed units or upgrades', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -271,6 +300,19 @@ describe('Han Solo, Never Tell Me the Odds', function() {
 
                 // Han should ready 1 reesource - for just himself
                 expect(context.player1.readyResourceCount).toBe(1);
+            });
+
+            // Ruling 2025-09-29: all cards to be played with Plot are revealed when the leader deploys,
+            // then each Plot is played one at a time. Like Smuggle, a Plot card and the card that
+            // replaces it from the deck enter play at the same time, so the resource count stays
+            // consistent while resolving Plots — and Han's "ready a resource per odd-cost unit/upgrade"
+            // can be sequenced with Plot resolution to ready resources for subsequent Plots.
+            xit('interacts with Plot: resources readied by Han\'s deploy can be sequenced with Plot cards', function () {
+                pending('Not yet implemented');
+                // Deploy Han (Never Tell Me The Odds) as a pilot upgrade with one or more Plot cards
+                // available. The Plot cards are revealed on deploy and played one at a time; Han's
+                // "ready a resource for each friendly odd-cost unit or upgrade" trigger readies resources
+                // that can be used to pay for subsequent Plot cards when sequenced appropriately.
             });
         });
     });

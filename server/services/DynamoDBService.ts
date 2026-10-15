@@ -423,6 +423,18 @@ class DynamoDBService {
         }, 'Error updating user profile');
     }
 
+    public removeUserProfileAttributeAsync(userId: string, attributeName: keyof IUserProfileDataEntity) {
+        return this.executeDbOperationAsync(() => {
+            const command = new UpdateCommand({
+                TableName: this.tableName,
+                Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
+                UpdateExpression: 'REMOVE #attribute',
+                ExpressionAttributeNames: { '#attribute': attributeName }
+            });
+            return this.client.send(command);
+        }, 'Error removing user profile attribute');
+    }
+
     /**
      * Put an item with a condition expression
      */
@@ -934,7 +946,6 @@ class DynamoDBService {
                 ...modAction,
             });
 
-            // Active action types (Mute, Rename, ReportingDisabled) get indexed via the sparse GSI
             if (isTrackedModAction(modAction.actionType) && !modAction.cancelledAt) {
                 item.GSI_PK = 'ACTIVE_MODACTION';
             }
@@ -959,21 +970,6 @@ class DynamoDBService {
                 }
             );
         }, 'Error activating mute');
-    }
-
-    /**
-     * Remove a single attribute from a user's profile item.
-     */
-    public removeUserProfileAttributeAsync(userId: string, attributeName: string) {
-        return this.executeDbOperationAsync(() => {
-            const command = new UpdateCommand({
-                TableName: this.tableName,
-                Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
-                UpdateExpression: 'REMOVE #attr',
-                ExpressionAttributeNames: { '#attr': attributeName },
-            });
-            return this.client.send(command);
-        }, 'Error removing user profile attribute');
     }
 
     /**

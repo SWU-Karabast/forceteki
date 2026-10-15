@@ -16,11 +16,17 @@ import MenuPrompt from './gameSteps/prompts/MenuPrompt';
 import HandlerMenuPrompt from './gameSteps/prompts/HandlerMenuPrompt';
 import { OptionalTriggerPrompt } from './gameSteps/prompts/OptionalTriggerPrompt';
 import type { IOptionalTriggerPromptProperties } from './gameSteps/prompts/OptionalTriggerPrompt';
+import { ActionSelectionPrompt } from './gameSteps/prompts/ActionSelectionPrompt';
+import type { IActionSelectionPromptProperties } from './gameSteps/prompts/ActionSelectionPrompt';
+import { ModalEffectSelectionPrompt } from './gameSteps/prompts/ModalEffectSelectionPrompt';
+import type { IModalEffectSelectionPromptProperties } from './gameSteps/prompts/ModalEffectSelectionPrompt';
 import GameOverPrompt from './gameSteps/prompts/GameOverPrompt';
 import * as GameSystems from '../gameSystems/GameSystemLibrary';
 import { GameEvent } from './event/GameEvent';
+import type { OngoingEffect } from './ongoingEffect/OngoingEffect';
 import { EventWindow, SubwindowEventHandlingMode, TriggerHandlingMode } from './event/EventWindow';
 import { AbilityResolver } from './gameSteps/AbilityResolver';
+import type { PreResolvedOptionalChoice } from './gameSteps/AbilityResolver';
 import { AbilityContext } from './ability/AbilityContext';
 import { Contract } from './utils/Contract';
 import { cards } from '../cards/Index';
@@ -69,8 +75,13 @@ import type { GameConfiguration, GameOptions, ICurrentlyResolving } from './Game
 import type { GameObjectBase } from './GameObjectBase';
 import { Helpers } from './utils/Helpers';
 import type { CostAdjuster } from './cost/CostAdjuster';
+import { defaultCostPaymentRecoveryPolicy } from './cost/CostPaymentRecovery';
+import type { ICostPaymentRecoveryPolicy, ICostPaymentRecoveryRequest } from './cost/CostPaymentRecovery';
 import { logger } from '../../logger';
 import { SnapshotManager, UndoMode } from './snapshot/SnapshotManager';
+import { LkiRegistry } from './lki/LkiRegistry';
+import type { ICardStateInternal } from './lki/CardStateGetter';
+import { CardStateGetter } from './lki/CardStateGetter';
 import { getAbilityHelper } from '../AbilityHelper';
 import type { IAbilityHelper } from '../AbilityHelper';
 import { PhaseInitializeMode } from './gameSteps/phases/Phase';
@@ -318,6 +329,16 @@ export class Game extends EventEmitter {
         return this._snapshotManager.gameObjectManager;
     }
 
+    /** Serves card properties, resolving reads against last known information where appropriate. */
+    public get lkiRegistry(): LkiRegistry {
+        return this._lkiRegistry;
+    }
+
+    /** Engine-facing card state accessor. Card implementations receive the narrower facade. */
+    public get cardStates(): ICardStateInternal {
+        return this._cardStateGetter;
+    }
+
     public get randomGenerator(): IRandomness {
         return this._randomGenerator;
     }
@@ -349,6 +370,8 @@ export class Game extends EventEmitter {
     private readonly _snapshotManager: SnapshotManager;
     private readonly _randomGenerator: IRandomness;
     private readonly _router: Lobby;
+    private readonly _lkiRegistry: LkiRegistry;
+    private readonly _cardStateGetter: CardStateGetter;
 
     public ongoingEffectEngine: OngoingEffectEngine;
     public abilityHelper: IAbilityHelper;
@@ -366,6 +389,21 @@ export class Game extends EventEmitter {
     public createdAt: Date;
     public preUndoStateForError: { gameState: ISerializedGameState; settings: IGetSnapshotSettings } | null;
     public undoConfirmationOpen: boolean;
+
+    /** Decides how a player can recover when they can no longer pay a cost (see `CostPaymentRecovery`) */
+    public costPaymentRecoveryPolicy: ICostPaymentRecoveryPolicy = defaultCostPaymentRecoveryPolicy;
+
+    /**
+     * Number of cost payment recovery rollbacks used by each player, keyed by player id and the snapshot id of the action rolled back to.
+     * Intentionally not part of the game state, since it must survive the rollbacks it counts.
+     */
+    private readonly costPaymentRecoveryRollbackCounts = new Map<string, number>();
+
+    /**
+     * Set while rolling back for cost payment recovery, so that the rebuilt action window resumes the active player's action timer
+     * instead of restarting it. Not part of the game state, since it must survive the rollback.
+     */
+    private _resumeActionTimerAfterRollback = false;
     private _serializationFailure: boolean;
     private _lastAttackId: number;
     public playerHasBeenPrompted: Map<string, boolean>;
@@ -412,6 +450,8 @@ export class Game extends EventEmitter {
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
         this._randomGenerator = new Randomness();
         this._router = options.router;
+        this._lkiRegistry = new LkiRegistry();
+        this._cardStateGetter = new CardStateGetter(() => this._lkiRegistry);
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
         this.abilityHelper = getAbilityHelper(this);
@@ -832,6 +872,10 @@ export class Game extends EventEmitter {
         }
     }
 
+    public get resumeActionTimerAfterRollback(): boolean {
+        return this._resumeActionTimerAfterRollback;
+    }
+
     public restartAllActionTimers(): void {
         this.getPlayers().forEach((player) => player.actionTimer.restartIfRunning());
     }
@@ -1080,6 +1124,24 @@ export class Game extends EventEmitter {
         Contract.assertNotNullLike(player);
 
         this.queueStep(new OptionalTriggerPrompt(this, player, properties));
+    }
+
+    /**
+     * Prompts a player to choose one of a clicked card's available actions, rendering each action as a card button.
+     */
+    public promptWithActionSelection(player: Player, properties: IActionSelectionPromptProperties): void {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new ActionSelectionPrompt(this, player, properties));
+    }
+
+    /**
+     * Prompts a player to choose one of a modal ability's options, rendering each option as a card button.
+     */
+    public promptWithModalEffectSelection(player: Player, properties: IModalEffectSelectionPromptProperties): void {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new ModalEffectSelectionPrompt(this, player, properties));
     }
 
     public promptDisplayCardsWithButtons(player: Player, properties: IDisplayCardsWithButtonsPromptProperties): void {
@@ -1452,8 +1514,8 @@ export class Game extends EventEmitter {
     /**
      * Resolves a card ability
      */
-    public resolveAbility(context: AbilityContext, ignoredRequirements: string[] = [], canCancel?: boolean): AbilityResolver {
-        const resolver = new AbilityResolver(this, context, false, canCancel, null, ignoredRequirements);
+    public resolveAbility(context: AbilityContext, ignoredRequirements: string[] = [], canCancel?: boolean, preResolvedOptional?: PreResolvedOptionalChoice): AbilityResolver {
+        const resolver = new AbilityResolver(this, context, false, canCancel, null, ignoredRequirements, preResolvedOptional);
         this.queueStep(resolver);
         return resolver;
     }
@@ -1631,7 +1693,7 @@ export class Game extends EventEmitter {
         }
     }
 
-    public resolveGameState(hasChanged = false, events: GameEvent[] = []): void {
+    public resolveGameState(hasChanged = false, events: GameEvent[] = [], triggeredDelayedEffects: OngoingEffect<any>[] = []): void {
         // first go through and enable / disabled abilities for cards that have been moved in or out of the arena
         for (const movedCard of this.state.movedCards.map((id) => this.getFromId(id))) {
             movedCard.resolveAbilitiesForNewZone();
@@ -1640,7 +1702,7 @@ export class Game extends EventEmitter {
 
         if (events.length > 0) {
             // check for any delayed effects which need to fire
-            this.ongoingEffectEngine.checkDelayedEffects(events);
+            this.ongoingEffectEngine.checkDelayedEffects(events, triggeredDelayedEffects);
         }
 
         // check for a game state change (recalculating attack stats if necessary)
@@ -1981,6 +2043,109 @@ export class Game extends EventEmitter {
         }
 
         return !!opponent.hasResolvedAbilityThisTimepoint;
+    }
+
+    /**
+     * Prompts `player`, who can no longer pay a cost for `context`, to either undo to the start of the current action or abandon
+     * the payment, as allowed by {@link costPaymentRecoveryPolicy}. See `CostPaymentRecovery`.
+     */
+    public queueCostPaymentRecovery(player: Player, context: AbilityContext, reason: string): void {
+        const request = this.buildCostPaymentRecoveryRequest(player, context);
+        const rollbackSettings = this.getCostPaymentRecoveryRollbackSettings();
+
+        const rollbackNeedsApproval = rollbackSettings != null &&
+          this.costPaymentRecoveryPolicy.rollbackRequiresApproval(request) &&
+          this.confirmationRequiredForRollback(player.id, this.snapshotManager.getRollbackInformation(rollbackSettings));
+
+        const rollbackAvailable = rollbackSettings != null &&
+          this.costPaymentRecoveryPolicy.allowRollback(request) &&
+          !(rollbackNeedsApproval && player.undoRequestsBlocked);
+
+        // there must always be a way forward, so abandoning is allowed whenever undoing is not
+        const abandonAvailable = !rollbackAvailable || this.costPaymentRecoveryPolicy.allowAbandon(request, rollbackAvailable);
+
+        this.addMessage('{0} is no longer able to pay the cost for {1} ({2})', player, context.source, reason);
+
+        const choices: string[] = [];
+        const handlers: (() => void)[] = [];
+
+        if (rollbackAvailable) {
+            choices.push(rollbackNeedsApproval ? 'Request undo' : 'Undo');
+            handlers.push(() => this.rollbackForCostPaymentRecovery(player, context));
+        }
+
+        // if the player doesn't undo, the payment is abandoned by the ability resolver once this prompt completes
+        if (abandonAvailable) {
+            choices.push('Abandon');
+            handlers.push(() => undefined);
+        }
+
+        this.promptWithHandlerMenu(player, {
+            activePromptTitle: `You can no longer pay the cost for ${context.source.title}`,
+            waitingPromptTitle: 'Waiting for opponent to recover from being unable to pay a cost',
+            choices,
+            handlers
+        });
+    }
+
+    private rollbackForCostPaymentRecovery(player: Player, context: AbilityContext): void {
+        const settings = this.getCostPaymentRecoveryRollbackSettings();
+        Contract.assertNotNullLike(settings, 'Expected a snapshot for the start of the current action to be available for cost payment recovery');
+
+        const request = this.buildCostPaymentRecoveryRequest(player, context);
+        if (this.costPaymentRecoveryPolicy.rollbackRequiresApproval(request)) {
+            this.rollbackToSnapshot(player.id, settings);
+            return;
+        }
+
+        const countKey = this.getCostPaymentRecoveryCountKey(player);
+
+        // the player's action timer continues from where it was, so that the free undo doesn't also give them more time
+        player.actionTimer.pause();
+        this._resumeActionTimerAfterRollback = true;
+
+        let rolledBack: boolean;
+        try {
+            rolledBack = this.rollbackToSnapshotInternal(settings, this._snapshotManager.buildRollbackHandler(settings));
+        } finally {
+            this._resumeActionTimerAfterRollback = false;
+        }
+
+        if (rolledBack) {
+            this.costPaymentRecoveryRollbackCounts.set(countKey, request.previousRecoveryRollbacks + 1);
+            this.addAlert(AlertType.Notification, '{0} could not pay the cost for {1} and rolled back to the start of the action', player, context.source);
+        }
+    }
+
+    private buildCostPaymentRecoveryRequest(player: Player, context: AbilityContext): ICostPaymentRecoveryRequest {
+        const settings = this.getCostPaymentRecoveryRollbackSettings();
+
+        return {
+            player,
+            context,
+            previousRecoveryRollbacks: this.costPaymentRecoveryRollbackCounts.get(this.getCostPaymentRecoveryCountKey(player)) ?? 0,
+            informationRevealedSinceRollbackPoint: settings == null || this.snapshotManager.getRollbackInformation(settings).requiresConfirmation
+        };
+    }
+
+    /** Returns the settings for rolling back to the start of the current action, or null if there is no snapshot for it */
+    private getCostPaymentRecoveryRollbackSettings(): IGetSnapshotSettings | null {
+        if (!this.isUndoEnabled || this.currentPhase !== PhaseName.Action || this.actionPhaseActivePlayer == null) {
+            return null;
+        }
+
+        const settings: IGetSnapshotSettings = { type: SnapshotType.Action, playerId: this.actionPhaseActivePlayer.id };
+
+        // only roll back as far as the start of the current action
+        if (!this.snapshotManager.getRollbackInformation(settings).isSameTimepoint) {
+            return null;
+        }
+
+        return settings;
+    }
+
+    private getCostPaymentRecoveryCountKey(player: Player): string {
+        return `${player.id}:${this.snapshotManager.currentSnapshotId}`;
     }
 
     private rollbackToSnapshotInternal(settings: IGetSnapshotSettings, rollbackHandler: (() => any) | null = null): boolean {

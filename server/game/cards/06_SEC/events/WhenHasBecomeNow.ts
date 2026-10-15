@@ -23,7 +23,6 @@ export default class WhenHasBecomeNow extends EventCard {
                 cardCondition: (card) => card.hasSomeKeyword(KeywordName.Plot),
                 immediateEffect: abilityHelper.immediateEffects.playCardFromOutOfPlay({
                     playAsType: WildcardCardType.Any,
-                    canPlayFromAnyZone: true,
                 })
             },
             ifYouDo: {

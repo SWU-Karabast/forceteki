@@ -1,7 +1,7 @@
 import type { Player } from '../Player';
 import type { ZoneFilter } from '../Constants';
 import { CardType, DeployType, EffectName, RelativePlayer, Trait, WildcardCardType } from '../Constants';
-import { AbilityType, ZoneName } from '../Constants';
+import { AbilityType, WildcardZoneName, ZoneName } from '../Constants';
 import { getPrintedAttributesOverride } from '../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import type { IUnitAbilityRegistrar, IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
@@ -22,6 +22,7 @@ import type { TriggeredAbilityBase } from '../ability/TriggeredAbility';
 import type { Card } from './Card';
 import type ReplacementEffectAbility from '../ability/ReplacementEffectAbility';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import type { ICardStateGetter } from '../lki/CardStateGetter';
 import type { ConstantAbility } from '../ability/ConstantAbility';
 import { registerStateBase, stateRef } from '../GameObjectUtils';
 
@@ -127,7 +128,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
     protected override onInitialize(): void {
         super.onInitialize();
         this.setupLeaderUnitSide = true;
-        this.setupLeaderUnitSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
+        this.setupLeaderUnitSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates);
         this.validateCardAbilities(this.triggeredAbilities, this.deployBox);
     }
 
@@ -203,17 +204,17 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
     }
 
     protected override callSetupLeaderWithRegistrar() {
-        this.setupLeaderSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
+        this.setupLeaderSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {}
+    protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) {}
 
     /**
      * Create card abilities for the leader unit side by calling subsequent methods with appropriate properties
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    protected setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) {
     }
 
     private addPilotDeploy(makeAttachedUnitALeader: boolean, registrar: IUnitAbilityRegistrar<LeaderUnitCard>) {
@@ -290,7 +291,8 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
     }
 
     private getAbilityZonesForSide(propertyZone: ZoneFilter | ZoneFilter[]) {
-        const abilityZone = this.setupLeaderUnitSide ? this.defaultArena : ZoneName.Base;
+        // A deployed leader retains its unit-side abilities when moved to the other arena.
+        const abilityZone = this.setupLeaderUnitSide ? WildcardZoneName.AnyArena : ZoneName.Base;
 
         return propertyZone
             ? Helpers.asArray(propertyZone).concat([abilityZone])

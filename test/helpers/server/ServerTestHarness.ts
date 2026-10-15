@@ -1,11 +1,16 @@
 import path from 'path';
 import request from 'supertest';
+import { v4 as uuid } from 'uuid';
 
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
+import { AnonymousUser } from '../../../server/utils/user/User';
 import { DecklistFixtures } from './DecklistFixtures';
 import type { ITestGameServerSetup, TestConfigOverrides } from './TestGameServer';
 import { TestGameServer } from './TestGameServer';
 import type { TestScheduler } from './TestScheduler';
+import type { FakeHttpClient } from './FakeHttpClient';
+import type { ITestClientOptions } from './TestClient';
+import { TestClient } from './TestClient';
 
 /**
  * Identity a test client presents to the API. Mirrors the payload the real client builds in
@@ -46,7 +51,6 @@ async function getSharedSetupAsync(): Promise<ITestGameServerSetup> {
  * {@link shutdownAsync}, which leaves the process with no timers or sockets still open.
  */
 export class ServerTestHarness {
-    private anonymousUserCounter = 0;
     private lobbyNameCounter = 0;
 
     /** Guards against the double shutdown that happens when a spec tears down and `afterEach` follows. */
@@ -72,6 +76,16 @@ export class ServerTestHarness {
     }
 
     /**
+     * The fake standing in for outbound calls the server makes to external stat sites (SWUStats,
+     * SWUBase) - the opposite direction from {@link api}. Assert on
+     * `statsHttpClient.requests`/`requestsTo(...)` to check what was sent, and configure
+     * `statsHttpClient.setResponse(...)` to control what the handler sees back.
+     */
+    public get statsHttpClient(): FakeHttpClient {
+        return this.server.testHttpClient;
+    }
+
+    /**
      * The virtual clock driving every timer in the server and its lobbies. Advance it to exercise
      * anything time-dependent - disconnect grace periods, countdowns, heartbeats, cleanup passes -
      * instantly and deterministically.
@@ -84,19 +98,24 @@ export class ServerTestHarness {
      * A distinct anonymous identity. Ids are unique per harness so one spec's users can never
      * collide in the server's user/lobby bookkeeping.
      */
-    public anonymousUser(username?: string): ITestUserPayload {
-        this.anonymousUserCounter++;
-        const id = `anon-${this.anonymousUserCounter}-${Math.random().toString(36)
-            .slice(2, 10)}`;
-
-        return { id, username: username ?? `anonymous ${id.slice(0, 6)}` };
+    public anonymousUser(): ITestUserPayload {
+        const id = uuid();
+        return { id, username: AnonymousUser.usernameForId(id) };
     }
 
     /** A lobby name unique within this harness, for locating lobbies via `/api/available-lobbies`. */
     public uniqueLobbyName(prefix = 'test-lobby'): string {
         this.lobbyNameCounter++;
-        return `${prefix}-${this.lobbyNameCounter}-${Math.random().toString(36)
-            .slice(2, 8)}`;
+        return `${prefix}-${this.lobbyNameCounter}`;
+    }
+
+    /**
+     * A simulated client bound to this harness, anonymous by default. Ids are unique per harness for
+     * the same reason {@link anonymousUser}'s are.
+     */
+    public createClient(options: ITestClientOptions = {}): TestClient {
+        // UUIDs, like real account ids and the anonymous ids the real client generates
+        return TestClient.create(this, uuid(), options);
     }
 
     public async shutdownAsync(): Promise<void> {

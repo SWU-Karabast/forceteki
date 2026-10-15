@@ -1,6 +1,5 @@
 import { UiPrompt } from './prompts/UiPrompt.js';
 import { ClaimCounterType, EffectName, EventName, SnapshotType, SubStepCheck, SwuGameFormat } from '../Constants.js';
-import { EnumHelpers } from '../utils/EnumHelpers.js';
 import { Contract } from '../utils/Contract.js';
 import type { Game } from '../Game.js';
 import type { Player } from '../Player.js';
@@ -11,6 +10,9 @@ import type { AbilityContext } from '../ability/AbilityContext.js';
 import { PromptType, type IButton } from './PromptInterfaces.js';
 import type { SnapshotManager } from '../snapshot/SnapshotManager.js';
 import { SnapshotTimepoint } from '../snapshot/SnapshotInterfaces.js';
+import type { IPlayPermission } from '../ongoingEffect/effectImpl/PlayPermission.js';
+import { PlayPermissionHelpers } from '../ongoingEffect/effectImpl/PlayPermission.js';
+import { getTriggerSourceCardSummary } from './abilityWindow/TriggerWindowBase.js';
 
 export class ActionWindow extends UiPrompt {
     public static readonly title = 'Action Window';
@@ -37,8 +39,11 @@ export class ActionWindow extends UiPrompt {
 
         this.activePlayer = this.game.actionPhaseActivePlayer;
 
-        // always restart the player's action timer when their action starts
-        this.activePlayer.actionTimer.stop();
+        // always restart the player's action timer when their action starts, unless the action is being restarted by
+        // a cost payment recovery undo (in which case the paused timer resumes when the player is prompted)
+        if (!this.game.resumeActionTimerAfterRollback) {
+            this.activePlayer.actionTimer.stop();
+        }
 
         Contract.assertNotNullLike(this.activePlayer);
     }
@@ -68,20 +73,23 @@ export class ActionWindow extends UiPrompt {
             }
         }
 
-        this.game.promptWithHandlerMenu(player, {
-            activePromptTitle: (EnumHelpers.isArena(card.zoneName) ? 'Choose an ability:' : 'Play ' + card.title + ':'),
-            source: card,
-            choices: legalActions
-                .map((action) => {
-                    const context = action.createContext(player);
-                    let title = action.getTitle(context);
-                    if (!action.hasAnyLegalEffects(context, SubStepCheck.All)) {
-                        title = `(No effect) ${title}`;
-                    }
-                    return title;
-                })
-                .concat('Cancel'),
-            handlers: legalActions.map((action) => (() => this.resolveAbility(action.createContext(player)))).concat(() => true)
+        this.game.promptWithActionSelection(player, {
+            title: legalActions.every((action) => action.isPlayCardAbility())
+                ? `Choose how to play ${card.title}`
+                : `Choose an action for ${card.title}`,
+            sourceCardName: card.title,
+            choices: legalActions.map((action) => {
+                const context = action.createContext(player);
+                const gainAbilitySource = action.isCardAbility() && !action.printedAbility ? action.gainAbilitySource : null;
+                const sourceCard = gainAbilitySource ?? card;
+                return {
+                    title: action.getTitle(context),
+                    sourceCard: getTriggerSourceCardSummary(sourceCard),
+                    hasLegalEffects: action.hasAnyLegalEffects(context, SubStepCheck.All),
+                    gained: sourceCard !== card,
+                    handler: () => this.resolveAbility(action.createContext(player))
+                };
+            })
         });
 
         return true;
@@ -301,10 +309,22 @@ export class ActionWindow extends UiPrompt {
         const actions = card.getActions();
         const legalActions = actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
 
-        // Show one button per source for gained abilities from multiple copies of the same card.
+        // Show one button per source for gained abilities from multiple copies of the same card, and one button
+        // for equivalent play permissions (e.g. two Boga triggers on the same card).
         // Deduplicating after the requirements filter keeps a copy at its use limit from hiding a usable one.
         const seenGainedSources = new Set<string>();
+        const seenPermissionActions: { title: string; permission: IPlayPermission }[] = [];
         return legalActions.filter((action) => {
+            if (action.isPlayCardAbility() && action.playPermission) {
+                const title = action.getTitle(action.createContext(player));
+                const permission = action.playPermission;
+                if (seenPermissionActions.some((seen) => seen.title === title && PlayPermissionHelpers.isEquivalent(seen.permission, permission))) {
+                    return false;
+                }
+                seenPermissionActions.push({ title, permission });
+                return true;
+            }
+
             const gainAbilitySource = action.isCardAbility() && !action.printedAbility ? action.gainAbilitySource : null;
             if (!gainAbilitySource) {
                 return true;

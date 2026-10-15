@@ -92,7 +92,18 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     private accessor _mostRecentInPlayId: number = -1
 
     /**
-     * Every time a card enters play, it becomes a new "copy" of the card as far as the game is concerned (SWU 8.6.4).
+     * The identity counter for this card, readable in any zone. See {@link Card.identityId}.
+     *
+     * This is the same underlying counter that backs {@link inPlayId} and {@link mostRecentInPlayId},
+     * but without their zone gating, so callers that only need to compare identity do not have to
+     * pick between them.
+     */
+    public override get identityId(): number {
+        return this._mostRecentInPlayId;
+    }
+
+    /**
+     * Every time a card enters play, it becomes a new "copy" of the card as far as the game is concerned (SWU 8.5.4).
      * This in-play id is used to distinguish copies of the card - every time it enters play, the id is incremented.
      * If the card is no longer in play, this property is not available and {@link mostRecentInPlayId} should be used instead.
      */
@@ -254,9 +265,9 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             this.unattach();
         }
 
-        // Base upgrades attach only to their controller's own base, so control never transfers for them;
-        // the takeControl path (and its arena-only zone parameter) applies to unit hosts only.
-        if (newController && newController !== this.controller && newParentCard.zoneName !== ZoneName.Base) {
+        // the player who plays an upgrade controls it, even if it comes from the opponent's discard pile
+        // (e.g. a Fortify upgrade played with A Fine Addition)
+        if (newController && newController !== this.controller) {
             this.takeControl(newController, newParentCard.zoneName);
         } else {
             this.moveTo(
@@ -436,7 +447,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             this.setPendingDefeatEnabled(false);
 
             // if we're moving from a visible zone (discard, capture) to a hidden zone, increment the in-play id to represent the loss of information (card becomes a new copy)
-            if (EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self) && !EnumHelpers.isHiddenFromOpponent(prevZone, RelativePlayer.Self)) {
+            if (EnumHelpers.zoneMoveLosesCardInformation(prevZone, this.zoneName)) {
                 this._mostRecentInPlayId += 1;
             }
         }

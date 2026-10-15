@@ -31,7 +31,6 @@ export interface IUserDataEntity {
     swubaseRefreshToken?: string;
     showWelcomeMessage: boolean;
     needsUsernameChange?: boolean;
-    mustRequestUsernameChange?: ModerationFieldState;
     moderation?: IModerationAction;
     undoPopupSeenDate?: string;
     timerPopupSeenDate?: string;
@@ -43,8 +42,14 @@ export interface IUserDataEntity {
      */
     reportingDisabledSeenActionId?: string;
 
-    /** @deprecated Superseded by the ReportingDisabled mod action. Removed by scripts/migrateReportingDisabled.ts. */
+    /** @deprecated Superseded by the ReportingDisabled mod action. Removed by scripts/migration/migrateReportingDisabled.ts. */
     reportingDisabled?: ModerationFieldState;
+
+    /** Same as {@link reportingDisabledSeenActionId}, for the UsernameChangesBlocked mod action. */
+    usernameChangesBlockedSeenActionId?: string;
+
+    /** @deprecated Superseded by the UsernameChangesBlocked mod action. Removed by scripts/migration/migrateMustRequestUsernameChange.ts. */
+    mustRequestUsernameChange?: ModerationFieldState;
 }
 
 /**
@@ -52,6 +57,14 @@ export interface IUserDataEntity {
  * Presence (non-null) means reporting is disabled; `hasSeen` drives the one-time notification popup.
  */
 export interface IReportingDisabledState {
+    hasSeen: boolean;
+}
+
+/**
+ * Client-facing representation of an active UsernameChangesBlocked restriction.
+ * Presence (non-null) means the player must request username changes; `hasSeen` drives the one-time popup.
+ */
+export interface IUsernameChangesBlockedState {
     hasSeen: boolean;
 }
 
@@ -186,6 +199,8 @@ export enum ModActionType {
     Warning = 'Warning',
     Rename = 'Rename',
     ReportingDisabled = 'ReportingDisabled',
+    UsernameChangesBlocked = 'UsernameChangesBlocked',
+    ChangeUsername = 'ChangeUsername',
 }
 
 /**
@@ -193,8 +208,9 @@ export enum ModActionType {
  * caching and the dashboard UI all derive from it rather than enumerating action types themselves.
  *
  * `tracked` means indexed in the ACTIVE_MODACTION sparse GSI and held in the ModActionService cache.
- * That is distinct from having a duration: Mute is timed, while Rename and ReportingDisabled are
- * indefinite but still tracked. Warning is untracked (paper trail only).
+ * That is distinct from having a duration: Mute is timed, while Rename, ReportingDisabled and
+ * UsernameChangesBlocked are indefinite but still tracked. Warning and ChangeUsername are untracked
+ * (a one-off event with a paper trail only).
  */
 export interface IModActionDefinition {
     tracked: boolean;
@@ -204,6 +220,10 @@ export interface IModActionDefinition {
     /** Resolves on its own (expiry or user action) rather than requiring a moderator to cancel it. */
     selfResolving: boolean;
     cancellable: boolean;
+
+    /** The moderator supplies the username to apply to the account. */
+    requiresNewUsername: boolean;
+
 }
 
 export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> = {
@@ -213,6 +233,7 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         requiresDuration: true,
         selfResolving: true,
         cancellable: true,
+        requiresNewUsername: false,
     },
     [ModActionType.Warning]: {
         tracked: false,
@@ -220,6 +241,7 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         requiresDuration: false,
         selfResolving: false,
         cancellable: false,
+        requiresNewUsername: false,
     },
     [ModActionType.Rename]: {
         tracked: true,
@@ -227,6 +249,7 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         requiresDuration: false,
         selfResolving: true,
         cancellable: false,
+        requiresNewUsername: false,
     },
     [ModActionType.ReportingDisabled]: {
         tracked: true,
@@ -234,6 +257,23 @@ export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> =
         requiresDuration: false,
         selfResolving: false,
         cancellable: true,
+        requiresNewUsername: false,
+    },
+    [ModActionType.UsernameChangesBlocked]: {
+        tracked: true,
+        requiresNote: true,
+        requiresDuration: false,
+        selfResolving: false,
+        cancellable: true,
+        requiresNewUsername: false,
+    },
+    [ModActionType.ChangeUsername]: {
+        tracked: false,
+        requiresNote: true,
+        requiresDuration: false,
+        selfResolving: false,
+        cancellable: false,
+        requiresNewUsername: true,
     },
 };
 
@@ -271,6 +311,7 @@ export enum UsernameChangeSource {
     Migration = 'Migration', // backfill seed for pre-existing accounts (previousUsername = null)
     UserInitiated = 'UserInitiated',
     ForcedRename = 'ForcedRename', // result of a Rename mod action
+    UsernameChangedByModerator = 'UsernameChangedByModerator', // result of a ChangeUsername action, or the reset option of UsernameChangesBlocked
 }
 
 export interface IUsernameChangeEntity {
@@ -279,7 +320,7 @@ export interface IUsernameChangeEntity {
     previousUsername: string | null; // null only for Initial
     newUsername: string;
     source: UsernameChangeSource;
-    relatedModActionId?: string; // set only when source === ForcedRename
+    relatedModActionId?: string; // set when source is ForcedRename or UsernameChangedByModerator
     createdAt: string;
 }
 

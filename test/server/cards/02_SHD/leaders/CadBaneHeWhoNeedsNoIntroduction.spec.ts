@@ -94,5 +94,42 @@ describe('Cad Bane, He Who Needs No Introduction', function () {
             context.player2.clickCard(context.wampa);
             expect(context.wampa.damage).toBe(4);
         });
+
+        it('Cad Bane\'s leader undeployed ability should trigger when its controller plays an opponent-owned Underworld unit from the discard pile with Stolen AT-Hauler', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['takedown'],
+                    leader: 'cad-bane#he-who-needs-no-introduction',
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    spaceArena: ['stolen-athauler']
+                },
+            });
+
+            const { context } = contextRef;
+
+            // Defeat the opponent's Stolen AT-Hauler so player1 may play it from player2's discard pile
+            context.player1.clickCard(context.takedown);
+            context.player1.clickCard(context.stolenAthauler);
+            expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.stolenAthauler);
+            expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+
+            // Cad Bane reacts to player1 playing the opponent-owned Underworld card
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.cadBane.exhausted).toBeTrue();
+            expect(context.player2).toBeAbleToSelectExactly([context.wampa]);
+            context.player2.clickCard(context.wampa);
+            expect(context.wampa.damage).toBe(1);
+
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

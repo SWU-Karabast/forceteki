@@ -11,6 +11,7 @@ import {
     PlayerReportStatus,
     UsernameChangeSource
 } from './DynamoDBInterfaces';
+import { validateUsernameFormat } from '../utils/user/UsernameRules';
 
 export const IUserDataEntitySchema = z.object({
     id: z.string(),
@@ -68,6 +69,7 @@ export const ModActionSubmitSchema = z.object({
         .nullable()
         .optional(),
     note: z.string().optional(),
+    newUsername: z.string().optional(),
     reportId: z.string().min(1)
         .optional(),
 }).refine(
@@ -91,6 +93,23 @@ export const ModActionSubmitSchema = z.object({
             return typeof data.note === 'string' && data.note.trim().length > 0;
         },
         (data) => ({ message: `note is required for ${data.actionType} actions`, path: ['note'] })
+    )
+    .refine(
+        (data) => {
+            const requiresNewUsername = ModActionDefinitions[data.actionType].requiresNewUsername;
+            const hasNewUsername = typeof data.newUsername === 'string' && data.newUsername.length > 0;
+            return requiresNewUsername === hasNewUsername;
+        },
+        (data) => ({
+            message: ModActionDefinitions[data.actionType].requiresNewUsername
+                ? `newUsername is required for ${data.actionType} actions`
+                : `newUsername is not valid for ${data.actionType} actions`,
+            path: ['newUsername'],
+        })
+    )
+    .refine(
+        (data) => !data.newUsername || validateUsernameFormat(data.newUsername) === null,
+        (data) => ({ message: validateUsernameFormat(data.newUsername) ?? 'Invalid username.', path: ['newUsername'] })
     );
 
 export const ModActionCancelSchema = z.object({

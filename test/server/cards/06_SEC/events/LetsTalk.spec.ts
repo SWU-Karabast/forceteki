@@ -30,6 +30,38 @@ describe('Let\'s Talk', function () {
             expect(context.player1.exhaustedResourceCount).toBe(9);
         });
 
+        it('Let\'s Talk costs 3 less when an enemy unit was taken and defeated with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['battlefield-marine'],
+                    hand: ['no-glory-only-results', 'lets-talk']
+                },
+                player2: {
+                    groundArena: ['wampa', 'atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // AT-ST leaves play while player1 controls it, so it counts as a friendly unit
+            context.player1.clickCard(context.noGloryOnlyResults);
+            context.player1.clickCard(context.atst);
+            expect(context.atst).toBeInZone('discard', context.player2);
+
+            context.player2.passAction();
+            context.player1.readyResources(20);
+
+            context.player1.clickCard(context.letsTalk);
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.wampa).toBeCapturedBy(context.battlefieldMarine);
+            // 9 + 2 aspect penalty - 3 reduction
+            expect(context.player1.exhaustedResourceCount).toBe(8);
+            expect(context.player2).toBeActivePlayer();
+        });
+
         it('Let\'s Talk selection order matches capture order', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -228,10 +260,19 @@ describe('Let\'s Talk', function () {
             ]);
 
             context.player1.clickPrompt('Collect Bounty: Draw a card');
-            context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeAbleToSelectAllOf([context.wampa, context.tauntaun, context.admiralAckbar]);
             context.player1.clickCard(context.admiralAckbar);
+        });
+
+        // Ruling 2026-02-10: Let's Talk does not force a player to attempt to capture IG-11 multiple
+        // times — captures can be directed at other units (to be errata'd to "different enemy non-leader
+        // unit"). So the player can avoid triggering IG-11's defeat-and-damage replacement.
+        xit('does not force the player to attempt capturing IG-11 (can direct captures to other units)', function () {
+            pending('Not yet implemented');
+            // With multiple friendly units and an enemy IG-11 ("I Cannot Be Captured") plus other
+            // enemy units, the player can choose to capture the other enemy units instead of IG-11,
+            // avoiding IG-11's "defeat him and deal 3 to each enemy ground unit" replacement.
         });
     });
 });

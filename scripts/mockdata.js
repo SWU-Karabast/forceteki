@@ -339,6 +339,42 @@ const mockCards = [
         arena: 'ground',
         internalName: 'quigon-jinn#unwavering-belief'
     }),
+    buildMockCard({
+        title: 'Kanan Jarrus',
+        subtitle: 'Sometimes I Hate Being Right',
+        cost: 6,
+        power: 8,
+        hp: 7,
+        hasNonKeywordAbility: false,
+        aspects: ['aggression', 'heroism'],
+        traits: ['force', 'jedi', 'rebel', 'spectre'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 121
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'kanan-jarrus#sometimes-i-hate-being-right'
+    }),
+    buildMockCard({
+        title: 'Obi-Wan\'s Interceptor',
+        subtitle: 'Nothing Too Fancy',
+        cost: 2,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['jedi', 'republic', 'vehicle', 'fighter'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 34
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'obiwans-interceptor#nothing-too-fancy'
+    }),
     // -------- End Mock Cards --------
 ];
 

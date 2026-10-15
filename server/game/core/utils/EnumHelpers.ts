@@ -146,6 +146,20 @@ export namespace EnumHelpers {
         }
     };
 
+    /**
+     * True if moving from `from` to `to` loses the information the game had about the card, which is
+     * what makes it a new copy (`SWU 8.5.4`).
+     *
+     * Mirrors the increment condition in `InPlayCard.initializeForCurrentZone`: a move from a
+     * visible zone (an arena, the discard pile, capture) into a hidden one (hand, resources, deck).
+     * Moving between two hidden zones loses nothing that was not already unknown, and moving from
+     * hidden to visible gains information rather than losing it.
+     */
+    export const zoneMoveLosesCardInformation = (from: ZoneName, to: ZoneName) => {
+        return isHiddenFromOpponent(to, RelativePlayer.Self) &&
+          !isHiddenFromOpponent(from, RelativePlayer.Self);
+    };
+
     // return true if the card zone matches one of the allowed zone filters
     export const cardZoneMatches = (cardZone: ZoneName, zoneFilter: ZoneFilter | ZoneFilter[]) => {
         if (!Array.isArray(zoneFilter)) {
@@ -179,7 +193,8 @@ export namespace EnumHelpers {
 
     export const zoneMoveRequiresControllerReset = (prevZone: ZoneName, nextZone: MoveZoneDestination): boolean => {
         const nextZoneName = asConcreteZone(nextZone);
-        return (isArena(prevZone) || prevZone === ZoneName.Resource) && !(isArena(nextZoneName) || nextZoneName === ZoneName.Resource);
+        // the base zone only counts on the way out (e.g. a base upgrade going to the discard pile), so that undeploying a leader keeps resetting control
+        return (isArena(prevZone) || prevZone === ZoneName.Resource || prevZone === ZoneName.Base) && !(isArena(nextZoneName) || nextZoneName === ZoneName.Resource);
     };
 
     export const isUnit = (cardType: CardTypeFilter): cardType is WildcardCardType.Unit | WildcardCardType.NonLeaderUnit | WildcardCardType.LeaderUnit | CardType.BasicUnit | CardType.NonTokenLeaderUnit | CardType.TokenLeaderUnit | CardType.TokenUnit => {
