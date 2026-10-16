@@ -10,7 +10,7 @@ import { AnonymousUser } from '../../../server/utils/user/User';
 import { DecklistFixtures } from './DecklistFixtures';
 import type { FakeDynamoDbService, ISeededAccount } from './FakeDynamoDbService';
 import { premierBestOfOne } from './MatchConfigs';
-import type { IRegisteredRoute, RouteMethod } from './RouteRecorder';
+import type { IRegisteredRoute, IRouteRecording, RouteMethod } from './RouteRecorder';
 import { recordRegisteredRoutes } from './RouteRecorder';
 import { overrideEnv } from './ServerTestEnv';
 import type { DatabaseSeeder, ITestGameServerSetup, TestConfigOverrides } from './TestGameServer';
@@ -98,7 +98,7 @@ export class ServerTestHarness {
         public readonly server: TestGameServer,
         public readonly decklists: DecklistFixtures,
         private readonly restoreEnv: () => void,
-        private readonly recordedRoutes?: IRegisteredRoute[]
+        private readonly routeRecording?: IRouteRecording
     ) {}
 
     public static async createAsync(options: IServerTestOptions = {}): Promise<ServerTestHarness> {
@@ -117,7 +117,7 @@ export class ServerTestHarness {
             const setup = await getSharedSetupAsync();
 
             // routes are registered during construction, so recording has to start before it
-            const recordedRoutes = options.recordRoutes ? recordRegisteredRoutes() : undefined;
+            const routeRecording = options.recordRoutes ? recordRegisteredRoutes() : undefined;
 
             const server = await TestGameServer.startAsync(setup, { config: options.config, database: options.database });
 
@@ -125,7 +125,7 @@ export class ServerTestHarness {
                 server,
                 new DecklistFixtures(setup.testGameBuilder.cardDataGetter, setup.deckValidator),
                 restoreEnv,
-                recordedRoutes
+                routeRecording
             );
         } catch (error) {
             restoreEnv();
@@ -152,13 +152,19 @@ export class ServerTestHarness {
         return db;
     }
 
-    /** Every route the server registered. Only available when the harness was created with `{ recordRoutes: true }`. */
+    /**
+     * Every route the server registered. Only available when the harness was created with `{ recordRoutes: true }`.
+     * Throws if the server registered a route in a form the recorder cannot see, rather than return a list
+     * that looks complete and is not.
+     */
     public get routes(): readonly IRegisteredRoute[] {
-        if (!this.recordedRoutes) {
+        if (!this.routeRecording) {
             throw new Error('ServerTestHarness: routes were not recorded - create the harness with { recordRoutes: true }');
         }
 
-        return this.recordedRoutes;
+        this.routeRecording.assertComplete();
+
+        return this.routeRecording.routes;
     }
 
     /**

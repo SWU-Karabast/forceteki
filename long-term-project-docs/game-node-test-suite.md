@@ -10,9 +10,9 @@ awaiting review**: see
 [Account-auth guards and suite guardrails](#account-auth-guards-and-suite-guardrails-implemented-2026-10-15),
 whose *As built* section records what the implementation found and where it differs from the plan.
 
-**Suite size (measured 2026-10-15, with that PR):** 649 non-game specs (`jasmine-nongame.json`), 1 of them
+**Suite size (measured 2026-10-16, with that PR and its review fixes):** 657 non-game specs (`jasmine-nongame.json`), 1 of them
 pending (a marked `TODO`); ~3.2 s under `--parallel=4 --random=true`,
-five consecutive runs, 0 failures. 8,943 game specs; 9,592 total, which the two configs partition exactly
+five consecutive runs, 0 failures. 8,943 game specs; 9,600 total, which the two configs partition exactly
 (counted by loading each config with every spec filtered out). Before the PR the figures were 404 / 8,971 / 9,375:
 the game group is 28 specs smaller because the widened non-game globs now claim `DiscordDispatcher`,
 `usernameBlockMigration` and `DynamoDBInterfaceSchemas`.
@@ -27,7 +27,7 @@ sparsely documented, and it is the part we most want to restructure.
 When this project started we could not safely restructure it, because **there was no test coverage of
 any of it**: the card suite (~8,700 specs at the time) constructs a `Game` directly with a stub
 router and never touches `Lobby` or `GameServer`. That is no longer true — the connection layer now
-has its own 649-spec suite — but coverage is uneven (deep on matchmaking, chat, identity and authentication;
+has its own 657-spec suite — but coverage is uneven (deep on matchmaking, chat, identity and authentication;
 absent on stats, spectating, timers and decks), which the plan below tracks.
 
 This project builds the test suite first, so the refactor that follows has a safety net. The suite is
@@ -438,9 +438,11 @@ lines means splitting their hunks (`git add -p`); squashing neighbouring commits
 
 **Production footprint, as built.** Exactly what the table under *Production footprint* below lists: the class
 `export`, the optional scheduler on the DB-backed caches (defaults reproduce today's behaviour; `GameServer.createAsync`
-passes nothing), `lobbies` `private` → `protected`, the `DiscordDispatcher` move with its two import paths, and the
-quick-lobby countdown's start value and tick named as constants in `Lobby` (values unchanged). No route, no auth logic
-and neither secret check changed.
+passes nothing), `lobbies` `private` → `protected`, the `DiscordDispatcher` move with its two import paths, the
+quick-lobby countdown's start value and tick named as constants in `Lobby` (values unchanged), the role and settings
+cache refresh interval named `GameServer.ServerCacheRefreshMinutes` (still 60), and `buildModerationFromCacheEntry`
+reading the clock through the scheduler (`RealScheduler.currentDate()` is `new Date()`). No route, no auth logic and
+neither secret check changed.
 
 **Spec layout, applied last as a pure move.** `test/server/gamenode/` had grown to 16 specs in one flat folder next to
 `auth/`. Every spec now sits in an area folder, grouped by what it is about rather than by the production file it covers
@@ -453,10 +455,10 @@ and neither secret check changed.
 | `lobby/` | creating and joining lobbies, connection management, reports, the socket command allowlist, test game setups | `GameServerLobbyApi`, `LobbyConnectionManagement`, `LobbyReports`, `SocketCommandAllowlist`, `GameServerTestGameSetups`, `DiscordDispatcher` |
 | `matchmaking/` | queues and matchmaking | `GameServerMatchmaking`, `QueueHandler` |
 | `account/` | a logged-in user's own data routes; the seed for the deck, settings, cosmetics and linked-account suites listed under *Future test suites* | `GameServerUserApi` |
-| `harness/` | specs of the test tooling, not of the server | `ServerTestHarness`, `FakeDynamoDbService`, `SocketIoDriftGuard`, `GameServerScheduling` |
+| `harness/` | specs of the test tooling, not of the server | `ServerTestHarness`, `RouteRecorder`, `FakeDynamoDbService`, `SocketIoDriftGuard`, `GameServerScheduling` |
 
 Only relative import paths changed, plus the `__dirname`-relative path to `test/gameSetups` in
-`GameServerTestGameSetups`; no assertion, spec name or spec count did (649 before and after). `CLAUDE.md` carries the
+`GameServerTestGameSetups`; no assertion, spec name or spec count did (649 before and after the move). `CLAUDE.md` carries the
 same list for contributors, and the globs, the ESLint scope and `validate-specs` already matched subfolders, so none of
 them needed a change. File names were left alone so history follows the moves.
 
@@ -492,7 +494,7 @@ marked with a `TODO` where its spec belongs:
   spec green.
 - Added beyond the plan: `harness.createAccountClient()` and `RoleHolders` (a seeder that grants each role to one
   account), which cut the boilerplate of every role spec; the cosmetics type split (a moderator may manage card backs,
-  only an admin the rest) and the one-hour role-refresh window in `RoleAuthorization`; and the converse check in the
+  only an admin the rest) and the role-refresh window in `RoleAuthorization`; and the converse check in the
   manifest (a signed-in caller must not be turned away as unauthenticated by any `signed-in` route).
 
 **Verified, not assumed.** Beyond the suite passing: the credential specs were run against a deliberately broken server
@@ -502,6 +504,25 @@ and against a changed code on a route the FE reads (both caught), and against a 
 (correctly not caught); the pending spec was enabled once to confirm it fails for the stated reason; and the new ESLint
 rule was shown to reject a deliberate `as any` and to pass the tree. Final gates: `npx eslint --quiet` on the whole repo, `validate-cards`,
 `validate-specs`, `tsc` for both projects, and five parallel random runs, all clean.
+
+**After an independent review of the branch.** A read-only review found no blockers and confirmed the production diff
+is behaviour-neutral (the `TimedCache` refresh cannot reject, `RealScheduler` is still a raw `setInterval`, the
+`DiscordDispatcher` move differs by eight import lines, and the `Lobby` constants and their initialisation order are
+right). Its findings were addressed, with 8 specs added (657 in total), and each guard was then seen to fail when
+deliberately broken:
+
+- The route recorder only sees `app.get`/`post`/`put`/`delete`/`patch`, so a route added with `app.all`, `app.route()`,
+  `app.head`/`options`, or inside a mounted `express.Router` or sub-app would have passed the "every route is
+  classified" guard unseen. `harness.routes` now throws when the apps' routers hold more route layers than were
+  recorded, or any mounted router or sub-app (`IRouteRecording.assertComplete`), and `RouteRecorder.spec.ts` covers
+  each form. Moving one real route to `app.all` failed every spec that reads `harness.routes`.
+- The role-gated "let in" check also rejects a 401, so it can no longer pass on an authentication failure; with token
+  signing deliberately broken, all 8 of those specs fail.
+- The role-refresh interval is production's own constant, `GameServer.ServerCacheRefreshMinutes`, instead of a copy in
+  `TestDatabase`, so `RoleAuthorization` follows a change to it (set to 30 minutes, it still passes).
+- `GameServer.buildModerationFromCacheEntry` read the wall clock while the harness's mod-action clock is virtual (it
+  starts in 2025), so a muted user's `get-user` reported `daysRemaining: 0`. It now reads the scheduler's clock, and a
+  `GameServerUserApi` spec holds it (reverting the line fails it with `Expected 0 to be 3`).
 
 **Trial run: flipping the harness default to "database on".** Run on the tree after commit 4: 469 specs, 4 failures.
 Three are `ServerTestHarness` specs whose subject is the no-database state. The fourth is `GameServerMatchmaking`'s
@@ -517,7 +538,7 @@ local-dev configuration, not production's).
 
 **Carried forward, not covered here.** Decks (the fake has no deck tables, so the deck routes' signed-in path answers
 500 "not implemented", which the manifest tolerates by design); the `/api/mod/*` flows beyond their role gates and the
-moderation state `get-user` derives; the three `set-*-seen` routes; cross-user requests to the `/api/user/:userId/…`
+moderation state `get-user` derives (beyond the time left on a mod-action mute); the three `set-*-seen` routes; cross-user requests to the `/api/user/:userId/…`
 routes; first-login *races* (two simultaneous first requests for one identity — the fake
 resolves in microtasks, so a spec cannot interleave them; it needs injectable latency); `requeueUser`, `start-test-game`
 and `spectate-game` under maintenance mode.
@@ -707,7 +728,8 @@ large, roughly two weeks.
   re-wraps those listeners when it attaches (a first attempt failed on exactly this). Instead the harness records
   routes by wrapping `express.application`'s `get`/`post`/`put`/`delete`/`patch` with jasmine spies while the server
   is constructed (Express copies those functions onto each new app). **Verified: 50 routes recorded, no production
-  change.** If routes later move into `express.Router` modules, wrap `express.Router` the same way.
+  change.** If routes later move into `express.Router` modules, the recorder now fails loudly rather than miss them
+  (see *After an independent review of the branch*); extend it to wrap `express.Router` the same way.
 
 **Commit 5 — auth guard specs (the vertical slice).** New folder `test/server/gamenode/auth/` (the non-game glob
 already covers it). Roughly 130–180 specs, most of them parameterised rows.
@@ -772,7 +794,7 @@ already covers it). Roughly 130–180 specs, most of them parameterised rows.
 | `server/services/DynamoDBService.ts` | `export` the class | none |
 | `server/utils/TimedCache.ts` | optional `IScheduler`, `stop()` | none by default |
 | `ServerRoleUsersCache`, `ServerSettingsCache`, `CosmeticsCache`, `CosmeticsService`, `ModActionService` | optional scheduler parameter; `ModActionService` clock reads via the scheduler | none by default |
-| `server/gamenode/GameServer.ts` | `lobbies` `private` → `protected`; `DiscordDispatcher` import path | none |
+| `server/gamenode/GameServer.ts` | `lobbies` `private` → `protected`; `DiscordDispatcher` import path; `ServerCacheRefreshMinutes` names the role and settings cache interval; `buildModerationFromCacheEntry` reads the clock through the scheduler | none |
 | `server/gamenode/Lobby.ts` | `DiscordDispatcher` import path; the quick-lobby countdown's start value and tick named as constants, with `QuickLobbyCountdownMs` derived from them and exported for the harness | none |
 | `server/game/core/DiscordDispatcher.ts` → `server/gamenode/` | file move | none |
 | `package.json`, `jasmine-*.json`, `.github/workflows/pullrequest.yml`, `eslint.config.mjs`, `scripts/validateSpecs.ts` | tooling | none |
@@ -1070,7 +1092,7 @@ list exists so none is mistaken for a stable contract when the refactor starts.
 | `GameServerMatchmaking`: `spyOn(Lobby.prototype, 'addLobbyUserAsync')` (×2) | Pauses lobby setup mid-flight to prove shutdown waits for in-flight matchmaking; depends on `Lobby`'s prototype and call order | rewrite against whatever replaces `Lobby` setup |
 | `GameServerMatchmaking`: *waits for active matchmaking before cleanup…* | Asserts the whole clock's `pendingTaskCount` is 0 while shutdown is still waiting, so it only holds on a server with no database (see the default-flip trial in the account-auth PR's *As built*) | make the assertion relative to a baseline before the harness default flips |
 | `LobbyReports`: one `as any` | Overwrites `Lobby`'s private `discordDispatcher`; carries an explicit `eslint-disable-next-line` pointing here | I-2 |
-| `RoleAuthorization`: the one-hour role refresh window | Asserts `ServerRoleUsersCache`'s 60-minute refresh: a change in the database takes effect at the next refresh | change deliberately, if the refresh interval or invalidation changes |
+| `RoleAuthorization`: the role refresh window | Asserts that a change in the database takes effect at the next refresh of the role lists; the interval is `GameServer.ServerCacheRefreshMinutes`, so changing it needs no spec change | change deliberately, if the refresh mechanism or invalidation changes |
 | `GameServerMatchmaking`: `recordExpiringMatchmakingEntry` seeding | Uses a public production method as a test hook | acceptable; replace if the cooldown store moves |
 | `GameServerScheduling`: `harness.server.swuStatsTokenMapping` | Reads a public mutable field | acceptable; the hourly cleanup is the behaviour |
 
@@ -1083,13 +1105,13 @@ and `ChatPermissions` are gone; the ESLint rule keeps them from coming back.
 The suite is partitioned by a single property: **does the spec drive a `Game` through the
 `integration()` harness?** That is what determines whether the undo suite is meaningful for it.
 
-| Group | Config | Contents | Specs (2026-10-15) |
+| Group | Config | Contents | Specs (2026-10-16) |
 |---|---|---|---|
 | Game | `jasmine-game.json` | cards, core, actions, gameSystems, scenarios | 8,943 |
-| Non-game | `jasmine-nongame.json` | `server/{utils,gamenode,services,scripts}/**` | 649 |
-| Everything | `jasmine.json` (what CI runs) | | 9,592 |
+| Non-game | `jasmine-nongame.json` | `server/{utils,gamenode,services,scripts}/**` | 657 |
+| Everything | `jasmine.json` (what CI runs) | | 9,600 |
 
-The two configs partition the suite exactly: 8,943 + 649 = 9,592, no spec lost or double-run. (Counted
+The two configs partition the suite exactly: 8,943 + 657 = 9,600, no spec lost or double-run. (Counted
 by loading each config's specs through Jasmine's API with every spec filtered out, so no spec body executed and
 the card suite was not run.)
 
@@ -1203,7 +1225,7 @@ is left. Dependencies refer to the infrastructure backlog.
   `ModActionService`); who may call each `/api/mod/*`, cosmetics and server-settings route, and what each role
   satisfies (`RouteAuthManifest`, `RoleAuthorization`). *Left:* what those routes *do* for a caller who is let in
   (`submit-action`, `cancel-action`, `find-user` beyond a lookup), moderation state reaching the client
-  (`/api/get-user`), and the three "seen" acknowledgement routes. Needs only the fake DB, which exists now.
+  (`/api/get-user`; only the time left on a mod-action mute is covered, in `GameServerUserApi`), and the three "seen" acknowledgement routes. Needs only the fake DB, which exists now.
 - **Reports** *(new)*. *Done:* the logged-in-only rule (`LobbyReports`). *Left:* the "disable reporting"
   moderator action from #2994 (**no tests at all**); the existing success spec runs without a mod service, so it never
   evaluates the restriction (see Merged since Phase 2.5); Discord delivery failure → `success: false`; and the

@@ -25,6 +25,10 @@ const refusalStatuses = [401, 403];
 describe('Route authentication manifest', function () {
     describe('completeness', function () {
         serverIntegration(function (contextRef) {
+            it('records every route the server registers, in a form the recorder can name', function () {
+                expect(() => contextRef.harness.routes).not.toThrow();
+            });
+
             it('lists every route the server registers', function () {
                 const listed = new Set(routeAuthManifest.map(describeRoute));
 
@@ -122,8 +126,9 @@ describe('Route authentication manifest', function () {
 
                     const response = await client.requestAsync(row.method, concretePath(row));
 
-                    // what the handler then makes of an empty body is not this spec's business, only that
-                    // the role check did not stop it
+                    // what the handler then makes of an empty body is not this spec's business, only that the
+                    // caller got past authentication (a 401 would also satisfy the checks below) and the role check
+                    expect(response.status).not.toBe(401);
                     expect(response.body?.message).not.toBe(refusal);
                     expect(response.body?.message).not.toBe('Authentication required');
                 });

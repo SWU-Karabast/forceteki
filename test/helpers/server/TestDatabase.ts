@@ -1,4 +1,5 @@
 import * as DynamoDBServiceModule from '../../../server/services/DynamoDBService';
+import { GameServer } from '../../../server/gamenode/GameServer';
 import { CosmeticsService } from '../../../server/utils/cosmetics/CosmeticsService';
 import type { IScheduler } from '../../../server/utils/IScheduler';
 import { ModActionService } from '../../../server/utils/ModActionService';
@@ -17,9 +18,6 @@ export interface ITestDbServices {
     /** Stops every service's periodic refresh, so nothing is left scheduled on the clock. */
     stop(): void;
 }
-
-/** What production passes to `ServerRoleUsersCache.createAsync` and `ServerSettingsCache.createAsync`. */
-const refreshIntervalMinutes = 60;
 
 /**
  * Makes `getDynamoDbServiceAsync()` resolve to the fake for the rest of the current spec.
@@ -55,8 +53,8 @@ export async function createTestDbServicesAsync(fake: FakeDynamoDbService, sched
     const restoreEnv = overrideEnv({ USE_LOCAL_DYNAMODB: 'true' });
 
     try {
-        const serverRoleUsersCache = await ServerRoleUsersCache.createAsync(refreshIntervalMinutes, scheduler);
-        const serverSettingsCache = await ServerSettingsCache.createAsync(refreshIntervalMinutes, scheduler);
+        const serverRoleUsersCache = await ServerRoleUsersCache.createAsync(GameServer.ServerCacheRefreshMinutes, scheduler);
+        const serverSettingsCache = await ServerSettingsCache.createAsync(GameServer.ServerCacheRefreshMinutes, scheduler);
         const cosmeticsService = await CosmeticsService.createAsync(scheduler);
         const modActionService = await ModActionService.createAsync(scheduler);
 

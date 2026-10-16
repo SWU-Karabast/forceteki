@@ -1,7 +1,20 @@
+import { ModActionType } from '../../../../server/services/DynamoDBInterfaces';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 
 describe('GameServer user API', function () {
     serverIntegration(function (contextRef) {
+        describe('POST /api/get-user', function () {
+            it('reports the time left on a moderator mute against the server\'s clock', async function () {
+                const { harness } = contextRef;
+                const user = harness.createAccountClient();
+                await harness.server.modActionService.onActionSubmitted(user.id, ModActionType.Mute, 'moderator-id', 'Moderator', 'spamming', 3);
+
+                const response = await user.requestAsync('post', '/api/get-user');
+
+                expect(response.body.user.moderation.daysRemaining).toBe(3);
+            });
+        });
+
         describe('PUT /api/user/:userId/preferences', function () {
             it('saves the caller\'s own preferences', async function () {
                 const { harness } = contextRef;

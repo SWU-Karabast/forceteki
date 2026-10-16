@@ -203,6 +203,9 @@ interface GCPerformanceEntry {
 export class GameServer {
     private static readonly DOCKER_CARD_DATA_PATH = '/app/data';
 
+    /** How often the server-role and server-settings caches re-read their tables. */
+    public static readonly ServerCacheRefreshMinutes = 60;
+
     public static async createAsync(): Promise<GameServer> {
         let cardDataGetter: CardDataGetter;
         let testGameBuilder: any = null;
@@ -241,8 +244,8 @@ export class GameServer {
         const shouldInitializeDbCaches = process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB === 'true';
         if (shouldInitializeDbCaches) {
             console.log('SETUP: Initializing caches for server roles and customizations.');
-            serverRoleUsersCache = await ServerRoleUsersCache.createAsync(60);
-            serverSettingsCache = await ServerSettingsCache.createAsync(60);
+            serverRoleUsersCache = await ServerRoleUsersCache.createAsync(GameServer.ServerCacheRefreshMinutes);
+            serverSettingsCache = await ServerSettingsCache.createAsync(GameServer.ServerCacheRefreshMinutes);
             cosmeticsService = await CosmeticsService.createAsync();
             modActionCache = await ModActionService.createAsync();
             console.log('SETUP: Caches for server roles and customizations initialized.');
@@ -2093,7 +2096,7 @@ export class GameServer {
      */
     private buildModerationFromCacheEntry(entry: IActiveModActionCacheEntry, hasSeen: boolean): IModerationAction {
         const expiresAt = new Date(entry.expiresAt);
-        const now = new Date();
+        const now = this.scheduler.currentDate();
         const daysRemaining = Math.max(0, Math.ceil((expiresAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)));
 
         return {

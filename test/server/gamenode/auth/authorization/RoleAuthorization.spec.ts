@@ -1,3 +1,4 @@
+import { GameServer } from '../../../../../server/gamenode/GameServer';
 import { RegisteredCosmeticType } from '../../../../../server/utils/cosmetics/CosmeticsInterfaces';
 import type { ICosmeticEntity } from '../../../../../server/utils/cosmetics/CosmeticsInterfaces';
 import { premierBestOfOne } from '../../../../helpers/server/MatchConfigs';
@@ -26,8 +27,10 @@ const background: ICosmeticEntity = { id: 'background-1', title: 'Test Backgroun
 const newCardback: ICosmeticEntity = { ...cardback, id: 'cardback-2' };
 const newBackground: ICosmeticEntity = { ...background, id: 'background-2' };
 
-const oneHourMs = 60 * 60 * 1000;
 const oneMinuteMs = 60 * 1000;
+
+/** How long the server waits between re-reading the role lists, which is production's own setting. */
+const roleRefreshIntervalMs = GameServer.ServerCacheRefreshMinutes * oneMinuteMs;
 
 async function isMarkedAsync(client: TestClient, role: 'admin' | 'developer' | 'moderator'): Promise<boolean> {
     const response = await client.requestAsync('get', `/api/user-is-${role}`);
@@ -173,7 +176,7 @@ describe('Role authorization', function () {
         });
     });
 
-    // The server reads the role lists at startup and then once an hour, so a grant or a revocation made in
+    // The server reads the role lists at startup and then at a fixed interval, so a grant or a revocation made in
     // the database takes effect at the next refresh. That is the designed cache behaviour.
     describe('a change to who holds a role', function () {
         serverIntegration(function (contextRef) {
@@ -183,7 +186,7 @@ describe('Role authorization', function () {
                 harness.db.seedRoles({ moderators: [roles.accounts.moderator.id, roles.accounts.nobody.id] });
 
                 const before = await isMarkedAsync(client, 'moderator');
-                await harness.clock.advanceAsync(oneHourMs - oneMinuteMs);
+                await harness.clock.advanceAsync(roleRefreshIntervalMs - oneMinuteMs);
                 const justBefore = await isMarkedAsync(client, 'moderator');
                 await harness.clock.advanceAsync(oneMinuteMs);
                 const after = await isMarkedAsync(client, 'moderator');
@@ -197,7 +200,7 @@ describe('Role authorization', function () {
                 harness.db.seedRoles({ moderators: [] });
 
                 const before = await isMarkedAsync(client, 'moderator');
-                await harness.clock.advanceAsync(oneHourMs - oneMinuteMs);
+                await harness.clock.advanceAsync(roleRefreshIntervalMs - oneMinuteMs);
                 const justBefore = await isMarkedAsync(client, 'moderator');
                 await harness.clock.advanceAsync(oneMinuteMs);
                 const after = await isMarkedAsync(client, 'moderator');
