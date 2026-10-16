@@ -72,6 +72,7 @@ describe('Vigilance', function() {
                     'Give a Shield token to a unit.'
                 ]);
                 context.player1.clickPrompt('Defeat a unit with 3 or less remaining HP.');
+                expect(context.player1).toHavePrompt('Defeat a unit with 3 or less remaining HP');
                 expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.battlefieldMarine, context.wampa]);
                 context.player1.clickCard(context.viperProbeDroid);
 
@@ -87,6 +88,7 @@ describe('Vigilance', function() {
                 ]);
 
                 context.player1.clickPrompt('Heal 5 damage from a base.');
+                expect(context.player1).toHavePrompt('Heal 5 damage from a base');
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
                 context.player1.clickCard(context.p1Base);
 

@@ -21,17 +21,20 @@ export default class Aggression extends EventCard {
                 choices: () => ({
                     ['Draw a card']: AbilityHelper.immediateEffects.draw(),
                     ['Defeat up to 2 upgrades']: AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Defeat up to 2 upgrades',
                         mode: TargetMode.UpTo,
                         numCards: 2,
                         cardTypeFilter: WildcardCardType.Upgrade,
                         immediateEffect: AbilityHelper.immediateEffects.defeat(),
                     }),
                     ['Ready a unit with 3 or less power']: AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Ready a unit with 3 or less power',
                         cardTypeFilter: WildcardCardType.Unit,
                         cardCondition: (card: IUnitCard) => card.getPower() <= 3,
                         immediateEffect: AbilityHelper.immediateEffects.ready()
                     }),
                     ['Deal 4 damage to a unit']: AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Deal 4 damage to a unit',
                         cardTypeFilter: WildcardCardType.Unit,
                         immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 4 })
                     }),

@@ -26,6 +26,7 @@ describe('Hunter, Everyone Get To Cover!', function() {
 
                 // First choice: give a Shield token to a unit
                 context.player1.clickPrompt('Give a Shield token to a unit.');
+                expect(context.player1).toHavePrompt('Give a Shield token to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.hunter, context.wampa, context.battlefieldMarine, context.atst]);
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toHaveExactUpgradeNames(['shield']);
@@ -33,6 +34,7 @@ describe('Hunter, Everyone Get To Cover!', function() {
                 // Second choice: attack with a unit
                 expect(context.player1).toHavePrompt('Choose 1 effect for Hunter');
                 context.player1.clickPrompt('Attack with a unit, even if it\'s exhausted. It can\'t attack bases for this attack.');
+                expect(context.player1).toHavePrompt('Attack with a unit, even if it\'s exhausted');
                 expect(context.player1).toBeAbleToSelectExactly([context.hunter, context.wampa, context.battlefieldMarine]);
                 context.player1.clickCard(context.battlefieldMarine);
 
