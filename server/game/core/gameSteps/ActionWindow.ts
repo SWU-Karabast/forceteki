@@ -14,6 +14,12 @@ import type { IPlayPermission } from '../ongoingEffect/effectImpl/PlayPermission
 import { PlayPermissionHelpers } from '../ongoingEffect/effectImpl/PlayPermission.js';
 import { getTriggerSourceCardSummary } from './abilityWindow/TriggerWindowBase.js';
 
+interface ISelectableCards {
+    cardsWithLegalActions: Card[];
+    mustTakeCardAction: boolean;
+    overrideActionPromptTitle: string | undefined;
+}
+
 export class ActionWindow extends UiPrompt {
     public static readonly title = 'Action Window';
     public static readonly windowName = 'action';
@@ -23,6 +29,9 @@ export class ActionWindow extends UiPrompt {
     private readonly prevPlayerPassed: boolean;
     private readonly setPassStatus: (passed: boolean) => boolean;
     private readonly snapshotManager: SnapshotManager;
+
+    // Transient UI work only: never retain a legality result across inputs, refreshes or rollback.
+    private promptRefresh?: { selectableCards?: ISelectableCards };
 
     public constructor(
         game: Game,
@@ -121,12 +130,21 @@ export class ActionWindow extends UiPrompt {
         const completed = super.continue();
 
         if (!completed) {
-            this.highlightSelectableCards();
+            // UiPrompt.setPrompt already highlighted cards using this refresh's legality result.
             this.game.currentActionWindow = this;
         } else {
             this.game.currentActionWindow = null;
         }
         return completed;
+    }
+
+    public override setPrompt(): void {
+        this.promptRefresh = {};
+        try {
+            super.setPrompt();
+        } finally {
+            this.promptRefresh = undefined;
+        }
     }
 
     // TODO: see if there's better logic for determining when and how to advance the turn, take new snapshots, etc.
@@ -276,7 +294,11 @@ export class ActionWindow extends UiPrompt {
         this.activePlayer.opponent.setSelectableCards([]);
     }
 
-    private getSelectableCards() {
+    private getSelectableCards(): ISelectableCards {
+        if (this.promptRefresh?.selectableCards) {
+            return this.promptRefresh.selectableCards;
+        }
+
         let allPossibleCards: Card[] = this.game.findAnyCardsInPlay();
         allPossibleCards = allPossibleCards.concat(
             this.activePlayer.discardZone.cards,
@@ -301,7 +323,11 @@ export class ActionWindow extends UiPrompt {
             }
         }
 
-        return { cardsWithLegalActions, mustTakeCardAction, overrideActionPromptTitle };
+        const result = { cardsWithLegalActions, mustTakeCardAction, overrideActionPromptTitle };
+        if (this.promptRefresh) {
+            this.promptRefresh.selectableCards = result;
+        }
+        return result;
     }
 
     // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.
