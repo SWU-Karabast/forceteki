@@ -1,33 +1,35 @@
-import { CardPool, GamesToWinMode, SwuGameFormat } from '../../../server/game/core/Constants';
-import { ModerationType } from '../../../server/services/DynamoDBInterfaces';
-import type { ITestClientOptions, TestClient } from '../../helpers/server/TestClient';
-import { serverIntegration } from '../../helpers/server/ServerIntegrationHelper';
-import type { ServerTestHarness } from '../../helpers/server/ServerTestHarness';
+import { ModActionType, ModerationType } from '../../../../../server/services/DynamoDBInterfaces';
+import type { IUserProfileDataEntity } from '../../../../../server/services/DynamoDBInterfaces';
+import { premierBestOfOne } from '../../../../helpers/server/MatchConfigs';
+import type { ITestClientOptions, TestClient } from '../../../../helpers/server/TestClient';
+import { serverIntegration } from '../../../../helpers/server/ServerIntegrationHelper';
+import type { ServerTestHarness } from '../../../../helpers/server/ServerTestHarness';
 
-const matchConfig = {
-    format: SwuGameFormat.Premier,
-    cardPool: CardPool.Current,
-    gamesToWinMode: GamesToWinMode.BestOfOne,
-};
-
+/** A logged-in player the way the real client presents itself after its first sync: with a profile of its own. */
 const loggedIn: ITestClientOptions = { authenticated: true };
 
-const legacyMute: ITestClientOptions = {
-    authenticated: true,
-    userDataOverrides: {
-        moderation: {
-            moderationType: ModerationType.Mute,
-            daysRemaining: 3,
-            endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-            hasSeen: true,
-        },
-    },
-};
+const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
 
-const chatDisabledInPreferences: ITestClientOptions = {
-    authenticated: true,
-    userDataOverrides: { preferences: { gameOptions: { muteChat: true } } as any },
-};
+function legacyMute(): IUserProfileDataEntity['moderation'] {
+    return {
+        moderationType: ModerationType.Mute,
+        daysRemaining: 3,
+        endDate: new Date(Date.now() + threeDaysMs).toISOString(),
+        hasSeen: true,
+    };
+}
+
+/**
+ * A logged-in player whose account has `profile` stored in the database and who signs in the way the real
+ * client does on its first request of a session, so the server derives the profile from storage. Mutes and
+ * chat preferences belong to the account, so they are seeded there rather than on the client.
+ */
+function accountWith(harness: ServerTestHarness, profile: Partial<IUserProfileDataEntity>): ITestClientOptions {
+    return { authenticated: true, auth: 'token-only', account: harness.db.seedAccount({ profile }) };
+}
+
+const legacyMuted = (harness: ServerTestHarness) => accountWith(harness, { moderation: legacyMute() });
+const chatDisabledInPreferences = (harness: ServerTestHarness) => accountWith(harness, { preferences: { gameOptions: { muteChat: true } } });
 
 /**
  * The client hides the lobby and game chat inputs whenever its rules (`getChatDisabledInfo` in `Chat`
@@ -55,9 +57,9 @@ describe('Chat permissions', function () {
         const owner = harness.createClient(ownerOptions);
         const joiner = harness.createClient(joinerOptions);
 
-        await owner.createLobbyAsync({ lobbyName: harness.uniqueLobbyName(), deck: harness.decklists.validDecklist(), isPrivate, ...matchConfig });
+        await owner.createLobbyAsync({ lobbyName: harness.uniqueLobbyName(), deck: harness.decklists.validDecklist(), isPrivate, ...premierBestOfOne });
         await owner.connectAsync();
-        const lobbyId = new URL(owner.lobbyState.connectionLink).searchParams.get('lobbyId');
+        const lobbyId = owner.lobbyId;
 
         if (isPrivate) {
             await joiner.connectAsync({ lobbyId });
@@ -67,28 +69,6 @@ describe('Chat permissions', function () {
         }
 
         return { owner, joiner };
-    }
-
-    /** Both players queue for a quick match and are taken through to a started game. */
-    async function setUpGameAsync(
-        harness: ServerTestHarness,
-        senderOptions: ITestClientOptions,
-        opponentOptions: ITestClientOptions
-    ): Promise<{ sender: TestClient; opponent: TestClient }> {
-        const sender = harness.createClient(senderOptions);
-        const opponent = harness.createClient(opponentOptions);
-
-        for (const client of [sender, opponent]) {
-            const response = await client.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...matchConfig });
-            expect(response.status).withContext(JSON.stringify(response.body))
-                .toBe(200);
-            await client.connectAsync();
-        }
-
-        await harness.clock.advanceAsync(6_000);
-        expect(sender.gameState).toBeDefined();
-
-        return { sender, opponent };
     }
 
     serverIntegration(function (contextRef) {
@@ -118,7 +98,8 @@ describe('Chat permissions', function () {
             });
 
             it('drops a message from a user muted by legacy moderation', async function () {
-                const { owner, joiner } = await setUpLobbyAsync(contextRef.harness, legacyMute, loggedIn);
+                const { harness } = contextRef;
+                const { owner, joiner } = await setUpLobbyAsync(harness, legacyMuted(harness), loggedIn);
 
                 await owner.sendLobbyMessageAsync('sendChatMessage', 'hello there');
 
@@ -127,8 +108,8 @@ describe('Chat permissions', function () {
 
             it('drops a message from a user muted by a moderator action, and flags their chat as disabled', async function () {
                 const { harness } = contextRef;
-                const { owner, joiner } = await setUpLobbyAsync(harness, loggedIn, loggedIn);
-                (harness.server as any).modActionService = { isPlayerMuted: (playerId: string) => playerId === owner.id };
+                const { owner, joiner } = await setUpLobbyAsync(harness, accountWith(harness, {}), loggedIn);
+                await harness.server.modActionService.onActionSubmitted(owner.id, ModActionType.Mute, 'moderator-id', 'Moderator', 'spamming', 3);
 
                 await owner.sendLobbyMessageAsync('sendChatMessage', 'hello there');
 
@@ -137,7 +118,8 @@ describe('Chat permissions', function () {
             });
 
             it('drops a message from a user who disabled chat in their preferences', async function () {
-                const { owner, joiner } = await setUpLobbyAsync(contextRef.harness, chatDisabledInPreferences, loggedIn);
+                const { harness } = contextRef;
+                const { owner, joiner } = await setUpLobbyAsync(harness, chatDisabledInPreferences(harness), loggedIn);
 
                 await owner.sendLobbyMessageAsync('sendChatMessage', 'hello there');
 
@@ -145,7 +127,8 @@ describe('Chat permissions', function () {
             });
 
             it('drops a message sent to an opponent who disabled chat in their preferences', async function () {
-                const { owner, joiner } = await setUpLobbyAsync(contextRef.harness, loggedIn, chatDisabledInPreferences);
+                const { harness } = contextRef;
+                const { owner, joiner } = await setUpLobbyAsync(harness, loggedIn, chatDisabledInPreferences(harness));
 
                 await owner.sendLobbyMessageAsync('sendChatMessage', 'hello there');
 
@@ -192,7 +175,8 @@ describe('Chat permissions', function () {
             });
 
             it('still drops a message from a user who disabled chat in their preferences', async function () {
-                const { owner, joiner } = await setUpLobbyAsync(contextRef.harness, chatDisabledInPreferences, loggedIn, true);
+                const { harness } = contextRef;
+                const { owner, joiner } = await setUpLobbyAsync(harness, chatDisabledInPreferences(harness), loggedIn, true);
 
                 await owner.sendLobbyMessageAsync('sendChatMessage', 'hello there');
 
@@ -202,7 +186,7 @@ describe('Chat permissions', function () {
 
         describe('in a game', function () {
             it('delivers a message between two logged-in players', async function () {
-                const { sender, opponent } = await setUpGameAsync(contextRef.harness, loggedIn, loggedIn);
+                const { first: sender, second: opponent } = await contextRef.harness.startQuickGameAsync(loggedIn, loggedIn);
 
                 await sender.sendGameMessageAsync('chat', 'good luck');
 
@@ -210,7 +194,7 @@ describe('Chat permissions', function () {
             });
 
             it('drops a message from an anonymous player', async function () {
-                const { sender, opponent } = await setUpGameAsync(contextRef.harness, {}, loggedIn);
+                const { first: sender, second: opponent } = await contextRef.harness.startQuickGameAsync({}, loggedIn);
 
                 await sender.sendGameMessageAsync('chat', 'good luck');
 
@@ -218,7 +202,7 @@ describe('Chat permissions', function () {
             });
 
             it('drops a message that is not a string', async function () {
-                const { sender, opponent } = await setUpGameAsync(contextRef.harness, loggedIn, loggedIn);
+                const { first: sender, second: opponent } = await contextRef.harness.startQuickGameAsync(loggedIn, loggedIn);
 
                 await sender.sendGameMessageAsync('chat', { message: [{ type: 'playerChat', id: opponent.id, name: 'IMPERSONATED' }, 'x'] });
                 await sender.sendGameMessageAsync('chat', 'good luck');
@@ -227,7 +211,7 @@ describe('Chat permissions', function () {
                 expect(gameChatContains(opponent, 'good luck')).toBeTrue();
             });
         });
-    });
+    }, { database: true });
 
     describe('when anonymous chat is enabled for local development', function () {
         serverIntegration(function (contextRef) {
@@ -238,6 +222,6 @@ describe('Chat permissions', function () {
 
                 expect(lobbyChatContains(joiner, 'hello there')).toBeTrue();
             });
-        }, { allowAnonymousChat: true });
+        }, { config: { allowAnonymousChat: true } });
     });
 });

@@ -6,16 +6,6 @@ import type { IRawGameSocket, SocketData } from '../../../server/gamenode/GameSe
 export interface IFakeEmittedEvent {
     event: string;
     args: any[];
-
-    /**
-     * If the emit included a trailing function argument (an acknowledgement request), this is it,
-     * with the ack-callback argument itself removed from {@link args}. A real client only triggers
-     * the server's ack callback if it explicitly invokes the function its own listener receives -
-     * most of this codebase's listeners do not, so the harness defaults to leaving acks unfired and
-     * a test opts in explicitly via {@link FakeIoSocket.ackEvent} when it wants to simulate a client
-     * that does.
-     */
-    ack?: (...args: any[]) => void;
 }
 
 let nextFakeSocketId = 1;
@@ -69,12 +59,7 @@ export class FakeIoSocket implements IRawGameSocket {
             return false;
         }
 
-        let ack: ((...ackArgs: any[]) => void) | undefined;
-        if (args.length > 0 && typeof args[args.length - 1] === 'function') {
-            ack = args.pop();
-        }
-
-        this._emittedEvents.push({ event, args, ack });
+        this._emittedEvents.push({ event, args });
         return true;
     }
 
@@ -153,24 +138,5 @@ export class FakeIoSocket implements IRawGameSocket {
         for (const listener of listeners) {
             await listener(...args);
         }
-    }
-
-    /**
-     * Fires the acknowledgement callback for the most recent emit of `event` that included one and
-     * has not already been acked, as if a client had explicitly called back. Throws if there is none,
-     * since a test that asks for this almost always wants to know the ack was actually there to fire.
-     */
-    public ackEvent(event: string, ...ackArgs: any[]): void {
-        for (let i = this._emittedEvents.length - 1; i >= 0; i--) {
-            const emitted = this._emittedEvents[i];
-            if (emitted.event === event && emitted.ack) {
-                const ack = emitted.ack;
-                emitted.ack = undefined;
-                ack(...ackArgs);
-                return;
-            }
-        }
-
-        throw new Error(`FakeIoSocket: no un-acked emit of '${event}' found to acknowledge`);
     }
 }

@@ -1,16 +1,54 @@
 import path from 'path';
 import request from 'supertest';
+import type { Response as SupertestResponse } from 'supertest';
 import { v4 as uuid } from 'uuid';
 
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
+import type { IQueueFormatKey } from '../../../server/gamenode/QueueHandler';
+import { Lobby } from '../../../server/gamenode/Lobby';
 import { AnonymousUser } from '../../../server/utils/user/User';
 import { DecklistFixtures } from './DecklistFixtures';
-import type { ITestGameServerSetup, TestConfigOverrides } from './TestGameServer';
+import type { FakeDynamoDbService, ISeededAccount } from './FakeDynamoDbService';
+import { premierBestOfOne } from './MatchConfigs';
+import type { IRegisteredRoute, RouteMethod } from './RouteRecorder';
+import { recordRegisteredRoutes } from './RouteRecorder';
+import { overrideEnv } from './ServerTestEnv';
+import type { DatabaseSeeder, ITestGameServerSetup, TestConfigOverrides } from './TestGameServer';
 import { TestGameServer } from './TestGameServer';
 import type { TestScheduler } from './TestScheduler';
 import type { FakeHttpClient } from './FakeHttpClient';
 import type { ITestClientOptions } from './TestClient';
 import { TestClient } from './TestClient';
+
+/** What a spec can ask of {@link ServerTestHarness.createAsync}; every field is optional. */
+export interface IServerTestOptions {
+
+    /** Behavioural switches that differ from the deployed-environment defaults (see `buildTestConfig`). */
+    config?: TestConfigOverrides;
+
+    /**
+     * Gives the server the database-backed services a deployed one has - roles, settings, cosmetics,
+     * mod actions and a user store - over an in-memory fake, readable and seedable as
+     * {@link ServerTestHarness.db}. Without it the server has no database, which is how a local dev
+     * box runs: no role can be granted, no account can be looked up.
+     *
+     * `true` is an empty fake; a function seeds a fresh one before the server starts (the services
+     * read roles, settings and mod actions once at startup, then only on their refresh interval); an
+     * instance is used as is, for a spec that builds a single harness and holds the fake itself.
+     */
+    database?: boolean | DatabaseSeeder | FakeDynamoDbService;
+
+    /**
+     * `process.env` entries to set for the life of this harness (`undefined` deletes one), restored on
+     * shutdown. For a production-like server (`ENVIRONMENT: 'production'`, which also needs a
+     * {@link database}) or an unset secret. See {@link overrideEnv} for what can and cannot be changed
+     * this way.
+     */
+    env?: Record<string, string | undefined>;
+
+    /** Record every route the server registers, readable as {@link ServerTestHarness.routes}. */
+    recordRoutes?: boolean;
+}
 
 /**
  * Identity a test client presents to the API. Mirrors the payload the real client builds in
@@ -58,21 +96,69 @@ export class ServerTestHarness {
 
     private constructor(
         public readonly server: TestGameServer,
-        public readonly decklists: DecklistFixtures
+        public readonly decklists: DecklistFixtures,
+        private readonly restoreEnv: () => void,
+        private readonly recordedRoutes?: IRegisteredRoute[]
     ) {}
 
-    public static async createAsync(configOverrides?: TestConfigOverrides): Promise<ServerTestHarness> {
-        const setup = await getSharedSetupAsync();
+    public static async createAsync(options: IServerTestOptions = {}): Promise<ServerTestHarness> {
+        // applied first, because the server reads some of it while it is constructed (which routes it
+        // registers) and the rest while it serves requests
+        const restoreEnv = overrideEnv(options.env ?? {});
 
-        return new ServerTestHarness(
-            await TestGameServer.startAsync(setup, configOverrides),
-            new DecklistFixtures(setup.testGameBuilder.cardDataGetter, setup.deckValidator)
-        );
+        try {
+            // Outside development the real database service is no longer skipped, so a server built
+            // without a stand-in would try to reach DynamoDB (and fail on missing credentials) from its
+            // field initialisers, as unhandled rejections nobody can attribute to the spec.
+            if (process.env.ENVIRONMENT !== 'development' && !options.database) {
+                throw new Error(`ServerTestHarness: ENVIRONMENT is '${process.env.ENVIRONMENT}', so the server would reach for the real DynamoDB service - give the harness a database to stand in for it`);
+            }
+
+            const setup = await getSharedSetupAsync();
+
+            // routes are registered during construction, so recording has to start before it
+            const recordedRoutes = options.recordRoutes ? recordRegisteredRoutes() : undefined;
+
+            const server = await TestGameServer.startAsync(setup, { config: options.config, database: options.database });
+
+            return new ServerTestHarness(
+                server,
+                new DecklistFixtures(setup.testGameBuilder.cardDataGetter, setup.deckValidator),
+                restoreEnv,
+                recordedRoutes
+            );
+        } catch (error) {
+            restoreEnv();
+            throw error;
+        }
     }
 
     /** An HTTP client pointed at this harness's server. */
     public get api(): ReturnType<typeof request> {
         return request(this.server.baseUrl);
+    }
+
+    /**
+     * The fake DynamoDB behind this harness's server: seed accounts, roles, settings and mod actions
+     * before acting, and read back what the server stored. Only available when the harness was created
+     * with `{ database: true }` (or an instance).
+     */
+    public get db(): FakeDynamoDbService {
+        const db = this.server.testDatabase;
+        if (!db) {
+            throw new Error('ServerTestHarness: this harness has no database - create it with { database: true }');
+        }
+
+        return db;
+    }
+
+    /** Every route the server registered. Only available when the harness was created with `{ recordRoutes: true }`. */
+    public get routes(): readonly IRegisteredRoute[] {
+        if (!this.recordedRoutes) {
+            throw new Error('ServerTestHarness: routes were not recorded - create the harness with { recordRoutes: true }');
+        }
+
+        return this.recordedRoutes;
     }
 
     /**
@@ -111,11 +197,77 @@ export class ServerTestHarness {
 
     /**
      * A simulated client bound to this harness, anonymous by default. Ids are unique per harness for
-     * the same reason {@link anonymousUser}'s are.
+     * the same reason {@link anonymousUser}'s are, unless the client is a seeded `account`, whose id
+     * is the account's.
      */
     public createClient(options: ITestClientOptions = {}): TestClient {
         // UUIDs, like real account ids and the anonymous ids the real client generates
-        return TestClient.create(this, uuid(), options);
+        return TestClient.create(this, options.account?.id ?? uuid(), options);
+    }
+
+    /**
+     * A client signed in as `account` the way the FE does on its first request of a session: the session
+     * token alone, so the server looks the account up. Seeds a new account when none is given. Needs a
+     * harness created with a {@link IServerTestOptions.database}.
+     */
+    public createAccountClient(account: ISeededAccount = this.db.seedAccount()): TestClient {
+        return this.createClient({ authenticated: true, auth: 'token-only', account });
+    }
+
+    /**
+     * An API call with exactly the credentials given: a `Cookie` header, any other headers and a JSON
+     * body, and nothing else - no client, no `user` payload unless the body carries one. For specs about
+     * what the server does with credentials of any shape, including ones no real client would send.
+     */
+    public async requestAsync(
+        method: RouteMethod,
+        path: string,
+        options: { cookie?: string; headers?: Record<string, string>; body?: Record<string, unknown> } = {}
+    ): Promise<SupertestResponse> {
+        let call = this.api[method](path);
+        if (options.cookie) {
+            call = call.set('Cookie', options.cookie);
+        }
+        if (options.headers) {
+            call = call.set(options.headers);
+        }
+
+        return method === 'get' ? await call : await call.send(options.body ?? {});
+    }
+
+    /**
+     * Takes two clients through a quick match: both enter the queue, connect their sockets and wait out
+     * the quick-lobby countdown, leaving a started game. Each side is either a client already made
+     * with {@link createClient} or the options to make one with.
+     *
+     * Throws, rather than failing an expectation, if either side is refused by the queue or no game
+     * starts, so the cause shows up in the spec that asked for the game.
+     */
+    public async startQuickGameAsync(
+        first: ITestClientOptions | TestClient = {},
+        second: ITestClientOptions | TestClient = {},
+        config: Readonly<IQueueFormatKey> = premierBestOfOne
+    ): Promise<{ first: TestClient; second: TestClient }> {
+        const clients = [first, second].map((side) => (side instanceof TestClient ? side : this.createClient(side)));
+
+        for (const client of clients) {
+            const response = await client.enterQueueAsync({ deck: this.decklists.validDecklist(), ...config });
+            if (response.status !== 200) {
+                throw new Error(`startQuickGameAsync: user ${client.id} was refused by the queue: ${response.status} ${JSON.stringify(response.body)}`);
+            }
+
+            await client.connectAsync();
+        }
+
+        await this.clock.advanceAsync(Lobby.QuickLobbyCountdownMs);
+
+        for (const client of clients) {
+            if (!client.gameState) {
+                throw new Error(`startQuickGameAsync: no game had started for user ${client.id} after the ${Lobby.QuickLobbyCountdownMs}ms countdown`);
+            }
+        }
+
+        return { first: clients[0], second: clients[1] };
     }
 
     public async shutdownAsync(): Promise<void> {
@@ -124,11 +276,22 @@ export class ServerTestHarness {
         }
 
         this.hasShutDown = true;
-        await this.server.shutdownAsync();
+
+        try {
+            await this.server.shutdownAsync();
+        } finally {
+            this.restoreEnv();
+        }
 
         // structural rather than remembered: a spec that never calls this would otherwise pass while
         // background work was failing on every tick
         this.assertNoScheduledErrors();
+
+        // the database-backed services keep refresh timers on this clock; a task still pending here
+        // means one of them was not stopped, and would leak into whatever runs next
+        if (this.server.testDatabase && this.clock.pendingTaskCount !== 0) {
+            throw new Error(`ServerTestHarness: ${this.clock.pendingTaskCount} scheduled task(s) were still pending after shutdown`);
+        }
     }
 
     /**

@@ -48,7 +48,7 @@ import { userOrLobbyNameContainsProfanity } from '../utils/profanityFilter/Profa
 import { SwuStatsHandler } from '../utils/statHandlers/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
 import { EnumHelpers } from '../game/core/utils/EnumHelpers';
-import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
+import { DiscordDispatcher } from './DiscordDispatcher';
 import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import { RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
@@ -274,7 +274,7 @@ export class GameServer {
         return new gameStateBuilderClass();
     }
 
-    private readonly lobbies = new Map<string, Lobby>();
+    protected readonly lobbies = new Map<string, Lobby>();
     private readonly playerMatchmakingDisconnectedTime = new Map<string, Date>();
     private readonly userLobbyMap = new Map<string, ILobbyMapping>();
     private readonly dailyActiveUserIds = new Set<string>();

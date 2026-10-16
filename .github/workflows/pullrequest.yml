@@ -35,6 +35,7 @@ jobs:
       - run: npm install
 
       - run: npm run validate-cards
+      - run: npm run validate-specs
 
   test:
     if: github.event_name == 'merge_group' || github.event.pull_request.draft == false

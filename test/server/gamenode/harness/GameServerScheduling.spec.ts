@@ -1,7 +1,7 @@
-import type { IToken } from '../../../server/gamenode/GameServer';
-import { serverIntegration } from '../../helpers/server/ServerIntegrationHelper';
-import type { ServerTestHarness } from '../../helpers/server/ServerTestHarness';
-import { TestScheduler } from '../../helpers/server/TestScheduler';
+import type { IToken } from '../../../../server/gamenode/GameServer';
+import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
+import type { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
+import { TestScheduler } from '../../../helpers/server/TestScheduler';
 
 /**
  * Covers the scheduler seam.
