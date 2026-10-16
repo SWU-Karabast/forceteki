@@ -295,6 +295,13 @@ export interface IModActionEntity {
     cancelledById?: string;
     cancelledByUsername?: string;
     relatedReportId?: string; // set when the action was issued from a player report ticket
+
+    /**
+     * When the action stopped having an effect: creation for one-off actions (Warning, ChangeUsername),
+     * otherwise when it was cancelled, expired or resolved. Unset while the action is active. The action
+     * is deleted ModActionRetentionService.RetentionMonths after this.
+     */
+    endedAt?: string;
 }
 
 export interface IActiveModActionCacheEntry {
@@ -401,6 +408,12 @@ export interface IPlayerReportCleanupCursor {
 
     /** Last YYYY-MM closed-report bucket whose reports have been deleted */
     lastMetadataMonth: string;
+}
+
+export interface IModActionCleanupCursor {
+
+    /** Last YYYY-MM ended-action bucket whose mod actions have been deleted */
+    lastMonth: string;
 }
 
 export interface IPlayerReportLogLine {

@@ -146,6 +146,7 @@ export const ModActionEntitySchema = z.object({
     cancelledById: z.string().optional(),
     cancelledByUsername: z.string().optional(),
     relatedReportId: z.string().optional(),
+    endedAt: z.string().optional(),
 }) as z.ZodType<IModActionEntity>;
 
 export const UsernameChangeEntitySchema = z.object({

@@ -226,6 +226,14 @@ export class TestClient {
     }
 
     /**
+     * POSTs to any API route as this client (session cookie plus user payload), for routes that have no
+     * dedicated flow helper here, e.g. the moderator endpoints.
+     */
+    public async postAsync(path: string, body: Record<string, unknown>): Promise<SupertestResponse> {
+        return await this.withAuthCookie(this.harness.api.post(path)).send({ user: this.userPayload(), ...body });
+    }
+
+    /**
      * Finds a public lobby via `/api/available-lobbies`, the same discovery endpoint the real
      * client's lobby browser uses. Returns `undefined` if no entry matches.
      */

@@ -71,6 +71,7 @@ import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 import { ModActionService } from '../utils/ModActionService';
 import { ModActionSubmissionHandler } from '../utils/ModActionSubmissionHandler';
 import { PlayerReportService } from '../utils/PlayerReportService';
+import { ModActionRetentionService } from '../utils/ModActionRetentionService';
 import type { IModerator, PlayerReportUpdateResult } from '../utils/PlayerReportService';
 import {
     ModActionSubmitSchema,
@@ -338,6 +339,7 @@ export class GameServer {
     public readonly serverSettingsCache?: ServerSettingsCache;
     public readonly modActionService?: ModActionService;
     public readonly playerReportService = new PlayerReportService(this.userFactory, () => this.modActionService);
+    private readonly modActionRetentionService = new ModActionRetentionService();
     private readonly modActionSubmissionHandler?: ModActionSubmissionHandler;
 
     /**
@@ -494,6 +496,12 @@ export class GameServer {
         const reportCleanupErrorContext = { message: 'GameServer: error during player report retention cleanup' };
         this.scheduler.setTimeout(runReportRetentionCleanup, 60_000, reportCleanupErrorContext);
         this.scheduler.setInterval(runReportRetentionCleanup, PlayerReportService.CleanupIntervalMs, reportCleanupErrorContext);
+
+        // delete mod actions that ended longer ago than the retention period
+        const runModActionRetentionCleanup = () => this.modActionRetentionService.runCleanupAsync(this.scheduler.currentDate());
+        const modActionCleanupErrorContext = { message: 'GameServer: error during mod action retention cleanup' };
+        this.scheduler.setTimeout(runModActionRetentionCleanup, 60_000, modActionCleanupErrorContext);
+        this.scheduler.setInterval(runModActionRetentionCleanup, ModActionRetentionService.CleanupIntervalMs, modActionCleanupErrorContext);
 
         if (this.config.metricsLoggingEnabled) {
             // initialize cpu usage and event loop stats

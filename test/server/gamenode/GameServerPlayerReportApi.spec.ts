@@ -36,6 +36,18 @@ describe('GameServer player report API', function () {
         });
     }
 
+    for (const endpoint of postEndpoints) {
+        it(`rejects a logged-in player without the moderator role calling ${endpoint.path}`, async function () {
+            const player = harness.createClient({ authenticated: true });
+
+            const response = await player.postAsync(endpoint.path, endpoint.body);
+
+            expect(response.status).toBe(403);
+            expect(response.body.reports).toBeUndefined();
+            expect(response.body.report).toBeUndefined();
+        });
+    }
+
     it('rejects an anonymous user reading the open report count', async function () {
         const response = await harness.api
             .get('/api/mod/reports/open-count')

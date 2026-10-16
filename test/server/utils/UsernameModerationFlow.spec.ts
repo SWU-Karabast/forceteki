@@ -90,14 +90,16 @@ class InMemoryModerationDb {
         if (!item || item.cancelledAt) {
             return Promise.reject(new Error('ConditionalCheckFailedException'));
         }
-        Object.assign(item, { cancelledAt: new Date().toISOString(), cancelledById, cancelledByUsername, active: false });
+        const cancelledAt = new Date().toISOString();
+        Object.assign(item, { cancelledAt, cancelledById, cancelledByUsername, endedAt: item.endedAt ?? cancelledAt, active: false });
         return Promise.resolve({ Attributes: { ...item } });
     }
 
-    public removeModActionFromActiveIndexAsync(playerId: string, modActionId: string): Promise<unknown> {
+    public endModActionAsync(playerId: string, modActionId: string, endedAt: string): Promise<unknown> {
         const item = this.modActions.get(this.key(playerId, modActionId));
         if (item) {
             item.active = false;
+            item.endedAt = endedAt;
         }
         return Promise.resolve({});
     }

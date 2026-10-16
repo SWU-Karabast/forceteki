@@ -19,6 +19,7 @@ import type { ISerializedMessage } from '../../../server/game/Interfaces';
 import { PlayerReportType } from '../../../server/game/Interfaces';
 import type { INewPlayerReport } from '../../../server/utils/PlayerReportService';
 import { PlayerReportService } from '../../../server/utils/PlayerReportService';
+import { monthOf } from '../../../server/utils/RetentionBuckets';
 import type { UserFactory } from '../../../server/utils/user/UserFactory';
 import type { ModActionService } from '../../../server/utils/ModActionService';
 
@@ -55,7 +56,7 @@ class FakeReportDb {
         return Promise.resolve(this.index.filter((entry) => entry.playerId === playerId).map((entry) => ({ ...entry })));
     }
 
-    public updatePlayerReportAsync(reportId: string, expectedStatus: PlayerReportStatus, set: Partial<IPlayerReportEntity>, remove: (keyof IPlayerReportEntity)[], gsiKey?: string) {
+    public updatePlayerReportAsync(reportId: string, expectedStatus: PlayerReportStatus, set: Partial<IPlayerReportEntity>, remove: (keyof IPlayerReportEntity)[] = [], gsiKey?: string) {
         const stored = this.reports.get(reportId);
         if (!stored || stored.report.status !== expectedStatus) {
             const error = new Error('The conditional request failed');
@@ -69,22 +70,35 @@ class FakeReportDb {
         return Promise.resolve({ ...report });
     }
 
-    public updatePlayerReportIndexAsync(playerId: string, role: PlayerReportRole, reportId: string, status: PlayerReportStatus, outcome?: PlayerReportOutcome) {
-        const entry = this.index.find((e) => e.playerId === playerId && e.role === role && e.reportId === reportId);
-        entry.status = status;
-        entry.outcome = outcome;
-        return Promise.resolve();
-    }
+    /** Fails like a cancelled transaction would, so tests can simulate a concurrent change */
+    public failNextTransitions = 0;
 
-    public setPlayerReportLogExpiryAsync(reportId: string, expiryGsiKey: string | null) {
-        if (this.logs.has(reportId)) {
-            if (expiryGsiKey) {
-                this.logExpiry.set(reportId, expiryGsiKey);
-            } else {
-                this.logExpiry.delete(reportId);
-            }
+    public transitionPlayerReportAsync(
+        report: IPlayerReportEntity,
+        expectedStatus: PlayerReportStatus,
+        set: Partial<IPlayerReportEntity>,
+        remove: (keyof IPlayerReportEntity)[],
+        gsiKey: string,
+        logExpiryGsiKey: string | null
+    ) {
+        if (this.failNextTransitions > 0) {
+            this.failNextTransitions--;
+            return Promise.resolve({ success: false as const, reason: 'condition' as const });
         }
-        return Promise.resolve();
+        return this.updatePlayerReportAsync(report.id, expectedStatus, set, remove, gsiKey).then((updated) => {
+            for (const entry of this.index.filter((e) => e.reportId === report.id)) {
+                entry.status = updated.status;
+                entry.outcome = updated.outcome;
+            }
+            if (this.logs.has(report.id)) {
+                if (logExpiryGsiKey) {
+                    this.logExpiry.set(report.id, logExpiryGsiKey);
+                } else {
+                    this.logExpiry.delete(report.id);
+                }
+            }
+            return { success: true as const, report: updated };
+        });
     }
 
     public queryAttributesByGsiAsync(gsiKey: string) {
@@ -96,22 +110,39 @@ class FakeReportDb {
         return Promise.resolve([...fromLogs, ...fromReports]);
     }
 
-    public deletePlayerReportLogsAsync(reportId: string, deletedAt: string) {
+    /** Throws for these reports, to test that one failure does not stop the cleanup */
+    public failingCleanupIds = new Set<string>();
+
+    private isDueForCleanup(reportId: string, closedBefore: string) {
+        if (this.failingCleanupIds.has(reportId)) {
+            throw new Error(`throttled on ${reportId}`);
+        }
+        const report = this.reports.get(reportId)?.report;
+        return report?.status === PlayerReportStatus.Closed && report.closedAt < closedBefore;
+    }
+
+    public deletePlayerReportLogsAsync(reportId: string, deletedAt: string, closedBefore: string) {
+        if (!this.isDueForCleanup(reportId, closedBefore)) {
+            return Promise.resolve(false);
+        }
         this.logs.delete(reportId);
         this.logExpiry.delete(reportId);
         const stored = this.reports.get(reportId);
         if (stored) {
             stored.report = { ...stored.report, logsDeletedAt: deletedAt };
         }
-        return Promise.resolve();
+        return Promise.resolve(true);
     }
 
-    public deletePlayerReportAsync(reportId: string) {
+    public deletePlayerReportAsync(reportId: string, _reporterId: string, _reportedPlayerId: string, closedBefore: string) {
+        if (!this.isDueForCleanup(reportId, closedBefore)) {
+            return Promise.resolve(false);
+        }
         this.reports.delete(reportId);
         this.logs.delete(reportId);
         this.logExpiry.delete(reportId);
         this.index = this.index.filter((entry) => entry.reportId !== reportId);
-        return Promise.resolve();
+        return Promise.resolve(true);
     }
 
     public getPlayerReportCleanupCursorAsync() {
@@ -273,7 +304,7 @@ describe('PlayerReportService', function() {
             const stored = db.reports.get(report.id);
             expect(stored.report.status).toBe(PlayerReportStatus.Closed);
             expect(stored.report.closingNote).toBe('nothing found');
-            expect(stored.gsiKey).toBe(DynamoDBServiceModule.closedPlayerReportGsiKey(PlayerReportService.monthOf(new Date())));
+            expect(stored.gsiKey).toBe(DynamoDBServiceModule.closedPlayerReportGsiKey(monthOf(new Date())));
             expect(db.index.every((entry) => entry.status === PlayerReportStatus.Closed && entry.outcome === PlayerReportOutcome.NoAction)).toBeTrue();
         });
 
@@ -316,6 +347,26 @@ describe('PlayerReportService', function() {
             expect(stored.report.claimedByUsername).toBe('ModBob');
             expect(stored.gsiKey).toBe(DynamoDBServiceModule.OPEN_PLAYER_REPORT_GSI_KEY);
             expect(db.index.every((entry) => entry.status === PlayerReportStatus.Open && entry.outcome === undefined)).toBeTrue();
+        });
+
+        it('retries a close once when the report changed underneath, then reports the new state', async function() {
+            const report = await service.createReportAsync(newReport());
+            db.failNextTransitions = 1;
+
+            const closed = await service.closeReportAsync(report.id, PlayerReportOutcome.NoAction, undefined, moderator);
+
+            expect(closed.success).toBeTrue();
+            expect(db.reports.get(report.id).report.status).toBe(PlayerReportStatus.Closed);
+        });
+
+        it('reports a conflict instead of failing when the report keeps changing', async function() {
+            const report = await service.createReportAsync(newReport());
+            db.failNextTransitions = 3;
+
+            const result = await service.closeReportAsync(report.id, PlayerReportOutcome.NoAction, undefined, moderator);
+
+            expect(result).toEqual(jasmine.objectContaining({ success: false, reason: 'conflict' }));
+            expect(db.reports.get(report.id).report.status).toBe(PlayerReportStatus.Open);
         });
     });
 
@@ -363,6 +414,15 @@ describe('PlayerReportService', function() {
 
             expect(detail.reportedPlayer.username).toBe('Guest');
             expect(detail.reportedPlayer.createdAt).toBeUndefined();
+        });
+
+        it('accepts only the two players of a report as targets for actions issued from it', async function() {
+            const report = await service.createReportAsync(newReport());
+
+            expect(await service.isParticipantAsync(report.id, reporter.id)).toBeTrue();
+            expect(await service.isParticipantAsync(report.id, reportedPlayer.id)).toBeTrue();
+            expect(await service.isParticipantAsync(report.id, 'someone-else')).toBeFalse();
+            expect(await service.isParticipantAsync('missing', reporter.id)).toBeFalse();
         });
 
         it('returns null for an unknown report', async function() {
@@ -446,6 +506,65 @@ describe('PlayerReportService', function() {
             expect(db.logs.has(notYet)).toBeFalse();
         });
 
+        it('keeps the logs and the report of a ticket that was reopened after the cleanup read its bucket', async function() {
+            const reportId = await closeAt('2026-10-05T18:00:00.000Z');
+            db.reports.get(reportId).report.status = PlayerReportStatus.Open;
+
+            const result = await service.runRetentionCleanupAsync(new Date('2027-12-01T08:00:00.000Z'));
+
+            expect(result).toEqual({ logsDeleted: 0, reportsDeleted: 0 });
+            expect(db.logs.has(reportId)).toBeTrue();
+            expect(db.reports.has(reportId)).toBeTrue();
+        });
+
+        it('does not delete the logs early of a ticket that was reopened and closed again', async function() {
+            const reportId = await closeAt('2026-10-05T18:00:00.000Z');
+            // Closed again later; the old expiry bucket entry is still what the cleanup reads
+            db.reports.get(reportId).report.closedAt = '2026-10-20T10:00:00.000Z';
+
+            const result = await service.runRetentionCleanupAsync(new Date('2026-11-05T08:00:00.000Z'));
+
+            expect(result.logsDeleted).toBe(0);
+            expect(db.logs.has(reportId)).toBeTrue();
+        });
+
+        it('carries on after a failing report and retries its bucket on the next run', async function() {
+            const failing = await closeAt('2026-10-05T18:00:00.000Z');
+            const working = await closeAt('2026-10-05T19:00:00.000Z');
+            db.failingCleanupIds.add(failing);
+
+            const result = await service.runRetentionCleanupAsync(new Date('2026-11-05T08:00:00.000Z'));
+
+            expect(result.logsDeleted).toBe(1);
+            expect(db.logs.has(working)).toBeFalse();
+            expect(db.logs.has(failing)).toBeTrue();
+            // The bucket of 2026-11-04 had a failure, so the cursor stays before it
+            expect(db.cursor.lastLogDay).toBe('2026-11-03');
+
+            db.failingCleanupIds.clear();
+            const retry = await service.runRetentionCleanupAsync(new Date('2026-11-05T09:00:00.000Z'));
+            expect(retry.logsDeleted).toBe(1);
+            expect(db.cursor.lastLogDay).toBe('2026-11-04');
+        });
+
+        it('keeps going when a bucket cannot be read and retries it on the next run', async function() {
+            const reportId = await closeAt('2026-10-05T18:00:00.000Z');
+            const query = db.queryAttributesByGsiAsync.bind(db);
+            const spy = spyOn(db, 'queryAttributesByGsiAsync').and.callFake((gsiKey: string) =>
+                (gsiKey === DynamoDBServiceModule.playerReportLogExpiryGsiKey('2026-11-03') ? Promise.reject(new Error('throttled')) : query(gsiKey)));
+
+            const result = await service.runRetentionCleanupAsync(new Date('2026-11-05T08:00:00.000Z'));
+
+            // The later 2026-11-04 bucket is still cleaned, but the cursor stays before the unreadable day
+            expect(result.logsDeleted).toBe(1);
+            expect(db.logs.has(reportId)).toBeFalse();
+            expect(db.cursor.lastLogDay).toBe('2026-11-02');
+
+            spy.and.callFake(query);
+            await service.runRetentionCleanupAsync(new Date('2026-11-05T09:00:00.000Z'));
+            expect(db.cursor.lastLogDay).toBe('2026-11-04');
+        });
+
         it('never deletes the logs of open tickets', async function() {
             const open = await service.createReportAsync(newReport());
 
@@ -486,13 +605,6 @@ describe('PlayerReportService', function() {
             const serviceWithoutDb = new PlayerReportService(noUserFactory as UserFactory, () => undefined);
 
             expect(await serviceWithoutDb.runRetentionCleanupAsync()).toEqual({ logsDeleted: 0, reportsDeleted: 0 });
-        });
-    });
-
-    describe('month helpers', function() {
-        it('steps across year boundaries', function() {
-            expect(PlayerReportService.previousMonth('2027-01')).toBe('2026-12');
-            expect(PlayerReportService.nextMonth('2026-12')).toBe('2027-01');
         });
     });
 });
