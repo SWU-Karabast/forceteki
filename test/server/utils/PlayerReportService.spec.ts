@@ -4,14 +4,16 @@ import type {
     IPlayerReportCleanupCursor,
     IPlayerReportEntity,
     IPlayerReportIndexEntity,
-    IPlayerReportLogEntity
+    IPlayerReportLogEntity,
+    IUsernameChangeEntity
 } from '../../../server/services/DynamoDBInterfaces';
 import {
     ModActionType,
     PlayerReportLogKind,
     PlayerReportOutcome,
     PlayerReportRole,
-    PlayerReportStatus
+    PlayerReportStatus,
+    UsernameChangeSource
 } from '../../../server/services/DynamoDBInterfaces';
 import type { ISerializedMessage } from '../../../server/game/Interfaces';
 import { PlayerReportType } from '../../../server/game/Interfaces';
@@ -133,6 +135,7 @@ describe('PlayerReportService', function() {
 
     let db: FakeReportDb;
     let modActionsByPlayer: Map<string, IModActionEntity[]>;
+    let usernameChangesByPlayer: Map<string, IUsernameChangeEntity[]>;
     let service: PlayerReportService;
 
     const chatLine = (speaker: { id: string; username: string }, text: string, date = new Date()): ISerializedMessage => ({
@@ -165,15 +168,18 @@ describe('PlayerReportService', function() {
     beforeEach(function() {
         db = new FakeReportDb();
         modActionsByPlayer = new Map();
+        usernameChangesByPlayer = new Map();
         spyOn(DynamoDBServiceModule, 'getDynamoDbServiceAsync').and.resolveTo(db as unknown as DynamoDBService);
 
         const userFactory = {
             getModActionHistoryAsync: (playerId: string) => Promise.resolve(modActionsByPlayer.get(playerId) ?? []),
+            getUsernameChangeHistoryAsync: (playerId: string) => Promise.resolve(usernameChangesByPlayer.get(playerId) ?? []),
         } as unknown as UserFactory;
         const modActionService = {
             isPlayerMuted: (playerId: string) => playerId === reportedPlayer.id,
             playerActiveRename: () => null,
             getActiveReportingDisabledActionId: (playerId: string) => (playerId === reporter.id ? 'reporting-disabled-action' : null),
+            getActiveUsernameChangesBlockedActionId: (playerId: string) => (playerId === reportedPlayer.id ? 'username-blocked-action' : null),
         } as unknown as ModActionService;
 
         service = new PlayerReportService(userFactory, () => modActionService);
@@ -327,11 +333,27 @@ describe('PlayerReportService', function() {
             expect(detail.reportedPlayer.isMuted).toBeTrue();
             expect(detail.reporter.activeReportingDisabledId).toBe('reporting-disabled-action');
             expect(detail.reportedPlayer.activeReportingDisabledId).toBeNull();
+            expect(detail.reportedPlayer.activeUsernameChangesBlockedId).toBe('username-blocked-action');
+            expect(detail.reporter.activeUsernameChangesBlockedId).toBeNull();
             expect(detail.reportedPlayer.username).toBe('current-reported-id');
             expect(detail.reportedPlayer.reportsAgainst.length).toBe(1);
             expect(detail.reporter.reportsFiled.length).toBe(1);
             expect(detail.ticketActions.map((a) => a.id)).toEqual(['a', 'ccc']);
             expect(detail.chatLog.lines.length).toBe(2);
+        });
+
+        it('includes each player\'s username history so offensive-username reports can be judged', async function() {
+            const report = await service.createReportAsync(newReport());
+            const change: IUsernameChangeEntity = {
+                id: 'change-1', playerId: reportedPlayer.id, previousUsername: 'OffensiveName', newUsername: 'current-reported-id',
+                source: UsernameChangeSource.UserInitiated, createdAt: '2026-10-01T00:00:00.000Z',
+            };
+            usernameChangesByPlayer.set(reportedPlayer.id, [change]);
+
+            const detail = await service.getReportDetailAsync(report.id);
+
+            expect(detail.reportedPlayer.usernameChanges).toEqual([change]);
+            expect(detail.reporter.usernameChanges).toEqual([]);
         });
 
         it('falls back to the username at report time for players without a profile', async function() {

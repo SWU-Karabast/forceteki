@@ -7,7 +7,8 @@ import type {
     IPlayerReportEntity,
     IPlayerReportIndexEntity,
     IPlayerReportLogEntity,
-    IPlayerReportLogLine
+    IPlayerReportLogLine,
+    IUsernameChangeEntity
 } from '../services/DynamoDBInterfaces';
 import {
     PlayerReportLogKind,
@@ -53,7 +54,13 @@ export interface IPlayerReportPlayerContext {
 
     /** Id of the active ReportingDisabled mod action, if the player may currently not file reports */
     activeReportingDisabledId: string | null;
+
+    /** Id of the active UsernameChangesBlocked mod action, if the player may currently not rename themselves */
+    activeUsernameChangesBlockedId: string | null;
     modActions: IModActionEntity[];
+
+    /** Past usernames, newest first; the main evidence for offensive-username reports */
+    usernameChanges: IUsernameChangeEntity[];
     reportsAgainst: IPlayerReportIndexEntity[];
     reportsFiled: IPlayerReportIndexEntity[];
 }
@@ -427,9 +434,10 @@ export class PlayerReportService {
         const dbService = await this.dbServicePromise;
         const modActionService = this.getModActionService();
 
-        const [profile, modActions, reportIndex] = await Promise.all([
+        const [profile, modActions, usernameChanges, reportIndex] = await Promise.all([
             dbService.getUserProfileAsync(playerId),
             this.userFactory.getModActionHistoryAsync(playerId),
+            this.userFactory.getUsernameChangeHistoryAsync(playerId),
             dbService.getPlayerReportIndexAsync(playerId),
         ]);
 
@@ -442,7 +450,9 @@ export class PlayerReportService {
             isMuted: modActionService?.isPlayerMuted(playerId) ?? false,
             activeRename: modActionService?.playerActiveRename(playerId) ?? null,
             activeReportingDisabledId: modActionService?.getActiveReportingDisabledActionId(playerId) ?? null,
+            activeUsernameChangesBlockedId: modActionService?.getActiveUsernameChangesBlockedActionId(playerId) ?? null,
             modActions,
+            usernameChanges,
             reportsAgainst: reportIndex.filter((entry) => entry.role === PlayerReportRole.Reported).sort(newestFirst),
             reportsFiled: reportIndex.filter((entry) => entry.role === PlayerReportRole.Reporter).sort(newestFirst),
         };
