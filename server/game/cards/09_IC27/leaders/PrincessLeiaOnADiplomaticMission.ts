@@ -9,7 +9,7 @@ import { RelativePlayer, ZoneName } from '../../../core/Constants';
 export default class PrincessLeiaOnADiplomaticMission extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'princess-leia#on-a-diplomatic-mission-id',
+            id: '9505461983',
             internalName: 'princess-leia#on-a-diplomatic-mission',
         };
     }
