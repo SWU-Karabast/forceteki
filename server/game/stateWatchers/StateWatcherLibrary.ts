@@ -1,6 +1,7 @@
 import { AttacksThisPhaseWatcher } from './AttacksThisPhaseWatcher';
 import { CardsLeftPlayThisPhaseWatcher } from './CardsLeftPlayThisPhaseWatcher';
 import { CardsPlayedThisPhaseWatcher } from './CardsPlayedThisPhaseWatcher';
+import { CardsPlayedThisRoundWatcher } from './CardsPlayedThisRoundWatcher';
 import { CardsDefeatedThisPhaseWatcher } from './CardsDefeatedThisPhaseWatcher';
 import { CardsEnteredPlayThisPhaseWatcher } from './CardsEnteredPlayThisPhaseWatcher';
 import { DamageDealtThisPhaseWatcher } from './DamageDealtThisPhaseWatcher';
@@ -84,6 +85,13 @@ export class StateWatcherLibrary {
         return this.game.stateWatcherRegistrar.registerWatcher(
             StateWatcherName.CardsPlayedThisPhase,
             (registrar: StateWatcherRegistrar) => new CardsPlayedThisPhaseWatcher(this.game, registrar)
+        );
+    }
+
+    public cardsPlayedThisRound() {
+        return this.game.stateWatcherRegistrar.registerWatcher(
+            StateWatcherName.CardsPlayedThisRound,
+            (registrar: StateWatcherRegistrar) => new CardsPlayedThisRoundWatcher(this.game, registrar)
         );
     }
 

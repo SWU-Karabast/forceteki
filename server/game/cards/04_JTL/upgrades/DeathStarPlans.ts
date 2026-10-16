@@ -4,10 +4,10 @@ import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { CardType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { TextHelper } from '../../../core/utils/TextHelper';
-import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import type { CardsPlayedThisRoundWatcher } from '../../../stateWatchers/CardsPlayedThisRoundWatcher';
 
 export default class DeathStarPlans extends UpgradeCard {
-    private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
+    private cardsPlayedThisRoundWatcher: CardsPlayedThisRoundWatcher;
     protected override getImplementationId() {
         return {
             id: '7501988286',
@@ -16,7 +16,7 @@ export default class DeathStarPlans extends UpgradeCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase();
+        this.cardsPlayedThisRoundWatcher = AbilityHelper.stateWatchers.cardsPlayedThisRound();
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -52,7 +52,7 @@ export default class DeathStarPlans extends UpgradeCard {
 
     private isFirstUnitPlayedThisPhase(card) {
         return card.isUnit() &&
-          !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
+          !this.cardsPlayedThisRoundWatcher.someCardPlayed((playedCardEntry) =>
               playedCardEntry.playedAsType === CardType.BasicUnit &&
               playedCardEntry.playedBy === card.controller
           );
