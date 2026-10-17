@@ -1,12 +1,12 @@
 import FormData from 'form-data';
-import type { User } from '../../utils/user/User';
-import { httpPostFormData } from '../../Util';
+import type { User } from '../utils/user/User';
+import { httpPostFormData } from '../Util';
 import type { ISerializedGameState, ISerializedMessage, ISerializedReportState, ISerializedUndoFailureState,
-    MessageText } from '../Interfaces';
-import { logger } from '../../logger';
-import { Helpers } from './utils/Helpers';
-import type { MatchmakingType } from '../../gamenode/Lobby';
-import type { SwuGameFormat } from './Constants';
+    MessageText } from '../game/Interfaces';
+import { logger } from '../logger';
+import { Helpers } from '../game/core/utils/Helpers';
+import type { MatchmakingType } from './Lobby';
+import type { SwuGameFormat } from '../game/core/Constants';
 
 interface IDiscordFormat {
     content: string;

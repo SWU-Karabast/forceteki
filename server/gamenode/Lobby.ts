@@ -26,7 +26,7 @@ import {
     SwuGameFormat
 } from '../game/core/Constants';
 import { UndoMode } from '../game/core/snapshot/SnapshotManager';
-import type { DiscordDispatcher } from '../game/core/DiscordDispatcher';
+import type { DiscordDispatcher } from './DiscordDispatcher';
 import type { Player } from '../game/core/Player';
 import type { IQueueFormatKey } from './QueueHandler';
 import type { IMatchmakingSearchContext } from './MatchmakingRules';
@@ -134,6 +134,18 @@ export interface RematchRequest {
 
 export class Lobby {
     private static readonly MaxGameMessageErrors = 100;
+
+    /** Seconds a quick lobby's countdown counts down from. */
+    private static readonly QuickLobbyCountdownStartSeconds = 5;
+
+    private static readonly QuickLobbyCountdownTickMs = 1000;
+
+    /**
+     * How long after a quick lobby is set up its game can first start: the countdown ticks down from
+     * {@link QuickLobbyCountdownStartSeconds} to 0, and the game starts on the tick after that once both
+     * players are connected.
+     */
+    public static readonly QuickLobbyCountdownMs = (Lobby.QuickLobbyCountdownStartSeconds + 1) * Lobby.QuickLobbyCountdownTickMs;
 
     private readonly _id: string;
     private readonly _lobbyName: string;
@@ -685,7 +697,7 @@ export class Lobby {
         return Promise.resolve();
     }
 
-    private quickLobbyCountdownAsync(remainingSeconds = 5) {
+    private quickLobbyCountdownAsync(remainingSeconds = Lobby.QuickLobbyCountdownStartSeconds) {
         if (remainingSeconds > -1) {
             this.matchingCountdownText = `Starts in ${remainingSeconds}`;
         } else if (remainingSeconds > -4) {
@@ -703,7 +715,7 @@ export class Lobby {
         }
 
         this.matchingCountdownTask =
-            this.buildSafeTimeout(() => this.quickLobbyCountdownAsync(remainingSeconds - 1), 1000, 'Lobby: error during quick lobby countdown');
+            this.buildSafeTimeout(() => this.quickLobbyCountdownAsync(remainingSeconds - 1), Lobby.QuickLobbyCountdownTickMs, 'Lobby: error during quick lobby countdown');
 
         this.sendLobbyState(true);
         return Promise.resolve();

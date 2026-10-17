@@ -106,7 +106,6 @@ export const endedModActionGsiKey = (month: string): string => `ENDED_MODACTION#
 
 const PLAYER_REPORT_LOG_KINDS = ['Chat', 'Game'] as const;
 
-/** Exported for tests that stub the client; production code obtains the instance via getDynamoDbServiceAsync */
 export class DynamoDBService {
     private client: DynamoDBDocumentClient;
     private tableName: string;

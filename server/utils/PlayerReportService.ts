@@ -17,7 +17,7 @@ import {
     PlayerReportStatus
 } from '../services/DynamoDBInterfaces';
 import type { ISerializedMessage } from '../game/Interfaces';
-import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
+import { DiscordDispatcher } from '../gamenode/DiscordDispatcher';
 import type { UserFactory } from './user/UserFactory';
 import type { ModActionService } from './ModActionService';
 import { addDays, dayOf, lastExpiredMonth, monthOf, nextMonth, previousMonth } from './RetentionBuckets';

@@ -1,6 +1,8 @@
 import { TimedCache } from './TimedCache';
 import { getDynamoDbServiceAsync } from '../services/DynamoDBService';
 import type { IServerSettingsEntity } from '../services/DynamoDBInterfaces';
+import type { IScheduler } from './IScheduler';
+import { RealScheduler } from './RealScheduler';
 
 /**
  * Used when no settings have been stored yet, or when the database is unavailable. Games are
@@ -19,8 +21,13 @@ const defaultSettings: IServerSettingsEntity = { gamesEnabled: true };
  */
 export class ServerSettingsCache {
     private readonly cache: TimedCache<IServerSettingsEntity>;
+    private readonly scheduler: IScheduler;
 
-    public static async createAsync(refreshIntervalMinutes: number): Promise<ServerSettingsCache> {
+    /**
+     * @param scheduler Drives the periodic refresh and supplies the clock for `updatedAt`; defaults to
+     * real timers and the system clock
+     */
+    public static async createAsync(refreshIntervalMinutes: number, scheduler: IScheduler = new RealScheduler()): Promise<ServerSettingsCache> {
         const cache = new TimedCache<IServerSettingsEntity>(
             refreshIntervalMinutes,
             async () => {
@@ -30,16 +37,25 @@ export class ServerSettingsCache {
                 }
                 return await db.getServerSettingsAsync();
             },
-            'ServerSettingsCache'
+            'ServerSettingsCache',
+            scheduler
         );
 
         await cache.initializeAsync();
 
-        return new ServerSettingsCache(cache);
+        return new ServerSettingsCache(cache, scheduler);
     }
 
-    private constructor(cache: TimedCache<IServerSettingsEntity>) {
+    private constructor(cache: TimedCache<IServerSettingsEntity>, scheduler: IScheduler) {
         this.cache = cache;
+        this.scheduler = scheduler;
+    }
+
+    /**
+     * Stops the periodic refresh. Reads keep answering from the last fetched settings.
+     */
+    public stop(): void {
+        this.cache.stop();
     }
 
     public getSettings(): IServerSettingsEntity {
@@ -78,7 +94,7 @@ export class ServerSettingsCache {
             gamesEnabled: updates.gamesEnabled ?? current.gamesEnabled,
             maintenanceMessage: updates.maintenanceMessage ?? current.maintenanceMessage,
             updatedBy: modUsername,
-            updatedAt: new Date().toISOString()
+            updatedAt: this.scheduler.currentDate().toISOString()
         });
 
         await this.cache.forceRefreshAsync();

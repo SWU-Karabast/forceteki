@@ -1,123 +1,18 @@
 import * as DynamoDBServiceModule from '../../../server/services/DynamoDBService';
-import type { IModActionEntity, IUsernameChangeEntity, IUserProfileDataEntity } from '../../../server/services/DynamoDBInterfaces';
-import { isTrackedModAction, ModActionType, ModerationFieldState, UsernameChangeSource } from '../../../server/services/DynamoDBInterfaces';
-import { ModActionEntitySchema, UsernameChangeEntitySchema } from '../../../server/services/DynamoDBInterfaceSchemas';
+import type { IUserProfileDataEntity } from '../../../server/services/DynamoDBInterfaces';
+import { ModActionType, ModerationFieldState, UsernameChangeSource } from '../../../server/services/DynamoDBInterfaces';
 import { ModActionService } from '../../../server/utils/ModActionService';
 import type { IModActionSubmission } from '../../../server/utils/ModActionSubmissionHandler';
 import { ModActionSubmissionHandler } from '../../../server/utils/ModActionSubmissionHandler';
 import { UserFactory } from '../../../server/utils/user/UserFactory';
 import { migrateMustRequestUsernameChangeAsync } from '../../../scripts/migration/usernameBlockMigration';
-
-type DynamoDBService = Awaited<ReturnType<typeof DynamoDBServiceModule.getDynamoDbServiceAsync>>;
-
-/**
- * In-memory stand-in for the DynamoDB methods the moderation code uses, keeping the semantics that matter:
- * only tracked, uncancelled actions are in the active index, cancel is conditional, and everything read
- * back goes through the same zod schemas as the real service.
- */
-class InMemoryModerationDb {
-    public readonly profiles = new Map<string, IUserProfileDataEntity>();
-    public readonly usernameLinks = new Set<string>();
-    public readonly usernameChanges: IUsernameChangeEntity[] = [];
-    public readonly modActions = new Map<string, IModActionEntity & { active: boolean }>();
-
-    public addProfile(profile: Partial<IUserProfileDataEntity> & { id: string; username: string }): void {
-        this.profiles.set(profile.id, {
-            lastLogin: '2026-01-01T00:00:00.000Z',
-            createdAt: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000).toISOString(),
-            showWelcomeMessage: false,
-            ...profile,
-        });
-        this.usernameLinks.add(`${profile.username.toLowerCase()}#${profile.id}`);
-    }
-
-    public getUserProfileAsync(userId: string): Promise<IUserProfileDataEntity | undefined> {
-        const profile = this.profiles.get(userId);
-        return Promise.resolve(profile ? { ...profile } : undefined);
-    }
-
-    public getAllUserProfilesAsync(): Promise<IUserProfileDataEntity[]> {
-        return Promise.resolve([...this.profiles.values()].map((profile) => ({ ...profile })));
-    }
-
-    public updateUserProfileAsync(userId: string, updates: Partial<IUserProfileDataEntity>): Promise<unknown> {
-        this.profiles.set(userId, { ...this.profiles.get(userId), ...updates });
-        return Promise.resolve({});
-    }
-
-    public removeUserProfileAttributeAsync(userId: string, attributeName: keyof IUserProfileDataEntity): Promise<unknown> {
-        const remaining = Object.fromEntries(Object.entries(this.profiles.get(userId)).filter(([key]) => key !== attributeName));
-        this.profiles.set(userId, remaining as unknown as IUserProfileDataEntity);
-        return Promise.resolve({});
-    }
-
-    public saveUsernameLinkAsync(username: string, userId: string): Promise<unknown> {
-        this.usernameLinks.add(`${username.toLowerCase()}#${userId}`);
-        return Promise.resolve({});
-    }
-
-    public deleteUsernameLinkAsync(username: string, userId: string): Promise<unknown> {
-        this.usernameLinks.delete(`${username.toLowerCase()}#${userId}`);
-        return Promise.resolve({});
-    }
-
-    public saveUsernameChangeAsync(record: IUsernameChangeEntity): Promise<unknown> {
-        this.usernameChanges.push(UsernameChangeEntitySchema.parse(record));
-        return Promise.resolve({});
-    }
-
-    public getUsernameChangesAsync(userId: string): Promise<IUsernameChangeEntity[]> {
-        return Promise.resolve(this.usernameChanges.filter((change) => change.playerId === userId));
-    }
-
-    public saveModActionAsync(modAction: IModActionEntity): Promise<unknown> {
-        this.modActions.set(this.key(modAction.playerId, modAction.id), {
-            ...modAction,
-            active: isTrackedModAction(modAction.actionType) && !modAction.cancelledAt,
-        });
-        return Promise.resolve({});
-    }
-
-    public getModActionsAsync(options: { userId?: string } = {}): Promise<IModActionEntity[]> {
-        const items = [...this.modActions.values()].filter((item) => {
-            return options.userId ? item.playerId === options.userId : item.active;
-        });
-        return Promise.resolve(items.map(({ active: _active, ...entity }) => ModActionEntitySchema.parse(entity)));
-    }
-
-    public cancelModActionAsync(playerId: string, modActionId: string, cancelledById: string, cancelledByUsername: string): Promise<{ Attributes: unknown }> {
-        const item = this.modActions.get(this.key(playerId, modActionId));
-        if (!item || item.cancelledAt) {
-            return Promise.reject(new Error('ConditionalCheckFailedException'));
-        }
-        const cancelledAt = new Date().toISOString();
-        Object.assign(item, { cancelledAt, cancelledById, cancelledByUsername, endedAt: item.endedAt ?? cancelledAt, active: false });
-        return Promise.resolve({ Attributes: { ...item } });
-    }
-
-    public endModActionAsync(playerId: string, modActionId: string, endedAt: string): Promise<unknown> {
-        const item = this.modActions.get(this.key(playerId, modActionId));
-        if (item) {
-            item.active = false;
-            item.endedAt = endedAt;
-        }
-        return Promise.resolve({});
-    }
-
-    public actionsOfType(actionType: ModActionType): (IModActionEntity & { active: boolean })[] {
-        return [...this.modActions.values()].filter((item) => item.actionType === actionType);
-    }
-
-    private key(playerId: string, modActionId: string): string {
-        return `${playerId}#${modActionId}`;
-    }
-}
+import { FakeDynamoDbService } from '../../helpers/server/FakeDynamoDbService';
 
 describe('Username moderation flow (real services over an in-memory DB)', function() {
     const playerId = 'player-1';
     const moderator = { moderatorId: 'mod-1', moderatorUsername: 'ModOne' };
 
-    let db: InMemoryModerationDb;
+    let db: FakeDynamoDbService;
     let modActions: ModActionService;
     let userFactory: UserFactory;
     let handler: ModActionSubmissionHandler;
@@ -134,10 +29,10 @@ describe('Username moderation flow (real services over an in-memory DB)', functi
         // ModActionService starts a refresh timer; the mock clock keeps it from leaking out of the spec
         jasmine.clock().install();
 
-        db = new InMemoryModerationDb();
+        db = new FakeDynamoDbService();
         db.addProfile({ id: playerId, username: 'BadName', usernameLastUpdatedAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString() });
 
-        spyOn(DynamoDBServiceModule, 'getDynamoDbServiceAsync').and.resolveTo(db as unknown as DynamoDBService);
+        spyOn(DynamoDBServiceModule, 'getDynamoDbServiceAsync').and.resolveTo(db.asService());
         modActions = await ModActionService.createAsync();
         userFactory = new UserFactory();
         handler = new ModActionSubmissionHandler(modActions, userFactory);

@@ -1,6 +1,7 @@
-import { CardPool, GamesToWinMode, SwuGameFormat } from '../../../server/game/core/Constants';
-import { serverIntegration } from '../../helpers/server/ServerIntegrationHelper';
-import type { ServerTestHarness } from '../../helpers/server/ServerTestHarness';
+import { CardPool, GamesToWinMode, SwuGameFormat } from '../../../../server/game/core/Constants';
+import { premierBestOfOne } from '../../../helpers/server/MatchConfigs';
+import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
+import type { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
 
 /**
  * Phase 0 vertical slice for the gamenode test suite.
@@ -22,9 +23,7 @@ describe('GameServer lobby API', function () {
                 user: harness.anonymousUser(),
                 deck: harness.decklists.validDecklist(),
                 lobbyName: harness.uniqueLobbyName(),
-                format: SwuGameFormat.Premier,
-                cardPool: CardPool.Current,
-                gamesToWinMode: GamesToWinMode.BestOfOne,
+                ...premierBestOfOne,
                 isPrivate: false,
                 ...overrides,
             };
