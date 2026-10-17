@@ -10,6 +10,7 @@ import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModAct
 import { CardImageLocale, ModerationType, TimerVisibility, UsernameChangeSource } from '../../services/DynamoDBInterfaces';
 import { evaluateUsernameChangeEligibility } from './UsernameRules';
 import { RefreshTokenSource } from '../statHandlers/StatHandlerTypes';
+import { getUsernameValidationError } from './UsernameValidation';
 
 
 const getDefaultSoundPreferences = () => ({
@@ -254,6 +255,15 @@ export class UserFactory {
             daysRemaining?: number;
         }> {
         try {
+            // The client validates too, but a request can skip it
+            const validationError = getUsernameValidationError(newUsername);
+            if (validationError) {
+                return {
+                    success: false,
+                    message: validationError
+                };
+            }
+
             const dbService = await this.dbServicePromise;
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
