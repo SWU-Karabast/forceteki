@@ -64,7 +64,7 @@ export async function getDynamoDbServiceAsync() {
     return dynamoDbService;
 }
 
-class DynamoDBService {
+export class DynamoDBService {
     private client: DynamoDBDocumentClient;
     private tableName: string;
     public isLocalMode: boolean;

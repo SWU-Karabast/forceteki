@@ -1,27 +1,21 @@
 import {
-    CardPool,
-    GamesToWinMode,
     MatchmakingCompetitivenessPreference,
     MatchmakingCompetitivenessPreferenceSearchStage,
     SwuGameFormat
-} from '../../../server/game/core/Constants';
-import { Lobby, MatchmakingType } from '../../../server/gamenode/Lobby';
-import { MatchmakingCompetitivenessPreferencePolicyKey } from '../../../server/gamenode/GameNodeConfig';
-import { serverIntegration } from '../../helpers/server/ServerIntegrationHelper';
-import type { ServerTestHarness } from '../../helpers/server/ServerTestHarness';
-import type { IMatchConfiguration, ITestClientOptions, TestClient } from '../../helpers/server/TestClient';
-
-const matchConfig = {
-    format: SwuGameFormat.Premier,
-    cardPool: CardPool.Current,
-    gamesToWinMode: GamesToWinMode.BestOfOne,
-};
+} from '../../../../server/game/core/Constants';
+import { Lobby, MatchmakingType } from '../../../../server/gamenode/Lobby';
+import { MatchmakingCompetitivenessPreferencePolicyKey } from '../../../../server/gamenode/GameNodeConfig';
+import type { IQueueFormatKey } from '../../../../server/gamenode/QueueHandler';
+import { premierBestOfOne } from '../../../helpers/server/MatchConfigs';
+import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
+import type { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
+import type { ITestClientOptions, TestClient } from '../../../helpers/server/TestClient';
 
 async function enterQueueAsync(
     harness: ServerTestHarness,
     client: TestClient,
     matchmakingPreference?: MatchmakingCompetitivenessPreference,
-    configuration: IMatchConfiguration = matchConfig
+    configuration: Readonly<IQueueFormatKey> = premierBestOfOne
 ): Promise<void> {
     const response = await client.enterQueueAsync({
         ...configuration,
@@ -37,7 +31,7 @@ async function queueClientAsync(
     harness: ServerTestHarness,
     matchmakingPreference?: MatchmakingCompetitivenessPreference,
     options: ITestClientOptions = {},
-    configuration: IMatchConfiguration = matchConfig
+    configuration: Readonly<IQueueFormatKey> = premierBestOfOne
 ): Promise<TestClient> {
     const client = harness.createClient(options);
     await enterQueueAsync(harness, client, matchmakingPreference, configuration);
@@ -80,7 +74,7 @@ describe('GameServer matchmaking preferences', function () {
                     const { harness } = contextRef;
                     const client = harness.createClient();
                     const response = await harness.api.post('/api/enter-queue').send({
-                        ...matchConfig,
+                        ...premierBestOfOne,
                         user: client.userPayload(),
                         deck: harness.decklists.validDecklist(),
                         matchmakingCompetitivenessPreference: matchmakingPreference,
@@ -331,7 +325,7 @@ describe('GameServer matchmaking preferences', function () {
                 let eternalPlayer2: TestClient;
                 try {
                     await setupStarted;
-                    const eternalConfig = { ...matchConfig, format: SwuGameFormat.Eternal };
+                    const eternalConfig = { ...premierBestOfOne, format: SwuGameFormat.Eternal };
                     eternalPlayer1 = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual, {}, eternalConfig);
                     eternalPlayer2 = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual, {}, eternalConfig);
                     expect(eternalPlayer1.lobbyState).toBeUndefined();
@@ -382,7 +376,7 @@ describe('GameServer matchmaking preferences', function () {
                 const competitive = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive);
                 const searchStartedAt = harness.clock.now();
                 await harness.clock.advanceAsync(10_000);
-                const eternalConfig = { ...matchConfig, format: SwuGameFormat.Eternal };
+                const eternalConfig = { ...premierBestOfOne, format: SwuGameFormat.Eternal };
                 const casual = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual, {}, eternalConfig);
 
                 expect(harness.clock.pendingTaskCount).toBe(backgroundTaskCount + 1);
@@ -400,7 +394,7 @@ describe('GameServer matchmaking preferences', function () {
                 const competitive = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive);
                 const casual = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual);
                 await harness.clock.advanceAsync(10_000);
-                const eternalConfig = { ...matchConfig, format: SwuGameFormat.Eternal };
+                const eternalConfig = { ...premierBestOfOne, format: SwuGameFormat.Eternal };
                 const eternalCompetitive = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Competitive, {}, eternalConfig);
                 const eternalCasual = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual, {}, eternalConfig);
 
@@ -698,7 +692,7 @@ describe('GameServer matchmaking preferences', function () {
                     await harness.clock.advanceAsync(20_000);
                     const opponent = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual);
                     expectMatched(player, opponent);
-                    await harness.clock.advanceAsync(6_000);
+                    await harness.clock.advanceAsync(Lobby.QuickLobbyCountdownMs);
                     expect(player.gameState).toBeDefined();
                     if (reconnectBeforeRequeue) {
                         await player.connectAsync();
@@ -784,9 +778,11 @@ describe('GameServer matchmaking preferences', function () {
                 expectMatched(competitive, casual);
             });
         }, {
-            matchmakingPreferencePolicy: {
-                [MatchmakingCompetitivenessPreferencePolicyKey.SamePreferenceOnlyDurationMs]: 2_000,
-                [MatchmakingCompetitivenessPreferencePolicyKey.NoPreferenceDurationMs]: 3_000,
+            config: {
+                matchmakingPreferencePolicy: {
+                    [MatchmakingCompetitivenessPreferencePolicyKey.SamePreferenceOnlyDurationMs]: 2_000,
+                    [MatchmakingCompetitivenessPreferencePolicyKey.NoPreferenceDurationMs]: 3_000,
+                },
             },
         });
     });
@@ -805,6 +801,6 @@ describe('GameServer matchmaking preferences', function () {
                 await harness.clock.advanceAsync(1);
                 expectMatched(competitive, casual);
             });
-        }, { enforceRematchCooldown: false });
+        }, { config: { enforceRematchCooldown: false } });
     });
 });

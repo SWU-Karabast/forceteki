@@ -1,9 +1,9 @@
 import { io as connectClient, type Socket as ClientSocket } from 'socket.io-client';
 import jwt from 'jsonwebtoken';
 
-import { CardPool, GamesToWinMode, SwuGameFormat } from '../../../server/game/core/Constants';
-import { testNextAuthSecret } from '../../helpers/server/ServerTestEnv';
-import { ServerTestHarness } from '../../helpers/server/ServerTestHarness';
+import { premierBestOfOne } from '../../../helpers/server/MatchConfigs';
+import { testNextAuthSecret } from '../../../helpers/server/ServerTestEnv';
+import { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
 
 /**
  * Guards the fake in-process transport (`FakeIoSocket` / `TestClient`) against drift from real
@@ -58,9 +58,7 @@ describe('socketio drift guard', function () {
         const created = await owner.createLobbyAsync({
             lobbyName,
             deck: harness.decklists.validDecklist(),
-            format: SwuGameFormat.Premier,
-            cardPool: CardPool.Current,
-            gamesToWinMode: GamesToWinMode.BestOfOne,
+            ...premierBestOfOne,
         });
         expect(created.status).toBe(200);
 
