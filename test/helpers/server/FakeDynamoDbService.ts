@@ -27,7 +27,8 @@ type FakedMethod =
   | 'saveUsernameLinkAsync' | 'deleteUsernameLinkAsync' | 'getUserIdsByUsernameAsync'
   | 'saveUsernameChangeAsync' | 'getUsernameChangesAsync'
   | 'saveModActionAsync' | 'getModActionsAsync' | 'activateMuteAsync' | 'cancelModActionAsync'
-  | 'removeModActionFromActiveIndexAsync'
+  | 'endModActionAsync' | 'deleteModActionAsync' | 'getModActionCleanupCursorAsync' | 'saveModActionCleanupCursorAsync'
+  | 'getPlayerReportCleanupCursorAsync' | 'savePlayerReportCleanupCursorAsync' | 'queryAttributesByGsiAsync'
   | 'getServerRoleUsersAsync' | 'getServerSettingsAsync' | 'saveServerSettingsAsync'
   | 'getCosmeticsAsync' | 'saveCosmeticAsync' | 'initializeCosmeticsAsync' | 'deleteCosmeticAsync' | 'clearAllCosmeticsAsync';
 
@@ -104,6 +105,8 @@ function deepMerge(target: Record<string, unknown>, source: Record<string, unkno
  * - `getUserProfileAsync` returns `undefined` for an unknown user, while `updateUserProfileAsync` and
  *   `recordNewLoginAsync` upsert, as DynamoDB's `UpdateItem` does;
  * - only tracked, uncancelled mod actions are in the active index, and cancelling is conditional;
+ * - a mod action gets its `endedAt` once (on creation for one-off actions, otherwise when it ends) and is
+ *   then listed in its month's ended bucket, which is all {@link queryAttributesByGsiAsync} serves;
  * - missing role lists read as four empty lists and missing settings as `{ gamesEnabled: true }`;
  * - everything read back through a zod schema in production goes through the same schema here.
  *
@@ -331,7 +334,8 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     // ---- Mod actions ----
 
     public saveModActionAsync(modAction: IModActionEntity): Promise<PutCommandOutput> {
-        this.seedModAction(modAction);
+        const isActive = isTrackedModAction(modAction.actionType) && !modAction.cancelledAt;
+        this.seedModAction(isActive ? modAction : { ...modAction, endedAt: modAction.endedAt ?? modAction.cancelledAt ?? modAction.createdAt });
         return Promise.resolve(putResult);
     }
 
@@ -360,16 +364,57 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
             return Promise.reject(conditionalCheckFailed());
         }
 
-        Object.assign(item, { cancelledAt: this.currentDate().toISOString(), cancelledById, cancelledByUsername, active: false });
+        const cancelledAt = this.currentDate().toISOString();
+        Object.assign(item, { cancelledAt, cancelledById, cancelledByUsername, endedAt: item.endedAt ?? cancelledAt, active: false });
         return Promise.resolve({ ...updateResult, Attributes: { ...item } });
     }
 
-    public removeModActionFromActiveIndexAsync(playerId: string, modActionId: string): Promise<UpdateCommandOutput> {
+    public endModActionAsync(playerId: string, modActionId: string, endedAt: string, options: { onlyIfInactive?: boolean } = {}): Promise<boolean> {
         const item = this.modActions.get(this.modActionKey(playerId, modActionId));
-        if (item) {
-            item.active = false;
+        if (!item || item.endedAt || (options.onlyIfInactive && item.active)) {
+            return Promise.resolve(false);
         }
-        return Promise.resolve(updateResult);
+        Object.assign(item, { endedAt, active: false });
+        return Promise.resolve(true);
+    }
+
+    public deleteModActionAsync(playerId: string, modActionId: string): Promise<DeleteCommandOutput> {
+        this.modActions.delete(this.modActionKey(playerId, modActionId));
+        return Promise.resolve(deleteResult);
+    }
+
+    // ---- Retention cleanups ----
+
+    public modActionCleanupCursor: { lastMonth: string } | null = null;
+    public playerReportCleanupCursor: { lastLogDay: string; lastMetadataMonth: string } | null = null;
+
+    public getModActionCleanupCursorAsync(): Promise<{ lastMonth: string } | null> {
+        return Promise.resolve(this.modActionCleanupCursor);
+    }
+
+    public saveModActionCleanupCursorAsync(cursor: { lastMonth: string }): Promise<PutCommandOutput> {
+        this.modActionCleanupCursor = { ...cursor };
+        return Promise.resolve(putResult);
+    }
+
+    public getPlayerReportCleanupCursorAsync(): Promise<{ lastLogDay: string; lastMetadataMonth: string } | null> {
+        return Promise.resolve(this.playerReportCleanupCursor);
+    }
+
+    public savePlayerReportCleanupCursorAsync(cursor: { lastLogDay: string; lastMetadataMonth: string }): Promise<PutCommandOutput> {
+        this.playerReportCleanupCursor = { ...cursor };
+        return Promise.resolve(putResult);
+    }
+
+    /** Serves the ended mod action buckets; the fake stores no player reports, so their buckets are empty. */
+    public queryAttributesByGsiAsync(gsiKey: string, attributes: string[]): Promise<Record<string, any>[]> {
+        const endedPrefix = 'ENDED_MODACTION#';
+        if (!gsiKey.startsWith(endedPrefix)) {
+            return Promise.resolve([]);
+        }
+        const month = gsiKey.substring(endedPrefix.length);
+        const actions = [...this.modActions.values()].filter((item) => !item.active && item.endedAt?.startsWith(month));
+        return Promise.resolve(actions.map((item) => Object.fromEntries(attributes.map((attribute) => [attribute, item[attribute as keyof StoredModAction]]))));
     }
 
     // ---- Server roles and settings ----

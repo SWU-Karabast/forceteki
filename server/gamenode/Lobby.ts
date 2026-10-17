@@ -2640,10 +2640,36 @@ export class Lobby {
                 chatMessages = this.gameChat.getPlayerChatMessages();
             }
 
+            // Player reports are stored for the mod tools dashboard; only bug reports still go to Discord
+            if (reportType === ReportType.PlayerReport) {
+                await this.server.playerReportService.createReportAsync({
+                    reporter: { id: socket.user.getId(), username: socket.user.getUsername() },
+                    reportedPlayer: opponent,
+                    offense: playerReportType ?? PlayerReportType.Other,
+                    description: parsedDescription,
+                    lobbyId: this.id,
+                    gameId: this.game?.id,
+                    gameFormat: String(this.gameFormat),
+                    matchType: String(this.matchmakingType),
+                    gameStepsSinceLastUndo: this.game?.snapshotManager.gameStepsSinceLastUndo,
+                    screenResolution,
+                    viewport,
+                    gameMessages,
+                    chatMessages: chatMessages ?? [],
+                });
+
+                socket.send(resultEvent, {
+                    id: uuid(),
+                    success: true,
+                    message: `Successfully sent ${reportLabel}`
+                });
+                this.sendLobbyState();
+                return;
+            }
+
             const report = this.discordDispatcher.formatReport(
                 parsedDescription,
                 gameState,
-                playerReportType,
                 socket.user,
                 opponent,
                 gameMessages,
@@ -2653,18 +2679,15 @@ export class Lobby {
                 this.game?.snapshotManager.gameStepsSinceLastUndo,
                 this.game?.id,
                 screenResolution,
-                viewport,
-                chatMessages
+                viewport
             );
 
-            const success = await this.discordDispatcher.formatAndSendReportAsync(report, reportType);
+            const success = await this.discordDispatcher.formatAndSendBugReportAsync(report);
             if (!success) {
                 throw new Error(`${reportLabel} failed to send to discord. See logs for details.`);
             }
             const existingUser = this.users.find((u) => u.id === socket.user.getId());
-            if (reportType === ReportType.BugReport) {
-                existingUser.reportedBugs += 1;
-            }
+            existingUser.reportedBugs += 1;
 
             socket.send(resultEvent, {
                 id: uuid(),
@@ -2672,14 +2695,11 @@ export class Lobby {
                 message: `Successfully sent ${reportLabel}`
             });
 
-            // we report the alert only if its a bug report
-            if (reportType === ReportType.BugReport) {
-                this.game.addAlert(
-                    AlertType.Notification,
-                    `{0} has submitted a ${reportLabel}`,
-                    existingUser.username
-                );
-            }
+            this.game.addAlert(
+                AlertType.Notification,
+                `{0} has submitted a ${reportLabel}`,
+                existingUser.username
+            );
 
             this.sendLobbyState();
         } catch (error) {

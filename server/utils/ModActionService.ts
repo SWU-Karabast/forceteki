@@ -100,7 +100,7 @@ export class ModActionService {
      * Fetch function passed to TimedCache.
      * Runs on init and on every periodic refresh.
      * 1. Queries all active mod actions from the GSI
-     * 2. Cleans up expired entries in DB (removes GSI_PK)
+     * 2. Ends expired entries in DB (moves them from the active index to the ended bucket)
      * 3. Builds and returns the cache map, re-applying any write-through mutations that landed
      *    while the query was in flight (those are newer than anything the query could have seen)
      */
@@ -121,7 +121,7 @@ export class ModActionService {
                 // Clean up expired entries in DB (only those that have been activated)
                 if (action.expiresAt && new Date(action.expiresAt) <= now) {
                     try {
-                        await db.removeModActionFromActiveIndexAsync(action.playerId, action.id);
+                        await db.endModActionAsync(action.playerId, action.id, action.expiresAt);
                         cleanedCount++;
                     } catch (error) {
                         logger.error(`ModActionService: Failed to clean up expired action ${action.id}`, {
@@ -277,6 +277,7 @@ export class ModActionService {
         moderatorUsername: string,
         note: string,
         durationDays?: number,
+        relatedReportId?: string,
     ): Promise<IModActionEntity> {
         try {
             const dbService = await this.dbServicePromise;
@@ -294,6 +295,7 @@ export class ModActionService {
                 moderatorId,
                 moderatorUsername,
                 createdAt: this.scheduler.currentDate().toISOString(),
+                relatedReportId,
             };
 
             await dbService.saveModActionAsync(modAction);
@@ -519,14 +521,14 @@ export class ModActionService {
      * Called after a new mod action is submitted.
      * Upserts the cache entry for the relevant action type.
      *
-     * For Mute: if an existing Mute is in cache it prevents the user from submitting a new one.
-     * stays active and the shorter one is deactivated in DB (GSI_PK removed).
+     * An active action of the same type blocks a new one; the moderator has to cancel the existing one first.
      */
     public async onActionSubmitted(playerId: string, actionType: ModActionType,
         moderatorId: string,
         moderatorUsername: string,
         note: string,
-        durationDays?: number
+        durationDays?: number,
+        relatedReportId?: string
     ): Promise<{ success: boolean; message: string; modActionId?: string }> {
         if (actionType === ModActionType.Rename && this.isUsernameChangesBlocked(playerId)) {
             logger.info(`ModActionService: Refusing Force Rename for player ${playerId} while username changes are blocked`, {
@@ -547,7 +549,7 @@ export class ModActionService {
             };
         }
 
-        const modAction = await this.submitModActionAsync(playerId, actionType, moderatorId, moderatorUsername, note, durationDays);
+        const modAction = await this.submitModActionAsync(playerId, actionType, moderatorId, moderatorUsername, note, durationDays, relatedReportId);
 
         if (!isTrackedModAction(modAction.actionType)) {
             return {
@@ -603,12 +605,12 @@ export class ModActionService {
     }
 
     /**
-     * Remove GSI_PK from a mod action in DynamoDB, deactivating it from the sparse index.
+     * Mark a mod action as ended now in DynamoDB, deactivating it from the sparse index.
      */
     private async deactivateModActionInDb(playerId: string, modActionId: string): Promise<void> {
         const db = await this.dbServicePromise;
         try {
-            await db.removeModActionFromActiveIndexAsync(playerId, modActionId);
+            await db.endModActionAsync(playerId, modActionId, this.scheduler.currentDate().toISOString());
         } catch (error) {
             logger.error(`ModActionCache: Failed to deactivate mod action ${modActionId} in DB`, {
                 error: { message: error.message, stack: error.stack }
