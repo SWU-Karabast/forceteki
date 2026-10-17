@@ -1727,6 +1727,7 @@ export class Lobby {
             }
         } catch (error) {
             logger.error('Game: error processing game message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+            this.game?.recordError(error);
         }
     }
 
@@ -2642,7 +2643,8 @@ export class Lobby {
                 this.game?.id,
                 screenResolution,
                 viewport,
-                chatMessages
+                chatMessages,
+                reportType === ReportType.BugReport ? this.game?.getErrorHistory() : undefined
             );
 
             const success = await this.discordDispatcher.formatAndSendReportAsync(report, reportType);
