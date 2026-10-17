@@ -164,4 +164,28 @@ describe('At Attin Safety Droid', function () {
             });
         });
     });
+
+    integration(function (contextRef) {
+        it('should cap Overwhelm damage to the base', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['krayt-dragon']
+                },
+                player2: {
+                    groundArena: ['wampa', 'at-attin-safety-droid']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Krayt Dragon deals 10 damage to Wampa, 5 of it goes to the base through Overwhelm
+            context.player1.clickCard(context.kraytDragon);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.wampa).toBeInZone('discard');
+            expect(context.p2Base.damage).toBe(4);
+            expect(context.player2).toBeActivePlayer();
+        });
+    });
 });
