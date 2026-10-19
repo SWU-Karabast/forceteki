@@ -7,8 +7,8 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class EighthBrotherIllFatedEscape extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'eighth-brother#illfated-escape-id',
-            internalName: '0454689845',
+            id: '045468984',
+            internalName: '5eighth-brother#illfated-escape',
         };
     }
 
