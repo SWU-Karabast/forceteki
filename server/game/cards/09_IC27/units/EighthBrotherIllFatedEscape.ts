@@ -8,7 +8,7 @@ export default class EighthBrotherIllFatedEscape extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: 'eighth-brother#illfated-escape-id',
-            internalName: 'eighth-brother#illfated-escape',
+            internalName: '0454689845',
         };
     }
 
