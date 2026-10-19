@@ -322,7 +322,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'ground',
-        internalName: 'eight-brother#illfated-escape'
+        internalName: 'eighth-brother#illfated-escape'
     }),
     buildMockCard({
         title: 'Commander Pyre',
