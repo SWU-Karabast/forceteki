@@ -306,62 +306,6 @@ const mockCards = [
         arena: 'ground',
         internalName: 'poggle-the-lesser#secret-designs'
     }),
-    buildMockCard({
-        title: 'Eighth Brother',
-        subtitle: 'Ill-Fated Escape',
-        cost: 2,
-        power: 3,
-        hp: 1,
-        hasNonKeywordAbility: true,
-        aspects: ['aggression', 'villainy'],
-        traits: ['force', 'imperial', 'inquisitor'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 99
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'eighth-brother#illfated-escape'
-    }),
-    buildMockCard({
-        title: 'Commander Pyre',
-        subtitle: 'Golden Menace',
-        cost: 2,
-        power: 3,
-        hp: 3,
-        hasNonKeywordAbility: false,
-        aspects: ['aggression', 'villainy'],
-        keywords: ['saboteur'],
-        traits: ['first order', 'trooper'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 98
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'commander-pyre#golden-menace'
-    }),
-    buildMockCard({
-        title: 'Red Leader',
-        subtitle: 'Wait For My Signal',
-        cost: 3,
-        power: 2,
-        hp: 4,
-        hasNonKeywordAbility: false,
-        aspects: ['command', 'heroism'],
-        keywords: ['sentinel', 'restore 2'],
-        traits: ['rebel', 'vehicle', 'fighter'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 75
-        },
-        unique: true,
-        arena: 'space',
-        internalName: 'red-leader#wait-for-my-signal'
-    }),
     // -------- End Mock Cards --------
 ];
 
