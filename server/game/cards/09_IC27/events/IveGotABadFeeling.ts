@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class IveGotABadFeeling extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'ive-got-a-bad-feeling-id',
+            id: '6468588697',
             internalName: 'ive-got-a-bad-feeling',
         };
     }

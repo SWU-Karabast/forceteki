@@ -227,5 +227,52 @@ describe('Alliance Shield Generator', function() {
             expect(context.allianceShieldGenerator).toBeInZone('discard');
             expect(context.p1Base.damage).toBe(3);
         });
+
+        it('Alliance Shield Generator\'s ability should prevent the 6 damage from failing both regroup phase draws, then deal 3 damage from the failed replacement draw', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: { card: 'kestro-city', upgrades: ['alliance-shield-generator'] },
+                    deck: [],
+                },
+                player2: {
+                    deck: ['wampa', 'battlefield-marine'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Regroup phase draw: player1 fails both draws, which would deal 6 damage to their base in one instance
+            context.moveToRegroupPhase();
+
+            // The 6 damage is prevented and the generator is defeated, but its replacement draw also
+            // fails against the still-empty deck, dealing 3 damage
+            expect(context.allianceShieldGenerator).toBeInZone('discard');
+            expect(context.p1Base.damage).toBe(3);
+            expect(context.player1.hand.length).toBe(0);
+        });
+
+        it('Alliance Shield Generator\'s ability should not trigger when only one regroup phase draw fails, dealing 3 damage normally', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: { card: 'kestro-city', upgrades: ['alliance-shield-generator'] },
+                    deck: ['wampa'],
+                },
+                player2: {
+                    deck: ['battlefield-marine', 'pyke-sentinel'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Regroup phase draw: player1 draws Wampa, then fails the second draw for 3 damage
+            context.moveToRegroupPhase();
+
+            // 3 damage is below the threshold, so the generator stays attached
+            expect(context.wampa).toBeInZone('hand');
+            expect(context.p1Base.damage).toBe(3);
+            expect(context.allianceShieldGenerator).toBeAttachedTo(context.p1Base);
+        });
     });
 });

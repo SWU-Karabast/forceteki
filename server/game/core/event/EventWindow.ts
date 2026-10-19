@@ -6,6 +6,7 @@ import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
 import { Contract } from '../utils/Contract';
 import type { OngoingEffect } from '../ongoingEffect/OngoingEffect';
+import type { GameEvent } from './GameEvent';
 
 export enum TriggerHandlingMode {
 
@@ -39,6 +40,7 @@ export class EventWindow extends BaseStepWithPipeline {
     private resolvedEvents: any[] = [];
     private triggeredDelayedEffects: OngoingEffect<any>[] = [];
     private subwindowEvents: any[] = [];
+    private contingentEventsGeneratedFor = new Set<GameEvent>();
     private subAbilityStepFn?: () => AbilityContext = null;
     private windowDepth?: number = null;
     private postEventResolutionCallbacks: (() => void)[] = [];
@@ -236,18 +238,37 @@ export class EventWindow extends BaseStepWithPipeline {
      * Creates any "contingent" events which will happen in the same window as the primary event
      * but will be resolved after it in order. The main use case for this is upgrades being
      * defeated at the same time as the parent card holding them.
+     *
+     * If a contingent event is replaced, the replacement events are added to this window after
+     * contingent generation has already run, so we repeat the process for them (e.g. a failed draw's
+     * damage is replaced with another draw, which can itself fail and generate damage).
      */
-    private generateContingentEventsAndReplacementWindow() {
+    private generateContingentEventsAndReplacementWindow(passCount = 0) {
+        if (passCount >= 50) {
+            throw new Error(`Contingent event generation for ${this} has repeated ${passCount} times, likely caught in an infinite loop`);
+        }
+
+        const unprocessedEvents = this._events.filter((event) => !this.contingentEventsGeneratedFor.has(event));
+        if (unprocessedEvents.length === 0) {
+            return;
+        }
+
+        unprocessedEvents.forEach((event) => this.contingentEventsGeneratedFor.add(event));
+
         let contingentEvents = [];
-        this._events.forEach((event) => {
+        unprocessedEvents.forEach((event) => {
             contingentEvents = contingentEvents.concat(event.generateContingentEvents());
         });
-        contingentEvents.forEach((event) => this.addEvent(event));
+        contingentEvents.forEach((event) => {
+            this.addEvent(event);
+            this.contingentEventsGeneratedFor.add(event);
+        });
 
         const replacementEffectWindow = new ReplacementEffectWindow(this.game);
         replacementEffectWindow.addTriggeringEvents(contingentEvents);
         replacementEffectWindow.emitEvents();
         this.queueStep(replacementEffectWindow);
+        this.queueStep(new SimpleStep(this.game, () => this.generateContingentEventsAndReplacementWindow(passCount + 1), 'generateContingentEventsAndReplacementWindow'));
     }
 
     private preResolutionEffects() {

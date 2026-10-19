@@ -1,10 +1,10 @@
 import type FormData from 'form-data';
-import * as Util from '../../../server/Util';
-import { DiscordDispatcher } from '../../../server/game/core/DiscordDispatcher';
-import { SwuGameFormat } from '../../../server/game/core/Constants';
-import { MatchmakingType } from '../../../server/gamenode/Lobby';
-import { PlayerReportType, ReportType } from '../../../server/game/Interfaces';
-import type { ISerializedMessage, ISerializedReportState } from '../../../server/game/Interfaces';
+import * as Util from '../../../../server/Util';
+import { DiscordDispatcher } from '../../../../server/gamenode/DiscordDispatcher';
+import { SwuGameFormat } from '../../../../server/game/core/Constants';
+import { MatchmakingType } from '../../../../server/gamenode/Lobby';
+import { PlayerReportType, ReportType } from '../../../../server/game/Interfaces';
+import type { ISerializedMessage, ISerializedReportState } from '../../../../server/game/Interfaces';
 
 describe('DiscordDispatcher', function() {
     const reporter = { id: 'reporter-id', username: 'Reporter', playerInGameState: 'player1' };
