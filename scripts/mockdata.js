@@ -288,6 +288,24 @@ const mockCards = [
         arena: 'space',
         internalName: 'obiwans-interceptor#nothing-too-fancy'
     }),
+    buildMockCard({
+        title: 'Poggle the Lesser',
+        subtitle: 'Secret Designs',
+        cost: 4,
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['separatist', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 145
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'poggle-the-lesser#secret-designs'
+    }),
     // -------- End Mock Cards --------
 ];
 
