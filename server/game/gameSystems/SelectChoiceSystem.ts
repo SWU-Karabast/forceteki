@@ -33,7 +33,7 @@ export type ISelectChoiceProperties<TContext extends AbilityContext = AbilityCon
  */
 export class SelectChoiceSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, ISelectChoiceProperties<TContext>> {
     public override readonly name: string = 'selectChoice';
-    public override readonly effectDescription: string = 'choose an option';
+    public override readonly effectDescription: string = '';
     public override readonly eventName = MetaEventName.SelectChoice;
     protected override readonly defaultProperties: Partial<ISelectChoiceProperties<TContext>> = {
         name: 'target',
@@ -96,9 +96,8 @@ export class SelectChoiceSystem<TContext extends AbilityContext = AbilityContext
     }
 
     private addChoiceMessage(context: TContext, choosingPlayer: Player, choice: string, chosenSystem: GameSystem<TContext>) {
-        context.game.addMessage('{0} chooses "{1}"', choosingPlayer, choice);
-
         const [effectMessage, effectArgs] = chosenSystem.getEffectMessage(context);
+
         if (!effectMessage) {
             return;
         }

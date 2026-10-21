@@ -23,16 +23,18 @@ export default class TraskWalker extends NonLeaderUnitCard {
                 cardCondition: (card) => card.hasCost() && card.cost <= 7,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Discard,
-                immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects((context) => ({
-                    amountOfChoices: 1,
-                    choices: () => ({
+                immediateEffect: AbilityHelper.immediateEffects.selectChoice({
+                    choices: {
                         ['Put on the bottom of your deck and heal 3 damage from your base']: AbilityHelper.immediateEffects.simultaneous([
-                            AbilityHelper.immediateEffects.moveToBottomOfDeck({ target: context.target }),
-                            AbilityHelper.immediateEffects.heal({ amount: 3, target: context.player.base })
+                            AbilityHelper.immediateEffects.moveToBottomOfDeck(),
+                            AbilityHelper.immediateEffects.heal((context) => ({
+                                amount: 3,
+                                target: context.player.base
+                            }))
                         ]),
-                        ['Return it to your hand']: AbilityHelper.immediateEffects.returnToHand({ target: context.target })
-                    })
-                }))
+                        ['Return it to your hand']: AbilityHelper.immediateEffects.returnToHand()
+                    }
+                })
             }
         });
     }
