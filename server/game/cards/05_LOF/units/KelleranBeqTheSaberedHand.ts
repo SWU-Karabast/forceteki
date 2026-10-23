@@ -20,7 +20,8 @@ export default class KelleranBeqTheSaberedHand extends NonLeaderUnitCard {
                 searchCount: 7,
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 },
-                    playAsType: WildcardCardType.Unit
+                    playAsType: WildcardCardType.Unit,
+                    nested: true
                 })
             })
         });

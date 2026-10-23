@@ -107,7 +107,6 @@ export enum EffectName {
     CanBeTriggeredByOpponent = 'canBeTriggeredByOpponent',
     CanBePlayedWithPilotingIgnoringPilotLimit = 'canBePlayedWithPilotingIgnoringPilotLimit',
     CannotBeDefeatedByDamage = 'cannotBeDefeatedByDamage',
-    CanPlayFromDiscard = 'canPlayFromDiscard',
     ChangeType = 'changeType',
     CloneUnit = 'cloneUnit',
     CopyStandardTriggeredAbilities = 'copyStandardTriggeredAbilities',
@@ -121,6 +120,7 @@ export enum EffectName {
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
     GainNonKeywordAbilitiesFromUnit = 'gainNonKeywordAbilitiesFromUnit',
+    GainPlayPermission = 'gainPlayPermission',
     GainTrait = 'gainTrait',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     IsLeader = 'isLeader',
@@ -367,6 +367,7 @@ export enum MetaEventName {
     Conditional = 'conditional',
     ChooseModalEffects = 'ChooseModalEffects',
     ChooseNumber = 'chooseNumber',
+    SelectChoice = 'selectChoice',
     DistributeDamage = 'distributeDamage',
     DistributeIndirectDamageToCards = 'distributeIndirectDamageToCards',
     DistributeHealing = 'distributeHealing',
@@ -760,6 +761,18 @@ export enum CardPool {
 export enum GamesToWinMode {
     BestOfOne = 'bestOfOne',
     BestOfThree = 'bestOfThree',
+}
+
+export enum MatchmakingCompetitivenessPreference {
+    Competitive = 'competitiveTesting',
+    Casual = 'casualBrewing',
+    NoPreference = 'noPreference',
+}
+
+export enum MatchmakingCompetitivenessPreferenceSearchStage {
+    SamePreferenceOnly = 'samePreferenceOnly',
+    IncludesNoPreference = 'includesNoPreference',
+    AnyPreference = 'anyPreference',
 }
 
 export enum RematchMode {

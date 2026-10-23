@@ -1,5 +1,7 @@
 import { logger } from '../logger';
 import { TimedCache } from './TimedCache';
+import type { IScheduledTask, IScheduler } from './IScheduler';
+import { RealScheduler } from './RealScheduler';
 import { getDynamoDbServiceAsync } from '../services/DynamoDBService';
 import {
     type IActiveModActionCacheEntry,
@@ -39,6 +41,8 @@ type ModActionCacheMap = Map<string, Map<ModActionType, IActiveModActionCacheEnt
 export class ModActionService {
     private cache: TimedCache<ModActionCacheMap>;
     private dbServicePromise = getDynamoDbServiceAsync();
+    private scheduler: IScheduler = new RealScheduler();
+    private debugLogTask?: IScheduledTask;
     private static readonly REFRESH_INTERVAL_MINUTES = 10;
     private static readonly MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -49,8 +53,13 @@ export class ModActionService {
      */
     private pendingMutations: Map<string, IActiveModActionCacheEntry | null> | null = null;
 
-    public static async createAsync(): Promise<ModActionService> {
+    /**
+     * @param scheduler Drives the periodic refresh and supplies the clock for mute expiry and
+     * timestamps; defaults to real timers and the system clock
+     */
+    public static async createAsync(scheduler: IScheduler = new RealScheduler()): Promise<ModActionService> {
         const modActionCacheInstance = new ModActionService();
+        modActionCacheInstance.scheduler = scheduler;
 
         const db = await modActionCacheInstance.dbServicePromise;
         if (!db) {
@@ -60,7 +69,8 @@ export class ModActionService {
         const cache = new TimedCache<ModActionCacheMap>(
             ModActionService.REFRESH_INTERVAL_MINUTES,
             () => modActionCacheInstance.fetchAndCleanupAsync(),
-            'ModActionCache'
+            'ModActionCache',
+            scheduler
         );
 
         await cache.initializeAsync();
@@ -68,12 +78,22 @@ export class ModActionService {
 
         // Debug logging in development prints cache contents every minute
         if (process.env.ENVIRONMENT === 'development' && process.env.DEBUG_MOD_ACTION_CACHE) {
-            setInterval(() => {
+            modActionCacheInstance.debugLogTask = scheduler.setInterval(() => {
                 modActionCacheInstance.logCacheContents();
             }, 60 * 1000);
         }
 
         return modActionCacheInstance;
+    }
+
+    /**
+     * Stops the periodic refresh (and the development debug logging, if enabled). Queries keep
+     * answering from the last fetched cache.
+     */
+    public stop(): void {
+        this.cache?.stop();
+        this.debugLogTask?.cancel();
+        this.debugLogTask = undefined;
     }
 
     /**
@@ -94,7 +114,7 @@ export class ModActionService {
 
         try {
             const activeActions = await db.getModActionsAsync();
-            const now = new Date();
+            const now = this.scheduler.currentDate();
             let cleanedCount = 0;
 
             for (const action of activeActions) {
@@ -273,7 +293,7 @@ export class ModActionService {
                 note,
                 moderatorId,
                 moderatorUsername,
-                createdAt: new Date().toISOString(),
+                createdAt: this.scheduler.currentDate().toISOString(),
             };
 
             await dbService.saveModActionAsync(modAction);
@@ -336,7 +356,7 @@ export class ModActionService {
             return true;
         }
 
-        return new Date(entry.expiresAt) > new Date();
+        return new Date(entry.expiresAt) > this.scheduler.currentDate();
     }
 
     // ==================== Public Query Methods ====================
@@ -426,6 +446,21 @@ export class ModActionService {
         return this.getPlayerActions(playerId)?.get(ModActionType.ReportingDisabled)?.modActionId ?? null;
     }
 
+    /**
+     * Checks if a player has an active UsernameChangesBlocked restriction.
+     */
+    public isUsernameChangesBlocked(playerId: string): boolean {
+        return !!this.getPlayerActions(playerId)?.get(ModActionType.UsernameChangesBlocked);
+    }
+
+    /**
+     * Id of the player's active UsernameChangesBlocked action, or null if username changes are not blocked.
+     * Callers compare this against the profile's acknowledged id to decide whether to show the notice.
+     */
+    public getActiveUsernameChangesBlockedActionId(playerId: string): string | null {
+        return this.getPlayerActions(playerId)?.get(ModActionType.UsernameChangesBlocked)?.modActionId ?? null;
+    }
+
     // ==================== Mute Activation ====================
 
     /**
@@ -446,7 +481,7 @@ export class ModActionService {
             return muteEntry;
         }
 
-        const now = new Date();
+        const now = this.scheduler.currentDate();
         const startedAt = now.toISOString();
 
         Contract.assertNotNullLike(muteEntry.durationDays, `Cannot activate mute ${muteEntry.modActionId}: durationDays is missing`);
@@ -492,7 +527,18 @@ export class ModActionService {
         moderatorUsername: string,
         note: string,
         durationDays?: number
-    ): Promise<{ success: boolean; message: string }> {
+    ): Promise<{ success: boolean; message: string; modActionId?: string }> {
+        if (actionType === ModActionType.Rename && this.isUsernameChangesBlocked(playerId)) {
+            logger.info(`ModActionService: Refusing Force Rename for player ${playerId} while username changes are blocked`, {
+                userId: playerId,
+                moderatorId,
+            });
+            return {
+                success: false,
+                message: 'Force Rename is unavailable while username changes are blocked. Use Change Username instead.',
+            };
+        }
+
         const existing = this.getPlayerActions(playerId)?.get(actionType);
         if (existing) {
             return {
@@ -507,6 +553,7 @@ export class ModActionService {
             return {
                 success: true,
                 message: `${modAction.actionType} submitted successfully for player ${playerId}.`,
+                modActionId: modAction.id,
             };
         }
 
@@ -527,6 +574,7 @@ export class ModActionService {
         return {
             success: true,
             message: `${modAction.actionType} submitted successfully for player ${playerId}.`,
+            modActionId: modAction.id,
         };
     }
 

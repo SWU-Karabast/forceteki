@@ -28,7 +28,6 @@ export default class TheArmorerSteelShapesUs extends LeaderUnitCard {
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     playAsType: WildcardCardType.Upgrade,
-                    canPlayFromAnyZone: true,
                     attachTargetCondition: (attachTarget) => this.unitsEnteredPlayThisPhaseWatcher.getCardsEnteredPlay((entry) => entry.card === attachTarget).length > 0
                 })
             },
@@ -50,7 +49,6 @@ export default class TheArmorerSteelShapesUs extends LeaderUnitCard {
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     playAsType: WildcardCardType.Upgrade,
-                    canPlayFromAnyZone: true,
                     attachTargetCondition: (attachTarget, context) =>
                         attachTarget.isUnit() &&
                         attachTarget.controller === context.player

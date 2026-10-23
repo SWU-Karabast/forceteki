@@ -1,4 +1,4 @@
-// scripts/migrateReportingDisabled.ts
+// scripts/migration/migrateReportingDisabled.ts
 
 // One-time migration script that converts the legacy `reportingDisabled` user-profile field into a
 // first-class ReportingDisabled mod action (aligning it with Mute / Rename). For each profile that has
@@ -19,12 +19,12 @@
 // For production you also need the usual DynamoDB credentials (API_KEY / SECRET) and ENVIRONMENT set to
 // the production value so DynamoDBService does not redirect to local DynamoDB.
 //
-// Usage: MIGRATION_TARGET=production MIGRATION_APPLY=true ts-node scripts/migrateReportingDisabled.ts
+// Usage: MIGRATION_TARGET=production MIGRATION_APPLY=true ts-node scripts/migration/migrateReportingDisabled.ts
 
 import { v4 as uuid } from 'uuid';
-import { getDynamoDbServiceAsync } from '../server/services/DynamoDBService';
-import { type IModActionEntity, ModActionType, ModerationFieldState } from '../server/services/DynamoDBInterfaces';
-import '../server/env';
+import { getDynamoDbServiceAsync } from '../../server/services/DynamoDBService';
+import { type IModActionEntity, ModActionType, ModerationFieldState } from '../../server/services/DynamoDBInterfaces';
+import '../../server/env';
 
 const TARGET = process.env.MIGRATION_TARGET ?? 'local';
 const APPLY = process.env.MIGRATION_APPLY === 'true';
