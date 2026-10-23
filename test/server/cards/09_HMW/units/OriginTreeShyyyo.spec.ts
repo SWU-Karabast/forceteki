@@ -378,4 +378,52 @@ describe('Origin Tree Shyyyo', function() {
             expect(context.player1.exhaustedResourceCount - before).toBe(2);
         });
     });
+
+    integration(function(contextRef) {
+        it('counts units played in the regroup phase as part of the same round', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'origin-tree',
+                    groundArena: ['origin-tree-shyyyo'],
+                    hand: ['gifted-urchin', 'unrefusable-offer'],
+                    deck: ['bank-job-fugitives', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa'],
+                    resources: 10
+                },
+                player2: {
+                    hand: ['sneak-attack', 'kelleran-beq#the-sabered-hand'],
+                    resources: 10
+                }
+            });
+
+            const { context } = contextRef;
+
+            // 1st unit player1 plays this round
+            context.player1.clickCard(context.giftedUrchin);
+
+            // Kelleran Beq is played with Sneak Attack, so he is defeated at the start of the regroup phase
+            context.player2.clickCard(context.sneakAttack);
+            context.player2.clickCard(context.kelleranBeq);
+            context.player2.clickPrompt('Take nothing');
+
+            context.player1.clickCard(context.unrefusableOffer);
+            context.player1.clickCard(context.kelleranBeq);
+
+            context.player2.passAction();
+            context.player1.passAction();
+
+            // regroup phase: player1 collects the Bounty and plays Kelleran Beq, the 2nd unit this round
+            const exhaustedResourcesBeforeBounty = context.player1.exhaustedResourceCount;
+            context.player1.clickPrompt('Trigger');
+
+            // Kelleran Beq plays Bank Job Fugitives, the 3rd unit this round: 6 - 3 (Kelleran Beq) - 3 (Origin Tree Shyyyo) = 0
+            context.player1.clickCardInDisplayCardPrompt(context.bankJobFugitives);
+
+            expect(context.bankJobFugitives).toBeInZone('groundArena', context.player1);
+            expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeBounty);
+
+            context.player1.clickPrompt('Skip Resourcing');
+            context.player2.clickPrompt('Skip Resourcing');
+        });
+    });
 });

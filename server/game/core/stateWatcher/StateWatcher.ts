@@ -34,7 +34,7 @@ export interface IStateWatcherLKIEntry {
  * for the game. Each state watcher owns a specific entry in the registrar which it modifies
  * based on game events.
  *
- * All watchers reset at the end of the phase to an established "reset" state value. Each watcher
+ * Watchers reset at the end of the phase (or, if requested, at the end of the round) to an established "reset" state value. Each watcher
  * type will be registered at most once and then all instances of that watcher will access the same
  * state object, which reduces redundant operations.
  *
@@ -52,19 +52,31 @@ export abstract class StateWatcher<TState = any> extends GameObjectBase {
 
     protected declare state: IStateWatcherState<TState>; // Narrow the type of state for easier access to entries
 
-    // the state reset trigger is the end of the phase
+    // the state reset trigger is the end of the phase, or the end of the round for watchers that track a whole round
     private stateResetTrigger: IStateListenerResetProperties = {
         when: {
             onPhaseEnded: () => true,
         }
     };
 
+    /**
+     * @param resetAtEndOfRound if true, the state is kept until the end of the round instead of the end of the phase,
+     * for card text that says "this round" or "each round" (a round includes the regroup phase)
+     */
     public constructor(
         game: Game,
         name: StateWatcherName,
-        registrar: StateWatcherRegistrar
+        registrar: StateWatcherRegistrar,
+        resetAtEndOfRound = false
     ) {
         super(game);
+        if (resetAtEndOfRound) {
+            this.stateResetTrigger = {
+                when: {
+                    onRoundEnded: () => true,
+                }
+            };
+        }
         this.state.entries = [];
         this.name = name;
         Contract.assertFalse(registrar.isRegistered(name), `State Watcher type "${name}" is already registered.`);
