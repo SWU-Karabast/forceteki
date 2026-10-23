@@ -56,5 +56,5 @@ describe('Socket command allowlist', function () {
             const allMessages = JSON.stringify(opponent.receivedEvents('gamestate').map((e) => e.args[0]?.newMessages));
             expect(allMessages).not.toContain('allowlistProbe');
         });
-    });
+    }, { database: true });
 });

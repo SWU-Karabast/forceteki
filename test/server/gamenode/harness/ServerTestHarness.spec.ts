@@ -17,13 +17,15 @@ describe('ServerTestHarness', function () {
                 expect(() => contextRef.harness.db).toThrowError(/no database/);
             });
 
-            it('answers a role check with an error, because no role can be granted', async function () {
-                const user = contextRef.harness.createClient({ authenticated: true });
+            it('refuses a role-gated route, because no role can be granted', async function () {
+                const response = await contextRef.harness.createClient().requestAsync('post', '/api/mod/find-user');
 
-                const response = await user.requestAsync('post', '/api/mod/find-user');
+                expect(response.status).toBe(401);
+                expect(response.body.message).toBe('Authentication required');
+            });
 
-                expect(response.status).toBe(403);
-                expect(response.body.message).toBe('Error checking user privileges');
+            it('cannot sign in a logged-in client, because no account can be looked up', function () {
+                expect(() => contextRef.harness.createClient({ authenticated: true })).toThrowError(/no database/);
             });
         });
     });
@@ -34,10 +36,9 @@ describe('ServerTestHarness', function () {
                 const { harness } = contextRef;
                 const moderator = harness.createClient({
                     authenticated: true,
-                    auth: 'token-only',
                     account: harness.db.seedAccount({ id: moderatorId, username: 'ModOne' }),
                 });
-                const nobody = harness.createClient({ authenticated: true, auth: 'token-only', account: harness.db.seedAccount() });
+                const nobody = harness.createClient({ authenticated: true, account: harness.db.seedAccount() });
 
                 const moderatorResponse = await moderator.requestAsync('get', '/api/user-is-moderator');
                 const nobodyResponse = await nobody.requestAsync('get', '/api/user-is-moderator');
@@ -79,7 +80,7 @@ describe('ServerTestHarness', function () {
             it('signs in a client that presents only a token, from the account it was seeded as', async function () {
                 const { harness } = contextRef;
                 const account = harness.db.seedAccount({ username: 'SeededUser' });
-                const client = harness.createClient({ authenticated: true, auth: 'token-only', account });
+                const client = harness.createClient({ authenticated: true, account });
 
                 const response = await client.requestAsync('post', '/api/get-user');
 
@@ -88,10 +89,10 @@ describe('ServerTestHarness', function () {
                 expect(harness.db.loggedInUserIds).toEqual([account.id]);
             });
 
-            it('carries a token-only client through the lobby flow under the stored username', async function () {
+            it('carries a logged-in client through the lobby flow under the stored username', async function () {
                 const { harness } = contextRef;
                 const account = harness.db.seedAccount({ username: 'StoredName' });
-                const client = harness.createClient({ authenticated: true, auth: 'token-only', account });
+                const client = harness.createClient({ authenticated: true, account });
 
                 const created = await client.createLobbyAsync({
                     lobbyName: harness.uniqueLobbyName(),
@@ -104,9 +105,12 @@ describe('ServerTestHarness', function () {
                 expect(client.lobbyState.users.map((user: { username: string }) => user.username)).toEqual(['StoredName']);
             });
 
-            it('refuses a token-only client that has no account to be', function () {
-                expect(() => contextRef.harness.createClient({ authenticated: true, auth: 'token-only' }))
-                    .toThrowError(/needs the seeded `account`/);
+            it('makes an account for a logged-in client that is not given one', function () {
+                const { harness } = contextRef;
+
+                const client = harness.createClient({ authenticated: true, username: 'MadeForYou' });
+
+                expect(harness.db.profiles.get(client.id)?.username).toBe('MadeForYou');
             });
         }, { database: true });
     });

@@ -1,8 +1,8 @@
 import { io as connectClient, type Socket as ClientSocket } from 'socket.io-client';
 import jwt from 'jsonwebtoken';
 
+import { mintSessionToken, signInClaims } from '../../../helpers/server/AuthTokens';
 import { premierBestOfOne } from '../../../helpers/server/MatchConfigs';
-import { testNextAuthSecret } from '../../../helpers/server/ServerTestEnv';
 import { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
 
 /**
@@ -17,7 +17,7 @@ describe('socketio drift guard', function () {
     let clientSockets: ClientSocket[];
 
     beforeEach(async function () {
-        harness = await ServerTestHarness.createAsync();
+        harness = await ServerTestHarness.createAsync({ database: true });
         clientSockets = [];
     });
 
@@ -73,11 +73,10 @@ describe('socketio drift guard', function () {
     });
 
     it('rejects a connection whose JWT fails verification', async function () {
-        const invalidToken = jwt.sign({ userId: 'someone' }, 'a-completely-wrong-secret');
+        const invalidToken = jwt.sign({ provider: 'discord', providerId: '1' }, 'a-completely-wrong-secret');
 
         const realSocket = connectRealSocket(
             {
-                user: JSON.stringify({ id: 'someone', username: 'Someone', authenticated: true }),
                 lobby: JSON.stringify({ lobbyId: null }),
                 spectator: 'false',
             },
@@ -89,11 +88,10 @@ describe('socketio drift guard', function () {
     });
 
     it('accepts a connection with a JWT signed by the real secret', async function () {
-        const token = jwt.sign({ userId: 'jwt-user' }, testNextAuthSecret);
+        const token = mintSessionToken(signInClaims(harness.db.seedAccount()));
 
         const realSocket = connectRealSocket(
             {
-                user: JSON.stringify({ id: 'jwt-user', username: 'JwtUser', authenticated: true, showWelcomeMessage: false }),
                 lobby: JSON.stringify({ lobbyId: null }),
                 spectator: 'false',
             },

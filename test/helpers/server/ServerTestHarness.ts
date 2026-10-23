@@ -212,12 +212,12 @@ export class ServerTestHarness {
     }
 
     /**
-     * A client signed in as `account` the way the FE does on its first request of a session: the session
-     * token alone, so the server looks the account up. Seeds a new account when none is given. Needs a
-     * harness created with a {@link IServerTestOptions.database}.
+     * A client signed in as `account` the way the FE does: the session token alone, so the server looks
+     * the account up. Seeds a new account when none is given. Needs a harness created with a
+     * {@link IServerTestOptions.database}.
      */
     public createAccountClient(account: ISeededAccount = this.db.seedAccount()): TestClient {
-        return this.createClient({ authenticated: true, auth: 'token-only', account });
+        return this.createClient({ authenticated: true, account });
     }
 
     /**

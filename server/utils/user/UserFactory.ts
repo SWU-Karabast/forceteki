@@ -1,4 +1,3 @@
-import type { User } from './User';
 import { AnonymousUser, AuthenticatedUser } from './User';
 import { logger } from '../../logger';
 import { v4 as uuid, validate as isUuid } from 'uuid';
@@ -10,6 +9,7 @@ import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModAct
 import { CardImageLocale, ModerationType, TimerVisibility, UsernameChangeSource } from '../../services/DynamoDBInterfaces';
 import { evaluateUsernameChangeEligibility } from './UsernameRules';
 import { RefreshTokenSource } from '../statHandlers/StatHandlerTypes';
+import { UserProfileCache } from './UserProfileCache';
 
 
 const getDefaultSoundPreferences = () => ({
@@ -49,6 +49,22 @@ const refreshTokenFieldMap: Record<RefreshTokenSource, {
 };
 
 
+/** The signed-in identity a session token vouches for. */
+interface ITokenIdentity {
+    provider: string;
+    providerId: string;
+    email?: string;
+    name?: string;
+}
+
+/** A valid session token whose identity has no account on this server yet. */
+export class AccountNotFoundError extends Error {
+    public constructor(message = 'No account exists for this sign-in') {
+        super(message);
+        this.name = 'AccountNotFoundError';
+    }
+}
+
 /**
  * Factory class responsible for creating the appropriate User instance
  * based on authentication status and data
@@ -56,28 +72,119 @@ const refreshTokenFieldMap: Record<RefreshTokenSource, {
 export class UserFactory {
     private dbServicePromise = getDynamoDbServiceAsync();
     private MS_PER_DAY = 24 * 60 * 60 * 1000;
+    private readonly accountCreations = new Map<string, Promise<AuthenticatedUser>>();
+
+    public constructor(public readonly cache: UserProfileCache = new UserProfileCache()) {}
 
     /**
-     * Creates a user instance from a JWT token
-     * @param token JWT token
-     * @returns A Promise that resolves to a User instance (either Authenticated or Anonymous)
+     * Resolves the account a session token belongs to. Identity comes only from the token's signed
+     * `provider` and `providerId` claims, through the stored identity link; the profile is then read from
+     * the server's own copy. It never creates or modifies anything.
+     * @throws AccountNotFoundError if the token is valid but has no account
      */
-    public async createUserFromTokenAsync(token: string): Promise<User> {
+    public async resolveUserFromTokenAsync(token: string): Promise<AuthenticatedUser> {
         try {
-            const dbService = await this.dbServicePromise;
-            const basicUser = await this.authenticateWithTokenAsync(token);
-            Contract.assertNotNullLike(basicUser, 'Token authentication failed, User not found from token');
+            const identity = this.verifyTokenIdentity(token);
+            return await this.resolveUserFromIdentityAsync(identity);
+        } catch (error) {
+            if (!(error instanceof AccountNotFoundError)) {
+                logger.error('Error resolving user from token:', { error: { message: error.message, stack: error.stack } });
+            }
+            throw error;
+        }
+    }
 
-            let userData = await dbService.getUserProfileAsync(basicUser.id);
-            Contract.assertNotNullLike(userData, `User profile not found for authenticated user ${basicUser.id}`);
+    /**
+     * Finds the account for a session token, creating it if this is the identity's first sign-in. Safe
+     * to call repeatedly: an identity that already has an account just gets that account back.
+     *
+     * An identity with no link but a known email is attached to the account with that email, which is
+     * how one account is reached from more than one sign-in provider.
+     */
+    public async createUserFromTokenAsync(token: string): Promise<AuthenticatedUser> {
+        try {
+            const identity = this.verifyTokenIdentity(token);
+            const key = UserProfileCache.identityKey(identity.provider, identity.providerId);
 
-            userData = await this.processModerationAsync(userData);
+            // concurrent first requests for one identity share a single creation
+            let creation = this.accountCreations.get(key);
+            if (!creation) {
+                creation = this.findOrCreateAccountAsync(identity).finally(() => this.accountCreations.delete(key));
+                this.accountCreations.set(key, creation);
+            }
 
-            return new AuthenticatedUser(userData);
+            return await creation;
         } catch (error) {
             logger.error('Error creating user from token:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
+    }
+
+    /** Records a sign-in on the account. Not part of resolving a user, which happens on every request. */
+    public async recordLoginAsync(userId: string): Promise<void> {
+        const dbService = await this.dbServicePromise;
+        await dbService.recordNewLoginAsync(userId);
+    }
+
+    /**
+     * Writes profile fields, then drops the cached profile. The cache is cleared whether or not the write
+     * succeeds, so it never keeps data that was not saved, and a read that began before the write can't
+     * store its older result afterwards.
+     */
+    private async updateProfileAsync(userId: string, updates: Partial<IUserProfileDataEntity>): Promise<void> {
+        const dbService = await this.dbServicePromise;
+        try {
+            await dbService.updateUserProfileAsync(userId, updates);
+        } finally {
+            this.cache.invalidateProfile(userId);
+        }
+    }
+
+    private verifyTokenIdentity(token: string): ITokenIdentity {
+        const secret = process.env.NEXTAUTH_SECRET;
+        Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
+
+        const decoded = jwt.verify(token, secret) as Record<string, unknown>;
+        const { provider, providerId, email, name } = decoded ?? {};
+        if (typeof provider !== 'string' || !provider || typeof providerId !== 'string' || !providerId) {
+            throw new Error('Session token does not identify a sign-in provider account');
+        }
+
+        return {
+            provider,
+            providerId,
+            email: typeof email === 'string' ? email : undefined,
+            name: typeof name === 'string' ? name : undefined,
+        };
+    }
+
+    private async requireDbServiceAsync() {
+        const dbService = await this.dbServicePromise;
+        Contract.assertNotNullLike(dbService, 'No database is available to look up accounts');
+        return dbService;
+    }
+
+    private async resolveUserFromIdentityAsync(identity: ITokenIdentity): Promise<AuthenticatedUser> {
+        const dbService = await this.requireDbServiceAsync();
+
+        const userId = await this.cache.getUserIdAsync(
+            identity.provider,
+            identity.providerId,
+            () => dbService.getUserIdByOAuthAsync(identity.provider, identity.providerId)
+        );
+        if (!userId) {
+            throw new AccountNotFoundError();
+        }
+
+        const profile = await this.cache.getProfileAsync(userId, async () => {
+            const stored = await dbService.getUserProfileAsync(userId);
+            return stored ? await this.processModerationAsync(stored) : undefined;
+        });
+        if (!profile) {
+            throw new AccountNotFoundError(`Account ${userId} linked to this sign-in has no profile`);
+        }
+
+        return new AuthenticatedUser(profile);
     }
 
     /**
@@ -127,7 +234,7 @@ export class UserFactory {
             const dbService = await this.dbServicePromise;
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
-            await dbService.updateUserProfileAsync(userId, {
+            await this.updateProfileAsync(userId, {
                 showWelcomeMessage: false
             });
             return true;
@@ -142,7 +249,7 @@ export class UserFactory {
             const dbService = await this.dbServicePromise;
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
-            await dbService.updateUserProfileAsync(userId, {
+            await this.updateProfileAsync(userId, {
                 undoPopupSeenDate: new Date().toISOString()
             });
             return true;
@@ -157,7 +264,7 @@ export class UserFactory {
             const dbService = await this.dbServicePromise;
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
-            await dbService.updateUserProfileAsync(userId, {
+            await this.updateProfileAsync(userId, {
                 timerPopupSeenDate: new Date().toISOString()
             });
             return true;
@@ -374,7 +481,7 @@ export class UserFactory {
         await dbService.deleteUsernameLinkAsync(previousUsername, userId);
         await dbService.saveUsernameLinkAsync(newUsername, userId);
 
-        await dbService.updateUserProfileAsync(userId, {
+        await this.updateProfileAsync(userId, {
             username: newUsername,
             needsUsernameChange: false,
             ...(options.startCooldown ? { usernameLastUpdatedAt: new Date().toISOString() } : {}),
@@ -398,150 +505,84 @@ export class UserFactory {
     public async updateUserPreferencesAsync(userId: string, updatedPreferences: Record<string, any>): Promise<void> {
         try {
             const dbService = await this.dbServicePromise;
-            await dbService.updateUserPreferencesAsync(userId, updatedPreferences);
+            try {
+                await dbService.updateUserPreferencesAsync(userId, updatedPreferences);
+            } finally {
+                this.cache.invalidateProfile(userId);
+            }
         } catch (error) {
             logger.error('Error updating user preferences:', { error: { message: error.message, stack: error.stack, userId: userId } });
             throw error;
         }
     }
 
-    /**
-     * Authenticate a user via JWT token
-     * @param token JWT token
-     * @returns The authenticated user or null if authentication failed
-     */
-    private async authenticateWithTokenAsync(token?: string): Promise<{ id: string; username: string } | null> {
+    private async findOrCreateAccountAsync(identity: ITokenIdentity): Promise<AuthenticatedUser> {
         try {
-            const dbService = await this.dbServicePromise;
-            if (!token) {
-                return null;
-            }
-
-            const secret = process.env.NEXTAUTH_SECRET;
-            Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
-
-            const decoded = jwt.verify(token, secret) as any;
-            if (!decoded || (!decoded.id)) {
-                return null;
-            }
-            const username = decoded.name;
-            const email = decoded.email;
-            const provider = decoded.provider;
-            const providerId = decoded.providerId;
-
-            // First try to find user by OAuth provider ID
-            let dbUserId = await dbService.getUserIdByOAuthAsync(provider, providerId);
-            // If not found by OAuth and email is available, try to find by email
-            if (!dbUserId && email) {
-                dbUserId = await dbService.getUserIdByEmailAsync(email);
-
-                // If found user by email but not by OAuth, create the OAuth link
-                if (dbUserId) {
-                    logger.info(`User found by email ${email} but not by OAuth, creating OAuth link`);
-                    await dbService.saveOAuthLinkAsync(provider, providerId, dbUserId);
-                }
-            }
-
-            // If we found a user (by OAuth or email), get the profile and update login time
-            if (dbUserId) {
-                const userProfile = await dbService.getUserProfileAsync(dbUserId);
-                if (userProfile) {
-                    // Update the last login time
-                    await dbService.recordNewLoginAsync(dbUserId);
-                    return {
-                        id: dbUserId,
-                        username: userProfile.username
-                    };
-                }
-            }
-
-            // If the user ever finds himself in a weird state where the profile doesn't exist but a dbUserID does
-            // we recreate a userProfile with a new id
-            const cleanedUsername = username.trim()
-                .replace(/\s+/g, '')
-                .replace(/[^a-zA-Z0-9_]/g, '');
-            const newUser = {
-                id: uuid(),
-                username: cleanedUsername,
-                lastLogin: new Date().toISOString(),
-                createdAt: new Date().toISOString(),
-                usernameLastUpdatedAt: new Date().toISOString(),
-                showWelcomeMessage: true,
-                preferences: getDefaultPreferences(),
-                needsUsernameChange: false,
-                swuStatsRefreshToken: null,
-                swubaseRefreshToken: null,
-                moderation: null,
-                undoPopupSeenDate: null,
-                timerPopupSeenDate: null,
-            };
-
-            // Create OAuth link
-            await dbService.saveOAuthLinkAsync(provider, providerId, newUser.id);
-            // Save the user profile
-            await dbService.saveUserProfileAsync(newUser);
-            // create username link
-            await dbService.saveUsernameLinkAsync(newUser.username, newUser.id);
-            // Create email link if email is available
-            if (!email) {
-                throw new Error(`Email not found for user ${newUser.id}`);
-            }
-            await dbService.saveEmailLinkAsync(email, newUser.id);
-            // Record the initial username in the change history. This runs after all essential account
-            // records are created and is best-effort, so a failure here won't leave the account in a
-            // half-finished state or abort account creation.
-            try {
-                await this.recordUsernameChangeAsync(newUser.id, null, newUser.username, UsernameChangeSource.AccountCreation);
-            } catch {
-                // error already logged in recordUsernameChangeAsync
-            }
-            logger.info(`Created new user: ${newUser.id} (${username}) with ${provider} authentication`);
-            return {
-                id: newUser.id,
-                username: newUser.username,
-            };
+            return await this.resolveUserFromIdentityAsync(identity);
         } catch (error) {
-            // This should never happen but if it does its so we don't create two accounts
-            if (error.name === 'ConditionalCheckFailedException') {
-                // This could happen if there's a race condition while creating user records
-                // or if the unique constraints we're enforcing are violated for other reasons
-                logger.error('DynamoDB conditional check failed during user authentication: ', { error: { message: error.message, stack: error.stack } });
+            if (!(error instanceof AccountNotFoundError)) {
                 throw error;
             }
-            // This catches both JWT verification errors and database errors
-            logger.error('Authentication error:', { error: { message: error.message, stack: error.stack } });
-            throw error;
         }
-    }
 
+        const dbService = await this.requireDbServiceAsync();
+        const { provider, providerId, email, name } = identity;
 
-    /**
-     * Verifies JWT token and creates an AuthenticatedUser from the provided user data
-     * @param token JWT token to verify
-     * @param userData User data to create the AuthenticatedUser with
-     * @returns AuthenticatedUser instance if token is valid, null otherwise
-     */
-    public verifyTokenAndCreateAuthenticatedUser(token: string, userData: IUserDataEntity): AuthenticatedUser | AnonymousUser | null {
+        // An account may already exist under this email, from signing in with another provider
+        const existingUserId = email ? await dbService.getUserIdByEmailAsync(email) : undefined;
+        if (existingUserId) {
+            logger.info(`User found by email ${email} but not by OAuth, creating OAuth link`);
+            await dbService.saveOAuthLinkAsync(provider, providerId, existingUserId);
+            this.cache.setIdentity(provider, providerId, existingUserId);
+            return await this.resolveUserFromIdentityAsync(identity);
+        }
+
+        if (!name) {
+            throw new Error('Session token has no name to create an account with');
+        }
+        const cleanedUsername = name.trim()
+            .replace(/\s+/g, '')
+            .replace(/[^a-zA-Z0-9_]/g, '');
+        const newUser = {
+            id: uuid(),
+            username: cleanedUsername,
+            lastLogin: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            usernameLastUpdatedAt: new Date().toISOString(),
+            showWelcomeMessage: true,
+            preferences: getDefaultPreferences(),
+            needsUsernameChange: false,
+            swuStatsRefreshToken: null,
+            swubaseRefreshToken: null,
+            moderation: null,
+            undoPopupSeenDate: null,
+            timerPopupSeenDate: null,
+        };
+
+        // Create OAuth link
+        await dbService.saveOAuthLinkAsync(provider, providerId, newUser.id);
+        // Save the user profile
+        await dbService.saveUserProfileAsync(newUser);
+        // create username link
+        await dbService.saveUsernameLinkAsync(newUser.username, newUser.id);
+        // Create email link if email is available
+        if (!email) {
+            throw new Error(`Email not found for user ${newUser.id}`);
+        }
+        await dbService.saveEmailLinkAsync(email, newUser.id);
+        // Record the initial username in the change history. This runs after all essential account
+        // records are created and is best-effort, so a failure here won't leave the account in a
+        // half-finished state or abort account creation.
         try {
-            const secret = process.env.NEXTAUTH_SECRET;
-            Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
-
-            const decoded = jwt.verify(token, secret) as any;
-            if (!decoded.userId) {
-                throw new Error('Parameter userId missing in JWT token');
-            }
-
-            // Update the user data with the decoded UUID
-            const updatedUserData = {
-                ...userData,
-                id: decoded.userId
-            };
-
-            return new AuthenticatedUser(updatedUserData);
-        } catch (error) {
-            logger.error('Error verifying JWT token:', { error: { message: error.message, stack: error.stack } });
-            throw error;
+            await this.recordUsernameChangeAsync(newUser.id, null, newUser.username, UsernameChangeSource.AccountCreation);
+        } catch {
+            // error already logged in recordUsernameChangeAsync
         }
+        logger.info(`Created new user: ${newUser.id} (${name}) with ${provider} authentication`);
+
+        this.cache.setIdentity(provider, providerId, newUser.id);
+        this.cache.invalidateProfile(newUser.id);
+        return await this.resolveUserFromIdentityAsync(identity);
     }
 
     /**
@@ -554,7 +595,7 @@ export class UserFactory {
         Contract.assertTrue(!!refreshToken, 'refreshToken is required');
         try {
             const dbService = await this.dbServicePromise;
-            await dbService.updateUserProfileAsync(userId, {
+            await this.updateProfileAsync(userId, {
                 [refreshTokenFieldMap[source]]: refreshToken,
             });
         } catch (error: any) {
@@ -598,7 +639,7 @@ export class UserFactory {
 
         try {
             const dbService = await this.dbServicePromise;
-            await dbService.updateUserProfileAsync(userId, {
+            await this.updateProfileAsync(userId, {
                 [refreshTokenFieldMap[source]]: null,
             });
         } catch (error: any) {
@@ -683,7 +724,7 @@ export class UserFactory {
                 return false;
             }
 
-            await dbService.updateUserProfileAsync(userId, {
+            await this.updateProfileAsync(userId, {
                 usernameChangesBlockedSeenActionId: modActionId
             });
 
@@ -706,7 +747,7 @@ export class UserFactory {
 
             if (userProfile.moderation) {
                 userProfile.moderation.hasSeen = true;
-                await dbService.updateUserProfileAsync(userId, {
+                await this.updateProfileAsync(userId, {
                     moderation: userProfile.moderation
                 });
 
@@ -740,7 +781,7 @@ export class UserFactory {
                 return false;
             }
 
-            await dbService.updateUserProfileAsync(userId, {
+            await this.updateProfileAsync(userId, {
                 reportingDisabledSeenActionId: modActionId
             });
 
