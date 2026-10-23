@@ -1,5 +1,5 @@
 import { EventName } from '../../Constants';
-import type { IDamageSource } from '../../../IDamageOrDefeatSource';
+import { DamageSystem } from '../../../gameSystems/DamageSystem';
 import { AnimationKind } from '../AnimationTypes';
 import type { IAnimationDescriptor } from '../AnimationTypes';
 
@@ -9,18 +9,11 @@ export const damageAnimation: IAnimationDescriptor = {
     when: {
         [EventName.OnDamageDealt]: (event) => event?.isResolved && event?.damageDealt > 0,
     },
-    build: (event) => {
-        const damageSource: IDamageSource = event.damageSource;
-
-        return {
-            kind: AnimationKind.Damage,
-            cardId: event.card.uuid,
-            // Narrowed by field rather than by `type`: the attack variant's `type` spans two enums.
-            sourceCardIds: 'damageDealtBy' in damageSource
-                ? damageSource.damageDealtBy.map((card) => card.uuid)
-                : [damageSource.card?.uuid].filter((uuid) => uuid != null),
-            amount: event.damageDealt,
-        };
-    },
+    build: (event) => ({
+        kind: AnimationKind.Damage,
+        cardId: event.card.uuid,
+        sourceCardIds: DamageSystem.damageSourceCards(event).map((card) => card.uuid),
+        amount: event.damageDealt,
+    }),
     summarizeFor: (record) => record,
 };

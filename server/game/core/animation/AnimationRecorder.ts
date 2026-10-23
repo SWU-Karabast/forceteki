@@ -87,13 +87,13 @@ export class AnimationRecorder {
         }
 
         for (const eventName of eventNames) {
-            this.game.on(eventName, (event: any) => this.handleEvent(eventName, event));
+            this.game.on(eventName, (event: any) => this.handleEvent(event));
         }
     }
 
-    private handleEvent(eventName: string, event: any): void {
+    private handleEvent(event: any): void {
         for (const descriptor of this.descriptors) {
-            const predicate = descriptor.when[eventName];
+            const predicate = descriptor.when[event.name];
             if (predicate == null) {
                 continue;
             }
@@ -114,7 +114,7 @@ export class AnimationRecorder {
                     this.appendDraft(draft, batch);
                 }
             } catch (error) {
-                this.logError(descriptor.name, eventName, error);
+                this.logError(descriptor.name, event.name, error);
             }
         }
     }

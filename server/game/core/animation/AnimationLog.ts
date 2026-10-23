@@ -62,11 +62,10 @@ export class AnimationLog {
         const start = Math.max(cursor, this.baseIndex);
 
         const newAnimations: AnimationRecord[] = [];
-        for (const record of this.records.slice(start - this.baseIndex)) {
-            const summarized = summarizeFor(record, viewer);
+        for (let i = start - this.baseIndex; i < this.records.length; i++) {
+            const summarized = summarizeFor(this.records[i], viewer);
             if (summarized != null) {
-                // Copied so that changes to the payload never reach the stored record.
-                newAnimations.push({ ...summarized });
+                newAnimations.push(summarized);
             }
         }
 
