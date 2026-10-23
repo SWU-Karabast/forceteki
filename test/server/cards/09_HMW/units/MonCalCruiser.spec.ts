@@ -23,6 +23,7 @@ describe('Mon Cal Cruiser', function() {
             ]);
             expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickPrompt('Attack with a unit');
+            expect(context.player1).toHavePrompt('Attack with a unit. It gets +2/+0 for this attack');
 
             expect(context.player1).toBeAbleToSelectExactly([context.gunganWarrior, context.battlefieldMarine]);
             context.player1.clickCard(context.battlefieldMarine);
@@ -83,6 +84,7 @@ describe('Mon Cal Cruiser', function() {
             ]);
             expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickPrompt('Look at an opponent\'s hand');
+            expect(context.player1).toHavePrompt('You may discard a card from your opponent\'s hand. If you do, they draw a card');
 
             expect(context.player1).toHaveEnabledPromptButton('Take nothing');
             expect(context.player1).toHaveExactSelectableDisplayPromptCards([

@@ -23,6 +23,9 @@ export interface IModalEffectSelectionPromptProperties {
     /** Secondary text shown beneath the title, e.g. whether options can be chosen more than once. */
     description?: string;
 
+    /** Header shown to the player who isn't choosing. Defaults to "Waiting for opponent". */
+    waitingPromptTitle?: string;
+
     /** Card with the modal ability, rendered as every option's button. */
     sourceCard: ITriggerWindowSourceCard;
 
@@ -75,7 +78,7 @@ export class ModalEffectSelectionPrompt extends UiPrompt {
 
     public override waitingPrompt(): IPlayerPromptStateProperties {
         return {
-            menuTitle: 'Waiting for opponent',
+            menuTitle: this.properties.waitingPromptTitle ?? 'Waiting for opponent',
             promptUuid: this.uuid
         };
     }
