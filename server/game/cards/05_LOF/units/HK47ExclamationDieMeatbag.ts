@@ -4,6 +4,8 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { ICardStateGetter } from '../../../core/lki/CardStateGetter';
 
 export default class HK47ExclamationDieMeatbag extends NonLeaderUnitCard {
+    public override readonly usesLkiRegistry = true;
+
     protected override getImplementationId() {
         return {
             id: '2407397504',

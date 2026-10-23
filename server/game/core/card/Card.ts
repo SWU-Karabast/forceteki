@@ -129,6 +129,19 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     protected disableWhenPlayedCheck = false;
     protected disableWhenPlayedUsingSmuggleCheck = false;
 
+    /**
+     * Whether this card's abilities read cards through the last known information registry.
+     *
+     * `false`, the default, gives the card a live-only getter (see `ICardStateInternal.forCard`), so
+     * everything it reads is exactly what reading the card directly would give. A card sets this to
+     * `true` once it has been migrated and its tests cover the new semantics.
+     *
+     * Transitional: introduced by the LKI migration so that every card's reads can be rewritten to go
+     * through the getter without changing behavior (phase 3), and removed once every card has opted
+     * in (phase 4). See long-term-project-docs/lki-redesign-decisions-and-insights.md (D-35).
+     */
+    public readonly usesLkiRegistry: boolean = false;
+
     @statePrimitive()
     private accessor _facedown = true;
 
