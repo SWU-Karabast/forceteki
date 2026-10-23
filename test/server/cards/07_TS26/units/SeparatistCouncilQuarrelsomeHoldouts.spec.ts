@@ -25,6 +25,7 @@ describe('Separatist Council, Quarrelsome Holdouts', function() {
                 ]);
 
                 context.player1.clickPrompt('Give 2 Experience tokens to a Battle Droid tokens');
+                expect(context.player1).toHavePrompt('Give 2 Experience tokens to a Battle Droid token');
                 const p1Droid = context.player1.findCardByName('battle-droid');
                 const p2Droid = context.player2.findCardByName('battle-droid');
                 expect(context.player1).toBeAbleToSelectExactly([p1Droid, p2Droid]);

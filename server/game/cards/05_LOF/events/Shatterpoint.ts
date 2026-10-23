@@ -19,6 +19,7 @@ export default class Shatterpoint extends EventCard {
                 choices: () => ({
                     ['Defeat a non-leader unit with 3 or less remaining HP']: AbilityHelper.immediateEffects
                         .selectCard({
+                            activePromptTitle: 'Defeat a non-leader unit with 3 or less remaining HP',
                             cardTypeFilter: WildcardCardType.NonLeaderUnit,
                             cardCondition: (card) => card.isUnit() && card.remainingHp <= 3,
                             immediateEffect: AbilityHelper.immediateEffects.defeat(),
