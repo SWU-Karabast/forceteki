@@ -12,7 +12,7 @@ export const damageAnimation: IAnimationDescriptor = {
     build: (event) => ({
         kind: AnimationKind.Damage,
         cardId: event.card.uuid,
-        sourceCardIds: DamageSystem.damageSourceCards(event).map((card) => card.uuid),
+        sourceCardIds: DamageSystem.getDamageSourceCards(event).map((card) => card.uuid),
         amount: event.damageDealt,
     }),
     summarizeFor: (record) => record,

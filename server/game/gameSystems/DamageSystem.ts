@@ -107,7 +107,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
      * Returns the cards that dealt the damage in an `onDamageDealt` event: the dealing units for
      * combat and overwhelm damage, or the source card for ability and excess damage. Empty if none.
      */
-    public static damageSourceCards(event): Card[] {
+    public static getDamageSourceCards(event): Card[] {
         Contract.assertTrue(event.name === EventName.OnDamageDealt);
 
         const damageSource: IDamageSource = event.damageSource;
