@@ -251,3 +251,141 @@ describe('Animation events with a multi-target attack', function() {
         });
     });
 });
+
+describe('Animation event batches', function() {
+    integration(function (contextRef) {
+        function damageTo(records: any[], card: any) {
+            return records.filter((record) => record.kind === AnimationKind.Damage && record.cardId === card.uuid);
+        }
+
+        function defeatOf(records: any[], card: any) {
+            return records.find((record) => record.kind === AnimationKind.Defeat && record.cardId === card.uuid);
+        }
+
+        function expectBatchesInOrder(records: any[]) {
+            for (let i = 1; i < records.length; i++) {
+                expect(records[i].batch).toBeGreaterThanOrEqual(records[i - 1].batch);
+            }
+        }
+
+        it('puts a shield defeat in the same batch as the rest of the attack damage', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['wampa'],
+                },
+                player2: {
+                    groundArena: [{ card: 'battlefield-marine', upgrades: ['shield'] }],
+                }
+            });
+            const { context } = contextRef;
+            const shield = context.battlefieldMarine.upgrades[0];
+            const before = context.getAnimationRecords().length;
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            const records = context.getAnimationRecords(before);
+            const toWampa = damageTo(records, context.wampa);
+            const shieldDefeat = defeatOf(records, shield);
+
+            // The shield replaces the damage to the marine, so there is no record of it.
+            expect(damageTo(records, context.battlefieldMarine)).toEqual([]);
+            expect(toWampa.length).toBe(1);
+            expect(shieldDefeat).toBeDefined();
+            expect(shieldDefeat.batch).toBe(toWampa[0].batch);
+            expectBatchesInOrder(records);
+        });
+
+        it('puts redirected combat damage in the same batch as the rest of the attack damage', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['maul#shadow-collective-visionary', 'mercenary-company'],
+                },
+                player2: {
+                    groundArena: ['luminara-unduli#softspoken-master'],
+                }
+            });
+            const { context } = contextRef;
+            const before = context.getAnimationRecords().length;
+
+            context.player1.clickCard(context.maul);
+            context.player1.clickCard(context.luminaraUnduli);
+            context.player1.clickCard(context.mercenaryCompany);
+
+            const records = context.getAnimationRecords(before);
+            const toLuminara = damageTo(records, context.luminaraUnduli);
+            const toMercenaryCompany = damageTo(records, context.mercenaryCompany);
+
+            // Maul's damage is replaced by damage to Mercenary Company, so there is no record of it.
+            expect(damageTo(records, context.maul)).toEqual([]);
+            expect(toMercenaryCompany.length).toBe(1);
+            expect(toMercenaryCompany[0].amount).toBe(4);
+            expect(toMercenaryCompany[0].sourceCardIds).toEqual([context.luminaraUnduli.uuid]);
+            expect(toMercenaryCompany[0].batch).toBe(toLuminara[0].batch);
+            expectBatchesInOrder(records);
+        });
+
+        it('puts an upgrade defeated with its unit in the same batch as the unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [{ card: 'wampa', upgrades: ['experience', 'experience'] }],
+                },
+                player2: {
+                    groundArena: [{ card: 'battlefield-marine', upgrades: ['experience'] }],
+                }
+            });
+            const { context } = contextRef;
+            const experience = context.battlefieldMarine.upgrades[0];
+            const before = context.getAnimationRecords().length;
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            const records = context.getAnimationRecords(before);
+            const toMarine = damageTo(records, context.battlefieldMarine);
+            const marineDefeat = defeatOf(records, context.battlefieldMarine);
+            const experienceDefeat = defeatOf(records, experience);
+
+            expect(marineDefeat).toBeDefined();
+            expect(experienceDefeat).toBeDefined();
+            expect(experienceDefeat.batch).toBe(marineDefeat.batch);
+            expect(marineDefeat.batch).toBe(toMarine[0].batch + 1);
+            expectBatchesInOrder(records);
+        });
+
+        it('puts damage from a When Defeated ability in a later batch than the defeat', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['wampa'],
+                },
+                player2: {
+                    groundArena: ['hk87-assassin-droid', 'battlefield-marine'],
+                }
+            });
+            const { context } = contextRef;
+            const before = context.getAnimationRecords().length;
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.hk87AssassinDroid);
+
+            const records = context.getAnimationRecords(before);
+            const toHk87 = damageTo(records, context.hk87AssassinDroid);
+            const hk87Defeat = defeatOf(records, context.hk87AssassinDroid);
+            const triggerDamage = records.filter((record) => record.kind === AnimationKind.Damage && record.batch > hk87Defeat.batch);
+            const wampaDefeat = defeatOf(records, context.wampa);
+
+            expect(hk87Defeat.batch).toBe(toHk87[0].batch + 1);
+
+            // HK-87 deals 2 to each ground unit: the marine and the Wampa.
+            expect(triggerDamage.map((record) => record.cardId)).toEqual(jasmine.arrayWithExactContents([context.battlefieldMarine.uuid, context.wampa.uuid]));
+            expect(triggerDamage.every((record) => record.sourceCardIds.includes(context.hk87AssassinDroid.uuid))).toBeTrue();
+            expect(new Set(triggerDamage.map((record) => record.batch)).size).toBe(1);
+            expect(wampaDefeat.batch).toBe(triggerDamage[0].batch + 1);
+            expectBatchesInOrder(records);
+        });
+    });
+});
