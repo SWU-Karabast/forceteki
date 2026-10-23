@@ -9,7 +9,7 @@ const { Deck } = require('../../server/utils/deck/Deck.js');
 // defaults to fill in with if not explicitly provided by the test case
 const defaultLeader = { 1: 'darth-vader#dark-lord-of-the-sith', 2: 'luke-skywalker#faithful-friend' };
 const defaultBase = { 1: 'kestro-city', 2: 'administrators-tower' };
-const playerCardProperties = ['groundArena', 'spaceArena', 'hand', 'resources', 'deck', 'discard', 'leader', 'secondLeader', 'base', 'opponentAttachedUpgrades', 'unitsCapturedByOpponent'];
+const playerCardProperties = ['groundArena', 'spaceArena', 'hand', 'resources', 'deck', 'deckBottom', 'discard', 'leader', 'secondLeader', 'base', 'opponentAttachedUpgrades', 'unitsCapturedByOpponent'];
 const deckFillerCard = 'underworld-thug';
 const defaultResourceCount = 20;
 const defaultDeckSize = 8; // buffer decks to prevent re-shuffling
@@ -140,8 +140,14 @@ class DeckBuilder {
         }
         playerCards.deck = this.padCardListIfNeeded(playerCards.deck, defaultDeckSize);
 
+        // 'deckBottom' lists the cards at the bottom of the deck (last card at the very bottom), below 'deck'
+        if (playerCards.deckBottom != null && !Array.isArray(playerCards.deckBottom)) {
+            throw new TestSetupError('Test deckBottom must be specified as an array');
+        }
+        const drawDeck = [...playerCards.deck, ...(playerCards.deckBottom ?? [])];
+
         deckCards.push(...this.getCardsForResources(resources));
-        deckCards.push(...playerCards.deck);
+        deckCards.push(...drawDeck);
         playerCards.opponentAttachedUpgrades.forEach((card) => {
             deckCards.push(card.card);
         });
@@ -168,7 +174,7 @@ class DeckBuilder {
         // Add all the cards already captured by the opponent
         deckCards = deckCards.concat(playerCards.unitsCapturedByOpponent);
 
-        return [this.buildDeck(deckCards, leader, base, secondLeader), namedCards, resources, playerCards.deck];
+        return [this.buildDeck(deckCards, leader, base, secondLeader), namedCards, resources, drawDeck];
     }
 
     getAllNamedCards(playerObject) {
