@@ -21,7 +21,7 @@ describe('Lobby reports', function () {
             const lobby = harness.server.testLobbyFor(reporter.id) as any;
             lobby.discordDispatcher = {
                 formatReport: (...args: unknown[]) => ({ args }),
-                formatAndSendReportAsync: (report: unknown) => {
+                formatAndSendBugReportAsync: (report: unknown) => {
                     sent.push(report);
                     return Promise.resolve(true);
                 },

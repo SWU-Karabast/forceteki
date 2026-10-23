@@ -12,6 +12,9 @@ export interface IModActionSubmission {
     note: string;
     durationDays?: number;
     newUsername?: string;
+
+    /** The player report ticket the action was issued from, if any. */
+    reportId?: string;
 }
 
 export interface IModActionSubmissionResult {
@@ -27,7 +30,8 @@ export interface IModActionStore {
         moderatorId: string,
         moderatorUsername: string,
         note: string,
-        durationDays?: number
+        durationDays?: number,
+        relatedReportId?: string
     ): Promise<{ success: boolean; message: string; modActionId?: string }>;
     onActionCancelled(playerId: string, modActionId: string, cancelledById: string, cancelledByUsername: string): Promise<void>;
     onRenameCompleted(playerId: string): Promise<void>;
@@ -119,6 +123,7 @@ export class ModActionSubmissionHandler {
             request.moderatorUsername,
             request.note,
             request.durationDays,
+            request.reportId,
         );
 
         if (result.success) {

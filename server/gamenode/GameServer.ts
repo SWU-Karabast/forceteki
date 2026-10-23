@@ -57,7 +57,7 @@ import type { IActiveModActionCacheEntry,
     IModerationAction,
     IReportingDisabledState,
     IUsernameChangesBlockedState } from '../services/DynamoDBInterfaces';
-import { ModActionType } from '../services/DynamoDBInterfaces';
+import { ModActionType, PlayerReportStatus } from '../services/DynamoDBInterfaces';
 import {
     ModerationType,
     ServerRole,
@@ -70,7 +70,18 @@ import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 import { ModActionService } from '../utils/ModActionService';
 import { ModActionSubmissionHandler } from '../utils/ModActionSubmissionHandler';
-import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema, ServerSettingsUpdateSchema } from '../services/DynamoDBInterfaceSchemas';
+import { PlayerReportService } from '../utils/PlayerReportService';
+import { ModActionRetentionService } from '../utils/ModActionRetentionService';
+import type { IModerator, PlayerReportUpdateResult } from '../utils/PlayerReportService';
+import {
+    ModActionSubmitSchema,
+    ModActionCancelSchema,
+    FindUserSchema,
+    PlayerReportCloseSchema,
+    PlayerReportIdSchema,
+    PlayerReportListSchema,
+    ServerSettingsUpdateSchema
+} from '../services/DynamoDBInterfaceSchemas';
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import { minimumSchedulerDelayMs } from '../utils/IScheduler';
 import { RealScheduler } from '../utils/RealScheduler';
@@ -330,6 +341,8 @@ export class GameServer {
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
     public readonly serverSettingsCache?: ServerSettingsCache;
     public readonly modActionService?: ModActionService;
+    public readonly playerReportService = new PlayerReportService(this.userFactory, () => this.modActionService);
+    private readonly modActionRetentionService = new ModActionRetentionService();
     private readonly modActionSubmissionHandler?: ModActionSubmissionHandler;
 
     /**
@@ -439,7 +452,7 @@ export class GameServer {
         // check if NEXTAUTH variable is set
         requireEnvVars(
             ['INTRASERVICE_SECRET', 'PROFILE_CAPTURE_SECRET', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY',
-                'DISCORD_BUG_REPORT_WEBHOOK_URL', 'DISCORD_ERROR_REPORT_WEBHOOK_URL', 'DISCORD_PLAYER_REPORT_WEBHOOK_URL'],
+                'DISCORD_BUG_REPORT_WEBHOOK_URL', 'DISCORD_ERROR_REPORT_WEBHOOK_URL'],
             'GameServer',
             ['NEXTAUTH_SECRET']
         );
@@ -480,6 +493,18 @@ export class GameServer {
             500,
             { message: 'GameServer: error sending queue heartbeat' }
         );
+
+        // delete expired player report data: once shortly after startup, then periodically
+        const runReportRetentionCleanup = () => this.playerReportService.runRetentionCleanupAsync(this.scheduler.currentDate());
+        const reportCleanupErrorContext = { message: 'GameServer: error during player report retention cleanup' };
+        this.scheduler.setTimeout(runReportRetentionCleanup, 60_000, reportCleanupErrorContext);
+        this.scheduler.setInterval(runReportRetentionCleanup, PlayerReportService.CleanupIntervalMs, reportCleanupErrorContext);
+
+        // delete mod actions that ended longer ago than the retention period
+        const runModActionRetentionCleanup = () => this.modActionRetentionService.runCleanupAsync(this.scheduler.currentDate());
+        const modActionCleanupErrorContext = { message: 'GameServer: error during mod action retention cleanup' };
+        this.scheduler.setTimeout(runModActionRetentionCleanup, 60_000, modActionCleanupErrorContext);
+        this.scheduler.setInterval(runModActionRetentionCleanup, ModActionRetentionService.CleanupIntervalMs, modActionCleanupErrorContext);
 
         if (this.config.metricsLoggingEnabled) {
             // initialize cpu usage and event loop stats
@@ -1922,12 +1947,17 @@ export class GameServer {
                     });
                 }
 
-                const { playerId, actionType, durationDays, note, newUsername } = parseResult.data;
+                const { playerId, actionType, durationDays, note, newUsername, reportId } = parseResult.data;
                 const moderatorId = req.user.getId();
                 const moderatorUsername = req.user.getUsername();
 
                 if (!this.getModActionService('mod-submit-action') || !this.modActionSubmissionHandler) {
                     return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
+                }
+
+                // An action issued from a report ticket may only target one of that report's two players
+                if (reportId && !(await this.playerReportService.isParticipantAsync(reportId, playerId))) {
+                    return res.status(400).json({ success: false, message: 'Player is not part of this report' });
                 }
 
                 const modActionResult = await this.modActionSubmissionHandler.submitAsync({
@@ -1938,6 +1968,7 @@ export class GameServer {
                     note,
                     durationDays: durationDays ?? undefined,
                     newUsername,
+                    reportId,
                 });
 
                 return res.status(200).json({
@@ -1979,6 +2010,103 @@ export class GameServer {
                 });
             } catch (err) {
                 logger.error('GameServer (mod-cancel-action) Server error:', err);
+                next(err);
+            }
+        });
+
+        // PLAYER REPORTS
+        app.post('/api/mod/reports/list', this.buildAuthMiddleware('mod-reports-list', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const parseResult = PlayerReportListSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({ success: false, message: 'Invalid request', errors: parseResult.error.format() });
+                }
+
+                const { status, beforeMonth } = parseResult.data;
+                if (status === PlayerReportStatus.Open) {
+                    const reports = await this.playerReportService.getOpenReportsAsync();
+                    return res.status(200).json({ success: true, reports, nextBeforeMonth: null });
+                }
+
+                const page = await this.playerReportService.getClosedReportsAsync(beforeMonth);
+                return res.status(200).json({ success: true, ...page });
+            } catch (err) {
+                logger.error('GameServer (mod-reports-list) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.get('/api/mod/reports/open-count', this.buildAuthMiddleware('mod-reports-open-count', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const openCount = await this.playerReportService.getOpenReportCountAsync();
+                return res.status(200).json({ success: true, openCount });
+            } catch (err) {
+                logger.error('GameServer (mod-reports-open-count) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/mod/reports/get', this.buildAuthMiddleware('mod-reports-get', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const parseResult = PlayerReportIdSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({ success: false, message: 'Invalid request', errors: parseResult.error.format() });
+                }
+
+                const detail = await this.playerReportService.getReportDetailAsync(parseResult.data.reportId);
+                if (!detail) {
+                    return res.status(404).json({ success: false, message: 'Report not found' });
+                }
+                // The client compares the claim against this id, so it does not depend on its own user state
+                return res.status(200).json({ success: true, ...detail, viewerId: req.user.getId() });
+            } catch (err) {
+                logger.error('GameServer (mod-reports-get) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/mod/reports/claim', this.buildAuthMiddleware('mod-reports-claim', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const parseResult = PlayerReportIdSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({ success: false, message: 'Invalid request', errors: parseResult.error.format() });
+                }
+
+                const result = await this.playerReportService.claimReportAsync(parseResult.data.reportId, this.getModerator(req.user));
+                return this.sendPlayerReportUpdateResult(res, result);
+            } catch (err) {
+                logger.error('GameServer (mod-reports-claim) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/mod/reports/close', this.buildAuthMiddleware('mod-reports-close', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const parseResult = PlayerReportCloseSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({ success: false, message: 'Invalid request', errors: parseResult.error.format() });
+                }
+
+                const { reportId, outcome, closingNote } = parseResult.data;
+                const result = await this.playerReportService.closeReportAsync(reportId, outcome, closingNote, this.getModerator(req.user));
+                return this.sendPlayerReportUpdateResult(res, result);
+            } catch (err) {
+                logger.error('GameServer (mod-reports-close) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/mod/reports/reopen', this.buildAuthMiddleware('mod-reports-reopen', ServerRole.Moderator), async (req, res, next) => {
+            try {
+                const parseResult = PlayerReportIdSchema.safeParse(req.body);
+                if (!parseResult.success) {
+                    return res.status(400).json({ success: false, message: 'Invalid request', errors: parseResult.error.format() });
+                }
+
+                const result = await this.playerReportService.reopenReportAsync(parseResult.data.reportId, this.getModerator(req.user));
+                return this.sendPlayerReportUpdateResult(res, result);
+            } catch (err) {
+                logger.error('GameServer (mod-reports-reopen) Server error:', err);
                 next(err);
             }
         });
@@ -2077,6 +2205,18 @@ export class GameServer {
         };
     }
 
+
+    private getModerator(user: User): IModerator {
+        return { id: user.getId(), username: user.getUsername() };
+    }
+
+    private sendPlayerReportUpdateResult(res: Response, result: PlayerReportUpdateResult) {
+        // Narrow on the property, not `success`: the project builds without strictNullChecks
+        if ('report' in result) {
+            return res.status(200).json({ success: true, report: result.report });
+        }
+        return res.status(result.reason === 'notFound' ? 404 : 409).json({ success: false, message: result.message });
+    }
 
     /**
      * Creates an auth middleware function with the GameServer instance injected.

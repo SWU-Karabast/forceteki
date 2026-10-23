@@ -163,13 +163,27 @@ describe('FakeDynamoDbService', function () {
                 .toBeRejectedWith(jasmine.objectContaining({ name: 'ConditionalCheckFailedException' }));
         });
 
-        it('drops an expired action from the active index without cancelling it', async function () {
+        it('ends an expired action once, without cancelling it, and lists it in its ended bucket', async function () {
             await db.saveModActionAsync(modAction());
 
-            await db.removeModActionFromActiveIndexAsync('player-1', 'action-1');
+            expect(await db.endModActionAsync('player-1', 'action-1', '2026-03-04T00:00:00.000Z')).toBeTrue();
+            expect(await db.endModActionAsync('player-1', 'action-1', '2026-05-01T00:00:00.000Z')).toBeFalse();
 
             expect(await db.getModActionsAsync()).toEqual([]);
-            expect((await db.getModActionsAsync({ userId: 'player-1' }))[0].cancelledAt).toBeUndefined();
+            const [stored] = await db.getModActionsAsync({ userId: 'player-1' });
+            expect(stored.cancelledAt).toBeUndefined();
+            expect(stored.endedAt).toBe('2026-03-04T00:00:00.000Z');
+            expect(await db.queryAttributesByGsiAsync('ENDED_MODACTION#2026-03', ['id', 'playerId'])).toEqual([{ id: 'action-1', playerId: 'player-1' }]);
+
+            await db.deleteModActionAsync('player-1', 'action-1');
+            expect(await db.getModActionsAsync({ userId: 'player-1' })).toEqual([]);
+        });
+
+        it('refuses to end an action that is still active when asked to only end inactive ones', async function () {
+            await db.saveModActionAsync(modAction());
+
+            expect(await db.endModActionAsync('player-1', 'action-1', '2026-03-04T00:00:00.000Z', { onlyIfInactive: true })).toBeFalse();
+            expect((await db.getModActionsAsync()).length).toBe(1);
         });
 
         it('activates a pending mute by setting when it started and expires', async function () {
