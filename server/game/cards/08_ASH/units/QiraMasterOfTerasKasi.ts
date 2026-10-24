@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class QiraMasterOfTerasKasi extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -21,12 +21,13 @@ export default class QiraMasterOfTerasKasi extends NonLeaderUnitCard {
         });
 
         registrar.addWhenPlayedAbility({
-            title: 'Discard a card from your hand. If you do, deal 3 damage to a unit',
-            immediateEffect: abilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
-                amount: 1,
-                target: context.player,
-                optional: true,
-            })),
+            title: 'Discard a card from your hand to deal 3 damage to a unit',
+            optional: true,
+            targetResolver: {
+                controller: RelativePlayer.Self,
+                zoneFilter: ZoneName.Hand,
+                immediateEffect: abilityHelper.immediateEffects.discardSpecificCard(),
+            },
             ifYouDo: {
                 title: 'Deal 3 damage to a unit',
                 targetResolver: {

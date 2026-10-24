@@ -101,6 +101,30 @@ describe('Rose Tico, Now It\'s Worth It', function () {
             expect(context.roseTico.exhausted).toBeFalse();
         });
 
+        it('should not enter play ready when rescued simultaneously with a non-unique unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['rivals-fall'],
+                },
+                player2: {
+                    groundArena: [{ card: 'discerning-veteran', capturedUnits: ['battlefield-marine', 'rose-tico#now-its-worth-it'] }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.rivalsFall);
+            context.player1.clickCard(context.discerningVeteran);
+
+            // both captured units are rescued simultaneously, so Battlefield Marine is not
+            // yet in play when Rose's enters-play-ready condition is checked
+            expect(context.player2).toBeActivePlayer();
+            expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
+            expect(context.roseTico).toBeInZone('groundArena', context.player1);
+            expect(context.roseTico.exhausted).toBeTrue();
+        });
+
         it('should not enter play ready when played from opponent\'s deck via Vermillion and the player has no non-unique units', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

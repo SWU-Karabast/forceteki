@@ -1,6 +1,6 @@
 import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
 import { PlotAbility } from '../../../abilities/keyword/PlotAbility';
-import type { IAbilityPropsWithSystems, IConstantAbilityProps, IOngoingEffectGenerator, NumericKeywordName } from '../../../Interfaces';
+import type { IAbilityPropsWithSystems, IConstantAbilityProps, IOngoingEffectGenerator, IPlayCostProperties, NumericKeywordName } from '../../../Interfaces';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
@@ -11,22 +11,60 @@ import PreEnterPlayAbility from '../../ability/PreEnterPlayAbility';
 import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 
-import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
+import type {
+    ICostAdjusterProperties,
+    IDamageUnitsCostAdjusterProperties,
+    IDefeatResourcesCostAdjusterProperties,
+    IForFreeCostAdjusterProperties,
+    IIgnoreAllAspectsCostAdjusterProperties,
+    IIgnoreSpecificAspectsCostAdjusterProperties,
+    IIgnoreWildcardAspectsCostAdjusterProperties,
+    IIncreaseOrDecreaseCostAdjusterProperties,
+    IModifyPayStageCostAdjusterProperties
+} from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
+import * as CostAdjusterFactory from '../../cost/CostAdjusterFactory';
 import type { Restriction } from '../../ongoingEffect/effectImpl/Restriction';
+import type { IPlayPermission } from '../../ongoingEffect/effectImpl/PlayPermission';
+import type { IPlayUnitActionProperties } from '../../../actions/PlayUnitAction';
 import { registerStateBase, statePrimitive } from '../../GameObjectUtils';
 import type { Player } from '../../Player';
 import { Contract } from '../../utils/Contract';
 import { EnumHelpers } from '../../utils/EnumHelpers';
-import { Helpers } from '../../utils/Helpers';
+import { Helpers, type DistributiveOmit } from '../../utils/Helpers';
 import { Card } from '../Card';
 import type { ICardCanChangeControllers } from '../CardInterfaces';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
+import type { ICost } from '../../cost/ICost';
+import { GameSystemCost } from '../../cost/GameSystemCost';
+import type { CardTargetSystem } from '../../gameSystem/CardTargetSystem';
+import { getSelectCost } from '../../../costs/CostLibrary';
 
-export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
+export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'> &
+  Pick<IPlayUnitActionProperties, 'enterPlayEffect' | 'enterPlayEffectSource'>;
 
 // required for mixins to be based on this class
 export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
+
+/** Types of cost adjustment that a card can apply to its own play cost */
+type ISelfCostAdjusterProperties =
+  | IIncreaseOrDecreaseCostAdjusterProperties
+  | IForFreeCostAdjusterProperties
+  | IIgnoreAllAspectsCostAdjusterProperties
+  | IIgnoreSpecificAspectsCostAdjusterProperties
+  | IIgnoreWildcardAspectsCostAdjusterProperties
+  | IModifyPayStageCostAdjusterProperties
+  | IDefeatResourcesCostAdjusterProperties
+  | IDamageUnitsCostAdjusterProperties;
+
+/**
+ * Properties for a constant ability that adjusts the cost to play the card itself. The type of adjustment is selected
+ * with `costAdjustType`, and the remaining properties are specific to that type.
+ */
+export type IAdjustCostAbilityProps<TSource extends Card = Card> = DistributiveOmit<ISelfCostAdjusterProperties, 'cardTypeFilter' | 'match'> & {
+    title: string;
+    condition?: (context: AbilityContext<TSource>) => boolean;
+};
 
 export interface IDecreaseCostAbilityProps<TSource extends Card = Card> extends Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;
@@ -69,6 +107,30 @@ export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostP
 export class PlayableOrDeployableCard extends Card implements IPlayableOrDeployableCard {
     protected preEnterPlayAbilities: PreEnterPlayAbility[] = [];
 
+    /**
+     * Additional play costs that originate from this card's *own* abilities, registered via the ability
+     * registrar's `addAdditionalPlayCost`. Because they are card abilities they are blanked while the card is
+     * out of play (see {@link getAdditionalPlayCostAbilities}), and they are merged into every play action
+     * generated for the card.
+     *
+     * This is distinct from additional play costs imposed by *other* effects (e.g. Saw Gerrera), which are
+     * ongoing effects added in {@link PlayCardAction.getCosts} rather than tracked here.
+     */
+    protected additionalPlayCostAbilities: ICost[] = [];
+
+    /**
+     * Alternate play costs registered on this card (see `addAlternatePlayCost`). Each becomes an alternate
+     * play action offered alongside the default, allowing the player to pay the alternate cost instead of
+     * the resource cost.
+     */
+    protected alternatePlayCosts: IPlayCostProperties<this>[] = [];
+
+    /**
+     * The explicit `costName`s already registered for this card's additional/alternate play costs. Used to
+     * guard against two play costs sharing a name and silently colliding on the same `context.costs` key.
+     */
+    private readonly registeredPlayCostNames = new Set<string>();
+
     @statePrimitive()
     private accessor _exhausted: boolean | null = null;
 
@@ -100,14 +162,16 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
     public override getActions(): PlayerOrCardAbility[] {
         return super.getActions()
-            .concat(this.getPlayCardActions());
+            .concat(this.getPlayCardActions())
+            .concat(this.getPlayPermissionActions());
     }
 
     /**
      * Get the available "play card" actions for this card in its current zone. If `propertyOverrides` is provided, will generate the actions using the included overrides.
      *
-     * Note that if the card is currently in an out-of-play zone, by default this will return nothing since cards cannot be played from out of play in normal circumstances.
+     * Note that if the card is currently in an out-of-play zone, this will return nothing since cards cannot be played from out of play in normal circumstances.
      * If using an ability to grant an out-of-play action, use `getPlayCardFromOutOfPlayActions` which will generate the appropriate actions.
+     * Actions granted by lasting play permissions come from `getPlayPermissionActions`.
      */
     public getPlayCardActions(propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
         let playCardActions: PlayCardAction[] = [];
@@ -123,16 +187,25 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides));
         }
 
-        if (this.zoneName === ZoneName.Discard) {
-            if (this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
-                playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
-                if (this.hasSomeKeyword(KeywordName.Piloting)) {
-                    playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
-                }
-            }
-        }
-
         return playCardActions;
+    }
+
+    /**
+     * Get the "play card" actions granted by lasting play permissions on this card that apply to its current zone (e.g. Cobb Vanth).
+     * Each permission is a separate modified play action, carrying only that permission's cost adjustment and
+     * enter-play effect. Which player may use each action is checked by the action's requirements.
+     */
+    public getPlayPermissionActions(): PlayCardAction[] {
+        return this.getOngoingEffectValues<IPlayPermission>(EffectName.GainPlayPermission)
+            .filter((permission) => permission.zone === this.zoneName)
+            .flatMap((permission) => this.getPlayCardFromOutOfPlayActions({
+                playPermission: permission,
+                costAdjusters: permission.adjustCost
+                    ? [CostAdjusterFactory.create(this.game, permission.source, permission.adjustCost)]
+                    : [],
+                enterPlayEffect: permission.enterPlayEffect,
+                enterPlayEffectSource: permission.source
+            }));
     }
 
     /**
@@ -184,7 +257,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
                 defaultPlayAction = this.buildCheapestAlternatePlayAction(propertyOverridesWithExploit, KeywordName.Smuggle, playType);
             }
         } else {
-            defaultPlayAction = this.buildPlayCardAction({ ...propertyOverridesWithExploit, playType });
+            defaultPlayAction = this.buildPlayCardAction(this.applyAdditionalPlayCosts({ ...propertyOverridesWithExploit, playType }));
         }
 
         // if there's not a basic play action available for the requested play type, return nothing
@@ -193,6 +266,16 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         }
 
         const actions: PlayCardAction[] = [defaultPlayAction];
+
+        // Alternate play costs are offered alongside the default for the base play types only (not for
+        // keyword-alternate play types like Smuggle/Piloting), and not when the card is blanked out of play.
+        if (
+            (playType === PlayType.PlayFromHand || playType === PlayType.PlayFromOutOfPlay) &&
+            this.alternatePlayCosts.length > 0 &&
+            !this.isBlankOutOfPlay()
+        ) {
+            actions.push(...this.buildAlternatePlayActions(playType, propertyOverridesWithExploit));
+        }
 
         return actions;
     }
@@ -213,7 +296,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
                 alternatePlayActionAspects: keywordWithCostValue.aspects
             };
 
-            return this.buildPlayCardAction(alternateActionProps);
+            return this.buildPlayCardAction(this.applyAdditionalPlayCosts(alternateActionProps));
         });
 
         return KeywordHelpers.getCheapestPlayAction(playType, alternatePlayActions);
@@ -222,6 +305,115 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     // can't do abstract due to mixins
     public buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction {
         Contract.fail('This method should be overridden by the subclass');
+    }
+
+    /**
+     * Registers an additional cost to be paid whenever this card is played. Called by the ability
+     * registrar's `addAdditionalPlayCost`. See also {@link additionalPlayCostAbilities}.
+     */
+    protected registerAdditionalPlayCost(properties: IPlayCostProperties<this>): void {
+        this.assertPlayCostNameUnused(properties);
+        this.additionalPlayCostAbilities = this.additionalPlayCostAbilities.concat(this.buildPlayCost(properties));
+    }
+
+    /**
+     * Registers an alternate way to play this card, surfaced as an extra play action alongside the default
+     * (e.g. "you may play this by discarding a card insted of paying costs"). Called by the registrar's
+     * `addAlternatePlayCost`. See {@link alternatePlayCosts}.
+     */
+    protected registerAlternatePlayCost(properties: IPlayCostProperties<this>): void {
+        this.assertPlayCostNameUnused(properties);
+        this.alternatePlayCosts = [...this.alternatePlayCosts, properties];
+    }
+
+    /**
+     * Guards against two additional/alternate play costs on this card sharing an explicit `costName`, which
+     * would silently collide on the same `context.costs` key and make one of the chosen cost targets
+     * unretrievable. Only names that are explicitly set are checked (unnamed costs default to their game
+     * system's name and aren't tracked here).
+     */
+    private assertPlayCostNameUnused(properties: IPlayCostProperties<this>): void {
+        const { costName } = properties;
+        if (costName == null) {
+            return;
+        }
+
+        Contract.assertFalse(
+            this.registeredPlayCostNames.has(costName),
+            `Duplicate play cost name '${costName}' registered on ${this.internalName}. Each additional/alternate play cost must use a unique costName to avoid colliding in context.costs.`
+        );
+        this.registeredPlayCostNames.add(costName);
+    }
+
+    private buildPlayCost(properties: IPlayCostProperties<this>): ICost[] {
+        if (properties.cost) {
+            return Helpers.asArray(properties.cost);
+        }
+
+        if (properties.targetResolver) {
+            const { immediateEffect, activePromptTitle, ...selectProperties } = properties.targetResolver;
+            return [getSelectCost(
+                immediateEffect as CardTargetSystem<AbilityContext<this>>,
+                { ...selectProperties, name: properties.costName },
+                activePromptTitle ?? properties.title ?? ''
+            )];
+        }
+
+        return [new GameSystemCost(properties.immediateEffect, false, properties.costName)];
+    }
+
+    /**
+     * Builds the extra play action(s) for this card's registered alternate play costs (see
+     * `addAlternatePlayCost`). Each plays the card for free (printed cost suppressed) by paying its cost.
+     *
+     * An alternate play cost is meant to be paid *instead* of the card's other costs, so we deliberately do
+     * not merge in this card's registered additional play costs here (unlike the default/keyword actions).
+     * Note: additional costs imposed by an opponent's ongoing effect (e.g. Saw Gerrera) are added later in
+     * {@link PlayCardAction.getCosts} and are not yet circumvented — see the linked issue.
+     *
+     * Playing for free bypasses all resource modifiers, so a play permission used by these actions keeps
+     * its zone, players and enter-play effect but not its cost adjustment.
+     */
+    private buildAlternatePlayActions(
+        playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay,
+        propertyOverrides: IPlayCardActionOverrides
+    ): PlayCardAction[] {
+        const playPermission = propertyOverrides?.playPermission
+            ? { ...propertyOverrides.playPermission, adjustCost: undefined }
+            : undefined;
+
+        return this.alternatePlayCosts.map((alternate) =>
+            this.buildPlayCardAction({
+                ...propertyOverrides,
+                playType,
+                playPermission,
+                title: alternate.title,
+                additionalCosts: this.buildPlayCost(alternate),
+                costAdjusters: [CostAdjusterFactory.create(this.game, this, { costAdjustType: CostAdjustType.Free })],
+            })
+        );
+    }
+
+    /**
+     * The additional play costs registered on this card (see `addAdditionalPlayCost`). These are card
+     * abilities, so a card blanked out of play (all abilities lost) has none.
+     */
+    protected getAdditionalPlayCostAbilities(): ICost[] {
+        return this.isBlankOutOfPlay() ? [] : this.additionalPlayCostAbilities;
+    }
+
+    /**
+     * Merges this card's registered additional play costs (see `addAdditionalPlayCost`) into the
+     * `additionalCosts` of a play action's properties. Applied at action-build time so the costs are
+     * captured into the action's `createdWithProperties` and therefore preserved across `clone()`.
+     */
+    protected applyAdditionalPlayCosts<T extends IPlayCardActionPropertiesBase>(properties: T): T {
+        const additionalPlayCostAbilities = this.getAdditionalPlayCostAbilities();
+        if (additionalPlayCostAbilities.length === 0) {
+            return properties;
+        }
+
+        return Helpers.mergeArrayProperty(properties, 'additionalCosts', additionalPlayCostAbilities);
     }
 
     public exhaust() {
@@ -329,7 +521,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
      *
      * @returns true if the controller was changed, false if it was the same
      */
-    public takeControl(newController: Player, moveTo: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource = null): boolean {
+    public takeControl(newController: Player, moveTo: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource | ZoneName.Base = null): boolean {
         if (newController === this.controller) {
             return false;
         }
@@ -342,7 +534,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         const moveDestination = moveTo || this.zone.name;
 
         Contract.assertTrue(
-            moveDestination === ZoneName.SpaceArena || moveDestination === ZoneName.GroundArena || moveDestination === ZoneName.Resource,
+            moveDestination === ZoneName.SpaceArena || moveDestination === ZoneName.GroundArena || moveDestination === ZoneName.Resource || moveDestination === ZoneName.Base,
             `Attempting to take control of card ${this.internalName} for player ${newController.name} in invalid zone: ${moveDestination}`
         );
 
@@ -371,47 +563,32 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         return true;
     }
 
+    /** Create constant ability props on the card that adjusts its own cost under the given condition */
+    protected generateAdjustCostAbilityProps(properties: IAdjustCostAbilityProps<this>): IConstantAbilityProps {
+        const { title, condition, ...otherProps } = properties;
+
+        const costAdjusterProps: ICostAdjusterProperties = {
+            ...this.buildCostAdjusterGenericProperties(),
+            ...otherProps
+        };
+
+        const effect = OngoingEffectLibrary.adjustCost(costAdjusterProps);
+        return this.buildCostAdjusterAbilityProps(condition, title, effect);
+    }
+
     /** Create constant ability props on the card that decreases its cost under the given condition */
     protected generateDecreaseCostAbilityProps(properties: IDecreaseCostAbilityProps<this>): IConstantAbilityProps {
-        const { title, condition, ...otherProps } = properties;
-
-        const costAdjusterProps: ICostAdjusterProperties = {
-            ...this.buildCostAdjusterGenericProperties(),
-            costAdjustType: CostAdjustType.Decrease,
-            ...otherProps
-        };
-
-        const effect = OngoingEffectLibrary.decreaseCost(costAdjusterProps);
-        return this.buildCostAdjusterAbilityProps(condition, title, effect);
+        return this.generateAdjustCostAbilityProps({ ...properties, costAdjustType: CostAdjustType.Decrease });
     }
 
-    /** Create constant ability props on the card that decreases its cost under the given condition */
+    /** Create constant ability props on the card that ignores all of its aspect penalties under the given condition */
     protected generateIgnoreAllAspectPenaltiesAbilityProps(properties: IIgnoreAllAspectPenaltiesProps<this>): IConstantAbilityProps {
-        const { title, condition, ...otherProps } = properties;
-
-        const costAdjusterProps: ICostAdjusterProperties = {
-            ...this.buildCostAdjusterGenericProperties(),
-            costAdjustType: CostAdjustType.IgnoreAllAspects,
-            ...otherProps
-        };
-
-        const effect = OngoingEffectLibrary.ignoreAllAspectPenalties(costAdjusterProps);
-        return this.buildCostAdjusterAbilityProps(condition, title, effect);
+        return this.generateAdjustCostAbilityProps({ ...properties, costAdjustType: CostAdjustType.IgnoreAllAspects });
     }
 
-    /** Create constant ability props on the card that decreases its cost under the given condition */
+    /** Create constant ability props on the card that ignores specific aspect penalties under the given condition */
     protected generateIgnoreSpecificAspectPenaltiesAbilityProps(properties: IIgnoreSpecificAspectPenaltyProps<this>): IConstantAbilityProps {
-        const { title, ignoredAspect, condition, ...otherProps } = properties;
-
-        const costAdjusterProps: ICostAdjusterProperties = {
-            ...this.buildCostAdjusterGenericProperties(),
-            costAdjustType: CostAdjustType.IgnoreSpecificAspects,
-            ignoredAspect: ignoredAspect,
-            ...otherProps
-        };
-
-        const effect = OngoingEffectLibrary.ignoreSpecificAspectPenalties(costAdjusterProps);
-        return this.buildCostAdjusterAbilityProps(condition, title, effect);
+        return this.generateAdjustCostAbilityProps({ ...properties, costAdjustType: CostAdjustType.IgnoreSpecificAspects });
     }
 
     protected createPreEnterPlayAbility<TSource extends Card = this>(properties: IAbilityPropsWithSystems<AbilityContext<TSource>>): PreEnterPlayAbility {

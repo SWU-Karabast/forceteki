@@ -1,5 +1,5 @@
 import type { ZoneFilter } from '../Constants';
-import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
+import { AbilityType, Stage, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import { Contract } from '../utils/Contract';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
@@ -32,7 +32,7 @@ export abstract class CardAbility extends CardAbilityStep {
         this.abilityIdentifier = properties.abilityIdentifier || `${this.card.internalName}_anonymous`;
     }
 
-    private zoneOrDefault(card, zone): ZoneFilter {
+    private zoneOrDefault(card, zone): ZoneFilter | ZoneFilter[] {
         if (zone != null) {
             return zone;
         }
@@ -49,7 +49,11 @@ export abstract class CardAbility extends CardAbilityStep {
         if (card.isBase()) {
             return ZoneName.Base;
         }
-        if (card.isUnit() || card.isUpgrade()) {
+        if (card.isUpgrade()) {
+            // an upgrade is in play either attached to a unit (an arena) or, via Fortify, attached to a base
+            return [WildcardZoneName.AnyArena, ZoneName.Base];
+        }
+        if (card.isUnit()) {
             return WildcardZoneName.AnyArena;
         }
 
@@ -74,9 +78,16 @@ export abstract class CardAbility extends CardAbilityStep {
             return 'player';
         }
 
+        // Being offered a triggered ability that plays an event card (e.g. a Plot trigger) is not the same as
+        // playing it, so a "can't play" restriction shouldn't suppress the option from being offered at trigger
+        // stage - it's enough that the restriction is checked again once the ability actually resolves. This
+        // matters when another ability triggered by the same event (e.g. simultaneous damage) can remove the
+        // restriction's source from play before this ability gets a chance to resolve.
+        const deferCanPlayCheck = context.stage === Stage.Trigger && this.isTriggeredAbility();
+
         if (
             (this.isActivatedAbility() && !this.card.canTriggerAbilities(context, ignoredRequirements)) ||
-            (this.card.isEvent() && !this.card.canPlay(context, context.playType))
+            (!deferCanPlayCheck && this.card.isEvent() && !this.card.canPlay(context, context.playType))
         ) {
             return 'cannotTrigger';
         }
@@ -85,7 +96,7 @@ export abstract class CardAbility extends CardAbilityStep {
             return 'cannotInitiate';
         }
 
-        if (!ignoredRequirements.includes('limit') && this.limit.isAtMax(context.player)) {
+        if (!ignoredRequirements.includes('limit') && context.isAtLimit()) {
             return 'limit';
         }
 
@@ -95,6 +106,10 @@ export abstract class CardAbility extends CardAbilityStep {
     public getAdjustedCost(context: AbilityContext) {
         const resourceCost = this.getCosts(context).find((cost) => cost.isResourceCost());
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
+    }
+
+    public resetLimit(): void {
+        this.limit.reset();
     }
 
     protected isInValidZone(context) {

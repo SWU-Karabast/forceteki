@@ -6,7 +6,7 @@ import type { AbilityContext } from '../../ability/AbilityContext';
 import type { TriggeredAbilityBase } from '../../ability/TriggeredAbility';
 import type { GameEvent } from '../../event/GameEvent';
 import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
-import { CardType, EffectName, RelativePlayer, StandardTriggeredAbilityType, TargetMode, WildcardZoneName, ZoneName } from '../../Constants';
+import { CardType, EffectName, KeywordName, RelativePlayer, StandardTriggeredAbilityType, TargetMode, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { Player } from '../../Player';
@@ -23,7 +23,8 @@ import { WithCost } from '../propertyMixins/Cost';
 import type { ICardWithPreEnterPlayAbilities } from '../propertyMixins/PreEnterPlayAbilityRegistration';
 import type { ICardWithTriggeredAbilities, ITriggeredAbilityRegistrar } from '../propertyMixins/TriggeredAbilityRegistration';
 import type { IUnitCard } from '../propertyMixins/UnitProperties';
-import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
+import type { ICardWithUpgrades } from '../CardInterfaces';
+import type { IAdjustCostAbilityProps, IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import { registerStateBase, stateRef, stateRefArray, statePrimitive } from '../../GameObjectUtils';
@@ -39,14 +40,15 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     get disableOngoingEffectsForDefeat(): boolean;
     get inPlayId(): number;
     get mostRecentInPlayId(): number;
-    get parentCard(): IUnitCard;
+    get parentCard(): ICardWithUpgrades;
+    get parentUnit(): IUnitCard;
     get pendingDefeat(): boolean;
     getUpgradeHp(): number;
     getUpgradePower(): number;
     isInPlay(): boolean;
     registerPendingUniqueDefeat();
     checkUnique();
-    attachTo(newParentCard: IUnitCard, newController?: Player);
+    attachTo(newParentCard: ICardWithUpgrades, newController?: Player);
     isAttached(): boolean;
     unattach(event?: any);
     canAttach(targetCard: Card, context: AbilityContext, controller?: Player): boolean;
@@ -90,12 +92,23 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     private accessor _mostRecentInPlayId: number = -1
 
     /**
-     * Every time a card enters play, it becomes a new "copy" of the card as far as the game is concerned (SWU 8.6.4).
+     * The identity counter for this card, readable in any zone. See {@link Card.identityId}.
+     *
+     * This is the same underlying counter that backs {@link inPlayId} and {@link mostRecentInPlayId},
+     * but without their zone gating, so callers that only need to compare identity do not have to
+     * pick between them.
+     */
+    public override get identityId(): number {
+        return this._mostRecentInPlayId;
+    }
+
+    /**
+     * Every time a card enters play, it becomes a new "copy" of the card as far as the game is concerned (SWU 8.5.4).
      * This in-play id is used to distinguish copies of the card - every time it enters play, the id is incremented.
      * If the card is no longer in play, this property is not available and {@link mostRecentInPlayId} should be used instead.
      */
     public get inPlayId() {
-        this.assertPropertyEnabledForZoneBoolean(EnumHelpers.isArena(this.zoneName), 'inPlayId');
+        this.assertPropertyEnabledForZoneBoolean(this.isInPlay(), 'inPlayId');
         return this._mostRecentInPlayId;
     }
 
@@ -105,15 +118,18 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
      */
     public get mostRecentInPlayId() {
         this.assertPropertyEnabledForZoneBoolean(
-            !EnumHelpers.isArena(this.zoneName) && this.zone.hiddenForPlayers == null,
+            !this.isInPlay() && this.zone.hiddenForPlayers == null,
             'mostRecentInPlayId'
         );
 
         return this._mostRecentInPlayId;
     }
 
-    /** The card that this card is underneath */
-    public get parentCard(): IUnitCard {
+    /**
+     * The card this upgrade is underneath: a unit for most upgrades, or a base for Fortify upgrades.
+     * For upgrades that can only ever attach to units, prefer {@link parentUnit} to read it typed as a unit.
+     */
+    public get parentCard(): ICardWithUpgrades {
         Contract.assertNotNullLike(this._parentCard);
         // TODO: move IsInPlay to be usable here
         Contract.assertTrue(this.isInPlay());
@@ -121,8 +137,18 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         return this._parentCard;
     }
 
-    protected set parentCard(value: IUnitCard | null) {
+    protected set parentCard(value: ICardWithUpgrades | null) {
         this._parentCard = value;
+    }
+
+    /**
+     * The unit this upgrade is attached to. Only valid for upgrades that can exclusively attach to units;
+     * asserts the parent is a unit (it never is for a Fortify base upgrade).
+     */
+    public get parentUnit(): IUnitCard {
+        const parent = this.parentCard;
+        Contract.assertTrue(parent.isUnit(), `Expected the parent of ${this.internalName} to be a unit but it is ${parent.internalName}`);
+        return parent;
     }
 
     // NAMING NOTE: Normally underscore is used for TS private only, but this is an exception for UnitProperties.ts
@@ -131,7 +157,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
 
     // NAMING NOTE: Normally underscore is used for TS private only, but this is an exception for UnitProperties.ts
     @stateRef()
-    protected accessor _parentCard: IUnitCard | null = null;
+    protected accessor _parentCard: ICardWithUpgrades | null = null;
 
     /**
      * If true, then this card is queued to be defeated as a consequence of another effect (damage, unique rule)
@@ -167,7 +193,9 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     }
 
     public isInPlay(): boolean {
-        return EnumHelpers.isArena(this.zoneName);
+        // The arenas are the usual in-play zones for in-play cards. The base zone is also an in-play zone
+        // (`SWU 4.9.1`); an upgrade attached to a base (via Fortify) lives there and is considered in play.
+        return EnumHelpers.isArena(this.zoneName) || (this.zoneName === ZoneName.Base && this.isUpgrade());
     }
 
     public override canBeInPlay(): this is IInPlayCard {
@@ -222,23 +250,29 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         return this.printedUpgradeHp != null && this.printedUpgradePower != null;
     }
 
-    public attachTo(newParentCard: IUnitCard, newController?: Player) {
+    public attachTo(newParentCard: ICardWithUpgrades, newController?: Player) {
         this.checkIsAttachable();
-        Contract.assertTrue(newParentCard.isUnit());
+        Contract.assertTrue(newParentCard.isUnit() || newParentCard.isBase());
 
         // this assert needed for type narrowing or else the moveTo fails
-        Contract.assertTrue(newParentCard.zoneName === ZoneName.SpaceArena || newParentCard.zoneName === ZoneName.GroundArena);
+        Contract.assertTrue(
+            newParentCard.zoneName === ZoneName.SpaceArena ||
+            newParentCard.zoneName === ZoneName.GroundArena ||
+            newParentCard.zoneName === ZoneName.Base
+        );
 
         if (this._parentCard) {
             this.unattach();
         }
 
+        // the player who plays an upgrade controls it, even if it comes from the opponent's discard pile
+        // (e.g. a Fortify upgrade played with A Fine Addition)
         if (newController && newController !== this.controller) {
             this.takeControl(newController, newParentCard.zoneName);
         } else {
             this.moveTo(
                 newParentCard.zoneName,
-                EnumHelpers.isArena(this.zoneName) ? InitializeCardStateOption.DoNotInitialize : InitializeCardStateOption.Initialize
+                this.isInPlay() ? InitializeCardStateOption.DoNotInitialize : InitializeCardStateOption.Initialize
             );
         }
 
@@ -290,11 +324,26 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             attachTarget: targetCard
         };
 
-        if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(attachContext))) {
+        if (this.attachCondition && !this.attachCondition(attachContext)) {
             return false;
         }
 
-        return true;
+        return this.canAttachToTargetType(targetCard, controller);
+    }
+
+    /**
+     * Checks whether the target is a legal _type_ of card for this upgrade to attach to, independent of any
+     * per-card {@link attachCondition} refinement. Defaults to the standard "attach to a unit" restriction;
+     * attach-restriction keywords such as Fortify override this.
+     */
+    protected canAttachToTargetType(targetCard: Card, controller: Player): boolean {
+        // The Fortify keyword replaces the default "attach to a unit" restriction: the upgrade
+        // attaches to its controller's own base instead, and can't attach to a unit.
+        if (this.hasSomeKeyword(KeywordName.Fortify)) {
+            return targetCard.isBase() && targetCard.controller === controller;
+        }
+
+        return targetCard.isUnit();
     }
 
     /**
@@ -333,6 +382,9 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
 
         return {
             ...registrar,
+            addAdditionalPlayCost: (properties) => this.registerAdditionalPlayCost(properties),
+            addAlternatePlayCost: (properties) => this.registerAlternatePlayCost(properties),
+            addAdjustCostAbility: (properties) => this.addAdjustCostAbility(properties, registrar),
             addDecreaseCostAbility: (properties) => this.addDecreaseCostAbility(properties, registrar),
             addWhenPlayedAbility: (properties) => this.addWhenPlayedAbility(properties, registrar),
             addWhenDefeatedAbility: (properties) => this.addWhenDefeatedAbility(properties, registrar),
@@ -350,6 +402,11 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenDefeated]: true };
         const triggeredProperties = Object.assign(properties, { when });
         return registrar.addTriggeredAbility(triggeredProperties);
+    }
+
+    /** Add a constant ability on the card that adjusts its own cost under the given condition */
+    private addAdjustCostAbility(properties: IAdjustCostAbilityProps<this>, registrar: IConstantAbilityRegistrar<this>): IConstantAbilityProps<this> {
+        return registrar.addConstantAbility(this.generateAdjustCostAbilityProps(properties));
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
@@ -376,18 +433,21 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     protected override initializeForCurrentZone(prevZone?: ZoneName) {
         super.initializeForCurrentZone(prevZone);
 
-        if (EnumHelpers.isArena(this.zoneName)) {
+        // The base zone counts as in play for an attached upgrade (Fortify), so treat it like the arenas here.
+        const wasInPlay = EnumHelpers.isArena(prevZone) || (prevZone === ZoneName.Base && this.isUpgrade());
+
+        if (this.isInPlay()) {
             this.setPendingDefeatEnabled(true);
 
             // increment to a new in-play id if we're entering play, indicating that we are now a new "copy" of this card (SWU 8.6.4)
-            if (!EnumHelpers.isArena(prevZone)) {
+            if (!wasInPlay) {
                 this._mostRecentInPlayId += 1;
             }
         } else {
             this.setPendingDefeatEnabled(false);
 
             // if we're moving from a visible zone (discard, capture) to a hidden zone, increment the in-play id to represent the loss of information (card becomes a new copy)
-            if (EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self) && !EnumHelpers.isHiddenFromOpponent(prevZone, RelativePlayer.Self)) {
+            if (EnumHelpers.zoneMoveLosesCardInformation(prevZone, this.zoneName)) {
                 this._mostRecentInPlayId += 1;
             }
         }

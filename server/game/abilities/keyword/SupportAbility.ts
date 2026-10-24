@@ -6,6 +6,7 @@ import { Contract } from '../../core/utils/Contract';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 import { registerState } from '../../core/GameObjectUtils';
 import { InitiateAttackSystem } from '../../gameSystems/InitiateAttackSystem';
+import { TextHelper } from '../../core/utils/TextHelper';
 
 @registerState()
 export class SupportAbility extends TriggeredAbilityBase {
@@ -13,7 +14,7 @@ export class SupportAbility extends TriggeredAbilityBase {
 
     public static buildSupportAbilityProperties<TSource extends Card = Card>(source: TSource): ITriggeredAbilityProps<TSource> {
         return {
-            title: 'Support',
+            title: TextHelper.Support,
             optional: true,
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,

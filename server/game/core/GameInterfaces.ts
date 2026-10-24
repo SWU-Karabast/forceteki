@@ -1,4 +1,4 @@
-import type { GameMode } from '../../GameMode';
+import type { SwuGameFormat } from './Constants';
 import type { Lobby } from '../../gamenode/Lobby';
 import type { IUser } from '../../Settings';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
@@ -8,6 +8,7 @@ import type { AbilityResolver } from './gameSteps/AbilityResolver';
 import type { ActionWindow } from './gameSteps/ActionWindow';
 import type { UiPrompt } from './gameSteps/prompts/UiPrompt';
 import type { UndoMode } from './snapshot/SnapshotManager';
+import type { IScheduler } from '../../utils/IScheduler';
 import { Contract } from './utils/Contract';
 
 export interface GameConfiguration {
@@ -16,11 +17,21 @@ export interface GameConfiguration {
     players: IUser[];
     spectators?: IUser[];
     allowSpectators: boolean;
-    gameMode: GameMode;
+
+    /** The deck/rules format being played. Defaults to Premier when omitted. */
+    format?: SwuGameFormat;
     cardDataGetter: CardDataGetter;
+
+    /**
+     * Card titles legal in this game's format and card pool, used to restrict "name a card" options.
+     * When omitted, every card title is available.
+     */
+    legalCardTitles?: ReadonlySet<string>;
     useActionTimer?: boolean;
     pushUpdate: () => void;
-    buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
+
+    /** Supplies timers and the clock. Callbacks scheduled through it are error-guarded. */
+    scheduler: IScheduler;
     userTimeoutDisconnect: (userId: string) => void;
     undoMode?: UndoMode;
 
@@ -43,10 +54,9 @@ export function validateGameConfiguration(configuration: GameConfiguration): voi
     Contract.assertNotNullLike(configuration.id);
     Contract.assertNotNullLike(configuration.owner);
     Contract.assertNotNullLike(configuration.players);
-    Contract.assertNotNullLike(configuration.gameMode);
     Contract.assertNotNullLike(configuration.cardDataGetter);
     Contract.assertNotNullLike(configuration.pushUpdate);
-    Contract.assertNotNullLike(configuration.buildSafeTimeout);
+    Contract.assertNotNullLike(configuration.scheduler);
     Contract.assertNotNullLike(configuration.userTimeoutDisconnect);
 }
 

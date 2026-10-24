@@ -27,7 +27,7 @@ import type { CardAbility } from './CardAbility.js';
 import type { CardAbilityStep } from './CardAbilityStep.js';
 import type { IPassAbilityHandler } from '../gameSteps/AbilityResolver.js';
 import type { MsgArg } from '../chat/GameChat.js';
-import { registerStateBase } from '../GameObjectUtils';
+import { registerStateBase, stateRef } from '../GameObjectUtils';
 
 export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     triggerHandlingMode?: TriggerHandlingMode;
@@ -51,7 +51,7 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
     private _title: string;
     private _contextTitle?: (context: AbilityContext) => string;
     private _appendOverrideTitle: boolean;
-    public limit?: AbilityLimit;
+    @stateRef() protected accessor limit: AbilityLimit = null;
     public canResolveWithoutLegalTargets: boolean;
     public targetResolvers: TargetResolver<any>[];
     public cannotTargetFirst: boolean;
@@ -331,7 +331,7 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
         }
 
-        // If the ability has no target resolvers, itcannot resolve without legal targets (e.g. bounties), and it has an immediate effect without a then effect.
+        // If the ability has no target resolvers, it cannot resolve without legal targets (e.g. bounties), and it has an immediate effect without a then effect.
         // we check if the immediate effect has any legal target so that the ability can be cancelled automatically if not.
         // This is useful for abilities with a "if you do not" effect to trigger it automatically without prompting the player
         // in case the ability effect has no legal target.
@@ -377,6 +377,28 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
         return this.nonDependentTargets.some((target) => target.hasLegalTarget(context));
     }
 
+    /**
+     * For a triggered ability that reveals cards from a zone hidden from the opponent, returns the player who should
+     * be shown a masking pause when they have no card to reveal, or null if no masking is needed. Resolving such an
+     * ability instantly would leak that the player's hidden cards can't satisfy the reveal, so instead we present a
+     * brief, skippable pause that is indistinguishable from a player who could reveal but declined. Only triggered
+     * abilities are masked; player-initiated abilities (actions, events) already involve a visible interaction.
+     * Mirrors the disclose masking in DiscloseAspectsSystem.
+     */
+    public getRevealMaskingPlayer(context: AbilityContext): Player | null {
+        if (!this.isTriggeredAbility()) {
+            return null;
+        }
+
+        for (const target of this.nonDependentTargets) {
+            if (target.isMissingRevealTargetForMasking(context)) {
+                return target.getChoosingPlayer(context);
+            }
+        }
+
+        return null;
+    }
+
     public checkAllTargets(context: AbilityContext) {
         return this.nonDependentTargets.every((target) => target.checkTarget(context));
     }
@@ -391,6 +413,11 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
         );
     }
 
+    /** Returns the limit to retain for a new resolution context. */
+    public captureLimit(): AbilityLimit {
+        return this.limit;
+    }
+
     public createContext(player: Player = this.card.controller, event = undefined) {
         return new AbilityContext(this.getContextProperties(player, event));
     }
@@ -398,6 +425,7 @@ export abstract class PlayerOrCardAbility extends GameObjectBase {
     public getContextProperties(player: Player, event) {
         return {
             ability: this,
+            limit: this.limit,
             game: this.game,
             player,
             source: this.card,

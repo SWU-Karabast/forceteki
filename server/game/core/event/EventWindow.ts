@@ -5,6 +5,8 @@ import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbil
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
 import { Contract } from '../utils/Contract';
+import type { OngoingEffect } from '../ongoingEffect/OngoingEffect';
+import type { GameEvent } from './GameEvent';
 
 export enum TriggerHandlingMode {
 
@@ -18,15 +20,30 @@ export enum TriggerHandlingMode {
     CannotHaveTriggers = 'cannotHaveTriggers',
 }
 
+export enum SubwindowEventHandlingMode {
+
+    /** Sub-window events (typically defeats) queued during this event window are resolved in a new window once this window's events have resolved */
+    ResolvesSubwindowEvents = 'resolvesSubwindowEvents',
+
+    /**
+     * Sub-window events queued during this event window are passed to the parent window, so they resolve only after the parent window's
+     * events have resolved and emitted their triggers
+     */
+    PassesSubwindowEventsToParentWindow = 'passesSubwindowEventsToParentWindow',
+}
+
 export class EventWindow extends BaseStepWithPipeline {
     protected _events: any[] = [];
     protected _triggeredAbilityWindow?: TriggeredAbilityWindow = null;
 
     private parentWindow?: EventWindow = null;
     private resolvedEvents: any[] = [];
+    private triggeredDelayedEffects: OngoingEffect<any>[] = [];
     private subwindowEvents: any[] = [];
+    private contingentEventsGeneratedFor = new Set<GameEvent>();
     private subAbilityStepFn?: () => AbilityContext = null;
     private windowDepth?: number = null;
+    private postEventResolutionCallbacks: (() => void)[] = [];
 
     public get events() {
         return this._events;
@@ -34,6 +51,10 @@ export class EventWindow extends BaseStepWithPipeline {
 
     public get triggerHandlingMode() {
         return this._triggerHandlingMode;
+    }
+
+    public get subwindowEventHandlingMode() {
+        return this._subwindowEventHandlingMode;
     }
 
     public get triggeredAbilityWindow() {
@@ -44,17 +65,29 @@ export class EventWindow extends BaseStepWithPipeline {
         return this._triggeredAbilityWindow;
     }
 
+    /**
+     * Every event this window has ever held, including ones later removed or replaced.
+     *
+     * Staged records are keyed by event, and the registry's staging area is shared by all windows,
+     * so cleanup must drop only what this window put there. Clearing it wholesale would let a nested
+     * window erase records its parent staged and is still going to commit.
+     */
+    private readonly _ownedEventIds = new Set<number>();
+
     /** Creates an object holding one or more GameEvents that occur at the same time.
      *  @param game - The game object.
      *  @param {GameEvent[]} events - Events belonging to this window.
      *  @param {TriggerHandlingMode} triggerHandlingMode - Whether this event window should create its own TriggeredAbilityWindow which will resolve after its events (and any nested events).
      * If set to {@link TriggerHandlingMode.PassesTriggersToParentWindow}, this window will borrow its parent EventWindow's TriggeredAbilityWindow, which will receive any triggers that trigger
      * during this EventWindow's events, to be resolved after all nested events of its owner are done.
+     *  @param {SubwindowEventHandlingMode} subwindowEventHandlingMode - Whether sub-window events (typically defeats) queued during this window are resolved by
+     * this window or passed to its parent window.
      */
     public constructor(
         game,
         events,
-        private _triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow
+        private _triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow,
+        private _subwindowEventHandlingMode: SubwindowEventHandlingMode = SubwindowEventHandlingMode.ResolvesSubwindowEvents
     ) {
         super(game);
 
@@ -85,9 +118,22 @@ export class EventWindow extends BaseStepWithPipeline {
         ]);
     }
 
+    public override continue() {
+        const complete = super.continue();
+
+        // A pause for player input breaks an automatic loop. Count only the
+        // uninterrupted nesting depth so voluntary repeated combos can continue.
+        if (!complete) {
+            this.windowDepth = 0;
+        }
+
+        return complete;
+    }
+
     public addEvent(event) {
         event.setWindow(this);
         this._events.push(event);
+        this._ownedEventIds.add(event.eventId);
         return event;
     }
 
@@ -117,6 +163,22 @@ export class EventWindow extends BaseStepWithPipeline {
         this.subwindowEvents = this.subwindowEvents.concat(events);
     }
 
+    /**
+     * Registers a callback to be invoked after every event in this window has finished resolving,
+     * but before {@link resolveGameState} runs. Used to defer work that needs to happen "after the
+     * simultaneous batch" — for example, defeat checks triggered by damage. Deferring lets all
+     * simultaneous events in the same window (such as an HP-buffing upgrade attaching) apply their
+     * effects before the defeat decision is locked in.
+     */
+    public addPostEventResolutionCallback(callback: () => void) {
+        this.postEventResolutionCallbacks.push(callback);
+    }
+
+    /** Registers a delayed effect triggered by one of this window's events, to be fired at this window's {@link resolveGameState} */
+    public addTriggeredDelayedEffect(effect: OngoingEffect<any>) {
+        this.triggeredDelayedEffects.push(effect);
+    }
+
     /** Set parent event window and initialize triggering window based on configured rules and parent window settings (if relevant) */
     private setParentEventWindow() {
         this.parentWindow = this.game.currentEventWindow;
@@ -131,6 +193,10 @@ export class EventWindow extends BaseStepWithPipeline {
         if (this._triggerHandlingMode === TriggerHandlingMode.PassesTriggersToParentWindow) {
             Contract.assertNotNullLike(this.parentWindow, `Attempting to create event window ${this} as a child window but no parent window exists`);
             Contract.assertFalse(this.parentWindow.triggerHandlingMode === TriggerHandlingMode.CannotHaveTriggers, `${this} is attempting pass triggers to ${this.parentWindow} which cannot have ability triggers`);
+        }
+
+        if (this._subwindowEventHandlingMode === SubwindowEventHandlingMode.PassesSubwindowEventsToParentWindow) {
+            Contract.assertNotNullLike(this.parentWindow, `Attempting to pass sub-window events of ${this} to a parent window but no parent window exists`);
         }
 
         switch (this.triggerHandlingMode) {
@@ -172,18 +238,37 @@ export class EventWindow extends BaseStepWithPipeline {
      * Creates any "contingent" events which will happen in the same window as the primary event
      * but will be resolved after it in order. The main use case for this is upgrades being
      * defeated at the same time as the parent card holding them.
+     *
+     * If a contingent event is replaced, the replacement events are added to this window after
+     * contingent generation has already run, so we repeat the process for them (e.g. a failed draw's
+     * damage is replaced with another draw, which can itself fail and generate damage).
      */
-    private generateContingentEventsAndReplacementWindow() {
+    private generateContingentEventsAndReplacementWindow(passCount = 0) {
+        if (passCount >= 50) {
+            throw new Error(`Contingent event generation for ${this} has repeated ${passCount} times, likely caught in an infinite loop`);
+        }
+
+        const unprocessedEvents = this._events.filter((event) => !this.contingentEventsGeneratedFor.has(event));
+        if (unprocessedEvents.length === 0) {
+            return;
+        }
+
+        unprocessedEvents.forEach((event) => this.contingentEventsGeneratedFor.add(event));
+
         let contingentEvents = [];
-        this._events.forEach((event) => {
+        unprocessedEvents.forEach((event) => {
             contingentEvents = contingentEvents.concat(event.generateContingentEvents());
         });
-        contingentEvents.forEach((event) => this.addEvent(event));
+        contingentEvents.forEach((event) => {
+            this.addEvent(event);
+            this.contingentEventsGeneratedFor.add(event);
+        });
 
         const replacementEffectWindow = new ReplacementEffectWindow(this.game);
         replacementEffectWindow.addTriggeringEvents(contingentEvents);
         replacementEffectWindow.emitEvents();
         this.queueStep(replacementEffectWindow);
+        this.queueStep(new SimpleStep(this.game, () => this.generateContingentEventsAndReplacementWindow(passCount + 1), 'generateContingentEventsAndReplacementWindow'));
     }
 
     private preResolutionEffects() {
@@ -203,12 +288,32 @@ export class EventWindow extends BaseStepWithPipeline {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution
             event.checkCondition();
             if (event.canResolve) {
+                // Commit this event's recorded last known information now that we know it will
+                // actually resolve. Events replaced or cancelled earlier never reach here, so they
+                // leave no record behind.
+                this.game.lkiRegistry.commitPending(event.eventId);
+
                 this.game.emit(event.name + ':preResolve', event);
                 event.executeHandler();
                 this.game.emit(event.name, event);
 
                 this.resolvedEvents.push(event);
             }
+        }
+
+        // Run any callbacks deferred from event handlers (e.g. damage-driven defeat checks).
+        // These run after every event in this window has resolved so they see the unit's final
+        // HP, damage, and upgrade state for the batch — preserving simultaneous-resolution semantics.
+        const callbacks = this.postEventResolutionCallbacks;
+        this.postEventResolutionCallbacks = [];
+        for (const callback of callbacks) {
+            callback();
+        }
+
+        // emit for delayed effects now, before any steps queued by event handlers (e.g. an initiated ability's
+        // resolution) run; any delayed effects triggered here fire at this window's game state check
+        for (const event of this.resolvedEvents) {
+            this.game.emit(event.name + ':' + AbilityType.DelayedEffect, event, this);
         }
     }
 
@@ -221,7 +326,7 @@ export class EventWindow extends BaseStepWithPipeline {
     // this is to catch triggers on cards that entered play or gained abilities during event resolution
     private resolveGameState() {
         // TODO: understand if resolveGameState really needs the resolvedEvents array or not
-        this.game.resolveGameState(this.resolvedEvents.some((event) => event.handler), this.resolvedEvents);
+        this.game.resolveGameState(this.resolvedEvents.some((event) => event.handler), this.resolvedEvents, this.triggeredDelayedEffects);
     }
 
     private postResolutionTriggers() {
@@ -239,8 +344,20 @@ export class EventWindow extends BaseStepWithPipeline {
 
     // resolve any events queued for a subwindow (typically defeat events)
     private resolveSubwindowEvents() {
-        if (this.subwindowEvents.length > 0) {
-            this.queueStep(new EventWindow(this.game, this.subwindowEvents));
+        if (this.subwindowEvents.length === 0) {
+            return;
+        }
+
+        switch (this.subwindowEventHandlingMode) {
+            case SubwindowEventHandlingMode.ResolvesSubwindowEvents:
+                this.queueStep(new EventWindow(this.game, this.subwindowEvents));
+                break;
+            case SubwindowEventHandlingMode.PassesSubwindowEventsToParentWindow:
+                this.parentWindow.addSubwindowEvents(this.subwindowEvents);
+                this.subwindowEvents = [];
+                break;
+            default:
+                Contract.fail(`Unknown value for subwindowEventHandlingMode: ${this.subwindowEventHandlingMode}`);
         }
     }
 
@@ -266,6 +383,12 @@ export class EventWindow extends BaseStepWithPipeline {
         for (const event of this.resolvedEvents) {
             event.cleanup();
         }
+
+        // Anything still staged belongs to an event that never resolved — cancelled, replaced, or
+        // removed from the window — so it must not become a record. Without this a card that is
+        // still in play would answer with the characteristics it would have had if that event had
+        // happened. Scoped to this window's own events so a nested window cannot drop its parent's.
+        this.game.lkiRegistry.dropPending(this._ownedEventIds);
 
         if (this.parentWindow) {
             this.parentWindow.checkEventCondition();

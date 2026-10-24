@@ -25,7 +25,7 @@ export default class TheMandaloriansRifle extends UpgradeCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.parentCard.title === 'The Mandalorian',
                     onTrue: AbilityHelper.immediateEffects.capture((context) => ({
-                        captor: context.source.parentCard
+                        captor: context.source.parentUnit
                     }))
                 })
             }

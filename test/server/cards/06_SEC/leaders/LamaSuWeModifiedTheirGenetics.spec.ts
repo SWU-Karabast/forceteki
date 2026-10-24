@@ -105,5 +105,37 @@ describe('Lama Su, We Modified Their Genetics', function() {
                 expect(context.wampa).toHaveExactUpgradeNames([]);
             });
         });
+
+        describe('Lama Su and base upgrades', function() {
+            it('cannot play a Fortify upgrade onto the base', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'lama-su#we-modified-their-genetics',
+                        hand: ['academy-training', 'alliance-shield-generator'],
+                        groundArena: ['wampa'],
+                        resources: 10
+                    },
+                    player2: {}
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.lamaSu);
+                context.player1.clickPrompt('Play an upgrade from your hand on a friendly non-Vehicle unit. It costs 1 resource less. If you do, deal 1 damage to that unit.');
+
+                // Lama Su plays an upgrade "on a friendly non-Vehicle unit" - the Fortify upgrade can only attach to
+                // the base, which isn't a valid target, so it has no legal play and isn't offered
+                expect(context.player1).toBeAbleToSelectExactly([context.academyTraining]);
+                context.player1.clickCard(context.academyTraining);
+
+                // the base is not a valid attach target either - only the friendly non-Vehicle unit is
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa).toHaveExactUpgradeNames(['academy-training']);
+                expect(context.p1Base).toHaveExactUpgradeNames([]);
+            });
+        });
     });
 });

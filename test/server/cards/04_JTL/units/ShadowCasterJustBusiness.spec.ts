@@ -191,12 +191,12 @@ describe('Shadow Caster, Just Business', function() {
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(1);
 
                 expect(context.player1).toHaveExactPromptButtons(['Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again', 'Use Padawan Starfighter\'s "When Defeated" ability again']);
+                expect(context.player1).toHavePassableTriggerPrompt('Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again');
                 context.player1.clickPrompt('Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again');
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again');
-                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(2);
 
+                // Only one trigger remains now, so it resolves through the single-trigger interstitial.
                 expect(context.player1).toHavePassAbilityPrompt('Use Padawan Starfighter\'s "When Defeated" ability again');
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(3);
@@ -227,15 +227,28 @@ describe('Shadow Caster, Just Business', function() {
 
                 expect(context.player1).toHaveExactPromptButtons(['Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again', 'Use Padawan Starfighter\'s "When Defeated" ability again']);
                 context.player1.clickPrompt('Use Padawan Starfighter\'s "When Defeated" ability again');
-                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(2);
 
+                // Only one trigger remains now, so it resolves through the single-trigger interstitial.
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust Grand Admiral Thrawn to use Padawan Starfighter\'s "When Defeated" ability again');
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(3);
 
                 expect(context.player1).toBeActivePlayer();
+            });
+        });
+
+        describe('Shadow Caster with a granted When Defeated ability', function() {
+            // Ruling 2025-04-30: Shadow Caster's ability cares about which "When Defeated" abilities the
+            // defeated unit had, and Last Known Information covers that a unit had an ability granted to
+            // it (e.g. by Grim Valor). So Shadow Caster can double a "When Defeated" ability that was
+            // granted to the unit by Grim Valor, not only printed ones.
+            xit('can double a "When Defeated" ability granted to the unit by Grim Valor (LKI)', function () {
+                pending('Not yet implemented');
+                // A friendly unit has Grim Valor attached (granting it a "When Defeated" ability). Shadow
+                // Caster is in play. When that unit is defeated, Shadow Caster can use the granted "When
+                // Defeated" ability again, since LKI covers that the unit had that ability.
             });
         });
     });

@@ -27,10 +27,10 @@ export default class TheEyeOfAldhani extends EventCard {
                     choosingPlayer: RelativePlayer.Self,
                     controller: RelativePlayer.Self,
                     activePromptTitle: (context) => {
-                        const upUnits = Math.min(context.player.resources.length, context.player.getArenaUnits().length);
+                        const upUnits = Math.min(context.player.readyResourceCount, context.player.getArenaUnits().length);
                         return `Select up to ${upUnits} units and pay ${TextHelper.resource(1)} for each of them to keep them ready`;
                     },
-                    numCardsFunc: (context) => Math.min(context.player.resources.length, context.player.getArenaUnits().length),
+                    numCardsFunc: (context) => Math.min(context.player.readyResourceCount, context.player.getArenaUnits().length),
                     immediateEffect: abilityHelper.immediateEffects.simultaneous([
                         abilityHelper.immediateEffects.exhaust((context) => ({
                             target: context.player.getArenaUnits({ condition: (card) => !context.targets.target.includes(card) }),

@@ -3,6 +3,7 @@ import type { ILeaderUnitAbilityRegistrar, ILeaderUnitLeaderSideAbilityRegistrar
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
+import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities(registrar: ILeaderUnitLeaderSideAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play a unit that costs 4 or less from your hand. Give it ambush for this phase',
+            title: `Play a unit that costs 4 or less from your hand. Give it ${TextHelper.Ambush} for this phase`,
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             cannotTargetFirst: true,
             targetResolver: {
@@ -36,7 +37,7 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities(registrar: ILeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: 'Play a unit that costs 4 or less from your hand. Give it ambush for this phase',
+            title: `Play a unit that costs 4 or less from your hand. Give it ${TextHelper.Ambush} for this phase`,
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 4,
                 controller: RelativePlayer.Self,

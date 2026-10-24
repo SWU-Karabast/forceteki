@@ -89,5 +89,44 @@ describe('Gar Saxon, Coveting Power', function () {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('Gar Saxon\'s ability with an upgrade owned by the opponent', function () {
+            it('should create a Mandalorian token when the player plays an upgrade from the opponent\'s discard pile on Gar Saxon', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['a-fine-addition'],
+                        groundArena: ['gar-saxon#coveting-power', 'wampa'],
+                    },
+                    player2: {
+                        groundArena: ['death-star-stormtrooper'],
+                        discard: ['academy-training']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Defeat an enemy unit to enable A Fine Addition
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.deathStarStormtrooper);
+                expect(context.deathStarStormtrooper).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                // Play player2's Academy Training from their discard pile on Gar Saxon
+                context.player1.clickCard(context.aFineAddition);
+                context.player1.clickCard(context.academyTraining);
+                context.player1.clickCard(context.garSaxon);
+                expect(context.academyTraining).toBeAttachedTo(context.garSaxon);
+
+                expect(context.player1).toHaveEnabledPromptButtons(['Create a Mandalorian token', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                const mandalorians = context.player1.findCardsByName('mandalorian');
+                expect(mandalorians.length).toBe(1);
+                expect(mandalorians[0]).toBeInZone('groundArena', context.player1);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });

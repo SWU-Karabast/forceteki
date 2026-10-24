@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
 import type { CardTypeFilter } from '../core/Constants';
-import { RelativePlayer } from '../core/Constants';
+import { CardType, RelativePlayer } from '../core/Constants';
 import { AbilityRestriction, EventName, WildcardCardType } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -17,7 +17,7 @@ export interface IAttachUpgradeProperties extends ICardTargetSystemProperties {
 export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IAttachUpgradeProperties> {
     public override readonly name = 'attach';
     public override readonly eventName = EventName.OnUpgradeAttached;
-    protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit];
+    protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit, CardType.Base];
 
     public override eventHandler(event): void {
         const upgradeCard = (event.upgradeCard as InPlayCard);
@@ -27,7 +27,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
             upgradeCard.isUpgrade() ||
             (upgradeCard.isUnit() && upgradeCard.canAttach(parentCard, event.context, event.newController)),
         );
-        Contract.assertTrue(parentCard.isUnit());
+        Contract.assertTrue(parentCard.isUnit() || parentCard.isBase());
 
         event.originalZone = upgradeCard.zoneName;
 
@@ -57,10 +57,11 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         Contract.assertNotNullLike(card);
         Contract.assertNotNullLike(upgrade);
 
-        if (!card.isUnit()) {
+        // A base is always a legal attachment host zone-wise; units must be in play.
+        if (!card.isUnit() && !card.isBase()) {
             return false;
         }
-        if (!card.isInPlay()) {
+        if (card.isUnit() && !card.isInPlay()) {
             return false;
         }
         if (!upgrade.canAttach(card, context, this.getFinalController(properties, context))) {

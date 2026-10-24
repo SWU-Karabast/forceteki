@@ -3,6 +3,7 @@ import { EpicActionLimit } from '../core/ability/AbilityLimit';
 import { ActionAbilityBase } from '../core/ability/ActionAbility';
 import type { Card } from '../core/card/Card';
 import type { Game } from '../core/Game';
+import type { Player } from '../core/Player';
 import type { IEpicActionProps } from '../Interfaces';
 import { registerState } from '../core/GameObjectUtils';
 
@@ -17,6 +18,10 @@ export class EpicActionAbility extends ActionAbilityBase {
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public override get isEpicAction(): boolean {
         return true;
+    }
+
+    public isSpent(player: Player): boolean {
+        return this.limit.isAtMax(player);
     }
 
     public override meetsRequirements(context: AbilityContext, ignoredRequirements: string[] = [], thisStepOnly: boolean = false): string {

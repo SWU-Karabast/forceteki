@@ -33,13 +33,12 @@ import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import { giveAbilityToAttachedUnitTitle, giveKeywordToAttachedUnitTitle } from '../../ongoingEffect/effectImpl/GainAbilityDescription';
 import type { Player } from '../../Player';
 import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
-import type { IUpgradeCard } from '../CardInterfaces';
+import type { ICardWithUpgrades, IUpgradeCard } from '../CardInterfaces';
 import type { ActionAbilityBase } from '../../ability/ActionAbility';
 import type { ILeaderCard } from './LeaderProperties';
 import type { ILeaderUnitCard } from '../LeaderUnitCard';
 import type { PilotLimitModifier } from '../../ongoingEffect/effectImpl/PilotLimitModifier';
 import type { AbilityContext } from '../../ability/AbilityContext';
-import type { PlayUpgradeAction } from '../../../actions/PlayUpgradeAction';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/LeadersDeployedThisPhaseWatcher';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
@@ -70,16 +69,14 @@ export interface IUnitAbilityRegistrar<T extends IUnitCard> extends IInPlayCardA
     addWhenAttackEndsAbility(properties: Omit<IWhenAttackEndsAbilityProps<T>, 'when' | 'aggregateWhen'>): void;
 }
 
-export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty, ICardWithCaptureZone {
+export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty, ICardWithCaptureZone, ICardWithUpgrades {
     get defaultArena(): Arena;
     get lastPlayerToModifyHp(): Player;
     get isClonedUnit(): boolean;
-    readonly upgrades: IUpgradeCard[];
     isClone(): this is Clone;
     getCaptor(): ICaptorCard | null;
     isAttacking(): boolean;
     isCaptured(): boolean;
-    isUpgraded(): boolean;
     hasExperience(): boolean;
     hasWeakness(): boolean;
     hasShield(): boolean;
@@ -95,9 +92,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unregisterWhenCapturedKeywords();
     checkDefeatedByOngoingEffect();
     refreshWhileInPlayKeywordAbilityEffects();
-    unattachUpgrade(upgrade, event);
     canAttachPilot(pilot: IUnitCard): boolean;
-    attachUpgrade(upgrade);
     getNumericKeywordTotal(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
     getMaxUnitAttackLimit(): number;
 }
@@ -719,10 +714,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._whileInPlayKeywordAbilities = [...this._whileInPlayKeywordAbilities, coordinateKeywordAbility];
             }
 
-            if (this.hasSomeKeyword(KeywordName.Hidden)) {
+            // Hidden is a unit-side keyword; the isUnit() guard keeps it off an undeployed leader, which
+            // also runs this block from the base zone (for leader-side Coordinate). See issue #2880.
+            if (this.hasSomeKeyword(KeywordName.Hidden) && this.isUnit()) {
                 const hiddenKeywordAbilityProps: IConstantAbilityProps<this> = {
                     title: `${TextHelper.Hidden}`,
                     condition: (context) =>
+                        context.source.hasSomeKeyword(KeywordName.Hidden) &&
                         context.source.isInPlay() &&
                         this.wasPlayedDeployedOrCreatedThisPhase(context.source),
                     ongoingEffect: this.game.abilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
@@ -960,7 +958,16 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._expiredLastingEffectChangedRemainingHp = false;
             }
 
-            this.checkDefeated(source);
+            // Defer the defeat check so simultaneous effects in the same event window (e.g. an
+            // HP-buffing upgrade being attached at the same time) can resolve first. Running the
+            // check inline would set _pendingDefeat mid-window, which CardTargetSystem treats as
+            // an untargetable card — cancelling the very upgrade attachment that would have saved
+            // the unit. The check is invoked at the end of the window's resolveEvents step.
+            if (damageAdded > 0 && this.game.currentEventWindow) {
+                this.game.currentEventWindow.addPostEventResolutionCallback(() => this.checkDefeated(source));
+            } else {
+                this.checkDefeated(source);
+            }
 
             return damageAdded;
         }
@@ -1067,9 +1074,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 return false;
             }
             if (context.playType === PlayType.Piloting && this.hasSomeKeyword(KeywordName.Piloting)) {
-                // This is needed for abilities that let you play Pilots from the opponent's discard
-                const canPlayFromAnyZone = (context.ability as PlayUpgradeAction).canPlayFromAnyZone;
-                return targetCard.canAttachPilot(this) && (targetCard.controller === controller || canPlayFromAnyZone);
+                return targetCard.canAttachPilot(this) && targetCard.controller === controller;
             }
             if (this.hasSomeTrait(Trait.Pilot) && this.isAttached()) {
                 // A pilot upgrade being moved by an ability (e.g. Survivors' Gauntlet) retains the

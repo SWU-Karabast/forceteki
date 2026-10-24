@@ -1,14 +1,14 @@
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import { cards, overrideNotImplementedCards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
-import { CardType, CardPool, SwuGameFormat } from '../../game/core/Constants';
+import { Aspect, CardType, CardPool, SwuGameFormat, WildcardCardType } from '../../game/core/Constants';
 import type { IDecklistInternal, ISwuDbFormatCardEntry, IDeckValidationProperties } from './DeckInterfaces';
 import { DecklistLocation, DeckValidationFailureReason, IllegalInFormatReason, type IDeckValidationFailures, type ISwuDbFormatDecklist } from './DeckInterfaces';
 import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
 import { Contract } from '../../game/core/utils/Contract';
 import { EnumHelpers } from '../../game/core/utils/EnumHelpers';
-import type { ISetCatalog } from './SwuSetData';
-import { defaultSetCatalog, formatRules, SwuSetId } from './SwuSetData';
+import type { ISetCatalog, ISwuSet } from './SwuSetData';
+import { defaultSetCatalog, formatRules, isReleased, ReleaseStage, SwuSetId } from './SwuSetData';
 
 const maxCopiesOfCards = new Map([
     ['2177194044', 15], // Swarming Vulture Droid
@@ -21,9 +21,11 @@ const minDeckSizeModifier = new Map([
 
 interface ICardCheckData {
     setId: ISetCode;
+    title: string;
     titleAndSubtitle: string;
     type: CardType;
     sets: SwuSetId[];
+    aspects: string[];
     implemented: boolean;
     minDeckSizeModifier?: number;
     maxCopiesOfCardOverride?: number;
@@ -32,6 +34,7 @@ interface ICardCheckData {
 export class DeckValidator {
     private readonly cardData: Map<string, ICardCheckData>;
     private readonly setCodeToId: Map<string, string>;
+    private readonly legalCardTitlesCache = new Map<string, ReadonlySet<string>>();
 
     public static filterOutSideboardingErrors(failures: IDeckValidationFailures): IDeckValidationFailures {
         const filtered: IDeckValidationFailures = {};
@@ -53,6 +56,10 @@ export class DeckValidator {
         }
 
         return new DeckValidator(allCardsData, cardDataGetter.setCodeMap);
+    }
+
+    public static createForTesting(allCardsData: ICardDataJson[], setCodeToId: Map<string, string>): DeckValidator {
+        return new DeckValidator(allCardsData, setCodeToId);
     }
 
     protected parseSets(cardData: ICardDataJson): SwuSetId[] {
@@ -91,8 +98,9 @@ export class DeckValidator {
     public static getLegalSets(format: SwuGameFormat, cardPool: CardPool, catalog: ISetCatalog = defaultSetCatalog): Set<SwuSetId> {
         const { rotationBlocks, nonRotatingSets, formatRules } = catalog;
 
-        // Open/Unlimited: all sets including previews, always
-        if (format === SwuGameFormat.Open) {
+        // Open/Unlimited: all sets including previews, always. Faux Suns with the Unlimited card pool
+        // behaves the same way, while keeping its own deck-construction rules (min size, copy limit, leader count).
+        if (format === SwuGameFormat.Open || (format === SwuGameFormat.FauxSuns && cardPool === CardPool.Unlimited)) {
             const all = new Set<SwuSetId>(rotationBlocks.flatMap((block) => block.sets.map((s) => s.id)));
             for (const nrs of nonRotatingSets) {
                 all.add(nrs.id);
@@ -111,7 +119,7 @@ export class DeckValidator {
 
         // Determine candidate rotation blocks
         let candidateBlocks = cardPool === CardPool.Current
-            ? rotationBlocks.filter((block) => block.sets.some((s) => s.released))
+            ? rotationBlocks.filter((block) => block.sets.some((s) => isReleased(s)))
             : [...rotationBlocks];
 
         // Apply rotation window (take the last N blocks)
@@ -122,21 +130,37 @@ export class DeckValidator {
         const legalSets = new Set<SwuSetId>();
         for (const block of candidateBlocks) {
             for (const set of block.sets) {
-                if (cardPool === CardPool.Current && !set.released) {
-                    continue;
+                if (DeckValidator.isSetInCardPool(set, cardPool)) {
+                    legalSets.add(set.id);
                 }
-                legalSets.add(set.id);
             }
         }
 
         // Add non-rotating sets that are legal in this format
         for (const nrs of nonRotatingSets) {
-            if (nrs.legalFormats.has(format) && (cardPool === CardPool.NextSet || nrs.released)) {
+            if (nrs.legalFormats.has(format) && DeckValidator.isSetInCardPool(nrs, cardPool)) {
                 legalSets.add(nrs.id);
             }
         }
 
         return legalSets;
+    }
+
+    /**
+     * Whether a set belongs to the given constructed card pool (Current or NextSet):
+     * - `Released` sets are always in the pool.
+     * - The `Next` set is in the pool only under {@link CardPool.NextSet}.
+     * - `Future` sets are never in a constructed pool — they preview further out than the next release, so
+     *   including them would make a NextSet meta reflect more than the immediately-upcoming set.
+     *
+     * Not used for Open (all sets) or Limited (single-set) pools, which compute legality separately.
+     */
+    private static isSetInCardPool(set: ISwuSet, cardPool: CardPool): boolean {
+        if (isReleased(set)) {
+            return true;
+        }
+
+        return set.releaseStage === ReleaseStage.Next && cardPool === CardPool.NextSet;
     }
 
     /**
@@ -153,8 +177,8 @@ export class DeckValidator {
         }
 
         const targetSet = cardPool === CardPool.Current
-            ? [...allSets].reverse().find((s) => s.released && s.mainline)
-            : allSets.find((s) => !s.released && s.mainline);
+            ? [...allSets].reverse().find((s) => isReleased(s) && s.mainline)
+            : allSets.find((s) => s.releaseStage === ReleaseStage.Next && s.mainline);
 
         Contract.assertNotNullLike(targetSet, `No ${cardPool === CardPool.Current ? 'released' : 'unreleased'} mainline sets found for Limited format`);
 
@@ -171,9 +195,11 @@ export class DeckValidator {
         for (const cardData of allCardsData) {
             const cardCheckData: ICardCheckData = {
                 setId: cardData.setId,
+                title: cardData.title,
                 titleAndSubtitle: `${cardData.title}${cardData.subtitle ? `, ${cardData.subtitle}` : ''}`,
                 type: Card.buildTypeFromPrinted(cardData.types),
                 sets: this.parseSets(cardData),
+                aspects: cardData.aspects ?? [],
                 implemented: !overrideNotImplementedCardIds.has(cardData.id) && (!Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id)),
                 minDeckSizeModifier: minDeckSizeModifier.get(cardData.id),
                 maxCopiesOfCardOverride: maxCopiesOfCards.get(cardData.id)
@@ -195,6 +221,37 @@ export class DeckValidator {
         unimplementedCards.sort((a, b) => a.setId.set.localeCompare(b.setId.set) || a.titleAndSubtitle.localeCompare(b.titleAndSubtitle));
 
         return unimplementedCards;
+    }
+
+    /**
+     * Returns the titles of non-leader cards that can legally appear in a game of the given format and card
+     * pool, for "name a card" prompts. A title counts as legal if at least one non-leader card with that title
+     * is in a legal set and not suspended — reprints and same-titled cards with different subtitles keep it
+     * available. Tokens are always included since they are created by other cards rather than deckbuilt.
+     */
+    public getLegalCardTitles(format: SwuGameFormat, cardPool: CardPool): ReadonlySet<string> {
+        const cacheKey = `${format}|${cardPool}`;
+        const cached = this.legalCardTitlesCache.get(cacheKey);
+        if (cached) {
+            return cached;
+        }
+
+        const legalSets = DeckValidator.getLegalSets(format, cardPool, this.getSetCatalog());
+        const legalTitles = new Set<string>();
+
+        for (const [cardId, cardData] of this.cardData) {
+            if (cardData.type === CardType.Leader) {
+                continue;
+            }
+
+            if (EnumHelpers.cardTypeMatches(cardData.type, WildcardCardType.Token) ||
+              (cardData.sets.some((set) => legalSets.has(set)) && !this.isSuspended(cardId, format, legalSets))) {
+                legalTitles.add(cardData.title);
+            }
+        }
+
+        this.legalCardTitlesCache.set(cacheKey, legalTitles);
+        return legalTitles;
     }
 
     public getMinimumSideboardedDeckSize(baseId: string, format: SwuGameFormat): number {
@@ -232,6 +289,15 @@ export class DeckValidator {
             unimplemented.push({ id: deck.leader.id, name: leaderData.titleAndSubtitle });
         }
 
+        // check second leader if present
+        const secondLeaderEntry = (deck as ISwuDbFormatDecklist).secondleader ?? (deck as IDecklistInternal).secondLeader;
+        if (secondLeaderEntry) {
+            const secondLeaderData = this.getCardCheckData(secondLeaderEntry.id);
+            if (secondLeaderData && !secondLeaderData.implemented) {
+                unimplemented.push({ id: secondLeaderEntry.id, name: secondLeaderData.titleAndSubtitle });
+            }
+        }
+
         // check base
         const baseData = this.getCardCheckData(deck.base.id);
         if (baseData && !baseData.implemented) {
@@ -256,8 +322,10 @@ export class DeckValidator {
 
     // Validate the ISwuDbDeckList
     public validateSwuDbDeck(deck: ISwuDbFormatDecklist, properties: IDeckValidationProperties): IDeckValidationFailures {
-        // SWU‑DB decks additionally must not have a second leader; all other checks are shared below.
-        if (deck?.secondleader) {
+        // SWU‑DB decks must not have a second leader in non-TwinSuns formats; all other checks are shared below.
+        // TODO: audit other deck builders before shipping — only SWUDB is handled here.
+        const rules = formatRules.get(properties.format);
+        if (deck?.secondleader && rules?.leaderCount !== 2) {
             return { [DeckValidationFailureReason.TooManyLeaders]: true };
         }
         return this.validateStructuredDeck(deck, properties);
@@ -358,6 +426,34 @@ export class DeckValidator {
                 this.checkFormatLegality(leaderData, format, legalSets, failures);
             }
 
+            // Validate second leader (TwinSuns formats only).
+            const rules = formatRules.get(format);
+            if (rules?.leaderCount === 2) {
+                const secondLeaderEntry = (deck as ISwuDbFormatDecklist).secondleader ?? (deck as IDecklistInternal).secondLeader;
+
+                if (!secondLeaderEntry) {
+                    failures[DeckValidationFailureReason.MissingSecondLeader] = true;
+                } else {
+                    secondLeaderEntry.id = this.normalizeSetCodeId(secondLeaderEntry.id);
+                    const secondLeaderData = this.getCardCheckData(secondLeaderEntry.id);
+                    if (!secondLeaderData) {
+                        failures[DeckValidationFailureReason.UnknownCardId].push({ id: secondLeaderEntry.id });
+                    } else {
+                        this.checkCardLocation(secondLeaderEntry, secondLeaderData, DecklistLocation.Leader, failures);
+                        this.checkFormatLegality(secondLeaderData, format, legalSets, failures);
+                        if (leaderData) {
+                            this.checkTwinSunsLeaderAspectConflict(leaderData, secondLeaderData, failures);
+                            this.checkTwinSunsDuplicateLeaders(deck.leader.id, secondLeaderEntry.id, failures);
+                        }
+                    }
+                }
+            } else {
+                const secondLeaderEntry = (deck as IDecklistInternal).secondLeader;
+                if (secondLeaderEntry) {
+                    failures[DeckValidationFailureReason.TooManyLeaders] = true;
+                }
+            }
+
             // Validate base.
             if (!baseData) {
                 failures[DeckValidationFailureReason.UnknownCardId].push({ id: deck.base.id });
@@ -435,14 +531,22 @@ export class DeckValidator {
             return;
         }
 
-        const rules = formatRules.get(format);
-        if (rules?.bannedCards.has(this.setCodeToId.get(setCode))) {
+        if (this.isSuspended(this.setCodeToId.get(setCode), format, legalSets)) {
             failures[DeckValidationFailureReason.IllegalInFormat].push({
                 id: setCode,
                 name: cardData.titleAndSubtitle,
                 reason: IllegalInFormatReason.Suspended
             });
         }
+    }
+
+    private isSuspended(cardId: string, format: SwuGameFormat, legalSets: Set<SwuSetId>): boolean {
+        const banned = this.getSetCatalog().formatRules.get(format)?.bannedCards.get(cardId);
+
+        // A suspension with an `expiresWith` set lifts once that set is in the pool
+        const banExpired = banned?.expiresWith != null && legalSets.has(banned.expiresWith);
+
+        return banned != null && !banExpired;
     }
 
     /**
@@ -461,6 +565,33 @@ export class DeckValidator {
                 card: { id: card.id, name: cardData.titleAndSubtitle },
                 location
             });
+        }
+    }
+
+    /**
+     * Checks if the given leaders are legal for the Twin Suns gamemode
+     * @param leader1Data The first leader
+     * @param leader2Data The second leader
+     * @param failures The validation failures
+     */
+    protected checkTwinSunsLeaderAspectConflict(leader1Data: ICardCheckData, leader2Data: ICardCheckData, failures: IDeckValidationFailures): void {
+        const eitherHasHeroism = leader1Data.aspects.includes(Aspect.Heroism) || leader2Data.aspects.includes(Aspect.Heroism);
+        const eitherHasVillainy = leader1Data.aspects.includes(Aspect.Villainy) || leader2Data.aspects.includes(Aspect.Villainy);
+        if (eitherHasHeroism && eitherHasVillainy) {
+            failures[DeckValidationFailureReason.MixedAlignmentLeaders] = true;
+        }
+    }
+
+    /**
+     * Checks that the two Twin Suns leaders aren't the same card. Compares by underlying card id (not the
+     * printed set code) so two different printings of the same leader are still caught as a duplicate.
+     * @param leader1SetCode The first leader's (normalized) set code
+     * @param leader2SetCode The second leader's (normalized) set code
+     * @param failures The validation failures
+     */
+    protected checkTwinSunsDuplicateLeaders(leader1SetCode: string, leader2SetCode: string, failures: IDeckValidationFailures): void {
+        if (this.setCodeToId.get(leader1SetCode) === this.setCodeToId.get(leader2SetCode)) {
+            failures[DeckValidationFailureReason.DuplicateLeaders] = true;
         }
     }
 

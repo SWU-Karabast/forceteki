@@ -54,6 +54,34 @@ describe('The Client, Please Lower Your Blaster', function() {
                 expect(context.wampa.exhausted).toBeTrue();
             });
 
+            it('exhausts an enemy unit if opponent ability make you create token upgrade ', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'the-client#please-lower-your-blaster',
+                        resources: 3,
+                        groundArena: ['han-solo#hibernation-sick', 'battlefield-marine'],
+                    },
+                    player2: {
+                        leader: 'sabine-wren#bargaining-on-belief',
+                        resources: 1,
+                        groundArena: ['wampa'],
+                        hasInitiative: true
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.sabineWren);
+                context.player1.clickCard(context.hanSolo);
+
+                context.player1.clickCard(context.theClient);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+
+                context.player1.clickCard(context.wampa);
+                expect(context.theClient.exhausted).toBeTrue();
+                expect(context.wampa.exhausted).toBeTrue();
+            });
+
             it('exhausts an enemy unit if a token upgrade was created on an enemy unit this phase', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -213,6 +241,17 @@ describe('The Client, Please Lower Your Blaster', function() {
                 context.player1.clickCard(context.wampa);
                 expect(context.theClient.exhausted).toBeTrue();
                 expect(context.wampa.exhausted).toBeTrue();
+            });
+
+            // Ruling 2026-05-06: the controller of the ability that creates a token is responsible for
+            // creating it, UNLESS the ability specifies another player's responsibility. So a token that
+            // an ability has the OPPONENT create (e.g. Vel Sartha: "An opponent creates a Credit token")
+            // does not count as The Client's controller having created a token this phase.
+            xit('does NOT trigger when an ability makes the opponent create the token (Vel Sartha)', function () {
+                pending('Not yet implemented');
+                // The Client's controller resolves an ability that says "An opponent creates a token"
+                // (e.g. Vel Sartha). Because the opponent is the one creating the token, The Client's
+                // "if you created a token this phase" condition is not met for its controller.
             });
         });
     });

@@ -37,7 +37,6 @@ export default class APrecariousPredicament extends EventCard {
                             immediateEffect: AbilityHelper.immediateEffects.playCard((context) => ({
                                 adjustCost: { costAdjustType: CostAdjustType.Free },
                                 playAsType: WildcardCardType.Any,
-                                canPlayFromAnyZone: true,
                                 playType: context.target?.zoneName === ZoneName.Resource ? PlayType.PlayFromOutOfPlay : PlayType.PlayFromHand,
                             })),
                         })

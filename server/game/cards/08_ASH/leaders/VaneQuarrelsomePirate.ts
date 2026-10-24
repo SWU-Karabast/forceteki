@@ -39,7 +39,7 @@ export default class VaneQuarrelsomePirate extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
             },
             ifYouDo: {
-                title: 'Deal 1 damage to the defender or a base',
+                title: 'Deal 2 damage to the defender or a base',
                 targetResolver: {
                     cardCondition: (card, context) => card.isBase() || context.event.attack.getAllTargets().includes(card),
                     immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })

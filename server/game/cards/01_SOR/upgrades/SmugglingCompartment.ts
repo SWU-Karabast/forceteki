@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { Trait } from '../../../core/Constants';
+import { TargetMode, Trait } from '../../../core/Constants';
 
 export default class SmugglingCompartment extends UpgradeCard {
     protected override getImplementationId() {
@@ -16,10 +16,11 @@ export default class SmugglingCompartment extends UpgradeCard {
 
         registrar.addGainOnAttackAbilityTargetingAttached({
             title: 'Ready a resource',
-            immediateEffect: AbilityHelper.immediateEffects.readyResources((context) => ({
-                target: context.player,
-                amount: 1
-            }))
+            targetResolver: {
+                activePromptTitle: 'Choose a player to ready a resource',
+                mode: TargetMode.Player,
+                immediateEffect: AbilityHelper.immediateEffects.readyResources({ amount: 1 })
+            }
         });
     }
 }

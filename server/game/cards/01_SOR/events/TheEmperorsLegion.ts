@@ -3,7 +3,6 @@ import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatc
 import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
 import { EventCard } from '../../../core/card/EventCard';
 import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
-import { ZoneName } from '../../../core/Constants';
 
 export default class TheEmperorsLegion extends EventCard {
     private cardsDefeatedThisPhaseWatcher: CardsDefeatedThisPhaseWatcher;
@@ -23,14 +22,11 @@ export default class TheEmperorsLegion extends EventCard {
         registrar.setEventAbility({
             title: 'Return each unit in your discard pile that was defeated this phase to your hand.',
             immediateEffect: AbilityHelper.immediateEffects.returnToHand((context) => {
-                const friendlyUnitsDefeatedThisPhaseInDiscard =
-                    this.cardsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.player)
-                        .filter(({ unit, inPlayId: defeatedInPlayId }) =>
-                            unit.zoneName === ZoneName.Discard &&
-                            unit.mostRecentInPlayId === defeatedInPlayId)
-                        .map(({ unit }) => unit);
+                // goes by whose discard pile the unit is in, not by who controlled it when it was defeated
+                const unitsDefeatedThisPhaseInDiscard = context.player.discardZone.cards
+                    .filter((card) => card.isUnit() && this.cardsDefeatedThisPhaseWatcher.wasDefeatedThisPhase(card));
 
-                return { target: friendlyUnitsDefeatedThisPhaseInDiscard };
+                return { target: unitsDefeatedThisPhaseInDiscard };
             })
         });
     }

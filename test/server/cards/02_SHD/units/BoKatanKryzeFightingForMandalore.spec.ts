@@ -126,5 +126,31 @@ describe('Bo-Katan Kryze, Fighting for Mandalore', function () {
                 expect(context.p1Base.damage).toBe(21); // 15 + 6 = 21
             });
         });
+
+        it('Bo-Katan Kryze\'s ability should make the player who controlled her draw when defeated by No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['bokatan-kryze#fighting-for-mandalore'],
+                    base: { card: 'echo-base', damage: 15 }
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    base: { card: 'echo-base', damage: 5 },
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.bokatanKryze);
+
+            // only player1's base has 15+ damage, so player2 (who controlled Bo-Katan when she was defeated) draws 1 card
+            expect(context.bokatanKryze).toBeInZone('discard', context.player1);
+            expect(context.player2.hand.length).toBe(1);
+            expect(context.player1.hand.length).toBe(0);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

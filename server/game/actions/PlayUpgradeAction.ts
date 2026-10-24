@@ -23,7 +23,7 @@ export class PlayUpgradeAction extends PlayCardAction {
             {
                 ...properties,
                 targetResolver: {
-                    activePromptTitle: `Attach ${card.title} to a unit`,
+                    activePromptTitle: `Attach ${card.title} to ${card.hasSomeKeyword(KeywordName.Fortify) ? 'a base' : 'a unit'}`,
                     cardCondition: (card, context) => {
                         if (properties.attachTargetCondition && !properties.attachTargetCondition(card, context)) {
                             return false;

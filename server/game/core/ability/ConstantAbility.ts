@@ -77,7 +77,7 @@ export class ConstantAbility extends GameObjectBase implements IConstantAbility 
 
         this.properties = properties;
         this.duration = Duration.Persistent;
-        this.sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
+        this.sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyAttackable;
         this.sourceCard = card;
     }
 

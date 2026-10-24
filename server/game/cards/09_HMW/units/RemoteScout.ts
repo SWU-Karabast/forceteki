@@ -6,7 +6,7 @@ import { RelativePlayer } from '../../../core/Constants';
 export default class RemoteScout extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'remote-scout-id',
+            id: '0355252777',
             internalName: 'remote-scout'
         };
     }

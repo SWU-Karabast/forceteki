@@ -5,7 +5,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 export default class JarJarBinksBumblingRepresentative extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'jar-jar-binks#bumbling-representative-id',
+            id: '5969823765',
             internalName: 'jar-jar-binks#bumbling-representative',
         };
     }

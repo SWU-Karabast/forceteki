@@ -612,53 +612,53 @@ describe('Padmé Amidala, What Do You Have To Hide?', function() {
                 expect(context.padmeAmidala.damage).toBe(0);
                 expect(context.player1).toBeActivePlayer();
             });
-            // TODO: Padme does not work correctly with Profundity due to collectiveTrigger logic bug
-            // it('can trigger and resolve twice if two cards are discarded sequentially ("then")', async function() {
-            //     await contextRef.setupTestAsync({
-            //         phase: 'action',
-            //         player1: {
-            //             leader: { card: 'padme-amidala#what-do-you-have-to-hide', deployed: true },
-            //             hand: ['furtive-handmaiden', 'favorable-delegate']
-            //         },
-            //         player2: {
-            //             hasInitiative: true,
-            //             hand: ['profundity#we-fight']
-            //         }
-            //     });
 
-            //     const { context } = contextRef;
+            it('can trigger and resolve twice if two cards are discarded sequentially ("then")', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'padme-amidala#what-do-you-have-to-hide', deployed: true },
+                        hand: ['furtive-handmaiden', 'favorable-delegate']
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        hand: ['profundity#we-fight']
+                    }
+                });
 
-            //     // Player 2 plays Profundity to make Player 1 discard a card, then discard another card
-            //     context.player2.clickCard(context.profundity);
-            //     context.player2.clickPrompt('Opponent discards');
+                const { context } = contextRef;
 
-            //     context.player1.clickCard(context.furtiveHandmaiden);
-            //     expect(context.furtiveHandmaiden).toBeInZone('discard', context.player1);
-            //     context.player1.clickCard(context.favorableDelegate);
-            //     expect(context.favorableDelegate).toBeInZone('discard', context.player1);
+                // Player 2 plays Profundity to make Player 1 discard a card, then discard another card
+                context.player2.clickCard(context.profundity);
+                context.player2.clickPrompt('Opponent discards');
 
-            //     // Padmé's ability triggered twice
-            //     expect(context.player1).toHavePrompt(prompt);
-            //     expect(context.player1).toHavePassAbilityButton();
-            //     expect(context.player1).toBeAbleToSelectExactly([
-            //         context.profundity,
-            //         context.padmeAmidala
-            //     ]);
-            //     context.player1.clickCard(context.profundity);
+                context.player1.clickCard(context.furtiveHandmaiden);
+                expect(context.furtiveHandmaiden).toBeInZone('discard', context.player1);
+                context.player1.clickCard(context.favorableDelegate);
+                expect(context.favorableDelegate).toBeInZone('discard', context.player1);
 
-            //     expect(context.profundity.damage).toBe(1);
+                // Padmé's ability triggered twice, the identical triggers are grouped in a batch prompt
+                expect(context.player1).toHavePrompt(`Resolve "${prompt}"`);
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve next');
 
-            //     // Resolve second trigger
-            //     expect(context.player1).toHavePrompt(prompt);
-            //     expect(context.player1).toHavePassAbilityButton();
-            //     expect(context.player1).toBeAbleToSelectExactly([
-            //         context.profundity,
-            //         context.padmeAmidala
-            //     ]);
-            //     context.player1.clickCard(context.profundity);
+                expect(context.player1).toHavePrompt(prompt);
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.profundity, context.padmeAmidala]);
 
-            //     expect(context.profundity.damage).toBe(2);
-            // });
+                // the next prompt is identical since it is the second instance of the same trigger, so don't check for a prompt change
+                context.player1.clickCardNonChecking(context.profundity);
+
+                expect(context.profundity.damage).toBe(1);
+
+                // Resolve second trigger
+                expect(context.player1).toHavePrompt(prompt);
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.profundity, context.padmeAmidala]);
+                context.player1.clickCard(context.profundity);
+
+                expect(context.profundity.damage).toBe(2);
+            });
         });
     });
 });

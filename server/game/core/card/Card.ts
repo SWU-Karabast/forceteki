@@ -111,6 +111,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     protected readonly _aspects: Aspect[] = [];
     protected readonly _backSideAspects: Aspect[];
     protected readonly _backSideTitle?: string;
+    protected readonly _backSideSubtitle?: string;
     protected readonly _internalName: string;
     protected readonly _subtitle?: string;
     protected readonly _title: string;
@@ -204,6 +205,10 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         return this._backSideTitle;
     }
 
+    public get backSideSubtitle(): string {
+        return this._backSideSubtitle;
+    }
+
     @stateRef()
     private accessor _controller: Player;
 
@@ -289,6 +294,28 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         return this.id;
     }
 
+    /**
+     * Distinguishes successive identities of this physical card (`SWU 8.5.4`).
+     *
+     * A card that leaves play and returns is a different card as far as the game is concerned, and
+     * this counter is what tells the two apart. It also changes when a card moves somewhere hidden,
+     * because tracking information is lost at that point.
+     *
+     * Unlike {@link IInPlayCard.inPlayId} and {@link IInPlayCard.mostRecentInPlayId}, this is safe to
+     * read in any zone and never throws, so it can be used to compare two references to the same
+     * physical card and determine whether they refer to the same identity.
+     *
+     * Cards that can never be in play have only one identity, and report a constant.
+     *
+     * TODO (LKI migration phase 4): give event cards and bases a real counter so that an event card
+     * bouncing between a visible zone and a hidden one is correctly treated as a new identity.
+     * See long-term-project-docs/lki-redesign-decisions-and-insights.md (D-8) and §3.18.
+     */
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style -- must be a getter so InPlayCard can override it with the real counter
+    public get identityId(): number {
+        return 0;
+    }
+
     public get traits(): Set<Trait> {
         return this.getTraits();
     }
@@ -350,6 +377,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         this._subtitle = cardData.subtitle === '' ? null : cardData.subtitle;
         this._title = cardData.title;
         this._backSideTitle = cardData.backSideTitle;
+        this._backSideSubtitle = cardData.backSideSubtitle === '' ? null : cardData.backSideSubtitle;
         this._unique = cardData.unique;
         this._printedType = Card.buildTypeFromPrinted(cardData.types);
 
@@ -392,24 +420,13 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
      * abilities have a cost in brackets that must be paid in order to use the ability.
      */
     public getActionAbilities(): ActionAbilityBase[] {
-        const deduplicatedActionAbilities: ActionAbilityBase[] = [];
-
-        // Add any gained action abilities, deduplicating by any identical gained action abilities from
-        // the same source card (e.g., two Heroic Resolve actions)
-        const seenCardNameSources = new Set<string>();
-        for (const action of this.actionAbilities) {
-            if (action.printedAbility) {
-                deduplicatedActionAbilities.push(action);
-            } else if (!seenCardNameSources.has(action.gainAbilitySource.internalName)) {
-                deduplicatedActionAbilities.push(action);
-                seenCardNameSources.add(action.gainAbilitySource.internalName);
-            }
+        // Duplicate gained abilities are deduplicated against legal actions in ActionWindow.getCardLegalActions,
+        // after use limits are checked, so a still-usable copy isn't hidden by one that's at its limit.
+        if (this.isBlank()) {
+            return this.actionAbilities.filter((action) => action.isEpicAction);
         }
 
-        const epicActionAbilities = deduplicatedActionAbilities
-            .filter((action) => action.isEpicAction);
-
-        return this.isBlank() ? epicActionAbilities : deduplicatedActionAbilities;
+        return [...this.actionAbilities];
     }
 
     public getPrintedActionAbilities(): ActionAbilityBase[] {
@@ -727,6 +744,8 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
         keywordInstances = keywordInstances.filter((instance) => !instance.isBlank);
 
+        keywordInstances = KeywordHelpers.applyKeywordReplacements(keywordInstances, this.getOngoingEffectValues(EffectName.ReplaceKeyword), this);
+
         return KeywordHelpers.dedupeKeywords(keywordInstances, this);
     }
 
@@ -750,6 +769,11 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
     /** Optimized check for a single keyword - avoids array allocation from getKeywords() */
     private hasSingleKeyword(keyword: KeywordName): boolean {
+        // the fast path below can't account for keywords being replaced by other keywords, so fall back to the full calculation
+        if (this.hasOngoingEffect(EffectName.ReplaceKeyword)) {
+            return this.getKeywords().some((instance) => instance.name === keyword);
+        }
+
         // Check printed keywords first (fast path)
         const printedKeywords = this.printedKeywords;
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
@@ -817,7 +841,14 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         const traits = this.getPrintedTraits();
 
         for (const gainedTrait of this.getOngoingEffectValues(EffectName.GainTrait)) {
-            traits.add(gainedTrait);
+            // gainTrait provides a single Trait; gainTraits (dynamic) provides an array of Traits
+            if (Array.isArray(gainedTrait)) {
+                for (const trait of gainedTrait) {
+                    traits.add(trait);
+                }
+            } else {
+                traits.add(gainedTrait);
+            }
         }
         for (const lostTrait of this.getOngoingEffectValues(EffectName.LoseTrait)) {
             traits.delete(lostTrait);
@@ -992,11 +1023,13 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     protected removeFromCurrentZone() {
         if (this.zone.name === ZoneName.Base) {
             if (this.isLeader()) {
-                this.zone.removeLeader();
+                this.zone.removeLeader(this);
             } else if (this.isForceToken()) {
                 this.zone.removeForceToken();
             } else if (this.isCreditToken()) {
                 this.zone.removeCreditToken(this);
+            } else if (this.isUpgrade()) {
+                this.zone.removeUpgrade(this);
             } else {
                 Contract.fail(`Attempting to move card ${this.internalName} from ${this.zone}`);
             }
@@ -1039,7 +1072,9 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     private addSelfToZone(zoneName: MoveZoneDestination) {
         switch (zoneName) {
             case ZoneName.Base:
-                this.zone = this.owner.baseZone;
+                // like resources, the base zone is in play, so the card goes to its controller's base
+                // (e.g. an opponent's Fortify upgrade played with A Fine Addition)
+                this.zone = this.controller.baseZone;
 
                 if (this.isLeader()) {
                     this.zone.setLeader(this);
@@ -1047,8 +1082,10 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                     this.zone.setForceToken(this);
                 } else if (this.isCreditToken()) {
                     this.zone.addCreditToken(this);
+                } else if (this.isUpgrade()) {
+                    this.zone.addUpgrade(this);
                 } else {
-                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader, force token, or credit token`);
+                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader, force token, credit token, or upgrade`);
                 }
 
                 break;
@@ -1124,9 +1161,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     protected updateActionAbilitiesForZoneInternal(actionAbilities: ActionAbilityBase[], from: ZoneName, to: ZoneName) {
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const action of actionAbilities) {
-                if (action.limit) {
-                    action.limit.reset();
-                }
+                action.resetLimit();
             }
         }
     }
@@ -1136,12 +1171,9 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     }
 
     protected updateTriggeredAbilityEventsInternal(triggeredAbilities: TriggeredAbilityBase[], from: ZoneName, to: ZoneName) {
-        // STATE TODO: Gonna be a little hard to track, but also not a big blocker.
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const triggeredAbility of triggeredAbilities) {
-                if (triggeredAbility.limit) {
-                    triggeredAbility.limit.reset();
-                }
+                triggeredAbility.resetLimitForNewZone();
             }
         }
 
@@ -1343,7 +1375,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                 return false;
             }
         }
-        return false;
+        return true;
     }
 
     private asSetOrArray<T>(valueOrValuesToCheck: T | Set<T> | T[]): Set<T> | T[] {
@@ -1417,7 +1449,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                 ownerId: this.owner.id,
                 aspects: this.aspects,
                 zone: this.zoneName,
-                name: this.cardData.title,
+                name: this.title,
                 power: this.cardData.power,
                 hp: this.cardData.hp,
                 unimplemented: !this.isImplemented || undefined,    // don't bother sending "unimplemented: false" to the client

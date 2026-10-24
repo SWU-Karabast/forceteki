@@ -139,6 +139,10 @@ export interface IGameState {
     initiativePlayer: GameObjectId<Player> | null;
     actionPhaseActivePlayer: GameObjectId<Player> | null;
     isInitiativeClaimed: boolean;
+    isPlanCounterClaimed?: boolean;
+    isBlastCounterClaimed?: boolean;
+    planCounterClaimedByPlayer?: GameObjectId<Player> | null;
+    blastCounterClaimedByPlayer?: GameObjectId<Player> | null;
     allCards: GameObjectId<Card>[];
     actionNumber: number;
     lastGameEventId: number;

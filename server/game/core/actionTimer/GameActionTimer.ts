@@ -27,7 +27,8 @@ export class GameActionTimer extends SimpleActionTimer implements IActionTimer {
     ) {
         super(
             timeLimitSeconds,
-            (callback, delayMs) => game.buildSafeTimeout(callback, delayMs, `Error in action timer handler for player ${player.name}`)
+            game.scheduler,
+            { message: `Error in action timer handler for player ${player.name}`, metadata: { gameId: game.id } }
         );
 
         this.player = player;

@@ -14,6 +14,7 @@ import { registerState } from '../GameObjectUtils';
 
 export enum AllCardsTargetMode {
     OnlyOwned = 'onlyOwned',
+    OnlyControlled = 'onlyControlled',
     OwnedOrControlled = 'ownedOrControlled',
 }
 
@@ -51,14 +52,7 @@ export class OngoingAllCardsForPlayerEffect extends OngoingEffect<Card> {
 
     /** @override */
     public override isValidTarget(target: Card) {
-        if (this.cardTargetMode === AllCardsTargetMode.OnlyOwned && target.owner !== this.player) {
-            return false;
-        }
-
-        if (
-            this.cardTargetMode === AllCardsTargetMode.OwnedOrControlled &&
-            target.owner !== this.player && target.controller !== this.player
-        ) {
+        if (!this.matchesCardTargetMode(target)) {
             return false;
         }
 
@@ -71,11 +65,18 @@ export class OngoingAllCardsForPlayerEffect extends OngoingEffect<Card> {
 
     /** @override */
     public override getTargets() {
+        return this.game.allCards.filter((card) => this.matchesCardTargetMode(card));
+    }
+
+    /** Whether the card's owner / controller relationship to {@link player} matches the configured {@link cardTargetMode} */
+    private matchesCardTargetMode(card: Card): boolean {
         switch (this.cardTargetMode) {
             case AllCardsTargetMode.OnlyOwned:
-                return this.game.allCards.filter((card) => card.owner === this.player);
+                return card.owner === this.player;
+            case AllCardsTargetMode.OnlyControlled:
+                return card.controller === this.player;
             case AllCardsTargetMode.OwnedOrControlled:
-                return this.game.allCards.filter((card) => card.owner === this.player || card.controller === this.player);
+                return card.owner === this.player || card.controller === this.player;
             default:
                 Contract.fail(`Unknown card target mode: ${this.cardTargetMode}`);
         }

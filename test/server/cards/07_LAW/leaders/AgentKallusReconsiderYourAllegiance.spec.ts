@@ -16,7 +16,8 @@ describe('Agent Kallus, Reconsider Your Allegiance', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.agentKallus);
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.awing, context.resupply, context.suddenFerocity]);
+                // resupply and sudden ferocity are not playable because we already exhaust 1 resource, only 2 left
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.awing]);
                 expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.battlefieldMarine);
 
@@ -68,7 +69,7 @@ describe('Agent Kallus, Reconsider Your Allegiance', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['awing'],
+                        hand: ['awing', 'resupply'],
                         leader: { card: 'agent-kallus#reconsider-your-allegiance', deployed: true },
                         base: 'colossus',
                         resources: ['hotshot-dl44-blaster', 'atst', 'atst'],
@@ -84,6 +85,8 @@ describe('Agent Kallus, Reconsider Your Allegiance', function() {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.agentKallus);
+                // resupply is not playable, only 2 resources left
+                expect(context.player1).toBeAbleToSelectExactly([context.awing]);
                 context.player1.clickCard(context.awing);
 
                 expect(context.player2).toBeActivePlayer();
