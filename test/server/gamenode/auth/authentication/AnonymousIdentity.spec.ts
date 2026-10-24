@@ -40,12 +40,9 @@ describe('Anonymous user identity', function () {
             expect(user.hasClientProvidedId()).toBeFalse();
         });
 
-        it('keeps the dev test users\' ids and names in development', function () {
-            const user = userFactory.createAnonymousUserFromQuery({ user: JSON.stringify({ id: 'exe66', username: 'Order66' }) });
-
-            expect(user.getId()).toBe('exe66');
-            expect(user.getUsername()).toBe('Order66');
-            expect(user.isDevTestUser()).toBeTrue();
+        it('rejects legacy dev identities without authentication', function () {
+            expect(() => userFactory.createAnonymousUserFromQuery({ user: JSON.stringify({ id: 'exe66', username: 'Order66' }) }))
+                .toThrowError(/not a valid UUID/);
         });
     });
 

@@ -96,7 +96,7 @@ export const routeAuthManifest: readonly IRouteAuthRow[] = [
     { method: 'post', path: '/api/unlink-swustats', access: 'signed-in', unauthenticated: refused },
     { method: 'post', path: '/api/link-swubase', access: 'shared-secret', unauthenticated: refused },
     { method: 'post', path: '/api/unlink-swubase', access: 'signed-in', unauthenticated: refused },
-    { method: 'put', path: '/api/user/:userId/preferences', access: 'signed-in', unauthenticated: refused },
+    { method: 'put', path: '/api/user/preferences', access: 'signed-in', unauthenticated: refused },
     { method: 'post', path: '/api/run-profile', access: 'api-key', unauthenticated: refused },
 
     { method: 'post', path: '/api/get-decks', access: 'signed-in', unauthenticated: refusedWith(403, 'FE `loadDecks` reads a 403 as "not signed in" and uses the decks in local storage') },
@@ -141,7 +141,7 @@ export const routeAuthManifest: readonly IRouteAuthRow[] = [
 
     // development only: the local test-game tooling, and the two destructive cosmetics routes
     { method: 'get', path: '/api/test-game-setups', access: 'public', devOnly: true, unauthenticated: served(200) },
-    { method: 'post', path: '/api/start-test-game', access: 'public', devOnly: true, unauthenticated: served() },
+    { method: 'post', path: '/api/start-test-game', access: 'signed-in', devOnly: true, unauthenticated: refused },
     { method: 'delete', path: '/api/cosmetics', access: 'admin', devOnly: true, unauthenticated: refused },
     { method: 'post', path: '/api/cosmetics-reset', access: 'admin', devOnly: true, unauthenticated: refused },
 ];
