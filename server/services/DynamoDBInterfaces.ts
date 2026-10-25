@@ -97,6 +97,11 @@ export enum TimerVisibility {
     HideAll = 'hideAll',
 }
 
+export interface IKeyboardShortcuts {
+    passTurn?: string;
+    undo?: string;
+}
+
 export interface IUserPreferences {
     sound?: {
         muteAllSound?: boolean;
@@ -121,6 +126,7 @@ export interface IUserPreferences {
             singleTarget?: boolean;
         };
     };
+    keyboardShortcuts?: IKeyboardShortcuts;
 }
 
 // Define user interface
