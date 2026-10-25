@@ -3,6 +3,7 @@ import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import { BaseCard } from '../../../core/card/BaseCard';
 import { DamageType } from '../../../core/Constants';
 import type { IBaseAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import { DamageSystem } from '../../../gameSystems/DamageSystem';
 
 export default class TempleOfDestruction extends BaseCard {
     protected override getImplementationId () {
@@ -35,10 +36,8 @@ export default class TempleOfDestruction extends BaseCard {
             return false;
         }
 
-        if (event.type === DamageType.Combat) {
-            return event.amount >= 3;
-        } else if (event.type === DamageType.Overwhelm) {
-            return event.sourceEventForExcessDamage.availableExcessDamage >= 3;
+        if (event.type === DamageType.Combat || event.type === DamageType.Overwhelm) {
+            return DamageSystem.getDamageAmountFromEvent(event) >= 3;
         }
         return false;
     }

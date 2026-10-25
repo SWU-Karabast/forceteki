@@ -3,6 +3,7 @@ import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbi
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { DamageModificationType } from '../../../core/Constants';
+import { DamageSystem } from '../../../gameSystems/DamageSystem';
 
 export default class AllianceShieldGenerator extends UpgradeCard {
     protected override getImplementationId() {
@@ -30,7 +31,6 @@ export default class AllianceShieldGenerator extends UpgradeCard {
 
     private wouldDealFiveOrMoreDamage(context: TriggeredAbilityContext) {
         const event = context.event;
-        const amount = event.amount ?? event.sourceEventForExcessDamage?.availableExcessDamage ?? 0;
-        return amount >= 5;
+        return DamageSystem.getDamageAmountFromEvent(event) >= 5;
     }
 }
