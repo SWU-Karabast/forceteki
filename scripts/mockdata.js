@@ -1,5 +1,5 @@
 const mockCards = [
-    // Add mock cards here
+    // -------- Begin Mock Cards --------
     buildMockCard({
         title: 'Moff Gideon',
         subtitle: 'Cold Calling',
@@ -305,6 +305,212 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'poggle-the-lesser#secret-designs'
+    }),
+    buildMockCard({
+        title: 'C-3PO',
+        subtitle: 'Impulse Buy',
+        cost: 1,
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['rebel', 'droid'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 70
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'c3po#impulse-buy'
+    }),
+    buildMockCard({
+        title: 'Darth Maul',
+        subtitle: 'Mindful Apprentice',
+        cost: 6,
+        power: 4,
+        hp: 7,
+        hasNonKeywordAbility: false,
+        aspects: ['command', 'villainy'],
+        keywords: ['sentinel', 'overwhelm', 'raid 3'],
+        traits: ['force', 'sith'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 65
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'darth-maul#mindful-apprentice'
+    }),
+    buildMockCard({
+        title: 'Greef Karga',
+        subtitle: 'I Celebrate Your Success',
+        cost: 2,
+        power: 0,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['raid 3'],
+        traits: ['official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 153
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'greef-karga#i-celebrate-your-success'
+    }),
+    buildMockCard({
+        title: 'Wat Tambor',
+        subtitle: 'Warped Warbling',
+        cost: 3,
+        power: 4,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        keywords: ['sentinel'],
+        traits: ['separatist', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 143
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'wat-tambor#warped-warbling'
+    }),
+    buildMockCard({
+        title: 'Rey',
+        subtitle: 'In Balance',
+        cost: 5,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['force', 'resistance'],
+        types: ['leader'],
+        setId: {
+            set: 'IC27',
+            number: 2
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'rey#in-balance'
+    }),
+    buildMockCard({
+        title: 'BB-8',
+        subtitle: 'Frazzled Friend',
+        cost: 1,
+        power: 0,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['resistance', 'droid'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 31
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'bb8#frazzled-friend'
+    }),
+    buildMockCard({
+        title: 'Kaydel Connix',
+        subtitle: 'Keep Going!',
+        cost: 2,
+        power: 1,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['sentinel'],
+        traits: ['resistance'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 32
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'kaydel-connix#keep-going'
+    }),
+    buildMockCard({
+        title: 'Finn',
+        subtitle: 'Stand and Fight',
+        cost: 4,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['sentinel'],
+        traits: ['resistance'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 37
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'finn#stand-and-fight'
+    }),
+    buildMockCard({
+        title: 'Rose Tico',
+        subtitle: 'In The Fight',
+        cost: 6,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['shielded'],
+        traits: ['resistance'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 40
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'rose-tico#in-the-fight'
+    }),
+    buildMockCard({
+        title: 'General Veers',
+        subtitle: 'Prepared',
+        cost: 2,
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['command', 'villainy'],
+        keywords: ['overwhelm'],
+        traits: ['imperial', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 58
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'general-veers#prepared'
+    }),
+    buildMockCard({
+        title: 'Admiral Motti',
+        subtitle: 'Conan in Command',
+        cost: 4,
+        power: 2,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        keywords: ['hidden'],
+        traits: ['imperial', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 62
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'admiral-motti#conan-in-command'
     }),
     // -------- End Mock Cards --------
 ];
