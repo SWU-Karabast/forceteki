@@ -6,7 +6,7 @@ Engine-independent reference reader for the SWU-PGN/1.0 game format.
 - `fold(events)` / `stateAt(events, seq)` -> reconstructed board state (no rules engine)
 - `render(doc, names?)` -> the normative human-readable game story
 - `validate(text)` -> conformance report
-- `checkKeyframes(events)` -> keyframe integrity report (spec §13). A conformant file reports no
+- `checkKeyframes(events)` -> keyframe integrity report (spec §14). A conformant file reports no
   mismatch, so one that does means your fold has a rule wrong, not that the file is bad.
 - `linkActionSteps(events)` -> stamps `for` on the records the engine numbered before the action
   they belong to (spec §9.1), so a reader never implements that heuristic. Writers run this.
@@ -18,9 +18,14 @@ executable reference for `docs/SWU-PGN-1.0-SPEC.md`.
 ## Test vectors
 
 `test-vectors/` holds the normative examples (spec §20). `minimal` is hand-written; `organic`,
-`upgrades`, `pilot` and `capture` are real games the writer produced under
+`upgrades`, `pilot`, `capture`, `homeworlds` and `death-star` are real games the writer produced under
 `test/server/chat/SwuPgnVectors.spec.ts` / `SwuPgnOrganicGame.spec.ts`, whose fold and story
-those specs pin byte for byte. To regenerate them after a deliberate writer change:
+those specs pin byte for byte. `homeworlds` is the one to test Homeworlds support against:
+Fortify upgrades on both bases (`baseUpgrades`), a base using an ability an upgrade granted it
+(`grantedBy`), Beast tokens, and Weakness tokens stacking until one kills (spec §10.3).
+`death-star` is Grand Moff Tarkin deploying as The Death Star (`backSideName`) and defeating a
+base that still has HP (`DEFEAT` on `base@2`, `baseDefeated`; spec §10.4).
+To regenerate them after a deliberate writer change:
 
 ```
 SWUPGN_WRITE_VECTORS=1 npm test

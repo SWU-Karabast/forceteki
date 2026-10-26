@@ -64,7 +64,7 @@
     },
     {
       "if": { "properties": { "t": { "const": "ABILITY_ACTIVATE" } }, "required": ["t"] },
-      "then": { "properties": { "ability": { "type": "string" }, "kind": { "enum": ["action","epic","triggered","keyword","replacement","constant","event","delayed"] }, "title": { "type": "string" }, "epic": { "type": "boolean" } } }
+      "then": { "properties": { "ability": { "type": "string" }, "kind": { "enum": ["action","epic","triggered","keyword","replacement","constant","event","delayed"] }, "title": { "type": "string" }, "epic": { "type": "boolean" }, "grantedBy": { "type": "string" } } }
     },
     {
       "if": { "properties": { "t": { "const": "CAPTURE" } }, "required": ["t"] },
@@ -117,6 +117,8 @@
         "credits": { "type": "integer" },
         "hasForce": { "type": "boolean" },
         "deckSize": { "type": "integer" },
+        "baseUpgrades": { "type": "array", "items": { "type": "string" } },
+        "baseDefeated": { "type": "boolean" },
         "leader": { "type": "object", "properties": { "id": { "type": "string" }, "deployed": { "type": "boolean" }, "exhausted": { "type": "boolean" }, "epicActionUsed": { "type": "boolean" }, "onStartingSide": { "type": "boolean" } } }
       }
     },

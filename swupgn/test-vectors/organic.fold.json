@@ -24,6 +24,7 @@
         "SOR#095",
         "SOR#095:2"
       ],
+      "baseUpgrades": [],
       "credits": 0,
       "hasForce": false,
       "discard": [],
@@ -116,6 +117,7 @@
         "IC27#097:6",
         "LOF#164:5"
       ],
+      "baseUpgrades": [],
       "credits": 0,
       "hasForce": false,
       "discard": [],

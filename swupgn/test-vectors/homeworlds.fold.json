@@ -1,0 +1,181 @@
+{
+  "round": 6,
+  "phase": "action",
+  "initiative": 1,
+  "players": {
+    "1": {
+      "seat": 1,
+      "baseHp": 27,
+      "baseMaxHp": 30,
+      "handSize": 0,
+      "hand": [],
+      "resourcesReady": 7,
+      "resourcesExhausted": 0,
+      "resources": [
+        "SOR#095",
+        "SOR#095:2",
+        "LAW#253",
+        "LAW#253:3",
+        "HMW#271:2",
+        "LAW#253:4",
+        "SOR#095:3"
+      ],
+      "baseUpgrades": [
+        "HMW#147",
+        "HMW#271",
+        "HMW#126"
+      ],
+      "credits": 0,
+      "hasForce": false,
+      "discard": [
+        "LAW#253:2",
+        "HMW#147:2",
+        "HMW#150",
+        "HMW#150:2",
+        "HMW#126:2"
+      ],
+      "cards": [
+        {
+          "id": "TOKEN:beast#6445363199:2",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {
+            "weakness": 2
+          },
+          "captured": [],
+          "power": 1,
+          "hp": 1,
+          "keywords": [
+            "raid 1"
+          ]
+        },
+        {
+          "id": "TOKEN:beast#6445363199:3",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": [
+            "raid 1"
+          ]
+        },
+        {
+          "id": "TOKEN:beast#6445363199:4",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": [
+            "raid 1"
+          ]
+        },
+        {
+          "id": "TOKEN:beast#6445363199:5",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": [
+            "raid 1"
+          ]
+        }
+      ],
+      "deckSize": 0,
+      "leader": {
+        "id": "HMW#010",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      }
+    },
+    "2": {
+      "seat": 2,
+      "baseHp": 6,
+      "baseMaxHp": 30,
+      "handSize": 0,
+      "hand": [],
+      "resourcesReady": 6,
+      "resourcesExhausted": 0,
+      "resources": [
+        "HMW#087",
+        "HMW#242",
+        "HMW#242:2",
+        "HMW#242:3",
+        "HMW#059",
+        "HMW#059:2"
+      ],
+      "baseUpgrades": [],
+      "credits": 0,
+      "hasForce": false,
+      "discard": [
+        "HMW#095",
+        "HMW#100",
+        "HMW#095:2",
+        "HMW#100:2",
+        "HMW#100:3",
+        "HMW#100:4"
+      ],
+      "cards": [
+        {
+          "id": "HMW#087:2",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 4,
+          "keywords": []
+        },
+        {
+          "id": "HMW#242:4",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 2,
+          "keywords": []
+        }
+      ],
+      "deckSize": 0,
+      "leader": {
+        "id": "HMW#003",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      }
+    }
+  },
+  "initiativeTaken": false,
+  "active": 1
+}

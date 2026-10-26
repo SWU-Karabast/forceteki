@@ -84,6 +84,13 @@ export function validate(text: string): ConformanceReport {
         }
     }
 
+    for (const c of doc.cards ?? []) {
+        const card = asRecord(c);
+        if (!card || typeof card['id'] !== 'string' || typeof card['name'] !== 'string') {
+            issues.push({ severity: 'error', message: 'card index entry must be an object with a string id and name' });
+        }
+    }
+
     for (const rec of doc.setup) {
         // Cast to a plain record to avoid TypeScript narrowing issues with the
         // discriminated union after passing through the Ajv validator.

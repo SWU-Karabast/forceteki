@@ -45,7 +45,7 @@ function buildHeader(raw: Record<string, string>): Header {
         format: raw['Format'], cardPool: req('CardPool'), engine: req('Engine'),
         seed: req('Seed'),
         // The 'as' casts below are intentional: structural parsing trusts the raw
-        // string values here; enum/value validation is performed by validate() (Task 4),
+        // string values here; enum/value validation is performed by validate(),
         // not the parser.
         perspective: (raw['Perspective'] as Header['perspective']) ?? null,
         p1Id: req('P1Id'), p2Id: req('P2Id'), p1: req('P1'), p2: req('P2'),

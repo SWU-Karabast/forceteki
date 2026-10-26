@@ -2,7 +2,7 @@ export type Seat = 1 | 2;
 
 /**
  * Unit or upgrade, for readers deciding whether something occupies an arena. An `'upgrade'`
- * attaches to a unit and is NEVER a member of `ground`/`space`.
+ * attaches to a unit (or, with Fortify, to a base) and is NEVER a member of `ground`/`space`.
  *
  * The same field name means THREE things, and they are disjoint. On an EVENT (`MOVE`,
  * `CREATE_TOKEN`, `DEPLOY_LEADER`) it is the ROLE that event enacts; in `%%% CARDS` it is the
@@ -163,18 +163,22 @@ export type GameEvent = ActionLink & (
   // `ability` (the engine's own identifier, which this format does not promise to keep stable).
   // `action` and `epic` are the player's own action for the turn and take their own step number;
   // every other kind is a consequence of something else and is a sub-step. `title` is the
-  // ability's printable name.
+  // ability's printable name. `grantedBy` names the card whose text GAVE `card` this ability
+  // (a Fortify upgrade's "Attached base gains: ...", an upgrade's "Attached unit gains: ...");
+  // absent when the ability is `card`'s own printed text.
   | {
       seq: string; t: 'ABILITY_ACTIVATE'; p: Seat; card: string; ability?: string;
       kind?: AbilityKind;
-      title?: string; epic?: boolean;
+      title?: string; epic?: boolean; grantedBy?: string;
   }
   // A double-sided leader flipped in place (it never deploys). `onStartingSide` is the face
   // AFTER the flip -- an absolute value, not a toggle, so a dropped record cannot invert
   // every later face and a reader joining at a keyframe has something to apply.
   | { seq: string; t: 'LEADER_FLIP'; p: Seat; card: string; onStartingSide: boolean }
   | { seq: string; t: 'STATS'; card: string; power: number; hp: number; keywords?: string[] }
-  | { seq: string; t: 'DAMAGE'; src: string; tgt: string; amt: number; damageType: string; hp: number }
+  // `src` is what dealt it: a card id or `base@N`. Absent only when the rules themselves dealt
+  // the damage and no card is responsible (drawing from an empty deck).
+  | { seq: string; t: 'DAMAGE'; src?: string; tgt: string; amt: number; damageType: string; hp: number }
   | { seq: string; t: 'HEAL'; src?: string; tgt: string; amt: number; hp: number }
   // `reason` is the one CLOSED vocabulary in the format (spec §6.4): it comes from the engine's
   // own fixed enum, and a reader is meant to switch on it.
@@ -202,9 +206,9 @@ export type GameEvent = ActionLink & (
   | {
       seq: string; t: 'MOVE'; card: string; from: string; to: string; p?: Seat;
 
-      /** The host this move attaches the card to. Present only on the move INTO an arena that
-       *  attaches; a move out of an arena never names a host — a reader detaches on the zone
-       *  transition (spec §10.1). */
+      /** The host this move attaches the card to: a unit id, or `base@N` for an upgrade with
+       *  Fortify moving into `base`. Present only on the move that attaches; a move out never
+       *  names a host — a reader detaches on the zone transition (spec §10.1). */
       attachedTo?: string;
 
       /** On a move out of `resource` only: the card left the row exhausted, so the fold takes it
@@ -251,6 +255,14 @@ export interface CardIndexRecord {
      *  reader classify by id alone — in particular, which `TOKEN:` ids are upgrades and which
      *  are units. Absent means neither: an Event, a base, an undeployed leader. */
     kind?: CardKind;
+
+    /** The name of the card's OTHER side, when it has a different one: a leader whose Leader
+     *  Unit side is another card (Grand Moff Tarkin deploys as "The Death Star, Icon of
+     *  Tyranny"), or a double-sided leader's flipped face (Chancellor Palpatine / Darth
+     *  Sidious). `name` is always the printed FRONT, so an entry never depends on which side
+     *  happened to be up when the file was written. Which side is up at a given moment is
+     *  game state: `DEPLOY_LEADER`, the leader's move home, and `LEADER_FLIP` say. */
+    backSideName?: string;
 }
 
 export interface SwuPgnDocument {
@@ -341,6 +353,25 @@ export interface PlayerState {
      * abilities on separate cards and are tracked separately. Absent means "not recorded".
      */
     baseEpicActionUsed?: boolean;
+
+    /**
+     * PRINTED upgrades attached to this seat's BASE (a set: order is not part of the model, as
+     * for a unit's `upgrades`). Only an upgrade
+     * with Fortify ("Attach this to your base, not a unit") gets here; while it is attached the
+     * base has whatever "Attached base gains: ..." gives it. A base upgrade is in play but in no
+     * arena, so it is never in `cards`. Absent on files written before it existed; absent means
+     * "not recorded", not "none".
+     */
+    baseUpgrades?: string[];
+
+    /**
+     * This seat's base has been defeated: set by a `DEFEAT` whose `card` is `base@N`. A base is
+     * defeated when its damage reaches its HP, or outright by an ability that says "defeat a
+     * base" (Grand Moff Tarkin, Tyrant of the Outer Rim) -- and then its HP is NOT zero, so a
+     * reader cannot tell from `baseHp` alone. Absent means false: it is only ever written true,
+     * and a defeated base ends the game.
+     */
+    baseDefeated?: boolean;
     credits: number;
     hasForce: boolean;
     discard: string[];

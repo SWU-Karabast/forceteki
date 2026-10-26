@@ -24,6 +24,7 @@
         "SOR#095:2",
         "LAW#253:2"
       ],
+      "baseUpgrades": [],
       "credits": 0,
       "hasForce": false,
       "discard": [
@@ -88,6 +89,7 @@
         "IC27#097:10"
       ],
       "baseEpicActionUsed": false,
+      "baseUpgrades": [],
       "credits": 0,
       "hasForce": false,
       "discard": [

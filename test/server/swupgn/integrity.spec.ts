@@ -282,4 +282,22 @@ describe('checkKeyframes — the resource, credit, Force and attachment fields',
             'initiativeTaken', 'players.1.deckSize', 'players.1.leader.epicActionUsed', 'players.2.leader.exhausted',
         ]);
     });
+
+    // Value: protects=gate on baseDefeated (absent==false) and baseUpgrades (set, only when stated); fails_when=either field ungated, absent!=false, or order-sensitive; why_new=vectors only prove the agreeing case; seam=none; no_claim=writer output
+    it('gates baseDefeated (absent reads false) and baseUpgrades (as a set, only when the keyframe states it)', function () {
+        const fortify = (card: string, seq: string): GameEvent => ({ seq, t: 'MOVE', card, from: 'hand', to: 'base', p: 1, kind: 'upgrade', attachedTo: 'base@1' });
+        const fortified = [fortify('HMW#271', 'R1.A.1a'), fortify('HMW#147', 'R1.A.2a')];
+        const defeat: GameEvent = { seq: 'R1.A.3a', t: 'DEFEAT', card: 'base@2', reason: 'ability' };
+        const paths = (events: GameEvent[]) => checkKeyframes(events).mismatches.map((m) => m.path).sort();
+
+        // Agreement: order differs, and seat 2 says baseDefeated while the fold set it.
+        expect(paths([...fortified, defeat, kf('R1.end', seat(1, { baseUpgrades: ['HMW#147', 'HMW#271'] }), seat(2, { baseDefeated: true }))])).toEqual([]);
+        // An older keyframe with no baseUpgrades has nothing to compare; absent baseDefeated equals false.
+        expect(paths([...fortified, kf('R1.end', seat(1), seat(2))])).toEqual([]);
+        expect(paths([kf('R1.end', seat(1, { baseDefeated: false } as any), seat(2))])).toEqual([]);
+        // Disagreement either way round is reported.
+        expect(paths([...fortified, kf('R1.end', seat(1, { baseUpgrades: ['HMW#271'] }), seat(2, { baseDefeated: true }))]))
+            .toEqual(['players.1.baseUpgrades', 'players.2.baseDefeated']);
+        expect(paths([defeat, kf('R1.end', seat(1), seat(2))])).toEqual(['players.2.baseDefeated']);
+    });
 });

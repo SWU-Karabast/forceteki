@@ -1,4 +1,4 @@
-// public API barrel; modules added as tasks land
+// public API barrel
 export * from './types';
 export { parse } from './parse';
 export { validate } from './validate';

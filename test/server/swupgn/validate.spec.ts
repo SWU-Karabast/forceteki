@@ -13,6 +13,15 @@ describe('validate', function () {
         expect(report.issues.filter((i) => i.severity === 'error')).toEqual([]);
     });
 
+    // Value: protects=a %%% CARDS entry that is not a card record fails validation instead of crashing render later; fails_when=validate() skips the card index; why_new=no spec put a bad entry in the index; seam=none; no_claim=render's own tolerance
+    it('rejects a card index entry that is not a card record', function () {
+        const bad = good.replace('%%% CARDS\n', '%%% CARDS\nnull\n');
+        expect(bad).not.toBe(good);
+        const report = validate(bad);
+        expect(report.valid).toBe(false);
+        expect(report.issues.some((i) => (/card index entry/).test(i.message))).toBe(true);
+    });
+
     it('rejects a file missing a required header tag', function () {
         const bad = good.replace('[Result "Incomplete"]', '');
         const report = validate(bad);

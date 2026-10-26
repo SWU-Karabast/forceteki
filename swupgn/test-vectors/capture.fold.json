@@ -22,6 +22,7 @@
         "LAW#253:4",
         "LAW#253:5"
       ],
+      "baseUpgrades": [],
       "credits": 0,
       "hasForce": false,
       "discard": [
@@ -83,6 +84,7 @@
         "IC27#097:3",
         "SHD#238:3"
       ],
+      "baseUpgrades": [],
       "credits": 0,
       "hasForce": false,
       "discard": [

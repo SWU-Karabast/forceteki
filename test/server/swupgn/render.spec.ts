@@ -113,3 +113,65 @@ describe('render undo marker', function () {
         expect(out).toContain('·· A player undid back to R1.A.1 ··');
     });
 });
+
+// A leader whose other side has another name (CardIndexRecord.backSideName) is named by the side
+// that is up: the renderer tracks it from the records that turn the card over.
+describe('render card sides and granted abilities', function () {
+    const cards = [
+        { id: 'HMW#004', name: 'Grand Moff Tarkin, Tyrant of the Outer Rim', backSideName: 'The Death Star, Icon of Tyranny' },
+        { id: 'TWI#017', name: 'Chancellor Palpatine, Playing Both Sides', backSideName: 'Darth Sidious' },
+        { id: 'HMW#147', name: 'Beast Lair' },
+    ];
+    const doc = (events: any[]) => ({ header: {} as any, decks: [], setup: [], events, annotations: [], cards } as any);
+    const p = (seat: 1 | 2, leader: Record<string, unknown>) => ({ seat, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [],
+        resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [], leader });
+    const linesOf = (out: string) => out.split('\n').map((l) => l.trim());
+
+    // Value: protects=shown side via deploy/home MOVE/re-entry/LEADER_FLIP/keyframe, (granted by) on triggered form; fails_when=a transition stops flipping name; why_new=engine pins deploy only; seam=none; no_claim=writer
+    it('names a leader by the side that is up through deploy, going home, flips and keyframes', function () {
+        const out = linesOf(render(doc([
+            { seq: 'R1.A.1', t: 'DEPLOY_LEADER', p: 1, card: 'HMW#004', zone: 'space', epic: true },
+            { seq: 'R1.A.2', t: 'ATTACK', p: 1, atk: 'HMW#004', def: 'base', defenderType: 'base' },
+            // Defeated: the Leader Unit goes home and shows its front again.
+            { seq: 'R1.A.2a', t: 'MOVE', card: 'HMW#004', from: 'space', to: 'base', p: 1, kind: 'unit' },
+            { seq: 'R1.A.3', t: 'ABILITY_ACTIVATE', p: 1, card: 'HMW#004', kind: 'action' },
+            // Leaving the base zone for an arena is a deploy, whatever record announced it.
+            { seq: 'R1.A.3a', t: 'MOVE', card: 'HMW#004', from: 'base', to: 'space', p: 1, kind: 'unit' },
+            { seq: 'R1.A.4', t: 'ABILITY_ACTIVATE', p: 1, card: 'HMW#004', kind: 'action' },
+            { seq: 'R1.A.5', t: 'LEADER_FLIP', p: 2, card: 'TWI#017', onStartingSide: false },
+            { seq: 'R1.A.6', t: 'ABILITY_ACTIVATE', p: 2, card: 'TWI#017', kind: 'action' },
+            { seq: 'R1.A.7', t: 'LEADER_FLIP', p: 2, card: 'TWI#017', onStartingSide: true },
+            // A keyframe snaps both: Tarkin undeployed (front), Palpatine flipped (back).
+            { seq: 'R2.start', t: 'ROUND_START', round: 2, keyframe: { round: 2, phase: 'action', initiative: 1, players: {
+                1: p(1, { id: 'HMW#004', deployed: false, exhausted: false, epicActionUsed: true }),
+                2: p(2, { id: 'TWI#017', deployed: false, exhausted: false, epicActionUsed: false, onStartingSide: false }),
+            } } },
+            { seq: 'R2.A.1', t: 'ABILITY_ACTIVATE', p: 1, card: 'HMW#004', kind: 'action' },
+            { seq: 'R2.A.2', t: 'ABILITY_ACTIVATE', p: 2, card: 'TWI#017', kind: 'action' },
+        ])));
+        const action = (n: number, text: string) => expect(out).withContext(`action ${n}`)
+            .toContain(`${n}. ${text}`);
+        action(1, 'Player 1 deploys Grand Moff Tarkin, Tyrant of the Outer Rim as The Death Star, Icon of Tyranny');
+        action(2, 'Player 1 attacks Player 2\'s base with The Death Star, Icon of Tyranny');
+        action(3, 'Player 1 uses Grand Moff Tarkin, Tyrant of the Outer Rim');
+        action(4, 'Player 1 uses The Death Star, Icon of Tyranny');
+        // A flip is a consequence (of the ability that flipped it), never a numbered action.
+        expect(out).toContain('↳ Player 2 flips Chancellor Palpatine, Playing Both Sides to Darth Sidious');
+        action(5, 'Player 2 uses Darth Sidious');
+        expect(out).toContain('↳ Player 2 flips Darth Sidious to Chancellor Palpatine, Playing Both Sides');
+        // Round 2 restarts the numbering after the keyframe.
+        expect(out).toContain('1. Player 1 uses Grand Moff Tarkin, Tyrant of the Outer Rim');
+        expect(out).toContain('2. Player 2 uses Darth Sidious');
+
+        // A granted ability names its grantor on the triggered form too; a card's own ability and a
+        // flip of a card with no other side carry no suffix.
+        const granted = linesOf(render(doc([
+            { seq: 'R1.A.0a', t: 'ABILITY_ACTIVATE', p: 1, card: 'base@1', kind: 'triggered', grantedBy: 'HMW#147' },
+            { seq: 'R1.A.1', t: 'ABILITY_ACTIVATE', p: 1, card: 'HMW#147', kind: 'action' },
+            { seq: 'R1.A.2', t: 'LEADER_FLIP', p: 1, card: 'HMW#147', onStartingSide: false },
+        ])));
+        expect(granted).toContain('↳ Player 1\'s base uses an ability (granted by Beast Lair)');
+        expect(granted).toContain('1. Player 1 uses Beast Lair');
+        expect(granted).toContain('↳ Player 1 flips Beast Lair');
+    });
+});

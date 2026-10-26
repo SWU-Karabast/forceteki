@@ -18,13 +18,11 @@
   1. Player 1 plays Zealous Soldier #2 to ground (cost 2)
        ↳ Zealous Soldier #2 uses an ability
        ↳ Zealous Soldier #2 gains 1 advantage
-  2. Player 1 passes
-  3. Player 2 plays Death Star Stormtrooper #3 to ground (cost 1)
-  4. Player 2 passes
+  2. Player 2 plays Death Star Stormtrooper #3 to ground (cost 1)
+  3. Player 1 passes
+  4. Player 2 plays Death Star Stormtrooper #4 to ground (cost 1)
   5. Player 1 passes
-  6. Player 2 plays Death Star Stormtrooper #4 to ground (cost 1)
-  7. Player 2 passes
-  8. Player 1 passes
+  6. Player 2 passes
  ── regroup ──
        ↳ Player 1 draws 2: Clan Wren Rescuer #2, Battlefield Marine
        ↳ Player 2 draws 2: Death Star Stormtrooper #5, Death Star Stormtrooper #6
@@ -43,10 +41,9 @@
   1. Player 1 plays Clan Wren Rescuer to ground (cost 2)
        ↳ Clan Wren Rescuer uses an ability
        ↳ Zealous Soldier #2 gains 1 experience
-  2. Player 1 passes
-  3. Player 2 plays Death Star Stormtrooper #6 to ground (cost 1)
+  2. Player 2 plays Death Star Stormtrooper #6 to ground (cost 1)
+  3. Player 1 passes
   4. Player 2 passes
-  5. Player 1 passes
  ── regroup ──
        ↳ Player 1 draws 2: Ascension Cable #2, Ascension Cable #3
        ↳ Player 2 draws 2: Death Star Stormtrooper #7, Death Star Stormtrooper #8
@@ -63,17 +60,14 @@
 
  ── action ──
   1. Player 1 plays Ascension Cable #2 on Zealous Soldier #2 (cost 2)
-  2. Player 1 passes
-  3. Player 2 plays Open Fire (cost 3)
+  2. Player 2 plays Open Fire (cost 3)
        ↳ Open Fire uses an ability
        ↳ 4 damage to Zealous Soldier #2 — 3 HP left
-  4. Player 2 passes
-  5. Player 1 attacks Player 2's base with Clan Wren Rescuer
+  3. Player 1 attacks Player 2's base with Clan Wren Rescuer
        ↳ 1 damage to Player 2's base — 24 HP left
-  6. Player 1 passes
-  7. Player 2 plays Death Star Stormtrooper #8 to ground (cost 1)
-  8. Player 2 passes
-  9. Player 1 passes
+  4. Player 2 plays Death Star Stormtrooper #8 to ground (cost 1)
+  5. Player 1 passes
+  6. Player 2 passes
  ── regroup ──
        ↳ Player 1 draws 2: Battlefield Marine #2, Zealous Soldier #3
        ↳ Player 2 draws 2: Open Fire #2, Death Star Stormtrooper #9
@@ -93,19 +87,17 @@
        ↳ Cloaked StarViper uses an ability
        ↳ Cloaked StarViper gains 1 shield
        ↳ Cloaked StarViper gains 1 shield
-  2. Player 1 passes
-  3. Player 2 plays Open Fire #2 (cost 3)
+  2. Player 2 plays Open Fire #2 (cost 3)
        ↳ Open Fire #2 uses an ability
        ↳ 3 damage to Zealous Soldier #2 — 0 HP left
        ↳ Ascension Cable #2 is defeated
        ↳ Zealous Soldier #2 loses 1 experience
        ↳ Zealous Soldier #2 loses 1 advantage
        ↳ Zealous Soldier #2 is defeated by Open Fire #2
-  4. Player 2 passes
-  5. Player 1 attacks Player 2's base with Clan Wren Rescuer
+  3. Player 1 attacks Player 2's base with Clan Wren Rescuer
        ↳ 1 damage to Player 2's base — 23 HP left
-  6. Player 1 passes
-  7. Player 2 passes
+  4. Player 2 passes
+  5. Player 1 passes
  ── regroup ──
        ↳ Player 1 draws 2: Alliance X-Wing #2, Alliance X-Wing #3
        ↳ Player 2 draws 2: Death Star Stormtrooper #10, Open Fire #3

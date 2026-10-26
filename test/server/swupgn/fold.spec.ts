@@ -662,3 +662,178 @@ describe('fold hardening against crafted files', function () {
         expect(() => fold(events)).not.toThrow();
     });
 });
+
+// Fortify: an upgrade attached to a BASE lives in the seat's `baseUpgrades`, never in `cards`.
+describe('fold base attachments and base defeat', function () {
+    // Value: protects=base-upgrade attach seat (attachedTo>p), token skip, PLAY_UPGRADE base@N, exit/DEFEAT detach; fails_when=seat from p, tokens attach, DEFEAT-only no detach; why_new=engine never omits attachedTo; seam=none; no_claim=engine
+    it('attaches a base upgrade to the seat its base ref names (else p), never a token, and detaches on exit or DEFEAT', function () {
+        const s = fold([
+            // attachedTo names seat 2's base even though the MOVE's p is 1: the base ref wins.
+            { seq: 'R1.A.1a', t: 'MOVE', card: 'HMW#271', from: 'hand', to: 'base', p: 1, kind: 'upgrade', attachedTo: 'base@2' },
+            // A writer that predates attachedTo on base moves is read by its p.
+            { seq: 'R1.A.2a', t: 'MOVE', card: 'HMW#147', from: 'hand', to: 'base', p: 1, kind: 'upgrade' },
+            // A token never attaches to a base; a unit-kind MOVE into base (a leader going home) is no attachment.
+            { seq: 'R1.A.3a', t: 'MOVE', card: 'TOKEN:weakness#1', from: 'outsideTheGame', to: 'base', p: 1, kind: 'upgrade', attachedTo: 'base@1' },
+            { seq: 'R1.A.4a', t: 'MOVE', card: 'SOR#010', from: 'ground', to: 'base', p: 1, kind: 'unit' },
+            // PLAY_UPGRADE alone on base@N attaches there, and is idempotent beside its MOVE.
+            { seq: 'R1.A.5', t: 'PLAY_UPGRADE', p: 2, card: 'HMW#126', zone: 'base', target: 'base@2' },
+            { seq: 'R1.A.6', t: 'PLAY_UPGRADE', p: 1, card: 'HMW#147', zone: 'base', target: 'base@1' },
+        ] as any);
+        expect(s.players[1]?.baseUpgrades).toEqual(['HMW#147']);
+        expect(s.players[2]?.baseUpgrades).toEqual(['HMW#271', 'HMW#126']);
+        expect(s.players[1]?.cards.map((c) => c.id)).not.toContain('HMW#147');
+        expect(s.players[2]?.cards.length).toBe(0);
+
+        // Exits name no host: the zone transition alone detaches; a DEFEAT with no paired MOVE does too.
+        const attach = (card: string, seq: string) => ({ seq, t: 'MOVE', card, from: 'hand', to: 'base', p: 1, kind: 'upgrade', attachedTo: 'base@1' });
+        const d = fold([
+            attach('HMW#271', 'R1.A.1a'),
+            attach('HMW#147', 'R1.A.2a'),
+            attach('HMW#126', 'R1.A.3a'),
+            { seq: 'R1.A.4a', t: 'MOVE', card: 'HMW#271', from: 'base', to: 'discard', p: 1 },
+            { seq: 'R1.A.5a', t: 'DEFEAT', card: 'HMW#147', reason: 'ability' },
+        ] as any);
+        expect(d.players[1]?.baseUpgrades).toEqual(['HMW#126']);
+        expect(d.players[1]?.discard).toContain('HMW#271');
+        expect(d.players[2]?.baseUpgrades).withContext('absent means "not recorded", not "none"')
+            .toBeUndefined();
+    });
+
+    // Value: protects=DEFEAT base@N sets only baseDefeated; fails_when=base DEFEAT falls through to card path or touches HP/discard/upgrades; why_new=engine specs only check the flag; seam=none; no_claim=GAME_END ordering
+    it('a DEFEAT on base@N sets baseDefeated and changes nothing else', function () {
+        const before = [
+            { seq: 'R1.A.1a', t: 'MOVE', card: 'HMW#126', from: 'hand', to: 'base', p: 2, kind: 'upgrade', attachedTo: 'base@2' },
+            { seq: 'R1.A.2a', t: 'DAMAGE', src: 'SOR#108', tgt: 'base@2', amt: 20, damageType: 'combat', hp: 10 },
+        ] as any[];
+        const s0 = fold(before);
+        const s = fold([...before, { seq: 'R1.A.3a', t: 'DEFEAT', card: 'base@2', reason: 'ability', defeatedBy: 'HMW#004' }] as any);
+        expect(s.players[2]?.baseDefeated).toBe(true);
+        expect(s.players[1]?.baseDefeated).toBeUndefined();
+        const { baseDefeated, ...rest } = s.players[2] as any;
+        expect(rest).toEqual(JSON.parse(JSON.stringify(s0.players[2])));
+        expect(baseDefeated).toBe(true);
+        expect(s.players[2]?.baseHp).toBe(10);
+        expect(s.players[2]?.baseUpgrades).toEqual(['HMW#126']);
+    });
+});
+
+// Value: protects=a keyframe whose lists exceed MAX_ZONE_LIST is not snapped to; fails_when=the cap check is dropped and a crafted keyframe installs an unbounded list; why_new=only fold-grown lists were capped; seam=none; no_claim=real games never approach the cap
+describe('fold keyframe trust boundary', function () {
+    const seat = (n: 1 | 2, baseUpgrades: string[]) => ({
+        seat: n, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0,
+        credits: 0, hasForce: false, discard: [], cards: [], baseUpgrades,
+    });
+    const keyframed = (baseUpgrades: string[]) => fold([{
+        seq: 'R1.start', t: 'ROUND_START', round: 1,
+        keyframe: { round: 1, phase: 'action', initiative: 1, players: { 1: seat(1, baseUpgrades), 2: seat(2, []) } },
+    } as any]);
+
+    it('snaps to a keyframe with real-sized lists, and ignores one past the cap', function () {
+        expect(keyframed(['HMW#271', 'HMW#147']).players[1]?.baseUpgrades).toEqual(['HMW#271', 'HMW#147']);
+        const huge = Array.from({ length: 1001 }, (_, i) => `HMW#${i}`);
+        const s = keyframed(huge);
+        expect(s.players[1]?.baseUpgrades).withContext('the damaged keyframe is not snapped to')
+            .toBeUndefined();
+        expect(s.round).toBe(1);
+    });
+
+    // Value: protects=a keyframe card whose upgrades list exceeds MAX_ZONE_LIST is not snapped to; fails_when=the per-card upgrades cap is dropped and a crafted keyframe installs an unbounded upgrades list; why_new=the cap test above only grows a player-level list; seam=none; no_claim=real games never approach the cap
+    it('ignores a keyframe whose card carries an upgrades list past the cap', function () {
+        const withUnit = (upgrades: string[]) => fold([{
+            seq: 'R1.start', t: 'ROUND_START', round: 1,
+            keyframe: { round: 1, phase: 'action', initiative: 1, players: {
+                1: { ...seat(1, []), cards: [{ id: 'SOR#010', zone: 'ground', damage: 0, exhausted: false, upgrades, shields: 0, experience: 0, statusTokens: {}, captured: [] }] },
+                2: seat(2, []),
+            } },
+        } as any]);
+        expect(withUnit(['SOR#120']).players[1]?.cards.map((c) => c.upgrades)).toEqual([['SOR#120']]);
+        const s = withUnit(Array.from({ length: 1001 }, (_, i) => `SOR#${i}`));
+        expect(s.players[1]?.cards).withContext('the damaged keyframe is not snapped to')
+            .toEqual([]);
+        expect(s.round).toBe(1);
+    });
+
+    // Value: protects=a keyframe card missing statusTokens (or its counters) is not snapped to, so a later STATUS_TOKEN cannot throw; fails_when=the card check covers upgrades only; why_new=the check above only tested the upgrades list; seam=none; no_claim=real games always write full cards
+    it('ignores a keyframe whose card lacks its token map, and never throws on a later STATUS_TOKEN', function () {
+        const events = [{
+            seq: 'R1.start', t: 'ROUND_START', round: 1,
+            keyframe: { round: 1, phase: 'action', initiative: 1, players: {
+                1: { ...seat(1, []), cards: [{ id: 'SOR#010', zone: 'ground', upgrades: [] }] },
+                2: seat(2, []),
+            } },
+        }, { seq: 'R1.A.1a', t: 'STATUS_TOKEN', card: 'SOR#010', token: 'advantage', count: 1 }];
+        let s: any;
+        expect(() => {
+            s = fold(events as any);
+        }).not.toThrow();
+        expect(s.players[1]?.cards).toEqual([]);
+    });
+});
+
+describe('fold upgrade hosts', function () {
+    const move = (seq: string, card: string, from: string, to: string, kind: 'unit' | 'upgrade', attachedTo?: string) =>
+        ({ seq, t: 'MOVE', card, from, to, p: 1, kind, ...(attachedTo ? { attachedTo } : {}) });
+    const hosts = (s: any) => s.players[1].cards.map((c: any) => [c.id, c.upgrades]);
+
+    // Value: protects=an upgrade moved to a host in the other arena comes off the old host; fails_when=only an arena exit detaches; why_new=no record moved an upgrade between hosts; seam=none; no_claim=same-arena moves (the writer records none)
+    it('takes an upgrade moved to a host in the other arena off its old host', function () {
+        const s = fold([
+            move('R1.A.1', 'SOR#001', 'hand', 'ground', 'unit'),
+            move('R1.A.2', 'SOR#002', 'hand', 'space', 'unit'),
+            move('R1.A.3', 'SOR#120', 'hand', 'ground', 'upgrade', 'SOR#001'),
+            move('R1.A.4', 'SOR#120', 'ground', 'space', 'upgrade', 'SOR#002'),
+        ] as any);
+        expect(hosts(s)).toEqual([['SOR#001', []], ['SOR#002', ['SOR#120']]]);
+    });
+
+    // Value: protects=a unit in play attached as a pilot leaves the arena list and appears only on its vehicle; fails_when=the upgrade branch only updates the tracked card's zone; why_new=pilot tests played the pilot from hand; seam=none; no_claim=which cards do this (Poe Dameron, One Hell of a Pilot)
+    it('takes a unit in play that is attached as a pilot out of the arena list', function () {
+        const s = fold([
+            move('R1.A.1', 'JTL#001', 'hand', 'ground', 'unit'),
+            move('R1.A.2', 'JTL#002', 'hand', 'space', 'unit'),
+            move('R1.A.3', 'JTL#001', 'ground', 'space', 'upgrade', 'JTL#002'),
+        ] as any);
+        expect(hosts(s)).toEqual([['JTL#002', ['JTL#001']]]);
+    });
+
+    // Value: protects=a pilot ejected from a space vehicle is a ground unit only, not also its vehicle's upgrade; fails_when=only an arena exit detaches (space -> ground is arena to arena); why_new=no record moved an attached pilot between arenas as a unit; seam=none; no_claim=the writer's side of Eject
+    it('takes a pilot ejected from a space vehicle off the vehicle', function () {
+        const s = fold([
+            move('R1.A.1', 'JTL#002', 'hand', 'space', 'unit'),
+            move('R1.A.2', 'JTL#001', 'hand', 'space', 'upgrade', 'JTL#002'),
+            move('R1.A.3', 'JTL#001', 'space', 'ground', 'unit'),
+        ] as any);
+        expect(hosts(s)).toEqual([['JTL#002', []], ['JTL#001', []]]);
+    });
+});
+
+describe('fold of untrusted counters', function () {
+    const unit = { seq: 'R1.A.1', t: 'MOVE', card: 'SOR#001', from: 'hand', to: 'ground', p: 1, kind: 'unit' };
+
+    // Value: protects=a status token named like an inherited property is an ordinary own key and a non-numeric count changes nothing; fails_when=the fold reads the prototype or adds a string to a number; why_new=fold trusted every record's count and token; seam=none; no_claim=validate() rejecting these files
+    it('keeps token names to own keys and ignores counts that are not finite numbers', function () {
+        const s = fold([
+            unit,
+            { seq: 'R1.A.1a', t: 'STATUS_TOKEN', card: 'SOR#001', token: 'toString', count: 1 },
+            { seq: 'R1.A.1b', t: 'STATUS_TOKEN', card: 'SOR#001', token: '__proto__', count: 2 },
+            { seq: 'R1.A.1c', t: 'SHIELD_GAIN', card: 'SOR#001', count: 'lots' },
+            { seq: 'R1.A.1d', t: 'EXPERIENCE_GAIN', card: 'SOR#001', count: null },
+        ] as any);
+        const card = s.players[1].cards[0];
+        expect(JSON.parse(JSON.stringify(card.statusTokens))).toEqual({ toString: 1, ['__proto__']: 2 });
+        expect(Object.getPrototypeOf(card.statusTokens)).toBe(Object.prototype);
+        expect(card.shields).toBe(1);
+        expect(card.experience).toBe(0);
+    });
+
+    // Value: protects=a file naming thousands of token kinds folds in bounded time and size; fails_when=every record copies the whole map and nothing caps it; why_new=no spec stressed STATUS_TOKEN; seam=none; no_claim=a wall-clock bound (asserted on size, not time)
+    it('caps the number of distinct status tokens a card can hold', function () {
+        const records: any[] = [unit];
+        for (let i = 0; i < 3000; i++) {
+            records.push({ seq: `R1.A.1x${i}`, t: 'STATUS_TOKEN', card: 'SOR#001', token: `t${i}`, count: 1 });
+        }
+        const s = fold(records);
+        expect(Object.keys(s.players[1].cards[0].statusTokens).length).toBe(1000);
+    });
+});
+

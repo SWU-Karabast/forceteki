@@ -19,21 +19,23 @@ function sameSet(a: unknown, b: unknown): boolean {
  *
  * GATED (reconstructable from the event model, single source of truth = the event stream):
  * `initiativeTaken`; per seat `baseHp`, `handSize`, `deckSize`, `resourcesReady`,
- * `resourcesExhausted`, `credits`, `hasForce`, the leader's `id`/`deployed`/`exhausted`/
- * `epicActionUsed`; `hand` (as a set — a hand is unordered) and `discard` (in order — the pile
- * is); and per in-play card matched by id: `zone`, `damage`, `exhausted`, `shields`,
+ * `resourcesExhausted`, `credits`, `hasForce`, `baseEpicActionUsed`, the leader's `id`/
+ * `deployed`/`exhausted`/`epicActionUsed`/`onStartingSide`; `hand` (as a set — a hand is
+ * unordered), `discard` (in order — the pile is), `resources` and `baseUpgrades` (as sets) and
+ * `baseDefeated` (a boolean, absent read as false); and per
+ * in-play card matched by id: `zone`, `damage`, `exhausted`, `shields`,
  * `experience`, `statusTokens`, `upgrades` and `captured` (both as sets — attachment order is
  * not part of the model), `power`, `hp` and `keywords` (the live values `STATS` records carry).
  * `baseHp` and `deckSize` are exempt at the first keyframe only — see checkKeyframes. Fields an
  * older file's keyframe lacks (`deckSize`, `leader`, `power`, `hp`, `keywords`,
- * `initiativeTaken`) are skipped: absent is "not recorded", not "zero".
+ * `initiativeTaken`, `resources`, `baseUpgrades`) are skipped: absent is "not recorded", not "zero".
  *
  * `hand`/`discard` CONTENTS were previously ungated, on the belief that only the counts were
  * reconstructable. They are not: every MOVE names its card, so both lists are exact. The fold
  * used to grow `hand[]` from DRAW and never remove, and to leave `discard` to DEFEAT — which
  * fires AFTER the MOVE that already emptied `cards`, so no defeated unit ever reached the pile.
- * Both are now MOVE-driven and gated here; the five vectors produced 45 mismatches before the
- * fix and none after.
+ * Both are now MOVE-driven and gated here; the five vectors of the time produced 45 mismatches
+ * before the fix and none after.
  *
  * The keyframe's `cards` array only contains ground/space arena cards (see
  * SwuPgnGameAdapter.buildSwuPgnPlayerState), so card-level checks are scoped to arena cards
@@ -111,6 +113,15 @@ function diffSeat(seq: string, seat: 1 | 2, e: PlayerState, g: PlayerState, chec
     // the keyframe carries it, so a file written before `resources` existed still passes.
     if (Array.isArray(e.resources) && !sameSet(e.resources, g.resources)) {
         out.push({ seq, path: `players.${seat}.resources`, expected: e.resources, got: g.resources });
+    }
+    // A defeated base. Written only when true, so absent on either side reads false.
+    if ((e.baseDefeated === true) !== (g.baseDefeated === true)) {
+        out.push({ seq, path: `players.${seat}.baseDefeated`, expected: e.baseDefeated === true, got: g.baseDefeated === true });
+    }
+    // The base's own attachments (Fortify), as a set like a unit's `upgrades`. Compared only
+    // when the keyframe carries it, so a file written before `baseUpgrades` existed still passes.
+    if (Array.isArray(e.baseUpgrades) && !sameSet(e.baseUpgrades, g.baseUpgrades)) {
+        out.push({ seq, path: `players.${seat}.baseUpgrades`, expected: e.baseUpgrades, got: g.baseUpgrades });
     }
     // The BASE's Epic Action. Compared only when the keyframe states it -- a base without one
     // carries no flag, and neither does a file written before this existed.

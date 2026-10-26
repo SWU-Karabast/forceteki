@@ -3,6 +3,9 @@ import type { CardIndexRecord } from './types';
 /** Resolves a SET#NUM[:copy] id to a display name. Copy suffixes are stripped before lookup. */
 export interface NameResolver {
     nameOf(id: string): string;
+
+    /** The card's other side's name (`CardIndexRecord.backSideName`), if it has one. */
+    backNameOf?(id: string): string | undefined;
 }
 
 export function baseId(ref: string): string {
@@ -17,6 +20,12 @@ export function baseId(ref: string): string {
  * itself, so an incomplete index degrades to today's behaviour rather than losing the event.
  */
 export function indexResolver(cards: readonly CardIndexRecord[] = []): NameResolver {
+    // The index comes from the file: skip an entry that is not a card record instead of throwing.
+    cards = cards.filter((c) => typeof c?.id === 'string' && typeof c?.name === 'string');
     const byId = new Map(cards.map((c) => [c.id, c.name]));
-    return { nameOf: (id: string) => byId.get(baseId(id)) ?? baseId(id) };
+    const backById = new Map(cards.filter((c) => typeof c.backSideName === 'string').map((c) => [c.id, c.backSideName as string]));
+    return {
+        nameOf: (id: string) => byId.get(baseId(id)) ?? baseId(id),
+        backNameOf: (id: string) => backById.get(baseId(id)),
+    };
 }

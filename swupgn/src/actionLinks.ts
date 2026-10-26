@@ -1,28 +1,8 @@
 import type { GameEvent } from './types';
+import { isArena } from './fold';
 
 /**
- * Stamp `for` on the records that belong to an action but were numbered BEFORE it (spec §9.1).
- *
- * The engine performs part of an action before it announces it: a card's `MOVE` into the arena
- * lands before its `PLAY`, and an attack's target `CHOICE` and the attacker's `EXHAUST` land
- * before its `ATTACK`. Those records are numbered when they arrive, so they carry the PREVIOUS
- * action's number:
- *
- *     R2.A.5a  CHOICE    (target picked)
- *     R2.A.5b  EXHAUST   (attacker exhausts)
- *     R2.A.6   ATTACK               <- all three are action 6
- *
- * A recorder cannot fix this as it goes -- when those records arrive it does not yet know an
- * action is about to follow, and guessing would mis-file a previous action's genuine
- * consequences. A WRITER can: it holds the whole event list before serialising. This is that
- * pass, so a reader never has to implement §9.1's "trailing MOVE / CHOICE / EXHAUST that name
- * the same card" heuristic.
- *
- * Returns a new array; the input is not mutated. Re-running it is harmless.
- */
-
-/**
- * Actions a sub-record can be filed under. Matches `render.ts`'s `isTopLevelAction`.
+ * Actions a sub-record can be filed under. `render.ts` uses the same test, `isTopLevelActionRecord`.
  *
  * `ABILITY_ACTIVATE` is in the set but qualifies only when its `kind` is `action` or `epic` —
  * using an action ability is one of the six things CR 6.1 lets a player spend their action on,
@@ -37,6 +17,12 @@ const TOP_LEVEL_ACTIONS = new Set([
 /** Whether this record is an action in its own right (spec §9, §16). */
 export function isTopLevelActionRecord(e: GameEvent): boolean {
     if (!TOP_LEVEL_ACTIONS.has(e.t)) {
+        return false;
+    }
+    // A lettered seq is a sub-step whatever its type: a leader deployed BY its own Epic Action
+    // is the ability's consequence (R1.A.1 ABILITY_ACTIVATE, R1.A.1c DEPLOY_LEADER), and the
+    // player took one action, not two.
+    if ((/^R\d+\.[SAG]\.\d+[a-z]+$/).test(e.seq)) {
         return false;
     }
     if (e.t !== 'ABILITY_ACTIVATE') {
@@ -147,6 +133,27 @@ export function coalesceResourceReadies(events: GameEvent[], referencedSeqs: Rea
     return out;
 }
 
+/**
+ * Stamp `for` on the records that belong to an action but were numbered BEFORE it (spec §9.1).
+ *
+ * The engine performs part of an action before it announces it: a card's `MOVE` into the arena
+ * lands before its `PLAY`, and an attack's target `CHOICE` and the attacker's `EXHAUST` land
+ * before its `ATTACK`. Those records are numbered when they arrive, so they carry the PREVIOUS
+ * action's number:
+ *
+ *     R2.A.5a  CHOICE    (target picked)
+ *     R2.A.5b  EXHAUST   (attacker exhausts)
+ *     R2.A.6   ATTACK               <- all three are action 6
+ *
+ * A recorder cannot fix this as it goes -- when those records arrive it does not yet know an
+ * action is about to follow, and guessing would mis-file a previous action's genuine
+ * consequences. A WRITER can: it holds the whole event list before serialising. This is that
+ * pass, so a reader never has to implement §9.1's "trailing MOVE / CHOICE / EXHAUST that name
+ * the same card" heuristic.
+ *
+ * Returns a new array; the input is not mutated. Re-running it is harmless.
+ */
+
 export function linkActionSteps(events: GameEvent[]): GameEvent[] {
     const out = events.slice();
 
@@ -181,7 +188,23 @@ export function linkActionSteps(events: GameEvent[]): GameEvent[] {
             }
             start--;
         }
-        if (start === i) {
+        // Another card ARRIVING in play is never a precursor of this action: it is that card's own
+        // story (a "When the action phase starts" trigger's Beast lands just before the first play,
+        // with the same MOVE/STATS/EXHAUST shape a play's precursors have). Start after the last
+        // such arrival and the records naming that card beside it. A card LEAVING -- a discard
+        // paid as a cost -- is not an arrival and stays the action's.
+        for (let j = i - 1; j >= start; j--) {
+            const e = out[j];
+            if (e.t === 'MOVE' && e.card !== card && (isArena(e.to) || (e.to === 'base' && e.kind === 'upgrade'))) {
+                let end = j;
+                while (end + 1 < i && names(out[end + 1], e.card)) {
+                    end++;
+                }
+                start = end + 1;
+                break;
+            }
+        }
+        if (start >= i) {
             continue;
         }
 
