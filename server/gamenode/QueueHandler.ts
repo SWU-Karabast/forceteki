@@ -168,7 +168,19 @@ export class QueueHandler {
         playerEntry.player.searchStartedAt ??= this.scheduler.now();
 
         this.getQueueByFormat(playerEntry.format)?.push(playerEntry.player);
-        logger.info(`QueueHandler: User ${userId} connected with socket id ${socket.id}, added to queue for format ${this.queueKeyToString(playerEntry.format)}`);
+
+        // Logged here rather than in addPlayer because this is where searchStartedAt is set — this is the
+        // point a player actually starts searching, and the event every wait time is measured from.
+        logger.info(
+            `QueueHandler: User ${userId} connected with socket id ${socket.id}, added to queue for format ${this.queueKeyToString(playerEntry.format)}`,
+            {
+                event: 'queueJoin',
+                userId,
+                ...this.queueKeyMeta(playerEntry.format),
+                preference: playerEntry.player.matchmakingPreference,
+                searchStartedAt: playerEntry.player.searchStartedAt,
+            }
+        );
         this.sendPlayerHeartbeat(playerEntry.player);
         this.scheduleNextPreferenceAnnouncement();
     }
@@ -336,7 +348,7 @@ export class QueueHandler {
             }
         }
 
-        return this.findMatchInQueue(queue, this.getMatchmakingRules());
+        return this.findMatchInQueue(format, queue, this.getMatchmakingRules());
     }
 
     public getNextMatchAvailableAt(format: IQueueFormatKey): number | null {
@@ -371,6 +383,41 @@ export class QueueHandler {
         return { player, previousMatch: this.playerPreviousMatch.get(player.user.getId()) };
     }
 
+    /**
+     * One record per match formed. `preferenceRank` is the compromise the pairing required, reusing the
+     * ranking {@link getOpponentPreferenceRank} already computed to choose this opponent:
+     * 0 = both got the category they asked for, 1 = one side settled for a no-preference opponent,
+     * 2 = Competitive and Casual were paired because both widening windows had elapsed.
+     *
+     * A rank-2 match means the preference the player chose could not be honoured, so a rising share of
+     * them is the signal that a queue option is too thinly populated to be worth offering.
+     */
+    private logMatchFormed(format: IQueueFormatKey, player1: QueuedPlayer, player2: QueuedPlayer, preferenceRank: number): void {
+        const serverTime = this.scheduler.now();
+        const describe = (player: QueuedPlayer) => ({
+            userId: player.user.getId(),
+            preference: player.matchmakingPreference,
+            waitedMs: this.waitedMs(player),
+            stage: getQueueMatchmakingStatus(player, this.preferencePolicy, serverTime, QueueHandler.PREFERENCE_EXPANSION_VISIBILITY_DELAY_MS)
+                .competitiveness.stage,
+        });
+
+        const [first, second] = [describe(player1), describe(player2)];
+        logger.info(
+            `QueueHandler: Matched ${first.userId} (${first.preference}) with ${second.userId} (${second.preference}) in format ${this.queueKeyToString(format)}`,
+            {
+                event: 'matchFormed',
+                ...this.queueKeyMeta(format),
+                preferenceRank,
+
+                // Sorted so that a pairing counts the same whichever player the search happened to start from.
+                preferencePair: [player1.matchmakingPreference, player2.matchmakingPreference].sort().join('+'),
+                players: [first, second],
+                longestWaitMs: Math.max(first.waitedMs ?? 0, second.waitedMs ?? 0),
+            }
+        );
+    }
+
     private getOpponentPreferenceRank(player: QueuedPlayer, opponent: QueuedPlayer): number {
         if (player.matchmakingPreference === MatchmakingCompetitivenessPreference.NoPreference || player.matchmakingPreference === opponent.matchmakingPreference) {
             return 0;
@@ -382,11 +429,12 @@ export class QueueHandler {
     /**
      * Finds a matching pair in the queue based on the provided rules
      *
+     * @param format The queue key these players are searching in, for match telemetry
      * @param queue The queue of players to search for a match
      * @param rules The matchmaking rules to apply when finding a match
      * @returns A tuple of the matched players, or null if no match is found
      */
-    private findMatchInQueue(queue: QueuedPlayer[], rules: IMatchmakingRule[]): [QueuedPlayer, QueuedPlayer] | null {
+    private findMatchInQueue(format: IQueueFormatKey, queue: QueuedPlayer[], rules: IMatchmakingRule[]): [QueuedPlayer, QueuedPlayer] | null {
         const playersBySearchAge = [...queue];
         for (const player of playersBySearchAge) {
             Contract.assertNotNullLike(player.searchStartedAt, `Queued player ${player.user.getId()} has not started searching`);
@@ -413,12 +461,11 @@ export class QueueHandler {
                     if (rank === 0) {
                         break;
                     }
-                } else {
-                    logger.info(`QueueHandler: Players ${player1.user.getId()} and ${player2.user.getId()} cannot match due to matchmaking rules`);
                 }
             }
 
             if (bestOpponent) {
+                this.logMatchFormed(format, player1, bestOpponent, bestRank);
                 queue.splice(queue.indexOf(bestOpponent), 1);
                 queue.splice(queue.indexOf(player1), 1);
                 this.scheduleNextPreferenceAnnouncement();
@@ -449,6 +496,19 @@ export class QueueHandler {
 
     private queueKeyToString(key: IQueueFormatKey): string {
         return `(${key.format} / ${key.cardPool} / ${key.gamesToWinMode})`;
+    }
+
+    /**
+     * The queue key as separate log fields rather than one joined string, so joins and matches can be
+     * grouped by any single queue option — which is the question these logs exist to answer.
+     */
+    private queueKeyMeta(key: IQueueFormatKey) {
+        return { format: key.format, cardPool: key.cardPool, gamesToWinMode: key.gamesToWinMode };
+    }
+
+    /** How long the player had been searching, or undefined if they never reached the live queue. */
+    private waitedMs(player: QueuedPlayer): number | undefined {
+        return player.searchStartedAt == null ? undefined : this.scheduler.now() - player.searchStartedAt;
     }
 
     private getQueueByFormat(key: IQueueFormatKey): QueuedPlayer[] | null {
