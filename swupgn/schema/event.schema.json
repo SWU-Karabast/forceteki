@@ -118,6 +118,7 @@
         "hasForce": { "type": "boolean" },
         "deckSize": { "type": "integer" },
         "baseUpgrades": { "type": "array", "items": { "type": "string" } },
+        "baseCaptured": { "type": "array", "items": { "type": "string" } },
         "baseDefeated": { "type": "boolean" },
         "leader": { "type": "object", "properties": { "id": { "type": "string" }, "deployed": { "type": "boolean" }, "exhausted": { "type": "boolean" }, "epicActionUsed": { "type": "boolean" }, "onStartingSide": { "type": "boolean" } } }
       }

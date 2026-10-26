@@ -8,7 +8,7 @@ const MAX_LOGGED_MISMATCHES = 10;
 
 /** Order of header tags in the emitted file (mirrors the spec §5.1 table). */
 const HEADER_TAG_ORDER: [keyof Header, string][] = [
-    ['game', 'Game'], ['gameId', 'GameId'], ['date', 'Date'], ['format', 'Format'],
+    ['game', 'Game'], ['writerRevision', 'WriterRevision'], ['gameId', 'GameId'], ['date', 'Date'], ['format', 'Format'],
     ['cardPool', 'CardPool'], ['engine', 'Engine'], ['seed', 'Seed'], ['perspective', 'Perspective'],
     ['p1Id', 'P1Id'], ['p2Id', 'P2Id'], ['p1', 'P1'], ['p2', 'P2'],
     ['p1Leader', 'P1Leader'], ['p1Base', 'P1Base'], ['p2Leader', 'P2Leader'], ['p2Base', 'P2Base'],

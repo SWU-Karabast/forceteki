@@ -25,6 +25,7 @@
         "SOR#095:2"
       ],
       "baseUpgrades": [],
+      "baseCaptured": [],
       "credits": 0,
       "hasForce": false,
       "discard": [],
@@ -118,6 +119,7 @@
         "LOF#164:5"
       ],
       "baseUpgrades": [],
+      "baseCaptured": [],
       "credits": 0,
       "hasForce": false,
       "discard": [],

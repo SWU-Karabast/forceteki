@@ -21,14 +21,14 @@ function sameSet(a: unknown, b: unknown): boolean {
  * `initiativeTaken`; per seat `baseHp`, `handSize`, `deckSize`, `resourcesReady`,
  * `resourcesExhausted`, `credits`, `hasForce`, `baseEpicActionUsed`, the leader's `id`/
  * `deployed`/`exhausted`/`epicActionUsed`/`onStartingSide`; `hand` (as a set — a hand is
- * unordered), `discard` (in order — the pile is), `resources` and `baseUpgrades` (as sets) and
- * `baseDefeated` (a boolean, absent read as false); and per
+ * unordered), `discard` (in order — the pile is), `resources`, `baseUpgrades` and
+ * `baseCaptured` (as sets) and `baseDefeated` (a boolean, absent read as false); and per
  * in-play card matched by id: `zone`, `damage`, `exhausted`, `shields`,
  * `experience`, `statusTokens`, `upgrades` and `captured` (both as sets — attachment order is
  * not part of the model), `power`, `hp` and `keywords` (the live values `STATS` records carry).
  * `baseHp` and `deckSize` are exempt at the first keyframe only — see checkKeyframes. Fields an
  * older file's keyframe lacks (`deckSize`, `leader`, `power`, `hp`, `keywords`,
- * `initiativeTaken`, `resources`, `baseUpgrades`) are skipped: absent is "not recorded", not "zero".
+ * `initiativeTaken`, `resources`, `baseUpgrades`, `baseCaptured`) are skipped: absent is "not recorded", not "zero".
  *
  * `hand`/`discard` CONTENTS were previously ungated, on the belief that only the counts were
  * reconstructable. They are not: every MOVE names its card, so both lists are exact. The fold
@@ -122,6 +122,10 @@ function diffSeat(seq: string, seat: 1 | 2, e: PlayerState, g: PlayerState, chec
     // when the keyframe carries it, so a file written before `baseUpgrades` existed still passes.
     if (Array.isArray(e.baseUpgrades) && !sameSet(e.baseUpgrades, g.baseUpgrades)) {
         out.push({ seq, path: `players.${seat}.baseUpgrades`, expected: e.baseUpgrades, got: g.baseUpgrades });
+    }
+    // The base's captives (Arrest), as a set like a unit's `captured`, on the same terms.
+    if (Array.isArray(e.baseCaptured) && !sameSet(e.baseCaptured, g.baseCaptured)) {
+        out.push({ seq, path: `players.${seat}.baseCaptured`, expected: e.baseCaptured, got: g.baseCaptured });
     }
     // The BASE's Epic Action. Compared only when the keyframe states it -- a base without one
     // carries no flag, and neither does a file written before this existed.

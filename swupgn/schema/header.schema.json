@@ -45,6 +45,11 @@
     "Rounds": {
       "type": "integer"
     },
+    "WriterRevision": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The writer's revision, bumped on every change a reader can observe. Absent on files written before the tag existed (the 1.0 pilot)."
+    },
     "Undos": {
       "type": "integer",
       "minimum": 0,

@@ -472,10 +472,43 @@ describe('fold capture', function () {
         }
     });
 
-    it('a CAPTURE without `by` (or with a base captor) still takes the card off the board', function () {
-        const s = fold([...board, { seq: 'R1.A.2b', t: 'CAPTURE', p: 1, card: 'SOR#095:2', by: 'base@1' }] as any);
+    it('a CAPTURE without `by` still takes the card off the board, and files it nowhere', function () {
+        const s = fold([...board, { seq: 'R1.A.2b', t: 'CAPTURE', p: 1, card: 'SOR#095:2' }] as any);
         expect(s.players[2]?.cards).toEqual([]);
         expect(s.players[1]?.cards[0].captured).toEqual([]);
+        expect(s.players[1]?.baseCaptured).withContext('absent means "not recorded", not "none"')
+            .toBeUndefined();
+    });
+
+    // Arrest: "Your base captures an enemy non-leader unit". The base, not a unit, holds it.
+    const arrested = [
+        ...board,
+        { seq: 'R1.A.2a', t: 'MOVE', card: 'SOR#095:2', from: 'ground', to: 'capture', p: 2, kind: 'unit' },
+        { seq: 'R1.A.2b', t: 'CAPTURE', p: 1, card: 'SOR#095:2', by: 'base@1' },
+    ];
+
+    it('a base captor holds the card in its seat\'s baseCaptured, not on any unit', function () {
+        const s = fold(arrested as any);
+        expect(s.players[2]?.cards).toEqual([]);
+        expect(s.players[1]?.baseCaptured).toEqual(['SOR#095:2']);
+        expect(s.players[1]?.cards[0].captured).toEqual([]);
+        expect(s.players[2]?.baseCaptured).toBeUndefined();
+    });
+
+    it('a CAPTURE repeated for the same card is idempotent on the base', function () {
+        const s = fold([...arrested, arrested[3]] as any);
+        expect(s.players[1]?.baseCaptured).toEqual(['SOR#095:2']);
+    });
+
+    it('a base\'s captive is released by RESCUE and the MOVE out of `capture`, whichever comes first', function () {
+        for (const order of [
+            [{ seq: 'R1.regroup.1a', t: 'RESCUE', p: 2, card: 'SOR#095:2' }, { seq: 'R1.regroup.1b', t: 'MOVE', card: 'SOR#095:2', from: 'capture', to: 'ground', p: 2, kind: 'unit' }],
+            [{ seq: 'R1.regroup.1a', t: 'MOVE', card: 'SOR#095:2', from: 'capture', to: 'ground', p: 2, kind: 'unit' }, { seq: 'R1.regroup.1b', t: 'RESCUE', p: 2, card: 'SOR#095:2' }],
+        ]) {
+            const s = fold([...arrested, ...order] as any);
+            expect(s.players[1]?.baseCaptured).toEqual([]);
+            expect(s.players[2]?.cards.map((c) => c.id)).toEqual(['SOR#095:2']);
+        }
     });
 });
 

@@ -25,6 +25,7 @@
         "LAW#253:2"
       ],
       "baseUpgrades": [],
+      "baseCaptured": [],
       "credits": 0,
       "hasForce": false,
       "discard": [
@@ -90,6 +91,7 @@
       ],
       "baseEpicActionUsed": false,
       "baseUpgrades": [],
+      "baseCaptured": [],
       "credits": 0,
       "hasForce": false,
       "discard": [

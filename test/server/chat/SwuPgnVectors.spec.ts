@@ -1,5 +1,5 @@
 import { vectorGate } from './swuPgnVectorGate';
-import { fold } from '../../../swupgn/src/fold';
+import { fold, stateAt } from '../../../swupgn/src/fold';
 
 /**
  * The real-game vectors (spec §20): organic games -- natural setup phase, plays, attacks and
@@ -11,6 +11,7 @@ import { fold } from '../../../swupgn/src/fold';
  *             hosts that carried them defeated with everything still attached
  *   pilot     a pilot flown onto a vehicle as an upgrade, and the vehicle then Vanquished
  *   capture   a unit captured with Take Captive, and rescued when its captor is defeated
+ *   arrest    a unit captured by a BASE (Arrest), held in `baseCaptured`, and rescued at the regroup
  *
  * The games are scripted adaptively -- each turn picks from what the engine says is playable --
  * on a fixed seed, so they are deterministic, and each asserts the situation it exists for
@@ -391,6 +392,84 @@ describe('SWU-PGN/1.0 vectors (real games)', function () {
                 .toBeGreaterThan(0);
             expect(byType(doc, 'MOVE').some((e) => e.to === 'capture')).toBe(true);
             expect(byType(doc, 'MOVE').some((e) => e.from === 'capture')).toBe(true);
+        });
+    });
+
+    // ── arrest ────────────────────────────────────────────────────────────────────────────────
+    integration(function (contextRef) {
+        beforeEach(function () {
+            return contextRef.setupTestAsync({
+                phase: 'setup',
+                player1: {
+                    leader: 'boba-fett#collecting-the-bounty',
+                    base: 'jabbas-palace',
+                    deck: ['arrest', 'arrest', 'arrest', 'arrest',
+                        'peridea-bandit', 'peridea-bandit', 'peridea-bandit', 'peridea-bandit', ...VILLAIN, ...VILLAIN],
+                },
+                player2: {
+                    leader: 'luke-skywalker#faithful-friend',
+                    base: 'great-grass-plains',
+                    deck: ['battlefield-marine', 'battlefield-marine', 'battlefield-marine', 'battlefield-marine', ...REBEL, ...REBEL, ...REBEL],
+                },
+            });
+        });
+
+        it('arrest: a base captures a unit, holds it in baseCaptured, and loses it at the regroup', function () {
+            const { context } = contextRef;
+            const keep: Keep = { p1: ['arrest', 'peridea-bandit'], p2: ['battlefield-marine'] };
+            runSetup(context, 'swu-pgn-vector-arrest', keep);
+            const p1 = context.player1;
+            const p2 = context.player2;
+
+            const takeTurn = (p: any): void => {
+                if (p === p1) {
+                    const theirs = arenaUnits(p2).filter((u) => !u.isLeader?.());
+                    const arrest = theirs.length > 0 && context.p1Base.capturedUnits.length === 0 ? playable(p1, 'arrest') : undefined;
+                    if (arrest) {
+                        p1.clickCard(arrest);
+                        settle(p1, theirs);
+                        return;
+                    }
+                    const card = playable(p1, 'peridea-bandit', 'death-star-stormtrooper');
+                    if (card) {
+                        p1.clickCard(card);
+                        settle(p1);
+                        return;
+                    }
+                    if (attackBase(p1, context.p2Base)) {
+                        return;
+                    }
+                    p1.passAction();
+                    return;
+                }
+                const card = playable(p2, 'battlefield-marine', 'alliance-xwing');
+                if (card) {
+                    p2.clickCard(card);
+                    settle(p2);
+                    return;
+                }
+                if (attackBase(p2, context.p1Base)) {
+                    return;
+                }
+                p2.passAction();
+            };
+
+            const doc = vectorGate('arrest', runRounds(context, 3, keep, takeTurn));
+
+            const captures = byType(doc, 'CAPTURE');
+            expect(captures.length).withContext('a base captured a unit')
+                .toBeGreaterThan(0);
+            expect(captures.every((e) => e.by === 'base@1' && e.p === 1)).toBe(true);
+            // While held, the base -- not a unit, and not nowhere -- has it; the rescue releases it.
+            for (const c of captures) {
+                const held = stateAt(doc.events, c.seq);
+                expect(held.players[1]?.baseCaptured).withContext(`${c.seq}: the base holds it`)
+                    .toContain(c.card);
+                expect(held.players[1]?.cards.some((u) => u.captured.includes(c.card))).toBeFalse();
+            }
+            expect(byType(doc, 'RESCUE').length).withContext('Arrest\'s captive was rescued')
+                .toBe(captures.length);
+            expect(fold(doc.events).players[1]?.baseCaptured).toEqual([]);
         });
     });
 

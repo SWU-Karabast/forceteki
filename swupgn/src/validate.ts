@@ -69,6 +69,7 @@ export function validate(text: string): ConformanceReport {
         ...(doc.header.format !== undefined ? { Format: doc.header.format } : {}),
         ...(doc.header.recorderErrors !== undefined ? { RecorderErrors: doc.header.recorderErrors } : {}),
         ...(doc.header.undos !== undefined ? { Undos: doc.header.undos } : {}),
+        ...(doc.header.writerRevision !== undefined ? { WriterRevision: doc.header.writerRevision } : {}),
     };
     if (!vHeader(headerObj)) {
         for (const err of vHeader.errors ?? []) {

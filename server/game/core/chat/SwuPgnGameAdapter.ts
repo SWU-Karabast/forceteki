@@ -465,6 +465,10 @@ export class SwuPgnGameAdapter {
             // holds them; without this a keyframe forgets every one, and with it the base's gained
             // abilities. Always written (often empty): absent would read as "not recorded".
             baseUpgrades: cardIds(read<any[]>(() => player.baseZone?.upgrades ?? [], [])),
+            // Units the BASE holds captured (Arrest). A unit captor's ride on its `captured`;
+            // a base's had no field, so a keyframe dropped them until the rescue. Always
+            // written, like `baseUpgrades`.
+            baseCaptured: cardIds(read<any[]>(() => (base?.capturedUnits ?? []) as any[], [])),
             // Only ever true, and only after the game is over (play may continue past game end).
             // Written only when true, like the DEFEAT that sets it. It stays true once a DEFEAT
             // was recorded, as the fold's does: a base healed in continued play is still a base

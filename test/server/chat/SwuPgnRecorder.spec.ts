@@ -1,4 +1,4 @@
-import { buildHeader, SwuPgnRecorder } from '../../../server/game/core/chat/SwuPgnRecorder';
+import { buildHeader, SWU_PGN_WRITER_REVISION, SwuPgnRecorder } from '../../../server/game/core/chat/SwuPgnRecorder';
 import { SwuPgn } from '../../../server/game/core/chat/SwuPgn';
 import { saltedPlayerId } from '../../../server/game/core/chat/swuPgnIdentity';
 import { fold } from '../../../swupgn/src/index';
@@ -26,6 +26,7 @@ describe('SwuPgnRecorder.buildHeader', function () {
     it('emits a 1.1 header with provenance and salted ids', function () {
         const h = buildHeader(ctx);
         expect(h.game).toBe('SWU-PGN/1.0');
+        expect(h.writerRevision).toBe(SWU_PGN_WRITER_REVISION);
         expect(h.cardPool).toBe('SOR');
         expect(h.engine).toBe('forceteki@test');
         expect(h.seed).toBe('seed-1');

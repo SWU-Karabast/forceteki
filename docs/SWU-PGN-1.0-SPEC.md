@@ -102,6 +102,8 @@ There are four jobs. You might do one, or all of them.
   `MOVE` carried the counts), and a leader deployed as a pilot as a `DEPLOY_LEADER` carrying
   `kind: "upgrade"` + `target` — neither is a zone move, so nothing else tells a reader
   ([§10.1](#101-events-that-carry-board-detail)).
+- SHOULD write `WriterRevision` in the header, and bump it whenever a reader could see the
+  difference in what it writes ([§5.2](#52-you-may-have-these), [§22](#22-version-history)).
 - MUST write `RecorderErrors` in the header if any of its handlers failed
   ([§5.2](#52-you-may-have-these)); a silently under-recorded file must not look complete.
 - MUST record the resource row as counts: an `EXHAUST_RESOURCES` for every resource that
@@ -113,7 +115,9 @@ There are four jobs. You might do one, or all of them.
   one on any `MOVE` out of an arena or out of `base` — exits are host-less
   ([§10.1](#binding-an-attachment-to-its-host)).
 - MUST record a capture as a `CAPTURE` whose `p` is the seat that now holds the card and whose
-  `by` is the captor ([§10.1](#101-events-that-carry-board-detail)).
+  `by` is the captor — `base@N` when a base captures — and MUST carry each seat's
+  `baseCaptured` in every keyframe, since a base's captive is held by no unit
+  ([§10.1](#101-events-that-carry-board-detail)).
 - MUST write an `EXHAUST` for a unit that enters play exhausted — the normal case, which no
   attack or ability announces — and nothing for one that enters ready
   ([§10.1](#101-events-that-carry-board-detail)).
@@ -319,6 +323,7 @@ banner.
 | `Match` | An opaque id for the **match** this game belongs to, stable across the games of one Bo3. Lets a file that travels on its own — shared, archived, attached to a bug report — still say which match it came from, the way chess PGN's `Round` does. A writer MUST NOT put a host-internal lobby id here; the reference writer emits `sha256:<hex>` of it. |
 | `GameNumber` | Which game of that match this is, 1-based, as digits. Meaningless without `Match`. The reference writer never sets it — a game does not know its own place in a series — so it is for whatever delivers the file. |
 | `Undos` | How many times a player took a decision back, as digits. **Absent means none.** An undo removes the records it retracted, so a file with no tag and a file whose players undid six times are otherwise indistinguishable — and "was this line of play rehearsed" is a review question. The matching `UNDO` notes say WHERE ([§10.2](#102-events-that-are-just-notes)); this tag is the authoritative count. |
+| `WriterRevision` | Which revision of its writer produced the file, as digits, e.g. `"1"`. The writer bumps it on every change to what it writes that a reader can observe, so two files that both say `SWU-PGN/1.0` can be told apart without guessing from their contents ([§22](#22-version-history)). **Absent** on files written before the tag existed — the 1.0 pilot. The reference writer puts it right after `Game`. It is not the build (`Engine` names that, §5.3): many builds share one revision, and a build that changes nothing a reader sees does not bump it. |
 | `RecorderErrors` | How many of the writer's event handlers failed while recording, as digits, e.g. `"2"`. **Absent means none.** Present means some events were never written: the keyframes are still exact (they are read from the engine, not folded), but the deltas between them are incomplete, so `checkKeyframes()` will report mismatches and `stateAt()` between keyframes may be wrong. A reader SHOULD surface it. |
 
 Unknown tags MUST be accepted and ignored.
@@ -499,9 +504,10 @@ seat ref is what lets a reader tell them apart ([§10.1](#101-events-that-carry-
 
 Anything that is **not** `base@N` in a `tgt` / `def` / `CHOICE.offered` / `ABILITY_ACTIVATE.card`
 / `ABILITY_ACTIVATE.grantedBy` / `PLAY_UPGRADE.target` / `MOVE.attachedTo` / `DAMAGE.src` /
-`HEAL.src` / `DEFEAT.card` / `DEFEAT.defeatedBy` field is a card id.
+`HEAL.src` / `DEFEAT.card` / `DEFEAT.defeatedBy` / `CAPTURE.by` field is a card id.
 A base is `base@N` **everywhere** it is pointed at, including when a target prompt offered it,
-when it is the host of a Fortify upgrade, and when one of its abilities dealt damage or healed —
+when it is the host of a Fortify upgrade, when it captures a unit (Arrest), and when one of its
+abilities dealt damage or healed —
 never its `SET#NUM` card id. (The header's `P1Base`/`P2Base` and the `%%% CARDS` index name
 the base *card*; a `base@N` ref names the *thing being hit*.)
 
@@ -1129,17 +1135,23 @@ own `base` → `base` move ([the `from`/`to` rules](#101-events-that-carry-board
 |---|---|---|---|
 | `p` | 1 or 2 | yes | The **captor's controller** — the seat that holds the card from now on. |
 | `card` | string | yes | The captured card. |
-| `by` | string | no | The captor: a unit id, or `base@N` for the rare base captor. |
+| `by` | string | no | The captor: a unit id, or `base@N` when a base captures. |
 
 The captured card's own `MOVE` (arena → `capture`) was written just before this and already
-took it off the board. This record files it under its captor: push `card` onto `by`'s
-`captured` list, idempotently, when `by` names a card you track. A base captor holds it
-nowhere in the fold — the card is out of play either way, and nothing today captures with a
-base.
+took it off the board. This record files it under its captor, idempotently:
+
+- `by` is a unit you track → push `card` onto that unit's `captured` list.
+- `by` is `base@N` → push `card` onto seat N's `baseCaptured` list, creating the list if the
+  seat has none. A base captures only when an ability says so: Arrest (SEC#195), "Your base
+  captures an enemy non-leader unit", whose captive is rescued at the start of the regroup
+  phase.
+- `by` is absent, or names nothing you track → the card is held nowhere in the fold. It is out
+  of play either way.
 
 **`RESCUE` — `card` returned to play under `p`, its owner.**
 
-Fields: `p`, `card`. Take `card` off every card's `captured` list. The `MOVE` out of `capture`
+Fields: `p`, `card`. Take `card` off every card's `captured` list and every seat's
+`baseCaptured` list. The `MOVE` out of `capture`
 beside it places the card again, and the fold does not depend on which of the two arrives
 first. A captor leaving play rescues everything it held: each captive gets its own `RESCUE`
 and `MOVE`, and the captor's entry disappears with its list.
@@ -1188,8 +1200,6 @@ flag names ([`MOVE`](#101-events-that-carry-board-detail)).
 
 **`CREATE_TOKEN` — a token card was made.**
 
-| Field | Type | Required |
-|---|---|---|
 | Field | Type | Required | Means |
 |---|---|---|---|
 | `p` | 1 or 2 | yes | Whose token. |
@@ -1259,15 +1269,15 @@ gained 2 HP and nothing at all about why.
 
 **`DEFEAT` — a card was destroyed.**
 
-| Field | Type | Required |
-|---|---|---|
-| `card` | string | yes |
-| `reason` | string (closed set, [§6.4](#64-small-vocabularies)) | yes |
-| `defeatedBy` | string | no |
+| Field | Type | Required | Means |
+|---|---|---|---|
+| `card` | string | yes | What was defeated: a card id, or `base@N` for a base. |
+| `reason` | string (closed set, [§6.4](#64-small-vocabularies)) | yes | How it was defeated. |
+| `defeatedBy` | string | no | The card responsible, or `base@N` when a base's ability did it ([§6.3](#63-pointing-at-a-base)). Absent when no card is responsible. |
 
 Take the card out of play and push its id onto that player's discard pile — and take it off
-every card's `upgrades` and `captured` lists, because a defeated card is nobody's attachment
-and nobody's captive. An upgrade was never an arena card, so for one only the detach applies.
+every card's `upgrades` and `captured` lists and every seat's `baseCaptured`, because a
+defeated card is nobody's attachment and nobody's captive. An upgrade was never an arena card, so for one only the detach applies.
 
 **A base is defeated with a `DEFEAT` too**: `card` is `base@N`, and the fold sets that seat's
 `baseDefeated`. Every defeated base gets one, whatever defeated it, written right after the
@@ -1398,7 +1408,7 @@ list, so a token upgrade printed later records itself. Token upgrades never appe
 |---|---|
 | shield | `{"t":"SHIELD_GAIN","card":"<host>"}` |
 | experience | `{"t":"EXPERIENCE_GAIN","card":"<host>","count":1}` |
-| advantage, weakness, any other token upgrade | `{"t":"STATUS_TOKEN","card":"<host>","token":"advantage","count":1}` — `token` is the token's name |
+| advantage, weakness, any other token upgrade | `{"t":"STATUS_TOKEN","card":"<host>","token":"<name>","count":1}` — `<name>` is the token's name, e.g. `advantage` |
 
 **Removal** — the token leaves. This is the **same record with a negative count**:
 
@@ -1406,7 +1416,7 @@ list, so a token upgrade printed later records itself. Token upgrades never appe
 |---|---|
 | shield | `{"t":"SHIELD_USE","card":"<host>"}` |
 | experience | `{"t":"EXPERIENCE_GAIN","card":"<host>","count":-1}` |
-| advantage, weakness, any other token upgrade | `{"t":"STATUS_TOKEN","card":"<host>","token":"weakness","count":-1}` |
+| advantage, weakness, any other token upgrade | `{"t":"STATUS_TOKEN","card":"<host>","token":"<name>","count":-1}` — the same `<name>` as the gain |
 
 Four rules make this work:
 
@@ -1813,6 +1823,7 @@ interface PlayerState {
     resources?: string[];       // WHICH cards are in the row (the split above stays counted)
     baseEpicActionUsed?: boolean; // the BASE's Epic Action is spent (a base may have one)
     baseUpgrades?: string[];    // PRINTED upgrades attached to the BASE (Fortify) — never in `cards`
+    baseCaptured?: string[];    // enemy units the BASE holds captured (Arrest) — never on a unit's `captured`
     baseDefeated?: boolean;     // the base has been defeated — by damage OR outright; absent = false
     credits: number;
     hasForce: boolean;
@@ -1854,7 +1865,7 @@ files written before it existed; a reader treats absent as `[]`.
 (older files never do), and a reader never computes them: it is told.
 
 The optional fields marked `?` — `initiativeTaken`, `deckSize`, `leader`, `power`, `hp`,
-`keywords`, `resources`, `baseEpicActionUsed`, `baseUpgrades`, `onStartingSide` — are optional only because files
+`keywords`, `resources`, `baseEpicActionUsed`, `baseUpgrades`, `baseCaptured`, `onStartingSide` — are optional only because files
 written before they existed lack them. A current writer fills every one that applies, and the
 integrity check compares each whenever the keyframe carries it.
 
@@ -1888,7 +1899,7 @@ already applied the rules, and the file records what it decided. Where each part
 
 | Game state (CR 1.16) | Where the file carries it |
 |---|---|
-| Each card's **zone** | `MOVE` (every zone change, [§12.1](#121-the-move-rule-the-big-one)); `deckSize`, `handSize`, `hand`, `discard`, the resource counts, `cards`, `captured`, `baseUpgrades`, `credits`, `hasForce`; the leader's `deployed` |
+| Each card's **zone** | `MOVE` (every zone change, [§12.1](#121-the-move-rule-the-big-one)); `deckSize`, `handSize`, `hand`, `discard`, the resource counts, `cards`, `captured`, `baseUpgrades`, `baseCaptured`, `credits`, `hasForce`; the leader's `deployed` |
 | Each card's **controller** | the seat whose lists hold it; `TAKE_CONTROL` re-seats a unit, a resource, a Credit token or the Force; an upgrade's controller is the `p` of its `PLAY_UPGRADE` |
 | Each card's **attributes** — power, HP, keywords, modifiers | `STATS` after every change ([§10.1](#stats)), snapshotted in keyframes; `damage`, `upgrades`, `shields`, `experience`, `statusTokens`. An ability a card has only because another card granted it (a base's "Attached base gains: …") is named by `grantedBy` when it is used |
 | Each card's **status** — ready/exhausted | `EXHAUST` / `READY` for arena cards and the leader, including the `EXHAUST` a unit gets on entering play; `EXHAUST_RESOURCES` / `READY_RESOURCES` and the `MOVE.exhausted` flag for the resource row |
@@ -1943,7 +1954,8 @@ fold(events):
 ### 12.1 The `MOVE` rule (the big one)
 
 **0. Detach.** Before anything else: if `from` is an arena and `to` is not, or `from` is
-`capture`, take `card` off every card's `upgrades` and `captured` lists (`detach`). A card
+`capture`, take `card` off every card's `upgrades` and `captured` lists and every seat's
+`baseCaptured` (`detach`). A card
 that leaves an arena is nobody's attachment any more, whatever its `kind` says and whether or
 not anyone names a host — exits are host-less
 ([§10.1](#binding-an-attachment-to-its-host)). This step needs no `p`.
@@ -2053,7 +2065,7 @@ twice.
 | `LEADER_FLIP` | that seat's `leader.onStartingSide = event.onStartingSide` — the stated face, so applying it twice is the same as once. Find the leader by `card`, falling back to the record's `p` (these leaders never deploy, so early in a file no `DEPLOY_LEADER` has named the id) |
 | `STATS` | if `card` is tracked → set its `power`, `hp`, and `keywords` (sorted) when given |
 | `TAKE_CONTROL` | arena `zone` → move the card entry from the other seat's `cards` to `players[p].cards`; `resource` with `from` → shift one resource from `from` to `p`, in the exhausted bucket if `exhausted` else the ready one; `base` with `from` → shift one credit (or the Force) from `from` to `p`; otherwise nothing ([§10.1](#take_control)) |
-| `CAPTURE` | remove `card` from every seat's `cards` (its `MOVE` already did); if `by` names a tracked card, push `card` onto its `captured`, idempotently |
+| `CAPTURE` | remove `card` from every seat's `cards` (its `MOVE` already did); if `by` is `base@N`, push `card` onto `players[N].baseCaptured` (created if absent); else if `by` names a tracked card, push `card` onto its `captured`; both idempotently |
 | `RESCUE` | `detach(state, card)` — the `MOVE` out of `capture` beside it places the card |
 | `EXHAUST_RESOURCES` | `n = min(amount, resourcesReady)`; `resourcesReady -= n`; `resourcesExhausted += n` |
 | `READY_RESOURCES` | `n = min(amount, resourcesExhausted)`; `resourcesExhausted -= n`; `resourcesReady += n` |
@@ -2080,7 +2092,8 @@ Three small helpers:
 - `newCard(id, zone)` → `{ id, zone, damage: 0, exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens: {}, captured: [] }`
 - `attach(state, hostId, id)` → if `id` is a `TOKEN:` id, nothing (tokens are counters); else
   if `hostId` is tracked and `id` is not already in its `upgrades`, push it
-- `detach(state, id)` → remove `id` from every card's `upgrades` and `captured`
+- `detach(state, id)` → remove `id` from every card's `upgrades` and `captured`, and from every
+  seat's `baseCaptured`
 - `findCard(state, id)` → look through player 1's `cards`, then player 2's. **If it isn't
   there, silently do nothing.** Never crash.
 - `seatOfBaseRef(ref)` → the N out of `base@N`, or `null` if it isn't a base.
@@ -2125,7 +2138,7 @@ state is thrown away and the keyframe takes its place. Everything below follows 
   snapshot, **omit the keyframe entirely**. A `ROUND_START` or `ROUND_END` with no keyframe
   is perfectly valid and completely harmless — the reader just keeps folding deltas. Never
   ship a partial one.
-- No list in a keyframe (`cards`, `hand`, `discard`, `resources`, `baseUpgrades`, a card's
+- No list in a keyframe (`cards`, `hand`, `discard`, `resources`, `baseUpgrades`, `baseCaptured`, a card's
   `upgrades`) may hold more than 1000 entries. A real game never comes close; a reader treats a
   keyframe over that as damaged and ignores it, because a snapped keyframe bypasses the cap the
   fold puts on every list it grows itself ([§14](#14-checking-a-file-is-honest)).
@@ -2194,6 +2207,7 @@ problem. A writer that has no such cost SHOULD treat `ok: false` as fatal.
 - `baseEpicActionUsed` whenever the keyframe carries it
 - `baseUpgrades` **as a set** whenever the keyframe carries it — like a unit's `upgrades`,
   attachment order is not part of the model
+- `baseCaptured` **as a set** whenever the keyframe carries it — like a unit's `captured`
 - `baseDefeated`, absent on either side read as `false`
 - `resourcesReady` and `resourcesExhausted`
 - `credits` and `hasForce`
@@ -2358,8 +2372,9 @@ width. Then, from that round's keyframe, one block per seat:
 - One line per seat: `base {hp}/{max}   hand {n}   resources {ready}/{ready+exhausted}`, then
   `   deck {n}` when the keyframe has `deckSize`, then `   leader deployed|exhausted|ready`
   when it has `leader`.
-- Then, when the keyframe's `baseUpgrades` is not empty, a `      base: ` line naming each base
-  upgrade, joined by `  ·  ` — it comes before the arenas because the upgrades are on the base.
+- Then, when the keyframe's `baseUpgrades` or `baseCaptured` is not empty, a `      base: ` line
+  naming each base upgrade, then `holds {name}` for each captive, joined by `  ·  ` — it comes
+  before the arenas because all of them are on the base.
 - Then a line per non-empty arena, cards joined by `  ·  `.
 - A card is its name, then ` {power}/{hp}` when the keyframe has both, then its non-default
   state in `[...]`, comma-separated, in this order: damage (`3 dmg`), `exhausted`, shields
@@ -2548,10 +2563,11 @@ To be conformant:
 | `upgrades` | Real game: a printed upgrade (`PLAY_UPGRADE` + `attachedTo`), Advantage and Experience tokens, Shield tokens, and the host defeated with all of it attached — every removal record, and the detach on exit. |
 | `pilot` | Real game: a pilot flown onto a vehicle (`kind: "upgrade"` on a unit card, `%%% CARDS` saying `unit`), a second one, and a piloted vehicle Vanquished. |
 | `capture` | Real game: a unit taken captive (`CAPTURE` with `by`, the `MOVE` into `capture`) and rescued when its captor is defeated. |
+| `arrest` | Real game: a **base** as captor. Arrest twice (`CAPTURE` with `by: "base@1"`, the captive in `players[1].baseCaptured` until it is rescued), each captive rescued at the start of the next regroup phase (`RESCUE`, the `MOVE` out of `capture`). |
 | `homeworlds` | Real game, Homeworlds mechanics ([§10.3](#103-homeworlds-fortify-beast-and-weakness)): Fortify upgrades on **both** bases (`MOVE` into `base` with `attachedTo: "base@N"`, `PLAY_UPGRADE.target` `base@N`, `baseUpgrades` in every keyframe); a base upgrade sacrificed to its own Action (Carbonite Chamber) leaving `base`; a base using a granted triggered ability every round (`ABILITY_ACTIVATE` on `base@1` with `grantedBy`); static base buffs arriving as `STATS` (Landing Pad's +1/+0, Verdant Fortress's Raid); Beast tokens from a granted trigger and from an event; Weakness tokens stacking on a Beast until it dies at 0 HP (`frameworkEffect`, the token unit leaving for `outsideTheGame`); an empty-deck draw dealing damage with no `src`. |
 | `death-star` | Real game, eight rounds ([§10.4](#104-grand-moff-tarkin-and-the-death-star)): Grand Moff Tarkin builds to nine resources and deploys by Epic Action as **The Death Star** (`backSideName` in `%%% CARDS`, the `DEPLOY_LEADER` a sub-step of the Epic Action, arriving in `space`), then at the start of the regroup phase defeats Player 2's base with 9 HP left — a `DEFEAT` on `base@2`, `baseDefeated: true` beside a non-zero `baseHp`. Along the way a Weakness given to the player's own unit stacks to a kill. |
 
-The six real-game vectors are regenerated from the writer by
+The seven real-game vectors are regenerated from the writer by
 `test/server/chat/SwuPgnVectors.spec.ts` and `SwuPgnOrganicGame.spec.ts` with
 `SWUPGN_WRITE_VECTORS=1`; those specs also pin the fold and story byte for byte, so the
 writer cannot drift from its own vectors unnoticed.
@@ -2574,9 +2590,9 @@ vocabulary), and `Engine`/`Seed` are not placeholders.
 
 It is gated again on **organic** games — a natural setup phase (initiative, mulligan,
 resourcing) through several rounds of plays, attacks and regroup resourcing to a concession —
-folded with **no** field excluded: `SwuPgnOrganicGame.spec.ts` (four rounds), and the five
+folded with **no** field excluded: `SwuPgnOrganicGame.spec.ts` (four rounds), and the six
 scenario games of `SwuPgnVectors.spec.ts` that are also the `upgrades`, `pilot`, `capture`,
-`homeworlds` and `death-star` vectors ([§20](#20-test-vectors)). In every one, every keyframe field reproduces exactly:
+`arrest`, `homeworlds` and `death-star` vectors ([§20](#20-test-vectors)). In every one, every keyframe field reproduces exactly:
 `handSize`, `resourcesReady` **and `resourcesExhausted`**, `credits`, `hasForce`, and per card
 `upgrades` and `captured` alongside the counters; `validate()` returns no issue at all;
 `%%% CARDS` covers every leader, base and deck id; and `GAME_END` takes the `.game-end` step of
@@ -2605,8 +2621,8 @@ mismatches** against their own keyframes before the fix and **none** after. Both
 
 That leaves one field carved out, and deliberately: `active`, which is keyframe-supplied rather
 than reconstructed ([§11](#11-the-board-you-build-reducedstate)). Every other field of §11 is
-compared, and the six real-game vectors — Raid, Grit, Sentinel, tokens, upgrades, a pilot, a capture,
-leaders in and out of the base zone, base upgrades, a base defeated outright — pass with nothing to report.
+compared, and the seven real-game vectors — Raid, Grit, Sentinel, tokens, upgrades, a pilot, a capture,
+a base as captor, leaders in and out of the base zone, base upgrades, a base defeated outright — pass with nothing to report.
 
 One caveat on `hand`, and it is about a test harness rather than the format: the integration
 specs that bootstrap a game directly at the action phase tear down the natural opening hand
@@ -2641,8 +2657,14 @@ so this is low priority — but emitting it would give the keyframe gate an inde
 to check the first keyframe against, which is the one place it currently can't
 ([§14](#14-checking-a-file-is-honest)).
 
-A `CAPTURE` whose captor is a base (`by: "base@N"`) is recorded but not held anywhere in the
-fold: no card today captures with a base, and the card is out of play either way.
+**A base as captor** (Arrest, SEC#195) is gated by the `arrest` vector, where Player 1's base
+captures twice and each captive is rescued at the next regroup, and by
+`test/server/chat/SwuPgnBaseCapture.spec.ts`, which compares the fold mid-phase with the engine
+(the base holds the unit in `baseCaptured`, and no unit holds it) and again after the rescue.
+One limit: Arrest's captive is always rescued at the start of the regroup phase, before the
+`ROUND_END` keyframe, so in a real game the keyframe gate only ever sees an **empty**
+`baseCaptured`. The held state is checked by the fold, the vector's `stateAt`, and that spec, not
+by a keyframe.
 
 **Homeworlds** ([§10.3](#103-homeworlds-fortify-beast-and-weakness)) is gated by the
 `homeworlds` vector (five organic rounds, Fortify on both bases, Beasts, stacked Weakness and a
@@ -2654,8 +2676,8 @@ The same spec gates Grand Moff Tarkin (a deploy counted as one action and named 
 base defeated outright; the Pass that declines it; a damage kill's `DEFEAT` on `base@N`) and six
 cards whose abilities depend on a base or a trait (Kashyyyk keywords and discounts, Gunga City
 Guard losing Shielded, Ritual Dragon's ready entry, Surveillance Cruiser on the opponent's base,
-The Tarkin Doctrine on a Fortification upgrade, Queen Amidala on an upgraded base). Two Fortify
-paths have **no** real-game gate, and a reader should treat them as best-effort until one exists:
+The Tarkin Doctrine on a Fortification upgrade, Queen Amidala on an upgraded base). Four paths
+have **no** real-game gate, and a reader should treat them as best-effort until one exists:
 
 - **Continued play after the game has ended.** The writer records it, and writes a `DEFEAT` for a
   second base that falls then (a real-engine test plays exactly that, through a heal). But the file
@@ -2703,10 +2725,26 @@ so a reader can tell versions apart without trusting the header alone.
 
 ### 1.0 writer changes before first release
 
-The reference writer changed behaviour several times while 1.0 was being shaken out against
-real games, before any 1.0 file was published. None of these needed a version bump — every
-one is an addition, a correction, or a wording change that a 1.0 reader already tolerates —
-but each is detectable from the file, so a reader that meets an early 1.0 file can tell:
+**1.0 is in a pilot until it is published, and pilot files are pre-release.** The reference
+writer changed behaviour several times while 1.0 was being shaken out against real games, and
+files from that period were shared with other readers. They all say `SWU-PGN/1.0`, and some of
+these changes alter what a record **means** under that one version string, not only what it
+adds. Two matter most: `PASS` is now written only for the Pass action, which renumbers every
+later action in a round, and a leader deployed by its own Epic Action is now a lettered sub-step
+of that action rather than a numbered action of its own. A reader that meets a pilot file
+SHOULD treat it as pre-release and use the **Detect** column below to tell which behaviour it
+has. Nothing in it is guaranteed.
+
+**From `WriterRevision` 1 on, the header says which writer made the file**
+([§5.2](#52-you-may-have-these)). A file with no `WriterRevision` is a pilot file. A file
+with one was written by that revision, and every row added below from here on names the
+revision that introduced it, so a reader can switch on the number instead of guessing from the
+contents.
+
+None of these bumped the version, because 1.0 had not been published. Most are additions or
+corrections a 1.0 reader already tolerates; the `PASS` and Epic Action deploy rows are not, and
+after publication a change like them would need a new version ([§18](#18-versions-and-unknown-things)).
+Each is detectable from the file:
 
 | Earlier 1.0 files | Current 1.0 files | Detect |
 |---|---|---|
@@ -2765,6 +2803,8 @@ but each is detectable from the file, so a reader that meets an early 1.0 file c
 | A leader whose deployed side is another card (Tarkin / The Death Star; also a flipped Palpatine) was named in `%%% CARDS` by whichever side ended the game up | the printed front as `name`, the other side as `backSideName` ([§6.5](#65-the-cards-index)) | an index entry carrying `backSideName` |
 | A leader deployed by its own Epic Action was two numbered actions — the ability, then the `DEPLOY_LEADER` | the deploy is the ability's sub-step ([§10.1](#101-events-that-carry-board-detail)) | a `DEPLOY_LEADER` with a lettered seq |
 | `hand[]` grew from `DRAW` and nothing removed, so a folded "hand" was a cumulative draw log; `discard` was filed by `DEFEAT`, which fires after the `MOVE` that already removed the card, so no defeated unit reached the pile | both are folded from `MOVE` and gated ([§12.1](#121-the-move-rule-the-big-one), [§14](#14-checking-a-file-is-honest)) | not a file change; a reader's fold. Fold any vector's deltas to a keyframe and compare `hand`/`discard` — 45 mismatches before, 0 after |
+| No header tag said which writer made a file, so a pilot file and a current one were told apart only by their contents | `WriterRevision` ([§5.2](#52-you-may-have-these)); revision 1 is the first | the tag's presence |
+| A unit captured by a **base** (Arrest) left the board and was held nowhere, so it vanished from the fold until its rescue, and §10.1 said no card captures with a base | the seat's `baseCaptured`, pushed by a `CAPTURE` whose `by` is `base@N`, cleared on leaving `capture`, carried in every keyframe and gated ([§10.1](#101-events-that-carry-board-detail), [§11](#11-the-board-you-build-reducedstate)). Revision 1 | a keyframe carrying `baseCaptured` |
 
 ---
 
@@ -2884,8 +2924,7 @@ A.3 exactly.
 {"seq":"R1.G.9","t":"MOVE","card":"SOR#045:4","from":"hand","to":"resource","p":2,"kind":"unit"}
 {"seq":"R1.G.10","t":"RESOURCE","p":2,"card":"SOR#045:4"}
 {"seq":"R1.G.11","t":"READY","card":"SOR#108"}
-{"seq":"R1.G.12","t":"READY_RESOURCES","p":1,"amount":1}
-{"seq":"R1.G.13","t":"READY_RESOURCES","p":1,"amount":1}
+{"seq":"R1.G.12","t":"READY_RESOURCES","p":1,"amount":2}
 {"seq":"R1.G.end","t":"PHASE_END","phase":"regroup"}
 {"seq":"R1.end","t":"ROUND_END","round":1,"keyframe":{"round":1,"phase":"regroup","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#108","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":["overwhelm"]}],"deckSize":0,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#045","SOR#045:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":0,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
 {"seq":"R2.start","t":"ROUND_START","round":2,"keyframe":{"round":2,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#108","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":["overwhelm"]}],"deckSize":0,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#045","SOR#045:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":0,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
@@ -3057,7 +3096,7 @@ begins, so the setup deltas are what it has to add up to:
 | two `MOVE deck → hand` + `DRAW`, each player | `handSize` 0 → 2 / 1 → 3; `deckSize` 2 → 0 (known since the keyframe) |
 | `MOVE hand → resource` + `RESOURCE`, each player | `handSize` 1 / 2, `resourcesReady` 3 |
 | `READY {card:"SOR#108"}` | the Wampa readies |
-| `READY_RESOURCES {p:1, amount:1}` ×2 | Player 1's two exhausted resources ready, one record each: `resourcesExhausted` 2 → 0, `resourcesReady` 1 → 3 |
+| `READY_RESOURCES {p:1, amount:2}` | Player 1's two exhausted resources ready, one record for the run: `resourcesExhausted` 2 → 0, `resourcesReady` 1 → 3 |
 | `PHASE_END`, `ROUND_END {keyframe}` | compared — every field, `deckSize` now included — and matched; then snapped to |
 | `ROUND_START {round:2, keyframe}` | likewise; `initiativeTaken` is `false` again |
 | `PHASE_START {phase:"action"}` | `phase = "action"` |

@@ -134,9 +134,10 @@ function boardSummary(k: ReducedState, n: NameResolver): string[] {
             line += `   leader ${p.leader.deployed ? 'deployed' : p.leader.exhausted ? 'exhausted' : 'ready'}`;
         }
         out.push(line);
-        // The base's own attachments (Fortify) come first: they are on the base, not in an arena.
-        if (arr(p.baseUpgrades).length > 0) {
-            const onBase = arr(p.baseUpgrades).map(nm);
+        // The base's own attachments (Fortify) and captives (Arrest) come first: they are on the
+        // base, not in an arena. A captive reads "holds X", as on a unit.
+        const onBase = [...arr(p.baseUpgrades).map(nm), ...arr(p.baseCaptured).map((id) => `holds ${nm(id)}`)];
+        if (onBase.length > 0) {
             out.push(`      base: ${onBase.join('  ·  ')}`);
         }
         for (const zone of ['ground', 'space']) {

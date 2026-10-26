@@ -23,6 +23,7 @@
         "HMW#059:4"
       ],
       "baseUpgrades": [],
+      "baseCaptured": [],
       "credits": 0,
       "hasForce": false,
       "discard": [
@@ -224,6 +225,7 @@
         "LAW#253:8"
       ],
       "baseUpgrades": [],
+      "baseCaptured": [],
       "credits": 0,
       "hasForce": false,
       "discard": [],

@@ -69,6 +69,11 @@ export interface Header {
     recorderErrors?: number;
     undos?: number;
 
+    /** Which revision of its writer produced the file. Bumped on every change a reader can
+     *  observe, so two files with the same `game` version can be told apart. Absent on files
+     *  written before the tag existed (the 1.0 pilot). */
+    writerRevision?: number;
+
     /** When the game ENDED, ISO-8601 UTC. With `date` (when it started) this gives the game's
      *  duration, which is the only thing per-event timestamps would have bought. Absent when the
      *  writer could not tell -- an unfinished game, or a file written before this existed. */
@@ -115,7 +120,8 @@ export interface SetupInitRecord {
  *   exhausted), or `amount` exhausted ones became ready (the regroup step readies each one; some
  *   abilities ready several). A reader clamps to what it has.
  * - `CAPTURE`: `p` captured `card` with `by` (a unit id, or `base@N` for a base captor). `p` is
- *   the captor's controller — the seat that holds the card from now on. `RESCUE`: `card`
+ *   the captor's controller — the seat that holds the card from now on. A unit captor holds it
+ *   in its `captured`, a base captor in its seat's `baseCaptured`. `RESCUE`: `card`
  *   returned to play under `p`, its owner; the paired `MOVE` out of `capture` places it.
  * - `STATS`: an in-play unit's live power, HP and keywords as the engine computes them — ability
  *   effects, upgrades, Raid during an attack, all of it — written whenever they change. This is
@@ -363,6 +369,15 @@ export interface PlayerState {
      * "not recorded", not "none".
      */
     baseUpgrades?: string[];
+
+    /**
+     * Enemy units this seat's BASE holds captured (a set). A base captures only through an
+     * ability that says so ("Your base captures an enemy non-leader unit": Arrest), and a unit
+     * captor's captives ride on its `captured` instead. Pushed by a `CAPTURE` whose `by` is
+     * `base@N`, cleared when the card leaves `capture`. Absent on files written before it
+     * existed; absent means "not recorded", not "none".
+     */
+    baseCaptured?: string[];
 
     /**
      * This seat's base has been defeated: set by a `DEFEAT` whose `card` is `base@N`. A base is

@@ -66,7 +66,7 @@ export function isCompleteKeyframe(k: unknown): k is ReducedState {
         // A keyframe is snapped to wholesale, so its lists bypass the MAX_ZONE_LIST cap that
         // bounds everything the fold grows itself -- and every later DEFEAT or exit scans them.
         // A list no real game can reach is a damaged checkpoint, not a board.
-        const optional = [ps.baseUpgrades, ps.resources].filter((l) => l !== undefined);
+        const optional = [ps.baseUpgrades, ps.baseCaptured, ps.resources].filter((l) => l !== undefined);
         if (![ps.cards, ps.hand, ps.discard, ...optional].every((l) => Array.isArray(l) && l.length <= MAX_ZONE_LIST)) {
             return false;
         }
@@ -240,12 +240,16 @@ function attachTo(s: ReducedState, hostId: string, id: string): void {
 }
 
 /**
- * Take `id` off every card's `upgrades` and `captured` lists. Keyed on the zone transition
- * (a card left an arena, or the capture zone), not on `kind`: a pilot's exit says `kind:
- * "unit"`, and no exit record names a host (spec §10.1).
+ * Take `id` off every card's `upgrades` and `captured` lists, and off every base's captives.
+ * Keyed on the zone transition (a card left an arena, or the capture zone), not on `kind`: a
+ * pilot's exit says `kind: "unit"`, and no exit record names a host (spec §10.1).
  */
 function detach(s: ReducedState, id: string): void {
     for (const seat of [1, 2] as Seat[]) {
+        const held = s.players[seat]?.baseCaptured;
+        if (Array.isArray(held)) {
+            removeOne(held, id);
+        }
         for (const c of s.players[seat]?.cards ?? []) {
             const u = c.upgrades.indexOf(id);
             if (u >= 0) {
@@ -706,9 +710,18 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         }
         case 'CAPTURE': {
             // The MOVE out of the arena already removed the card (idempotent here); the
-            // captor now holds it. A base captor (`base@N`) is not modelled: nothing today
-            // captures with a base, and the card is out of play either way.
+            // captor now holds it: a unit in its `captured`, a base (Arrest) in its seat's
+            // `baseCaptured`, created on first use like `baseUpgrades`.
             removeFromArenas(s, e.card);
+            const baseSeat = typeof e.by === 'string' ? seatOfBaseRef(e.by) : null;
+            const holder = baseSeat != null ? player(s, baseSeat) : undefined;
+            if (holder) {
+                if (!Array.isArray(holder.baseCaptured)) {
+                    holder.baseCaptured = [];
+                }
+                addOnce(holder.baseCaptured, e.card);
+                break;
+            }
             const captor = e.by ? findCard(s, e.by) : undefined;
             if (captor) {
                 const captured = arr<string>(captor.captured);

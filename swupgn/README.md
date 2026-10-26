@@ -18,7 +18,7 @@ executable reference for `docs/SWU-PGN-1.0-SPEC.md`.
 ## Test vectors
 
 `test-vectors/` holds the normative examples (spec §20). `minimal` is hand-written; `organic`,
-`upgrades`, `pilot`, `capture`, `homeworlds` and `death-star` are real games the writer produced under
+`upgrades`, `pilot`, `capture`, `arrest`, `homeworlds` and `death-star` are real games the writer produced under
 `test/server/chat/SwuPgnVectors.spec.ts` / `SwuPgnOrganicGame.spec.ts`, whose fold and story
 those specs pin byte for byte. `homeworlds` is the one to test Homeworlds support against:
 Fortify upgrades on both bases (`baseUpgrades`), a base using an ability an upgrade granted it

@@ -33,6 +33,13 @@ describe('SwuPgnWriter', function () {
         expect(doc.setup.length).toBe(1);
     });
 
+    it('writes WriterRevision right after Game, and round-trips it', function () {
+        const text = new SwuPgnWriter().write({ header: { ...header, writerRevision: 1 }, decks, setup, events, annotations });
+        expect(text.split('\n').slice(0, 2)).toEqual(['[Game "SWU-PGN/1.0"]', '[WriterRevision "1"]']);
+        expect(parse(text).header.writerRevision).toBe(1);
+        expect(validate(text).issues).toEqual([]);
+    });
+
     it('emits header tags, %%% banners, and one NDJSON record per line', function () {
         const text = new SwuPgnWriter().write({ header, decks, setup, events, annotations });
         expect(text).toContain('[Game "SWU-PGN/1.0"]');

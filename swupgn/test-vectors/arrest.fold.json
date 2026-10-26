@@ -1,0 +1,151 @@
+{
+  "round": 4,
+  "phase": "action",
+  "initiative": 1,
+  "players": {
+    "1": {
+      "seat": 1,
+      "baseHp": 28,
+      "baseMaxHp": 30,
+      "handSize": 3,
+      "hand": [
+        "ASH#190:3",
+        "SEC#195:3",
+        "SEC#195:4"
+      ],
+      "resourcesReady": 5,
+      "resourcesExhausted": 0,
+      "resources": [
+        "IC27#097",
+        "IC27#097:2",
+        "IC27#097:3",
+        "IC27#097:4",
+        "IC27#097:5"
+      ],
+      "baseUpgrades": [],
+      "baseCaptured": [],
+      "credits": 0,
+      "hasForce": false,
+      "discard": [
+        "SEC#195",
+        "SEC#195:2"
+      ],
+      "cards": [
+        {
+          "id": "ASH#190",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 4,
+          "hp": 1,
+          "keywords": []
+        },
+        {
+          "id": "ASH#190:2",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 4,
+          "hp": 1,
+          "keywords": []
+        }
+      ],
+      "deckSize": 4,
+      "leader": {
+        "id": "SOR#015",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      }
+    },
+    "2": {
+      "seat": 2,
+      "baseHp": 22,
+      "baseMaxHp": 30,
+      "handSize": 4,
+      "hand": [
+        "SOR#095:2",
+        "SOR#095:3",
+        "LAW#253:8",
+        "LAW#253:9"
+      ],
+      "resourcesReady": 5,
+      "resourcesExhausted": 0,
+      "resources": [
+        "LAW#253",
+        "LAW#253:2",
+        "LAW#253:4",
+        "LAW#253:6",
+        "LAW#253:7"
+      ],
+      "baseUpgrades": [],
+      "baseCaptured": [],
+      "credits": 0,
+      "hasForce": false,
+      "discard": [],
+      "cards": [
+        {
+          "id": "SOR#095",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": []
+        },
+        {
+          "id": "LAW#253:3",
+          "zone": "space",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 2,
+          "hp": 3,
+          "keywords": []
+        },
+        {
+          "id": "LAW#253:5",
+          "zone": "space",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 2,
+          "hp": 3,
+          "keywords": []
+        }
+      ],
+      "deckSize": 4,
+      "leader": {
+        "id": "SOR#005",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      }
+    }
+  },
+  "initiativeTaken": false,
+  "active": 1
+}

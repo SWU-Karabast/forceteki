@@ -25,6 +25,7 @@
         "HMW#271",
         "HMW#126"
       ],
+      "baseCaptured": [],
       "credits": 0,
       "hasForce": false,
       "discard": [
@@ -127,6 +128,7 @@
         "HMW#059:2"
       ],
       "baseUpgrades": [],
+      "baseCaptured": [],
       "credits": 0,
       "hasForce": false,
       "discard": [

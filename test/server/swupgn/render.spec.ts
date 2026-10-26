@@ -79,6 +79,17 @@ describe('render attachments and captures', function () {
         expect(board).toContain('ground: Wampa [Ascension Cable, holds Battlefield Marine]');
     });
 
+    it('shows a card a base holds captured (Arrest) on the base line', function () {
+        const out = render(doc([{ seq: 'R1.A.2b', t: 'CAPTURE', p: 1, card: 'SOR#095', by: 'base@1' }]), nm);
+        expect(out).toContain('Player 1 captures Battlefield Marine with');
+        const board = render(doc([{ seq: 'R2.start', t: 'ROUND_START', round: 2, keyframe: { round: 2, phase: 'action', initiative: 1, players: {
+            1: { seat: 1, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [],
+                cards: [], baseUpgrades: ['LOF#215'], baseCaptured: ['SOR#095'] },
+            2: { seat: 2, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] },
+        } } }]), nm);
+        expect(board).toContain('base: Ascension Cable  ·  holds Battlefield Marine');
+    });
+
     it('prints nothing for the resource counters: mechanism, not story', function () {
         const out = render(doc([
             { seq: 'R1.A.0a', t: 'EXHAUST_RESOURCES', p: 1, amount: 2 },

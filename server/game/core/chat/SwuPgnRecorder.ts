@@ -39,9 +39,17 @@ export interface HeaderContext {
     gameNumber?: number;
 }
 
+/**
+ * The reference writer's revision (spec §5.2): bumped on every change to what it writes that a
+ * reader can observe, so two files that both say `SWU-PGN/1.0` can still be told apart. Files
+ * written before the tag existed (the 1.0 pilot) carry none.
+ */
+export const SWU_PGN_WRITER_REVISION = 1;
+
 export function buildHeader(ctx: HeaderContext): Header {
     return {
         game: 'SWU-PGN/1.0',
+        writerRevision: SWU_PGN_WRITER_REVISION,
         gameId: ctx.gameId,
         date: ctx.date,
         format: ctx.format,

@@ -1,0 +1,89 @@
+ ── setup ──
+       ↳ Player 1 draws 6: Death Star Stormtrooper, Peridea Bandit, Death Star Stormtrooper #2, Arrest, Peridea Bandit #2, Arrest #2
+       ↳ Player 2 draws 6: Alliance X-Wing, Battlefield Marine, Alliance X-Wing #2, Alliance X-Wing #3, Alliance X-Wing #4, Alliance X-Wing #5
+       ↳ Player 1 keeps their hand
+       ↳ Player 2 keeps their hand
+       ↳ Player 1 resources Death Star Stormtrooper
+       ↳ Player 1 resources Death Star Stormtrooper #2
+       ↳ Player 2 resources Alliance X-Wing
+       ↳ Player 2 resources Alliance X-Wing #2
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 1                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 2/2   deck 10   leader ready
+ P2  base 30/30   hand 4   resources 2/2   deck 10   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Peridea Bandit to ground (cost 2)
+  2. Player 2 plays Alliance X-Wing #3 to space (cost 2)
+  3. Player 1 passes
+  4. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Death Star Stormtrooper #3, Death Star Stormtrooper #4
+       ↳ Player 2 draws 2: Battlefield Marine #2, Alliance X-Wing #6
+       ↳ Player 1 resources Death Star Stormtrooper #3
+       ↳ Player 2 resources Alliance X-Wing #4
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 2                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 3/3   deck 8   leader ready
+      ground: Peridea Bandit 4/1
+ P2  base 30/30   hand 4   resources 3/3   deck 8   leader ready
+      space: Alliance X-Wing #3 2/3
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Arrest (cost 2)
+       ↳ Arrest uses an ability
+       ↳ Player 1 captures Alliance X-Wing #3 with Player 1's base
+  2. Player 2 plays Alliance X-Wing #5 to space (cost 2)
+  3. Player 1 attacks Player 2's base with Peridea Bandit
+       ↳ 4 damage to Player 2's base — 26 HP left
+  4. Player 2 passes
+  5. Player 1 passes
+ ── regroup ──
+       ↳ Player 2 rescues Alliance X-Wing #3
+       ↳ Player 1 draws 2: Peridea Bandit #3, Arrest #3
+       ↳ Player 2 draws 2: Alliance X-Wing #7, Battlefield Marine #3
+       ↳ Player 1 resources Death Star Stormtrooper #4
+       ↳ Player 2 resources Alliance X-Wing #6
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 3                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 4/4   deck 6   leader ready
+      ground: Peridea Bandit 4/1
+ P2  base 26/30   hand 4   resources 4/4   deck 6   leader ready
+      space: Alliance X-Wing #5 2/3  ·  Alliance X-Wing #3 2/3
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Arrest #2 (cost 2)
+       ↳ Arrest #2 uses an ability
+       ↳ Player 1 captures Alliance X-Wing #5 with Player 1's base
+  2. Player 2 plays Battlefield Marine to ground (cost 2)
+  3. Player 1 plays Peridea Bandit #2 to ground (cost 2)
+  4. Player 2 attacks Player 1's base with Alliance X-Wing #3
+       ↳ 2 damage to Player 1's base — 28 HP left
+  5. Player 1 attacks Player 2's base with Peridea Bandit
+       ↳ 4 damage to Player 2's base — 22 HP left
+  6. Player 2 passes
+  7. Player 1 passes
+ ── regroup ──
+       ↳ Player 2 rescues Alliance X-Wing #5
+       ↳ Player 1 draws 2: Death Star Stormtrooper #5, Arrest #4
+       ↳ Player 2 draws 2: Alliance X-Wing #8, Alliance X-Wing #9
+       ↳ Player 1 resources Death Star Stormtrooper #5
+       ↳ Player 2 resources Alliance X-Wing #7
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 4                                                 initiative: Player 1 
+ P1  base 28/30   hand 3   resources 5/5   deck 4   leader ready
+      ground: Peridea Bandit 4/1  ·  Peridea Bandit #2 4/1
+ P2  base 22/30   hand 4   resources 5/5   deck 4   leader ready
+      ground: Battlefield Marine 3/3
+      space: Alliance X-Wing #3 2/3  ·  Alliance X-Wing #5 2/3
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+       ↳ *** Player 1 wins — Concession ***

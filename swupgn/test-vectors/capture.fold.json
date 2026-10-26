@@ -23,6 +23,7 @@
         "LAW#253:5"
       ],
       "baseUpgrades": [],
+      "baseCaptured": [],
       "credits": 0,
       "hasForce": false,
       "discard": [
@@ -85,6 +86,7 @@
         "SHD#238:3"
       ],
       "baseUpgrades": [],
+      "baseCaptured": [],
       "credits": 0,
       "hasForce": false,
       "discard": [

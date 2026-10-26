@@ -300,4 +300,18 @@ describe('checkKeyframes — the resource, credit, Force and attachment fields',
             .toEqual(['players.1.baseUpgrades', 'players.2.baseDefeated']);
         expect(paths([defeat, kf('R1.end', seat(1), seat(2))])).toEqual(['players.2.baseDefeated']);
     });
+
+    // Value: protects=gate on baseCaptured (set, only when stated) and its release on leaving capture; fails_when=field ungated, order-sensitive, or a rescued captive stays on the base; why_new=vectors only prove the agreeing case; seam=none; no_claim=writer output
+    it('gates baseCaptured as a set, only when the keyframe states it, and a rescue empties it', function () {
+        const arrest = (card: string, seq: string): GameEvent => ({ seq, t: 'CAPTURE', p: 1, card, by: 'base@1' });
+        const arrested = [arrest('SEC#253', 'R1.A.1a'), arrest('SOR#095', 'R1.A.2a')];
+        const rescue: GameEvent = { seq: 'R1.regroup.1a', t: 'MOVE', card: 'SEC#253', from: 'capture', to: 'discard', p: 2 };
+        const paths = (events: GameEvent[]) => checkKeyframes(events).mismatches.map((m) => m.path).sort();
+
+        expect(paths([...arrested, kf('R1.end', seat(1, { baseCaptured: ['SOR#095', 'SEC#253'] }), seat(2))])).toEqual([]);
+        // An older keyframe with no baseCaptured has nothing to compare.
+        expect(paths([...arrested, kf('R1.end', seat(1), seat(2))])).toEqual([]);
+        expect(paths([...arrested, kf('R1.end', seat(1, { baseCaptured: ['SEC#253'] }), seat(2))])).toEqual(['players.1.baseCaptured']);
+        expect(paths([...arrested, rescue, kf('R1.end', seat(1, { baseCaptured: ['SOR#095'] }), seat(2, { discard: ['SEC#253'] }))])).toEqual([]);
+    });
 });

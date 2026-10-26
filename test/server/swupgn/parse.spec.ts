@@ -1,4 +1,5 @@
 import { parse } from '../../../swupgn/src/parse';
+import { validate } from '../../../swupgn/src/validate';
 
 const SAMPLE = [
     '[Game "SWU-PGN/1.0"]',
@@ -125,6 +126,16 @@ describe('parse header numbers', function () {
         }
         const good = header('4').replace('[Rounds "4"]', '[Rounds "4"] [Undos "3"]');
         expect(parse(good).header.undos).toBe(3);
+    });
+
+    // A pilot file has no WriterRevision; a current one says which writer revision made it.
+    it('reads WriterRevision as a count, absent on a file written before the tag existed', function () {
+        expect(parse(header('4')).header.writerRevision).toBeUndefined();
+        const stamped = header('4').replace('[Rounds "4"]', '[Rounds "4"] [WriterRevision "1"]');
+        expect(parse(stamped).header.writerRevision).toBe(1);
+        expect(validate(stamped).issues).toEqual([]);
+        const zero = header('4').replace('[Rounds "4"]', '[Rounds "4"] [WriterRevision "0"]');
+        expect(validate(zero).issues.map((i) => i.message).join(' ')).toContain('WriterRevision');
     });
 
     it('does not mistake a [-prefixed record inside a JSON section for a header line', function () {
