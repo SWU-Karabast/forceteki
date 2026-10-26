@@ -45,16 +45,15 @@ describe('SwuPgnGameAdapter end-state mapping', function () {
         expect(adapter.gameEndReasonString(undefined)).toBe('Unknown');
     });
 
-    it('maps winner names to the Result enum', function () {
-        const p1 = { name: 'Player1' };
-        const result = (winnerNames: string[]) =>
-            (new SwuPgnGameAdapter(fakeGame({ players: [{ id: 'a', name: 'Player1' }, { id: 'b', name: 'Player2' }], winnerNames })) as any)
-                .swuPgnResult(p1);
+    // Value: protects=the header Result follows the recorded GAME_END, never display names; fails_when=Result compares names again (two guests are both AnonymousPlayer); why_new=replaces the name-based mapping test; seam=none; no_claim=the GAME_END winner itself (SwuPgnGameEnd.spec)
+    it('maps the recorded GAME_END winner to the Result enum', function () {
+        const adapter = new SwuPgnGameAdapter(fakeGame({ players: [{ id: 'a', name: 'AnonymousPlayer' }, { id: 'b', name: 'AnonymousPlayer' }] })) as any;
+        const result = (gameEnd: { winner: 1 | 2 | 'Draw' } | undefined) => adapter.swuPgnResult(gameEnd);
 
-        expect(result([])).toBe('Incomplete');
-        expect(result(['Player1', 'Player2'])).toBe('Draw');
-        expect(result(['Player1'])).toBe('P1');
-        expect(result(['Player2'])).toBe('P2');
+        expect(result(undefined)).toBe('Incomplete');
+        expect(result({ winner: 'Draw' })).toBe('Draw');
+        expect(result({ winner: 1 })).toBe('P1');
+        expect(result({ winner: 2 })).toBe('P2');
     });
 });
 
@@ -156,6 +155,9 @@ describe('SwuPgnGameAdapter header Date', function () {
         const created = new Date('2026-01-01T09:00:00Z');
         expect(headerFor({ startedAt: started, createdAt: created }).date).toBe(started.toISOString());
         expect(headerFor({ createdAt: created }).date).toBe(created.toISOString());
+
+        // Value: protects=Format header from game.format; fails_when=header reads gameMode (or any other field) again; why_new=no test asserted the Format header source; seam=none; no_claim=format string vocabulary
+        expect(headerFor({ createdAt: created, gameMode: 'not-the-format' }).format).toBe('premier');
     });
 
     it('omits RecorderErrors when no handler failed', function () {

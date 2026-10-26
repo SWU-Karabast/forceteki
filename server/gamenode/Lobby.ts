@@ -1621,6 +1621,7 @@ export class Lobby {
     /** Lobby methods a player's client may invoke by name. Everything else on Lobby is server-internal. */
     private static readonly allowedLobbyCommands = new Set([
         'concedeBo3',
+        'getGameLog',
         'muteChat',
         'proceedToNextBo3Game',
         'rematch',
@@ -2238,6 +2239,21 @@ export class Lobby {
     }
 
     /**
+     * True when no further game of this match can follow: always for a best-of-one, and for a
+     * best-of-three once a player has two wins or the set ended another way (concede, timeout).
+     * Read-only, unlike `isBo3SetComplete`.
+     */
+    private isMatchOver(): boolean {
+        if (this.winHistory.gamesToWinMode !== GamesToWinMode.BestOfThree) {
+            return true;
+        }
+        if (this.winHistory.setEndResult) {
+            return true;
+        }
+        return Object.values(this.countWinsPerPlayer(this.winHistory.winnerIdsInOrder)).some((wins) => wins >= 2);
+    }
+
+    /**
      * Checks if the Bo3 set is complete (a player has 2 wins).
      * If a player has won 2 games and setEndResult hasn't been set yet, it sets the WonTwoGames result.
      */
@@ -2705,14 +2721,39 @@ export class Lobby {
             return;
         }
 
-        // Only serve game files after the game has ended to prevent leaking
-        // omniscient replay snapshots (which include hidden card data) mid-game.
+        // Only the two people who played this game. A lobby outlives its game and its seats can
+        // change hands, so lobby membership alone is not enough.
+        if (!this.game.getPlayers().some((player) => player.id === socket.user.getId())) {
+            if (typeof callback === 'function') {
+                callback({ error: 'Only the players of this game can download its log' });
+            }
+            return;
+        }
+
+        // Only serve the game file after the game has ended: it carries both hands, deck
+        // order and the seed, none of which may reach a player mid-game.
         // Gate on isEnded (state-backed via winnerNames), not finishedAt: finishedAt
         // is set once and never reset, so after an undo-past-game-end the game is
         // live again while finishedAt is still truthy — isEnded correctly flips back.
         if (!this.game.isEnded) {
             if (typeof callback === 'function') {
                 callback({ error: 'Game is still in progress' });
+            }
+            return;
+        }
+
+        // The file names both players' whole decklists and sideboards, which a best-of-three
+        // keeps hidden between games, so in a set it is served only once the set is over.
+        if (!this.isMatchOver()) {
+            if (typeof callback === 'function') {
+                callback({ error: 'The game log is available when the match ends' });
+            }
+            return;
+        }
+
+        if (this.game.isSwuPgnWithheld) {
+            if (typeof callback === 'function') {
+                callback({ error: 'The game log is no longer available for this game' });
             }
             return;
         }
@@ -2733,12 +2774,15 @@ export class Lobby {
             return;
         }
 
+        // Without an acknowledgement callback nothing reaches the player, so nothing is served
+        // and the game stays open to undo.
+        if (typeof callback !== 'function') {
+            return;
+        }
+
         // Mark before replying: the file is on its way out, and the game may be reopened by
         // an undo past game end (see Game.markSwuPgnServed).
         this.game.markSwuPgnServed();
-
-        if (typeof callback === 'function') {
-            callback({ swuPgnFile });
-        }
+        callback({ swuPgnFile });
     }
 }

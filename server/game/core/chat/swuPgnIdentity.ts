@@ -34,6 +34,17 @@ export function saltedPlayerId(username: string, salt: string): string {
 }
 
 /**
+ * The startup error to log when a production server would publish fallback-scheme ids (see
+ * `saltedPlayerId`), or undefined when there is nothing to report.
+ */
+export function idSecretStartupError(env: NodeJS.ProcessEnv): string | undefined {
+    if (env.ENVIRONMENT !== 'production' || env.SWUPGN_ID_SECRET) {
+        return undefined;
+    }
+    return 'SWUPGN_ID_SECRET is not set: SWU-PGN player ids use the per-game salt fallback (see swuPgnIdentity.ts)';
+}
+
+/**
  * Opaque, stable id for the MATCH a game belongs to.
  *
  * Derived from the lobby id rather than carrying it, for the same reason player names are

@@ -5,6 +5,7 @@ import { logger } from '../../../logger';
 import type { AbilityKind, DefeatReason, Header, GameEvent, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
 import { anonymizedMatchId, saltedPlayerId, anonymizePlayerLabel } from './swuPgnIdentity';
 import { isTopLevelActionRecord } from '../../../../swupgn/src/actionLinks';
+import { isArena } from '../../../../swupgn/src/fold';
 
 export interface HeaderContext {
     gameId: string;
@@ -65,7 +66,7 @@ export function buildHeader(ctx: HeaderContext): Header {
 
 /**
  * Maps engine identities to the stable, anonymized identifiers used by SWU-PGN/1.0.
- * The Game-side implementation (Task 10) owns copy-suffix logic and the omniscient
+ * The Game-side implementation (SwuPgnGameAdapter) owns copy-suffix logic and the omniscient
  * keyframe/deck-order projections; the recorder only needs uuid->id and playerId->seat.
  *
  * `reducedState`/`deckOrder` are the omniscient projections required to emit round
@@ -141,7 +142,7 @@ export function cardKind(card: any): 'unit' | 'upgrade' | undefined {
  * caught, counted into `RecorderErrors`, and its whole record is dropped -- so one unguarded
  * read costs the file an event AND tells every reader the file is under-recorded.
  */
-function readOr<T>(get: () => T, fallback: T): T {
+export function readOr<T>(get: () => T, fallback: T): T {
     try {
         const v = get();
         return v === undefined ? fallback : v;
@@ -150,17 +151,6 @@ function readOr<T>(get: () => T, fallback: T): T {
     }
 }
 
-/**
- * The engine's defeat causes, mapped to the format's CLOSED `DEFEAT.reason` set (spec §6.4).
- *
- * Typed as `Record<DefeatSourceType, DefeatReason>` on purpose: the two vocabularies are
- * maintained separately -- the engine's in `IDamageOrDefeatSource.ts`, the format's in the
- * spec, the schema enum and `swupgn/src/types.ts` -- and a plain `source.type` passthrough let
- * a NEW engine cause widen into the file silently, producing a value no schema or reader knew.
- * This map makes the compiler name the day that happens, at the one line that bridges them.
- *
- * A source the engine did not supply at all falls through to `unknown` at the call site.
- */
 /**
  * The engine's ability types, mapped to the format's `ABILITY_ACTIVATE.kind` vocabulary.
  *
@@ -185,6 +175,17 @@ const ABILITY_KIND_OF: Record<AbilityType, AbilityKind> = {
     [AbilityType.DelayedEffect]: 'delayed',
 };
 
+/**
+ * The engine's defeat causes, mapped to the format's CLOSED `DEFEAT.reason` set (spec §6.4).
+ *
+ * Typed as `Record<DefeatSourceType, DefeatReason>` on purpose: the two vocabularies are
+ * maintained separately -- the engine's in `IDamageOrDefeatSource.ts`, the format's in the
+ * spec, the schema enum and `swupgn/src/types.ts` -- and a plain `source.type` passthrough let
+ * a NEW engine cause widen into the file silently, producing a value no schema or reader knew.
+ * This map makes the compiler name the day that happens, at the one line that bridges them.
+ *
+ * A source the engine did not supply at all falls through to `unknown` at the call site.
+ */
 const DEFEAT_REASON_OF: Record<DefeatSourceType, DefeatReason> = {
     [DefeatSourceType.Attack]: 'attack',
     [DefeatSourceType.Ability]: 'ability',
@@ -193,8 +194,6 @@ const DEFEAT_REASON_OF: Record<DefeatSourceType, DefeatReason> = {
     [DefeatSourceType.FrameworkEffect]: 'frameworkEffect',
 };
 
-/** Spec §6.2 arena zones -- the destinations a reader turns into arena membership. */
-const ARENA_ZONE_NAMES = new Set(['ground', 'space']);
 
 /** What a `STATS` record and a keyframe card both state about an in-play unit. */
 export interface LiveStats {
@@ -408,7 +407,7 @@ export class SwuPgnRecorder {
 
     /**
      * Record the `%%% SETUP` INIT entry: the post-shuffle initial deck order for both players.
-     * Sourced from the omniscient `resolver.deckOrder()` projection (Task 10). No-op when the
+     * Sourced from the omniscient `resolver.deckOrder()` projection (SwuPgnGameAdapter). No-op when the
      * resolver does not provide deckOrder (e.g. unit fakes built with just `{ cardId, seat }`).
      */
     public recordInit(): void {
@@ -430,6 +429,11 @@ export class SwuPgnRecorder {
 
     public addGameEndRecord(winner: Seat | 'Draw', reason: string): void {
         try {
+            this.recordDamageBaseDefeats();
+        } catch (error) {
+            this.logError('recordDamageBaseDefeats', error);
+        }
+        try {
             // Spec §9.1: GAME_END takes the `.game-end` step of the phase it happened in. A
             // concession or disconnect can land in setup or regroup, not only the action phase,
             // and the step is its own so it never shares a seq with that phase's PHASE_END
@@ -443,6 +447,82 @@ export class SwuPgnRecorder {
         } catch (error) {
             this.logError('addGameEndRecord', error);
         }
+    }
+
+    /**
+     * A base whose damage reached its HP is defeated by the game rules, which raise no event of
+     * their own: the game just ends. Write its `DEFEAT` so every defeated base has one -- an
+     * ability's outright defeat (OnBaseDefeated) already does -- and a reader has a single
+     * signal for "this base fell" whatever caused it. The reason and the culprit are the last
+     * hit the base took: combat or Overwhelm is the attacker's, an ability's damage is
+     * non-combat, and damage no card dealt (drawing from an empty deck) is the rules'.
+     */
+    private recordDamageBaseDefeats(onlyRef?: string): void {
+        for (const player of this.game.getPlayers?.() ?? []) {
+            const base = player?.base;
+            if (!base || !((base.damage ?? 0) >= (base.getHp?.() ?? Infinity))) {
+                continue;
+            }
+            const ref = this.targetRef(base);
+            if (onlyRef != null && ref !== onlyRef) {
+                continue;
+            }
+            if (this.events.some((e) => e.t === 'DEFEAT' && e.card === ref)) {
+                continue;
+            }
+            let reason: DefeatReason = 'unknown';
+            let defeatedBy: string | undefined;
+            for (let i = this.events.length - 1; i >= 0; i--) {
+                const e = this.events[i];
+                if (e.t === 'OVERWHELM' && e.tgt === ref) {
+                    reason = 'attack';
+                    defeatedBy = this.attackerBefore(i);
+                    break;
+                }
+                if (e.t === 'DAMAGE' && e.tgt === ref) {
+                    reason = e.src == null ? 'frameworkEffect' : e.damageType === 'combat' ? 'attack' : 'nonCombatDamage';
+                    defeatedBy = e.src;
+                    break;
+                }
+            }
+            this.push({
+                seq: this.nextSeq(false),
+                t: 'DEFEAT',
+                card: ref,
+                reason,
+                ...(defeatedBy ? { defeatedBy } : {}),
+            });
+        }
+    }
+
+    /**
+     * The hit just recorded took a base to 0: write its DEFEAT now, beside the hit. Game end is
+     * not enough on its own -- once a game has ended the players may continue playing, and the
+     * engine then skips its end-of-game path entirely, so the second base to fall would get no
+     * DEFEAT while the next keyframe reported it defeated.
+     */
+    private recordLethalBaseHit(card: any): void {
+        // Only the base this hit landed on: one effect can damage both bases, and the other's own
+        // hit is not recorded yet, so sweeping both here would blame it on nothing.
+        if (readOr(() => card?.isBase?.() === true && (card.remainingHp ?? 1) <= 0, false)) {
+            this.recordDamageBaseDefeats(this.targetRef(card));
+        }
+    }
+
+    /** True once a DEFEAT for `seat`'s base has been recorded (and not undone). */
+    public hasRecordedBaseDefeat(seat: Seat): boolean {
+        return this.events.some((e) => e.t === 'DEFEAT' && e.card === `base@${seat}`);
+    }
+
+    /** The attacker of the `ATTACK` an event at `index` belongs to, if one is found before it. */
+    private attackerBefore(index: number): string | undefined {
+        for (let i = index - 1; i >= 0; i--) {
+            const e = this.events[i];
+            if (e.t === 'ATTACK') {
+                return e.atk;
+            }
+        }
+        return undefined;
     }
 
     /**
@@ -567,20 +647,14 @@ export class SwuPgnRecorder {
                 tokenParents: [...this.tokenParents.entries()],
                 lastStats: [...this.lastStats.entries()],
             });
-            // The engine retains only a handful of snapshots (SnapshotManager keeps 3 action + 2
-            // phase), so a checkpoint older than that can never be rolled back to. Without a
-            // cap every game holds one entry, with a copy of tokenParents, per snapshot ever
-            // taken, for the life of the game.
-            if (this.checkpoints.length > SwuPgnRecorder.maxCheckpoints) {
-                this.checkpoints.splice(0, this.checkpoints.length - SwuPgnRecorder.maxCheckpoints);
-            }
+            // Not capped. The engine keeps its phase snapshots per phase name, and the setup
+            // phase only happens once, so a rollback can reach any checkpoint in the game. A cap
+            // dropped the one a deep undo needed: `rollbackTo` then truncated at a later boundary
+            // and left the undone records in the file.
         } catch (error) {
             this.logError('checkpoint', error);
         }
     }
-
-    /** Comfortably above the engine's own snapshot retention; see `checkpoint`. */
-    private static readonly maxCheckpoints = 32;
 
     // ── Internals ─────────────────────────────────────────────────────────────
 
@@ -679,9 +753,20 @@ export class SwuPgnRecorder {
         return this.idOf(target);
     }
 
-    /** See `attachedHost`. Null when the parent can't be resolved, so callers skip the record. */
-    private parentOf(upgrade: any): any {
-        return attachedHost(upgrade);
+    /**
+     * What CAUSED a damage, heal or defeat: `base@N` for a base, a card id for a card, and
+     * undefined when the cause is no card at all. The rules themselves deal damage -- drawing
+     * from an empty deck -- through the engine's framework effect source, which is not a card;
+     * naming it by `idOf` wrote its display string as an id ("Framework effect", then
+     * "Framework effect:2") that no `%%% CARDS` entry or card database resolves.
+     */
+    private sourceRef(source: any): string | undefined {
+        const isCard = readOr(() => source?.setId != null || source?.isToken?.() === true || source?.isBase?.() === true, false);
+        if (!isCard) {
+            return undefined;
+        }
+        const ref = this.targetRef(source);
+        return ref === 'unknown' ? undefined : ref;
     }
 
     /**
@@ -752,21 +837,24 @@ export class SwuPgnRecorder {
      * so looking only at the immediately preceding event -- all the token path needed -- misses
      * it; PLAY_UPGRADE additionally reads its host directly at emission time.)
      */
-    private backfillAttachedTo(upgradeId: string, hostId: string): void {
+    private backfillAttachedTo(upgradeId: string, hostId: string): boolean {
+        let named = false;
         for (let i = this.events.length - 1; i >= 0; i--) {
             const e = this.events[i];
             if (!this.inCurrentAction(e.seq)) {
-                return;
+                return named;
             }
             if (e.t === 'MOVE' && e.card === upgradeId) {
-                // Only the arena-bound MOVE enacts the attachment. Spec §10.1 makes `attachedTo`
-                // REQUIRED on that record and absent otherwise; a same-action draw of the pilot
-                // into hand used to be stamped with a host it was not attached to yet.
-                if (ARENA_ZONE_NAMES.has(e.to)) {
+                // Only the MOVE that lands the card where its host is enacts the attachment: into
+                // an arena for a unit host, into `base` for a base host (Fortify). Spec §10.1 makes
+                // `attachedTo` REQUIRED on that record and absent otherwise; a same-action draw of
+                // the pilot into hand used to be stamped with a host it was not attached to yet.
+                if (isArena(e.to) || (e.to === 'base' && hostId.startsWith('base@'))) {
                     if (e.attachedTo == null) {
                         e.attachedTo = hostId;
                     }
                     e.kind = 'upgrade';
+                    named = true;
                 }
             } else if (e.t === 'PLAY_UPGRADE' && e.card === upgradeId && e.target == null) {
                 e.target = hostId;
@@ -774,8 +862,46 @@ export class SwuPgnRecorder {
                 // A leader deployed as a pilot: the deploy is an attachment, not a body.
                 e.target = hostId;
                 e.kind = 'upgrade';
+                named = true;
             }
         }
+        return named;
+    }
+
+    private hasMoveInCurrentAction(cardId: string): boolean {
+        for (let i = this.events.length - 1; i >= 0; i--) {
+            const e = this.events[i];
+            if (!this.inCurrentAction(e.seq)) {
+                return false;
+            }
+            if (e.t === 'MOVE' && e.card === cardId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * An attachment that changed while the card stayed in its arena: an upgrade moved to another
+     * host there, or a pilot ejected from a ground vehicle. The engine moves no card between zones
+     * for either, so no MOVE exists to carry the change. A MOVE whose `from` and `to` are the same
+     * arena says it, and the fold rebinds the card exactly as for any other arena move.
+     */
+    private recordInPlaceAttachment(card: any, kind: 'unit' | 'upgrade', hostId?: string): void {
+        const zone = this.normalizeZone(card?.zoneName);
+        if (!isArena(zone)) {
+            return;
+        }
+        this.push({
+            seq: this.nextSeq(false),
+            t: 'MOVE',
+            card: this.idOf(card),
+            from: zone,
+            to: zone,
+            p: this.seatOf(card?.controller ?? card?.owner),
+            kind,
+            ...(hostId ? { attachedTo: hostId } : {}),
+        });
     }
 
     /**
@@ -926,7 +1052,7 @@ export class SwuPgnRecorder {
         this.phaseEventCounter = 0;
         this.actionCounter = 0;
         this.subEventCounter = 0;
-        // Emit a full ReducedState keyframe when the resolver can project one (Task 10). The
+        // Emit a full ReducedState keyframe when the resolver can project one (SwuPgnGameAdapter). The
         // 1.1 reader uses it both as a fast-forward anchor and as an integrity checkpoint
         // (checkKeyframes folds forward and asserts the running fold equals each keyframe).
         // Absent a resolver projection, ROUND_START stays valid without a keyframe.
@@ -1071,12 +1197,15 @@ export class SwuPgnRecorder {
      * (rate-limited) and its record skipped, and gameplay never sees the exception. Every
      * event, handled or not, is followed by a stats sync (see syncStats).
      */
-    private on(name: EventName, fn: (event: any) => void): void {
+    private on(name: EventName, fn: (event: any) => void, { syncAfter = true }: { syncAfter?: boolean } = {}): void {
         this.game.on(name, (event: any) => {
             try {
                 fn(event);
             } catch (error) {
                 this.logError(name, error);
+            }
+            if (!syncAfter) {
+                return;
             }
             try {
                 this.syncStats();
@@ -1089,12 +1218,6 @@ export class SwuPgnRecorder {
     // ── Listener registration ──────────────────────────────────────────────────
 
     private registerListeners(): void {
-        // Structural events. OnBeginRound does not reach .on() listeners; round tracking
-        // is driven by syncRound() from OnPhaseStarted. Kept for correctness if fixed.
-        this.on(EventName.OnBeginRound, () => {
-            this.syncRound();
-        });
-
         this.on(EventName.OnRoundEnded, () => {
             // ROUND_END carries a keyframe too. Now that keyframes are complete and
             // trustworthy, an end-of-round snapshot is the cheapest place to catch a round's
@@ -1163,7 +1286,7 @@ export class SwuPgnRecorder {
             // Without it the fold has nowhere to put the card and the upgrade disappears from
             // the replay entirely. (backfillAttachedTo covers the reverse order, where the
             // attach lands after the play.)
-            const host = t === 'PLAY_UPGRADE' ? this.parentOf(card) : null;
+            const host = t === 'PLAY_UPGRADE' ? attachedHost(card) : null;
             const seq = this.nextSeq(true);
             const playRecord: GameEvent = {
                 seq,
@@ -1171,7 +1294,7 @@ export class SwuPgnRecorder {
                 p: this.seatOf(player),
                 card: this.idOf(card),
                 zone: this.normalizeZone(card?.zoneName),
-                target: host ? this.idOf(host) : undefined,
+                target: host ? this.targetRef(host) : undefined,
                 // PRINTED cost (spec §10.1). The resources actually paid -- after aspect
                 // penalties, discounts and Exploit -- are resolved inside the engine's cost
                 // payment and never reach this event; `costs` here is targeted-adjuster
@@ -1189,7 +1312,7 @@ export class SwuPgnRecorder {
             // body in the arena. Without `kind`/`target` the fold placed it as its own unit
             // that no keyframe agreed with.
             const host = event?.type === DeployType.LeaderUpgrade
-                ? (event?.leaderAttachTarget ?? this.parentOf(card))
+                ? (event?.leaderAttachTarget ?? attachedHost(card))
                 : null;
             if (host) {
                 // The leader's base->arena MOVE was emitted a moment ago, under the previous
@@ -1198,7 +1321,21 @@ export class SwuPgnRecorder {
                 // longer reach that MOVE; correct it now, while it is still "the current action".
                 this.backfillAttachedTo(this.idOf(card), this.idOf(host));
             }
-            const seq = this.nextSeq(true);
+            // Deploying is the player's action -- but when the leader's own Epic Action (or Action)
+            // ability performed it, that ability already took this action's number, and a second
+            // number would make one deploy read as two actions. File it under the ability then.
+            const current = this.buildSeq(true);
+            // Walk back over the current action only: its own record is the one being looked for.
+            let deployedBy: GameEvent | undefined;
+            for (let i = this.events.length - 1; i >= 0 && this.inCurrentAction(this.events[i].seq); i--) {
+                if (this.events[i].seq === current) {
+                    deployedBy = this.events[i];
+                    break;
+                }
+            }
+            const byOwnAbility = deployedBy?.t === 'ABILITY_ACTIVATE' && deployedBy.card === this.idOf(card) &&
+              (deployedBy.kind === 'epic' || deployedBy.kind === 'action');
+            const seq = this.nextSeq(!byOwnAbility);
             // Which ability deployed it matters to the rules: an Epic Action is spent for the game
             // (CR 1.16 lists that as game state), an Action ability is not.
             const epic = event?.context?.ability?.isEpicAction === true;
@@ -1261,10 +1398,23 @@ export class SwuPgnRecorder {
             });
         });
 
-        this.on(EventName.OnPassActionPhasePriority, (event: any) => {
+        // The turn passing to the opponent. It follows EVERY action, so it is not a PASS -- a
+        // PASS record used to be written here, and every play and attack read as "...then
+        // passed". What it is good for is settling the action that just ended: an effect one
+        // step removed from its event (a Fortify upgrade grants its base an ability, and THAT
+        // ability buffs units) is applied after the action's last event, so the after-every-
+        // event sync would only see it under the next action. The engine state holds it here.
+        this.on(EventName.OnPassActionPhasePriority, () => {
+            this.syncStats();
+        }, { syncAfter: false });
+
+        // A player took the Pass action (ActionWindow.pass). Claiming a counter also ends the
+        // player's turn but is its own CLAIM_INITIATIVE action and emits nothing here.
+        this.on(EventName.OnPassAction, (event: any) => {
+            this.syncStats();
             const seq = this.nextSeq(true);
             this.push({ seq, t: 'PASS', p: this.seatOf(event?.player) });
-        });
+        }, { syncAfter: false });
 
         this.on(EventName.OnClaimInitiative, (event: any) => {
             const seq = this.nextSeq(true);
@@ -1276,8 +1426,10 @@ export class SwuPgnRecorder {
         this.on(EventName.OnDamageDealt, (event: any) => {
             const card = event?.card;
             let source: any = null;
-            if (event?.damageSource?.attack?.attacker) {
-                source = event.damageSource.attack.attacker;
+            if (event?.damageSource?.attack) {
+                // `damageDealtBy` names the unit that dealt this damage: the defender's
+                // return damage is dealt by the defender, not by the attack's attacker.
+                source = event.damageSource.damageDealtBy?.[0] ?? event.damageSource.attack.attacker;
             } else if (event?.context?.source) {
                 source = event.context.source;
             }
@@ -1300,18 +1452,21 @@ export class SwuPgnRecorder {
                     amt,
                     hp: card?.remainingHp ?? 0,
                 });
+                this.recordLethalBaseHit(card);
                 return;
             }
 
+            const src = this.sourceRef(source);
             this.push({
                 seq,
                 t: 'DAMAGE',
-                src: this.idOf(source),
+                ...(src ? { src } : {}),
                 tgt: this.targetRef(card),
                 amt,
                 damageType,
                 hp: card?.remainingHp ?? 0,
             });
+            this.recordLethalBaseHit(card);
         });
 
         this.on(EventName.OnDamageHealed, (event: any) => {
@@ -1321,15 +1476,30 @@ export class SwuPgnRecorder {
             // -- a heal has no attack to recover the source from the way OVERWHELM does.
             // Heals are always ability-driven (HealSystem has no combat path), so the ability's
             // own source card is the answer; omitted when it can't be resolved.
-            const src = this.idOf(event?.context?.source);
+            const src = this.sourceRef(event?.context?.source);
             const seq = this.nextSeq(false);
             this.push({
                 seq,
                 t: 'HEAL',
-                ...(src !== 'unknown' ? { src } : {}),
+                ...(src ? { src } : {}),
                 tgt: this.targetRef(card),
                 amt: event?.damageHealed ?? event?.amount ?? 0,
                 hp: card?.remainingHp ?? 0,
+            });
+        });
+
+        // A base defeated OUTRIGHT by an ability ("You may defeat a base with 10 or less remaining
+        // HP" -- Grand Moff Tarkin, Tyrant of the Outer Rim). No damage is dealt, so the base's
+        // HP is not zero and nothing else in the file says it fell: the game would simply end
+        // with a base still standing. `base@N` is the card, like every reference to a base.
+        this.on(EventName.OnBaseDefeated, (event: any) => {
+            const defeatedBy = this.sourceRef(event?.context?.source);
+            this.push({
+                seq: this.nextSeq(false),
+                t: 'DEFEAT',
+                card: this.targetRef(event?.card),
+                reason: 'ability',
+                ...(defeatedBy ? { defeatedBy } : {}),
             });
         });
 
@@ -1351,7 +1521,7 @@ export class SwuPgnRecorder {
             if (removedKind) {
                 // Prefer the parent remembered at attach time (the upgrade is already unattached
                 // by now); fall back to a live lookup if it wasn't recorded.
-                const parent = removed?.parent ?? this.parentOf(card);
+                const parent = removed?.parent ?? attachedHost(card);
                 if (parent) {
                     this.push(this.tokenRecord(this.nextSeq(false), removedKind, this.idOf(parent), -1));
                 }
@@ -1371,11 +1541,11 @@ export class SwuPgnRecorder {
             const reason: DefeatReason = DEFEAT_REASON_OF[defeatSource?.type] ?? 'unknown';
             let defeatedBy: any = null;
             if (defeatSource?.type === DefeatSourceType.Attack) {
-                defeatedBy = defeatSource?.attack?.attacker;
+                defeatedBy = defeatSource?.damageDealtBy?.[0] ?? defeatSource?.attack?.attacker;
             } else {
                 defeatedBy = defeatSource?.card;
             }
-            const defeatedById = this.idOf(defeatedBy);
+            const defeatedById = this.sourceRef(defeatedBy) ?? 'unknown';
             const seq = this.nextSeq(false);
             this.push({
                 seq,
@@ -1465,14 +1635,8 @@ export class SwuPgnRecorder {
 
             // A Leader Unit that was defeated comes home to the base zone EXHAUSTED (CR 3.4.5),
             // by direct assignment in the engine, so the move is the only place to say so.
-            if (to === 'base' && ARENA_ZONE_NAMES.has(from) && card?.isLeader?.()) {
-                let exhausted = false;
-                try {
-                    exhausted = card.exhausted === true;
-                } catch {
-                    exhausted = false;
-                }
-                if (exhausted) {
+            if (to === 'base' && isArena(from) && card?.isLeader?.()) {
+                if (readOr(() => card.exhausted === true, false)) {
                     this.push({ seq: this.nextSeq(false), t: 'EXHAUST', card: this.idOf(card) });
                 }
             }
@@ -1492,8 +1656,9 @@ export class SwuPgnRecorder {
 
         // SHIELD_GAIN: no dedicated event. A Shield is given by generating a Shield token-upgrade
         // (GiveShieldSystem → OnTokensCreated) and then attaching it (contingent OnUpgradeAttached).
-        // We emit SHIELD_GAIN only when the attached upgrade isShield(); other upgrade attachments
-        // are not board-mutation gap events handled in this task. Recorded against the parent unit;
+        // We emit SHIELD_GAIN only when the attached upgrade isShield(); printed upgrades get no
+        // token record but have their host back-filled onto the MOVE/PLAY_UPGRADE (see the
+        // `!kind` branch). Recorded against the parent unit;
         // the 1.1 reducer increments shields by `count` (default 1).
         //
         // EXPERIENCE_GAIN and STATUS_TOKEN ride the same OnUpgradeAttached event because, like
@@ -1510,7 +1675,7 @@ export class SwuPgnRecorder {
         // fold); they only get their host named.
         this.on(EventName.OnUpgradeAttached, (event: any) => {
             const upgrade = event?.upgradeCard;
-            const parent = event?.parentCard ?? this.parentOf(upgrade);
+            const parent = event?.parentCard ?? attachedHost(upgrade);
             if (!parent) {
                 return;
             }
@@ -1521,7 +1686,9 @@ export class SwuPgnRecorder {
                 // `kind: 'upgrade'` correctly keeps it out of the arena, so without a host
                 // there is nothing to attach it to and it folds to nowhere at all: the player
                 // plays an upgrade and the replay shows nothing happening.
-                this.backfillAttachedTo(this.idOf(upgrade), this.idOf(parent));
+                if (!this.backfillAttachedTo(this.idOf(upgrade), this.targetRef(parent))) {
+                    this.recordInPlaceAttachment(upgrade, 'upgrade', this.targetRef(parent));
+                }
                 return;
             }
             // Remember the host for the matching removal record: by the time the token is
@@ -1532,8 +1699,19 @@ export class SwuPgnRecorder {
             // The engine moves the token into play BEFORE attaching it, so its entry MOVE was
             // emitted while the host was still unknown. Name the host on it now, so a reader
             // never has to infer the binding from event adjacency.
-            this.backfillAttachedTo(this.idOf(upgrade), this.idOf(parent));
+            this.backfillAttachedTo(this.idOf(upgrade), this.targetRef(parent));
             this.push(this.tokenRecord(this.nextSeq(false), kind, this.idOf(parent), 1));
+        });
+
+        // A pilot ejected from a vehicle becomes a unit. From a space vehicle that is a
+        // space -> ground MOVE, already written; from a ground vehicle the card never changes
+        // zone and nothing else says it left its host.
+        this.on(EventName.OnUpgradeUnattached, (event: any) => {
+            const card = event?.upgradeCard ?? event?.card;
+            if (cardKind(card) !== 'unit' || this.hasMoveInCurrentAction(this.idOf(card))) {
+                return;
+            }
+            this.recordInPlaceAttachment(card, 'unit');
         });
 
         // A unit's ready/exhausted flag on ENTERING play is set by the engine directly
@@ -1609,7 +1787,9 @@ export class SwuPgnRecorder {
         this.on(EventName.OnCardsDrawn, (event: any) => {
             const player = event?.player;
             const cards: any[] = event?.cards ?? [];
-            const count: number = event?.amount ?? cards.length ?? 0;
+            // Cards actually drawn, not the number asked for: drawing 2 from a deck of 1 draws 1
+            // (the missing draw deals damage instead, recorded as its own DAMAGE).
+            const count: number = cards.length;
             const cardIds = cards.map((c: any) => this.idOf(c)).filter((id: string) => id !== 'unknown');
             const seq = this.nextSeq(false);
             this.push({ seq, t: 'DRAW', p: this.seatOf(player), count, cards: cardIds });
@@ -1764,6 +1944,15 @@ export class SwuPgnRecorder {
             const ability = event?.ability?.abilityIdentifier;
             const kind = this.abilityKind(event?.ability);
             const title = readOr(() => event?.ability?.getTitle?.(), undefined);
+            // The card whose text GAVE `card` this ability: a Fortify upgrade's "Attached base
+            // gains: ...", an upgrade's "Attached unit gains: ...". `card` alone says a base used
+            // an ability its printed text does not have, and the engine's `ability` identifier
+            // that happens to spell the source out is not a promise this format makes.
+            const grantedBy = readOr<string | undefined>(() => {
+                const gained = event?.ability;
+                const source = gained?.isCardAbility?.() && !gained.printedAbility ? gained.gainAbilitySource : null;
+                return source == null || source === card ? undefined : this.sourceRef(source);
+            }, undefined);
 
             // Drop a just-recorded paired TRIGGER for the same card; this single record subsumes
             // it.
@@ -1801,6 +1990,7 @@ export class SwuPgnRecorder {
                 ...(kind ? { kind } : {}),
                 ...(typeof title === 'string' && title !== '' ? { title } : {}),
                 ...(kind === 'epic' ? { epic: true } : {}),
+                ...(grantedBy ? { grantedBy } : {}),
             });
         });
 
@@ -1836,10 +2026,12 @@ export class SwuPgnRecorder {
         //
         // There is no pre-existing engine event carrying a player's prompt selection: prompt
         // results are known only inside the prompt's menuCommand handler (UiPrompt subclasses).
-        // Per design §4.2, CHOICE/MODAL_CHOICE are "sourced from the prompt the engine already
-        // built", so we added two minimal engine-side emits at the prompt-completion sites that
-        // already know both the option menu and the chosen option (see MulliganPrompt and
-        // HandlerMenuPrompt). The recorder only listens; gameplay logic is untouched.
+        // CHOICE/MODAL_CHOICE (spec §10.2) are "sourced from the prompt the engine already
+        // built", so we added minimal engine-side emits at the prompt-completion sites that
+        // already know both the option menu and the chosen option: MulliganPrompt (MULLIGAN /
+        // KEEP_HAND), HandlerMenuPrompt and ActionSelectionPrompt (MODAL_CHOICE), SelectCardPrompt
+        // (CHOICE), and ActionWindow.pass (PASS). The `recorder-only` entries in EventName are the
+        // index. The recorder only listens; gameplay logic is untouched.
 
         // MULLIGAN / KEEP_HAND: emitted by MulliganPrompt.menuCommand when a player resolves their
         // mulligan decision (mulligan === true → MULLIGAN, otherwise → KEEP_HAND). Pure log.
@@ -1851,7 +2043,7 @@ export class SwuPgnRecorder {
             });
         });
 
-        // MODAL_CHOICE: emitted by HandlerMenuPrompt.menuCommand — the engine's general menu/button
+        // MODAL_CHOICE: emitted by HandlerMenuPrompt.menuCommand and ActionSelectionPrompt — the engine's menu/button
         // prompt with a fixed list of options. We classify menu/button prompts as MODAL_CHOICE
         // (fixed option list) and reserve CHOICE for free card-selection prompts; HandlerMenuPrompt
         // is the menu/button case, so it maps to MODAL_CHOICE. `offered` is the human-readable

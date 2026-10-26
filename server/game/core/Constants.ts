@@ -309,7 +309,7 @@ export enum EventName {
     OnCardResourced = 'onCardResourced',
     OnCardReturnedToHand = 'onCardReturnedToHand',
     OnCardRevealed = 'onCardRevealed',
-    OnCardSelection = 'onCardSelection', // recorder-only (SWU-PGN §4.2) — do NOT remove; consumed by SwuPgnRecorder
+    OnCardSelection = 'onCardSelection', // recorder-only (SWU-PGN §10.2) — do NOT remove; consumed by SwuPgnRecorder
     OnCardDiscarded = 'onCardDiscarded',
     OnCardsDiscardedFromHand = 'onCardsDiscardedFromHand',
     OnCardsDrawn = 'onCardsDrawn',
@@ -334,8 +334,9 @@ export enum EventName {
     OnLeaderFlipped = 'onLeaderFlipped',
     OnLookAtCard = 'onLookAtCard',
     OnLookMoveDeckCardsTopOrBottom = 'onLookMoveDeckCardsTopOrBottom',
-    OnModalChoice = 'onModalChoice', // recorder-only (SWU-PGN §4.2) — do NOT remove; consumed by SwuPgnRecorder
-    OnMulliganDecision = 'onMulliganDecision', // recorder-only (SWU-PGN §4.2) — do NOT remove; consumed by SwuPgnRecorder
+    OnModalChoice = 'onModalChoice', // recorder-only (SWU-PGN §10.2) — do NOT remove; consumed by SwuPgnRecorder
+    OnPassAction = 'onPassAction', // recorder-only (SWU-PGN PASS) — a player took the Pass action; do NOT remove
+    OnMulliganDecision = 'onMulliganDecision', // recorder-only (SWU-PGN §10.2) — do NOT remove; consumed by SwuPgnRecorder
     OnPassActionPhasePriority = 'onPassActionPhasePriority',
     OnPhaseEnded = 'onPhaseEnded',
     OnPhaseEndedCleanup = 'onPhaseEndedCleanup',

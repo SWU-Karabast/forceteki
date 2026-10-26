@@ -163,7 +163,7 @@ export class SelectCardPrompt extends UiPrompt {
         this.choosingPlayer.opponent.setSelectableCards([]);
     }
 
-    /** Candidates most recently shown to the choosing player; pure logging state (SWU-PGN §4.2). */
+    /** Candidates most recently shown to the choosing player; pure logging state (SWU-PGN §10.2). */
     private lastOfferedCards: Card[] = [];
 
     public override activeCondition(player) {
@@ -279,17 +279,15 @@ export class SelectCardPrompt extends UiPrompt {
     }
 
     /**
-     * Pure-log SWU-PGN/1.0 hook (§4.2 CHOICE): surface a resolved card-selection prompt for the
+     * Pure-log SWU-PGN/1.0 hook (§10.2 CHOICE): surface a resolved card-selection prompt for the
      * recorder — the offered candidate cards and the single card chosen. Only single-card
      * selections are emitted; the 1.1 CHOICE record models one pick, so multi/zero-select prompts
      * are skipped. Fully wrapped: recording instrumentation must never affect gameplay.
      */
     private emitCardSelection() {
         try {
-            // Administrative/system prompts opt out via pgnLog:false (parity with HandlerMenuPrompt's
-            // MODAL_CHOICE gate). Only single-card selections are recorded — see the recorder's CHOICE
-            // handler, which models one pick.
-            if (this.properties.pgnLog === false || this.selectedCards.length !== 1) {
+            // Only single-card selections are recorded: the recorder's CHOICE models one pick.
+            if (this.selectedCards.length !== 1) {
                 return;
             }
             this.game.emit(EventName.OnCardSelection, {

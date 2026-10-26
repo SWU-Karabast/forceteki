@@ -454,6 +454,7 @@ export class Game extends EventEmitter {
     private _cachedSwuPgnFile?: string;
     private _swuPgnFileServed = false;
     private _swuPgnServedThenReopened = false;
+    private _swuPgnGenerationFailed = false;
 
     // #endregion
 
@@ -674,14 +675,15 @@ export class Game extends EventEmitter {
      */
     public getCachedSwuPgn(): string {
         if (this._swuPgnServedThenReopened) {
-            // The served file carries both players' post-shuffle deck order and the RNG seed.
-            // Once an undo has reopened a game whose file is already in a player's hands, that
-            // file is live intel about the deck still being played from, so stop handing out
-            // more of it. See `swuPgnFileServed`.
+            // Defensive; see postRollbackOperations.
             throw new Error('SWU-PGN log withheld: this game was reopened after its log was served');
         }
         if (this._cachedSwuPgnFile != null) {
             return this._cachedSwuPgnFile;
+        }
+        if (this.isEnded && this._swuPgnGenerationFailed) {
+            // Generation is deterministic: retrying it on every request only repeats the failure.
+            throw new Error('SWU-PGN log generation failed at game end');
         }
         const file = this._swuPgnAdapter.generateFile();
         if (this.isEnded) {
@@ -1043,6 +1045,7 @@ export class Game extends EventEmitter {
             // would be lost. The arrays are bounded by game length and are freed
             // when the lobby tears down the Game object.
         } catch (e) {
+            this._swuPgnGenerationFailed = true;
             logger.error(`Error caching game log at end of game: ${e}`);
         }
 
@@ -2039,14 +2042,9 @@ export class Game extends EventEmitter {
 
         const player = this.getPlayerById(playerId);
 
-        // Once the SWU-PGN log has been served, the game is closed to undo. The file carries
-        // both players' remaining deck order, hands and the RNG seed; in a free-undo lobby a
-        // player could concede, download it, undo past game end and resume play holding all
-        // of that. Whether a given rollback would cross game end is only known after it runs
-        // (SnapshotManager.rolledPastGameEnd), so every rollback of an ended, served game is
-        // refused rather than just the ones that reopen it.
-        if (this.isEnded && this._swuPgnFileServed) {
-            this.addAlert(AlertType.Warning, '{0} cannot undo: the game log has already been downloaded', player);
+        // Refused here, before any confirmation prompt is queued; rollbackToSnapshotInternal
+        // checks again for the paths that do not come through this method.
+        if (this.refuseUndoAfterLogServed(playerId)) {
             return false;
         }
 
@@ -2168,7 +2166,9 @@ export class Game extends EventEmitter {
             activePromptTitle: `You can no longer pay the cost for ${context.source.title}`,
             waitingPromptTitle: 'Waiting for opponent to recover from being unable to pay a cost',
             choices,
-            handlers
+            handlers,
+            // Undo housekeeping, not a game decision: keep it out of the SWU-PGN log.
+            pgnLog: false
         });
     }
 
@@ -2234,6 +2234,12 @@ export class Game extends EventEmitter {
 
     private rollbackToSnapshotInternal(settings: IGetSnapshotSettings, rollbackHandler: (() => any) | null = null, undoingPlayerId?: string): boolean {
         if (!this.isUndoEnabled) {
+            return false;
+        }
+
+        // Every rollback runs through here, including one confirmed after it was requested and
+        // the cost-payment recovery undo, so this is the check that holds.
+        if (this.refuseUndoAfterLogServed(undoingPlayerId)) {
             return false;
         }
 
@@ -2303,18 +2309,33 @@ export class Game extends EventEmitter {
     }
 
     /**
+     * True, after alerting the player, when this ended game's log has been served: the game is
+     * then closed to undo. See `markSwuPgnServed`.
+     */
+    private refuseUndoAfterLogServed(playerId?: string): boolean {
+        if (!this.isEnded || !this._swuPgnFileServed) {
+            return false;
+        }
+        const player = playerId != null ? this.getPlayerById(playerId) : null;
+        if (player) {
+            this.addAlert(AlertType.Warning, '{0} cannot undo: the game log has already been downloaded', player);
+        }
+        return true;
+    }
+
+    /** True once this game was reopened after its log was served: no further copy is served. */
+    public get isSwuPgnWithheld(): boolean {
+        return this._swuPgnServedThenReopened;
+    }
+
+    /**
      * Record that a `.swupgn` reached a player. Lobby calls this after a successful serve.
      *
-     * The file is only served once `isEnded` is true, but `isEnded` flips back when a player
-     * undoes past game end (free and unilateral in a private lobby), so "the game is over" is
-     * not a one-way door. A player who downloads at game end and then undoes resumes play
-     * holding the opponent's remaining deck order.
+     * The file carries hidden information (hands, deck order, the seed), so from here the ended
+     * game is closed to undo: every rollback path refuses (`refuseUndoAfterLogServed`).
      */
     public markSwuPgnServed(): void {
-        // Public Game methods are reachable as socket game commands (Lobby.onGameMessage
-        // dispatches by name). Only a served file can have been served, so a mid-game call
-        // must be a no-op: otherwise a client could set the flag, undo, and have the
-        // opponent's replay withheld for the rest of the game.
+        // No file is served before the game ends, so a call then is a no-op.
         if (!this.isEnded) {
             return;
         }
@@ -2323,10 +2344,9 @@ export class Game extends EventEmitter {
 
     public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint, undoingPlayerId?: string): void {
         if (this._swuPgnFileServed && !this.isEnded) {
-            // Rolling back into live play after the log was served. Withhold further copies and
-            // leave an auditable trail. NOTE: this does not un-leak the copy already downloaded
-            // -- the deck being played from is unchanged, so the leaked order stays valid. Fully
-            // closing that needs the undo itself blocked, or the remaining deck reshuffled here.
+            // Defensive: every rollback refuses once an ended game's log is served
+            // (`refuseUndoAfterLogServed`), so this should not happen. If it does, withhold
+            // further copies and leave an auditable trail.
             this._swuPgnServedThenReopened = true;
             logger.warn(
                 `Game ${this.id}: rolled back into live play after its SWU-PGN log was served; ` +
@@ -2344,6 +2364,7 @@ export class Game extends EventEmitter {
         // regenerate (and re-serve) a file that now differs from the one already downloaded.
         if (!this.isEnded) {
             this._cachedSwuPgnFile = undefined;
+            this._swuPgnGenerationFailed = false;
         }
 
         this.pipeline.clearSteps();

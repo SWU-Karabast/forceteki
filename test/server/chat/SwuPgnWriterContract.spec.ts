@@ -1,6 +1,7 @@
 import { parse, render } from '../../../swupgn/src/index';
 import { isTopLevelActionRecord } from '../../../swupgn/src/actionLinks';
 import { checkKeyframes } from '../../../swupgn/src/integrity';
+import { isHarnessCountArtifact } from './swuPgnVectorGate';
 import { fold, stateAt } from '../../../swupgn/src/fold';
 import type { GameEvent } from '../../../swupgn/src/types';
 
@@ -85,12 +86,7 @@ describe('SWU-PGN/1.0 writer contract (real game)', function () {
             // production game has exactly one setup. See SwuPgnKeyframeCompleteness.spec.ts.
             const integrity = checkKeyframes(doc.events);
             // Fields the double-setup bootstrap makes unreconstructable past the first
-            // keyframe. `hand` CONTENTS share handSize's cause exactly: the bootstrap tears
-            // down the natural opening hand without emitting a MOVE, so those cards stay in
-            // the folded list. `discard` is NOT here -- it reconstructs cleanly even so.
-            const DEFERRED_SUFFIXES = ['.handSize', '.resourcesReady', '.deckSize', '.hand', '.resources'];
-            const isHarnessCountArtifact = (m: { seq: string; path: string }) =>
-                m.seq !== 'R1.start' && DEFERRED_SUFFIXES.some((f) => m.path.endsWith(f));
+            // keyframe: see isHarnessCountArtifact.
             const real = integrity.mismatches.filter((m) => !isHarnessCountArtifact(m));
             const deferred = integrity.mismatches.filter(isHarnessCountArtifact);
 
@@ -638,7 +634,7 @@ describe('SWU-PGN/1.0 writer contract (action abilities are actions)', function 
             // `for` the ability (the menu choice that picked the ability, and the target choice —
             // both land before the ability announces itself, §9.1) belongs to the ability.
             const ownedBy = (seq: string) => doc.events
-                .filter((e: any) => (e.for ?? (e.seq.startsWith(seq) && e.seq !== seq ? seq : null)) === seq)
+                .filter((e: any) => (e.for ?? ((/^[a-z]+$/).test(e.seq.slice(seq.length)) && e.seq.startsWith(seq) ? seq : null)) === seq)
                 .map((e: any) => `${e.seq}:${e.t}`);
             expect(ownedBy(pass.seq)).toEqual([]);
             expect(ownedBy(tarkin.seq)).toEqual([
@@ -646,6 +642,9 @@ describe('SWU-PGN/1.0 writer contract (action abilities are actions)', function 
                 'R1.A.2a:EXHAUST_RESOURCES', 'R1.A.2b:EXHAUST', 'R1.A.2c:MOVE',
                 'R1.A.2d:EXPERIENCE_GAIN', 'R1.A.2e:STATS',
             ]);
+            // The action menu's MODAL_CHOICE names the option the player clicked, by its title.
+            const modal = doc.events.find((e: any) => e.seq === 'R1.A.1a') as any;
+            expect(modal.offered[modal.chose]).toBe('Give an experience token to an Imperial unit');
 
             // The story reads as the player's own action, and is numbered.
             const story = render(doc);
@@ -909,3 +908,216 @@ function statusTokenBalance(events: GameEvent[]): Record<string, number> {
     }
     return Object.fromEntries(Object.entries(net).filter(([, n]) => n !== 0));
 }
+
+// What a play actually PAID, read through the real cost pipeline rather than a hand-emitted
+// event. Exploit and Smuggle are the two payments whose final figures are only known after the
+// engine has already started paying: Exploit lowers the cost after the exhaust event is built,
+// and a smuggled card leaves the resource row having just paid for itself.
+describe('SWU-PGN/1.0 writer contract (resource payment)', function () {
+    integration(function (contextRef) {
+        // Value: protects=EXHAUST_RESOURCES carries what Exploit left to pay, and a multi-card exploit pick is not written as a one-pick CHOICE;
+        // fails_when=ResourceCost stops writing the final amount onto its event (the pre-Exploit estimate is recorded), or SelectCardPrompt drops its single-pick guard;
+        // why_new=recorder specs emit OnExhaustResources by hand with a final amount, and the Homeworlds discount cases are already final at construction;
+        // seam=none; no_claim=other cost adjusters that change the cost after the event is built; other multi-select prompts (only Exploit's is driven)
+        it('records the resources Exploit left to pay, not the printed cost', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['separatist-super-tank'],
+                    groundArena: ['wampa', 'atst', 'battle-droid', 'snowspeeder'],
+                    leader: 'moff-gideon#formidable-commander',
+                    resources: 9,
+                },
+                player2: {
+                    groundArena: ['battlefield-marine'],
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.exhaustResources(5);
+            context.player1.clickCard(context.separatistSuperTank);
+            context.player1.clickPrompt('Trigger Exploit');
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.atst);
+            context.player1.clickCard(context.battleDroid);
+            context.player1.clickDone();
+            expect(context.separatistSuperTank).toBeInZone('groundArena');
+            expect(context.player1.exhaustedResourceCount).toBe(8);
+
+            const doc = parse((context.game as any).getCachedSwuPgn() as string);
+            const tank = doc.cards?.find((c: any) => c.name === 'Separatist Super Tank')?.id;
+            const play = doc.events.find((e: any) => e.t === 'PLAY' && e.card === tank) as any;
+            expect(play).toBeDefined();
+            const paid = doc.events.filter((e: any) => e.t === 'EXHAUST_RESOURCES' && e.for === play.seq) as any[];
+            expect(paid.map((e) => e.amount)).toEqual([3]);
+
+            // Exploit picked three units in one prompt; a CHOICE models a single pick, so none is
+            // written for it (the defeats it caused are their own records). `chose` is an index
+            // into `offered`, so resolve it to the card id before comparing.
+            const exploited = ['Wampa', 'AT-ST', 'Battle Droid'].map((name) => doc.cards?.find((c: any) => c.name === name)?.id);
+            expect(exploited.every((id) => typeof id === 'string')).toBeTrue();
+            const choices = doc.events.filter((e: any) => e.t === 'CHOICE') as any[];
+            expect(choices.filter((c) => exploited.includes(c.offered[c.chose]))).toEqual([]);
+            expect(choices.filter((c) => exploited.some((id) => c.offered.includes(id)))).toEqual([]);
+        });
+
+        // Value: protects=a card smuggled out of the resource row is written as leaving it exhausted, so the fold decrements the exhausted count;
+        // fails_when=PlayableOrDeployableCard stops capturing exhausted before postMoveSteps resets it for the new zone;
+        // why_new=the recorder spec drives this with fake cards that carry the flag by hand; no real game moves a card out of resources;
+        // seam=none; no_claim=a resource returned to hand by an effect
+        it('writes a smuggled card as leaving the resource row exhausted', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    deck: ['mercenary-gunship'],
+                    resources: ['collections-starhopper', 'battlefield-marine', 'atst', 'atst', 'atst', 'atst', 'atst'],
+                    leader: 'leia-organa#alliance-general',
+                    base: 'administrators-tower',
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.collectionsStarhopper);
+            expect(context.collectionsStarhopper).toBeInZone('spaceArena');
+
+            const doc = parse((context.game as any).getCachedSwuPgn() as string);
+            const starhopper = doc.cards?.find((c: any) => c.name === 'Collections Starhopper')?.id;
+            const leaving = doc.events.filter((e: any) => e.t === 'MOVE' && e.from === 'resource' && e.card === starhopper) as any[];
+            expect(leaving.length).toBe(1);
+            expect(leaving[0].exhausted).toBeTrue();
+        });
+    });
+});
+
+// Attachments that change while a card stays in the same arena. Each attachment is made by a
+// real play first: the harness places setup upgrades without recording their host.
+describe('SWU-PGN/1.0 writer contract (attachment changes)', function () {
+    integration(function (contextRef) {
+        const folded = (context: any) => {
+            const doc = parse(context.game.getCachedSwuPgn() as string);
+            const idOf = (name: string) => {
+                const id = doc.cards?.find((c: any) => c.name === name || c.name.startsWith(`${name},`))?.id;
+                expect(id)
+                    .withContext(name)
+                    .toBeDefined();
+                return id as string;
+            };
+            const cards = fold(doc.events).players[1].cards;
+            return {
+                idOf,
+                hostOf: (id: string) => cards.find((c: any) => c.upgrades.includes(id))?.id,
+                bodies: (id: string) => cards.filter((c: any) => c.id === id).length,
+            };
+        };
+
+        const pilotAndEject = async (vehicle: 'snowspeeder' | 'alliance-xwing') => {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['paige-tico#dropping-the-hammer', 'eject'],
+                    groundArena: vehicle === 'snowspeeder' ? [vehicle] : [],
+                    spaceArena: vehicle === 'alliance-xwing' ? [vehicle] : [],
+                },
+            });
+            const { context } = contextRef;
+            const vehicleCard = vehicle === 'snowspeeder' ? context.snowspeeder : context.allianceXwing;
+
+            context.player1.clickCard(context.paigeTico);
+            context.player1.clickPrompt('Play Paige Tico with Piloting');
+            context.player1.clickCard(vehicleCard);
+            const before = folded(context);
+            expect(before.hostOf(before.idOf('Paige Tico'))).toBe(before.idOf(vehicle === 'snowspeeder' ? 'Snowspeeder' : 'Alliance X-Wing'));
+
+            context.player2.passAction();
+            context.player1.clickCard(context.eject);
+            context.player1.clickCard(context.paigeTico);
+            expect(context.paigeTico).toBeInZone('groundArena');
+
+            const after = folded(context);
+            expect(after.hostOf(after.idOf('Paige Tico'))).toBeUndefined();
+            expect(after.bodies(after.idOf('Paige Tico'))).toBe(1);
+        };
+
+        // Value: protects=a pilot ejected from a ground vehicle is folded as one ground unit with no host; fails_when=the writer records nothing because the ejected pilot never changes zone; why_new=no spec ejects a pilot; seam=none; no_claim=other detach effects
+        it('writes a pilot ejected from a ground vehicle as a unit off its vehicle', async function () {
+            await pilotAndEject('snowspeeder');
+        });
+
+        // Value: protects=a pilot ejected from a space vehicle is folded as one ground unit with no host; fails_when=the writer's space -> ground move or the reader's detach on it is lost; why_new=no spec ejects a pilot; seam=none; no_claim=none beyond protects
+        it('writes a pilot ejected from a space vehicle as a ground unit off its vehicle', async function () {
+            await pilotAndEject('alliance-xwing');
+        });
+
+        // Value: protects=an upgrade moved to another vehicle in the same arena is folded onto its new host; fails_when=the writer records nothing because the upgrade never changes zone; why_new=fold.spec covers cross-arena moves only; seam=none; no_claim=token upgrades (shields/experience are counters)
+        it('writes an upgrade moved to another vehicle in the same arena onto its new host', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['superheavy-ion-cannon'],
+                    spaceArena: ['uwing-lander', 'devastator#inescapable'],
+                },
+                player2: {
+                    spaceArena: ['avenger#hunting-star-destroyer'],
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.superheavyIonCannon);
+            context.player1.clickCard(context.uwingLander);
+            const before = folded(context);
+            expect(before.hostOf(before.idOf('Superheavy Ion Cannon'))).toBe(before.idOf('U-Wing Lander'));
+
+            context.player2.passAction();
+            context.player1.clickCard(context.uwingLander);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickPrompt('Pass');
+            context.player1.clickCard(context.superheavyIonCannon);
+            context.player1.clickCard(context.devastator);
+            expect(context.devastator).toHaveExactUpgradeNames(['superheavy-ion-cannon']);
+
+            const after = folded(context);
+            expect(after.hostOf(after.idOf('Superheavy Ion Cannon'))).toBe(after.idOf('Devastator'));
+        });
+    });
+});
+
+describe('SWU-PGN/1.0 writer contract (identity of the source and of mirrored leaders)', function () {
+    integration(function (contextRef) {
+        // Value: protects=a defender's return damage names the defender as its source; fails_when=the recorder takes the attack's attacker for every combat damage; why_new=no spec checked DAMAGE.src on the attacker; seam=none; no_claim=multi-attacker damage
+        it('names the defender as the source of the damage it deals back', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { groundArena: ['wampa'] },
+                player2: { groundArena: ['battlefield-marine'] },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            const doc = parse((context.game as any).getCachedSwuPgn() as string);
+            const idOf = (name: string) => doc.cards?.find((c: any) => c.name === name)?.id;
+            const onWampa = doc.events.find((e: any) => e.t === 'DAMAGE' && e.tgt === idOf('Wampa')) as any;
+            expect(onWampa).toBeDefined();
+            expect(onWampa.src).toBe(idOf('Battlefield Marine'));
+        });
+
+        // Value: protects=in a mirror match each seat's keyframe leader carries the instance id its own records use; fails_when=keyframes name the printed id, so both seats claim the same leader; why_new=no spec played a mirror; seam=none; no_claim=deck and header leader tags (printed ids by design)
+        it('gives each seat its own leader id in keyframes when both play the same leader', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { leader: 'darth-vader#dark-lord-of-the-sith' },
+                player2: { leader: 'darth-vader#dark-lord-of-the-sith' },
+            });
+            const { context } = contextRef;
+            context.moveToNextActionPhase();
+
+            const doc = parse((context.game as any).getCachedSwuPgn() as string);
+            const keyframe = (doc.events.filter((e: any) => e.keyframe).pop() as any).keyframe;
+            const p1Leader = keyframe.players[1].leader.id;
+            const p2Leader = keyframe.players[2].leader.id;
+            expect(p1Leader).not.toBe(p2Leader);
+            expect(p1Leader.split(':')[0]).toBe(p2Leader.split(':')[0]);
+        });
+    });
+});

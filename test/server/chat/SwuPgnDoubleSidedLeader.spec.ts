@@ -1,4 +1,4 @@
-import { parse, fold, stateAt } from '../../../swupgn/src/index';
+import { parse, fold, render, stateAt } from '../../../swupgn/src/index';
 import { checkKeyframes } from '../../../swupgn/src/integrity';
 
 // Double-sided leader coverage on a REAL game (SWU-PGN C-01).
@@ -82,6 +82,37 @@ describe('SWU-PGN/1.0 generator — double-sided leader (real game)', function (
             const real = checkKeyframes(doc.events).mismatches
                 .filter((m) => !(m.seq !== 'R1.start' && deferred.some((f) => m.path.endsWith(f))));
             expect(real).toEqual([]);
+        });
+    });
+});
+
+describe('SWU-PGN/1.0 generator — double-sided leader names (real game)', function () {
+    integration(function (contextRef) {
+        // Value: protects=a flipped double-sided leader is indexed by its printed front plus backSideName, and the story flips between them; fails_when=the index reads the live title (whatever side is up) again; why_new=the other spec flips back before writing; seam=none; no_claim=other two-sided leaders
+        it('names the leader by its printed front even when the file is written flipped', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'chancellor-palpatine#playing-both-sides',
+                    base: { card: 'echo-base', damage: 10 },
+                    groundArena: ['battlefield-marine'],
+                },
+                player2: {
+                    hand: ['takedown'],
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.passAction();
+            context.player2.clickCard(context.takedown);
+            context.player2.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.chancellorPalpatine);
+            expect(context.chancellorPalpatine.onStartingSide).toBe(false);
+
+            const doc = parse((context.game as any).getCachedSwuPgn() as string);
+            expect((doc.cards ?? []).find((c) => c.id === 'TWI#017'))
+                .toEqual(jasmine.objectContaining({ name: 'Chancellor Palpatine, Playing Both Sides', backSideName: 'Darth Sidious' }));
+            expect(render(doc)).toContain('flips Chancellor Palpatine, Playing Both Sides to Darth Sidious');
         });
     });
 });

@@ -1,3 +1,5 @@
+import { parse } from '../../../swupgn/src/index';
+
 describe('Cost payment recovery', function() {
     undoIntegration(function(contextRef) {
         // Queen Amidala and The Starhawk share the Mandalorian trait from Foundling, so Queen Amidala can defeat The Starhawk to
@@ -328,6 +330,31 @@ describe('Cost payment recovery', function() {
                 expect(context.player1.readyResourceCount).toBe(3);
                 expect(context.getChatLogs(1)[0]).toContain('player1 abandons playing The Marauder. Costs already paid are not refunded');
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            // Value: protects=the cost-recovery menu (Undo / Abandon) is undo housekeeping, so its answer is not written to the SWU-PGN log as a MODAL_CHOICE;
+            // fails_when=Game.promptCostPaymentRecovery drops pgnLog:false and HandlerMenuPrompt emits the click like a game decision;
+            // why_new=no spec reads the log after this menu; the MODAL_CHOICE gate specs use other menus;
+            // seam=none; no_claim=the Undo answer (its record would land after the rollback the same way, but only Abandon is driven here)
+            it('keeps the recovery menu answer out of the SWU-PGN log', async function() {
+                await setupQueenAmidalaAndStarhawkAsync();
+                const { context } = contextRef;
+
+                context.game.costPaymentRecoveryPolicy = {
+                    allowRollback: () => true,
+                    rollbackRequiresApproval: () => false,
+                    allowAbandon: () => true
+                };
+
+                playMarauderAndDefeatStarhawkWithQueenAmidala();
+
+                expect(context.player1).toHaveExactPromptButtons(['Undo', 'Abandon']);
+                context.player1.clickPrompt('Abandon');
+                expect(context.player2).toBeActivePlayer();
+
+                const doc = parse((context.game as any).getCachedSwuPgn() as string);
+                const recoveryAnswers = doc.events.filter((e: any) => e.t === 'MODAL_CHOICE' && e.offered.includes('Abandon'));
+                expect(recoveryAnswers).toEqual([]);
             });
         });
     });

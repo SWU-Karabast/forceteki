@@ -46,6 +46,20 @@ describe('Socket command allowlist', function () {
             expect(player.lobbyState.winHistory.currentGameNumber).toBe(2);
         });
 
+        it('accepts getGameLog, which the client sends to download a finished game\'s log', async function () {
+            const { harness } = contextRef;
+            const { first: player } = await harness.startQuickGameAsync();
+
+            await player.sendGameMessageAsync('concede');
+            let reply: any;
+            await player.sendLobbyMessageAsync('getGameLog', (data: any) => {
+                reply = data;
+            });
+
+            expect(reply?.error).toBeUndefined();
+            expect(reply?.swuPgnFile).toContain('[Game "SWU-PGN/1.0"]');
+        });
+
         it('ignores a game command naming a server-internal method', async function () {
             const { harness } = contextRef;
             const { first: player, second: opponent } = await harness.startQuickGameAsync();

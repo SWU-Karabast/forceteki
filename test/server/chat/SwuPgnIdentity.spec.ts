@@ -1,4 +1,4 @@
-import { saltedPlayerId, anonymizedMatchId, anonymizePlayerLabel } from '../../../server/game/core/chat/swuPgnIdentity';
+import { saltedPlayerId, anonymizedMatchId, anonymizePlayerLabel, idSecretStartupError } from '../../../server/game/core/chat/swuPgnIdentity';
 
 describe('swuPgnIdentity', function () {
     it('produces a sha256:-prefixed, non-reversible id', function () {
@@ -77,5 +77,13 @@ describe('swuPgnIdentity', function () {
     it('maps seats to anonymized display labels', function () {
         expect(anonymizePlayerLabel(1)).toBe('Player 1');
         expect(anonymizePlayerLabel(2)).toBe('Player 2');
+    });
+
+    // Value: protects=a production server without SWUPGN_ID_SECRET says so at startup; fails_when=the check is dropped or fires outside production; why_new=a missing secret was silent; seam=env passed in; no_claim=the logger call in gamenode/index.ts
+    it('reports a missing id secret at startup only in production', function () {
+        expect(idSecretStartupError({ ENVIRONMENT: 'production' })).toContain('SWUPGN_ID_SECRET');
+        expect(idSecretStartupError({ ENVIRONMENT: 'production', SWUPGN_ID_SECRET: '' })).toContain('SWUPGN_ID_SECRET');
+        expect(idSecretStartupError({ ENVIRONMENT: 'production', SWUPGN_ID_SECRET: 'k' })).toBeUndefined();
+        expect(idSecretStartupError({ ENVIRONMENT: 'development' })).toBeUndefined();
     });
 });

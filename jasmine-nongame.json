@@ -4,7 +4,8 @@
         "server/utils/**/*[sS]pec.js",
         "server/gamenode/**/*[sS]pec.js",
         "server/services/**/*[sS]pec.js",
-        "server/scripts/**/*[sS]pec.js"
+        "server/scripts/**/*[sS]pec.js",
+        "server/swupgn/**/*[sS]pec.js"
     ],
     "helpers": [
         "helpers/server/ServerTestEnv.js",

@@ -1,5 +1,6 @@
 import { parse } from '../../../swupgn/src/index';
 import { checkKeyframes } from '../../../swupgn/src/integrity';
+import { isHarnessCountArtifact } from './swuPgnVectorGate';
 
 // Keyframe-completeness gate on a REAL generated game (Plan 2, Task 11).
 //
@@ -73,12 +74,8 @@ describe('SWU-PGN/1.0 keyframe completeness (real game)', function () {
             // documented scope decision, NOT a weakening of integrity.diff (which still
             // compares all fields); the artifact lives entirely in the integration bootstrap.
             // Fields the double-setup bootstrap makes unreconstructable past the first
-            // keyframe. `hand` CONTENTS share handSize's cause exactly: the bootstrap tears
-            // down the natural opening hand without emitting a MOVE, so those cards stay in
-            // the folded list. `discard` is NOT here -- it reconstructs cleanly even so.
-            const DEFERRED_SUFFIXES = ['.handSize', '.resourcesReady', '.deckSize', '.hand', '.resources'];
-            const isCountFieldPastFirstKeyframe = (m: { seq: string; path: string }) =>
-                m.seq !== 'R1.start' && DEFERRED_SUFFIXES.some((f) => m.path.endsWith(f));
+            // keyframe (see isHarnessCountArtifact).
+            const isCountFieldPastFirstKeyframe = isHarnessCountArtifact;
 
             const gatedMismatches = r.mismatches.filter((m) => !isCountFieldPastFirstKeyframe(m));
             const deferred = r.mismatches.filter(isCountFieldPastFirstKeyframe);

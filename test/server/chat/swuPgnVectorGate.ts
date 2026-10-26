@@ -7,6 +7,22 @@ import type { SwuPgnDocument } from '../../../swupgn/src/types';
 const VECTOR_DIR = path.resolve(__dirname, '../../../../swupgn/test-vectors');
 
 /**
+ * Keyframe fields the integration harness makes unreconstructable past the first keyframe.
+ *
+ * `setupTestAsync` bootstraps a game AT the action phase by placing cards directly, after the
+ * natural setup phase has already dealt a real hand and resources, and that teardown emits no
+ * MOVE. So the fold keeps the stale remnant in these counts and lists. `hand` CONTENTS share
+ * handSize's cause exactly; `discard` is NOT here -- it reconstructs cleanly even so. A
+ * production game has exactly one setup, and the organic-game vectors gate every field.
+ */
+const HARNESS_DEFERRED_SUFFIXES = ['.handSize', '.resourcesReady', '.deckSize', '.hand', '.resources'];
+
+/** True for a keyframe mismatch that is that harness artifact rather than a fold or writer bug. */
+export function isHarnessCountArtifact(m: { seq: string; path: string }): boolean {
+    return m.seq !== 'R1.start' && HARNESS_DEFERRED_SUFFIXES.some((f) => m.path.endsWith(f));
+}
+
+/**
  * Hold a real writer output to a normative vector (spec §20), and regenerate the vector from it.
  *
  * A vector is three files: the `.swupgn` the writer produced, and the `.fold.json` / `.render.txt`

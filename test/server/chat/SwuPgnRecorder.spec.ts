@@ -365,20 +365,6 @@ describe('SwuPgnRecorder gap events: counters + upgrades', function () {
         expect((choice as any).p).toBe(1);
     });
 
-    it('does not record a MODAL_CHOICE for a pgnLog:false (system) prompt — no emit, no record', function () {
-        const game = new FakeEmitter();
-        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
-
-        const p1 = { id: 'p1' };
-
-        game.emit(EventName.OnPhaseStarted, { phase: 'setup' });
-        // HandlerMenuPrompt gates the OnModalChoice emit behind `pgnLog !== false`. A system prompt
-        // (e.g. UndoConfirmationPrompt) sets pgnLog:false, so it emits nothing — the recorder, which
-        // only listens for OnModalChoice, therefore produces no MODAL_CHOICE record.
-        const events = rec.getEvents();
-        expect(events.some((e: any) => e.t === 'MODAL_CHOICE')).toBe(false);
-    });
-
     it('skips a malformed MODAL_CHOICE when chose is not a number', function () {
         const game = new FakeEmitter();
         const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
@@ -697,6 +683,65 @@ describe('SwuPgnRecorder closed-vocabulary fallbacks', function () {
 });
 
 describe('SwuPgnRecorder rollback', function () {
+    // Value: protects=a rollback to a snapshot taken many snapshots ago drops every record since; fails_when=checkpoints are capped and the restored snapshot's checkpoint was evicted, so the truncation lands at a later boundary; why_new=every rollback test restored a recent checkpoint; seam=none; no_claim=which snapshots the engine retains
+    it('rolls back to a snapshot taken long before, dropping everything recorded since', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+        const p1 = { id: 'p1' };
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        const boundaryEventsLen = rec.getEvents().length;
+
+        for (let id = 1; id <= 40; id++) {
+            rec.checkpoint(id);
+            game.emit(EventName.OnPassAction, { player: p1 });
+        }
+        rec.rollbackTo(1, 'p1');
+
+        const events = rec.getEvents() as any[];
+        expect(events.slice(boundaryEventsLen).map((e) => e.t)).toEqual(['UNDO']);
+    });
+
+    // Value: protects=a rollback to a snapshot id the recorder never checkpointed truncates at the next checkpoint after it; fails_when=only an exact id match is honoured, so the undone records stay; why_new=every rollback test restored an id that had its own checkpoint; seam=none; no_claim=which ids the engine restores
+    it('rolls back to a snapshot it has no checkpoint for at the next checkpoint after it', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+        const p1 = { id: 'p1' };
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        const boundaryEventsLen = rec.getEvents().length;
+
+        rec.checkpoint(3);
+        game.emit(EventName.OnPassAction, { player: p1 });
+        rec.checkpoint(5);
+        game.emit(EventName.OnPassAction, { player: p1 });
+        rec.rollbackTo(2, 'p1');
+
+        const events = rec.getEvents() as any[];
+        expect(events.slice(boundaryEventsLen).map((e) => e.t)).toEqual(['UNDO']);
+    });
+
+    // Value: protects=undoing to the same point twice leaves one UNDO note naming the real game record; fails_when=the earlier note is not unwrapped, giving an `-undo-undo` seq or an `at` that points at a note; why_new=no test repeated an undo; seam=none; no_claim=none beyond protects
+    it('leaves one UNDO naming the real record when the same point is undone twice', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+        const p1 = { id: 'p1' };
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        const boundaryEventsLen = rec.getEvents().length;
+        // The real path: push() checkpoints the engine's current snapshot id lazily, including
+        // just before it appends the UNDO note, which is what the unwrap has to see through.
+        (game as any).snapshotManager = { currentSnapshotId: 1 };
+
+        game.emit(EventName.OnPassAction, { player: p1 });
+        const undone = (rec.getEvents()[boundaryEventsLen] as any).seq;
+        rec.rollbackTo(1, 'p1');
+        game.emit(EventName.OnPassAction, { player: p1 });
+        rec.rollbackTo(1, 'p1');
+
+        const after = (rec.getEvents() as any[]).slice(boundaryEventsLen);
+        expect(after.map((e) => e.t)).toEqual(['UNDO']);
+        expect(after[0].at).toBe(undone);
+        expect(after[0].seq).toBe(`${undone}-undo`);
+    });
+
     it('truncates events + setup and restores counters/tokenParents to a checkpoint boundary', function () {
         const game = new FakeEmitter();
         const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
@@ -1158,5 +1203,172 @@ describe('SwuPgnRecorder: resources, base tokens, captures, exits', function () 
         res.controller = p2;
         game.emit(EventName.OnTakeControl, { card: res, newController: p2 });
         expect(ofType(rec, 'TAKE_CONTROL')[0]).toEqual(jasmine.objectContaining({ p: 2, zone: 'resource', from: 1, exhausted: true }));
+    });
+});
+
+// A base whose damage reached its HP falls by the rules, which raise no event: the recorder
+// writes its DEFEAT at game end, blaming the last hit the base took.
+describe('SwuPgnRecorder: a base destroyed by damage gets a DEFEAT at game end', function () {
+    const p1 = { id: 'p1' };
+    const p2 = { id: 'p2' };
+    const printed = (uuid: string, owner: any) => ({ ...fakeCard({ uuid, zoneName: 'groundArena', owner }), setId: { set: 'sor', number: 1 } });
+
+    /** A recorder over a game whose seat-2 base has taken `damage` of 30. */
+    const mk = (damage: number) => {
+        const game: any = new FakeEmitter();
+        const base1: any = { ...fakeCard({ uuid: 'SOR#020', isBase: true, owner: p1, remainingHp: 30 }), damage: 0, getHp: () => 30 };
+        const base2: any = { ...fakeCard({ uuid: 'SOR#028', isBase: true, owner: p2, remainingHp: 30 - damage }), damage, getHp: () => 30 };
+        game.getPlayers = () => [{ id: 'p1', base: base1 }, { id: 'p2', base: base2 }];
+        const rec = new SwuPgnRecorder(game, resolver);
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        return { game, rec, base2 };
+    };
+    const baseDefeats = (rec: SwuPgnRecorder) => (rec.getEvents() as any[]).filter((e) => e.t === 'DEFEAT' && (/^base@/).test(e.card));
+
+    // Value: protects=recordDamageBaseDefeats reason/culprit per last hit + skip/no-op guards; fails_when=reason mapping, OVERWHELM attacker lookup, or dedupe breaks; why_new=engine specs only cover combat + ability defeat; seam=none; no_claim=engine damage types
+    it('maps the last hit to the reason and culprit, skips a base already defeated, and writes nothing for a standing base', function () {
+        const end = (rec: SwuPgnRecorder) => {
+            rec.addGameEndRecord(1, 'Base Destroyed');
+            const events = rec.getEvents() as any[];
+            expect(events[events.length - 1].t).withContext('GAME_END stays last')
+                .toBe('GAME_END');
+            return baseDefeats(rec);
+        };
+
+        // Ability damage: non-combat, blamed on the card whose ability dealt it.
+        {
+            const { game, rec, base2 } = mk(30);
+            game.emit(EventName.OnDamageDealt, { card: base2, context: { source: printed('SOR#200', p1) }, damageDealt: 3, type: 'ability' });
+            expect(end(rec)).toEqual([jasmine.objectContaining({ card: 'base@2', reason: 'nonCombatDamage', defeatedBy: 'SOR#200' })]);
+        }
+        // Damage no card dealt (an empty-deck draw's framework source): no src, so the rules did it.
+        {
+            const { game, rec, base2 } = mk(30);
+            game.emit(EventName.OnDamageDealt, { card: base2, context: { source: { title: 'Framework effect' } }, damageDealt: 3, type: 'ability' });
+            const dmg = (rec.getEvents() as any[]).find((e) => e.t === 'DAMAGE');
+            expect(dmg.src).withContext('a non-card source is omitted, not written as its display string')
+                .toBeUndefined();
+            const [defeat] = end(rec);
+            expect(defeat).toEqual(jasmine.objectContaining({ card: 'base@2', reason: 'frameworkEffect' }));
+            expect(defeat.defeatedBy).toBeUndefined();
+        }
+        // Overwhelm: an attack, blamed on the attacker the ATTACK before it names.
+        {
+            const { game, rec, base2 } = mk(30);
+            const atk = printed('SOR#300', p1);
+            const def = printed('SOR#400', p2);
+            game.emit(EventName.OnAttackDeclared, { attack: { attacker: atk, attackingPlayer: p1, getAllTargets: () => [def] } });
+            game.emit(EventName.OnDamageDealt, { card: base2, damageSource: { attack: { attacker: atk } }, damageDealt: 2, type: 'overwhelm' });
+            expect(end(rec)).toEqual([jasmine.objectContaining({ card: 'base@2', reason: 'attack', defeatedBy: 'SOR#300' })]);
+        }
+        // Already defeated outright by an ability: no second DEFEAT.
+        {
+            const { game, rec, base2 } = mk(30);
+            game.emit(EventName.OnBaseDefeated, { card: base2, context: { source: printed('HMW#004', p1) } });
+            expect(end(rec)).toEqual([jasmine.objectContaining({ card: 'base@2', reason: 'ability', defeatedBy: 'HMW#004' })]);
+        }
+        // A base with HP left (a concession): nothing.
+        {
+            const { game, rec, base2 } = mk(29);
+            game.emit(EventName.OnDamageDealt, { card: base2, context: { source: printed('SOR#200', p1) }, damageDealt: 3, type: 'ability' });
+            expect(end(rec)).toEqual([]);
+        }
+    });
+});
+
+describe('SwuPgnRecorder: base defeats are written beside the hit, and DRAW counts cards drawn', function () {
+    const p1 = { id: 'p1' };
+    const p2 = { id: 'p2' };
+    const printed = (uuid: string, owner: any) => ({ ...fakeCard({ uuid, zoneName: 'groundArena', owner }), setId: { set: 'sor', number: 1 } });
+
+    /** A recorder over a game whose bases have taken `d1` / `d2` damage of 30. */
+    const mk = (d1: number, d2: number) => {
+        const game: any = new FakeEmitter();
+        const base1: any = { ...fakeCard({ uuid: 'SOR#020', isBase: true, owner: p1, remainingHp: 30 - d1 }), damage: d1, getHp: () => 30 };
+        const base2: any = { ...fakeCard({ uuid: 'SOR#028', isBase: true, owner: p2, remainingHp: 30 - d2 }), damage: d2, getHp: () => 30 };
+        game.getPlayers = () => [{ id: 'p1', base: base1 }, { id: 'p2', base: base2 }];
+        const rec = new SwuPgnRecorder(game, resolver);
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        return { game, rec, base1, base2 };
+    };
+    const kinds = (rec: SwuPgnRecorder) => (rec.getEvents() as any[]).map((e) => `${e.t}:${e.card ?? e.tgt ?? ''}`);
+
+    // Value: protects=a lethal hit's base DEFEAT is written right after it, with no game end needed; fails_when=DEFEAT only comes from addGameEndRecord (continued play loses it); why_new=game-end tests always call addGameEndRecord; seam=none; no_claim=engine continue-playing flow
+    it('writes the DEFEAT right after the lethal hit, before and without any game end', function () {
+        const { game, rec, base2 } = mk(0, 30);
+        game.emit(EventName.OnDamageDealt, { card: base2, context: { source: printed('SOR#200', p1) }, damageDealt: 3, type: 'ability' });
+        expect(kinds(rec).slice(-2)).toEqual(['DAMAGE:base@2', 'DEFEAT:base@2']);
+        expect(rec.hasRecordedBaseDefeat(2)).toBeTrue();
+        expect(rec.hasRecordedBaseDefeat(1)).toBeFalse();
+        // The game-end backstop does not write a second one.
+        rec.addGameEndRecord(1, 'Base Destroyed');
+        expect(kinds(rec).filter((k) => k === 'DEFEAT:base@2').length).toBe(1);
+    });
+
+    // Value: protects=both bases falling (a draw) each get a DEFEAT blamed on their own last hit; fails_when=the loop stops after one base or reuses one culprit; why_new=every test had one dead base; seam=none; no_claim=engine draw detection
+    it('writes a DEFEAT for each base when both fall', function () {
+        const { game, rec, base1, base2 } = mk(30, 30);
+        game.emit(EventName.OnDamageDealt, { card: base1, context: { source: printed('SOR#201', p2) }, damageDealt: 3, type: 'ability' });
+        game.emit(EventName.OnDamageDealt, { card: base2, context: { source: printed('SOR#200', p1) }, damageDealt: 3, type: 'ability' });
+        rec.addGameEndRecord('Draw', 'Base Destroyed');
+        const defeats = (rec.getEvents() as any[]).filter((e) => e.t === 'DEFEAT');
+        expect(defeats).toEqual([
+            jasmine.objectContaining({ card: 'base@1', reason: 'nonCombatDamage', defeatedBy: 'SOR#201' }),
+            jasmine.objectContaining({ card: 'base@2', reason: 'nonCombatDamage', defeatedBy: 'SOR#200' }),
+        ]);
+        const events = rec.getEvents() as any[];
+        expect(events[events.length - 1].t).toBe('GAME_END');
+    });
+
+    // Value: protects=DRAW.count equals the cards actually drawn; fails_when=count reverts to the requested amount; why_new=every existing DRAW drew what it asked for; seam=none; no_claim=engine empty-deck damage
+    it('counts the cards actually drawn, not the number asked for', function () {
+        const game: any = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game, resolver);
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnCardsDrawn, { player: p1, cards: [fakeCard({ uuid: 'SOR#100', owner: p1 })], amount: 2 });
+        game.emit(EventName.OnCardsDrawn, { player: p1, cards: [], amount: 2 });
+        const draws = (rec.getEvents() as any[]).filter((e) => e.t === 'DRAW');
+        expect(draws.map((e) => [e.count, e.cards.length])).toEqual([[1, 1], [0, 0]]);
+    });
+
+    // Value: protects=a lethal Overwhelm hit's base DEFEAT is written right after the OVERWHELM record and blamed on the attacker; fails_when=the OVERWHELM branch returns before recordLethalBaseHit, or the culprit lookup skips OVERWHELM; why_new=the beside-the-hit test only used ability DAMAGE; seam=none; no_claim=engine AttackFlow overwhelm math
+    it('writes the DEFEAT right after a lethal OVERWHELM, blamed on the attacker', function () {
+        const { game, rec, base2 } = mk(0, 30);
+        const atk = printed('SOR#300', p1);
+        game.emit(EventName.OnAttackDeclared, { attack: { attacker: atk, attackingPlayer: p1, getAllTargets: () => [printed('SOR#400', p2)] } });
+        game.emit(EventName.OnDamageDealt, { card: base2, damageSource: { attack: { attacker: atk } }, damageDealt: 2, type: 'overwhelm' });
+        expect(kinds(rec).slice(-2)).toEqual(['OVERWHELM:base@2', 'DEFEAT:base@2']);
+        const events = rec.getEvents() as any[];
+        expect(events[events.length - 1]).toEqual(jasmine.objectContaining({ reason: 'attack', defeatedBy: 'SOR#300' }));
+        expect(rec.hasRecordedBaseDefeat(2)).toBeTrue();
+    });
+});
+
+describe('SwuPgnRecorder: ABILITY_ACTIVATE.grantedBy names only another card', function () {
+    const p1 = { id: 'p1' };
+
+    /** The grantedBy of the one ABILITY_ACTIVATE a gained ability on a base writes. */
+    const grantedByFor = (gainAbilitySource: (base: any) => any) => {
+        const game: any = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game, resolver);
+        const base: any = fakeCard({ uuid: 'SOR#029', zoneName: 'base', owner: p1, controller: p1, isBase: true });
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnCardAbilityInitiated, {
+            card: base,
+            ability: { abilityIdentifier: 'gained_action', isCardAbility: () => true, printedAbility: false, gainAbilitySource: gainAbilitySource(base) },
+        });
+        const acts = (rec.getEvents() as any[]).filter((e) => e.t === 'ABILITY_ACTIVATE');
+        expect(acts.length).toBe(1);
+        return acts[0].grantedBy;
+    };
+
+    // Value: protects=grantedBy is omitted when the source is the activating card itself or no card at all, and set for another card; fails_when=the self check or the sourceRef card check is dropped and grantedBy names the card itself or a display string; why_new=the real-game tests only cover a printed ability (no source) and a real Fortify upgrade; seam=none; no_claim=which engine abilities set gainAbilitySource
+    it('omits grantedBy for a self or non-card source, and names an upgrade that granted it', function () {
+        expect(grantedByFor((base) => base)).withContext('granted by itself')
+            .toBeUndefined();
+        expect(grantedByFor(() => ({ title: 'Framework effect' }))).withContext('granted by no card')
+            .toBeUndefined();
+        expect(grantedByFor(() => ({ ...fakeCard({ uuid: 'HMW#126', zoneName: 'base', owner: p1 }), setId: { set: 'hmw', number: 126 } })))
+            .toBe('HMW#126');
     });
 });

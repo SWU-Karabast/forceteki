@@ -1,4 +1,5 @@
 import { vectorGate } from './swuPgnVectorGate';
+import { fold } from '../../../swupgn/src/fold';
 
 /**
  * The real-game vectors (spec §20): organic games -- natural setup phase, plays, attacks and
@@ -390,6 +391,227 @@ describe('SWU-PGN/1.0 vectors (real games)', function () {
                 .toBeGreaterThan(0);
             expect(byType(doc, 'MOVE').some((e) => e.to === 'capture')).toBe(true);
             expect(byType(doc, 'MOVE').some((e) => e.from === 'capture')).toBe(true);
+        });
+    });
+
+    // ── death-star ────────────────────────────────────────────────────────────────────────────
+    integration(function (contextRef) {
+        beforeEach(function () {
+            return contextRef.setupTestAsync({
+                phase: 'setup',
+                player1: {
+                    leader: 'grand-moff-tarkin#tyrant-of-the-outer-rim',
+                    base: 'dune-sea',
+                    deck: ['venomous-wyyyshokk', 'venomous-wyyyshokk', 'venomous-wyyyshokk', 'venomous-wyyyshokk',
+                        'clone-x-assassin', 'clone-x-assassin', 'clone-x-assassin', 'clone-x-assassin',
+                        'occupation-officer', 'occupation-officer', 'occupation-officer', 'occupation-officer',
+                        'occupation-officer', 'occupation-officer', ...VILLAIN, ...VILLAIN],
+                },
+                player2: {
+                    leader: 'luke-skywalker#faithful-friend',
+                    base: 'great-grass-plains',
+                    deck: [...REBEL, ...REBEL, ...REBEL, ...REBEL, ...REBEL, 'battlefield-marine', 'battlefield-marine'],
+                },
+            });
+        });
+
+        it('death-star: Tarkin deploys as The Death Star and defeats a base that still has HP', function () {
+            const { context } = contextRef;
+            const keep: Keep = { p1: ['venomous-wyyyshokk', 'clone-x-assassin', 'occupation-officer', 'death-star-stormtrooper'], p2: [] };
+            runSetup(context, 'swu-pgn-vector-death-star', keep);
+            const game: any = context.game;
+            const p1 = context.player1;
+            const p2 = context.player2;
+            const remaining = () => context.p2Base.remainingHp as number;
+
+            /** Decline any optional trigger (Occupation Officer's Weakness has no enemy to land on). */
+            const decline = (p: any): boolean => {
+                if ((p.currentButtons ?? []).includes('Pass') && (p.currentButtons ?? []).includes('Trigger')) {
+                    p.clickPrompt('Pass');
+                    return true;
+                }
+                return false;
+            };
+            const takeTurn = (p: any): void => {
+                if (decline(p)) {
+                    return;
+                }
+                if (p === p2) {
+                    // P2 never plays a unit: nothing stands between P1 and the base, and nothing
+                    // races Tarkin to it.
+                    p2.passAction();
+                    return;
+                }
+                // Wear the base down to 10 or less -- never to 0: the Death Star finishes it.
+                const attacker = (p1.currentActionTargets ?? []).find((c: any) =>
+                    c.isUnit?.() && c.isInPlay?.() && !c.exhausted && remaining() > 10 && remaining() - c.getPower() > 0);
+                if (attacker) {
+                    p1.clickCard(attacker);
+                    settle(p1, [context.p2Base]);
+                    return;
+                }
+                const card = playable(p1, 'venomous-wyyyshokk', 'occupation-officer', 'clone-x-assassin', 'death-star-stormtrooper');
+                if (card) {
+                    p1.clickCard(card);
+                    settle(p1, []);
+                    return;
+                }
+                p1.passAction();
+            };
+
+            // Seven rounds build the nine resources the Epic Action asks for.
+            for (let round = 1; round <= 7; round++) {
+                let guard = 0;
+                while (game.currentPhase === 'action' && guard++ < 60) {
+                    takeTurn(p1.canAct ? p1 : p2);
+                }
+                resourceCards(p1, p1.hand.length > 0 ? 1 : 0, keep.p1);
+                resourceCards(p2, p2.hand.length > 0 ? 1 : 0, keep.p2);
+            }
+            expect(p1.player.resources.length).withContext('nine resources for the Epic Action')
+                .toBe(9);
+            expect(remaining()).withContext('the base is in Tarkin\'s range')
+                .toBeLessThanOrEqual(10);
+
+            // Round 8: deploy, play the round out, and let the Death Star fire at regroup.
+            p1.clickCard(context.grandMoffTarkin);
+            p1.clickPrompt('Deploy Grand Moff Tarkin');
+            let guard = 0;
+            while (game.currentPhase === 'action' && guard++ < 60) {
+                takeTurn(p1.canAct ? p1 : p2);
+            }
+            p1.clickCard(context.p2Base);
+            expect(game.isEnded).toBe(true);
+            context.ignoreUnresolvedActionPhasePrompts = true;
+
+            const doc = vectorGate('death-star', game.getCachedSwuPgn());
+
+            const tarkin = doc.header.p1Leader;
+            expect(doc.cards?.find((c) => c.id === tarkin)?.backSideName).toBe('The Death Star, Icon of Tyranny');
+            expect(byType(doc, 'DEPLOY_LEADER').some((e) => e.card === tarkin && e.zone === 'space' && !(/^R\d+\.A\.\d+$/).test(e.seq)))
+                .withContext('the deploy is a sub-step of its Epic Action')
+                .toBe(true);
+            const defeat = byType(doc, 'DEFEAT').find((e) => e.card === 'base@2');
+            expect(defeat).toEqual(jasmine.objectContaining({ reason: 'ability', defeatedBy: tarkin }));
+            expect(fold(doc.events).players[2]?.baseHp).withContext('the base fell with HP left')
+                .toBeGreaterThan(0);
+            expect(fold(doc.events).players[2]?.baseDefeated).toBe(true);
+            expect(byType(doc, 'GAME_END')[0]).toEqual(jasmine.objectContaining({ winner: 1 }));
+        });
+    });
+
+    // ── homeworlds ────────────────────────────────────────────────────────────────────────────
+    integration(function (contextRef) {
+        beforeEach(function () {
+            return contextRef.setupTestAsync({
+                phase: 'setup',
+                player1: {
+                    leader: 'tarfful#fighting-from-the-shadowlands',
+                    base: 'tusken-camp',
+                    deck: ['beast-lair', 'beast-lair', 'landing-pad', 'landing-pad', 'verdant-fortress', 'verdant-fortress',
+                        'migrate', 'migrate', 'battlefield-marine', 'battlefield-marine', 'battlefield-marine', ...REBEL],
+                },
+                player2: {
+                    leader: 'doctor-hemlock#emotion-has-no-place-here',
+                    base: 'dune-sea',
+                    deck: ['torrent', 'torrent', 'torrent', 'torrent', 'carbonite-chamber', 'carbonite-chamber',
+                        'venomous-wyyyshokk', 'venomous-wyyyshokk', 'clone-x-assassin', 'clone-x-assassin',
+                        'occupation-officer', 'occupation-officer', 'occupation-officer', 'occupation-officer'],
+                },
+            });
+        });
+
+        it('homeworlds: Fortify upgrades on both bases, Beast tokens, and Weakness tokens', function () {
+            const { context } = contextRef;
+            const keep: Keep = { p1: ['beast-lair', 'landing-pad', 'verdant-fortress', 'migrate'], p2: ['torrent', 'carbonite-chamber'] };
+            runSetup(context, 'swu-pgn-vector-homeworlds', keep);
+            const p1 = context.player1;
+            const p2 = context.player2;
+            const onBase = (p: any, name: string) => p.player.baseZone.upgrades.some((u: any) => u.internalName === name);
+            const beasts = () => arenaUnits(p1).filter((u) => u.internalName === 'beast');
+
+            /** Answer an optional "you may" trigger (Beast Lair's discard): yes, paying with a non-keeper. */
+            const trigger = (p: any, keepers: string[]): boolean => {
+                if (!(p.currentButtons ?? []).includes('Trigger')) {
+                    return false;
+                }
+                p.clickPrompt('Trigger');
+                const offered: any[] = p.currentActionTargets ?? [];
+                const discard = offered.find((c) => !keepers.includes(c.internalName)) ?? offered[0];
+                if (discard) {
+                    p.clickCard(discard);
+                }
+                return true;
+            };
+
+            const takeTurn = (p: any): void => {
+                if (p === p1) {
+                    if (trigger(p1, keep.p1)) {
+                        return;
+                    }
+                    // Build the base first -- Beast Lair, then the two static Fortify upgrades --
+                    // then make Beasts, then bodies; attack with whatever is ready.
+                    let card = !onBase(p1, 'beast-lair') ? playable(p1, 'beast-lair') : undefined;
+                    card = card ?? (!onBase(p1, 'landing-pad') ? playable(p1, 'landing-pad') : undefined);
+                    card = card ?? (!onBase(p1, 'verdant-fortress') ? playable(p1, 'verdant-fortress') : undefined);
+                    card = card ?? playable(p1, 'migrate', 'battlefield-marine', 'alliance-xwing');
+                    if (card) {
+                        p1.clickCard(card);
+                        settle(p1, [context.p1Base]);
+                        return;
+                    }
+                    if (attackBase(p1, context.p2Base)) {
+                        return;
+                    }
+                    p1.passAction();
+                    return;
+                }
+                if (trigger(p2, keep.p2)) {
+                    return;
+                }
+                // Use Carbonite Chamber off the base once a Beast is there to freeze; Weakness on
+                // the Beasts; Fortify the base; then bodies. P2 does not attack, so P1's board grows.
+                const chamber = (p2.currentActionTargets ?? []).find((c: any) => c.internalName === 'carbonite-chamber' && c.zoneName === 'base');
+                if (chamber && beasts().length > 0) {
+                    p2.clickCard(chamber);
+                    settle(p2, beasts());
+                    return;
+                }
+                let card = beasts().length > 0 ? playable(p2, 'torrent') : undefined;
+                card = card ?? (!onBase(p2, 'carbonite-chamber') ? playable(p2, 'carbonite-chamber') : undefined);
+                card = card ?? playable(p2, 'venomous-wyyyshokk', 'clone-x-assassin', 'occupation-officer');
+                if (card) {
+                    p2.clickCard(card);
+                    settle(p2, [context.p2Base, ...beasts()]);
+                    return;
+                }
+                p2.passAction();
+            };
+
+            const doc = vectorGate('homeworlds', runRounds(context, 5, keep, takeTurn));
+
+            // The situations this vector exists for actually happened.
+            const fortified = byType(doc, 'PLAY_UPGRADE').filter((e) => e.zone === 'base');
+            expect(fortified.some((e) => e.p === 1 && e.target === 'base@1')).withContext('P1 Fortified its base')
+                .toBe(true);
+            expect(fortified.some((e) => e.p === 2 && e.target === 'base@2')).withContext('P2 Fortified its base')
+                .toBe(true);
+            expect(byType(doc, 'MOVE').filter((e) => e.to === 'base' && e.kind === 'upgrade')
+                .every((e) => (/^base@[12]$/).test(e.attachedTo)))
+                .withContext('every base attachment names its base')
+                .toBe(true);
+            const keyframes = doc.events.filter((e: any) => e.keyframe);
+            expect(keyframes.some((e: any) => e.keyframe.players[1].baseUpgrades.length >= 2)).withContext('a keyframe holds a Fortified base')
+                .toBe(true);
+            expect(byType(doc, 'MOVE').some((e) => e.from === 'base' && e.kind === 'upgrade')).withContext('a base upgrade left its base')
+                .toBe(true);
+            expect(byType(doc, 'ABILITY_ACTIVATE').some((e) => e.card === 'base@1' && e.grantedBy)).withContext('a base used a granted ability')
+                .toBe(true);
+            expect(byType(doc, 'CREATE_TOKEN').some((e) => e.token.startsWith('TOKEN:beast#'))).withContext('a Beast was created')
+                .toBe(true);
+            expect(byType(doc, 'STATUS_TOKEN').some((e) => e.token === 'weakness' && e.count > 0 && e.card.startsWith('TOKEN:beast#')))
+                .withContext('a Beast was given a Weakness token')
+                .toBe(true);
         });
     });
 });

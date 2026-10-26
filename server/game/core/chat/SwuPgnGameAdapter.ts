@@ -4,28 +4,19 @@ import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { EventName, GameEndReason, PhaseName, ZoneName } from '../Constants';
 import { SwuPgn } from './SwuPgn';
-import { attachedHost, buildHeader, cardKind, liveStats, printedCardKind, SwuPgnRecorder, tokenUpgradeKind } from './SwuPgnRecorder';
+import { attachedHost, buildHeader, cardKind, liveStats, printedCardKind, readOr as read, SwuPgnRecorder, tokenUpgradeKind } from './SwuPgnRecorder';
 import type { HeaderContext, SwuPgnResolver } from './SwuPgnRecorder';
 import { SwuPgnWriter } from './SwuPgnWriter';
 import { render } from '../../../../swupgn/src/render';
 import type { CardIndexRecord, CardInstanceState, DeckRecord, LeaderState, PlayerState, ReducedState, Seat, SwuPgnDocument } from '../../../../swupgn/src/types';
 
 /**
- * Read one engine value, falling back if the accessor throws.
- *
- * Engine card accessors are not plain properties: `damage`, `exhausted` and `remainingHp`
- * run `assertPropertyEnabledForZone` and throw when the card is in a zone where the
- * property doesn't apply. Optional chaining does not help — it guards a null card, not a
- * throwing getter. A keyframe is worth more slightly degraded than absent, so every engine
- * read in the projection goes through here.
+ * The SET#NUM of a player's (first) deck leader. Faux Suns gives a player two leaders; the header
+ * and the deck record name one, so they name the first.
  */
-function read<T>(get: () => T, fallback: T): T {
-    try {
-        const value = get();
-        return value === undefined ? fallback : value;
-    } catch {
-        return fallback;
-    }
+function leaderSetId(player: Player): string {
+    const leader = player.getAllDeckLeaders()[0];
+    return SwuPgn.formatSetId(leader.setId.set, leader.setId.number);
 }
 
 /** A seat with nothing on the board — used only when a seat can't be resolved at all. */
@@ -110,11 +101,19 @@ export class SwuPgnGameAdapter {
             if (entries.has(id)) {
                 return;
             }
-            const title = read<string>(() => card?.title, '');
+            // A leader with a second identity (Tarkin's Leader Unit side is The Death Star; a
+            // double-sided leader flips) answers `title` with whichever side is up NOW, so the
+            // index would name the card by the side it happened to end the game on. Its entry
+            // is an identity: the printed front, plus the other side's name.
+            const back = read<string | null>(() => card?.cardData?.backSideTitle ?? null, null);
+            const front = (field: 'title' | 'subtitle') => read<string | null>(() => (back ? card?.cardData?.[field] : card?.[field]) ?? null, null);
+            const title = front('title') ?? '';
             if (!title) {
                 return;
             }
-            const subtitle = read<string | null>(() => card?.subtitle, null);
+            const subtitle = front('subtitle');
+            const backSubtitle = read<string | null>(() => card?.cardData?.backSideSubtitle ?? null, null);
+            const backSideName = back ? (backSubtitle ? `${back}, ${backSubtitle}` : back) : null;
             // `kind` lets a client classify a card from its id alone — in particular which
             // `TOKEN:` ids are upgrades (never in an arena) and which are units.
             //
@@ -124,10 +123,12 @@ export class SwuPgnGameAdapter {
             // whether it happened to be attached when the file was written. The per-event
             // `kind` on MOVE/CREATE_TOKEN is the one that reports role.
             const kind = read<'unit' | 'upgrade' | undefined>(() => printedCardKind(card), undefined);
+            const name = subtitle ? `${title}, ${subtitle}` : title;
             entries.set(id, {
                 id,
-                name: subtitle ? `${title}, ${subtitle}` : title,
+                name,
                 ...(kind ? { kind } : {}),
+                ...(backSideName && backSideName !== name ? { backSideName } : {}),
             });
         };
 
@@ -160,7 +161,14 @@ export class SwuPgnGameAdapter {
 
     /** Roll the recorded stream back in lockstep with the game on undo. */
     public rollbackTo(restoredSnapshotId: number | null, undoingPlayerId?: string): void {
+        const hasInit = () => this.recorder.getSetup().some((r: any) => r.t === 'INIT');
+        const hadInit = hasInit();
         this.recorder.rollbackTo(restoredSnapshotId, undoingPlayerId);
+        // An undo back into setup truncates the INIT record with the rest of setup. The shuffle
+        // that follows must capture the deck order again, or the file loses it for good.
+        if (hadInit && !hasInit()) {
+            this.deckOrderCaptured.clear();
+        }
     }
 
     // ── Resolver + setup capture ────────────────────────────────────────────────
@@ -219,10 +227,8 @@ export class SwuPgnGameAdapter {
     /** Stable-id list of a player's current deck-zone order (top → bottom). */
     private captureDeckOrderFor(player: Player): string[] {
         try {
-            const deckZone: any = (player as any).deckZone;
-            const cards: any[] = deckZone?.deck ?? deckZone?.cards ?? [];
-            return cards
-                .map((c: any) => (c?.uuid != null ? this.swuPgnCardId(c.uuid) : 'unknown'))
+            return (player.drawDeck ?? [])
+                .map((c) => (c?.uuid != null ? this.swuPgnCardId(c.uuid) : 'unknown'))
                 .filter((id: string) => id !== 'unknown');
         } catch {
             return [];
@@ -424,7 +430,9 @@ export class SwuPgnGameAdapter {
         const leaderCard = read<any>(() => player.getAllDeckLeaders()[0], null);
         const leader: LeaderState | undefined = leaderCard
             ? {
-                id: read(() => SwuPgn.formatSetId(leaderCard.setId.set, leaderCard.setId.number), 'unknown'),
+                // The instance id the leader's own records use: in a mirror match both leaders
+                // share a printed id, and only the instance id tells the reader whose it is.
+                id: read(() => this.swuPgnCardId(leaderCard.uuid), 'unknown'),
                 deployed: read(() => leaderCard.deployed === true, false),
                 exhausted: read(() => leaderCard.exhausted === true, false),
                 epicActionUsed: read(() => (leaderCard.getActionAbilities?.() ?? [])
@@ -452,6 +460,17 @@ export class SwuPgnGameAdapter {
             // without the ability, so the absence of the field means "this base has none".
             ...(read(() => typeof base?.epicActionSpent === 'boolean', false)
                 ? { baseEpicActionUsed: read(() => base.epicActionSpent === true, false) }
+                : {}),
+            // Upgrades attached to the BASE (Fortify). In play but in no arena, so `cards` never
+            // holds them; without this a keyframe forgets every one, and with it the base's gained
+            // abilities. Always written (often empty): absent would read as "not recorded".
+            baseUpgrades: cardIds(read<any[]>(() => player.baseZone?.upgrades ?? [], [])),
+            // Only ever true, and only after the game is over (play may continue past game end).
+            // Written only when true, like the DEFEAT that sets it. It stays true once a DEFEAT
+            // was recorded, as the fold's does: a base healed in continued play is still a base
+            // that fell.
+            ...(read(() => base?.defeated === true || (base?.damage ?? 0) >= (base?.getHp?.() ?? Infinity) || this.recorder.hasRecordedBaseDefeat(seat), false)
+                ? { baseDefeated: true }
                 : {}),
             credits: read(() => player.creditTokenCount ?? 0, 0),
             hasForce: read(() => player.hasTheForce ?? false, false),
@@ -516,15 +535,31 @@ export class SwuPgnGameAdapter {
 
     // ── Header + decks ──────────────────────────────────────────────────────────
 
-    /** Map the game-end outcome to the 1.1 Result enum (P1/P2/Draw/Incomplete). */
-    private swuPgnResult(player1: Player): 'P1' | 'P2' | 'Draw' | 'Incomplete' {
-        if (this.game.winnerNames.length === 0) {
+    /**
+     * The GAME_END this file records, if any. The header's Result and Reason are read from it so
+     * the file cannot contradict itself: display names can repeat (every guest is
+     * 'AnonymousPlayer'), and the live end reason can be overwritten by play after game end.
+     */
+    private recordedGameEnd(): { winner: Seat | 'Draw'; reason: string } | undefined {
+        const events = this.recorder.getEvents();
+        for (let i = events.length - 1; i >= 0; i--) {
+            const e = events[i];
+            if (e.t === 'GAME_END') {
+                return { winner: e.winner, reason: e.reason };
+            }
+        }
+        return undefined;
+    }
+
+    /** Map the recorded game end to the header Result enum (P1/P2/Draw/Incomplete). */
+    private swuPgnResult(gameEnd: { winner: Seat | 'Draw' } | undefined): 'P1' | 'P2' | 'Draw' | 'Incomplete' {
+        if (!gameEnd) {
             return 'Incomplete';
         }
-        if (this.game.winnerNames.length > 1) {
+        if (gameEnd.winner === 'Draw') {
             return 'Draw';
         }
-        return this.game.winnerNames[0] === player1.name ? 'P1' : 'P2';
+        return gameEnd.winner === 1 ? 'P1' : 'P2';
     }
 
     /**
@@ -557,6 +592,16 @@ export class SwuPgnGameAdapter {
     private static cachedEngineVersion?: string;
 
     /**
+     * Resolve the engine version ahead of time, so the `git` subprocess below never runs on a
+     * game-end path. `execFileSync` blocks the whole event loop, and this process runs many
+     * concurrent games: without this, the first game to end after a restart stalls every other
+     * game for up to the 2s timeout. Call once at server startup; safe to call more than once.
+     */
+    public static warmEngineVersion(): void {
+        SwuPgnGameAdapter.engineVersion();
+    }
+
+    /**
      * Engine provenance string for the SWU-PGN header, e.g. `forceteki@a1b2c3d` or
      * `forceteki@2.3.1`.
      *
@@ -570,16 +615,6 @@ export class SwuPgnGameAdapter {
      * means "provenance unavailable", and a reader should treat a file carrying it as
      * untraceable rather than as coming from some known build (spec §5.3).
      */
-    /**
-     * Resolve the engine version ahead of time, so the `git` subprocess below never runs on a
-     * game-end path. `execFileSync` blocks the whole event loop, and this process runs many
-     * concurrent games: without this, the first game to end after a restart stalls every other
-     * game for up to the 2s timeout. Call once at server startup; safe to call more than once.
-     */
-    public static warmEngineVersion(): void {
-        SwuPgnGameAdapter.engineVersion();
-    }
-
     private static engineVersion(): string {
         if (SwuPgnGameAdapter.cachedEngineVersion == null) {
             const version = process.env.FORCETEKI_VERSION ??
@@ -646,7 +681,8 @@ export class SwuPgnGameAdapter {
         const player1 = players[0];
         const player2 = players[1];
 
-        const leaderId = (p: Player) => SwuPgn.formatSetId(p.getAllDeckLeaders()[0].setId.set, p.getAllDeckLeaders()[0].setId.number);
+        const gameEnd = this.recordedGameEnd();
+        const leaderId = leaderSetId;
         const baseId = (p: Player) => SwuPgn.formatSetId(p.base.setId.set, p.base.setId.number);
 
         return {
@@ -663,8 +699,8 @@ export class SwuPgnGameAdapter {
             seed: this.game.randomSeed ?? 'unseeded',
             perspective: null,
             rounds: this.game.roundNumber,
-            result: this.swuPgnResult(player1),
-            reason: this.gameEndReasonString(this.game.gameEndReason),
+            result: this.swuPgnResult(gameEnd),
+            reason: gameEnd?.reason ?? this.gameEndReasonString(undefined),
             p1: { username: player1.user.username, leader: leaderId(player1), base: baseId(player1) },
             p2: { username: player2.user.username, leader: leaderId(player2), base: baseId(player2) },
             // Handler failures drop events silently past the logging cap; say so in the file.
@@ -687,7 +723,7 @@ export class SwuPgnGameAdapter {
         for (let i = 0; i < players.length; i++) {
             const player = players[i];
             const seat: Seat = i === 0 ? 1 : 2;
-            const leader = SwuPgn.formatSetId(player.getAllDeckLeaders()[0].setId.set, player.getAllDeckLeaders()[0].setId.number);
+            const leader = leaderSetId(player);
             const base = SwuPgn.formatSetId(player.base.setId.set, player.base.setId.number);
 
             const toEntries = (entries: { id: string; count: number }[]): [string, number][] =>

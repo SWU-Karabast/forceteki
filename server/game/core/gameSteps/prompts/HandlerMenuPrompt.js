@@ -167,7 +167,9 @@ class HandlerMenuPrompt extends UiPrompt {
         const offered = Array.isArray(this.properties.choices)
             ? this.properties.choices.map((choice) => String(choice))
             : [];
-        const chose = arg;
+        // The index arrives from the client: record it as the number it resolved to, never the
+        // raw value (a string key still finds the handler but is not a valid `chose`).
+        const chose = Number(arg);
 
         if (this.properties.handlers[arg]() === false) {
             return false;
