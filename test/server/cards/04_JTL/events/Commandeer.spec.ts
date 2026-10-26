@@ -61,6 +61,44 @@ describe('Commandeer', function() {
             });
         });
 
+        describe('Commandeer played on a unit that leaves play and returns before the regroup phase', function() {
+            // Commandeer's delayed effect applies to the unit it took control of. A card that leaves play and
+            // comes back is a new copy (SWU 8.5.4), so the effect must not return it a second time.
+            it('does not return the new copy of the unit to its owner\'s hand', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['waylay'],
+                        groundArena: ['atst'],
+                        resources: 12
+                    },
+                    player2: {
+                        hasInitiative: true,
+                        hand: ['commandeer'],
+                        resources: 12
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.commandeer);
+                context.player2.clickCard(context.atst);
+                expect(context.atst).toBeInZone('groundArena', context.player2);
+
+                // its owner bounces and replays it, which makes it a new copy that Commandeer never touched
+                context.player1.clickCard(context.waylay);
+                context.player1.clickCard(context.atst);
+                expect(context.atst).toBeInZone('hand', context.player1);
+
+                context.player2.passAction();
+                context.player1.clickCard(context.atst);
+                expect(context.atst).toBeInZone('groundArena', context.player1);
+
+                context.moveToRegroupPhase();
+                expect(context.atst).toBeInZone('groundArena', context.player1);
+            });
+        });
+
         describe('Commandeer played on a unit you already control', function() {
             // Ruling 2025-03-25: you can choose a unit you already control with Commandeer. Since you
             // don't take control of it, the "if you do, ready it" clause does not apply (it is not

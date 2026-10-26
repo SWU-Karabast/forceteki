@@ -102,7 +102,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
     }
 
     protected override callSetupWithRegistrar() {
-        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates);
+        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates.forCard(this));
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
