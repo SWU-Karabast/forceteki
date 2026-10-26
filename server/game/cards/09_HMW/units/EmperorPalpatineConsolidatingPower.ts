@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class EmperorPalpatineConsolidatingPower extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'emperor-palpatine#consolidating-power-id',
+            id: '3322121916',
             internalName: 'emperor-palpatine#consolidating-power',
         };
     }

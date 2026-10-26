@@ -134,6 +134,31 @@ describe('Elzar Mann, Haunted by a Vision', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should enter play ready when just one of two leaders is a Force leader (Faux Suns)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    format: 'fauxSuns',
+                    player1: {
+                        hand: ['elzar-mann#haunted-by-a-vision'],
+                        leader: 'the-mandalorian#we-cant-keep-running', // No Force trait
+                        secondLeader: 'luke-skywalker#i-can-save-him', // Force leader
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Elzar Mann — one of the two leaders is a Force leader, so the condition is met
+                context.player1.clickCard(context.elzarMann);
+
+                // Elzar enters play ready (no other friendly units, so the When Played distribute skips)
+                expect(context.elzarMann.exhausted).toBeFalse();
+                expect(context.elzarMann).toBeInZone('groundArena');
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should count a Darksaber-bearing force unit as a Force leader for the constant ability', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

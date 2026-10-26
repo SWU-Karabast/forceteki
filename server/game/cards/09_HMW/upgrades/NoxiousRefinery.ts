@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class NoxiousRefinery extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'noxious-refinery-id',
+            id: '8389246625',
             internalName: 'noxious-refinery',
         };
     }

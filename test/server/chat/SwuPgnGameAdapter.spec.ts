@@ -145,10 +145,10 @@ describe('SwuPgnGameAdapter.engineVersion', function () {
 describe('SwuPgnGameAdapter header Date', function () {
     const players = () => [1, 2].map((n) => ({
         id: `p${n}`, name: `Player${n}`, user: { username: `user${n}` },
-        deckLeader: { setId: { set: 'sor', number: 10 } }, base: { setId: { set: 'sor', number: 20 } },
+        getAllDeckLeaders: () => [{ setId: { set: 'sor', number: 10 } }], base: { setId: { set: 'sor', number: 20 } },
     }));
     const headerFor = (extra: Record<string, unknown>) => (new SwuPgnGameAdapter({
-        ...fakeGame({ players: players() }), id: 'g', gameMode: 'premier', roundNumber: 3, randomSeed: 'seed', ...extra,
+        ...fakeGame({ players: players() }), id: 'g', format: 'premier', roundNumber: 3, randomSeed: 'seed', ...extra,
     }) as any).swuPgnHeaderContext();
 
     it('is when the game STARTED, falling back to creation for a game that never started', function () {

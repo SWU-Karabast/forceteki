@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class VerdantFortress extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'verdant-fortress-id',
+            id: '5665291544',
             internalName: 'verdant-fortress',
         };
     }

@@ -11,7 +11,7 @@ export default class QuiGonJinnWellHandleThis extends NonLeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'quigon-jinn#well-handle-this-id',
+            id: '4719334042',
             internalName: 'quigon-jinn#well-handle-this',
         };
     }

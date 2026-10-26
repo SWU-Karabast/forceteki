@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class TechIThoughtItWasObvious extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'tech#i-thought-it-was-obvious-id',
+            id: '5564622530',
             internalName: 'tech#i-thought-it-was-obvious',
         };
     }

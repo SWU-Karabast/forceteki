@@ -6,7 +6,7 @@ import { ZoneName } from '../../../core/Constants';
 export default class FambaaShieldTeam extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'fambaa-shield-team-id',
+            id: '1962406139',
             internalName: 'fambaa-shield-team',
         };
     }

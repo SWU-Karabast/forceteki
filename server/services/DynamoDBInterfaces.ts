@@ -31,11 +31,41 @@ export interface IUserDataEntity {
     swubaseRefreshToken?: string;
     showWelcomeMessage: boolean;
     needsUsernameChange?: boolean;
-    mustRequestUsernameChange?: ModerationFieldState;
-    reportingDisabled?: ModerationFieldState;
     moderation?: IModerationAction;
     undoPopupSeenDate?: string;
     timerPopupSeenDate?: string;
+
+    /**
+     * Id of the ReportingDisabled mod action whose one-time notice the user has acknowledged.
+     * Stored on the profile (not the action) so it is authoritative across server instances and
+     * survives cache refreshes; a re-issued restriction has a new id and so shows the notice again.
+     */
+    reportingDisabledSeenActionId?: string;
+
+    /** @deprecated Superseded by the ReportingDisabled mod action. Removed by scripts/migration/migrateReportingDisabled.ts. */
+    reportingDisabled?: ModerationFieldState;
+
+    /** Same as {@link reportingDisabledSeenActionId}, for the UsernameChangesBlocked mod action. */
+    usernameChangesBlockedSeenActionId?: string;
+
+    /** @deprecated Superseded by the UsernameChangesBlocked mod action. Removed by scripts/migration/migrateMustRequestUsernameChange.ts. */
+    mustRequestUsernameChange?: ModerationFieldState;
+}
+
+/**
+ * Client-facing representation of an active ReportingDisabled restriction.
+ * Presence (non-null) means reporting is disabled; `hasSeen` drives the one-time notification popup.
+ */
+export interface IReportingDisabledState {
+    hasSeen: boolean;
+}
+
+/**
+ * Client-facing representation of an active UsernameChangesBlocked restriction.
+ * Presence (non-null) means the player must request username changes; `hasSeen` drives the one-time popup.
+ */
+export interface IUsernameChangesBlockedState {
+    hasSeen: boolean;
 }
 
 export interface IFeMatchupStatEntity extends IMatchupStatEntity {
@@ -105,6 +135,7 @@ export interface IUserProfileDataEntity extends IUserDataEntity {
 
 export interface ILocalStorageDeckData {
     leader: { id: string };
+    secondLeader?: { id: string };
     base: { id: string };
     name: string;
     favourite: boolean;
@@ -121,6 +152,7 @@ export interface IDeckDataEntity {
     userId: string;
     deck: {
         leader: { id: string };
+        secondLeader?: { id: string };
         base: { id: string };
         name: string;
         favourite: boolean;
@@ -166,9 +198,87 @@ export enum ModActionType {
     Mute = 'Mute',
     Warning = 'Warning',
     Rename = 'Rename',
+    ReportingDisabled = 'ReportingDisabled',
+    UsernameChangesBlocked = 'UsernameChangesBlocked',
+    ChangeUsername = 'ChangeUsername',
 }
 
-export type TimedModActionType = ModActionType.Mute | ModActionType.Rename;
+/**
+ * Per-type behaviour for mod actions. This is the single source of truth — validation, GSI indexing,
+ * caching and the dashboard UI all derive from it rather than enumerating action types themselves.
+ *
+ * `tracked` means indexed in the ACTIVE_MODACTION sparse GSI and held in the ModActionService cache.
+ * That is distinct from having a duration: Mute is timed, while Rename, ReportingDisabled and
+ * UsernameChangesBlocked are indefinite but still tracked. Warning and ChangeUsername are untracked
+ * (a one-off event with a paper trail only).
+ */
+export interface IModActionDefinition {
+    tracked: boolean;
+    requiresNote: boolean;
+    requiresDuration: boolean;
+
+    /** Resolves on its own (expiry or user action) rather than requiring a moderator to cancel it. */
+    selfResolving: boolean;
+    cancellable: boolean;
+
+    /** The moderator supplies the username to apply to the account. */
+    requiresNewUsername: boolean;
+
+}
+
+export const ModActionDefinitions: Record<ModActionType, IModActionDefinition> = {
+    [ModActionType.Mute]: {
+        tracked: true,
+        requiresNote: true,
+        requiresDuration: true,
+        selfResolving: true,
+        cancellable: true,
+        requiresNewUsername: false,
+    },
+    [ModActionType.Warning]: {
+        tracked: false,
+        requiresNote: true,
+        requiresDuration: false,
+        selfResolving: false,
+        cancellable: false,
+        requiresNewUsername: false,
+    },
+    [ModActionType.Rename]: {
+        tracked: true,
+        requiresNote: false,
+        requiresDuration: false,
+        selfResolving: true,
+        cancellable: false,
+        requiresNewUsername: false,
+    },
+    [ModActionType.ReportingDisabled]: {
+        tracked: true,
+        requiresNote: true,
+        requiresDuration: false,
+        selfResolving: false,
+        cancellable: true,
+        requiresNewUsername: false,
+    },
+    [ModActionType.UsernameChangesBlocked]: {
+        tracked: true,
+        requiresNote: true,
+        requiresDuration: false,
+        selfResolving: false,
+        cancellable: true,
+        requiresNewUsername: false,
+    },
+    [ModActionType.ChangeUsername]: {
+        tracked: false,
+        requiresNote: true,
+        requiresDuration: false,
+        selfResolving: false,
+        cancellable: false,
+        requiresNewUsername: true,
+    },
+};
+
+export const isTrackedModAction = (actionType: ModActionType): boolean =>
+    ModActionDefinitions[actionType]?.tracked === true;
 
 export interface IModActionEntity {
     id: string;
@@ -200,6 +310,7 @@ export enum UsernameChangeSource {
     Migration = 'Migration', // backfill seed for pre-existing accounts (previousUsername = null)
     UserInitiated = 'UserInitiated',
     ForcedRename = 'ForcedRename', // result of a Rename mod action
+    UsernameChangedByModerator = 'UsernameChangedByModerator', // result of a ChangeUsername action, or the reset option of UsernameChangesBlocked
 }
 
 export interface IUsernameChangeEntity {
@@ -208,6 +319,6 @@ export interface IUsernameChangeEntity {
     previousUsername: string | null; // null only for Initial
     newUsername: string;
     source: UsernameChangeSource;
-    relatedModActionId?: string; // set only when source === ForcedRename
+    relatedModActionId?: string; // set when source is ForcedRename or UsernameChangedByModerator
     createdAt: string;
 }

@@ -94,5 +94,35 @@ describe('Toro Calican, Ambitious Upstart', function() {
                 expect(context.toroCalican.exhausted).toBeFalse();
             });
         });
+
+        it('should trigger when its controller plays an opponent-owned Bounty Hunter unit with Unrefusable Offer', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['wampa', { card: 'toro-calican#ambitious-upstart', exhausted: true }]
+                },
+                player2: {
+                    groundArena: [{ card: 'haxion-aggressor', upgrades: ['unrefusable-offer'] }]
+                }
+            });
+            const { context } = contextRef;
+
+            // Defeat the opponent's Bounty Hunter and collect the bounty to play it under player1's control
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.haxionAggressor);
+            expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.haxionAggressor).toBeInZone('groundArena', context.player1);
+            expect(context.haxionAggressor.owner).toBe(context.player2.player);
+
+            // Toro Calican reacts to player1 playing the opponent-owned Bounty Hunter
+            expect(context.player1).toHavePassAbilityPrompt('Deal 1 damage to the played Bounty Hunter unit to ready this unit');
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.haxionAggressor.damage).toBe(1);
+            expect(context.toroCalican.exhausted).toBeFalse();
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

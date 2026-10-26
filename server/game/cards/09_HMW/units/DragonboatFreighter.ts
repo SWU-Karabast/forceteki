@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class DragonboatFreighter extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'dragonboat-freighter-id',
+            id: '0148750669',
             internalName: 'dragonboat-freighter',
         };
     }

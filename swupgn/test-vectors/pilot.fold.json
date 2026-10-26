@@ -88,11 +88,11 @@
       "resourcesExhausted": 0,
       "resources": [
         "SHD#238",
-        "SOR#128",
+        "IC27#097",
         "SHD#238:2",
-        "SOR#128:4",
-        "SOR#128:6",
-        "SOR#128:7"
+        "IC27#097:4",
+        "IC27#097:6",
+        "IC27#097:7"
       ],
       "baseEpicActionUsed": false,
       "credits": 0,
@@ -102,7 +102,7 @@
       ],
       "cards": [
         {
-          "id": "SOR#128:2",
+          "id": "IC27#097:2",
           "zone": "ground",
           "damage": 0,
           "exhausted": false,
@@ -116,7 +116,7 @@
           "keywords": []
         },
         {
-          "id": "SOR#128:3",
+          "id": "IC27#097:3",
           "zone": "ground",
           "damage": 0,
           "exhausted": false,
@@ -146,7 +146,7 @@
           ]
         },
         {
-          "id": "SOR#128:5",
+          "id": "IC27#097:5",
           "zone": "ground",
           "damage": 0,
           "exhausted": false,

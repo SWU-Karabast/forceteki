@@ -10,8 +10,8 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class DarthVaderMightOfTheEmpire extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'darth-vader#mightof-the-empire-id',
-            internalName: 'darth-vader#mightof-the-empire',
+            id: '0645623807',
+            internalName: 'darth-vader#might-of-the-empire',
         };
     }
 

@@ -132,6 +132,10 @@ import type { IDeployAndAttachLeaderPilotProperties as IDeployAndAttachPilotLead
 import { DeployAndAttachPilotLeaderSystem as DeployAndAttachPilotLeaderSystem } from './DeployAndAttachPilotLeaderSystem';
 import type { ISelectPlayerProperties } from './SelectPlayerSystem';
 import { SelectPlayerSystem } from './SelectPlayerSystem';
+import type { IChooseNumberProperties } from './ChooseNumberSystem';
+import { ChooseNumberSystem } from './ChooseNumberSystem';
+import type { ISelectChoiceProperties } from './SelectChoiceSystem';
+import { SelectChoiceSystem } from './SelectChoiceSystem';
 import type { ICardRoundLastingEffectProperties } from './CardRoundLastingEffectSystem';
 import { CardRoundLastingEffectSystem } from './CardRoundLastingEffectSystem';
 import type { IFlipAndAttachLeaderPilotProperties } from './FlipAndAttachPilotLeaderSystem';
@@ -321,22 +325,30 @@ export function frameworkDefeat<TContext extends AbilityContext = AbilityContext
     return new FrameworkDefeatCardSystem<TContext>(propertyFactory);
 }
 export type IGiveTokenUpgradeFactoryProperties = Omit<IGiveTokenUpgradeProperties, 'tokenType'>;
-function giveTokenUpgrade<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext>, tokenType: TokenUpgradeName) {
-    return new GiveTokenUpgradeSystem<TContext>(
+/**
+ * Gives a token upgrade whose type is supplied in the properties, so it can be decided at
+ * resolution time (e.g. "give another one of those tokens"). When the type is fixed, prefer
+ * giveExperience / giveShield / giveAdvantage / giveWeakness.
+ */
+export function giveTokenUpgrade<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeProperties, TContext>) {
+    return new GiveTokenUpgradeSystem<TContext>(propertyFactory);
+}
+function giveTokenUpgradeOfType<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext>, tokenType: TokenUpgradeName) {
+    return giveTokenUpgrade<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IGiveTokenUpgradeProperties, 'tokenType'>(propertyFactory, { tokenType })
     );
 }
 export function giveExperience<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext> = {}) {
-    return giveTokenUpgrade<TContext>(propertyFactory, TokenUpgradeName.Experience);
+    return giveTokenUpgradeOfType<TContext>(propertyFactory, TokenUpgradeName.Experience);
 }
 export function giveShield<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext> = {}) {
-    return giveTokenUpgrade<TContext>(propertyFactory, TokenUpgradeName.Shield);
+    return giveTokenUpgradeOfType<TContext>(propertyFactory, TokenUpgradeName.Shield);
 }
 export function giveAdvantage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext> = {}) {
-    return giveTokenUpgrade<TContext>(propertyFactory, TokenUpgradeName.Advantage);
+    return giveTokenUpgradeOfType<TContext>(propertyFactory, TokenUpgradeName.Advantage);
 }
 export function giveWeakness<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveTokenUpgradeFactoryProperties, TContext> = {}) {
-    return giveTokenUpgrade<TContext>(propertyFactory, TokenUpgradeName.Weakness);
+    return giveTokenUpgradeOfType<TContext>(propertyFactory, TokenUpgradeName.Weakness);
 }
 export function heal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IHealProperties, TContext>) {
     return new HealSystem<TContext>(propertyFactory);
@@ -766,6 +778,12 @@ export function selectCard<TContext extends AbilityContext = AbilityContext>(pro
 }
 export function selectPlayer<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISelectPlayerProperties<TContext>, TContext>) {
     return new SelectPlayerSystem<TContext>(propertyFactory);
+}
+export function chooseNumber<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IChooseNumberProperties<TContext>, TContext>) {
+    return new ChooseNumberSystem<TContext>(propertyFactory);
+}
+export function selectChoice<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISelectChoiceProperties<TContext>, TContext>) {
+    return new SelectChoiceSystem<TContext>(propertyFactory);
 }
 // export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>) {
 //     return new SelectTokenAction(propertyFactory);

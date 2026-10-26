@@ -7,7 +7,7 @@ import { Aspect, RelativePlayer, WildcardCardType } from '../../../core/Constant
 export default class QimirEveryoneHasAWeakness extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'qimir#everyone-has-a-weakness-id',
+            id: '1460052687',
             internalName: 'qimir#everyone-has-a-weakness'
         };
     }

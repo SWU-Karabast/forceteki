@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class ChewbaccaResourcefulWookiee extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'chewbacca#resourceful-wookiee-id',
+            id: '8860453492',
             internalName: 'chewbacca#resourceful-wookiee',
         };
     }

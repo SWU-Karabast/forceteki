@@ -7,7 +7,7 @@ import { DamageModificationType } from '../../../core/Constants';
 export default class AllianceShieldGenerator extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'alliance-shield-generator-id',
+            id: '9829603191',
             internalName: 'alliance-shield-generator',
         };
     }

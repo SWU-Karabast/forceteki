@@ -8,7 +8,7 @@ import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 export default class SeismicDetonation extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'seismic-detonation-id',
+            id: '6125036698',
             internalName: 'seismic-detonation',
         };
     }

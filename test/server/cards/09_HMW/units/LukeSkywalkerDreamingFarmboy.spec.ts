@@ -5,7 +5,7 @@ describe('Luke Skywalker, Dreaming Farmboy', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['luke-skywalker#dreaming-boy'],
+                        hand: ['luke-skywalker#dreaming-farmboy'],
                     },
                     player2: {
                         groundArena: ['wampa']
@@ -14,10 +14,10 @@ describe('Luke Skywalker, Dreaming Farmboy', function() {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.lukeSkywalkerDreamingBoy);
+                context.player1.clickCard(context.lukeSkywalker);
 
-                expect(context.lukeSkywalkerDreamingBoy.exhausted).toBeFalse();
-                expect(context.lukeSkywalkerDreamingBoy).toBeInZone('groundArena', context.player1);
+                expect(context.lukeSkywalker.exhausted).toBeFalse();
+                expect(context.lukeSkywalker).toBeInZone('groundArena', context.player1);
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -25,7 +25,7 @@ describe('Luke Skywalker, Dreaming Farmboy', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['luke-skywalker#dreaming-boy'],
+                        hand: ['luke-skywalker#dreaming-farmboy'],
                     },
                     player2: {
                         groundArena: ['wampa']
@@ -38,10 +38,10 @@ describe('Luke Skywalker, Dreaming Farmboy', function() {
 
                 expect(context.game.roundNumber).toBe(2);
 
-                context.player1.clickCard(context.lukeSkywalkerDreamingBoy);
+                context.player1.clickCard(context.lukeSkywalker);
 
-                expect(context.lukeSkywalkerDreamingBoy.exhausted).toBeTrue();
-                expect(context.lukeSkywalkerDreamingBoy).toBeInZone('groundArena', context.player1);
+                expect(context.lukeSkywalker.exhausted).toBeTrue();
+                expect(context.lukeSkywalker).toBeInZone('groundArena', context.player1);
             });
         });
     });

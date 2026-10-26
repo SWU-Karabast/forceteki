@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class C3POCaptivatingStoryteller extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'c3po#captivating-storyteller-id',
+            id: '9713461356',
             internalName: 'c3po#captivating-storyteller'
         };
     }

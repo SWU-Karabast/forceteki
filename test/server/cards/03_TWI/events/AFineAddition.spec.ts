@@ -193,6 +193,7 @@ describe('A Fine Addition', function () {
                 },
                 player2: {
                     groundArena: ['wampa'],
+                    spaceArena: ['tieln-fighter'],
                     discard: ['dagger-squadron-pilot'],
                 }
             });
@@ -206,11 +207,45 @@ describe('A Fine Addition', function () {
             context.player1.clickCard(context.aFineAddition);
             expect(context.player1).toBeAbleToSelectExactly([context.daggerSquadronPilot]);
             context.player1.clickCard(context.daggerSquadronPilot);
+
+            // The pilot can only be attached to a friendly Vehicle, even though it comes from the opponent's discard pile
             expect(context.player1).toBeAbleToSelectExactly([context.cartelTurncoat]);
             context.player1.clickCard(context.cartelTurncoat);
             expect(context.daggerSquadronPilot).toBeAttachedTo(context.cartelTurncoat);
 
             expect(context.player1.exhaustedResourceCount).toBe(6);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('A Fine Addition\'s ability should count a friendly unit that was taken and defeated with No Glory, Only Results as an enemy unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['a-fine-addition', 'jedi-lightsaber'],
+                    groundArena: ['battlefield-marine', 'wampa']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['pyke-sentinel'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            // player2 takes control of Wampa and defeats it, so it was an enemy unit for player1 when it was defeated
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.wampa);
+            expect(context.wampa).toBeInZone('discard', context.player1);
+
+            context.player1.clickCard(context.aFineAddition);
+            expect(context.player1).toBeAbleToSelectExactly([context.jediLightsaber]);
+            context.player1.clickCard(context.jediLightsaber);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.pykeSentinel]);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber']);
             expect(context.player2).toBeActivePlayer();
         });
 
@@ -270,6 +305,15 @@ describe('A Fine Addition', function () {
                     'darth-mauls-lightsaber'
                 ]);
             });
+        });
+
+        // Ruling: A Fine Addition may not be played as a "soft pass" if an eligible target upgrade
+        // exists in any player's discard — when an enemy was defeated this phase and a playable upgrade
+        // is available, the player must play one and cannot choose nothing / pass.
+        xit('cannot be played as a soft pass when an eligible upgrade exists in a discard pile', function () {
+            pending('Not yet implemented');
+            // An enemy was defeated this phase and an eligible upgrade exists in a discard pile. Playing
+            // A Fine Addition must play an upgrade — there is no "Choose nothing" / pass option.
         });
     });
 });

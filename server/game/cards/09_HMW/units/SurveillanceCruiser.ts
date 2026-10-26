@@ -6,7 +6,7 @@ import { Trait } from '../../../core/Constants';
 export default class SurveillanceCruiser extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'surveillance-cruiser-id',
+            id: '1309692840',
             internalName: 'surveillance-cruiser',
         };
     }

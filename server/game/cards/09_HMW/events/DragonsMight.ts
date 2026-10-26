@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class DragonsMight extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'dragons-might-id',
+            id: '0357262273',
             internalName: 'dragons-might',
         };
     }

@@ -6,7 +6,7 @@ import { DamageModificationType } from '../../../core/Constants';
 export default class NumaStillFighting extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'numa#still-fighting-id',
+            id: '9768257744',
             internalName: 'numa#still-fighting',
         };
     }

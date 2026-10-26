@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class DarthVaderNoOneToStopUs extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'darth-vader#no-one-to-stop-us-id',
+            id: '5222380842',
             internalName: 'darth-vader#no-one-to-stop-us',
         };
     }

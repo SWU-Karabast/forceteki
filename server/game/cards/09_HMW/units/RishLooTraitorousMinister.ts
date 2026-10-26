@@ -6,7 +6,7 @@ import { PhaseName, RelativePlayer, WildcardCardType } from '../../../core/Const
 export default class RishLooTraitorousMinister extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'rish-loo#traitorous-minister-id',
+            id: '5272534084',
             internalName: 'rish-loo#traitorous-minister',
         };
     }

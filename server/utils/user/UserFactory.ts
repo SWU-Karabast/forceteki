@@ -1,13 +1,14 @@
 import type { User } from './User';
 import { AnonymousUser, AuthenticatedUser } from './User';
 import { logger } from '../../logger';
-import { v4 as uuid } from 'uuid';
+import { v4 as uuid, validate as isUuid } from 'uuid';
 import jwt from 'jsonwebtoken';
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import { Contract } from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
 import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModActionEntity, IUsernameChangeEntity } from '../../services/DynamoDBInterfaces';
-import { CardImageLocale, ModerationFieldState, ModerationType, TimerVisibility, UsernameChangeSource } from '../../services/DynamoDBInterfaces';
+import { CardImageLocale, ModerationType, TimerVisibility, UsernameChangeSource } from '../../services/DynamoDBInterfaces';
+import { evaluateUsernameChangeEligibility } from './UsernameRules';
 import { RefreshTokenSource } from '../statHandlers/StatHandlerTypes';
 
 
@@ -89,23 +90,36 @@ export class UserFactory {
         return new AnonymousUser(id || uuid(), name || 'Anonymous', !!id);
     }
 
+    /**
+     * Creates an anonymous user from the `user` field of a socket handshake query or request body.
+     *
+     * Only the id is taken from the client, and it must be a UUID (the dev test users excepted). The
+     * username is always derived from the id, so a client cannot choose its own anonymous name.
+     */
     public createAnonymousUserFromQuery(query?: ParsedUrlQuery): AnonymousUser {
-        if (query.user) {
-            // Check if it's a string that needs parsing
-            let queryUser;
-            if (typeof query.user === 'string') {
-                queryUser = JSON.parse(query.user);
-            } else {
-                queryUser = query.user;
-            }
-            if (queryUser) {
-                if (queryUser.username && !queryUser.username.toLowerCase().startsWith('anonymous')) {
-                    logger.info(`Auth Anon-creation: creating user with id ${queryUser.id} with non-anonymous name ${queryUser.username}`, { userId: queryUser.id });
-                }
-                return new AnonymousUser(queryUser.id, queryUser.username, true);
-            }
+        const queryUser = typeof query.user === 'string'
+            ? JSON.parse(query.user)
+            : query.user;
+
+        const id = queryUser?.id;
+        if (id == null) {
+            return new AnonymousUser(uuid(), 'AnonymousPlayer', false);
         }
-        return new AnonymousUser(uuid(), 'AnonymousPlayer', false);
+
+        if (AnonymousUser.isDevTestUserId(id)) {
+            return new AnonymousUser(id, queryUser.username, true);
+        }
+
+        if (typeof id !== 'string' || !isUuid(id)) {
+            throw new Error(`Anonymous user id is not a valid UUID: '${String(id).substring(0, 64)}'`);
+        }
+
+        const username = AnonymousUser.usernameForId(id);
+        if (queryUser.username !== username) {
+            logger.info(`Auth Anon-creation: ignoring client-supplied username '${String(queryUser.username).substring(0, 64)}' for user ${id}`, { userId: id });
+        }
+
+        return new AnonymousUser(id, username, true);
     }
 
     public async setWelcomeMessageStatus(userId: string): Promise<boolean> {
@@ -156,73 +170,64 @@ export class UserFactory {
     /**
      * • Unlimited username changes during the first week (7 days) after account creation.
      * • After that, a 1‑month (30‑days) cooldown between changes.
+     * • A forced rename (active Rename mod action or legacy needsUsernameChange flag) is always allowed.
+     * @param options.hasActiveForcedRename whether the player has an active Rename mod action (from ModActionService)
+     * @param options.usernameChangesBlocked whether the player has an active UsernameChangesBlocked mod action (from ModActionService)
      */
-    public async canChangeUsernameAsync(userId: string): Promise<{
-        canChange: boolean;
-        message?: string;
-        nextChangeAllowedAt?: string; // ISO timestamp when they can change again
-        typeOfMessage: string | null;
-    }> {
+    public async canChangeUsernameAsync(userId: string, options: {
+        hasActiveForcedRename?: boolean;
+        usernameChangesBlocked?: boolean;
+    } = {}): Promise<{
+            canChange: boolean;
+            message?: string;
+            nextChangeAllowedAt?: string; // ISO timestamp when they can change again
+            typeOfMessage: string | null;
+        }> {
         try {
             const dbService = await this.dbServicePromise;
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
 
-            if (userProfile.mustRequestUsernameChange) {
-                return {
-                    canChange: false,
-                    message: 'You must submit a ticket to request a username change.',
-                    typeOfMessage: 'green',
-                };
+            const eligibility = evaluateUsernameChangeEligibility({
+                createdAt: userProfile.createdAt,
+                usernameLastUpdatedAt: userProfile.usernameLastUpdatedAt,
+                isForcedRename: !!options.hasActiveForcedRename || !!userProfile.needsUsernameChange,
+                usernameChangesBlocked: !!options.usernameChangesBlocked,
+            });
+
+            switch (eligibility.reason) {
+                case 'forcedRename':
+                    return {
+                        canChange: true,
+                        message: 'You are required to change your username.',
+                        typeOfMessage: 'green',
+                    };
+                case 'usernameChangesBlocked':
+                    return {
+                        canChange: false,
+                        message: 'You must submit a ticket to request a username change.',
+                        typeOfMessage: 'green',
+                    };
+                case 'firstWeek':
+                    return {
+                        canChange: true,
+                        message: 'You can change your username freely within the first week',
+                        typeOfMessage: 'green'
+                    };
+                case 'cooldownActive':
+                    return {
+                        canChange: false,
+                        message: `You can change your username again in ${eligibility.daysRemaining} days`,
+                        nextChangeAllowedAt: eligibility.nextChangeAllowedAt,
+                        typeOfMessage: null
+                    };
+                case 'cooldownElapsed':
+                    return {
+                        canChange: true,
+                        message: 'You can change your username (available every 30 days)',
+                        typeOfMessage: 'yellow'
+                    };
             }
-
-            if (userProfile.needsUsernameChange) {
-                return {
-                    canChange: true,
-                    message: 'You are required to change your username.',
-                    typeOfMessage: 'green',
-                };
-            }
-
-            const now = Date.now();
-
-            const createdAt = new Date(userProfile.createdAt).getTime();
-            const lastChange = userProfile.usernameLastUpdatedAt
-                ? new Date(userProfile.usernameLastUpdatedAt).getTime()
-                : createdAt; // default to account creation if never changed
-
-            const weekInMs = 7 * 24 * 60 * 60 * 1000;   // 7 days
-            const monthInMs = 30 * 24 * 60 * 60 * 1000; // 30 days
-
-            const isWithinFirstWeek = now - createdAt < weekInMs;
-
-            // If inside first week always allowed
-            if (isWithinFirstWeek) {
-                return {
-                    canChange: true,
-                    message: 'You can change your username freely within the first week',
-                    typeOfMessage: 'green'
-                };
-            }
-
-            // Outside first week enforce 30‑day cooldown
-            const nextChangeAllowedAtMs = lastChange + monthInMs;
-            if (now < nextChangeAllowedAtMs) {
-                const daysRemaining = Math.ceil((nextChangeAllowedAtMs - now) / (1000 * 60 * 60 * 24));
-                return {
-                    canChange: false,
-                    message: `You can change your username again in ${daysRemaining} days`,
-                    nextChangeAllowedAt: new Date(nextChangeAllowedAtMs).toISOString(),
-                    typeOfMessage: null
-                };
-            }
-
-            // Cooldown passed allowed
-            return {
-                canChange: true,
-                message: 'You can change your username (available every 30 days)',
-                typeOfMessage: 'yellow'
-            };
         } catch (error: any) {
             logger.error('Error checking username change eligibility:', {
                 error: { message: error.message, stack: error.stack }
@@ -234,10 +239,13 @@ export class UserFactory {
     /**
      * • Unlimited username changes during the first week (7 days) after account creation.
      * • After that, a 1‑month (30‑days) cooldown between changes.
+     * • A forced rename (source ForcedRename or legacy needsUsernameChange flag) bypasses the cooldown and
+     *   the username-changes block, and does not reset the cooldown, so it never costs the player a free rename.
      */
     public async changeUsernameAsync(userId: string, newUsername: string, options?: {
         source?: UsernameChangeSource;
         relatedModActionId?: string;
+        usernameChangesBlocked?: boolean; // whether the player has an active UsernameChangesBlocked mod action
     }): Promise<{
             success: boolean;
             username?: string;
@@ -249,7 +257,6 @@ export class UserFactory {
             const dbService = await this.dbServicePromise;
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
-            const now = Date.now();
 
             // Check if the new username is the same as the current one
             if (userProfile.username === newUsername) {
@@ -259,66 +266,39 @@ export class UserFactory {
                 };
             }
 
-            // Block free username changes if mustRequestUsernameChange is set
-            if (userProfile.mustRequestUsernameChange) {
+            const isForcedRename = options?.source === UsernameChangeSource.ForcedRename || userProfile.needsUsernameChange === true;
+
+            const eligibility = evaluateUsernameChangeEligibility({
+                createdAt: userProfile.createdAt,
+                usernameLastUpdatedAt: userProfile.usernameLastUpdatedAt,
+                isForcedRename,
+                usernameChangesBlocked: options?.usernameChangesBlocked ?? false,
+            });
+
+            if (eligibility.reason === 'usernameChangesBlocked') {
                 return {
                     success: false,
                     message: 'You must submit a ticket to request a username change.'
                 };
             }
 
-            const createdAt = new Date(userProfile.createdAt).getTime();
-            const lastChange = userProfile.usernameLastUpdatedAt
-                ? new Date(userProfile.usernameLastUpdatedAt).getTime()
-                : createdAt; // default to createdAt if never changed
-
-            const weekInMs = 7 * 24 * 60 * 60 * 1000;   // 7 days
-            const monthInMs = 30 * 24 * 60 * 60 * 1000; // 30 days
-            const isWithinFirstWeek = now - createdAt < weekInMs;
-
-            // Check if this is the user's first username change timeframe
-            // Outside the first week → enforce 1‑month cooldown
-            const canBypassChangeRestriction = isWithinFirstWeek || userProfile.needsUsernameChange;
-            if (!canBypassChangeRestriction) {
-                const nextChangeAllowedAtMs = lastChange + monthInMs;
-                if (now < nextChangeAllowedAtMs) {
-                    const daysRemaining = Math.ceil((nextChangeAllowedAtMs - now) / (1000 * 60 * 60 * 24));
-                    logger.error(`GameServer (change-username): User ${userId} must wait ${daysRemaining} more days before changing username again`);
-                    return {
-                        success: false,
-                        message: `You can change your username again in ${daysRemaining} days (on ${new Date(nextChangeAllowedAtMs).toISOString()})`,
-                        nextChangeAllowedAt: new Date(nextChangeAllowedAtMs).toISOString(),
-                        daysRemaining
-                    };
-                }
+            if (!eligibility.canChange) {
+                logger.error(`GameServer (change-username): User ${userId} must wait ${eligibility.daysRemaining} more days before changing username again`);
+                return {
+                    success: false,
+                    message: `You can change your username again in ${eligibility.daysRemaining} days (on ${eligibility.nextChangeAllowedAt})`,
+                    nextChangeAllowedAt: eligibility.nextChangeAllowedAt,
+                    daysRemaining: eligibility.daysRemaining
+                };
             }
 
-            // update the GSI username
-            await dbService.deleteUsernameLinkAsync(userProfile.username, userId);
-            await dbService.saveUsernameLinkAsync(newUsername, userId);
-
-            // Update username and set the timestamp
-            await dbService.updateUserProfileAsync(userId, {
-                username: newUsername,
-                usernameLastUpdatedAt: new Date().toISOString(),
-                needsUsernameChange: false,
+            // Only a voluntary change starts the cooldown; a forced rename keeps the previous timestamp so the
+            // player is left with exactly the rename allowance they had before.
+            await this.applyUsernameChangeAsync(userId, userProfile.username, newUsername, {
+                source: options?.source ?? UsernameChangeSource.UserInitiated,
+                relatedModActionId: options?.relatedModActionId,
+                startCooldown: !isForcedRename,
             });
-            logger.info(`Username for ${userId} changed to ${newUsername}`);
-
-            // Record the change in the username history. This is best-effort tracking data, so a
-            // failure here must not fail the rename (which is already committed) or block the caller
-            // from completing follow-up steps such as clearing an active forced-rename.
-            try {
-                await this.recordUsernameChangeAsync(
-                    userId,
-                    userProfile.username,
-                    newUsername,
-                    options?.source ?? UsernameChangeSource.UserInitiated,
-                    options?.relatedModActionId,
-                );
-            } catch {
-                // error already logged in recordUsernameChangeAsync
-            }
 
             return {
                 success: true,
@@ -328,6 +308,84 @@ export class UserFactory {
         } catch (error) {
             logger.error('Error changing username:', { error: { message: error.message, stack: error.stack } });
             throw error;
+        }
+    }
+
+    /**
+     * @returns the player's current username, or null when no profile exists for exactly this id
+     */
+    public async getUsernameAsync(userId: string): Promise<string | null> {
+        const dbService = await this.dbServicePromise;
+        const userProfile = await dbService.getUserProfileAsync(userId);
+        return userProfile?.username ?? null;
+    }
+
+    /**
+     * Changes a username on a moderator's behalf. Unlike {@link changeUsernameAsync} it bypasses the player's own
+     * eligibility rules (username-changes block, cooldown) and never starts the cooldown.
+     * The username-history entry is required here, but a missing one is reported via `historyRecorded` rather than
+     * thrown, because the rename itself is already committed by then.
+     */
+    public async changeUsernameByModeratorAsync(userId: string, newUsername: string, relatedModActionId: string): Promise<{
+        success: boolean;
+        previousUsername?: string;
+        historyRecorded?: boolean;
+        message?: string;
+    }> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(userId);
+            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
+
+            if (userProfile.username === newUsername) {
+                return {
+                    success: false,
+                    message: 'The player already has that username.'
+                };
+            }
+
+            const historyRecorded = await this.applyUsernameChangeAsync(userId, userProfile.username, newUsername, {
+                source: UsernameChangeSource.UsernameChangedByModerator,
+                relatedModActionId,
+                startCooldown: false,
+            });
+
+            return { success: true, previousUsername: userProfile.username, historyRecorded };
+        } catch (error) {
+            logger.error('Error changing username on behalf of a moderator:', { error: { message: error.message, stack: error.stack }, userId });
+            throw error;
+        }
+    }
+
+    /**
+     * Moves the username lookup link, updates the profile, then records the history entry.
+     * @param options.startCooldown whether this counts as the player's own change, starting the 30-day cooldown
+     * @returns whether the history entry was recorded. That is tracking data, so a failure is logged by
+     * {@link recordUsernameChangeAsync} and must not fail a rename that is already committed.
+     */
+    private async applyUsernameChangeAsync(userId: string, previousUsername: string, newUsername: string, options: {
+        source: UsernameChangeSource;
+        relatedModActionId?: string;
+        startCooldown: boolean;
+    }): Promise<boolean> {
+        const dbService = await this.dbServicePromise;
+
+        // update the GSI username
+        await dbService.deleteUsernameLinkAsync(previousUsername, userId);
+        await dbService.saveUsernameLinkAsync(newUsername, userId);
+
+        await dbService.updateUserProfileAsync(userId, {
+            username: newUsername,
+            needsUsernameChange: false,
+            ...(options.startCooldown ? { usernameLastUpdatedAt: new Date().toISOString() } : {}),
+        });
+        logger.info(`Username for ${userId} changed to ${newUsername}`);
+
+        try {
+            await this.recordUsernameChangeAsync(userId, previousUsername, newUsername, options.source, options.relatedModActionId);
+            return true;
+        } catch {
+            return false;
         }
     }
 
@@ -411,8 +469,6 @@ export class UserFactory {
                 showWelcomeMessage: true,
                 preferences: getDefaultPreferences(),
                 needsUsernameChange: false,
-                mustRequestUsernameChange: null,
-                reportingDisabled: null,
                 swuStatsRefreshToken: null,
                 swubaseRefreshToken: null,
                 moderation: null,
@@ -612,53 +668,29 @@ export class UserFactory {
     }
 
     /**
-     * Updates moderation seen status for a user
-     * @param userId The user ID
-     * @returns True if update was successful
+     * Records that the user has seen the one-time notice for a UsernameChangesBlocked restriction.
+     * Same design as {@link setReportingDisabledSeenAsync}: stored on the profile, keyed by action id, so a
+     * re-issued restriction shows the notice again.
+     * @returns True if the profile was updated.
      */
-    public async setMustRequestUsernameChangeSeenAsync(userId: string): Promise<boolean> {
+    public async setUsernameChangesBlockedSeenAsync(userId: string, modActionId: string): Promise<boolean> {
         try {
             const dbService = await this.dbServicePromise;
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
 
-            if (userProfile.mustRequestUsernameChange === ModerationFieldState.Enabled) {
-                await dbService.updateUserProfileAsync(userId, {
-                    mustRequestUsernameChange: ModerationFieldState.EnabledAndSeen
-                });
-
-                logger.info(`UserFactory: Set mustRequestUsernameChange as seen for user ${userId}`, { userId });
-                return true;
+            if (userProfile.usernameChangesBlockedSeenActionId === modActionId) {
+                return false;
             }
 
-            return false;
-        } catch (error) {
-            logger.error('Error setting mustRequestUsernameChange seen status:', {
-                error: { message: error.message, stack: error.stack },
-                userId
+            await dbService.updateUserProfileAsync(userId, {
+                usernameChangesBlockedSeenActionId: modActionId
             });
-            throw error;
-        }
-    }
 
-    public async setReportingDisabledSeenAsync(userId: string): Promise<boolean> {
-        try {
-            const dbService = await this.dbServicePromise;
-            const userProfile = await dbService.getUserProfileAsync(userId);
-            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
-
-            if (userProfile.reportingDisabled === ModerationFieldState.Enabled) {
-                await dbService.updateUserProfileAsync(userId, {
-                    reportingDisabled: ModerationFieldState.EnabledAndSeen
-                });
-
-                logger.info(`UserFactory: Set reportingDisabled as seen for user ${userId}`, { userId });
-                return true;
-            }
-
-            return false;
+            logger.info(`UserFactory: Set usernameChangesBlocked notice as seen for user ${userId}`, { userId });
+            return true;
         } catch (error) {
-            logger.error('Error setting reportingDisabled seen status:', {
+            logger.error('Error setting usernameChangesBlocked seen status:', {
                 error: { message: error.message, stack: error.stack },
                 userId
             });
@@ -685,6 +717,37 @@ export class UserFactory {
             return false;
         } catch (error) {
             logger.error('Error setting moderation seen status:', {
+                error: { message: error.message, stack: error.stack },
+                userId
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Records that the user has seen the one-time notice for a ReportingDisabled restriction.
+     * Stored on the profile so it is authoritative across instances; a re-issued restriction has a
+     * different action id and so shows the notice again.
+     * @returns True if the profile was updated.
+     */
+    public async setReportingDisabledSeenAsync(userId: string, modActionId: string): Promise<boolean> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(userId);
+            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
+
+            if (userProfile.reportingDisabledSeenActionId === modActionId) {
+                return false;
+            }
+
+            await dbService.updateUserProfileAsync(userId, {
+                reportingDisabledSeenActionId: modActionId
+            });
+
+            logger.info(`UserFactory: Set reportingDisabled notice as seen for user ${userId}`, { userId });
+            return true;
+        } catch (error) {
+            logger.error('Error setting reportingDisabled seen status:', {
                 error: { message: error.message, stack: error.stack },
                 userId
             });

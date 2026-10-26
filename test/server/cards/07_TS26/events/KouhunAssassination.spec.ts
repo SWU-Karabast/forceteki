@@ -21,7 +21,7 @@ describe('Kouhun Assassination', function() {
 
                 context.player1.clickCard(context.kouhunAssassination);
 
-                expect(context.player2).toHavePrompt('Choose a card to discard for Kouhun Assassination\'s effect');
+                expect(context.player2).toHavePrompt('Choose a card to discard from your hand');
                 expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.vanquish]);
                 expect(context.player2).toHaveChooseNothingButton();
 
@@ -72,6 +72,9 @@ describe('Kouhun Assassination', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.kouhunAssassination);
+            expect(context.player1).toHavePrompt('Playing Kouhun Assassination will have no effect. Are you sure you want to play it?');
+            expect(context.player1).toHaveExactPromptButtons(['Play anyway', 'Cancel']);
+            context.player1.clickPrompt('Play anyway');
 
             expect(context.player2).toBeActivePlayer();
 

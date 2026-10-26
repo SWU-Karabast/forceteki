@@ -13,7 +13,7 @@ import type { ICardTargetResolver } from '../../../TargetInterfaces';
 export default class MazKanataEclecticPirateQueen extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'maz-kanata#eclectic-pirate-queen-id',
+            id: '3127897445',
             internalName: 'maz-kanata#eclectic-pirate-queen',
         };
     }

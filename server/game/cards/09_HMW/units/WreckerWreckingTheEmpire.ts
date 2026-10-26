@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class WreckerWreckingTheEmpire extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'wrecker#wrecking-the-empire-id',
+            id: '3294976485',
             internalName: 'wrecker#wrecking-the-empire',
         };
     }

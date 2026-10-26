@@ -6,7 +6,7 @@ import { AbilityRestriction, CardType, EffectName, WildcardZoneName, ZoneName } 
 import type { Restriction } from '../ongoingEffect/effectImpl/Restriction';
 import type { AbilityContext } from '../ability/AbilityContext';
 import { Contract } from '../utils/Contract';
-import type { IDecreaseCostAbilityProps, IPlayableCard, IPlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
+import type { IAdjustCostAbilityProps, IDecreaseCostAbilityProps, IPlayableCard, IPlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { IEventAbilityProps, IPlayCostProperties, IPlayRestrictionAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';
@@ -19,6 +19,7 @@ import type { InitializeCardStateOption } from './Card';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { IBasicAbilityRegistrar, IEventAbilityRegistrar } from './AbilityRegistrationInterfaces';
 import type { IAbilityHelper } from '../../AbilityHelper';
+import type { ICardStateGetter } from '../lki/CardStateGetter';
 import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import type { ConstantAbility } from '../ability/ConstantAbility';
@@ -129,21 +130,27 @@ export class EventCard extends EventCardParent implements IEventCard {
             setEventAbility: (properties: IEventAbilityProps) => this.setEventAbility(properties),
             addAdditionalPlayCost: (properties) => this.registerAdditionalPlayCost(properties as IPlayCostProperties<this>),
             addAlternatePlayCost: (properties) => this.registerAlternatePlayCost(properties as IPlayCostProperties<this>),
+            addAdjustCostAbility: (properties: IAdjustCostAbilityProps<EventCard>) => this.addAdjustCostAbility(properties),
             addDecreaseCostAbility: (properties: IDecreaseCostAbilityProps<EventCard>) => this.addDecreaseCostAbility(properties),
             addPlayRestrictionAbility: (properties: IPlayRestrictionAbilityProps) => this.addPlayRestrictionAbility(properties),
         };
     }
 
     protected override callSetupWithRegistrar() {
-        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper);
+        this.setupCardAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper) { }
+    public override setupCardAbilities(registrar: IEventAbilityRegistrar, AbilityHelper: IAbilityHelper, cardStates: ICardStateGetter) { }
 
     private setEventAbility(properties: IEventAbilityProps) {
         properties.cardName = this.title;
         this.eventAbility = new EventAbility(this.game, this, properties);
+    }
+
+    /** Add a constant ability on the card that adjusts its own cost under the given condition */
+    private addAdjustCostAbility(properties: IAdjustCostAbilityProps<EventCard>): void {
+        this.constantAbilities = [...this.constantAbilities, this.createConstantAbility(this.generateAdjustCostAbilityProps(properties))];
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */

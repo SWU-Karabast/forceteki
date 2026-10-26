@@ -1,4 +1,6 @@
 import { logger } from '../logger';
+import type { IScheduledTask, IScheduler } from './IScheduler';
+import { RealScheduler } from './RealScheduler';
 
 /**
  * A generic cache that periodically refreshes its value using a timer.
@@ -7,25 +9,29 @@ import { logger } from '../logger';
  */
 export class TimedCache<T> {
     private value?: T;
-    private refreshTimer?: NodeJS.Timeout;
+    private refreshTask?: IScheduledTask;
     private readonly refreshIntervalMinutes: number;
     private readonly fetchFunction: () => Promise<T>;
     private readonly cacheName: string;
+    private readonly scheduler: IScheduler;
 
     /**
      * Creates a new TimedCache instance.
      * @param refreshIntervalMinutes - How often to refresh the cached value, in minutes
      * @param fetchFunction - Async function that fetches the value to cache
      * @param cacheName - Name for logging purposes
+     * @param scheduler - Drives the periodic refresh; defaults to real timers
      */
     public constructor(
         refreshIntervalMinutes: number,
         fetchFunction: () => Promise<T>,
-        cacheName: string
+        cacheName: string,
+        scheduler: IScheduler = new RealScheduler()
     ) {
         this.refreshIntervalMinutes = refreshIntervalMinutes;
         this.fetchFunction = fetchFunction;
         this.cacheName = cacheName;
+        this.scheduler = scheduler;
     }
 
     /**
@@ -39,7 +45,8 @@ export class TimedCache<T> {
 
         // Set up periodic refresh
         const intervalMs = this.refreshIntervalMinutes * 60 * 1000;
-        this.refreshTimer = setInterval(async () => {
+        this.refreshTask?.cancel();
+        this.refreshTask = this.scheduler.setInterval(async () => {
             try {
                 logger.info(`${this.cacheName}: Refreshing cached value...`);
                 this.value = await this.fetchFunction();
@@ -47,9 +54,17 @@ export class TimedCache<T> {
             } catch (error) {
                 logger.error(`${this.cacheName}: Failed to refresh cache, keeping stale data`, error);
             }
-        }, intervalMs);
+        }, intervalMs, { message: `${this.cacheName}: error during scheduled refresh` });
 
         logger.info(`${this.cacheName}: Cache initialized, will refresh every ${this.refreshIntervalMinutes} minutes`);
+    }
+
+    /**
+     * Stops the periodic refresh. The last fetched value stays readable.
+     */
+    public stop(): void {
+        this.refreshTask?.cancel();
+        this.refreshTask = undefined;
     }
 
     /**

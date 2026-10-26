@@ -5,7 +5,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 export default class LifetreeCaravan extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'lifetree-caravan-id',
+            id: '5032370330',
             internalName: 'lifetree-caravan',
         };
     }

@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Card } from '../core/card/Card';
 import type { MsgArg } from '../core/chat/GameChat';
 import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
-import { addLastKnownInformationToEvent } from '../core/event/LastKnownInformation';
+import { addDepartureRecordToEvent } from '../core/event/LastKnownInformation';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { PlayerOrCard } from '../core/gameSystem/GameSystem';
 import { Contract } from '../core/utils/Contract';
@@ -12,6 +12,13 @@ import { DefeatSourceType } from '../IDamageOrDefeatSource';
 
 export interface IDefeatCardPropertiesBase extends ICardTargetSystemProperties {
     defeatSource?: IDamageSource | DefeatSourceType.Ability | DefeatSourceType.UniqueRule | DefeatSourceType.FrameworkEffect;
+
+    /**
+     * By default, when a friendly effect defeats a ready resource, it first swaps ready state with an exhausted resource
+     * (since players may rearrange their resources before one is chosen). Set this to true if the effect specifically
+     * requires the ready resource to be defeated, e.g. "defeat a ready resource you control".
+     */
+    preserveResourceReadyState?: boolean;
 }
 
 export interface IDefeatCardProperties extends IDefeatCardPropertiesBase {
@@ -33,7 +40,8 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event, CardType.TokenCard];
 
     protected override readonly defaultProperties: Partial<IDefeatCardPropertiesBase> = {
-        defeatSource: DefeatSourceType.Ability
+        defeatSource: DefeatSourceType.Ability,
+        preserveResourceReadyState: false
     };
 
     public static defeatSourceCard(event): Card | undefined {
@@ -58,7 +66,9 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
         if (card.zoneName === ZoneName.Resource) {
             Contract.assertTrue(card.canBeExhausted());
-            this.leavesResourceZoneEventHandler(card, event.context);
+            if (!event.preserveResourceReadyState) {
+                this.leavesResourceZoneEventHandler(card, event.context);
+            }
         } else if (card.isUpgrade()) {
             card.unattach(event);
         }
@@ -107,6 +117,9 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
     protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<TProperties>): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         this.addDefeatSourceToEvent(event, card, context);
+
+        const { preserveResourceReadyState } = this.generatePropertiesFromContext(context, additionalProperties);
+        event.preserveResourceReadyState = !!preserveResourceReadyState;
     }
 
     /** Generates metadata indicating what the source of the defeat is for relevant effects such as "when [X] attacks and defeats..." */
@@ -167,7 +180,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         if (card.zoneName !== ZoneName.Resource) {
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
         } else {
-            addLastKnownInformationToEvent(event, card);
+            addDepartureRecordToEvent(event, card);
         }
     }
 }

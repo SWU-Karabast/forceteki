@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class CarrionSpikeHarbingerOfTyranny extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'carrion-spike#harbinger-of-tyranny-id',
+            id: '0973986542',
             internalName: 'carrion-spike#harbinger-of-tyranny',
         };
     }

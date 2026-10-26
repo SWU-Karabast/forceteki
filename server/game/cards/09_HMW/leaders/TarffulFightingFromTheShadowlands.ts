@@ -9,7 +9,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class TarffulFightingFromTheShadowlands extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'tarfful#fighting-from-the-shadowlands-id',
+            id: '8831574910',
             internalName: 'tarfful#fighting-from-the-shadowlands',
         };
     }

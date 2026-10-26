@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class PheeGenoaLiberatorOfAncientWonders extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'phee-genoa#liberator-of-ancient-wonders-id',
+            id: '5496564048',
             internalName: 'phee-genoa#liberator-of-ancient-wonders',
         };
     }

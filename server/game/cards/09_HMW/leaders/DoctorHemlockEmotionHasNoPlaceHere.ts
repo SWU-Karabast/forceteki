@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class DoctorHemlockEmotionHasNoPlaceHere extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'doctor-hemlock#emotion-has-no-place-here-id',
+            id: '3060442176',
             internalName: 'doctor-hemlock#emotion-has-no-place-here',
         };
     }

@@ -6,7 +6,7 @@ import { CardType } from '../../../core/Constants';
 export default class LuminaraUnduliBesiegedGeneral extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'luminara-unduli#besieged-general-id',
+            id: '5858234021',
             internalName: 'luminara-unduli#besieged-general',
         };
     }

@@ -8,7 +8,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class RitualDragon extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'ritual-dragon-id',
+            id: '5585718423',
             internalName: 'ritual-dragon',
         };
     }

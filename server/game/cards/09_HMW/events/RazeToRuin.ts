@@ -5,7 +5,7 @@ import type { IEventAbilityRegistrar } from '../../../core/card/AbilityRegistrat
 export default class RazeToRuin extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'raze-to-ruin-id',
+            id: '5648482517',
             internalName: 'raze-to-ruin',
         };
     }

@@ -87,6 +87,65 @@ describe('Sundari Palace', function() {
                 expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
             });
 
+            it('should resource up to two cards for two deployed leaders in Faux Suns', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    format: 'fauxSuns',
+                    player1: {
+                        base: 'sundari-palace',
+                        leader: { card: 'chewbacca#walking-carpet', deployed: true },
+                        secondLeader: { card: 'darth-vader#dark-lord-of-the-sith', deployed: true },
+                        hand: ['wampa', 'battlefield-marine'],
+                        resources: ['atst', 'tieln-fighter'],
+                    },
+                    player2: {
+                        leader: 'luke-skywalker#faithful-friend'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sundariPalace);
+                // 2 friendly leader units → resource up to 2 cards
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickPrompt('Done');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.wampa).toBeInZone('resource', context.player1);
+                expect(context.battlefieldMarine).toBeInZone('resource', context.player1);
+                expect(context.sundariPalace.epicActionSpent).toBeTrue();
+            });
+
+            it('should count a Darksaber-bearing unit as a friendly leader unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'sundari-palace',
+                        leader: { card: 'chewbacca#walking-carpet', deployed: true },
+                        groundArena: [{ card: 'mace-windu#party-crasher', upgrades: ['the-darksaber#icon-of-leadership'] }],
+                        hand: ['wampa', 'battlefield-marine'],
+                        resources: ['atst', 'tieln-fighter'],
+                    },
+                    player2: {
+                        leader: 'luke-skywalker#faithful-friend'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sundariPalace);
+                // chewbacca (leader) + Mace with the Darksaber (a leader unit) = 2 leader units → up to 2 cards
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickPrompt('Done');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.wampa).toBeInZone('resource', context.player1);
+                expect(context.battlefieldMarine).toBeInZone('resource', context.player1);
+                expect(context.sundariPalace.epicActionSpent).toBeTrue();
+            });
+
             it('should not do anything when there are no cards in hand', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

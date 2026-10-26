@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class Breach extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'breach-id',
+            id: '8965564231',
             internalName: 'breach',
         };
     }

@@ -1,4 +1,4 @@
-import type { IModerationAction, IUserDataEntity, IUserPreferences, ModerationFieldState } from '../../services/DynamoDBInterfaces';
+import type { IModerationAction, IUserDataEntity, IUserPreferences } from '../../services/DynamoDBInterfaces';
 
 /**
  * Abstract base User class
@@ -61,9 +61,15 @@ export abstract class User {
 
     public abstract needsUsernameChange(): boolean;
 
-    public abstract mustRequestUsernameChange(): ModerationFieldState | null;
+    /**
+     * Id of the UsernameChangesBlocked mod action whose one-time notice this user has acknowledged.
+     */
+    public abstract usernameChangesBlockedSeenActionId(): string | null;
 
-    public abstract reportingDisabled(): ModerationFieldState | null;
+    /**
+     * Id of the ReportingDisabled mod action whose one-time notice this user has acknowledged.
+     */
+    public abstract reportingDisabledSeenActionId(): string | null;
 
     /**
      * Gets the user's moderation status
@@ -135,12 +141,12 @@ export class AuthenticatedUser extends User {
         return !!this.userData.needsUsernameChange;
     }
 
-    public mustRequestUsernameChange(): ModerationFieldState | null {
-        return this.userData.mustRequestUsernameChange ?? null;
+    public usernameChangesBlockedSeenActionId(): string | null {
+        return this.userData.usernameChangesBlockedSeenActionId ?? null;
     }
 
-    public reportingDisabled(): ModerationFieldState | null {
-        return this.userData.reportingDisabled ?? null;
+    public reportingDisabledSeenActionId(): string | null {
+        return this.userData.reportingDisabledSeenActionId ?? null;
     }
 
     public getModeration(): IModerationAction | null {
@@ -162,6 +168,19 @@ export class AuthenticatedUser extends User {
  * Represents an anonymous user without an account
  */
 export class AnonymousUser extends User {
+    /**
+     * The display name for an anonymous user, derived from their id. Must stay in step with the
+     * format the client shows (`anonymous ` plus the first 6 characters of the id).
+     */
+    public static usernameForId(id: string): string {
+        return `anonymous ${id.substring(0, 6)}`;
+    }
+
+    /** Whether the id belongs to one of the local dev test users, which only exist in development. */
+    public static isDevTestUserId(id: string): boolean {
+        return process.env.ENVIRONMENT === 'development' && (id === 'exe66' || id === 'th3w4y');
+    }
+
     public id: string;
     public username: string;
     private readonly _hasClientProvidedId: boolean;
@@ -186,10 +205,7 @@ export class AnonymousUser extends User {
     }
 
     public isDevTestUser(): boolean {
-        if (process.env.ENVIRONMENT === 'development') {
-            return this.id === 'exe66' || this.id === 'th3w4y';
-        }
-        return false;
+        return AnonymousUser.isDevTestUserId(this.id);
     }
 
     public getId(): string {
@@ -200,11 +216,11 @@ export class AnonymousUser extends User {
         return false;
     }
 
-    public mustRequestUsernameChange(): ModerationFieldState | null {
+    public usernameChangesBlockedSeenActionId(): string | null {
         return null;
     }
 
-    public reportingDisabled(): ModerationFieldState | null {
+    public reportingDisabledSeenActionId(): string | null {
         return null;
     }
 

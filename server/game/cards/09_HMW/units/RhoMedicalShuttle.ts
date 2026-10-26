@@ -6,7 +6,7 @@ import { CardType, WildcardCardType } from '../../../core/Constants';
 export default class RhoMedicalShuttle extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'rho-medical-shuttle-id',
+            id: '0071409385',
             internalName: 'rho-medical-shuttle',
         };
     }

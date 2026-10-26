@@ -1,9 +1,10 @@
+import type { ParsedUrlQuery } from 'node:querystring';
 import fs from 'fs';
 import path from 'path';
 import http from 'http';
 import express, { type Response } from 'express';
 import cors from 'cors';
-import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
+import type { DefaultEventsMap, ExtendedError, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
 import { constants as zlibConstants } from 'zlib';
 import { getHeapSpaceStatistics, getHeapStatistics } from 'v8';
@@ -34,23 +35,28 @@ import { DeckFetchError } from '../utils/deck/DeckFetchError';
 import { DeckLinkResolver } from '../utils/deck/DeckLinkResolver';
 import type { IQueueFormatKey, QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
+import { getMatchmakingSearchContext } from './MatchmakingRules';
+import type { IMatchmakingSearchContext } from './MatchmakingRules';
 import { Helpers } from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
 import { ServerSettingsCache } from '../utils/ServerSettingsCache';
 import { UserFactory } from '../utils/user/UserFactory';
+import { validateUsernameFormat } from '../utils/user/UsernameRules';
 import { DeckService } from '../utils/deck/DeckService';
 import { userOrLobbyNameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
 import { SwuStatsHandler } from '../utils/statHandlers/SwuStatsHandler';
 import { GameServerMetrics } from '../utils/GameServerMetrics';
 import { EnumHelpers } from '../game/core/utils/EnumHelpers';
-import { DiscordDispatcher } from '../game/core/DiscordDispatcher';
+import { DiscordDispatcher } from './DiscordDispatcher';
 import { checkServerRoleUserPrivileges } from '../utils/authUtils';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import { RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 import type { IActiveModActionCacheEntry,
     IDeckDataEntity,
-    IModerationAction } from '../services/DynamoDBInterfaces';
+    IModerationAction,
+    IReportingDisabledState,
+    IUsernameChangesBlockedState } from '../services/DynamoDBInterfaces';
 import { ModActionType } from '../services/DynamoDBInterfaces';
 import {
     ModerationType,
@@ -59,20 +65,73 @@ import {
 } from '../services/DynamoDBInterfaces';
 import { RuntimeProfiler } from '../utils/profiler';
 import { GamesToWinMode } from '../game/core/Constants';
-import { CardPool, SwuGameFormat } from '../game/core/Constants';
+import { CardPool, MatchmakingCompetitivenessPreference, SwuGameFormat } from '../game/core/Constants';
 import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 import { ModActionService } from '../utils/ModActionService';
+import { ModActionSubmissionHandler } from '../utils/ModActionSubmissionHandler';
 import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema, ServerSettingsUpdateSchema } from '../services/DynamoDBInterfaceSchemas';
+import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
+import { minimumSchedulerDelayMs } from '../utils/IScheduler';
+import { RealScheduler } from '../utils/RealScheduler';
+import { SchedulerTaskScope } from '../utils/SchedulerTaskScope';
+import type { IGameNodeConfig } from './GameNodeConfig';
+import type { IHttpClient } from '../utils/IHttpClient';
+import { RealHttpClient } from '../utils/RealHttpClient';
+import { buildGameNodeConfigFromEnvironment } from './GameNodeConfig';
 
 /**
  * Represents additional Socket types we can leverage these later.
  */
 
-interface SocketData {
+export interface SocketData {
     manualDisconnect?: boolean;
     forceDisconnect?: boolean;
     user?: User;
+}
+
+/**
+ * The subset of a socket.io `Socket`'s surface that the game node's authentication and connection
+ * handling depend on (including everything the `Socket` wrapper in `server/socket.js` needs).
+ *
+ * A real socket.io `Socket` satisfies this structurally, and so does the in-process fake socket the
+ * test suite's fake transport uses, which lets {@link GameServer.authenticateSocketAsync} and
+ * {@link GameServer.handleSocketConnectionAsync} - and therefore {@link GameServer.onConnectionAsync}
+ * - run identically against either one.
+ */
+export interface IRawGameSocket {
+    readonly id: string;
+    readonly connected: boolean;
+    data: SocketData;
+    handshake: {
+        auth: { token?: string };
+        query: ParsedUrlQuery;
+    };
+    emit(event: string, ...args: any[]): boolean;
+    on(event: string, listener: (...args: any[]) => void): this;
+    removeAllListeners(event?: string): this;
+    eventNames(): (string | symbol)[];
+    join(room: string): any;
+    leave(room: string): any;
+    disconnect(close?: boolean): this;
+}
+
+/** Result of {@link GameServer.authenticateSocketAsync}. */
+export type ISocketAuthResult =
+  | { success: true; user: User }
+  | { success: false; errorMessage: string };
+
+/**
+ * Type guard for {@link ISocketAuthResult}.
+ *
+ * This project does not enable `strictNullChecks`, and TypeScript's control-flow narrowing for
+ * discriminated unions (`if (result.success) { ... }`) depends on it - without it, `result` is not
+ * narrowed in either branch and property access on the non-common fields fails to compile. An
+ * explicit predicate sidesteps this: the caller trusts the asserted type rather than deriving it
+ * structurally from the property check, which works regardless of `strictNullChecks`.
+ */
+export function isSuccessfulSocketAuth(result: ISocketAuthResult): result is { success: true; user: User } {
+    return result.success;
 }
 
 enum UserRole {
@@ -83,6 +142,9 @@ enum UserRole {
 interface ILobbyMapping {
     lobbyId: string;
     role: UserRole;
+
+    /** Login state of the user the entry was registered for, so a connection with a different login state can't claim it. */
+    isAuthenticated: boolean;
 }
 
 export interface IToken {
@@ -90,6 +152,41 @@ export interface IToken {
     refreshToken: string;
     creationDateTime: Date;
     timeToLiveSeconds: number;
+}
+
+/**
+ * Construction-time switches for the side effects the constructor would otherwise always perform.
+ * All default to the production behaviour, so `createAsync()` is unaffected.
+ */
+export interface IGameServerOptions {
+
+    /**
+     * When false, the HTTP server and its socket.io server are built but never bound to the
+     * configured port, leaving the caller to bind them when and where it wants to.
+     */
+    listen?: boolean;
+
+    /**
+     * Supplies timers and the clock. Defaults to {@link RealScheduler}. Tests pass an implementation
+     * that lets them drive time forward on demand, so recurring work and delayed work stay active
+     * and observable rather than having to be switched off.
+     */
+    scheduler?: IScheduler;
+
+    /**
+     * Behavioural switches for the node. Defaults to the values derived from the environment, so
+     * production is unaffected. Tests set these explicitly so they exercise a chosen behaviour
+     * rather than whichever one the environment happens to select.
+     */
+    config?: IGameNodeConfig;
+
+    /**
+     * The network boundary for outbound calls to external stat sites (SWUStats, SWUBase). Defaults
+     * to {@link RealHttpClient}. Tests pass a fake that records requests and returns configurable
+     * responses, so the payload-building and response-handling logic in `SwuStatsHandler` /
+     * `SwuBaseHandler` still runs for real while the actual network call does not.
+     */
+    httpClient?: IHttpClient;
 }
 
 // Interface for GC performance entries using the modern 'detail' property
@@ -105,6 +202,9 @@ interface GCPerformanceEntry {
 
 export class GameServer {
     private static readonly DOCKER_CARD_DATA_PATH = '/app/data';
+
+    /** How often the server-role and server-settings caches re-read their tables. */
+    public static readonly ServerCacheRefreshMinutes = 60;
 
     public static async createAsync(): Promise<GameServer> {
         let cardDataGetter: CardDataGetter;
@@ -144,8 +244,8 @@ export class GameServer {
         const shouldInitializeDbCaches = process.env.ENVIRONMENT !== 'development' || process.env.USE_LOCAL_DYNAMODB === 'true';
         if (shouldInitializeDbCaches) {
             console.log('SETUP: Initializing caches for server roles and customizations.');
-            serverRoleUsersCache = await ServerRoleUsersCache.createAsync(60);
-            serverSettingsCache = await ServerSettingsCache.createAsync(60);
+            serverRoleUsersCache = await ServerRoleUsersCache.createAsync(GameServer.ServerCacheRefreshMinutes);
+            serverSettingsCache = await ServerSettingsCache.createAsync(GameServer.ServerCacheRefreshMinutes);
             cosmeticsService = await CosmeticsService.createAsync();
             modActionCache = await ModActionService.createAsync();
             console.log('SETUP: Caches for server roles and customizations initialized.');
@@ -177,7 +277,7 @@ export class GameServer {
         return new gameStateBuilderClass();
     }
 
-    private readonly lobbies = new Map<string, Lobby>();
+    protected readonly lobbies = new Map<string, Lobby>();
     private readonly playerMatchmakingDisconnectedTime = new Map<string, Date>();
     private readonly userLobbyMap = new Map<string, ILobbyMapping>();
     private readonly dailyActiveUserIds = new Set<string>();
@@ -187,12 +287,20 @@ export class GameServer {
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
-    private readonly queue: QueueHandler = new QueueHandler();
+    protected readonly scheduler: IScheduler;
+    private readonly taskScope: SchedulerTaskScope;
+    protected readonly config: IGameNodeConfig;
+    protected readonly httpClient: IHttpClient;
+    private readonly queue: QueueHandler;
     private lastCpuUsage: NodeJS.CpuUsage;
     private lastCpuUsageTime: bigint;
     private loopDelayHistogram: IntervalHistogram;
     private lastLoopUtilization: EventLoopUtilization;
-    private matchmakingTimer?: NodeJS.Timeout;
+    private matchmakingRetryTask?: IScheduledTask;
+    private matchmakingInProgress = false;
+
+    /** A request arriving during awaited lobby setup needs a fresh pass over all format queues. */
+    private matchmakingRequested = false;
     private gcStats = {
         totalDuration: 0,
         scavengeCount: 0,
@@ -218,24 +326,58 @@ export class GameServer {
     public readonly swuDbDeckFetcher: SwuDbDeckFetcher;
     public readonly meleeDeckFetcher: MeleeDeckFetcher;
     private readonly discordDispatcher = new DiscordDispatcher();
-    private readonly tokenCleanupInterval: NodeJS.Timeout;
+
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
     public readonly serverSettingsCache?: ServerSettingsCache;
     public readonly modActionService?: ModActionService;
+    private readonly modActionSubmissionHandler?: ModActionSubmissionHandler;
 
-    private constructor(
+    /**
+     * The HTTP server carrying both the API and the socket.io server. Subclasses may bind it
+     * themselves when constructed with `listen: false`.
+     */
+    protected readonly httpServer: http.Server;
+
+    /**
+     * Moderation state lives in the mod action cache; if it is missing we cannot evaluate restrictions
+     * at all. Callers degrade to "unrestricted", so log loudly to make a misconfiguration visible
+     * rather than silently permissive.
+     */
+    private getModActionService(context: string): ModActionService | null {
+        if (!this.modActionService) {
+            logger.error(`GameServer (${context}): mod action service unavailable, moderation state cannot be evaluated`);
+            return null;
+        }
+        return this.modActionService;
+    }
+
+    protected constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         serverRoleUsersCache?: ServerRoleUsersCache,
         serverSettingsCache?: ServerSettingsCache,
         cosmeticsService?: CosmeticsService,
         modActionCache?: ModActionService,
-        testGameBuilder?: any
+        testGameBuilder?: any,
+        options: IGameServerOptions = {}
     ) {
+        const {
+            listen = true,
+            scheduler = new RealScheduler(),
+            config = buildGameNodeConfigFromEnvironment(),
+            httpClient = new RealHttpClient()
+        } = options;
+
         const app = express();
         app.use(express.json());
         const server = http.createServer(app);
 
+        this.taskScope = new SchedulerTaskScope(scheduler);
+        this.scheduler = this.taskScope;
+        this.config = config;
+        this.httpClient = httpClient;
+        this.queue = new QueueHandler(this.scheduler, config);
+        this.httpServer = server;
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
@@ -245,6 +387,7 @@ export class GameServer {
         this.serverSettingsCache = serverSettingsCache;
         this.cosmeticsService = cosmeticsService;
         this.modActionService = modActionCache;
+        this.modActionSubmissionHandler = modActionCache ? new ModActionSubmissionHandler(modActionCache, this.userFactory) : undefined;
 
         const corsOptions = {
             origin: env.corsOrigins,
@@ -287,8 +430,10 @@ export class GameServer {
         });
 
 
-        server.listen(env.gameNodeSocketIoPort);
-        logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
+        if (listen) {
+            server.listen(env.gameNodeSocketIoPort);
+            logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
+        }
         logger.info(`GameServer: Detected ${cpus().length} logical CPU cores.`);
 
         // check if NEXTAUTH variable is set
@@ -300,9 +445,11 @@ export class GameServer {
         );
 
         // TOKEN CLEANUP
-        this.tokenCleanupInterval = setInterval(() => {
-            this.cleanupInvalidTokens();
-        }, 3600000); // 1 hour
+        this.scheduler.setInterval(
+            () => this.cleanupInvalidTokens(),
+            3600000, // 1 hour
+            { message: 'GameServer: error during token cleanup' }
+        );
 
         // Setup socket server
         this.io = new IOServer(server, {
@@ -319,73 +466,22 @@ export class GameServer {
         });
 
         // Setup Socket.IO middleware for Next-auth token verification
-        this.io.use(async (socket, next) => {
-            try {
-                // Get token from handshake auth
-                const token = socket.handshake.auth.token;
-                let user;
-
-                // Case 1: Token is present - attempt authenticated user flow
-                if (token) {
-                    const queryUser = socket.handshake.query.user;
-                    if (queryUser) {
-                        // Parse user data from query parameter
-                        const userData = typeof queryUser === 'string'
-                            ? JSON.parse(queryUser)
-                            : queryUser;
-
-                        // If client sent pre-authenticated user data, use it directly
-                        if (userData.authenticated) {
-                            user = this.userFactory.verifyTokenAndCreateAuthenticatedUser(token, userData);
-                        } else {
-                            // User data exists but not marked as authenticated
-                            // Verify with token instead
-                            user = await this.userFactory.createUserFromTokenAsync(token);
-                        }
-                    } else {
-                        // No user data in query, authenticate using token only
-                        user = await this.userFactory.createUserFromTokenAsync(token);
-                    }
-                // Case 2: No token - create anonymous user
-                } else {
-                    user = this.userFactory.createAnonymousUserFromQuery(socket.handshake.query);
-                }
-                // we check if we have an actual user
-                if (user.isAnonymousUser() || user.isAuthenticatedUser()) {
-                    socket.data.user = user;
-                    return next();
-                }
-                logger.error('Socket connection rejected: Error when creating user, no valid authentication provided');
-                return next(new Error('Authentication failed'));
-            } catch (error) {
-                logger.error('Socket auth middleware error:', error);
-                next(new Error('Authentication error'));
-            }
-        });
+        this.io.use((socket, next) => this.runSocketAuthMiddlewareAsync(socket, next));
         // Currently for IOSockets we can use DefaultEventsMap but later we can customize these.
-        this.io.on('connection', async (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
-            try {
-                await this.onConnectionAsync(socket);
-                socket.on('manualDisconnect', () => {
-                    try {
-                        socket.data.manualDisconnect = true;
-                        socket.disconnect();
-                    } catch (err) {
-                        logger.error('GameServer: Error in manualDisconnect:', err);
-                    }
-                });
-            } catch (err) {
-                logger.error('GameServer: Error in socket connection:', err);
-            }
-        });
+        this.io.on('connection', (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) =>
+            this.handleSocketConnectionAsync(socket));
 
-        this.swuStatsHandler = new SwuStatsHandler(this.userFactory);
-        this.swuBaseHandler = new SwuBaseHandler(this.userFactory);
+        this.swuStatsHandler = new SwuStatsHandler(this.userFactory, httpClient);
+        this.swuBaseHandler = new SwuBaseHandler(this.userFactory, httpClient);
 
         // set up queue heartbeat once a second
-        setInterval(() => this.queue.sendHeartbeat(), 500);
+        this.scheduler.setInterval(
+            () => this.queue.sendHeartbeat(),
+            500,
+            { message: 'GameServer: error sending queue heartbeat' }
+        );
 
-        if (process.env.ENVIRONMENT !== 'development' || process.env.FORCE_ENABLE_STATS_LOGGING === 'true') {
+        if (this.config.metricsLoggingEnabled) {
             // initialize cpu usage and event loop stats
             this.lastCpuUsage = process.cpuUsage();
             this.lastCpuUsageTime = process.hrtime.bigint();
@@ -400,18 +496,20 @@ export class GameServer {
             this.logHeapStats();
 
             // set up periodic memory, cpu and event loop monitoring for every 30 seconds
-            setInterval(() => {
+            this.scheduler.setInterval(() => {
                 this.logHeapStats();
                 this.logCpuUsage();
                 this.logEventLoopStats();
                 this.logPlayerStats();
                 this.logGCStats();
-            }, 30000);
+            }, 30000, { message: 'GameServer: error logging periodic server metrics' });
 
             // emit daily active user count and reset every 24 hours
-            setInterval(() => {
-                this.logAndResetDailyActiveUsers();
-            }, 86_400_000); // 24 hours
+            this.scheduler.setInterval(
+                () => this.logAndResetDailyActiveUsers(),
+                86_400_000, // 24 hours
+                { message: 'GameServer: error logging daily active users' }
+            );
         }
     }
 
@@ -437,7 +535,7 @@ export class GameServer {
                     this.dailyActiveUserIds.add(req.user.getId());
                 }
 
-                if (process.env.ENVIRONMENT !== 'development' && user.isAnonymousUser()) {
+                if (!this.config.allowAnonymousSpectators && user.isAnonymousUser()) {
                     logger.error(`GameServer (spectate-game): Anonymous user ${user.getId()} is attempting to spectate a game.`);
                     return res.status(401).json({
                         success: false,
@@ -446,7 +544,7 @@ export class GameServer {
                 }
 
                 // if they are in a game already we give them 403 forbidden
-                if (!this.canUserJoinNewLobby(user.getId())) {
+                if (!this.canUserJoinNewLobby(user)) {
                     logger.error(`GameServer (spectate-game): User ${user.getId()} attempted to spectate a game while playing a game`);
                     return res.status(403).json({
                         success: false,
@@ -462,7 +560,7 @@ export class GameServer {
                 }
 
                 // Register this user as a spectator for the game
-                this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Spectator });
+                this.setUserLobbyMapping(user, lobby.id, UserRole.Spectator);
                 return res.status(200).json({ success: true });
             } catch (err) {
                 logger.error('GameServer (spectate-game) Server error: ', err);
@@ -479,10 +577,27 @@ export class GameServer {
                 // Start with legacy values (backwards compatibility)
                 let moderation = user.getModeration();
                 let needsUsernameChange = user.needsUsernameChange();
+                let reportingDisabled: IReportingDisabledState | null = null;
+                let usernameChangesBlocked: IUsernameChangesBlockedState | null = null;
 
-                if (user.isAuthenticatedUser()) {
+                const modActionService = this.getModActionService('get-user');
+                if (user.isAuthenticatedUser() && modActionService) {
                     const userId = user.getId();
-                    const activeActions = this.modActionService.getActiveActionsForPlayer(userId);
+                    const activeActions = modActionService.getActiveActionsForPlayer(userId);
+
+                    const reportingDisabledActionId = modActionService.getActiveReportingDisabledActionId(userId);
+                    if (reportingDisabledActionId) {
+                        reportingDisabled = {
+                            hasSeen: user.reportingDisabledSeenActionId() === reportingDisabledActionId,
+                        };
+                    }
+
+                    const usernameChangesBlockedActionId = modActionService.getActiveUsernameChangesBlockedActionId(userId);
+                    if (usernameChangesBlockedActionId) {
+                        usernameChangesBlocked = {
+                            hasSeen: user.usernameChangesBlockedSeenActionId() === usernameChangesBlockedActionId,
+                        };
+                    }
 
                     if (activeActions) {
                         if (activeActions.some((action) => action.actionType === ModActionType.Rename)) {
@@ -496,7 +611,7 @@ export class GameServer {
                             if (muteEntry) {
                                 // Pending mute — activate it (sets startedAt + expiresAt)
                                 if (!muteEntry.startedAt) {
-                                    const activated = await this.modActionService.activatePendingMuteAsync(userId);
+                                    const activated = await modActionService.activatePendingMuteAsync(userId);
                                     moderation = this.buildModerationFromCacheEntry(activated, false);
                                 } else if (muteEntry.expiresAt) {
                                     // Already active — just build the moderation object
@@ -517,8 +632,8 @@ export class GameServer {
                     activeCosmetics: this.cosmeticsService
                         ? this.cosmeticsService.resolveActiveCosmetics(user.getPreferences()?.cosmetics)
                         : CosmeticsService.resolveDefaultCosmetics(user.getPreferences()?.cosmetics),
-                    mustRequestUsernameChange: user.mustRequestUsernameChange(),
-                    reportingDisabled: user.reportingDisabled(),
+                    usernameChangesBlocked,
+                    reportingDisabled,
                     needsUsernameChange,
                     moderation
                 } });
@@ -693,7 +808,10 @@ export class GameServer {
                         message: 'Authentication required to retrieve canchangeUsername info'
                     });
                 }
-                const result = await this.userFactory.canChangeUsernameAsync(user.getId());
+                const result = await this.userFactory.canChangeUsernameAsync(user.getId(), {
+                    hasActiveForcedRename: !!this.modActionService?.playerActiveRename(user.getId()),
+                    usernameChangesBlocked: this.modActionService?.isUsernameChangesBlocked(user.getId()) ?? false,
+                });
                 return res.status(200).json({
                     success: true,
                     result: result,
@@ -727,6 +845,15 @@ export class GameServer {
                     });
                 }
 
+                const formatError = validateUsernameFormat(newUsername);
+                if (formatError) {
+                    logger.warn(`GameServer (change-username): User ${user.getId()} submitted a username that fails the format rules: ${newUsername}`);
+                    return res.status(400).json({
+                        success: false,
+                        message: formatError
+                    });
+                }
+
                 // Check for profanity
                 if (userOrLobbyNameContainsProfanity(newUsername)) {
                     logger.warn(`GameServer (change-username): User ${user.getId()} attempted to use a username containing profanity: ${newUsername}`);
@@ -737,13 +864,15 @@ export class GameServer {
                 }
 
                 // Call the changeUsername method
-                const activeRename = this.modActionService?.playerActiveRename(user.getId()) ?? null;
+                const modActionService = this.getModActionService('change-username');
+                const activeRename = modActionService?.playerActiveRename(user.getId()) ?? null;
                 const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername, {
                     source: activeRename ? UsernameChangeSource.ForcedRename : UsernameChangeSource.UserInitiated,
                     relatedModActionId: activeRename?.modActionId,
+                    usernameChangesBlocked: modActionService?.isUsernameChangesBlocked(user.getId()) ?? false,
                 });
                 if (result.success) {
-                    await this.modActionService.onRenameCompleted(user.getId());
+                    await modActionService?.onRenameCompleted(user.getId());
                     return res.status(200).json({
                         succeess: true,
                         message: 'Username successfully changed',
@@ -785,26 +914,39 @@ export class GameServer {
             }
         });
 
-        app.post('/api/set-must-request-username-change-seen', this.buildAuthMiddleware(), async (req, res, next) => {
+        app.post('/api/set-username-changes-blocked-seen', this.buildAuthMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;
 
                 if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (set-must-request-username-change-seen): Anonymous user ${user.getId()} attempted to set must-request-username-change seen`, { userId: user.getId() });
+                    logger.error(`GameServer (set-username-changes-blocked-seen): Anonymous user ${user.getId()} attempted to set username-changes-blocked seen`, { userId: user.getId() });
                     return res.status(403).json({
                         success: false,
                         message: 'Authentication required'
                     });
                 }
 
-                const result = await this.userFactory.setMustRequestUsernameChangeSeenAsync(user.getId());
+                const modActionService = this.getModActionService('set-username-changes-blocked-seen');
+                if (!modActionService) {
+                    return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
+                }
+
+                const modActionId = modActionService.getActiveUsernameChangesBlockedActionId(user.getId());
+                if (!modActionId) {
+                    return res.status(200).json({
+                        success: true,
+                        message: 'No active username-changes-blocked restriction to acknowledge'
+                    });
+                }
+
+                await this.userFactory.setUsernameChangesBlockedSeenAsync(user.getId(), modActionId);
 
                 return res.status(200).json({
-                    success: result,
-                    message: 'Must-request-username-change seen status updated'
+                    success: true,
+                    message: 'Username-changes-blocked seen status updated'
                 });
             } catch (err) {
-                logger.error('GameServer (set-must-request-username-change-seen) Server Error: ', err);
+                logger.error('GameServer (set-username-changes-blocked-seen) Server Error: ', err);
                 next(err);
             }
         });
@@ -821,10 +963,23 @@ export class GameServer {
                     });
                 }
 
-                const result = await this.userFactory.setReportingDisabledSeenAsync(user.getId());
+                const modActionService = this.getModActionService('set-reporting-disabled-seen');
+                if (!modActionService) {
+                    return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
+                }
+
+                const modActionId = modActionService.getActiveReportingDisabledActionId(user.getId());
+                if (!modActionId) {
+                    return res.status(200).json({
+                        success: true,
+                        message: 'No active reporting-disabled restriction to acknowledge'
+                    });
+                }
+
+                await this.userFactory.setReportingDisabledSeenAsync(user.getId(), modActionId);
 
                 return res.status(200).json({
-                    success: result,
+                    success: true,
                     message: 'Reporting-disabled seen status updated'
                 });
             } catch (err) {
@@ -941,9 +1096,9 @@ export class GameServer {
                 const { preferences } = req.body;
                 const { userId } = req.params;
                 const user = req.user as User;
-                if (user.isAnonymousUser()) {
-                    logger.error(`GameServer (PUT-preferences): Anonymous user ${user.getId()} attempted to save preferences to dynamodb`);
-                    return res.status(401).json({
+                if (user.isAnonymousUser() || userId !== user.getId()) {
+                    logger.error(`GameServer (PUT-preferences): User ${user.getId()} attempted to save preferences for user ${userId}`);
+                    return res.status(user.isAnonymousUser() ? 401 : 403).json({
                         success: false,
                         message: 'Error attempting to save preferences'
                     });
@@ -1184,6 +1339,7 @@ export class GameServer {
                         userId: user.getId(),
                         deck: {
                             leader: { id: resolved.leader?.id ?? '' },
+                            ...(resolved.secondleader?.id ? { secondLeader: { id: resolved.secondleader.id } } : {}),
                             base: { id: resolved.base?.id ?? '' },
                             name: resolved.metadata?.name || 'Untitled Deck',
                             favourite: false,
@@ -1320,7 +1476,7 @@ export class GameServer {
                 const user = req.user as User;
 
                 const mapping = this.userLobbyMap.get(user.getId());
-                if (!mapping || mapping.lobbyId !== lobbyId || mapping.role !== UserRole.Player) {
+                if (!mapping || mapping.lobbyId !== lobbyId || mapping.role !== UserRole.Player || this.isAnonymousUserClaimingAuthenticatedId(user)) {
                     return res.status(403).json({
                         success: false,
                         error: 'Not a player in this lobby',
@@ -1395,7 +1551,7 @@ export class GameServer {
                 }
 
                 // Check if the user is already in a lobby
-                if (!this.canUserJoinNewLobby(user.getId())) {
+                if (!this.canUserJoinNewLobby(user)) {
                     // TODO shouldn't return 403
                     logger.error(`GameServer (create-lobby): Error in create-lobby User ${user.getId()} attempted to create a different lobby while already being in a lobby`);
                     return res.status(403).json({
@@ -1452,6 +1608,7 @@ export class GameServer {
                         gamesToWinMode: lobby.gamesToWinMode,
                         host: lobbyOwnerUser?.deck ? {
                             leader: lobbyOwnerUser.deck.leader,
+                            secondLeader: lobbyOwnerUser.deck.secondLeader,
                             base: lobbyOwnerUser.deck.base
                         } : null
                     };
@@ -1478,7 +1635,7 @@ export class GameServer {
                     this.dailyActiveUserIds.add(req.user.getId());
                 }
 
-                if (!this.canUserJoinNewLobby(user.getId())) {
+                if (!this.canUserJoinNewLobby(user)) {
                     logger.error(`GameServer (join-lobby): Error in join-lobby User ${user.getId()} attempted to join a different lobby while already being in a lobby`);
                     return res.status(403).json({
                         success: false,
@@ -1503,35 +1660,10 @@ export class GameServer {
                 }
 
                 // Add the user to the lobby
-                this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+                this.setUserLobbyMapping(user, lobby.id, UserRole.Player);
                 return res.status(200).json({ success: true });
             } catch (err) {
                 logger.error('GameServer (join-lobby) Server error:', err);
-                next(err);
-            }
-        });
-
-        app.get('/api/test-game-setups', (_, res, next) => {
-            try {
-                const testSetupFilenames = this.getTestSetupGames();
-                return res.json(testSetupFilenames);
-            } catch (err) {
-                logger.error('GameServer: Error in test-game=setups:', err);
-                next(err);
-            }
-        });
-
-        app.post('/api/start-test-game', async (req, res, next) => {
-            const { filename } = req.body;
-            try {
-                if (!this.areGamesEnabled()) {
-                    return this.sendGamesDisabledResponse(res);
-                }
-
-                await this.startTestGame(filename);
-                return res.status(200).json({ success: true });
-            } catch (err) {
-                logger.error('GameServer: Error in start-test=game:', err);
                 next(err);
             }
         });
@@ -1542,7 +1674,7 @@ export class GameServer {
                     return this.sendGamesDisabledResponse(res);
                 }
 
-                const { format, cardPool, gamesToWinMode, deck, swudbLink } = req.body;
+                const { format, cardPool, gamesToWinMode, deck, swudbLink, matchmakingCompetitivenessPreference = MatchmakingCompetitivenessPreference.NoPreference } = req.body;
                 const user = req.user;
 
                 // track daily active user (req.user is set by auth middleware)
@@ -1552,7 +1684,7 @@ export class GameServer {
                 }
 
                 // check if user is already in a lobby
-                if (!this.canUserJoinNewLobby(user.getId())) {
+                if (!this.canUserJoinNewLobby(user)) {
                     logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} attempted to join queue while being in a lobby`);
                     return res.status(403).json({
                         success: false,
@@ -1570,6 +1702,11 @@ export class GameServer {
                     return res.status(400).json({ success: false, message: `Invalid card pool '${cardPool}'` });
                 }
 
+                if (!EnumHelpers.isEnumValue(matchmakingCompetitivenessPreference, MatchmakingCompetitivenessPreference)) {
+                    logger.error(`GameServer (enter-queue): Invalid matchmaking competitiveness preference parameter ${matchmakingCompetitivenessPreference}`);
+                    return res.status(400).json({ success: false, message: `Invalid matchmaking competitiveness preference '${matchmakingCompetitivenessPreference}'` });
+                }
+
                 // Check Bo3 access restrictions for anonymous users (queue is always public)
                 const bo3AccessError = this.validateBo3Access(user, gamesToWinMode, false, 'queue for a best of three match');
                 if (bo3AccessError) {
@@ -1583,7 +1720,7 @@ export class GameServer {
                 }
 
                 await this.processDeckValidation(resolvedDeck, false, { format, cardPool }, res, () => {
-                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, resolvedDeck);
+                    const success = this.enterQueue(format, cardPool, gamesToWinMode, user, resolvedDeck, matchmakingCompetitivenessPreference);
                     if (!success) {
                         logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(500).json({ success: false, message: 'Failed to enter queue' });
@@ -1740,13 +1877,16 @@ export class GameServer {
                     });
                 }
 
+                const modActionService = this.getModActionService('mod-find-user');
                 const players = profiles.map((profile) => ({
                     id: profile.id,
                     username: profile.username,
                     createdAt: profile.createdAt,
                     lastLogin: profile.lastLogin,
-                    isMuted: this.modActionService?.isPlayerMuted(profile.id) ?? false,
-                    activeRename: this.modActionService?.playerActiveRename(profile.id) ?? null,
+                    isMuted: modActionService?.isPlayerMuted(profile.id) ?? false,
+                    activeRename: modActionService?.playerActiveRename(profile.id) ?? null,
+                    activeReportingDisabledId: modActionService?.getActiveReportingDisabledActionId(profile.id) ?? null,
+                    activeUsernameChangesBlockedId: modActionService?.getActiveUsernameChangesBlockedActionId(profile.id) ?? null,
                 }));
 
                 // If single match, include mod actions directly
@@ -1782,23 +1922,23 @@ export class GameServer {
                     });
                 }
 
-                const { playerId, actionType, durationDays, note } = parseResult.data;
+                const { playerId, actionType, durationDays, note, newUsername } = parseResult.data;
                 const moderatorId = req.user.getId();
                 const moderatorUsername = req.user.getUsername();
 
-                if (!this.modActionService) {
+                if (!this.getModActionService('mod-submit-action') || !this.modActionSubmissionHandler) {
                     return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
                 }
 
-                // Write-through to cache
-                const modActionResult = await this.modActionService.onActionSubmitted(
+                const modActionResult = await this.modActionSubmissionHandler.submitAsync({
                     playerId,
                     actionType,
                     moderatorId,
                     moderatorUsername,
                     note,
-                    durationDays ?? undefined,
-                );
+                    durationDays: durationDays ?? undefined,
+                    newUsername,
+                });
 
                 return res.status(200).json({
                     success: modActionResult.success,
@@ -1824,10 +1964,14 @@ export class GameServer {
                 const { modActionId, playerId } = parseResult.data;
                 const cancelledById = req.user.getId();
                 const cancelledByUsername = req.user.getUsername();
-                // Write-through to cache
-                if (this.modActionService) {
-                    await this.modActionService.onActionCancelled(playerId, modActionId, cancelledById, cancelledByUsername);
+
+                const modActionService = this.getModActionService('mod-cancel-action');
+                if (!modActionService) {
+                    return res.status(503).json({ success: false, message: 'Mod action service unavailable' });
                 }
+
+                // Write-through to cache
+                await modActionService.onActionCancelled(playerId, modActionId, cancelledById, cancelledByUsername);
 
                 return res.status(200).json({
                     success: true,
@@ -1952,7 +2096,7 @@ export class GameServer {
      */
     private buildModerationFromCacheEntry(entry: IActiveModActionCacheEntry, hasSeen: boolean): IModerationAction {
         const expiresAt = new Date(entry.expiresAt);
-        const now = new Date();
+        const now = this.scheduler.currentDate();
         const daysRemaining = Math.max(0, Math.ceil((expiresAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)));
 
         return {
@@ -1965,6 +2109,31 @@ export class GameServer {
 
     // dev only endpoints
     private setupDevAppRoutes(app: express.Application) {
+        app.get('/api/test-game-setups', (_, res, next) => {
+            try {
+                const testSetupFilenames = this.getTestSetupGames();
+                return res.json(testSetupFilenames);
+            } catch (err) {
+                logger.error('GameServer: Error in test-game=setups:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/start-test-game', async (req, res, next) => {
+            const { filename } = req.body;
+            try {
+                if (!this.areGamesEnabled()) {
+                    return this.sendGamesDisabledResponse(res);
+                }
+
+                await this.startTestGame(filename);
+                return res.status(200).json({ success: true });
+            } catch (err) {
+                logger.error('GameServer: Error in start-test=game:', err);
+                next(err);
+            }
+        });
+
         // deletes all cosmetics from the database
         app.delete('/api/cosmetics', this.buildAuthMiddleware('clear-all-cosmetics', ServerRole.Admin), async (req, res, next) => {
             try {
@@ -2001,11 +2170,73 @@ export class GameServer {
         });
     }
 
-    private canUserJoinNewLobby(userId: string) {
+    private setUserLobbyMapping(user: User, lobbyId: string, role: UserRole): void {
+        this.userLobbyMap.set(user.getId(), { lobbyId, role, isAuthenticated: user.isAuthenticatedUser() });
+    }
+
+    /**
+     * Whether an anonymous user is presenting an id that is registered, in a lobby or in the queue, to a
+     * logged-in user. Anonymous ids come from the client, so this stops an anonymous request taking over
+     * that user's lobby seat or queue entry. A logged-in user's id is proven by their token, so a logged-in
+     * user is never refused here.
+     */
+    private isAnonymousUserClaimingAuthenticatedId(user: User): boolean {
+        if (user.isAuthenticatedUser()) {
+            return false;
+        }
+
+        if (this.userLobbyMap.get(user.getId())?.isAuthenticated) {
+            return true;
+        }
+
+        return !!this.queue.findPlayer(user.getId())?.player.user.isAuthenticatedUser();
+    }
+
+    /**
+     * Removes any anonymous registration of a logged-in user's id, in a lobby or in the queue. Only an
+     * anonymous request presenting that id can have made one, so the token-verified owner takes precedence.
+     */
+    private evictAnonymousClaimsOnId(user: User): void {
+        if (!user.isAuthenticatedUser()) {
+            return;
+        }
+
+        const userId = user.getId();
+
+        const lobbyEntry = this.userLobbyMap.get(userId);
+        if (lobbyEntry && !lobbyEntry.isAuthenticated) {
+            logger.warn(`GameServer: evicting an anonymous registration of logged-in user ${userId}'s id from lobby ${lobbyEntry.lobbyId}`, { userId });
+            this.userLobbyMap.delete(userId);
+
+            const lobby = this.lobbies.get(lobbyEntry.lobbyId);
+            const impostorSocket = lobby?.users.find((u) => u.id === userId)?.socket;
+            impostorSocket?.removeEventsListeners(['disconnect']);
+            impostorSocket?.disconnect();
+            this.removeUserMaybeCleanupLobby(lobby, userId);
+        }
+
+        const queueEntry = this.queue.findPlayer(userId);
+        if (queueEntry && !queueEntry.player.user.isAuthenticatedUser()) {
+            logger.warn(`GameServer: evicting an anonymous queue entry for logged-in user ${userId}'s id`, { userId });
+            queueEntry.player.socket?.removeEventsListeners(['disconnect']);
+            queueEntry.player.socket?.disconnect();
+            this.queue.removePlayer(userId, 'Anonymous registration of a logged-in user\'s id');
+        }
+    }
+
+    private canUserJoinNewLobby(user: User) {
+        const userId = user.getId();
+
+        this.evictAnonymousClaimsOnId(user);
+        if (this.isAnonymousUserClaimingAuthenticatedId(user)) {
+            logger.warn(`GameServer: anonymous user ${userId} blocked from joining because their id is registered to a logged-in user`, { userId });
+            return false;
+        }
+
         // player ditched out of a matchmaking game, make them wait 20s
         const playerLeftMatchmakingTime = this.playerMatchmakingDisconnectedTime.get(userId);
         if (playerLeftMatchmakingTime) {
-            const elapsedSeconds = Math.floor((Date.now() - playerLeftMatchmakingTime.getTime()) / 1000);
+            const elapsedSeconds = Math.floor((this.scheduler.now() - playerLeftMatchmakingTime.getTime()) / 1000);
             if (elapsedSeconds < 20) {
                 logger.info(`GameServer: user ${userId} blocked from joining due to leaving a matchmaking game during coundown`);
                 return false;
@@ -2027,7 +2258,7 @@ export class GameServer {
                         return true;
                     }
 
-                    const elapsedSeconds = Math.floor((Date.now() - userLastActivity.getTime()) / 1000);
+                    const elapsedSeconds = Math.floor((this.scheduler.now() - userLastActivity.getTime()) / 1000);
                     if (elapsedSeconds < 60) {
                         logger.info(`GameServer: user ${userId} blocked from joining due to still being in lobby ${previousLobby.id}`);
                         return false;
@@ -2065,8 +2296,8 @@ export class GameServer {
         if (isPrivate || user.isAuthenticatedUser()) {
             return null; // Private lobby or authenticated user, allowed
         }
-        // In development mode, allow anonymous Bo3 access unless explicitly blocked
-        if (process.env.ENVIRONMENT === 'development' && process.env.FORCE_BLOCK_BO3_ANON_LOCAL !== 'true') {
+        // some environments allow anonymous Bo3 access
+        if (this.config.allowAnonymousBestOfThree) {
             return null;
         }
         return `You must be logged in to ${operation}`;
@@ -2245,25 +2476,43 @@ export class GameServer {
             this.deckValidator,
             this,
             this.discordDispatcher,
+            this.scheduler,
+            this.config,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
         lobby.createLobbyUser(user, deck);
         lobby.setLobbyOwner(user.getId());
-        this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+        this.setUserLobbyMapping(user, lobby.id, UserRole.Player);
     }
 
     private async startTestGame(filename: string) {
+        // only files directly in test/gameSetups may be loaded
+        const testJSONPath = path.resolve(__dirname, '../../../test/gameSetups', path.basename(filename));
+        Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
+        const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
+
+        // A setup may pin a format and card pool so format-dependent behavior (e.g. "name a card" options) can be
+        // tested locally. Without one, test games stay Open / Unlimited.
+        const format = setupData.format != null
+            ? EnumHelpers.checkConvertToEnum(setupData.format, SwuGameFormat)[0]
+            : SwuGameFormat.Open;
+        const cardPool = setupData.cardPool != null
+            ? EnumHelpers.checkConvertToEnum(setupData.cardPool, CardPool)[0]
+            : (setupData.format != null ? CardPool.Current : CardPool.Unlimited);
+
         const lobby = new Lobby(
             'Test Game',
             MatchmakingType.PublicLobby,
-            SwuGameFormat.Open,
+            format,
             GamesToWinMode.BestOfOne,
-            CardPool.Unlimited,
+            cardPool,
             this.cardDataGetter,
             this.deckValidator,
             this,
             this.discordDispatcher,
+            this.scheduler,
+            this.config,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -2271,9 +2520,9 @@ export class GameServer {
         const theWay = this.userFactory.createAnonymousUser('th3w4y', 'ThisIsTheWay');
         lobby.createLobbyUser(order66);
         lobby.createLobbyUser(theWay);
-        this.userLobbyMap.set(order66.id, { lobbyId: lobby.id, role: UserRole.Player });
-        this.userLobbyMap.set(theWay.id, { lobbyId: lobby.id, role: UserRole.Player });
-        await lobby.startTestGameAsync(filename);
+        this.setUserLobbyMapping(order66, lobby.id, UserRole.Player);
+        this.setUserLobbyMapping(theWay, lobby.id, UserRole.Player);
+        await lobby.startTestGameAsync(setupData);
     }
 
     private getTestSetupGames() {
@@ -2312,7 +2561,95 @@ export class GameServer {
         });
     }
 
-    public async onConnectionAsync(ioSocket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>): Promise<void> {
+    /**
+     * Runs the socket.io authentication middleware: authenticates the socket and signals the result
+     * via the middleware `next` callback. A thin wrapper around {@link authenticateSocketAsync},
+     * kept as its own method so it is directly testable without going through socket.io's
+     * callback-style `next`.
+     */
+    public async runSocketAuthMiddlewareAsync(
+        socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>,
+        next: (err?: ExtendedError) => void
+    ): Promise<void> {
+        const result = await this.authenticateSocketAsync(socket);
+        if (isSuccessfulSocketAuth(result)) {
+            socket.data.user = result.user;
+            next();
+        } else {
+            next(new Error(result.errorMessage));
+        }
+    }
+
+    /**
+     * Authenticates a newly connecting socket, deriving a {@link User} from its handshake: a NextAuth
+     * JWT plus pre-authenticated user data (no DB access), a JWT alone (requires a DB lookup), or -
+     * with no token - anonymous query data.
+     */
+    public async authenticateSocketAsync(socket: IRawGameSocket): Promise<ISocketAuthResult> {
+        try {
+            // Get token from handshake auth
+            const token = socket.handshake.auth.token;
+            let user: User;
+
+            // Case 1: Token is present - attempt authenticated user flow
+            if (token) {
+                const queryUser = socket.handshake.query.user;
+                if (queryUser) {
+                    // Parse user data from query parameter
+                    const userData = typeof queryUser === 'string'
+                        ? JSON.parse(queryUser)
+                        : queryUser;
+
+                    // If client sent pre-authenticated user data, use it directly
+                    if (userData.authenticated) {
+                        user = this.userFactory.verifyTokenAndCreateAuthenticatedUser(token, userData);
+                    } else {
+                        // User data exists but not marked as authenticated
+                        // Verify with token instead
+                        user = await this.userFactory.createUserFromTokenAsync(token);
+                    }
+                } else {
+                    // No user data in query, authenticate using token only
+                    user = await this.userFactory.createUserFromTokenAsync(token);
+                }
+            // Case 2: No token - create anonymous user
+            } else {
+                user = this.userFactory.createAnonymousUserFromQuery(socket.handshake.query);
+            }
+
+            // we check if we have an actual user
+            if (user.isAnonymousUser() || user.isAuthenticatedUser()) {
+                return { success: true, user };
+            }
+            logger.error('Socket connection rejected: Error when creating user, no valid authentication provided');
+            return { success: false, errorMessage: 'Authentication failed' };
+        } catch (error) {
+            logger.error('Socket auth middleware error:', error);
+            return { success: false, errorMessage: 'Authentication error' };
+        }
+    }
+
+    /**
+     * Handles a newly established socket connection: routes it to a lobby, queue entry or spectator
+     * slot via {@link onConnectionAsync}, then registers the `manualDisconnect` app-level event.
+     */
+    public async handleSocketConnectionAsync(socket: IRawGameSocket): Promise<void> {
+        try {
+            await this.onConnectionAsync(socket);
+            socket.on('manualDisconnect', () => {
+                try {
+                    socket.data.manualDisconnect = true;
+                    socket.disconnect();
+                } catch (err) {
+                    logger.error('GameServer: Error in manualDisconnect:', err);
+                }
+            });
+        } catch (err) {
+            logger.error('GameServer: Error in socket connection:', err);
+        }
+    }
+
+    public async onConnectionAsync(ioSocket: IRawGameSocket): Promise<void> {
         const user = ioSocket.data.user as User;
         const requestedLobby = JSON.parse(Helpers.getSingleOrThrow(ioSocket.handshake.query.lobby));
         const isSpectator = ioSocket.handshake.query.spectator === 'true';
@@ -2323,10 +2660,18 @@ export class GameServer {
             return Promise.resolve();
         }
 
+        this.evictAnonymousClaimsOnId(user);
         const lobbyUserEntry = this.userLobbyMap.get(user.getId());
+
+        if (this.isAnonymousUserClaimingAuthenticatedId(user)) {
+            logger.warn(`GameServer: anonymous user ${user.getId()} attempted to connect with an id registered to a logged-in user, disconnecting`, { userId: user.getId() });
+            ioSocket.emit('connection_error', 'Connection error, please try again');
+            ioSocket.disconnect();
+            return Promise.resolve();
+        }
         // 0. If user is spectator
         if (isSpectator) {
-            if (process.env.ENVIRONMENT !== 'development' && user.isAnonymousUser()) {
+            if (!this.config.allowAnonymousSpectators && user.isAnonymousUser()) {
                 logger.warn(`GameServer: anonymous user ${user.getId()} attempted to connect as spectator to a lobby, disconnecting`);
                 ioSocket.disconnect();
                 return Promise.resolve();
@@ -2406,7 +2751,13 @@ export class GameServer {
             if (lobby.matchmakingType === MatchmakingType.Quick) {
                 if (!socket.eventContainsListener('requeue')) {
                     const lobbyUser = lobby.users.find((u) => u.id === user.getId());
-                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.queueFormatKey, user, lobbyUser?.deck?.originalDeckList));
+                    socket.registerEvent('requeue', () => this.requeueUser(
+                        socket,
+                        lobby.queueFormatKey,
+                        user,
+                        lobbyUser?.deck?.originalDeckList,
+                        lobbyUser?.matchmakingSearchContext?.preference
+                    ));
                 }
             }
 
@@ -2433,7 +2784,7 @@ export class GameServer {
             const socket = new Socket(ioSocket);
 
             // check if user is already in a lobby
-            if (!this.canUserJoinNewLobby(user.getId())) {
+            if (!this.canUserJoinNewLobby(user)) {
                 logger.warn(`GameServer: User ${user.getId()} is already in a different lobby, disconnecting`);
                 ioSocket.disconnect();
                 return Promise.resolve();
@@ -2458,7 +2809,7 @@ export class GameServer {
            }*/
 
             await lobby.addLobbyUserAsync(user, socket);
-            this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+            this.setUserLobbyMapping(user, lobby.id, UserRole.Player);
             this.registerDisconnect(socket, user.getId());
             return Promise.resolve();
         }
@@ -2502,7 +2853,8 @@ export class GameServer {
         cardPool: CardPool,
         gamesToWinMode: GamesToWinMode,
         user: User,
-        deck: ISwuDbFormatDecklist
+        deck: ISwuDbFormatDecklist,
+        matchmakingPreference: MatchmakingCompetitivenessPreference
     ): boolean {
         const formatKey: IQueueFormatKey = {
             format,
@@ -2515,6 +2867,7 @@ export class GameServer {
             {
                 user,
                 deck,
+                matchmakingPreference,
                 socket: null
             }
         );
@@ -2523,14 +2876,33 @@ export class GameServer {
     }
 
     private async matchmakeAllQueuesAsync(): Promise<void> {
+        await this.taskScope.runAsync(async () => {
+            if (this.matchmakingInProgress) {
+                this.matchmakingRequested = true;
+                return;
+            }
+
+            this.matchmakingInProgress = true;
+            try {
+                do {
+                    this.matchmakingRequested = false;
+                    await this.matchmakeReadyQueuesAsync();
+                } while (this.matchmakingRequested);
+            } finally {
+                this.matchmakingInProgress = false;
+            }
+        });
+    }
+
+    private async matchmakeReadyQueuesAsync(): Promise<void> {
         // If there's a pending timer-based matchmaking task, clear it out
-        if (this.matchmakingTimer) {
-            clearTimeout(this.matchmakingTimer);
-            this.matchmakingTimer = undefined;
+        if (this.matchmakingRetryTask) {
+            this.matchmakingRetryTask.cancel();
+            this.matchmakingRetryTask = undefined;
         }
 
         const formatsWithMatches = this.queue.findReadyFormats();
-        let needsTimedRetry = false;
+        const formatsNeedingRetry: IQueueFormatKey[] = [];
 
         for (const format of formatsWithMatches) {
             // track exceptions to avoid getting stuck in a loop
@@ -2544,8 +2916,7 @@ export class GameServer {
                     matchedPlayers = this.queue.getNextMatchPair(format);
 
                     if (!matchedPlayers) {
-                        // If matchmaking failed to find a pair, flag that we need a timed retry
-                        needsTimedRetry = true;
+                        formatsNeedingRetry.push(format);
                         break;
                     }
 
@@ -2567,17 +2938,16 @@ export class GameServer {
             }
         }
 
-        if (needsTimedRetry) {
-            this.matchmakingTimer = setTimeout(() => {
-                try {
-                    this.matchmakeAllQueuesAsync();
-                } catch (error) {
-                    logger.error(
-                        'GameServer: Error in scheduled matchmaking retry:',
-                        { error: { message: error.message, stack: error.stack } }
-                    );
-                }
-            }, QueueHandler.COOLDOWN_INTERVAL_SECONDS * 1000);
+        const retryTimes = formatsNeedingRetry
+            .map((format) => this.queue.getNextMatchAvailableAt(format))
+            .filter((availableAt): availableAt is number => availableAt !== null);
+        if (retryTimes.length > 0) {
+            const delayMs = Math.max(minimumSchedulerDelayMs, Math.min(...retryTimes) - this.scheduler.now());
+            this.matchmakingRetryTask = this.scheduler.setTimeout(
+                () => this.matchmakeAllQueuesAsync(),
+                delayMs,
+                { message: 'GameServer: Error in scheduled matchmaking retry' }
+            );
         }
 
         return Promise.resolve();
@@ -2598,18 +2968,20 @@ export class GameServer {
             this.cardDataGetter,
             this.deckValidator,
             this,
-            this.discordDispatcher
+            this.discordDispatcher,
+            this.scheduler,
+            this.config
         );
 
         this.lobbies.set(lobby.id, lobby);
 
         // Create the 2 lobby users
-        lobby.createLobbyUser(p1.user, p1.deck);
-        lobby.createLobbyUser(p2.user, p2.deck);
+        lobby.createLobbyUser(p1.user, p1.deck, getMatchmakingSearchContext(p1));
+        lobby.createLobbyUser(p2.user, p2.deck, getMatchmakingSearchContext(p2));
 
         // Save user => lobby mapping
-        this.userLobbyMap.set(p1.user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
-        this.userLobbyMap.set(p2.user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+        this.setUserLobbyMapping(p1.user, lobby.id, UserRole.Player);
+        this.setUserLobbyMapping(p2.user, lobby.id, UserRole.Player);
 
         // Attach their sockets to the lobby (if they exist)
         await this.setupQueueSocketAsync(p1, lobby, format);
@@ -2631,9 +3003,9 @@ export class GameServer {
         }
 
         await lobby.addLobbyUserAsync(player.user, socket);
-        socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket.socket, player));
+        socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket, player));
         if (!socket.eventContainsListener('requeue')) {
-            socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck));
+            socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck, player.matchmakingPreference));
         }
 
         return Promise.resolve();
@@ -2641,8 +3013,17 @@ export class GameServer {
 
     /**
      * requeues the user and removes them from the previous lobby. If the lobby is empty, it cleans it up.
+     * Passing searchStartedAt resumes a failed search; omitting it starts a new search.
      */
-    public requeueUser(socket: Socket, format: IQueueFormatKey, user: User, deck: ISwuDbFormatDecklist) {
+    public requeueUser(
+        socket: Socket,
+        format: IQueueFormatKey,
+        user: User,
+        deck: ISwuDbFormatDecklist,
+        matchmakingPreference = MatchmakingCompetitivenessPreference.NoPreference,
+        searchStartedAt?: number,
+        preferencesPublishedAt?: IMatchmakingSearchContext['preferencesPublishedAt']
+    ) {
         try {
             // Gated here rather than on the 'requeue' socket event, since this is also reached by
             // the automatic requeue paths in Lobby (e.g. when a matched opponent disconnects).
@@ -2668,9 +3049,9 @@ export class GameServer {
             }
 
             // add user to queue
-            this.queue.addPlayer(format, { user, deck, socket });
+            this.queue.addPlayer(format, { user, deck, socket, matchmakingPreference, searchStartedAt, preferencesPublishedAt });
 
-            this.matchmakeAllQueuesAsync();
+            this.matchmakeAllQueuesAsync().catch((err) => logger.error('GameServer: Error matchmaking requeued user:', err));
         } catch (err) {
             logger.error('GameServer: Error in requeueUser:', err);
         }
@@ -2696,6 +3077,34 @@ export class GameServer {
         }
 
         lobby.cleanLobby();
+    }
+
+    /**
+     * Releases every long-lived handle the server owns: recurring background tasks, the pending
+     * matchmaking retry, all lobbies (and the timers they hold), the socket.io server and the HTTP
+     * listener. Tests call this in teardown so the process is left with nothing keeping it alive.
+     */
+    public async shutdownAsync(): Promise<void> {
+        try {
+            await this.taskScope.cancelAsync();
+        } finally {
+            this.queue.shutdown();
+            this.matchmakingRetryTask = undefined;
+
+            for (const lobby of Array.from(this.lobbies.values())) {
+                lobby.cleanLobby();
+            }
+            this.lobbies.clear();
+            this.userLobbyMap.clear();
+
+            this.loopDelayHistogram?.disable();
+
+            await new Promise<void>((resolve) => this.io.close(() => resolve()));
+
+            if (this.httpServer.listening) {
+                await new Promise<void>((resolve) => this.httpServer.close(() => resolve()));
+            }
+        }
     }
 
     public onQueueSocketDisconnected(
@@ -2743,35 +3152,31 @@ export class GameServer {
 
             const timeoutValue = timeoutSeconds * 1000;
 
-            setTimeout(() => {
-                try {
-                    if (isMatchmaking && !this.queue.isConnected(id, socket.id)) {
-                        this.queue.removePlayer(id, `Timeout disconnect on socket id ${socket.id}`);
-                    }
-
-                    // Check if the user is still disconnected after the timer
-                    if (lobby?.isDisconnected(id, socket.id)) {
-                        logger.info(`GameServer: User ${id} on socket id ${socket.id} is disconnected from lobby ${lobby.id} for more than ${timeoutSeconds}s, removing from lobby`, { userId: id, lobbyId: lobby.id });
-
-                        this.userLobbyMap.delete(id);
-
-                        if (isMatchmaking) {
-                            logger.info(
-                                `GameServer: User ${id} disconnected from matchmaking during countdown for lobby ${lobby.id}, setting 20s restriction for joining new game`,
-                                { userId: id, lobbyId: lobby.id }
-                            );
-                            this.playerMatchmakingDisconnectedTime.set(id, new Date());
-
-                            lobby.removeUser(id);
-                            lobby.handleMatchmakingDisconnect();
-                        } else {
-                            this.removeUserMaybeCleanupLobby(lobby, id);
-                        }
-                    }
-                } catch (err) {
-                    logger.error('GameServer: Error in setTimeout for onSocketDisconnected:', err);
+            this.scheduler.setTimeout(() => {
+                if (isMatchmaking && this.queue.isWaitingForReconnection(id, socket.id)) {
+                    this.queue.removePlayer(id, `Timeout disconnect on socket id ${socket.id}`);
                 }
-            }, timeoutValue);
+
+                // Check if the user is still disconnected after the timer
+                if (lobby?.isDisconnected(id, socket.id)) {
+                    logger.info(`GameServer: User ${id} on socket id ${socket.id} is disconnected from lobby ${lobby.id} for more than ${timeoutSeconds}s, removing from lobby`, { userId: id, lobbyId: lobby.id });
+
+                    this.userLobbyMap.delete(id);
+
+                    if (isMatchmaking) {
+                        logger.info(
+                            `GameServer: User ${id} disconnected from matchmaking during countdown for lobby ${lobby.id}, setting 20s restriction for joining new game`,
+                            { userId: id, lobbyId: lobby.id }
+                        );
+                        this.playerMatchmakingDisconnectedTime.set(id, this.scheduler.currentDate());
+
+                        lobby.removeUser(id);
+                        lobby.handleMatchmakingDisconnect();
+                    } else {
+                        this.removeUserMaybeCleanupLobby(lobby, id);
+                    }
+                }
+            }, timeoutValue, { message: 'GameServer: Error in disconnect timeout for onSocketDisconnected', metadata: { userId: id } });
         } catch (err) {
             logger.error('GameServer: Error in onSocketDisconnected:', err);
         }

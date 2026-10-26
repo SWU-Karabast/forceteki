@@ -6,7 +6,7 @@ import { Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 export default class RaidingParty extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'raiding-party-id',
+            id: '7196274802',
             internalName: 'raiding-party',
         };
     }

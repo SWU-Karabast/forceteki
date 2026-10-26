@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class DarthSidiousMoveAgainstTheJedi extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'darth-sidious#move-against-the-jedi-id',
+            id: '4502531237',
             internalName: 'darth-sidious#move-against-the-jedi',
         };
     }

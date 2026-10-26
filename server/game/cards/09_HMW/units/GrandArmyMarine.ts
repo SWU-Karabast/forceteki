@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class GrandArmyMarine extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'grand-army-marine-id',
+            id: '2662175313',
             internalName: 'grand-army-marine',
         };
     }

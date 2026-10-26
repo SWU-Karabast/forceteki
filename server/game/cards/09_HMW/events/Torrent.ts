@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class Torrent extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'torrent-id',
+            id: '0404309004',
             internalName: 'torrent',
         };
     }

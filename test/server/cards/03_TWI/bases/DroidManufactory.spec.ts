@@ -34,5 +34,37 @@ describe('Droid Manufactory', function () {
             const battleDroids = context.player1.findCardsByName('battle-droid');
             expect(battleDroids.length).toBe(2);
         });
+
+        it('should create 2 battle droid tokens each time one of two leaders deploys in Faux Suns', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                format: 'fauxSuns',
+                player1: {
+                    base: 'droid-manufactory',
+                    leader: { card: 'rey#more-than-a-scavenger', deployed: false },
+                    secondLeader: { card: 'nala-se#clone-engineer', deployed: false }
+                },
+                player2: {
+                    leader: 'luke-skywalker#faithful-friend',
+                    // actions to take between deploys (in Faux Suns you can't pass while claim tokens are unclaimed)
+                    hand: ['battlefield-marine', 'wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Deploy the first leader → 2 Battle Droids
+            context.player1.clickCard(context.rey);
+            context.player1.clickPrompt('Deploy Rey');
+            expect(context.player1.findCardsByName('battle-droid').length).toBe(2);
+
+            // Opponent takes an action
+            context.player2.clickCard(context.battlefieldMarine);
+
+            // Deploy the second leader → 2 more Battle Droids (4 total)
+            context.player1.clickCard(context.nalaSe);
+            context.player1.clickPrompt('Deploy Nala Se');
+            expect(context.player1.findCardsByName('battle-droid').length).toBe(4);
+        });
     });
 });

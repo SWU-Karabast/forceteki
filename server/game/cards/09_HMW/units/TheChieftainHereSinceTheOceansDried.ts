@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class TheChieftainHereSinceTheOceansDried extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-chieftain#here-since-the-oceans-dried-id',
+            id: '5863566876',
             internalName: 'the-chieftain#here-since-the-oceans-dried',
         };
     }

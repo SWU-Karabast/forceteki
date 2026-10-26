@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class Ravage extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'ravage-id',
+            id: '5237976866',
             internalName: 'ravage',
         };
     }

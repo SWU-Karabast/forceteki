@@ -5,7 +5,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 export default class StormtrooperPatrol extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'stormtrooper-patrol-id',
+            id: '3113478203',
             internalName: 'stormtrooper-patrol',
         };
     }

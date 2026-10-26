@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class KingGrakchawwaaKingOfKashyyyk extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'king-grakchawwaa#king-of-kashyyyk-id',
+            id: '0958357863',
             internalName: 'king-grakchawwaa#king-of-kashyyyk',
         };
     }

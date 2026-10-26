@@ -1,4 +1,5 @@
 import { Contract } from '../utils/Contract';
+import type { IScheduledTask, IScheduler, ISchedulerErrorContext } from '../../../utils/IScheduler';
 import type { IActionTimerHandler } from './IActionTimer';
 import { PlayerTimeRemainingStatus } from './IActionTimer';
 
@@ -8,19 +9,15 @@ interface ISpecificTimeHandler {
 }
 
 /**
- * Type for a function that creates safe timeouts with error handling.
- */
-export type SafeTimeoutBuilder = (callback: () => void, delayMs: number) => NodeJS.Timeout;
-
-/**
  * Simple action timer that can schedule handlers at specific time intervals.
  * Subclasses can extend this with context-specific logic (e.g., Game/Player checks).
  */
 export class SimpleActionTimer {
     protected readonly timeLimitMs: number;
-    protected readonly buildSafeTimeout: SafeTimeoutBuilder;
+    protected readonly scheduler: IScheduler;
+    protected readonly errorContext: ISchedulerErrorContext;
 
-    protected timers: NodeJS.Timeout[] = [];
+    protected timers: IScheduledTask[] = [];
     protected endTime: Date | null = null;
     protected pauseTime: Date | null = null;
     protected _timeRemainingStatus: PlayerTimeRemainingStatus = PlayerTimeRemainingStatus.NoAlert;
@@ -35,7 +32,7 @@ export class SimpleActionTimer {
         return (
             this.endTime !== null &&
             this.pauseTime === null &&
-            Date.now() < this.endTime.getTime()
+            this.scheduler.now() < this.endTime.getTime()
         );
     }
 
@@ -44,7 +41,7 @@ export class SimpleActionTimer {
             return null;
         }
         // If paused, calculate remaining time from when we paused
-        const referenceTime = this.pauseTime ?? new Date();
+        const referenceTime = this.pauseTime ?? this.scheduler.currentDate();
         const remainingMs = this.endTime.getTime() - referenceTime.getTime();
         return remainingMs > 0 ? Math.ceil(remainingMs / 1000) : null;
     }
@@ -64,12 +61,14 @@ export class SimpleActionTimer {
 
     public constructor(
         timeLimitSeconds: number,
-        buildSafeTimeout: SafeTimeoutBuilder
+        scheduler: IScheduler,
+        errorContext: ISchedulerErrorContext
     ) {
         Contract.assertPositiveNonZero(timeLimitSeconds);
 
         this.timeLimitMs = timeLimitSeconds * 1000;
-        this.buildSafeTimeout = buildSafeTimeout;
+        this.scheduler = scheduler;
+        this.errorContext = errorContext;
     }
 
     /**
@@ -109,7 +108,7 @@ export class SimpleActionTimer {
      */
     public stop(): void {
         for (const timer of this.timers) {
-            clearTimeout(timer);
+            timer.cancel();
         }
 
         this._timeRemainingStatus = PlayerTimeRemainingStatus.NoAlert;
@@ -127,7 +126,7 @@ export class SimpleActionTimer {
             return;
         }
 
-        this.pauseTime = new Date();
+        this.pauseTime = this.scheduler.currentDate();
         this.clearTimers();
     }
 
@@ -165,7 +164,7 @@ export class SimpleActionTimer {
 
     private clearTimers(): void {
         for (const timer of this.timers) {
-            clearTimeout(timer);
+            timer.cancel();
         }
         this.timers = [];
     }
@@ -175,7 +174,7 @@ export class SimpleActionTimer {
         Contract.assertPositiveNonZero(timeRemainingMs);
         Contract.assertTrue(this.timers.length === 0, 'Timers must be cleared before initializing new timers');
 
-        this.endTime = new Date(Date.now() + timeRemainingMs);
+        this.endTime = new Date(this.scheduler.now() + timeRemainingMs);
         this.pauseTime = null;
 
         const safeCallHandler = (handler: IActionTimerHandler) => {
@@ -189,9 +188,10 @@ export class SimpleActionTimer {
 
         for (const handler of this.onSpecificTimeHandlers) {
             if (timeRemainingMs > handler.fireOnRemainingTimeMs) {
-                const timer = this.buildSafeTimeout(
+                const timer = this.scheduler.setTimeout(
                     () => safeCallHandler(handler.handler),
-                    timeRemainingMs - handler.fireOnRemainingTimeMs
+                    timeRemainingMs - handler.fireOnRemainingTimeMs,
+                    this.errorContext
                 );
 
                 this.timers.push(timer);

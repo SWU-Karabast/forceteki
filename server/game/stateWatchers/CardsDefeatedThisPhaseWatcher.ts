@@ -126,7 +126,7 @@ export class CardsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedCardEntr
             update: (currentState: DefeatedCardEntry[], event: any) =>
                 currentState.concat({
                     card: event.card.getObjectId(),
-                    inPlayId: event.card.mostRecentInPlayId,
+                    inPlayId: event.lastKnownInformation.inPlayId,
                     controlledBy: event.lastKnownInformation.controller.getObjectId(),
                     defeatedBy: event.defeatSource.player?.getObjectId(),
                     wasDefeatedWhileAttacking: event.isDefeatedWhileAttacking,

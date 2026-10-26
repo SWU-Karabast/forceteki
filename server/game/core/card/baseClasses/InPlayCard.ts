@@ -24,7 +24,7 @@ import type { ICardWithPreEnterPlayAbilities } from '../propertyMixins/PreEnterP
 import type { ICardWithTriggeredAbilities, ITriggeredAbilityRegistrar } from '../propertyMixins/TriggeredAbilityRegistration';
 import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { ICardWithUpgrades } from '../CardInterfaces';
-import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
+import type { IAdjustCostAbilityProps, IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { getPrintedAttributesOverride } from '../../ongoingEffect/effectImpl/PrintedAttributesOverride';
 import { registerStateBase, stateRef, stateRefArray, statePrimitive } from '../../GameObjectUtils';
@@ -92,7 +92,18 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     private accessor _mostRecentInPlayId: number = -1
 
     /**
-     * Every time a card enters play, it becomes a new "copy" of the card as far as the game is concerned (SWU 8.6.4).
+     * The identity counter for this card, readable in any zone. See {@link Card.identityId}.
+     *
+     * This is the same underlying counter that backs {@link inPlayId} and {@link mostRecentInPlayId},
+     * but without their zone gating, so callers that only need to compare identity do not have to
+     * pick between them.
+     */
+    public override get identityId(): number {
+        return this._mostRecentInPlayId;
+    }
+
+    /**
+     * Every time a card enters play, it becomes a new "copy" of the card as far as the game is concerned (SWU 8.5.4).
      * This in-play id is used to distinguish copies of the card - every time it enters play, the id is incremented.
      * If the card is no longer in play, this property is not available and {@link mostRecentInPlayId} should be used instead.
      */
@@ -254,9 +265,9 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             this.unattach();
         }
 
-        // Base upgrades attach only to their controller's own base, so control never transfers for them;
-        // the takeControl path (and its arena-only zone parameter) applies to unit hosts only.
-        if (newController && newController !== this.controller && newParentCard.zoneName !== ZoneName.Base) {
+        // the player who plays an upgrade controls it, even if it comes from the opponent's discard pile
+        // (e.g. a Fortify upgrade played with A Fine Addition)
+        if (newController && newController !== this.controller) {
             this.takeControl(newController, newParentCard.zoneName);
         } else {
             this.moveTo(
@@ -373,6 +384,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             ...registrar,
             addAdditionalPlayCost: (properties) => this.registerAdditionalPlayCost(properties),
             addAlternatePlayCost: (properties) => this.registerAlternatePlayCost(properties),
+            addAdjustCostAbility: (properties) => this.addAdjustCostAbility(properties, registrar),
             addDecreaseCostAbility: (properties) => this.addDecreaseCostAbility(properties, registrar),
             addWhenPlayedAbility: (properties) => this.addWhenPlayedAbility(properties, registrar),
             addWhenDefeatedAbility: (properties) => this.addWhenDefeatedAbility(properties, registrar),
@@ -390,6 +402,11 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenDefeated]: true };
         const triggeredProperties = Object.assign(properties, { when });
         return registrar.addTriggeredAbility(triggeredProperties);
+    }
+
+    /** Add a constant ability on the card that adjusts its own cost under the given condition */
+    private addAdjustCostAbility(properties: IAdjustCostAbilityProps<this>, registrar: IConstantAbilityRegistrar<this>): IConstantAbilityProps<this> {
+        return registrar.addConstantAbility(this.generateAdjustCostAbilityProps(properties));
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
@@ -430,7 +447,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             this.setPendingDefeatEnabled(false);
 
             // if we're moving from a visible zone (discard, capture) to a hidden zone, increment the in-play id to represent the loss of information (card becomes a new copy)
-            if (EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self) && !EnumHelpers.isHiddenFromOpponent(prevZone, RelativePlayer.Self)) {
+            if (EnumHelpers.zoneMoveLosesCardInformation(prevZone, this.zoneName)) {
                 this._mostRecentInPlayId += 1;
             }
         }

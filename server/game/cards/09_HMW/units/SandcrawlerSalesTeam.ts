@@ -6,7 +6,7 @@ import { Trait, WildcardCardType } from '../../../core/Constants';
 export default class SandcrawlerSalesTeam extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'sandcrawler-sales-team-id',
+            id: '8471541200',
             internalName: 'sandcrawler-sales-team',
         };
     }

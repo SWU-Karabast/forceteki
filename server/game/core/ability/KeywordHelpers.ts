@@ -7,6 +7,7 @@ import { Helpers } from '../utils/Helpers';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import { BountyKeywordInstance, KeywordInstance, KeywordWithAbilityDefinition, KeywordWithCostValues, KeywordWithNumericValue } from './KeywordInstance';
 import type { PlayCardAction } from './PlayCardAction';
+import type { IReplaceKeywordProperties } from '../ongoingEffect/effectImpl/ReplaceKeyword';
 
 export function parseKeywords(
     card: Card,
@@ -50,6 +51,51 @@ export function parseKeywords(
     }
 
     return keywords;
+}
+
+/**
+ * Applies any keyword replacement effects (e.g. "replace any Raid it has or gains with Restore")
+ * to the passed keyword instances. Each instance is replaced at most once, so two replacement
+ * effects can't chain into each other.
+ *
+ * @param card The card whose keyword list is being replaced; used as the owning card for any new instances created here.
+ */
+export function applyKeywordReplacements(instances: KeywordInstance[], replacements: IReplaceKeywordProperties[], card: Card): KeywordInstance[] {
+    if (replacements.length === 0) {
+        return instances;
+    }
+
+    return instances.map((instance) => {
+        const replacement = replacements.find((replacementProps) => replacementProps.from === instance.name);
+        if (replacement == null) {
+            return instance;
+        }
+
+        return buildReplacementKeywordInstance(instance, replacement.to, card);
+    });
+}
+
+function buildReplacementKeywordInstance(instance: KeywordInstance, replacementName: KeywordName, card: Card): KeywordInstance {
+    Contract.assertFalse(
+        instance.hasCostValue() || instance.hasAbilityDefinition(),
+        `Cannot replace keyword ${instance.name} on ${card.internalName} as it has cost values or an ability definition`
+    );
+
+    if (instance.hasNumericValue()) {
+        Contract.assertTrue(
+            isNumericType[replacementName],
+            `Cannot replace numeric keyword ${instance.name} on ${card.internalName} with non-numeric keyword ${replacementName}`
+        );
+
+        return new KeywordWithNumericValue(replacementName as NumericKeywordName, card, instance.value);
+    }
+
+    Contract.assertFalse(
+        isNumericType[replacementName],
+        `Cannot replace non-numeric keyword ${instance.name} on ${card.internalName} with numeric keyword ${replacementName}`
+    );
+
+    return new KeywordInstance(replacementName, card);
 }
 
 /**

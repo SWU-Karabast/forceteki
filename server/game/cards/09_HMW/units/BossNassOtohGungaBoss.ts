@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class BossNassOtohGungaBoss extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'boss-nass#otoh-gunga-boss-id',
+            id: '8413537581',
             internalName: 'boss-nass#otoh-gunga-boss',
         };
     }
@@ -27,10 +27,9 @@ export default class BossNassOtohGungaBoss extends NonLeaderUnitCard {
             },
             ifYouDo: {
                 title: 'Create a Beast token and give a Shield token to it',
-                immediateEffect: abilityHelper.immediateEffects.sequential([
-                    abilityHelper.immediateEffects.createBeast(),
-                    abilityHelper.immediateEffects.giveShield((context) => ({ target: context.resolvedEvents[0]?.generatedTokens }))
-                ])
+                immediateEffect: abilityHelper.immediateEffects.createBeast({
+                    enterPlayEffect: abilityHelper.immediateEffects.giveShield(),
+                })
             }
         });
     }

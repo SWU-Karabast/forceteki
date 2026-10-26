@@ -144,7 +144,7 @@ export class SwuPgnGameAdapter {
             // `allCards` resolves the decklist through the game registry and can throw for a
             // seat whose deck never loaded; degrade to the event-derived entries, never lose
             // the file.
-            const printed = read<any[]>(() => [player.deckLeader, player.base, ...player.allCards], []);
+            const printed = read<any[]>(() => [...player.getAllDeckLeaders(), player.base, ...player.allCards], []);
             for (const card of printed) {
                 const printedId = read<string | null>(
                     () => (card?.isToken?.() || !card?.setId ? null : SwuPgn.formatSetId(card.setId.set, card.setId.number)),
@@ -421,7 +421,7 @@ export class SwuPgnGameAdapter {
         // The leader's status is game state the arena list cannot carry: in the base zone it
         // is not a card in play, yet its ready/exhausted flag and its spent Epic Action decide
         // what its owner can still do (CR 1.16).
-        const leaderCard = read<any>(() => player.deckLeader, null);
+        const leaderCard = read<any>(() => player.getAllDeckLeaders()[0], null);
         const leader: LeaderState | undefined = leaderCard
             ? {
                 id: read(() => SwuPgn.formatSetId(leaderCard.setId.set, leaderCard.setId.number), 'unknown'),
@@ -646,7 +646,7 @@ export class SwuPgnGameAdapter {
         const player1 = players[0];
         const player2 = players[1];
 
-        const leaderId = (p: Player) => SwuPgn.formatSetId(p.deckLeader.setId.set, p.deckLeader.setId.number);
+        const leaderId = (p: Player) => SwuPgn.formatSetId(p.getAllDeckLeaders()[0].setId.set, p.getAllDeckLeaders()[0].setId.number);
         const baseId = (p: Player) => SwuPgn.formatSetId(p.base.setId.set, p.base.setId.number);
 
         return {
@@ -654,7 +654,7 @@ export class SwuPgnGameAdapter {
             // Spec §5.1: `Date` is when the game STARTED. Fall back to creation, then to now,
             // so the tag is never empty for a game that was never formally started.
             date: (this.game.startedAt ?? this.game.createdAt ?? new Date()).toISOString(),
-            format: this.game.gameMode,
+            format: this.game.format,
             cardPool: this.swuPgnCardPool(),
             engineVersion: SwuPgnGameAdapter.engineVersion(),
             // Every Game now seeds its RNG explicitly (see Game's constructor), so this is the
@@ -687,7 +687,7 @@ export class SwuPgnGameAdapter {
         for (let i = 0; i < players.length; i++) {
             const player = players[i];
             const seat: Seat = i === 0 ? 1 : 2;
-            const leader = SwuPgn.formatSetId(player.deckLeader.setId.set, player.deckLeader.setId.number);
+            const leader = SwuPgn.formatSetId(player.getAllDeckLeaders()[0].setId.set, player.getAllDeckLeaders()[0].setId.number);
             const base = SwuPgn.formatSetId(player.base.setId.set, player.base.setId.number);
 
             const toEntries = (entries: { id: string; count: number }[]): [string, number][] =>

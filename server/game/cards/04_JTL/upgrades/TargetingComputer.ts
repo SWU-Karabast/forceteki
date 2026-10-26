@@ -11,7 +11,7 @@ export default class TargetingComputer extends UpgradeCard {
     }
 
     public override setupCardAbilities(registrar: IUpgradeAbilityRegistrar, AbilityHelper: IAbilityHelper) {
-        registrar.addConstantAbilityTargetingAttached({
+        registrar.addGainConstantAbilityTargetingAttached({
             title: 'You assign all indirect damage dealt by this unit',
             ongoingEffect: AbilityHelper.ongoingEffects.assignIndirectDamageDealtByUnit(),
         });

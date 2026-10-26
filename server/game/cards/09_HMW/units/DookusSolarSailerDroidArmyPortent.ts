@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class DookusSolarSailerDroidArmyPortent extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'dookus-solar-sailer#droid-army-portent-id',
+            id: '4824728633',
             internalName: 'dookus-solar-sailer#droid-army-portent',
         };
     }

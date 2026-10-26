@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class VillageTroublemaker extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'village-troublemaker-id',
+            id: '6012814125',
             internalName: 'village-troublemaker'
         };
     }

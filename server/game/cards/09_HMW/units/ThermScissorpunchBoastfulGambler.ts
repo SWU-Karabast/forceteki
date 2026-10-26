@@ -6,7 +6,7 @@ import { EventName, PhaseName } from '../../../core/Constants';
 export default class ThermScissorpunchBoastfulGambler extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'therm-scissorpunch#boastful-gambler-id',
+            id: '4191948680',
             internalName: 'therm-scissorpunch#boastful-gambler',
         };
     }

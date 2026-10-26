@@ -72,7 +72,7 @@
       "baseMaxHp": 30,
       "handSize": 1,
       "hand": [
-        "SOR#128:7"
+        "IC27#097:7"
       ],
       "resourcesReady": 5,
       "resourcesExhausted": 0,
@@ -80,7 +80,7 @@
         "SHD#238",
         "SHD#238:2",
         "TWI#174",
-        "SOR#128:3",
+        "IC27#097:3",
         "SHD#238:3"
       ],
       "credits": 0,
@@ -90,7 +90,7 @@
       ],
       "cards": [
         {
-          "id": "SOR#128:2",
+          "id": "IC27#097:2",
           "zone": "ground",
           "damage": 0,
           "exhausted": false,
@@ -104,7 +104,7 @@
           "keywords": []
         },
         {
-          "id": "SOR#128",
+          "id": "IC27#097",
           "zone": "ground",
           "damage": 0,
           "exhausted": false,
@@ -118,7 +118,7 @@
           "keywords": []
         },
         {
-          "id": "SOR#128:4",
+          "id": "IC27#097:4",
           "zone": "ground",
           "damage": 0,
           "exhausted": false,
@@ -132,7 +132,7 @@
           "keywords": []
         },
         {
-          "id": "SOR#128:5",
+          "id": "IC27#097:5",
           "zone": "ground",
           "damage": 0,
           "exhausted": false,
@@ -146,7 +146,7 @@
           "keywords": []
         },
         {
-          "id": "SOR#128:6",
+          "id": "IC27#097:6",
           "zone": "ground",
           "damage": 0,
           "exhausted": false,

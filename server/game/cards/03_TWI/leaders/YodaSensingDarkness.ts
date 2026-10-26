@@ -34,13 +34,13 @@ export default class YodaSensingDarkness extends LeaderUnitCard {
                     activePromptTitle: 'Select a card to put on the top or bottom of your deck',
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
-                    immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects((context) => ({
-                        amountOfChoices: 1,
-                        choices: () => ({
-                            ['Top']: AbilityHelper.immediateEffects.moveToTopOfDeck({ target: context.target }),
-                            ['Bottom']: AbilityHelper.immediateEffects.moveToBottomOfDeck({ target: context.target }),
-                        })
-                    }))
+                    immediateEffect: AbilityHelper.immediateEffects.selectChoice({
+                        activePromptTitle: 'Put the card on the top or bottom of your deck',
+                        choices: {
+                            ['Top']: AbilityHelper.immediateEffects.moveToTopOfDeck(),
+                            ['Bottom']: AbilityHelper.immediateEffects.moveToBottomOfDeck(),
+                        }
+                    })
                 }
             }
         });
