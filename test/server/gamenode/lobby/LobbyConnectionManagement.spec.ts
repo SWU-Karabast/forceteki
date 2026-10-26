@@ -1,5 +1,5 @@
-import { CardPool, GamesToWinMode, SwuGameFormat } from '../../../server/game/core/Constants';
-import { serverIntegration } from '../../helpers/server/ServerIntegrationHelper';
+import { premierBestOfOne } from '../../../helpers/server/MatchConfigs';
+import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 
 /**
  * Phase 2 deliverable: the first full HTTP -> socket handoff tests, driven entirely through the fake
@@ -16,14 +16,6 @@ import { serverIntegration } from '../../helpers/server/ServerIntegrationHelper'
  */
 describe('Lobby connection management', function () {
     serverIntegration(function (contextRef) {
-        function matchConfig() {
-            return {
-                format: SwuGameFormat.Premier,
-                cardPool: CardPool.Current,
-                gamesToWinMode: GamesToWinMode.BestOfOne,
-            };
-        }
-
         describe('a public lobby', function () {
             it('lets a second user discover and join it via /api/available-lobbies', async function () {
                 const { harness } = contextRef;
@@ -34,7 +26,7 @@ describe('Lobby connection management', function () {
                 const created = await owner.createLobbyAsync({
                     lobbyName,
                     deck: harness.decklists.validDecklist(),
-                    ...matchConfig(),
+                    ...premierBestOfOne,
                 });
                 expect(created.status).toBe(200);
 
@@ -62,7 +54,7 @@ describe('Lobby connection management', function () {
                 const thirdUser = harness.createClient();
                 const lobbyName = harness.uniqueLobbyName();
 
-                await owner.createLobbyAsync({ lobbyName, deck: harness.decklists.validDecklist(), ...matchConfig() });
+                await owner.createLobbyAsync({ lobbyName, deck: harness.decklists.validDecklist(), ...premierBestOfOne });
                 await owner.connectAsync();
 
                 const beforeJoin = await thirdUser.findAvailableLobbyAsync((lobby) => lobby.name === lobbyName);
@@ -87,15 +79,14 @@ describe('Lobby connection management', function () {
                     lobbyName: harness.uniqueLobbyName(),
                     deck: harness.decklists.validDecklist(),
                     isPrivate: true,
-                    ...matchConfig(),
+                    ...premierBestOfOne,
                 });
                 expect(created.status).toBe(200);
 
                 await owner.connectAsync();
-                const { connectionLink } = owner.lobbyState;
-                expect(connectionLink).toBeTruthy();
+                expect(owner.lobbyState.connectionLink).toBeTruthy();
 
-                const lobbyId = new URL(connectionLink).searchParams.get('lobbyId');
+                const { lobbyId } = owner;
                 expect(lobbyId).toBeTruthy();
 
                 // the real client never calls /api/join-lobby for a private lobby - it connects the
@@ -119,7 +110,7 @@ describe('Lobby connection management', function () {
                     lobbyName,
                     deck: harness.decklists.validDecklist(),
                     isPrivate: true,
-                    ...matchConfig(),
+                    ...premierBestOfOne,
                 });
                 await owner.connectAsync();
 
@@ -135,7 +126,7 @@ describe('Lobby connection management', function () {
                 const joiner = harness.createClient();
                 const lobbyName = harness.uniqueLobbyName();
 
-                await owner.createLobbyAsync({ lobbyName, deck: harness.decklists.validDecklist(), ...matchConfig() });
+                await owner.createLobbyAsync({ lobbyName, deck: harness.decklists.validDecklist(), ...premierBestOfOne });
                 await owner.connectAsync();
 
                 const discovered = await joiner.findAvailableLobbyAsync((lobby) => lobby.name === lobbyName);
@@ -155,7 +146,7 @@ describe('Lobby connection management', function () {
                 const joiner = harness.createClient();
                 const lobbyName = harness.uniqueLobbyName();
 
-                await owner.createLobbyAsync({ lobbyName, deck: harness.decklists.validDecklist(), ...matchConfig() });
+                await owner.createLobbyAsync({ lobbyName, deck: harness.decklists.validDecklist(), ...premierBestOfOne });
                 await owner.connectAsync();
 
                 const discovered = await joiner.findAvailableLobbyAsync((lobby) => lobby.name === lobbyName);
@@ -184,7 +175,7 @@ describe('Lobby connection management', function () {
                 const joiner = harness.createClient();
                 const lobbyName = harness.uniqueLobbyName();
 
-                await owner.createLobbyAsync({ lobbyName, deck: harness.decklists.validDecklist(), ...matchConfig() });
+                await owner.createLobbyAsync({ lobbyName, deck: harness.decklists.validDecklist(), ...premierBestOfOne });
                 await owner.connectAsync();
 
                 const discovered = await joiner.findAvailableLobbyAsync((lobby) => lobby.name === lobbyName);
@@ -210,7 +201,7 @@ describe('Lobby connection management', function () {
                 const joiner = harness.createClient();
                 const lobbyName = harness.uniqueLobbyName();
 
-                await owner.createLobbyAsync({ lobbyName, deck: harness.decklists.validDecklist(), ...matchConfig() });
+                await owner.createLobbyAsync({ lobbyName, deck: harness.decklists.validDecklist(), ...premierBestOfOne });
                 await owner.connectAsync();
 
                 const discovered = await joiner.findAvailableLobbyAsync((lobby) => lobby.name === lobbyName);

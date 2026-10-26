@@ -15,7 +15,7 @@ import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/game
 import { addLastKnownInformationToEvent } from '../core/event/LastKnownInformation';
 import { Contract } from '../core/utils/Contract';
 import type { Attack } from '../core/attack/Attack';
-import type { IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
+import type { IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack, IDamageSource } from '../IDamageOrDefeatSource';
 import { DamageSourceType } from '../IDamageOrDefeatSource';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 
@@ -102,6 +102,23 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         isIndirect: false,
         isUnpreventable: false
     };
+
+    /**
+     * Returns the cards that dealt the damage in an `onDamageDealt` event: the dealing units for
+     * combat and overwhelm damage, or the source card for ability and excess damage. Empty if none.
+     */
+    public static getDamageSourceCards(event): Card[] {
+        Contract.assertTrue(event.name === EventName.OnDamageDealt);
+
+        const damageSource: IDamageSource = event.damageSource;
+
+        // Narrowed by field rather than by `type`: the attack variant's `type` spans two enums.
+        if ('damageDealtBy' in damageSource) {
+            return damageSource.damageDealtBy;
+        }
+
+        return damageSource.card ? [damageSource.card] : [];
+    }
 
     public eventHandler(event): void {
         const eventDamageAmount = this.getDamageAmountFromEvent(event);

@@ -1,42 +1,6 @@
 const mockCards = [
     // Add mock cards here
     buildMockCard({
-        title: 'Darth Vader',
-        subtitle: 'No One to Stop Us',
-        cost: 7,
-        power: 5,
-        hp: 7,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'villainy'],
-        traits: ['force', 'imperial', 'sith'],
-        types: ['leader'],
-        setId: {
-            set: 'IC27',
-            number: 1
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'darth-vader#no-one-to-stop-us'
-    }),
-    buildMockCard({
-        title: 'Princess Leia',
-        subtitle: 'On a Diplomatic Mission',
-        cost: 6,
-        power: 4,
-        hp: 7,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'heroism'],
-        traits: ['rebel', 'official'],
-        types: ['leader'],
-        setId: {
-            set: 'IC27',
-            number: 8
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'princess-leia#on-a-diplomatic-mission'
-    }),
-    buildMockCard({
         title: 'Moff Gideon',
         subtitle: 'Cold Calling',
         cost: 5,
@@ -108,39 +72,6 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'captain-rex#staunch-advocate'
-    }),
-    buildMockCard({
-        title: 'I\'ve Got A Bad Feeling',
-        cost: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['cunning', 'heroism'],
-        traits: ['innate'],
-        types: ['event'],
-        setId: {
-            set: 'IC27',
-            number: 166
-        },
-        unique: false,
-        internalName: 'ive-got-a-bad-feeling'
-    }),
-    buildMockCard({
-        title: 'Darth Sidious',
-        subtitle: 'Move Against the Jedi',
-        cost: 7,
-        power: 5,
-        hp: 8,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'villainy'],
-        traits: ['force', 'separatist', 'sith'],
-        keywords: ['restore 3'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 26
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'darth-sidious#move-against-the-jedi'
     }),
     buildMockCard({
         title: 'Darth Vader',
@@ -285,24 +216,6 @@ const mockCards = [
         internalName: 'cunning-ploy'
     }),
     buildMockCard({
-        title: 'Jar Jar Binks',
-        subtitle: 'Bumbling Representative',
-        cost: 2,
-        power: 1,
-        hp: 5,
-        hasNonKeywordAbility: true,
-        aspects: ['heroism'],
-        traits: ['republic', 'gungan', 'official'],
-        types: ['unit'],
-        setId: {
-            set: 'IC27',
-            number: 187
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'jar-jar-binks#bumbling-representative'
-    }),
-    buildMockCard({
         title: 'Grand Admiral Thrawn',
         subtitle: 'Listen to Me Carefully',
         cost: 6,
@@ -374,6 +287,24 @@ const mockCards = [
         unique: true,
         arena: 'space',
         internalName: 'obiwans-interceptor#nothing-too-fancy'
+    }),
+    buildMockCard({
+        title: 'Poggle the Lesser',
+        subtitle: 'Secret Designs',
+        cost: 4,
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['separatist', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 145
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'poggle-the-lesser#secret-designs'
     }),
     // -------- End Mock Cards --------
 ];

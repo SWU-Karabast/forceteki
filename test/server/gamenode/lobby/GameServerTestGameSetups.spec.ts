@@ -1,14 +1,14 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { serverIntegration } from '../../helpers/server/ServerIntegrationHelper';
+import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 
-const gameSetupsDir = path.resolve(__dirname, '../../../../test/gameSetups');
+const gameSetupsDir = path.resolve(__dirname, '../../../../../test/gameSetups');
 
 describe('GameServer test game setups', function () {
     serverIntegration(function (contextRef) {
         function lobbyCount(): number {
-            return (contextRef.harness.server as any).lobbies.size;
+            return contextRef.harness.server.lobbyCount;
         }
 
         it('starts a game from a file in test/gameSetups', async function () {

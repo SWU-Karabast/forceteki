@@ -1,5 +1,5 @@
 import { ServerTestHarness } from './ServerTestHarness';
-import type { TestConfigOverrides } from './TestGameServer';
+import type { IServerTestOptions } from './ServerTestHarness';
 
 /**
  * Handle a spec body receives from {@link serverIntegration}, giving access to the harness built for
@@ -24,16 +24,19 @@ export interface IServerIntegrationContextRef {
  *     });
  * });
  * ```
+ *
+ * `options` is what each harness in the block is built with, e.g. `{ config: { allowAnonymousChat: true } }`
+ * or `{ database: true }`; see {@link IServerTestOptions}.
  */
 export function serverIntegration(
     definitions: (contextRef: IServerIntegrationContextRef) => void,
-    configOverrides?: TestConfigOverrides
+    options?: IServerTestOptions
 ): void {
     describe('- server integration -', function () {
         const contextRef: IServerIntegrationContextRef = { harness: null };
 
         beforeEach(async function () {
-            contextRef.harness = await ServerTestHarness.createAsync(configOverrides);
+            contextRef.harness = await ServerTestHarness.createAsync(options);
         });
 
         afterEach(async function () {

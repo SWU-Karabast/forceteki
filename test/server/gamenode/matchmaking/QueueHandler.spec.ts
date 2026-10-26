@@ -1,28 +1,17 @@
-import { CardPool, GamesToWinMode, MatchmakingCompetitivenessPreference, SwuGameFormat } from '../../../server/game/core/Constants';
-import type { IGameNodeConfig } from '../../../server/gamenode/GameNodeConfig';
-import { MatchmakingCompetitivenessPreferencePolicyKey } from '../../../server/gamenode/GameNodeConfig';
-import type { IQueueFormatKey, QueuedPlayer } from '../../../server/gamenode/QueueHandler';
-import { QueueHandler, QueuedPlayerState } from '../../../server/gamenode/QueueHandler';
-import Socket from '../../../server/socket';
-import { AnonymousUser } from '../../../server/utils/user/User';
-import { FakeIoSocket } from '../../helpers/server/FakeIoSocket';
-import { TestScheduler } from '../../helpers/server/TestScheduler';
+import { CardPool, GamesToWinMode, MatchmakingCompetitivenessPreference, SwuGameFormat } from '../../../../server/game/core/Constants';
+import { MatchmakingCompetitivenessPreferencePolicyKey } from '../../../../server/gamenode/GameNodeConfig';
+import type { IQueueFormatKey, QueuedPlayer } from '../../../../server/gamenode/QueueHandler';
+import { QueueHandler, QueuedPlayerState } from '../../../../server/gamenode/QueueHandler';
+import Socket from '../../../../server/socket';
+import { AnonymousUser } from '../../../../server/utils/user/User';
+import { FakeIoSocket } from '../../../helpers/server/FakeIoSocket';
+import { premierBestOfOne } from '../../../helpers/server/MatchConfigs';
+import { buildTestConfig } from '../../../helpers/server/TestGameServer';
+import { TestScheduler } from '../../../helpers/server/TestScheduler';
 
 describe('QueueHandler matchmaking preferences', function () {
-    const format: IQueueFormatKey = {
-        format: SwuGameFormat.Premier,
-        cardPool: CardPool.Current,
-        gamesToWinMode: GamesToWinMode.BestOfOne,
-    };
-    const config: IGameNodeConfig = {
-        allowAnonymousSpectators: false,
-        allowAnonymousBestOfThree: false,
-        allowAnonymousChat: false,
-        enforceRematchCooldown: true,
-        actionTimersEnabled: false,
-        clientBaseUrl: 'http://localhost:3000',
-        metricsLoggingEnabled: false,
-    };
+    const format: IQueueFormatKey = { ...premierBestOfOne };
+    const config = buildTestConfig();
     let clock: TestScheduler;
     let queue: QueueHandler;
 

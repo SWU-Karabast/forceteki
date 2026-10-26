@@ -1,15 +1,27 @@
-import jwt from 'jsonwebtoken';
 import type { Response as SupertestResponse } from 'supertest';
 
 import type { CardPool, GamesToWinMode, MatchmakingCompetitivenessPreference, SwuGameFormat } from '../../../server/game/core/Constants';
 import type { IQueueMatchmakingStatus } from '../../../server/gamenode/MatchmakingRules';
 import type { IUserDataEntity } from '../../../server/services/DynamoDBInterfaces';
 import type { ISwuDbFormatDecklist } from '../../../server/utils/deck/DeckInterfaces';
+import { mintSessionToken, sessionCookie, signInClaims } from './AuthTokens';
+import type { ISeededAccount } from './FakeDynamoDbService';
 import { FakeIoSocket } from './FakeIoSocket';
+import type { RouteMethod } from './RouteRecorder';
 import type { ITestUserPayload, ServerTestHarness } from './ServerTestHarness';
-import { testNextAuthSecret } from './ServerTestEnv';
 import { isSuccessfulSocketAuth } from '../../../server/gamenode/GameServer';
 import { AnonymousUser } from '../../../server/utils/user/User';
+
+/**
+ * How an authenticated client presents itself to the server - the two ways the real FE does.
+ *
+ * - `synced-profile`: what the FE does for every request after its first sync. A token carrying
+ *   `userId`, plus the FE's own copy of the profile marked `authenticated: true`. Needs no database.
+ * - `token-only`: what the FE does on its first `/api/get-user` of a session. The token alone, with no
+ *   profile and no `authenticated` flag, so the server looks the account up (or creates it) from the
+ *   token's claims. Needs a harness with `{ database: true }`.
+ */
+export type TestClientAuthMode = 'synced-profile' | 'token-only';
 
 /** Options for {@link TestClient.create}. */
 export interface ITestClientOptions {
@@ -20,8 +32,18 @@ export interface ITestClientOptions {
     /** If true, this client authenticates with a signed JWT, like a logged-in real client. */
     authenticated?: boolean;
 
-    /** Extra fields merged into the authenticated user's data (e.g. `preferences`, `moderation`). Ignored for anonymous users. */
+    /** Extra fields merged into the authenticated user's data (e.g. `preferences`, `moderation`). Ignored for anonymous users and for `token-only`. */
     userDataOverrides?: Partial<IUserDataEntity>;
+
+    /** How an authenticated client presents itself. Defaults to `synced-profile`. */
+    auth?: TestClientAuthMode;
+
+    /**
+     * A seeded account (`harness.db.seedAccount()`) this client is. The client takes the account's id
+     * and username, and a `token-only` client's token is built from its identity. Required for
+     * `token-only`, optional for `synced-profile`.
+     */
+    account?: ISeededAccount;
 }
 
 /** Options for {@link TestClient.connectAsync}. */
@@ -30,6 +52,12 @@ export interface IConnectOptions {
     /** Joins via a lobby link, matching `query.lobby` in the real client - omit to connect without one. */
     lobbyId?: string;
     spectator?: boolean;
+
+    /** Presents this token in the handshake instead of the client's own. For a bad-credential scenario. */
+    token?: string;
+
+    /** Presents this `user` in the handshake query instead of the client's own. */
+    user?: Record<string, unknown>;
 }
 
 /** Result of {@link TestClient.attemptConnectAsync}. */
@@ -43,13 +71,6 @@ export type IConnectResult =
  */
 function isConnectionRejected(result: IConnectResult): result is { connected: false; errorMessage: string } {
     return !result.connected;
-}
-
-/** Body shape accepted by `/api/create-lobby` and `/api/enter-queue`'s shared format fields. */
-export interface IMatchConfiguration {
-    format: SwuGameFormat;
-    cardPool: CardPool;
-    gamesToWinMode: GamesToWinMode;
 }
 
 /**
@@ -84,12 +105,21 @@ export class TestClient {
             return new TestClient(harness, id, AnonymousUser.usernameForId(id), null, null);
         }
 
-        const username = options.username ?? `test-user-${id.slice(0, 6)}`;
+        const username = options.account?.username ?? options.username ?? `test-user-${id.slice(0, 6)}`;
+
+        if (options.auth === 'token-only') {
+            if (!options.account) {
+                throw new Error('TestClient: a token-only client needs the seeded `account` its token is for');
+            }
+
+            // no profile at all: the server has to find the account from the token's claims
+            return new TestClient(harness, id, username, mintSessionToken(signInClaims(options.account)), null);
+        }
 
         // `verifyTokenAndCreateAuthenticatedUser` (the no-DB-access path the real client's logged-in
         // flow takes) overwrites `userData.id` with this claim regardless of what is sent alongside
         // it, so the token - not the query/body payload - is the actual source of truth for identity.
-        const token = jwt.sign({ userId: id }, testNextAuthSecret);
+        const token = mintSessionToken({ userId: id });
 
         const userData: Partial<IUserDataEntity> = {
             id,
@@ -133,10 +163,11 @@ export class TestClient {
     /**
      * The `user` payload this client sends over HTTP and in the socket handshake query, mirroring
      * the real client's `getUserPayload`: a bare `{ id, username }` for anonymous users, or the fuller
-     * user data (plus `authenticated: true`) for a logged-in one.
+     * user data (plus `authenticated: true`) for a logged-in one. A `token-only` client has no profile
+     * to send, so it sends the bare form like an anonymous one - the token is what identifies it.
      */
     public userPayload(): ITestUserPayload | (Partial<IUserDataEntity> & { authenticated: true }) {
-        if (!this.isAuthenticated) {
+        if (!this.isAuthenticated || this.userData === null) {
             return { id: this.id, username: this.username };
         }
 
@@ -145,7 +176,7 @@ export class TestClient {
 
     /** `Cookie` header carrying this client's NextAuth session token, for authenticated HTTP calls. */
     private authCookieHeader(): string | undefined {
-        return this.authToken ? `next-auth.session-token=${this.authToken}` : undefined;
+        return this.authToken ? sessionCookie(this.authToken) : undefined;
     }
 
     private withAuthCookie(request: ReturnType<ServerTestHarness['api']['post']>): typeof request {
@@ -154,6 +185,16 @@ export class TestClient {
     }
 
     // ---- HTTP flows (mirroring the real client's API calls) ----
+
+    /**
+     * Any API call with this client's credentials: its session cookie (if it has one) and, in the body,
+     * its `user` payload alongside `body`. For routes the flows below do not cover.
+     */
+    public async requestAsync(method: RouteMethod, path: string, body: Record<string, unknown> = {}): Promise<SupertestResponse> {
+        const request = this.withAuthCookie(this.harness.api[method](path));
+
+        return method === 'get' ? await request : await request.send({ user: this.userPayload(), ...body });
+    }
 
     public async createLobbyAsync(options: {
         lobbyName: string;
@@ -214,15 +255,17 @@ export class TestClient {
     }
 
     /**
-     * Saves preferences for `userId`; the real client always passes its own id. Unlike the real client
-     * this also sends the user payload, so a logged-in client authenticates without the profile lookup
-     * the test server has no database for.
+     * Saves preferences for `userId`; the real client always passes its own id. Like the real client, a
+     * `token-only` client sends just the preferences and its session, so the server looks the account up.
+     * Any other logged-in client also sends its user payload, which is how it authenticates when the
+     * server has no database to look it up in.
      */
     public async savePreferencesAsync(userId: string, preferences: Record<string, unknown>): Promise<SupertestResponse> {
-        return await this.withAuthCookie(this.harness.api.put(`/api/user/${userId}/preferences`)).send({
-            preferences,
-            user: this.userPayload(),
-        });
+        const isTokenOnly = this.authToken !== null && this.userData === null;
+
+        return await this.withAuthCookie(this.harness.api.put(`/api/user/${userId}/preferences`)).send(
+            isTokenOnly ? { preferences } : { preferences, user: this.userPayload() }
+        );
     }
 
     /**
@@ -255,10 +298,12 @@ export class TestClient {
      * `handleSocketConnectionAsync` against a {@link FakeIoSocket} rather than a real connection.
      */
     public async attemptConnectAsync(options: IConnectOptions = {}): Promise<IConnectResult> {
+        const token = options.token ?? this.authToken;
+
         const fakeSocket = new FakeIoSocket({
-            auth: this.authToken ? { token: this.authToken } : {},
+            auth: token ? { token } : {},
             query: {
-                user: JSON.stringify(this.userPayload()),
+                user: JSON.stringify(options.user ?? this.userPayload()),
                 lobby: JSON.stringify({ lobbyId: options.lobbyId ?? null }),
                 spectator: options.spectator ? 'true' : 'false',
             },
@@ -313,11 +358,6 @@ export class TestClient {
         await this.socket.waitForDisconnectHandlingAsync();
     }
 
-    /** Fires the acknowledgement callback for the most recent un-acked emit of `event`, if any. */
-    public ackEvent(event: string, ...ackArgs: any[]): void {
-        this.socket.ackEvent(event, ...ackArgs);
-    }
-
     // ---- Inbox ----
 
     /** Every event received so far, optionally filtered to one event name. */
@@ -334,6 +374,19 @@ export class TestClient {
     /** The most recent `gamestate` payload received, or `undefined` if none yet. */
     public get gameState(): any | undefined {
         return this.lastPayload('gamestate');
+    }
+
+    /**
+     * The id of the lobby this client is in, read from the connection link in its latest `lobbystate`
+     * - the `lobbyId` query parameter a real client hands to someone joining by link.
+     */
+    public get lobbyId(): string {
+        const connectionLink = this.lobbyState?.connectionLink;
+        if (!connectionLink) {
+            throw new Error(`TestClient: user ${this.id} has not received a lobby connection link yet - connect to a lobby first`);
+        }
+
+        return new URL(connectionLink).searchParams.get('lobbyId');
     }
 
     /** The most recent matching status supplied as the second queueHeartbeat argument. */

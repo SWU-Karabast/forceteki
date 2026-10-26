@@ -1,17 +1,11 @@
 import { v4 as uuid } from 'uuid';
 
-import { CardPool, GamesToWinMode, SwuGameFormat } from '../../../server/game/core/Constants';
-import { AnonymousUser } from '../../../server/utils/user/User';
-import { UserFactory } from '../../../server/utils/user/UserFactory';
-import { serverIntegration } from '../../helpers/server/ServerIntegrationHelper';
-import type { ServerTestHarness } from '../../helpers/server/ServerTestHarness';
-import { TestClient } from '../../helpers/server/TestClient';
-
-const matchConfig = {
-    format: SwuGameFormat.Premier,
-    cardPool: CardPool.Current,
-    gamesToWinMode: GamesToWinMode.BestOfOne,
-};
+import { AnonymousUser } from '../../../../../server/utils/user/User';
+import { UserFactory } from '../../../../../server/utils/user/UserFactory';
+import { premierBestOfOne } from '../../../../helpers/server/MatchConfigs';
+import { serverIntegration } from '../../../../helpers/server/ServerIntegrationHelper';
+import type { ServerTestHarness } from '../../../../helpers/server/ServerTestHarness';
+import { TestClient } from '../../../../helpers/server/TestClient';
 
 /**
  * Anonymous users have no token, so everything the server knows about them comes from the client.
@@ -61,7 +55,7 @@ describe('Anonymous user identity', function () {
                 lobbyName: harness.uniqueLobbyName(),
                 deck: harness.decklists.validDecklist(),
                 isPrivate,
-                ...matchConfig,
+                ...premierBestOfOne,
             });
             expect(created.status).withContext(JSON.stringify(created.body))
                 .toBe(200);
@@ -77,7 +71,7 @@ describe('Anonymous user identity', function () {
                     deck: harness.decklists.validDecklist(),
                     lobbyName: harness.uniqueLobbyName(),
                     isPrivate: false,
-                    ...matchConfig,
+                    ...premierBestOfOne,
                 });
                 expect(created.status).toBe(200);
 
@@ -95,7 +89,7 @@ describe('Anonymous user identity', function () {
                     deck: harness.decklists.validDecklist(),
                     lobbyName: harness.uniqueLobbyName(),
                     isPrivate: false,
-                    ...matchConfig,
+                    ...premierBestOfOne,
                 });
 
                 expect(response.status).toBe(401);
@@ -122,7 +116,7 @@ describe('Anonymous user identity', function () {
                 const owner = harness.createClient();
                 await createLobbyAsync(harness, owner, true);
                 await owner.connectAsync();
-                const lobbyId = new URL(owner.lobbyState.connectionLink).searchParams.get('lobbyId');
+                const lobbyId = owner.lobbyId;
 
                 const joiner = harness.createClient({ authenticated: true });
                 expect((await joiner.joinLobbyAsync(lobbyId)).status).toBe(200);
@@ -138,7 +132,7 @@ describe('Anonymous user identity', function () {
             it('cannot take over their queue entry', async function () {
                 const { harness } = contextRef;
                 const queued = harness.createClient({ authenticated: true });
-                const entered = await queued.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...matchConfig });
+                const entered = await queued.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...premierBestOfOne });
                 expect(entered.status).toBe(200);
                 await queued.connectAsync();
 
@@ -152,23 +146,23 @@ describe('Anonymous user identity', function () {
             it('cannot evict them from the queue or a lobby by making a lobby or queue call with their id', async function () {
                 const { harness } = contextRef;
                 const queued = harness.createClient({ authenticated: true });
-                await queued.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...matchConfig });
+                await queued.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...premierBestOfOne });
                 await queued.connectAsync();
 
                 const impostor = TestClient.create(harness, queued.id);
-                const queueResponse = await impostor.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...matchConfig });
+                const queueResponse = await impostor.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...premierBestOfOne });
                 expect(queueResponse.status).toBe(403);
 
                 const lobbyResponse = await impostor.createLobbyAsync({
                     lobbyName: harness.uniqueLobbyName(),
                     deck: harness.decklists.validDecklist(),
-                    ...matchConfig,
+                    ...premierBestOfOne,
                 });
                 expect(lobbyResponse.status).toBe(403);
 
                 // still queued: a second player is matched with them
                 const opponent = harness.createClient({ authenticated: true });
-                await opponent.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...matchConfig });
+                await opponent.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...premierBestOfOne });
                 await opponent.connectAsync();
                 expect(queued.lobbyState?.users.map((u: any) => u.id).sort()).toEqual([queued.id, opponent.id].sort());
             });
@@ -180,7 +174,7 @@ describe('Anonymous user identity', function () {
                 const host = harness.createClient();
                 await createLobbyAsync(harness, host);
                 await host.connectAsync();
-                const hostLobbyId = new URL(host.lobbyState.connectionLink).searchParams.get('lobbyId');
+                const hostLobbyId = host.lobbyId;
 
                 const victim = harness.createClient({ authenticated: true });
                 const impostor = TestClient.create(harness, victim.id);
@@ -197,9 +191,9 @@ describe('Anonymous user identity', function () {
                 const { harness } = contextRef;
                 const victim = harness.createClient({ authenticated: true });
                 const impostor = TestClient.create(harness, victim.id);
-                expect((await impostor.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...matchConfig })).status).toBe(200);
+                expect((await impostor.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...premierBestOfOne })).status).toBe(200);
 
-                const entered = await victim.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...matchConfig });
+                const entered = await victim.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...premierBestOfOne });
                 expect(entered.status).toBe(200);
                 await victim.connectAsync();
 
@@ -211,7 +205,7 @@ describe('Anonymous user identity', function () {
                 const host = harness.createClient();
                 await createLobbyAsync(harness, host, true);
                 await host.connectAsync();
-                const hostLobbyId = new URL(host.lobbyState.connectionLink).searchParams.get('lobbyId');
+                const hostLobbyId = host.lobbyId;
 
                 const victim = harness.createClient({ authenticated: true });
                 const impostor = TestClient.create(harness, victim.id);
@@ -230,7 +224,7 @@ describe('Anonymous user identity', function () {
             const owner = harness.createClient({ authenticated: true });
             await createLobbyAsync(harness, owner, true);
             await owner.connectAsync();
-            const lobbyId = new URL(owner.lobbyState.connectionLink).searchParams.get('lobbyId');
+            const lobbyId = owner.lobbyId;
 
             const impostor = TestClient.create(harness, owner.id);
             expect((await impostor.changeDeckAsync(lobbyId, harness.decklists.undersizedDecklist())).status).toBe(403);
