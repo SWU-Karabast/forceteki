@@ -85,7 +85,7 @@ reference fizzle (D-6, D-7).
 | D-2 | Support on-demand point-in-time capture (`pin()`)? | **Deferred.** Scope is "current state, or last known state if departed". See special-cases D-2. | Deferred |
 | D-3 | What discriminates a frozen read from a live read? | **Nothing — every property is a characteristic of the represented moment.** An earlier draft carved out "location" as a separate always-live category; **superseded by D-31**. A live accessor's represented moment *is* now, so `zoneName` / `isInPlay()` answer currently for it and answer as-of-capture for a footprint. | **Superseded by D-31** |
 | D-5 | Is "left play" the same event as "became a new copy"? | **No — two independent lifecycle events.** See below. | Decided |
-| D-6 | Who converts a reference back to a live `Card` for game systems to mutate? | **Automatic at the system boundary.** Card implementations pass references; the framework dereferences internally and fizzles when the identity no longer matches. Preserves "correct by default" and matches today's behavior, where fizzling already happens invisibly via `canAffect`. | Decided |
+| D-6 | Who converts a reference back to a live `Card` for game systems to mutate? | **Automatic at the system boundary.** Card implementations pass references; the framework dereferences internally and fizzles when the identity no longer matches. Preserves "correct by default" and matches today's behavior, where fizzling already happens invisibly via `canAffect`. | Decided, except the identity-fizzle, which is **not built** — see D-34 |
 | D-7 | *Where* exactly does the automatic dereference happen? | **Superseded by D-28.** References are carried on the event and dereferenced late — at `checkEventCondition` (fizzle) and `eventHandler` (mutation) — not at `generatePropertiesFromContext`. `properties.target` still holds live cards during generation. | Superseded |
 | D-8 | Where does card identity live, and what is its value representation? | **Universal counter on `Card`, plus registry-vended interned references.** See below. | Decided |
 | D-9 | Is a `Proxy` pass-through viable for migration? | **No — ruled out entirely**, including as a measurement tool. See below. | Decided |
@@ -101,13 +101,15 @@ reference fizzle (D-6, D-7).
 | D-19 | How is extraction expressed? | **An external getter keyed by the reference** — `cardStates.getLastKnownProperties(cardRef)` — not a method on the reference. | Decided |
 | D-32 | Vocabulary for the stored state | **"record" / "recorded"**, not "captured" or "snapshot". "Capture" is an SWU game mechanic and "snapshot" belongs to the undo system, so either would be ambiguous in this codebase. "Discard" is avoided for the drop operation for the same reason. | Decided |
 | D-33 | How does a card implementation obtain the getter? | **A third parameter on the setup methods** — `setupCardAbilities(registrar, AbilityHelper, cardStates)` — since setup is the only point at which it is relevant. Non-migrated cards are unaffected, because TypeScript permits an override to declare fewer parameters than its base. | Decided |
+| D-34 | Is the automatic identity fizzle built — D-6's "fizzles when the identity no longer matches", and the `deref` in `checkEventCondition` from D-28? | **No.** A log-only audit across the full suite (9,633 specs) compared each card-targeted event's target identity when the event was created with its identity when its condition is checked. It fired **23** times, and every hit is an event that is *meant* to resolve after its subject has moved on: 20 `onCardReadied` events from `ResourceCardSystem` (put a card into play as a resource, then ready it — Superlaser Technician, and a Clone of it) and 3 `onBountyCollected` events from Spare the Target (collect a bounty on a unit it has just returned to hand). A blanket fizzle would break all of them. The seam was also wrong: seven systems override `checkEventCondition`, so the universal place is `GameSystem.updateEvent`. If a check is wanted later it should ship in shadow mode first, with an explicit way for an event to declare that it follows its subject (SC-21). Today's real protection is `Attack`'s own guard and the engine dropping delayed effects when their target leaves play, which has one known hole — `WhileSourceInPlay` effects, a confirmed bug for Maul (SC-18, register §B.1). | Decided |
+| D-35 | How does a card opt in to last known information, and what does a card that has not opted in get? | **`Card.usesLkiRegistry`** (public, default `false`) selects the getter passed to the card's setup: `game.cardStates.forCard(card)` returns the registry-backed getter for an opted-in card and a **live-only** getter for every other. The live-only getter reads the card as it is now — it never consults records, tombstones or identity, so a reference to an earlier identity reads the card instead of throwing. That is what lets every card's reads be rewritten through the getter before the card is migrated, with no change in behavior. `getIdentity` works for every card either way, because identity does not depend on the timeline. When one card runs another's setup (Clone, copied triggered abilities) the getter follows the card whose *code* is running, not the card receiving the abilities. The flag is transitional and is removed in phase 4. | Decided |
 | D-20 | When are footprints flushed? | **At the action boundary.** LKI is only meaningful between a trigger and its resolution, and no ability resolution spans an action boundary — so after it, any LKI read through a reference is definitionally a bug. Retention would mask those bugs. | Decided |
 | D-21 | How is a flushed-but-referenced identity detected? | **Tombstones** — retain the identity key after dropping its data, so a stale read throws instead of silently reading live. Tombstones persist for the game but are **cleared on rollback** (D-29). | Decided |
 | D-22 | Is minting universal or opt-in? | **Universal**, and the trigger is **information loss**, not merely leaving play: an in-play footprint when a card leaves the arena, and an out-of-play footprint when it moves from a visible zone to a hidden one. Both are minted at `preResolutionEffects` (SC-14, R4). | Decided |
 | D-23 | May a `CardRef` enter tracked state? | **No — refs are transient** and must never appear in undo snapshots. Tracked state stores `(uuid, identityId)` primitives and rehydrates on read. | Decided |
 | D-24 | API surface: getter name, type name, relation traversal, location queries | `getLastKnownProperties(ref)` returning `IUnitProperties`; getter supplied as a **setup-time parameter**; card-valued relations routed **through the getter**; location questions asked of the game, not the properties object. See below. | Decided |
 | D-25 | How is the cost of materializing properties controlled? | **Polymorphic properties object**: a *live* variant holding a card reference with lazy pass-through getters, or a *snapshot* variant holding frozen captured values. No global memoization or invalidation. See below. | Decided |
-| D-26 | Are the two variants one type or two? | **Two concrete types sharing one interface** — `IUnitPropertiesRecorded` and `IUnitPropertiesAccessor`, both satisfying `IUnitProperties`. Consumers that require durability (state watchers) declare the captured type explicitly. Names provisional. See below. | Decided |
+| D-26 | Are the two variants one type or two? | **Two concrete types sharing one interface** — `IUnitPropertiesRecorded` and `IUnitPropertiesAccessor`, both satisfying `IUnitProperties`. Consumers that require durability (state watchers) declare the captured type explicitly. Names were provisional; they shipped as `RecordedUnitProperties` and `LiveUnitProperties` (`RecordedCardProperties` and `LiveCardProperties` for the non-unit base). See below. | Decided |
 | D-27 | How are in-play-only properties (`power`, `upgrades`, `activeAttack`) exposed? | **Type-level split with a narrowing guard**, preserving the existing `isInPlay()` guards and upgrading them from runtime throw to compile-time error. `power` and `printedPower` stay distinct concepts. See SC-17. | Decided |
 | D-28 | How is the live `Card` kept out of reach of card authors? | **No live card on the event at all.** `event.card` is the single field and holds a `CardRef` whose `_card` is private. Engine code obtains the live object via a `deref` capability that is absent from the card-facing facade. Enforced by facade typing plus two lint rules; typed events are explicitly **not** a prerequisite. See below. | Decided |
 | D-29 | What happens to the registry on rollback? | **Footprints and tombstones are cleared; the intern map survives.** Rollback restores tracked state only, and mid-action rollback is a first-class path, so without this a footprint from an abandoned timeline would be served for a re-created identity. See below. | Decided |
@@ -322,6 +324,7 @@ zone membership, cleanup, ability registration, serialization. Deferred as D-12.
 
 **Cleanup opportunity:** once both sides of a comparison are handles, the 75 hand-rolled identity
 checks and `Attack`'s tracking Map become redundant. Their removal is a useful migration signal.
+`Attack`'s guard itself stays (D-34, register §B.1); only its bookkeeping simplifies.
 
 ### D-13 / D-14 in detail — capture scope and failure semantics
 
@@ -711,6 +714,11 @@ Adding a generation-time filter would be a behavior change, since today an illeg
 an event that is later *cancelled*, and `ifYouDo` / `context.events` / trigger windows can observe
 that difference.
 
+> **Status (D-34).** The identity check shown above is **not built**. The rest of D-28 stands: a
+> private card on `CardRef`, the engine-only `deref`, and the facade split. `checkEventCondition` also
+> turned out not to be a universal seam — seven systems override it — so any future universal check
+> belongs in `GameSystem.updateEvent`.
+
 ### D-20 to D-23, D-29 in detail — registry lifecycle
 
 **D-20: why footprints are flushed at the action boundary.** LKI only arises during the resolution
@@ -891,7 +899,7 @@ default", and affordable because the triggering transitions are rare.
 | Visible → hidden (discard/capture → hand/deck/resource) | **out-of-play** — reduced set |
 
 The second case is what R4 exposed: it breaks card identity
-([InPlayCard.ts:432-435](../server/game/core/card/baseClasses/InPlayCard.ts)) but is not a
+([InPlayCard.ts:433-454](../server/game/core/card/baseClasses/InPlayCard.ts)) but is not a
 leave-play, so the original wording minted nothing and left any reference bound before the move
 unreadable. The reduced field set already exists as
 [buildLastKnownInformation](../server/game/core/event/LastKnownInformation.ts)'s non-arena branch,
@@ -1037,7 +1045,8 @@ moved between the trigger and the effect's resolution.
 Re-classifying the 8 sites:
 
 - **Fizzle hacks (~5)** — `Bothan5NewRepublicPrisonShip`, `DisplayPiece`, `OldDakaOldestAndWisest`,
-  `OneMustDestroyToCreate`, and `BogaLoyalVaractyl` (a phase-scoped variant). These are asking
+  `OneMustDestroyToCreate`, and `BogaLoyalVaractyl` (a phase-scoped variant; since rewritten by #2997,
+  see SC-12). These are asking
   *"is my reference still valid?"*, not *"where is this card?"*
 - **Play-origin branching (3)** — `AFineAddition`, `GideonsLightCruiserDarkTroopersStation`,
   `APrecariousPredicament`. All choose between `PlayFromHand` and `PlayFromOutOfPlay` based on
@@ -1435,9 +1444,9 @@ now resolved; three non-blocking items remain, noted inline.
 | **R1** | ~~**D-7's stage-1 legality check does not exist for card targets.**~~ **Resolved by D-28.** The finding stands — `CardTargetSystem` overrides `queueGenerateEventGameSteps` (CardTargetSystem.ts:46) and pushes `generateRetargetedEvent` unconditionally at :127 and :132, never calling `canAffect`. But stage 1 does not need to be added: `checkEventCondition` is installed on every event and runs before every handler, so the identity check goes there. Adding a generation-time filter would be a behavior change. | D-7 → D-28 |
 | **R2** | ~~**Dereferencing at generation destroys the information needed to fizzle.**~~ **Resolved by D-28.** `event.card` holds a `CardRef`, not a live `Card`, so the instance survives to resolution. The three-audience conflict dissolves because there is no live card on the event: engine code derefs through a capability absent from the card-facing facade. | D-6, D-7 → D-28 |
 | **R3** | ~~**Mid-action rollback leaves stale footprints, and tombstones make it worse.**~~ **Resolved by D-29.** Both halves confirmed: rollback restores tracked state only (GameStateManager.ts:143-224) and mid-action rollback is first-class (SnapshotManager.ts:329-332). Fix: clear footprints **and** tombstones at the end of `rollbackToSnapshot`; the intern map survives because identity is timeline-independent. The residual `OngoingEffect.context` staleness is pre-existing and largely self-limiting — effects created in the abandoned portion are removed by rollback via `cleanupOnRemove`. | D-0, D-20, D-21 → D-29 |
-| **R4** | ~~**SC-14's "everything else: instance does not change" is false.**~~ **Resolved by D-22/SC-14 rewrite.** Confirmed: visible → hidden increments with no mint (InPlayCard.ts:432-435), and 15 card files perform discard → hand. Fix: generalize the mint trigger from "leaves play" to "information is lost", adding an out-of-play footprint — whose reduced field set already exists as `buildLastKnownInformation`'s non-arena branch. **Traced all plausible candidates: none breaks today** (the deck → discard direction does not increment; `ChewbaccaFaithfulFirstMate` is a pre-handler replacement effect; `PurrgilUltra` returns from the arena; no watcher listens to `OnCardMoved`). Latent gap, not an active regression. | SC-14, D-22 |
+| **R4** | ~~**SC-14's "everything else: instance does not change" is false.**~~ **Resolved by D-22/SC-14 rewrite.** Confirmed: visible → hidden increments with no mint (InPlayCard.ts:433-454), and 15 card files perform discard → hand. Fix: generalize the mint trigger from "leaves play" to "information is lost", adding an out-of-play footprint — whose reduced field set already exists as `buildLastKnownInformation`'s non-arena branch. **Traced all plausible candidates: none breaks today** (the deck → discard direction does not increment; `ChewbaccaFaithfulFirstMate` is a pre-handler replacement effect; `PurrgilUltra` returns from the arena; no watcher listens to `OnCardMoved`). Latent gap, not an active regression. | SC-14, D-22 |
 | **R6** | ~~**`isInPlay()` is overloaded with two incompatible meanings.**~~ **Resolved by D-31.** There is one meaning — "at the moment this object represents, was it in play" — so no second API is needed. The real content is that **~8 sites** hold an LKI-eligible reference while asking a live question and will change behavior; they are workarounds for a separate triggering problem and need per-case review rather than mechanical migration. | D-27, SC-17, §3.21 → D-31 |
-| **R8** | ~~**§3.10 and D-24 directly contradict each other.**~~ **Resolved: selector params become `CardRef`**, consistent with D-24 and D-28. §3.10's *semantic* claim stands — a selector param is always present, so LKI never applies to it — but its *migration* claim ("no migration at all") was wrong, because the parameter's type changes. Live `Card` params were rejected because they break identity comparison against refs ([GarSaxon:39](../server/game/cards/02_SHD/leaders/GarSaxonViceroyofMandalore.ts), [Boga:34](../server/game/cards/09_HMW/units/BogaLoyalVaractyl.ts)) — the D-8 constraint 3 hazard, silently. **Verified scale: 733 occurrences across 645 files**; §4's measurements and R13's sizing must be updated. | §3.10, D-24, §4 |
+| **R8** | ~~**§3.10 and D-24 directly contradict each other.**~~ **Resolved: selector params become `CardRef`**, consistent with D-24 and D-28. §3.10's *semantic* claim stands — a selector param is always present, so LKI never applies to it — but its *migration* claim ("no migration at all") was wrong, because the parameter's type changes. Live `Card` params were rejected because they break identity comparison against refs ([GarSaxon:39](../server/game/cards/02_SHD/leaders/GarSaxonViceroyofMandalore.ts), and Boga, whose comparison #2997 has since removed) — the D-8 constraint 3 hazard, silently. **Verified scale: 733 occurrences across 645 files**; §4's measurements and R13's sizing must be updated. | §3.10, D-24, §4 |
 | **R9** | ~~**"Universal minting on leave-play event *generation*" would poison the registry.**~~ **Resolved** in the D-22 detail section: minting is explicitly at `preResolutionEffects`, not at event generation. `UseWhenDefeatedSystem.ts:75,102` generate defeat events for in-play cards inside `canAffectInternal` purely to probe `meetsRequirements`, and those events never reach an `EventWindow`. | D-22 |
 | **R10** | ~~**A fourth SC-13 invariant is missing: footprints can be minted for events that never resolve.**~~ **Resolved by D-30.** Confirmed and broader than reported: `GameEvent.preResolutionEffect()` has **no `canResolve` guard** and `EventWindow.preResolutionEffects()` iterates all events unfiltered, so an event already replaced at **step 3** also mints. Real case: [ChewbaccaFaithfulFirstMate](../server/game/cards/04_JTL/units/ChewbaccaFaithfulFirstMate.ts) replaces an enemy defeat — the unit survives but would carry a frozen footprint for the rest of the action. | SC-13 → D-30 |
 | **R13** | **Requirement 8 (incremental migration) is asserted, not designed.** `tsc` enumeration is completeness, not incrementality. Under D-10, the moment `event.card` changes type every consuming site goes red at once — the big-bang requirement 8 rules out. No staging mechanism is described. | Requirement 8, Q1 |
@@ -1487,10 +1496,18 @@ D-11 / §3.17 (`Attack.targetInPlayMap` is exactly the hand-rolled handle descri
 
 ## 7. Migration plan
 
-Four phases, each its own PR (or PR series). The governing principle is that the **syntactic**
-change and the **semantic** change are separated: phase 3 is mechanical and behavior-preserving;
-phases 2 and 4 are where behavior actually moves — phase 2 once, globally, on the targeting path,
-and phase 4 one card at a time.
+Five phases, each its own PR (or PR series), executed in the order **0, 1, 3, 2, 4**. The governing
+principle is that the **syntactic** change and the **semantic** change are separated: phase 3 is
+mechanical and changes no behavior, phase 2 is engine plumbing that changes nothing for a card that has
+not opted in, and phase 4 is where card behavior actually moves, one card at a time.
+
+**Why phase 3 runs before phase 2.** The sweep used to follow phase 2, so that it would run against
+already-correct identity semantics. That reason is gone: D-34 dropped the automatic identity check, so
+phase 2 no longer changes any semantics for the sweep to run against. The two are independent in both
+directions — the codemod emits `event.card` uniformly and never `event.cardRef`, and nothing in phase 2
+needs the codemod — and the sweep is the PR that gets more expensive the longer it waits, since every
+card PR conflicts with it (the card directory holds 2,076 `.ts` files and keeps growing). Running it first also means the three migrated cards that both phases touch are edited once
+instead of twice. Its one prerequisite is the opt-in flag (D-35), step 3.0 below.
 
 A second principle governs the engine/card split:
 
@@ -1531,25 +1548,26 @@ remain unchanged; cards opt in individually.
 | `LiveCardProperties.ts` | Lazy pass-through variant. |
 | `RecordedCardProperties.ts` | Frozen-footprint variant, throwing on uncaptured fields (D-13, D-14). |
 | `LkiRegistry.ts` | Intern map, footprints, pending captures, tombstones, with the three lifetimes from D-29. |
-| `CardStateGetter.ts` | `ICardStateGetter` (card-facing) and `IGameStateInternal` (adds `deref`). |
+| `CardStateGetter.ts` | `ICardStateGetter` (card-facing), `ICardStateInternal` (adds `deref` and `forCard`), the registry-backed `CardStateGetter`, and `LiveOnlyCardStateGetter` for cards that have not opted in (D-35). |
 
 **Lifecycle wiring**, all behavior-preserving because nothing read from the registry until the
 first card was migrated:
 
-- Capture in `addLastKnownInformationToEvent`, at exactly today's LKI capture points
+- Record in `addDepartureRecordToEvent`, at the points that already produced last known information
 - Commit in `EventWindow.resolveEvents`, immediately before `executeHandler` (D-30)
-- Discard in `EventWindow.cleanup` for events that never resolved (D-30)
-- Flush in `ActionPhase.queueNextAction` (D-20)
+- Drop in `EventWindow.cleanup` for events that never resolved, scoped to that window's own events (D-30)
+- Flush in `ActionPhase.queueNextAction` and `Phase.startPhase` (D-20)
 - Clear in `GameStateManager.rollbackToSnapshot` (D-29)
 
 **Identity.** `Card.identityId` is a total, never-throwing accessor; `InPlayCard` overrides it with
 the existing `_mostRecentInPlayId` counter. Giving event cards and bases a real counter is deferred
 to phase 4 and marked with a TODO — no phase-1 card exercises it.
 
-**Opt-in.** `setupCardAbilities` takes the getter as a third parameter, so a card opts in simply by
-naming it. The parameter is optional in every registrar signature, so non-migrated cards are
-untouched. `getLastKnownProperties` transitionally accepts a live `Card` as well as a `CardRef`,
-since most events still carry card objects until phase 3.
+**Opt-in.** `setupCardAbilities` takes the getter as a third parameter, optional in every registrar
+signature. Declaring it does not opt a card in: a card opts in by setting `usesLkiRegistry = true`, and
+until it does it receives the live-only getter (D-35, "The opt-in mechanism" below).
+`getLastKnownProperties` transitionally accepts a live `Card` as well as a `CardRef`, since most events
+still carry card objects until phase 4.
 
 **Cards migrated so far:**
 
@@ -1622,9 +1640,10 @@ neither committed nor dropped — it survived until the action-boundary flush, w
 `commitPending` in the same action would have promoted it. Tracing showed exactly this:
 `FLUSH pendingLeft=1 keys=[90]`.
 
-The fix drops **everything still staged** when a window finishes, rather than trying to enumerate
-which events to drop. Staging is scoped to a window by construction, so anything outstanding at
-cleanup belongs to an event that never resolved.
+The first fix dropped **everything still staged** when a window finished, rather than trying to
+enumerate which events to drop. That turned out to be wrong, because the staging area is shared by all
+windows: a nested window finishing would erase records its parent had staged and was still going to
+commit. Cleanup now drops only the events its own window has held (see "Review follow-ups" below).
 
 **Mutation-verified.** With the drop removed, the test fails with `Expected 1 to be 0` — the leaked
 record. Note this took three attempts: the first two assertions (reading properties, counting
@@ -1660,36 +1679,90 @@ Instrumenting the `checkCondition` branch and running the whole suite then found
 reach it — see the D-30 section above. The lesson worth keeping: guessing at candidate cards was
 unproductive, and a single temporary `console.log` at the branch answered it in one run.
 
-### Phase 2 — copy identity on the targeting path
+#### Review follow-ups
 
-**Semantic, and deliberately kept away from the sweep.** Self-contained, independently testable, and
-touches a handful of engine files rather than 800 card files.
+An adversarial review of the finished slice found five blocking defects. None was visible to the existing
+suite, and two were crashes. They were fixed before merge, except where noted; the structural guard in
+the third row was added in response to the second.
 
-- Bind `event.cardRef` on **every** card event, not only the ones that record last known information.
-  Phase 1 already does this at the LKI capture points; this generalizes it.
-- Land the generic identity check in `checkEventCondition` (D-6, D-7), which runs before every
-  handler and therefore covers every game system at once.
-- Delete `Attack`'s bespoke `targetInPlayMap` guard, so there is one mechanism rather than two.
-- Fix the card-level gaps tabulated in [lki-migration-register.md](./lki-migration-register.md) §B.1
-  and §B.2.
-- **Complete the flush boundary.** Phase 1 flushes between actions (`ActionPhase.queueNextAction`)
-  and at every phase start (`Phase.startPhase`). Two windows remain uncovered: records created by
-  end-of-phase triggers survive through `OnPhaseEnded`, and records created during regroup persist
-  for the rest of regroup. Closing these properly means an explicit resolution-transaction boundary
-  rather than more flush sites bolted onto phase steps.
+| Finding | Fix | Covered by |
+|---|---|---|
+| Every non-base damage event wrote a record, so a unit that took damage and **survived** answered with its pre-damage values, and at the next action boundary its still-current identity was tombstoned and every later read **threw** | `addLastKnownInformationToEvent` (legacy struct only) is split from `addDepartureRecordToEvent` (also records); only departures record. The split is temporary (register §D.1) | "When a card takes damage it survives"; mutation-verified |
+| Synthetic defeat events built by `UseWhenDefeatedSystem` never enter a window, so no pre-resolution hook ran and `event.cardRef` was `undefined` — HK-47 used through Chimaera crashed | `addLastKnownInformationNow` binds the reference synchronously | the Chimaera specs (three fail without it); mutation-verified |
+| The legacy struct and the reference could be set separately | `GameEvent.setLastKnownInformation` is the only mutator, and both fields are read-only | structural: a fourth capture path cannot set one without the other |
+| Staged records were global, so a nested window's cleanup could erase its parent's | `EventWindow` tracks its own event ids and `dropPending(eventIds)` drops only those | **none** — fixed on inspection, because no printed card combines a pre-enter ability with a simultaneous departure (phase 2, item 5) |
+| Records written by the last action of a phase survived into the next phase's start window | `Phase.startPhase` also flushes | partial: register §D.2 |
 
-Independent of the sweep **in both directions**: the codemod does not need this check, and this check
-does not need the codemod. Landing it first means the sweep runs against already-correct semantics,
-and a focused semantic PR is far easier to review — or revert — than one buried in an 800-file diff.
+Two follow-on observations. First, a departure-without-record assertion at the leave-play branch of
+`InPlayCard.initializeForCurrentZone` is the natural enforcement mechanism, but it fails 27 specs today
+(register §G.1), so it waits for D-22's universal minting and `LkiRegistry.hasRecordFor` is left as the
+hook. Second, the review also showed that event-relative reads through the live-`Card` overload name the
+wrong identity once the card has moved, which is why Helgait and Targeted for Removal read
+`event.cardRef` (register §B.2).
+
+### Phase 2 — event plumbing
+
+**Engine only, and invisible to any card that has not opted in.** Phase 4 needs every card event to
+carry a correct reference to its subject, and needs the record lifetime to be right. Neither changes
+what a card that has not opted in sees. The earlier scope — an automatic identity check on the
+targeting path, plus the §B.1 card fixes — was dropped; see D-34 and SC-18. Runs **after** phase 3.
+
+1. **A reference on every card event.** Only the six capture sites bind `event.cardRef` today, and
+   there are 25 other direct `new GameEvent(...)` sites plus every system-built event. Binding per
+   site would be the "remember to do it" pattern, so bind where `card` is assigned instead — an
+   accessor on `GameEvent`, to be confirmed by a spike because it changes how `card` is copied, with
+   `CardTargetSystem.addPropertiesToEvent` plus the constructor as the fallback. Add an `EventWindow`
+   assertion that any event with a card subject has a reference, and let `setLastKnownInformation`
+   stop binding it.
+2. **Enter-play rebind.** `PlayUnitAction` opens one window holding `[PutIntoPlay, OnCardPlayed]`, both
+   created while the card is in hand, and `PutIntoPlay`'s handler moves it into the arena — so its
+   identity changes mid-window. A reference bound at creation is stale by the time anything reads it,
+   which is exactly what crashed Ravager when it read `event.cardRef`. Events whose subject can enter
+   play are re-bound once the window's events have resolved and before its triggers do. A log-only audit
+   at window end lists which event types need it.
+3. **The §B.2 reads.** Ravager, CalculatedLethality and Asajj read `event.cardRef`, so no migrated card
+   uses the live-`Card` overload.
+4. **Complete the flush boundary.** Phase 1 flushes between actions and at every phase start. Two
+   windows remain uncovered: records from the last action survive through `OnPhaseEnded`, and records
+   created during regroup persist for the rest of regroup. Add flush points where no trigger can still
+   be pending — the end of the action phase, and after the phase-start and phase-end windows — each
+   with a spec: a Grogu claim-attack defeat, and a defeat at regroup start.
+5. **Lifecycle specs** for the paths nothing exercises today: a sub-window that passes its events to
+   its parent (#2945) and recursive contingent events (#3006). The window-scoped `pending` fix has no
+   dedicated spec, because no printed card combines a pre-enter ability with a simultaneous departure.
+
+**Dropped:** the automatic identity check (D-34), deleting `Attack`'s guard (nothing replaces it), and
+the §B.1 card fixes. One of those turned out to be a real bug — Maul, Master of the Shadow Collective —
+and is tracked in register §B.1 rather than here.
+
+**Not in this phase:** real identity counters for event cards, bases and Force/Credit tokens.
+`Card.identityId` reports a constant for the first two, so until phase 4 a reference is only
+identity-safe for units, upgrades and leader units.
+
+**Done when** the normal and undo suites are unchanged, the count of departures that write no record is
+still 27 (register §G.1), and a window-end audit finds no event whose reference is stale when its
+triggers resolve.
 
 ### Phase 3 — the mechanical sweep
 
-**Zero functional change.** One noisy PR converting every card implementation to the new signatures.
-**Surface-level only:** `event.card.cost` becomes `getLastKnownProperties(event.card).cost`, and for a
-card that has not opted in the getter returns a **live accessor**, which is exactly today's behavior.
+**Zero functional change.** One noisy PR converting every card implementation to read through the
+getter. `event.card.cost` becomes `cardStates.getLastKnownProperties(event.card).cost`, and for a card
+that has not opted in the getter is live-only (D-35), which reads the card as it is now — today's
+behavior. Runs **before phase 2** (see the introduction to §7).
 
-Scope (measured): **654** files use selector callbacks, **365** read card properties off
-`context` / `event` — roughly **~800** files, not all 2,058.
+**3.0 — the opt-in flag ✅ delivered**, with the plan update that moved this phase ahead of phase 2:
+`Card.usesLkiRegistry`, `ICardStateInternal.forCard`, `LiveOnlyCardStateGetter`, and the nine setup call
+sites routed through `forCard`. The six migrated cards that read through `getLastKnownProperties` set
+the flag; Mon Mothma only calls `getIdentity`, which works for every card, so it does not.
+[LkiOptIn.spec.ts](../test/scenarios/lki/LkiOptIn.spec.ts) has five specs: which getter a card
+receives, that a copied ability gets the getter of the card whose code it is, and that a card that has
+not opted in reads live state where the registry-backed getter refuses (a flushed record, a stale
+identity). Each is mutation-verified — ignoring the flag in either direction, making the live-only
+getter enforce records, and keying a clone off the receiving card each fail the specs written for them.
+
+Scope (measured when the plan was written, not re-measured since): **654** files use selector
+callbacks, **365** read card properties off `context` / `event` — roughly **~800** files, not all of
+them.
 
 Two logistics requirements:
 
@@ -1697,6 +1770,17 @@ Two logistics requirements:
   so reviewers verify the script rather than 800 files. The repo has `typescript` but no
   `ts-morph` / `jscodeshift`; adding one is warranted.
 - **Coordinate a window** with in-flight card PRs, which will all conflict.
+
+**Where the live-only getter is not identical to reading the card.** Two differences are known, found
+by reading the property classes. The list is not a proof of completeness, so the sweep still needs the
+full normal and undo suites as its check. The codemod has to account for both, and its tests should
+pin each:
+
+- **`cost` on a card with no cost property** (for example a base). A direct read is `undefined`; the
+  properties object returns `null`. `null <= 3` is true where `undefined <= 3` is false, so a selector
+  like `card.cost <= 3` that can run on such a card would flip from excluding it to including it.
+- **`upgrades` is a `CardRef[]`, not a `Card[]`.** Reading the related cards is not a one-line rewrite:
+  code that goes on to use an upgrade needs the getter for it as well.
 
 The codemod emits `getLastKnownProperties(event.card)` **uniformly** — never `event.cardRef`.
 Choosing between the two has a behavior delta, so it is a phase-4 judgment call, not a codemod rule.
@@ -1719,6 +1803,22 @@ decision rather than a mechanical rewrite.
 
 Also covers the delayed effects skipped in phase 3.
 
+**Targets, from the current tree.**
+
+- Three pending specs describe cases today's mechanism cannot serve: Clone (a defeated Clone keeps the
+  name of what it copied), Shadow Caster (a defeated unit keeps an ability granted to it) and Latts
+  Razzi (read from the deck). Two more pending specs mark where LKI deliberately does **not** apply —
+  Targeting Computer (a granted ability is not active from the discard pile) and Clone's trait revert.
+  Those are guard rails rather than targets: migrating the cards must not start serving last known
+  information where the rules say it does not apply. LKI covers *information*, not which abilities
+  are active (register §F).
+- The 12 card files that still hand-roll `inPlayId` comparisons (register §E).
+- **Maul, Master of the Shadow Collective** has a real wrong-copy bug (register §B.1). It can be fixed
+  when the card is migrated, or earlier on its own. In a trial run, removing the
+  `Duration.WhileSourceInPlay` exemption in `OngoingEffectEngine.removeLastingEffects` made its pending
+  spec pass with the full suite green. Only Maul and DJ create delayed effects with that duration, and
+  DJ's replayed-resource case needs a spec of its own first.
+
 Ends with: delete the opt-in flag, remove `ILastKnownInformation` and the legacy fields, collapse the
 LKI helpers back to the single `addDepartureRecordToEvent`
 ([register §D.1](./lki-migration-register.md)), apply D-28's lint rules, and remove `event.card`'s
@@ -1726,20 +1826,28 @@ live-card fallback.
 
 ### The opt-in mechanism
 
-D-24 makes the getter a **setup-time parameter**, so each card receives its own getter instance,
-which can be configured per card. The opt-in is therefore a single flag, not a type-level switch:
+D-24 makes the getter a **setup-time parameter**, so each card receives its own getter instance. The
+opt-in is therefore a single flag (D-35), not a type-level switch:
 
 ```ts
 export default class MyCard extends NonLeaderUnitCard {
-    protected override readonly usesLkiRegistry = true;
+    public override readonly usesLkiRegistry = true;
 }
 ```
 
 | | `false` (default) | `true` |
 |---|---|---|
-| `getLastKnownProperties(ref)` | always returns a **live accessor**; footprints ignored | consults the registry |
-| Behavior | identical to today | new LKI semantics |
+| Getter the card's setup receives | `LiveOnlyCardStateGetter` | the registry-backed `CardStateGetter` |
+| `getLastKnownProperties(ref)` | **live** properties; records, tombstones and identity are ignored, so it cannot throw on a stale reference | consults records; throws for a flushed or orphaned reference |
+| `getIdentity(card)` | works | works |
+| Behavior | identical to reading the card directly, apart from the two known differences listed under phase 3 | new LKI semantics |
 | `event.lastKnownInformation` | still available for legacy use | unused |
+
+The flag is `public` because `forCard` reads it from outside the card. Its initializer has run by the
+time abilities are set up, because a card's abilities are set up by `initialize()`, which the
+auto-initializing wrapper calls after the whole constructor chain. `CloneUnitEffect` and
+`CopyStandardTriggeredAbilitiesEffect` run *another* card's setup with the receiving card's registrar,
+and pass the getter of the card whose code is running.
 
 Identity survives the transition: once `event.card` and `context.source` are interned references,
 the ~359 `===` comparisons keep working unchanged.
@@ -1752,12 +1860,12 @@ tracks:
 | Section | Contents |
 |---|---|
 | A | ~8 survival-check hacks whose behavior inverts under D-31 |
-| B | Known bugs to fix as part of this work (Dengar's `lki.card` hop, `UseWhenDefeatedSystem:75`, watcher instance/Set issues) |
+| B | Known bugs (Dengar's `lki.card` hop, `UseWhenDefeatedSystem:75`, watcher identity/Set issues), **B.1** the wrong-copy findings re-evaluated (one confirmed: Maul), **B.2** event-relative reads still on the transitional overload |
 | C | Type corrections (`TargetedCostAdjuster.selectedTargets`) |
-| D | Code to delete (redundant damage-event LKI, `defendersLastKnownInformation`, the `addLastKnownInformation` flag) |
+| D | Code to delete (redundant damage-event LKI, `defendersLastKnownInformation`, the `addLastKnownInformation` flag), the helper collapse, the incomplete flush boundary |
 | E | Engine simplifications expected to fall out, listed so the reduction is verified rather than assumed |
-| F | A disabled test (`LattsRazziDeadlyWhipmaster.spec.ts:148`) documenting a case today's LKI cannot serve — re-enable after the registry lands |
-| G | Legality gaps from the D-7 audit |
+| F | Disabled specs documenting cases today's LKI cannot serve, and two that mark where it deliberately does not apply |
+| G | Legality gaps from the D-7 audit, and **G.1** departures that write no record (D-22's scope) |
 | H | The phase-0 baseline |
 
 ### Remaining non-blocking items
