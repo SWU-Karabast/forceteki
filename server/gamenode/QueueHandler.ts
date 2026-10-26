@@ -12,6 +12,7 @@ import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 import type { IMatchmakingPlayerEntry, IMatchmakingRule } from './MatchmakingRules';
 import { getQueueMatchmakingStatus, MatchmakingRule } from './MatchmakingRules';
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
+import { LogEvent } from '../utils/logging/LoggingConstants';
 import type { IGameNodeConfig, IMatchmakingPreferencePolicy } from './GameNodeConfig';
 import { defaultMatchmakingPreferencePolicy, MatchmakingCompetitivenessPreferencePolicyKey } from './GameNodeConfig';
 
@@ -174,7 +175,7 @@ export class QueueHandler {
         logger.info(
             `QueueHandler: User ${userId} connected with socket id ${socket.id}, added to queue for format ${this.queueKeyToString(playerEntry.format)}`,
             {
-                event: 'queueJoin',
+                event: LogEvent.QueueJoin,
                 userId,
                 ...this.queueKeyMeta(playerEntry.format),
                 preference: playerEntry.player.matchmakingPreference,
@@ -406,7 +407,7 @@ export class QueueHandler {
         logger.info(
             `QueueHandler: Matched ${first.userId} (${first.preference}) with ${second.userId} (${second.preference}) in format ${this.queueKeyToString(format)}`,
             {
-                event: 'matchFormed',
+                event: LogEvent.MatchFormed,
                 ...this.queueKeyMeta(format),
                 preferenceRank,
 
