@@ -18,7 +18,7 @@
 7. [The DECKS section](#7-the-decks-section)
 8. [The SETUP section](#8-the-setup-section)
 9. [The EVENTS section and `seq` numbers](#9-the-events-section-and-seq-numbers)
-10. [Every event type](#10-every-event-type)
+10. [Every event type](#10-every-event-type) — including [10.3 Homeworlds: Fortify, Beast and Weakness](#103-homeworlds-fortify-beast-and-weakness) and [10.4 Grand Moff Tarkin and The Death Star](#104-grand-moff-tarkin-and-the-death-star)
 11. [The board you build (ReducedState)](#11-the-board-you-build-reducedstate)
 12. [Folding: turning lines into a board](#12-folding-turning-lines-into-a-board)
 13. [Keyframes](#13-keyframes)
@@ -90,8 +90,9 @@ There are four jobs. You might do one, or all of them.
   ([§13](#13-keyframes)).
 - MUST record a removal for every token it records a gain for
   ([§10.1](#the-token-gainremoval-contract)).
-- MUST NOT emit a `MOVE` with an empty `from`/`to`, or with `from` equal to `to`
-  ([§10.1](#101-events-that-carry-board-detail)).
+- MUST NOT emit a `MOVE` with an empty `from`/`to`, or with `from` equal to `to` except to
+  rebind an attachment that stays in its arena
+  ([§10.1](#101-events-that-carry-board-detail), [the binding rule](#binding-an-attachment-to-its-host)).
 - MUST put real values in `Engine` and `Seed` in production output
   ([§5.3](#53-provenance-engine-and-seed)).
 - SHOULD emit `%%% CARDS` covering every id the file mentions, and `%%% STORY` matching
@@ -109,7 +110,7 @@ There are four jobs. You might do one, or all of them.
   and `exhausted: true` on a `MOVE` out of `resource` when the card left exhausted
   ([§10.1](#101-events-that-carry-board-detail)).
 - MUST name the host with `attachedTo` on the `MOVE` that attaches a card, and MUST NOT name
-  one on any `MOVE` out of an arena — exits are host-less
+  one on any `MOVE` out of an arena or out of `base` — exits are host-less
   ([§10.1](#binding-an-attachment-to-its-host)).
 - MUST record a capture as a `CAPTURE` whose `p` is the seat that now holds the card and whose
   `by` is the captor ([§10.1](#101-events-that-carry-board-detail)).
@@ -151,6 +152,22 @@ There are four jobs. You might do one, or all of them.
 - MUST NOT put `ms` on anything but a numbered action, a `ROUND_START` or a `PHASE_START`, and
   MUST write it as a duration from `Date` rather than a wall-clock time
   ([§5.2.1](#521-timing-ms)).
+- MUST record an upgrade attached to a base (Fortify) as a `MOVE` into `base` with
+  `attachedTo: "base@N"` and a `PLAY_UPGRADE` whose `target` is `base@N`, and MUST carry the
+  seat's `baseUpgrades` in every keyframe — a base upgrade is in play in no arena, so `cards`
+  cannot hold it ([§10.3](#103-homeworlds-fortify-beast-and-weakness)).
+- SHOULD name the granting card in `grantedBy` when an `ABILITY_ACTIVATE` is an ability `card`
+  does not print ([§10.1](#101-events-that-carry-board-detail)).
+- MUST NOT write a `DAMAGE.src`, `HEAL.src` or `DEFEAT.defeatedBy` that is not a card id or
+  `base@N`; when no card is responsible, it omits the field
+  ([§10.1](#101-events-that-carry-board-detail)).
+- MUST write a `DEFEAT` on `base@N` for every defeated base, before the `GAME_END` it causes —
+  above all for a base defeated **outright** by an ability, whose HP does not show it
+  ([§10.4](#104-grand-moff-tarkin-and-the-death-star)).
+- MUST name a card with two sides by its printed **front** in `%%% CARDS`, with the other side as
+  `backSideName` ([§6.5](#65-the-cards-index)), and MUST file a deploy performed by the leader's
+  own Epic Action or Action ability as that ability's sub-step, not as a second action
+  ([§10.1](#101-events-that-carry-board-detail)).
 
 ### The Folder (rebuilds the board)
 
@@ -460,7 +477,7 @@ These are the strings that appear in `from`, `to`, and `zone`:
 | `ground` | The ground arena. **In play.** |
 | `space` | The space arena. **In play.** |
 | `discard` | The discard pile. |
-| `base` | The base zone (where an undeployed or defeated leader sits). |
+| `base` | The base zone: where an undeployed or defeated leader sits, where Credit tokens and the Force live, and where an upgrade with **Fortify** attaches ([§10.3](#103-homeworlds-fortify-beast-and-weakness)). |
 | `outsideTheGame` | Nowhere — where tokens come from and go back to. |
 | `capture` | Cards captured by an opponent. |
 
@@ -481,8 +498,10 @@ separate cards, and the folded board holds no base *card* id to match a `SET#NUM
 seat ref is what lets a reader tell them apart ([§10.1](#101-events-that-carry-board-detail)).
 
 Anything that is **not** `base@N` in a `tgt` / `def` / `CHOICE.offered` / `ABILITY_ACTIVATE.card`
-field is a card id.
-A base is `base@N` **everywhere** it is pointed at, including when a target prompt offered it —
+/ `ABILITY_ACTIVATE.grantedBy` / `PLAY_UPGRADE.target` / `MOVE.attachedTo` / `DAMAGE.src` /
+`HEAL.src` / `DEFEAT.card` / `DEFEAT.defeatedBy` field is a card id.
+A base is `base@N` **everywhere** it is pointed at, including when a target prompt offered it,
+when it is the host of a Fortify upgrade, and when one of its abilities dealt damage or healed —
 never its `SET#NUM` card id. (The header's `P1Base`/`P2Base` and the `%%% CARDS` index name
 the base *card*; a `base@N` ref names the *thing being hit*.)
 
@@ -506,14 +525,14 @@ is pinned here and in the schema rather than left open:
 
 | Value | What it means |
 |---|---|
-| `attack` | Combat damage from an attack killed it. `defeatedBy` names the attacker. |
-| `ability` | A card ability defeated it outright, or dealt the damage that did. `defeatedBy` names that card. |
-| `nonCombatDamage` | Damage from something that is not an attack — an event, an ongoing effect. |
+| `attack` | Combat damage from an attack killed it. `defeatedBy` names the unit that dealt that damage: the attacker, or the defender when the attacker dies to the defender's return damage. |
+| `ability` | A card ability defeated it **outright**, with no damage: "defeat a unit" (Vanquish), "defeat a base" (Grand Moff Tarkin), a cost paid by defeating it. `defeatedBy` names that card. |
+| `nonCombatDamage` | **Damage** from something that is not an attack killed it — an event, an ability, an ongoing effect. `defeatedBy` names the card that dealt it. |
 | `uniqueRule` | The uniqueness rule: a second copy of a unique card that its controller already has in play. |
-| `frameworkEffect` | The rules engine, with no card to blame. Three causes, and they are the whole set: an **upgrade whose host left play**, a unit whose **remaining HP fell to its damage** when an effect expired or was removed, and a **leader unit that would have changed control** (it is defeated instead). |
+| `frameworkEffect` | The rules engine, with no card to blame. Four causes, and they are the whole set: an **upgrade whose host left play**; a unit whose **remaining HP fell to its damage without damage being dealt** — a modifier lowered its HP (a Weakness token attaching, a −X/−X effect) or an HP-granting effect expired or was removed; a **leader unit that would have changed control** (it is defeated instead); and a **base killed by damage no card dealt** — drawing from an empty deck. The `STATS` record with the lowered `hp` just before the `DEFEAT` is the reason ([§10.3](#103-homeworlds-fortify-beast-and-weakness)). |
 | `unknown` | The writer could not resolve a cause. A reader SHOULD surface this the way it surfaces `RecorderErrors`; it should not appear in a healthy file. |
 
-`frameworkEffect` is deliberately not split further. Its three causes are one thing from the
+`frameworkEffect` is deliberately not split further. Its four causes are one thing from the
 reader's side — nobody's card did it — and the split a reader would actually want (was this an
 upgrade falling off its host?) is already answerable from the record itself: the defeated card
 is an upgrade, and its host's own `DEFEAT` sits beside it.
@@ -540,6 +559,23 @@ One JSON object per line:
 | `id` | string | Yes | A **base** id — no `:N` copy suffix, since every copy shares a name. |
 | `name` | string | Yes | What to show a human. Include the subtitle: `"Greef Karga, Gracious Magistrate"`. |
 | `kind` | `"unit"` or `"upgrade"` | No | What the card is. Lets a reader classify from the id alone — in particular which `TOKEN:` ids are upgrades. **Absent is meaningful: it means neither** — see below. |
+| `backSideName` | string | No | The name of the card's **other side**, when it has a different one. `name` is then always the printed **front**. See below. |
+
+**A card with two names.** A few leaders change identity: Grand Moff Tarkin, Tyrant of the
+Outer Rim deploys as **The Death Star, Icon of Tyranny**, a different card (a space Vehicle);
+Chancellor Palpatine flips to **Darth Sidious**. One id, two names:
+
+```json
+{"id":"HMW#004","name":"Grand Moff Tarkin, Tyrant of the Outer Rim","backSideName":"The Death Star, Icon of Tyranny"}
+```
+
+The index is an identity, so `name` is the printed front whatever side the card ended the game
+on. Which side is up at a given moment is **game state**, carried by the events: a
+`DEPLOY_LEADER` (or the leader's `MOVE` from `base` into an arena) shows the back of a deployed
+leader with a `backSideName`, its `MOVE` back to `base` shows the front again, and a
+`LEADER_FLIP` sets a double-sided leader's face. A keyframe's `leader.deployed` /
+`leader.onStartingSide` says the same at a round boundary. A reader showing a name SHOULD show
+the side that is up; the renderer does ([§16](#16-turning-a-file-into-a-story)).
 
 **An absent `kind` means "neither a unit nor an upgrade", not "unknown".** `kind` is derived
 from the card's printed type, so a writer emits it for every unit and every upgrade and omits
@@ -730,12 +766,20 @@ records that could precede it, stopping at the first top-level step or any other
 File the whole run **only if something in it names the action's card**. Without that anchor the
 run is just as likely to be the previous action's tail, and a wrong link is worse than none.
 
+**Another card arriving in play ends the run.** A `MOVE` of a different card into `ground` or
+`space` (or into `base` as an upgrade) is that card's own story, and so are the records naming it
+right after its arrival — its `STATS`, its entering `EXHAUST`. A start-of-phase trigger puts
+exactly that in front of the first action: Beast Lair's Beast lands, gets its stats and exhausts,
+then the player's first play begins with the same record types. The run starts after the
+arrival. A card *leaving* (a discard paid as a cost) is not an arrival and stays in the run.
+
 **Which types can precede depends on the action**, and a writer MUST NOT use one shared list:
 
 | Action | May be preceded by |
 |---|---|
 | `ATTACK` | `CHOICE`, `MODAL_CHOICE`, `EXHAUST` |
-| every other top-level action (the plays, `DEPLOY_LEADER`, `PASS`, `CLAIM_INITIATIVE`, an action `ABILITY_ACTIVATE`) | `MOVE`, `CHOICE`, `MODAL_CHOICE`, `EXHAUST`, `STATS`, `EXHAUST_RESOURCES` |
+| an action or Epic `ABILITY_ACTIVATE` | `CHOICE`, `MODAL_CHOICE` — the menu pick and the target. Its costs (the card exhausting, resources spent) are paid after it is announced, under its own step |
+| every other top-level action (the plays, `DEPLOY_LEADER`, `PASS`, `CLAIM_INITIATIVE`) | `MOVE`, `CHOICE`, `MODAL_CHOICE`, `EXHAUST`, `STATS`, `EXHAUST_RESOURCES` |
 
 An attack announces itself after picking a target and exhausting the attacker, and that is all:
 it never moves a card or restates its stats. A play does the opposite — the card arrives, gets
@@ -787,7 +831,7 @@ doesn't move the needle. They are documented here rather than with the pure note
 | `from` | string | yes | Zone it left. |
 | `to` | string | yes | Zone it arrived in. |
 | `p` | 1 or 2 | no | Whose card. Real engine files always include this. |
-| `attachedTo` | string | no | The card id of the unit this move attaches the card to. REQUIRED on the move **into an arena** that attaches a card — a token-upgrade, a printed upgrade, or a pilot — and ABSENT on every other move, a move **out of** an arena included: exits are host-less, and a reader detaches on the zone transition ([the binding rule](#binding-an-attachment-to-its-host)). |
+| `attachedTo` | string | no | The host this move attaches the card to: the card id of a unit, or `base@N` for an upgrade with Fortify. REQUIRED on the move that attaches a card — **into an arena** for a token-upgrade, a printed upgrade or a pilot; **into `base`** for a Fortify upgrade — and ABSENT on every other move, a move **out of** an arena or out of `base` included: exits are host-less, and a reader detaches on the zone transition ([the binding rule](#binding-an-attachment-to-its-host)). |
 | `exhausted` | boolean | no | On a move **out of `resource`** only: `true` when the card left the row exhausted, so the fold takes it from `resourcesExhausted` rather than `resourcesReady`. Absent means it left ready. A card played from the resource row pays for itself first, and a resource a friendly effect returns is swapped exhausted on the way out, so this is common. |
 | `kind` | `"unit"` or `"upgrade"` | no | The **role this move enacts**, not what the card is. REQUIRED whenever determinable — see below. |
 
@@ -847,6 +891,10 @@ transition and never needs one ([the binding rule](#binding-an-attachment-to-its
   exception that is not a `MOVE` at all: a Credit token that goes `base` → `base` has changed
   **bases**, because each seat has its own. That is how a Credit token changes hands, and the
   writer records it as the `TAKE_CONTROL` it is (`zone: "base"`, [below](#take_control)).
+  The one `MOVE` that may name the same zone twice is an attachment changing while the card
+  stays in its arena — an upgrade moved to another host there, or a pilot ejected from a ground
+  vehicle. `from` and `to` are that arena, and the record carries the new role and host
+  ([the binding rule](#binding-an-attachment-to-its-host)).
 - **Building the decks is not a move.** Before the first shuffle every card enters its deck
   from `outsideTheGame`. That is the deck list, which `DECKS` already states and `INIT`
   already orders, so the reference writer does not emit those `outsideTheGame` → `deck`
@@ -903,19 +951,20 @@ Event cards go straight to the discard pile — never into play.
 
 ---
 
-**`PLAY_UPGRADE` — a player attached an upgrade to a unit.**
+**`PLAY_UPGRADE` — a player attached an upgrade to a unit, or (Fortify) to their base.**
 
 | Field | Type | Required | Means |
 |---|---|---|---|
 | `p` | 1 or 2 | yes | Who played it. |
 | `card` | string | yes | The upgrade's card id. |
-| `target` | string | no | The unit it went onto. |
+| `target` | string | no | The unit it went onto, or `base@N` for a Fortify upgrade ([§10.3](#103-homeworlds-fortify-beast-and-weakness)). |
 | `zone` | string | no | Where the card went, recorded for completeness. It is **not** a fallback placement. |
 | `cost` | integer | no | The card's **printed** cost. Not the resources actually paid: aspect penalties, discounts and Exploit are settled inside the engine's cost payment and never reach the play event. What was paid is the `EXHAUST_RESOURCES` written beside this record ([below](#101-events-that-carry-board-detail)). |
 
 If `target` is given and that unit is on the board, the upgrade id is pushed onto that
 unit's `upgrades` list — **idempotently**, because the attaching `MOVE` beside this record
-already did the same through `attachedTo` ([§12.1](#121-the-move-rule-the-big-one)). Otherwise
+already did the same through `attachedTo` ([§12.1](#121-the-move-rule-the-big-one)). If `target`
+is `base@N`, the id goes onto that seat's `baseUpgrades` instead, just as idempotently. Otherwise
 the event changes **nothing**: an upgrade is never an arena card, so there is no fallback
 placement ([§12.2](#122-every-other-rule-in-one-table)).
 
@@ -928,6 +977,11 @@ and, together, optional `kind` + `target`.
 Puts the leader in play — unless it deployed **as a pilot**: then `kind` is `"upgrade"`,
 `target` is the vehicle it flew onto, and the leader is pushed onto that unit's `upgrades`
 exactly as `PLAY_UPGRADE` does. It is never an arena card of its own.
+
+**Deploying is one action.** When the leader's own Epic Action (or Action) ability deploys it,
+that `ABILITY_ACTIVATE` is the numbered action and the `DEPLOY_LEADER` is one of its lettered
+sub-steps (`R8.A.1` the Epic Action, `R8.A.1c` the deploy). The player spent one action, and a
+reader counting actions counts one.
 
 It also sets the seat's **leader status** ([§11](#11-the-board-you-build-reducedstate)): the
 leader is `card`, it is `deployed`, and it is **ready** — a leader deploys ready whatever
@@ -950,9 +1004,16 @@ to `base`, with an `EXHAUST` beside it (a defeated Leader Unit comes back exhaus
 | `title` | string | no | The ability's printable name, as the card menu shows it. |
 | `ability` | string | no | The engine's own identifier. Debugging aid; **not** a stable key. |
 | `epic` | boolean | no | The ability was an Epic Action. Equivalent to `kind: "epic"`. |
+| `grantedBy` | string | no | The card whose text **gave** `card` this ability — a Fortify upgrade's "Attached base gains: …", an upgrade's "Attached unit gains: …". A card id, or `base@N`. Absent when the ability is `card`'s own printed text. |
 
 Changes nothing — except that `epic: true` marks an **Epic Action** as used. Everything an
 ability *did* is recorded by the records that follow it.
+
+**`grantedBy` is how a reader explains an ability `card` does not print.** When Kestro City uses
+"Deal 2 damage to a unit", the base has no such text; Heavy Ion Cannon attached to it does. The
+writer knows which card granted it and SHOULD say so: `ability` often spells the grantor out
+(`gained_from_heavy-ion-cannon_constant_1`), but it is not a stable key, and a reader that parses
+it is back to maintaining a regex.
 
 **`kind` is what a reader should branch on.** Without it the only signal is the shape of
 `ability` (`…_action_1`, `…_triggered_0`, `mandalorian_keyword_shielded_0`,
@@ -1160,7 +1221,7 @@ them: the token's `STATS` record after its `MOVE` carries the real values
 
 | Field | Type | Required | Means |
 |---|---|---|---|
-| `src` | string | yes | What dealt it. |
+| `src` | string | no | What dealt it: a card id, or `base@N` when a base's ability did ([§6.3](#63-pointing-at-a-base)). For combat damage it is the unit that dealt it, so the defender's return damage to the attacker names the **defender**. Absent **only** when the rules themselves dealt it and no card is responsible — drawing from an empty deck. |
 | `tgt` | string | yes | `base@N` or a card id. |
 | `amt` | integer | yes | How much. |
 | `damageType` | string | yes | e.g. `"combat"`, `"ability"`. |
@@ -1208,6 +1269,24 @@ Take the card out of play and push its id onto that player's discard pile — an
 every card's `upgrades` and `captured` lists, because a defeated card is nobody's attachment
 and nobody's captive. An upgrade was never an arena card, so for one only the detach applies.
 
+**A base is defeated with a `DEFEAT` too**: `card` is `base@N`, and the fold sets that seat's
+`baseDefeated`. Every defeated base gets one, whatever defeated it, written right after the
+record that did it — the lethal `DAMAGE` or `OVERWHELM`, or the `ABILITY_ACTIVATE` that defeated
+it outright — and so before the `GAME_END` it causes. A base that falls while the players
+continue playing after the game has ended gets one too, though the engine ends the game only
+once:
+
+| How the base fell | `reason` | `defeatedBy` |
+|---|---|---|
+| An attack's damage (combat, or Overwhelm) took it to 0 | `attack` | the attacker |
+| An ability's damage took it to 0 | `nonCombatDamage` | the card that dealt it |
+| Damage no card dealt (drawing from an empty deck) | `frameworkEffect` | absent |
+| An ability defeated it **outright** — "defeat a base" (Grand Moff Tarkin, Tyrant of the Outer Rim) | `ability` | the card whose ability it was |
+
+The last row is why this exists. A base defeated outright still **has HP**, so `baseHp` alone
+cannot tell a reader it fell — the `DEFEAT` is the only record that does
+([§10.4](#104-grand-moff-tarkin-and-the-death-star)).
+
 ---
 
 **`EXHAUST` / `READY`** — field `card`. Sets `exhausted` to `true` / `false` on the arena card
@@ -1243,6 +1322,12 @@ last `STATS` it wrote for that unit, after **every** engine event, so a reader c
 right numbers at every moment without evaluating a single card ability. A unit's first
 `STATS` arrives right after it enters play; a unit that leaves and returns starts over.
 
+**A `STATS` is filed under the action that caused it.** Some effects are applied a step after
+the event that set them up: a Fortify upgrade grants its base an ability, and *that* ability
+buffs units (Landing Pad's "Friendly space units get +1/+0"). The writer settles every unit's
+stats again just before the turn passes, so such a change is a sub-step of the play that caused
+it, never of the next player's action.
+
 `keywords` covers what CR 1.16 calls a card's attributes as far as the text box goes: the
 keyword abilities in effect (printed, granted by an upgrade, or given for a phase). Full
 ability text is not recorded — it is card data, and the `%%% CARDS` index names the card.
@@ -1254,7 +1339,7 @@ ability text is not recorded — it is card data, and the `%%% CARDS` index name
 | Field | Type | Required | Means |
 |---|---|---|---|
 | `p` | 1 or 2 | yes | Who drew. |
-| `count` | integer | yes | How many. |
+| `count` | integer | yes | How many were drawn: `cards.length` whenever the cards are known. Drawing from a deck with too few cards draws fewer than asked; each missing draw is a `DAMAGE` to the player's base with no `src`. |
 | `cards` | string[] | yes | Which ones. MAY be empty if hidden. |
 
 Adds those ids to the known `hand` list, **once by id**. **It does not change `handSize`**,
@@ -1321,7 +1406,7 @@ list, so a token upgrade printed later records itself. Token upgrades never appe
 |---|---|
 | shield | `{"t":"SHIELD_USE","card":"<host>"}` |
 | experience | `{"t":"EXPERIENCE_GAIN","card":"<host>","count":-1}` |
-| advantage | `{"t":"STATUS_TOKEN","card":"<host>","token":"advantage","count":-1}` |
+| advantage, weakness, any other token upgrade | `{"t":"STATUS_TOKEN","card":"<host>","token":"weakness","count":-1}` |
 
 Four rules make this work:
 
@@ -1358,18 +1443,35 @@ by **`attachedTo`** on the `MOVE` that carries it **into the arena**:
 {"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"LOF#215","zone":"ground","target":"SOR#095","cost":2}
 ```
 
+An attachment that changes while the card stays in its arena — a printed upgrade moved to
+another host in the same arena, or a pilot ejected from a ground vehicle — is a `MOVE` whose
+`from` and `to` are that arena: `kind: "upgrade"` with the new `attachedTo`, or `kind: "unit"`
+with no host for the ejected pilot. A reader treats it like any other move: a card arriving
+as a unit is no one's upgrade, and one arriving as an upgrade is on the host it names.
+
 **A reader MUST use `attachedTo` and MUST NOT infer the host from event adjacency.** The
 fact that the `STATUS_TOKEN` happens to be the next record is an accident of how the writer
 emits them, not a guarantee. `attachedTo` is the normative binding, and the fold applies it
 ([§12.1](#121-the-move-rule-the-big-one) step 3): a printed card goes onto the host's
 `upgrades`; a token upgrade goes into the host's counters through its own gain record.
 
+**A base can be the host.** An upgrade with Fortify attaches to its player's base, which is not
+an arena card, so its `MOVE` goes **into `base`** and names the base as `base@N`; the fold puts it
+on that seat's `baseUpgrades` ([§12.1](#121-the-move-rule-the-big-one) step 2c):
+
+```json
+{"seq":"R1.A.0q","t":"MOVE","card":"HMW#271","from":"hand","to":"base","p":1,
+ "kind":"upgrade","attachedTo":"base@1"}
+{"seq":"R1.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#271","zone":"base","target":"base@1","cost":3}
+```
+
 **Exits are host-less.** The move back out — the token defeated, the upgrade destroyed, the
-pilot's vehicle Vanquished — carries no `attachedTo`, and its `kind` is whatever the card is at
-that moment (a pilot leaves as `kind: "unit"`). A reader MUST NOT wait for a host to be named
-on the way out: **a card leaving an arena, or being defeated, comes off every host** — keyed
-on the zone transition, not on `kind` ([§12.1](#121-the-move-rule-the-big-one) step 0). One
-shape for every exit, and nothing for a writer to remember.
+pilot's vehicle Vanquished, the Fortify upgrade sacrificed — carries no `attachedTo`, and its
+`kind` is whatever the card is at that moment (a pilot leaves as `kind: "unit"`). A reader MUST
+NOT wait for a host to be named on the way out: **a card leaving an arena or the `base` zone,
+or being defeated, comes off every host** — keyed on the zone transition, not on `kind`
+([§12.1](#121-the-move-rule-the-big-one) steps 0 and 2c). One shape for every exit, and nothing
+for a writer to remember.
 
 ---
 
@@ -1387,7 +1489,7 @@ These never change the board. A folder MUST read them and do nothing.
 | `t` | Fields | Means |
 |---|---|---|
 | `ATTACK` | `p`, `atk`, `def`, `defenderType` | An attack was declared. For a base attack, `def` is `base@N`. |
-| `PASS` | `p` | A player passed. |
+| `PASS` | `p` | A player took the **Pass** action. It is never written after a play, an attack, an action ability or a claimed counter — those are actions of their own, and the turn passing to the opponent afterwards is not a record. The action phase ends when both players pass one after the other, or a player passes after the other has claimed the initiative (CR 6). |
 | `CHOICE` | `p`, `offered` (string[]), `chose` (index), `prompt` (optional) | A player picked from a list. |
 | `MODAL_CHOICE` | `p`, `offered`, `chose` | A player picked an ability mode. |
 | `MULLIGAN` | `p` | A player mulliganed. |
@@ -1435,6 +1537,254 @@ changed zone, so there is nothing to record — and a `deck` → `deck` record w
 `from` ≠ `to` rule above anyway. This matters more than it sounds: two searches in one real
 game once produced 28 of that file's 136 MOVE records, all of them noise.
 
+### 10.3 Homeworlds: Fortify, Beast and Weakness
+
+Homeworlds (`HMW`) puts three things on the board that a reader has to get right. None of them
+needs a new event type. Fortify needs one new board field, `baseUpgrades`
+([§11](#11-the-board-you-build-reducedstate)), and a base as a host; Beast and Weakness tokens
+follow the token rules that already exist. This section shows each one as it appears in a file.
+Every record quoted is from the `homeworlds` test vector ([§20](#20-test-vectors)), which plays
+all three in one real game. `swupgn/test-vectors/homeworlds.swupgn` is the file to test a reader
+against.
+
+#### Fortify: an upgrade on a base
+
+> *Fortify (Attach this to your base, not a unit.)* Fifteen Homeworlds upgrades have it — Beast
+> Lair, Landing Pad, Heavy Ion Cannon, Carbonite Chamber, Alliance Shield Generator, Military
+> Academy, Verdant Fortress, … While attached, the base has whatever "Attached base gains: …"
+> gives it.
+
+**Attaching.** A Fortify upgrade's `MOVE` goes **into `base`**, not into an arena, and names the
+base as its host. The `PLAY_UPGRADE` beside it points at the base the same way:
+
+```json
+{"seq":"R1.A.0c","t":"MOVE","card":"HMW#147","from":"hand","to":"base","p":1,"kind":"upgrade","attachedTo":"base@1","for":"R1.A.1"}
+{"seq":"R1.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#147","zone":"base","target":"base@1","cost":2,"ms":2}
+```
+
+The fold puts `HMW#147` on `players[1].baseUpgrades` ([§12.1](#121-the-move-rule-the-big-one)
+step 2c). It is **never** in `cards`: it is in play, but in no arena. A board that draws a base
+should draw its `baseUpgrades` on it. Every keyframe carries them, and the integrity check
+compares them ([§14](#14-checking-a-file-is-honest)).
+
+**What the base gains** shows up in the records the gained ability causes. There is no
+"the base now has this ability" record, because the ability's text is card data:
+
+- A **static** buff to units (Landing Pad's "Friendly space units get +1/+0", Military Academy's
+  Overwhelm, Verdant Fortress's Raid 1) arrives as `STATS` on each affected unit, filed under the
+  play that caused it ([§10.1](#stats)).
+- A **triggered** or **action** ability the base gains is an `ABILITY_ACTIVATE` whose `card` is
+  `base@N` and whose `grantedBy` names the upgrade:
+
+```json
+{"seq":"R2.A.0a","t":"ABILITY_ACTIVATE","p":1,"card":"base@1","ability":"gained_from_beast-lair_constant_0","kind":"triggered","title":"Discard a card from your hand to create a Beast token","grantedBy":"HMW#147"}
+```
+
+A gained Action (Heavy Ion Cannon's "Action [discard a card from your hand]: Deal 2 damage to a
+unit") is `kind: "action"`, so it is the player's numbered action ([§9](#9-the-events-section-and-seq-numbers)).
+Damage it deals is written with `src: "base@1"`: the base dealt it ([§6.3](#63-pointing-at-a-base)).
+
+**The upgrade's own abilities** are its own: `card` is the upgrade's id and there is no
+`grantedBy`. Carbonite Chamber's "Action [defeat this upgrade]: …" pays its cost by leaving the
+base, and the exit is host-less like every other ([§10.1](#binding-an-attachment-to-its-host)):
+
+```json
+{"seq":"R2.A.3","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#095","ability":"carbonite-chamber_action_0","kind":"action","title":"Choose a non-Vehicle unit. It doesn't ready during the next regroup phase","ms":6}
+{"seq":"R2.A.3a","t":"MOVE","card":"HMW#095","from":"base","to":"discard","p":2,"kind":"upgrade"}
+{"seq":"R2.A.3b","t":"DEFEAT","card":"HMW#095","reason":"ability","defeatedBy":"HMW#095"}
+```
+
+A **replacement** on a base upgrade (Alliance Shield Generator: "If attached base would be dealt
+5 or more damage, prevent that damage") is an `ABILITY_ACTIVATE` with `kind: "replacement"` and
+the upgrade as `card`. The prevented damage writes **no** `DAMAGE`, so base HP does not move.
+
+**Leaving.** Any `MOVE` **out of `base`** takes the card off every seat's `baseUpgrades`, and so
+does a `DEFEAT` naming it. A sacrificed or destroyed base upgrade goes to its owner's `discard`
+on that move, like any other card.
+
+**Who it belongs to.** The seat in `attachedTo` / `target` is the base it is on. The `MOVE`'s `p`
+is its owner, whose discard pile it goes to when it leaves. The two are the same unless an
+effect let a player attach an opponent's upgrade.
+
+#### Beast tokens: a token unit, sometimes for the opponent
+
+A **Beast** is a 3/3 Creature token **unit** — `TOKEN:beast#6445363199`, `kind: "unit"` in
+`%%% CARDS`. It is created like every token unit ([§10.1](#101-events-that-carry-board-detail)):
+a `CREATE_TOKEN`, then the `MOVE` from `outsideTheGame` that places it, its first `STATS`, and the
+`EXHAUST` it enters play with:
+
+```json
+{"seq":"R2.A.0e","t":"CREATE_TOKEN","p":1,"token":"TOKEN:beast#6445363199","zone":"ground","kind":"unit"}
+{"seq":"R2.A.0f","t":"MOVE","card":"TOKEN:beast#6445363199","from":"outsideTheGame","to":"ground","p":1,"kind":"unit"}
+{"seq":"R2.A.0g","t":"STATS","card":"TOKEN:beast#6445363199","power":3,"hp":3,"keywords":[]}
+{"seq":"R2.A.0h","t":"EXHAUST","card":"TOKEN:beast#6445363199"}
+```
+
+Three things to get right:
+
+1. **`CREATE_TOKEN.p` is the seat that gets the Beast, not the seat whose ability made it.**
+   Homeworlds is full of "An opponent creates a Beast token" (Easy Prey, Babwa Venomor,
+   Mysterious Disappearance). Player 1 plays Easy Prey, and the second Beast's `CREATE_TOKEN`
+   and `MOVE` both say `"p": 2`. Place by `p`, never by the acting player.
+2. **"Create a Beast token and ready it"** (Catch the Scent, Eravana) is a `READY` after the
+   `EXHAUST`. The unit was created exhausted and then readied; fold both.
+3. **Every Beast is its own copy** (`TOKEN:beast#6445363199:2`, `:3`, …) for the whole game
+   ([§6.1](#61-card-ids)). Two Beasts are never the same card.
+
+**A defeated token unit goes back to `outsideTheGame`, not to `discard`.** Its exit `MOVE` says so
+(`"from":"ground","to":"outsideTheGame"`), and it is followed by its `DEFEAT`. It never reaches a
+discard pile, and a reader must not put it there.
+
+#### Weakness tokens: a −1/−1 token upgrade
+
+A **Weakness** is a token **upgrade** that gives its host −1/−1 — `TOKEN:weakness#7816991190`,
+`kind: "upgrade"` in `%%% CARDS`. It follows [the token contract](#the-token-gainremoval-contract)
+exactly: a status token counted under its own name, `statusTokens.weakness`:
+
+```json
+{"seq":"R3.A.6b","t":"MOVE","card":"TOKEN:weakness#7816991190:3","from":"outsideTheGame","to":"ground","p":1,"kind":"upgrade","attachedTo":"TOKEN:beast#6445363199"}
+{"seq":"R3.A.6c","t":"STATUS_TOKEN","card":"TOKEN:beast#6445363199","token":"weakness","count":1}
+{"seq":"R3.A.6d","t":"STATS","card":"TOKEN:beast#6445363199","power":0,"hp":0,"keywords":[]}
+```
+
+- **Tokens stack.** Each one is its own card (`:2`, `:3`, …) with its own `STATUS_TOKEN` +1, and
+  the host's `statusTokens.weakness` is the count. A unit with two reads
+  `"statusTokens":{"weakness":2}`.
+- **The stat change is stated, not derived.** The `STATS` after the gain carries the result. Do
+  not subtract 1 per token yourself: an effect that sets or ignores stats would make that wrong.
+- **The `MOVE`'s `p` is the host's side of the board**, not the player who gave the Weakness:
+  Player 2's Torrent on Player 1's Beast is a `MOVE` with `"p": 1`. The giver is the `p` of the
+  action the token was given under.
+
+**A Weakness can defeat a unit on its own.** Nothing deals damage: the token lowers the unit's HP
+to its damage, and the rules defeat it. In the file, the `STATS` with the lowered `hp` comes
+first, then the unit's attachments leave, then the unit:
+
+```json
+{"seq":"R3.A.6d","t":"STATS","card":"TOKEN:beast#6445363199","power":0,"hp":0,"keywords":[]}
+{"seq":"R3.A.6e","t":"MOVE","card":"TOKEN:weakness#7816991190:3","from":"ground","to":"outsideTheGame","p":1,"kind":"upgrade"}
+{"seq":"R3.A.6f","t":"STATS","card":"TOKEN:beast#6445363199","power":1,"hp":1,"keywords":[]}
+{"seq":"R3.A.6g","t":"STATUS_TOKEN","card":"TOKEN:beast#6445363199","token":"weakness","count":-1}
+   … the other two Weakness tokens leave the same way …
+{"seq":"R3.A.6n","t":"MOVE","card":"TOKEN:beast#6445363199","from":"ground","to":"outsideTheGame","p":1,"kind":"unit"}
+{"seq":"R3.A.6o","t":"DEFEAT","card":"TOKEN:beast#6445363199","reason":"frameworkEffect"}
+```
+
+Read this the way the engine resolved it:
+
+- **The defeat is decided at the `hp: 0` `STATS`.** The `STATS` records between it and the
+  `DEFEAT` (`1/1`, `2/2`, …) describe the unit as each attachment comes off a host that is
+  already being defeated. They are correct values, not a recovery. A replay may show them or skip
+  straight to the defeat, but it must not show the unit surviving.
+- **The `DEFEAT.reason` is `frameworkEffect`, with no `defeatedBy`** ([§6.4](#64-small-vocabularies)).
+  No card dealt damage, so no card is blamed. To say *what* killed it, look back to the action:
+  the `STATUS_TOKEN` +1 that caused the `hp: 0` sits under the play that gave the token.
+- **Every gain is balanced.** Each Weakness leaving its host has its `STATUS_TOKEN` −1, so the
+  unit leaves play with `statusTokens` back to `{}` and no count is left behind.
+
+#### Abilities that depend on a base, or on another card's trait
+
+Many Homeworlds cards check something about **another** card: *"While you control a Kashyyyk
+base, this unit gains Ambush"*, *"If an opponent controls an Endor, Kashyyyk, Naboo, or Tatooine
+base, draw a card"*, *"When you play a Fortification upgrade: Exhaust an enemy unit"*. The
+sixteen Homeworlds bases carry a planet trait (Endor, Kashyyyk, Naboo, Tatooine) for exactly
+this.
+
+**A reader never evaluates these conditions.** The engine already did, and the file records the
+outcome in the records a reader already folds. Nothing about traits is in the file, and nothing
+needs to be. Where each kind of outcome lands:
+
+| The card says | Example | What the file carries |
+|---|---|---|
+| "While you control … this unit **gains** \<keyword\>" | Wookiee Rangers (Sentinel), Soaring Can-Cell (Ambush), Opee Sea Killer (Grit), Village Troublemaker (Hidden, Saboteur) | the keyword in that unit's `STATS.keywords`, filed under the play that made the condition true — and a fresh `STATS` without it when the condition stops holding (Gunga City Guard loses Shielded the moment the other Gungan is defeated) |
+| "If you control … \<do something\>" | Torrent (2 Weakness instead of 1), Raiding Party, Surveillance Cruiser | the records the ability produced (`STATUS_TOKEN`, `EXHAUST`, `DRAW`, …), under the play. When the condition is false, those records are absent |
+| "When you play a \<trait\> card" | The Tarkin Doctrine's base, on a Fortification upgrade | an `ABILITY_ACTIVATE` (`kind: "triggered"`, here `card: "base@1"` with `grantedBy`) and its consequences, under the play that met the condition |
+| "… costs N less" | Sandstorm, Origin Tree Shyyyo, Queen Amidala ("If you control an upgraded base") | the `EXHAUST_RESOURCES` amount stamped `for` the play. `cost` stays the **printed** cost ([§10.1](#101-events-that-carry-board-detail)) |
+| "Friendly units enter play ready" | Ritual Dragon (with a Tatooine base) | **no** `EXHAUST` after the unit arrives. A unit enters ready unless an `EXHAUST` says otherwise |
+
+The one thing a reader may want that the file does not hold is *why*: which trait satisfied the
+condition. That is card data. Look up the base in `%%% CARDS` / the header and read its traits
+from a card database if you want to explain it.
+
+#### A reader handles Homeworlds if…
+
+| Check | Rule |
+|---|---|
+| A `MOVE` into `base` with `kind: "upgrade"` adds to `baseUpgrades`, not to `cards` | [§12.1](#121-the-move-rule-the-big-one) step 2c |
+| A `MOVE` out of `base`, or a `DEFEAT`, removes from `baseUpgrades` | same |
+| `PLAY_UPGRADE.target` and `attachedTo` may be `base@N` | [§6.3](#63-pointing-at-a-base) |
+| `ABILITY_ACTIVATE.card` may be `base@N`, and `grantedBy` names the upgrade that gave the ability | [§10.1](#101-events-that-carry-board-detail) |
+| `CREATE_TOKEN.p` and the `MOVE`'s `p` decide whose Beast it is | [§10.1](#101-events-that-carry-board-detail) |
+| A defeated token unit leaves for `outsideTheGame` and never enters a discard pile | [§12.1](#121-the-move-rule-the-big-one) |
+| `statusTokens.weakness` counts stacked tokens, and a key at 0 is deleted | [the token contract](#the-token-gainremoval-contract) |
+| Power/HP come from `STATS`, never from counting Weakness tokens | [§10.1](#stats) |
+| `DEFEAT` with `frameworkEffect` after an `hp: 0` `STATS` is a Weakness (or −X/−X) kill | [§6.4](#64-small-vocabularies) |
+| The `homeworlds` vector folds to `homeworlds.fold.json` and renders to `homeworlds.render.txt` | [§20](#20-test-vectors) |
+| Keywords and stats a base or a trait grants are read from `STATS`, never derived from the condition | [§10.1](#stats) |
+
+### 10.4 Grand Moff Tarkin and The Death Star
+
+> **Grand Moff Tarkin, Tyrant of the Outer Rim** (`HMW#004`). Epic Action: *If you control 9 or
+> more resources, deploy this leader.* Deployed, he is a different card — **The Death Star, Icon
+> of Tyranny**, a 2/12 space Vehicle — with *"When the regroup phase starts: You may defeat a base
+> with 10 or less remaining HP."*
+
+This is the first leader whose Leader Unit side has its own name, and the first card that
+defeats a base without damaging it. Both need handling.
+
+**The second name.** `%%% CARDS` names the front and gives the back as `backSideName`
+([§6.5](#65-the-cards-index)):
+
+```json
+{"id":"HMW#004","name":"Grand Moff Tarkin, Tyrant of the Outer Rim","backSideName":"The Death Star, Icon of Tyranny"}
+```
+
+It is the **same card id** on both sides, so every rule keyed on the id is unchanged: the seat's
+`leader.id`, its `epicActionUsed`, its `exhausted`. Only the name a reader *shows* changes. Show
+`backSideName` while `leader.deployed` is true and `name` otherwise. Do not look for a new id:
+there isn't one. (The engine's own prompt titles use whichever side is up, so a `CHOICE.prompt`
+may read `"The Death Star"`. That field is advisory, [§6.4](#64-small-vocabularies).)
+
+**The deploy is one action.** The Epic Action is the numbered action, and the deploy and the
+arrival in **space** are its sub-steps:
+
+```json
+{"seq":"R8.A.1","t":"ABILITY_ACTIVATE","p":1,"card":"HMW#004","ability":"grand-moff-tarkin#tyrant-of-the-outer-rim_action_0","kind":"epic","title":"Deploy Grand Moff Tarkin","epic":true,"ms":35}
+{"seq":"R8.A.1a","t":"MOVE","card":"HMW#004","from":"base","to":"space","p":1,"kind":"unit"}
+{"seq":"R8.A.1c","t":"DEPLOY_LEADER","p":1,"card":"HMW#004","zone":"space","epic":true,"cost":9}
+```
+
+**Defeating a base.** At the start of the regroup phase, the Death Star may defeat a base with 10
+or less remaining HP — **either** base, its controller's own included. No damage is dealt. The
+base falls with its HP intact, and the `DEFEAT` on `base@N` is the only record that says so
+([§10.1](#101-events-that-carry-board-detail)):
+
+```json
+{"seq":"R8.G.1","t":"CHOICE","p":1,"prompt":"The Death Star","offered":["base@2"],"chose":0}
+{"seq":"R8.G.2","t":"ABILITY_ACTIVATE","p":1,"card":"HMW#004","ability":"grand-moff-tarkin#tyrant-of-the-outer-rim_triggered_3","kind":"triggered","title":"Defeat a base with 10 or less remaining HP"}
+{"seq":"R8.G.3","t":"DEFEAT","card":"base@2","reason":"ability","defeatedBy":"HMW#004"}
+{"seq":"R8.G.game-end","t":"GAME_END","winner":1,"reason":"Base Destroyed"}
+```
+
+The folded board ends with Player 2's `baseHp` at 9 **and** `baseDefeated: true`. A replay that
+decides "destroyed" from `baseHp <= 0` shows a standing base losing the game. Read
+`baseDefeated` instead: it is true for every defeated base, however it fell.
+
+Declining is a `Pass` on the trigger's prompt and writes nothing, and the game goes on.
+
+**The rest of the card** needs nothing new. "Ignore the aspect penalties on upgrades with Fortify
+you play" shows up as a smaller `EXHAUST_RESOURCES` for those plays. And as a Vehicle the Death
+Star is a legal or illegal target like any other unit: the engine decided, and the `CHOICE.offered`
+says what was legal.
+
+| Check | Rule |
+|---|---|
+| A leader with a `backSideName` is shown by that name while deployed, under the same id | [§6.5](#65-the-cards-index) |
+| A deploy performed by the leader's own Epic Action counts as one action | [§10.1](#101-events-that-carry-board-detail) |
+| A `DEFEAT` whose `card` is `base@N` sets `baseDefeated`, and nothing else | [§12.2](#122-every-other-rule-in-one-table) |
+| "Base destroyed" is `baseDefeated`, not `baseHp <= 0` | [§11](#11-the-board-you-build-reducedstate) |
+| The `death-star` vector folds to `death-star.fold.json` and renders to `death-star.render.txt` | [§20](#20-test-vectors) |
+
 ---
 
 ## 11. The board you build (ReducedState)
@@ -1462,15 +1812,18 @@ interface PlayerState {
     resourcesExhausted: number; // spent resources
     resources?: string[];       // WHICH cards are in the row (the split above stays counted)
     baseEpicActionUsed?: boolean; // the BASE's Epic Action is spent (a base may have one)
+    baseUpgrades?: string[];    // PRINTED upgrades attached to the BASE (Fortify) — never in `cards`
+    baseDefeated?: boolean;     // the base has been defeated — by damage OR outright; absent = false
     credits: number;
     hasForce: boolean;
     discard: string[];          // discard pile, in order
-    cards: CardInstanceState[]; // ONLY cards in the ground/space arenas
+    cards: CardInstanceState[]; // ONLY cards in the ground/space arenas (a base upgrade is not one)
     leader?: LeaderState;       // the leader card's status, wherever it is
 }
 
 interface LeaderState {
-    id: string;                 // the leader card
+    id: string;                 // the leader card, by the id its own records use (§6.1): the
+                                // printed id, except that in a mirror match one seat's copy is "SET#NUM:2"
     deployed: boolean;          // Leader Unit side in play (as a unit, or as a pilot upgrade)
     exhausted: boolean;         // its ready/exhausted flag
     epicActionUsed: boolean;    // its Epic Action is spent for the game
@@ -1501,7 +1854,7 @@ files written before it existed; a reader treats absent as `[]`.
 (older files never do), and a reader never computes them: it is told.
 
 The optional fields marked `?` — `initiativeTaken`, `deckSize`, `leader`, `power`, `hp`,
-`keywords`, `resources`, `baseEpicActionUsed`, `onStartingSide` — are optional only because files
+`keywords`, `resources`, `baseEpicActionUsed`, `baseUpgrades`, `onStartingSide` — are optional only because files
 written before they existed lack them. A current writer fills every one that applies, and the
 integrity check compares each whenever the keyframe carries it.
 
@@ -1511,6 +1864,12 @@ it is from the action stream means modelling passing and priority — exactly th
 this format exists to spare a reader ([§11](#what-the-board-covers-against-the-rules)). And the
 engine has not chosen an action-phase active player at the moment `PHASE_START` fires, so the
 deltas could not carry it honestly even if a reader wanted them to.
+
+**`baseDefeated` is written only when true**, so absent means false — not "not recorded". It is set
+by a `DEFEAT` on `base@N` ([§10.1](#101-events-that-carry-board-detail)), and it is the one way to
+tell that a base fell: an ability can defeat a base that still has HP
+([§10.4](#104-grand-moff-tarkin-and-the-death-star)). A keyframe carries it only once play has
+continued past the end of the game.
 
 So `active` is **exact at every keyframe** — a round boundary, which is where a scrubber jumps —
 and **stale between them**. It is not part of the integrity gate for that reason
@@ -1529,9 +1888,9 @@ already applied the rules, and the file records what it decided. Where each part
 
 | Game state (CR 1.16) | Where the file carries it |
 |---|---|
-| Each card's **zone** | `MOVE` (every zone change, [§12.1](#121-the-move-rule-the-big-one)); `deckSize`, `handSize`, `hand`, `discard`, the resource counts, `cards`, `captured`, `credits`, `hasForce`; the leader's `deployed` |
+| Each card's **zone** | `MOVE` (every zone change, [§12.1](#121-the-move-rule-the-big-one)); `deckSize`, `handSize`, `hand`, `discard`, the resource counts, `cards`, `captured`, `baseUpgrades`, `credits`, `hasForce`; the leader's `deployed` |
 | Each card's **controller** | the seat whose lists hold it; `TAKE_CONTROL` re-seats a unit, a resource, a Credit token or the Force; an upgrade's controller is the `p` of its `PLAY_UPGRADE` |
-| Each card's **attributes** — power, HP, keywords, modifiers | `STATS` after every change ([§10.1](#stats)), snapshotted in keyframes; `damage`, `upgrades`, `shields`, `experience`, `statusTokens` |
+| Each card's **attributes** — power, HP, keywords, modifiers | `STATS` after every change ([§10.1](#stats)), snapshotted in keyframes; `damage`, `upgrades`, `shields`, `experience`, `statusTokens`. An ability a card has only because another card granted it (a base's "Attached base gains: …") is named by `grantedBy` when it is used |
 | Each card's **status** — ready/exhausted | `EXHAUST` / `READY` for arena cards and the leader, including the `EXHAUST` a unit gets on entering play; `EXHAUST_RESOURCES` / `READY_RESOURCES` and the `MOVE.exhausted` flag for the resource row |
 | Each card's **status** — faceup/facedown | the leader's `deployed` (Leader Unit side up) and, for a double-sided leader, `onStartingSide` — set by `LEADER_FLIP` ([§10.1](#101-events-that-carry-board-detail)); resources are always facedown, and `RESOURCE` names the card for the omniscient reader |
 | The **initiative counter**: controller and taken/available | `initiative` and `initiativeTaken`; `CLAIM_INITIATIVE`, reset at `ROUND_START` |
@@ -1643,20 +2002,35 @@ existed folds to a state with no `resources` rather than a misleading empty row.
 - a `TOKEN:the-force#…` moving *into* `base` → `hasForce = true`; *out of* `base` →
   `hasForce = false`
 
+**2c. Base attachments** (Fortify, [§10.3](#103-homeworlds-fortify-beast-and-weakness)) — this
+step needs no `p` when `attachedTo` is there
+
+- moving *out of* `base` to somewhere else → remove `card` from every seat's `baseUpgrades`.
+  Keyed on the zone transition, like step 0: exits are host-less.
+- moving *into* `base` from somewhere else with `kind: "upgrade"` → add `card` (once by id) to
+  the `baseUpgrades` of the seat `attachedTo` names (`base@N`), or of `p` when a file predates
+  `attachedTo` on base moves. A `TOKEN:` id is never added: no token upgrade attaches to a base.
+
+`baseUpgrades` stays **absent** until a move or a keyframe supplies one, like `resources`.
+
 Nothing else that enters or leaves `base` changes anything: a leader deploying or being
 defeated is an arena move handled in step 3.
 
 **3. In-play list** (in play = `ground` or `space`)
 
 If `kind` is `"upgrade"`: this card never joins an arena. If the move is **into** an arena
-and carries `attachedTo`, `attach(state, attachedTo, card)` — a printed card (an upgrade, a
+and carries `attachedTo`, first `detach(state, card)` and take it out of every seat's `cards`
+(an upgrade has one host, and a unit attached as a pilot stops being a unit), then
+`attach(state, attachedTo, card)` — a printed card (an upgrade, a
 pilot) goes onto that host's `upgrades`, idempotently, because the `PLAY_UPGRADE` /
 `DEPLOY_LEADER` beside it names the same host; a token upgrade (`TOKEN:…`) does not, it is
 counted by its own gain record. Then update the card's zone if you already track it, and
 stop. Steps 1 and 2 still ran: an upgrade really does leave the hand.
 
-- moving **into** an arena: if you already track this card id, just set its zone.
-  Otherwise create a fresh card and add it to `players[p].cards`.
+- moving **into** an arena: `detach(state, card)` first — a unit is nobody's upgrade, and a
+  pilot ejected from a vehicle moves arena to arena, so step 0 never detached it. Then, if
+  you already track this card id, just set its zone. Otherwise create a fresh card and add it
+  to `players[p].cards`.
 - moving **out of** an arena: remove it from whichever player's `cards` holds it (step 0
   already took it off every host).
 - moving between two non-arena zones: just update its zone if you track it.
@@ -1673,7 +2047,7 @@ twice.
 | `CLAIM_INITIATIVE` | `initiative = event.p`; `initiativeTaken = true` |
 | `PLAY`, `PLAY_SMUGGLE` | place `card` in `zone ?? "ground"` — **idempotent by id**: if already tracked, just set its zone. The paired `MOVE` reports the same arrival, and pushing on both duplicates every unit in play |
 | `PLAY_EVENT` | add `card` to `players[p].discard`, **once by id** — its own hand→discard `MOVE` files the same card |
-| `PLAY_UPGRADE` | if `target` is set → `attach(state, target, card)` (nothing if the host isn't tracked); otherwise **nothing**. An upgrade is never an arena card, so there is no fallback placement |
+| `PLAY_UPGRADE` | if `target` is `base@N` → add `card` to `players[N].baseUpgrades`, once by id; else if `target` is set → `attach(state, target, card)` (nothing if the host isn't tracked); otherwise **nothing**. An upgrade is never an arena card, so there is no fallback placement |
 | `DEPLOY_LEADER` | `players[p].leader = { id: card, deployed: true, exhausted: false, epicActionUsed: (was already used) or epic === true }`; then if `kind` is `"upgrade"` → `attach(state, target, card)`; else place `card` in `zone ?? "ground"`, idempotent by id |
 | `ABILITY_ACTIVATE` | if `epic`: `card` of `base@N` → `players[N].baseEpicActionUsed = true`; else if `card` is a seat's `leader.id` → that leader's `epicActionUsed = true`. Otherwise nothing |
 | `LEADER_FLIP` | that seat's `leader.onStartingSide = event.onStartingSide` — the stated face, so applying it twice is the same as once. Find the leader by `card`, falling back to the record's `p` (these leaders never deploy, so early in a file no `DEPLOY_LEADER` has named the id) |
@@ -1688,7 +2062,7 @@ twice.
 | `DAMAGE` | `base@N` → `players[N].baseHp = hp`; else `card.damage = max(0, damage + amt)` |
 | `OVERWHELM` | `base@N` → `players[N].baseHp = hp`; anything else → nothing |
 | `HEAL` | `base@N` → `players[N].baseHp = hp`; else `card.damage = max(0, damage - amt)` |
-| `DEFEAT` | `detach(state, card)`; then, if the card is in someone's `cards`, remove it and add its id to that player's `discard`, **once by id**. In a real stream the `MOVE` to `discard` arrived first and already did both, so this does nothing — see the note under [§12.1](#121-the-move-rule-the-big-one) |
+| `DEFEAT` | if `card` is `base@N` → `players[N].baseDefeated = true`, and nothing else; otherwise `detach(state, card)`, and remove `card` from every seat's `baseUpgrades`; then, if the card is in someone's `cards`, remove it and add its id to that player's `discard`, **once by id**. In a real stream the `MOVE` to `discard` arrived first and already did both, so this does nothing — see the note under [§12.1](#121-the-move-rule-the-big-one) |
 | `EXHAUST` | `exhausted = true` on the arena card of that id, and on `leader` if it is the leader's id |
 | `READY` | `exhausted = false`, likewise |
 | `DRAW` | add each id in `cards` to `players[p].hand`, **once by id**. **Nothing else** — the paired deck→hand `MOVE`s own both the count and the contents |
@@ -1751,6 +2125,10 @@ state is thrown away and the keyframe takes its place. Everything below follows 
   snapshot, **omit the keyframe entirely**. A `ROUND_START` or `ROUND_END` with no keyframe
   is perfectly valid and completely harmless — the reader just keeps folding deltas. Never
   ship a partial one.
+- No list in a keyframe (`cards`, `hand`, `discard`, `resources`, `baseUpgrades`, a card's
+  `upgrades`) may hold more than 1000 entries. A real game never comes close; a reader treats a
+  keyframe over that as damaged and ignores it, because a snapped keyframe bypasses the cap the
+  fold puts on every list it grows itself ([§14](#14-checking-a-file-is-honest)).
 - A keyframe's `cards` list contains **only** ground and space arena cards. Hand,
   resources and discard are described by their counts and lists, not by `cards`.
 - A keyframe carries every field of [§11](#11-the-board-you-build-reducedstate): the
@@ -1814,6 +2192,9 @@ problem. A writer that has no such cost SHOULD treat `ok: false` as fatal.
 - `resources` **as a set** whenever the keyframe carries it — the row's order is not part of the
   model, and its ready/exhausted split is the two counts, not this list
 - `baseEpicActionUsed` whenever the keyframe carries it
+- `baseUpgrades` **as a set** whenever the keyframe carries it — like a unit's `upgrades`,
+  attachment order is not part of the model
+- `baseDefeated`, absent on either side read as `false`
 - `resourcesReady` and `resourcesExhausted`
 - `credits` and `hasForce`
 - the leader's `id`, `deployed`, `exhausted` and `epicActionUsed`, and `onStartingSide`
@@ -1913,7 +2294,12 @@ Two helpers:
 
 - `nm(id)` — the display name. **Strip the `:N` copy suffix**, look the base up in the
   `%%% CARDS` index ([§6.5](#65-the-cards-index)), then append ` #N` back for a copy, so two
-  Wampas read as `Wampa` and `Wampa #2`. A `base@N` ref renders as `Player N's base`.
+  Wampas read as `Wampa` and `Wampa #2`. A `base@N` ref renders as `Player N's base`. For a card
+  with a `backSideName`, `nm` gives the side that is **up**: the back from its `DEPLOY_LEADER`
+  (or its `MOVE` from `base` into an arena) until its `MOVE` back to `base`, and for a
+  double-sided leader per its last `LEADER_FLIP`. Each keyframe re-syncs this from the seat's
+  `leader`. So a deployed Tarkin attacks, triggers and defeats bases as `The Death Star, Icon of
+  Tyranny`. `front(id)` / `back(id)` are the index's `name` / `backSideName`.
 - `who(p)` — `"Player 1"` for seat 1, `"Player 2"` for seat 2, `""` otherwise.
 
 When no card index is supplied, the renderer uses the document's own — a file with a
@@ -1972,6 +2358,8 @@ width. Then, from that round's keyframe, one block per seat:
 - One line per seat: `base {hp}/{max}   hand {n}   resources {ready}/{ready+exhausted}`, then
   `   deck {n}` when the keyframe has `deckSize`, then `   leader deployed|exhausted|ready`
   when it has `leader`.
+- Then, when the keyframe's `baseUpgrades` is not empty, a `      base: ` line naming each base
+  upgrade, joined by `  ·  ` — it comes before the arenas because the upgrades are on the base.
 - Then a line per non-empty arena, cards joined by `  ·  `.
 - A card is its name, then ` {power}/{hp}` when the keyframe has both, then its non-default
   state in `[...]`, comma-separated, in this order: damage (`3 dmg`), `exhausted`, shields
@@ -1992,8 +2380,8 @@ read.
 | `PLAY`, `PLAY_SMUGGLE` | `{who(p)} plays {nm(card)}` + ` to {zone}` if `zone` + ` (cost {cost})` if `cost` |
 | `PLAY_UPGRADE` | `{who(p)} plays {nm(card)}` + ` on {nm(target)}` if `target`, else ` to {zone}` if `zone`; + ` (cost {cost})` if `cost` |
 | `PLAY_EVENT` | `{who(p)} plays {nm(card)}` + ` (cost {cost})` if `cost` — no zone |
-| `DEPLOY_LEADER` | `{who(p)} deploys {nm(card)}` + ` as a pilot on {nm(target)}` if `target` |
-| `LEADER_FLIP` | `{who(p)} flips {nm(card)}` |
+| `DEPLOY_LEADER` | `{who(p)} deploys {front(card)}` + ` as {back(card)}` if the card has a `backSideName` + ` as a pilot on {nm(target)}` if `target`. A sub-step when the leader's own Epic Action deployed it |
+| `LEADER_FLIP` | `{who(p)} flips {nm(card)}` + ` to {the face it landed on}` if the card has a `backSideName` |
 | `ATTACK` | base: `{who(p)} attacks {who(other)}'s base with {nm(atk)}` · unit: `{who(p)} attacks {nm(def)} with {nm(atk)}` |
 | `PASS` | `{who(p)} passes` |
 | `CLAIM_INITIATIVE` | `{who(p)} claims initiative` |
@@ -2002,7 +2390,7 @@ read.
 | `HEAL` | `{amt} healed on {nm(tgt)} — {hp} HP left` |
 | `UNDO` | Its own marker line, neither numbered nor indented: `    ·· {who(by)} undid back to {at} ··` (`A player` when `by` is absent) |
 | `DEFEAT` | `{nm(card)} is defeated` + ` by {nm(defeatedBy)}` if present |
-| `ABILITY_ACTIVATE` | `kind` `action`/`epic`: `{who(p)} uses {nm(card)}` (Epic Action: `…'s Epic Action`) — and it takes an action NUMBER. Otherwise `{nm(card)} uses an ability` |
+| `ABILITY_ACTIVATE` | `kind` `action`/`epic`: `{who(p)} uses {nm(card)}` (Epic Action: `…'s Epic Action`) — and it takes an action NUMBER. Otherwise `{nm(card)} uses an ability`. Either way, ` (granted by {nm(grantedBy)})` when `grantedBy` is present |
 | `TRIGGER` | `{nm(card)} triggers` |
 | `STATUS_TOKEN` | `{nm(card)} gains\|loses {abs(count)} {token}` — `loses` when `count` is negative |
 | `SHIELD_GAIN` | `{nm(card)} gains {count ?? 1} shield` |
@@ -2160,8 +2548,10 @@ To be conformant:
 | `upgrades` | Real game: a printed upgrade (`PLAY_UPGRADE` + `attachedTo`), Advantage and Experience tokens, Shield tokens, and the host defeated with all of it attached — every removal record, and the detach on exit. |
 | `pilot` | Real game: a pilot flown onto a vehicle (`kind: "upgrade"` on a unit card, `%%% CARDS` saying `unit`), a second one, and a piloted vehicle Vanquished. |
 | `capture` | Real game: a unit taken captive (`CAPTURE` with `by`, the `MOVE` into `capture`) and rescued when its captor is defeated. |
+| `homeworlds` | Real game, Homeworlds mechanics ([§10.3](#103-homeworlds-fortify-beast-and-weakness)): Fortify upgrades on **both** bases (`MOVE` into `base` with `attachedTo: "base@N"`, `PLAY_UPGRADE.target` `base@N`, `baseUpgrades` in every keyframe); a base upgrade sacrificed to its own Action (Carbonite Chamber) leaving `base`; a base using a granted triggered ability every round (`ABILITY_ACTIVATE` on `base@1` with `grantedBy`); static base buffs arriving as `STATS` (Landing Pad's +1/+0, Verdant Fortress's Raid); Beast tokens from a granted trigger and from an event; Weakness tokens stacking on a Beast until it dies at 0 HP (`frameworkEffect`, the token unit leaving for `outsideTheGame`); an empty-deck draw dealing damage with no `src`. |
+| `death-star` | Real game, eight rounds ([§10.4](#104-grand-moff-tarkin-and-the-death-star)): Grand Moff Tarkin builds to nine resources and deploys by Epic Action as **The Death Star** (`backSideName` in `%%% CARDS`, the `DEPLOY_LEADER` a sub-step of the Epic Action, arriving in `space`), then at the start of the regroup phase defeats Player 2's base with 9 HP left — a `DEFEAT` on `base@2`, `baseDefeated: true` beside a non-zero `baseHp`. Along the way a Weakness given to the player's own unit stacks to a kill. |
 
-The four real-game vectors are regenerated from the writer by
+The six real-game vectors are regenerated from the writer by
 `test/server/chat/SwuPgnVectors.spec.ts` and `SwuPgnOrganicGame.spec.ts` with
 `SWUPGN_WRITE_VECTORS=1`; those specs also pin the fold and story byte for byte, so the
 writer cannot drift from its own vectors unnoticed.
@@ -2184,9 +2574,9 @@ vocabulary), and `Engine`/`Seed` are not placeholders.
 
 It is gated again on **organic** games — a natural setup phase (initiative, mulligan,
 resourcing) through several rounds of plays, attacks and regroup resourcing to a concession —
-folded with **no** field excluded: `SwuPgnOrganicGame.spec.ts` (four rounds), and the three
-scenario games of `SwuPgnVectors.spec.ts` that are also the `upgrades`, `pilot` and `capture`
-vectors ([§20](#20-test-vectors)). In every one, every keyframe field reproduces exactly:
+folded with **no** field excluded: `SwuPgnOrganicGame.spec.ts` (four rounds), and the five
+scenario games of `SwuPgnVectors.spec.ts` that are also the `upgrades`, `pilot`, `capture`,
+`homeworlds` and `death-star` vectors ([§20](#20-test-vectors)). In every one, every keyframe field reproduces exactly:
 `handSize`, `resourcesReady` **and `resourcesExhausted`**, `credits`, `hasForce`, and per card
 `upgrades` and `captured` alongside the counters; `validate()` returns no issue at all;
 `%%% CARDS` covers every leader, base and deck id; and `GAME_END` takes the `.game-end` step of
@@ -2215,8 +2605,8 @@ mismatches** against their own keyframes before the fix and **none** after. Both
 
 That leaves one field carved out, and deliberately: `active`, which is keyframe-supplied rather
 than reconstructed ([§11](#11-the-board-you-build-reducedstate)). Every other field of §11 is
-compared, and the four real-game vectors — Raid, Grit, Sentinel, tokens, upgrades, a pilot, a capture,
-leaders in and out of the base zone — pass with nothing to report.
+compared, and the six real-game vectors — Raid, Grit, Sentinel, tokens, upgrades, a pilot, a capture,
+leaders in and out of the base zone, base upgrades, a base defeated outright — pass with nothing to report.
 
 One caveat on `hand`, and it is about a test harness rather than the format: the integration
 specs that bootstrap a game directly at the action phase tear down the natural opening hand
@@ -2253,6 +2643,34 @@ to check the first keyframe against, which is the one place it currently can't
 
 A `CAPTURE` whose captor is a base (`by: "base@N"`) is recorded but not held anywhere in the
 fold: no card today captures with a base, and the card is out of play either way.
+
+**Homeworlds** ([§10.3](#103-homeworlds-fortify-beast-and-weakness)) is gated by the
+`homeworlds` vector (five organic rounds, Fortify on both bases, Beasts, stacked Weakness and a
+Weakness kill) and by `test/server/chat/SwuPgnHomeworlds.spec.ts`. That spec plays each
+mechanic through the engine: a Fortify upgrade attached and sacrificed, a base's gained Action
+and gained trigger with `grantedBy`, Alliance Shield Generator's replacement, a Beast created
+for the opponent, a Beast readied on creation, a Weakness kill, and two stacked Weakness tokens.
+The same spec gates Grand Moff Tarkin (a deploy counted as one action and named The Death Star; a
+base defeated outright; the Pass that declines it; a damage kill's `DEFEAT` on `base@N`) and six
+cards whose abilities depend on a base or a trait (Kashyyyk keywords and discounts, Gunga City
+Guard losing Shielded, Ritual Dragon's ready entry, Surveillance Cruiser on the opponent's base,
+The Tarkin Doctrine on a Fortification upgrade, Queen Amidala on an upgraded base). Two Fortify
+paths have **no** real-game gate, and a reader should treat them as best-effort until one exists:
+
+- **Continued play after the game has ended.** The writer records it, and writes a `DEFEAT` for a
+  second base that falls then (a real-engine test plays exactly that, through a heal). But the file
+  the server hands out is frozen at the moment the game ended, so today no served file contains
+  continued play at all.
+- **Tarkin defeating his own base.** The trigger may target either base. The writer records it
+  the same way (`DEFEAT` on `base@1`, the opponent winning), but only the opponent's base has been
+  played.
+- **A base upgrade changing control.** No Homeworlds card does it today. If one ever does, there
+  is no `TAKE_CONTROL` shape for a base upgrade yet. `TAKE_CONTROL` with `zone: "base"` means a
+  Credit token or the Force.
+- **An opponent's Fortify upgrade attached to your base** (playing it from their discard with an
+  effect such as A Fine Addition). The writer names the host base in `attachedTo` / `target` and
+  the owner in the `MOVE`'s `p`, so the fold attaches it to the right base and discards it to the
+  right pile. But no played game exercises that split.
 
 Some defined event types still never appear in a given real file, simply because nothing in
 that game triggers them (`OVERWHELM`, `SEARCH` and friends). That is absence of the situation,
@@ -2334,6 +2752,18 @@ but each is detectable from the file, so a reader that meets an early 1.0 file c
 | No game duration, no match grouping | `EndDate`, `Match`, `GameNumber` header tags ([§5.2](#52-you-may-have-these)) | the tags' presence |
 | A token unit's `CREATE_TOKEN` was dropped and `RecorderErrors` set, because the writer read the token's live stats while it was still outside the game | stats guarded and omitted when unreadable; `zone` names the destination arena ([§10.1](#101-events-that-carry-board-detail)) | a game containing a token unit but no `CREATE_TOKEN`, and a `RecorderErrors` tag |
 | A double-sided leader's face was not recorded, so a flipped leader replayed as its starting side for the whole game | `LEADER_FLIP` + `leader.onStartingSide` ([§10.1](#101-events-that-carry-board-detail)) | any `LEADER_FLIP` record, or a keyframe leader carrying `onStartingSide` |
+| A Fortify upgrade (Homeworlds) was in no board field at all: its `MOVE` into `base` named no host, `PLAY_UPGRADE.target` was the base's card id, and no keyframe listed it, so a reader could not show what was on a base | `attachedTo` / `target` `base@N`, and `baseUpgrades` on the seat, folded and gated ([§10.3](#103-homeworlds-fortify-beast-and-weakness), [§12.1](#121-the-move-rule-the-big-one)) | a keyframe carrying `baseUpgrades` |
+| An ability a base gained from an upgrade said only that the base used it; the grantor was inside the engine's `ability` string | `grantedBy` ([§10.1](#101-events-that-carry-board-detail)) | an `ABILITY_ACTIVATE` carrying `grantedBy` |
+| Damage and heals dealt by a base, and units defeated by one, named the base by its card id | `base@N` in `DAMAGE.src`, `HEAL.src` and `DEFEAT.defeatedBy` ([§6.3](#63-pointing-at-a-base)) | a `src` or `defeatedBy` matching `^base@[12]$` |
+| Damage the rules dealt with no card responsible (drawing from an empty deck) wrote the engine's display string as `src` — `"Framework effect"`, then `"Framework effect:2"` | `src` omitted ([§10.1](#101-events-that-carry-board-detail)) | a `DAMAGE` with no `src` |
+| An effect applied a step after its event (a base's gained "+1/+0") had its `STATS` filed under the record after the action, and so `for` the opponent's next action | settled before the turn passes, under the action that caused it ([§10.1](#stats)) | not detectable from a single record |
+| A unit arriving in play just before an action (a start-of-phase trigger's Beast) had its `MOVE`, `STATS` and `EXHAUST` stamped `for` that action | another card's arrival ends the run ([§9.1](#91-how-seq-is-built)) | not detectable from a single record |
+| `PASS` was written every time the turn passed to the opponent, so every play and attack was followed by a `PASS` from the same player, and the story read "Player 1 passes" after each action | `PASS` only for the Pass action ([§10.2](#102-events-that-are-just-notes)); every action after the first renumbers | two `PASS` records in a row from the same player, or a `PASS` right after that player's own `PLAY`/`ATTACK`, shows the early writer |
+| `DRAW.count` was the number of cards asked for, so a draw from a short deck said 2 and listed 1 | the cards actually drawn ([§10.1](#101-events-that-carry-board-detail)) | a `DRAW` whose `count` differs from `cards.length` |
+| A keyframe's lists were snapped to at any length | over 1000 entries makes the keyframe damaged ([§13](#13-keyframes)) | not a file change; a reader's trust check |
+| A base defeated outright by an ability (Grand Moff Tarkin) left no record: the game ended with the base standing at its HP | a `DEFEAT` on `base@N` for every defeated base, by damage or outright, and `baseDefeated` on the seat ([§10.1](#101-events-that-carry-board-detail), [§10.4](#104-grand-moff-tarkin-and-the-death-star)) | a `DEFEAT` whose `card` matches `^base@[12]$` |
+| A leader whose deployed side is another card (Tarkin / The Death Star; also a flipped Palpatine) was named in `%%% CARDS` by whichever side ended the game up | the printed front as `name`, the other side as `backSideName` ([§6.5](#65-the-cards-index)) | an index entry carrying `backSideName` |
+| A leader deployed by its own Epic Action was two numbered actions — the ability, then the `DEPLOY_LEADER` | the deploy is the ability's sub-step ([§10.1](#101-events-that-carry-board-detail)) | a `DEPLOY_LEADER` with a lettered seq |
 | `hand[]` grew from `DRAW` and nothing removed, so a folded "hand" was a cumulative draw log; `discard` was filed by `DEFEAT`, which fires after the `MOVE` that already removed the card, so no defeated unit reached the pile | both are folded from `MOVE` and gated ([§12.1](#121-the-move-rule-the-big-one), [§14](#14-checking-a-file-is-honest)) | not a file change; a reader's fold. Fold any vector's deltas to a keyframe and compare `hand`/`discard` — 45 mismatches before, 0 after |
 
 ---
