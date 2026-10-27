@@ -12,7 +12,7 @@ import { cpus, freemem } from 'os';
 import {
     constants as NodePerfConstants,
     type EventLoopUtilization,
-    type IntervalHistogram,
+    type ELDHistogram,
     monitorEventLoopDelay,
     performance,
     PerformanceObserver
@@ -294,7 +294,7 @@ export class GameServer {
     private readonly queue: QueueHandler;
     private lastCpuUsage: NodeJS.CpuUsage;
     private lastCpuUsageTime: bigint;
-    private loopDelayHistogram: IntervalHistogram;
+    private loopDelayHistogram: ELDHistogram;
     private lastLoopUtilization: EventLoopUtilization;
     private matchmakingRetryTask?: IScheduledTask;
     private matchmakingInProgress = false;
