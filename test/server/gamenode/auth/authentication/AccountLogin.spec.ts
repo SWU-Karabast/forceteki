@@ -19,16 +19,26 @@ const userKeysTheFrontEndReads = [
     'usernameChangesBlocked',
 ];
 
-/** The FE's first request of a session: the token alone, so the server looks the account up from its claims. */
+/**
+ * The FE's sign-in sequence: `/api/get-user`, and if the server has no account for the session yet,
+ * `/api/create-user` followed by `/api/get-user` again.
+ */
 async function signInAsync(harness: ServerTestHarness, identity: ISignInIdentity) {
-    return await harness.requestAsync('post', '/api/get-user', {
-        cookie: sessionCookie(mintSessionToken(signInClaims(identity))),
-    });
+    const cookie = sessionCookie(mintSessionToken(signInClaims(identity)));
+    const getUserAsync = async () => await harness.requestAsync('post', '/api/get-user', { cookie });
+
+    const first = await getUserAsync();
+    if (first.status === 401 && first.body.code === 'ACCOUNT_NOT_FOUND') {
+        await harness.requestAsync('post', '/api/create-user', { cookie });
+        return await getUserAsync();
+    }
+
+    return first;
 }
 
 /**
- * How a logged-in account comes to exist and is found again: the server's "database path" for a session
- * token, which runs on the FE's first request of a session and creates, finds or links the account.
+ * How a logged-in account comes to exist and is found again: a session token is resolved to an account by its
+ * provider identity, and `/api/create-user` makes, finds or links one when the identity has none yet.
  *
  * These are what a refactor of account handling must not change silently - which provider identities map to
  * which account, what a new account starts with, and what the FE is told about it.
@@ -79,12 +89,12 @@ describe('Account login', function () {
                 expect(response.body.user.preferences).toEqual(getDefaultPreferences());
             });
 
-            it('does not count creating the account as a login', async function () {
+            it('records the first sync of the new account as a login', async function () {
                 const { harness } = contextRef;
 
-                await signInAsync(harness, identity);
+                const response = await signInAsync(harness, identity);
 
-                expect(harness.db.loggedInUserIds).toEqual([]);
+                expect(harness.db.loggedInUserIds).toEqual([response.body.user.id]);
             });
         }, { database: true });
     });
@@ -121,7 +131,7 @@ describe('Account login', function () {
 
                 expect(second.body.user.id).toBe(first.body.user.id);
                 expect(harness.db.profiles.size).toBe(1);
-                expect(harness.db.loggedInUserIds).toEqual([first.body.user.id]);
+                expect(harness.db.loggedInUserIds).toEqual([first.body.user.id, first.body.user.id]);
             });
 
             it('tells the FE what it reads of an account', async function () {

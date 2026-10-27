@@ -7,14 +7,18 @@ import type { RouteMethod } from '../../../../helpers/server/RouteRecorder';
  * - `anonymous-ok`: `authMiddleware` identifies the caller (an anonymous one gets a throwaway identity) and
  *   the handler serves anonymous and signed-in callers alike.
  * - `signed-in`: `authMiddleware`, and the handler refuses an anonymous caller.
+ * - `session-token`: no middleware; the handler reads the session token itself, to make or find the account
+ *   that identity has. Refuses a request with no session, and serves one that has a session whether or not
+ *   its account exists yet.
  * - `moderator` / `admin`: `authMiddleware` refuses a caller who lacks the role. An admin passes every
  *   role check; a moderator does not pass an admin one.
- * - `shared-secret`: no middleware; the handler compares a key the FE server puts in the body with
- *   `INTRASERVICE_SECRET`.
+ * - `shared-secret`: the handler compares a key the FE server puts in the body with `INTRASERVICE_SECRET`.
+ *   Where the route acts on a user's account it also sits behind `authMiddleware`, for the session the FE
+ *   server forwards.
  * - `api-key`: no middleware; the handler compares an `Authorization: api-key <key>` header with
  *   `PROFILE_CAPTURE_SECRET`.
  */
-export type RouteAccess = 'public' | 'anonymous-ok' | 'signed-in' | 'moderator' | 'admin' | 'shared-secret' | 'api-key';
+export type RouteAccess = 'public' | 'anonymous-ok' | 'signed-in' | 'session-token' | 'moderator' | 'admin' | 'shared-secret' | 'api-key';
 
 export interface IRouteAuthRow {
     method: RouteMethod;
@@ -78,6 +82,7 @@ export const routeAuthManifest: readonly IRouteAuthRow[] = [
     // refused only while `allowAnonymousSpectators` is off, which is how the harness (like production) runs
     { method: 'post', path: '/api/spectate-game', access: 'signed-in', unauthenticated: refused },
 
+    { method: 'post', path: '/api/create-user', access: 'session-token', unauthenticated: refusedWith(401, 'FE `createUserAsync` treats a 401 as a failed sign-in') },
     { method: 'post', path: '/api/get-user', access: 'anonymous-ok', unauthenticated: served(200) },
     { method: 'get', path: '/api/user/:userId/swustatsLink', access: 'signed-in', unauthenticated: refusedWith(401, 'FE `checkSwuStatsLinkStatus` reads a 401 as "not linked"') },
     { method: 'get', path: '/api/user/:userId/swustats/decks', access: 'signed-in', unauthenticated: refusedWith(401, 'FE `fetchSwuStatsDecks` reads a 401 as "not linked"') },
@@ -91,7 +96,7 @@ export const routeAuthManifest: readonly IRouteAuthRow[] = [
     { method: 'post', path: '/api/set-username-changes-blocked-seen', access: 'signed-in', unauthenticated: refused },
     { method: 'post', path: '/api/set-reporting-disabled-seen', access: 'signed-in', unauthenticated: refused },
 
-    // checked in the handler against INTRASERVICE_SECRET (see ServiceCredentials.spec.ts)
+    // checked in the handler against INTRASERVICE_SECRET, after `authMiddleware` has identified the forwarded session (see ServiceCredentials.spec.ts)
     { method: 'post', path: '/api/link-swustats', access: 'shared-secret', unauthenticated: refused },
     { method: 'post', path: '/api/unlink-swustats', access: 'signed-in', unauthenticated: refused },
     { method: 'post', path: '/api/link-swubase', access: 'shared-secret', unauthenticated: refused },

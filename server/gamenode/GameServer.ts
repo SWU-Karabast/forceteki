@@ -20,7 +20,7 @@ import {
 import { jsonOnlyLogger, logger } from '../logger';
 import { Lobby, MatchmakingType } from './Lobby';
 import Socket from '../socket';
-import type { User } from '../utils/user/User';
+import type { AuthenticatedUser, User } from '../utils/user/User';
 import * as env from '../env';
 import { requireEnvVars } from '../env';
 import type { Deck } from '../utils/deck/Deck';
@@ -38,7 +38,7 @@ import { QueueHandler } from './QueueHandler';
 import { getMatchmakingSearchContext } from './MatchmakingRules';
 import type { IMatchmakingSearchContext } from './MatchmakingRules';
 import { Helpers } from '../game/core/utils/Helpers';
-import { authMiddleware } from '../middleware/AuthMiddleWare';
+import { authMiddleware, getSessionToken } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
 import { ServerSettingsCache } from '../utils/ServerSettingsCache';
 import { UserFactory } from '../utils/user/UserFactory';
@@ -451,6 +451,13 @@ export class GameServer {
             { message: 'GameServer: error during token cleanup' }
         );
 
+        // report how the account cache is doing, to judge its sizing
+        this.scheduler.setInterval(
+            () => logger.info('GameServer: user cache stats', this.userFactory.cache.consumeStats()),
+            3600000, // 1 hour
+            { message: 'GameServer: error logging user cache stats' }
+        );
+
         // Setup socket server
         this.io = new IOServer(server, {
             perMessageDeflate: {
@@ -570,9 +577,42 @@ export class GameServer {
 
         // *** Start of User Object calls ***
 
+        // Establishes the account for a signed-in session that does not have one yet. Safe to call again:
+        // an existing account is simply returned.
+        app.post('/api/create-user', async (req, res, next) => {
+            try {
+                const token = getSessionToken(req);
+                if (!token) {
+                    return res.status(401).json({ success: false, message: 'Authentication required' });
+                }
+
+                let user: AuthenticatedUser;
+                try {
+                    user = await this.userFactory.createUserFromTokenAsync(token);
+                } catch (error) {
+                    logger.error('GameServer (create-user): could not establish the account from the session', { error: { message: error.message, stack: error.stack } });
+                    return res.status(401).json({ success: false, message: 'Authentication failed' });
+                }
+
+                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername() } });
+            } catch (err) {
+                logger.error('GameServer (create-user) Server error:', err);
+                next(err);
+            }
+        });
+
         app.post('/api/get-user', this.buildAuthMiddleware('get-user'), async (req, res, next) => {
             try {
                 const user = req.user as User;
+
+                // get-user is the call the client makes when it syncs a session, so this is where a sign-in is recorded
+                if (user.isAuthenticatedUser()) {
+                    try {
+                        await this.userFactory.recordLoginAsync(user.getId());
+                    } catch (error) {
+                        logger.error('GameServer (get-user): could not record login', { error: { message: error.message, stack: error.stack }, userId: user.getId() });
+                    }
+                }
 
                 // Start with legacy values (backwards compatibility)
                 let moderation = user.getModeration();
@@ -989,10 +1029,11 @@ export class GameServer {
         });
 
         // SWUSTATS
-        // This endpoint is being called by the FE server and not the client which is why we are authenticating the server.
-        app.post('/api/link-swustats', async (req, res, next) => {
+        // This endpoint is called by the FE server, which forwards the user's session token. The account is the one
+        // that token belongs to, and the shared secret additionally shows the call came from the FE server.
+        app.post('/api/link-swustats', this.buildAuthMiddleware('link-swustats'), async (req, res, next) => {
             try {
-                const { userId, swuStatsToken, internalApiKey } = req.body;
+                const { swuStatsToken, internalApiKey } = req.body;
                 if (process.env.ENVIRONMENT === 'development' && !process.env.INTRASERVICE_SECRET) {
                     throw new Error('Environment variable INTRASERVICE_SECRET not set');
                 }
@@ -1002,6 +1043,11 @@ export class GameServer {
                         message: 'Forbidden'
                     });
                 }
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    return res.status(401).json({ success: false, message: 'Authentication required' });
+                }
+                const userId = user.getId();
                 // We test the refresh token if it correctly returns a new access token.
                 const newRefreshToken = await this.swuStatsHandler.refreshTokensAsync(swuStatsToken.refreshToken);
                 await this.userFactory.addRefreshTokenAsync(userId, newRefreshToken.refreshToken, RefreshTokenSource.SWUStats);
@@ -1040,10 +1086,11 @@ export class GameServer {
         });
 
         // SWUBASE
-        // This endpoint is being called by the FE server and not the client which is why we are authenticating the server.
-        app.post('/api/link-swubase', async (req, res, next) => {
+        // This endpoint is called by the FE server, which forwards the user's session token. The account is the one
+        // that token belongs to, and the shared secret additionally shows the call came from the FE server.
+        app.post('/api/link-swubase', this.buildAuthMiddleware('link-swubase'), async (req, res, next) => {
             try {
-                const { userId, linkToken, internalApiKey } = req.body;
+                const { linkToken, expectedUserId, internalApiKey } = req.body;
                 if (process.env.ENVIRONMENT === 'development' && !process.env.INTRASERVICE_SECRET) {
                     throw new Error('Environment variable INTRASERVICE_SECRET not set');
                 }
@@ -1052,6 +1099,15 @@ export class GameServer {
                         success: false,
                         message: 'Forbidden'
                     });
+                }
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    return res.status(401).json({ success: false, message: 'Authentication required' });
+                }
+                const userId = user.getId();
+                // the link started from the id of the account that is now completing it
+                if (expectedUserId !== userId) {
+                    return res.status(403).json({ success: false, message: 'Forbidden' });
                 }
                 // We test the refresh token if it correctly returns a new access token.
                 const newRefreshToken = await this.swuBaseHandler.linkAccountAsync(linkToken, userId);
@@ -2088,6 +2144,11 @@ export class GameServer {
         return authMiddleware(this, routeName, serverRoleRequired);
     }
 
+    /** The factory (and so the account and profile cache) every request and socket is authenticated through. */
+    public getUserFactory(): UserFactory {
+        return this.userFactory;
+    }
+
     /**
      * Builds a ModerationAction suitable for the FE from the CacheEntry
      * @param entry - The Cache ActiveModAction object
@@ -2581,9 +2642,9 @@ export class GameServer {
     }
 
     /**
-     * Authenticates a newly connecting socket, deriving a {@link User} from its handshake: a NextAuth
-     * JWT plus pre-authenticated user data (no DB access), a JWT alone (requires a DB lookup), or -
-     * with no token - anonymous query data.
+     * Authenticates a newly connecting socket, deriving a {@link User} from its handshake: with a NextAuth
+     * JWT, the account that token belongs to (identity and profile come from server-side records only);
+     * with no token, anonymous query data.
      */
     public async authenticateSocketAsync(socket: IRawGameSocket): Promise<ISocketAuthResult> {
         try {
@@ -2591,27 +2652,9 @@ export class GameServer {
             const token = socket.handshake.auth.token;
             let user: User;
 
-            // Case 1: Token is present - attempt authenticated user flow
+            // Case 1: Token is present - authenticated user flow
             if (token) {
-                const queryUser = socket.handshake.query.user;
-                if (queryUser) {
-                    // Parse user data from query parameter
-                    const userData = typeof queryUser === 'string'
-                        ? JSON.parse(queryUser)
-                        : queryUser;
-
-                    // If client sent pre-authenticated user data, use it directly
-                    if (userData.authenticated) {
-                        user = this.userFactory.verifyTokenAndCreateAuthenticatedUser(token, userData);
-                    } else {
-                        // User data exists but not marked as authenticated
-                        // Verify with token instead
-                        user = await this.userFactory.createUserFromTokenAsync(token);
-                    }
-                } else {
-                    // No user data in query, authenticate using token only
-                    user = await this.userFactory.createUserFromTokenAsync(token);
-                }
+                user = await this.userFactory.resolveUserFromTokenAsync(token);
             // Case 2: No token - create anonymous user
             } else {
                 user = this.userFactory.createAnonymousUserFromQuery(socket.handshake.query);

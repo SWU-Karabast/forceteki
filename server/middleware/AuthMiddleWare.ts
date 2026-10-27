@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { parse } from 'cookie';
-import { UserFactory } from '../utils/user/UserFactory';
+import { AccountNotFoundError } from '../utils/user/UserFactory';
 import { logger } from '../logger';
 import { type ServerRole } from '../services/DynamoDBInterfaces';
 import { checkServerRoleUserPrivileges } from '../utils/authUtils';
@@ -21,14 +21,19 @@ declare global {
     }
 }
 
+/** The NextAuth session token on a request, or undefined if it carries none. */
+export const getSessionToken = (req: Request): string | undefined => {
+    // If NextAuth is storing JWT in a cookie, it might be '__Secure-next-auth.session-token' or 'next-auth.session-token'.
+    const cookies = parse(req.headers.cookie || '');
+    return cookies['__Secure-next-auth.session-token'] || cookies['next-auth.session-token'];
+};
+
 export const authMiddleware = (gameServer: GameServer, routeName?: string, serverRoleRequired?: ServerRole) => {
-    const userFactory = new UserFactory();
+    const userFactory = gameServer.getUserFactory();
 
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
-            // If NextAuth is storing JWT in a cookie, it might be '__Secure-next-auth.session-token' or 'next-auth.session-token'.
-            const cookies = parse(req.headers.cookie || '');
-            const token = cookies['__Secure-next-auth.session-token'] || cookies['next-auth.session-token'];
+            const token = getSessionToken(req);
             if (!token) {
                 // A route that names a required role has no anonymous form of itself. Refuse here
                 // rather than continuing as an anonymous user: the role check below sits on the
@@ -55,12 +60,8 @@ export const authMiddleware = (gameServer: GameServer, routeName?: string, serve
             if (routeName) {
                 logger.info(`Auth ${routeName}: token found in cookies. Authenticating user.`);
             }
-            if (req.body.user?.authenticated) {
-                req.user = userFactory.verifyTokenAndCreateAuthenticatedUser(token, req.body.user);
-            } else {
-                req.user = await userFactory.createUserFromTokenAsync(token);
-            }
-
+            // identity and profile come from the token and the server's own records, never from the request body
+            req.user = await userFactory.resolveUserFromTokenAsync(token);
 
             if (routeName) {
                 logger.info(`Auth ${routeName}: finished authenticating user`, { userId: req.user.getId() });
@@ -85,6 +86,10 @@ export const authMiddleware = (gameServer: GameServer, routeName?: string, serve
 
             return next();
         } catch (error) {
+            if (error instanceof AccountNotFoundError) {
+                logger.info(`Auth ${routeName ?? req.path}: valid session with no account`);
+                return res.status(401).json({ success: false, message: 'Authentication failed', code: 'ACCOUNT_NOT_FOUND' });
+            }
             logger.error('Error with authentication: ', { error: { message: error.message, stack: error.stack } });
             return res.status(401).json({ success: false, message: 'Authentication failed' });
         }

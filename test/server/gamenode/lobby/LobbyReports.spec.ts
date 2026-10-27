@@ -60,5 +60,5 @@ describe('Lobby reports', function () {
             expect(sent.length).toBe(0);
             expect(reporter.receivedEvents('playerReportResult').map((e) => e.args[0].success)).toEqual([false]);
         });
-    });
+    }, { database: true });
 });

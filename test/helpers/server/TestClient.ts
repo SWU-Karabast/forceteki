@@ -2,7 +2,7 @@ import type { Response as SupertestResponse } from 'supertest';
 
 import type { CardPool, GamesToWinMode, MatchmakingCompetitivenessPreference, SwuGameFormat } from '../../../server/game/core/Constants';
 import type { IQueueMatchmakingStatus } from '../../../server/gamenode/MatchmakingRules';
-import type { IUserDataEntity } from '../../../server/services/DynamoDBInterfaces';
+import type { IUserProfileDataEntity } from '../../../server/services/DynamoDBInterfaces';
 import type { ISwuDbFormatDecklist } from '../../../server/utils/deck/DeckInterfaces';
 import { mintSessionToken, sessionCookie, signInClaims } from './AuthTokens';
 import type { ISeededAccount } from './FakeDynamoDbService';
@@ -12,38 +12,26 @@ import type { ITestUserPayload, ServerTestHarness } from './ServerTestHarness';
 import { isSuccessfulSocketAuth } from '../../../server/gamenode/GameServer';
 import { AnonymousUser } from '../../../server/utils/user/User';
 
-/**
- * How an authenticated client presents itself to the server - the two ways the real FE does.
- *
- * - `synced-profile`: what the FE does for every request after its first sync. A token carrying
- *   `userId`, plus the FE's own copy of the profile marked `authenticated: true`. Needs no database.
- * - `token-only`: what the FE does on its first `/api/get-user` of a session. The token alone, with no
- *   profile and no `authenticated` flag, so the server looks the account up (or creates it) from the
- *   token's claims. Needs a harness with `{ database: true }`.
- */
-export type TestClientAuthMode = 'synced-profile' | 'token-only';
-
 /** Options for {@link TestClient.create}. */
 export interface ITestClientOptions {
 
     /** Only for authenticated clients: the server derives an anonymous user's name from their id. */
     username?: string;
 
-    /** If true, this client authenticates with a signed JWT, like a logged-in real client. */
+    /**
+     * If true, this client signs in with a signed JWT, like a logged-in real client. It presents only
+     * that token: the server finds the account from it, so the harness needs `{ database: true }`.
+     */
     authenticated?: boolean;
 
-    /** Extra fields merged into the authenticated user's data (e.g. `preferences`, `moderation`). Ignored for anonymous users and for `token-only`. */
-    userDataOverrides?: Partial<IUserDataEntity>;
-
-    /** How an authenticated client presents itself. Defaults to `synced-profile`. */
-    auth?: TestClientAuthMode;
-
     /**
-     * A seeded account (`harness.db.seedAccount()`) this client is. The client takes the account's id
-     * and username, and a `token-only` client's token is built from its identity. Required for
-     * `token-only`, optional for `synced-profile`.
+     * The seeded account (`harness.db.seedAccount()`) this client signs in as. The client takes the
+     * account's id and username. When omitted, an authenticated client gets a new account.
      */
     account?: ISeededAccount;
+
+    /** Extra profile fields (e.g. `preferences`, `moderation`) for the account created for an authenticated client without an `account`. */
+    profile?: Partial<IUserProfileDataEntity>;
 }
 
 /** Options for {@link TestClient.connectAsync}. */
@@ -93,8 +81,7 @@ export class TestClient {
         private readonly harness: ServerTestHarness,
         public readonly id: string,
         public readonly username: string,
-        private readonly authToken: string | null,
-        private readonly userData: Partial<IUserDataEntity> | null
+        private readonly authToken: string | null
     ) {}
 
     public static create(harness: ServerTestHarness, id: string, options: ITestClientOptions = {}): TestClient {
@@ -102,33 +89,13 @@ export class TestClient {
             if (options.username) {
                 throw new Error('TestClient: an anonymous client cannot choose its username - the server derives it from the id');
             }
-            return new TestClient(harness, id, AnonymousUser.usernameForId(id), null, null);
+            return new TestClient(harness, id, AnonymousUser.usernameForId(id), null);
         }
 
-        const username = options.account?.username ?? options.username ?? `test-user-${id.slice(0, 6)}`;
+        const account = options.account ?? harness.db.seedAccount({ id, username: options.username, profile: options.profile });
 
-        if (options.auth === 'token-only') {
-            if (!options.account) {
-                throw new Error('TestClient: a token-only client needs the seeded `account` its token is for');
-            }
-
-            // no profile at all: the server has to find the account from the token's claims
-            return new TestClient(harness, id, username, mintSessionToken(signInClaims(options.account)), null);
-        }
-
-        // `verifyTokenAndCreateAuthenticatedUser` (the no-DB-access path the real client's logged-in
-        // flow takes) overwrites `userData.id` with this claim regardless of what is sent alongside
-        // it, so the token - not the query/body payload - is the actual source of truth for identity.
-        const token = mintSessionToken({ userId: id });
-
-        const userData: Partial<IUserDataEntity> = {
-            id,
-            username,
-            showWelcomeMessage: false,
-            ...options.userDataOverrides,
-        };
-
-        return new TestClient(harness, id, username, token, userData);
+        // the token is all a logged-in client presents: the server finds the account from its claims
+        return new TestClient(harness, account.id, account.username, mintSessionToken(signInClaims(account)));
     }
 
     public get isAuthenticated(): boolean {
@@ -160,18 +127,17 @@ export class TestClient {
 
     // ---- Identity payloads ----
 
-    /**
-     * The `user` payload this client sends over HTTP and in the socket handshake query, mirroring
-     * the real client's `getUserPayload`: a bare `{ id, username }` for anonymous users, or the fuller
-     * user data (plus `authenticated: true`) for a logged-in one. A `token-only` client has no profile
-     * to send, so it sends the bare form like an anonymous one - the token is what identifies it.
-     */
-    public userPayload(): ITestUserPayload | (Partial<IUserDataEntity> & { authenticated: true }) {
-        if (!this.isAuthenticated || this.userData === null) {
-            return { id: this.id, username: this.username };
-        }
+    /** The bare `{ id, username }` an anonymous client sends, which is all the real client's `getUserPayload` builds for one. */
+    public userPayload(): ITestUserPayload {
+        return { id: this.id, username: this.username };
+    }
 
-        return { ...this.userData, authenticated: true };
+    /**
+     * What this client adds to a request body or handshake query to identify itself: the bare `user`
+     * payload for an anonymous client, nothing for a logged-in one, whose session token does it.
+     */
+    private identityFields(): { user?: ITestUserPayload } {
+        return this.isAuthenticated ? {} : { user: this.userPayload() };
     }
 
     /** `Cookie` header carrying this client's NextAuth session token, for authenticated HTTP calls. */
@@ -193,7 +159,7 @@ export class TestClient {
     public async requestAsync(method: RouteMethod, path: string, body: Record<string, unknown> = {}): Promise<SupertestResponse> {
         const request = this.withAuthCookie(this.harness.api[method](path));
 
-        return method === 'get' ? await request : await request.send({ user: this.userPayload(), ...body });
+        return method === 'get' ? await request : await request.send({ ...this.identityFields(), ...body });
     }
 
     public async createLobbyAsync(options: {
@@ -205,7 +171,7 @@ export class TestClient {
         isPrivate?: boolean;
     }): Promise<SupertestResponse> {
         return await this.withAuthCookie(this.harness.api.post('/api/create-lobby')).send({
-            user: this.userPayload(),
+            ...this.identityFields(),
             deck: options.deck,
             lobbyName: options.lobbyName,
             format: options.format,
@@ -218,7 +184,7 @@ export class TestClient {
     public async joinLobbyAsync(lobbyId: string): Promise<SupertestResponse> {
         return await this.withAuthCookie(this.harness.api.post('/api/join-lobby')).send({
             lobbyId,
-            user: this.userPayload(),
+            ...this.identityFields(),
         });
     }
 
@@ -230,7 +196,7 @@ export class TestClient {
         matchmakingCompetitivenessPreference?: MatchmakingCompetitivenessPreference;
     }): Promise<SupertestResponse> {
         return await this.withAuthCookie(this.harness.api.post('/api/enter-queue')).send({
-            user: this.userPayload(),
+            ...this.identityFields(),
             deck: options.deck,
             format: options.format,
             cardPool: options.cardPool,
@@ -243,29 +209,26 @@ export class TestClient {
         // the API's own body field is misleadingly named `gameId`, but it is actually the lobby id
         return await this.withAuthCookie(this.harness.api.post('/api/spectate-game')).send({
             gameId: lobbyId,
-            user: this.userPayload(),
+            ...this.identityFields(),
         });
     }
 
     public async changeDeckAsync(lobbyId: string, deck: ISwuDbFormatDecklist): Promise<SupertestResponse> {
         return await this.withAuthCookie(this.harness.api.post(`/api/lobby/${lobbyId}/change-deck`)).send({
             deck,
-            user: this.userPayload(),
+            ...this.identityFields(),
         });
     }
 
     /**
      * Saves preferences for `userId`; the real client always passes its own id. Like the real client, a
-     * `token-only` client sends just the preferences and its session, so the server looks the account up.
-     * Any other logged-in client also sends its user payload, which is how it authenticates when the
-     * server has no database to look it up in.
+     * logged-in client sends just the preferences and its session, so the server looks the account up.
      */
     public async savePreferencesAsync(userId: string, preferences: Record<string, unknown>): Promise<SupertestResponse> {
-        const isTokenOnly = this.authToken !== null && this.userData === null;
-
-        return await this.withAuthCookie(this.harness.api.put(`/api/user/${userId}/preferences`)).send(
-            isTokenOnly ? { preferences } : { preferences, user: this.userPayload() }
-        );
+        return await this.withAuthCookie(this.harness.api.put(`/api/user/${userId}/preferences`)).send({
+            preferences,
+            ...this.identityFields(),
+        });
     }
 
     /**
@@ -299,11 +262,12 @@ export class TestClient {
      */
     public async attemptConnectAsync(options: IConnectOptions = {}): Promise<IConnectResult> {
         const token = options.token ?? this.authToken;
+        const handshakeUser = options.user ?? (this.isAuthenticated ? undefined : this.userPayload());
 
         const fakeSocket = new FakeIoSocket({
             auth: token ? { token } : {},
             query: {
-                user: JSON.stringify(options.user ?? this.userPayload()),
+                ...(handshakeUser ? { user: JSON.stringify(handshakeUser) } : {}),
                 lobby: JSON.stringify({ lobbyId: options.lobbyId ?? null }),
                 spectator: options.spectator ? 'true' : 'false',
             },
