@@ -1981,8 +1981,15 @@ list holds it at most once, and the `DRAW` beside the move naming the same card 
 - moving *out of* `discard` to somewhere else → remove `card` from `discard`
 
 **The `MOVE` is the pile's author, not `DEFEAT`.** A defeated unit's `MOVE` to `discard` is
-emitted *before* its `DEFEAT` — `R2.A.3c` then `R2.A.3d`, in every test vector. A reader that
-files the card on `DEFEAT` alone finds it already gone from `cards` and files nothing, so no
+emitted *before* its `DEFEAT`, in every test vector that defeats a unit. From the `capture`
+vector, Open Fire defeating the captor:
+
+```
+{"seq":"R2.A.2c","t":"MOVE","card":"SOR#095","from":"ground","to":"discard","p":1,"kind":"unit"}
+{"seq":"R2.A.2d","t":"DEFEAT","card":"SOR#095","reason":"nonCombatDamage","defeatedBy":"TWI#174:2"}
+```
+
+A reader that files the card on `DEFEAT` alone finds it already gone from `cards` and files nothing, so no
 defeated unit ever reaches the pile. `DEFEAT`, `DISCARD` and `PLAY_EVENT` add once by id and
 are no-ops beside their own move.
 
