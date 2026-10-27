@@ -4,10 +4,10 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { TextHelper } from '../../../core/utils/TextHelper';
-import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import type { CardsPlayedThisRoundWatcher } from '../../../stateWatchers/CardsPlayedThisRoundWatcher';
 
 export default class DirectorKrennicOnTheVergeOfGreatness extends NonLeaderUnitCard {
-    private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
+    private cardsPlayedThisRoundWatcher: CardsPlayedThisRoundWatcher;
 
     protected override getImplementationId () {
         return {
@@ -17,7 +17,7 @@ export default class DirectorKrennicOnTheVergeOfGreatness extends NonLeaderUnitC
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase();
+        this.cardsPlayedThisRoundWatcher = AbilityHelper.stateWatchers.cardsPlayedThisRound();
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -37,7 +37,7 @@ export default class DirectorKrennicOnTheVergeOfGreatness extends NonLeaderUnitC
     private isFirstUnitWithWhenDefeatedPlayedThisPhase(card) {
         return card.isUnit() &&
           card.getTriggeredAbilities().some((ability) => ability.isWhenDefeated) &&
-          !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
+          !this.cardsPlayedThisRoundWatcher.someCardPlayed((playedCardEntry) =>
               playedCardEntry.playedAsType === CardType.BasicUnit &&
               playedCardEntry.playedBy === card.controller &&
               playedCardEntry.hasWhenDefeatedAbilities
