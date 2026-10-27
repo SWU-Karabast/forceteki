@@ -182,10 +182,17 @@ export class UserFactory {
             throw new AccountNotFoundError();
         }
 
-        const profile = await this.cache.getProfileAsync(userId, async () => {
+        const loadProfileAsync = () => this.cache.getProfileAsync(userId, async () => {
             const stored = await dbService.getUserProfileAsync(userId);
             return stored ? await this.processModerationAsync(stored) : undefined;
         });
+
+        let profile = await loadProfileAsync();
+        // legacy moderation is only evaluated when a profile is loaded, so one that has run out since is reloaded
+        if (profile?.moderation?.endDate && new Date(profile.moderation.endDate).getTime() < Date.now()) {
+            this.cache.invalidateProfile(userId);
+            profile = await loadProfileAsync();
+        }
         if (!profile) {
             throw new AccountNotFoundError(`Account ${userId} linked to this sign-in has no profile`);
         }
@@ -534,8 +541,12 @@ export class UserFactory {
         const dbService = await this.requireDbServiceAsync();
         const { provider, providerId, email, name } = identity;
 
+        // The identity may be linked to an account whose profile is gone. The link stays authoritative, so the
+        // profile is recreated under the linked id, which also reattaches everything else stored for it.
+        const linkedUserId = await this.cache.getUserIdAsync(provider, providerId, () => dbService.getUserIdByOAuthAsync(provider, providerId));
+
         // An account may already exist under this email, from signing in with another provider
-        const existingUserId = email ? await dbService.getUserIdByEmailAsync(email) : undefined;
+        const existingUserId = !linkedUserId && email ? await dbService.getUserIdByEmailAsync(email) : undefined;
         if (existingUserId) {
             logger.info(`User found by email ${email} but not by OAuth, creating OAuth link`);
             await dbService.saveOAuthLinkAsync(provider, providerId, existingUserId);
@@ -543,14 +554,18 @@ export class UserFactory {
             return this.resolveUserFromIdentityAsync(identity);
         }
 
+        // refuse before anything is written, so a refused sign-in leaves nothing behind
         if (!name) {
             throw new Error('Session token has no name to create an account with');
+        }
+        if (!email) {
+            throw new Error('Session token has no email to create an account with');
         }
         const cleanedUsername = name.trim()
             .replace(/\s+/g, '')
             .replace(/[^a-zA-Z0-9_]/g, '');
-        const newUser = {
-            id: uuid(),
+        const newUser: IUserProfileDataEntity = {
+            id: linkedUserId ?? uuid(),
             username: cleanedUsername,
             lastLogin: new Date().toISOString(),
             createdAt: new Date().toISOString(),
@@ -565,17 +580,29 @@ export class UserFactory {
             timerPopupSeenDate: null,
         };
 
-        // Create OAuth link
-        await dbService.saveOAuthLinkAsync(provider, providerId, newUser.id);
-        // Save the user profile
+        // Nothing refers to a new account until the OAuth link is written, and that is done last. If an earlier
+        // write fails, a retry finds the email link (or starts again) instead of being refused by an existing link.
         await dbService.saveUserProfileAsync(newUser);
-        // create username link
         await dbService.saveUsernameLinkAsync(newUser.username, newUser.id);
-        // Create email link if email is available
-        if (!email) {
-            throw new Error(`Email not found for user ${newUser.id}`);
-        }
         await dbService.saveEmailLinkAsync(email, newUser.id);
+        if (!linkedUserId) {
+            try {
+                await dbService.saveOAuthLinkAsync(provider, providerId, newUser.id);
+            } catch (error) {
+                if (error.name !== 'ConditionalCheckFailedException') {
+                    throw error;
+                }
+
+                // another request claimed this identity first: use its account and drop what was written for this one
+                logger.warn(`Account for ${provider} identity was created concurrently, discarding ${newUser.id}`);
+                this.cache.invalidateProfile(newUser.id);
+                await dbService.deleteUsernameLinkAsync(newUser.username, newUser.id);
+                const winner = await this.resolveUserFromIdentityAsync(identity);
+                await dbService.saveEmailLinkAsync(email, winner.getId());
+                return winner;
+            }
+        }
+
         // Record the initial username in the change history. This runs after all essential account
         // records are created and is best-effort, so a failure here won't leave the account in a
         // half-finished state or abort account creation.
@@ -588,7 +615,7 @@ export class UserFactory {
 
         this.cache.setIdentity(provider, providerId, newUser.id);
         this.cache.invalidateProfile(newUser.id);
-        return this.resolveUserFromIdentityAsync(identity);
+        return new AuthenticatedUser(structuredClone(newUser));
     }
 
     /**
@@ -600,7 +627,6 @@ export class UserFactory {
         Contract.assertNotNullLike(userId, 'userId is required');
         Contract.assertTrue(!!refreshToken, 'refreshToken is required');
         try {
-            const dbService = await this.dbServicePromise;
             await this.updateProfileAsync(userId, {
                 [refreshTokenFieldMap[source]]: refreshToken,
             });
@@ -644,7 +670,6 @@ export class UserFactory {
         Contract.assertTrue(!!userId, 'userId is required');
 
         try {
-            const dbService = await this.dbServicePromise;
             await this.updateProfileAsync(userId, {
                 [refreshTokenFieldMap[source]]: null,
             });
@@ -690,7 +715,7 @@ export class UserFactory {
 
             // Check if moderation has expired
             const endDate = new Date(userData.moderation.endDate);
-            const now = new Date();
+            const now = new Date(Date.now());
 
             if (now > endDate) {
                 userData.moderation = null;

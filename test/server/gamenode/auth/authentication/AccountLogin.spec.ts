@@ -186,20 +186,30 @@ describe('Account login', function () {
         }, { database: true });
     });
 
-    // TODO: enable once an identity linked to an account whose profile is gone can sign in. Today the owner is
-    // refused on every attempt, because the sign-in re-saves the OAuth link, which already exists (Open finding #8).
     describe('an identity linked to an account whose profile no longer exists', function () {
         serverIntegration(function (contextRef) {
             const identity: ISignInIdentity = { username: 'Orphan', provider: 'discord', providerId: '555', email: 'orphan@example.test' };
 
-            xit('signs the owner in to a freshly created profile (Open finding #8)', async function () {
+            it('signs the owner in to a new profile under the id the identity is linked to', async function () {
                 const { harness } = contextRef;
                 harness.db.oauthLinks.set('discord_555', 'account-with-no-profile');
 
                 const response = await signInAsync(harness, identity);
 
                 expect(response.status).toBe(200);
+                expect(response.body.user.id).toBe('account-with-no-profile');
                 expect(harness.db.profiles.size).toBe(1);
+                expect(harness.db.oauthLinks.get('discord_555')).toBe('account-with-no-profile');
+            });
+
+            it('does not link the identity to another account that has the same email', async function () {
+                const { harness } = contextRef;
+                harness.db.oauthLinks.set('discord_555', 'account-with-no-profile');
+                harness.db.seedAccount({ provider: 'google', providerId: '9', email: identity.email });
+
+                const response = await signInAsync(harness, identity);
+
+                expect(response.body.user.id).toBe('account-with-no-profile');
             });
         }, { database: true });
     });

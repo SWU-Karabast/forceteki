@@ -116,9 +116,15 @@ describe('Credential verification', function () {
                 expectNothingStored(harness);
             });
 
-            // TODO: cover a first sign-in whose token has no `email` claim. It is refused, but only after the profile
-            // and two of the identity links have been written, so a retry finds a half-made account. Decide whether it
-            // should be refused before anything is written (as the `provider`, `providerId` and `name` cases above are), then assert that.
+            it('is refused when creating an account without the email claim, and nothing is stored', async function () {
+                const { harness } = contextRef;
+
+                const response = await createUserAsync(harness, mintSessionToken(withoutClaim(signInClaims(newcomer), 'email')));
+
+                expect(response.status).toBe(401);
+                expect(response.body).toEqual(authenticationFailed);
+                expectNothingStored(harness);
+            });
         }, { database: true });
     });
 
@@ -310,6 +316,58 @@ describe('Credential verification', function () {
                 expect(responses.map((response) => response.status)).toEqual([200, 200, 200]);
                 expect(new Set(responses.map((response) => response.body.user.id)).size).toBe(1);
                 expect(harness.db.profiles.size).toBe(1);
+            });
+
+            it('does not read back the profile it has just written', async function () {
+                const { harness } = contextRef;
+                const profileReads = spyOn(harness.db, 'getUserProfileAsync').and.callThrough();
+
+                await createUserAsync(harness, mintSessionToken(signInClaims(newcomer)));
+
+                expect(profileReads).not.toHaveBeenCalled();
+            });
+
+            it('writes the identity link last, so a failure before it leaves nothing that blocks a retry', async function () {
+                const { harness } = contextRef;
+                const token = mintSessionToken(signInClaims(newcomer));
+                spyOn(harness.db, 'saveEmailLinkAsync').and.rejectWith(new Error('write failed'));
+
+                const failed = await createUserAsync(harness, token);
+
+                expect(failed.status).toBe(401);
+                expect(harness.db.oauthLinks.size).toBe(0);
+            });
+
+            it('can be retried after a failure, and ends up with one account that can sign in', async function () {
+                const { harness } = contextRef;
+                const token = mintSessionToken(signInClaims(newcomer));
+                const failure = spyOn(harness.db, 'saveOAuthLinkAsync').and.rejectWith(new Error('write failed'));
+
+                const failed = await createUserAsync(harness, token);
+                failure.and.callThrough();
+                const retried = await createUserAsync(harness, token);
+                const synced = await getUserAsync(harness, token);
+
+                expect(failed.status).toBe(401);
+                expect(retried.status).toBe(200);
+                expect(synced.body.user.id).toBe(retried.body.user.id);
+                expect(harness.db.profiles.size).toBe(1);
+            });
+
+            it('uses the account another request created for the same identity first, and drops its own', async function () {
+                const { harness } = contextRef;
+                const winner = harness.db.seedAccount({ provider: 'github', providerId: 'winner', email: 'winner@example.test' });
+                spyOn(harness.db, 'saveOAuthLinkAsync').and.callFake(() => {
+                    harness.db.oauthLinks.set('discord_666', winner.id);
+                    return Promise.reject(Object.assign(new Error('The conditional request failed'), { name: 'ConditionalCheckFailedException' }));
+                });
+
+                const response = await createUserAsync(harness, mintSessionToken(signInClaims(newcomer)));
+
+                expect(response.status).toBe(200);
+                expect(response.body.user.id).toBe(winner.id);
+                expect(harness.db.emailLinks.get('mallory@example.test')).toBe(winner.id);
+                expect([...harness.db.usernameLinks].filter((link) => link.startsWith('mallory#'))).toEqual([]);
             });
 
             it('refuses a request with no session', async function () {

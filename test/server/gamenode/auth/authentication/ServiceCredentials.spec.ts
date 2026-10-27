@@ -13,7 +13,7 @@ interface ILinkRoute {
     /** The stats site's endpoint the game node calls to turn what it was given into a refresh token. */
     outboundUrl: string;
 
-    /** The body the FE server sends. `userId` is the account the link was started from, which only SWUBase carries. */
+    /** The body the FE server sends. `userId` is the account id the callback names, which only SWUBase carries. */
     body: (userId: string, internalApiKey?: string) => Record<string, unknown>;
     storedToken: (profile: { swuStatsRefreshToken?: string; swubaseRefreshToken?: string }) => string | undefined;
     success: string;
@@ -144,9 +144,9 @@ describe('Service credentials', function () {
         });
     }
 
-    describe('/api/link-swubase, which also checks the account the link was started from', function () {
+    describe('/api/link-swubase, which also checks the account id the callback names', function () {
         serverIntegration(function (contextRef) {
-            it('refuses a session for a different account than the one that started the link', async function () {
+            it('refuses a session for a different account than the one the callback names', async function () {
                 const { harness } = contextRef;
                 const account = harness.db.seedAccount();
                 const starter = harness.db.seedAccount();

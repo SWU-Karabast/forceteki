@@ -214,11 +214,16 @@ export class DynamoDBService {
 
     // Basic CRUD operations
 
-    public getItemAsync(pk: string, sk: string) {
+    /**
+     * @param options.consistentRead read the latest committed value rather than a possibly lagging replica; use it
+     * where the result is cached or acted on straight after a write
+     */
+    public getItemAsync(pk: string, sk: string, options: { consistentRead?: boolean } = {}) {
         return this.executeDbOperationAsync(() => {
             const command = new GetCommand({
                 TableName: this.tableName,
-                Key: { pk, sk }
+                Key: { pk, sk },
+                ...(options.consistentRead ? { ConsistentRead: true } : {})
             });
             return this.client.send(command);
         }, 'DynamoDB getItem error');
@@ -337,7 +342,8 @@ export class DynamoDBService {
 
     public getUserProfileAsync(userId: string) {
         return this.executeDbOperationAsync(async () => {
-            const result = await this.getItemAsync(`USER#${userId}`, 'PROFILE');
+            // consistent, because the result is cached and a lagging read right after a write would stay cached
+            const result = await this.getItemAsync(`USER#${userId}`, 'PROFILE', { consistentRead: true });
             return result.Item as IUserProfileDataEntity | undefined;
         }, 'Error getting user profile');
     }
@@ -407,7 +413,7 @@ export class DynamoDBService {
 
     public getUserIdByOAuthAsync(provider: string, providerId: string) {
         return this.executeDbOperationAsync(async () => {
-            const result = await this.getItemAsync(`OAUTH#${provider}_${providerId}`, 'LINK');
+            const result = await this.getItemAsync(`OAUTH#${provider}_${providerId}`, 'LINK', { consistentRead: true });
             return result.Item?.GSI_PK as string | undefined;
         }, 'Error getting user ID by OAuth');
     }

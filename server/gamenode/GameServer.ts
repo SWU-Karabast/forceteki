@@ -1105,7 +1105,8 @@ export class GameServer {
                     return res.status(401).json({ success: false, message: 'Authentication required' });
                 }
                 const userId = user.getId();
-                // the link started from the id of the account that is now completing it
+                // The id comes from the callback URL, so this only catches a mismatch with the signed-in account;
+                // it does not show where the link was started.
                 if (expectedUserId !== userId) {
                     return res.status(403).json({ success: false, message: 'Forbidden' });
                 }
