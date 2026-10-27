@@ -1,4 +1,6 @@
-FROM node:lts
+# Pinned deliberately: `node:lts` floats to whichever line is Active LTS, so it silently
+# changes major every October. Keep in sync with .tool-versions.
+FROM node:26.12.1
 
 WORKDIR /app
 
