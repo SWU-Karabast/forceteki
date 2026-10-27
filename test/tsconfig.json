@@ -10,7 +10,6 @@
         "lib": [
             "ES2020",
             "ES2021.Intl",
-            "ES2022.Array",
             "ESNext.Decorators"
         ],
         "esModuleInterop": true,
