@@ -990,7 +990,9 @@ export class SwuPgnRecorder {
         }
         const isPlay = (c: any) => readOr(() => c?.ability?.isPlayCardAbility?.() === true, false);
         if (isPlay(context)) {
-            if (context.stage !== Stage.Effect) {
+            // Its costs and targeting, and then whatever its effect does before the play is
+            // announced: the card arriving, and the effect its own entering ability started.
+            if (context.stage !== Stage.Effect || !this.announcedPlays.has(context)) {
                 markPlaySetup(e, this.idOf(context.source));
             }
             return;

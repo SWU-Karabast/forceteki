@@ -156,7 +156,7 @@ describe('validate edge cases', function () {
     });
 
     it('rejects the field shapes the fold dereferences (spec §9): a malformed keyframe, a non-array cards', function () {
-        const badKeyframe = good.replace((/"keyframe":\{.*\}\}\}/), '"keyframe":{"players":{"1":{"cards":"x","hand":[],"discard":[]}}}');
+        const badKeyframe = good.replace((/"keyframe":\{.*?"effects":\[\]\}/), '"keyframe":{"players":{"1":{"cards":"x","hand":[],"discard":[]}}}');
         expect(badKeyframe).not.toBe(good);
         expect(validate(badKeyframe).valid).toBe(false);
 
@@ -192,15 +192,15 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
     it('rates the minimal vector complete, and says why when a file falls short', function () {
         expect(validate(good).level).toBe('complete');
         expect(validate('not a file').level).toBe('malformed');
-        expect(validate(good.replace('[WriterRevision "4"]\n', '')).level).toBe('well-formed');
-        expect(codes(good.replace('[WriterRevision "4"]\n', ''))).toEqual(['warning:pre-release']);
+        expect(validate(good.replace('[WriterRevision "6"]\n', '')).level).toBe('well-formed');
+        expect(codes(good.replace('[WriterRevision "6"]\n', ''))).toEqual(['warning:pre-release']);
         expect(validate(good.replace('[Rounds "2"]', '[Rounds "2"] [RecorderErrors "1"]')).level).toBe('verified');
         expect(validate(addEvent('{"seq":"R1.A.9","t":"DEFEAT","card":"SOR#108","reason":"unknown"}')).level).toBe('verified');
     });
 
     describe('WriterRevision is diagnostic (spec section 5.2, Appendix C)', function () {
         const withoutRevision = (engine: string) => good
-            .replace('[WriterRevision "4"]\n', '')
+            .replace('[WriterRevision "6"]\n', '')
             .replace('[Engine "forceteki@reference"]', `[Engine "${engine}"]`);
 
         it('treats a file with no WriterRevision from another writer as conformant', function () {
@@ -353,7 +353,8 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
 
     // Value: protects=the effect id grammar fx@N (§6.1, Appendix B) is enforced by the schema; fails_when=the pattern is missing or admits a zero or a leading zero; why_new=effect ids are new; seam=none; no_claim=none
     it('reports an effect id that breaks the grammar', function () {
-        const fx = (id: string) => addEvent(`{"seq":"R1.A.9","t":"EFFECT_START","id":"${id}","src":"SOR#108","p":1,"targets":["SOR#108"],"duration":"phase"}`);
+        // After the last keyframe, which would otherwise not list the effect.
+        const fx = (id: string) => addEventAtEnd(`{"seq":"R2.A.9","t":"EFFECT_START","id":"${id}","src":"SOR#108","p":1,"targets":["SOR#108"],"duration":"phase"}`);
         expect(codes(fx('fx@0'))).toContain('error:schema');
         expect(codes(fx('fx@01'))).toContain('error:schema');
         expect(codes(fx('fx@12'))).toEqual([]);
@@ -361,7 +362,7 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
 
     // Value: protects=[W-48] untilText is required with duration until, and only then; fails_when=the schema if/then is missing or applies to a newer-minor duration; why_new=fix round 1; seam=none; no_claim=none
     it('reports an until effect without untilText', function () {
-        const fx = (extra: string, game = 'SWU-PGN/1.0') => addEvent(`{"seq":"R1.A.9","t":"EFFECT_START","id":"fx@1","src":"SOR#108","p":1,"targets":["SOR#108"]${extra}}`).replace('SWU-PGN/1.0', game);
+        const fx = (extra: string, game = 'SWU-PGN/1.0') => addEventAtEnd(`{"seq":"R2.A.9","t":"EFFECT_START","id":"fx@1","src":"SOR#108","p":1,"targets":["SOR#108"]${extra}}`).replace('SWU-PGN/1.0', game);
         expect(codes(fx(',"duration":"until"'))).toEqual(['error:schema']);
         expect(codes(fx(',"duration":"until","untilText":"it attacks"'))).toEqual([]);
         expect(codes(fx(',"duration":"phase"'))).toEqual([]);
@@ -371,7 +372,7 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
 
     // Value: protects=[W-56] owner is required on a resource TAKE_CONTROL without from, and only there; fails_when=the schema if/then is missing or applies to a steal that carries from; why_new=fix round 1; seam=none; no_claim=writer output
     it('reports a resource steal without from that names no owner', function () {
-        const take = (extra: string) => codes(addEvent(`{"seq":"R1.A.9","t":"TAKE_CONTROL","p":1,"card":"SOR#108","zone":"resource"${extra}}`));
+        const take = (extra: string) => codes(addEventAtEnd(`{"seq":"R2.A.9","t":"TAKE_CONTROL","p":1,"card":"SOR#108","zone":"resource"${extra}}`));
         expect(take('')).toEqual(['error:schema']);
         expect(take(',"owner":2')).toEqual([]);
         // With `from` it shifts a resource the fixture's later keyframe does not show; the schema is satisfied.
@@ -405,7 +406,7 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
     // Value: protects=a keyframe abilityUses over the list cap is over-cap (§13, §23), as the fold treats it as damaged; fails_when=abilityUses is left out of the keyframe list check; why_new=abilityUses are new; seam=none; no_claim=none
     it('reports a keyframe abilityUses list over the cap', function () {
         const uses = JSON.stringify(new Array(1001).fill({ card: 'SOR#108', ability: 'a1', count: 1, per: 'game', max: 1 }));
-        const bad = good.replace('"deckSize":2,"leader"', `"deckSize":2,"abilityUses":${uses},"leader"`);
+        const bad = good.replace('"abilityUses":[]', `"abilityUses":${uses}`);
         expect(bad).not.toBe(good);
         expect(codes(bad)).toContain('error:over-cap');
     });
