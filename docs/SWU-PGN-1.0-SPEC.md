@@ -3193,6 +3193,7 @@ one thing broken. A reader MUST reject or warn on each as the manifest says:
 | `duplicate-key` | a `PASS` with two `p` keys | malformed | error `duplicate-key` |
 | `bad-move` | a `MOVE` to `sideboard`, not a zone | well-formed | error `bad-zone` |
 | `duplicate-seq` | two records labelled `R1.A.1` | well-formed | error `duplicate-seq` |
+| `result-mismatch` | `[Result "P1"]` on a file with no `GAME_END` | well-formed | error `result-mismatch` |
 | `dangling-ref` | an annotation on a `seq` that is not there | well-formed | error `dangling-ref` |
 | `proto-token` | `__proto__` as a status token name in a keyframe | malformed | error `reserved-key` |
 | `deck-reserved-key` | `__proto__` inside an extension field of a `DECKS` record | malformed | error `reserved-key` |
@@ -3494,6 +3495,7 @@ matched by a program.
 | `deck-build-move` | error | A `MOVE` from `outsideTheGame` into `deck` (`[W-41]`, [§10.1](#101-events-that-carry-board-detail)) | well-formed |
 | `credit-zone` | error | A `MOVE` of a `TOKEN:credit…` id from or into `resource`; a Credit token is recorded in `base` ([§6.2](#62-zone-names), `[W-42]`) | well-formed |
 | `same-zone-move` | error | A `MOVE` from a zone to itself that is not an arena | well-formed |
+| `result-mismatch` | error | The header's `Result` disagrees with the last `GAME_END.winner`, or names a winner in a file with no `GAME_END` ([§10.2](#102-events-that-are-just-notes)) | well-formed |
 | `number-range` | error | A number that is not an integer within ±(2^53−1) | well-formed |
 | `over-cap` | error | A keyframe list longer than 1000 | well-formed |
 | `pre-release` | warning | No `WriterRevision`, and an `Engine` product the [pilot writer products](#pilot-writer-products) registry ([§25](#25-registries)) lists: a pre-release file | well-formed |

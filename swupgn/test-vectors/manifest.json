@@ -147,6 +147,17 @@
       "about": "A MOVE of a Credit token into resource; the format records Credit tokens in base (§6.2, [W-42])."
     },
     {
+      "file": "negative/result-mismatch.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "result-mismatch"
+      ],
+      "warnings": [],
+      "about": "A [Result \"P1\"] header on a file with no GAME_END; a game that never ended is Incomplete (§10.2)."
+    },
+    {
       "file": "negative/damaged-keyframe.swupgn",
       "class": "negative",
       "writer": "hand",

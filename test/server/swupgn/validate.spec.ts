@@ -187,6 +187,7 @@ describe('validate edge cases', function () {
 describe('validate conformance levels and cross-record rules (spec §2.1)', function () {
     const codes = (text: string) => validate(text).issues.map((i) => `${i.severity}:${i.code}`);
     const addEvent = (json: string) => good.replace('%%% EVENTS', `%%% EVENTS\n${json}`);
+    const addEventAtEnd = (json: string) => good.replace('\n%%% ANNOTATIONS', `\n${json}\n%%% ANNOTATIONS`);
 
     it('rates the minimal vector complete, and says why when a file falls short', function () {
         expect(validate(good).level).toBe('complete');
@@ -257,6 +258,18 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(report.valid).toBe(true);
         expect(report.level).toBe('valid');
         expect(codes(damaged)).toContain('warning:keyframe-mismatch');
+    });
+
+    // Value: protects=a header Result that contradicts the file's GAME_END is reported (§10.2: they MUST agree, and no GAME_END means Incomplete); fails_when=validate() stops comparing them, so a file can say one player won while its events say the other did; why_new=the rule was written in §10.2 and never checked; seam=none; no_claim=a Result outcome from a newer minor version, which a reader skips
+    it('rejects a Result that disagrees with the GAME_END', function () {
+        const ended = (result: string, winner: string) => addEventAtEnd(`{"seq":"R2.A.game-end","t":"GAME_END","winner":${winner},"reason":"Base Destroyed"}`)
+            .replace('[Result "Incomplete"]', `[Result "${result}"]`);
+        expect(codes(ended('P2', '1'))).toContain('error:result-mismatch');
+        expect(codes(ended('Incomplete', '1'))).toContain('error:result-mismatch');
+        expect(codes(good.replace('[Result "Incomplete"]', '[Result "P1"]'))).toContain('error:result-mismatch');
+        expect(codes(ended('P1', '1'))).not.toContain('error:result-mismatch');
+        expect(codes(ended('Draw', '"Draw"'))).not.toContain('error:result-mismatch');
+        expect(codes(good)).not.toContain('error:result-mismatch');
     });
 
     it('rejects a seq used twice, and a for or ref that names nothing', function () {

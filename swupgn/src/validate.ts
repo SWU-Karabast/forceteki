@@ -421,6 +421,19 @@ export function validate(text: string): ConformanceReport {
         }
     }
 
+    // §10.2: GAME_END.winner MUST agree with the header's Result, and a file with no GAME_END is
+    // Incomplete. The last GAME_END counts: play may go on after the game ends. An outcome from
+    // a newer minor version is skipped (§18).
+    const resultOfWinner = new Map<unknown, string>([[1, 'P1'], [2, 'P2'], ['Draw', 'Draw']]);
+    if (['P1', 'P2', 'Draw', 'Incomplete'].includes(doc.header.result)) {
+        const gameEnd = doc.events.map(asRecord).filter((r) => r?.['t'] === 'GAME_END')
+            .pop();
+        const expected = gameEnd ? resultOfWinner.get(gameEnd['winner']) : 'Incomplete';
+        if (expected !== undefined && expected !== doc.header.result) {
+            error('result-mismatch', `[Result "${doc.header.result}"] but ${gameEnd ? `GAME_END ${String(gameEnd['seq'])} says ${expected}` : 'there is no GAME_END'}`);
+        }
+    }
+
     // complete: the writer lost nothing it knows of. These are reported whatever else is wrong
     // with the file (§24: a validator reports every issue it finds). A reason this version does
     // not know reads as `unknown` (§18).
