@@ -3256,7 +3256,7 @@ The review before publication (2026-10-28) changed what conforms, as well as wha
   recorded in `base`, never `resource`, and a validator reports `credit-zone` `[W-42]`. A `STATS`
   is due before the next numbered action and before any keyframe `[W-22]`.
 - The text is normative and the reference code informative ([§2](#2-conventions-and-conformance--how-to-read-this-spec)).
-  Conformance levels, requirement ids and seven conformance classes were added
+  Conformance levels, requirement ids and eight conformance classes were added
   ([§2.1](#21-document-conformance-levels), [§3](#3-conformance-classes--who-has-to-do-what)).
 - The header grammar is strict: a repeated tag, an unknown escape, text outside the brackets,
   a repeated section, a first line that is not `Game` and a non-digit `Rounds` make a file
@@ -3293,7 +3293,22 @@ Platform neutrality (2026-10-28):
 - `token-name` in [Appendix B.3](#b3-names-inside-records) narrowed: it no longer allows `_`, and
   a `-` must sit between two runs of letters or digits, to match the derivation in
   [§6.1](#the-token-grammar).
-
+- `ABILITY_ACTIVATE.kind` is defined by the Comprehensive Rules section each value names
+  ([§10.1](#101-events-that-carry-board-detail)), not by one engine's ability classes, with a
+  precedence sentence (the first matching row wins). The effect rows, `replacement` and
+  `delayed`, come before the ability rows, so the Shield token's prevention is `replacement`.
+  The values are unchanged.
+- The contents of `title`, `ability`, `CHOICE.prompt` and `damageType`, and the zone list
+  ([§6.2](#62-zone-names)), are defined by the format and the Comprehensive Rules, not by one
+  engine's UI or zone set. Each zone is named against its CR 4 section, or says that the CR has no
+  zone for it (`outsideTheGame`, `capture`). `frameworkEffect` keeps its value, and the text says
+  the name is historical. No value or schema changes.
+- `WriterRevision` is optional and diagnostic for every writer `[W-12]` ([§5.2](#52-optional-tags)).
+  A `valid` file no longer has to carry it ([§2.1](#21-document-conformance-levels)). A
+  pre-release file is one with no `WriterRevision` whose `Engine` product is listed in the
+  closed pilot-writer registry ([§25](#25-registries)) `[V-04]`; a file from any other writer
+  without the tag is read as an ordinary file. The strict `%%% STORY` wording is fixed per minor
+  version: a strict renderer of `1.<n>` produces `1.<n>`'s wording ([§16](#16-rendering--turning-a-file-into-a-story)).
 - Normative text no longer names a reference-implementation function or claims what one
   implementation's files contain. Such remarks are informative notes, marked
   `> **Note (informative):**` ([§2](#2-conventions-and-conformance--how-to-read-this-spec)). The
@@ -3316,21 +3331,14 @@ SWUForge's review of that text (2026-10-28) changed:
 - An omniscient file must not reach a participant through anyone the host serves (`[H-01]`),
   and a host that has served it must not let the game be played on (`[H-02]`)
   ([§23](#23-security-considerations)).
-
-> **Note (informative):** The reference host serves only the game's two players.
 - A schema or a vector that disagrees with the text is an erratum, like the code
   ([§2](#2-conventions-and-conformance--how-to-read-this-spec)). The front matter names the
   canonical copy, and the Status section says how errata are handled.
-- `ABILITY_ACTIVATE.kind` is defined by the Comprehensive Rules section each value names
-  ([§10.1](#101-events-that-carry-board-detail)), not by one engine's ability classes, with a
-  precedence sentence (the first matching row wins). The values are unchanged.
-- The contents of `title`, `ability`, `CHOICE.prompt` and `damageType`, and the zone list
-  ([§6.2](#62-zone-names)), are defined by the format and the Comprehensive Rules, not by one
-  engine's UI or zone set. Each zone is named against its CR 4 section, or says that the CR has no
-  zone for it (`outsideTheGame`, `capture`). `frameworkEffect` keeps its value, and the text says
-  the name is historical. No value or schema changes.
 - Seven quoted records had a stale `ms`. Every quoted record, `ms` included, is now checked
   against the vectors.
+
+> **Note (informative):** The reference host serves an omniscient file only to the game's two
+> players (`[H-01]` above).
 
 ---
 
@@ -4063,7 +4071,8 @@ Pre-release files and forceteki writer revisions 1 and 2 wrote `"R1.S.0"` for `I
 ### Reference writer revisions (informative)
 
 The eight real-game vectors ([§20](#20-conformance-suite--test-vectors)) were written by
-`forceteki` at writer revision 3; their `writer` in the manifest is `forceteki`.
+`forceteki` at writer revision 4, the latest row of the table below; their `writer` in the
+manifest is `forceteki`.
 
 `forceteki` writer revisions so far ([§5.2](#52-optional-tags)). Before publication a revision
 could change what a record means. After it, a revision is diagnostic only.
