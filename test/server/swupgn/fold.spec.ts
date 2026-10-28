@@ -156,6 +156,18 @@ describe('fold event coverage', function () {
         expect(c.experience).toBe(2);
         expect(c.statusTokens.stun).toBe(1);
     });
+
+    // Value: protects=fold() itself never makes a reserved name a statusTokens key (§23), for events that did not come through parse(); fails_when=the fold's guard is dropped; why_new=only parse() refused reserved token names; seam=none; no_claim=none beyond protects
+    it('skips a STATUS_TOKEN whose token is a reserved name', function () {
+        const s = fold([
+            { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#108', zone: 'ground' },
+            { seq: 'R1.A.2', t: 'STATUS_TOKEN', card: 'SOR#108', token: 'hasOwnProperty', count: 1 },
+            { seq: 'R1.A.3', t: 'STATUS_TOKEN', card: 'SOR#108', token: 'advantage', count: 1 },
+        ] as any);
+        const c = s.players[1]?.cards.find((x) => x.id === 'SOR#108');
+        expect(Object.keys(c.statusTokens)).toEqual(['advantage']);
+        expect(() => String(c.statusTokens)).not.toThrow();
+    });
 });
 
 describe('fold event coverage — regression gaps', function () {
@@ -844,8 +856,8 @@ describe('fold upgrade hosts', function () {
 describe('fold of untrusted counters', function () {
     const unit = { seq: 'R1.A.1', t: 'MOVE', card: 'SOR#001', from: 'hand', to: 'ground', p: 1, kind: 'unit' };
 
-    // Value: protects=a status token named like an inherited property is an ordinary own key and a non-numeric count changes nothing; fails_when=the fold reads the prototype or adds a string to a number; why_new=fold trusted every record's count and token; seam=none; no_claim=validate() rejecting these files
-    it('keeps token names to own keys and ignores counts that are not finite numbers', function () {
+    // Value: protects=a status token named like an inherited property never becomes a key (§23) and a non-numeric count changes nothing; fails_when=the fold writes a reserved name, reads the prototype or adds a string to a number; why_new=fold trusted every record's count and token; seam=none; no_claim=validate() rejecting these files
+    it('skips reserved token names and ignores counts that are not finite numbers', function () {
         const s = fold([
             unit,
             { seq: 'R1.A.1a', t: 'STATUS_TOKEN', card: 'SOR#001', token: 'toString', count: 1 },
@@ -854,7 +866,7 @@ describe('fold of untrusted counters', function () {
             { seq: 'R1.A.1d', t: 'EXPERIENCE_GAIN', card: 'SOR#001', count: null },
         ] as any);
         const card = s.players[1].cards[0];
-        expect(JSON.parse(JSON.stringify(card.statusTokens))).toEqual({ toString: 1, ['__proto__']: 2 });
+        expect(Object.getOwnPropertyNames(card.statusTokens)).toEqual([]);
         expect(Object.getPrototypeOf(card.statusTokens)).toBe(Object.prototype);
         expect(card.shields).toBe(1);
         expect(card.experience).toBe(0);

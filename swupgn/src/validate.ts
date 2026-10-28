@@ -45,8 +45,14 @@ if (!DEFEAT_REASONS.has('unknown')) {
     throw new Error('validate: could not read the DEFEAT reason vocabulary from event.schema.json');
 }
 
-/** Header fields whose string values name a seat (§18: seats never grow in a minor version). */
-const SEAT_PATHS: ReadonlySet<string> = new Set(['/Result', '/Perspective']);
+/**
+ * Whether a header value names a seat (§18: seats never grow in a minor version). `Perspective`
+ * holds only seats. `Result` also holds outcomes (`Draw`, `Incomplete`), and a minor version may
+ * add an outcome, so only its `P<n>` values are seats.
+ */
+function isHeaderSeat(path: string, value: unknown): boolean {
+    return path === '/Perspective' || (path === '/Result' && typeof value === 'string' && (/^P\d+$/).test(value));
+}
 
 /**
  * How many issues a validator lists before it stops (§24). A hostile file can break a rule on
@@ -177,7 +183,7 @@ export function validate(text: string): ConformanceReport {
             // version; nor may a value change type, so `"reason":5` stays one too.
             const allowed = (err.params as { allowedValues?: unknown[] }).allowedValues;
             const namesOnly = allowed?.every((v) => typeof v === 'string') ?? false;
-            const seat = where === 'header' && SEAT_PATHS.has(err.instancePath);
+            const seat = where === 'header' && isHeaderSeat(err.instancePath, err.data);
             const growable = err.keyword === 'enum' && typeof err.data === 'string' && namesOnly && !seat;
             if (newer && growable) {
                 warn('unknown-value', `${where}${err.instancePath} has a value this reader does not know`);

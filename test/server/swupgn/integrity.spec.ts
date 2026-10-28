@@ -24,6 +24,19 @@ describe('checkKeyframes', function () {
         expect(checkKeyframes(events).ok).toBe(true);
     });
 
+    // Value: protects=a keyframe whose status tokens list the same names in another order still verifies (§14); fails_when=the token maps are compared as JSON text again; why_new=no test put two token names in different orders; seam=none; no_claim=none beyond protects
+    it('compares status tokens without regard to key order', function () {
+        const card = (statusTokens: Record<string, number>): CardInstanceState => ({ id: 'SOR#108', zone: 'ground', damage: 0,
+            exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens, captured: [] });
+        const events: GameEvent[] = [
+            { seq: 'R1.A.0', t: 'MOVE', card: 'SOR#108', from: 'hand', to: 'ground', p: 1, kind: 'unit' },
+            { seq: 'R1.A.1', t: 'STATUS_TOKEN', card: 'SOR#108', token: 'advantage', count: 1 },
+            { seq: 'R1.A.2', t: 'STATUS_TOKEN', card: 'SOR#108', token: 'weakness', count: 1 },
+            roundStart(2, restingSeat(1, { cards: [card({ weakness: 1, advantage: 1 })] }), restingSeat(2)),
+        ];
+        expect(checkKeyframes(events).mismatches).toEqual([]);
+    });
+
     it('fails when an event delta is missing before a keyframe', function () {
         const events: GameEvent[] = [
             // R1 supplies the real starting base HP. baseHp is exempt on the FIRST keyframe

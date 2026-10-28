@@ -51,6 +51,10 @@ function parseHeaderLine(line: string, lineNo: number, raw: Record<string, strin
         if (!(/^(?:[^\\]|\\["\\])*$/).test(m[2])) {
             throw new SwuPgnError('bad-escape', `header tag [${m[1]}] on line ${lineNo} uses an escape other than \\\\ or \\"`, lineNo);
         }
+        // A tag name becomes a key of the header a reader builds, like a record key (§23).
+        if (RESERVED_KEYS.has(m[1])) {
+            throw new SwuPgnError('reserved-key', `header tag [${m[1]}] on line ${lineNo} is a reserved key`, lineNo);
+        }
         if (Object.prototype.hasOwnProperty.call(raw, m[1])) {
             throw new SwuPgnError('duplicate-tag', `header tag [${m[1]}] appears twice (line ${lineNo})`, lineNo);
         }
@@ -59,12 +63,23 @@ function parseHeaderLine(line: string, lineNo: number, raw: Record<string, strin
 }
 
 /**
- * Object keys that name the object model rather than data (spec §23). `__proto__` assigned with
- * `obj[key] = …` replaces an object's prototype; an own `toString` or `valueOf` that is not a
- * function makes the object impossible to turn into text, so every reader that prints or compares
- * a field would throw. No record may carry one, so a parser rejects them all.
+ * Object keys that name the object model rather than data (spec §23): every property of
+ * `Object.prototype`, and `prototype`. `__proto__` assigned with `obj[key] = …` replaces an
+ * object's prototype; an own `toString`, `valueOf` or `hasOwnProperty` that is not a function
+ * breaks every reader that prints the object or calls that method on it. No record may carry
+ * one, so a parser rejects them all.
  */
-export const RESERVED_KEYS: ReadonlySet<string> = new Set(['__proto__', 'constructor', 'prototype', 'toString', 'valueOf']);
+export const RESERVED_KEYS: ReadonlySet<string> = new Set([
+    '__proto__', '__defineGetter__', '__defineSetter__', '__lookupGetter__', '__lookupSetter__',
+    'constructor', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'prototype',
+    'toLocaleString', 'toString', 'valueOf',
+]);
+
+/** The token a `STATUS_TOKEN` record names, when that name is a reserved key. */
+function reservedStatusToken(rec: unknown): string | undefined {
+    const { t, token } = (rec ?? {}) as { t?: unknown; token?: unknown };
+    return t === 'STATUS_TOKEN' && typeof token === 'string' && RESERVED_KEYS.has(token) ? token : undefined;
+}
 
 interface ScanResult {
     tooDeep: boolean;
@@ -323,6 +338,17 @@ export function parse(text: string, limits: ParseLimits = {}): SwuPgnDocument {
         }
         if (scanned.reservedKey !== undefined) {
             throw new SwuPgnError('reserved-key', `line ${i + 1} uses the reserved key "${scanned.reservedKey}"`, i + 1);
+        }
+        // A status token's name is a value here, but the fold makes it a key of the card's
+        // `statusTokens` (§12), so it is the one value the reserved names are refused as: in the
+        // sections a reader folds, and in an annotation's what-if `line`, which it may fold too (§15).
+        const whatIf = section === 'ANNOTATIONS' ? (rec as { line?: unknown } | null)?.line : undefined;
+        const folded = section === 'SETUP' || section === 'EVENTS' ? [rec] : Array.isArray(whatIf) ? whatIf : [];
+        for (const event of folded) {
+            const token = reservedStatusToken(event);
+            if (token !== undefined) {
+                throw new SwuPgnError('reserved-key', `line ${i + 1} names a status token "${token}", a reserved key`, i + 1);
+            }
         }
         switch (section) {
             case 'DECKS': decks.push(rec as DeckRecord); break;

@@ -1,4 +1,4 @@
-import { parse, SwuPgnError } from '../../../swupgn/src/parse';
+import { parse, RESERVED_KEYS, SwuPgnError } from '../../../swupgn/src/parse';
 import { validate } from '../../../swupgn/src/validate';
 
 const SAMPLE = [
@@ -191,7 +191,7 @@ describe('parse grammar (spec §4, Appendix B)', function () {
     // so every reader that renders or compares the field throws. One check here protects them all.
     it('rejects a reserved key anywhere in any record', function () {
         const at = (section: string, line: string) => HEAD + `\n%%% ${section}\n` + line;
-        for (const key of ['__proto__', 'constructor', 'prototype', 'toString', 'valueOf']) {
+        for (const key of RESERVED_KEYS) {
             expect(code(at('EVENTS', `{"seq":"R1.A.1","t":"PASS","p":1,"x":{"${key}":1}}`))).withContext(`${key} nested`)
                 .toBe('reserved-key');
             expect(code(at('EVENTS', `{"seq":"R1.A.1","t":"DEFEAT","card":"SOR#108","reason":{"${key}":null}}`))).withContext(`${key} as a value`)
@@ -202,9 +202,28 @@ describe('parse grammar (spec §4, Appendix B)', function () {
                 .toBe('reserved-key');
             expect(code(at('ANNOTATIONS', `{"ref":"R1.A.1","text":"t","x":[{"${key}":1}]}`))).withContext(`${key} in ANNOTATIONS`)
                 .toBe('reserved-key');
+            // Value: protects=P-06 refuses every reserved name as a STATUS_TOKEN token, the one value the fold makes a key; fails_when=the check drops a name, tests the wrong field or record type; why_new=the reserved-token-name vector covers toString only; seam=none; no_claim=the fold's own defineProperty guard
+            expect(code(at('EVENTS', `{"seq":"R1.A.1","t":"STATUS_TOKEN","card":"SOR#108","token":"${key}","count":1}`))).withContext(`${key} as a status token`)
+                .toBe('reserved-key');
         }
         // The same words as values, or inside a longer key, are ordinary data.
         expect(code(at('EVENTS', '{"seq":"R1.A.1","t":"PASS","p":1,"x_toString":"constructor"}'))).toBe('ok');
+        // Value: protects=only a STATUS_TOKEN token is refused as a value (spec: no other 1.0 value becomes a key); fails_when=the check widens to any record's token or to every token name; why_new=no test parsed a non-reserved token or a CREATE_TOKEN token; seam=none; no_claim=whether the validator's schema accepts the CREATE_TOKEN
+        expect(code(at('EVENTS', '{"seq":"R1.A.1","t":"STATUS_TOKEN","card":"SOR#108","token":"advantage","count":1}'))).toBe('ok');
+        expect(code(at('EVENTS', '{"seq":"R1.A.1","t":"CREATE_TOKEN","p":1,"token":"toString","zone":"ground"}'))).toBe('ok');
+        // Value: protects=the token check runs only where a fold reads STATUS_TOKEN records ([P-06]); fails_when=it runs on every section again; why_new=the check was narrowed to SETUP, EVENTS and annotation lines; seam=none; no_claim=none beyond protects
+        expect(code(at('DECKS', '{"p":1,"t":"STATUS_TOKEN","token":"toString"}'))).toBe('ok');
+    });
+
+    // Value: protects=a header tag named by a reserved key is refused (§23), since a reader keys its header by tag name; fails_when=the tag-name check is dropped or misses a name; why_new=tag names were only checked for duplicates; seam=none; no_claim=a third-party reader's own header handling
+    it('rejects a header tag named by a reserved key', function () {
+        for (const key of RESERVED_KEYS) {
+            if ((/^[A-Za-z0-9]+$/).test(key)) {
+                expect(code(HEAD + `\n[${key} "x"]`)).withContext(key)
+                    .toBe('reserved-key');
+            }
+        }
+        expect(code(HEAD + '\n[XToString "x"]')).toBe('ok');
     });
 
     // The depth limit stops the scan as soon as it is passed, before any more nesting is tracked.

@@ -59,7 +59,10 @@ export interface Header {
     p1: string;              // display label, anonymized: "Player 1"
     p2: string;
     p1Leader: string; p1Base: string; p2Leader: string; p2Base: string;
-    result: 'P1' | 'P2' | 'Draw' | 'Incomplete';
+
+    /** A newer minor version may add an outcome (§18); a reader treats one it does not know
+     *  as `Incomplete`. The raw value is kept so a newer reader can still tell it apart. */
+    result: 'P1' | 'P2' | 'Draw' | 'Incomplete' | (string & Record<never, never>);
     reason: string;
     rounds: number;
 

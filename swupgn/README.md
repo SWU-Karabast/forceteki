@@ -7,14 +7,19 @@ Engine-independent reference reader for the SWU-PGN/1.0 game format. Informative
 - `parse(text, limits?)` -> structured document (header, story, decks, cards, setup, events,
   annotations). Throws a `SwuPgnError` whose `code` is from the spec's error table (§24) for a
   malformed file, and rejects a file over `limits` (`DEFAULT_LIMITS`: 16 MiB, 1 MiB per line,
-  1,000,000 records, depth 64) rather than reading part of it. A record with a key in
-  `RESERVED_KEYS` (`reserved-key`) or a major version other than `READER_MAJOR`
-  (`unsupported-major`) is malformed, so no consumer ever sees one.
+  1,000,000 records, depth 64) rather than reading part of it. `RESERVED_KEYS` is every
+  `Object.prototype` name plus `prototype` (spec §23): a record key, a header tag name, or a
+  `STATUS_TOKEN` `token` (in `SETUP`, `EVENTS` or an annotation's what-if `line`) that is one
+  of them (`reserved-key`), or a major version other than `READER_MAJOR`
+  (`unsupported-major`), makes the file malformed, so no consumer ever sees one.
+  `header.result` keeps an outcome a newer minor version added as written; treat one you do
+  not know as `Incomplete` (spec §18).
 - `validate(text)` -> conformance report: `level` (`malformed` … `complete`, spec §2.1) and
   `issues`, each with a `code` and a `severity`. Branch on `code`, never on `message`. The list
   stops at `MAX_ISSUES` (1000) with one `too-many-issues` warning; `level` counts every issue.
 - `fold(events)` / `stateAt(events, seq)` -> reconstructed board state (no rules engine);
-  `reduce(state, event)` is the per-event rule both apply between keyframes (spec §12)
+  `reduce(state, event)` is the per-event rule both apply between keyframes (spec §12). Events
+  built without `parse()` get the same guard: a `STATUS_TOKEN` naming a reserved key does nothing.
 - `render(doc, names?)` -> the story, as a strict renderer writes it (spec §16)
 - `checkKeyframes(events)` -> keyframe integrity report (spec §14). A conformant file reports no
   mismatch, so one that does means your fold has a rule wrong, not that the file is bad.

@@ -287,6 +287,11 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
                 .toContain('error:schema');
             expect(codes(bad)).withContext(tag).not.toContain('warning:unknown-value');
         }
+        // Value: protects=Perspective holds only seats, so any unknown value (not just P<n>) stays an error in a newer minor; fails_when=isHeaderSeat applies Result's P<digits> test to Perspective too; why_new=the loop above checks P3 only, which both rules reject; seam=none; no_claim=none beyond protects
+        const spectator = good.replace('[Rounds "2"]', '[Rounds "2"] [Perspective "Spectator"]').replace('SWU-PGN/1.0', 'SWU-PGN/1.1');
+        expect(spectator).toContain('[Perspective "Spectator"]');
+        expect(codes(spectator)).toContain('error:schema');
+        expect(codes(spectator)).not.toContain('warning:unknown-value');
     });
 
     // A minor version may add names to a vocabulary, never change its type.

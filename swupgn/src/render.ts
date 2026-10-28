@@ -26,7 +26,7 @@ function line(e: GameEvent, n: SidedResolver): string | null {
         if (typeof id === 'string' && id.startsWith('base@')) {
             return `${who(Number(id.slice(5)) as Seat)}'s base`;
         }
-        return n.nameOf(baseId(id)) + copySuffix(id);
+        return n.nameOf(id) + copySuffix(id);
     };
     // ` · `, not `, `: a card's name has its own comma between title and subtitle, so a
     // comma-joined list cannot be split back into cards. The board lines use the same dot.
@@ -118,7 +118,7 @@ function copySuffix(ref: string): string {
  * No new data: this is the keyframe the file already carries, laid out to be read.
  */
 function boardSummary(k: ReducedState, n: NameResolver): string[] {
-    const nm = (id: string) => n.nameOf(baseId(id)) + copySuffix(id);
+    const nm = (id: string) => n.nameOf(id) + copySuffix(id);
     const out: string[] = [];
     for (const seat of [1, 2] as Seat[]) {
         const p = k.players[seat];
@@ -182,17 +182,17 @@ function boardSummary(k: ReducedState, n: NameResolver): string[] {
 
 /** Move a card's shown side with the records that turn it over (see `render`). */
 function trackSides(e: GameEvent, backUp: Set<string>, names: NameResolver): void {
-    if (e.t === 'DEPLOY_LEADER' && names.backNameOf?.(e.card)) {
-        backUp.add(baseId(e.card));
+    if (e.t === 'DEPLOY_LEADER' && names.backNameOf?.(baseId(e.card))) {
+        backUp.add(e.card);
     } else if (e.t === 'MOVE' && e.to === 'base' && isArena(e.from)) {
-        backUp.delete(baseId(e.card));        // a Leader Unit going home shows its front again
-    } else if (e.t === 'MOVE' && e.from === 'base' && isArena(e.to) && names.backNameOf?.(e.card)) {
-        backUp.add(baseId(e.card));           // a leader leaving the base zone for an arena deployed
-    } else if (e.t === 'LEADER_FLIP' && names.backNameOf?.(e.card)) {
+        backUp.delete(e.card);        // a Leader Unit going home shows its front again
+    } else if (e.t === 'MOVE' && e.from === 'base' && isArena(e.to) && names.backNameOf?.(baseId(e.card))) {
+        backUp.add(e.card);           // a leader leaving the base zone for an arena deployed
+    } else if (e.t === 'LEADER_FLIP' && names.backNameOf?.(baseId(e.card))) {
         if (e.onStartingSide) {
-            backUp.delete(baseId(e.card));
+            backUp.delete(e.card);
         } else {
-            backUp.add(baseId(e.card));
+            backUp.add(e.card);
         }
     }
 }
@@ -210,9 +210,10 @@ export function render(doc: SwuPgnDocument, names?: NameResolver): string {
     // named by the side that is up, so a deployed Tarkin attacks as The Death Star.
     const backUp = new Set<string>();
     const n: SidedResolver = {
-        nameOf: (id) => (backUp.has(baseId(id)) ? base.backNameOf?.(id) : undefined) ?? base.nameOf(id),
-        backNameOf: (id) => base.backNameOf?.(id),
-        frontNameOf: (id) => base.nameOf(id),
+        // Sides are tracked per copy (a mirror match has two of one leader), names per card.
+        nameOf: (id) => (backUp.has(id) ? base.backNameOf?.(baseId(id)) : undefined) ?? base.nameOf(baseId(id)),
+        backNameOf: (id) => base.backNameOf?.(baseId(id)),
+        frontNameOf: (id) => base.nameOf(baseId(id)),
     };
     const out: string[] = [];
     let actionNum = 0;
@@ -221,11 +222,11 @@ export function render(doc: SwuPgnDocument, names?: NameResolver): string {
             // A keyframe states each leader's status, so the sides snap to it like the board does.
             for (const seat of [1, 2] as Seat[]) {
                 const leader = e.keyframe.players[seat]?.leader;
-                if (leader && base.backNameOf?.(leader.id)) {
+                if (leader && base.backNameOf?.(baseId(leader.id))) {
                     if (leader.deployed || leader.onStartingSide === false) {
-                        backUp.add(baseId(leader.id));
+                        backUp.add(leader.id);
                     } else {
-                        backUp.delete(baseId(leader.id));
+                        backUp.delete(leader.id);
                     }
                 }
             }

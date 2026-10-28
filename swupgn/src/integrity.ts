@@ -14,6 +14,12 @@ function sameSet(a: unknown, b: unknown): boolean {
     return JSON.stringify(norm(a)) === JSON.stringify(norm(b));
 }
 
+/** Two status-token maps hold the same names and counts, in whatever key order. */
+function sameTokens(a: unknown, b: unknown): boolean {
+    const norm = (x: unknown) => Object.entries(x && typeof x === 'object' ? x : {}).sort(([k1], [k2]) => (k1 < k2 ? -1 : k1 > k2 ? 1 : 0));
+    return JSON.stringify(norm(a)) === JSON.stringify(norm(b));
+}
+
 /**
  * Fields that the keyframe gate verifies, per seat.
  *
@@ -66,7 +72,7 @@ function diffCard(seq: string, seat: 1 | 2, e: CardInstanceState, g: CardInstanc
     if (e.experience !== g.experience) {
         out.push({ seq, path: `${base}.experience`, expected: e.experience, got: g.experience });
     }
-    if (JSON.stringify(e.statusTokens ?? {}) !== JSON.stringify(g.statusTokens ?? {})) {
+    if (!sameTokens(e.statusTokens, g.statusTokens)) {
         out.push({ seq, path: `${base}.statusTokens`, expected: e.statusTokens, got: g.statusTokens });
     }
     if (!sameSet(e.upgrades, g.upgrades)) {

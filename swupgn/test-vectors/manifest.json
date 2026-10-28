@@ -286,6 +286,59 @@
       ],
       "warnings": [],
       "about": "A toString key, which no reader can turn into text: the parser rejects it (§23)."
+    },
+    {
+      "file": "negative/reserved-token-name.swupgn",
+      "class": "negative",
+      "level": "malformed",
+      "errors": [
+        "reserved-key"
+      ],
+      "warnings": [],
+      "about": "A reserved name as a STATUS_TOKEN token, which the fold would make a key: the parser rejects it (§23)."
+    },
+    {
+      "file": "negative/nested-reserved-token.swupgn",
+      "class": "negative",
+      "level": "malformed",
+      "errors": [
+        "reserved-key"
+      ],
+      "warnings": [],
+      "about": "A reserved name as a STATUS_TOKEN token inside an annotation's what-if line, which a reader may fold: the parser rejects it (§23)."
+    },
+    {
+      "file": "negative/reserved-tag-name.swupgn",
+      "class": "negative",
+      "level": "malformed",
+      "errors": [
+        "reserved-key"
+      ],
+      "warnings": [],
+      "about": "A header tag named by a reserved key (hasOwnProperty), which a reader would make a key of its header: the parser rejects it (§23)."
+    },
+    {
+      "file": "negative/newer-minor-result.swupgn",
+      "class": "negative",
+      "level": "complete",
+      "errors": [],
+      "warnings": [
+        "newer-minor",
+        "unknown-value"
+      ],
+      "about": "A newer minor version with a Result outcome 1.0 does not know: a warning, because only P1 and P2 are seats (§18)."
+    },
+    {
+      "file": "negative/newer-minor-result-seat.swupgn",
+      "class": "negative",
+      "level": "well-formed",
+      "errors": [
+        "schema"
+      ],
+      "warnings": [
+        "newer-minor"
+      ],
+      "about": "A newer minor version with a Result naming a third seat: still an error, seats cannot grow (§18)."
     }
   ]
 }
