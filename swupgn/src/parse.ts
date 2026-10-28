@@ -59,17 +59,32 @@ function parseHeaderLine(line: string, lineNo: number, raw: Record<string, strin
 }
 
 /**
- * One pass over a JSON line before `JSON.parse` sees it. It measures the nesting depth, so a line
- * of ten thousand `[` is refused cheaply instead of being handed to every recursive consumer
- * downstream, and it finds the first key an object repeats. I-JSON forbids that (spec §4), and
- * `JSON.parse` would silently keep the last one where another language's parser keeps the first,
- * so two readers would fold the same line differently.
+ * Object keys that name the object model rather than data (spec §23). `__proto__` assigned with
+ * `obj[key] = …` replaces an object's prototype; an own `toString` or `valueOf` that is not a
+ * function makes the object impossible to turn into text, so every reader that prints or compares
+ * a field would throw. No record may carry one, so a parser rejects them all.
  */
-function scanJson(line: string): { depth: number; duplicateKey?: string } {
-    // One frame per open object or array; an object frame holds its keys so far.
-    const frames: { keys: Set<string> | null; expectKey: boolean }[] = [];
-    let max = 0;
+export const RESERVED_KEYS: ReadonlySet<string> = new Set(['__proto__', 'constructor', 'prototype', 'toString', 'valueOf']);
+
+interface ScanResult {
+    tooDeep: boolean;
+    duplicateKey?: string;
+    reservedKey?: string;
+}
+
+/**
+ * One pass over a JSON line before `JSON.parse` sees it. It stops at `maxDepth`, so a line of a
+ * million `{` is refused cheaply instead of being handed to every recursive consumer downstream.
+ * It finds the first key an object repeats: I-JSON forbids that (spec §4), and `JSON.parse` keeps
+ * the last of two where another language's parser keeps the first, so two readers would fold the
+ * line differently. And it finds the first reserved key.
+ */
+function scanJson(line: string, maxDepth: number): ScanResult {
+    // One frame per open object or array. An object frame collects its keys, lazily: most
+    // objects in a record are small, and an empty one never needs a set.
+    const frames: { isObject: boolean; keys: Set<string> | null; expectKey: boolean }[] = [];
     let duplicateKey: string | undefined;
+    let reservedKey: string | undefined;
     let stringStart = -1;
     for (let i = 0; i < line.length; i++) {
         const ch = line[i];
@@ -78,7 +93,7 @@ function scanJson(line: string): { depth: number; duplicateKey?: string } {
                 i++;
             } else if (ch === '"') {
                 const top = frames[frames.length - 1];
-                if (top?.keys && top.expectKey) {
+                if (top?.isObject && top.expectKey) {
                     top.expectKey = false;
                     const literal = line.slice(stringStart, i + 1);
                     let key: string | undefined;
@@ -88,10 +103,14 @@ function scanJson(line: string): { depth: number; duplicateKey?: string } {
                     } catch {
                         key = undefined;   // not JSON; JSON.parse rejects the whole line next
                     }
-                    if (key !== undefined && duplicateKey === undefined && top.keys.has(key)) {
-                        duplicateKey = key;
-                    }
                     if (key !== undefined) {
+                        top.keys ??= new Set<string>();
+                        if (duplicateKey === undefined && top.keys.has(key)) {
+                            duplicateKey = key;
+                        }
+                        if (reservedKey === undefined && RESERVED_KEYS.has(key)) {
+                            reservedKey = key;
+                        }
                         top.keys.add(key);
                     }
                 }
@@ -100,20 +119,24 @@ function scanJson(line: string): { depth: number; duplicateKey?: string } {
         } else if (ch === '"') {
             stringStart = i;
         } else if (ch === '{' || ch === '[') {
-            frames.push({ keys: ch === '{' ? new Set<string>() : null, expectKey: ch === '{' });
-            if (frames.length > max) {
-                max = frames.length;
+            if (frames.length >= maxDepth) {
+                return { tooDeep: true };
             }
+            frames.push({ isObject: ch === '{', keys: null, expectKey: ch === '{' });
         } else if (ch === '}' || ch === ']') {
             frames.pop();
         } else if (ch === ',') {
             const top = frames[frames.length - 1];
-            if (top?.keys) {
+            if (top?.isObject) {
                 top.expectKey = true;
             }
         }
     }
-    return { depth: max, ...(duplicateKey !== undefined ? { duplicateKey } : {}) };
+    return {
+        tooDeep: false,
+        ...(duplicateKey !== undefined ? { duplicateKey } : {}),
+        ...(reservedKey !== undefined ? { reservedKey } : {}),
+    };
 }
 
 /** A header count: base-10 digits only, within the safe-integer range. */
@@ -239,7 +262,8 @@ export function parse(text: string, limits: ParseLimits = {}): SwuPgnDocument {
             if (!game) {
                 throw new SwuPgnError('not-swupgn', 'the first line is not a [Game "SWU-PGN/<major>.<minor>"] tag alone on its line', i + 1);
             }
-            if (Number(game[1]) !== READER_MAJOR) {
+            // Compared as written: `01` is not this reader's `1` (the Game tag's schema agrees).
+            if (game[1] !== String(READER_MAJOR)) {
                 throw new SwuPgnError('unsupported-major', `SWU-PGN/${game[1]}.${game[2]} is major version ${game[1]}; this reader reads major version ${READER_MAJOR}`, i + 1);
             }
         }
@@ -284,8 +308,8 @@ export function parse(text: string, limits: ParseLimits = {}): SwuPgnDocument {
         if (++records > lim.maxRecords) {
             throw new SwuPgnError('too-many-records', `more than ${lim.maxRecords} records`, i + 1);
         }
-        const scanned = scanJson(line);
-        if (scanned.depth > lim.maxDepth) {
+        const scanned = scanJson(line, lim.maxDepth);
+        if (scanned.tooDeep) {
             throw new SwuPgnError('too-deep', `line ${i + 1} nests JSON deeper than ${lim.maxDepth}`, i + 1);
         }
         let rec: unknown;
@@ -296,6 +320,9 @@ export function parse(text: string, limits: ParseLimits = {}): SwuPgnDocument {
         }
         if (scanned.duplicateKey !== undefined) {
             throw new SwuPgnError('duplicate-key', `line ${i + 1} repeats the key "${scanned.duplicateKey}" in one object`, i + 1);
+        }
+        if (scanned.reservedKey !== undefined) {
+            throw new SwuPgnError('reserved-key', `line ${i + 1} uses the reserved key "${scanned.reservedKey}"`, i + 1);
         }
         switch (section) {
             case 'DECKS': decks.push(rec as DeckRecord); break;

@@ -17,8 +17,9 @@ function loadSchema(name: string): object {
     return JSON.parse(fs.readFileSync(path.join(SCHEMA_DIR, name), 'utf8')) as object;
 }
 
-// Compile validators once at module load to avoid re-compilation on every call.
-const ajv = new Ajv({ allErrors: true, strict: false });
+// Compile validators once at module load to avoid re-compilation on every call. `verbose` puts
+// the failing value on each error, which the newer-minor downgrade needs to see.
+const ajv = new Ajv({ allErrors: true, strict: false, verbose: true });
 const eventSchema = loadSchema('event.schema.json');
 const vHeader = ajv.compile(loadSchema('header.schema.json'));
 const vDeck = ajv.compile(loadSchema('deck.schema.json'));
@@ -38,6 +39,14 @@ const DEFEAT_REASONS: ReadonlySet<string> = new Set(
     ((eventSchema as { allOf?: SchemaBranch[] }).allOf ?? [])
         .find((b) => b.if?.properties?.t?.const === 'DEFEAT')?.then?.properties?.reason?.enum ?? []
 );
+// If the schema's shape changes, an empty set would read every DEFEAT as unknown and quietly cap
+// every file at verified. Fail loudly at load instead.
+if (!DEFEAT_REASONS.has('unknown')) {
+    throw new Error('validate: could not read the DEFEAT reason vocabulary from event.schema.json');
+}
+
+/** Header fields whose string values name a seat (§18: seats never grow in a minor version). */
+const SEAT_PATHS: ReadonlySet<string> = new Set(['/Result', '/Perspective']);
 
 /**
  * How many issues a validator lists before it stops (§24). A hostile file can break a rule on
@@ -61,9 +70,6 @@ export const READER_MINOR = 0;
 /** Spec §6.2: the complete zone vocabulary. */
 export const ZONES: readonly string[] = ['deck', 'hand', 'resource', 'ground', 'space', 'discard', 'base', 'outsideTheGame', 'capture'];
 
-/** Keys a reader MUST NOT treat as ordinary map keys (spec §23): they name the object model. */
-const RESERVED_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
-
 /**
  * A record line that is not a JSON object at all (`null`, a number, a bare array).
  *
@@ -78,7 +84,10 @@ function asRecord(rec: unknown): Record<string, unknown> | null {
         : null;
 }
 
-/** First reserved key or out-of-range number anywhere inside `value`, as an issue message. */
+/**
+ * First out-of-range number anywhere inside `value`, as an issue message. Reserved keys never get
+ * this far: the parser rejects a record that carries one (spec §23).
+ */
 function walkValues(value: unknown, where: string): { code: string; message: string } | null {
     if (typeof value === 'number') {
         return Number.isSafeInteger(value) ? null : { code: 'number-range', message: `${where}: ${value} is not an integer in ±(2^53−1)` };
@@ -96,9 +105,6 @@ function walkValues(value: unknown, where: string): { code: string; message: str
         return null;
     }
     for (const key of Object.keys(value)) {
-        if (RESERVED_KEYS.has(key)) {
-            return { code: 'reserved-key', message: `${where}: reserved key "${key}"` };
-        }
         const found = walkValues((value as Record<string, unknown>)[key], where);
         if (found) {
             return found;
@@ -166,10 +172,14 @@ export function validate(text: string): ConformanceReport {
             if (err.keyword === 'if') {
                 continue;
             }
-            // Only a vocabulary of names may grow in a minor version. Seat numbers may not (§18),
-            // so `"p":3` stays an error in a file of any minor version.
+            // Only a vocabulary of names may grow in a minor version, and only by more names. A
+            // seat may not (§18), so `"p":3` and `[Result "P3"]` stay errors in a file of any minor
+            // version; nor may a value change type, so `"reason":5` stays one too.
             const allowed = (err.params as { allowedValues?: unknown[] }).allowedValues;
-            if (newer && err.keyword === 'enum' && allowed?.every((v) => typeof v === 'string')) {
+            const namesOnly = allowed?.every((v) => typeof v === 'string') ?? false;
+            const seat = where === 'header' && SEAT_PATHS.has(err.instancePath);
+            const growable = err.keyword === 'enum' && typeof err.data === 'string' && namesOnly && !seat;
+            if (newer && growable) {
                 warn('unknown-value', `${where}${err.instancePath} has a value this reader does not know`);
             } else {
                 error('schema', `${where}${err.instancePath} ${err.message}`);
@@ -354,7 +364,7 @@ export function validate(text: string): ConformanceReport {
     }
     const unknownDefeats = [...doc.setup, ...doc.events].filter((e) => {
         const r = asRecord(e);
-        return r?.['t'] === 'DEFEAT' && (r['reason'] === 'unknown' || !DEFEAT_REASONS.has(String(r['reason'])));
+        return r?.['t'] === 'DEFEAT' && (typeof r['reason'] !== 'string' || r['reason'] === 'unknown' || !DEFEAT_REASONS.has(r['reason']));
     }).length;
     if (unknownDefeats > 0) {
         warn('unknown-defeat', `${unknownDefeats} DEFEAT record(s) whose reason reads as "unknown"`);

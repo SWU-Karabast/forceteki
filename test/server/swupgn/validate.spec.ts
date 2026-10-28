@@ -233,7 +233,7 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(validate(bad).level).toBe('well-formed');
     });
 
-    // Value: protects=an annotation is walked for reserved keys and unsafe numbers like a record is; fails_when=validate() stops calling walkValues on annotations; why_new=reserved-key and number-range were tested on events only; seam=none; no_claim=none
+    // Value: protects=an annotation is walked for unsafe numbers like a record is, and a reserved key in one is refused; fails_when=validate() stops calling walkValues on annotations, or the parser stops checking ANNOTATIONS keys; why_new=number-range was tested on events only; seam=none; no_claim=none
     it('rejects reserved keys and unsafe integers inside an annotation', function () {
         const ann = (extra: string) => good.replace('{"ref":"R2.A.1"', `{${extra},"ref":"R2.A.1"`);
         expect(codes(ann('"x":{"__proto__":{"polluted":true}}'))).toContain('error:reserved-key');
@@ -278,15 +278,33 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         const newer = codes(addEvent('{"seq":"R1.A.9","t":"PASS","p":3}').replace('SWU-PGN/1.0', 'SWU-PGN/1.1'));
         expect(newer).toContain('error:schema');
         expect(newer).not.toContain('warning:unknown-value');
+        // The header names seats as strings: a third one is not a new vocabulary name either.
+        for (const tag of ['[Result "Incomplete"]', '[Perspective "P1"]']) {
+            const base = tag.startsWith('[Perspective') ? good.replace('[Rounds "2"]', '[Rounds "2"] [Perspective "P1"]') : good;
+            const bad = base.replace(tag, tag.replace(/"[^"]+"\]$/, '"P3"]')).replace('SWU-PGN/1.0', 'SWU-PGN/1.1');
+            expect(bad).toContain('"P3"]');
+            expect(codes(bad)).withContext(tag)
+                .toContain('error:schema');
+            expect(codes(bad)).withContext(tag).not.toContain('warning:unknown-value');
+        }
+    });
+
+    // A minor version may add names to a vocabulary, never change its type.
+    it('keeps a wrong-typed vocabulary value an error in a newer minor version', function () {
+        const newer = codes(addEvent('{"seq":"R1.A.9","t":"DEFEAT","card":"SOR#108","reason":5}').replace('SWU-PGN/1.0', 'SWU-PGN/1.1'));
+        expect(newer).toContain('error:schema');
+        expect(newer).not.toContain('warning:unknown-value');
     });
 
     // Cross-record rule 5 covers every record. A deck record is open (§7), so its schema alone
     // no longer rejects an unknown key.
-    it('rejects reserved keys and unsafe integers in DECKS and CARDS records', function () {
+    it('rejects unsafe integers in DECKS and CARDS records, and a reserved key there as malformed', function () {
         const deck = good.replace('"deck":[["SOR#108",5]]}', '"deck":[["SOR#108",5]],"x":{"__proto__":{"polluted":true}}}');
         expect(deck).not.toBe(good);
         expect(codes(deck)).toContain('error:reserved-key');
+        expect(validate(deck).level).toBe('malformed');
         expect(codes(good.replace('"deck":[["SOR#108",5]]}', '"deck":[["SOR#108",9007199254740993]]}'))).toContain('error:number-range');
+        expect(codes(good.replace('%%% CARDS', '%%% CARDS\n{"id":"SOR#999","name":"X","n":1.5}'))).toContain('error:number-range');
         const card = good.replace('%%% CARDS', '%%% CARDS\n{"id":"SOR#999","name":"X","x":{"constructor":1}}');
         expect(card).not.toBe(good);
         expect(codes(card)).toContain('error:reserved-key');
@@ -295,10 +313,16 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
     // §24: a validator reports every issue it finds, so a file below valid still says the
     // writer lost records.
     it('reports recorder-errors and unknown-defeat even when the file has errors', function () {
-        const broken = addEvent('{"seq":"R1.A.1","t":"PASS","p":1}').replace('[Rounds "2"]', '[Rounds "2"] [RecorderErrors "2"]');
+        const broken = addEvent('{"seq":"R1.A.1","t":"PASS","p":1}\n{"seq":"R1.A.9","t":"DEFEAT","card":"SOR#108","reason":"unknown"}')
+            .replace('[Rounds "2"]', '[Rounds "2"] [RecorderErrors "2"]');
         expect(codes(broken)).toContain('error:duplicate-seq');
         expect(codes(broken)).toContain('warning:recorder-errors');
+        expect(codes(broken)).toContain('warning:unknown-defeat');
         expect(validate(broken).level).toBe('well-formed');
+        // A DEFEAT in SETUP counts too.
+        const inSetup = good.replace('%%% SETUP', '%%% SETUP\n{"seq":"R0.S.9","t":"DEFEAT","card":"SOR#108","reason":"unknown"}');
+        expect(inSetup).not.toBe(good);
+        expect(codes(inSetup)).toContain('warning:unknown-defeat');
     });
 
     // A hostile file can break a rule on every record; the list stops at the cap, the level
@@ -310,6 +334,18 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(report.issues[MAX_ISSUES].code).toBe('too-many-issues');
         expect(report.level).toBe('well-formed');
         expect(report.valid).toBe(false);
+
+        // With no errors at all, a warning that lowers the level can arrive after the cap. It is
+        // not listed, and the level still counts it.
+        const newTypes = Array.from({ length: MAX_ISSUES + 1 }, (_, n) => `{"seq":"R2.A.${100 + n}","t":"FUTURE_THING"}`).join('\n');
+        const late = good.replace('%%% EVENTS', `%%% EVENTS\n${newTypes}`)
+            .replace('[Rounds "2"]', '[Rounds "2"] [RecorderErrors "1"]')
+            .replace('SWU-PGN/1.0', 'SWU-PGN/1.1');
+        const lateReport = validate(late);
+        expect(lateReport.issues.filter((i) => i.severity === 'error')).toEqual([]);
+        expect(lateReport.issues.map((i) => i.code)).not.toContain('recorder-errors');
+        expect(lateReport.issues[MAX_ISSUES].code).toBe('too-many-issues');
+        expect(lateReport.level).toBe('verified');
     });
 
     it('skips X_ extension events and sections without a warning, and accepts new deck fields', function () {

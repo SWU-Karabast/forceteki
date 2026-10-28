@@ -100,8 +100,7 @@ describe('parse header numbers', function () {
         expect(parse(header('7')).header.rounds).toBe(7);
     });
 
-    // Rounds is required, so a corrupt value cannot fall back to "absent" the way an optional
-    // count does. It used to read as 0 and validate clean; now the file is not well-formed.
+    // A corrupt Rounds used to read as 0 and validate clean; now the file is not well-formed.
     it('rejects a Rounds tag that is not base-10 digits', function () {
         for (const bad of ['seven', '-1', '1.5', ' 4', '']) {
             expect(() => parse(header(bad))).withContext(`Rounds "${bad}"`)
@@ -116,11 +115,9 @@ describe('parse header numbers', function () {
         expect(parse(withErrors).header.recorderErrors).toBe(2);
     });
 
-    // A count that is not digits is CORRUPT, not zero. finiteOr ran before any schema saw the
-    // value, so `[Undos "garbage"]` became `undos: 0` and validated clean -- a mangled audit
-    // trail reporting, confidently, that no undo ever happened.
-    // A corrupt count is a broken file, not an absent tag: dropping `[RecorderErrors "x"]` would
-    // read as "no errors recorded" and let the file grade complete (spec §24 bad-count).
+    // A count that is not digits is a broken file, neither zero nor absent: reading
+    // `[RecorderErrors "x"]` as absent would say no records were lost and let the file grade
+    // complete (spec §5, §24 bad-count).
     it('rejects an optional count tag that is present but not base-10 digits', function () {
         for (const tag of ['RecorderErrors', 'Undos', 'WriterRevision', 'GameNumber']) {
             for (const bad of ['garbage', '1e309', '-1', '', '99999999999999999999']) {
@@ -184,7 +181,35 @@ describe('parse grammar (spec §4, Appendix B)', function () {
     it('refuses a file of another major version', function () {
         expect(code(HEAD.replace('SWU-PGN/1.0', 'SWU-PGN/2.0'))).toBe('unsupported-major');
         expect(code(HEAD.replace('SWU-PGN/1.0', 'SWU-PGN/0.9'))).toBe('unsupported-major');
+        // Compared as written, as the Game tag's schema does: `01` is not `1`.
+        expect(code(HEAD.replace('SWU-PGN/1.0', 'SWU-PGN/01.0'))).toBe('unsupported-major');
         expect(code(HEAD.replace('SWU-PGN/1.0', 'SWU-PGN/1.7'))).toBe('ok');
+    });
+
+    // §23: a key that names the object model is never data. `__proto__` can replace a prototype;
+    // an own `toString` or `valueOf` that is not a function makes the object impossible to print,
+    // so every reader that renders or compares the field throws. One check here protects them all.
+    it('rejects a reserved key anywhere in any record', function () {
+        const at = (section: string, line: string) => HEAD + `\n%%% ${section}\n` + line;
+        for (const key of ['__proto__', 'constructor', 'prototype', 'toString', 'valueOf']) {
+            expect(code(at('EVENTS', `{"seq":"R1.A.1","t":"PASS","p":1,"x":{"${key}":1}}`))).withContext(`${key} nested`)
+                .toBe('reserved-key');
+            expect(code(at('EVENTS', `{"seq":"R1.A.1","t":"DEFEAT","card":"SOR#108","reason":{"${key}":null}}`))).withContext(`${key} as a value`)
+                .toBe('reserved-key');
+            expect(code(at('DECKS', `{"p":1,"${key}":1}`))).withContext(`${key} in DECKS`)
+                .toBe('reserved-key');
+            expect(code(at('CARDS', `{"id":"SOR#108","name":"Wampa","${key}":1}`))).withContext(`${key} in CARDS`)
+                .toBe('reserved-key');
+            expect(code(at('ANNOTATIONS', `{"ref":"R1.A.1","text":"t","x":[{"${key}":1}]}`))).withContext(`${key} in ANNOTATIONS`)
+                .toBe('reserved-key');
+        }
+        // The same words as values, or inside a longer key, are ordinary data.
+        expect(code(at('EVENTS', '{"seq":"R1.A.1","t":"PASS","p":1,"x_toString":"constructor"}'))).toBe('ok');
+    });
+
+    // The depth limit stops the scan as soon as it is passed, before any more nesting is tracked.
+    it('refuses a line of a million open brackets at the depth limit', function () {
+        expect(code(HEAD + '\n%%% EVENTS\n' + '{'.repeat(1_000_000))).toBe('too-deep');
     });
 
     // I-JSON (spec §4): JSON.parse keeps the last of two equal keys, another language's parser
@@ -226,7 +251,7 @@ describe('parse grammar (spec §4, Appendix B)', function () {
         expect(code(HEAD + '\n%%% EVENTS\n' + '['.repeat(70) + ']'.repeat(70))).toBe('too-deep');
     });
 
-    // Value: protects=brackets inside a JSON string (free annotation text) do not count toward the depth limit; fails_when=jsonDepth stops tracking strings or escaped quotes and rejects a shallow record as too-deep; why_new=the too-deep case uses bare brackets only; seam=none; no_claim=the limit value itself
+    // Value: protects=brackets inside a JSON string (free annotation text) do not count toward the depth limit; fails_when=scanJson stops tracking strings or escaped quotes and rejects a shallow record as too-deep; why_new=the too-deep case uses bare brackets only; seam=none; no_claim=the limit value itself
     it('does not count brackets inside a JSON string toward the depth limit', function () {
         // The deep `{` run sits between escaped quotes, so a scanner that ends the string at `\"` sees it.
         const text = '"' + '['.repeat(70) + ' \\"' + '{'.repeat(70) + '\\" "';

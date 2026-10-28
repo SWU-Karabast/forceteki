@@ -180,9 +180,8 @@ A file is at one of five levels. Each level includes the ones before it.
    ([§6.2](#62-zone-names));
 4. a `MOVE` whose `from` equals its `to` names an arena: only an attachment changing in place
    moves from a zone to itself ([§10.1](#binding-an-attachment-to-its-host));
-5. no object key anywhere is `__proto__`, `constructor` or `prototype`, and every number is an
-   integer in the range ±(2^53−1), in every record of every section, `%%% DECKS` and
-   `%%% CARDS` included ([§23](#23-security-considerations));
+5. every number is an integer in the range ±(2^53−1), in every record of every section,
+   `%%% DECKS` and `%%% CARDS` included ([§23](#23-security-considerations));
 6. no keyframe list holds more than 1000 entries ([§13](#13-keyframes)).
 
 An `UNDO`'s `at` is exempt from rule 2: it names a record the undo deleted
@@ -200,9 +199,14 @@ warning, not an error: the reply is shown as a top-level note ([§15](#15-annota
 | Renderer | the story | every well-formed file `[R-01]` |
 | Consumer | — | every valid file. It SHOULD say so when a file is below verified `[C-01]` |
 
+A key that names the object model (`__proto__`, `constructor`, `prototype`, `toString`,
+`valueOf`) is not a cross-record rule: a parser rejects it, so a file that has one is malformed
+([§23](#23-security-considerations)).
+
 A validator reports issues with **error** severity (the file is below valid) and **warning**
-severity (the file is at least valid, or it is a pre-release file, which is otherwise well-formed
-and readable, but something is worth saying). The codes are in [§24](#24-error-model). A
+severity (something worth saying that does not by itself make the file invalid). A warning can
+appear beside errors, and some warnings cap the level, as [§24](#24-error-model) lists: a
+pre-release file is at most well-formed, a keyframe mismatch at most valid. A
 file's level is the highest one that every issue reported for it allows, by the "Level at most"
 column of [§24](#24-error-model). A validator folds a file to check its keyframes only when the
 file has no errors: folding a file that breaks a schema or a cross-record rule proves nothing.
@@ -332,8 +336,8 @@ requirement, by id. The linked section is where each one is defined.
   ([§4](#the-record-lines)).
 - `[P-05]` MAY cap the file size, line length, record count and nesting depth, and MUST reject
   a file over a cap rather than truncate it ([§23](#23-security-considerations)).
-- `[P-06]` MUST NOT let a key read from the file reach an object's prototype
-  ([§23](#23-security-considerations)).
+- `[P-06]` MUST reject a record that has a reserved key (`reserved-key`), and MUST NOT let a key
+  read from the file reach an object's prototype ([§23](#23-security-considerations)).
 - `[P-07]` MUST refuse a file of a major version it does not read (`unsupported-major`), and
   MUST reject a record that repeats a key within one object (`duplicate-key`)
   ([§4](#the-record-lines), [§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
@@ -507,9 +511,10 @@ JSON object, on one line, and MUST be I-JSON [[RFC7493](#26-references)]: no dup
 and numbers that are integers exactly representable in an IEEE double. That's it — this is
 NDJSON (newline-delimited JSON). Every number this version defines is an integer.
 
-Who checks what: a **parser** rejects a line that is not JSON (`bad-json`) and a line that
-repeats a key within one object (`duplicate-key`). Common JSON parsers keep the last of two equal
-keys and others keep the first, so two readers would fold such a line differently. A
+Who checks what: a **parser** rejects a line that is not JSON (`bad-json`), a line that repeats
+a key within one object (`duplicate-key`), and a line with a reserved key (`reserved-key`,
+[§23](#23-security-considerations)). Common JSON parsers keep the last of two equal keys and
+others keep the first, so two readers would fold a repeated key differently. A
 **validator** reports a line that is JSON but not an object (`not-object`) and a number outside
 the integer range (`number-range`): those break a rule of this document, not the JSON grammar.
 
@@ -2996,8 +3001,10 @@ The version lives in the `Game` tag: `"SWU-PGN/MAJOR.MINOR"`.
   `unknown` ([§6.4](#64-small-vocabularies)), so the file is at most verified
   (`unknown-defeat`, [§2.1](#21-document-conformance-levels)).
 
-Seat values are not a vocabulary a minor version may grow: a seat other than `1` or `2` is an
-error in a file of any minor version.
+Seat values are not a vocabulary a minor version may grow: a seat other than `1` or `2` (or,
+in the header's `Result` and `Perspective`, other than `P1` or `P2`) is an error in a file of any
+minor version. Nor may a minor version change a value's type: a vocabulary of names only gains
+names, so a number where a name belongs is an error too.
 
 In a file of the reader's **own** minor version, an unknown closed-vocabulary value is an error:
 no writer of that version may produce it.
@@ -3121,8 +3128,9 @@ one thing broken. A reader MUST reject or warn on each as the manifest says:
 | `bad-move` | a `MOVE` to `sideboard`, not a zone | well-formed | error `bad-zone` |
 | `duplicate-seq` | two records labelled `R1.A.1` | well-formed | error `duplicate-seq` |
 | `dangling-ref` | an annotation on a `seq` that is not there | well-formed | error `dangling-ref` |
-| `proto-token` | `__proto__` as a status token name in a keyframe | well-formed | error `reserved-key` |
-| `deck-reserved-key` | `__proto__` inside an extension field of a `DECKS` record | well-formed | error `reserved-key` |
+| `proto-token` | `__proto__` as a status token name in a keyframe | malformed | error `reserved-key` |
+| `deck-reserved-key` | `__proto__` inside an extension field of a `DECKS` record | malformed | error `reserved-key` |
+| `to-string-key` | a `toString` key inside an extension field of a `PASS` | malformed | error `reserved-key` |
 | `newer-minor-bad-seat` | `SWU-PGN/1.7`, with a `PASS` by seat 3 | well-formed | error `schema`, warning `newer-minor` |
 | `over-cap` | a keyframe hand of 1002 cards | well-formed | error `over-cap` |
 | `pre-release` | no `WriterRevision` | well-formed | warning `pre-release` |
@@ -3233,12 +3241,15 @@ defaults are 16 MiB, 1 MiB per line, 1,000,000 records and a depth of 64. A real
 ([§13](#13-keyframes)).
 
 **Keys from the file.** Status token names, the `players` map of a keyframe, and every other
-object key in a record come from the file. A reader MUST NOT let one reach an object's
-prototype `[P-06]`: in JavaScript a key of `__proto__` assigned with `obj[key] = …` replaces the
-object's prototype, and every object in the process can inherit from it. A valid file has no
-key named `__proto__`, `constructor` or `prototype` ([§2.1](#21-document-conformance-levels)),
-but a reader MUST be safe on a file that is not valid. Use own-property checks, maps without a
-prototype, or define properties explicitly. Only `1` and `2` are seats.
+object key in a record come from the file. Five keys name the object model rather than data, and
+no record may carry one anywhere: `__proto__`, `constructor`, `prototype`, `toString` and
+`valueOf`. A parser MUST reject a record that has one (`reserved-key`) `[P-06]`. In JavaScript a
+key of `__proto__` assigned with `obj[key] = …` replaces the object's prototype, and every object
+in the process can inherit from it; an own `toString` or `valueOf` that is not a function makes
+an object impossible to turn into text, so every reader that prints or compares the field
+throws. Rejecting them at the parser protects every consumer in one place. A reader MUST still
+not let a key reach an object's prototype: use own-property checks, maps without a prototype, or
+define properties explicitly. Only `1` and `2` are seats.
 
 **Numbers.** Every number in a valid file is an integer within ±(2^53−1). A reader MUST NOT
 assume one is in range: a count of `1e308` or a negative `amount` MUST NOT make it loop, allocate or
@@ -3296,6 +3307,7 @@ matched by a program.
 | `record-outside-section` | fatal | A record before the first banner | malformed |
 | `bad-json` | fatal | A line in a JSON section is not JSON | malformed |
 | `duplicate-key` | fatal | A line in a JSON section repeats a key within one object | malformed |
+| `reserved-key` | fatal | A record has an object key `__proto__`, `constructor`, `prototype`, `toString` or `valueOf` | malformed |
 | `schema` | error | A record or the header fails its schema | well-formed |
 | `not-object` | error | A record is JSON but not an object | well-formed |
 | `card-index` | error | A `%%% CARDS` entry lacks a string `id` or `name` | well-formed |
@@ -3303,7 +3315,6 @@ matched by a program.
 | `dangling-ref` | error | A `for` or an annotation `ref` names no `seq` | well-formed |
 | `bad-zone` | error | A `from`, `to` or `zone` outside the zone vocabulary | well-formed |
 | `same-zone-move` | error | A `MOVE` from a zone to itself that is not an arena | well-formed |
-| `reserved-key` | error | An object key `__proto__`, `constructor` or `prototype` | well-formed |
 | `number-range` | error | A number that is not an integer within ±(2^53−1) | well-formed |
 | `over-cap` | error | A keyframe list longer than 1000 | well-formed |
 | `pre-release` | warning | No `WriterRevision`: a pre-release file | well-formed |
@@ -3722,8 +3733,9 @@ This grammar is normative. It uses ABNF [[RFC5234](#26-references)] and its core
 (`ALPHA`, `DIGIT`, `DQUOTE`, `HTAB`, `LF`, `CRLF`, `WSP`). Where it and a prose rule seem to
 differ, the grammar governs the syntax and the prose governs the meaning. A `json-text` is a
 JSON text as RFC 8259 defines it, restricted to I-JSON [[RFC7493](#26-references)]: no object
-repeats a key. That a record is an object, and that its numbers are integers in range, are rules
-a validator checks (`not-object`, `number-range`), not part of the grammar.
+repeats a key. No object key is one of the reserved keys of [§23](#23-security-considerations).
+That a record is an object, and that its numbers are integers in range, are rules a validator
+checks (`not-object`, `number-range`), not part of the grammar.
 
 ### B.1 The file
 

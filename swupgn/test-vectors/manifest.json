@@ -188,12 +188,12 @@
     {
       "file": "negative/proto-token.swupgn",
       "class": "negative",
-      "level": "well-formed",
+      "level": "malformed",
       "errors": [
         "reserved-key"
       ],
       "warnings": [],
-      "about": "A reserved key in a keyframe map (§23)."
+      "about": "A reserved key (__proto__) as a status token name in a keyframe: the parser rejects it (§23)."
     },
     {
       "file": "negative/rounds-not-digits.swupgn",
@@ -258,12 +258,12 @@
     {
       "file": "negative/deck-reserved-key.swupgn",
       "class": "negative",
-      "level": "well-formed",
+      "level": "malformed",
       "errors": [
         "reserved-key"
       ],
       "warnings": [],
-      "about": "A reserved key in an open DECKS record: cross-record rule 5 covers every record (§2.1)."
+      "about": "A reserved key inside an open DECKS record: the parser rejects it in every record (§23)."
     },
     {
       "file": "negative/newer-minor-bad-seat.swupgn",
@@ -276,6 +276,16 @@
         "newer-minor"
       ],
       "about": "A seat outside 1 and 2 in a newer minor version: still an error, seats cannot grow (§18)."
+    },
+    {
+      "file": "negative/to-string-key.swupgn",
+      "class": "negative",
+      "level": "malformed",
+      "errors": [
+        "reserved-key"
+      ],
+      "warnings": [],
+      "about": "A toString key, which no reader can turn into text: the parser rejects it (§23)."
     }
   ]
 }

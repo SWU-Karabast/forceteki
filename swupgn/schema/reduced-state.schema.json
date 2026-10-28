@@ -75,7 +75,7 @@
         "experience": { "$ref": "#/$defs/count" },
         "statusTokens": {
           "type": "object",
-          "propertyNames": { "not": { "enum": ["__proto__", "constructor", "prototype"] } },
+          "propertyNames": { "not": { "enum": ["__proto__", "constructor", "prototype", "toString", "valueOf"] } },
           "additionalProperties": { "type": "integer", "minimum": 1 }
         },
         "captured": { "$ref": "#/$defs/ids" },
