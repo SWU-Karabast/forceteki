@@ -114,7 +114,9 @@ export class SwuPgnGameAdapter {
             // index would name the card by the side it happened to end the game on. Its entry
             // is an identity: the printed front, plus the other side's name.
             const back = read<string | null>(() => card?.cardData?.backSideTitle ?? null, null);
-            const front = (field: 'title' | 'subtitle') => read<string | null>(() => (back ? card?.cardData?.[field] : card?.[field]) ?? null, null);
+            // A copy (Clone) answers `title` with the copied card's name while it is one, so the
+            // printed card data is read first: the copied name is the STATS `name` (spec §10.1).
+            const front = (field: 'title' | 'subtitle') => read<string | null>(() => (back ? card?.cardData?.[field] : card?.cardData?.[field] ?? card?.[field]) ?? null, null);
             const title = front('title') ?? '';
             if (!title) {
                 return;
@@ -530,7 +532,7 @@ export class SwuPgnGameAdapter {
                 if (attached != null || read(() => cardKind(card), undefined) === 'upgrade') {
                     continue;
                 }
-                cards.push(this.buildSwuPgnCardInstance(card, zone === ZoneName.GroundArena ? 'ground' : 'space'));
+                cards.push(this.buildSwuPgnCardInstance(card, zone === ZoneName.GroundArena ? 'ground' : 'space', seat));
             }
         }
 
@@ -566,6 +568,11 @@ export class SwuPgnGameAdapter {
             // WHICH cards are in the row. The two counts above stay the authority on how many
             // are ready vs exhausted -- no record names the individual card that exhausted.
             resources: cardIds(read<any[]>(() => player.resources ?? [], [])),
+            // The cards in the row the OTHER seat owns (a stolen resource, a unit put into play as
+            // a resource under its defeater). Always written, often empty `[W-57]`: its presence is
+            // what tells the integrity check this keyframe states ownership.
+            foreignResources: cardIds(read<any[]>(() => (player.resources ?? []) as any[], [])
+                .filter((c: any) => read(() => this.swuPgnSeat(c.owner.id) !== seat, false))),
             // Only a base that HAS an Epic Action reports one; `epicActionSpent` throws on a base
             // without the ability, so the absence of the field means "this base has none".
             ...(read(() => typeof base?.epicActionSpent === 'boolean', false)
@@ -602,12 +609,15 @@ export class SwuPgnGameAdapter {
      * uses for its gain/removal records (`tokenUpgradeKind`), so a snapshot and the deltas that
      * lead to it can never disagree about a host. `upgrades[]` holds only printed cards.
      */
-    private buildSwuPgnCardInstance(card: any, zone: string): CardInstanceState {
+    private buildSwuPgnCardInstance(card: any, zone: string, seat: Seat): CardInstanceState {
         const upgrades = read<any[]>(() => (card.upgrades ?? []) as any[], []);
         let shields = 0;
         let experience = 0;
         const statusTokens: Record<string, number> = {};
         const plainUpgrades: string[] = [];
+        // Attached printed upgrades the other seat controls (spec §11, `[W-57]`): one played on an
+        // enemy unit, or one whose host changed hands (CR 8.27: the upgrade keeps its controller).
+        const upgradeControllers: Record<string, Seat> = {};
 
         for (const upgrade of upgrades) {
             const kind = read(() => tokenUpgradeKind(upgrade), null);
@@ -618,7 +628,12 @@ export class SwuPgnGameAdapter {
             } else if (kind) {
                 statusTokens[kind.status] = (statusTokens[kind.status] ?? 0) + 1;
             } else if (upgrade?.uuid != null) {
-                plainUpgrades.push(read(() => this.swuPgnCardId(upgrade.uuid), 'unknown'));
+                const id = read(() => this.swuPgnCardId(upgrade.uuid), 'unknown');
+                plainUpgrades.push(id);
+                const controller = read<Seat | null>(() => this.swuPgnSeat(upgrade.controller.id), null);
+                if (id !== 'unknown' && controller != null && controller !== seat) {
+                    upgradeControllers[id] = controller;
+                }
             }
         }
 
@@ -629,7 +644,9 @@ export class SwuPgnGameAdapter {
 
         // Live stats INCLUDING ability effects, read by the same function the recorder's STATS
         // records use, so the snapshot and the deltas agree by construction (spec §11).
-        const stats = read(() => liveStats(card), null);
+        const stats = read(() => liveStats(card, (c: any) => this.swuPgnCardId(c.uuid)), null);
+        // The owner, only when it is not the seat holding the card (a stolen unit).
+        const owner = read<Seat | null>(() => this.swuPgnSeat(card.owner.id), null);
 
         return {
             // `damage` and `exhausted` throw for a card in a zone where they don't apply,
@@ -643,7 +660,9 @@ export class SwuPgnGameAdapter {
             experience,
             statusTokens,
             captured,
-            ...(stats ? { power: stats.power, hp: stats.hp, keywords: stats.keywords } : {}),
+            ...(stats ?? {}),
+            ...(owner != null && owner !== seat ? { owner } : {}),
+            ...(Object.keys(upgradeControllers).length > 0 ? { upgradeControllers } : {}),
         };
     }
 

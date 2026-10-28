@@ -212,6 +212,10 @@ const DEFEAT_REASON_OF: Record<DefeatSourceType, DefeatReason> = {
 /** What a `STATS` record and a keyframe card both state about an in-play unit. */
 export interface LiveStats {
     power: number; hp: number; keywords: string[];
+    traits: string[];
+    blank?: true;
+    leaderUnit?: true;
+    copyOf?: string; name?: string; cost?: number; aspects?: string[];
 }
 
 /**
@@ -220,8 +224,16 @@ export interface LiveStats {
  * so the STATS deltas and the keyframe snapshot can never disagree. A numeric keyword is
  * `"raid 2"`; keywords the engine has blanked are left out; the list is sorted. Returns null
  * when the card cannot answer (not a unit, or not in a zone where stats apply).
+ *
+ * The rest of the unit's attributes ride along (spec §10.1 STATS, `[W-55]`): its current
+ * `traits`, sorted; `blank` only while it has lost ALL its abilities (CR 8.14.2: a partial
+ * blank, which keeps keywords or one card's grants, is not); `leaderUnit` only when an ability
+ * made it a leader unit (CR 3.4.7: a vehicle a leader pilots), never for the seat's own leader
+ * card, which is a leader unit by being one; and, only while the unit is a copy (CR 8.5,
+ * Clone), `copyOf` naming the copied card by `idOf`, with the copied `name`, `cost` and
+ * `aspects` as the copy now reads them. A field that cannot be read is left out.
  */
-export function liveStats(card: any): LiveStats | null {
+export function liveStats(card: any, idOf?: (card: any) => string): LiveStats | null {
     try {
         if (typeof card?.getPower !== 'function' || typeof card?.getHp !== 'function') {
             return null;
@@ -238,10 +250,37 @@ export function liveStats(card: any): LiveStats | null {
             keywords.push(typeof k.hasNumericValue === 'function' && k.hasNumericValue() ? `${name} ${k.value}` : name);
         }
         keywords.sort();
-        return { power: card.getPower(), hp: card.getHp(), keywords };
+        const stats: LiveStats = { power: card.getPower(), hp: card.getHp(), keywords, traits: liveTraits(card) };
+        if (readOr(() => card.isFullyBlanked?.() === true, false)) {
+            stats.blank = true;
+        }
+        if (readOr(() => card.isLeaderUnit?.() === true && card.isDeployableLeader?.() !== true, false)) {
+            stats.leaderUnit = true;
+        }
+        const copied = readOr<any>(() => (card.isClonedUnit === true ? card.getOngoingEffectValues(EffectName.CloneUnit)[0] : null), null);
+        const copyOf = copied != null && idOf ? readOr(() => idOf(copied), 'unknown') : 'unknown';
+        if (copyOf !== 'unknown') {
+            stats.copyOf = copyOf;
+            const title = readOr<string>(() => card.title, '');
+            const subtitle = readOr<string>(() => card.subtitle, '');
+            if (title) {
+                stats.name = subtitle ? `${title}, ${subtitle}` : title;
+            }
+            const cost = readOr<unknown>(() => card.printedCost, undefined);
+            if (typeof cost === 'number') {
+                stats.cost = cost;
+            }
+            stats.aspects = readOr<string[]>(() => [...(card.aspects ?? [])].map(String), []);
+        }
+        return stats;
     } catch {
         return null;
     }
+}
+
+/** A card's current traits, printed or gained, less any it lost: sorted, lower case as printed. */
+function liveTraits(card: any): string[] {
+    return readOr<string[]>(() => [...(card.traits ?? [])].map(String), []).sort();
 }
 
 /**
@@ -467,6 +506,15 @@ export class SwuPgnRecorder {
     private readonly lastStats = new Map<string, string>();
 
     /**
+     * The controller of each in-play upgrade an `OnUpgradeAttached` is about to re-attach (upgrade
+     * uuid -> seat), read at the event's `preResolve`, so its handler can tell that the attach
+     * took control of the upgrade (Pre Vizsla, spec §10.1 upgrade `TAKE_CONTROL`, `[W-56]`). The
+     * engine changes an attached upgrade's controller inside `attachTo` with no event of its own.
+     * Empty between events; held in each checkpoint and restored by `rollbackTo` all the same.
+     */
+    private readonly upgradeControllerBefore = new Map<string, Seat>();
+
+    /**
      * The MOVE into the resource row whose `exhausted` flag is not final yet.
      *
      * `Player.resourceCard` moves the card and only THEN sets `exhausted` (the regroup phase's
@@ -562,6 +610,7 @@ export class SwuPgnRecorder {
         errorCount: number;
         tokenParents: [string, { parent: any; kind: TokenUpgradeKind }][];
         lastStats: [string, string][];
+        upgradeControllerBefore: [string, Seat][];
         pendingResourceMove: { event: GameEvent; card: any } | null;
         effectIds: [string, string][];
         effectObjects: [string, any][];
@@ -787,6 +836,10 @@ export class SwuPgnRecorder {
             for (const [uuid, key] of boundary.lastStats) {
                 this.lastStats.set(uuid, key);
             }
+            this.upgradeControllerBefore.clear();
+            for (const [uuid, seat] of boundary.upgradeControllerBefore) {
+                this.upgradeControllerBefore.set(uuid, seat);
+            }
             this.restoreEffects(boundary);
             this.limitedUses.clear();
             for (const [card, pers] of boundary.limitedUses) {
@@ -860,6 +913,7 @@ export class SwuPgnRecorder {
                 errorCount: this.errorCount,
                 tokenParents: [...this.tokenParents.entries()],
                 lastStats: [...this.lastStats.entries()],
+                upgradeControllerBefore: [...this.upgradeControllerBefore.entries()],
                 pendingResourceMove: this.pendingResourceMove,
                 effectIds: [...this.effectIds.entries()],
                 effectObjects: [...this.effectObjects.entries()],
@@ -1418,8 +1472,9 @@ export class SwuPgnRecorder {
     }
 
     /**
-     * Write a `STATS` record for every in-play unit whose live power, HP or keywords differ from
-     * the last one written for it, and forget units that left play (so a return writes fresh).
+     * Write a `STATS` record for every in-play unit whose live power, HP, keywords or other
+     * attributes (`liveStats`) differ from the last one written for it, and forget units that
+     * left play (so a return writes fresh).
      *
      * Runs after every engine event, because that is the only honest granularity: a lasting
      * effect ("+3/+0 for this attack"), Raid, Grit, an upgrade landing or leaving -- all of it
@@ -1446,7 +1501,7 @@ export class SwuPgnRecorder {
                 if (unit?.uuid == null) {
                     continue;
                 }
-                const stats = liveStats(unit);
+                const stats = liveStats(unit, (c) => this.idOf(c));
                 if (!stats) {
                     continue;
                 }
@@ -1456,7 +1511,7 @@ export class SwuPgnRecorder {
                     continue;
                 }
                 this.lastStats.set(unit.uuid, key);
-                this.push({ seq: this.nextSeq(false), t: 'STATS', card: this.idOf(unit), power: stats.power, hp: stats.hp, keywords: stats.keywords });
+                this.push({ seq: this.nextSeq(false), t: 'STATS', card: this.idOf(unit), ...stats });
             }
         }
         for (const uuid of [...this.lastStats.keys()]) {
@@ -2522,8 +2577,24 @@ export class SwuPgnRecorder {
         // Normally-played, non-token upgrades are already covered by OnCardPlayed→PLAY_UPGRADE, so we
         // deliberately emit no token record for them here (a second PLAY_UPGRADE would corrupt the
         // fold); they only get their host named.
+        // Who controlled an in-play printed upgrade before an attach moves it (see
+        // `upgradeControllerBefore`). Observe-only: a read of the controller, nothing else.
+        this.game.on(`${EventName.OnUpgradeAttached}:preResolve`, (event: any) => {
+            try {
+                const upgrade = event?.upgradeCard;
+                if (upgrade?.uuid != null && upgrade.isInPlay?.() === true && !tokenUpgradeKind(upgrade)) {
+                    this.upgradeControllerBefore.set(upgrade.uuid, this.seatOf(upgrade.controller));
+                }
+            } catch (error) {
+                this.logError('upgradeControllerBefore', error);
+            }
+        });
         this.on(EventName.OnUpgradeAttached, (event: any) => {
             const upgrade = event?.upgradeCard;
+            const before = upgrade?.uuid != null ? this.upgradeControllerBefore.get(upgrade.uuid) : undefined;
+            if (upgrade?.uuid != null) {
+                this.upgradeControllerBefore.delete(upgrade.uuid);
+            }
             const parent = event?.parentCard ?? attachedHost(upgrade);
             if (!parent) {
                 return;
@@ -2537,6 +2608,15 @@ export class SwuPgnRecorder {
                 // plays an upgrade and the replay shows nothing happening.
                 if (!this.backfillAttachedTo(this.idOf(upgrade), this.targetRef(parent))) {
                     this.recordInPlaceAttachment(upgrade, 'upgrade', this.targetRef(parent));
+                }
+                // An attached upgrade that changed controller as it moved (Pre Vizsla takes it
+                // onto one of his own units) is the upgrade form of TAKE_CONTROL, written after
+                // the MOVE that names its new host (spec §10.1, `[W-56]`). A base upgrade has no
+                // such form (§21 open issue 2), and none of the engine's attaches can take one.
+                const now = this.seatOf(upgrade.controller);
+                const zone = this.normalizeZone(readOr(() => parent.zoneName, undefined));
+                if (before != null && before !== now && (zone === 'ground' || zone === 'space')) {
+                    this.push({ seq: this.nextSeq(false), t: 'TAKE_CONTROL', p: now, card: this.idOf(upgrade), zone, from: before });
                 }
                 return;
             }
@@ -2640,6 +2720,21 @@ export class SwuPgnRecorder {
                     ...(this.isInResourceRow(card) && card.exhausted === true ? { exhausted: true } : {}),
                 });
                 return;
+            }
+            // A card put into a row its owner does not control (Arquitens Assault Cruiser puts the
+            // unit it defeated into play as its controller's resource): ResourceCardSystem takes
+            // control inside the move and raises no OnTakeControl. The MOVE carried the counts and
+            // the row, so this TAKE_CONTROL has no `from` and names the owner instead (spec §10.1,
+            // `[W-56]`), which is what lists the card in the row's `foreignResources`.
+            if (card?.uuid != null && this.isInResourceRow(card)) {
+                const seat = this.seatOf(card.controller);
+                const owner = this.seatOf(card.owner);
+                const id = this.idOf(card);
+                const last = this.events[this.events.length - 1];
+                const alreadyWritten = last?.t === 'TAKE_CONTROL' && last.card === id && last.p === seat;
+                if (owner !== seat && !alreadyWritten) {
+                    this.push({ seq: this.nextSeq(false), t: 'TAKE_CONTROL', p: seat, card: id, zone: 'resource', owner });
+                }
             }
             // An exhausted entry is the MOVE's own `exhausted` flag (set when it settles), not an
             // EXHAUST_RESOURCES: writing both would count the card twice (spec [W-45]).
@@ -2779,6 +2874,10 @@ export class SwuPgnRecorder {
                 zone,
                 ...(movedByThisSteal ? {} : { from: (seat === 1 ? 2 : 1) as Seat }),
                 ...(exhausted ? { exhausted: true } : {}),
+                // A steal into the row that changed zone (Arquitens Assault Cruiser) has no
+                // `from`, so it names the owner: the fold lists the card as a foreign resource
+                // by it, and the schema requires it there (spec §10.1, `[W-56]`).
+                ...(movedByThisSteal && zone === 'resource' ? { owner: this.seatOf(card.owner) } : {}),
             });
         });
 
