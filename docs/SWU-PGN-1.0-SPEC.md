@@ -1346,7 +1346,7 @@ to `base`, with an `EXHAUST` beside it (a defeated Leader Unit comes back exhaus
 | `p` | 1 or 2 | yes | Who used it. |
 | `card` | string | yes | The card whose ability it is (`base@N` for a base's, [§6.3](#63-pointing-at-a-base)). |
 | `kind` | string | no | What sort of ability: `action`, `epic`, `triggered`, `keyword`, `replacement`, `constant`, `event`, `delayed`. |
-| `title` | string | no | Text that identifies the ability to a human, normally its printed text. It MAY contain the three markup forms below, which this format defines. A writer with no icon markup writes plain text, and a reader MUST accept both. |
+| `title` | string | no | Text that identifies the ability to a human: the ability's full printed text, not a short caption (below). It MAY contain the three markup forms below, which this format defines. A writer with no icon markup writes plain text, and a reader MUST accept both. |
 | `ability` | string | no | An identifier the writer chooses, stable only within one `Engine` product. A reader MUST NOT branch on it. |
 | `epic` | boolean | no | The ability was an Epic Action. Equivalent to `kind: "epic"`. |
 | `grantedBy` | string | no | The card whose text **gave** `card` this ability — a Fortify upgrade's "Attached base gains: …", an upgrade's "Attached unit gains: …". A card id, or `base@N`. Absent when the ability is `card`'s own printed text. |
@@ -1369,16 +1369,18 @@ and SHOULD state it.
 | `epic` | An Epic Action (CR 7.2.4). Its own kind because the rules track used/unused as game state (CR 1.16). |
 | `action` | Any other action ability (CR 7.2): a card's "Action:" ability, used as the player's action for the turn. |
 | `keyword` | The ability a keyword gives (CR 7.5), even when it resolves like a triggered ability: Shielded, Ambush, Restore, Raid and the rest. |
+| `replacement` | A replacement effect (CR 7.7.5), including one that prevents or changes damage before it is dealt. |
+| `delayed` | A delayed effect coming due (CR 7.7.4): an effect set up earlier in the game that resolves now. |
 | `triggered` | Any other triggered ability (CR 7.6): a "When played" / "On attack" / "When defeated" ability, fired by something else. |
 | `constant` | A constant ability (CR 7.3): active while the card is in play. |
 | `event` | An event card's own ability (CR 7.4). It follows the `PLAY_EVENT` that paid for it. |
-| `delayed` | A delayed effect coming due (CR 7.7.4): an effect set up earlier in the game that resolves now. |
-| `replacement` | A replacement effect (CR 7.7.5), including one that prevents or changes damage before it is dealt. |
 
-When more than one row applies, the first row that matches wins. An Epic Action is an
-action ability, and is `epic`. The ability Shielded gives (its When Played / When Deployed / When Created grant of a Shield
+When more than one row applies, the first row that matches wins. The effect rows
+(`replacement`, `delayed`) come before the ability rows they can arise from, because what a
+reader needs to know is how the effect behaves, not which kind of ability created it. An Epic
+Action is an action ability, and is `epic`. The ability Shielded gives (its When Played / When Deployed / When Created grant of a Shield
 token, CR 7.5.12) is `keyword`; the Shield token's own damage prevention (CR 3.7.6) is a
-replacement effect (CR 7.7.5), and is `replacement`.
+replacement effect (CR 7.7.5) created by a constant ability (CR 7.3), and is `replacement`.
 
 A writer MUST NOT omit `kind` for an ability it can classify.
 
