@@ -157,7 +157,8 @@ as described under Feedback above.
 Informative, not normative: examples, notes, the "In plain words" passages, the appendices
 marked informative, and any sentence about what the reference writer or reader happens to do.
 Each section states its rule first and then explains it in plain words. Where the two seem to
-differ, the rule wins.
+differ, the rule wins. A block that begins `> **Note (informative):**` is informative, wherever it
+appears.
 
 **Requirement ids.** Each requirement a conformance class must meet has an id, such as
 `[W-07]`, listed in [§3](#3-conformance-classes--who-has-to-do-what) with a link to the section
@@ -1085,7 +1086,9 @@ that trusts `for` files the card under the wrong player.
 The *recorder* genuinely cannot produce `for` — when those records arrive it does not
 yet know an action is about to follow, and guessing would mis-file a previous action's genuine
 consequences — but the **writer** holds the whole event list before serialising, so it fills them
-in then. The reference writer does this in `linkActionSteps()`.
+in then.
+
+> **Note (informative):** The reference writer does this in its `linkActionSteps()` function.
 
 Its rule, and a writer MUST NOT be looser: walk back from an action over the contiguous run of
 records that could precede it, stopping at the first top-level step or any other record type.
@@ -1165,7 +1168,7 @@ doesn't move the needle. They are documented here rather than with the pure note
 | `card` | string | yes | The card id. |
 | `from` | string | yes | Zone it left. |
 | `to` | string | yes | Zone it arrived in. |
-| `p` | 1 or 2 | no | Whose card. Real engine files always include this. |
+| `p` | 1 or 2 | no | Whose card. A writer SHOULD write it. |
 | `attachedTo` | string | no | The host this move attaches the card to: the card id of a unit, or `base@N` for an upgrade with Fortify. REQUIRED on the move that attaches a card — **into an arena** for a token-upgrade, a printed upgrade or a pilot; **into `base`** for a Fortify upgrade — and ABSENT on every other move, a move **out of** an arena or out of `base` included: exits are host-less, and a reader detaches on the zone transition ([the binding rule](#binding-an-attachment-to-its-host)). |
 | `exhausted` | boolean | no | On a move **out of `resource`** only: `true` when the card left the row exhausted, so the fold takes it from `resourcesExhausted` rather than `resourcesReady`. Absent means it left ready. A card played from the resource row pays for itself first, and a resource a friendly effect returns is swapped exhausted on the way out, so this is common. |
 | `kind` | `"unit"` or `"upgrade"` | no | The **role this move enacts**, not what the card is. REQUIRED whenever determinable — see below. |
@@ -2288,7 +2291,7 @@ The format covers the two-player game; multiplayer formats (CR 11–12) are out 
 
 ### The starting board
 
-`emptyState()` gives you:
+The empty state is:
 
 ```
 round: 0, phase: "setup", initiative: null, initiativeTaken: false
@@ -2587,13 +2590,15 @@ the wild; see [Appendix C](#appendix-c-reading-pre-release-files-informative).)
 A file is **verified** ([§2.1](#21-document-conformance-levels)) when folding its events
 reproduces every keyframe it carries. This section defines that check. A writer SHOULD emit
 only verified files and MUST report to its operator any file it emits that is not `[W-01]`.
-The reference reader's `checkKeyframes(events)` implements the check:
+The check is:
 
-1. Start from `emptyState()`.
+1. Start from the empty state ([§11](#11-the-reduced-state--the-board-you-build)).
 2. Fold forward normally.
 3. At every keyframe: **compare** your fold against the photo, write down every
    difference, then snap to the photo and carry on.
 4. Return `{ ok, mismatches }`.
+
+> **Note (informative):** The reference reader implements this check as `checkKeyframes(events)`.
 
 If `ok` is `false`, the deltas between two keyframes don't add up to what the engine
 reported — the file is under-recording something.
@@ -3246,6 +3251,13 @@ The review before publication (2026-10-28) changed what conforms, as well as wha
   reduced-state schema ([§11](#11-the-reduced-state--the-board-you-build)), and a conformance
   manifest with negative vectors ([§20](#20-conformance-suite--test-vectors)).
 
+Platform neutrality (2026-10-28):
+
+- Normative text no longer names a reference-implementation function or claims what one
+  implementation's files contain. Such remarks are informative notes, marked
+  `> **Note (informative):**` ([§2](#2-conventions-and-conformance--how-to-read-this-spec)). The
+  `p` field of `MOVE` is "A writer SHOULD write it". A test guards this.
+
 SWUForge's review of that text (2026-10-28) changed:
 
 - The reserved names are every property of `Object.prototype` and `prototype`, not five, and
@@ -3747,7 +3759,7 @@ begins, so the setup deltas are what it has to add up to:
 | `MOVE` + `RESOURCE` (`SOR#108:3`) | `handSize` 1, `resourcesReady` 2 |
 | the same two for Player 2 | `handSize` 1, `resourcesReady` 2 |
 | `PHASE_END` | nothing |
-| `ROUND_START {round:1, keyframe}` | the keyframe says exactly what the fold has built — hand 1, resources 2, each seat — plus what the fold could not know: `deckSize` 2 and each `leader` (both in the base zone, ready, Epic Action unused). It is authoritative: the state is **replaced** by it. `checkKeyframes()` compares first and finds nothing to report (`baseHp` and `deckSize` are exempt here, [§14](#14-integrity--checking-a-file-is-honest)). |
+| `ROUND_START {round:1, keyframe}` | the keyframe says exactly what the fold has built — hand 1, resources 2, each seat — plus what the fold could not know: `deckSize` 2 and each `leader` (both in the base zone, ready, Epic Action unused). It is authoritative: the state is **replaced** by it. A reader that compares first finds nothing to report (`baseHp` and `deckSize` are exempt here, [§14](#14-integrity--checking-a-file-is-honest)). |
 | `PHASE_START {phase:"action"}` | `phase = "action"` |
 | `EXHAUST_RESOURCES {p:1, amount:2}` | Player 1 pays for the Wampa: `resourcesReady` 2 → 0, `resourcesExhausted` 0 → 2. Under action `0`: the engine pays before it announces the play ([§9.1](#91-how-seq-is-built)). |
 | `MOVE hand → ground` (`SOR#108`) | `handSize` 1 → 0; a fresh `SOR#108` is added to player 1's `cards` — `exhausted: false`, no stats yet |
