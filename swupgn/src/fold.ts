@@ -514,14 +514,22 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
             owner.leader.deployed = false;
         }
     }
+    // The mirror: a leader that reaches an arena from its base is a Leader Unit in play, whether
+    // or not a DEPLOY_LEADER was written (CR 3.4.4.b puts one into play without deploying).
+    if (e.from === 'base' && ARENA_ZONES.has(e.to)) {
+        const owner = leaderOwner(s, e.card);
+        if (owner?.leader) {
+            owner.leader.deployed = true;
+        }
+    }
 
-    // Resource row: the two COUNTS and the MEMBERSHIP. A card enters ready (an
-    // EXHAUST_RESOURCES beside the move says otherwise); it leaves from whichever bucket
+    // Resource row: the two COUNTS and the MEMBERSHIP. A card enters ready unless the move
+    // says `exhausted` (a regroup resource does, CR 5.5.1.c); it leaves from whichever bucket
     // `exhausted` names. Which cards are in the row is a separate question from which of them
     // are exhausted -- the row's ready state stays counted, because no record names the
     // individual card that exhausted.
     if (e.to === 'resource' && e.from !== 'resource') {
-        countResource(ps, 1, false);
+        countResource(ps, 1, e.exhausted === true);
         addOnce(resourceList(ps), e.card);
     } else if (e.from === 'resource' && e.to !== 'resource') {
         const from = holder(s, e.p, ps, e.card, (x) => x.resources);
@@ -590,6 +598,10 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             s.round = e.round;
             s.initiativeTaken = false;
             setActive(s, e.active);
+            // The initiative holder is the round's first active player (CR 5.4.1.b).
+            if (isSeat(e.active)) {
+                s.initiative = e.active;
+            }
             break;
         case 'PHASE_START':
             s.phase = (e.phase as ReducedState['phase']);
@@ -760,6 +772,10 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             // captor now holds it: a unit in its `captured`, a base (Arrest) in its seat's
             // `baseCaptured`, created on first use like `baseUpgrades`.
             removeFromArenas(s, e.card);
+            // A token that leaves play ceases to exist (CR 3.7.3): nothing holds it.
+            if (isTokenId(e.card)) {
+                break;
+            }
             const baseSeat = typeof e.by === 'string' ? seatOfBaseRef(e.by) : null;
             const holder = baseSeat != null ? player(s, baseSeat) : undefined;
             if (holder) {

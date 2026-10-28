@@ -158,6 +158,28 @@
       "about": "A Fortify upgrade attached to the other seat's base (§10.3, [V-06])."
     },
     {
+      "file": "negative/token-to-hand.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "token-zone"
+      ],
+      "warnings": [],
+      "about": "A token that leaves play for hand instead of outsideTheGame (§10.1, [V-07])."
+    },
+    {
+      "file": "negative/round-start-no-active.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "round-start-active"
+      ],
+      "warnings": [],
+      "about": "A ROUND_START with no active seat (§10.5, [V-08])."
+    },
+    {
       "file": "negative/result-mismatch.swupgn",
       "class": "negative",
       "writer": "hand",

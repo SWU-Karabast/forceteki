@@ -1067,3 +1067,37 @@ describe('fold undeploy', function () {
         expect(plain(fold(board2))).toEqual(plain(fold(board)));
     });
 });
+
+// Wrong-board fixes (CR 5.4.1.b, 5.5.1.c, 3.4.4.b, 3.7.3).
+describe('fold wrong-board fixes', function () {
+    const seat = (n: 1 | 2, extra: object = {}) => ({ seat: n, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [], ...extra });
+    const keyframe = (extra1: object = {}) => ({ round: 1, phase: 'action', initiative: 1, initiativeTaken: false, players: { 1: seat(1, extra1), 2: seat(2) } });
+
+    it('ROUND_START sets the initiative to its active seat', function () {
+        const s = fold([{ seq: 'R1.start', t: 'ROUND_START', round: 1, active: 2 }] as any);
+        expect(s.initiative).toBe(2);
+        expect(s.initiativeTaken).toBe(false);
+    });
+
+    it('a resource move into the row exhausted is counted once', function () {
+        const start: any = { seq: 'R1.start', t: 'ROUND_START', round: 1, active: 1, keyframe: keyframe({ resourcesReady: 2 }) };
+        const move = (extra: object) => ({ seq: 'R1.G.1', t: 'MOVE', card: 'A', from: 'hand', to: 'resource', p: 1, ...extra });
+        const exhausted = fold([start, move({ exhausted: true })] as any).players[1];
+        expect([exhausted?.resourcesReady, exhausted?.resourcesExhausted]).toEqual([2, 1]);
+        expect(fold([start, move({})] as any).players[1]?.resourcesReady).toBe(3);
+    });
+
+    it('a leader moving from base into an arena is deployed without a DEPLOY_LEADER', function () {
+        const start: any = { seq: 'R1.start', t: 'ROUND_START', round: 1, active: 1, keyframe: keyframe({ leader: { id: 'X', deployed: false, exhausted: false, epicActionUsed: false } }) };
+        const s = fold([start, { seq: 'R1.A.1', t: 'MOVE', card: 'X', from: 'base', to: 'ground', p: 1 }] as any);
+        expect(s.players[1]?.leader?.deployed).toBe(true);
+    });
+
+    it('a CAPTURE of a token holds nothing', function () {
+        const s = fold([
+            { seq: 'R1.A.1', t: 'MOVE', card: 'U', from: 'hand', to: 'ground', p: 1, kind: 'unit' },
+            { seq: 'R1.A.2', t: 'CAPTURE', card: 'TOKEN:battle-droid#1', by: 'U' },
+        ] as any);
+        expect(s.players[1]?.cards.find((c) => c.id === 'U')?.captured).toEqual([]);
+    });
+});

@@ -266,10 +266,10 @@ requirement, by id. The linked section is where each one is defined.
 - `[W-13]` MUST write `RecorderErrors` in the header if any record was lost while recording
   ([§5.2](#52-optional-tags)). A file that silently lost records MUST NOT look complete.
 - `[W-14]` MUST record the resource row as counts: an `EXHAUST_RESOURCES` for every resource that
-  becomes exhausted (a cost paid, an ability, a card resourced exhausted), a `READY_RESOURCES`
+  becomes exhausted other than by entering the row (a cost paid, an ability), a `READY_RESOURCES`
   accounting for every one that readies — one record per unbroken run, not one per resource —
-  and `exhausted: true` on a `MOVE` out of `resource` when the card left exhausted
-  ([§10.1](#101-events-that-carry-board-detail)).
+  and `exhausted: true` on a `MOVE` into or out of `resource` when the card entered or left
+  exhausted ([§10.1](#101-events-that-carry-board-detail)).
 - `[W-15]` MUST name the host with `attachedTo` on the `MOVE` that attaches a card, and MUST NOT
   name one on any `MOVE` out of an arena or out of `base` — exits are host-less
   ([§10.1](#binding-an-attachment-to-its-host)).
@@ -354,6 +354,16 @@ requirement, by id. The linked section is where each one is defined.
   ([§12.1](#121-the-move-rule-the-big-one)).
 - `[W-44]` MUST NOT write a game with more than two players (CR 11-12)
   ([§1](#1-introduction--what-this-is), [§11](#what-the-board-covers-against-the-rules)).
+- `[W-45]` MUST write `exhausted: true` on a `MOVE` into `resource` when the card enters the row
+  exhausted (a card resourced in the regroup phase does, CR 5.5.1.c; so does one an ability puts
+  there exhausted), and MUST NOT also write an `EXHAUST_RESOURCES` for it
+  ([§10.1](#101-events-that-carry-board-detail)).
+- `[W-46]` MUST write `active` on every `ROUND_START`: the seat that holds the initiative that
+  round, the round's first active player (CR 5.4.1.b)
+  ([§10.1](#101-events-that-carry-board-detail)).
+- `[W-47]` MUST write `outsideTheGame` as the `to` of every `MOVE` of a `TOKEN:` id out of an
+  arena or out of `base`, and MUST NOT write a `CAPTURE` for a token: a token that leaves play
+  ceases to exist (CR 3.7.3, 8.33.5) ([§10.1](#101-events-that-carry-board-detail)).
 
 ### The Parser (reads the syntax)
 
@@ -392,6 +402,10 @@ requirement, by id. The linked section is where each one is defined.
 - `[V-06]` MUST report a Fortify upgrade attached to the other seat's base: a `MOVE` into `base`
   whose `attachedTo` is `base@N`, or a `PLAY_UPGRADE` whose `target` is `base@N`, with N not the
   record's `p` (`fortify-host`, error) ([§10.3](#103-homeworlds-fortify-beast-and-weakness)).
+- `[V-07]` MUST report a `MOVE` of a `TOKEN:` id out of an arena or out of `base` to any zone
+  but `outsideTheGame` (`token-zone`, error) ([§10.1](#101-events-that-carry-board-detail)).
+- `[V-08]` MUST report a `ROUND_START` with no `active` seat (`round-start-active`, error)
+  ([§10.1](#101-events-that-carry-board-detail)).
 
 ### The Folder (rebuilds the board)
 
@@ -1208,7 +1222,7 @@ doesn't move the needle. They are documented here rather than with the pure note
 | `to` | string | yes | Zone it arrived in. |
 | `p` | 1 or 2 | no | Whose card. A writer SHOULD write it. |
 | `attachedTo` | string | no | The host this move attaches the card to: the card id of a unit, or `base@N` for an upgrade with Fortify. REQUIRED on the move that attaches a card — **into an arena** for a token-upgrade, a printed upgrade or a pilot; **into `base`** for a Fortify upgrade — and ABSENT on every other move, a move **out of** an arena or out of `base` included: exits are host-less, and a reader detaches on the zone transition ([the binding rule](#binding-an-attachment-to-its-host)). |
-| `exhausted` | boolean | no | On a move **out of `resource`** only: `true` when the card left the row exhausted, so the fold takes it from `resourcesExhausted` rather than `resourcesReady`. Absent means it left ready. A card played from the resource row pays for itself first, and a resource a friendly effect returns is swapped exhausted on the way out, so this is common. |
+| `exhausted` | boolean | no | On a move **into or out of `resource`** only. Out: `true` when the card left the row exhausted, so the fold takes it from `resourcesExhausted` rather than `resourcesReady`; absent means it left ready. A card played from the resource row pays for itself first, and a resource a friendly effect returns is swapped exhausted on the way out, so this is common. Into: `true` when the card entered the row exhausted, so the fold counts it in `resourcesExhausted`; absent means it entered ready. A card resourced in the regroup phase enters exhausted (CR 5.5.1.c, 1.5.4.b), one resourced in setup enters ready `[W-45]`. |
 | `kind` | `"unit"` or `"upgrade"` | no | The **role this move enacts**, not what the card is. REQUIRED whenever determinable — see below. |
 
 **`MOVE` is the most important event in the format.** It is the *single source of truth*
@@ -1560,6 +1574,10 @@ took it off the board. This record files it under its captor, idempotently:
   phase.
 - `by` is absent, or names nothing you track → the card is held nowhere in the fold. It is out
   of play either way.
+- `card` is a `TOKEN:` id → nothing. A token that leaves play ceases to exist (CR 3.7.3, 8.33.5),
+  so it is never captured: its exit is a `MOVE` to `outsideTheGame`, a writer MUST NOT write a
+  `CAPTURE` for it `[W-47]`, and a `MOVE` of a token out of an arena or out of `base` to any
+  other zone is a `token-zone` error `[V-07]`. A reader ignores a `CAPTURE` of a token id.
 
 **`RESCUE` — `card` returned to play under `p`, its owner.**
 
@@ -1593,8 +1611,9 @@ A reader that draws the resource row needs both. `EXHAUST_RESOURCES` moves `min(
 A writer emits `EXHAUST_RESOURCES` for **every** way a resource becomes exhausted — a cost
 paid (the `amount` is what was actually paid, after aspect penalties, discounts and Exploit;
 `cost` on the play record stays the printed cost), an ability exhausting resources, a single
-resource card exhausted by name, and a card an ability puts into the row exhausted (its `MOVE`
-into `resource` counted it ready, so it is one more exhaustion). It emits `READY_RESOURCES` the
+resource card exhausted by name. A card that enters the row exhausted is not one of these: its
+`MOVE` into `resource` carries `exhausted: true` and counts it `[W-45]`, so an
+`EXHAUST_RESOURCES` for it would count it twice. It emits `READY_RESOURCES` the
 same way, and an ability that readies several says how many. A reader MUST tolerate an `amount`
 larger than the number actually exhausted — it moves what it finds and no more.
 
@@ -1608,8 +1627,8 @@ another record's `for` or an annotation's `ref` points at is never merged away: 
 its seq, and the pointer would be left citing nothing. Per-card `READY` is untouched — those name
 a card, so each one says something.
 
-A card that **leaves** the row is counted by its `MOVE`, in the bucket the move's `exhausted`
-flag names ([`MOVE`](#101-events-that-carry-board-detail)).
+A card that **enters** or **leaves** the row is counted by its `MOVE`, in the bucket the move's
+`exhausted` flag names ([`MOVE`](#101-events-that-carry-board-detail)).
 
 ---
 
@@ -1901,15 +1920,16 @@ for a writer to remember.
 
 ---
 
-**`ROUND_START`** — field `round`; optional `active`, `ms` and `keyframe`. Sets the round
-number, and `active` when present. See [§13](#13-keyframes) for what `keyframe` does.
+**`ROUND_START`** — fields `round` and `active`; optional `ms` and `keyframe`. Sets the round
+number and `active`, and the initiative to `active`: the initiative holder is the first active
+player of the round (CR 5.4.1.b). A writer MUST state it on every `ROUND_START` `[W-46]`. See [§13](#13-keyframes) for what `keyframe` does.
 
 **`PHASE_START`** — field `phase`; optional `active` and `ms`. Sets the phase, and `active`
 when present.
 
 `active` is the seat whose turn it is, `1` or `2`. The writer states it whenever the engine has
-an action-phase active player, so the action phase's `PHASE_START` and every `ROUND_START`
-carry it, and the setup and regroup `PHASE_START`s do not
+an action-phase active player, so the action phase's `PHASE_START` carries it, and every
+`ROUND_START` MUST (`round-start-active`, `[V-08]`); the setup and regroup `PHASE_START`s do not
 ([§11](#11-the-reduced-state--the-board-you-build)). `ms` is in [§5.2.1](#521-timing-ms).
 
 **`CLAIM_INITIATIVE`** — field `p`. Sets who has initiative.
@@ -2466,14 +2486,17 @@ are no-ops beside their own move.
 - moving *into* `deck` from somewhere else → `deckSize + 1`
 - moving *out of* `deck` to somewhere else → `deckSize - 1` (never below 0)
 
-**1c. The leader coming home**: a move from an arena to `base` by the card the seat's
-`leader.id` names → `leader.deployed = false`. (An `EXHAUST` beside it sets its flag.)
+**1c. The leader coming home, and going out**: a move from an arena to `base` by the card the
+seat's `leader.id` names → `leader.deployed = false`. (An `EXHAUST` beside it sets its flag.) The
+mirror: a move from `base` into an arena by that card → `leader.deployed = true`, whether or not
+a `DEPLOY_LEADER` was written (a Leader can enter play without being deployed, CR 3.4.4.b).
 
 **2. Resource row** — two counts, `resourcesReady` and `resourcesExhausted`
 
-- moving *into* `resource` from somewhere else → `resourcesReady + 1`, and add `card` to
-  `resources` (once by id). A card enters the row ready; if an ability put it there exhausted,
-  an `EXHAUST_RESOURCES` beside the move says so ([§10.1](#101-events-that-carry-board-detail)).
+- moving *into* `resource` from somewhere else → `resourcesExhausted + 1` if the move carries
+  `exhausted: true`, else `resourcesReady + 1`; and add `card` to `resources` (once by id). A
+  card enters the row ready unless the move says otherwise
+  ([§10.1](#101-events-that-carry-board-detail)).
 - moving *out of* `resource` to somewhere else → `resourcesExhausted - 1` if the move
   carries `exhausted: true`, else `resourcesReady - 1` (never below 0); and remove `card` from
   `resources`.
@@ -2529,7 +2552,7 @@ twice.
 
 | `t` | What you do |
 |---|---|
-| `ROUND_START` | `round = event.round`; `initiativeTaken = false`; `active = event.active` when it is `1` or `2` |
+| `ROUND_START` | `round = event.round`; `initiativeTaken = false`; `active = event.active` when it is `1` or `2`, and then `initiative = event.active` (the initiative holder is the round's first active player, CR 5.4.1.b) |
 | `PHASE_START` | `phase = event.phase`; `active = event.active` when it is `1` or `2` |
 | `CLAIM_INITIATIVE` | `initiative = event.p`; `initiativeTaken = true` |
 | `PLAY`, `PLAY_SMUGGLE` | place `card` in `zone ?? "ground"` — **idempotent by id**: if already tracked, just set its zone. The paired `MOVE` reports the same arrival, and pushing on both duplicates every unit in play |
@@ -2540,7 +2563,7 @@ twice.
 | `LEADER_FLIP` | that seat's `leader.onStartingSide = event.onStartingSide` — the stated face, so applying it twice is the same as once. Find the leader by `card`, falling back to the record's `p` (these leaders never deploy, so early in a file no `DEPLOY_LEADER` has named the id). If that seat has no `leader` yet, create one first: `{ id: card, deployed: false, exhausted: false, epicActionUsed: false }`. A record with no `card` is ignored |
 | `STATS` | if `card` is tracked → set its `power`, `hp`, and `keywords` (sorted) when given |
 | `TAKE_CONTROL` | arena `zone` → move the card entry from the other seat's `cards` to `players[p].cards`; `resource` with `from` → shift one resource from `from` to `p`, in the exhausted bucket if `exhausted` else the ready one, and move `card` from `players[from].resources` to `players[p].resources`; `base` with `from` → shift one credit (or the Force) from `from` to `p`; otherwise nothing ([§10.1](#take_control)) |
-| `CAPTURE` | remove `card` from every seat's `cards` (its `MOVE` already did); if `by` is `base@N`, push `card` onto `players[N].baseCaptured` (created if absent); else if `by` names a tracked card, push `card` onto its `captured`; both idempotently |
+| `CAPTURE` | remove `card` from every seat's `cards` (its `MOVE` already did); **nothing more when `card` is a `TOKEN:` id** (a token that leaves play holds nowhere, CR 3.7.3); else if `by` is `base@N`, push `card` onto `players[N].baseCaptured` (created if absent); else if `by` names a tracked card, push `card` onto its `captured`; both idempotently |
 | `RESCUE` | `detach(state, card)` — the `MOVE` out of `capture` beside it places the card |
 | `EXHAUST_RESOURCES` | `n = min(amount, resourcesReady)`; `resourcesReady -= n`; `resourcesExhausted += n` |
 | `READY_RESOURCES` | `n = min(amount, resourcesExhausted)`; `resourcesExhausted -= n`; `resourcesReady += n` |
@@ -2613,8 +2636,9 @@ state is thrown away and the keyframe takes its place. Everything below follows 
   conforming reader with no players at all.
 - A partial or empty `players` map is **non-conformant**. If you can't build a complete
   snapshot, **omit the keyframe entirely**. A `ROUND_START` or `ROUND_END` with no keyframe
-  is perfectly valid and completely harmless — the reader just keeps folding deltas. Never
-  ship a partial one.
+  is perfectly valid — the reader just keeps folding deltas, and a `ROUND_START` still states
+  the initiative holder through `active`. It is not harmless to leave out `active`: without it
+  the initiative is whatever the last `CLAIM_INITIATIVE` left. Never ship a partial keyframe.
 - No list in a keyframe (`cards`, `hand`, `discard`, `resources`, `baseUpgrades`, `baseCaptured`, a card's
   `upgrades` and `captured`) holds more than 1000 entries: a writer MUST NOT write one that does. A card's `captured` may be absent (a
   file older than the field), but when present it is a list. A real game never comes close; a reader treats a
@@ -3560,6 +3584,8 @@ matched by a program.
 | `bad-token-name` | error | A `TOKEN:` id, or a `STATUS_TOKEN.token`, that breaks the token-name grammar ([§6.1](#the-token-grammar)) | well-formed |
 | `deck-build-move` | error | A `MOVE` from `outsideTheGame` into `deck` (`[W-41]`, [§10.1](#101-events-that-carry-board-detail)) | well-formed |
 | `credit-zone` | error | A `MOVE` of a `TOKEN:credit…` id from or into `resource`; a Credit token is recorded in `base` ([§6.2](#62-zone-names), `[W-42]`) | well-formed |
+| `token-zone` | error | A `MOVE` of a `TOKEN:` id out of an arena or out of `base` to a zone other than `outsideTheGame`; a token that leaves play ceases to exist ([§10.1](#101-events-that-carry-board-detail), `[V-07]`) | well-formed |
+| `round-start-active` | error | A `ROUND_START` with no `active` seat ([§10.1](#101-events-that-carry-board-detail), `[V-08]`) | well-formed |
 | `fortify-host` | error | A Fortify upgrade attached to the other seat's base: a `MOVE` into `base` with `attachedTo: "base@N"`, or a `PLAY_UPGRADE` with `target: "base@N"`, where N is not the record's `p` ([§10.3](#103-homeworlds-fortify-beast-and-weakness), `[V-06]`) | well-formed |
 | `same-zone-move` | error | A `MOVE` from a zone to itself that is not an arena | well-formed |
 | `result-mismatch` | error | The header's `Result` disagrees with the last `GAME_END.winner`, or is not `Incomplete` in a file with no `GAME_END` ([§10.2](#102-events-that-are-just-notes)) | well-formed |
@@ -3796,7 +3822,7 @@ strict renderer MUST turn it into A.3, exactly.
 {"seq":"R0.S.20","t":"MOVE","card":"SOR#045:3","from":"hand","to":"resource","p":2,"kind":"unit","for":"R0.S.21"}
 {"seq":"R0.S.21","t":"RESOURCE","p":2,"card":"SOR#045:3"}
 {"seq":"R0.S.end","t":"PHASE_END","phase":"setup"}
-{"seq":"R1.start","t":"ROUND_START","round":1,"keyframe":{"round":1,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#045"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
+{"seq":"R1.start","t":"ROUND_START","round":1,"active":1,"keyframe":{"round":1,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#045"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
 {"seq":"R1.A.start","t":"PHASE_START","phase":"action"}
 {"seq":"R1.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R1.A.1"}
 {"seq":"R1.A.0b","t":"MOVE","card":"SOR#108","from":"hand","to":"ground","p":1,"kind":"unit","for":"R1.A.1"}
@@ -3813,15 +3839,16 @@ strict renderer MUST turn it into A.3, exactly.
 {"seq":"R1.G.4","t":"MOVE","card":"SOR#045:4","from":"deck","to":"hand","p":2,"kind":"unit"}
 {"seq":"R1.G.5","t":"MOVE","card":"SOR#045:5","from":"deck","to":"hand","p":2,"kind":"unit"}
 {"seq":"R1.G.6","t":"DRAW","p":2,"count":2,"cards":["SOR#045:4","SOR#045:5"]}
-{"seq":"R1.G.7","t":"MOVE","card":"SOR#108:4","from":"hand","to":"resource","p":1,"kind":"unit","for":"R1.G.8"}
+{"seq":"R1.G.7","t":"MOVE","card":"SOR#108:4","from":"hand","to":"resource","p":1,"kind":"unit","exhausted":true,"for":"R1.G.8"}
 {"seq":"R1.G.8","t":"RESOURCE","p":1,"card":"SOR#108:4"}
-{"seq":"R1.G.9","t":"MOVE","card":"SOR#045:4","from":"hand","to":"resource","p":2,"kind":"unit","for":"R1.G.10"}
+{"seq":"R1.G.9","t":"MOVE","card":"SOR#045:4","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R1.G.10"}
 {"seq":"R1.G.10","t":"RESOURCE","p":2,"card":"SOR#045:4"}
 {"seq":"R1.G.11","t":"READY","card":"SOR#108"}
-{"seq":"R1.G.12","t":"READY_RESOURCES","p":1,"amount":2}
+{"seq":"R1.G.12","t":"READY_RESOURCES","p":1,"amount":3}
+{"seq":"R1.G.13","t":"READY_RESOURCES","p":2,"amount":1}
 {"seq":"R1.G.end","t":"PHASE_END","phase":"regroup"}
 {"seq":"R1.end","t":"ROUND_END","round":1,"keyframe":{"round":1,"phase":"regroup","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#108","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":["overwhelm"]}],"deckSize":0,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#045","SOR#045:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":0,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
-{"seq":"R2.start","t":"ROUND_START","round":2,"keyframe":{"round":2,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#108","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":["overwhelm"]}],"deckSize":0,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#045","SOR#045:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":0,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
+{"seq":"R2.start","t":"ROUND_START","round":2,"active":1,"keyframe":{"round":2,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#108","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":["overwhelm"]}],"deckSize":0,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#045","SOR#045:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":0,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
 {"seq":"R2.A.start","t":"PHASE_START","phase":"action"}
 {"seq":"R2.A.0a","t":"CHOICE","p":1,"prompt":"Wampa","offered":["base@2"],"chose":0,"for":"R2.A.1"}
 {"seq":"R2.A.0b","t":"EXHAUST","card":"SOR#108","for":"R2.A.1"}
@@ -3978,7 +4005,7 @@ begins, so the setup deltas are what it has to add up to:
 | `MOVE` + `RESOURCE` (`SOR#108:3`) | `handSize` 1, `resourcesReady` 2 |
 | the same two for Player 2 | `handSize` 1, `resourcesReady` 2 |
 | `PHASE_END` | nothing |
-| `ROUND_START {round:1, keyframe}` | the keyframe says exactly what the fold has built — hand 1, resources 2, each seat — plus what the fold could not know: `deckSize` 2 and each `leader` (both in the base zone, ready, Epic Action unused). It is authoritative: the state is **replaced** by it. A reader that compares first finds nothing to report (`baseHp` and `deckSize` are exempt here, [§14](#14-integrity--checking-a-file-is-honest)). |
+| `ROUND_START {round:1, active:1, keyframe}` | `initiative = active` (the initiative holder is the round's first active player, CR 5.4.1.b). The keyframe says exactly what the fold has built — hand 1, resources 2, each seat — plus what the fold could not know: `deckSize` 2 and each `leader` (both in the base zone, ready, Epic Action unused). It is authoritative: the state is **replaced** by it. A reader that compares first finds nothing to report (`baseHp` and `deckSize` are exempt here, [§14](#14-integrity--checking-a-file-is-honest)). |
 | `PHASE_START {phase:"action"}` | `phase = "action"` |
 | `EXHAUST_RESOURCES {p:1, amount:2}` | Player 1 pays for the Wampa: `resourcesReady` 2 → 0, `resourcesExhausted` 0 → 2. It is numbered under action `0`, because the cost is paid before the play is announced, and its `for` files it under `R1.A.1`, the play ([§9.1](#91-how-seq-is-built)). |
 | `MOVE hand → ground` (`SOR#108`) | `handSize` 1 → 0; a fresh `SOR#108` is added to player 1's `cards` — `exhausted: false`, no stats yet |
@@ -3988,9 +4015,10 @@ begins, so the setup deltas are what it has to add up to:
 | `PASS` ×2 | nothing |
 | `PHASE_END`, `PHASE_START {regroup}` | `phase = "regroup"` |
 | two `MOVE deck → hand` + `DRAW`, each player | `handSize` 0 → 2 / 1 → 3; `deckSize` 2 → 0 (known since the keyframe) |
-| `MOVE hand → resource` + `RESOURCE`, each player | `handSize` 1 / 2; `resourcesReady` 0 → 1 for Player 1, whose other two are still exhausted from the Wampa, and 2 → 3 for Player 2 |
+| `MOVE hand → resource {exhausted:true}` + `RESOURCE`, each player | `handSize` 1 / 2; the new resource enters **exhausted** (CR 5.5.1.c), so `resourcesExhausted` 2 → 3 for Player 1 (whose other two are still exhausted from the Wampa) and 0 → 1 for Player 2; `resourcesReady` stays 0 and 2 |
 | `READY {card:"SOR#108"}` | the Wampa readies |
-| `READY_RESOURCES {p:1, amount:2}` | Player 1's two exhausted resources ready, one record for the run: `resourcesExhausted` 2 → 0, `resourcesReady` 1 → 3 |
+| `READY_RESOURCES {p:1, amount:3}` | Player 1's three exhausted resources ready, one record for the run: `resourcesExhausted` 3 → 0, `resourcesReady` 0 → 3 |
+| `READY_RESOURCES {p:2, amount:1}` | Player 2's one exhausted resource readies: `resourcesExhausted` 1 → 0, `resourcesReady` 2 → 3 |
 | `PHASE_END`, `ROUND_END {keyframe}` | compared — every field, `deckSize` now included — and matched; then snapped to |
 | `ROUND_START {round:2, keyframe}` | likewise; `initiativeTaken` is `false` again |
 | `PHASE_START {phase:"action"}` | `phase = "action"` |

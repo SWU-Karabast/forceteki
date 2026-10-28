@@ -199,6 +199,10 @@ export function validate(text: string): ConformanceReport {
             if (err.keyword === 'if') {
                 continue;
             }
+            // The one required `active` is on ROUND_START, which has a named error of its own.
+            if (err.keyword === 'required' && (err.params as { missingProperty?: string }).missingProperty === 'active') {
+                continue;
+            }
             // Only a vocabulary of names may grow in a minor version, and only by more names. A
             // seat may not (§18), so `"p":3` and `[Result "P3"]` stay errors in a file of any minor
             // version; nor may a value change type, so `"reason":5` stays one too.
@@ -328,6 +332,9 @@ export function validate(text: string): ConformanceReport {
           fortifyHost !== `base@${r['p']}`) {
             error('fortify-host', `record ${seqStr}: an upgrade played by seat ${r['p']} attaches to ${fortifyHost} (a Fortify upgrade attaches to its own seat's base)`);
         }
+        if (r['t'] === 'ROUND_START' && r['active'] !== 1 && r['active'] !== 2) {
+            error('round-start-active', `record ${seqStr}: ROUND_START without an active seat (the initiative holder, [W-46])`);
+        }
         if (r['t'] === 'MOVE') {
             for (const k of ['from', 'to']) {
                 if (typeof r[k] === 'string' && !ZONES.includes(r[k] as string)) {
@@ -343,6 +350,11 @@ export function validate(text: string): ConformanceReport {
             const isCredit = typeof r['card'] === 'string' && TOKEN_ID.test(r['card']) && tokenNameOf(r['card']) === 'credit';
             if (isCredit && (r['from'] === 'resource' || r['to'] === 'resource')) {
                 error('credit-zone', `record ${seqStr}: Credit token "${r['card']}" MOVE names resource (a Credit token is recorded in base)`);
+            }
+            // A token that leaves play ceases to exist, so the move names outsideTheGame (CR 3.7.3, [W-47]).
+            if (typeof r['card'] === 'string' && r['card'].startsWith('TOKEN:') && r['to'] !== 'outsideTheGame' &&
+              r['from'] !== r['to'] && (r['from'] === 'base' || isArena(String(r['from'])))) {
+                error('token-zone', `record ${seqStr}: token "${r['card']}" leaves ${String(r['from'])} for ${String(r['to'])} (a token leaving play goes to outsideTheGame)`);
             }
             // Only an arena may be both ends of a move: an attachment changing in place (§10.1).
             if (r['from'] === r['to'] && !isArena(String(r['from']))) {

@@ -15,6 +15,10 @@
   "additionalProperties": true,
   "allOf": [
     {
+      "if": { "properties": { "t": { "const": "ROUND_START" } }, "required": ["t"] },
+      "then": { "required": ["active"] }
+    },
+    {
       "if": { "properties": { "t": { "enum": ["ROUND_START","ROUND_END"] } }, "required": ["t"] },
       "then": { "properties": { "round": { "type": "integer" }, "keyframe": { "$ref": "#/$defs/keyframe" } } }
     },

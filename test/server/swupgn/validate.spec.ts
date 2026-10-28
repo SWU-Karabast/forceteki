@@ -322,6 +322,21 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(copyOne).not.toContain('error:credit-zone');
     });
 
+    it('reports a token moved to hand', function () {
+        const move = (card: string, to: string) => addEvent(`{"seq":"R1.A.9","t":"MOVE","card":"${card}","from":"ground","to":"${to}","p":1,"kind":"unit"}`);
+        expect(codes(move('TOKEN:battle-droid#1', 'hand')).filter((c) => c === 'error:token-zone')).toEqual(['error:token-zone']);
+        expect(validate(move('TOKEN:battle-droid#1', 'hand')).level).toBe('well-formed');
+        expect(codes(move('TOKEN:battle-droid#1', 'outsideTheGame'))).not.toContain('error:token-zone');
+        expect(codes(move('SOR#108', 'hand'))).not.toContain('error:token-zone');
+    });
+
+    it('reports a ROUND_START without active', function () {
+        const without = good.replace('"t":"ROUND_START","round":1,"active":1,', '"t":"ROUND_START","round":1,');
+        expect(without).not.toBe(good);
+        expect(codes(without).filter((c) => c === 'error:round-start-active')).toEqual(['error:round-start-active']);
+        expect(codes(good)).not.toContain('error:round-start-active');
+    });
+
     it('reports a Fortify upgrade attached to the other seat\'s base', function () {
         const move = (p: number, base: string) => addEvent(`{"seq":"R1.A.9","t":"MOVE","card":"HMW#147","from":"hand","to":"base","p":${p},"kind":"upgrade","attachedTo":"${base}"}`);
         const play = (p: number, base: string) => addEvent(`{"seq":"R1.A.9","t":"PLAY_UPGRADE","p":${p},"card":"HMW#147","zone":"base","target":"${base}","cost":2}`);

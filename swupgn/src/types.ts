@@ -210,6 +210,8 @@ export type GameEvent = ActionLink & (
   | { seq: string; t: 'REVEAL'; p: Seat; zone: string; cards: string[] }
   | { seq: string; t: 'TRIGGER'; p?: Seat; card: string }
   | { seq: string; t: 'PHASE_START' | 'PHASE_END'; phase: string; active?: Seat }
+  // `active` is REQUIRED on ROUND_START (the initiative holder; the schema and the `round-start-active`
+  // check enforce it) but typed optional so a reader-side fixture need not carry it.
   | { seq: string; t: 'ROUND_START' | 'ROUND_END'; round: number; keyframe?: ReducedState; active?: Seat }
   | { seq: string; t: 'GAME_END'; winner: Seat | 'Draw'; reason: string }
   | {
@@ -220,8 +222,10 @@ export type GameEvent = ActionLink & (
        *  names a host — a reader detaches on the zone transition (spec §10.1). */
       attachedTo?: string;
 
-      /** On a move out of `resource` only: the card left the row exhausted, so the fold takes it
-       *  from `resourcesExhausted` rather than `resourcesReady`. Absent means it left ready. */
+      /** On a move into or out of `resource` only. Out: the card left the row exhausted, so the
+       *  fold takes it from `resourcesExhausted` rather than `resourcesReady`. Into: the card
+       *  entered the row exhausted (a regroup resource, CR 5.5.1.c), so the fold counts it in
+       *  `resourcesExhausted`. Absent means ready. */
       exhausted?: boolean;
 
       /**
