@@ -23,7 +23,9 @@ const isTopLevelStep = (seq: string) => (/^R\d+\.[SAG]\.\d+$/).test(seq);
 // previous action's consequence (homeworlds R4.A.2d, a Weakness token landing on the Beast that
 // then attacks), and filing it under the attack would be wrong.
 // An action ability is announced once its menu pick and target are made; its costs come after.
-const PRE_ANNOUNCE = ['CHOICE', 'MODAL_CHOICE', 'EXHAUST', 'MOVE', 'STATS', 'EXHAUST_RESOURCES'];
+// A play is also preceded by what the played card does as it enters play: its own ability (Clone's
+// copy) and the effect that ability starts on it.
+const PRE_ANNOUNCE = ['CHOICE', 'MODAL_CHOICE', 'EXHAUST', 'MOVE', 'STATS', 'EXHAUST_RESOURCES', 'ABILITY_ACTIVATE', 'EFFECT_START'];
 const PRE_ATTACK = ['CHOICE', 'MODAL_CHOICE', 'EXHAUST'];
 const PRE_ABILITY = ['CHOICE', 'MODAL_CHOICE'];
 
@@ -62,6 +64,9 @@ describe('SWU-PGN writer links', function () {
         expect(missing).toEqual([]);
     });
 
+    // The fixture's seqs are the current vectors': writer revision 6 added records (effects,
+    // regroup readies counted together), which renumbered some sub-steps, and its entries were
+    // carried over record for record, the links unchanged.
     // Revision 4 tightened the walk: a record naming another card that did not arrive in the run
     // ends it. These are the rev-3 links that rule removes, each a consequence of the action its
     // seq already names (a token's or an upgrade's stat change, a Raid ending), which rev 3 had

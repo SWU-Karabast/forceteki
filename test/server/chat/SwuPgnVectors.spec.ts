@@ -139,6 +139,113 @@ function runRounds(context: any, rounds: number, keep: Keep, takeTurn: (p: any) 
 
 const byType = (doc: any, t: string): any[] => doc.events.filter((e: any) => e.t === t);
 
+/** Whether `p` has something to answer: any prompt but a "waiting for the opponent" one. */
+function acting(p: any): boolean {
+    const prompt = p.currentPrompt();
+    const title = typeof prompt.menuTitle === 'function' ? prompt.menuTitle(p.player.context) : prompt.menuTitle;
+    return !(/^Waiting for opponent/i).test(title ?? '');
+}
+
+/** The seat whose prompt the game is waiting on. */
+function actor(context: any): any {
+    return acting(context.player1) && !acting(context.player2) ? context.player1
+        : acting(context.player2) && !acting(context.player1) ? context.player2
+            : (context.player1.canAct ? context.player1 : context.player2);
+}
+
+interface Answers {
+
+    /** Cards to prefer whenever cards are offered. */
+    prefer?: any[];
+
+    /** The list option to name, when a card asks for a name. */
+    name?: string;
+}
+
+/**
+ * Answer every prompt between an action and the next "Choose an action", whichever seat it is
+ * for: optional triggers are taken, a name is picked from the list, cards looked at go back on
+ * top, a search takes the first card it may, and other targets go to `prefer` when offered.
+ */
+function answerAll(context: any, answers: Answers = {}): void {
+    const game: any = context.game;
+    for (let i = 0; i < 40 && game.currentPhase === 'action' && !game.isEnded; i++) {
+        const p = actor(context);
+        if (p.hasPrompt('Choose an action')) {
+            return;
+        }
+        const prompt = p.currentPrompt();
+        const buttons: string[] = p.currentButtons ?? [];
+        const resolveAll = buttons.find((b) => b.startsWith('Resolve all'));
+        if (resolveAll) {
+            p.clickPrompt(resolveAll);
+            continue;
+        }
+        if (buttons.includes('Trigger')) {
+            p.clickPrompt('Trigger');
+            continue;
+        }
+        if ((prompt.dropdownListOptions ?? []).length > 0) {
+            const options: string[] = prompt.dropdownListOptions;
+            p.chooseListOption(options.includes(answers.name) ? answers.name : options[0]);
+            continue;
+        }
+        if ((prompt.displayCards ?? []).length > 0) {
+            const perCard = prompt.perCardButtons ?? [];
+            if (perCard.length > 0) {
+                p.clickDisplayCardPromptButton(prompt.displayCards[0].cardUuid, perCard[0].arg);
+                continue;
+            }
+            const selectable = prompt.displayCards.find((c: any) => c.selectionState === 'selectable');
+            if (selectable && !(p.selectedCards ?? []).some((c: any) => c.uuid === selectable.cardUuid)) {
+                p.clickCardInDisplayCardPrompt({ uuid: selectable.cardUuid, internalName: selectable.internalName });
+                continue;
+            }
+            const finish = buttons.find((b) => ['Done', 'Take nothing'].includes(b));
+            if (finish) {
+                p.clickPrompt(finish);
+                continue;
+            }
+            return;
+        }
+        const offered: any[] = (p.currentActionTargets ?? []).filter((c: any) => !(p.selectedCards ?? []).includes(c));
+        const done = buttons.find((b) => b.toLowerCase() === 'done');
+        if (offered.length > 0 && !(done && (p.selectedCards ?? []).length > 0)) {
+            p.clickCard((answers.prefer ?? []).find((c) => offered.includes(c)) ?? offered[0]);
+            continue;
+        }
+        if (done) {
+            p.clickDone();
+            continue;
+        }
+        return;
+    }
+}
+
+/** Play `rounds` action phases, each turn by whichever seat `takeTurn` is handed; resource one card per regroup; concede. */
+function playRounds(context: any, rounds: number, keep: Keep, takeTurn: (p: any) => void): string {
+    const game: any = context.game;
+    for (let round = 1; round <= rounds; round++) {
+        let guard = 0;
+        while (game.currentPhase === 'action' && guard++ < 80) {
+            const p = actor(context);
+            if (!p.hasPrompt('Choose an action')) {
+                answerAll(context);
+                continue;
+            }
+            takeTurn(p);
+        }
+        expect(game.currentPhase).withContext(`round ${round} did not end`)
+            .toBe('regroup');
+        resourceCards(context.player1, context.player1.hand.length > 0 ? 1 : 0, keep.p1);
+        resourceCards(context.player2, context.player2.hand.length > 0 ? 1 : 0, keep.p2);
+        expect(game.currentPhase).toBe('action');
+    }
+    game.concede(context.player2.id);
+    context.ignoreUnresolvedActionPhasePrompts = true;
+    return game.getCachedSwuPgn();
+}
+
 describe('SWU-PGN/1.0 vectors (real games)', function () {
     // ── upgrades ──────────────────────────────────────────────────────────────────────────────
     integration(function (contextRef) {
@@ -769,6 +876,302 @@ describe('SWU-PGN/1.0 vectors (real games)', function () {
                 .toBe(true);
             expect(byType(doc, 'STATUS_TOKEN').some((e) => e.token === 'weakness' && e.count > 0 && e.card.startsWith('TOKEN:beast#')))
                 .withContext('a Beast was given a Weakness token')
+                .toBe(true);
+        });
+    });
+
+    // ── effects ───────────────────────────────────────────────────────────────────────────────
+    integration(function (contextRef) {
+        beforeEach(function () {
+            return contextRef.setupTestAsync({
+                phase: 'setup',
+                player1: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    base: 'kestro-city',
+                    deck: ['wolffe#suspicious-veteran', 'wolffe#suspicious-veteran',
+                        'rallying-cry', 'rallying-cry', 'rallying-cry',
+                        'force-lightning', 'force-lightning', 'give-in-to-your-anger', 'give-in-to-your-anger',
+                        ...VILLAIN, ...VILLAIN, ...REBEL],
+                },
+                player2: {
+                    leader: 'leia-organa#alliance-general',
+                    base: 'echo-base',
+                    deck: ['battlefield-marine', 'battlefield-marine', 'battlefield-marine', 'battlefield-marine',
+                        'battlefield-marine', 'battlefield-marine', 'battlefield-marine', 'battlefield-marine', ...REBEL, ...REBEL],
+                },
+            });
+        });
+
+        it('effects: lasting effects on bases and units, one partly ended by a unit leaving play, a blank and an until', function () {
+            const { context } = contextRef;
+            // P1 resources its X-Wings, which it never plays.
+            const keep: Keep = { p1: ['wolffe#suspicious-veteran', 'rallying-cry', 'force-lightning', 'give-in-to-your-anger', 'death-star-stormtrooper'], p2: ['battlefield-marine'] };
+            runSetup(context, 'swu-pgn-vector-effects', keep);
+            const game: any = context.game;
+            const p1 = context.player1;
+            const p2 = context.player2;
+            const ground = (p: any) => arenaUnits(p).filter((u) => u.zoneName === 'groundArena');
+            const played = new Set<string>();
+            const once = (name: string) => !played.has(`${game.roundNumber}:${name}`);
+            const play = (p: any, card: any, answers: Answers = {}) => {
+                played.add(`${game.roundNumber}:${card.internalName}`);
+                p.clickCard(card);
+                answerAll(context, answers);
+            };
+
+            const takeTurn = (p: any): void => {
+                if (p === p1) {
+                    const theirs = ground(p2);
+                    // Raided by Rallying Cry, a Stormtrooper trades with an enemy unit: it leaves
+                    // play while the effect still holds the others.
+                    if (!once('rallying-cry') && once('trade') && theirs.length > 0) {
+                        const trooper = (p1.currentActionTargets ?? []).find((c: any) => c.internalName === 'death-star-stormtrooper' && c.isInPlay?.());
+                        if (trooper) {
+                            played.add(`${game.roundNumber}:trade`);
+                            p1.clickCard(trooper);
+                            answerAll(context, { prefer: theirs });
+                            return;
+                        }
+                    }
+                    let card = ground(p1).length >= 2 && theirs.length > 0 && once('rallying-cry') ? playable(p1, 'rallying-cry') : undefined;
+                    card = card ?? (!ground(p1).some((u) => u.internalName === 'wolffe#suspicious-veteran') ? playable(p1, 'wolffe#suspicious-veteran') : undefined);
+                    card = card ?? (theirs.length > 0 && once('force-lightning') ? playable(p1, 'force-lightning') : undefined);
+                    card = card ?? (theirs.length > 0 && once('give-in-to-your-anger') ? playable(p1, 'give-in-to-your-anger') : undefined);
+                    card = card ?? playable(p1, 'death-star-stormtrooper');
+                    if (card) {
+                        play(p1, card, { prefer: theirs });
+                        return;
+                    }
+                    p1.passAction();
+                    return;
+                }
+                const card = playable(p2, 'battlefield-marine', 'alliance-xwing');
+                if (card) {
+                    play(p2, card);
+                    return;
+                }
+                // P2 attacks only P1's units, so both bases outlast the game.
+                const attacker = (p2.currentActionTargets ?? []).find((c: any) => c.isUnit?.() && c.isInPlay?.() && c.zoneName === 'groundArena');
+                if (attacker && ground(p1).length > 0) {
+                    p2.clickCard(attacker);
+                    answerAll(context, { prefer: ground(p1) });
+                    return;
+                }
+                p2.passAction();
+            };
+
+            const doc = vectorGate('effects', playRounds(context, 4, keep, takeTurn));
+
+            const starts = byType(doc, 'EFFECT_START');
+            const ends = byType(doc, 'EFFECT_END');
+            expect(starts.some((e) => (e.targets ?? []).includes('base@1') && (e.targets ?? []).includes('base@2') && e.duration === 'phase'))
+                .withContext('Wolffe\'s effect on both bases for the phase')
+                .toBe(true);
+            expect(ends.some((e) => e.targets && e.reason === 'targetLeft')).withContext('a partial EFFECT_END')
+                .toBe(true);
+            expect(starts.some((e) => e.duration === 'until' && typeof e.untilText === 'string')).withContext('an until effect')
+                .toBe(true);
+            expect(ends.some((e) => e.reason === 'expired' && !e.targets)).withContext('an effect that expired')
+                .toBe(true);
+            expect(byType(doc, 'STATS').some((e) => e.blank === true)).withContext('a blanked unit')
+                .toBe(true);
+            expect(doc.events.some((e: any) => e.t === 'DAMAGE' && e.simul)).withContext('combat damage both ways at once')
+                .toBe(true);
+            expect(fold(doc.events).effects).toBeDefined();
+        });
+    });
+
+    // ── visibility ────────────────────────────────────────────────────────────────────────────
+    integration(function (contextRef) {
+        beforeEach(function () {
+            return contextRef.setupTestAsync({
+                phase: 'setup',
+                player1: {
+                    leader: 'grand-admiral-thrawn#how-unfortunate',
+                    base: 'kestro-city',
+                    deck: ['wartime-trade-official', 'wartime-trade-official', 'wartime-trade-official', 'wartime-trade-official',
+                        'regional-governor', 'regional-governor', 'remote-scout', 'remote-scout',
+                        'every-day-more-lies', 'every-day-more-lies', 'viper-probe-droid', 'viper-probe-droid',
+                        'inferno-four#unforgetting', 'inferno-four#unforgetting', 'foundling', 'foundling', ...REBEL],
+                },
+                player2: {
+                    leader: 'leia-organa#alliance-general',
+                    base: 'echo-base',
+                    deck: ['battlefield-marine', 'battlefield-marine', 'battlefield-marine', 'battlefield-marine',
+                        'battlefield-marine', 'battlefield-marine', 'battlefield-marine', 'battlefield-marine', ...REBEL, ...REBEL],
+                },
+            });
+        });
+
+        it('visibility: looks, a search, a name, blind discards, and a When Defeated used again by the leader', function () {
+            const { context } = contextRef;
+            const keep: Keep = {
+                p1: ['wartime-trade-official', 'regional-governor', 'remote-scout', 'every-day-more-lies', 'viper-probe-droid', 'inferno-four#unforgetting', 'foundling'],
+                p2: ['battlefield-marine'],
+            };
+            runSetup(context, 'swu-pgn-vector-visibility', keep);
+            const game: any = context.game;
+            const p1 = context.player1;
+            const p2 = context.player2;
+            const ground = (p: any) => arenaUnits(p).filter((u) => u.zoneName === 'groundArena');
+            const played = new Set<string>();
+            const once = (name: string) => !played.has(name);
+            const play = (p: any, card: any, answers: Answers = {}) => {
+                played.add(card.internalName);
+                p.clickCard(card);
+                answerAll(context, answers);
+            };
+
+            const takeTurn = (p: any): void => {
+                if (p === p1) {
+                    const theirs = ground(p2);
+                    // A Wartime Trade Official attacks into a Battlefield Marine and dies: its When
+                    // Defeated, then Thrawn's "use that ability again".
+                    const official = (p1.currentActionTargets ?? []).find((c: any) => c.internalName === 'wartime-trade-official' && c.isInPlay?.());
+                    if (official && theirs.length > 0 && once(`trade-${game.roundNumber}`)) {
+                        played.add(`trade-${game.roundNumber}`);
+                        p1.clickCard(official);
+                        answerAll(context, { prefer: theirs });
+                        return;
+                    }
+                    let card = once('regional-governor') ? playable(p1, 'regional-governor') : undefined;
+                    card = card ?? (once('every-day-more-lies') && p2.hand.length > 0 ? playable(p1, 'every-day-more-lies') : undefined);
+                    card = card ?? (once('viper-probe-droid') && p2.hand.length > 0 ? playable(p1, 'viper-probe-droid') : undefined);
+                    card = card ?? (once('inferno-four#unforgetting') ? playable(p1, 'inferno-four#unforgetting') : undefined);
+                    card = card ?? (once('remote-scout') ? playable(p1, 'remote-scout') : undefined);
+                    card = card ?? playable(p1, 'wartime-trade-official');
+                    if (card) {
+                        play(p1, card, { name: 'Battlefield Marine', prefer: theirs });
+                        return;
+                    }
+                    p1.passAction();
+                    return;
+                }
+                // P2 only builds a board for P1 to attack into.
+                const card = playable(p2, 'battlefield-marine', 'alliance-xwing');
+                if (card) {
+                    play(p2, card);
+                    return;
+                }
+                p2.passAction();
+            };
+
+            const doc = vectorGate('visibility', playRounds(context, 5, keep, takeTurn));
+
+            expect(byType(doc, 'LOOK').some((e) => e.zone === 'hand' && e.owner === 2)).withContext('a look at the opponent\'s hand')
+                .toBe(true);
+            expect(byType(doc, 'LOOK').some((e) => e.zone === 'deck' && e.owner === 1)).withContext('a look at the top of the deck')
+                .toBe(true);
+            expect(byType(doc, 'SEARCH').some((e) => e.owner === 1 && (e.seen ?? []).length > 0)).withContext('a search and the cards it saw')
+                .toBe(true);
+            expect(byType(doc, 'NAME').length).withContext('a card named')
+                .toBeGreaterThan(0);
+            const blind = byType(doc, 'CHOICE').filter((e) => e.blind);
+            expect(new Set(blind.map((e) => e.p)).size).withContext('both seats chose blind')
+                .toBe(2);
+            expect(doc.events.some((e: any) => e.t === 'DISCARD' && e.simul)).withContext('the discards are one simultaneous group')
+                .toBe(true);
+            expect(byType(doc, 'ABILITY_ACTIVATE').some((e) => e.usedBy === doc.header.p1Leader)).withContext('Thrawn used a When Defeated again')
+                .toBe(true);
+        });
+    });
+
+    // ── control ───────────────────────────────────────────────────────────────────────────────
+    integration(function (contextRef) {
+        beforeEach(function () {
+            return contextRef.setupTestAsync({
+                phase: 'setup',
+                player1: {
+                    leader: 'grand-moff-tarkin#tyrant-of-the-outer-rim',
+                    base: 'echo-base',
+                    deck: ['gar-saxon#coveting-power', 'gar-saxon#coveting-power', 'foundling', 'foundling', 'foundling',
+                        'evidence-of-the-crime', 'evidence-of-the-crime', 'clone', 'clone', 'traitorous', 'traitorous',
+                        'arquitens-assault-cruiser', 'arquitens-assault-cruiser', ...REBEL, ...REBEL, ...REBEL],
+                },
+                player2: {
+                    leader: 'leia-organa#alliance-general',
+                    base: 'echo-base',
+                    deck: ['battlefield-marine', 'battlefield-marine', 'battlefield-marine', 'battlefield-marine',
+                        'battlefield-marine', 'battlefield-marine', 'battlefield-marine', 'battlefield-marine',
+                        'academy-training', 'academy-training', 'academy-training', 'academy-training', ...REBEL, ...REBEL],
+                },
+            });
+        });
+
+        it('control: an upgrade and a unit taken, a copy, a gained trait, a limited ability, and an enemy unit made a resource', function () {
+            const { context } = contextRef;
+            // P1 resources its X-Wings, which it never plays.
+            const keep: Keep = {
+                p1: ['gar-saxon#coveting-power', 'foundling', 'evidence-of-the-crime', 'clone', 'traitorous', 'arquitens-assault-cruiser'],
+                p2: ['battlefield-marine', 'academy-training'],
+            };
+            runSetup(context, 'swu-pgn-vector-control-b', keep);
+            const p1 = context.player1;
+            const p2 = context.player2;
+            const units = (p: any) => arenaUnits(p).filter((u) => !u.isLeader?.());
+            const upgraded = () => units(p2).filter((u) => u.upgrades.some((x: any) => x.internalName === 'academy-training'));
+            const gar = () => units(p1).find((u) => u.internalName === 'gar-saxon#coveting-power');
+            const played = new Set<string>();
+            const once = (name: string) => !played.has(`${context.game.roundNumber}:${name}`);
+            const play = (p: any, card: any, answers: Answers = {}) => {
+                played.add(`${context.game.roundNumber}:${card.internalName}`);
+                p.clickCard(card);
+                answerAll(context, answers);
+            };
+
+            const takeTurn = (p: any): void => {
+                if (p === p1) {
+                    const theirs = units(p2).filter((u) => u.zoneName === 'groundArena');
+                    // Arquitens Ambushes a unit and puts it into play as P1's resource.
+                    let card = theirs.length > 0 ? playable(p1, 'arquitens-assault-cruiser') : undefined;
+                    if (card) {
+                        play(p1, card, { prefer: theirs });
+                        return;
+                    }
+                    card = units(p1).length + theirs.length > 0 ? playable(p1, 'clone') : undefined;
+                    card = card ?? (theirs.some((u) => u.upgrades.length === 0) ? playable(p1, 'traitorous') : undefined);
+                    card = card ?? (upgraded().length > 0 && units(p1).length > 0 ? playable(p1, 'evidence-of-the-crime') : undefined);
+                    card = card ?? (gar() ? undefined : playable(p1, 'gar-saxon#coveting-power'));
+                    card = card ?? (units(p1).length > 0 && once('foundling') ? playable(p1, 'foundling') : undefined);
+                    if (card) {
+                        const host = gar();
+                        const mine = [...(host ? [host] : []), ...units(p1)];
+                        const prefer = card.internalName === 'traitorous' ? theirs.filter((u) => u.upgrades.length === 0)
+                            : card.internalName === 'evidence-of-the-crime' ? [...upgraded().flatMap((u) => u.upgrades), ...mine]
+                                : card.internalName === 'clone' ? theirs
+                                    : mine;
+                        play(p1, card, { prefer });
+                        return;
+                    }
+                    p1.passAction();
+                    return;
+                }
+                const bare = units(p2).filter((u) => u.zoneName === 'groundArena' && u.upgrades.length === 0);
+                let card = bare.length > 0 && upgraded().length === 0 ? playable(p2, 'academy-training') : undefined;
+                card = card ?? playable(p2, 'battlefield-marine', 'alliance-xwing');
+                if (card) {
+                    play(p2, card, { prefer: bare });
+                    return;
+                }
+                p2.passAction();
+            };
+
+            const doc = vectorGate('control', playRounds(context, 7, keep, takeTurn));
+
+            const kindOf = (id: string) => doc.cards?.find((c) => c.id === id.replace(/:\d+$/, ''))?.kind;
+            expect(byType(doc, 'TAKE_CONTROL').some((e) => kindOf(e.card) === 'upgrade')).withContext('an upgrade changed control')
+                .toBe(true);
+            expect(byType(doc, 'STATS').some((e) => e.copyOf)).withContext('a copy')
+                .toBe(true);
+            expect(byType(doc, 'STATS').some((e) => (e.traits ?? []).includes('mandalorian') && e.card !== doc.cards?.find((c) => c.name.startsWith('Gar Saxon'))?.id))
+                .withContext('a gained trait')
+                .toBe(true);
+            expect(byType(doc, 'ABILITY_ACTIVATE').some((e) => e.limit)).withContext('a limited ability')
+                .toBe(true);
+            const keyframes = doc.events.filter((e: any) => e.keyframe);
+            expect(keyframes.some((e: any) => e.keyframe.players[1].foreignResources.length > 0)).withContext('a resource P2 owns in P1\'s row')
+                .toBe(true);
+            expect(keyframes.some((e: any) => e.keyframe.players[1].cards.some((c: any) => c.owner === 2))).withContext('a unit P1 controls and P2 owns')
                 .toBe(true);
         });
     });

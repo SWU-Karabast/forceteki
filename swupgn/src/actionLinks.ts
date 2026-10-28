@@ -54,6 +54,21 @@ const PLAY_PRECURSORS = new Set([
 // paid AFTER initiation and are numbered under the ability's own step.
 const ABILITY_PRECURSORS = new Set(['CHOICE', 'MODAL_CHOICE']);
 
+/**
+ * A play's precursors also take in what the played card itself does as it enters play, before the
+ * play is announced: an ability of that card (Clone's "enter play as a copy") and the lasting
+ * effect it starts on itself. Only when the record names the played card -- `card` for the
+ * ability, `src` for the effect -- so another card's trigger or effect still ends the run.
+ */
+const PLAY_OWN_PRECURSORS = new Set(['ABILITY_ACTIVATE', 'EFFECT_START']);
+
+/** The card a play's own entering ability or effect is about: `card`, or an effect's `src`. */
+function enteringCard(e: GameEvent): string | undefined {
+    const any = e as { card?: unknown; src?: unknown };
+    const card = e.t === 'EFFECT_START' ? any.src : any.card;
+    return typeof card === 'string' ? card : undefined;
+}
+
 function precursorsFor(t: string): Set<string> {
     if (t === 'ATTACK') {
         return ATTACK_PRECURSORS;
@@ -254,6 +269,11 @@ export function linkActionSteps(events: GameEvent[]): GameEvent[] {
                 continue;
             }
             if (!precursors.has(prev.t)) {
+                // The played card's own entering ability or effect (see PLAY_OWN_PRECURSORS).
+                if (precursors === PLAY_PRECURSORS && PLAY_OWN_PRECURSORS.has(prev.t) && enteringCard(prev) === card) {
+                    start--;
+                    continue;
+                }
                 break;
             }
             const otherSeat = seatOf(prev) !== seatOf(action);

@@ -407,6 +407,36 @@ describe('linkActionSteps: records the writer marked as a play\'s setup', functi
 });
 
 // Value: protects=a lettered seq is a sub-step whatever its type, an unlettered action type is an action, a non-action ability never is; fails_when=the lettered-seq rule is dropped or applies to unlettered seqs; why_new=only DEPLOY_LEADER engine tests touched it; seam=none; no_claim=writer numbering
+describe('linkActionSteps: what a played card does as it enters play', function () {
+    const forOf = (events: GameEvent[]) => linkActionSteps(events).map((e) => (e as { for?: string }).for);
+
+    // Value: protects=[W-18] for a card that uses its own ability as it enters play (Clone's copy choice, its ability, the effect on itself) before the PLAY; fails_when=an ABILITY_ACTIVATE or EFFECT_START of the played card ends the run and leaves the cost and choice unfiled; why_new=the control vector's Clone left four records without `for`; seam=none; no_claim=a writer that marks them itself
+    it('files the played card\'s own entering ability and effect, and the cost and choice before them, under the play', function () {
+        const events: GameEvent[] = [
+            { seq: 'R6.A.start', t: 'PHASE_START', phase: 'action' },
+            { seq: 'R6.A.0a', t: 'EXHAUST_RESOURCES', p: 1, amount: 7 },
+            { seq: 'R6.A.0b', t: 'CHOICE', p: 1, prompt: 'Clone', offered: ['SOR#095'], chose: 0 },
+            { seq: 'R6.A.0c', t: 'ABILITY_ACTIVATE', p: 1, card: 'TWI#116', ability: 'a1', kind: 'triggered' },
+            { seq: 'R6.A.0d', t: 'EFFECT_START', id: 'fx@1', src: 'TWI#116', p: 1, targets: ['TWI#116'], duration: 'game' },
+            { seq: 'R6.A.0e', t: 'MOVE', card: 'TWI#116', from: 'hand', to: 'ground', p: 1 },
+            { seq: 'R6.A.1', t: 'PLAY', p: 1, card: 'TWI#116', zone: 'ground', cost: 2 },
+        ];
+        expect(forOf(events)).toEqual([undefined, 'R6.A.1', 'R6.A.1', 'R6.A.1', 'R6.A.1', 'R6.A.1', undefined]);
+    });
+
+    // Value: protects=another card's ability or effect still ends a play's run; fails_when=the entering-ability rule takes any ABILITY_ACTIVATE or EFFECT_START; why_new=the rule is new; seam=none; no_claim=none
+    it('still ends the run at another card\'s ability or effect', function () {
+        const events: GameEvent[] = [
+            { seq: 'R1.A.1', t: 'PLAY', p: 2, card: 'SEC#001', zone: 'ground', cost: 2 },
+            { seq: 'R1.A.1a', t: 'ABILITY_ACTIVATE', p: 2, card: 'SEC#001', ability: 'a1', kind: 'triggered' },
+            { seq: 'R1.A.1b', t: 'EFFECT_START', id: 'fx@1', src: 'SEC#001', p: 2, targets: ['base@1'], duration: 'phase' },
+            { seq: 'R1.A.1c', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1 },
+            { seq: 'R1.A.2', t: 'PLAY', p: 1, card: 'SOR#095', zone: 'ground', cost: 2 },
+        ];
+        expect(forOf(events)).toEqual([undefined, undefined, undefined, 'R1.A.2', undefined]);
+    });
+});
+
 describe('isTopLevelActionRecord', function () {
     it('treats a lettered seq as a sub-step, whatever the record type', function () {
         const rows: [GameEvent, boolean][] = [
