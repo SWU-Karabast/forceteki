@@ -2760,6 +2760,11 @@ export class Lobby {
 
         // The single-file `.swupgn` (header + decks + setup + events) is the sole
         // served game-log format.
+        //
+        // TODO: only the game attached to the lobby is served. In a best-of-three that is the last
+        // game: games 1 and 2 are generated at their end and dropped when the next game replaces
+        // `this.game`, and a rematch drops the finished game's file the same way. Keeping each
+        // game's file and serving them by game number needs a matching client change.
         let swuPgnFile: string;
         try {
             swuPgnFile = this.game.getCachedSwuPgn();
