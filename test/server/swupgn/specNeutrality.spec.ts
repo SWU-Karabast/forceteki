@@ -21,6 +21,8 @@ export const BANNED: { phrase: RegExp; task: number; why: string }[] = [
     { phrase: /\bemptyState\(/, task: 1, why: 'names a reference-reader function' },
     { phrase: /Real engine files/, task: 1, why: 'describes one implementation\'s output as the norm' },
     { phrase: /server\/game\/core\/chat/, task: 1, why: 'names a path in one implementation' },
+    { phrase: /internal name/i, task: 2, why: 'defines a token name by one implementation\'s card key' },
+    { phrase: /<internalName>/, task: 2, why: 'defines a token name by one implementation\'s card key' },
 ];
 
 /** The lines a conforming implementation must obey, with 1-based line numbers. */

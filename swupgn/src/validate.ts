@@ -6,6 +6,7 @@ import type { ConformanceReport, ConformanceIssue, ConformanceLevel } from './ty
 import { KNOWN_SECTIONS, parse, SwuPgnError } from './parse';
 import { checkKeyframes } from './integrity';
 import { isArena, MAX_ZONE_LIST } from './fold';
+import { TOKEN_ID, TOKEN_NAME } from './ids';
 
 // Schemas are loaded at runtime from the published swupgn/schema directory.
 // This path is relative to the compiled output (build/swupgn/src/validate.js):
@@ -117,6 +118,26 @@ function walkValues(value: unknown, where: string): { code: string; message: str
         }
     }
     return null;
+}
+
+/**
+ * First string anywhere inside `value` that starts with `TOKEN:` and breaks the token id grammar
+ * (§6.1), or undefined.
+ */
+function badTokenRef(value: unknown): string | undefined {
+    if (typeof value === 'string') {
+        return value.startsWith('TOKEN:') && !TOKEN_ID.test(value) ? value : undefined;
+    }
+    if (typeof value !== 'object' || value === null) {
+        return undefined;
+    }
+    for (const v of Array.isArray(value) ? value : Object.values(value)) {
+        const found = badTokenRef(v);
+        if (found !== undefined) {
+            return found;
+        }
+    }
+    return undefined;
 }
 
 /** The `N` of `SWU-PGN/1.N`, or null. */
@@ -233,6 +254,10 @@ export function validate(text: string): ConformanceReport {
         if (walked) {
             error(walked.code, walked.message);
         }
+        const badDeckToken = badTokenRef(d);
+        if (badDeckToken !== undefined) {
+            error('bad-token-name', `deck record: "${badDeckToken}" breaks the token id grammar`);
+        }
     }
 
     for (const c of doc.cards ?? []) {
@@ -243,6 +268,10 @@ export function validate(text: string): ConformanceReport {
         const walked = card ? walkValues(card, 'card index entry') : null;
         if (walked) {
             error(walked.code, walked.message);
+        }
+        const badCardToken = card ? badTokenRef(card) : undefined;
+        if (badCardToken !== undefined) {
+            error('bad-token-name', `card index entry: "${badCardToken}" breaks the token id grammar`);
         }
     }
 
@@ -278,6 +307,13 @@ export function validate(text: string): ConformanceReport {
         const walked = walkValues(r, `record ${seqStr}`);
         if (walked) {
             error(walked.code, walked.message);
+        }
+        const badToken = badTokenRef(r);
+        if (badToken !== undefined) {
+            error('bad-token-name', `record ${seqStr}: "${badToken}" breaks the token id grammar`);
+        }
+        if (r['t'] === 'STATUS_TOKEN' && typeof r['token'] === 'string' && !TOKEN_NAME.test(r['token'])) {
+            error('bad-token-name', `record ${seqStr}: STATUS_TOKEN token "${r['token']}" breaks the token-name grammar`);
         }
         if (typeof r['for'] === 'string' && !seqs.has(r['for'])) {
             error('dangling-ref', `record ${seqStr}: for "${r['for']}" names no record`);

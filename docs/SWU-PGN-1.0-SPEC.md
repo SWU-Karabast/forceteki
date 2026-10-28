@@ -330,6 +330,8 @@ requirement, by id. The linked section is where each one is defined.
   document does not define ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
 - `[W-39]` A host that has served a game's omniscient file MUST NOT let that game be played on,
   for instance by an undo past its end ([§23](#23-security-considerations)).
+- `[W-40]` MUST name a token by the rule in [§6.1](#the-token-grammar), derived from its English
+  printed title.
 
 ### The Parser (reads the syntax)
 
@@ -362,6 +364,8 @@ requirement, by id. The linked section is where each one is defined.
   an extension prefix ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
 - `[V-04]` MUST report a file with no `WriterRevision` as pre-release
   ([Appendix C](#appendix-c-reading-pre-release-files-informative)).
+- `[V-05]` MUST report a `TOKEN:` id or a `STATUS_TOKEN.token` that breaks the token-name grammar
+  (`bad-token-name`, error) ([§6.1](#the-token-grammar)).
 
 ### The Folder (rebuilds the board)
 
@@ -720,10 +724,10 @@ version of the format. A reader MUST accept a set code it does not know.
 #### The `TOKEN:` grammar
 
 ```
-TOKEN:<internalName>#<cardId>[:<copy>]
-  │        │            │        └── copy number, 2 and up; absent for the first copy
-  │        │            └─────────── THE RESOLVABLE PART: the token's real numeric card id
-  │        └──────────────────────── internal name, e.g. "advantage" — readable, not for lookup
+TOKEN:<name>#<cardId>[:<copy>]
+  │      │      │        └── copy number, 2 and up; absent for the first copy
+  │      │      └─────────── THE RESOLVABLE PART: the token's real numeric card id
+  │      └────────────────── token name, e.g. "advantage" — readable, not for lookup
   └───────────────────────────────── literal prefix marking this as a token, not a SET#NUM card
 ```
 
@@ -731,12 +735,27 @@ TOKEN:<internalName>#<cardId>[:<copy>]
   `SET#NUM` card, so it MUST be present.
 - **`<cardId>` is the part you resolve.** It is the same numeric id the card database and
   the token image pipeline use, so art and metadata are a direct lookup. Do not try to
-  resolve `<internalName>` — it is there to keep the id readable.
+  resolve `<name>` — it is there to keep the id readable.
 - `TOKEN:<name>` with **no** `#<cardId>` is a degraded form, emitted only when a writer
   could not determine a numeric id. It is stable and usable as an identity, but a reader
   MUST NOT expect to resolve art from it. A writer MUST use this form rather than emit a
   non-numeric placeholder: some tokens carry ids like `weakness-id` in their card data, and
   `TOKEN:weakness#weakness-id` would look resolvable while being useless.
+
+A token's name is derived from its English printed title:
+
+1. Apply Unicode NFKD.
+2. Delete every combining mark (U+0300–U+036F).
+3. Lowercase.
+4. Delete every character that is not `a`–`z`, `0`–`9` or a space.
+5. Trim.
+6. Replace each run of spaces with one `-`.
+
+`X-Wing` is `xwing`, `TIE Fighter` is `tie-fighter`, `The Force` is `the-force`. A writer MUST
+name a token this way `[W-40]`. A `STATUS_TOKEN.token` is the name of the token upgrade, derived
+the same way. A validator MUST report a `TOKEN:` id or a `STATUS_TOKEN.token` that breaks the
+token-name grammar (`bad-token-name`, error) `[V-05]`. The names of the tokens printed today are
+in the "Token names" registry ([§25](#25-registries)).
 
 The `:N` suffix is what makes each card **unique for the whole game**, so `EXHAUST` on
 `ASH#110:2` can never hit the wrong copy. When you look up a card's *display name*,
@@ -826,7 +845,7 @@ the base *card*; a `base@N` ref names the *thing being hit*.)
 | `defenderType` | `unit`, `base` |
 | `DEFEAT.reason` | **Closed — see below.** |
 | `CHOICE.prompt` | The prompt's title as the engine built it. For an attack-target choice this is the attacking card's name. |
-| `STATUS_TOKEN.token` | `advantage`, `weakness` — the internal name of any token upgrade that is not a Shield or an Experience, so a token upgrade printed tomorrow needs no format change |
+| `STATUS_TOKEN.token` | `advantage`, `weakness` — the name of any token upgrade ([§6.1](#the-token-grammar)) that is not a Shield or an Experience, so a token upgrade printed tomorrow needs no format change |
 | `PHASE_START.phase` | `setup`, `action`, `regroup` |
 | `ABILITY_ACTIVATE.ability` | `card-slug#subtitle_triggered_N`, `card-slug_action_N`, `name_anonymous`. An engine-internal slug: useful in a bug report, **never** something to branch on. Its `kind` is the field for that ([§10.1](#101-events-that-carry-board-detail)). |
 
@@ -3231,6 +3250,10 @@ could change what a record means. After it, a revision is diagnostic only.
 
 The review before publication (2026-10-28) changed what conforms, as well as what is written:
 
+- Token names are defined by a rule any writer can apply ([§6.1](#the-token-grammar)), not by one
+  implementation's `internalName`. A writer MUST derive them from the English printed title
+  `[W-40]`, a validator reports `bad-token-name` for an id that breaks the grammar `[V-05]`, and
+  [§25](#25-registries) lists the names of today's tokens.
 - The text is normative and the reference code informative ([§2](#2-conventions-and-conformance--how-to-read-this-spec)).
   Conformance levels, requirement ids and seven conformance classes were added
   ([§2.1](#21-document-conformance-levels), [§3](#3-conformance-classes--who-has-to-do-what)).
@@ -3386,6 +3409,7 @@ matched by a program.
 | `duplicate-seq` | error | Two events share a `seq` | well-formed |
 | `dangling-ref` | error | A `for` or an annotation `ref` names no `seq` | well-formed |
 | `bad-zone` | error | A `from`, `to` or `zone` outside the zone vocabulary | well-formed |
+| `bad-token-name` | error | A `TOKEN:` id, or a `STATUS_TOKEN.token`, that breaks the token-name grammar ([§6.1](#the-token-grammar)) | well-formed |
 | `same-zone-move` | error | A `MOVE` from a zone to itself that is not an arena | well-formed |
 | `number-range` | error | A number that is not an integer within ±(2^53−1) | well-formed |
 | `over-cap` | error | A keyframe list longer than 1000 | well-formed |
@@ -3430,6 +3454,7 @@ to an **open** one needs no version change: readers already accept values they d
 | Header tags | open | [§5](#5-header-tags) |
 | Sections | open: an unknown section is skipped | [§4](#the-section-banners) |
 | Zones | **closed, major** ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)) | [§6.2](#62-zone-names) |
+| Token names | open | [§25 below](#token-names) |
 | Reserved token names (`credit`, `the-force`) | closed | [§6.1](#two-reserved-token-names) |
 | `DEFEAT.reason` | closed | [§6.4](#64-small-vocabularies), `event.schema.json` |
 | `ABILITY_ACTIVATE.kind` | closed | [§10.1](#101-events-that-carry-board-detail), `event.schema.json` |
@@ -3442,6 +3467,29 @@ to an **open** one needs no version change: readers already accept values they d
 | `Reason`, `Format` | open | [§5](#5-header-tags) |
 | Error codes | open: a reader that meets a code it does not know treats it by its severity | [§24](#24-error-model) |
 | Extension prefixes | closed | [§18](#extensions) |
+
+#### Token names
+
+Open: a token printed tomorrow takes the name its title gives under the rule in
+[§6.1](#the-token-grammar), and needs no change to the format. These are the tokens printed
+today. `kind` is the value a writer puts in `kind` for it; Credit and the Force are neither a
+unit nor an upgrade, so they have none.
+
+| Name | FFG card id | `kind` |
+|---|---|---|
+| `advantage` | 5844562972 | `upgrade` |
+| `battle-droid` | 3463348370 | `unit` |
+| `beast` | 6445363199 | `unit` |
+| `clone-trooper` | 3941784506 | `unit` |
+| `credit` | 8015500527 | none |
+| `experience` | 2007868442 | `upgrade` |
+| `mandalorian` | 8192010342 | `unit` |
+| `shield` | 8752877738 | `upgrade` |
+| `spy` | 6665455613 | `unit` |
+| `the-force` | 4571900905 | none |
+| `tie-fighter` | 7268926664 | `unit` |
+| `weakness` | 7816991190 | `upgrade` |
+| `xwing` | 9415311381 | `unit` |
 
 ---
 
@@ -3876,7 +3924,7 @@ collector      = 3*DIGIT                    ; zero-padded to at least 3
 copy           = ":" ( %x32-39 *DIGIT / %x31 1*DIGIT )
                                             ; 2 and up; the first copy has none
 token-card     = "TOKEN:" token-name [ "#" 1*DIGIT ] [ copy ]
-token-name     = 1*( %x61-7A / DIGIT / "-" / "_" )
+token-name     = 1*( %x61-7A / DIGIT ) *( "-" 1*( %x61-7A / DIGIT ) )
 base-ref       = "base@" ( "1" / "2" )
 seat           = "1" / "2"                  ; a JSON number in records
 ```

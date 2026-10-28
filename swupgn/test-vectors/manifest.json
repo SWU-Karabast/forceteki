@@ -104,6 +104,16 @@
       "about": "A MOVE to a zone outside the vocabulary (§6.2)."
     },
     {
+      "file": "negative/bad-token-name.swupgn",
+      "class": "negative",
+      "level": "well-formed",
+      "errors": [
+        "bad-token-name"
+      ],
+      "warnings": [],
+      "about": "A CREATE_TOKEN whose token id breaks the token-name grammar (§6.1)."
+    },
+    {
       "file": "negative/damaged-keyframe.swupgn",
       "class": "negative",
       "level": "valid",
