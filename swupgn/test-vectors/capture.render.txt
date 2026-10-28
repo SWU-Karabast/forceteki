@@ -1,6 +1,6 @@
  ── setup ──
-       ↳ Player 1 draws 6: Take Captive, Battlefield Marine, Take Captive #2, Alliance X-Wing, Alliance X-Wing #2, Battlefield Marine #2
-       ↳ Player 2 draws 6: Open Fire, Death Star Stormtrooper, Cell Block Guard, Cell Block Guard #2, Death Star Stormtrooper #2, Death Star Stormtrooper #3
+       ↳ Player 1 draws 6: Take Captive · Battlefield Marine · Take Captive #2 · Alliance X-Wing · Alliance X-Wing #2 · Battlefield Marine #2
+       ↳ Player 2 draws 6: Open Fire · Death Star Stormtrooper · Cell Block Guard · Cell Block Guard #2 · Death Star Stormtrooper #2 · Death Star Stormtrooper #3
        ↳ Player 1 keeps their hand
        ↳ Player 2 keeps their hand
        ↳ Player 1 resources Alliance X-Wing
@@ -22,8 +22,8 @@
   5. Player 1 passes
   6. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Battlefield Marine #3, Alliance X-Wing #3
-       ↳ Player 2 draws 2: Open Fire #2, Death Star Stormtrooper #4
+       ↳ Player 1 draws 2: Battlefield Marine #3 · Alliance X-Wing #3
+       ↳ Player 2 draws 2: Open Fire #2 · Death Star Stormtrooper #4
        ↳ Player 1 resources Alliance X-Wing #3
        ↳ Player 2 resources Open Fire
 
@@ -50,8 +50,8 @@
   5. Player 1 passes
   6. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Alliance X-Wing #4, Take Captive #3
-       ↳ Player 2 draws 2: Death Star Stormtrooper #5, Death Star Stormtrooper #6
+       ↳ Player 1 draws 2: Alliance X-Wing #4 · Take Captive #3
+       ↳ Player 2 draws 2: Death Star Stormtrooper #5 · Death Star Stormtrooper #6
        ↳ Player 1 resources Alliance X-Wing #4
        ↳ Player 2 resources Death Star Stormtrooper #3
 
@@ -78,8 +78,8 @@
  11. Player 1 passes
  12. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Alliance X-Wing #5, Alliance X-Wing #6
-       ↳ Player 2 draws 2: Cell Block Guard #3, Death Star Stormtrooper #7
+       ↳ Player 1 draws 2: Alliance X-Wing #5 · Alliance X-Wing #6
+       ↳ Player 2 draws 2: Cell Block Guard #3 · Death Star Stormtrooper #7
        ↳ Player 1 resources Alliance X-Wing #5
        ↳ Player 2 resources Cell Block Guard #3
 

@@ -28,8 +28,10 @@ function line(e: GameEvent, n: SidedResolver): string | null {
         }
         return n.nameOf(baseId(id)) + copySuffix(id);
     };
+    // ` · `, not `, `: a card's name has its own comma between title and subtitle, so a
+    // comma-joined list cannot be split back into cards. The board lines use the same dot.
     const list = (ids: unknown): string => arr(ids).map(nm)
-        .join(', ');
+        .join(' · ');
     switch (e.t) {
         // `cost` is the PRINTED cost (spec §10.1), so it is worded as such: "(2 resources)"
         // read as resources paid, which is wrong whenever an aspect penalty or discount applied.

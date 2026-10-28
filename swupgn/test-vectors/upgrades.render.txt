@@ -1,6 +1,6 @@
  ── setup ──
-       ↳ Player 1 draws 6: Zealous Soldier, Alliance X-Wing, Ascension Cable, Cloaked StarViper, Clan Wren Rescuer, Zealous Soldier #2
-       ↳ Player 2 draws 6: Vanquish, Death Star Stormtrooper, Death Star Stormtrooper #2, Death Star Stormtrooper #3, Death Star Stormtrooper #4, Open Fire
+       ↳ Player 1 draws 6: Zealous Soldier · Alliance X-Wing · Ascension Cable · Cloaked StarViper · Clan Wren Rescuer · Zealous Soldier #2
+       ↳ Player 2 draws 6: Vanquish · Death Star Stormtrooper · Death Star Stormtrooper #2 · Death Star Stormtrooper #3 · Death Star Stormtrooper #4 · Open Fire
        ↳ Player 1 keeps their hand
        ↳ Player 2 keeps their hand
        ↳ Player 1 resources Alliance X-Wing
@@ -24,8 +24,8 @@
   5. Player 1 passes
   6. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Clan Wren Rescuer #2, Battlefield Marine
-       ↳ Player 2 draws 2: Death Star Stormtrooper #5, Death Star Stormtrooper #6
+       ↳ Player 1 draws 2: Clan Wren Rescuer #2 · Battlefield Marine
+       ↳ Player 2 draws 2: Death Star Stormtrooper #5 · Death Star Stormtrooper #6
        ↳ Player 1 resources Battlefield Marine
        ↳ Player 2 resources Death Star Stormtrooper #5
 
@@ -45,8 +45,8 @@
   3. Player 1 passes
   4. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Ascension Cable #2, Ascension Cable #3
-       ↳ Player 2 draws 2: Death Star Stormtrooper #7, Death Star Stormtrooper #8
+       ↳ Player 1 draws 2: Ascension Cable #2 · Ascension Cable #3
+       ↳ Player 2 draws 2: Death Star Stormtrooper #7 · Death Star Stormtrooper #8
        ↳ Player 1 resources Ascension Cable
        ↳ Player 2 resources Death Star Stormtrooper #7
 
@@ -69,8 +69,8 @@
   5. Player 1 passes
   6. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Battlefield Marine #2, Zealous Soldier #3
-       ↳ Player 2 draws 2: Open Fire #2, Death Star Stormtrooper #9
+       ↳ Player 1 draws 2: Battlefield Marine #2 · Zealous Soldier #3
+       ↳ Player 2 draws 2: Open Fire #2 · Death Star Stormtrooper #9
        ↳ Player 1 resources Battlefield Marine #2
        ↳ Player 2 resources Death Star Stormtrooper #9
 
@@ -99,8 +99,8 @@
   4. Player 2 passes
   5. Player 1 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Alliance X-Wing #2, Alliance X-Wing #3
-       ↳ Player 2 draws 2: Death Star Stormtrooper #10, Open Fire #3
+       ↳ Player 1 draws 2: Alliance X-Wing #2 · Alliance X-Wing #3
+       ↳ Player 2 draws 2: Death Star Stormtrooper #10 · Open Fire #3
        ↳ Player 1 resources Alliance X-Wing #2
        ↳ Player 2 resources Death Star Stormtrooper #10
 

@@ -186,3 +186,25 @@ describe('render card sides and granted abilities', function () {
         expect(granted).toContain('↳ Player 1 flips Beast Lair');
     });
 });
+
+describe('render card lists', function () {
+    const nm = { nameOf: (id: string) => ({ 'SOR#005': 'Leia Organa, These Are My Friends', 'SOR#049': 'Obi-Wan Kenobi, Protective Padawan', 'SOR#108': 'Wampa' }[id] ?? id) };
+    const doc = (events: any[]) => ({ header: {} as any, decks: [], setup: [], events, annotations: [], cards: [] });
+
+    // Value: protects=a list of card names can be split back into cards; fails_when=lists are joined with ", ", which every title-and-subtitle name also contains; why_new=no test rendered a list of subtitled cards; seam=none; no_claim=none
+    it('separates cards with a middle dot, since a card name has its own comma', function () {
+        const out = render(doc([
+            { seq: 'R1.S.1', t: 'DRAW', p: 1, count: 3, cards: ['SOR#005', 'SOR#049', 'SOR#108'] },
+            { seq: 'R1.A.1a', t: 'DISCARD', p: 2, cards: ['SOR#005', 'SOR#108'] },
+        ]), nm);
+        expect(out).toContain('Player 1 draws 3: Leia Organa, These Are My Friends · Obi-Wan Kenobi, Protective Padawan · Wampa');
+        expect(out).toContain('Player 2 discards Leia Organa, These Are My Friends · Wampa');
+    });
+
+    // Value: protects=render survives a keyframe card whose captured is not a list; fails_when=the fold snaps to such a keyframe and render.ts iterates captured; why_new=no render test used a damaged keyframe; seam=none; no_claim=validate rejects the file
+    it('does not throw on a keyframe card whose captured is not a list', function () {
+        const seat = (n: 1 | 2, cards: unknown[]) => ({ seat: n, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards });
+        const card = { id: 'SOR#108', zone: 'ground', damage: 0, exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens: {}, captured: 5 };
+        expect(() => render(doc([{ seq: 'R1.start', t: 'ROUND_START', round: 1, keyframe: { round: 1, phase: 'action', initiative: 1, players: { 1: seat(1, [card]), 2: seat(2, []) } } }]), nm)).not.toThrow();
+    });
+});

@@ -1,9 +1,9 @@
  ── setup ──
-       ↳ Player 1 draws 6: Wampa, Wampa #2, Death Star Stormtrooper, Death Star Stormtrooper #2, Battlefield Marine, Battlefield Marine #2
-       ↳ Player 2 draws 6: Death Star Stormtrooper #5, Alliance X-Wing #5, Alliance X-Wing #6, Battlefield Marine #7, AT-ST #3, Death Star Stormtrooper #6
+       ↳ Player 1 draws 6: Wampa · Wampa #2 · Death Star Stormtrooper · Death Star Stormtrooper #2 · Battlefield Marine · Battlefield Marine #2
+       ↳ Player 2 draws 6: Death Star Stormtrooper #5 · Alliance X-Wing #5 · Alliance X-Wing #6 · Battlefield Marine #7 · AT-ST #3 · Death Star Stormtrooper #6
        ↳ Player 1 mulligans
        ↳ Player 2 keeps their hand
-       ↳ Player 1 draws 6: Battlefield Marine #6, Wampa #3, Death Star Stormtrooper #3, Battlefield Marine #4, Battlefield Marine #3, Wampa #4
+       ↳ Player 1 draws 6: Battlefield Marine #6 · Wampa #3 · Death Star Stormtrooper #3 · Battlefield Marine #4 · Battlefield Marine #3 · Wampa #4
        ↳ Player 1 resources Battlefield Marine #6
        ↳ Player 1 resources Wampa #3
        ↳ Player 2 resources Death Star Stormtrooper #5
@@ -21,8 +21,8 @@
   3. Player 1 passes
   4. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Battlefield Marine, Battlefield Marine #2
-       ↳ Player 2 draws 2: Alliance X-Wing #7, Wampa #5
+       ↳ Player 1 draws 2: Battlefield Marine · Battlefield Marine #2
+       ↳ Player 2 draws 2: Alliance X-Wing #7 · Wampa #5
        ↳ Player 1 resources Battlefield Marine #4
        ↳ Player 2 resources Battlefield Marine #7
 
@@ -44,8 +44,8 @@
   5. Player 1 passes
   6. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: AT-ST #2, Battlefield Marine #5
-       ↳ Player 2 draws 2: Battlefield Marine #8, AT-ST #4
+       ↳ Player 1 draws 2: AT-ST #2 · Battlefield Marine #5
+       ↳ Player 2 draws 2: Battlefield Marine #8 · AT-ST #4
        ↳ Player 1 resources Battlefield Marine #3
        ↳ Player 2 resources AT-ST #3
 
@@ -70,8 +70,8 @@
   7. Player 1 passes
   8. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Death Star Stormtrooper #4, Death Star Stormtrooper #2
-       ↳ Player 2 draws 2: Battlefield Marine #9, Wampa #6
+       ↳ Player 1 draws 2: Death Star Stormtrooper #4 · Death Star Stormtrooper #2
+       ↳ Player 2 draws 2: Battlefield Marine #9 · Wampa #6
        ↳ Player 1 resources Battlefield Marine
        ↳ Player 2 resources Death Star Stormtrooper #6
 
@@ -101,8 +101,8 @@
   9. Player 1 passes
  10. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Alliance X-Wing, AT-ST
-       ↳ Player 2 draws 2: Death Star Stormtrooper #7, Battlefield Marine #10
+       ↳ Player 1 draws 2: Alliance X-Wing · AT-ST
+       ↳ Player 2 draws 2: Death Star Stormtrooper #7 · Battlefield Marine #10
        ↳ Player 1 resources Battlefield Marine #2
        ↳ Player 2 resources Wampa #5
 

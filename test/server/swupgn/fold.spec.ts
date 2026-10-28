@@ -1,4 +1,5 @@
 import { fold, stateAt } from '../../../swupgn/src/fold';
+import { checkKeyframes } from '../../../swupgn/src/integrity';
 import type { GameEvent } from '../../../swupgn/src/types';
 
 function ev(e: GameEvent): GameEvent {
@@ -870,3 +871,118 @@ describe('fold of untrusted counters', function () {
     });
 });
 
+
+describe('fold cross-seat piles', function () {
+    // Value: protects=a card leaving a pile is taken out of the pile that holds it, not out of p's; fails_when=applyMoveCounts removes from player(s, e.p) only, and Stolen AT-Hauler played from the opponent's discard stays in its owner's discard; why_new=no vector moves a card out of another seat's pile; seam=none; no_claim=deck membership is not modelled, so a cross-seat deck move is still counted on p
+    it('takes a card played from the opponent\'s discard out of the owner\'s pile', function () {
+        const s = fold([
+            { seq: 'R7.A.1a', t: 'MOVE', card: 'JTL#221:3', from: 'hand', to: 'space', p: 1, kind: 'unit' },
+            { seq: 'R7.A.1c', t: 'MOVE', card: 'JTL#221:3', from: 'space', to: 'discard', p: 1, kind: 'unit' },
+            { seq: 'R7.A.9b', t: 'MOVE', card: 'JTL#221:3', from: 'discard', to: 'space', p: 2, kind: 'unit' },
+        ] as GameEvent[]);
+        expect(s.players[1]?.discard).toEqual([]);
+        expect(s.players[2]?.discard).toEqual([]);
+        expect(s.players[2]?.cards.map((c) => `${c.id}@${c.zone}`)).toEqual(['JTL#221:3@space']);
+    });
+
+    // Value: protects=hand and resource rows follow the same rule, counts included; fails_when=only discard is fixed; why_new=the test above covers discard only; seam=none; no_claim=no real card is known to play from the opponent's hand or resources
+    it('takes a card out of the opponent\'s hand or resource row, and its count with it', function () {
+        const s = fold([
+            { seq: 'R1.A.1', t: 'MOVE', card: 'SOR#001', from: 'deck', to: 'hand', p: 1, kind: 'unit' },
+            { seq: 'R1.A.2', t: 'MOVE', card: 'SOR#002', from: 'hand', to: 'resource', p: 1, kind: 'unit' },
+            { seq: 'R1.A.3', t: 'MOVE', card: 'SOR#001', from: 'hand', to: 'ground', p: 2, kind: 'unit' },
+            { seq: 'R1.A.4', t: 'MOVE', card: 'SOR#002', from: 'resource', to: 'ground', p: 2, kind: 'unit' },
+        ] as GameEvent[]);
+        expect(s.players[1]?.hand).toEqual([]);
+        expect(s.players[1]?.resources).toEqual([]);
+        expect(s.players[1]?.resourcesReady).toBe(0);
+        expect(s.players[2]?.handSize).toBe(0);
+        expect(s.players[2]?.resourcesReady).toBe(0);
+    });
+
+    // Value: protects=a card no seat's pile holds is still taken from p's counts as before; fails_when=the cross-seat lookup drops the record when the card is untracked (a file folded from mid-game with no keyframe); why_new=the two tests above always track the card; seam=none; no_claim=none
+    it('falls back to p when no pile holds the card', function () {
+        const s = fold([
+            { seq: 'R1.A.1', t: 'MOVE', card: 'SOR#001', from: 'deck', to: 'hand', p: 2, kind: 'unit' },
+            { seq: 'R1.A.2', t: 'MOVE', card: 'SOR#009', from: 'hand', to: 'ground', p: 2, kind: 'unit' },
+        ] as GameEvent[]);
+        expect(s.players[2]?.handSize).toBe(0);
+        expect(s.players[2]?.hand).toEqual(['SOR#001']);
+    });
+});
+
+describe('fold leader records with no card', function () {
+    // Value: protects=a schema-invalid leader record cannot throw or land on the wrong seat; fails_when=DEPLOY_LEADER reads prev.epicActionUsed off undefined, or leaderOwner(undefined) matches the first seat with no leader; why_new=every existing leader test names its card; seam=none; no_claim=the schema already rejects these records
+    it('never throws, and never names a leader on the wrong seat', function () {
+        for (const t of ['DEPLOY_LEADER', 'LEADER_FLIP', 'ABILITY_ACTIVATE', 'EXHAUST', 'READY']) {
+            let s: any;
+            expect(() => {
+                s = fold([{ seq: 'R1.A.1', t, p: 2, epic: true, onStartingSide: false } as any]);
+            }).withContext(t).not.toThrow();
+            expect(s.players[1]?.leader).withContext(`${t}: seat 1`)
+                .toBeUndefined();
+            expect(s.players[2]?.leader).withContext(`${t}: seat 2`)
+                .toBeUndefined();
+            expect(s.players[2]?.cards).withContext(`${t}: no card without an id`)
+                .toEqual([]);
+        }
+    });
+});
+
+describe('fold keyframe card captives', function () {
+    const unit = (captured: unknown) => ({ id: 'SOR#010', zone: 'ground', damage: 0, exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens: {}, captured });
+    const seat = (n: 1 | 2, cards: unknown[]) => ({
+        seat: n, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0,
+        credits: 0, hasForce: false, discard: [], cards,
+    });
+    const keyframed = (cards: unknown[]) => fold([{
+        seq: 'R1.start', t: 'ROUND_START', round: 1,
+        keyframe: { round: 1, phase: 'action', initiative: 1, players: { 1: seat(1, cards), 2: seat(2, []) } },
+    } as any]);
+
+    // Value: protects=a keyframe card whose captured is not a list, or is past the cap, is a damaged checkpoint; fails_when=isCompleteKeyframeCard checks upgrades only and render throws iterating captured; why_new=the card checks above never set captured; seam=none; no_claim=real games always write captured as a short list
+    it('ignores a keyframe whose card carries a captured value that is not a capped list', function () {
+        expect(keyframed([unit(['SOR#095'])]).players[1]?.cards.map((c) => c.captured)).toEqual([['SOR#095']]);
+        expect(keyframed([unit(undefined)]).players[1]?.cards.length).withContext('absent is a file older than the field')
+            .toBe(1);
+        for (const bad of [5, {}, true, 'x', Array.from({ length: 1001 }, (_, i) => `SOR#${i}`)]) {
+            expect(keyframed([unit(bad)]).players[1]?.cards).withContext(JSON.stringify(bad).slice(0, 20))
+                .toEqual([]);
+        }
+    });
+});
+
+describe('fold keyframe snap normalisation', function () {
+    const seat = (n: 1 | 2, cards: unknown[]) => ({
+        seat: n, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0,
+        credits: 0, hasForce: false, discard: [], cards,
+    });
+    const oldCard = { id: 'SOR#010', zone: 'ground', damage: 0, exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens: {} };
+    const events = [{
+        seq: 'R1.start', t: 'ROUND_START', round: 1,
+        keyframe: { round: 1, phase: 'action', initiative: 1, players: { 1: seat(1, [oldCard]), 2: seat(2, []) } },
+    }] as any;
+
+    // Value: protects=a keyframe card from a file older than `captured` folds to a card with `captured: []`, the shape every other card has; fails_when=snapTo copies the card as-is and consumers find captured undefined; why_new=R3 only checked a present captured; seam=none; no_claim=none
+    it('gives a keyframe card without captured an empty list, in fold and in checkKeyframes', function () {
+        expect(fold(events).players[1]?.cards[0]?.captured).toEqual([]);
+        // The first keyframe is compared against an empty board, so only the second is about this.
+        const later = checkKeyframes([...events, { seq: 'R1.end', t: 'ROUND_END', round: 1, keyframe: events[0].keyframe }]).mismatches
+            .filter((m) => m.seq === 'R1.end');
+        expect(later).toEqual([]);
+    });
+});
+
+describe('fold attachment list cap', function () {
+    // Value: protects=a host's upgrades and a captor's captured stop at the cap like every other list the fold grows (spec §12); fails_when=attachTo or CAPTURE push without the cap and a crafted file grows them without bound; why_new=the cap tests above grow zone lists only; seam=none; no_claim=no real game approaches the cap
+    it('caps a host\'s upgrades and a captor\'s captives at 1000', function () {
+        const events: any[] = [{ seq: 'R1.A.1', t: 'MOVE', card: 'SOR#010', from: 'hand', to: 'ground', p: 1, kind: 'unit' }];
+        for (let i = 0; i < 1005; i++) {
+            events.push({ seq: `R1.A.2u${i}`, t: 'MOVE', card: `LOF#${i}`, from: 'hand', to: 'ground', p: 1, kind: 'upgrade', attachedTo: 'SOR#010' });
+            events.push({ seq: `R1.A.2c${i}`, t: 'CAPTURE', p: 1, card: `SOR#${2000 + i}`, by: 'SOR#010' });
+        }
+        const host = fold(events).players[1]?.cards.find((c) => c.id === 'SOR#010');
+        expect(host?.upgrades.length).toBe(1000);
+        expect(host?.captured.length).toBe(1000);
+    });
+});

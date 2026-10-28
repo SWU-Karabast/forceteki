@@ -1,6 +1,6 @@
  ── setup ──
-       ↳ Player 1 draws 6: Clone X Assassin, Death Star Stormtrooper, Occupation Officer, Venomous Wyyyshokk, Death Star Stormtrooper #2, Death Star Stormtrooper #3
-       ↳ Player 2 draws 6: Battlefield Marine, Alliance X-Wing, Alliance X-Wing #2, Alliance X-Wing #3, Alliance X-Wing #4, Alliance X-Wing #5
+       ↳ Player 1 draws 6: Clone X Assassin · Death Star Stormtrooper · Occupation Officer · Venomous Wyyyshokk · Death Star Stormtrooper #2 · Death Star Stormtrooper #3
+       ↳ Player 2 draws 6: Battlefield Marine · Alliance X-Wing · Alliance X-Wing #2 · Alliance X-Wing #3 · Alliance X-Wing #4 · Alliance X-Wing #5
        ↳ Player 1 keeps their hand
        ↳ Player 2 keeps their hand
        ↳ Player 1 resources Clone X Assassin
@@ -19,8 +19,8 @@
   2. Player 2 passes
   3. Player 1 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Venomous Wyyyshokk #2, Occupation Officer #2
-       ↳ Player 2 draws 2: Alliance X-Wing #6, Alliance X-Wing #7
+       ↳ Player 1 draws 2: Venomous Wyyyshokk #2 · Occupation Officer #2
+       ↳ Player 2 draws 2: Alliance X-Wing #6 · Alliance X-Wing #7
        ↳ Player 1 resources Venomous Wyyyshokk
        ↳ Player 2 resources Alliance X-Wing #2
 
@@ -39,8 +39,8 @@
   4. Player 2 passes
   5. Player 1 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Death Star Stormtrooper #4, Occupation Officer #3
-       ↳ Player 2 draws 2: Alliance X-Wing #8, Alliance X-Wing #9
+       ↳ Player 1 draws 2: Death Star Stormtrooper #4 · Occupation Officer #3
+       ↳ Player 2 draws 2: Alliance X-Wing #8 · Alliance X-Wing #9
        ↳ Player 1 resources Death Star Stormtrooper #2
        ↳ Player 2 resources Alliance X-Wing #3
 
@@ -64,8 +64,8 @@
   8. Player 2 passes
   9. Player 1 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Death Star Stormtrooper #5, Venomous Wyyyshokk #3
-       ↳ Player 2 draws 2: Alliance X-Wing #10, Alliance X-Wing #11
+       ↳ Player 1 draws 2: Death Star Stormtrooper #5 · Venomous Wyyyshokk #3
+       ↳ Player 2 draws 2: Alliance X-Wing #10 · Alliance X-Wing #11
        ↳ Player 1 resources Death Star Stormtrooper #3
        ↳ Player 2 resources Alliance X-Wing #4
 
@@ -93,8 +93,8 @@
  10. Player 2 passes
  11. Player 1 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Clone X Assassin #2, Occupation Officer #4
-       ↳ Player 2 draws 2: Alliance X-Wing #12, Alliance X-Wing #13
+       ↳ Player 1 draws 2: Clone X Assassin #2 · Occupation Officer #4
+       ↳ Player 2 draws 2: Alliance X-Wing #12 · Alliance X-Wing #13
        ↳ Player 1 resources Death Star Stormtrooper #4
        ↳ Player 2 resources Alliance X-Wing #5
 
@@ -114,8 +114,8 @@
   4. Player 2 passes
   5. Player 1 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Death Star Stormtrooper #6, Death Star Stormtrooper #7
-       ↳ Player 2 draws 2: Alliance X-Wing #14, Alliance X-Wing #15
+       ↳ Player 1 draws 2: Death Star Stormtrooper #6 · Death Star Stormtrooper #7
+       ↳ Player 2 draws 2: Alliance X-Wing #14 · Alliance X-Wing #15
        ↳ Player 1 resources Death Star Stormtrooper #5
        ↳ Player 2 resources Alliance X-Wing #6
 
@@ -133,8 +133,8 @@
   4. Player 2 passes
   5. Player 1 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Clone X Assassin #3, Death Star Stormtrooper #8
-       ↳ Player 2 draws 2: Alliance X-Wing #16, Alliance X-Wing #17
+       ↳ Player 1 draws 2: Clone X Assassin #3 · Death Star Stormtrooper #8
+       ↳ Player 2 draws 2: Alliance X-Wing #16 · Alliance X-Wing #17
        ↳ Player 1 resources Clone X Assassin #3
        ↳ Player 2 resources Alliance X-Wing #7
 
@@ -150,8 +150,8 @@
   2. Player 2 passes
   3. Player 1 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Clone X Assassin #4, Occupation Officer #5
-       ↳ Player 2 draws 2: Battlefield Marine #2, Alliance X-Wing #18
+       ↳ Player 1 draws 2: Clone X Assassin #4 · Occupation Officer #5
+       ↳ Player 2 draws 2: Battlefield Marine #2 · Alliance X-Wing #18
        ↳ Player 1 resources Clone X Assassin #4
        ↳ Player 2 resources Alliance X-Wing #8
 

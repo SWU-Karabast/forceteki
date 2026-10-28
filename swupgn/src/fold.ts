@@ -12,8 +12,14 @@ export function emptyState(): ReducedState {
     return { round: 0, phase: 'setup', initiative: null, initiativeTaken: false, players: { 1: emptyPlayer(1), 2: emptyPlayer(2) } };
 }
 
-/** The seat whose leader is `id`, if a keyframe or a DEPLOY_LEADER has told us. */
+/**
+ * The seat whose leader is `id`, if a keyframe or a DEPLOY_LEADER has told us. A record with no
+ * `card` names no leader: without the guard `undefined` matched the first seat with no leader yet.
+ */
 function leaderOwner(s: ReducedState, id: string): PlayerState | undefined {
+    if (typeof id !== 'string') {
+        return undefined;
+    }
     for (const seat of [1, 2] as Seat[]) {
         const ps = s.players[seat];
         if (ps?.leader?.id === id) {
@@ -85,7 +91,9 @@ export function isCompleteKeyframe(k: unknown): k is ReducedState {
 /**
  * A keyframe card carries everything later records dereference or add to: the `upgrades` list
  * (capped like every list), the `statusTokens` map STATUS_TOKEN indexes into, and the counters
- * DAMAGE, SHIELD_* and EXPERIENCE_GAIN do arithmetic on.
+ * DAMAGE, SHIELD_* and EXPERIENCE_GAIN do arithmetic on. `captured` may be absent (a file older
+ * than the field), but when present it is a capped list too: `captured: 5` used to pass, and the
+ * renderer threw iterating it.
  */
 function isCompleteKeyframeCard(c: unknown): boolean {
     if (typeof c !== 'object' || c === null) {
@@ -93,7 +101,9 @@ function isCompleteKeyframeCard(c: unknown): boolean {
     }
     const card = c as Partial<CardInstanceState>;
     const tokens = card.statusTokens as unknown;
+    const captured = card.captured as unknown;
     return Array.isArray(card.upgrades) && card.upgrades.length <= MAX_ZONE_LIST &&
+      (captured === undefined || (Array.isArray(captured) && captured.length <= MAX_ZONE_LIST)) &&
       typeof tokens === 'object' && tokens !== null && !Array.isArray(tokens) &&
       typeof card.damage === 'number' && typeof card.shields === 'number' && typeof card.experience === 'number';
 }
@@ -103,8 +113,18 @@ export function hasSnapKeyframe(e: GameEvent): e is GameEvent & { keyframe: Redu
     return (e.t === 'ROUND_START' || e.t === 'ROUND_END') && isCompleteKeyframe(e.keyframe);
 }
 
-function snapTo(k: ReducedState): ReducedState {
-    return JSON.parse(JSON.stringify(k)) as ReducedState;
+/**
+ * A fresh copy of a keyframe to fold on from. A card from a file older than `captured` gets an
+ * empty list, the shape `newCard` gives every card, so a consumer never meets it undefined.
+ */
+export function snapTo(k: ReducedState): ReducedState {
+    const s = JSON.parse(JSON.stringify(k)) as ReducedState;
+    for (const seat of [1, 2] as Seat[]) {
+        for (const c of s.players[seat]?.cards ?? []) {
+            c.captured ??= [];
+        }
+    }
+    return s;
 }
 
 /**
@@ -234,8 +254,8 @@ function attachTo(s: ReducedState, hostId: string, id: string): void {
         return;
     }
     const host = findCard(s, hostId);
-    if (host && !host.upgrades.includes(id)) {
-        host.upgrades.push(id);
+    if (host) {
+        addOnce(host.upgrades, id);
     }
 }
 
@@ -390,6 +410,21 @@ function removeOne(list: string[], id: string): void {
 }
 
 /**
+ * The seat whose pile a card LEAVES: `p`'s if it holds the card, else the other seat's, else `p`'s.
+ * `p` is the card's controller as the move is recorded, which is not always the pile's owner --
+ * Stolen AT-Hauler is played by the opponent out of its owner's discard -- and a pile only ever
+ * holds its owner's cards. A copy's id is unique, so whichever pile holds it is the right one.
+ * Arriving cards need no lookup: the writer records the owner's seat on a move into a pile.
+ */
+function holder(s: ReducedState, seat: Seat, ps: PlayerState, id: string, pile: (x: PlayerState) => string[] | undefined): PlayerState {
+    if (pile(ps)?.includes(id)) {
+        return ps;
+    }
+    const other = s.players[seat === 1 ? 2 : 1];
+    return other && pile(other)?.includes(id) ? other : ps;
+}
+
+/**
  * Engine truth: every zone transition is an OnCardMoved → MOVE event. handSize, the resource
  * counts, credits, the Force and the in-play `cards[]` set are therefore reconstructed from
  * MOVE (the single source of truth), NOT from DRAW/RESOURCE/PLAY, which are higher-level
@@ -444,8 +479,9 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
         ps.handSize += 1;
         addOnce(ps.hand, e.card);
     } else if (e.from === 'hand' && e.to !== 'hand') {
-        ps.handSize = Math.max(0, ps.handSize - 1);
-        removeOne(ps.hand, e.card);
+        const from = holder(s, e.p, ps, e.card, (x) => x.hand);
+        from.handSize = Math.max(0, from.handSize - 1);
+        removeOne(from.hand, e.card);
     }
 
     // Discard: likewise the pile's CONTENTS, in engine order. DEFEAT cannot be the author —
@@ -455,7 +491,7 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
     if (e.to === 'discard' && e.from !== 'discard') {
         addOnce(ps.discard, e.card);
     } else if (e.from === 'discard' && e.to !== 'discard') {
-        removeOne(ps.discard, e.card);
+        removeOne(holder(s, e.p, ps, e.card, (x) => x.discard).discard, e.card);
     }
 
     // Deck count, once a keyframe has told us where it started.
@@ -485,8 +521,9 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
         countResource(ps, 1, false);
         addOnce(resourceList(ps), e.card);
     } else if (e.from === 'resource' && e.to !== 'resource') {
-        countResource(ps, -1, e.exhausted === true);
-        removeOne(resourceList(ps), e.card);
+        const from = holder(s, e.p, ps, e.card, (x) => x.resources);
+        countResource(from, -1, e.exhausted === true);
+        removeOne(resourceList(from), e.card);
     }
 
     // Credits and the Force: the only two things that live in `base` and are counted.
@@ -589,6 +626,10 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             // The leader's status: this record names the leader (so a reader that saw no keyframe
             // yet learns which card it is), deploys it, and readies it -- a leader deploys ready
             // whatever state it was in (CR 3.4.4). An Epic Action deploy spends the Epic Action.
+            // A record with no `card` (schema-invalid) names nothing to deploy, so it is dropped.
+            if (typeof e.card !== 'string') {
+                break;
+            }
             const ps = player(s, e.p);
             if (ps) {
                 const prev = ps.leader;
@@ -637,6 +678,9 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             // game still lands on the right face. Falls back to the seat on the record when the
             // leader's id is not yet known (no keyframe seen, no DEPLOY_LEADER -- these leaders
             // never deploy, so that is the normal case early in a file).
+            if (typeof e.card !== 'string') {
+                break; // schema-invalid: no leader to seed, and the seat alone names no face
+            }
             const owner = leaderOwner(s, e.card) ?? player(s, e.p);
             if (owner) {
                 // A double-sided leader NEVER deploys, so in a file with no keyframe yet nothing
@@ -701,7 +745,7 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
                     continue;
                 }
                 const idx = owner.cards.findIndex((c) => c.id === e.card);
-                if (idx >= 0) {
+                if (idx >= 0 && ps.cards.length < MAX_ZONE_LIST) {
                     ps.cards.push(owner.cards.splice(idx, 1)[0]);
                     break;
                 }
@@ -725,9 +769,7 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             const captor = e.by ? findCard(s, e.by) : undefined;
             if (captor) {
                 const captured = arr<string>(captor.captured);
-                if (!captured.includes(e.card)) {
-                    captured.push(e.card);
-                }
+                addOnce(captured, e.card);
                 captor.captured = captured;
             }
             break;

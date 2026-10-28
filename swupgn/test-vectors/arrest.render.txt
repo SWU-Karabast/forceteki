@@ -1,6 +1,6 @@
  ── setup ──
-       ↳ Player 1 draws 6: Death Star Stormtrooper, Peridea Bandit, Death Star Stormtrooper #2, Arrest, Peridea Bandit #2, Arrest #2
-       ↳ Player 2 draws 6: Alliance X-Wing, Battlefield Marine, Alliance X-Wing #2, Alliance X-Wing #3, Alliance X-Wing #4, Alliance X-Wing #5
+       ↳ Player 1 draws 6: Death Star Stormtrooper · Peridea Bandit · Death Star Stormtrooper #2 · Arrest · Peridea Bandit #2 · Arrest #2
+       ↳ Player 2 draws 6: Alliance X-Wing · Battlefield Marine · Alliance X-Wing #2 · Alliance X-Wing #3 · Alliance X-Wing #4 · Alliance X-Wing #5
        ↳ Player 1 keeps their hand
        ↳ Player 2 keeps their hand
        ↳ Player 1 resources Death Star Stormtrooper
@@ -20,8 +20,8 @@
   3. Player 1 passes
   4. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Death Star Stormtrooper #3, Death Star Stormtrooper #4
-       ↳ Player 2 draws 2: Battlefield Marine #2, Alliance X-Wing #6
+       ↳ Player 1 draws 2: Death Star Stormtrooper #3 · Death Star Stormtrooper #4
+       ↳ Player 2 draws 2: Battlefield Marine #2 · Alliance X-Wing #6
        ↳ Player 1 resources Death Star Stormtrooper #3
        ↳ Player 2 resources Alliance X-Wing #4
 
@@ -44,8 +44,8 @@
   5. Player 1 passes
  ── regroup ──
        ↳ Player 2 rescues Alliance X-Wing #3
-       ↳ Player 1 draws 2: Peridea Bandit #3, Arrest #3
-       ↳ Player 2 draws 2: Alliance X-Wing #7, Battlefield Marine #3
+       ↳ Player 1 draws 2: Peridea Bandit #3 · Arrest #3
+       ↳ Player 2 draws 2: Alliance X-Wing #7 · Battlefield Marine #3
        ↳ Player 1 resources Death Star Stormtrooper #4
        ↳ Player 2 resources Alliance X-Wing #6
 
@@ -71,8 +71,8 @@
   7. Player 1 passes
  ── regroup ──
        ↳ Player 2 rescues Alliance X-Wing #5
-       ↳ Player 1 draws 2: Death Star Stormtrooper #5, Arrest #4
-       ↳ Player 2 draws 2: Alliance X-Wing #8, Alliance X-Wing #9
+       ↳ Player 1 draws 2: Death Star Stormtrooper #5 · Arrest #4
+       ↳ Player 2 draws 2: Alliance X-Wing #8 · Alliance X-Wing #9
        ↳ Player 1 resources Death Star Stormtrooper #5
        ↳ Player 2 resources Alliance X-Wing #7
 

@@ -1,6 +1,6 @@
  ── setup ──
-       ↳ Player 1 draws 6: Beast Lair, Beast Lair #2, Migrate, Battlefield Marine, Landing Pad, Battlefield Marine #2
-       ↳ Player 2 draws 6: Venomous Wyyyshokk, Carbonite Chamber, Occupation Officer, Torrent, Carbonite Chamber #2, Occupation Officer #2
+       ↳ Player 1 draws 6: Beast Lair · Beast Lair #2 · Migrate · Battlefield Marine · Landing Pad · Battlefield Marine #2
+       ↳ Player 2 draws 6: Venomous Wyyyshokk · Carbonite Chamber · Occupation Officer · Torrent · Carbonite Chamber #2 · Occupation Officer #2
        ↳ Player 1 keeps their hand
        ↳ Player 2 keeps their hand
        ↳ Player 1 resources Battlefield Marine
@@ -20,8 +20,8 @@
   3. Player 1 passes
   4. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Alliance X-Wing, Alliance X-Wing #2
-       ↳ Player 2 draws 2: Torrent #2, Torrent #3
+       ↳ Player 1 draws 2: Alliance X-Wing · Alliance X-Wing #2
+       ↳ Player 2 draws 2: Torrent #2 · Torrent #3
        ↳ Player 1 resources Alliance X-Wing
        ↳ Player 2 resources Occupation Officer #2
 
@@ -52,8 +52,8 @@
   9. Player 1 passes
  10. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Alliance X-Wing #3, Landing Pad #2
-       ↳ Player 2 draws 2: Occupation Officer #3, Torrent #4
+       ↳ Player 1 draws 2: Alliance X-Wing #3 · Landing Pad #2
+       ↳ Player 2 draws 2: Occupation Officer #3 · Torrent #4
        ↳ Player 1 resources Alliance X-Wing #3
        ↳ Player 2 resources Occupation Officer #3
 
@@ -86,8 +86,8 @@
   5. Player 1 passes
   6. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Migrate #2, Verdant Fortress
-       ↳ Player 2 draws 2: Clone X Assassin, Venomous Wyyyshokk #2
+       ↳ Player 1 draws 2: Migrate #2 · Verdant Fortress
+       ↳ Player 2 draws 2: Clone X Assassin · Venomous Wyyyshokk #2
        ↳ Player 1 resources Landing Pad #2
        ↳ Player 2 resources Clone X Assassin
 
@@ -115,8 +115,8 @@
   6. Player 2 passes
   7. Player 1 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Verdant Fortress #2, Alliance X-Wing #4
-       ↳ Player 2 draws 2: Clone X Assassin #2, Occupation Officer #4
+       ↳ Player 1 draws 2: Verdant Fortress #2 · Alliance X-Wing #4
+       ↳ Player 2 draws 2: Clone X Assassin #2 · Occupation Officer #4
        ↳ Player 1 resources Alliance X-Wing #4
        ↳ Player 2 resources Clone X Assassin #2
 

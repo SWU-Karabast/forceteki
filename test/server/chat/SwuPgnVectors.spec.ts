@@ -473,6 +473,85 @@ describe('SWU-PGN/1.0 vectors (real games)', function () {
         });
     });
 
+    // ── stolen-hauler ─────────────────────────────────────────────────────────────────────────
+    integration(function (contextRef) {
+        beforeEach(function () {
+            return contextRef.setupTestAsync({
+                phase: 'setup',
+                player1: {
+                    leader: 'han-solo#worth-the-risk',
+                    base: 'jabbas-palace',
+                    // Haulers are P1's only units, so Power of the Dark Side can only take one.
+                    deck: ['stolen-athauler', 'stolen-athauler', 'stolen-athauler', 'stolen-athauler',
+                        'stolen-athauler', 'stolen-athauler', ...REBEL, ...REBEL],
+                },
+                player2: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    base: 'security-complex',
+                    deck: ['power-of-the-dark-side', 'power-of-the-dark-side', 'power-of-the-dark-side',
+                        'power-of-the-dark-side', ...VILLAIN, ...VILLAIN],
+                },
+            });
+        });
+
+        it('stolen-hauler: a unit defeated into its owner\'s discard is played from there by the opponent', function () {
+            const { context } = contextRef;
+            const keep: Keep = { p1: ['stolen-athauler'], p2: ['power-of-the-dark-side'] };
+            runSetup(context, 'swu-pgn-vector-stolen-hauler', keep);
+            const p1 = context.player1;
+            const p2 = context.player2;
+
+            const takeTurn = (p: any): void => {
+                if (p === p1) {
+                    const hauler = playable(p1, 'stolen-athauler');
+                    if (hauler) {
+                        p1.clickCard(hauler);
+                        settle(p1);
+                        return;
+                    }
+                    if (attackBase(p1, context.p2Base)) {
+                        return;
+                    }
+                    p1.passAction();
+                    return;
+                }
+                // The opponent's copy, out of P1's discard: free for the rest of this phase.
+                const stolen = (p2.currentActionTargets ?? []).find((c: any) => c.zoneName === 'discard' && c.internalName === 'stolen-athauler');
+                if (stolen) {
+                    p2.clickCard(stolen);
+                    settle(p2);
+                    return;
+                }
+                const theirs = arenaUnits(p1).filter((u) => u.internalName === 'stolen-athauler');
+                const power = theirs.length > 0 ? playable(p2, 'power-of-the-dark-side') : undefined;
+                if (power) {
+                    p2.clickCard(power);
+                    settle(p2);
+                    settle(p1, theirs);
+                    return;
+                }
+                if (attackBase(p2, context.p1Base)) {
+                    return;
+                }
+                p2.passAction();
+            };
+
+            const doc = vectorGate('stolen-hauler', runRounds(context, 3, keep, takeTurn));
+
+            const owners = new Map(doc.decks.map((d) => [d.p, new Set(d.deck.map(([id]) => id))]));
+            const stolen = byType(doc, 'MOVE').filter((e) => e.from === 'discard' && e.p === 2 && owners.get(1)?.has(e.card.split(':')[0]));
+            expect(stolen.length).withContext('P2 played a P1 card out of P1\'s discard')
+                .toBeGreaterThan(0);
+            for (const m of stolen) {
+                const after = stateAt(doc.events, m.seq);
+                expect(after.players[1]?.discard).withContext(`${m.seq}: left its owner's pile`)
+                    .not.toContain(m.card);
+                expect(after.players[2]?.cards.some((c) => c.id === m.card)).withContext(`${m.seq}: in P2's arena`)
+                    .toBeTrue();
+            }
+        });
+    });
+
     // ── death-star ────────────────────────────────────────────────────────────────────────────
     integration(function (contextRef) {
         beforeEach(function () {

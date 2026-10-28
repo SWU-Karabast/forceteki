@@ -1,10 +1,10 @@
 [Game "SWU-PGN/1.0"]
-[WriterRevision "1"]
+[WriterRevision "2"]
 [GameId "12345"]
-[Date "2026-10-26T20:00:04.685Z"]
+[Date "2026-10-28T00:56:58.707Z"]
 [Format "premier"]
 [CardPool "ASH,HMW,IBH,IC27,JTL,LAW,LOF,SEC,SHD,SOR,TS26,TWI"]
-[Engine "forceteki@baa379a3a-dirty"]
+[Engine "forceteki@ad8c0fef1-dirty"]
 [Seed "swu-pgn-vector-pilot"]
 [P1Id "sha256:fcc5452e9bd8d2c0df1bcb3a4648163cbb5723c1c88f6c04aabeb5e76cecdf62"]
 [P2Id "sha256:f9188a804748f400c0c5abb9cf7125d0b3a51c75af21b2292dd44de3276df787"]
@@ -17,12 +17,12 @@
 [Result "P1"]
 [Reason "Concession"]
 [Rounds "5"]
-[EndDate "2026-10-26T20:00:04.715Z"]
+[EndDate "2026-10-28T00:56:58.740Z"]
 
 %%% STORY
  ── setup ──
-       ↳ Player 1 draws 6: Battlefield Marine, Academy Graduate, Alliance X-Wing, Alliance X-Wing #2, Battlefield Marine #2, Clan Wren Rescuer
-       ↳ Player 2 draws 6: Cell Block Guard, Death Star Stormtrooper, Death Star Stormtrooper #2, Death Star Stormtrooper #3, Cell Block Guard #2, Vanquish
+       ↳ Player 1 draws 6: Battlefield Marine · Academy Graduate · Alliance X-Wing · Alliance X-Wing #2 · Battlefield Marine #2 · Clan Wren Rescuer
+       ↳ Player 2 draws 6: Cell Block Guard · Death Star Stormtrooper · Death Star Stormtrooper #2 · Death Star Stormtrooper #3 · Cell Block Guard #2 · Vanquish
        ↳ Player 1 keeps their hand
        ↳ Player 2 keeps their hand
        ↳ Player 1 resources Battlefield Marine
@@ -44,8 +44,8 @@
   5. Player 1 passes
   6. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Alliance X-Wing #3, Academy Graduate #2
-       ↳ Player 2 draws 2: Cell Block Guard #3, Death Star Stormtrooper #4
+       ↳ Player 1 draws 2: Alliance X-Wing #3 · Academy Graduate #2
+       ↳ Player 2 draws 2: Cell Block Guard #3 · Death Star Stormtrooper #4
        ↳ Player 1 resources Clan Wren Rescuer
        ↳ Player 2 resources Cell Block Guard #2
 
@@ -65,8 +65,8 @@
   4. Player 2 passes
   5. Player 1 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Battlefield Marine #3, Alliance X-Wing #4
-       ↳ Player 2 draws 2: Death Star Stormtrooper #5, Vanquish #2
+       ↳ Player 1 draws 2: Battlefield Marine #3 · Alliance X-Wing #4
+       ↳ Player 2 draws 2: Death Star Stormtrooper #5 · Vanquish #2
        ↳ Player 1 resources Battlefield Marine #3
        ↳ Player 2 resources Death Star Stormtrooper #4
 
@@ -88,8 +88,8 @@
   6. Player 2 passes
   7. Player 1 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Academy Graduate #3, Clan Wren Rescuer #2
-       ↳ Player 2 draws 2: Death Star Stormtrooper #6, Death Star Stormtrooper #7
+       ↳ Player 1 draws 2: Academy Graduate #3 · Clan Wren Rescuer #2
+       ↳ Player 2 draws 2: Death Star Stormtrooper #6 · Death Star Stormtrooper #7
        ↳ Player 1 resources Clan Wren Rescuer #2
        ↳ Player 2 resources Death Star Stormtrooper #6
 
@@ -114,8 +114,8 @@
   6. Player 2 passes
   7. Player 1 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Alliance X-Wing #5, Battlefield Marine #4
-       ↳ Player 2 draws 2: Cell Block Guard #4, Vanquish #3
+       ↳ Player 1 draws 2: Alliance X-Wing #5 · Battlefield Marine #4
+       ↳ Player 2 draws 2: Cell Block Guard #4 · Vanquish #3
        ↳ Player 1 resources Battlefield Marine #4
        ↳ Player 2 resources Death Star Stormtrooper #7
 
@@ -191,17 +191,17 @@
 {"seq":"R1.A.1b","t":"MOVE","card":"IC27#097:2","from":"hand","to":"ground","p":2,"kind":"unit","for":"R1.A.2"}
 {"seq":"R1.A.1c","t":"STATS","card":"IC27#097:2","power":3,"hp":1,"keywords":[],"for":"R1.A.2"}
 {"seq":"R1.A.1d","t":"EXHAUST","card":"IC27#097:2","for":"R1.A.2"}
-{"seq":"R1.A.2","t":"PLAY","p":2,"card":"IC27#097:2","zone":"ground","cost":1,"ms":3}
+{"seq":"R1.A.2","t":"PLAY","p":2,"card":"IC27#097:2","zone":"ground","cost":1,"ms":4}
 {"seq":"R1.A.3","t":"PASS","p":1,"ms":4}
 {"seq":"R1.A.3a","t":"EXHAUST_RESOURCES","p":2,"amount":1,"for":"R1.A.4"}
 {"seq":"R1.A.3b","t":"MOVE","card":"IC27#097:3","from":"hand","to":"ground","p":2,"kind":"unit","for":"R1.A.4"}
 {"seq":"R1.A.3c","t":"STATS","card":"IC27#097:3","power":3,"hp":1,"keywords":[],"for":"R1.A.4"}
 {"seq":"R1.A.3d","t":"EXHAUST","card":"IC27#097:3","for":"R1.A.4"}
-{"seq":"R1.A.4","t":"PLAY","p":2,"card":"IC27#097:3","zone":"ground","cost":1,"ms":4}
+{"seq":"R1.A.4","t":"PLAY","p":2,"card":"IC27#097:3","zone":"ground","cost":1,"ms":5}
 {"seq":"R1.A.5","t":"PASS","p":1,"ms":5}
-{"seq":"R1.A.6","t":"PASS","p":2,"ms":5}
+{"seq":"R1.A.6","t":"PASS","p":2,"ms":6}
 {"seq":"R1.A.end","t":"PHASE_END","phase":"action"}
-{"seq":"R1.G.start","t":"PHASE_START","phase":"regroup","ms":5}
+{"seq":"R1.G.start","t":"PHASE_START","phase":"regroup","ms":6}
 {"seq":"R1.G.1","t":"MOVE","card":"LAW#253:3","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R1.G.2","t":"MOVE","card":"JTL#058:2","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R1.G.3","t":"DRAW","p":1,"count":2,"cards":["LAW#253:3","JTL#058:2"]}
@@ -219,29 +219,29 @@
 {"seq":"R1.G.16","t":"READY_RESOURCES","p":2,"amount":2}
 {"seq":"R1.G.end","t":"PHASE_END","phase":"regroup"}
 {"seq":"R1.end","t":"ROUND_END","round":1,"keyframe":{"round":1,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["JTL#058","LAW#253:2","LAW#253:3","JTL#058:2"],"resourcesReady":3,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","SHD#040"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"LAW#253","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[]}],"deckSize":8,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":3,"hand":["TWI#077","SHD#238:3","IC27#097:4"],"resourcesReady":3,"resourcesExhausted":0,"resources":["SHD#238","IC27#097","SHD#238:2"],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"IC27#097:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]}],"deckSize":8,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false}}
-{"seq":"R2.start","t":"ROUND_START","round":2,"active":1,"keyframe":{"round":2,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["JTL#058","LAW#253:2","LAW#253:3","JTL#058:2"],"resourcesReady":3,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","SHD#040"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"LAW#253","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[]}],"deckSize":8,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":3,"hand":["TWI#077","SHD#238:3","IC27#097:4"],"resourcesReady":3,"resourcesExhausted":0,"resources":["SHD#238","IC27#097","SHD#238:2"],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"IC27#097:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]}],"deckSize":8,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":6}
-{"seq":"R2.A.start","t":"PHASE_START","phase":"action","active":1,"ms":6}
+{"seq":"R2.start","t":"ROUND_START","round":2,"active":1,"keyframe":{"round":2,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["JTL#058","LAW#253:2","LAW#253:3","JTL#058:2"],"resourcesReady":3,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","SHD#040"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"LAW#253","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[]}],"deckSize":8,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":3,"hand":["TWI#077","SHD#238:3","IC27#097:4"],"resourcesReady":3,"resourcesExhausted":0,"resources":["SHD#238","IC27#097","SHD#238:2"],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"IC27#097:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]}],"deckSize":8,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":7}
+{"seq":"R2.A.start","t":"PHASE_START","phase":"action","active":1,"ms":7}
 {"seq":"R2.A.0a","t":"MODAL_CHOICE","p":1,"offered":["Play Academy Graduate","Play Academy Graduate with Piloting"],"chose":1,"for":"R2.A.1"}
 {"seq":"R2.A.0b","t":"CHOICE","p":1,"prompt":"Academy Graduate","offered":["LAW#253"],"chose":0,"for":"R2.A.1"}
 {"seq":"R2.A.0c","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R2.A.1"}
 {"seq":"R2.A.0d","t":"MOVE","card":"JTL#058","from":"hand","to":"space","p":1,"kind":"upgrade","attachedTo":"LAW#253","for":"R2.A.1"}
 {"seq":"R2.A.0e","t":"STATS","card":"JTL#058","power":1,"hp":2,"keywords":["piloting","sentinel"],"for":"R2.A.1"}
 {"seq":"R2.A.0f","t":"STATS","card":"LAW#253","power":3,"hp":5,"keywords":[],"for":"R2.A.1"}
-{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"JTL#058","zone":"space","target":"LAW#253","cost":2,"ms":7}
+{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"JTL#058","zone":"space","target":"LAW#253","cost":2,"ms":8}
 {"seq":"R2.A.1a","t":"STATS","card":"LAW#253","power":3,"hp":5,"keywords":["sentinel"],"for":"R2.A.2"}
 {"seq":"R2.A.1b","t":"EXHAUST_RESOURCES","p":2,"amount":3,"for":"R2.A.2"}
 {"seq":"R2.A.1c","t":"MOVE","card":"SHD#238:3","from":"hand","to":"ground","p":2,"kind":"unit","for":"R2.A.2"}
 {"seq":"R2.A.1d","t":"STATS","card":"SHD#238:3","power":3,"hp":3,"keywords":["sentinel"],"for":"R2.A.2"}
 {"seq":"R2.A.1e","t":"EXHAUST","card":"SHD#238:3","for":"R2.A.2"}
-{"seq":"R2.A.2","t":"PLAY","p":2,"card":"SHD#238:3","zone":"ground","cost":3,"ms":8}
+{"seq":"R2.A.2","t":"PLAY","p":2,"card":"SHD#238:3","zone":"ground","cost":3,"ms":9}
 {"seq":"R2.A.2a","t":"CHOICE","p":1,"prompt":"Alliance X-Wing","offered":["base@2"],"chose":0,"for":"R2.A.3"}
 {"seq":"R2.A.2b","t":"EXHAUST","card":"LAW#253","for":"R2.A.3"}
-{"seq":"R2.A.3","t":"ATTACK","p":1,"atk":"LAW#253","def":"base@2","defenderType":"base","ms":9}
+{"seq":"R2.A.3","t":"ATTACK","p":1,"atk":"LAW#253","def":"base@2","defenderType":"base","ms":11}
 {"seq":"R2.A.3a","t":"DAMAGE","src":"LAW#253","tgt":"base@2","amt":3,"damageType":"combat","hp":22}
-{"seq":"R2.A.4","t":"PASS","p":2,"ms":10}
-{"seq":"R2.A.5","t":"PASS","p":1,"ms":10}
+{"seq":"R2.A.4","t":"PASS","p":2,"ms":11}
+{"seq":"R2.A.5","t":"PASS","p":1,"ms":12}
 {"seq":"R2.A.end","t":"PHASE_END","phase":"action"}
-{"seq":"R2.G.start","t":"PHASE_START","phase":"regroup","ms":11}
+{"seq":"R2.G.start","t":"PHASE_START","phase":"regroup","ms":12}
 {"seq":"R2.G.1","t":"MOVE","card":"SOR#095:3","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R2.G.2","t":"MOVE","card":"LAW#253:4","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R2.G.3","t":"DRAW","p":1,"count":2,"cards":["SOR#095:3","LAW#253:4"]}
@@ -258,35 +258,35 @@
 {"seq":"R2.G.15","t":"READY_RESOURCES","p":2,"amount":3}
 {"seq":"R2.G.end","t":"PHASE_END","phase":"regroup"}
 {"seq":"R2.end","t":"ROUND_END","round":2,"keyframe":{"round":2,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["LAW#253:2","LAW#253:3","JTL#058:2","LAW#253:4"],"resourcesReady":4,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","SHD#040","SOR#095:3"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"LAW#253","zone":"space","damage":0,"exhausted":false,"upgrades":["JTL#058"],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":5,"keywords":["sentinel"]}],"deckSize":6,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":22,"baseMaxHp":25,"handSize":3,"hand":["TWI#077","IC27#097:5","TWI#077:2"],"resourcesReady":4,"resourcesExhausted":0,"resources":["SHD#238","IC27#097","SHD#238:2","IC27#097:4"],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"IC27#097:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"SHD#238:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["sentinel"]}],"deckSize":6,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false}}
-{"seq":"R3.start","t":"ROUND_START","round":3,"active":1,"keyframe":{"round":3,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["LAW#253:2","LAW#253:3","JTL#058:2","LAW#253:4"],"resourcesReady":4,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","SHD#040","SOR#095:3"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"LAW#253","zone":"space","damage":0,"exhausted":false,"upgrades":["JTL#058"],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":5,"keywords":["sentinel"]}],"deckSize":6,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":22,"baseMaxHp":25,"handSize":3,"hand":["TWI#077","IC27#097:5","TWI#077:2"],"resourcesReady":4,"resourcesExhausted":0,"resources":["SHD#238","IC27#097","SHD#238:2","IC27#097:4"],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"IC27#097:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"SHD#238:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["sentinel"]}],"deckSize":6,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":12}
-{"seq":"R3.A.start","t":"PHASE_START","phase":"action","active":1,"ms":12}
+{"seq":"R3.start","t":"ROUND_START","round":3,"active":1,"keyframe":{"round":3,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["LAW#253:2","LAW#253:3","JTL#058:2","LAW#253:4"],"resourcesReady":4,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","SHD#040","SOR#095:3"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"LAW#253","zone":"space","damage":0,"exhausted":false,"upgrades":["JTL#058"],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":5,"keywords":["sentinel"]}],"deckSize":6,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":22,"baseMaxHp":25,"handSize":3,"hand":["TWI#077","IC27#097:5","TWI#077:2"],"resourcesReady":4,"resourcesExhausted":0,"resources":["SHD#238","IC27#097","SHD#238:2","IC27#097:4"],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"IC27#097:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"SHD#238:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["sentinel"]}],"deckSize":6,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":14}
+{"seq":"R3.A.start","t":"PHASE_START","phase":"action","active":1,"ms":14}
 {"seq":"R3.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R3.A.1"}
 {"seq":"R3.A.0b","t":"MOVE","card":"LAW#253:2","from":"hand","to":"space","p":1,"kind":"unit","for":"R3.A.1"}
 {"seq":"R3.A.0c","t":"STATS","card":"LAW#253:2","power":2,"hp":3,"keywords":[],"for":"R3.A.1"}
 {"seq":"R3.A.0d","t":"EXHAUST","card":"LAW#253:2","for":"R3.A.1"}
-{"seq":"R3.A.1","t":"PLAY","p":1,"card":"LAW#253:2","zone":"space","cost":2,"ms":13}
+{"seq":"R3.A.1","t":"PLAY","p":1,"card":"LAW#253:2","zone":"space","cost":2,"ms":14}
 {"seq":"R3.A.1a","t":"EXHAUST_RESOURCES","p":2,"amount":1,"for":"R3.A.2"}
 {"seq":"R3.A.1b","t":"MOVE","card":"IC27#097:5","from":"hand","to":"ground","p":2,"kind":"unit","for":"R3.A.2"}
 {"seq":"R3.A.1c","t":"STATS","card":"IC27#097:5","power":3,"hp":1,"keywords":[],"for":"R3.A.2"}
 {"seq":"R3.A.1d","t":"EXHAUST","card":"IC27#097:5","for":"R3.A.2"}
-{"seq":"R3.A.2","t":"PLAY","p":2,"card":"IC27#097:5","zone":"ground","cost":1,"ms":14}
+{"seq":"R3.A.2","t":"PLAY","p":2,"card":"IC27#097:5","zone":"ground","cost":1,"ms":15}
 {"seq":"R3.A.2a","t":"MODAL_CHOICE","p":1,"offered":["Play Academy Graduate","Play Academy Graduate with Piloting"],"chose":1,"for":"R3.A.3"}
 {"seq":"R3.A.2b","t":"CHOICE","p":1,"prompt":"Academy Graduate","offered":["LAW#253:2"],"chose":0,"for":"R3.A.3"}
 {"seq":"R3.A.2c","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R3.A.3"}
 {"seq":"R3.A.2d","t":"MOVE","card":"JTL#058:2","from":"hand","to":"space","p":1,"kind":"upgrade","attachedTo":"LAW#253:2","for":"R3.A.3"}
 {"seq":"R3.A.2e","t":"STATS","card":"JTL#058:2","power":1,"hp":2,"keywords":["piloting","sentinel"],"for":"R3.A.3"}
 {"seq":"R3.A.2f","t":"STATS","card":"LAW#253:2","power":3,"hp":5,"keywords":[],"for":"R3.A.3"}
-{"seq":"R3.A.3","t":"PLAY_UPGRADE","p":1,"card":"JTL#058:2","zone":"space","target":"LAW#253:2","cost":2,"ms":15}
+{"seq":"R3.A.3","t":"PLAY_UPGRADE","p":1,"card":"JTL#058:2","zone":"space","target":"LAW#253:2","cost":2,"ms":17}
 {"seq":"R3.A.3a","t":"STATS","card":"LAW#253:2","power":3,"hp":5,"keywords":["sentinel"]}
-{"seq":"R3.A.4","t":"PASS","p":2,"ms":16}
+{"seq":"R3.A.4","t":"PASS","p":2,"ms":18}
 {"seq":"R3.A.4a","t":"CHOICE","p":1,"prompt":"Alliance X-Wing","offered":["base@2"],"chose":0,"for":"R3.A.5"}
 {"seq":"R3.A.4b","t":"EXHAUST","card":"LAW#253","for":"R3.A.5"}
-{"seq":"R3.A.5","t":"ATTACK","p":1,"atk":"LAW#253","def":"base@2","defenderType":"base","ms":17}
+{"seq":"R3.A.5","t":"ATTACK","p":1,"atk":"LAW#253","def":"base@2","defenderType":"base","ms":19}
 {"seq":"R3.A.5a","t":"DAMAGE","src":"LAW#253","tgt":"base@2","amt":3,"damageType":"combat","hp":19}
-{"seq":"R3.A.6","t":"PASS","p":2,"ms":18}
-{"seq":"R3.A.7","t":"PASS","p":1,"ms":18}
+{"seq":"R3.A.6","t":"PASS","p":2,"ms":20}
+{"seq":"R3.A.7","t":"PASS","p":1,"ms":20}
 {"seq":"R3.A.end","t":"PHASE_END","phase":"action"}
-{"seq":"R3.G.start","t":"PHASE_START","phase":"regroup","ms":18}
+{"seq":"R3.G.start","t":"PHASE_START","phase":"regroup","ms":21}
 {"seq":"R3.G.1","t":"MOVE","card":"JTL#058:3","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R3.G.2","t":"MOVE","card":"SHD#040:2","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R3.G.3","t":"DRAW","p":1,"count":2,"cards":["JTL#058:3","SHD#040:2"]}
@@ -304,17 +304,17 @@
 {"seq":"R3.G.18","t":"READY_RESOURCES","p":2,"amount":1}
 {"seq":"R3.G.end","t":"PHASE_END","phase":"regroup"}
 {"seq":"R3.end","t":"ROUND_END","round":3,"keyframe":{"round":3,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["LAW#253:3","LAW#253:4","JTL#058:3"],"resourcesReady":5,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","SHD#040","SOR#095:3","SHD#040:2"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"LAW#253","zone":"space","damage":0,"exhausted":false,"upgrades":["JTL#058"],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":5,"keywords":["sentinel"]},{"id":"LAW#253:2","zone":"space","damage":0,"exhausted":false,"upgrades":["JTL#058:2"],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":5,"keywords":["sentinel"]}],"deckSize":4,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":19,"baseMaxHp":25,"handSize":3,"hand":["TWI#077","TWI#077:2","IC27#097:7"],"resourcesReady":5,"resourcesExhausted":0,"resources":["SHD#238","IC27#097","SHD#238:2","IC27#097:4","IC27#097:6"],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"IC27#097:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"SHD#238:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["sentinel"]},{"id":"IC27#097:5","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]}],"deckSize":4,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false}}
-{"seq":"R4.start","t":"ROUND_START","round":4,"active":1,"keyframe":{"round":4,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["LAW#253:3","LAW#253:4","JTL#058:3"],"resourcesReady":5,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","SHD#040","SOR#095:3","SHD#040:2"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"LAW#253","zone":"space","damage":0,"exhausted":false,"upgrades":["JTL#058"],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":5,"keywords":["sentinel"]},{"id":"LAW#253:2","zone":"space","damage":0,"exhausted":false,"upgrades":["JTL#058:2"],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":5,"keywords":["sentinel"]}],"deckSize":4,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":19,"baseMaxHp":25,"handSize":3,"hand":["TWI#077","TWI#077:2","IC27#097:7"],"resourcesReady":5,"resourcesExhausted":0,"resources":["SHD#238","IC27#097","SHD#238:2","IC27#097:4","IC27#097:6"],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"IC27#097:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"SHD#238:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["sentinel"]},{"id":"IC27#097:5","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]}],"deckSize":4,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":20}
-{"seq":"R4.A.start","t":"PHASE_START","phase":"action","active":1,"ms":20}
+{"seq":"R4.start","t":"ROUND_START","round":4,"active":1,"keyframe":{"round":4,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["LAW#253:3","LAW#253:4","JTL#058:3"],"resourcesReady":5,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","SHD#040","SOR#095:3","SHD#040:2"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"LAW#253","zone":"space","damage":0,"exhausted":false,"upgrades":["JTL#058"],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":5,"keywords":["sentinel"]},{"id":"LAW#253:2","zone":"space","damage":0,"exhausted":false,"upgrades":["JTL#058:2"],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":5,"keywords":["sentinel"]}],"deckSize":4,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":19,"baseMaxHp":25,"handSize":3,"hand":["TWI#077","TWI#077:2","IC27#097:7"],"resourcesReady":5,"resourcesExhausted":0,"resources":["SHD#238","IC27#097","SHD#238:2","IC27#097:4","IC27#097:6"],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"IC27#097:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"SHD#238:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["sentinel"]},{"id":"IC27#097:5","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]}],"deckSize":4,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":22}
+{"seq":"R4.A.start","t":"PHASE_START","phase":"action","active":1,"ms":22}
 {"seq":"R4.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R4.A.1"}
 {"seq":"R4.A.0b","t":"MOVE","card":"LAW#253:3","from":"hand","to":"space","p":1,"kind":"unit","for":"R4.A.1"}
 {"seq":"R4.A.0c","t":"STATS","card":"LAW#253:3","power":2,"hp":3,"keywords":[],"for":"R4.A.1"}
 {"seq":"R4.A.0d","t":"EXHAUST","card":"LAW#253:3","for":"R4.A.1"}
-{"seq":"R4.A.1","t":"PLAY","p":1,"card":"LAW#253:3","zone":"space","cost":2,"ms":21}
+{"seq":"R4.A.1","t":"PLAY","p":1,"card":"LAW#253:3","zone":"space","cost":2,"ms":24}
 {"seq":"R4.A.1a","t":"CHOICE","p":2,"prompt":"Vanquish","offered":["IC27#097:2","IC27#097:3","SHD#238:3","IC27#097:5","LAW#253","LAW#253:2","LAW#253:3"],"chose":4,"for":"R4.A.2"}
 {"seq":"R4.A.1b","t":"EXHAUST_RESOURCES","p":2,"amount":5,"for":"R4.A.2"}
 {"seq":"R4.A.1c","t":"MOVE","card":"TWI#077","from":"hand","to":"discard","p":2,"for":"R4.A.2"}
-{"seq":"R4.A.2","t":"PLAY_EVENT","p":2,"card":"TWI#077","zone":"discard","cost":5,"ms":23}
+{"seq":"R4.A.2","t":"PLAY_EVENT","p":2,"card":"TWI#077","zone":"discard","cost":5,"ms":25}
 {"seq":"R4.A.2a","t":"ABILITY_ACTIVATE","p":2,"card":"TWI#077","ability":"vanquish_anonymous","kind":"event","title":"Defeat a non-leader unit"}
 {"seq":"R4.A.2b","t":"MOVE","card":"JTL#058","from":"space","to":"discard","p":1,"kind":"unit"}
 {"seq":"R4.A.2c","t":"STATS","card":"LAW#253","power":2,"hp":3,"keywords":["sentinel"]}
@@ -327,17 +327,17 @@
 {"seq":"R4.A.2j","t":"MOVE","card":"JTL#058:3","from":"hand","to":"space","p":1,"kind":"upgrade","attachedTo":"LAW#253:3","for":"R4.A.3"}
 {"seq":"R4.A.2k","t":"STATS","card":"JTL#058:3","power":1,"hp":2,"keywords":["piloting","sentinel"],"for":"R4.A.3"}
 {"seq":"R4.A.2l","t":"STATS","card":"LAW#253:3","power":3,"hp":5,"keywords":[],"for":"R4.A.3"}
-{"seq":"R4.A.3","t":"PLAY_UPGRADE","p":1,"card":"JTL#058:3","zone":"space","target":"LAW#253:3","cost":2,"ms":25}
+{"seq":"R4.A.3","t":"PLAY_UPGRADE","p":1,"card":"JTL#058:3","zone":"space","target":"LAW#253:3","cost":2,"ms":28}
 {"seq":"R4.A.3a","t":"STATS","card":"LAW#253:3","power":3,"hp":5,"keywords":["sentinel"]}
-{"seq":"R4.A.4","t":"PASS","p":2,"ms":26}
+{"seq":"R4.A.4","t":"PASS","p":2,"ms":29}
 {"seq":"R4.A.4a","t":"CHOICE","p":1,"prompt":"Alliance X-Wing","offered":["base@2"],"chose":0,"for":"R4.A.5"}
 {"seq":"R4.A.4b","t":"EXHAUST","card":"LAW#253:2","for":"R4.A.5"}
-{"seq":"R4.A.5","t":"ATTACK","p":1,"atk":"LAW#253:2","def":"base@2","defenderType":"base","ms":27}
+{"seq":"R4.A.5","t":"ATTACK","p":1,"atk":"LAW#253:2","def":"base@2","defenderType":"base","ms":30}
 {"seq":"R4.A.5a","t":"DAMAGE","src":"LAW#253:2","tgt":"base@2","amt":3,"damageType":"combat","hp":16}
-{"seq":"R4.A.6","t":"PASS","p":2,"ms":28}
-{"seq":"R4.A.7","t":"PASS","p":1,"ms":28}
+{"seq":"R4.A.6","t":"PASS","p":2,"ms":30}
+{"seq":"R4.A.7","t":"PASS","p":1,"ms":31}
 {"seq":"R4.A.end","t":"PHASE_END","phase":"action"}
-{"seq":"R4.G.start","t":"PHASE_START","phase":"regroup","ms":28}
+{"seq":"R4.G.start","t":"PHASE_START","phase":"regroup","ms":31}
 {"seq":"R4.G.1","t":"MOVE","card":"LAW#253:5","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R4.G.2","t":"MOVE","card":"SOR#095:4","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R4.G.3","t":"DRAW","p":1,"count":2,"cards":["LAW#253:5","SOR#095:4"]}
@@ -354,8 +354,8 @@
 {"seq":"R4.G.17","t":"READY_RESOURCES","p":2,"amount":5}
 {"seq":"R4.G.end","t":"PHASE_END","phase":"regroup"}
 {"seq":"R4.end","t":"ROUND_END","round":4,"keyframe":{"round":4,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["LAW#253:4","LAW#253:5"],"resourcesReady":6,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","SHD#040","SOR#095:3","SHD#040:2","SOR#095:4"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["JTL#058","LAW#253"],"cards":[{"id":"LAW#253:2","zone":"space","damage":0,"exhausted":false,"upgrades":["JTL#058:2"],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":5,"keywords":["sentinel"]},{"id":"LAW#253:3","zone":"space","damage":0,"exhausted":false,"upgrades":["JTL#058:3"],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":5,"keywords":["sentinel"]}],"deckSize":2,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":16,"baseMaxHp":25,"handSize":3,"hand":["TWI#077:2","SHD#238:4","TWI#077:3"],"resourcesReady":6,"resourcesExhausted":0,"resources":["SHD#238","IC27#097","SHD#238:2","IC27#097:4","IC27#097:6","IC27#097:7"],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["TWI#077"],"cards":[{"id":"IC27#097:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"SHD#238:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["sentinel"]},{"id":"IC27#097:5","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]}],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false}}
-{"seq":"R5.start","t":"ROUND_START","round":5,"active":1,"keyframe":{"round":5,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["LAW#253:4","LAW#253:5"],"resourcesReady":6,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","SHD#040","SOR#095:3","SHD#040:2","SOR#095:4"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["JTL#058","LAW#253"],"cards":[{"id":"LAW#253:2","zone":"space","damage":0,"exhausted":false,"upgrades":["JTL#058:2"],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":5,"keywords":["sentinel"]},{"id":"LAW#253:3","zone":"space","damage":0,"exhausted":false,"upgrades":["JTL#058:3"],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":5,"keywords":["sentinel"]}],"deckSize":2,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":16,"baseMaxHp":25,"handSize":3,"hand":["TWI#077:2","SHD#238:4","TWI#077:3"],"resourcesReady":6,"resourcesExhausted":0,"resources":["SHD#238","IC27#097","SHD#238:2","IC27#097:4","IC27#097:6","IC27#097:7"],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["TWI#077"],"cards":[{"id":"IC27#097:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"SHD#238:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["sentinel"]},{"id":"IC27#097:5","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]}],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":30}
-{"seq":"R5.A.start","t":"PHASE_START","phase":"action","active":1,"ms":30}
+{"seq":"R5.start","t":"ROUND_START","round":5,"active":1,"keyframe":{"round":5,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["LAW#253:4","LAW#253:5"],"resourcesReady":6,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","SHD#040","SOR#095:3","SHD#040:2","SOR#095:4"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["JTL#058","LAW#253"],"cards":[{"id":"LAW#253:2","zone":"space","damage":0,"exhausted":false,"upgrades":["JTL#058:2"],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":5,"keywords":["sentinel"]},{"id":"LAW#253:3","zone":"space","damage":0,"exhausted":false,"upgrades":["JTL#058:3"],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":5,"keywords":["sentinel"]}],"deckSize":2,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":16,"baseMaxHp":25,"handSize":3,"hand":["TWI#077:2","SHD#238:4","TWI#077:3"],"resourcesReady":6,"resourcesExhausted":0,"resources":["SHD#238","IC27#097","SHD#238:2","IC27#097:4","IC27#097:6","IC27#097:7"],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["TWI#077"],"cards":[{"id":"IC27#097:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]},{"id":"SHD#238:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["sentinel"]},{"id":"IC27#097:5","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[]}],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":33}
+{"seq":"R5.A.start","t":"PHASE_START","phase":"action","active":1,"ms":33}
 {"seq":"R5.A.game-end","t":"GAME_END","winner":1,"reason":"Concession"}
 
 %%% ANNOTATIONS
