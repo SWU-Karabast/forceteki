@@ -351,3 +351,27 @@ describe('checkKeyframes effects', function () {
         expect(paths([...starts, kf()])).toEqual([]);
     });
 });
+
+describe('checkKeyframes abilityUses', function () {
+    const use = (seq: string, per: 'phase' | 'round' | 'game', card = 'SOR#045'): GameEvent =>
+        ({ seq, t: 'ABILITY_ACTIVATE', p: 1, card, ability: 'a1', kind: 'triggered', limit: { max: 2, per } });
+    const entry = (card: string, count: number, per: 'phase' | 'round' | 'game') => ({ card, ability: 'a1', count, per });
+    const kf = (t: 'ROUND_START' | 'ROUND_END', abilityUses?: ReturnType<typeof entry>[]): GameEvent => ({ seq: t === 'ROUND_END' ? 'R1.end' : 'R2.start', t, round: t === 'ROUND_END' ? 1 : 2, active: 1,
+        keyframe: { round: 1, phase: 'action', initiative: 1, players: { 1: restingSeat(1, abilityUses ? { abilityUses } : {}), 2: restingSeat(2) } } });
+    const paths = (events: GameEvent[]) => checkKeyframes(events).mismatches.map((m) => m.path);
+
+    // Value: protects=the gate compares each seat's abilityUses as a set when the keyframe carries it; fails_when=abilityUses ungated, compared in order, or compared when absent; why_new=abilityUses are new; seam=none; no_claim=writer output
+    it('compares abilityUses when the keyframe carries it', function () {
+        const events = [use('R1.A.1', 'phase'), use('R1.A.2', 'phase'), use('R1.A.3', 'game', 'SOR#046')];
+        expect(paths([...events, kf('ROUND_END', [entry('SOR#046', 1, 'game'), entry('SOR#045', 2, 'phase')])])).toEqual([]);
+        expect(paths([...events, kf('ROUND_END', [entry('SOR#045', 1, 'phase'), entry('SOR#046', 1, 'game')])])).toEqual(['players.1.abilityUses']);
+        expect(paths([...events, kf('ROUND_END', [entry('SOR#045', 2, 'phase')])])).toEqual(['players.1.abilityUses']);
+        expect(paths([...events, kf('ROUND_END')])).toEqual([]);
+    });
+
+    // Value: protects=a ROUND_START keyframe describes a round that has begun, so the per-phase and per-round uses the snap skips clearing are cleared before the compare; fails_when=a correct ROUND_START keyframe reports last round's uses as a mismatch; why_new=abilityUses are new; seam=none; no_claim=none
+    it('clears per-phase and per-round uses before comparing a ROUND_START keyframe', function () {
+        const events = [use('R1.A.1', 'phase'), use('R1.A.2', 'round', 'SOR#046'), use('R1.A.3', 'game', 'SOR#047')];
+        expect(paths([...events, kf('ROUND_START', [entry('SOR#047', 1, 'game')])])).toEqual([]);
+    });
+});

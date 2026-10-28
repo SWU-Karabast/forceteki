@@ -1,4 +1,4 @@
-import type { AbilityKind, DefeatReason, EffectDuration, EffectEndReason, SwuPgnDocument, GameEvent, ReducedState, Header } from '../../../swupgn/src/types';
+import type { AbilityKind, DefeatReason, EffectDuration, EffectEndReason, LimitPer, SwuPgnDocument, GameEvent, ReducedState, Header } from '../../../swupgn/src/types';
 import { EFFECT_ID } from '../../../swupgn/src/ids';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -63,6 +63,12 @@ describe('swupgn closed vocabularies stay in lockstep', function () {
         };
         expect(Object.keys(durations).sort()).toEqual(enumFor('EFFECT_START', 'duration').sort());
         expect(Object.keys(reasons).sort()).toEqual(enumFor('EFFECT_END', 'reason').sort());
+    });
+
+    it('ABILITY_ACTIVATE.limit.per: the LimitPer alias equals the schema enum', function () {
+        const pers: Record<LimitPer, true> = { phase: true, round: true, game: true };
+        const branch = schema.allOf.find((b: any) => b.if?.properties?.t?.const === 'ABILITY_ACTIVATE');
+        expect(Object.keys(pers).sort()).toEqual([...(branch?.then?.properties?.limit?.properties?.per?.enum ?? [])].sort());
     });
 
     it('the effect id pattern in the schema is EFFECT_ID', function () {

@@ -63,6 +63,14 @@ export type EffectDuration = 'attack' | 'phase' | 'round' | 'whileSourceInPlay' 
  */
 export type EffectEndReason = 'expired' | 'fired' | 'sourceLeft' | 'targetLeft' | 'cancelled';
 
+/**
+ * How often a limited ability may be used (spec §6.4, §10.1; CR 7.2.5): so many times each phase,
+ * each round, or in the game. Closed, like `EffectDuration`. It also says when the count resets:
+ * `PHASE_START` clears the `phase` uses, `ROUND_START` the `phase` and `round` ones, and nothing
+ * clears a `game` use.
+ */
+export type LimitPer = 'phase' | 'round' | 'game';
+
 export interface Header {
     game: string;            // "SWU-PGN/1.0"
     gameId: string;
@@ -170,6 +178,13 @@ export interface ActionLink {
      * review question `Date` and `EndDate` cannot reach, and it is never a wall-clock time.
      */
     ms?: number;
+
+    /**
+     * The records of one simultaneous resolution share a `simul` group (spec §10.1; CR 7.1.4a,
+     * 6.3.5): the seq of the group's first record. A renderer and a scrubber treat the group as one
+     * instant and never stop inside it. Ignored by the fold.
+     */
+    simul?: string;
 }
 
 export type GameEvent = ActionLink & (
@@ -177,7 +192,9 @@ export type GameEvent = ActionLink & (
   | { seq: string; t: 'DEPLOY_LEADER'; p: Seat; card: string; zone?: string; cost?: number; kind?: CardKind; target?: string; epic?: boolean }
   | { seq: string; t: 'ATTACK'; p: Seat; atk: string; def: string; defenderType: 'unit' | 'base' }
   | { seq: string; t: 'PASS' | 'CLAIM_INITIATIVE'; p: Seat }
-  | { seq: string; t: 'CHOICE'; p: Seat; prompt?: string; offered: string[]; chose: number }
+  // `blind` groups choices made without seeing each other (CR 7.1.4a): the seq of the record that
+  // asked for them. A note; the fold ignores it.
+  | { seq: string; t: 'CHOICE'; p: Seat; prompt?: string; offered: string[]; chose: number; blind?: string }
   | { seq: string; t: 'MULLIGAN' | 'KEEP_HAND'; p: Seat }
   // A player took a decision back. The records it retracted are GONE from the file -- a reader
   // folding the stream sees only what still stands -- so this note exists purely to say that a
@@ -192,11 +209,15 @@ export type GameEvent = ActionLink & (
   // every other kind is a consequence of something else and is a sub-step. `title` is the
   // ability's printable name. `grantedBy` names the card whose text GAVE `card` this ability
   // (a Fortify upgrade's "Attached base gains: ...", an upgrade's "Attached unit gains: ...");
-  // absent when the ability is `card`'s own printed text.
+  // absent when the ability is `card`'s own printed text. `limit` is on an ability that may be used
+  // only `max` times per `per` (CR 7.2.5); the fold counts it in the seat's `abilityUses`. `usedBy`
+  // names the card whose ability made `p` use this one (CR 7.6.13d, 7.6.14d); `card` is still the
+  // card the used ability is on.
   | {
       seq: string; t: 'ABILITY_ACTIVATE'; p: Seat; card: string; ability?: string;
       kind?: AbilityKind;
       title?: string; epic?: boolean; grantedBy?: string;
+      limit?: { max: number; per: LimitPer }; usedBy?: string;
   }
   // A double-sided leader flipped in place (it never deploys). `onStartingSide` is the face
   // AFTER the flip -- an absolute value, not a toggle, so a dropped record cannot invert
@@ -224,8 +245,15 @@ export type GameEvent = ActionLink & (
   | { seq: string; t: 'EXPERIENCE_GAIN'; card: string; count: number }
   | { seq: string; t: 'STATUS_TOKEN'; card: string; token: string; count: number }
   | { seq: string; t: 'OVERWHELM'; p: Seat; tgt: string; amt: number; hp: number }
-  | { seq: string; t: 'SEARCH'; p: Seat; found?: string[]; zone?: string }
+  // `owner` is whose zone was searched; `seen` every card `p` looked at while searching.
+  | { seq: string; t: 'SEARCH'; p: Seat; found?: string[]; zone?: string; owner?: Seat; seen?: string[] }
   | { seq: string; t: 'REVEAL'; p: Seat; zone: string; cards: string[] }
+  // `p` looked at `cards` (`count` of them) in `owner`'s `zone` without revealing them (CR 8.13).
+  // The viewer and the hidden cards are separate fields, so a perspective rule can redact the
+  // cards. A note; the fold ignores it.
+  | { seq: string; t: 'LOOK'; p: Seat; owner: Seat; zone: string; cards: string[]; count: number }
+  // `p` named a card (CR 8.17): `name` is its `Title, Subtitle` as text, not an id. A note.
+  | { seq: string; t: 'NAME'; p: Seat; name: string }
   | { seq: string; t: 'TRIGGER'; p?: Seat; card: string }
   | { seq: string; t: 'PHASE_START' | 'PHASE_END'; phase: string; active?: Seat }
   // `active` is REQUIRED on ROUND_START (the initiative holder; the schema and the `round-start-active`
@@ -370,6 +398,17 @@ export interface ActiveEffect {
     duration: EffectDuration;
 }
 
+/**
+ * A limited ability's uses so far (spec §11; CR 7.2.5, 1.16.3): `card`'s ability `ability`, used
+ * `count` times since its `per` last reset.
+ */
+export interface AbilityUse {
+    card: string;
+    ability: string;
+    count: number;
+    per: LimitPer;
+}
+
 /** The leader card's status: where it is and whether it can still act. */
 export interface LeaderState {
     id: string;                     // SET#NUM
@@ -448,6 +487,14 @@ export interface PlayerState {
     /** Absent in older files, and until the first keyframe: the fold learns the leader's id
      *  from a keyframe or a `DEPLOY_LEADER`. */
     leader?: LeaderState;
+
+    /**
+     * The limited abilities this seat has used and not yet had reset, in first-use order. Built by
+     * `ABILITY_ACTIVATE` records that carry `limit`, cleared by `PHASE_START` / `ROUND_START` per
+     * `per`, and carried by keyframes. Absent until the first limited ability (and in files written
+     * before it existed): absent means "not recorded", never "none".
+     */
+    abilityUses?: AbilityUse[];
 }
 
 export interface ReducedState {

@@ -1,4 +1,4 @@
-import type { ActiveEffect, GameEvent, ReducedState, PlayerState, CardInstanceState, Seat } from './types';
+import type { AbilityUse, ActiveEffect, GameEvent, LimitPer, ReducedState, PlayerState, CardInstanceState, Seat } from './types';
 import { RESERVED_KEYS } from './parse';
 import { tokenNameOf } from './ids';
 
@@ -86,6 +86,12 @@ export function isCompleteKeyframe(k: unknown): k is ReducedState {
         if (!ps.cards.every(isCompleteKeyframeCard)) {
             return false;
         }
+        // `abilityUses` is optional too, but when present a later ABILITY_ACTIVATE matches into it
+        // by card and ability and adds to its count, so every entry must carry all three.
+        const uses = ps.abilityUses as unknown;
+        if (uses !== undefined && (!Array.isArray(uses) || uses.length > MAX_ZONE_LIST || !uses.every(isCompleteAbilityUse))) {
+            return false;
+        }
     }
     // `effects` is optional (a file older than it), but when present every entry is an effect the
     // fold may later end by id or by target: a list of capped size, each with a string id and,
@@ -124,6 +130,15 @@ function isCompleteKeyframeCard(c: unknown): boolean {
       (captured === undefined || (Array.isArray(captured) && captured.length <= MAX_ZONE_LIST)) &&
       typeof tokens === 'object' && tokens !== null && !Array.isArray(tokens) &&
       typeof card.damage === 'number' && typeof card.shields === 'number' && typeof card.experience === 'number';
+}
+
+/** A keyframe `abilityUses` entry the fold can match and count on. */
+function isCompleteAbilityUse(u: unknown): boolean {
+    if (typeof u !== 'object' || u === null) {
+        return false;
+    }
+    const use = u as Partial<AbilityUse>;
+    return typeof use.card === 'string' && typeof use.ability === 'string' && typeof use.count === 'number';
 }
 
 /** True for a ROUND_START/ROUND_END that carries a keyframe a reader may snap to. */
@@ -477,6 +492,47 @@ function endEffect(s: ReducedState, e: Extract<GameEvent, { t: 'EFFECT_END' }>):
     }
 }
 
+/** The `per` values this reader knows (spec §6.4). A newer minor version may add one (§18). */
+const LIMIT_PERS: ReadonlySet<string> = new Set<LimitPer>(['phase', 'round', 'game']);
+
+/**
+ * ABILITY_ACTIVATE with `limit`: one more use of (`card`, `ability`) for seat `p`. The list is
+ * created by the first one, so a file with no limited abilities folds with no `abilityUses`
+ * ("not recorded", spec §11). Ignored unless `card` and `ability` are strings, `p` is a seat and
+ * `per` is a value this reader knows: one it does not know has a reset point it cannot apply.
+ */
+function countUse(s: ReducedState, e: Extract<GameEvent, { t: 'ABILITY_ACTIVATE' }>): void {
+    const per = (e.limit as { per?: unknown } | undefined)?.per;
+    if (typeof per !== 'string' || !LIMIT_PERS.has(per) || typeof e.card !== 'string' || typeof e.ability !== 'string') {
+        return;
+    }
+    const ps = player(s, e.p);
+    if (!ps) {
+        return;
+    }
+    const uses = ps.abilityUses ??= [];
+    const held = uses.find((u) => u.card === e.card && u.ability === e.ability);
+    if (held) {
+        held.count += 1;
+        held.per = per as LimitPer;
+    } else if (uses.length < MAX_ZONE_LIST) {
+        uses.push({ card: e.card, ability: e.ability, count: 1, per: per as LimitPer });
+    }
+}
+
+/**
+ * Drop every seat's uses whose `per` is in `pers`: `PHASE_START` clears `phase`, `ROUND_START`
+ * clears `phase` and `round` (spec §12.2). A seat with no list keeps none.
+ */
+export function clearAbilityUses(s: ReducedState, pers: readonly LimitPer[]): void {
+    for (const seat of [1, 2] as Seat[]) {
+        const ps = s.players[seat];
+        if (ps && Array.isArray(ps.abilityUses)) {
+            ps.abilityUses = ps.abilityUses.filter((u) => !pers.includes(u.per));
+        }
+    }
+}
+
 function removeOne(list: string[], id: string): void {
     const i = list.indexOf(id);
     if (i >= 0) {
@@ -669,6 +725,7 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         case 'ROUND_START':
             s.round = e.round;
             s.initiativeTaken = false;
+            clearAbilityUses(s, ['phase', 'round']);
             setActive(s, e.active);
             // The initiative holder is the round's first active player (CR 5.4.1.b).
             if (isSeat(e.active)) {
@@ -677,6 +734,7 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             break;
         case 'PHASE_START':
             s.phase = (e.phase as ReducedState['phase']);
+            clearAbilityUses(s, ['phase']);
             setActive(s, e.active);
             break;
         case 'CLAIM_INITIATIVE': s.initiative = e.p; s.initiativeTaken = true; break;
@@ -738,6 +796,10 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             break;
         }
         case 'ABILITY_ACTIVATE': {
+            // A limited ability's use is game state (CR 7.2.5, 1.16.3); `usedBy` is a note.
+            if (e.limit !== undefined) {
+                countUse(s, e);
+            }
             if (e.epic === true) {
                 // A base's Epic Action and a leader's are separate abilities on separate cards.
                 // The record tells them apart by its `card`: a base is `base@N` everywhere it is
@@ -1021,7 +1083,7 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         // Pure-log events with no state delta:
         case 'ATTACK': case 'PASS': case 'CHOICE': case 'MULLIGAN':
         case 'KEEP_HAND': case 'MODAL_CHOICE': case 'SHUFFLE':
-        case 'SEARCH': case 'REVEAL':
+        case 'SEARCH': case 'REVEAL': case 'LOOK': case 'NAME':
         case 'TRIGGER': case 'PHASE_END': case 'ROUND_END': case 'GAME_END':
         // UNDO is a note ABOUT the file, not an event in the game: the records it retracted were
         // removed, so there is nothing left to undo when folding.

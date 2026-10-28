@@ -1,6 +1,6 @@
 import type { SwuPgnDocument, GameEvent, ReducedState, Seat } from './types';
 import type { NameResolver } from './cardNames';
-import { baseId, indexResolver } from './cardNames';
+import { baseId, indexResolver, shorten } from './cardNames';
 import { isArena, isCompleteKeyframe } from './fold';
 import { isTopLevelActionRecord } from './actionLinks';
 
@@ -110,8 +110,10 @@ function line(e: GameEvent, n: SidedResolver, effectSources: ReadonlyMap<string,
         // ("Player 2 uses Director Krennic"); every other kind happened TO a card. A granted
         // ability names its grantor, because the card using it has no such text of its own
         // ("Player 1 uses Player 1's base (granted by Heavy Ion Cannon)").
+        // An ability another card's ability made the player use names that card too
+        // ("Wampa uses an ability (used by Chimaera)").
         case 'ABILITY_ACTIVATE': {
-            const granted = e.grantedBy ? ` (granted by ${nm(e.grantedBy)})` : '';
+            const granted = (e.grantedBy ? ` (granted by ${nm(e.grantedBy)})` : '') + (e.usedBy ? ` (used by ${nm(e.usedBy)})` : '');
             return e.kind === 'action' || e.kind === 'epic'
                 ? `${who(e.p)} uses ${nm(e.card)}${e.kind === 'epic' ? '\'s Epic Action' : ''}${granted}`
                 : `${nm(e.card)} uses an ability${granted}`;
@@ -127,6 +129,13 @@ function line(e: GameEvent, n: SidedResolver, effectSources: ReadonlyMap<string,
         case 'DISCARD': return `${who(e.p)} discards ${list(e.cards)}`;
         case 'RESOURCE': return `${who(e.p)} resources ${nm(e.card)}`;
         case 'REVEAL': return `${who(e.p)} reveals ${list(e.cards)}`;
+        // A look names whose zone it was and, in an omniscient file, the cards seen.
+        case 'LOOK': {
+            const seen = arr(e.cards).length ? `: ${list(e.cards)}` : '';
+            return `${who(e.p)} looks at ${e.count} ${e.count === 1 ? 'card' : 'cards'} of ${who(e.owner)}'s ${e.zone}${seen}`;
+        }
+        // The name is the file's text, not an id: cut like a card name, so it cannot grow the story.
+        case 'NAME': return `${who(e.p)} names ${shorten(String(e.name))}`;
         case 'SEARCH': return e.found ? `${who(e.p)} searches, finds ${list(e.found)}` : `${who(e.p)} searches their deck`;
         case 'CREATE_TOKEN': return `${who(e.p)} creates ${nm(e.token)} in ${e.zone}`;
         case 'CAPTURE': return `${who(e.p)} captures ${nm(e.card)}${e.by ? ` with ${nm(e.by)}` : ''}`;

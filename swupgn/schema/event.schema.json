@@ -10,7 +10,8 @@
     "t": { "type": "string" },
     "p": { "enum": [1,2] },
     "for": { "type": "string" },
-    "ms": { "type": "integer", "minimum": 0, "description": "Milliseconds from the header's Date to this record (spec 5.2.1). A duration, never a clock. Only on numbered actions and ROUND_START / PHASE_START." }
+    "ms": { "type": "integer", "minimum": 0, "description": "Milliseconds from the header's Date to this record (spec 5.2.1). A duration, never a clock. Only on numbered actions and ROUND_START / PHASE_START." },
+    "simul": { "type": "string", "description": "The simultaneous group this record belongs to (spec 10.1): the seq of the group's first record. Any record may carry it." }
   },
   "additionalProperties": true,
   "allOf": [
@@ -28,7 +29,19 @@
     },
     {
       "if": { "properties": { "t": { "const": "SEARCH" } }, "required": ["t"] },
-      "then": { "properties": { "found": { "type": "array", "items": { "type": "string" } } } }
+      "then": { "properties": { "found": { "type": "array", "items": { "type": "string" } }, "owner": { "enum": [1,2] }, "seen": { "type": "array", "items": { "type": "string" } } } }
+    },
+    {
+      "if": { "properties": { "t": { "const": "LOOK" } }, "required": ["t"] },
+      "then": { "properties": { "owner": { "enum": [1,2] }, "zone": { "type": "string" }, "cards": { "type": "array", "items": { "type": "string" } }, "count": { "type": "integer", "minimum": 0 } }, "required": ["p","owner","zone","cards","count"] }
+    },
+    {
+      "if": { "properties": { "t": { "const": "NAME" } }, "required": ["t"] },
+      "then": { "properties": { "name": { "type": "string" } }, "required": ["p","name"] }
+    },
+    {
+      "if": { "properties": { "t": { "const": "CHOICE" } }, "required": ["t"] },
+      "then": { "properties": { "blind": { "type": "string" } } }
     },
     {
       "if": { "properties": { "t": { "enum": ["DAMAGE","HEAL","OVERWHELM"] } }, "required": ["t"] },
@@ -68,7 +81,7 @@
     },
     {
       "if": { "properties": { "t": { "const": "ABILITY_ACTIVATE" } }, "required": ["t"] },
-      "then": { "properties": { "ability": { "type": "string" }, "kind": { "enum": ["action","epic","triggered","keyword","replacement","constant","event","delayed"] }, "title": { "type": "string" }, "epic": { "type": "boolean" }, "grantedBy": { "type": "string" } } }
+      "then": { "properties": { "ability": { "type": "string" }, "kind": { "enum": ["action","epic","triggered","keyword","replacement","constant","event","delayed"] }, "title": { "type": "string" }, "epic": { "type": "boolean" }, "grantedBy": { "type": "string" }, "usedBy": { "type": "string" }, "limit": { "type": "object", "properties": { "max": { "type": "integer", "minimum": 1 }, "per": { "enum": ["phase","round","game"] } }, "required": ["max","per"] } }, "if": { "required": ["limit"] }, "then": { "required": ["ability"] } }
     },
     {
       "if": { "properties": { "t": { "const": "CAPTURE" } }, "required": ["t"] },
@@ -132,6 +145,16 @@
         "duration": { "type": "string" }
       }
     },
+    "abilityUse": {
+      "type": "object",
+      "required": ["card","ability","count","per"],
+      "properties": {
+        "card": { "type": "string" },
+        "ability": { "type": "string" },
+        "count": { "type": "integer", "minimum": 1 },
+        "per": { "type": "string" }
+      }
+    },
     "playerState": {
       "type": "object",
       "required": ["cards","hand","discard"],
@@ -149,6 +172,7 @@
         "baseUpgrades": { "type": "array", "items": { "type": "string" } },
         "baseCaptured": { "type": "array", "items": { "type": "string" } },
         "baseDefeated": { "type": "boolean" },
+        "abilityUses": { "type": "array", "items": { "$ref": "#/$defs/abilityUse" } },
         "leader": { "type": "object", "properties": { "id": { "type": "string" }, "deployed": { "type": "boolean" }, "exhausted": { "type": "boolean" }, "epicActionUsed": { "type": "boolean" }, "onStartingSide": { "type": "boolean" } } }
       }
     },

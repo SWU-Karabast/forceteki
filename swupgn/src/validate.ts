@@ -69,7 +69,7 @@ const KNOWN_EVENT_TYPES = new Set([
     'CREATE_TOKEN', 'MOVE', 'CAPTURE', 'RESCUE', 'TAKE_CONTROL', 'SHIELD_GAIN', 'SHIELD_USE',
     'EXPERIENCE_GAIN', 'STATUS_TOKEN', 'OVERWHELM', 'SEARCH', 'REVEAL', 'TRIGGER',
     'PHASE_START', 'PHASE_END', 'ROUND_START', 'ROUND_END', 'GAME_END', 'INIT', 'UNDO',
-    'EFFECT_START', 'EFFECT_END',
+    'EFFECT_START', 'EFFECT_END', 'LOOK', 'NAME',
 ]);
 
 /** The minor version this reader implements (`SWU-PGN/1.<minor>`). */
@@ -390,7 +390,7 @@ export function validate(text: string): ConformanceReport {
         const players = kf ? asRecord(kf['players']) : null;
         for (const ps of Object.values(players ?? {})) {
             const seat = asRecord(ps) ?? {};
-            const lists: unknown[] = ['cards', 'hand', 'discard', 'resources', 'baseUpgrades', 'baseCaptured'].map((k) => seat[k]);
+            const lists: unknown[] = ['cards', 'hand', 'discard', 'resources', 'baseUpgrades', 'baseCaptured', 'abilityUses'].map((k) => seat[k]);
             for (const c of Array.isArray(seat['cards']) ? seat['cards'] : []) {
                 const card = asRecord(c) ?? {};
                 lists.push(card['upgrades'], card['captured']);

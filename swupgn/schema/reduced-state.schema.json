@@ -39,6 +39,17 @@
       },
       "additionalProperties": true
     },
+    "abilityUse": {
+      "type": "object",
+      "required": ["card", "ability", "count", "per"],
+      "properties": {
+        "card": { "$ref": "#/$defs/id" },
+        "ability": { "type": "string" },
+        "count": { "type": "integer", "minimum": 1 },
+        "per": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
     "playerState": {
       "type": "object",
       "required": ["seat", "baseHp", "baseMaxHp", "handSize", "hand", "resourcesReady", "resourcesExhausted", "credits", "hasForce", "discard", "cards"],
@@ -60,7 +71,8 @@
         "discard": { "$ref": "#/$defs/ids" },
         "cards": { "type": "array", "items": { "$ref": "#/$defs/cardState" } },
         "deckSize": { "$ref": "#/$defs/count" },
-        "leader": { "$ref": "#/$defs/leaderState" }
+        "leader": { "$ref": "#/$defs/leaderState" },
+        "abilityUses": { "type": "array", "items": { "$ref": "#/$defs/abilityUse" } }
       },
       "additionalProperties": true
     },

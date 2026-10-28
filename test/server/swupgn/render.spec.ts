@@ -273,3 +273,61 @@ describe('render effects', function () {
         expect(out).toBe('       ↳ Player 1: Bold Resistance — gains Sentinel and Raid 2, costs 1 resource less, Aggression Heroism on Wampa (for this phase)');
     });
 });
+
+describe('render looks, names, used-by and simultaneous groups', function () {
+    const nm = { nameOf: (id: string) => ({ 'SOR#142': 'Bold Resistance', 'SOR#108': 'Wampa', 'SOR#095': 'Battlefield Marine', 'SOR#200': 'Chimaera' }[id] ?? id) };
+    const doc = (events: any[]) => ({ header: {} as any, decks: [], setup: [], events, annotations: [], cards: [] });
+
+    // Value: protects=the §16 wording of LOOK; fails_when=the line drifts from the spec table, or the cards are not listed; why_new=LOOK is new; seam=none; no_claim=perspective redaction
+    it('renders a look', function () {
+        const out = render(doc([
+            { seq: 'R1.A.1a', t: 'LOOK', p: 1, owner: 2, zone: 'deck', cards: ['SOR#108', 'SOR#095', 'SOR#142'], count: 3 },
+            { seq: 'R1.A.1b', t: 'LOOK', p: 2, owner: 2, zone: 'hand', cards: ['SOR#108'], count: 1 },
+            { seq: 'R1.A.1c', t: 'LOOK', p: 1, owner: 1, zone: 'deck', cards: [], count: 0 },
+        ]), nm).split('\n');
+        expect(out).toEqual([
+            '       ↳ Player 1 looks at 3 cards of Player 2\'s deck: Wampa · Battlefield Marine · Bold Resistance',
+            '       ↳ Player 2 looks at 1 card of Player 2\'s hand: Wampa',
+            '       ↳ Player 1 looks at 0 cards of Player 1\'s deck',
+        ]);
+    });
+
+    // Value: protects=the §16 wording of NAME, and that a hostile name is cut like a card name; fails_when=the line drifts, or an unbounded name reaches the story; why_new=NAME is new; seam=none; no_claim=escaping for a medium (§23)
+    it('renders a named card', function () {
+        const out = render(doc([
+            { seq: 'R1.A.1a', t: 'NAME', p: 1, name: 'Wampa, Hungry Beast' },
+            { seq: 'R1.A.1b', t: 'NAME', p: 2, name: 'x'.repeat(200) },
+        ]), nm).split('\n');
+        expect(out).toEqual([
+            '       ↳ Player 1 names Wampa, Hungry Beast',
+            `       ↳ Player 2 names ${'x'.repeat(119)}…`,
+        ]);
+    });
+
+    // Value: protects=an ability used by another card's ability names that card (CR 7.6.13d, 7.6.14d); fails_when=usedBy is dropped from the line; why_new=usedBy is new; seam=none; no_claim=none
+    it('names the card that used an ability', function () {
+        const out = render(doc([
+            { seq: 'R1.A.1a', t: 'ABILITY_ACTIVATE', p: 1, card: 'SOR#108', kind: 'triggered', usedBy: 'SOR#200' },
+        ]), nm);
+        expect(out).toBe('       ↳ Wampa uses an ability (used by Chimaera)');
+    });
+
+    // Value: protects=a simul group renders exactly as the same records without it, in file order (§16); fails_when=simul reorders, merges or changes a line; why_new=simul is new; seam=none; no_claim=a scrubber's stopping points
+    it('keeps a simultaneous group on consecutive lines in file order', function () {
+        const records = [
+            { seq: 'R1.A.1', t: 'ATTACK', p: 1, atk: 'SOR#108', def: 'SOR#095', defenderType: 'unit' },
+            { seq: 'R1.A.1a', t: 'DAMAGE', src: 'SOR#108', tgt: 'SOR#095', amt: 4, damageType: 'combat', hp: -1 },
+            { seq: 'R1.A.1b', t: 'DAMAGE', src: 'SOR#095', tgt: 'SOR#108', amt: 3, damageType: 'combat', hp: 2 },
+            { seq: 'R1.A.1c', t: 'DEFEAT', card: 'SOR#095', reason: 'attack', defeatedBy: 'SOR#108' },
+        ];
+        const grouped = records.map((r, i) => (i === 1 || i === 2 ? { ...r, simul: 'R1.A.1a' } : r));
+        const plain = render(doc(records), nm);
+        expect(render(doc(grouped), nm)).toBe(plain);
+        expect(plain.split('\n')).toEqual([
+            '  1. Player 1 attacks Battlefield Marine with Wampa',
+            '       ↳ 4 damage to Battlefield Marine — -1 HP left',
+            '       ↳ 3 damage to Wampa — 2 HP left',
+            '       ↳ Battlefield Marine is defeated by Wampa',
+        ]);
+    });
+});

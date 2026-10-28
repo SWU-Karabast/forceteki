@@ -369,6 +369,36 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(codes(fx(',"duration":"untilNextTurn"', 'SWU-PGN/1.7')).sort()).toEqual(['warning:newer-minor', 'warning:unknown-value']);
     });
 
+    // Value: protects=the schema knows LOOK and NAME and the new limit/blind/simul/usedBy/seen/owner fields, and pins their shape; fails_when=a well-formed record warns unknown-type, a malformed one passes, or a newer-minor per is an error; why_new=the records are new; seam=none; no_claim=writer output
+    it('accepts looks, names, limits, blind and simultaneous groups, and checks their shape', function () {
+        const clean = [
+            '{"seq":"R1.A.9","t":"ABILITY_ACTIVATE","p":1,"card":"SOR#108","ability":"a1","kind":"triggered","limit":{"max":1,"per":"round"},"usedBy":"SOR#045"}',
+            '{"seq":"R1.A.9a","t":"LOOK","p":1,"owner":2,"zone":"deck","cards":["SOR#045"],"count":1}',
+            '{"seq":"R1.A.9b","t":"NAME","p":1,"name":"Wampa"}',
+            '{"seq":"R1.A.9c","t":"CHOICE","p":2,"offered":["SOR#045"],"chose":0,"blind":"R1.A.9","simul":"R1.A.9c"}',
+            '{"seq":"R1.A.9d","t":"SEARCH","p":1,"owner":2,"zone":"deck","seen":["SOR#045"]}',
+        ].join('\n');
+        expect(codes(addEvent(clean))).toEqual([]);
+        const one = (json: string, game = 'SWU-PGN/1.0') => codes(addEvent(json).replace('SWU-PGN/1.0', game));
+        expect(one('{"seq":"R1.A.9","t":"LOOK","p":1,"zone":"deck","cards":[],"count":0}')).toEqual(['error:schema']);
+        expect(one('{"seq":"R1.A.9","t":"NAME","p":1}')).toEqual(['error:schema']);
+        expect(one('{"seq":"R1.A.9","t":"ABILITY_ACTIVATE","p":1,"card":"SOR#108","limit":{"max":1,"per":"phase"}}')).toEqual(['error:schema']);
+        expect(one('{"seq":"R1.A.9","t":"ABILITY_ACTIVATE","p":1,"card":"SOR#108","ability":"a1","limit":{"max":0,"per":"phase"}}')).toEqual(['error:schema']);
+        expect(one('{"seq":"R1.A.9","t":"PASS","p":1,"simul":5}')).toEqual(['error:schema']);
+        const turn = '{"seq":"R1.A.9","t":"ABILITY_ACTIVATE","p":1,"card":"SOR#108","ability":"a1","limit":{"max":1,"per":"turn"}}';
+        expect(one(turn)).toEqual(['error:schema']);
+        // `per` is a closed vocabulary a newer minor version may grow (§18).
+        expect(one(turn, 'SWU-PGN/1.7').sort()).toEqual(['warning:newer-minor', 'warning:unknown-value']);
+    });
+
+    // Value: protects=a keyframe abilityUses over the list cap is over-cap (§13, §23), as the fold treats it as damaged; fails_when=abilityUses is left out of the keyframe list check; why_new=abilityUses are new; seam=none; no_claim=none
+    it('reports a keyframe abilityUses list over the cap', function () {
+        const uses = JSON.stringify(new Array(1001).fill({ card: 'SOR#108', ability: 'a1', count: 1, per: 'game' }));
+        const bad = good.replace('"deckSize":2,"leader"', `"deckSize":2,"abilityUses":${uses},"leader"`);
+        expect(bad).not.toBe(good);
+        expect(codes(bad)).toContain('error:over-cap');
+    });
+
     it('reports a Fortify upgrade attached to the other seat\'s base', function () {
         const move = (p: number, base: string) => addEvent(`{"seq":"R1.A.9","t":"MOVE","card":"HMW#147","from":"hand","to":"base","p":${p},"kind":"upgrade","attachedTo":"${base}"}`);
         const play = (p: number, base: string) => addEvent(`{"seq":"R1.A.9","t":"PLAY_UPGRADE","p":${p},"card":"HMW#147","zone":"base","target":"${base}","cost":2}`);

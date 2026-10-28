@@ -369,6 +369,26 @@ requirement, by id. The linked section is where each one is defined.
   when a target leaves play while the effect goes on for the others, MUST write a partial
   `EFFECT_END` naming that target; and MUST write `untilText` on every `EFFECT_START` whose
   `duration` is `until` ([§10.1](#effect_start)).
+- `[W-49]` MUST write `limit` (with `ability`) on every `ABILITY_ACTIVATE` of an ability that may
+  be used only a set number of times each phase, each round or in the game (CR 7.2.5), and MUST
+  carry each seat's `abilityUses` in every keyframe ([§10.1](#limited-abilities),
+  [§11](#11-the-reduced-state--the-board-you-build)).
+- `[W-50]` MUST write a `LOOK` for every time a player looks at hidden cards (CR 8.13) — a look
+  that then puts the cards back on the top or the bottom of the deck included — and MUST write
+  `owner` and `seen` on every `SEARCH` ([§10.2](#what-a-search-emits)).
+- `[W-51]` MUST write a `NAME` when a player names a card (CR 8.17), before the record the name
+  is used by ([§10.2](#102-events-that-are-just-notes)).
+- `[W-52]` MUST write a successful disclose (CR 8.38) as one `REVEAL` with `zone` `hand` naming
+  every card shown, MUST NOT write a `REVEAL` for a disclose that fails, and MUST NOT write a
+  `REVEAL` for a card shown because its ability triggered from a hidden zone (CR 7.6.3a)
+  ([§10.2](#what-a-search-emits)).
+- `[W-53]` MUST write `blind` on every `CHOICE` made without seeing the other players' choices
+  (CR 7.1.4a), and `simul` on every record of a simultaneous resolution under CR 7.1.4a and of
+  combat damage (CR 6.3.5); MAY write `simul` wherever else the rules say records happen
+  simultaneously ([§10.2](#simultaneous-groups)).
+- `[W-54]` MUST write `usedBy` on an `ABILITY_ACTIVATE` that another card's ability made the
+  player use (CR 7.6.13d, 7.6.14d), with `card` the card the used ability is on and `p` the
+  player who used it ([§10.1](#limited-abilities)).
 
 ### The Parser (reads the syntax)
 
@@ -929,11 +949,12 @@ the base *card*; a `base@N` ref names the *thing being hit*.)
 | `ABILITY_ACTIVATE.ability` | An identifier the writer chooses, stable only within one `Engine` product (see the `ability` field in [§10.1](#101-events-that-carry-board-detail)). A reader MUST NOT branch on it. Its `kind` is the field for that ([§10.1](#101-events-that-carry-board-detail)). |
 | `EFFECT_START.duration` | **Closed — see [§10.1](#effect_start).** `attack`, `phase`, `round`, `whileSourceInPlay`, `until`, `delayed`, `game` |
 | `EFFECT_END.reason` | **Closed — see [§10.1](#effect_start).** `expired`, `fired`, `sourceLeft`, `targetLeft`, `cancelled` |
+| `ABILITY_ACTIVATE.limit.per` | **Closed — see [§10.1](#limited-abilities).** `phase`, `round`, `game` |
 
 Treat all of these as **open lists**, except the ones marked closed. A reader MUST NOT crash on a
 value it hasn't seen.
 
-**`DEFEAT.reason` is CLOSED**, as are the two effect vocabularies above. It is a vocabulary a
+**`DEFEAT.reason` is CLOSED**, as are the two effect vocabularies and `limit.per` above. It is a vocabulary a
 reader is meant to branch on — "did this unit die in combat or to an effect" changes what a
 replay shows — so it is pinned here and in the schema rather than left open:
 
@@ -1427,9 +1448,11 @@ to `base`, with an `EXHAUST` beside it (a defeated Leader Unit comes back exhaus
 | `ability` | string | no | An identifier the writer chooses, stable only within one `Engine` product. A reader MUST NOT branch on it. |
 | `epic` | boolean | no | The ability was an Epic Action. Equivalent to `kind: "epic"`. |
 | `grantedBy` | string | no | The card whose text **gave** `card` this ability — a Fortify upgrade's "Attached base gains: …", an upgrade's "Attached unit gains: …". A card id, or `base@N`. Absent when the ability is `card`'s own printed text. |
+| `limit` | object | no | The ability may be used only `max` times (an integer, at least 1) each `per`: `phase`, `round` or `game` (**closed**, [below](#limited-abilities)). REQUIRED on every use of such an ability `[W-49]`, and a record with `limit` MUST carry `ability` (`schema`, error). |
+| `usedBy` | string | no | The card whose ability made `p` use this one (CR 7.6.13d, 7.6.14d). A card id, or `base@N`. Absent when the player used the ability on its own terms ([below](#limited-abilities)). |
 
-Changes nothing — except that `epic: true` marks an **Epic Action** as used. Everything an
-ability *did* is recorded by the records that follow it.
+Changes nothing — except that `epic: true` marks an **Epic Action** as used, and `limit` counts
+a use of a limited ability. Everything an ability *did* is recorded by the records that follow it.
 
 **`grantedBy` is how a reader explains an ability `card` does not print.** When Kestro City uses
 "Deal 2 damage to a unit", the base has no such text; Heavy Ion Cannon attached to it does. The
@@ -1508,6 +1531,35 @@ that an ability makes while it resolves: it is not an action of the player's (CR
 A leader has exactly **one** Epic Action, its deploy, and both forms of it — deploying as a unit
 and deploying as a pilot — share the same limit, so one flag covers it. A base's is a different
 ability on a different card and gets its own. Do not collapse the two.
+
+<a id="limited-abilities"></a>
+**Limited abilities: `limit`.** Some abilities may be used only so many times each phase, each
+round or in the game ("Use this ability only once each round"). Whether one is spent is game
+state (CR 7.2.5, 1.16.3), and nothing else in the file says it: a reader would have to scan the
+uses since the last reset and know the card's limit text. So every use of such an ability carries
+`limit` `[W-49]`, and the fold counts it in the seat's `abilityUses`
+([§11](#11-the-reduced-state--the-board-you-build)) under `card` and `ability`. The count resets
+at the boundary `per` names, and the reset is a stated fold rule keyed on that field, not
+rules knowledge: `PHASE_START` clears the `phase` uses, `ROUND_START` clears the `phase` and
+`round` uses, and nothing clears a `game` use ([§12.2](#122-every-other-rule-in-one-table)). An
+Epic Action keeps its own fields (`epic`, `epicActionUsed`) and is not written with `limit`.
+
+`limit.per` is **closed**: a reader may branch on it. A value from a newer minor version is read
+per [§18](#18-versioning-and-extensibility--versions-and-unknown-things); the fold does not count
+a use whose `per` it does not know, because it cannot know when that use resets.
+
+| `per` | The ability may be used `max` times |
+|---|---|
+| `phase` | each phase |
+| `round` | each round |
+| `game` | in the game |
+
+**An ability used by another ability: `usedBy`.** Some abilities make a player use an ability on
+another card ("use a When Defeated ability on another friendly unit"; CR 7.6.13d, 7.6.14d). The
+record of that use is an `ABILITY_ACTIVATE` like any other: `card` is the card the used ability is
+on, `p` is the player using it, and `usedBy` names the card whose ability caused the use
+`[W-54]`. It is a sub-step of the ability that caused it. `usedBy` is a note: the fold ignores
+it.
 
 ---
 
@@ -2053,13 +2105,15 @@ These never change the board. A folder MUST read them and do nothing.
 |---|---|---|
 | `ATTACK` | `p`, `atk`, `def`, `defenderType` | An attack was declared. For a base attack, `def` is `base@N`. |
 | `PASS` | `p` | A player took the **Pass** action. It is never written after a play, an attack, an action ability or a claimed counter — those are actions of their own, and the turn passing to the opponent afterwards is not a record. The action phase ends when both players pass one after the other, or a player passes after the other has claimed the initiative (CR 5.4.1.b, 1.15.5.b-c). |
-| `CHOICE` | `p`, `offered` (string[]), `chose` (index), `prompt` (optional) | A player picked from a list. |
+| `CHOICE` | `p`, `offered` (string[]), `chose` (index), `prompt` (optional), `blind` (optional) | A player picked from a list. `blind` groups choices made without seeing each other ([below](#simultaneous-groups)). |
 | `MODAL_CHOICE` | `p`, `offered`, `chose` | A player picked an ability mode. A modal effect that picks several modes writes one `MODAL_CHOICE` per pick, in pick order. A later pick's `offered` is the modes still available after the earlier picks, in their printed order, and its `chose` indexes that list, not the first one. |
 | `MULLIGAN` | `p` | A player mulliganed. |
 | `KEEP_HAND` | `p` | A player kept their hand. |
 | `SHUFFLE` | `p` | A deck was shuffled. |
-| `SEARCH` | `p`, `found` (optional), `zone` (optional) | A player searched. See the rule below. |
+| `SEARCH` | `p`, `found` (optional), `zone` (optional), `owner` (optional seat), `seen` (optional string[]) | A player searched. `owner` is whose zone; `seen` every card `p` looked at. See the rule below. |
 | `REVEAL` | `p`, `zone`, `cards` | Cards were shown. |
+| `LOOK` | `p`, `owner` (seat), `zone`, `cards` (string[]), `count` (integer) | `p` looked at `count` cards of `owner`'s `zone` without revealing them (CR 8.13); `cards` names them. See the rule below. |
+| `NAME` | `p`, `name` | `p` named a card (CR 8.17). `name` is the card's `Title, Subtitle` as text (its title alone when only a title was named), not a card id `[W-51]`. The effect that uses the name is an `EFFECT_START` whose `text` includes it. `name` is display text ([§23](#23-security-considerations)). |
 | `TRIGGER` | `card`, `p` (optional) | A triggered ability fired. |
 | `PHASE_END` | `phase` | A phase ended. |
 | `ROUND_END` | `round`, `keyframe` (optional) | A round ended. |
@@ -2091,18 +2145,57 @@ emits:
 
 1. one **`SEARCH`** record. `found` is optional, and a writer MAY omit it when the
    engine announces the search before the player has chosen, and what left the deck is
-   stated by the `MOVE` in step 3;
+   stated by the `MOVE` in step 3. `owner` is the seat whose zone was searched, and `seen` every
+   card `p` looked at — for "search the top 5 cards", those five `[W-50]`;
 2. a **`REVEAL`** where the opponent gets to see the cards too;
 3. a **`MOVE`** for **only** the card (or cards) that actually **leave** the searched zone.
 
+**A look is a `LOOK`.** Looking at cards (CR 8.13) shows them to one player and to no one else,
+which changes the status of hidden information (CR 1.16.1, 1.16.3). The writer writes one `LOOK`
+naming the viewer (`p`), whose zone it was (`owner`), the `zone`, how many cards (`count`) and
+which (`cards`) `[W-50]` — a look that then puts the cards on the top or the bottom of the deck
+included, and a look at an opponent's hand. A `MOVE` follows only for a card that leaves the zone.
+The viewer and the hidden cards are separate fields so that a later perspective rule can keep the
+viewer and drop the cards ([§21](#21-open-issues)). A 1.0 file is omniscient, so `cards` is always
+full.
+
+**A disclose is a `REVEAL`.** A successful disclose (CR 8.38) is one `REVEAL` with `zone`
+`hand` naming every card the player showed — extra cards included, since a player may show more
+than the requirement. A disclose that fails reveals nothing (CR 8.38.3), and the writer writes no
+`REVEAL` for it `[W-52]`.
+
 **A trigger from a hidden zone writes no `REVEAL`.** A card whose ability triggers from a hidden zone
 is shown to the opponents (CR 7.6.3a), but the rules say that is not "revealing" the card, so the
-writer records the ability (`ABILITY_ACTIVATE`) and nothing for the showing.
+writer records the ability (`ABILITY_ACTIVATE`) and nothing for the showing `[W-52]`. The
+`ABILITY_ACTIVATE` naming the card is the record that both players know it.
 
 **Examining a card produces no `MOVE`.** A card that is looked at and put back has not
 changed zone, so there is nothing to record — and a `deck` → `deck` record would break the
 `from` ≠ `to` rule above anyway. This matters more than it sounds: two searches in one real
 game once produced 28 of that file's 136 MOVE records, all of them noise.
+
+<a id="simultaneous-groups"></a>
+### Simultaneous groups: `blind` and `simul`
+
+Some things happen at once. Two fields say which records belong together; both are notes, and the
+fold ignores them.
+
+- **`blind`**, on `CHOICE`: choices made **without seeing each other**. When an ability asks each
+  player to choose about hidden information ("each player discards a card from their hand"),
+  each chooses independently (CR 7.1.4a). Every `CHOICE` of that kind carries `blind`, whose
+  value is the `seq` of the record that asked for the choices, so the choices of one ask share it
+  `[W-53]`.
+- **`simul`**, on any record: the records produced by **one simultaneous resolution**. Its value
+  is the `seq` of the group's first record, and every record of the group carries it. A writer
+  writes it on every record of a resolution under CR 7.1.4a (the discards of "each player
+  discards a card") and of combat damage (CR 6.3.5: the attacker and the defender deal their
+  damage at the same time), and MAY write it wherever else the rules say records happen
+  simultaneously `[W-53]`. A writer SHOULD write a group's records one after another.
+
+A renderer and a scrubber treat a `simul` group as **one instant**: a scrubber never stops inside
+it, and a renderer prints its records as it would print them without `simul`, in file order
+([§16](#16-rendering--turning-a-file-into-a-story)). A `blind` pick names the cards in `offered`
+in full in 1.0; hiding another player's pick is a perspective rule's job ([§21](#21-open-issues)).
 
 ### 10.3 Homeworlds: Fortify, Beast and Weakness
 
@@ -2408,6 +2501,14 @@ interface PlayerState {
     discard: string[];          // discard pile, in order
     cards: CardInstanceState[]; // ONLY cards in the ground/space arenas (a base upgrade is not one)
     leader?: LeaderState;       // the leader card's status, wherever it is
+    abilityUses?: AbilityUse[]; // limited abilities used since their reset, in first-use order
+}
+
+interface AbilityUse {
+    card: string;               // the card the ability is on, or "base@N"
+    ability: string;            // the ability, as ABILITY_ACTIVATE.ability names it
+    count: number;              // uses since the last reset, at least 1
+    per: string;                // §10.1: phase, round, game — when the count resets
 }
 
 interface LeaderState {
@@ -2449,9 +2550,17 @@ targets. Each holds what its `EFFECT_START` stated, less the advisory `untilText
 folds to a board with no `effects` at all; once created, the list stays, empty when nothing is
 active.
 
+`abilityUses` lists, per seat, the limited abilities the seat has used since their count last
+reset ([§10.1](#limited-abilities)): an `ABILITY_ACTIVATE` with `limit` adds one use to the entry
+for its `card` and `ability` (creating it, with `count` 1), `PHASE_START` removes the `phase`
+entries, and `ROUND_START` the `phase` and `round` entries. The fold creates the list at the
+seat's first limited use, so a file with no limited abilities folds to a board with no
+`abilityUses`; once created, it stays, empty when nothing is spent. An ability whose entry is
+absent has not been used since its reset.
+
 The optional fields marked `?` — `initiativeTaken`, `deckSize`, `leader`, `power`, `hp`,
 `keywords`, `resources`, `baseEpicActionUsed`, `baseUpgrades`, `baseCaptured`, `onStartingSide`,
-`effects` — are optional only because files
+`effects`, `abilityUses` — are optional only because files
 written before they existed lack them. A current writer fills every one that applies, and the
 integrity check compares each whenever the keyframe carries it.
 
@@ -2491,9 +2600,10 @@ already applied the rules, and the file records what it decided. Where each part
 | Each card's **status** — ready/exhausted | `EXHAUST` / `READY` for arena cards and the leader, including the `EXHAUST` a unit gets on entering play; `EXHAUST_RESOURCES` / `READY_RESOURCES` and the `MOVE.exhausted` flag for the resource row |
 | Each card's **status** — faceup/facedown | the leader's `deployed` (Leader Unit side up) and, for a double-sided leader, `onStartingSide` — set by `LEADER_FLIP` ([§10.1](#101-events-that-carry-board-detail)); resources are always facedown, and `RESOURCE` names the card for the omniscient reader |
 | The **initiative counter**: controller and taken/available | `initiative` and `initiativeTaken`; `CLAIM_INITIATIVE`, reset at `ROUND_START` |
-| **Open and hidden information** | the archive is omniscient ([§17](#17-privacy-considerations)): `DRAW`, `RESOURCE`, `SEARCH`, `REVEAL` and the keyframe's `hand` name the hidden cards; `Perspective` in the header says when a file is not |
+| **Open and hidden information** | what each hidden card is: the archive is omniscient ([§17](#17-privacy-considerations)), so `DRAW`, `RESOURCE`, `SEARCH`, `REVEAL` and the keyframe's `hand` name the hidden cards. Who has seen which: the records, not the board — `LOOK` (a player looked), `SEARCH.seen` and `owner` (a player searched), `REVEAL` (everyone saw, a successful disclose included), `ABILITY_ACTIVATE` for a card whose ability triggered from a hidden zone (CR 7.6.3a), and `blind` on choices made without seeing each other ([§10.2](#what-a-search-emits)). The board keeps no per-player knowledge model in 1.0: a reader that needs one builds it from those records. A named card (CR 8.17) is a `NAME` |
 | **Lasting effects** | `effects` on the board: `EFFECT_START` when one is created, `EFFECT_END` when it ends or a target leaves it ([§10.1](#effect_start)) — its source, controller, targets and duration. Its consequences show as well: `STATS` (a unit given +3/+0 for an attack shows it and shows it going away), `keywords` (Sentinel for a phase) |
 | **Delayed effects** | `effects` on the board, with `duration` `delayed`, from the moment the effect is created until its `EFFECT_END` with `reason` `fired` ([§10.1](#effect_start)); what it does when it fires is in the records it causes then (a Change of Heart return is a `TAKE_CONTROL` at regroup) |
+| **Limited abilities** used/unused (CR 7.2.5, 1.16.3) | `abilityUses` per seat, counted from `ABILITY_ACTIVATE.limit` and cleared at `PHASE_START` / `ROUND_START` by its `per` ([§10.1](#limited-abilities)) |
 | **Epic Actions** used/unused | `epic: true` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`; the leader's `epicActionUsed`, and the seat's `baseEpicActionUsed` — a **base** may carry an Epic Action too (Tarkintown, Security Complex, Jedha City and 9 others), and it is a separate ability on a separate card from the leader's ([§10.1](#101-events-that-carry-board-detail)) |
 
 What the file deliberately does **not** encode is the rulebook itself: why a cost was 4 and
@@ -2681,14 +2791,14 @@ twice.
 
 | `t` | What you do |
 |---|---|
-| `ROUND_START` | `round = event.round`; `initiativeTaken = false`; `active = event.active` when it is `1` or `2`, and then `initiative = event.active` (the initiative holder is the round's first active player, CR 5.4.1.b) |
-| `PHASE_START` | `phase = event.phase`; `active = event.active` when it is `1` or `2` |
+| `ROUND_START` | `round = event.round`; `initiativeTaken = false`; remove every seat's `abilityUses` entries whose `per` is `phase` or `round` (a seat without the list keeps none); `active = event.active` when it is `1` or `2`, and then `initiative = event.active` (the initiative holder is the round's first active player, CR 5.4.1.b) |
+| `PHASE_START` | `phase = event.phase`; remove every seat's `abilityUses` entries whose `per` is `phase`; `active = event.active` when it is `1` or `2` |
 | `CLAIM_INITIATIVE` | `initiative = event.p`; `initiativeTaken = true` |
 | `PLAY`, `PLAY_SMUGGLE` | place `card` in `zone ?? "ground"` — **idempotent by id**: if already tracked, just set its zone. The paired `MOVE` reports the same arrival, and pushing on both duplicates every unit in play |
 | `PLAY_EVENT` | add `card` to `players[p].discard`, **once by id** — its own hand→discard `MOVE` files the same card |
 | `PLAY_UPGRADE` | if `target` is `base@N` → add `card` to `players[N].baseUpgrades`, once by id; else if `target` is set → `attach(state, target, card)` (nothing if the host isn't tracked); otherwise **nothing**. An upgrade is never an arena card, so there is no fallback placement |
 | `DEPLOY_LEADER` | ignored when it has no `card`. Otherwise `players[p].leader = { id: card, deployed: true, exhausted: false, epicActionUsed: (was already used) or epic === true }`; then if `kind` is `"upgrade"` → `attach(state, target, card)`; else place `card` in `zone ?? "ground"`, idempotent by id |
-| `ABILITY_ACTIVATE` | if `epic`: `card` of `base@N` → `players[N].baseEpicActionUsed = true`; else if `card` is a seat's `leader.id` → that leader's `epicActionUsed = true`. Otherwise nothing |
+| `ABILITY_ACTIVATE` | if `limit` is present, `card` and `ability` are strings, `p` is `1` or `2` and `limit.per` is `phase`, `round` or `game`: create `players[p].abilityUses` if absent; if it holds an entry with this `card` and `ability`, add 1 to its `count` and set its `per` to `limit.per`, else add `{ card, ability, count: 1, per }` at the end (no more than 1000 entries are kept). Then, if `epic`: `card` of `base@N` → `players[N].baseEpicActionUsed = true`; else if `card` is a seat's `leader.id` → that leader's `epicActionUsed = true`. `usedBy` changes nothing |
 | `LEADER_FLIP` | that seat's `leader.onStartingSide = event.onStartingSide` — the stated face, so applying it twice is the same as once. Find the leader by `card`, falling back to the record's `p` (these leaders never deploy, so early in a file no `DEPLOY_LEADER` has named the id). If that seat has no `leader` yet, create one first: `{ id: card, deployed: false, exhausted: false, epicActionUsed: false }`. A record with no `card` is ignored |
 | `STATS` | if `card` is tracked → set its `power`, `hp`, and `keywords` (sorted) when given |
 | `TAKE_CONTROL` | arena `zone` → move the card entry from the other seat's `cards` to `players[p].cards`; `resource` with `from` → shift one resource from `from` to `p`, in the exhausted bucket if `exhausted` else the ready one, and move `card` from `players[from].resources` to `players[p].resources`; `base` with `from` → shift one credit (or the Force) from `from` to `p`; otherwise nothing ([§10.1](#take_control)) |
@@ -2771,7 +2881,7 @@ state is thrown away and the keyframe takes its place. Everything below follows 
   the initiative holder through `active`. It is not harmless to leave out `active`: without it
   the initiative is whatever the last `CLAIM_INITIATIVE` left. Never ship a partial keyframe.
 - No list in a keyframe (`cards`, `hand`, `discard`, `resources`, `baseUpgrades`, `baseCaptured`, a card's
-  `upgrades` and `captured`, `effects` and an effect's `targets`) holds more than 1000 entries: a writer MUST NOT write one that does. A card's `captured` may be absent (a
+  `upgrades` and `captured`, `effects` and an effect's `targets`, `abilityUses`) holds more than 1000 entries: a writer MUST NOT write one that does. A card's `captured` may be absent (a
   file older than the field), but when present it is a list. A real game never comes close; a reader treats a
   keyframe over that as damaged and ignores it, because a snapped keyframe bypasses the cap the
   fold puts on every list it grows itself ([§14](#14-integrity--checking-a-file-is-honest)).
@@ -2779,7 +2889,8 @@ state is thrown away and the keyframe takes its place. Everything below follows 
   resources and discard are described by their counts and lists, not by `cards`.
 - A keyframe carries every field of [§11](#11-the-reduced-state--the-board-you-build): the
   initiative status, the active `effects` (an empty list when none is active), and per seat the
-  deck count, the leader's status, and each card's live `power`/`hp`/`keywords`. A writer that cannot read one of them omits that field rather than
+  deck count, the leader's status, the `abilityUses` (an empty list when none is spent), and
+  each card's live `power`/`hp`/`keywords`. A writer that cannot read one of them omits that field rather than
   inventing a value.
 - Emit a keyframe on `ROUND_END` as well as `ROUND_START` when you can. It halves the
   window between checkpoints, so a round's worth of fold drift is caught a round earlier,
@@ -2806,7 +2917,9 @@ state is thrown away and the keyframe takes its place. Everything below follows 
   `experience`;
 - a `cards` entry has a `captured` that is present but not an array of at most 1000;
 - `effects` is present but not an array of at most 1000 entries, or an entry is not an object
-  with a string `id`, or has `targets` that is present but not an array of at most 1000.
+  with a string `id`, or has `targets` that is present but not an array of at most 1000;
+- a seat's `abilityUses` is present but not an array of at most 1000 entries, or an entry is not
+  an object with a string `card`, a string `ability` and a number `count`.
 
 **Readers, on meeting a damaged keyframe:** do NOT snap to it — snapping
 would delete a player you have correct state for. **Ignore the keyframe**, keep folding
@@ -2870,6 +2983,12 @@ problem. A writer that has no such cost SHOULD refuse to emit a file that is not
 - `effects` whenever the keyframe carries it, **as a set by `id`**: each effect's `src`, `p`,
   `seat`, `duration`, and `targets` as a set. Start order is not part of the model, and an absent
   list on the fold's side counts as empty. A mismatch is reported once, with `path: "effects"`
+- `abilityUses` whenever the keyframe carries it, **as a set keyed by `card` and `ability`**:
+  each entry's `count` and `per`. First-use order is not part of the model, an absent list on the
+  fold's side counts as empty, and an entry whose `per` the reader does not know is left out on
+  both sides. A mismatch is reported once per seat, with `path: "players.N.abilityUses"`.
+  **Before comparing a `ROUND_START` keyframe, remove the running `phase` and `round` entries**,
+  for the reason given for `initiativeTaken` below
 - `initiativeTaken`, whenever the keyframe carries it, absent on the fold's side read as
   `false`. **Before comparing a `ROUND_START` keyframe, set the running `initiativeTaken` to
   `false`**: that keyframe describes a round that has begun, and the `ROUND_START` rule that
@@ -2882,8 +3001,8 @@ problem. A writer that has no such cost SHOULD refuse to emit a file that is not
 - a card being in one side but not the other (reported both ways)
 
 Everything except `baseHp` and `deckSize` is compared at **every** keyframe, the first one
-included. A field the keyframe does not carry — `deckSize`, `leader`, `initiativeTaken`, `effects`, a
-card's `power`/`hp`/`keywords` — is skipped, so a file written before the field existed still
+included. A field the keyframe does not carry — `deckSize`, `leader`, `initiativeTaken`, `effects`,
+`abilityUses`, a card's `power`/`hp`/`keywords` — is skipped, so a file written before the field existed still
 passes: absent means "not recorded", never "zero".
 
 **Every player and card field of [§11](#11-the-reduced-state--the-board-you-build) is checked.** A
@@ -3088,7 +3207,7 @@ Friends"), so a comma-joined list could not be split back into cards.
 | `HEAL` | `{amt} healed on {nm(tgt)} — {hp} HP left` |
 | `UNDO` | Its own marker line, neither numbered nor indented: `    ·· {who(by)} undid back to {at} ··` (`A player` when `by` is absent) |
 | `DEFEAT` | `{nm(card)} is defeated` + ` by {nm(defeatedBy)}` if present |
-| `ABILITY_ACTIVATE` | `kind` `action`/`epic`: `{who(p)} uses {nm(card)}` (Epic Action: `…'s Epic Action`) — and it takes an action NUMBER. Otherwise `{nm(card)} uses an ability`. Either way, ` (granted by {nm(grantedBy)})` when `grantedBy` is present |
+| `ABILITY_ACTIVATE` | `kind` `action`/`epic`: `{who(p)} uses {nm(card)}` (Epic Action: `…'s Epic Action`) — and it takes an action NUMBER. Otherwise `{nm(card)} uses an ability`. Either way, ` (granted by {nm(grantedBy)})` when `grantedBy` is present, then ` (used by {nm(usedBy)})` when `usedBy` is present. `limit` prints nothing |
 | `TRIGGER` | `{nm(card)} triggers` |
 | `STATUS_TOKEN` | `{nm(card)} gains\|loses {abs(count)} {token}` — `loses` when `count` is negative |
 | `SHIELD_GAIN` | `{nm(card)} gains {count ?? 1} shield` |
@@ -3098,7 +3217,9 @@ Friends"), so a comma-joined list could not be split back into cards.
 | `DISCARD` | `{who(p)} discards {names}` |
 | `RESOURCE` | `{who(p)} resources {nm(card)}` |
 | `REVEAL` | `{who(p)} reveals {names}` |
-| `SEARCH` | with `found`: `{who(p)} searches, finds {names}` · without: `{who(p)} searches their deck` |
+| `SEARCH` | with `found`: `{who(p)} searches, finds {names}` · without: `{who(p)} searches their deck`. `owner` and `seen` print nothing |
+| `LOOK` | `{who(p)} looks at {count} card\|cards of {who(owner)}'s {zone}` — `card` when `count` is 1 — + `: {names(cards)}` when `cards` is non-empty |
+| `NAME` | `{who(p)} names {name}`, with `name` cut as `nm` cuts a card name: longer than 120 characters (UTF-16 code units), its first 119 and `…` |
 | `CREATE_TOKEN` | `{who(p)} creates {nm(token)} in {zone}` |
 | `CAPTURE` | `{who(p)} captures {nm(card)}` + ` with {nm(by)}` if `by` |
 | `RESCUE` / `TAKE_CONTROL` | `{who(p)} rescues\|takes control of {nm(card)}` |
@@ -3110,6 +3231,10 @@ Friends"), so a comma-joined list could not be split back into cards.
 
 **These print nothing**: `MOVE`, `EXHAUST`, `READY`, `EXHAUST_RESOURCES`, `READY_RESOURCES`,
 `STATS`, `CHOICE`, `MODAL_CHOICE`, `SHUFFLE`, `PHASE_END`, `ROUND_END`.
+
+**A `simul` group prints as its records do without it**, one line each, in file order
+([§10.2](#simultaneous-groups)). `simul` and `blind` change no line. A renderer that animates or
+steps through the story treats the group as one instant.
 
 They are mechanism, not story. `MOVE` is the fold's source of truth and appears beside every
 play, draw and discard — printing it would roughly triple the narrative for no reader
@@ -3436,7 +3561,12 @@ two ways.
 1. **Perspective files are not defined.** 1.0 has no rule for writing a `MOVE` or a `DRAW` whose
    card the perspective seat cannot see, or for keeping the fold consistent when it is hidden.
    Until a later version defines that, a 1.0 writer MUST NOT write a perspective file `[W-36]`,
-   and the `Perspective` tag is reserved ([§5.2](#52-optional-tags)).
+   and the `Perspective` tag is reserved ([§5.2](#52-optional-tags)). Besides `MOVE`, `DRAW` and
+   the keyframe's `hand`, a perspective rule will have to say what to hide in each record that
+   names hidden cards beside its viewer: `LOOK.cards`, `SEARCH.seen` and `found`, the `offered`
+   cards of a `blind` `CHOICE`, `EFFECT_START.targets` naming a hidden card, and `NAME.name`
+   should a card ever be named in secret. Each keeps its viewer (`p`) and the hidden cards in separate fields so
+   that the rule can drop one and keep the other.
 2. **A base upgrade cannot change control.** There is no `TAKE_CONTROL` shape for an upgrade
    attached to a base. `TAKE_CONTROL` with `zone: "base"` means a Credit token or the Force
    ([§10.1](#101-events-that-carry-board-detail)). No card does this today.
@@ -3652,10 +3782,11 @@ assume one is in range: a count of `1e308` or a negative `amount` MUST NOT make 
 index out of bounds. The reference folder clamps counts at zero and ignores a non-number.
 
 **Display injection.** `CARDS.name`, `backSideName`, `Reason`, `CHOICE.prompt`,
-`CHOICE.offered`, `ABILITY_ACTIVATE.title`, `EFFECT_START.text` and `untilText`, annotation
-`text` and `by`, and every unknown field are attacker-controlled text. The story
-([§16](#16-rendering--turning-a-file-into-a-story)) prints `EFFECT_START.text` and `untilText`,
-so a `%%% STORY` line carries them too and is escaped like them. A renderer and a consumer MUST escape them for the medium they
+`CHOICE.offered`, `ABILITY_ACTIVATE.title`, `EFFECT_START.text` and `untilText`, `NAME.name`,
+annotation `text` and `by`, and every unknown field are attacker-controlled text. The story
+([§16](#16-rendering--turning-a-file-into-a-story)) prints `EFFECT_START.text`, `untilText` and
+`NAME.name`, so a `%%% STORY` line carries them too and is escaped like them. `NAME.name` is
+plain text, never markup. A renderer and a consumer MUST escape them for the medium they
 display in (HTML, Markdown, a terminal) and SHOULD neutralise bidirectional-override and control
 characters, which can make a line read differently from what it says `[R-04]`.
 `ABILITY_ACTIVATE.title` and `EFFECT_START.text` may carry the icon markup of

@@ -34,6 +34,7 @@ export function indexResolver(cards: readonly CardIndexRecord[] = []): NameResol
 /** Longer than any printed card's `Title, Subtitle`. */
 const MAX_NAME_LENGTH = 120;
 
-function shorten(name: string): string {
+/** `name` cut to 119 UTF-16 code units and `…` when it is longer than 120 (spec §16). */
+export function shorten(name: string): string {
     return name.length > MAX_NAME_LENGTH ? `${name.slice(0, MAX_NAME_LENGTH - 1)}…` : name;
 }
