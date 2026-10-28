@@ -123,3 +123,23 @@ describe('reader robustness against corrupted records', function () {
         expect(failures).toEqual([]);
     });
 });
+
+// Value: protects=a file cannot make render's output grow without bound through its own card index; fails_when=render prints a card's index name at any length, so one long name repeated on every line runs past the largest string the runtime can build; why_new=the index came from the file and nothing bounded it; seam=none; no_claim=a reader that resolves names from its own card database
+describe('render with a hostile card index', function () {
+    it('shortens an over-long display name instead of throwing', function () {
+        const doc = parse(fs.readFileSync(path.join(dir, 'minimal.swupgn'), 'utf8'));
+        const longName = 'A'.repeat(900_000);
+        doc.cards.push({ id: 'SOR#999', name: longName });
+        for (let i = 0; i < 600; i++) {
+            const reveal: GameEvent = { seq: `R2.A.${i + 1}`, t: 'REVEAL', p: 1, zone: 'hand', cards: ['SOR#999'] };
+            doc.events.push(reveal);
+        }
+
+        let out = '';
+        expect(() => {
+            out = render(doc);
+        }).not.toThrow();
+        expect(out).not.toContain(longName);
+        expect(out.length).toBeLessThan(1_000_000);
+    });
+});

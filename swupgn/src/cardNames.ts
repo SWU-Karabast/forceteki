@@ -20,12 +20,20 @@ export function baseId(ref: string): string {
  * itself, so an incomplete index degrades to today's behaviour rather than losing the event.
  */
 export function indexResolver(cards: readonly CardIndexRecord[] = []): NameResolver {
-    // The index comes from the file: skip an entry that is not a card record instead of throwing.
+    // The index comes from the file: skip an entry that is not a card record instead of throwing,
+    // and shorten a name no card has, which a story repeats on every line that names the card.
     cards = cards.filter((c) => typeof c?.id === 'string' && typeof c?.name === 'string');
-    const byId = new Map(cards.map((c) => [c.id, c.name]));
-    const backById = new Map(cards.filter((c) => typeof c.backSideName === 'string').map((c) => [c.id, c.backSideName as string]));
+    const byId = new Map(cards.map((c) => [c.id, shorten(c.name)]));
+    const backById = new Map(cards.filter((c) => typeof c.backSideName === 'string').map((c) => [c.id, shorten(c.backSideName as string)]));
     return {
         nameOf: (id: string) => byId.get(baseId(id)) ?? baseId(id),
         backNameOf: (id: string) => backById.get(baseId(id)),
     };
+}
+
+/** Longer than any printed card's `Title, Subtitle`. */
+const MAX_NAME_LENGTH = 120;
+
+function shorten(name: string): string {
+    return name.length > MAX_NAME_LENGTH ? `${name.slice(0, MAX_NAME_LENGTH - 1)}…` : name;
 }
