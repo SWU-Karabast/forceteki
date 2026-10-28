@@ -57,29 +57,18 @@ function sameTokens(a: unknown, b: unknown): boolean {
 function diffCard(seq: string, seat: 1 | 2, e: CardInstanceState, g: CardInstanceState): KeyframeMismatch[] {
     const out: KeyframeMismatch[] = [];
     const base = `players.${seat}.cards[${e.id}]`;
-    if (e.zone !== g.zone) {
-        out.push({ seq, path: `${base}.zone`, expected: e.zone, got: g.zone });
-    }
-    if (e.damage !== g.damage) {
-        out.push({ seq, path: `${base}.damage`, expected: e.damage, got: g.damage });
-    }
-    if (e.exhausted !== g.exhausted) {
-        out.push({ seq, path: `${base}.exhausted`, expected: e.exhausted, got: g.exhausted });
-    }
-    if (e.shields !== g.shields) {
-        out.push({ seq, path: `${base}.shields`, expected: e.shields, got: g.shields });
-    }
-    if (e.experience !== g.experience) {
-        out.push({ seq, path: `${base}.experience`, expected: e.experience, got: g.experience });
+    for (const field of ['zone', 'damage', 'exhausted', 'shields', 'experience'] as const) {
+        if (e[field] !== g[field]) {
+            out.push({ seq, path: `${base}.${field}`, expected: e[field], got: g[field] });
+        }
     }
     if (!sameTokens(e.statusTokens, g.statusTokens)) {
         out.push({ seq, path: `${base}.statusTokens`, expected: e.statusTokens, got: g.statusTokens });
     }
-    if (!sameSet(e.upgrades, g.upgrades)) {
-        out.push({ seq, path: `${base}.upgrades`, expected: e.upgrades, got: g.upgrades });
-    }
-    if (!sameSet(e.captured, g.captured)) {
-        out.push({ seq, path: `${base}.captured`, expected: e.captured, got: g.captured });
+    for (const field of ['upgrades', 'captured'] as const) {
+        if (!sameSet(e[field], g[field])) {
+            out.push({ seq, path: `${base}.${field}`, expected: e[field], got: g[field] });
+        }
     }
     // Live stats are compared only when the keyframe recorded them: an older file carries
     // none, and "absent" is "not recorded", never "zero".
