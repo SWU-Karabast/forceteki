@@ -77,21 +77,13 @@ function actionCard(e: GameEvent): string | undefined {
 }
 
 /**
- * The cards an action is about: its own card, plus the host an upgrade (or a leader deployed as a
- * pilot) is played onto. The host's `STATS` lands before a `PLAY_UPGRADE` just as the upgrade's
- * own `MOVE` does, so it is the play's.
+ * The host an upgrade (or a leader deployed as a pilot) is played onto. The host's `STATS` lands
+ * after the upgrade's own `MOVE` and before the `PLAY_UPGRADE`, so it is the play's -- but only
+ * there: a host `STATS` from before that `MOVE` was left by an earlier action.
  */
-function actionCards(e: GameEvent): Set<string> {
-    const out = new Set<string>();
-    const card = actionCard(e);
-    if (card != null) {
-        out.add(card);
-    }
+function actionHost(e: GameEvent): string | undefined {
     const target = (e as { target?: unknown }).target;
-    if ((e.t === 'PLAY_UPGRADE' || e.t === 'DEPLOY_LEADER') && typeof target === 'string') {
-        out.add(target);
-    }
-    return out;
+    return (e.t === 'PLAY_UPGRADE' || e.t === 'DEPLOY_LEADER') && typeof target === 'string' ? target : undefined;
 }
 
 /** Whether a precursor record names `card` -- the anchor that ties a run to its action. */
@@ -204,8 +196,11 @@ export function linkActionSteps(events: GameEvent[]): GameEvent[] {
         // action phase starts" trigger's Beast lands just before the first play, with the same
         // MOVE/STATS/EXHAUST shape a play's precursors have. A card LEAVING -- a discard paid as
         // a cost -- is the one record about another card that stays the action's.
+        // A played upgrade's host is the action's own card too, but only between the upgrade's
+        // own MOVE and its announcement (see actionHost); walking back, that is until the walk
+        // has passed that MOVE.
         const precursors = precursorsFor(action.t);
-        const own = actionCards(action);
+        let host = actionHost(action);
         let start = i;
         while (start > 0) {
             const prev = out[start - 1];
@@ -214,8 +209,11 @@ export function linkActionSteps(events: GameEvent[]): GameEvent[] {
             }
             const named = actionCard(prev);
             const leaving = prev.t === 'MOVE' && !isArena(prev.to) && !(prev.to === 'base' && prev.kind === 'upgrade');
-            if (named != null && !own.has(named) && !leaving) {
+            if (named != null && named !== card && named !== host && !leaving) {
                 break;
+            }
+            if (prev.t === 'MOVE' && named === card) {
+                host = undefined;
             }
             start--;
         }

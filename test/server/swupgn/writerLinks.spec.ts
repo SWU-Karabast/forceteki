@@ -72,7 +72,7 @@ describe('SWU-PGN writer links', function () {
         'upgrades.swupgn': ['R1.A.1d', 'R2.A.1e', 'R3.A.1a'],
     };
 
-    it('keeps every rev-3 link except the over-links this fix removes, and moves none to a different action', function () {
+    it('keeps every rev-3 link but the 9 over-reaching ones it removes: no `for` now names a different action', function () {
         const rev3: Record<string, Record<string, string>> = JSON.parse(
             fs.readFileSync(path.join(root, 'test/server/swupgn/fixtures/for-links-rev3.json'), 'utf8')
         );
@@ -82,7 +82,9 @@ describe('SWU-PGN writer links', function () {
             const now = new Map(eventsOf(file).map((e) => [e.seq, e.for]));
             for (const [seq, owner] of Object.entries(links)) {
                 const current = now.get(seq);
-                if (current == null) {
+                if (!now.has(seq)) {
+                    changed.push(`${file} ${seq}: was for ${owner}, and the record is gone`);
+                } else if (current == null) {
                     removed.push(`${file} ${seq}`);
                 } else if (current !== owner) {
                     changed.push(`${file} ${seq}: was for ${owner}, now for ${current}`);

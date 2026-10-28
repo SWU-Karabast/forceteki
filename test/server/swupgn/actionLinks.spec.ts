@@ -260,6 +260,23 @@ describe('linkActionSteps: a record naming another card ends the run', function 
             .toEqual(['R3.A.1', 'R3.A.1', 'R3.A.1', undefined]);
     });
 
+    it('does not take the host\'s earlier stat change, left by the previous action, into an upgrade\'s run', function () {
+        const events: GameEvent[] = [
+            { seq: 'R4.A.2', t: 'PLAY_EVENT', p: 2, card: 'HMW#100', zone: 'discard', cost: 2 },
+            { seq: 'R4.A.2a', t: 'MOVE', card: 'TOKEN:weakness#7816991190', from: 'outsideTheGame', to: 'ground', p: 1, kind: 'upgrade', attachedTo: 'ASH#251' },
+            { seq: 'R4.A.2b', t: 'STATUS_TOKEN', card: 'ASH#251', token: 'weakness', count: 1 },
+            { seq: 'R4.A.2c', t: 'STATS', card: 'ASH#251', power: 2, hp: 2 },
+            { seq: 'R4.A.2d', t: 'CHOICE', p: 1, prompt: 'Ascension Cable', offered: ['ASH#251'], chose: 0 },
+            { seq: 'R4.A.2e', t: 'EXHAUST_RESOURCES', p: 1, amount: 2 },
+            { seq: 'R4.A.2f', t: 'MOVE', card: 'LOF#215', from: 'hand', to: 'ground', p: 1, kind: 'upgrade', attachedTo: 'ASH#251' },
+            { seq: 'R4.A.2g', t: 'STATS', card: 'ASH#251', power: 4, hp: 6 },
+            { seq: 'R4.A.3', t: 'PLAY_UPGRADE', p: 1, card: 'LOF#215', zone: 'ground', target: 'ASH#251', cost: 2 },
+        ];
+        expect(linkActionSteps(events).map((e) => (e as { for?: string }).for)).toEqual([
+            undefined, undefined, undefined, undefined, 'R4.A.3', 'R4.A.3', 'R4.A.3', 'R4.A.3', undefined,
+        ]);
+    });
+
     it('keeps a discard paid as a cost in the run', function () {
         const events: GameEvent[] = [
             { seq: 'R1.A.0a', t: 'MOVE', card: 'SOR#200', from: 'hand', to: 'discard', p: 1 },

@@ -3206,7 +3206,7 @@ could change what a record means. After it, a revision is diagnostic only.
 | 1 | `WriterRevision` introduced. A unit captured by a base is held in the seat's `baseCaptured` ([§10.1](#101-events-that-carry-board-detail)) | the tag's presence; a keyframe carrying `baseCaptured` |
 | 2 | `%%% STORY` joins a list of cards with ` · `, not `, `, which a card's own title-and-subtitle comma made impossible to split ([§16](#strict-layout-rules)) | `WriterRevision` 2 or later; in an older file, a `draws N:` story line whose names are separated by `, ` |
 | 3 | `INIT` is `R0.S.0`, not `R1.S.0` ([§8](#8-the-setup-section)). `GameId` is an opaque hash, not the engine's game id, and the fallback player-id salt is no longer printed in the file ([§17](#17-privacy-considerations)) | the `INIT` seq; a `GameId` matching `^sha256:[0-9a-f]{64}$` |
-| 4 | Each mode picked from a "choose N" modal effect is a `MODAL_CHOICE` ([§10.2](#102-events-that-are-just-notes)). `[W-18]` became a MUST, both ways, and every vector is checked against it. The linking is tighter: a record about another card ends a run, so a consequence of one action (a token's `STATS` change, a Raid ending) is no longer stamped `for` the opponent's next one ([Appendix C](#grouping-records-in-a-file-without-for)). No link moved to a different action ([§9.1](#91-how-seq-is-built)) | `WriterRevision` 4 or later |
+| 4 | Each mode picked from a "choose N" modal effect is a `MODAL_CHOICE` ([§10.2](#102-events-that-are-just-notes)). `[W-18]` became a MUST, both ways, and every vector is checked against it. The linking is tighter: a record about another card ends a run, so a consequence of one action (a token's `STATS` change, a Raid ending) is no longer stamped `for` the opponent's next one ([Appendix C](#grouping-records-in-a-file-without-for)). No `for` now names a different action; 9 over-reaching links were removed ([§9.1](#91-how-seq-is-built)) | `WriterRevision` 4 or later |
 
 ### Changes to this document before publication
 
@@ -4013,9 +4013,12 @@ There are two anchors:
 **A record about another card ends the run.** A record whose `card` (or `atk`) is neither the
 action's card nor, for a `PLAY_UPGRADE` or a `DEPLOY_LEADER` with a `target`, the host it is
 played onto, is that card's own story: a token landing on it changes its `STATS`, a Raid ending
-after its attack restates them, and those are consequences of the action before. A record that
-names no card (a target `CHOICE`, an `EXHAUST_RESOURCES`) does not end the run. Another card
-**arriving** in play ends it the same way: a `MOVE` of a different card into `ground` or `space`
+after its attack restates them, and those are consequences of the action before. The host
+counts as the action's card only after the action card's own `MOVE` in file order, so the walk
+back stops treating it so once it has passed that `MOVE`. A host `STATS` before it was left by an
+earlier action (a Weakness token the opponent gave the unit), and it ends the run like any other
+card's record. A record that names no card (a target `CHOICE`, an `EXHAUST_RESOURCES`) does
+not end the run. Another card **arriving** in play ends it the same way: a `MOVE` of a different card into `ground` or `space`
 (or into `base` as an upgrade) is that card's own story, and so are the records naming it right
 after its arrival — its `STATS`, its entering `EXHAUST`. A start-of-phase trigger puts exactly
 that in front of the first action: Beast Lair's Beast lands, gets its stats and exhausts, then
