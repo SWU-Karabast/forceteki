@@ -1,11 +1,11 @@
 [Game "SWU-PGN/1.0"]
 [WriterRevision "6"]
 [GameId "sha256:661f4f0c4325e8154c8c3a9ed622ce0284caeab7b5fd2f46a3f2a29742c4f645"]
-[Date "2026-10-28T23:32:08.690Z"]
+[Date "2026-10-28T23:54:34.398Z"]
 [Format "premier"]
 [CardPool "ASH,HMW,IBH,IC27,JTL,LAW,LOF,SEC,SHD,SOR,TS26,TWI"]
-[Engine "forceteki@7dea52b9d"]
-[Seed "swu-pgn-vector-visibility"]
+[Engine "forceteki@3061eeda3"]
+[Seed "swu-pgn-vector-visibility-14"]
 [P1Id "sha256:8849aa57ad283a2eb0d1a026cd1fa670ad8d48cf6b7cb55db80a6ef70960abb8"]
 [P2Id "sha256:d484debd88f2263d58ca8abbccc39bdd155f07d2b6ef472275312d173460ddf1"]
 [P1 "Player 1"]
@@ -16,24 +16,45 @@
 [P2Base "IC27#010"]
 [Result "P1"]
 [Reason "Concession"]
-[Rounds "6"]
-[EndDate "2026-10-28T23:32:08.728Z"]
+[Rounds "7"]
+[EndDate "2026-10-28T23:54:34.448Z"]
 
 %%% STORY
  ── setup ──
-       ↳ Player 1 draws 6: Alliance X-Wing · Foundling · Remote Scout · Remote Scout #2 · Alliance X-Wing #2 · Wartime Trade Official
-       ↳ Player 2 draws 6: Alliance X-Wing #5 · Alliance X-Wing #6 · Battlefield Marine · Alliance X-Wing #7 · Battlefield Marine #2 · Alliance X-Wing #8
+       ↳ Player 1 draws 6: Alliance X-Wing · Remote Scout · Inferno Four, Unforgetting · Alliance X-Wing #2 · Alliance X-Wing #3 · Foundling
+       ↳ Player 2 draws 6: Battlefield Marine · Battlefield Marine #2 · Battlefield Marine #3 · Battlefield Marine #4 · Alliance X-Wing #9 · Alliance X-Wing #10
        ↳ Player 1 keeps their hand
        ↳ Player 2 keeps their hand
        ↳ Player 1 resources Alliance X-Wing
        ↳ Player 1 resources Alliance X-Wing #2
-       ↳ Player 2 resources Alliance X-Wing #5
-       ↳ Player 2 resources Alliance X-Wing #6
+       ↳ Player 2 resources Alliance X-Wing #9
+       ↳ Player 2 resources Alliance X-Wing #10
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 1                                                 initiative: Player 1 
- P1  base 30/30   hand 4   resources 2/2   deck 14   leader ready
+ P1  base 30/30   hand 4   resources 2/2   deck 20   leader ready
  P2  base 30/30   hand 4   resources 2/2   deck 10   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Inferno Four, Unforgetting to space (cost 2)
+       ↳ Inferno Four, Unforgetting uses an ability
+       ↳ Player 1 looks at 2 cards of Player 1's deck: Every Day, More Lies · Wartime Trade Official
+  2. Player 2 plays Battlefield Marine to ground (cost 2)
+  3. Player 1 passes
+  4. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Wartime Trade Official · Every Day, More Lies
+       ↳ Player 2 draws 2: Alliance X-Wing #11 · Battlefield Marine #5
+       ↳ Player 1 resources Alliance X-Wing #3
+       ↳ Player 2 resources Alliance X-Wing #11
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 2                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 3/3   deck 18   leader ready
+      space: Inferno Four, Unforgetting 2/3
+ P2  base 30/30   hand 4   resources 3/3   deck 8   leader ready
+      ground: Battlefield Marine 3/3
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──
@@ -42,140 +63,151 @@
        ↳ Player 1 searches their deck
        ↳ Player 1 reveals Foundling #2
        ↳ Player 1 draws 0
-  2. Player 2 plays Battlefield Marine to ground (cost 2)
+  2. Player 2 plays Battlefield Marine #2 to ground (cost 2)
   3. Player 1 passes
   4. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Regional Governor #2 · Every Day, More Lies
-       ↳ Player 2 draws 2: Battlefield Marine #3 · Battlefield Marine #4
-       ↳ Player 1 resources Foundling
-       ↳ Player 2 resources Alliance X-Wing #7
-
-══════════════════════════════════════════════════════════════════════════════
- ROUND 2                                                 initiative: Player 1 
- P1  base 30/30   hand 5   resources 3/3   deck 11   leader ready
-      ground: Remote Scout 1/3
- P2  base 30/30   hand 4   resources 3/3   deck 8   leader ready
-      ground: Battlefield Marine 3/3
-══════════════════════════════════════════════════════════════════════════════
-
- ── action ──
-  1. Player 1 plays Regional Governor #2 to ground (cost 2)
-       ↳ Player 1 names Battlefield Marine
-       ↳ Regional Governor #2 uses an ability
-       ↳ Player 1: Regional Governor #2 — While this unit is in play, opponents can't play Battlefield Marine for Player 2 (while Regional Governor #2 is in play)
-  2. Player 2 plays Alliance X-Wing #8 to space (cost 2)
-  3. Player 1 plays Every Day, More Lies (cost 1)
-       ↳ Every Day, More Lies uses an ability
-       ↳ Player 1 discards Remote Scout #2
-       ↳ Player 2 discards Battlefield Marine #2
-  4. Player 2 passes
-  5. Player 1 passes
- ── regroup ──
-       ↳ Player 1 draws 2: Every Day, More Lies #2 · Wartime Trade Official #3
-       ↳ Player 2 draws 2: Battlefield Marine #5 · Battlefield Marine #6
-       ↳ Player 1 resources Wartime Trade Official
-       ↳ Player 2 resources Battlefield Marine #3
+       ↳ Player 1 draws 2: Migs Mayfeld, Triggerman #2 · Alliance X-Wing #6
+       ↳ Player 2 draws 2: Alliance X-Wing #12 · Alliance X-Wing #13
+       ↳ Player 1 resources Alliance X-Wing #6
+       ↳ Player 2 resources Alliance X-Wing #12
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 3                                                 initiative: Player 1 
- P1  base 30/30   hand 3   resources 4/4   deck 9   leader ready
-      ground: Remote Scout 1/3  ·  Regional Governor #2 1/4
- P2  base 30/30   hand 3   resources 4/4   deck 6   leader ready
-      ground: Battlefield Marine 3/3
-      space: Alliance X-Wing #8 2/3
+ P1  base 30/30   hand 5   resources 4/4   deck 15   leader ready
+      ground: Remote Scout 1/3
+      space: Inferno Four, Unforgetting 2/3
+ P2  base 30/30   hand 4   resources 4/4   deck 6   leader ready
+      ground: Battlefield Marine 3/3  ·  Battlefield Marine #2 3/3
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──
-  1. Player 1 plays Wartime Trade Official #3 to ground (cost 2)
-  2. Player 2 passes
-  3. Player 1 passes
+  1. Player 1 plays Migs Mayfeld, Triggerman #2 to ground (cost 2)
+  2. Player 2 plays Battlefield Marine #3 to ground (cost 2)
+  3. Player 1 plays Wartime Trade Official to ground (cost 2)
+  4. Player 2 plays Battlefield Marine #4 to ground (cost 2)
+  5. Player 1 passes
+  6. Player 2 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Inferno Four, Unforgetting #2 · Wartime Trade Official #4
-       ↳ Player 2 draws 2: Alliance X-Wing #9 · Alliance X-Wing #10
-       ↳ Player 1 resources Foundling #2
-       ↳ Player 2 resources Alliance X-Wing #9
+       ↳ Player 1 draws 2: Wartime Trade Official #4 · Regional Governor
+       ↳ Player 2 draws 2: Alliance X-Wing #14 · Alliance X-Wing #15
+       ↳ Player 1 resources Foundling
+       ↳ Player 2 resources Alliance X-Wing #13
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 4                                                 initiative: Player 1 
- P1  base 30/30   hand 3   resources 5/5   deck 7   leader ready
-      ground: Remote Scout 1/3  ·  Regional Governor #2 1/4  ·  Wartime Trade Official #3 1/3
- P2  base 30/30   hand 4   resources 5/5   deck 4   leader ready
-      ground: Battlefield Marine 3/3
-      space: Alliance X-Wing #8 2/3
+ P1  base 30/30   hand 4   resources 5/5   deck 13   leader ready
+      ground: Remote Scout 1/3  ·  Migs Mayfeld, Triggerman #2 2/2  ·  Wartime Trade Official 1/3
+      space: Inferno Four, Unforgetting 2/3
+ P2  base 30/30   hand 3   resources 5/5   deck 4   leader ready
+      ground: Battlefield Marine 3/3  ·  Battlefield Marine #2 3/3  ·  Battlefield Marine #3 3/3  ·  Battlefield Marine #4 3/3
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──
-  1. Player 1 attacks Battlefield Marine with Wartime Trade Official #3
-       ↳ 1 damage to Battlefield Marine — 2 HP left
-       ↳ 3 damage to Wartime Trade Official #3 — 0 HP left
-       ↳ Wartime Trade Official #3 is defeated by Battlefield Marine
-       ↳ Wartime Trade Official #3 uses an ability
+  1. Player 1 plays Every Day, More Lies (cost 1)
+       ↳ Every Day, More Lies uses an ability
+       ↳ Player 1 discards Foundling #2
+       ↳ Player 2 discards Battlefield Marine #5
+       ↳ Migs Mayfeld, Triggerman #2 uses an ability
+       ↳ 2 damage to Battlefield Marine — 1 HP left
+  2. Player 2 plays Alliance X-Wing #14 to space (cost 2)
+  3. Player 1 attacks Battlefield Marine with Migs Mayfeld, Triggerman #2
+       ↳ 1 damage to Battlefield Marine — 0 HP left
+       ↳ 2 damage to Migs Mayfeld, Triggerman #2 — 0 HP left
+       ↳ Battlefield Marine is defeated by Migs Mayfeld, Triggerman #2
+       ↳ Migs Mayfeld, Triggerman #2 is defeated by Battlefield Marine
+  4. Player 2 plays Alliance X-Wing #15 to space (cost 2)
+  5. Player 1 attacks Battlefield Marine #2 with Wartime Trade Official
+       ↳ 1 damage to Battlefield Marine #2 — 2 HP left
+       ↳ 3 damage to Wartime Trade Official — 0 HP left
+       ↳ Wartime Trade Official is defeated by Battlefield Marine #2
+       ↳ Wartime Trade Official uses an ability
        ↳ Player 1 creates Battle Droid in ground
        ↳ Grand Admiral Thrawn, ...How Unfortunate uses an ability
-       ↳ Wartime Trade Official #3 uses an ability (used by Grand Admiral Thrawn, ...How Unfortunate)
+       ↳ Wartime Trade Official uses an ability (used by Grand Admiral Thrawn, ...How Unfortunate)
        ↳ Player 1 creates Battle Droid #2 in ground
-  2. Player 2 plays Alliance X-Wing #10 to space (cost 2)
-  3. Player 1 plays Inferno Four, Unforgetting #2 to space (cost 2)
-       ↳ Inferno Four, Unforgetting #2 uses an ability
-       ↳ Player 1 looks at 2 cards of Player 1's deck: Viper Probe Droid · Viper Probe Droid #2
-  4. Player 2 passes
-  5. Player 1 plays Wartime Trade Official #4 to ground (cost 2)
   6. Player 2 passes
-  7. Player 1 passes
+  7. Player 1 plays Regional Governor to ground (cost 2)
+       ↳ Player 1 names Battlefield Marine
+       ↳ Regional Governor uses an ability
+       ↳ Player 1: Regional Governor — While this unit is in play, opponents can't play Battlefield Marine for Player 2 (while Regional Governor is in play)
+  8. Player 2 passes
+  9. Player 1 plays Wartime Trade Official #4 to ground (cost 2)
+ 10. Player 2 passes
+ 11. Player 1 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Viper Probe Droid #2 · Viper Probe Droid
-       ↳ Player 2 draws 2: Alliance X-Wing #11 · Battlefield Marine #7
-       ↳ Player 1 resources Every Day, More Lies #2
-       ↳ Player 2 resources Alliance X-Wing #11
+       ↳ Player 1 draws 2: Inferno Four, Unforgetting #2 · Viper Probe Droid
+       ↳ Player 2 draws 2: Battlefield Marine #6 · Battlefield Marine #7
+       ↳ Player 1 resources Inferno Four, Unforgetting #2
+       ↳ Player 2 resources Battlefield Marine #6
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 5                                                 initiative: Player 1 
- P1  base 30/30   hand 2   resources 6/6   deck 5   leader ready
-      ground: Remote Scout 1/3  ·  Regional Governor #2 1/4  ·  Battle Droid 1/1  ·  Battle Droid #2 1/1  ·  Wartime Trade Official #4 1/3
-      space: Inferno Four, Unforgetting #2 2/3
- P2  base 30/30   hand 4   resources 6/6   deck 2   leader ready
-      ground: Battlefield Marine 3/3 [1 dmg]
-      space: Alliance X-Wing #8 2/3  ·  Alliance X-Wing #10 2/3
+ P1  base 30/30   hand 1   resources 6/6   deck 11   leader ready
+      ground: Remote Scout 1/3  ·  Battle Droid 1/1  ·  Battle Droid #2 1/1  ·  Regional Governor 1/4  ·  Wartime Trade Official #4 1/3
+      space: Inferno Four, Unforgetting 2/3
+ P2  base 30/30   hand 1   resources 6/6   deck 2   leader ready
+      ground: Battlefield Marine #2 3/3 [1 dmg]  ·  Battlefield Marine #3 3/3  ·  Battlefield Marine #4 3/3
+      space: Alliance X-Wing #14 2/3  ·  Alliance X-Wing #15 2/3
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──
-  1. Player 1 attacks Battlefield Marine with Wartime Trade Official #4
-       ↳ 1 damage to Battlefield Marine — 1 HP left
+  1. Player 1 attacks Battlefield Marine #2 with Wartime Trade Official #4
+       ↳ 1 damage to Battlefield Marine #2 — 1 HP left
        ↳ 3 damage to Wartime Trade Official #4 — 0 HP left
-       ↳ Wartime Trade Official #4 is defeated by Battlefield Marine
+       ↳ Wartime Trade Official #4 is defeated by Battlefield Marine #2
        ↳ Wartime Trade Official #4 uses an ability
        ↳ Player 1 creates Battle Droid #3 in ground
        ↳ Grand Admiral Thrawn, ...How Unfortunate uses an ability
        ↳ Wartime Trade Official #4 uses an ability (used by Grand Admiral Thrawn, ...How Unfortunate)
        ↳ Player 1 creates Battle Droid #4 in ground
   2. Player 2 passes
-  3. Player 1 plays Viper Probe Droid #2 to ground (cost 2)
-       ↳ Viper Probe Droid #2 uses an ability
-       ↳ Player 1 looks at 4 cards of Player 2's hand: Battlefield Marine #4 · Battlefield Marine #5 · Battlefield Marine #6 · Battlefield Marine #7
+  3. Player 1 plays Viper Probe Droid to ground (cost 2)
+       ↳ Viper Probe Droid uses an ability
+       ↳ Player 1 looks at 1 card of Player 2's hand: Battlefield Marine #7
   4. Player 2 passes
   5. Player 1 passes
  ── regroup ──
-       ↳ Player 1 draws 2: Inferno Four, Unforgetting · Alliance X-Wing #3
-       ↳ Player 2 draws 2: Battlefield Marine #8 · Alliance X-Wing #12
-       ↳ Player 1 resources Alliance X-Wing #3
-       ↳ Player 2 resources Alliance X-Wing #12
+       ↳ Player 1 draws 2: Alliance X-Wing #7 · Viper Probe Droid #2
+       ↳ Player 2 draws 2: Battlefield Marine #8 · Alliance X-Wing #16
+       ↳ Player 1 resources Alliance X-Wing #7
+       ↳ Player 2 resources Alliance X-Wing #16
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 6                                                 initiative: Player 1 
- P1  base 30/30   hand 2   resources 7/7   deck 3   leader ready
-      ground: Remote Scout 1/3  ·  Regional Governor #2 1/4  ·  Battle Droid 1/1  ·  Battle Droid #2 1/1  ·  Battle Droid #3 1/1  ·  Battle Droid #4 1/1  ·  Viper Probe Droid #2 3/2
-      space: Inferno Four, Unforgetting #2 2/3
- P2  base 30/30   hand 5   resources 7/7   deck 0   leader ready
-      ground: Battlefield Marine 3/3 [2 dmg]
-      space: Alliance X-Wing #8 2/3  ·  Alliance X-Wing #10 2/3
+ P1  base 30/30   hand 1   resources 7/7   deck 9   leader ready
+      ground: Remote Scout 1/3  ·  Battle Droid 1/1  ·  Battle Droid #2 1/1  ·  Regional Governor 1/4  ·  Battle Droid #3 1/1  ·  Battle Droid #4 1/1  ·  Viper Probe Droid 3/2
+      space: Inferno Four, Unforgetting 2/3
+ P2  base 30/30   hand 2   resources 7/7   deck 0   leader ready
+      ground: Battlefield Marine #2 3/3 [2 dmg]  ·  Battlefield Marine #3 3/3  ·  Battlefield Marine #4 3/3
+      space: Alliance X-Wing #14 2/3  ·  Alliance X-Wing #15 2/3
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 passes
+  2. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Regional Governor #2 · Alliance X-Wing #8
+       ↳ Player 2 draws 0
+       ↳ 6 damage to Player 2's base — 24 HP left
+       ↳ Player 1 resources Alliance X-Wing #8
+       ↳ Player 2 resources Battlefield Marine #7
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 7                                                 initiative: Player 1 
+ P1  base 30/30   hand 2   resources 8/8   deck 7   leader ready
+      ground: Remote Scout 1/3  ·  Battle Droid 1/1  ·  Battle Droid #2 1/1  ·  Regional Governor 1/4  ·  Battle Droid #3 1/1  ·  Battle Droid #4 1/1  ·  Viper Probe Droid 3/2
+      space: Inferno Four, Unforgetting 2/3
+ P2  base 24/30   hand 1   resources 8/8   deck 0   leader ready
+      ground: Battlefield Marine #2 3/3 [2 dmg]  ·  Battlefield Marine #3 3/3  ·  Battlefield Marine #4 3/3
+      space: Alliance X-Wing #14 2/3  ·  Alliance X-Wing #15 2/3
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──
        ↳ *** Player 1 wins — Concession ***
 
 %%% DECKS
-{"p":1,"leader":"JTL#002","base":"SOR#027","deck":[["TWI#032",4],["SOR#062",2],["HMW#085",2],["LAW#204",2],["SEC#239",2],["SOR#031",2],["SHD#069",2],["LAW#253",4]]}
+{"p":1,"leader":"JTL#002","base":"SOR#027","deck":[["TWI#032",4],["SOR#062",2],["HMW#085",2],["LAW#204",2],["SEC#239",2],["SOR#031",2],["SHD#069",2],["SHD#163",2],["LAW#253",8]]}
 {"p":2,"leader":"SOR#009","base":"IC27#010","deck":[["SOR#095",8],["LAW#253",8]]}
 
 %%% CARDS
@@ -186,6 +218,7 @@
 {"id":"LAW#253","name":"Alliance X-Wing","kind":"unit"}
 {"id":"SEC#239","name":"Viper Probe Droid","kind":"unit"}
 {"id":"SHD#069","name":"Foundling","kind":"upgrade"}
+{"id":"SHD#163","name":"Migs Mayfeld, Triggerman","kind":"unit"}
 {"id":"SOR#009","name":"Leia Organa, Alliance General"}
 {"id":"SOR#027","name":"Kestro City"}
 {"id":"SOR#031","name":"Inferno Four, Unforgetting","kind":"unit"}
@@ -195,218 +228,256 @@
 {"id":"TWI#032","name":"Wartime Trade Official","kind":"unit"}
 
 %%% SETUP
-{"seq":"R0.S.0","t":"INIT","p1DeckOrder":["LAW#253","SHD#069","HMW#085","HMW#085:2","LAW#253:2","TWI#032","LAW#253:3","TWI#032:2","SHD#069:2","SEC#239","SOR#062","SEC#239:2","SOR#031","LAW#253:4","SOR#062:2","LAW#204","LAW#204:2","TWI#032:3","SOR#031:2","TWI#032:4"],"p2DeckOrder":["LAW#253:5","LAW#253:6","SOR#095","LAW#253:7","SOR#095:2","LAW#253:8","SOR#095:3","SOR#095:4","SOR#095:5","SOR#095:6","LAW#253:9","LAW#253:10","LAW#253:11","SOR#095:7","SOR#095:8","LAW#253:12"]}
+{"seq":"R0.S.0","t":"INIT","p1DeckOrder":["LAW#253","HMW#085","SOR#031","LAW#253:2","LAW#253:3","SHD#069","LAW#204","TWI#032","LAW#204:2","TWI#032:2","LAW#253:4","SHD#163","SHD#069:2","LAW#253:5","TWI#032:3","HMW#085:2","SHD#163:2","LAW#253:6","TWI#032:4","SOR#062","SOR#031:2","SEC#239","LAW#253:7","SEC#239:2","SOR#062:2","LAW#253:8"],"p2DeckOrder":["SOR#095","SOR#095:2","SOR#095:3","SOR#095:4","LAW#253:9","LAW#253:10","LAW#253:11","SOR#095:5","LAW#253:12","LAW#253:13","LAW#253:14","LAW#253:15","SOR#095:6","SOR#095:7","SOR#095:8","LAW#253:16"]}
 
 %%% EVENTS
 {"seq":"R0.S.start","t":"PHASE_START","phase":"setup","ms":0}
-{"seq":"R0.S.1","t":"MODAL_CHOICE","p":1,"offered":["Yourself","Opponent"],"chose":0}
+{"seq":"R0.S.1","t":"MODAL_CHOICE","p":2,"offered":["Yourself","Opponent"],"chose":1}
 {"seq":"R0.S.2","t":"SHUFFLE","p":1}
 {"seq":"R0.S.3","t":"MOVE","card":"LAW#253","from":"deck","to":"hand","p":1,"kind":"unit"}
-{"seq":"R0.S.4","t":"MOVE","card":"SHD#069","from":"deck","to":"hand","p":1,"kind":"upgrade"}
-{"seq":"R0.S.5","t":"MOVE","card":"HMW#085","from":"deck","to":"hand","p":1,"kind":"unit"}
-{"seq":"R0.S.6","t":"MOVE","card":"HMW#085:2","from":"deck","to":"hand","p":1,"kind":"unit"}
-{"seq":"R0.S.7","t":"MOVE","card":"LAW#253:2","from":"deck","to":"hand","p":1,"kind":"unit"}
-{"seq":"R0.S.8","t":"MOVE","card":"TWI#032","from":"deck","to":"hand","p":1,"kind":"unit"}
-{"seq":"R0.S.9","t":"DRAW","p":1,"count":6,"cards":["LAW#253","SHD#069","HMW#085","HMW#085:2","LAW#253:2","TWI#032"]}
+{"seq":"R0.S.4","t":"MOVE","card":"HMW#085","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.5","t":"MOVE","card":"SOR#031","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.6","t":"MOVE","card":"LAW#253:2","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.7","t":"MOVE","card":"LAW#253:3","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.8","t":"MOVE","card":"SHD#069","from":"deck","to":"hand","p":1,"kind":"upgrade"}
+{"seq":"R0.S.9","t":"DRAW","p":1,"count":6,"cards":["LAW#253","HMW#085","SOR#031","LAW#253:2","LAW#253:3","SHD#069"]}
 {"seq":"R0.S.10","t":"SHUFFLE","p":2}
-{"seq":"R0.S.11","t":"MOVE","card":"LAW#253:5","from":"deck","to":"hand","p":2,"kind":"unit"}
-{"seq":"R0.S.12","t":"MOVE","card":"LAW#253:6","from":"deck","to":"hand","p":2,"kind":"unit"}
-{"seq":"R0.S.13","t":"MOVE","card":"SOR#095","from":"deck","to":"hand","p":2,"kind":"unit"}
-{"seq":"R0.S.14","t":"MOVE","card":"LAW#253:7","from":"deck","to":"hand","p":2,"kind":"unit"}
-{"seq":"R0.S.15","t":"MOVE","card":"SOR#095:2","from":"deck","to":"hand","p":2,"kind":"unit"}
-{"seq":"R0.S.16","t":"MOVE","card":"LAW#253:8","from":"deck","to":"hand","p":2,"kind":"unit"}
-{"seq":"R0.S.17","t":"DRAW","p":2,"count":6,"cards":["LAW#253:5","LAW#253:6","SOR#095","LAW#253:7","SOR#095:2","LAW#253:8"]}
+{"seq":"R0.S.11","t":"MOVE","card":"SOR#095","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.12","t":"MOVE","card":"SOR#095:2","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.13","t":"MOVE","card":"SOR#095:3","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.14","t":"MOVE","card":"SOR#095:4","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.15","t":"MOVE","card":"LAW#253:9","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.16","t":"MOVE","card":"LAW#253:10","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.17","t":"DRAW","p":2,"count":6,"cards":["SOR#095","SOR#095:2","SOR#095:3","SOR#095:4","LAW#253:9","LAW#253:10"]}
 {"seq":"R0.S.18","t":"KEEP_HAND","p":1}
 {"seq":"R0.S.19","t":"KEEP_HAND","p":2}
 {"seq":"R0.S.20","t":"MOVE","card":"LAW#253","from":"hand","to":"resource","p":1,"kind":"unit","for":"R0.S.21"}
 {"seq":"R0.S.21","t":"RESOURCE","p":1,"card":"LAW#253"}
 {"seq":"R0.S.22","t":"MOVE","card":"LAW#253:2","from":"hand","to":"resource","p":1,"kind":"unit","for":"R0.S.23"}
 {"seq":"R0.S.23","t":"RESOURCE","p":1,"card":"LAW#253:2"}
-{"seq":"R0.S.24","t":"MOVE","card":"LAW#253:5","from":"hand","to":"resource","p":2,"kind":"unit","for":"R0.S.25"}
-{"seq":"R0.S.25","t":"RESOURCE","p":2,"card":"LAW#253:5"}
-{"seq":"R0.S.26","t":"MOVE","card":"LAW#253:6","from":"hand","to":"resource","p":2,"kind":"unit","for":"R0.S.27"}
-{"seq":"R0.S.27","t":"RESOURCE","p":2,"card":"LAW#253:6"}
+{"seq":"R0.S.24","t":"MOVE","card":"LAW#253:9","from":"hand","to":"resource","p":2,"kind":"unit","for":"R0.S.25"}
+{"seq":"R0.S.25","t":"RESOURCE","p":2,"card":"LAW#253:9"}
+{"seq":"R0.S.26","t":"MOVE","card":"LAW#253:10","from":"hand","to":"resource","p":2,"kind":"unit","for":"R0.S.27"}
+{"seq":"R0.S.27","t":"RESOURCE","p":2,"card":"LAW#253:10"}
 {"seq":"R0.S.end","t":"PHASE_END","phase":"setup"}
-{"seq":"R1.start","t":"ROUND_START","round":1,"active":1,"keyframe":{"round":1,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["SHD#069","HMW#085","HMW#085:2","TWI#032"],"resourcesReady":2,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":14,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["SOR#095","LAW#253:7","SOR#095:2","LAW#253:8"],"resourcesReady":2,"resourcesExhausted":0,"resources":["LAW#253:5","LAW#253:6"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":10,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":2}
+{"seq":"R1.start","t":"ROUND_START","round":1,"active":1,"keyframe":{"round":1,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["HMW#085","SOR#031","LAW#253:3","SHD#069"],"resourcesReady":2,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":20,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["SOR#095","SOR#095:2","SOR#095:3","SOR#095:4"],"resourcesReady":2,"resourcesExhausted":0,"resources":["LAW#253:9","LAW#253:10"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":10,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":2}
 {"seq":"R1.A.start","t":"PHASE_START","phase":"action","active":1,"ms":2}
 {"seq":"R1.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R1.A.1"}
-{"seq":"R1.A.0b","t":"MOVE","card":"HMW#085","from":"hand","to":"ground","p":1,"kind":"unit","for":"R1.A.1"}
-{"seq":"R1.A.0c","t":"STATS","card":"HMW#085","power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"],"for":"R1.A.1"}
-{"seq":"R1.A.0d","t":"EXHAUST","card":"HMW#085","for":"R1.A.1"}
-{"seq":"R1.A.1","t":"PLAY","p":1,"card":"HMW#085","zone":"ground","cost":2,"ms":2}
-{"seq":"R1.A.1a","t":"ABILITY_ACTIVATE","p":1,"card":"HMW#085","ability":"remote-scout_triggered_0","kind":"triggered","title":"Search the top 8 cards of your deck for an Upgrade, reveal it, and draw it"}
-{"seq":"R1.A.1b","t":"SEARCH","p":1,"owner":1,"seen":["LAW#253:3","TWI#032:2","SHD#069:2","SEC#239","SOR#062","SEC#239:2","SOR#031","LAW#253:4"]}
-{"seq":"R1.A.1c","t":"REVEAL","p":1,"zone":"deck","cards":["SHD#069:2"]}
-{"seq":"R1.A.1d","t":"MOVE","card":"SHD#069:2","from":"deck","to":"hand","p":1,"kind":"upgrade"}
-{"seq":"R1.A.1e","t":"DRAW","p":1,"count":0,"cards":[]}
-{"seq":"R1.A.1f","t":"EXHAUST_RESOURCES","p":2,"amount":2,"for":"R1.A.2"}
-{"seq":"R1.A.1g","t":"MOVE","card":"SOR#095","from":"hand","to":"ground","p":2,"kind":"unit","for":"R1.A.2"}
-{"seq":"R1.A.1h","t":"STATS","card":"SOR#095","power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"],"for":"R1.A.2"}
-{"seq":"R1.A.1i","t":"EXHAUST","card":"SOR#095","for":"R1.A.2"}
-{"seq":"R1.A.2","t":"PLAY","p":2,"card":"SOR#095","zone":"ground","cost":2,"ms":5}
-{"seq":"R1.A.3","t":"PASS","p":1,"ms":6}
-{"seq":"R1.A.4","t":"PASS","p":2,"ms":6}
+{"seq":"R1.A.0b","t":"MOVE","card":"SOR#031","from":"hand","to":"space","p":1,"kind":"unit","for":"R1.A.1"}
+{"seq":"R1.A.0c","t":"STATS","card":"SOR#031","power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"],"for":"R1.A.1"}
+{"seq":"R1.A.0d","t":"EXHAUST","card":"SOR#031","for":"R1.A.1"}
+{"seq":"R1.A.1","t":"PLAY","p":1,"card":"SOR#031","zone":"space","cost":2,"ms":2}
+{"seq":"R1.A.1a","t":"ABILITY_ACTIVATE","p":1,"card":"SOR#031","ability":"inferno-four#unforgetting_triggered_0","kind":"triggered","title":"Look at the top 2 cards of your deck. Put any number of them on the bottom of your deck and the rest on top in any order."}
+{"seq":"R1.A.1b","t":"LOOK","p":1,"owner":1,"zone":"deck","cards":["LAW#204","TWI#032"],"count":2}
+{"seq":"R1.A.1c","t":"EXHAUST_RESOURCES","p":2,"amount":2,"for":"R1.A.2"}
+{"seq":"R1.A.1d","t":"MOVE","card":"SOR#095","from":"hand","to":"ground","p":2,"kind":"unit","for":"R1.A.2"}
+{"seq":"R1.A.1e","t":"STATS","card":"SOR#095","power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"],"for":"R1.A.2"}
+{"seq":"R1.A.1f","t":"EXHAUST","card":"SOR#095","for":"R1.A.2"}
+{"seq":"R1.A.2","t":"PLAY","p":2,"card":"SOR#095","zone":"ground","cost":2,"ms":4}
+{"seq":"R1.A.3","t":"PASS","p":1,"ms":5}
+{"seq":"R1.A.4","t":"PASS","p":2,"ms":5}
 {"seq":"R1.A.end","t":"PHASE_END","phase":"action"}
-{"seq":"R1.G.start","t":"PHASE_START","phase":"regroup","ms":6}
-{"seq":"R1.G.1","t":"MOVE","card":"SOR#062:2","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R1.G.start","t":"PHASE_START","phase":"regroup","ms":5}
+{"seq":"R1.G.1","t":"MOVE","card":"TWI#032","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R1.G.2","t":"MOVE","card":"LAW#204","from":"deck","to":"hand","p":1}
-{"seq":"R1.G.3","t":"DRAW","p":1,"count":2,"cards":["SOR#062:2","LAW#204"]}
-{"seq":"R1.G.4","t":"MOVE","card":"SOR#095:3","from":"deck","to":"hand","p":2,"kind":"unit"}
-{"seq":"R1.G.5","t":"MOVE","card":"SOR#095:4","from":"deck","to":"hand","p":2,"kind":"unit"}
-{"seq":"R1.G.6","t":"DRAW","p":2,"count":2,"cards":["SOR#095:3","SOR#095:4"]}
-{"seq":"R1.G.7","t":"MOVE","card":"SHD#069","from":"hand","to":"resource","p":1,"kind":"upgrade","exhausted":true,"for":"R1.G.8"}
-{"seq":"R1.G.8","t":"RESOURCE","p":1,"card":"SHD#069"}
-{"seq":"R1.G.9","t":"MOVE","card":"LAW#253:7","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R1.G.10"}
-{"seq":"R1.G.10","t":"RESOURCE","p":2,"card":"LAW#253:7"}
-{"seq":"R1.G.11","t":"READY","card":"HMW#085"}
+{"seq":"R1.G.3","t":"DRAW","p":1,"count":2,"cards":["TWI#032","LAW#204"]}
+{"seq":"R1.G.4","t":"MOVE","card":"LAW#253:11","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R1.G.5","t":"MOVE","card":"SOR#095:5","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R1.G.6","t":"DRAW","p":2,"count":2,"cards":["LAW#253:11","SOR#095:5"]}
+{"seq":"R1.G.7","t":"MOVE","card":"LAW#253:3","from":"hand","to":"resource","p":1,"kind":"unit","exhausted":true,"for":"R1.G.8"}
+{"seq":"R1.G.8","t":"RESOURCE","p":1,"card":"LAW#253:3"}
+{"seq":"R1.G.9","t":"MOVE","card":"LAW#253:11","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R1.G.10"}
+{"seq":"R1.G.10","t":"RESOURCE","p":2,"card":"LAW#253:11"}
+{"seq":"R1.G.11","t":"READY","card":"SOR#031"}
 {"seq":"R1.G.12","t":"READY_RESOURCES","p":1,"amount":3}
 {"seq":"R1.G.15","t":"READY","card":"SOR#095"}
 {"seq":"R1.G.16","t":"READY_RESOURCES","p":2,"amount":3}
 {"seq":"R1.G.end","t":"PHASE_END","phase":"regroup"}
-{"seq":"R1.end","t":"ROUND_END","round":1,"keyframe":{"round":1,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":5,"hand":["HMW#085:2","TWI#032","SHD#069:2","SOR#062:2","LAW#204"],"resourcesReady":3,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","SHD#069"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]}],"deckSize":11,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["SOR#095:2","LAW#253:8","SOR#095:3","SOR#095:4"],"resourcesReady":3,"resourcesExhausted":0,"resources":["LAW#253:5","LAW#253:6","LAW#253:7"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#095","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]}],"deckSize":8,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[]}}
-{"seq":"R2.start","t":"ROUND_START","round":2,"active":1,"keyframe":{"round":2,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":5,"hand":["HMW#085:2","TWI#032","SHD#069:2","SOR#062:2","LAW#204"],"resourcesReady":3,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","SHD#069"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]}],"deckSize":11,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["SOR#095:2","LAW#253:8","SOR#095:3","SOR#095:4"],"resourcesReady":3,"resourcesExhausted":0,"resources":["LAW#253:5","LAW#253:6","LAW#253:7"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#095","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]}],"deckSize":8,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":7}
-{"seq":"R2.A.start","t":"PHASE_START","phase":"action","active":1,"ms":7}
+{"seq":"R1.end","t":"ROUND_END","round":1,"keyframe":{"round":1,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["HMW#085","SHD#069","TWI#032","LAW#204"],"resourcesReady":3,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#031","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":18,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["SOR#095:2","SOR#095:3","SOR#095:4","SOR#095:5"],"resourcesReady":3,"resourcesExhausted":0,"resources":["LAW#253:9","LAW#253:10","LAW#253:11"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#095","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]}],"deckSize":8,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[]}}
+{"seq":"R2.start","t":"ROUND_START","round":2,"active":1,"keyframe":{"round":2,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["HMW#085","SHD#069","TWI#032","LAW#204"],"resourcesReady":3,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#031","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":18,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["SOR#095:2","SOR#095:3","SOR#095:4","SOR#095:5"],"resourcesReady":3,"resourcesExhausted":0,"resources":["LAW#253:9","LAW#253:10","LAW#253:11"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#095","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]}],"deckSize":8,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":6}
+{"seq":"R2.A.start","t":"PHASE_START","phase":"action","active":1,"ms":6}
 {"seq":"R2.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R2.A.1"}
-{"seq":"R2.A.0b","t":"MOVE","card":"SOR#062:2","from":"hand","to":"ground","p":1,"kind":"unit","for":"R2.A.1"}
-{"seq":"R2.A.0c","t":"STATS","card":"SOR#062:2","power":1,"hp":4,"keywords":[],"traits":["imperial","official"],"for":"R2.A.1"}
-{"seq":"R2.A.0d","t":"EXHAUST","card":"SOR#062:2","for":"R2.A.1"}
-{"seq":"R2.A.1","t":"PLAY","p":1,"card":"SOR#062:2","zone":"ground","cost":2,"ms":8}
-{"seq":"R2.A.1a","t":"NAME","p":1,"name":"Battlefield Marine"}
-{"seq":"R2.A.1b","t":"ABILITY_ACTIVATE","p":1,"card":"SOR#062:2","ability":"regional-governor_triggered_0","kind":"triggered","title":"Name a card"}
-{"seq":"R2.A.1c","t":"EFFECT_START","id":"fx@1","src":"SOR#062:2","p":1,"seat":2,"duration":"whileSourceInPlay","text":"While this unit is in play, opponents can't play Battlefield Marine"}
-{"seq":"R2.A.1d","t":"EXHAUST_RESOURCES","p":2,"amount":2,"for":"R2.A.2"}
-{"seq":"R2.A.1e","t":"MOVE","card":"LAW#253:8","from":"hand","to":"space","p":2,"kind":"unit","for":"R2.A.2"}
-{"seq":"R2.A.1f","t":"STATS","card":"LAW#253:8","power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"],"for":"R2.A.2"}
-{"seq":"R2.A.1g","t":"EXHAUST","card":"LAW#253:8","for":"R2.A.2"}
-{"seq":"R2.A.2","t":"PLAY","p":2,"card":"LAW#253:8","zone":"space","cost":2,"ms":9}
-{"seq":"R2.A.2a","t":"EXHAUST_RESOURCES","p":1,"amount":1,"for":"R2.A.3"}
-{"seq":"R2.A.2b","t":"MOVE","card":"LAW#204","from":"hand","to":"discard","p":1,"for":"R2.A.3"}
-{"seq":"R2.A.3","t":"PLAY_EVENT","p":1,"card":"LAW#204","zone":"discard","cost":1,"ms":10}
-{"seq":"R2.A.3a","t":"ABILITY_ACTIVATE","p":1,"card":"LAW#204","ability":"every-day-more-lies_anonymous","kind":"event","title":"Each player discards a card from their hands"}
-{"seq":"R2.A.3b","t":"CHOICE","p":1,"prompt":"Every Day, More Lies","offered":["HMW#085:2","TWI#032","SHD#069:2"],"chose":0,"blind":"R2.A.3a"}
-{"seq":"R2.A.3c","t":"CHOICE","p":2,"prompt":"Every Day, More Lies","offered":["SOR#095:2","SOR#095:3","SOR#095:4"],"chose":0,"blind":"R2.A.3a"}
-{"seq":"R2.A.3d","t":"MOVE","card":"HMW#085:2","from":"hand","to":"discard","p":1,"kind":"unit","simul":"R2.A.3d"}
-{"seq":"R2.A.3e","t":"DISCARD","p":1,"cards":["HMW#085:2"],"simul":"R2.A.3d"}
-{"seq":"R2.A.3f","t":"MOVE","card":"SOR#095:2","from":"hand","to":"discard","p":2,"kind":"unit","simul":"R2.A.3d"}
-{"seq":"R2.A.3g","t":"DISCARD","p":2,"cards":["SOR#095:2"],"simul":"R2.A.3d"}
-{"seq":"R2.A.4","t":"PASS","p":2,"ms":11}
-{"seq":"R2.A.5","t":"PASS","p":1,"ms":12}
+{"seq":"R2.A.0b","t":"MOVE","card":"HMW#085","from":"hand","to":"ground","p":1,"kind":"unit","for":"R2.A.1"}
+{"seq":"R2.A.0c","t":"STATS","card":"HMW#085","power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"],"for":"R2.A.1"}
+{"seq":"R2.A.0d","t":"EXHAUST","card":"HMW#085","for":"R2.A.1"}
+{"seq":"R2.A.1","t":"PLAY","p":1,"card":"HMW#085","zone":"ground","cost":2,"ms":6}
+{"seq":"R2.A.1a","t":"ABILITY_ACTIVATE","p":1,"card":"HMW#085","ability":"remote-scout_triggered_0","kind":"triggered","title":"Search the top 8 cards of your deck for an Upgrade, reveal it, and draw it"}
+{"seq":"R2.A.1b","t":"SEARCH","p":1,"owner":1,"seen":["LAW#204:2","TWI#032:2","LAW#253:4","SHD#163","SHD#069:2","LAW#253:5","TWI#032:3","HMW#085:2"]}
+{"seq":"R2.A.1c","t":"REVEAL","p":1,"zone":"deck","cards":["SHD#069:2"]}
+{"seq":"R2.A.1d","t":"MOVE","card":"SHD#069:2","from":"deck","to":"hand","p":1,"kind":"upgrade"}
+{"seq":"R2.A.1e","t":"DRAW","p":1,"count":0,"cards":[]}
+{"seq":"R2.A.1f","t":"EXHAUST_RESOURCES","p":2,"amount":2,"for":"R2.A.2"}
+{"seq":"R2.A.1g","t":"MOVE","card":"SOR#095:2","from":"hand","to":"ground","p":2,"kind":"unit","for":"R2.A.2"}
+{"seq":"R2.A.1h","t":"STATS","card":"SOR#095:2","power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"],"for":"R2.A.2"}
+{"seq":"R2.A.1i","t":"EXHAUST","card":"SOR#095:2","for":"R2.A.2"}
+{"seq":"R2.A.2","t":"PLAY","p":2,"card":"SOR#095:2","zone":"ground","cost":2,"ms":9}
+{"seq":"R2.A.3","t":"PASS","p":1,"ms":9}
+{"seq":"R2.A.4","t":"PASS","p":2,"ms":10}
 {"seq":"R2.A.end","t":"PHASE_END","phase":"action"}
-{"seq":"R2.G.start","t":"PHASE_START","phase":"regroup","ms":12}
-{"seq":"R2.G.1","t":"MOVE","card":"LAW#204:2","from":"deck","to":"hand","p":1}
-{"seq":"R2.G.2","t":"MOVE","card":"TWI#032:3","from":"deck","to":"hand","p":1,"kind":"unit"}
-{"seq":"R2.G.3","t":"DRAW","p":1,"count":2,"cards":["LAW#204:2","TWI#032:3"]}
-{"seq":"R2.G.4","t":"MOVE","card":"SOR#095:5","from":"deck","to":"hand","p":2,"kind":"unit"}
-{"seq":"R2.G.5","t":"MOVE","card":"SOR#095:6","from":"deck","to":"hand","p":2,"kind":"unit"}
-{"seq":"R2.G.6","t":"DRAW","p":2,"count":2,"cards":["SOR#095:5","SOR#095:6"]}
-{"seq":"R2.G.7","t":"MOVE","card":"TWI#032","from":"hand","to":"resource","p":1,"kind":"unit","exhausted":true,"for":"R2.G.8"}
-{"seq":"R2.G.8","t":"RESOURCE","p":1,"card":"TWI#032"}
-{"seq":"R2.G.9","t":"MOVE","card":"SOR#095:3","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R2.G.10"}
-{"seq":"R2.G.10","t":"RESOURCE","p":2,"card":"SOR#095:3"}
-{"seq":"R2.G.11","t":"READY","card":"SOR#062:2"}
-{"seq":"R2.G.12","t":"READY_RESOURCES","p":1,"amount":4}
-{"seq":"R2.G.16","t":"READY","card":"LAW#253:8"}
-{"seq":"R2.G.17","t":"READY_RESOURCES","p":2,"amount":3}
+{"seq":"R2.G.start","t":"PHASE_START","phase":"regroup","ms":10}
+{"seq":"R2.G.1","t":"MOVE","card":"SHD#163:2","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R2.G.2","t":"MOVE","card":"LAW#253:6","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R2.G.3","t":"DRAW","p":1,"count":2,"cards":["SHD#163:2","LAW#253:6"]}
+{"seq":"R2.G.4","t":"MOVE","card":"LAW#253:12","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R2.G.5","t":"MOVE","card":"LAW#253:13","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R2.G.6","t":"DRAW","p":2,"count":2,"cards":["LAW#253:12","LAW#253:13"]}
+{"seq":"R2.G.7","t":"MOVE","card":"LAW#253:6","from":"hand","to":"resource","p":1,"kind":"unit","exhausted":true,"for":"R2.G.8"}
+{"seq":"R2.G.8","t":"RESOURCE","p":1,"card":"LAW#253:6"}
+{"seq":"R2.G.9","t":"MOVE","card":"LAW#253:12","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R2.G.10"}
+{"seq":"R2.G.10","t":"RESOURCE","p":2,"card":"LAW#253:12"}
+{"seq":"R2.G.11","t":"READY","card":"HMW#085"}
+{"seq":"R2.G.12","t":"READY_RESOURCES","p":1,"amount":3}
+{"seq":"R2.G.15","t":"READY","card":"SOR#095:2"}
+{"seq":"R2.G.16","t":"READY_RESOURCES","p":2,"amount":3}
 {"seq":"R2.G.end","t":"PHASE_END","phase":"regroup"}
-{"seq":"R2.end","t":"ROUND_END","round":2,"keyframe":{"round":2,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["SHD#069:2","LAW#204:2","TWI#032:3"],"resourcesReady":4,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","SHD#069","TWI#032"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#204","HMW#085:2"],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"SOR#062:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":4,"keywords":[],"traits":["imperial","official"]}],"deckSize":9,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["SOR#095:4","SOR#095:5","SOR#095:6"],"resourcesReady":4,"resourcesExhausted":0,"resources":["LAW#253:5","LAW#253:6","LAW#253:7","SOR#095:3"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#095:2"],"cards":[{"id":"SOR#095","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:8","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":6,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[{"id":"fx@1","src":"SOR#062:2","p":1,"seat":2,"duration":"whileSourceInPlay"}]}}
-{"seq":"R3.start","t":"ROUND_START","round":3,"active":1,"keyframe":{"round":3,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["SHD#069:2","LAW#204:2","TWI#032:3"],"resourcesReady":4,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","SHD#069","TWI#032"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#204","HMW#085:2"],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"SOR#062:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":4,"keywords":[],"traits":["imperial","official"]}],"deckSize":9,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["SOR#095:4","SOR#095:5","SOR#095:6"],"resourcesReady":4,"resourcesExhausted":0,"resources":["LAW#253:5","LAW#253:6","LAW#253:7","SOR#095:3"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#095:2"],"cards":[{"id":"SOR#095","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:8","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":6,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[{"id":"fx@1","src":"SOR#062:2","p":1,"seat":2,"duration":"whileSourceInPlay"}]},"ms":13}
-{"seq":"R3.A.start","t":"PHASE_START","phase":"action","active":1,"ms":13}
+{"seq":"R2.end","t":"ROUND_END","round":2,"keyframe":{"round":2,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":5,"hand":["SHD#069","TWI#032","LAW#204","SHD#069:2","SHD#163:2"],"resourcesReady":4,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3","LAW#253:6"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"SOR#031","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":15,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["SOR#095:3","SOR#095:4","SOR#095:5","LAW#253:13"],"resourcesReady":4,"resourcesExhausted":0,"resources":["LAW#253:9","LAW#253:10","LAW#253:11","LAW#253:12"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#095","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]}],"deckSize":6,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[]}}
+{"seq":"R3.start","t":"ROUND_START","round":3,"active":1,"keyframe":{"round":3,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":5,"hand":["SHD#069","TWI#032","LAW#204","SHD#069:2","SHD#163:2"],"resourcesReady":4,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3","LAW#253:6"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"SOR#031","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":15,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["SOR#095:3","SOR#095:4","SOR#095:5","LAW#253:13"],"resourcesReady":4,"resourcesExhausted":0,"resources":["LAW#253:9","LAW#253:10","LAW#253:11","LAW#253:12"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#095","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]}],"deckSize":6,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":11}
+{"seq":"R3.A.start","t":"PHASE_START","phase":"action","active":1,"ms":11}
 {"seq":"R3.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R3.A.1"}
-{"seq":"R3.A.0b","t":"MOVE","card":"TWI#032:3","from":"hand","to":"ground","p":1,"kind":"unit","for":"R3.A.1"}
-{"seq":"R3.A.0c","t":"STATS","card":"TWI#032:3","power":1,"hp":3,"keywords":[],"traits":["official","separatist"],"for":"R3.A.1"}
-{"seq":"R3.A.0d","t":"EXHAUST","card":"TWI#032:3","for":"R3.A.1"}
-{"seq":"R3.A.1","t":"PLAY","p":1,"card":"TWI#032:3","zone":"ground","cost":2,"ms":14}
-{"seq":"R3.A.2","t":"PASS","p":2,"ms":15}
-{"seq":"R3.A.3","t":"PASS","p":1,"ms":15}
+{"seq":"R3.A.0b","t":"MOVE","card":"SHD#163:2","from":"hand","to":"ground","p":1,"kind":"unit","for":"R3.A.1"}
+{"seq":"R3.A.0c","t":"STATS","card":"SHD#163:2","power":2,"hp":2,"keywords":[],"traits":["underworld"],"for":"R3.A.1"}
+{"seq":"R3.A.0d","t":"EXHAUST","card":"SHD#163:2","for":"R3.A.1"}
+{"seq":"R3.A.1","t":"PLAY","p":1,"card":"SHD#163:2","zone":"ground","cost":2,"ms":11}
+{"seq":"R3.A.1a","t":"EXHAUST_RESOURCES","p":2,"amount":2,"for":"R3.A.2"}
+{"seq":"R3.A.1b","t":"MOVE","card":"SOR#095:3","from":"hand","to":"ground","p":2,"kind":"unit","for":"R3.A.2"}
+{"seq":"R3.A.1c","t":"STATS","card":"SOR#095:3","power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"],"for":"R3.A.2"}
+{"seq":"R3.A.1d","t":"EXHAUST","card":"SOR#095:3","for":"R3.A.2"}
+{"seq":"R3.A.2","t":"PLAY","p":2,"card":"SOR#095:3","zone":"ground","cost":2,"ms":12}
+{"seq":"R3.A.2a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R3.A.3"}
+{"seq":"R3.A.2b","t":"MOVE","card":"TWI#032","from":"hand","to":"ground","p":1,"kind":"unit","for":"R3.A.3"}
+{"seq":"R3.A.2c","t":"STATS","card":"TWI#032","power":1,"hp":3,"keywords":[],"traits":["official","separatist"],"for":"R3.A.3"}
+{"seq":"R3.A.2d","t":"EXHAUST","card":"TWI#032","for":"R3.A.3"}
+{"seq":"R3.A.3","t":"PLAY","p":1,"card":"TWI#032","zone":"ground","cost":2,"ms":13}
+{"seq":"R3.A.3a","t":"EXHAUST_RESOURCES","p":2,"amount":2,"for":"R3.A.4"}
+{"seq":"R3.A.3b","t":"MOVE","card":"SOR#095:4","from":"hand","to":"ground","p":2,"kind":"unit","for":"R3.A.4"}
+{"seq":"R3.A.3c","t":"STATS","card":"SOR#095:4","power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"],"for":"R3.A.4"}
+{"seq":"R3.A.3d","t":"EXHAUST","card":"SOR#095:4","for":"R3.A.4"}
+{"seq":"R3.A.4","t":"PLAY","p":2,"card":"SOR#095:4","zone":"ground","cost":2,"ms":14}
+{"seq":"R3.A.5","t":"PASS","p":1,"ms":15}
+{"seq":"R3.A.6","t":"PASS","p":2,"ms":15}
 {"seq":"R3.A.end","t":"PHASE_END","phase":"action"}
 {"seq":"R3.G.start","t":"PHASE_START","phase":"regroup","ms":15}
-{"seq":"R3.G.1","t":"MOVE","card":"SOR#031:2","from":"deck","to":"hand","p":1,"kind":"unit"}
-{"seq":"R3.G.2","t":"MOVE","card":"TWI#032:4","from":"deck","to":"hand","p":1,"kind":"unit"}
-{"seq":"R3.G.3","t":"DRAW","p":1,"count":2,"cards":["SOR#031:2","TWI#032:4"]}
-{"seq":"R3.G.4","t":"MOVE","card":"LAW#253:9","from":"deck","to":"hand","p":2,"kind":"unit"}
-{"seq":"R3.G.5","t":"MOVE","card":"LAW#253:10","from":"deck","to":"hand","p":2,"kind":"unit"}
-{"seq":"R3.G.6","t":"DRAW","p":2,"count":2,"cards":["LAW#253:9","LAW#253:10"]}
-{"seq":"R3.G.7","t":"MOVE","card":"SHD#069:2","from":"hand","to":"resource","p":1,"kind":"upgrade","exhausted":true,"for":"R3.G.8"}
-{"seq":"R3.G.8","t":"RESOURCE","p":1,"card":"SHD#069:2"}
-{"seq":"R3.G.9","t":"MOVE","card":"LAW#253:9","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R3.G.10"}
-{"seq":"R3.G.10","t":"RESOURCE","p":2,"card":"LAW#253:9"}
-{"seq":"R3.G.11","t":"READY","card":"TWI#032:3"}
-{"seq":"R3.G.12","t":"READY_RESOURCES","p":1,"amount":3}
-{"seq":"R3.G.15","t":"READY_RESOURCES","p":2,"amount":1}
+{"seq":"R3.G.1","t":"MOVE","card":"TWI#032:4","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R3.G.2","t":"MOVE","card":"SOR#062","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R3.G.3","t":"DRAW","p":1,"count":2,"cards":["TWI#032:4","SOR#062"]}
+{"seq":"R3.G.4","t":"MOVE","card":"LAW#253:14","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R3.G.5","t":"MOVE","card":"LAW#253:15","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R3.G.6","t":"DRAW","p":2,"count":2,"cards":["LAW#253:14","LAW#253:15"]}
+{"seq":"R3.G.7","t":"MOVE","card":"SHD#069","from":"hand","to":"resource","p":1,"kind":"upgrade","exhausted":true,"for":"R3.G.8"}
+{"seq":"R3.G.8","t":"RESOURCE","p":1,"card":"SHD#069"}
+{"seq":"R3.G.9","t":"MOVE","card":"LAW#253:13","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R3.G.10"}
+{"seq":"R3.G.10","t":"RESOURCE","p":2,"card":"LAW#253:13"}
+{"seq":"R3.G.11","t":"READY","card":"SHD#163:2"}
+{"seq":"R3.G.12","t":"READY","card":"TWI#032"}
+{"seq":"R3.G.13","t":"READY_RESOURCES","p":1,"amount":5}
+{"seq":"R3.G.18","t":"READY","card":"SOR#095:3"}
+{"seq":"R3.G.19","t":"READY","card":"SOR#095:4"}
+{"seq":"R3.G.20","t":"READY_RESOURCES","p":2,"amount":5}
 {"seq":"R3.G.end","t":"PHASE_END","phase":"regroup"}
-{"seq":"R3.end","t":"ROUND_END","round":3,"keyframe":{"round":3,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["LAW#204:2","SOR#031:2","TWI#032:4"],"resourcesReady":5,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","SHD#069","TWI#032","SHD#069:2"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#204","HMW#085:2"],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"SOR#062:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":4,"keywords":[],"traits":["imperial","official"]},{"id":"TWI#032:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["official","separatist"]}],"deckSize":7,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["SOR#095:4","SOR#095:5","SOR#095:6","LAW#253:10"],"resourcesReady":5,"resourcesExhausted":0,"resources":["LAW#253:5","LAW#253:6","LAW#253:7","SOR#095:3","LAW#253:9"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#095:2"],"cards":[{"id":"SOR#095","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:8","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":4,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[{"id":"fx@1","src":"SOR#062:2","p":1,"seat":2,"duration":"whileSourceInPlay"}]}}
-{"seq":"R4.start","t":"ROUND_START","round":4,"active":1,"keyframe":{"round":4,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["LAW#204:2","SOR#031:2","TWI#032:4"],"resourcesReady":5,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","SHD#069","TWI#032","SHD#069:2"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#204","HMW#085:2"],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"SOR#062:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":4,"keywords":[],"traits":["imperial","official"]},{"id":"TWI#032:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["official","separatist"]}],"deckSize":7,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["SOR#095:4","SOR#095:5","SOR#095:6","LAW#253:10"],"resourcesReady":5,"resourcesExhausted":0,"resources":["LAW#253:5","LAW#253:6","LAW#253:7","SOR#095:3","LAW#253:9"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#095:2"],"cards":[{"id":"SOR#095","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:8","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":4,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[{"id":"fx@1","src":"SOR#062:2","p":1,"seat":2,"duration":"whileSourceInPlay"}]},"ms":16}
-{"seq":"R4.A.start","t":"PHASE_START","phase":"action","active":1,"ms":16}
-{"seq":"R4.A.0a","t":"CHOICE","p":1,"prompt":"Wartime Trade Official","offered":["SOR#095","base@2"],"chose":0,"for":"R4.A.1"}
-{"seq":"R4.A.0b","t":"EXHAUST","card":"TWI#032:3","for":"R4.A.1"}
-{"seq":"R4.A.1","t":"ATTACK","p":1,"atk":"TWI#032:3","def":"SOR#095","defenderType":"unit","ms":17}
-{"seq":"R4.A.1a","t":"DAMAGE","src":"TWI#032:3","tgt":"SOR#095","amt":1,"damageType":"combat","hp":2,"simul":"R4.A.1a"}
-{"seq":"R4.A.1b","t":"DAMAGE","src":"SOR#095","tgt":"TWI#032:3","amt":3,"damageType":"combat","hp":0,"simul":"R4.A.1a"}
-{"seq":"R4.A.1c","t":"MOVE","card":"TWI#032:3","from":"ground","to":"discard","p":1,"kind":"unit"}
-{"seq":"R4.A.1d","t":"DEFEAT","card":"TWI#032:3","reason":"attack","defeatedBy":"SOR#095"}
-{"seq":"R4.A.1e","t":"ABILITY_ACTIVATE","p":1,"card":"TWI#032:3","ability":"wartime-trade-official_triggered_0","kind":"triggered","title":"Create a Battle Droid token."}
-{"seq":"R4.A.1f","t":"CREATE_TOKEN","p":1,"token":"TOKEN:battle-droid#3463348370","zone":"ground","kind":"unit"}
-{"seq":"R4.A.1g","t":"MOVE","card":"TOKEN:battle-droid#3463348370","from":"outsideTheGame","to":"ground","p":1,"kind":"unit"}
-{"seq":"R4.A.1h","t":"STATS","card":"TOKEN:battle-droid#3463348370","power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]}
-{"seq":"R4.A.1i","t":"EXHAUST","card":"TOKEN:battle-droid#3463348370"}
-{"seq":"R4.A.1j","t":"ABILITY_ACTIVATE","p":1,"card":"JTL#002","ability":"grand-admiral-thrawn#how-unfortunate_triggered_1","kind":"triggered","title":"Exhaust Grand Admiral Thrawn to use the When Defeated ability again"}
-{"seq":"R4.A.1k","t":"EXHAUST","card":"JTL#002"}
-{"seq":"R4.A.1l","t":"ABILITY_ACTIVATE","p":1,"card":"TWI#032:3","ability":"wartime-trade-official_triggered_0","kind":"triggered","title":"Create a Battle Droid token.","usedBy":"JTL#002"}
-{"seq":"R4.A.1m","t":"CREATE_TOKEN","p":1,"token":"TOKEN:battle-droid#3463348370:2","zone":"ground","kind":"unit"}
-{"seq":"R4.A.1n","t":"MOVE","card":"TOKEN:battle-droid#3463348370:2","from":"outsideTheGame","to":"ground","p":1,"kind":"unit"}
-{"seq":"R4.A.1o","t":"STATS","card":"TOKEN:battle-droid#3463348370:2","power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]}
-{"seq":"R4.A.1p","t":"EXHAUST","card":"TOKEN:battle-droid#3463348370:2"}
-{"seq":"R4.A.1q","t":"EXHAUST_RESOURCES","p":2,"amount":2,"for":"R4.A.2"}
-{"seq":"R4.A.1r","t":"MOVE","card":"LAW#253:10","from":"hand","to":"space","p":2,"kind":"unit","for":"R4.A.2"}
-{"seq":"R4.A.1s","t":"STATS","card":"LAW#253:10","power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"],"for":"R4.A.2"}
-{"seq":"R4.A.1t","t":"EXHAUST","card":"LAW#253:10","for":"R4.A.2"}
-{"seq":"R4.A.2","t":"PLAY","p":2,"card":"LAW#253:10","zone":"space","cost":2,"ms":20}
-{"seq":"R4.A.2a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R4.A.3"}
-{"seq":"R4.A.2b","t":"MOVE","card":"SOR#031:2","from":"hand","to":"space","p":1,"kind":"unit","for":"R4.A.3"}
-{"seq":"R4.A.2c","t":"STATS","card":"SOR#031:2","power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"],"for":"R4.A.3"}
-{"seq":"R4.A.2d","t":"EXHAUST","card":"SOR#031:2","for":"R4.A.3"}
-{"seq":"R4.A.3","t":"PLAY","p":1,"card":"SOR#031:2","zone":"space","cost":2,"ms":21}
-{"seq":"R4.A.3a","t":"ABILITY_ACTIVATE","p":1,"card":"SOR#031:2","ability":"inferno-four#unforgetting_triggered_0","kind":"triggered","title":"Look at the top 2 cards of your deck. Put any number of them on the bottom of your deck and the rest on top in any order."}
-{"seq":"R4.A.3b","t":"LOOK","p":1,"owner":1,"zone":"deck","cards":["SEC#239","SEC#239:2"],"count":2}
-{"seq":"R4.A.4","t":"PASS","p":2,"ms":23}
-{"seq":"R4.A.4a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R4.A.5"}
-{"seq":"R4.A.4b","t":"MOVE","card":"TWI#032:4","from":"hand","to":"ground","p":1,"kind":"unit","for":"R4.A.5"}
-{"seq":"R4.A.4c","t":"STATS","card":"TWI#032:4","power":1,"hp":3,"keywords":[],"traits":["official","separatist"],"for":"R4.A.5"}
-{"seq":"R4.A.4d","t":"EXHAUST","card":"TWI#032:4","for":"R4.A.5"}
-{"seq":"R4.A.5","t":"PLAY","p":1,"card":"TWI#032:4","zone":"ground","cost":2,"ms":24}
-{"seq":"R4.A.6","t":"PASS","p":2,"ms":24}
-{"seq":"R4.A.7","t":"PASS","p":1,"ms":25}
+{"seq":"R3.end","t":"ROUND_END","round":3,"keyframe":{"round":3,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["LAW#204","SHD#069:2","TWI#032:4","SOR#062"],"resourcesReady":5,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3","LAW#253:6","SHD#069"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"SHD#163:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":2,"keywords":[],"traits":["underworld"]},{"id":"TWI#032","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["official","separatist"]},{"id":"SOR#031","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":13,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["SOR#095:5","LAW#253:14","LAW#253:15"],"resourcesReady":5,"resourcesExhausted":0,"resources":["LAW#253:9","LAW#253:10","LAW#253:11","LAW#253:12","LAW#253:13"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#095","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]}],"deckSize":4,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[]}}
+{"seq":"R4.start","t":"ROUND_START","round":4,"active":1,"keyframe":{"round":4,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["LAW#204","SHD#069:2","TWI#032:4","SOR#062"],"resourcesReady":5,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3","LAW#253:6","SHD#069"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"SHD#163:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":2,"keywords":[],"traits":["underworld"]},{"id":"TWI#032","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["official","separatist"]},{"id":"SOR#031","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":13,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["SOR#095:5","LAW#253:14","LAW#253:15"],"resourcesReady":5,"resourcesExhausted":0,"resources":["LAW#253:9","LAW#253:10","LAW#253:11","LAW#253:12","LAW#253:13"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#095","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]}],"deckSize":4,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":17}
+{"seq":"R4.A.start","t":"PHASE_START","phase":"action","active":1,"ms":17}
+{"seq":"R4.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":1,"for":"R4.A.1"}
+{"seq":"R4.A.0b","t":"MOVE","card":"LAW#204","from":"hand","to":"discard","p":1,"for":"R4.A.1"}
+{"seq":"R4.A.1","t":"PLAY_EVENT","p":1,"card":"LAW#204","zone":"discard","cost":1,"ms":18}
+{"seq":"R4.A.1a","t":"ABILITY_ACTIVATE","p":1,"card":"LAW#204","ability":"every-day-more-lies_anonymous","kind":"event","title":"Each player discards a card from their hands"}
+{"seq":"R4.A.1b","t":"CHOICE","p":1,"prompt":"Every Day, More Lies","offered":["SHD#069:2","TWI#032:4","SOR#062"],"chose":0,"blind":"R4.A.1a"}
+{"seq":"R4.A.1c","t":"CHOICE","p":2,"prompt":"Every Day, More Lies","offered":["SOR#095:5","LAW#253:14","LAW#253:15"],"chose":0,"blind":"R4.A.1a"}
+{"seq":"R4.A.1d","t":"MOVE","card":"SHD#069:2","from":"hand","to":"discard","p":1,"kind":"upgrade","simul":"R4.A.1d"}
+{"seq":"R4.A.1e","t":"DISCARD","p":1,"cards":["SHD#069:2"],"simul":"R4.A.1d"}
+{"seq":"R4.A.1f","t":"MOVE","card":"SOR#095:5","from":"hand","to":"discard","p":2,"kind":"unit","simul":"R4.A.1d"}
+{"seq":"R4.A.1g","t":"DISCARD","p":2,"cards":["SOR#095:5"],"simul":"R4.A.1d"}
+{"seq":"R4.A.1h","t":"CHOICE","p":1,"prompt":"Migs Mayfeld","offered":["HMW#085","SHD#163:2","TWI#032","SOR#031","base@1","SOR#095","SOR#095:2","SOR#095:3","SOR#095:4","base@2"],"chose":5}
+{"seq":"R4.A.1i","t":"ABILITY_ACTIVATE","p":1,"card":"SHD#163:2","ability":"migs-mayfeld#triggerman_triggered_0","kind":"triggered","title":"You may deal 2 damage to a unit or base.","limit":{"max":1,"per":"round"}}
+{"seq":"R4.A.1j","t":"DAMAGE","src":"SHD#163:2","tgt":"SOR#095","amt":2,"damageType":"ability","hp":1}
+{"seq":"R4.A.1k","t":"EXHAUST_RESOURCES","p":2,"amount":2,"for":"R4.A.2"}
+{"seq":"R4.A.1l","t":"MOVE","card":"LAW#253:14","from":"hand","to":"space","p":2,"kind":"unit","for":"R4.A.2"}
+{"seq":"R4.A.1m","t":"STATS","card":"LAW#253:14","power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"],"for":"R4.A.2"}
+{"seq":"R4.A.1n","t":"EXHAUST","card":"LAW#253:14","for":"R4.A.2"}
+{"seq":"R4.A.2","t":"PLAY","p":2,"card":"LAW#253:14","zone":"space","cost":2,"ms":20}
+{"seq":"R4.A.2a","t":"CHOICE","p":1,"prompt":"Migs Mayfeld","offered":["SOR#095","SOR#095:2","SOR#095:3","SOR#095:4","base@2"],"chose":0,"for":"R4.A.3"}
+{"seq":"R4.A.2b","t":"EXHAUST","card":"SHD#163:2","for":"R4.A.3"}
+{"seq":"R4.A.3","t":"ATTACK","p":1,"atk":"SHD#163:2","def":"SOR#095","defenderType":"unit","ms":22}
+{"seq":"R4.A.3a","t":"DAMAGE","src":"SHD#163:2","tgt":"SOR#095","amt":1,"damageType":"combat","hp":0,"simul":"R4.A.3a"}
+{"seq":"R4.A.3b","t":"DAMAGE","src":"SOR#095","tgt":"SHD#163:2","amt":2,"damageType":"combat","hp":0,"simul":"R4.A.3a"}
+{"seq":"R4.A.3c","t":"MOVE","card":"SOR#095","from":"ground","to":"discard","p":2,"kind":"unit"}
+{"seq":"R4.A.3d","t":"DEFEAT","card":"SOR#095","reason":"attack","defeatedBy":"SHD#163:2"}
+{"seq":"R4.A.3e","t":"MOVE","card":"SHD#163:2","from":"ground","to":"discard","p":1,"kind":"unit"}
+{"seq":"R4.A.3f","t":"ABILITY_RESET","card":"SHD#163:2"}
+{"seq":"R4.A.3g","t":"DEFEAT","card":"SHD#163:2","reason":"attack","defeatedBy":"SOR#095"}
+{"seq":"R4.A.3h","t":"EXHAUST_RESOURCES","p":2,"amount":2,"for":"R4.A.4"}
+{"seq":"R4.A.3i","t":"MOVE","card":"LAW#253:15","from":"hand","to":"space","p":2,"kind":"unit","for":"R4.A.4"}
+{"seq":"R4.A.3j","t":"STATS","card":"LAW#253:15","power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"],"for":"R4.A.4"}
+{"seq":"R4.A.3k","t":"EXHAUST","card":"LAW#253:15","for":"R4.A.4"}
+{"seq":"R4.A.4","t":"PLAY","p":2,"card":"LAW#253:15","zone":"space","cost":2,"ms":23}
+{"seq":"R4.A.4a","t":"CHOICE","p":1,"prompt":"Wartime Trade Official","offered":["SOR#095:2","SOR#095:3","SOR#095:4","base@2"],"chose":0,"for":"R4.A.5"}
+{"seq":"R4.A.4b","t":"EXHAUST","card":"TWI#032","for":"R4.A.5"}
+{"seq":"R4.A.5","t":"ATTACK","p":1,"atk":"TWI#032","def":"SOR#095:2","defenderType":"unit","ms":24}
+{"seq":"R4.A.5a","t":"DAMAGE","src":"TWI#032","tgt":"SOR#095:2","amt":1,"damageType":"combat","hp":2,"simul":"R4.A.5a"}
+{"seq":"R4.A.5b","t":"DAMAGE","src":"SOR#095:2","tgt":"TWI#032","amt":3,"damageType":"combat","hp":0,"simul":"R4.A.5a"}
+{"seq":"R4.A.5c","t":"MOVE","card":"TWI#032","from":"ground","to":"discard","p":1,"kind":"unit"}
+{"seq":"R4.A.5d","t":"DEFEAT","card":"TWI#032","reason":"attack","defeatedBy":"SOR#095:2"}
+{"seq":"R4.A.5e","t":"ABILITY_ACTIVATE","p":1,"card":"TWI#032","ability":"wartime-trade-official_triggered_0","kind":"triggered","title":"Create a Battle Droid token."}
+{"seq":"R4.A.5f","t":"CREATE_TOKEN","p":1,"token":"TOKEN:battle-droid#3463348370","zone":"ground","kind":"unit"}
+{"seq":"R4.A.5g","t":"MOVE","card":"TOKEN:battle-droid#3463348370","from":"outsideTheGame","to":"ground","p":1,"kind":"unit"}
+{"seq":"R4.A.5h","t":"STATS","card":"TOKEN:battle-droid#3463348370","power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]}
+{"seq":"R4.A.5i","t":"EXHAUST","card":"TOKEN:battle-droid#3463348370"}
+{"seq":"R4.A.5j","t":"ABILITY_ACTIVATE","p":1,"card":"JTL#002","ability":"grand-admiral-thrawn#how-unfortunate_triggered_1","kind":"triggered","title":"Exhaust Grand Admiral Thrawn to use the When Defeated ability again"}
+{"seq":"R4.A.5k","t":"EXHAUST","card":"JTL#002"}
+{"seq":"R4.A.5l","t":"ABILITY_ACTIVATE","p":1,"card":"TWI#032","ability":"wartime-trade-official_triggered_0","kind":"triggered","title":"Create a Battle Droid token.","usedBy":"JTL#002"}
+{"seq":"R4.A.5m","t":"CREATE_TOKEN","p":1,"token":"TOKEN:battle-droid#3463348370:2","zone":"ground","kind":"unit"}
+{"seq":"R4.A.5n","t":"MOVE","card":"TOKEN:battle-droid#3463348370:2","from":"outsideTheGame","to":"ground","p":1,"kind":"unit"}
+{"seq":"R4.A.5o","t":"STATS","card":"TOKEN:battle-droid#3463348370:2","power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]}
+{"seq":"R4.A.5p","t":"EXHAUST","card":"TOKEN:battle-droid#3463348370:2"}
+{"seq":"R4.A.6","t":"PASS","p":2,"ms":27}
+{"seq":"R4.A.6a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R4.A.7"}
+{"seq":"R4.A.6b","t":"MOVE","card":"SOR#062","from":"hand","to":"ground","p":1,"kind":"unit","for":"R4.A.7"}
+{"seq":"R4.A.6c","t":"STATS","card":"SOR#062","power":1,"hp":4,"keywords":[],"traits":["imperial","official"],"for":"R4.A.7"}
+{"seq":"R4.A.6d","t":"EXHAUST","card":"SOR#062","for":"R4.A.7"}
+{"seq":"R4.A.7","t":"PLAY","p":1,"card":"SOR#062","zone":"ground","cost":2,"ms":28}
+{"seq":"R4.A.7a","t":"NAME","p":1,"name":"Battlefield Marine"}
+{"seq":"R4.A.7b","t":"ABILITY_ACTIVATE","p":1,"card":"SOR#062","ability":"regional-governor_triggered_0","kind":"triggered","title":"Name a card"}
+{"seq":"R4.A.7c","t":"EFFECT_START","id":"fx@1","src":"SOR#062","p":1,"seat":2,"duration":"whileSourceInPlay","text":"While this unit is in play, opponents can't play Battlefield Marine"}
+{"seq":"R4.A.8","t":"PASS","p":2,"ms":30}
+{"seq":"R4.A.8a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R4.A.9"}
+{"seq":"R4.A.8b","t":"MOVE","card":"TWI#032:4","from":"hand","to":"ground","p":1,"kind":"unit","for":"R4.A.9"}
+{"seq":"R4.A.8c","t":"STATS","card":"TWI#032:4","power":1,"hp":3,"keywords":[],"traits":["official","separatist"],"for":"R4.A.9"}
+{"seq":"R4.A.8d","t":"EXHAUST","card":"TWI#032:4","for":"R4.A.9"}
+{"seq":"R4.A.9","t":"PLAY","p":1,"card":"TWI#032:4","zone":"ground","cost":2,"ms":31}
+{"seq":"R4.A.10","t":"PASS","p":2,"ms":32}
+{"seq":"R4.A.11","t":"PASS","p":1,"ms":32}
 {"seq":"R4.A.end","t":"PHASE_END","phase":"action"}
-{"seq":"R4.G.start","t":"PHASE_START","phase":"regroup","ms":25}
-{"seq":"R4.G.1","t":"MOVE","card":"SEC#239:2","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R4.G.start","t":"PHASE_START","phase":"regroup","ms":32}
+{"seq":"R4.G.1","t":"MOVE","card":"SOR#031:2","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R4.G.2","t":"MOVE","card":"SEC#239","from":"deck","to":"hand","p":1,"kind":"unit"}
-{"seq":"R4.G.3","t":"DRAW","p":1,"count":2,"cards":["SEC#239:2","SEC#239"]}
-{"seq":"R4.G.4","t":"MOVE","card":"LAW#253:11","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R4.G.3","t":"DRAW","p":1,"count":2,"cards":["SOR#031:2","SEC#239"]}
+{"seq":"R4.G.4","t":"MOVE","card":"SOR#095:6","from":"deck","to":"hand","p":2,"kind":"unit"}
 {"seq":"R4.G.5","t":"MOVE","card":"SOR#095:7","from":"deck","to":"hand","p":2,"kind":"unit"}
-{"seq":"R4.G.6","t":"DRAW","p":2,"count":2,"cards":["LAW#253:11","SOR#095:7"]}
-{"seq":"R4.G.7","t":"MOVE","card":"LAW#204:2","from":"hand","to":"resource","p":1,"exhausted":true,"for":"R4.G.8"}
-{"seq":"R4.G.8","t":"RESOURCE","p":1,"card":"LAW#204:2"}
-{"seq":"R4.G.9","t":"MOVE","card":"LAW#253:11","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R4.G.10"}
-{"seq":"R4.G.10","t":"RESOURCE","p":2,"card":"LAW#253:11"}
+{"seq":"R4.G.6","t":"DRAW","p":2,"count":2,"cards":["SOR#095:6","SOR#095:7"]}
+{"seq":"R4.G.7","t":"MOVE","card":"SOR#031:2","from":"hand","to":"resource","p":1,"kind":"unit","exhausted":true,"for":"R4.G.8"}
+{"seq":"R4.G.8","t":"RESOURCE","p":1,"card":"SOR#031:2"}
+{"seq":"R4.G.9","t":"MOVE","card":"SOR#095:6","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R4.G.10"}
+{"seq":"R4.G.10","t":"RESOURCE","p":2,"card":"SOR#095:6"}
 {"seq":"R4.G.11","t":"READY","card":"TOKEN:battle-droid#3463348370"}
 {"seq":"R4.G.12","t":"READY","card":"TOKEN:battle-droid#3463348370:2"}
-{"seq":"R4.G.13","t":"READY","card":"TWI#032:4"}
-{"seq":"R4.G.14","t":"READY","card":"SOR#031:2"}
-{"seq":"R4.G.15","t":"READY_RESOURCES","p":1,"amount":5}
-{"seq":"R4.G.20","t":"READY","card":"JTL#002"}
-{"seq":"R4.G.21","t":"READY","card":"LAW#253:10"}
-{"seq":"R4.G.22","t":"READY_RESOURCES","p":2,"amount":3}
+{"seq":"R4.G.13","t":"READY","card":"SOR#062"}
+{"seq":"R4.G.14","t":"READY","card":"TWI#032:4"}
+{"seq":"R4.G.15","t":"READY_RESOURCES","p":1,"amount":6}
+{"seq":"R4.G.21","t":"READY","card":"JTL#002"}
+{"seq":"R4.G.22","t":"READY","card":"LAW#253:14"}
+{"seq":"R4.G.23","t":"READY","card":"LAW#253:15"}
+{"seq":"R4.G.24","t":"READY_RESOURCES","p":2,"amount":5}
 {"seq":"R4.G.end","t":"PHASE_END","phase":"regroup"}
-{"seq":"R4.end","t":"ROUND_END","round":4,"keyframe":{"round":4,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SEC#239:2","SEC#239"],"resourcesReady":6,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","SHD#069","TWI#032","SHD#069:2","LAW#204:2"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#204","HMW#085:2","TWI#032:3"],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"SOR#062:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":4,"keywords":[],"traits":["imperial","official"]},{"id":"TOKEN:battle-droid#3463348370","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TWI#032:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["official","separatist"]},{"id":"SOR#031:2","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":5,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["SOR#095:4","SOR#095:5","SOR#095:6","SOR#095:7"],"resourcesReady":6,"resourcesExhausted":0,"resources":["LAW#253:5","LAW#253:6","LAW#253:7","SOR#095:3","LAW#253:9","LAW#253:11"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#095:2"],"cards":[{"id":"SOR#095","zone":"ground","damage":1,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:8","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]},{"id":"LAW#253:10","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":2,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[{"id":"fx@1","src":"SOR#062:2","p":1,"seat":2,"duration":"whileSourceInPlay"}]}}
-{"seq":"R5.start","t":"ROUND_START","round":5,"active":1,"keyframe":{"round":5,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SEC#239:2","SEC#239"],"resourcesReady":6,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","SHD#069","TWI#032","SHD#069:2","LAW#204:2"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#204","HMW#085:2","TWI#032:3"],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"SOR#062:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":4,"keywords":[],"traits":["imperial","official"]},{"id":"TOKEN:battle-droid#3463348370","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TWI#032:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["official","separatist"]},{"id":"SOR#031:2","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":5,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["SOR#095:4","SOR#095:5","SOR#095:6","SOR#095:7"],"resourcesReady":6,"resourcesExhausted":0,"resources":["LAW#253:5","LAW#253:6","LAW#253:7","SOR#095:3","LAW#253:9","LAW#253:11"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#095:2"],"cards":[{"id":"SOR#095","zone":"ground","damage":1,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:8","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]},{"id":"LAW#253:10","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":2,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[{"id":"fx@1","src":"SOR#062:2","p":1,"seat":2,"duration":"whileSourceInPlay"}]},"ms":27}
-{"seq":"R5.A.start","t":"PHASE_START","phase":"action","active":1,"ms":27}
-{"seq":"R5.A.0a","t":"CHOICE","p":1,"prompt":"Wartime Trade Official","offered":["SOR#095","base@2"],"chose":0,"for":"R5.A.1"}
+{"seq":"R4.end","t":"ROUND_END","round":4,"keyframe":{"round":4,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SEC#239"],"resourcesReady":6,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3","LAW#253:6","SHD#069","SOR#031:2"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#204","SHD#069:2","SHD#163:2","TWI#032"],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"TOKEN:battle-droid#3463348370","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"SOR#062","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":4,"keywords":[],"traits":["imperial","official"]},{"id":"TWI#032:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["official","separatist"]},{"id":"SOR#031","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":11,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#095:7"],"resourcesReady":6,"resourcesExhausted":0,"resources":["LAW#253:9","LAW#253:10","LAW#253:11","LAW#253:12","LAW#253:13","SOR#095:6"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#095:5","SOR#095"],"cards":[{"id":"SOR#095:2","zone":"ground","damage":1,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:14","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]},{"id":"LAW#253:15","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":2,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[{"id":"fx@1","src":"SOR#062","p":1,"seat":2,"duration":"whileSourceInPlay"}]}}
+{"seq":"R5.start","t":"ROUND_START","round":5,"active":1,"keyframe":{"round":5,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SEC#239"],"resourcesReady":6,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3","LAW#253:6","SHD#069","SOR#031:2"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#204","SHD#069:2","SHD#163:2","TWI#032"],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"TOKEN:battle-droid#3463348370","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"SOR#062","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":4,"keywords":[],"traits":["imperial","official"]},{"id":"TWI#032:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["official","separatist"]},{"id":"SOR#031","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":11,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#095:7"],"resourcesReady":6,"resourcesExhausted":0,"resources":["LAW#253:9","LAW#253:10","LAW#253:11","LAW#253:12","LAW#253:13","SOR#095:6"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#095:5","SOR#095"],"cards":[{"id":"SOR#095:2","zone":"ground","damage":1,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:14","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]},{"id":"LAW#253:15","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":2,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[{"id":"fx@1","src":"SOR#062","p":1,"seat":2,"duration":"whileSourceInPlay"}]},"ms":35}
+{"seq":"R5.A.start","t":"PHASE_START","phase":"action","active":1,"ms":35}
+{"seq":"R5.A.0a","t":"CHOICE","p":1,"prompt":"Wartime Trade Official","offered":["SOR#095:2","SOR#095:3","SOR#095:4","base@2"],"chose":0,"for":"R5.A.1"}
 {"seq":"R5.A.0b","t":"EXHAUST","card":"TWI#032:4","for":"R5.A.1"}
-{"seq":"R5.A.1","t":"ATTACK","p":1,"atk":"TWI#032:4","def":"SOR#095","defenderType":"unit","ms":29}
-{"seq":"R5.A.1a","t":"DAMAGE","src":"TWI#032:4","tgt":"SOR#095","amt":1,"damageType":"combat","hp":1,"simul":"R5.A.1a"}
-{"seq":"R5.A.1b","t":"DAMAGE","src":"SOR#095","tgt":"TWI#032:4","amt":3,"damageType":"combat","hp":0,"simul":"R5.A.1a"}
+{"seq":"R5.A.1","t":"ATTACK","p":1,"atk":"TWI#032:4","def":"SOR#095:2","defenderType":"unit","ms":36}
+{"seq":"R5.A.1a","t":"DAMAGE","src":"TWI#032:4","tgt":"SOR#095:2","amt":1,"damageType":"combat","hp":1,"simul":"R5.A.1a"}
+{"seq":"R5.A.1b","t":"DAMAGE","src":"SOR#095:2","tgt":"TWI#032:4","amt":3,"damageType":"combat","hp":0,"simul":"R5.A.1a"}
 {"seq":"R5.A.1c","t":"MOVE","card":"TWI#032:4","from":"ground","to":"discard","p":1,"kind":"unit"}
-{"seq":"R5.A.1d","t":"DEFEAT","card":"TWI#032:4","reason":"attack","defeatedBy":"SOR#095"}
+{"seq":"R5.A.1d","t":"DEFEAT","card":"TWI#032:4","reason":"attack","defeatedBy":"SOR#095:2"}
 {"seq":"R5.A.1e","t":"ABILITY_ACTIVATE","p":1,"card":"TWI#032:4","ability":"wartime-trade-official_triggered_0","kind":"triggered","title":"Create a Battle Droid token."}
 {"seq":"R5.A.1f","t":"CREATE_TOKEN","p":1,"token":"TOKEN:battle-droid#3463348370:3","zone":"ground","kind":"unit"}
 {"seq":"R5.A.1g","t":"MOVE","card":"TOKEN:battle-droid#3463348370:3","from":"outsideTheGame","to":"ground","p":1,"kind":"unit"}
@@ -419,38 +490,57 @@
 {"seq":"R5.A.1n","t":"MOVE","card":"TOKEN:battle-droid#3463348370:4","from":"outsideTheGame","to":"ground","p":1,"kind":"unit"}
 {"seq":"R5.A.1o","t":"STATS","card":"TOKEN:battle-droid#3463348370:4","power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]}
 {"seq":"R5.A.1p","t":"EXHAUST","card":"TOKEN:battle-droid#3463348370:4"}
-{"seq":"R5.A.2","t":"PASS","p":2,"ms":31}
+{"seq":"R5.A.2","t":"PASS","p":2,"ms":39}
 {"seq":"R5.A.2a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R5.A.3"}
-{"seq":"R5.A.2b","t":"MOVE","card":"SEC#239:2","from":"hand","to":"ground","p":1,"kind":"unit","for":"R5.A.3"}
-{"seq":"R5.A.2c","t":"STATS","card":"SEC#239:2","power":3,"hp":2,"keywords":[],"traits":["droid","imperial"],"for":"R5.A.3"}
-{"seq":"R5.A.2d","t":"EXHAUST","card":"SEC#239:2","for":"R5.A.3"}
-{"seq":"R5.A.3","t":"PLAY","p":1,"card":"SEC#239:2","zone":"ground","cost":2,"ms":33}
-{"seq":"R5.A.3a","t":"ABILITY_ACTIVATE","p":1,"card":"SEC#239:2","ability":"viper-probe-droid_triggered_0","kind":"triggered","title":"Look at an opponent's hand."}
-{"seq":"R5.A.3b","t":"LOOK","p":1,"owner":2,"zone":"hand","cards":["SOR#095:4","SOR#095:5","SOR#095:6","SOR#095:7"],"count":4}
-{"seq":"R5.A.4","t":"PASS","p":2,"ms":34}
-{"seq":"R5.A.5","t":"PASS","p":1,"ms":35}
+{"seq":"R5.A.2b","t":"MOVE","card":"SEC#239","from":"hand","to":"ground","p":1,"kind":"unit","for":"R5.A.3"}
+{"seq":"R5.A.2c","t":"STATS","card":"SEC#239","power":3,"hp":2,"keywords":[],"traits":["droid","imperial"],"for":"R5.A.3"}
+{"seq":"R5.A.2d","t":"EXHAUST","card":"SEC#239","for":"R5.A.3"}
+{"seq":"R5.A.3","t":"PLAY","p":1,"card":"SEC#239","zone":"ground","cost":2,"ms":40}
+{"seq":"R5.A.3a","t":"ABILITY_ACTIVATE","p":1,"card":"SEC#239","ability":"viper-probe-droid_triggered_0","kind":"triggered","title":"Look at an opponent's hand."}
+{"seq":"R5.A.3b","t":"LOOK","p":1,"owner":2,"zone":"hand","cards":["SOR#095:7"],"count":1}
+{"seq":"R5.A.4","t":"PASS","p":2,"ms":42}
+{"seq":"R5.A.5","t":"PASS","p":1,"ms":43}
 {"seq":"R5.A.end","t":"PHASE_END","phase":"action"}
-{"seq":"R5.G.start","t":"PHASE_START","phase":"regroup","ms":35}
-{"seq":"R5.G.1","t":"MOVE","card":"SOR#031","from":"deck","to":"hand","p":1,"kind":"unit"}
-{"seq":"R5.G.2","t":"MOVE","card":"LAW#253:3","from":"deck","to":"hand","p":1,"kind":"unit"}
-{"seq":"R5.G.3","t":"DRAW","p":1,"count":2,"cards":["SOR#031","LAW#253:3"]}
+{"seq":"R5.G.start","t":"PHASE_START","phase":"regroup","ms":43}
+{"seq":"R5.G.1","t":"MOVE","card":"LAW#253:7","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R5.G.2","t":"MOVE","card":"SEC#239:2","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R5.G.3","t":"DRAW","p":1,"count":2,"cards":["LAW#253:7","SEC#239:2"]}
 {"seq":"R5.G.4","t":"MOVE","card":"SOR#095:8","from":"deck","to":"hand","p":2,"kind":"unit"}
-{"seq":"R5.G.5","t":"MOVE","card":"LAW#253:12","from":"deck","to":"hand","p":2,"kind":"unit"}
-{"seq":"R5.G.6","t":"DRAW","p":2,"count":2,"cards":["SOR#095:8","LAW#253:12"]}
-{"seq":"R5.G.7","t":"MOVE","card":"LAW#253:3","from":"hand","to":"resource","p":1,"kind":"unit","exhausted":true,"for":"R5.G.8"}
-{"seq":"R5.G.8","t":"RESOURCE","p":1,"card":"LAW#253:3"}
-{"seq":"R5.G.9","t":"MOVE","card":"LAW#253:12","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R5.G.10"}
-{"seq":"R5.G.10","t":"RESOURCE","p":2,"card":"LAW#253:12"}
+{"seq":"R5.G.5","t":"MOVE","card":"LAW#253:16","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R5.G.6","t":"DRAW","p":2,"count":2,"cards":["SOR#095:8","LAW#253:16"]}
+{"seq":"R5.G.7","t":"MOVE","card":"LAW#253:7","from":"hand","to":"resource","p":1,"kind":"unit","exhausted":true,"for":"R5.G.8"}
+{"seq":"R5.G.8","t":"RESOURCE","p":1,"card":"LAW#253:7"}
+{"seq":"R5.G.9","t":"MOVE","card":"LAW#253:16","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R5.G.10"}
+{"seq":"R5.G.10","t":"RESOURCE","p":2,"card":"LAW#253:16"}
 {"seq":"R5.G.11","t":"READY","card":"TOKEN:battle-droid#3463348370:3"}
 {"seq":"R5.G.12","t":"READY","card":"TOKEN:battle-droid#3463348370:4"}
-{"seq":"R5.G.13","t":"READY","card":"SEC#239:2"}
+{"seq":"R5.G.13","t":"READY","card":"SEC#239"}
 {"seq":"R5.G.14","t":"READY_RESOURCES","p":1,"amount":3}
 {"seq":"R5.G.17","t":"READY","card":"JTL#002"}
 {"seq":"R5.G.18","t":"READY_RESOURCES","p":2,"amount":1}
 {"seq":"R5.G.end","t":"PHASE_END","phase":"regroup"}
-{"seq":"R5.end","t":"ROUND_END","round":5,"keyframe":{"round":5,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SEC#239","SOR#031"],"resourcesReady":7,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","SHD#069","TWI#032","SHD#069:2","LAW#204:2","LAW#253:3"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#204","HMW#085:2","TWI#032:3","TWI#032:4"],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"SOR#062:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":4,"keywords":[],"traits":["imperial","official"]},{"id":"TOKEN:battle-droid#3463348370","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"SEC#239:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":2,"keywords":[],"traits":["droid","imperial"]},{"id":"SOR#031:2","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":3,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":5,"hand":["SOR#095:4","SOR#095:5","SOR#095:6","SOR#095:7","SOR#095:8"],"resourcesReady":7,"resourcesExhausted":0,"resources":["LAW#253:5","LAW#253:6","LAW#253:7","SOR#095:3","LAW#253:9","LAW#253:11","LAW#253:12"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#095:2"],"cards":[{"id":"SOR#095","zone":"ground","damage":2,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:8","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]},{"id":"LAW#253:10","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":0,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[{"id":"fx@1","src":"SOR#062:2","p":1,"seat":2,"duration":"whileSourceInPlay"}]}}
-{"seq":"R6.start","t":"ROUND_START","round":6,"active":1,"keyframe":{"round":6,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SEC#239","SOR#031"],"resourcesReady":7,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","SHD#069","TWI#032","SHD#069:2","LAW#204:2","LAW#253:3"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#204","HMW#085:2","TWI#032:3","TWI#032:4"],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"SOR#062:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":4,"keywords":[],"traits":["imperial","official"]},{"id":"TOKEN:battle-droid#3463348370","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"SEC#239:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":2,"keywords":[],"traits":["droid","imperial"]},{"id":"SOR#031:2","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":3,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":5,"hand":["SOR#095:4","SOR#095:5","SOR#095:6","SOR#095:7","SOR#095:8"],"resourcesReady":7,"resourcesExhausted":0,"resources":["LAW#253:5","LAW#253:6","LAW#253:7","SOR#095:3","LAW#253:9","LAW#253:11","LAW#253:12"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#095:2"],"cards":[{"id":"SOR#095","zone":"ground","damage":2,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:8","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]},{"id":"LAW#253:10","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":0,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[{"id":"fx@1","src":"SOR#062:2","p":1,"seat":2,"duration":"whileSourceInPlay"}]},"ms":37}
-{"seq":"R6.A.start","t":"PHASE_START","phase":"action","active":1,"ms":37}
-{"seq":"R6.A.game-end","t":"GAME_END","winner":1,"reason":"Concession"}
+{"seq":"R5.end","t":"ROUND_END","round":5,"keyframe":{"round":5,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SEC#239:2"],"resourcesReady":7,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3","LAW#253:6","SHD#069","SOR#031:2","LAW#253:7"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#204","SHD#069:2","SHD#163:2","TWI#032","TWI#032:4"],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"TOKEN:battle-droid#3463348370","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"SOR#062","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":4,"keywords":[],"traits":["imperial","official"]},{"id":"TOKEN:battle-droid#3463348370:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"SEC#239","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":2,"keywords":[],"traits":["droid","imperial"]},{"id":"SOR#031","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":9,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#095:7","SOR#095:8"],"resourcesReady":7,"resourcesExhausted":0,"resources":["LAW#253:9","LAW#253:10","LAW#253:11","LAW#253:12","LAW#253:13","SOR#095:6","LAW#253:16"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#095:5","SOR#095"],"cards":[{"id":"SOR#095:2","zone":"ground","damage":2,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:14","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]},{"id":"LAW#253:15","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":0,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[{"id":"fx@1","src":"SOR#062","p":1,"seat":2,"duration":"whileSourceInPlay"}]}}
+{"seq":"R6.start","t":"ROUND_START","round":6,"active":1,"keyframe":{"round":6,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SEC#239:2"],"resourcesReady":7,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3","LAW#253:6","SHD#069","SOR#031:2","LAW#253:7"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#204","SHD#069:2","SHD#163:2","TWI#032","TWI#032:4"],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"TOKEN:battle-droid#3463348370","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"SOR#062","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":4,"keywords":[],"traits":["imperial","official"]},{"id":"TOKEN:battle-droid#3463348370:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"SEC#239","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":2,"keywords":[],"traits":["droid","imperial"]},{"id":"SOR#031","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":9,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#095:7","SOR#095:8"],"resourcesReady":7,"resourcesExhausted":0,"resources":["LAW#253:9","LAW#253:10","LAW#253:11","LAW#253:12","LAW#253:13","SOR#095:6","LAW#253:16"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#095:5","SOR#095"],"cards":[{"id":"SOR#095:2","zone":"ground","damage":2,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:14","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]},{"id":"LAW#253:15","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":0,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[{"id":"fx@1","src":"SOR#062","p":1,"seat":2,"duration":"whileSourceInPlay"}]},"ms":45}
+{"seq":"R6.A.start","t":"PHASE_START","phase":"action","active":1,"ms":45}
+{"seq":"R6.A.1","t":"PASS","p":1,"ms":46}
+{"seq":"R6.A.2","t":"PASS","p":2,"ms":47}
+{"seq":"R6.A.end","t":"PHASE_END","phase":"action"}
+{"seq":"R6.G.start","t":"PHASE_START","phase":"regroup","ms":47}
+{"seq":"R6.G.1","t":"MOVE","card":"SOR#062:2","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R6.G.2","t":"MOVE","card":"LAW#253:8","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R6.G.3","t":"DRAW","p":1,"count":2,"cards":["SOR#062:2","LAW#253:8"]}
+{"seq":"R6.G.4","t":"DRAW","p":2,"count":0,"cards":[]}
+{"seq":"R6.G.5","t":"DAMAGE","tgt":"base@2","amt":6,"damageType":"ability","hp":24}
+{"seq":"R6.G.6","t":"MOVE","card":"LAW#253:8","from":"hand","to":"resource","p":1,"kind":"unit","exhausted":true,"for":"R6.G.7"}
+{"seq":"R6.G.7","t":"RESOURCE","p":1,"card":"LAW#253:8"}
+{"seq":"R6.G.8","t":"MOVE","card":"SOR#095:7","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R6.G.9"}
+{"seq":"R6.G.9","t":"RESOURCE","p":2,"card":"SOR#095:7"}
+{"seq":"R6.G.10","t":"READY_RESOURCES","p":1,"amount":1}
+{"seq":"R6.G.11","t":"READY_RESOURCES","p":2,"amount":1}
+{"seq":"R6.G.end","t":"PHASE_END","phase":"regroup"}
+{"seq":"R6.end","t":"ROUND_END","round":6,"keyframe":{"round":6,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SEC#239:2","SOR#062:2"],"resourcesReady":8,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3","LAW#253:6","SHD#069","SOR#031:2","LAW#253:7","LAW#253:8"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#204","SHD#069:2","SHD#163:2","TWI#032","TWI#032:4"],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"TOKEN:battle-droid#3463348370","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"SOR#062","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":4,"keywords":[],"traits":["imperial","official"]},{"id":"TOKEN:battle-droid#3463348370:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"SEC#239","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":2,"keywords":[],"traits":["droid","imperial"]},{"id":"SOR#031","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":7,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":24,"baseMaxHp":30,"handSize":1,"hand":["SOR#095:8"],"resourcesReady":8,"resourcesExhausted":0,"resources":["LAW#253:9","LAW#253:10","LAW#253:11","LAW#253:12","LAW#253:13","SOR#095:6","LAW#253:16","SOR#095:7"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#095:5","SOR#095"],"cards":[{"id":"SOR#095:2","zone":"ground","damage":2,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:14","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]},{"id":"LAW#253:15","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":0,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[{"id":"fx@1","src":"SOR#062","p":1,"seat":2,"duration":"whileSourceInPlay"}]}}
+{"seq":"R7.start","t":"ROUND_START","round":7,"active":1,"keyframe":{"round":7,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SEC#239:2","SOR#062:2"],"resourcesReady":8,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3","LAW#253:6","SHD#069","SOR#031:2","LAW#253:7","LAW#253:8"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#204","SHD#069:2","SHD#163:2","TWI#032","TWI#032:4"],"cards":[{"id":"HMW#085","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":3,"keywords":[],"traits":["imperial","trooper"]},{"id":"TOKEN:battle-droid#3463348370","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"SOR#062","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":4,"keywords":[],"traits":["imperial","official"]},{"id":"TOKEN:battle-droid#3463348370:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"TOKEN:battle-droid#3463348370:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":1,"keywords":[],"traits":["droid","separatist","trooper"]},{"id":"SEC#239","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":2,"keywords":[],"traits":["droid","imperial"]},{"id":"SOR#031","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","imperial","vehicle"]}],"deckSize":7,"leader":{"id":"JTL#002","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":24,"baseMaxHp":30,"handSize":1,"hand":["SOR#095:8"],"resourcesReady":8,"resourcesExhausted":0,"resources":["LAW#253:9","LAW#253:10","LAW#253:11","LAW#253:12","LAW#253:13","SOR#095:6","LAW#253:16","SOR#095:7"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#095:5","SOR#095"],"cards":[{"id":"SOR#095:2","zone":"ground","damage":2,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"SOR#095:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:14","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]},{"id":"LAW#253:15","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":0,"leader":{"id":"SOR#009","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[{"id":"fx@1","src":"SOR#062","p":1,"seat":2,"duration":"whileSourceInPlay"}]},"ms":48}
+{"seq":"R7.A.start","t":"PHASE_START","phase":"action","active":1,"ms":48}
+{"seq":"R7.A.game-end","t":"GAME_END","winner":1,"reason":"Concession"}
 
 %%% ANNOTATIONS

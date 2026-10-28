@@ -45,20 +45,26 @@
           "damage": 0,
           "exhausted": false,
           "upgrades": [
-            "SOR#122"
+            "IC27#093:3",
+            "SOR#122",
+            "SHD#069:2"
           ],
           "shields": 0,
           "experience": 0,
           "statusTokens": {},
           "captured": [],
-          "power": 3,
-          "hp": 3,
+          "power": 6,
+          "hp": 6,
           "keywords": [],
           "traits": [
+            "mandalorian",
             "rebel",
             "trooper"
           ],
-          "owner": 2
+          "owner": 2,
+          "upgradeControllers": {
+            "IC27#093:3": 2
+          }
         },
         {
           "id": "ASH#047",
@@ -67,15 +73,14 @@
           "exhausted": false,
           "upgrades": [
             "IC27#093:2",
-            "SHD#069",
-            "SHD#069:2"
+            "SHD#069"
           ],
           "shields": 0,
           "experience": 0,
           "statusTokens": {},
           "captured": [],
-          "power": 7,
-          "hp": 8,
+          "power": 6,
+          "hp": 7,
           "keywords": [],
           "traits": [
             "mandalorian",
@@ -84,25 +89,6 @@
         },
         {
           "id": "TOKEN:mandalorian#8192010342",
-          "zone": "ground",
-          "damage": 0,
-          "exhausted": false,
-          "upgrades": [],
-          "shields": 1,
-          "experience": 0,
-          "statusTokens": {},
-          "captured": [],
-          "power": 2,
-          "hp": 2,
-          "keywords": [
-            "shielded"
-          ],
-          "traits": [
-            "mandalorian"
-          ]
-        },
-        {
-          "id": "TOKEN:mandalorian#8192010342:2",
           "zone": "ground",
           "damage": 0,
           "exhausted": false,
@@ -209,15 +195,13 @@
           "zone": "ground",
           "damage": 0,
           "exhausted": false,
-          "upgrades": [
-            "IC27#093:3"
-          ],
+          "upgrades": [],
           "shields": 0,
           "experience": 0,
           "statusTokens": {},
           "captured": [],
-          "power": 5,
-          "hp": 5,
+          "power": 3,
+          "hp": 3,
           "keywords": [],
           "traits": [
             "rebel",

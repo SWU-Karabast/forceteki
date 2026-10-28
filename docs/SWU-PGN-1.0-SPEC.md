@@ -1312,7 +1312,7 @@ writer MUST derive an event's `kind` from what the event does, not from the card
 
 // Flown onto the X-Wing: this move attaches, so it is an upgrade move.
 {"seq":"R2.A.0d","t":"MOVE","card":"JTL#058","from":"hand","to":"space","p":1,"kind":"upgrade","attachedTo":"LAW#253","for":"R2.A.1"}
-{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"JTL#058","zone":"space","target":"LAW#253","cost":2,"ms":9}
+{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"JTL#058","zone":"space","target":"LAW#253","cost":2,"ms":7}
 ```
 
 A reader applies `kind` exactly as [§12.1](#121-the-move-rule-the-big-one) says: an
@@ -1597,6 +1597,13 @@ zone and is a new object `[W-49]`. Removes every seat's `abilityUses` entries fo
 the one for `ability` when it is given ([§12.2](#122-every-other-rule-in-one-table)). It is
 filed under the record that moved the card, and prints nothing in the story.
 
+From the `visibility` vector: Migs Mayfeld (`SHD#163:2`) used his once-each-round trigger on the
+discards of `R4.A.1`, then attacked and was defeated in the same round:
+
+```json
+{"seq":"R4.A.3f","t":"ABILITY_RESET","card":"SHD#163:2"}
+```
+
 **An ability used by another ability: `usedBy`.** Some abilities make a player use an ability on
 another card ("use a When Defeated ability on another friendly unit"; CR 7.6.13d, 7.6.14d). The
 record of that use is an `ABILITY_ACTIVATE` like any other: `card` is the card the used ability is
@@ -1608,7 +1615,7 @@ From the `visibility` vector: a Wartime Trade Official is defeated, its When Def
 Battle Droid, and Grand Admiral Thrawn (`JTL#002`, the leader) has Player 1 use it again:
 
 ```json
-{"seq":"R4.A.1l","t":"ABILITY_ACTIVATE","p":1,"card":"TWI#032:3","ability":"wartime-trade-official_triggered_0","kind":"triggered","title":"Create a Battle Droid token.","usedBy":"JTL#002"}
+{"seq":"R4.A.5l","t":"ABILITY_ACTIVATE","p":1,"card":"TWI#032","ability":"wartime-trade-official_triggered_0","kind":"triggered","title":"Create a Battle Droid token.","usedBy":"JTL#002"}
 ```
 
 ---
@@ -2169,7 +2176,7 @@ by **`attachedTo`** on the `MOVE` that carries it **into the arena**. From the `
 {"seq":"R1.A.1c","t":"STATUS_TOKEN","card":"ASH#251:2","token":"advantage","count":1}
 
 {"seq":"R3.A.0c","t":"MOVE","card":"LOF#215:2","from":"hand","to":"ground","p":1,"kind":"upgrade","attachedTo":"ASH#251:2","for":"R3.A.1"}
-{"seq":"R3.A.1","t":"PLAY_UPGRADE","p":1,"card":"LOF#215:2","zone":"ground","target":"ASH#251:2","cost":2,"ms":41}
+{"seq":"R3.A.1","t":"PLAY_UPGRADE","p":1,"card":"LOF#215:2","zone":"ground","target":"ASH#251:2","cost":2,"ms":36}
 ```
 
 An attachment that changes while the card stays in its arena — a printed upgrade moved to
@@ -2299,10 +2306,10 @@ From the `visibility` vector: a search of the top eight cards for an upgrade, a 
 two cards of the player's own deck, a look at the opponent's hand, and a card named:
 
 ```json
-{"seq":"R1.A.1b","t":"SEARCH","p":1,"owner":1,"seen":["LAW#253:3","TWI#032:2","SHD#069:2","SEC#239","SOR#062","SEC#239:2","SOR#031","LAW#253:4"]}
-{"seq":"R4.A.3b","t":"LOOK","p":1,"owner":1,"zone":"deck","cards":["SEC#239","SEC#239:2"],"count":2}
-{"seq":"R5.A.3b","t":"LOOK","p":1,"owner":2,"zone":"hand","cards":["SOR#095:4","SOR#095:5","SOR#095:6","SOR#095:7"],"count":4}
-{"seq":"R2.A.1a","t":"NAME","p":1,"name":"Battlefield Marine"}
+{"seq":"R2.A.1b","t":"SEARCH","p":1,"owner":1,"seen":["LAW#204:2","TWI#032:2","LAW#253:4","SHD#163","SHD#069:2","LAW#253:5","TWI#032:3","HMW#085:2"]}
+{"seq":"R1.A.1b","t":"LOOK","p":1,"owner":1,"zone":"deck","cards":["LAW#204","TWI#032"],"count":2}
+{"seq":"R5.A.3b","t":"LOOK","p":1,"owner":2,"zone":"hand","cards":["SOR#095:7"],"count":1}
+{"seq":"R4.A.7a","t":"NAME","p":1,"name":"Battlefield Marine"}
 ```
 
 <a id="simultaneous-groups"></a>
@@ -2328,16 +2335,16 @@ it, and a renderer prints its records as it would print them without `simul`, in
 ([§16](#16-rendering--turning-a-file-into-a-story)). A `blind` pick names the cards in `offered`
 in full in 1.0; hiding another player's pick is a perspective rule's job ([§21](#21-open-issues)).
 
-From the `visibility` vector: Every Day, More Lies (`R2.A.3`) has each player discard a card. The
+From the `visibility` vector: Every Day, More Lies (`R4.A.1`) has each player discard a card. The
 two picks share the `blind` of the record that asked, and the discards are one group:
 
 ```json
-{"seq":"R2.A.3b","t":"CHOICE","p":1,"prompt":"Every Day, More Lies","offered":["HMW#085:2","TWI#032","SHD#069:2"],"chose":0,"blind":"R2.A.3a"}
-{"seq":"R2.A.3c","t":"CHOICE","p":2,"prompt":"Every Day, More Lies","offered":["SOR#095:2","SOR#095:3","SOR#095:4"],"chose":0,"blind":"R2.A.3a"}
-{"seq":"R2.A.3d","t":"MOVE","card":"HMW#085:2","from":"hand","to":"discard","p":1,"kind":"unit","simul":"R2.A.3d"}
-{"seq":"R2.A.3e","t":"DISCARD","p":1,"cards":["HMW#085:2"],"simul":"R2.A.3d"}
-{"seq":"R2.A.3f","t":"MOVE","card":"SOR#095:2","from":"hand","to":"discard","p":2,"kind":"unit","simul":"R2.A.3d"}
-{"seq":"R2.A.3g","t":"DISCARD","p":2,"cards":["SOR#095:2"],"simul":"R2.A.3d"}
+{"seq":"R4.A.1b","t":"CHOICE","p":1,"prompt":"Every Day, More Lies","offered":["SHD#069:2","TWI#032:4","SOR#062"],"chose":0,"blind":"R4.A.1a"}
+{"seq":"R4.A.1c","t":"CHOICE","p":2,"prompt":"Every Day, More Lies","offered":["SOR#095:5","LAW#253:14","LAW#253:15"],"chose":0,"blind":"R4.A.1a"}
+{"seq":"R4.A.1d","t":"MOVE","card":"SHD#069:2","from":"hand","to":"discard","p":1,"kind":"upgrade","simul":"R4.A.1d"}
+{"seq":"R4.A.1e","t":"DISCARD","p":1,"cards":["SHD#069:2"],"simul":"R4.A.1d"}
+{"seq":"R4.A.1f","t":"MOVE","card":"SOR#095:5","from":"hand","to":"discard","p":2,"kind":"unit","simul":"R4.A.1d"}
+{"seq":"R4.A.1g","t":"DISCARD","p":2,"cards":["SOR#095:5"],"simul":"R4.A.1d"}
 ```
 
 ### 10.3 Homeworlds: Fortify, Beast and Weakness
@@ -2557,7 +2564,7 @@ may read `"The Death Star"`. That field is advisory, [§6.4](#64-small-vocabular
 arrival in **space** are its sub-steps:
 
 ```json
-{"seq":"R8.A.1","t":"ABILITY_ACTIVATE","p":1,"card":"HMW#004","ability":"grand-moff-tarkin#tyrant-of-the-outer-rim_action_0","kind":"epic","title":"Deploy Grand Moff Tarkin","epic":true,"ms":39}
+{"seq":"R8.A.1","t":"ABILITY_ACTIVATE","p":1,"card":"HMW#004","ability":"grand-moff-tarkin#tyrant-of-the-outer-rim_action_0","kind":"epic","title":"Deploy Grand Moff Tarkin","epic":true,"ms":36}
 {"seq":"R8.A.1a","t":"MOVE","card":"HMW#004","from":"base","to":"space","p":1,"kind":"unit"}
 {"seq":"R8.A.1c","t":"DEPLOY_LEADER","p":1,"card":"HMW#004","zone":"space","epic":true,"cost":9}
 ```

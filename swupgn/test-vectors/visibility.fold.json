@@ -1,5 +1,5 @@
 {
-  "round": 6,
+  "round": 7,
   "phase": "action",
   "initiative": 1,
   "players": {
@@ -9,19 +9,20 @@
       "baseMaxHp": 30,
       "handSize": 2,
       "hand": [
-        "SEC#239",
-        "SOR#031"
+        "SEC#239:2",
+        "SOR#062:2"
       ],
-      "resourcesReady": 7,
+      "resourcesReady": 8,
       "resourcesExhausted": 0,
       "resources": [
         "LAW#253",
         "LAW#253:2",
+        "LAW#253:3",
+        "LAW#253:6",
         "SHD#069",
-        "TWI#032",
-        "SHD#069:2",
-        "LAW#204:2",
-        "LAW#253:3"
+        "SOR#031:2",
+        "LAW#253:7",
+        "LAW#253:8"
       ],
       "foreignResources": [],
       "baseUpgrades": [],
@@ -30,8 +31,9 @@
       "hasForce": false,
       "discard": [
         "LAW#204",
-        "HMW#085:2",
-        "TWI#032:3",
+        "SHD#069:2",
+        "SHD#163:2",
+        "TWI#032",
         "TWI#032:4"
       ],
       "cards": [
@@ -51,24 +53,6 @@
           "traits": [
             "imperial",
             "trooper"
-          ]
-        },
-        {
-          "id": "SOR#062:2",
-          "zone": "ground",
-          "damage": 0,
-          "exhausted": false,
-          "upgrades": [],
-          "shields": 0,
-          "experience": 0,
-          "statusTokens": {},
-          "captured": [],
-          "power": 1,
-          "hp": 4,
-          "keywords": [],
-          "traits": [
-            "imperial",
-            "official"
           ]
         },
         {
@@ -110,6 +94,24 @@
           ]
         },
         {
+          "id": "SOR#062",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 1,
+          "hp": 4,
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "official"
+          ]
+        },
+        {
           "id": "TOKEN:battle-droid#3463348370:3",
           "zone": "ground",
           "damage": 0,
@@ -148,7 +150,7 @@
           ]
         },
         {
-          "id": "SEC#239:2",
+          "id": "SEC#239",
           "zone": "ground",
           "damage": 0,
           "exhausted": false,
@@ -166,7 +168,7 @@
           ]
         },
         {
-          "id": "SOR#031:2",
+          "id": "SOR#031",
           "zone": "space",
           "damage": 0,
           "exhausted": false,
@@ -185,7 +187,7 @@
           ]
         }
       ],
-      "deckSize": 3,
+      "deckSize": 7,
       "leader": {
         "id": "JTL#002",
         "deployed": false,
@@ -196,26 +198,23 @@
     },
     "2": {
       "seat": 2,
-      "baseHp": 30,
+      "baseHp": 24,
       "baseMaxHp": 30,
-      "handSize": 5,
+      "handSize": 1,
       "hand": [
-        "SOR#095:4",
-        "SOR#095:5",
-        "SOR#095:6",
-        "SOR#095:7",
         "SOR#095:8"
       ],
-      "resourcesReady": 7,
+      "resourcesReady": 8,
       "resourcesExhausted": 0,
       "resources": [
-        "LAW#253:5",
-        "LAW#253:6",
-        "LAW#253:7",
-        "SOR#095:3",
         "LAW#253:9",
+        "LAW#253:10",
         "LAW#253:11",
-        "LAW#253:12"
+        "LAW#253:12",
+        "LAW#253:13",
+        "SOR#095:6",
+        "LAW#253:16",
+        "SOR#095:7"
       ],
       "foreignResources": [],
       "baseUpgrades": [],
@@ -223,11 +222,12 @@
       "credits": 0,
       "hasForce": false,
       "discard": [
-        "SOR#095:2"
+        "SOR#095:5",
+        "SOR#095"
       ],
       "cards": [
         {
-          "id": "SOR#095",
+          "id": "SOR#095:2",
           "zone": "ground",
           "damage": 2,
           "exhausted": false,
@@ -245,7 +245,43 @@
           ]
         },
         {
-          "id": "LAW#253:8",
+          "id": "SOR#095:3",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
+        },
+        {
+          "id": "SOR#095:4",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
+        },
+        {
+          "id": "LAW#253:14",
           "zone": "space",
           "damage": 0,
           "exhausted": false,
@@ -264,7 +300,7 @@
           ]
         },
         {
-          "id": "LAW#253:10",
+          "id": "LAW#253:15",
           "zone": "space",
           "damage": 0,
           "exhausted": false,
@@ -298,7 +334,7 @@
   "effects": [
     {
       "id": "fx@1",
-      "src": "SOR#062:2",
+      "src": "SOR#062",
       "p": 1,
       "seat": 2,
       "duration": "whileSourceInPlay"

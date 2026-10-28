@@ -79,9 +79,7 @@
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──
-  1. Player 1 plays Traitorous on Battlefield Marine (cost 5)
-       ↳ Traitorous uses an ability
-       ↳ Player 1 takes control of Battlefield Marine
+  1. Player 1 passes
   2. Player 2 plays Battlefield Marine #4 to ground (cost 2)
   3. Player 1 passes
   4. Player 2 plays Battlefield Marine #5 to ground (cost 2)
@@ -95,23 +93,22 @@
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 5                                                 initiative: Player 1 
- P1  base 30/30   hand 4   resources 6/6   deck 11   leader ready
-      ground: Battlefield Marine 3/3 [Traitorous]  ·  Gar Saxon, Coveting Power 6/7 [Academy Training #2, Foundling]  ·  Mandalorian 2/2 [1 shield]
+ P1  base 30/30   hand 5   resources 6/6   deck 11   leader ready
+      ground: Gar Saxon, Coveting Power 6/7 [Academy Training #2, Foundling]  ·  Mandalorian 2/2 [1 shield]
  P2  base 30/30   hand 2   resources 6/6   deck 6   leader ready
-      ground: Battlefield Marine #2 3/3  ·  Battlefield Marine #3 3/3  ·  Battlefield Marine #4 3/3  ·  Battlefield Marine #5 3/3
+      ground: Battlefield Marine 3/3  ·  Battlefield Marine #2 3/3  ·  Battlefield Marine #3 3/3  ·  Battlefield Marine #4 3/3  ·  Battlefield Marine #5 3/3
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──
-  1. Player 1 plays Foundling #2 on Gar Saxon, Coveting Power (cost 1)
-       ↳ Gar Saxon, Coveting Power uses an ability
-       ↳ Player 1 creates Mandalorian #2 in ground
-       ↳ Mandalorian #2 uses an ability
-       ↳ Mandalorian #2 gains 1 shield
-  2. Player 2 plays Academy Training #3 on Battlefield Marine #2 (cost 2)
-  3. Player 1 passes
+  1. Player 1 passes
+  2. Player 2 plays Academy Training #3 on Battlefield Marine (cost 2)
+  3. Player 1 plays Traitorous on Battlefield Marine (cost 5)
+       ↳ Traitorous uses an ability
+       ↳ Player 1 takes control of Battlefield Marine
   4. Player 2 plays Alliance X-Wing #18 to space (cost 2)
-  5. Player 1 passes
+  5. Player 1 plays Foundling #2 on Battlefield Marine (cost 1)
   6. Player 2 passes
+  7. Player 1 passes
  ── regroup ──
        ↳ Player 1 draws 2: Alliance X-Wing #8 · Arquitens Assault Cruiser
        ↳ Player 2 draws 2: Alliance X-Wing #19 · Battlefield Marine #6
@@ -121,9 +118,9 @@
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 6                                                 initiative: Player 1 
  P1  base 30/30   hand 4   resources 7/7   deck 9   leader ready
-      ground: Battlefield Marine 3/3 [Traitorous]  ·  Gar Saxon, Coveting Power 7/8 [Academy Training #2, Foundling, Foundling #2]  ·  Mandalorian 2/2 [1 shield]  ·  Mandalorian #2 2/2 [1 shield]
+      ground: Battlefield Marine 6/6 [Academy Training #3, Traitorous, Foundling #2]  ·  Gar Saxon, Coveting Power 6/7 [Academy Training #2, Foundling]  ·  Mandalorian 2/2 [1 shield]
  P2  base 30/30   hand 1   resources 7/7   deck 4   leader ready
-      ground: Battlefield Marine #2 5/5 [Academy Training #3]  ·  Battlefield Marine #3 3/3  ·  Battlefield Marine #4 3/3  ·  Battlefield Marine #5 3/3
+      ground: Battlefield Marine #2 3/3  ·  Battlefield Marine #3 3/3  ·  Battlefield Marine #4 3/3  ·  Battlefield Marine #5 3/3
       space: Alliance X-Wing #18 2/3
 ══════════════════════════════════════════════════════════════════════════════
 
@@ -143,9 +140,9 @@
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 7                                                 initiative: Player 1 
  P1  base 30/30   hand 4   resources 8/8   deck 7   leader ready
-      ground: Battlefield Marine 3/3 [Traitorous]  ·  Gar Saxon, Coveting Power 7/8 [Academy Training #2, Foundling, Foundling #2]  ·  Mandalorian 2/2 [1 shield]  ·  Mandalorian #2 2/2 [1 shield]  ·  Battlefield Marine 3/3
+      ground: Battlefield Marine 6/6 [Academy Training #3, Traitorous, Foundling #2]  ·  Gar Saxon, Coveting Power 6/7 [Academy Training #2, Foundling]  ·  Mandalorian 2/2 [1 shield]  ·  Battlefield Marine 3/3
  P2  base 30/30   hand 1   resources 8/8   deck 2   leader ready
-      ground: Battlefield Marine #2 5/5 [Academy Training #3]  ·  Battlefield Marine #3 3/3  ·  Battlefield Marine #4 3/3  ·  Battlefield Marine #5 3/3  ·  Battlefield Marine #6 3/3
+      ground: Battlefield Marine #2 3/3  ·  Battlefield Marine #3 3/3  ·  Battlefield Marine #4 3/3  ·  Battlefield Marine #5 3/3  ·  Battlefield Marine #6 3/3
       space: Alliance X-Wing #18 2/3
 ══════════════════════════════════════════════════════════════════════════════
 
@@ -171,10 +168,10 @@
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 8                                                 initiative: Player 1 
  P1  base 30/30   hand 4   resources 10/10   deck 5   leader ready
-      ground: Battlefield Marine 3/3 [Traitorous]  ·  Gar Saxon, Coveting Power 7/8 [Academy Training #2, Foundling, Foundling #2]  ·  Mandalorian 2/2 [1 shield]  ·  Mandalorian #2 2/2 [1 shield]  ·  Battlefield Marine 3/3
+      ground: Battlefield Marine 6/6 [Academy Training #3, Traitorous, Foundling #2]  ·  Gar Saxon, Coveting Power 6/7 [Academy Training #2, Foundling]  ·  Mandalorian 2/2 [1 shield]  ·  Battlefield Marine 3/3
       space: Arquitens Assault Cruiser 7/8 [2 dmg]
  P2  base 30/30   hand 1   resources 9/9   deck 0   leader ready
-      ground: Battlefield Marine #2 5/5 [Academy Training #3]  ·  Battlefield Marine #3 3/3  ·  Battlefield Marine #4 3/3  ·  Battlefield Marine #5 3/3  ·  Battlefield Marine #6 3/3  ·  Battlefield Marine #7 3/3
+      ground: Battlefield Marine #2 3/3  ·  Battlefield Marine #3 3/3  ·  Battlefield Marine #4 3/3  ·  Battlefield Marine #5 3/3  ·  Battlefield Marine #6 3/3  ·  Battlefield Marine #7 3/3
 ══════════════════════════════════════════════════════════════════════════════
 
  ── action ──

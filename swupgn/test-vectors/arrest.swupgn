@@ -1,10 +1,10 @@
 [Game "SWU-PGN/1.0"]
 [WriterRevision "6"]
 [GameId "sha256:661f4f0c4325e8154c8c3a9ed622ce0284caeab7b5fd2f46a3f2a29742c4f645"]
-[Date "2026-10-28T23:32:08.497Z"]
+[Date "2026-10-28T23:54:34.213Z"]
 [Format "premier"]
 [CardPool "ASH,HMW,IBH,IC27,JTL,LAW,LOF,SEC,SHD,SOR,TS26,TWI"]
-[Engine "forceteki@7dea52b9d"]
+[Engine "forceteki@3061eeda3"]
 [Seed "swu-pgn-vector-arrest"]
 [P1Id "sha256:8849aa57ad283a2eb0d1a026cd1fa670ad8d48cf6b7cb55db80a6ef70960abb8"]
 [P2Id "sha256:d484debd88f2263d58ca8abbccc39bdd155f07d2b6ef472275312d173460ddf1"]
@@ -17,7 +17,7 @@
 [Result "P1"]
 [Reason "Concession"]
 [Rounds "4"]
-[EndDate "2026-10-28T23:32:08.513Z"]
+[EndDate "2026-10-28T23:54:34.229Z"]
 
 %%% STORY
  ── setup ──
@@ -199,7 +199,7 @@
 {"seq":"R2.A.0a","t":"CHOICE","p":1,"prompt":"Arrest","offered":["LAW#253:3"],"chose":0,"for":"R2.A.1"}
 {"seq":"R2.A.0b","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R2.A.1"}
 {"seq":"R2.A.0c","t":"MOVE","card":"SEC#195","from":"hand","to":"discard","p":1,"for":"R2.A.1"}
-{"seq":"R2.A.1","t":"PLAY_EVENT","p":1,"card":"SEC#195","zone":"discard","cost":2,"ms":5}
+{"seq":"R2.A.1","t":"PLAY_EVENT","p":1,"card":"SEC#195","zone":"discard","cost":2,"ms":4}
 {"seq":"R2.A.1a","t":"ABILITY_ACTIVATE","p":1,"card":"SEC#195","ability":"arrest_anonymous","kind":"event","title":"Your base captures an enemy non-leader unit"}
 {"seq":"R2.A.1b","t":"MOVE","card":"LAW#253:3","from":"space","to":"capture","p":2,"kind":"unit"}
 {"seq":"R2.A.1c","t":"CAPTURE","p":1,"card":"LAW#253:3","by":"base@1"}
@@ -214,9 +214,9 @@
 {"seq":"R2.A.3","t":"ATTACK","p":1,"atk":"ASH#190","def":"base@2","defenderType":"base","ms":7}
 {"seq":"R2.A.3a","t":"DAMAGE","src":"ASH#190","tgt":"base@2","amt":4,"damageType":"combat","hp":26}
 {"seq":"R2.A.4","t":"PASS","p":2,"ms":8}
-{"seq":"R2.A.5","t":"PASS","p":1,"ms":9}
+{"seq":"R2.A.5","t":"PASS","p":1,"ms":8}
 {"seq":"R2.A.end","t":"PHASE_END","phase":"action"}
-{"seq":"R2.G.start","t":"PHASE_START","phase":"regroup","ms":9}
+{"seq":"R2.G.start","t":"PHASE_START","phase":"regroup","ms":8}
 {"seq":"R2.G.1","t":"EFFECT_END","id":"fx@1","reason":"fired"}
 {"seq":"R2.G.2","t":"RESCUE","p":2,"card":"LAW#253:3"}
 {"seq":"R2.G.3","t":"MOVE","card":"LAW#253:3","from":"capture","to":"space","p":2,"kind":"unit"}
@@ -261,16 +261,16 @@
 {"seq":"R3.A.3","t":"PLAY","p":1,"card":"ASH#190:2","zone":"ground","cost":2,"ms":12}
 {"seq":"R3.A.3a","t":"CHOICE","p":2,"prompt":"Alliance X-Wing","offered":["base@1"],"chose":0,"for":"R3.A.4"}
 {"seq":"R3.A.3b","t":"EXHAUST","card":"LAW#253:3","for":"R3.A.4"}
-{"seq":"R3.A.4","t":"ATTACK","p":2,"atk":"LAW#253:3","def":"base@1","defenderType":"base","ms":13}
+{"seq":"R3.A.4","t":"ATTACK","p":2,"atk":"LAW#253:3","def":"base@1","defenderType":"base","ms":12}
 {"seq":"R3.A.4a","t":"DAMAGE","src":"LAW#253:3","tgt":"base@1","amt":2,"damageType":"combat","hp":28}
 {"seq":"R3.A.4b","t":"CHOICE","p":1,"prompt":"Peridea Bandit","offered":["SOR#095","base@2"],"chose":1,"for":"R3.A.5"}
 {"seq":"R3.A.4c","t":"EXHAUST","card":"ASH#190","for":"R3.A.5"}
-{"seq":"R3.A.5","t":"ATTACK","p":1,"atk":"ASH#190","def":"base@2","defenderType":"base","ms":14}
+{"seq":"R3.A.5","t":"ATTACK","p":1,"atk":"ASH#190","def":"base@2","defenderType":"base","ms":13}
 {"seq":"R3.A.5a","t":"DAMAGE","src":"ASH#190","tgt":"base@2","amt":4,"damageType":"combat","hp":22}
 {"seq":"R3.A.6","t":"PASS","p":2,"ms":14}
-{"seq":"R3.A.7","t":"PASS","p":1,"ms":15}
+{"seq":"R3.A.7","t":"PASS","p":1,"ms":14}
 {"seq":"R3.A.end","t":"PHASE_END","phase":"action"}
-{"seq":"R3.G.start","t":"PHASE_START","phase":"regroup","ms":15}
+{"seq":"R3.G.start","t":"PHASE_START","phase":"regroup","ms":14}
 {"seq":"R3.G.1","t":"EFFECT_END","id":"fx@2","reason":"fired"}
 {"seq":"R3.G.2","t":"RESCUE","p":2,"card":"LAW#253:5"}
 {"seq":"R3.G.3","t":"MOVE","card":"LAW#253:5","from":"capture","to":"space","p":2,"kind":"unit"}
@@ -295,8 +295,8 @@
 {"seq":"R3.G.26","t":"READY_RESOURCES","p":2,"amount":5}
 {"seq":"R3.G.end","t":"PHASE_END","phase":"regroup"}
 {"seq":"R3.end","t":"ROUND_END","round":3,"keyframe":{"round":3,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":28,"baseMaxHp":30,"handSize":3,"hand":["ASH#190:3","SEC#195:3","SEC#195:4"],"resourcesReady":5,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:3","IC27#097:4","IC27#097:5"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SEC#195","SEC#195:2"],"cards":[{"id":"ASH#190","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":1,"keywords":[],"traits":["fringe"]},{"id":"ASH#190:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":1,"keywords":[],"traits":["fringe"]}],"deckSize":4,"leader":{"id":"SOR#015","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":22,"baseMaxHp":30,"handSize":4,"hand":["SOR#095:2","SOR#095:3","LAW#253:8","LAW#253:9"],"resourcesReady":5,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:4","LAW#253:6","LAW#253:7"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#095","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:3","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]},{"id":"LAW#253:5","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":4,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[]}}
-{"seq":"R4.start","t":"ROUND_START","round":4,"active":1,"keyframe":{"round":4,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":28,"baseMaxHp":30,"handSize":3,"hand":["ASH#190:3","SEC#195:3","SEC#195:4"],"resourcesReady":5,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:3","IC27#097:4","IC27#097:5"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SEC#195","SEC#195:2"],"cards":[{"id":"ASH#190","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":1,"keywords":[],"traits":["fringe"]},{"id":"ASH#190:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":1,"keywords":[],"traits":["fringe"]}],"deckSize":4,"leader":{"id":"SOR#015","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":22,"baseMaxHp":30,"handSize":4,"hand":["SOR#095:2","SOR#095:3","LAW#253:8","LAW#253:9"],"resourcesReady":5,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:4","LAW#253:6","LAW#253:7"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#095","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:3","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]},{"id":"LAW#253:5","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":4,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":16}
-{"seq":"R4.A.start","t":"PHASE_START","phase":"action","active":1,"ms":16}
+{"seq":"R4.start","t":"ROUND_START","round":4,"active":1,"keyframe":{"round":4,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":28,"baseMaxHp":30,"handSize":3,"hand":["ASH#190:3","SEC#195:3","SEC#195:4"],"resourcesReady":5,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:3","IC27#097:4","IC27#097:5"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SEC#195","SEC#195:2"],"cards":[{"id":"ASH#190","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":1,"keywords":[],"traits":["fringe"]},{"id":"ASH#190:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":1,"keywords":[],"traits":["fringe"]}],"deckSize":4,"leader":{"id":"SOR#015","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":22,"baseMaxHp":30,"handSize":4,"hand":["SOR#095:2","SOR#095:3","LAW#253:8","LAW#253:9"],"resourcesReady":5,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:4","LAW#253:6","LAW#253:7"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#095","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]},{"id":"LAW#253:3","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]},{"id":"LAW#253:5","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"]}],"deckSize":4,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":15}
+{"seq":"R4.A.start","t":"PHASE_START","phase":"action","active":1,"ms":15}
 {"seq":"R4.A.game-end","t":"GAME_END","winner":1,"reason":"Concession"}
 
 %%% ANNOTATIONS
