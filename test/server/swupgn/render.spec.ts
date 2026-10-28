@@ -263,4 +263,13 @@ describe('render effects', function () {
             '       ↳ Effect fx@9 ends (expired)',
         ]);
     });
+
+    // Value: protects=icon markup in EFFECT_START.text never reaches the plain-text story (§16); fails_when=text is printed raw; why_new=fix round 1; seam=none; no_claim=untilText (printed as it is)
+    it('prints an effect text\'s icon markup as plain text', function () {
+        const out = render(doc([
+            { seq: 'R1.A.1a', t: 'EFFECT_START', id: 'fx@1', src: 'SOR#142', p: 1, targets: ['SOR#108'], duration: 'phase',
+                text: 'gains {keyword:sentinel} and {keyword:raid:2}, costs {resource:1} less, :aggression::heroism:' },
+        ]), nm);
+        expect(out).toBe('       ↳ Player 1: Bold Resistance — gains Sentinel and Raid 2, costs 1 resource less, Aggression Heroism on Wampa (for this phase)');
+    });
 });

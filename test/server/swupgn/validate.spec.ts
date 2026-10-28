@@ -359,6 +359,16 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(codes(fx('fx@12'))).toEqual([]);
     });
 
+    // Value: protects=[W-48] untilText is required with duration until, and only then; fails_when=the schema if/then is missing or applies to a newer-minor duration; why_new=fix round 1; seam=none; no_claim=none
+    it('reports an until effect without untilText', function () {
+        const fx = (extra: string, game = 'SWU-PGN/1.0') => addEvent(`{"seq":"R1.A.9","t":"EFFECT_START","id":"fx@1","src":"SOR#108","p":1,"targets":["SOR#108"]${extra}}`).replace('SWU-PGN/1.0', game);
+        expect(codes(fx(',"duration":"until"'))).toEqual(['error:schema']);
+        expect(codes(fx(',"duration":"until","untilText":"it attacks"'))).toEqual([]);
+        expect(codes(fx(',"duration":"phase"'))).toEqual([]);
+        // A duration from a newer minor version is not `until`, so it needs no untilText.
+        expect(codes(fx(',"duration":"untilNextTurn"', 'SWU-PGN/1.7')).sort()).toEqual(['warning:newer-minor', 'warning:unknown-value']);
+    });
+
     it('reports a Fortify upgrade attached to the other seat\'s base', function () {
         const move = (p: number, base: string) => addEvent(`{"seq":"R1.A.9","t":"MOVE","card":"HMW#147","from":"hand","to":"base","p":${p},"kind":"upgrade","attachedTo":"${base}"}`);
         const play = (p: number, base: string) => addEvent(`{"seq":"R1.A.9","t":"PLAY_UPGRADE","p":${p},"card":"HMW#147","zone":"base","target":"${base}","cost":2}`);

@@ -367,7 +367,8 @@ requirement, by id. The linked section is where each one is defined.
 - `[W-48]` MUST write one `EFFECT_START` for each lasting or delayed effect (CR 7.7.3, 7.7.4) an
   ability resolution creates, **as the card text states it**, and one `EFFECT_END` when it ends;
   when a target leaves play while the effect goes on for the others, MUST write a partial
-  `EFFECT_END` naming that target ([§10.1](#effect_start)).
+  `EFFECT_END` naming that target; and MUST write `untilText` on every `EFFECT_START` whose
+  `duration` is `until` ([§10.1](#effect_start)).
 
 ### The Parser (reads the syntax)
 
@@ -1812,7 +1813,7 @@ ability text is not recorded — it is card data, and the `%%% CARDS` index name
 | `targets` | string[] | no | What the effect applies to: card ids and/or `base@N`, at least one. Absent for an effect that applies to a player rather than to cards; `seat` then says which. |
 | `seat` | 1 or 2 | no | For a player-wide effect ("the next card you play this phase costs 1 less"), the seat it applies to. |
 | `duration` | string | yes | How long it lasts. **Closed** — the table below. |
-| `untilText` | string | no | With `duration` `until`: the condition that ends the effect, in words that read after "until" (`this unit attacks`). A writer SHOULD write it with `until`. Advisory, like `text`. |
+| `untilText` | string | with `until` | With `duration` `until`: the condition that ends the effect, in words that read after "until" (`this unit attacks`). REQUIRED when `duration` is `until` `[W-48]`, and a record without it fails its schema (`schema`, error). Advisory otherwise, like `text`: a reader never evaluates it. It is plain text, never markup. |
 | `ability` | string | no | The ability that created the effect, in the form of `ABILITY_ACTIVATE.ability`. A reader MUST NOT branch on it. |
 | `text` | string | no | The effect in words (`+2/+2 and Sentinel`). Advisory, like `ABILITY_ACTIVATE.title`, and it MAY carry icon markup the same way. |
 
@@ -3104,7 +3105,7 @@ Friends"), so a comma-joined list could not be split back into cards.
 | `MULLIGAN` | `{who(p)} mulligans` |
 | `KEEP_HAND` | `{who(p)} keeps their hand` |
 | `GAME_END` | `*** {who(winner)} wins — {reason} ***` · draw: `*** Game ends in a draw — {reason} ***` |
-| `EFFECT_START` | `{who(p)}: {nm(src)}` + ` — {text}` if `text` + ` on {names(targets)}` if `targets` is non-empty, else ` for {who(seat)}` if `seat` + ` ({lasts})`. `{lasts}` is `for this attack`, `for this phase`, `for this round`, `while {nm(src)} is in play`, `until {untilText}` (`until a condition is met` without `untilText`), `delayed` or `for the rest of the game` for the seven `duration` values, and the value itself for any other |
+| `EFFECT_START` | `{who(p)}: {nm(src)}` + ` — {plain(text)}` if `text` + ` on {names(targets)}` if `targets` is non-empty, else ` for {who(seat)}` if `seat` + ` ({lasts})`. `{lasts}` is `for this attack`, `for this phase`, `for this round`, `while {nm(src)} is in play`, `until {untilText}` (`until a condition is met` without `untilText`), `delayed` or `for the rest of the game` for the seven `duration` values, and the value itself for any other. `plain(text)` is `text` with each icon-markup token of [§10.1](#101-events-that-carry-board-detail) replaced by its plain text (aspect tokens side by side are joined by one space); the story is plain text, so markup never reaches it. `untilText` is printed as it is |
 | `EFFECT_END` | `Effect from {nm(src)} ends` — `src` from the `EFFECT_START` with the same `id` earlier in the file; `Effect {id} ends` when there is none — + ` on {names(targets)}` if `targets` is non-empty + ` ({why})`. `{why}` is `expired`, `it resolved`, `its source left play`, `its target left play` or `cancelled` for the five `reason` values, and the value itself for any other |
 
 **These print nothing**: `MOVE`, `EXHAUST`, `READY`, `EXHAUST_RESOURCES`, `READY_RESOURCES`,
@@ -3651,12 +3652,15 @@ assume one is in range: a count of `1e308` or a negative `amount` MUST NOT make 
 index out of bounds. The reference folder clamps counts at zero and ignores a non-number.
 
 **Display injection.** `CARDS.name`, `backSideName`, `Reason`, `CHOICE.prompt`,
-`CHOICE.offered`, `ABILITY_ACTIVATE.title`, annotation `text` and `by`, and every unknown field
-are attacker-controlled text. A renderer and a consumer MUST escape them for the medium they
+`CHOICE.offered`, `ABILITY_ACTIVATE.title`, `EFFECT_START.text` and `untilText`, annotation
+`text` and `by`, and every unknown field are attacker-controlled text. The story
+([§16](#16-rendering--turning-a-file-into-a-story)) prints `EFFECT_START.text` and `untilText`,
+so a `%%% STORY` line carries them too and is escaped like them. A renderer and a consumer MUST escape them for the medium they
 display in (HTML, Markdown, a terminal) and SHOULD neutralise bidirectional-override and control
 characters, which can make a line read differently from what it says `[R-04]`.
-`ABILITY_ACTIVATE.title` may carry the icon markup of [§10.1](#101-events-that-carry-board-detail).
-A reader that renders it MUST treat it as markup to interpret, never as HTML.
+`ABILITY_ACTIVATE.title` and `EFFECT_START.text` may carry the icon markup of
+[§10.1](#101-events-that-carry-board-detail). A reader that renders either MUST treat it as markup
+to interpret, never as HTML.
 
 **Integrity is not authenticity.** A verified file proves that its events and keyframes agree
 with each other. It does not prove the game happened, or that a particular server wrote it:

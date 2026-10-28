@@ -20,6 +20,23 @@ interface SidedResolver extends NameResolver {
     frontNameOf(id: string): string;
 }
 
+const ASPECTS = 'vigilance|command|aggression|cunning|villainy|heroism';
+const capitalise = (w: string) => w.charAt(0).toUpperCase() + w.slice(1);
+
+/**
+ * `text` with each icon-markup token of spec §10.1 replaced by its plain text, because the story
+ * is plain text (§16): `{keyword:restore:1}` -> `Restore 1`, `{resource:2}` -> `2 resources`,
+ * `:aggression::heroism:` -> `Aggression Heroism`. Anything else is left as it is.
+ */
+export function plainText(text: string): string {
+    return text
+        .replace(/\{keyword:([a-z]+)(?::(\d+))?\}/g, (_m, name: string, n?: string) => capitalise(name) + (n ? ` ${n}` : ''))
+        .replace(/\{resource:(\d+)\}/g, (_m, n: string) => `${n} ${n === '1' ? 'resource' : 'resources'}`)
+        .replace(new RegExp(`(?::(?:${ASPECTS}):)+`, 'g'), (run) => run.split(':').filter((w) => w !== '')
+            .map(capitalise)
+            .join(' '));
+}
+
 /** Each `EffectDuration` as the words that close an `EFFECT_START` line (spec §16). */
 function durationWords(duration: unknown, src: string, untilText: unknown, nm: (id: string) => string): string {
     switch (duration) {
@@ -120,7 +137,7 @@ function line(e: GameEvent, n: SidedResolver, effectSources: ReadonlyMap<string,
         // An effect names its source card, then what it does in words when the file says, then
         // what it applies to: the targets, or the seat a player-wide effect is for.
         case 'EFFECT_START': {
-            const what = e.text ? ` — ${e.text}` : '';
+            const what = e.text ? ` — ${plainText(String(e.text))}` : '';
             const on = arr(e.targets).length ? ` on ${list(e.targets)}` : e.seat === 1 || e.seat === 2 ? ` for ${who(e.seat)}` : '';
             return `${who(e.p)}: ${nm(e.src)}${what}${on} (${durationWords(e.duration, e.src, e.untilText, nm)})`;
         }
