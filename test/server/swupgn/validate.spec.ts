@@ -369,6 +369,15 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(codes(fx(',"duration":"untilNextTurn"', 'SWU-PGN/1.7')).sort()).toEqual(['warning:newer-minor', 'warning:unknown-value']);
     });
 
+    // Value: protects=[W-56] owner is required on a resource TAKE_CONTROL without from, and only there; fails_when=the schema if/then is missing or applies to a steal that carries from; why_new=fix round 1; seam=none; no_claim=writer output
+    it('reports a resource steal without from that names no owner', function () {
+        const take = (extra: string) => codes(addEvent(`{"seq":"R1.A.9","t":"TAKE_CONTROL","p":1,"card":"SOR#108","zone":"resource"${extra}}`));
+        expect(take('')).toEqual(['error:schema']);
+        expect(take(',"owner":2')).toEqual([]);
+        // With `from` it shifts a resource the fixture's later keyframe does not show; the schema is satisfied.
+        expect(take(',"from":2')).not.toContain('error:schema');
+    });
+
     // Value: protects=the schema knows LOOK and NAME and the new limit/blind/simul/usedBy/seen/owner fields, and pins their shape; fails_when=a well-formed record warns unknown-type, a malformed one passes, or a newer-minor per is an error; why_new=the records are new; seam=none; no_claim=writer output
     it('accepts looks, names, limits, blind and simultaneous groups, and checks their shape', function () {
         const clean = [

@@ -819,6 +819,10 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
     if (ARENA_ZONES.has(e.to)) {
         if (existing) {
             existing.zone = e.to;
+            // A PLAY written before its MOVE already placed the entry, without an owner.
+            if (ownerSeat === otherSeat) {
+                existing.owner = otherSeat;
+            }
         } else if (ps.cards.length < MAX_ZONE_LIST) {
             // MOVE is the arena's real author (§12.1) -- PLAY only summarises -- so this is the
             // path a crafted file grows, and it must carry the same ceiling placeCard does.
@@ -1024,6 +1028,23 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             // `from` to `p`; a Credit or Force token in `base` shifts one credit, or the Force.
             const ps = player(s, e.p);
             if (!ps) {
+                break;
+            }
+            if (e.zone === 'resource' && !isSeat(e.from)) {
+                // The steal changed zone (a unit put into the row under `p`): the MOVE beside it
+                // carried the counts and the membership, so only ownership is left to record, and
+                // `owner` states it (spec §10.1).
+                if (isSeat(e.owner) && typeof e.card === 'string') {
+                    const other = s.players[e.p === 1 ? 2 : 1];
+                    if (other && Array.isArray(other.foreignResources)) {
+                        removeOne(other.foreignResources, e.card);
+                    }
+                    if (e.owner !== e.p) {
+                        addOnce(foreignList(ps), e.card);
+                    } else if (Array.isArray(ps.foreignResources)) {
+                        removeOne(ps.foreignResources, e.card);
+                    }
+                }
                 break;
             }
             if (e.zone === 'resource' || e.zone === 'base') {

@@ -398,9 +398,11 @@ requirement, by id. The linked section is where each one is defined.
   same terms as `[W-22]` ([§10.1](#stats)).
 - `[W-56]` MUST record a change of control of an attached upgrade (CR 8.27) as a `TAKE_CONTROL`
   whose `card` is the upgrade, `zone` its host's arena, `from` the seat that controlled it and `p`
-  the seat that controls it now ([§10.1](#take_control)).
+  the seat that controls it now; and MUST write `owner` on a `resource` `TAKE_CONTROL` that carries
+  no `from` (the steal changed zone, so a `MOVE` carried the counts), naming the card's owner
+  ([§10.1](#take_control)).
 - `[W-57]` MUST carry `foreignResources` on every keyframe seat, an empty list when the seat's row
-  holds none of the other seat's cards; `owner` on every keyframe card whose owner is not the seat
+  holds none of the other seat's cards; `traits` on every keyframe card; `owner` on every keyframe card whose owner is not the seat
   holding it; and `upgradeControllers` on every keyframe card with an attached upgrade the other
   seat controls ([§11](#11-the-reduced-state--the-board-you-build)).
 
@@ -1635,6 +1637,7 @@ A writer MUST emit one of these per flip, and MUST carry `onStartingSide` in eve
 | `zone` | string | no | Where the card is now (`ground`, `space`, `resource`, `base`); for an upgrade, its host's arena. |
 | `from` | 1 or 2 | no | The seat it left. Present only when this record has to carry the counts (see below). |
 | `exhausted` | boolean | no | `resource` only: the stolen resource is exhausted, so the exhausted count moves rather than the ready one. |
+| `owner` | 1 or 2 | with `resource` and no `from` | The card's owner. REQUIRED on a `resource` record without `from` `[W-56]`, and a record without it fails its schema (`schema`, error). |
 
 **A control change is not a zone change**, so no `MOVE` accompanies it: a stolen unit stays in
 the same arena, a stolen resource stays a resource, a stolen Credit token stays in a base. This
@@ -1663,6 +1666,12 @@ record therefore re-seats the card itself:
   `players[from].foreignResources` it is going home, so take it out of that list; otherwise it now
   sits in a row its owner does not control, so add it to `players[p].foreignResources` (created if
   absent, once by id).
+- `zone` is `resource` and `from` is absent → the steal changed zone (a defeated unit put into play
+  as a resource under `p`), and the `MOVE` beside it already carried the counts and the row's
+  membership, so no count changes. `owner` records ownership: take `card` out of the other seat's
+  `foreignResources` if it is there; then when `owner` is not `p`, add it to
+  `players[p].foreignResources` (created if absent, once by id), and when it is `p`, take it out of
+  `players[p].foreignResources`.
 - `zone` is `base` and `from` is present → a Credit token: `players[from].credits - 1`,
   `players[p].credits + 1`; the Force token: `players[from].hasForce = false`,
   `players[p].hasForce = true` ([§6.1](#two-reserved-token-names)).
@@ -2881,9 +2890,9 @@ remove that entry when it is (a host left with no entry has no `upgradeControlle
 
 - moving **into** an arena: `detach(state, card)` first — a unit is nobody's upgrade, and a
   pilot ejected from a vehicle moves arena to arena, so step 0 never detached it. Then, if
-  you already track this card id, just set its zone. Otherwise create a fresh card and add it
-  to `players[p].cards` — with `owner` set to the other seat when the pile it just left says
-  that seat owns it: the other seat's `hand` or `discard` (whose pile, above), the other seat's
+  you already track this card id, set its zone (a `PLAY` written before its `MOVE` placed it
+  already). Otherwise create a fresh card and add it to `players[p].cards`. Either way, set its
+  `owner` to the other seat when the pile it just left says that seat owns it: the other seat's `hand` or `discard` (whose pile, above), the other seat's
   `resources` where it was not one of that seat's `foreignResources`, or `p`'s own `resources`
   where it was one of `p`'s. A unit played out of its owner's discard by the other seat is
   therefore owned by the seat whose pile it left.
@@ -2908,7 +2917,7 @@ twice.
 | `ABILITY_ACTIVATE` | if `limit` is present, `card` and `ability` are strings, `p` is `1` or `2` and `limit.per` is `phase`, `round` or `game`: create `players[p].abilityUses` if absent; if it holds an entry with this `card` and `ability`, add 1 to its `count` and set its `per` and `max` to `limit.per` and `limit.max`, else add `{ card, ability, count: 1, per, max }` at the end (`max` is `0` when `limit.max` is not a number) (no more than 1000 entries are kept). Then, if `epic`: `card` of `base@N` → `players[N].baseEpicActionUsed = true`; else if `card` is a seat's `leader.id` → that leader's `epicActionUsed = true`. `usedBy` changes nothing |
 | `LEADER_FLIP` | that seat's `leader.onStartingSide = event.onStartingSide` — the stated face, so applying it twice is the same as once. Find the leader by `card`, falling back to the record's `p` (these leaders never deploy, so early in a file no `DEPLOY_LEADER` has named the id). If that seat has no `leader` yet, create one first: `{ id: card, deployed: false, exhausted: false, epicActionUsed: false }`. A record with no `card` is ignored |
 | `STATS` | if `card` is tracked → set its `power`, `hp`, and `keywords` (sorted) when given; then replace its attributes: set `traits` (sorted), `blank`, `leaderUnit`, `copyOf`, `name`, `cost` and `aspects` to the record's values, and **remove** each the record does not carry (`blank` and `leaderUnit` are kept only when `true`) |
-| `TAKE_CONTROL` | arena `zone` → if `card` is a unit entry in the other seat's `cards`, move it to `players[p].cards`, set its `owner` to the seat it came from unless it has one, remove `owner` when it equals `p`, and rebuild its `upgradeControllers` against `p`; else if `card` is in some arena card's `upgrades`, set that host's `upgradeControllers[card] = p`, or remove the entry when `p` holds the host. `resource` with `from` → shift one resource from `from` to `p`, in the exhausted bucket if `exhausted` else the ready one, move `card` from `players[from].resources` to `players[p].resources`, and take it out of `players[from].foreignResources` if it is there, else add it to `players[p].foreignResources`. `base` with `from` → shift one credit (or the Force) from `from` to `p`. Otherwise nothing ([§10.1](#take_control)) |
+| `TAKE_CONTROL` | arena `zone` → if `card` is a unit entry in the other seat's `cards`, move it to `players[p].cards`, set its `owner` to the seat it came from unless it has one, remove `owner` when it equals `p`, and rebuild its `upgradeControllers` against `p`; else if `card` is in some arena card's `upgrades`, set that host's `upgradeControllers[card] = p`, or remove the entry when `p` holds the host. `resource` with `from` → shift one resource from `from` to `p`, in the exhausted bucket if `exhausted` else the ready one, move `card` from `players[from].resources` to `players[p].resources`, and take it out of `players[from].foreignResources` if it is there, else add it to `players[p].foreignResources`. `resource` without `from` → no count changes; take `card` out of the other seat's `foreignResources`, then add it to `players[p].foreignResources` when `owner` is set and is not `p`, or take it out of that list when `owner` is `p`. `base` with `from` → shift one credit (or the Force) from `from` to `p`. Otherwise nothing ([§10.1](#take_control)) |
 | `CAPTURE` | remove `card` from every seat's `cards` (its `MOVE` already did); **nothing more when `card` is a `TOKEN:` id** (a token that leaves play holds nowhere, CR 3.7.3); else if `by` is `base@N`, push `card` onto `players[N].baseCaptured` (created if absent); else if `by` names a tracked card, push `card` onto its `captured`; both idempotently |
 | `RESCUE` | `detach(state, card)` — the `MOVE` out of `capture` beside it places the card |
 | `EXHAUST_RESOURCES` | `n = min(amount, resourcesReady)`; `resourcesReady -= n`; `resourcesExhausted += n` |
@@ -3114,7 +3123,8 @@ problem. A writer that has no such cost SHOULD refuse to emit a file that is not
 - for each such card, its other attributes: `traits` as a set, `blank` and `leaderUnit` (absent
   read as `false`), `copyOf`, `name` and `cost`, and `aspects` as a sorted list (a multiset: an
   aspect may appear twice). **When the keyframe card carries `traits`** all of them are compared,
-  because a writer that records attributes writes `traits` on every unit `[W-55]`: an absent
+  because a writer that records attributes writes `traits` on every unit and every keyframe card
+  (`[W-55]`, `[W-57]`): an absent
   `blank`, `leaderUnit` or copy field then means the unit has none. On a keyframe card without
   `traits`, only those it does carry are compared
 - for each such card, `owner` and `upgradeControllers` (a map of upgrade ids to seats; key order

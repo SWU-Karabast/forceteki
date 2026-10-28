@@ -252,7 +252,9 @@ export type GameEvent = ActionLink & (
   | { seq: string; t: 'RESCUE'; p: Seat; card: string }
   // `card` may also be an attached upgrade (spec §10.1): `zone` is then its host's arena, and the fold
   // records the upgrade's controller on the host's `upgradeControllers` rather than re-seating anything.
-  | { seq: string; t: 'TAKE_CONTROL'; p: Seat; card: string; zone?: string; from?: Seat; exhausted?: boolean }
+  // `owner` is on a `resource` steal that changed zone (no `from`): the card's owner, so the fold can
+  // list it in `foreignResources` without shifting any count.
+  | { seq: string; t: 'TAKE_CONTROL'; p: Seat; card: string; zone?: string; from?: Seat; exhausted?: boolean; owner?: Seat }
   | { seq: string; t: 'SHIELD_GAIN' | 'SHIELD_USE'; card: string; count?: number }
   | { seq: string; t: 'EXPERIENCE_GAIN'; card: string; count: number }
   | { seq: string; t: 'STATUS_TOKEN'; card: string; token: string; count: number }

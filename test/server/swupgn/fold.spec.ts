@@ -1334,3 +1334,33 @@ describe('fold attributes, control and ownership', function () {
         }
     });
 });
+
+// Fix round 1: ownership when the steal changed zone, and owner on arrival whatever the record order.
+describe('fold ownership fix round 1', function () {
+    // Value: protects=a unit put into play as a resource under the other seat (Arquitens Assault Cruiser) is listed as foreign, from the TAKE_CONTROL's owner; fails_when=a resource TAKE_CONTROL without from is dropped, or it shifts counts the MOVE already carried; why_new=owner on the resource form is new (fix round 1); seam=none; no_claim=writer output
+    it('a resource steal that changed zone is a foreign resource by its owner', function () {
+        const events: GameEvent[] = [
+            { seq: 'R1.A.1a', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 2, kind: 'unit' },
+            { seq: 'R1.A.2a', t: 'MOVE', card: 'SOR#095', from: 'ground', to: 'resource', p: 1, kind: 'unit', exhausted: true },
+            { seq: 'R1.A.2b', t: 'TAKE_CONTROL', p: 1, card: 'SOR#095', zone: 'resource', owner: 2 },
+        ];
+        const s = fold(events);
+        expect(s.players[1]?.foreignResources).toEqual(['SOR#095']);
+        expect([s.players[1]?.resourcesReady, s.players[1]?.resourcesExhausted, s.players[1]?.resources]).toEqual([0, 1, ['SOR#095']]);
+        expect('foreignResources' in (s.players[2] ?? {})).toBe(false);
+        // Its own owner's steal changes nothing.
+        const own = fold([...events.slice(0, 2), { seq: 'R1.A.2b', t: 'TAKE_CONTROL', p: 1, card: 'SOR#095', zone: 'resource', owner: 1 }]);
+        expect('foreignResources' in (own.players[1] ?? {})).toBe(false);
+    });
+
+    // Value: protects=owner on arrival does not depend on whether the PLAY or its MOVE comes first (§12.1); fails_when=a PLAY placed before the MOVE leaves the entry without owner; why_new=fix round 1; seam=none; no_claim=none
+    it('a unit played out of the other seat\'s discard has its owner when the PLAY comes first', function () {
+        const s = fold([
+            { seq: 'R1.A.1a', t: 'MOVE', card: 'JTL#221', from: 'hand', to: 'discard', p: 1 },
+            { seq: 'R1.A.2', t: 'PLAY', p: 2, card: 'JTL#221', zone: 'space', cost: 3 },
+            { seq: 'R1.A.2a', t: 'MOVE', card: 'JTL#221', from: 'discard', to: 'space', p: 2, kind: 'unit' },
+        ]);
+        expect(s.players[2]?.cards.find((c) => c.id === 'JTL#221')?.owner).toBe(1);
+        expect(s.players[1]?.discard).toEqual([]);
+    });
+});

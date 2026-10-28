@@ -93,7 +93,7 @@
     },
     {
       "if": { "properties": { "t": { "const": "TAKE_CONTROL" } }, "required": ["t"] },
-      "then": { "properties": { "zone": { "type": "string" }, "from": { "enum": [1,2] }, "exhausted": { "type": "boolean" } } }
+      "then": { "properties": { "zone": { "type": "string" }, "from": { "enum": [1,2] }, "exhausted": { "type": "boolean" }, "owner": { "enum": [1,2] } }, "if": { "properties": { "zone": { "const": "resource" } }, "required": ["zone"], "not": { "required": ["from"] } }, "then": { "required": ["owner"] } }
     },
     {
       "if": { "properties": { "t": { "const": "CREATE_TOKEN" } }, "required": ["t"] },
