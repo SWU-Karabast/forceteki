@@ -19,9 +19,9 @@ export default class BB8FrazzledFriend extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: abilityHelper.immediateEffects.heal({ amount: 1 })
             },
-            then: (ifYouDoContext) => ({
+            ifYouDo: (ifYouDoContext) => ({
                 title: 'Deal 1 damage to an enemy unit',
-                thenCondition: () => ifYouDoContext.events[0].damageHealed > 0,
+                ifYouDoCondition: () => ifYouDoContext.events[0].damageHealed > 0,
                 targetResolver: {
                     controller: RelativePlayer.Opponent,
                     cardTypeFilter: WildcardCardType.Unit,
