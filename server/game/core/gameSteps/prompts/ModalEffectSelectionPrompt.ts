@@ -90,14 +90,14 @@ export class ModalEffectSelectionPrompt extends UiPrompt {
             return false;
         }
 
-        // Surface the pick for the SWU-PGN recorder (pure-log; does not affect gameplay), as
-        // HandlerMenuPrompt does: one MODAL_CHOICE per mode, over the modes this prompt offered.
-        this.game.emit(EventName.OnModalChoice, {
-            player: this.player,
-            offered: this.properties.choices.map((c) => c.title),
-            chose: Number(arg),
-        });
+        // Snapshot the modes this prompt offered before the handler runs, then surface the pick for
+        // the SWU-PGN recorder (pure-log; does not affect gameplay) once it has, as HandlerMenuPrompt
+        // and ActionSelectionPrompt do: one MODAL_CHOICE per mode picked.
+        const offered = this.properties.choices.map((c) => c.title);
+        const chose = Number(arg);
+
         choice.handler();
+        this.game.emit(EventName.OnModalChoice, { player: this.player, offered, chose });
         this.complete();
         return true;
     }
