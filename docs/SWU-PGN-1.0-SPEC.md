@@ -335,10 +335,11 @@ requirement, by id. The linked section is where each one is defined.
   printed title.
 - `[W-41]` MUST NOT write a `MOVE` from `outsideTheGame` into `deck`. Building the decks is
   stated by `DECKS` and `INIT`, and no card enters a deck from outside the game during play.
-  A validator reports one as `deck-build-move` ([§24](#24-error-model)). A writer MUST also
-  record every Credit token `MOVE` with `base` as the zone, arriving from and returning to
-  `outsideTheGame`, whatever zone the rules place it in, and MUST NOT name `resource` for a
-  Credit token. A validator reports one as `credit-zone` ([§6.2](#62-zone-names)).
+  A validator reports one as `deck-build-move` ([§24](#24-error-model)).
+- `[W-42]` MUST record every Credit token `MOVE` with `base` as the zone, arriving from and
+  returning to `outsideTheGame`, whatever zone the rules place it in, and MUST NOT name
+  `resource` for a Credit token. A validator reports one as `credit-zone`
+  ([§6.2](#62-zone-names), [§24](#24-error-model)).
 
 ### The Parser (reads the syntax)
 
@@ -816,7 +817,7 @@ in the Comprehensive Rules (CR 4), except where the table says otherwise:
 | `ground` | The ground arena. **In play.** | the ground arena, CR 4.3 |
 | `space` | The space arena. **In play.** | the space arena, CR 4.4 |
 | `discard` | The discard pile. | the discard pile, CR 4.8 |
-| `base` | The base zone: where an undeployed or defeated leader sits, where Credit tokens and the Force live, and where an upgrade with **Fortify** attaches ([§10.3](#103-homeworlds-fortify-beast-and-weakness)). | the base zone, CR 4.2. **The format's `base` zone also holds Credit tokens.** The Comprehensive Rules create a Credit token in the resource zone, where it is "not a resource" (CR 4.5.4, CR 3.7.13); this format records it in `base` instead, and a reader counts Credits through `base`. That is this format's choice, and it differs from CR 4.5.4: a writer MUST NOT name `resource` for a Credit token (`[W-41]`) |
+| `base` | The base zone: where an undeployed or defeated leader sits, where Credit tokens and the Force live, and where an upgrade with **Fortify** attaches ([§10.3](#103-homeworlds-fortify-beast-and-weakness)). | the base zone, CR 4.2. **The format's `base` zone also holds Credit tokens.** The Comprehensive Rules create a Credit token in the resource zone, where it is "not a resource" (CR 4.5.4, CR 3.7.13); this format records it in `base` instead, and a reader counts Credits through `base`. That is this format's choice, and it differs from CR 4.5.4: a writer MUST NOT name `resource` for a Credit token (`[W-42]`) |
 | `outsideTheGame` | Nowhere — where tokens come from and go back to. | Not a zone. A card that is set aside is in no zone, and a token that leaves play is set aside again (CR 4.1.2, CR 4.11) |
 | `capture` | Cards captured by an opponent. | Not a zone. A captured card is held facedown under the capturing unit, out of play but open information (CR 8.34); the format gives it a name so a card in that state can be moved to and from |
 
@@ -3226,7 +3227,7 @@ The review before publication (2026-10-28) changed what conforms, as well as wha
   [§25](#25-registries) lists the names of today's tokens.
 - Engine timing became required outcomes. A writer MUST NOT write a `MOVE` from `outsideTheGame`
   into `deck`, and a validator reports `deck-build-move` `[W-41]`. A Credit token is always
-  recorded in `base`, never `resource`, and a validator reports `credit-zone` `[W-41]`. A `STATS`
+  recorded in `base`, never `resource`, and a validator reports `credit-zone` `[W-42]`. A `STATS`
   is due before the next numbered action and before any keyframe `[W-22]`.
 - The text is normative and the reference code informative ([§2](#2-conventions-and-conformance--how-to-read-this-spec)).
   Conformance levels, requirement ids and seven conformance classes were added
@@ -3399,7 +3400,7 @@ matched by a program.
 | `bad-zone` | error | A `from`, `to` or `zone` outside the zone vocabulary | well-formed |
 | `bad-token-name` | error | A `TOKEN:` id, or a `STATUS_TOKEN.token`, that breaks the token-name grammar ([§6.1](#the-token-grammar)) | well-formed |
 | `deck-build-move` | error | A `MOVE` from `outsideTheGame` into `deck` (`[W-41]`, [§10.1](#101-events-that-carry-board-detail)) | well-formed |
-| `credit-zone` | error | A `MOVE` of a `TOKEN:credit…` id from or into `resource`; a Credit token is recorded in `base` ([§6.2](#62-zone-names), `[W-41]`) | well-formed |
+| `credit-zone` | error | A `MOVE` of a `TOKEN:credit…` id from or into `resource`; a Credit token is recorded in `base` ([§6.2](#62-zone-names), `[W-42]`) | well-formed |
 | `same-zone-move` | error | A `MOVE` from a zone to itself that is not an arena | well-formed |
 | `number-range` | error | A number that is not an integer within ±(2^53−1) | well-formed |
 | `over-cap` | error | A keyframe list longer than 1000 | well-formed |

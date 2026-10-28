@@ -121,7 +121,7 @@
         "credit-zone"
       ],
       "warnings": [],
-      "about": "A MOVE of a Credit token into resource; the format records Credit tokens in base (§6.2, [W-41])."
+      "about": "A MOVE of a Credit token into resource; the format records Credit tokens in base (§6.2, [W-42])."
     },
     {
       "file": "negative/damaged-keyframe.swupgn",

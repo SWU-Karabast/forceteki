@@ -1036,17 +1036,8 @@ describe('fold record order', function () {
 describe('fold undeploy', function () {
     const plain = (x: unknown) => JSON.parse(JSON.stringify(x));
 
-    // Value: protects=a MOVE out of an arena folds the same whether or not it carries kind (spec 6.5), so a writer need not guess; fails_when=the fold starts reading kind on a move that leaves an arena; why_new=no vector holds an undeploy move; seam=none; no_claim=what the fold does with a kind that disagrees with the card
+    // Value: protects=a MOVE out of an arena folds the same whether or not it carries kind (spec 6.5), so a writer need not guess; fails_when=the fold starts reading kind on a move that leaves an arena; why_new=no vector holds an undeploy move, so the board is built by hand; seam=none; no_claim=what the fold does with a kind that disagrees with the card
     it('folds an undeploy move the same with or without kind', function () {
-        const vectors = path.resolve(__dirname, '../../../../swupgn/test-vectors');
-        const events = parse(fs.readFileSync(path.join(vectors, 'death-star.swupgn'), 'utf8')).events;
-        const withKind = events.map((e): GameEvent => {
-            const toBase = e.t === 'MOVE' && (e.from === 'ground' || e.from === 'space') && e.to === 'base';
-            return toBase ? { ...e, kind: 'unit' } : e;
-        });
-        expect(plain(fold(withKind))).toEqual(plain(fold(events)));
-
-        // The death-star vector holds no undeploy, so pin the same property on a board that does.
         const board: GameEvent[] = [
             ev({ seq: 'R1.A.1', t: 'MOVE', p: 1, card: 'SOR#108', from: 'hand', to: 'ground', kind: 'unit' }),
             ev({ seq: 'R1.A.2', t: 'MOVE', p: 1, card: 'SOR#108', from: 'ground', to: 'base' }),

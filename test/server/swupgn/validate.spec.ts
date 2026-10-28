@@ -241,6 +241,10 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(codes(move('resource'))).toContain('error:credit-zone');
         expect(validate(move('resource')).level).toBe('well-formed');
         expect(codes(move('base'))).not.toContain('error:credit-zone');
+        for (const id of ['TOKEN:credit', 'TOKEN:credit:2', 'TOKEN:credit#123:2']) {
+            expect(codes(addEvent(`{"seq":"R1.A.9","t":"MOVE","card":"${id}","from":"outsideTheGame","to":"resource","p":1}`))).toContain('error:credit-zone');
+        }
+        expect(codes(addEvent('{"seq":"R1.A.9","t":"MOVE","card":"TOKEN:credits#1","from":"outsideTheGame","to":"resource","p":1}'))).not.toContain('error:credit-zone');
     });
 
     // Value: protects=a keyframe card in a zone outside the vocabulary is an error, not a silently folded board; fails_when=the keyframe card zone check is dropped from validate(); why_new=bad-zone was only tested on record zone and MOVE from/to; seam=none; no_claim=the fold's own handling of such a card
