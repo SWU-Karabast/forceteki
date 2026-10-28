@@ -319,6 +319,12 @@ export class SwuPgnRecorder {
     /** Current phase abbreviation: 'S', 'A', or 'G' (port of v1.0 scheme). */
     private currentPhase = 'S';
 
+    /**
+     * Cards seen going resource -> resource whose control change has not been recorded yet (see
+     * OnCardMoved). Held only between that move and the event that completes it.
+     */
+    private readonly resourceRowChanges = new Set<string>();
+
     /** Incremented for top-level player actions during the Action Phase. */
     private actionCounter = 0;
 
@@ -1641,6 +1647,14 @@ export class SwuPgnRecorder {
             // re-homes it with moveTo(Base) and no OnTakeControl names the card), and it is the
             // only way `credits` moves between seats, so it is written as the TAKE_CONTROL it is.
             if (from === to) {
+                // A card going resource -> resource has changed rows, and each seat has its own.
+                // Taking a resource raises OnTakeControl, which records it; giving one back
+                // through ResourceCardSystem (DJ's delayed effect) raises only OnCardResourced.
+                // Its ready state is not final yet, so note it and record it there.
+                if (from === 'resource' && card?.uuid != null) {
+                    this.resourceRowChanges.add(card.uuid);
+                    return;
+                }
                 if (from === 'base' && card?.isToken?.() && card?.uuid != null) {
                     const seat = this.seatOf(card.controller ?? card.owner);
                     this.push({
@@ -1838,6 +1852,21 @@ export class SwuPgnRecorder {
         // one-resource exhaustion any other would be. Read after the handler: the flag is final.
         this.on(EventName.OnCardResourced, (event: any) => {
             const card = event?.card;
+            if (card?.uuid != null && this.resourceRowChanges.delete(card.uuid)) {
+                // Given back to the other row (see OnCardMoved): it keeps its ready state, which
+                // the TAKE_CONTROL carries, so there is no separate exhaustion to record.
+                const seat = this.seatOf(card.controller ?? card.owner);
+                this.push({
+                    seq: this.nextSeq(false),
+                    t: 'TAKE_CONTROL',
+                    p: seat,
+                    card: this.idOf(card),
+                    zone: 'resource',
+                    from: (seat === 1 ? 2 : 1) as Seat,
+                    ...(this.isInResourceRow(card) && card.exhausted === true ? { exhausted: true } : {}),
+                });
+                return;
+            }
             if (this.isInResourceRow(card) && card.exhausted === true) {
                 this.resourceRecord('EXHAUST_RESOURCES', card.controller ?? card.owner, 1);
             }
@@ -1951,6 +1980,7 @@ export class SwuPgnRecorder {
             // from the other seat. When the steal DID change zone (a unit taken into the
             // resource row), the MOVE just recorded already carried the counts, so `from`
             // is omitted and the fold shifts nothing twice.
+            this.resourceRowChanges.delete(card.uuid);
             const last = this.events[this.events.length - 1];
             const movedByThisSteal = last?.t === 'MOVE' && last.card === this.idOf(card);
             const zone = this.normalizeZone(card?.zoneName);
