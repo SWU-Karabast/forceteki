@@ -19,8 +19,8 @@ describe('SwuPgnRecorder.buildHeader', function () {
         rounds: 4,
         result: 'P1' as const,
         reason: 'BaseDestroyed',
-        p1: { username: 'alice', leader: 'SOR#010', base: 'SOR#028' },
-        p2: { username: 'bob', leader: 'SOR#005', base: 'SOR#020' },
+        p1: { accountId: 'alice', leader: 'SOR#010', base: 'SOR#028' },
+        p2: { accountId: 'bob', leader: 'SOR#005', base: 'SOR#020' },
     };
 
     it('emits a 1.0 header with provenance and salted ids', function () {
@@ -1014,7 +1014,7 @@ describe('SwuPgnRecorder: review regressions', function () {
         const h = buildHeader({
             gameId: 'g', date: 'd', cardPool: 'SOR', engineVersion: 'forceteki@t', seed: 's', perspective: null,
             rounds: 1, result: 'Incomplete', reason: 'x',
-            p1: { username: 'a', leader: 'L', base: 'B' }, p2: { username: 'b', leader: 'L', base: 'B' },
+            p1: { accountId: 'a', leader: 'L', base: 'B' }, p2: { accountId: 'b', leader: 'L', base: 'B' },
             recorderErrors: rec.getErrorCount(),
         });
         expect(h.recorderErrors).toBe(25);

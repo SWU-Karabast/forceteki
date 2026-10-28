@@ -4227,8 +4227,8 @@ contents alone cannot show. None of this is required of another writer. Operatio
 - **Identifiers `[W-10]`, `[H-03]`.** `GameId` is `sha256:` and the hex SHA-256 of
   `swupgn-game:<engine game id>`. `Match` is the SHA-256 of `swupgn-match:<lobby id>`, and the
   reference writer never sets `GameNumber`. The keyed `P1Id` / `P2Id` is an HMAC-SHA-256 of the
-  username, keyed with a server-side secret. The per-game salt fallback is
-  `sha256("<engine game id>:<username>")`, where the salt is the engine's internal game id (the
+  player's user id, keyed with a server-side secret. The per-game salt fallback is
+  `sha256("<engine game id>:<user id>")`, where the salt is the engine's internal game id (the
   file does not print it, because `GameId` is a hash of it).
 - **Field contents.** The reference writer's `ABILITY_ACTIVATE.title` is the card menu entry's
   text, which for most cards is the whole rules text, and it writes plain text when it runs under

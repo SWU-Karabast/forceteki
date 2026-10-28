@@ -21,8 +21,10 @@ export interface HeaderContext {
     rounds: number;
     result: 'P1' | 'P2' | 'Draw' | 'Incomplete';
     reason: string;
-    p1: { username: string; leader: string; base: string };
-    p2: { username: string; leader: string; base: string };
+
+    /** Each seat's account id on the platform (spec §17): hashed into P1Id/P2Id, never written. */
+    p1: { accountId: string; leader: string; base: string };
+    p2: { accountId: string; leader: string; base: string };
 
     /** Handler failures during recording; omitted from the header when zero. */
     recorderErrors?: number;
@@ -63,8 +65,8 @@ export function buildHeader(ctx: HeaderContext): Header {
         ...(ctx.endDate ? { endDate: ctx.endDate } : {}),
         ...(ctx.lobbyId ? { match: anonymizedMatchId(ctx.lobbyId) } : {}),
         ...(ctx.gameNumber ? { gameNumber: ctx.gameNumber } : {}),
-        p1Id: saltedPlayerId(ctx.p1.username, ctx.gameId),
-        p2Id: saltedPlayerId(ctx.p2.username, ctx.gameId),
+        p1Id: saltedPlayerId(ctx.p1.accountId, ctx.gameId),
+        p2Id: saltedPlayerId(ctx.p2.accountId, ctx.gameId),
         p1: anonymizePlayerLabel(1),
         p2: anonymizePlayerLabel(2),
         p1Leader: ctx.p1.leader, p1Base: ctx.p1.base,

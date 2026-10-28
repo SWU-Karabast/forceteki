@@ -2,17 +2,19 @@ import { createHash, createHmac } from 'crypto';
 import type { Seat } from '../../../../swupgn/src/types';
 
 /**
- * Pseudonymous player id. A raw username is never emitted anywhere (spec §17).
+ * Pseudonymous player id, derived from the player's account id (spec §17). Neither the account id
+ * nor a display name is ever emitted. A display name is not an identity: it can change hands, and
+ * every guest without an id shares one.
  *
  * TWO schemes, and which one is in force depends on one environment variable:
  *
  * - `SWUPGN_ID_SECRET` set (PREFERRED, and what a server publishing files should use): an HMAC
  *   keyed by that secret. The id is genuinely non-reversible -- an attacker without the key
- *   cannot confirm a guess -- and the same player hashes the SAME across that server's games,
+ *   cannot confirm a guess -- and the same account hashes the SAME across that server's games,
  *   so a consumer can group a player's history without ever learning who they are.
  *
  * - Unset (fallback): salted with the engine's internal game id. Ids cannot be joined across
- *   files, and nobody reading one casually sees a username. The file does not print the salt
+ *   files, and nobody reading one casually sees an account id. The file does not print the salt
  *   (its `GameId` is a hash of it, `anonymizedGameId`), but the salt is NOT a secret: the server
  *   names the game by that id to the game's players and spectators, and logs it. So this mode
  *   gives no protection against anyone who took part in or watched the game. Only the HMAC is
@@ -22,15 +24,15 @@ import type { Seat } from '../../../../swupgn/src/types';
  * change and no version bump. Consumers that attribute a file to an account should take the
  * seat from the authenticated delivery rather than from this id under either scheme.
  */
-export function saltedPlayerId(username: string, salt: string): string {
+export function saltedPlayerId(accountId: string, salt: string): string {
     // An empty value is NOT a secret. `SWUPGN_ID_SECRET=` in a deploy config would otherwise be
     // falsy and silently fall back to the per-game salt, publishing confirmable ids from a
     // deployment that believes it is publishing HMACs -- and both schemes emit `sha256:`, so
     // nothing downstream could tell.
     const secret = process.env.SWUPGN_ID_SECRET || undefined;
     const hash = secret
-        ? createHmac('sha256', secret).update(username)
-        : createHash('sha256').update(`${salt}:${username}`);
+        ? createHmac('sha256', secret).update(accountId)
+        : createHash('sha256').update(`${salt}:${accountId}`);
     const digest = hash.digest('hex');
     return `sha256:${digest}`;
 }

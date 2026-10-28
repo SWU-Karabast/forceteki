@@ -736,8 +736,8 @@ export class SwuPgnGameAdapter {
             rounds: this.game.roundNumber,
             result: this.swuPgnResult(gameEnd),
             reason: gameEnd?.reason ?? this.gameEndReasonString(undefined),
-            p1: { username: player1.user.username, leader: leaderId(player1), base: baseId(player1) },
-            p2: { username: player2.user.username, leader: leaderId(player2), base: baseId(player2) },
+            p1: { accountId: player1.id, leader: leaderId(player1), base: baseId(player1) },
+            p2: { accountId: player2.id, leader: leaderId(player2), base: baseId(player2) },
             // Handler failures drop events silently past the logging cap; say so in the file.
             recorderErrors: this.recorder.getErrorCount() || undefined,
             undos: this.recorder.getUndoCount() || undefined,

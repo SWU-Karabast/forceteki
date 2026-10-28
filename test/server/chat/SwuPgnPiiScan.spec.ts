@@ -1,4 +1,5 @@
 import { parse } from '../../../swupgn/src/index';
+import { saltedPlayerId } from '../../../server/game/core/chat/swuPgnIdentity';
 
 /**
  * Task 12 — Dedicated PII-scan CI gate.
@@ -129,6 +130,23 @@ describe('SWU-PGN/1.0 generated archive PII scan', function () {
             const doc = parse(text);
             expect(doc.header.p1).toBe('Player 1');
             expect(doc.header.p2).toBe('Player 2');
+        });
+
+        // Value: protects=P1Id/P2Id come from each seat's account id, as spec §17 says, so two guests sharing a display name get different ids and a rename keeps a player's id; fails_when=the writer hashes the display name again; why_new=the header unit spec feeds the hash whatever the context holds, and nothing checked what the adapter puts there; seam=none; no_claim=the keyed (SWUPGN_ID_SECRET) scheme, which takes the same input
+        it('derives each seat\'s id from its account, not its display name', function () {
+            const { context } = contextRef;
+            const game: any = context.game;
+            const [p1, p2]: any[] = game.getPlayers();
+            p1.user.username = 'AnonymousPlayer';
+            p2.user.username = 'AnonymousPlayer';
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.p2Base);
+            const header = parse(game.getCachedSwuPgn()).header;
+
+            expect(header.p1Id).toBe(saltedPlayerId(p1.id, game.id));
+            expect(header.p2Id).toBe(saltedPlayerId(p2.id, game.id));
+            expect(header.p1Id).not.toBe(header.p2Id);
         });
     });
 });
