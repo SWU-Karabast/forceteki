@@ -93,7 +93,9 @@ function actionHost(e: GameEvent): string | undefined {
  * when the play demanded it, and the previous action's consequence when that action forced it;
  * the two records look the same. Only the writer knows which, from the engine, so it says so with
  * `markPlaySetup` and the linker takes it at its word. The mark lives beside the record, never in
- * it, so it never reaches the file; keyed weakly, it goes when the record does.
+ * it, so it never reaches the file; keyed weakly, it goes when the record does. Keyed by identity,
+ * too: a writer must hand `linkActionSteps` the very records it marked, not copies (the recorder's
+ * Exploit and alternate-cost specs read the served file, so a copy on that path fails them).
  */
 const playSetupMarks = new WeakMap<GameEvent, string>();
 
@@ -241,7 +243,13 @@ export function linkActionSteps(events: GameEvent[]): GameEvent[] {
             if (isTopLevelStep(prev.seq)) {
                 break;
             }
+            const named = actionCard(prev);
+            // Walking back past the card's own MOVE ends the host's share of the run, marked or not.
+            const ownMove = prev.t === 'MOVE' && named === card;
             if (playSetupOf(events[start - 1]) === card) {
+                if (ownMove) {
+                    host = undefined;
+                }
                 start--;
                 continue;
             }
@@ -252,11 +260,10 @@ export function linkActionSteps(events: GameEvent[]): GameEvent[] {
             if (otherSeat && (prev.t === 'CHOICE' || prev.t === 'MODAL_CHOICE' || prev.t === 'EXHAUST_RESOURCES')) {
                 break;
             }
-            const named = actionCard(prev);
             if (named != null && named !== card && named !== host) {
                 break;
             }
-            if (prev.t === 'MOVE' && named === card) {
+            if (ownMove) {
                 host = undefined;
             }
             start--;

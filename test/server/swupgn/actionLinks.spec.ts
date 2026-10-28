@@ -387,6 +387,23 @@ describe('linkActionSteps: records the writer marked as a play\'s setup', functi
         ], 'SOR#199', ['R1.A.0a']);
         expect(forOf(events)).toEqual([undefined, 'R1.A.1', undefined]);
     });
+
+    it('still ends a played upgrade\'s host run at the upgrade\'s own move when that move is marked', function () {
+        // As in "does not take the host's earlier stat change", but a writer that marks the
+        // upgrade's own MOVE as setup: the host's STATS from the previous action stays out.
+        const events = marked([
+            { seq: 'R4.A.2', t: 'PLAY_EVENT', p: 2, card: 'HMW#100', zone: 'discard', cost: 2 },
+            { seq: 'R4.A.2a', t: 'STATS', card: 'ASH#251', power: 2, hp: 2 },
+            { seq: 'R4.A.2b', t: 'CHOICE', p: 1, prompt: 'Ascension Cable', offered: ['ASH#251'], chose: 0 },
+            { seq: 'R4.A.2c', t: 'EXHAUST_RESOURCES', p: 1, amount: 2 },
+            { seq: 'R4.A.2d', t: 'MOVE', card: 'LOF#215', from: 'hand', to: 'ground', p: 1, kind: 'upgrade', attachedTo: 'ASH#251' },
+            { seq: 'R4.A.2e', t: 'STATS', card: 'ASH#251', power: 4, hp: 6 },
+            { seq: 'R4.A.3', t: 'PLAY_UPGRADE', p: 1, card: 'LOF#215', zone: 'ground', target: 'ASH#251', cost: 2 },
+        ], 'LOF#215', ['R4.A.2b', 'R4.A.2c', 'R4.A.2d']);
+        expect(forOf(events)).toEqual([
+            undefined, undefined, 'R4.A.3', 'R4.A.3', 'R4.A.3', 'R4.A.3', undefined,
+        ]);
+    });
 });
 
 // Value: protects=a lettered seq is a sub-step whatever its type, an unlettered action type is an action, a non-action ability never is; fails_when=the lettered-seq rule is dropped or applies to unlettered seqs; why_new=only DEPLOY_LEADER engine tests touched it; seam=none; no_claim=writer numbering
