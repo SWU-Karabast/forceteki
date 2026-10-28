@@ -298,12 +298,14 @@ export enum EventName {
     OnBountyCollected = 'onBountyCollected',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',
     OnBaseDefeated = 'onBaseDefeated',
+    OnBlindChoicesRequested = 'onBlindChoicesRequested', // recorder-only (SWU-PGN §10.2 blind) — several players choose at once; do NOT remove
     OnCardAbilityTriggered = 'onCardAbilityTriggered',
     OnCardCaptured = 'onCardCaptured',
     OnCardDefeated = 'onCardDefeated',
     OnCardExhausted = 'onCardExhausted',
     OnCardLeavesPlay = 'onCardLeavesPlay',
     OnCardMoved = 'onCardMoved',
+    OnCardNamed = 'onCardNamed', // recorder-only (SWU-PGN §10.2 NAME) — a player named something from a dropdown; do NOT remove
     OnCardPlayed = 'onCardPlayed',
     OnCardReadied = 'onCardReadied',
     OnCardResourced = 'onCardResourced',
@@ -334,6 +336,7 @@ export enum EventName {
     OnLeaderFlipped = 'onLeaderFlipped',
     OnLookAtCard = 'onLookAtCard',
     OnLookMoveDeckCardsTopOrBottom = 'onLookMoveDeckCardsTopOrBottom',
+    OnLookMoveDeckCards = 'onLookMoveDeckCards', // recorder-only (SWU-PGN §10.2 LOOK) — a player looked at top deck cards to place them; do NOT remove
     OnModalChoice = 'onModalChoice', // recorder-only (SWU-PGN §10.2) — do NOT remove; consumed by SwuPgnRecorder
     OnPassAction = 'onPassAction', // recorder-only (SWU-PGN PASS) — a player took the Pass action; do NOT remove
     OnMulliganDecision = 'onMulliganDecision', // recorder-only (SWU-PGN §10.2) — do NOT remove; consumed by SwuPgnRecorder

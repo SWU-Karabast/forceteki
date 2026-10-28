@@ -280,21 +280,22 @@ export class SelectCardPrompt extends UiPrompt {
 
     /**
      * Pure-log SWU-PGN/1.0 hook (§10.2 CHOICE): surface a resolved card-selection prompt for the
-     * recorder — the offered candidate cards and the single card chosen. Only single-card
-     * selections are emitted; the 1.0 CHOICE record models one pick, so multi/zero-select prompts
+     * recorder — the offered candidate cards, the card chosen (`chosen`, single-card picks only),
+     * every card chosen (`chosenCards`) and the ability context that asked. Zero-card selections
      * are skipped. Fully wrapped: recording instrumentation must never affect gameplay.
      */
     private emitCardSelection() {
         try {
-            // Only single-card selections are recorded: the recorder's CHOICE models one pick.
-            if (this.selectedCards.length !== 1) {
+            if (this.selectedCards.length === 0) {
                 return;
             }
             this.game.emit(EventName.OnCardSelection, {
                 player: this.choosingPlayer,
                 offered: this.lastOfferedCards,
-                chosen: this.selectedCards[0],
+                chosen: this.selectedCards.length === 1 ? this.selectedCards[0] : null,
+                chosenCards: [...this.selectedCards],
                 prompt: this.promptTitle,
+                context: this.context,
             });
         } catch {
             // never let recording instrumentation break a prompt

@@ -2,7 +2,7 @@ import type { Game } from '../Game';
 import { AbilityType, CardType, DeployType, Duration, EffectName, EventName, PhaseName, PlayType, Stage, ZoneName } from '../Constants';
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 import { logger } from '../../../logger';
-import type { AbilityKind, ActiveEffect, DefeatReason, EffectDuration, EffectEndReason, Header, GameEvent, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
+import type { AbilityKind, AbilityUse, ActiveEffect, DefeatReason, EffectDuration, EffectEndReason, Header, GameEvent, LimitPer, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
 import { anonymizedGameId, anonymizedMatchId, saltedPlayerId, anonymizePlayerLabel } from './swuPgnIdentity';
 import { isTopLevelActionRecord, markPlaySetup } from '../../../../swupgn/src/actionLinks';
 import { ResourcePrompt } from '../gameSteps/prompts/ResourcePrompt';
@@ -361,6 +361,33 @@ export function effectDurationOf(engineDuration: unknown, delayed: boolean): Eff
 }
 
 /**
+ * The `limit` an engine ability limit is written with (spec §10.1 `#limited-abilities`), for
+ * `player`, or undefined for a limit the format does not count: an unlimited ability, the Epic
+ * Action (which keeps its own `epic` fields), and a repeatable limit reset by anything other than
+ * a phase's or a round's end. `max` is the engine's per-player modified maximum.
+ */
+export function limitRecordOf(limit: any, player: any): { max: number; per: LimitPer } | undefined {
+    if (limit == null || readOr(() => limit.isEpicActionLimit?.() === true, true)) {
+        return undefined;
+    }
+    let per: LimitPer | undefined;
+    if (readOr(() => limit.isRepeatable?.() === true, false)) {
+        // An unlimited ability is "repeatable" too, and has no boundary.
+        per = readOr<LimitPer | undefined>(() => limit.resetsOn, undefined);
+    } else if (typeof limit.maxForPlayer === 'function') {
+        per = 'game';
+    }
+    if (per == null || typeof limit.maxForPlayer !== 'function') {
+        return undefined;
+    }
+    const max = readOr<unknown>(() => limit.maxForPlayer(player), undefined);
+    if (typeof max !== 'number' || !Number.isInteger(max) || max < 1) {
+        return undefined;
+    }
+    return { max, per };
+}
+
+/**
  * Emits SWU-PGN/1.0 `GameEvent`s by subscribing to engine events. Every handler is
  * wrapped in try/catch with rate-limited error logging so a recording bug can never
  * crash gameplay.
@@ -484,6 +511,28 @@ export class SwuPgnRecorder {
     private effectsBeforeApply: Set<any> | null = null;
 
     /**
+     * Cards with limited-ability uses written since the last boundary that clears them (card ref ->
+     * the `per` values used), so a zone change writes `ABILITY_RESET` only for a card the fold still
+     * counts uses for (spec §10.1, `[W-49]`). Held in each checkpoint: an undo past a use must
+     * forget it, and one past a reset must bring the card back.
+     */
+    private readonly limitedUses = new Map<string, Set<LimitPer>>();
+
+    /**
+     * The ask whose card picks are `blind` (spec §10.2 simultaneous groups): the ability context
+     * that asked several players to choose at once, and the seq of the record that asked. Held in
+     * each checkpoint.
+     */
+    private blindAsk: { context: any; seq: string } | null = null;
+
+    /**
+     * The `simul` group being written: the engine event window it resolves in, its first record,
+     * and that record's seq (the group's value). The first record is marked only when a second
+     * joins, so a group is never one record. Held in each checkpoint.
+     */
+    private simulGroup: { window: any; first: GameEvent; seq: string } | null = null;
+
+    /**
      * Rollback checkpoints (array lengths + counters + tokenParents snapshot) keyed by
      * snapshot id, so the recorder rewinds in lockstep with the game on undo.
      * tokenParents is captured here because a
@@ -510,6 +559,9 @@ export class SwuPgnRecorder {
         effectTargetObjects: [string, { card: any; inPlay: boolean }][];
         effectInfo: [string, RecordedEffect][];
         nextEffectNumber: number;
+        limitedUses: [string, LimitPer[]][];
+        blindAsk: { context: any; seq: string } | null;
+        simulGroup: { window: any; first: GameEvent; seq: string } | null;
     }[] = [];
 
     public constructor(game: Game, resolver: SwuPgnResolver) {
@@ -725,6 +777,12 @@ export class SwuPgnRecorder {
                 this.lastStats.set(uuid, key);
             }
             this.restoreEffects(boundary);
+            this.limitedUses.clear();
+            for (const [card, pers] of boundary.limitedUses) {
+                this.limitedUses.set(card, new Set(pers));
+            }
+            this.blindAsk = boundary.blindAsk;
+            this.simulGroup = boundary.simulGroup;
             // Drop this checkpoint and any later ones; the redo re-checkpoints as it records.
             this.checkpoints.length = idx;
 
@@ -794,6 +852,9 @@ export class SwuPgnRecorder {
                 effectTargetObjects: [...this.effectTargetObjects.entries()],
                 effectInfo: [...this.effectInfo.entries()],
                 nextEffectNumber: this.nextEffectNumber,
+                limitedUses: [...this.limitedUses.entries()].map(([card, pers]) => [card, [...pers]]),
+                blindAsk: this.blindAsk,
+                simulGroup: this.simulGroup,
             });
             // Not capped. The engine keeps its phase snapshots per phase name, and the setup
             // phase only happens once, so a rollback can reach any checkpoint in the game. A cap
@@ -1237,6 +1298,7 @@ export class SwuPgnRecorder {
         }
         this.maybeCheckpoint();
         this.currentRound = round;
+        this.clearLimitedUses(['phase', 'round']);
         this.phaseEventCounter = 0;
         this.actionCounter = 0;
         this.subEventCounter = 0;
@@ -1672,6 +1734,133 @@ export class SwuPgnRecorder {
         return out;
     }
 
+    // ── Limited abilities, blind and simultaneous groups (spec §10.1, §10.2) ─────
+
+    /** Forget the uses a boundary clears, as the fold does at PHASE_START / ROUND_START. */
+    private clearLimitedUses(pers: readonly LimitPer[]): void {
+        for (const [card, used] of [...this.limitedUses.entries()]) {
+            for (const per of pers) {
+                used.delete(per);
+            }
+            if (used.size === 0) {
+                this.limitedUses.delete(card);
+            }
+        }
+    }
+
+    /**
+     * The limited-ability uses of the phase that just ended, read back from the stream, for the
+     * ROUND_END keyframe. The engine clears per-phase uses when a phase ENDS (`OnPhaseEnded`), so by
+     * the round's end the regroup phase's are gone, while the fold clears them only at the next
+     * PHASE_START or ROUND_START; this restores what the fold still holds at that seq. The scan
+     * stops at the phase's PHASE_START, and a card reset since a use (`ABILITY_RESET`) drops it.
+     */
+    private phaseUsesSincePhaseStart(): Map<Seat, AbilityUse[]> {
+        const uses = new Map<Seat, AbilityUse[]>();
+        const reset = new Set<string>();
+        for (let i = this.events.length - 1; i >= 0; i--) {
+            const e = this.events[i] as any;
+            if (e.t === 'PHASE_START' || e.t === 'ROUND_START') {
+                break;
+            }
+            if (e.t === 'ABILITY_RESET') {
+                reset.add(e.ability == null ? e.card : `${e.card}|${e.ability}`);
+                continue;
+            }
+            if (e.t !== 'ABILITY_ACTIVATE' || e.limit?.per !== 'phase' || typeof e.ability !== 'string') {
+                continue;
+            }
+            if (reset.has(e.card) || reset.has(`${e.card}|${e.ability}`)) {
+                continue;
+            }
+            const list = uses.get(e.p) ?? [];
+            const entry = list.find((u) => u.card === e.card && u.ability === e.ability);
+            if (entry) {
+                entry.count++;
+            } else {
+                // Walking backwards, so the first entry seen carries the latest max.
+                list.push({ card: e.card, ability: e.ability, count: 1, max: e.limit.max, per: 'phase' });
+            }
+            uses.set(e.p, list);
+        }
+        return uses;
+    }
+
+    /**
+     * Write the `LOOK`s of `viewer` looking at `cards`: one per owner and zone, in the order the
+     * cards were seen (spec §10.2, `[W-50]`).
+     */
+    private recordLook(viewer: any, cards: any[]): void {
+        const groups = new Map<string, { owner: Seat; zone: string; cards: string[] }>();
+        for (const card of cards) {
+            const id = this.idOf(card);
+            if (id === 'unknown') {
+                continue;
+            }
+            // Whose zone: a resource row is its controller's, every other hidden zone its owner's.
+            const zoneOwner = readOr<any>(() => card.zone?.owner, null) ?? card?.controller ?? card?.owner;
+            const owner = this.seatOf(zoneOwner);
+            const zone = this.normalizeZone(card?.zoneName);
+            const key = `${owner}|${zone}`;
+            const group = groups.get(key) ?? { owner, zone, cards: [] };
+            group.cards.push(id);
+            groups.set(key, group);
+        }
+        for (const group of groups.values()) {
+            this.push({
+                seq: this.nextSeq(false),
+                t: 'LOOK',
+                p: this.seatOf(viewer),
+                owner: group.owner,
+                zone: group.zone,
+                cards: group.cards,
+                count: group.cards.length,
+            });
+        }
+    }
+
+    /**
+     * The seq of the record that asked for `context`'s choices: the latest `ABILITY_ACTIVATE` of its
+     * source card in the current action, else the current action's own record.
+     */
+    private askingSeq(context: any): string | undefined {
+        const source = readOr(() => this.targetRef(context?.source), 'unknown');
+        let action: string | undefined;
+        const top = this.buildSeq(true);
+        for (let i = this.events.length - 1; i >= 0 && this.inCurrentAction(this.events[i].seq); i--) {
+            const e = this.events[i] as any;
+            if (e.t === 'ABILITY_ACTIVATE' && e.card === source) {
+                return e.seq;
+            }
+            if (e.seq === top) {
+                action = e.seq;
+            }
+        }
+        return action ?? this.events[this.events.length - 1]?.seq;
+    }
+
+    /**
+     * Put `record` in the `simul` group of the engine event window it resolved in (spec §10.2,
+     * `[W-53]`). A new window starts a new group; the group's first record is marked when a second
+     * joins it, so a lone record never carries `simul`.
+     */
+    private joinSimul(record: GameEvent, window: any): void {
+        if (window == null) {
+            return;
+        }
+        if (this.simulGroup?.window !== window) {
+            this.simulGroup = { window, first: record, seq: record.seq };
+            return;
+        }
+        this.simulGroup.first.simul = this.simulGroup.seq;
+        record.simul = this.simulGroup.seq;
+    }
+
+    /** How many events of the window match `name` (and `test`), 0 when it cannot be read. */
+    private windowEventCount(window: any, name: EventName, test: (event: any) => boolean = () => true): number {
+        return readOr(() => (window?.events ?? []).filter((e: any) => e?.name === name && test(e)).length, 0);
+    }
+
     /**
      * Subscribe with the recorder's one error policy: a handler that throws is logged
      * (rate-limited) and its record skipped, and gameplay never sees the exception. Every
@@ -1745,6 +1934,17 @@ export class SwuPgnRecorder {
             const keyframe = this.projectKeyframe();
             if (keyframe) {
                 Object.assign(keyframe, this.roundScopedKeyframeFields());
+                for (const [seat, list] of this.phaseUsesSincePhaseStart()) {
+                    const held = keyframe.players[seat]?.abilityUses;
+                    if (held == null) {
+                        continue;
+                    }
+                    for (const use of list) {
+                        if (!held.some((h) => h.card === use.card && h.ability === use.ability)) {
+                            held.push(use);
+                        }
+                    }
+                }
                 event.keyframe = keyframe;
             }
             this.push(event);
@@ -1764,6 +1964,8 @@ export class SwuPgnRecorder {
                 this.actionCounter = 0;
                 this.subEventCounter = 0;
             }
+            // The PHASE_START below clears the fold's per-phase uses.
+            this.clearLimitedUses(['phase']);
             this.push({
                 seq: additional ? this.nextSeq(this.currentPhase === 'A') : `R${this.currentRound}.${this.currentPhase}.start`,
                 t: 'PHASE_START',
@@ -1968,21 +2170,29 @@ export class SwuPgnRecorder {
             // We surface it as a dedicated OVERWHELM record (instead of DAMAGE) when the engine
             // tags the damage as overwhelm-type onto a base; the 1.0 OVERWHELM reducer snaps base
             // hp exactly like a DAMAGE-to-base record.
+            // Combat damage: the attacker and the defender deal theirs at the same time (CR 6.3.5),
+            // in one engine event window, so its records are one simultaneous group.
+            const combatWindow = event?.damageSource?.attack != null && (damageType === 'combat' || damageType === 'overwhelm')
+                ? readOr<any>(() => event.window ?? this.game.currentEventWindow, null)
+                : null;
+
             if (damageType === 'overwhelm' && card?.isBase?.()) {
-                this.push({
+                const overwhelm: GameEvent = {
                     seq,
                     t: 'OVERWHELM',
                     p: this.seatOf(source?.controller ?? source?.owner),
                     tgt: this.targetRef(card),
                     amt,
                     hp: card?.remainingHp ?? 0,
-                });
+                };
+                this.push(overwhelm);
+                this.joinSimul(overwhelm, combatWindow);
                 this.recordLethalBaseHit(card);
                 return;
             }
 
             const src = this.sourceRef(source);
-            this.push({
+            const damage: GameEvent = {
                 seq,
                 t: 'DAMAGE',
                 ...(src ? { src } : {}),
@@ -1990,7 +2200,9 @@ export class SwuPgnRecorder {
                 amt,
                 damageType,
                 hp: card?.remainingHp ?? 0,
-            });
+            };
+            this.push(damage);
+            this.joinSimul(damage, combatWindow);
             this.recordLethalBaseHit(card);
         });
 
@@ -2216,6 +2428,24 @@ export class SwuPgnRecorder {
             if (to === 'resource') {
                 this.push({ seq: this.nextSeq(false), t: 'RESOURCE', p: seat, card: this.idOf(card) });
             }
+
+            // A card discarded from hand together with others (each player's discards, CR 7.1.4a):
+            // the move is part of the window's simultaneous group, with the DISCARD records.
+            if (from === 'hand' && to === 'discard') {
+                const window = readOr<any>(() => this.game.currentEventWindow, null);
+                if (this.windowEventCount(window, EventName.OnCardDiscarded) >= 2) {
+                    this.joinSimul(move, window);
+                }
+            }
+
+            // A card that changes zone is a new object, and its limited abilities start unused
+            // (CR 8.7); the engine resets them unless it only moved between arenas. The fold cannot
+            // know that from the MOVE, so it is stated, for a card the fold still counts uses for.
+            const ref = this.idOf(card);
+            if (!(isArena(from) && isArena(to)) && this.limitedUses.has(ref)) {
+                this.limitedUses.delete(ref);
+                this.push({ seq: this.nextSeq(false), t: 'ABILITY_RESET', card: ref });
+            }
         });
 
         // SHIELD_GAIN: no dedicated event. A Shield is given by generating a Shield token-upgrade
@@ -2376,7 +2606,14 @@ export class SwuPgnRecorder {
             const player = card?.owner;
             const id = this.idOf(card);
             const seq = this.nextSeq(false);
-            this.push({ seq, t: 'DISCARD', p: this.seatOf(player), cards: id === 'unknown' ? [] : [id] });
+            const discard: GameEvent = { seq, t: 'DISCARD', p: this.seatOf(player), cards: id === 'unknown' ? [] : [id] };
+            this.push(discard);
+            // Several cards discarded in one window (each player's discards, CR 7.1.4a) are one
+            // simultaneous group with their moves.
+            const window = readOr<any>(() => event?.window ?? this.game.currentEventWindow, null);
+            if (this.windowEventCount(window, EventName.OnCardDiscarded) >= 2) {
+                this.joinSimul(discard, window);
+            }
         });
 
         this.on(EventName.OnDeckShuffled, (event: any) => {
@@ -2561,6 +2798,16 @@ export class SwuPgnRecorder {
             } else {
                 seq = this.nextSeq(false);
             }
+            // A limited ability (spec §10.1, `[W-49]`): the limit the engine counts this use against,
+            // read from the context that resolves it. Only with an `ability` to key the count on.
+            const limit = typeof ability === 'string'
+                ? limitRecordOf(readOr(() => event?.context?.limit ?? event?.ability?.captureLimit?.(), undefined), event?.context?.player ?? player)
+                : undefined;
+            // An ability another card's ability made the player use (`[W-54]`).
+            const usedBy = readOr<string | undefined>(() => {
+                const by = event?.context?.retriggeredBy;
+                return by == null ? undefined : this.sourceRef(by);
+            }, undefined);
             this.push({
                 seq,
                 t: 'ABILITY_ACTIVATE',
@@ -2571,7 +2818,14 @@ export class SwuPgnRecorder {
                 ...(typeof title === 'string' && title !== '' ? { title } : {}),
                 ...(kind === 'epic' ? { epic: true } : {}),
                 ...(grantedBy ? { grantedBy } : {}),
+                ...(limit ? { limit } : {}),
+                ...(usedBy ? { usedBy } : {}),
             });
+            if (limit) {
+                const used = this.limitedUses.get(cardId) ?? new Set<LimitPer>();
+                used.add(limit.per);
+                this.limitedUses.set(cardId, used);
+            }
         });
 
         this.on(EventName.OnCardRevealed, (event: any) => {
@@ -2592,15 +2846,52 @@ export class SwuPgnRecorder {
         });
 
         this.on(EventName.OnDeckSearch, (event: any) => {
-            const player = event?.player;
+            // `event.player` is whose deck it is; the searching player may be another
+            // (`choosingPlayer`), and `p` is the one who looks.
+            const owner = event?.player;
+            const searcher = event?.searchProperties?.choosingPlayer ?? owner;
+            const viewed: any[] = Array.isArray(event?.viewedCards) ? event.viewedCards : [];
             const seq = this.nextSeq(false);
             this.push({
                 seq,
                 t: 'SEARCH',
-                p: this.seatOf(player),
+                p: this.seatOf(searcher),
                 zone: event?.searchWholeDeck ? 'deck' : undefined,
+                // Whose zone, and every card the searcher saw (spec §10.2, `[W-50]`).
+                owner: this.seatOf(owner),
+                seen: viewed.map((c: any) => this.idOf(c)).filter((id: string) => id !== 'unknown'),
             });
         });
+
+        // LOOK (spec §10.2, `[W-50]`): a player looked at hidden cards without revealing them. One
+        // record per zone looked into, since a look can take in two players' decks at once.
+        this.on(EventName.OnLookAtCard, (event: any) => {
+            const cards: any[] = Array.isArray(event?.cards) ? event.cards : [];
+            this.recordLook(event?.viewer ?? event?.context?.player, cards);
+        });
+
+        // The look of a "look at the top N, put them on the top or the bottom" ability, which views
+        // the cards through a prompt rather than a LookAtSystem event (recorder-only emit).
+        this.on(EventName.OnLookMoveDeckCards, (event: any) => {
+            const cards: any[] = Array.isArray(event?.cards) ? event.cards : [];
+            this.recordLook(event?.player, cards);
+        });
+
+        // NAME (spec §10.2, `[W-51]`): a player named a card. A dropdown that names something other
+        // than a card (a trait) writes nothing.
+        this.on(EventName.OnCardNamed, (event: any) => {
+            if (event?.namesCard !== true || typeof event?.choice !== 'string' || event.choice === '') {
+                return;
+            }
+            this.push({ seq: this.nextSeq(false), t: 'NAME', p: this.seatOf(event?.player), name: event.choice });
+        });
+
+        // Several players are about to choose at once, without seeing each other's choices (CR
+        // 7.1.4a): their card picks for this context are `blind`, valued at the asking record.
+        this.on(EventName.OnBlindChoicesRequested, (event: any) => {
+            const seq = event?.context != null ? this.askingSeq(event.context) : undefined;
+            this.blindAsk = seq != null ? { context: event.context, seq } : null;
+        }, { syncAfter: false });
 
         // ── Decision context (pure-log; no fold delta) ────────────────────────
         //
@@ -2648,10 +2939,10 @@ export class SwuPgnRecorder {
 
         // CHOICE: a free card-selection prompt (SelectCardPrompt.emitCardSelection) — distinct from
         // MODAL_CHOICE's fixed menu/button list. `offered` is the candidate-card pool the prompt
-        // presented; `chosen` is the single selected card; we record the stable card-id list and the
-        // chosen card's index within it. The engine only emits this for single-card selections, and
-        // we additionally skip the record if the chosen card isn't resolvable or isn't in the offered
-        // pool (a malformed pairing) rather than emit a sentinel. Pure log — no fold delta.
+        // presented; `chosen` is the single selected card (null for a multi-card pick, whose cards are
+        // `chosenCards`); we record the stable card-id list and the chosen card's index within it. We
+        // skip the record if the chosen card isn't resolvable or isn't in the offered pool (a
+        // malformed pairing) rather than emit a sentinel. Pure log — no fold delta.
         this.on(EventName.OnCardSelection, (event: any) => {
             // targetRef, not idOf: an attack-target prompt offers the opponent's base, and a
             // base is written `base@N` everywhere else in the file (spec §6.3).
@@ -2659,22 +2950,31 @@ export class SwuPgnRecorder {
             const offered = offeredCards
                 .map((c: any) => this.targetRef(c))
                 .filter((id: string) => id !== 'unknown');
-            const chosen = event?.chosen;
-            if (chosen?.uuid == null) {
-                return;
+            // A pick made without seeing the other players' (spec §10.2, `[W-53]`).
+            const blind = event?.context != null && this.blindAsk?.context === event.context ? this.blindAsk.seq : undefined;
+            // A CHOICE is one pick. A multi-card pick is written, one CHOICE per card, only in a
+            // blind group, where each card is a choice the rules make without the others seeing.
+            const picked: any[] = event?.chosen != null
+                ? [event.chosen]
+                : (blind != null && Array.isArray(event?.chosenCards) ? event.chosenCards : []);
+            for (const chosen of picked) {
+                if (chosen?.uuid == null) {
+                    continue;
+                }
+                const chose = offered.indexOf(this.targetRef(chosen));
+                if (chose < 0) {
+                    continue;
+                }
+                this.push({
+                    seq: this.nextSeq(false),
+                    t: 'CHOICE',
+                    p: this.seatOf(event?.player),
+                    prompt: typeof event?.prompt === 'string' ? event.prompt : undefined,
+                    offered,
+                    chose,
+                    ...(blind != null ? { blind } : {}),
+                });
             }
-            const chose = offered.indexOf(this.targetRef(chosen));
-            if (chose < 0) {
-                return;
-            }
-            this.push({
-                seq: this.nextSeq(false),
-                t: 'CHOICE',
-                p: this.seatOf(event?.player),
-                prompt: typeof event?.prompt === 'string' ? event.prompt : undefined,
-                offered,
-                chose,
-            });
         });
     }
 }

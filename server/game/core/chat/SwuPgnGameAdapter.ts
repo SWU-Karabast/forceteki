@@ -4,11 +4,12 @@ import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { EventName, GameEndReason, PhaseName, ZoneName } from '../Constants';
 import { SwuPgn } from './SwuPgn';
-import { attachedHost, buildHeader, cardKind, liveStats, printedCardKind, readOr as read, SwuPgnRecorder, tokenUpgradeKind } from './SwuPgnRecorder';
+import { attachedHost, buildHeader, cardKind, limitRecordOf, liveStats, printedCardKind, readOr as read, SwuPgnRecorder, tokenUpgradeKind } from './SwuPgnRecorder';
+import { PerGameAbilityLimit } from '../ability/AbilityLimit';
 import type { HeaderContext, SwuPgnResolver } from './SwuPgnRecorder';
 import { SwuPgnWriter } from './SwuPgnWriter';
 import { render } from '../../../../swupgn/src/render';
-import type { CardIndexRecord, CardInstanceState, DeckRecord, LeaderState, PlayerState, ReducedState, Seat, SwuPgnDocument } from '../../../../swupgn/src/types';
+import type { AbilityUse, CardIndexRecord, CardInstanceState, DeckRecord, LeaderState, PlayerState, ReducedState, Seat, SwuPgnDocument } from '../../../../swupgn/src/types';
 
 /**
  * The SET#NUM of a player's (first) deck leader. Faux Suns gives a player two leaders; the header
@@ -411,12 +412,64 @@ export class SwuPgnGameAdapter {
                 : emptyPlayerState(seat);
         }
 
+        // Each seat's limited-ability uses (spec §11, §13, `[W-49]`): an empty list when none.
+        const uses = read(() => this.buildSwuPgnAbilityUses(players), new Map<Seat, AbilityUse[]>());
+        for (const seat of [1, 2] as Seat[]) {
+            state.players[seat].abilityUses = uses.get(seat) ?? [];
+        }
+
         // The active lasting and delayed effects (spec §11, §13): an empty list when none is. The
         // engine has no `fx@N`, so the recorder, which numbered them, lists the ones the engine
         // still holds.
         state.effects = read(() => this.recorder.activeEffects(), []);
 
         return state;
+    }
+
+    /**
+     * Every limited ability's uses, by the seat that used them (spec §11 `abilityUses`): each card's
+     * action and triggered abilities whose limit the format counts (`limitRecordOf`) and that the
+     * engine says were used at least once this phase, round or game.
+     *
+     * The engine counts most limits per player, which is the seat. A `PerGameAbilityLimit` counts
+     * for the card whatever player used it; the fold counts per seat, under the seat that used the
+     * ability, so that count is projected onto the card's controller: the player who uses a card's
+     * ability is its controller, unless another card made someone else use it.
+     */
+    private buildSwuPgnAbilityUses(players: Player[]): Map<Seat, AbilityUse[]> {
+        const bySeat = new Map<Seat, AbilityUse[]>();
+        for (const card of read<any[]>(() => this.game.allCards as any[], [])) {
+            const abilities = new Set<any>([
+                ...read<any[]>(() => card.getActionAbilities?.() ?? [], []),
+                ...read<any[]>(() => card.getTriggeredAbilities?.() ?? [], []),
+            ]);
+            for (const ability of abilities) {
+                const id = read<unknown>(() => ability?.abilityIdentifier, undefined);
+                const limit = read<any>(() => ability?.captureLimit?.(), null);
+                if (typeof id !== 'string' || limit == null) {
+                    continue;
+                }
+                const perCard = limit instanceof PerGameAbilityLimit;
+                for (const player of players) {
+                    if (perCard && read(() => card.controller !== player, true)) {
+                        continue;
+                    }
+                    const recorded = limitRecordOf(limit, player);
+                    const count = read<number>(() => limit.currentForPlayer(player), 0);
+                    if (recorded == null || !(count > 0)) {
+                        continue;
+                    }
+                    const seat = this.swuPgnSeat(player.id);
+                    const ref = read(() => card.isBase?.() === true, false)
+                        ? `base@${this.swuPgnSeat(card.owner.id)}`
+                        : this.swuPgnCardId(card.uuid);
+                    const list = bySeat.get(seat) ?? [];
+                    list.push({ card: ref, ability: id, count, max: recorded.max, per: recorded.per });
+                    bySeat.set(seat, list);
+                }
+            }
+        }
+        return bySeat;
     }
 
     /**

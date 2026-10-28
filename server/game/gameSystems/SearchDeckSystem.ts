@@ -79,6 +79,9 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         // event.searchWholeDeck indicates a whole-deck search; otherwise event.amount is the requested top-N count.
         const amount = event.searchWholeDeck ? deckLength : Math.min(event.amount, deckLength);
         const cards = this.getDeck(player).slice(0, amount);
+        // Recorder-only (SWU-PGN §10.2 SEARCH.seen): the cards the searching player looks at. Read by
+        // the recorder's OnDeckSearch handler, which runs after this handler; nothing in the game reads it.
+        event.viewedCards = cards;
         this.promptSelectCards(event, additionalProperties, cards, new Set());
     }
 

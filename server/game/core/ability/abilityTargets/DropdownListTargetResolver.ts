@@ -5,6 +5,7 @@ import { TargetResolver } from './TargetResolver';
 import { SelectChoice } from './SelectChoice';
 import type { Player } from '../../Player';
 import { Helpers } from '../../utils/Helpers';
+import { EventName } from '../../Constants';
 
 /** Target resolver for selecting from a list of strings and passing the choice to a GameSystem */
 export class DropdownListTargetResolver extends TargetResolver<IDropdownListTargetResolver<AbilityContext>> {
@@ -53,6 +54,23 @@ export class DropdownListTargetResolver extends TargetResolver<IDropdownListTarg
 
         if (this.properties.logSelection ?? true) {
             context.game.addMessage('{0} names {1} using {2}', context.player, choice, abilitySource);
+        }
+
+        this.emitCardNamed(context, choice, abilitySource);
+    }
+
+    /**
+     * Pure-log SWU-PGN/1.0 hook (§10.2 NAME): a player named something. `namesCard` is true only
+     * when the list offered was card titles (the other dropdowns name a trait). Fully wrapped:
+     * recording instrumentation must never affect gameplay.
+     */
+    private emitCardNamed(context: AbilityContext, choice: string, source: unknown) {
+        try {
+            const options = this.properties.options;
+            const namesCard = options === context.game.playableCardTitles || options === context.game.allNonLeaderCardTitles;
+            context.game.emit(EventName.OnCardNamed, { player: context.player, choice, source, namesCard });
+        } catch {
+            // never let recording instrumentation break targeting
         }
     }
 
