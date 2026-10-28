@@ -23,6 +23,16 @@
       "render": "capture.render.txt"
     },
     {
+      "file": "control.swupgn",
+      "class": "positive",
+      "writer": "forceteki",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "control.fold.json",
+      "render": "control.render.txt"
+    },
+    {
       "file": "death-star.swupgn",
       "class": "positive",
       "writer": "forceteki",
@@ -31,6 +41,16 @@
       "warnings": [],
       "fold": "death-star.fold.json",
       "render": "death-star.render.txt"
+    },
+    {
+      "file": "effects.swupgn",
+      "class": "positive",
+      "writer": "forceteki",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "effects.fold.json",
+      "render": "effects.render.txt"
     },
     {
       "file": "homeworlds.swupgn",
@@ -101,6 +121,16 @@
       "warnings": [],
       "fold": "upgrades.fold.json",
       "render": "upgrades.render.txt"
+    },
+    {
+      "file": "visibility.swupgn",
+      "class": "positive",
+      "writer": "forceteki",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "visibility.fold.json",
+      "render": "visibility.render.txt"
     },
     {
       "file": "negative/bad-escape.swupgn",
@@ -177,7 +207,7 @@
         "round-start-active"
       ],
       "warnings": [],
-      "about": "A ROUND_START with no active seat (§10.5, [V-08])."
+      "about": "A ROUND_START with no active seat (§10.1, [V-08])."
     },
     {
       "file": "negative/effect-end-unknown.swupgn",

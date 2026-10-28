@@ -1203,7 +1203,7 @@ number. `for` names the action a record belongs to. From the `arrest` vector:
 ```json
 {"seq":"R2.A.2a","t":"CHOICE","p":1,"prompt":"Peridea Bandit","offered":["base@2"],"chose":0,"for":"R2.A.3"}
 {"seq":"R2.A.2b","t":"EXHAUST","card":"ASH#190","for":"R2.A.3"}
-{"seq":"R2.A.3","t":"ATTACK","p":1,"atk":"ASH#190","def":"base@2","defenderType":"base","ms":6}
+{"seq":"R2.A.3","t":"ATTACK","p":1,"atk":"ASH#190","def":"base@2","defenderType":"base","ms":7}
 ```
 
 **Belonging.** A record **belongs to** action `N` when it records `N`'s announcement, its
@@ -1312,7 +1312,7 @@ writer MUST derive an event's `kind` from what the event does, not from the card
 
 // Flown onto the X-Wing: this move attaches, so it is an upgrade move.
 {"seq":"R2.A.0d","t":"MOVE","card":"JTL#058","from":"hand","to":"space","p":1,"kind":"upgrade","attachedTo":"LAW#253","for":"R2.A.1"}
-{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"JTL#058","zone":"space","target":"LAW#253","cost":2,"ms":8}
+{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"JTL#058","zone":"space","target":"LAW#253","cost":2,"ms":9}
 ```
 
 A reader applies `kind` exactly as [§12.1](#121-the-move-rule-the-big-one) says: an
@@ -1579,6 +1579,12 @@ a use whose `per` it does not know, because it cannot know when that use resets.
 | `round` | each round |
 | `game` | in the game |
 
+From the `control` vector, Gar Saxon's once-each-round trigger:
+
+```json
+{"seq":"R3.A.3a","t":"ABILITY_ACTIVATE","p":1,"card":"ASH#047","ability":"gar-saxon#coveting-power_triggered_0","kind":"triggered","title":"Create a Mandalorian token","limit":{"max":1,"per":"round"}}
+```
+
 **`ABILITY_RESET` — a card's limited-ability uses were reset.**
 
 | Field | Type | Required | Means |
@@ -1597,6 +1603,13 @@ record of that use is an `ABILITY_ACTIVATE` like any other: `card` is the card t
 on, `p` is the player using it, and `usedBy` names the card whose ability caused the use
 `[W-54]`. It is a sub-step of the ability that caused it. `usedBy` is a note: the fold ignores
 it.
+
+From the `visibility` vector: a Wartime Trade Official is defeated, its When Defeated creates a
+Battle Droid, and Grand Admiral Thrawn (`JTL#002`, the leader) has Player 1 use it again:
+
+```json
+{"seq":"R4.A.1l","t":"ABILITY_ACTIVATE","p":1,"card":"TWI#032:3","ability":"wartime-trade-official_triggered_0","kind":"triggered","title":"Create a Battle Droid token.","usedBy":"JTL#002"}
+```
 
 ---
 
@@ -1685,6 +1698,16 @@ exchange fails (a card is not eligible), it records none.
 row): a `MOVE` was written beside it and already carried the counts, and shifting them twice
 would be wrong. A Credit token steal is written as one of these per token, from the token's
 own `base` → `base` move ([the `from`/`to` rules](#101-events-that-carry-board-detail)).
+
+From the `control` vector: Evidence of the Crime takes Player 2's Academy Training (`IC27#093:2`)
+and attaches it to one of Player 1's units — the same-arena `MOVE` naming the new host, then the
+upgrade form — and Arquitens Assault Cruiser defeats an X-Wing and puts it into play as Player 1's
+resource, its owner recorded:
+
+```json
+{"seq":"R3.A.1c","t":"TAKE_CONTROL","p":1,"card":"IC27#093:2","zone":"ground","from":2}
+{"seq":"R7.A.2h","t":"TAKE_CONTROL","p":1,"card":"LAW#253:18","zone":"resource","owner":2}
+```
 
 ---
 
@@ -1898,6 +1921,14 @@ until the next regroup.
 | `cost` | integer | no | With `copyOf`: the copied printed cost. |
 | `aspects` | string[] | no | With `copyOf`: the copied aspects, one entry per aspect icon ([§6.4](#64-small-vocabularies)). |
 
+From the real-game vectors: a Battlefield Marine Force Lightning blanked (`effects`), and Clone
+entering play as a copy of a Battlefield Marine (`control`, its own traits plus Clone):
+
+```json
+{"seq":"R4.A.1c","t":"STATS","card":"SOR#095:3","power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"],"blank":true}
+{"seq":"R6.A.0f","t":"STATS","card":"TWI#116","power":3,"hp":3,"keywords":[],"traits":["clone","rebel","trooper"],"copyOf":"SOR#095:2","name":"Battlefield Marine","cost":2,"aspects":["command","heroism"],"for":"R6.A.1"}
+```
+
 Sets those fields on the card. `power`, `hp` and `keywords` are set as given (`keywords` only
 when present). The other seven are the rest of the unit's attributes (CR 1.16.1), and a `STATS`
 states **all of them at once**: a field it carries is set, and one it leaves out is removed — a
@@ -1990,6 +2021,22 @@ says so. The source leaving play ends nothing by itself — lasting and delayed 
 that left play remain active (CR 8.12.1) — except an effect whose `duration` is
 `whileSourceInPlay`, which ends with `reason` `sourceLeft`. A reader never drops a target or an
 effect on its own; it applies what the records say.
+
+From the `effects` vector: Rallying Cry gives both of Player 1's Stormtroopers Raid 2 for the
+phase, one of them trades with an enemy unit and leaves the effect, and the rest of it ends with
+the phase:
+
+```json
+{"seq":"R3.A.1b","t":"EFFECT_START","id":"fx@3","src":"SOR#154:2","p":1,"targets":["IC27#097:2","IC27#097:3"],"duration":"phase","ability":"rallying-cry_anonymous","text":"Each friendly unit gains Raid 2 this phase"}
+{"seq":"R3.A.3f","t":"EFFECT_END","id":"fx@3","reason":"targetLeft","targets":["IC27#097:2"]}
+{"seq":"R3.A.7a","t":"EFFECT_END","id":"fx@3","reason":"expired"}
+```
+
+And an `until` effect, which states its condition in words:
+
+```json
+{"seq":"R2.A.1c","t":"EFFECT_START","id":"fx@2","src":"SHD#144","p":1,"targets":["SOR#095"],"duration":"until","untilText":"the phase ends or an action is taken","ability":"give-in-to-your-anger_anonymous","text":"Must attack a unit on its controller's next action this phase, if able"}
+```
 
 **`duration`** is closed: a reader may branch on it. A value from a newer minor version is read
 per [§18](#18-versioning-and-extensibility--versions-and-unknown-things): kept as it is, not
@@ -2122,7 +2169,7 @@ by **`attachedTo`** on the `MOVE` that carries it **into the arena**. From the `
 {"seq":"R1.A.1c","t":"STATUS_TOKEN","card":"ASH#251:2","token":"advantage","count":1}
 
 {"seq":"R3.A.0c","t":"MOVE","card":"LOF#215:2","from":"hand","to":"ground","p":1,"kind":"upgrade","attachedTo":"ASH#251:2","for":"R3.A.1"}
-{"seq":"R3.A.1","t":"PLAY_UPGRADE","p":1,"card":"LOF#215:2","zone":"ground","target":"ASH#251:2","cost":2,"ms":29}
+{"seq":"R3.A.1","t":"PLAY_UPGRADE","p":1,"card":"LOF#215:2","zone":"ground","target":"ASH#251:2","cost":2,"ms":41}
 ```
 
 An attachment that changes while the card stays in its arena — a printed upgrade moved to
@@ -2144,7 +2191,7 @@ on that seat's `baseUpgrades` ([§12.1](#121-the-move-rule-the-big-one) step 2c)
 
 ```json
 {"seq":"R2.A.0k","t":"MOVE","card":"HMW#271","from":"hand","to":"base","p":1,"kind":"upgrade","attachedTo":"base@1","for":"R2.A.1"}
-{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#271","zone":"base","target":"base@1","cost":3,"ms":7}
+{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#271","zone":"base","target":"base@1","cost":3,"ms":8}
 ```
 
 **Exits are host-less.** The move back out — the token defeated, the upgrade destroyed, the
@@ -2248,6 +2295,16 @@ changed zone, so there is nothing to record — and a `deck` → `deck` record w
 `from` ≠ `to` rule above anyway. This matters more than it sounds: two searches in one real
 game once produced 28 of that file's 136 MOVE records, all of them noise.
 
+From the `visibility` vector: a search of the top eight cards for an upgrade, a look at the top
+two cards of the player's own deck, a look at the opponent's hand, and a card named:
+
+```json
+{"seq":"R1.A.1b","t":"SEARCH","p":1,"owner":1,"seen":["LAW#253:3","TWI#032:2","SHD#069:2","SEC#239","SOR#062","SEC#239:2","SOR#031","LAW#253:4"]}
+{"seq":"R4.A.3b","t":"LOOK","p":1,"owner":1,"zone":"deck","cards":["SEC#239","SEC#239:2"],"count":2}
+{"seq":"R5.A.3b","t":"LOOK","p":1,"owner":2,"zone":"hand","cards":["SOR#095:4","SOR#095:5","SOR#095:6","SOR#095:7"],"count":4}
+{"seq":"R2.A.1a","t":"NAME","p":1,"name":"Battlefield Marine"}
+```
+
 <a id="simultaneous-groups"></a>
 ### Simultaneous groups: `blind` and `simul`
 
@@ -2270,6 +2327,18 @@ A renderer and a scrubber treat a `simul` group as **one instant**: a scrubber n
 it, and a renderer prints its records as it would print them without `simul`, in file order
 ([§16](#16-rendering--turning-a-file-into-a-story)). A `blind` pick names the cards in `offered`
 in full in 1.0; hiding another player's pick is a perspective rule's job ([§21](#21-open-issues)).
+
+From the `visibility` vector: Every Day, More Lies (`R2.A.3`) has each player discard a card. The
+two picks share the `blind` of the record that asked, and the discards are one group:
+
+```json
+{"seq":"R2.A.3b","t":"CHOICE","p":1,"prompt":"Every Day, More Lies","offered":["HMW#085:2","TWI#032","SHD#069:2"],"chose":0,"blind":"R2.A.3a"}
+{"seq":"R2.A.3c","t":"CHOICE","p":2,"prompt":"Every Day, More Lies","offered":["SOR#095:2","SOR#095:3","SOR#095:4"],"chose":0,"blind":"R2.A.3a"}
+{"seq":"R2.A.3d","t":"MOVE","card":"HMW#085:2","from":"hand","to":"discard","p":1,"kind":"unit","simul":"R2.A.3d"}
+{"seq":"R2.A.3e","t":"DISCARD","p":1,"cards":["HMW#085:2"],"simul":"R2.A.3d"}
+{"seq":"R2.A.3f","t":"MOVE","card":"SOR#095:2","from":"hand","to":"discard","p":2,"kind":"unit","simul":"R2.A.3d"}
+{"seq":"R2.A.3g","t":"DISCARD","p":2,"cards":["SOR#095:2"],"simul":"R2.A.3d"}
+```
 
 ### 10.3 Homeworlds: Fortify, Beast and Weakness
 
@@ -2323,7 +2392,7 @@ Damage it deals is written with `src: "base@1"`: the base dealt it ([§6.3](#63-
 base, and the exit is host-less like every other ([§10.1](#binding-an-attachment-to-its-host)):
 
 ```json
-{"seq":"R2.A.2","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#095","ability":"carbonite-chamber_action_0","kind":"action","title":"Choose a non-Vehicle unit. It doesn't ready during the next regroup phase","ms":8}
+{"seq":"R2.A.2","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#095","ability":"carbonite-chamber_action_0","kind":"action","title":"Choose a non-Vehicle unit. It doesn't ready during the next regroup phase","ms":9}
 {"seq":"R2.A.2a","t":"MOVE","card":"HMW#095","from":"base","to":"discard","p":2,"kind":"upgrade"}
 {"seq":"R2.A.2b","t":"DEFEAT","card":"HMW#095","reason":"ability","defeatedBy":"HMW#095"}
 ```
@@ -2352,7 +2421,7 @@ a `CREATE_TOKEN`, then the `MOVE` from `outsideTheGame` that places it, its firs
 ```json
 {"seq":"R2.A.0e","t":"CREATE_TOKEN","p":1,"token":"TOKEN:beast#6445363199","zone":"ground","kind":"unit"}
 {"seq":"R2.A.0f","t":"MOVE","card":"TOKEN:beast#6445363199","from":"outsideTheGame","to":"ground","p":1,"kind":"unit"}
-{"seq":"R2.A.0g","t":"STATS","card":"TOKEN:beast#6445363199","power":3,"hp":3,"keywords":[]}
+{"seq":"R2.A.0g","t":"STATS","card":"TOKEN:beast#6445363199","power":3,"hp":3,"keywords":[],"traits":["creature"]}
 {"seq":"R2.A.0h","t":"EXHAUST","card":"TOKEN:beast#6445363199"}
 ```
 
@@ -2381,7 +2450,7 @@ exactly: a status token counted under its own name, `statusTokens.weakness`:
 ```json
 {"seq":"R3.A.4b","t":"MOVE","card":"TOKEN:weakness#7816991190:3","from":"outsideTheGame","to":"ground","p":1,"kind":"upgrade","attachedTo":"TOKEN:beast#6445363199"}
 {"seq":"R3.A.4c","t":"STATUS_TOKEN","card":"TOKEN:beast#6445363199","token":"weakness","count":1}
-{"seq":"R3.A.4d","t":"STATS","card":"TOKEN:beast#6445363199","power":0,"hp":0,"keywords":[]}
+{"seq":"R3.A.4d","t":"STATS","card":"TOKEN:beast#6445363199","power":0,"hp":0,"keywords":[],"traits":["creature"]}
 ```
 
 - **Tokens stack.** Each one is its own card (`:2`, `:3`, …) with its own `STATUS_TOKEN` +1, and
@@ -2398,9 +2467,9 @@ to its damage, and the rules defeat it. In the file, the `STATS` with the lowere
 first, then the unit's attachments leave, then the unit:
 
 ```json
-{"seq":"R3.A.4d","t":"STATS","card":"TOKEN:beast#6445363199","power":0,"hp":0,"keywords":[]}
+{"seq":"R3.A.4d","t":"STATS","card":"TOKEN:beast#6445363199","power":0,"hp":0,"keywords":[],"traits":["creature"]}
 {"seq":"R3.A.4e","t":"MOVE","card":"TOKEN:weakness#7816991190:3","from":"ground","to":"outsideTheGame","p":1,"kind":"upgrade"}
-{"seq":"R3.A.4f","t":"STATS","card":"TOKEN:beast#6445363199","power":1,"hp":1,"keywords":[]}
+{"seq":"R3.A.4f","t":"STATS","card":"TOKEN:beast#6445363199","power":1,"hp":1,"keywords":[],"traits":["creature"]}
 {"seq":"R3.A.4g","t":"STATUS_TOKEN","card":"TOKEN:beast#6445363199","token":"weakness","count":-1}
    … the other two Weakness tokens leave the same way …
 {"seq":"R3.A.4n","t":"MOVE","card":"TOKEN:beast#6445363199","from":"ground","to":"outsideTheGame","p":1,"kind":"unit"}
@@ -2488,7 +2557,7 @@ may read `"The Death Star"`. That field is advisory, [§6.4](#64-small-vocabular
 arrival in **space** are its sub-steps:
 
 ```json
-{"seq":"R8.A.1","t":"ABILITY_ACTIVATE","p":1,"card":"HMW#004","ability":"grand-moff-tarkin#tyrant-of-the-outer-rim_action_0","kind":"epic","title":"Deploy Grand Moff Tarkin","epic":true,"ms":36}
+{"seq":"R8.A.1","t":"ABILITY_ACTIVATE","p":1,"card":"HMW#004","ability":"grand-moff-tarkin#tyrant-of-the-outer-rim_action_0","kind":"epic","title":"Deploy Grand Moff Tarkin","epic":true,"ms":39}
 {"seq":"R8.A.1a","t":"MOVE","card":"HMW#004","from":"base","to":"space","p":1,"kind":"unit"}
 {"seq":"R8.A.1c","t":"DEPLOY_LEADER","p":1,"card":"HMW#004","zone":"space","epic":true,"cost":9}
 ```
@@ -3653,10 +3722,15 @@ reader in the suite reproduces its fold and rendering.
 | `arrest` | Real game: a **base** as captor. Arrest twice (`CAPTURE` with `by: "base@1"`, the captive in `players[1].baseCaptured` until it is rescued), each captive rescued at the start of the next regroup phase (`RESCUE`, the `MOVE` out of `capture`). |
 | `homeworlds` | Real game, Homeworlds mechanics ([§10.3](#103-homeworlds-fortify-beast-and-weakness)): Fortify upgrades on **both** bases (`MOVE` into `base` with `attachedTo: "base@N"`, `PLAY_UPGRADE.target` `base@N`, `baseUpgrades` in every keyframe); a base upgrade sacrificed to its own Action (Carbonite Chamber) leaving `base`; a base using a granted triggered ability every round (`ABILITY_ACTIVATE` on `base@1` with `grantedBy`); a static base buff arriving as `STATS` (Verdant Fortress's Raid 1 on each Beast; Landing Pad is attached too, but no unit enters space, so its +1/+0 never shows); Beast tokens from a granted trigger and from an event; Weakness tokens stacking on a Beast until it dies at 0 HP (`frameworkEffect`, the token unit leaving for `outsideTheGame`); an empty-deck draw dealing damage with no `src`. |
 | `stolen-hauler` | Real game: Stolen AT-Hauler defeated by Power of the Dark Side into its owner's discard, then played from there by the **opponent** (`MOVE` from `discard` with `"p": 2` for Player 1's card), twice. Gates the "whose pile" rule of [§12.1](#121-the-move-rule-the-big-one): the card leaves Player 1's pile, not Player 2's. |
+| `effects` | Real game: lasting effects ([§10.1](#effect_start)). Wolffe's "Bases can't be healed" on both bases (`targets` `base@1` and `base@2`, `duration` `phase`, `EFFECT_END` `expired` at the phase's end); Rallying Cry's Raid 2 on two Stormtroopers, one of which trades with an enemy unit and leaves the effect (a partial `EFFECT_END` with `targets`, `reason` `targetLeft`) while the rest of it expires with the phase; Give In to Your Anger's `until` effect with its `untilText`; Force Lightning blanking a unit (`STATS.blank`) and its effect ending when the unit leaves play; combat damage both ways in one `simul` group. |
+| `visibility` | Real game: hidden information and simultaneous choices ([§10.2](#102-events-that-are-just-notes)). A search of the top eight cards (`SEARCH` with `owner` and `seen`); looks at the top of the player's own deck and at the opponent's hand (`LOOK`); Regional Governor naming a card (`NAME`, before the `EFFECT_START` that uses it); Every Day, More Lies having each player discard (two `blind` `CHOICE`s, the discards one `simul` group); a When Defeated used again by the leader (`ABILITY_ACTIVATE.usedBy`). |
+| `control` | Real game, seven rounds: control and ownership. Evidence of the Crime taking an enemy upgrade onto a friendly unit (an upgrade `TAKE_CONTROL` and the host's `upgradeControllers`); Traitorous taking a unit (the keyframe `owner`); Gar Saxon's once-each-round trigger (`ABILITY_ACTIVATE.limit`); Foundling adding a trait (`STATS.traits`); Clone entering play as a copy (`STATS.copyOf`, `name`, `cost`, `aspects`); Arquitens Assault Cruiser putting a defeated enemy unit into play as a resource (a resource `TAKE_CONTROL` with `owner`, `foreignResources`). |
 | `death-star` | Real game, eight rounds ([§10.4](#104-grand-moff-tarkin-and-the-death-star)): Grand Moff Tarkin builds to nine resources and deploys by Epic Action as **The Death Star** (`backSideName` in `%%% CARDS`, the `DEPLOY_LEADER` a sub-step of the Epic Action, arriving in `space`), then at the start of the regroup phase defeats Player 2's base with 9 HP left — a `DEFEAT` on `base@2`, `baseDefeated: true` beside a non-zero `baseHp`. Along the way a Weakness given to the player's own unit stacks to a kill. |
 
-The eight real-game vectors were written by one real engine; [Appendix C](#reference-writer-revisions-informative)
-names it and its writer revision. `minimal` and `other-writer` are written by hand. How the vectors are regenerated is in `swupgn/README.md`.
+The eleven real-game vectors were written by one real engine; [Appendix C](#reference-writer-revisions-informative)
+names it and its writer revision. Every one of them records a resource entering the row exhausted
+in the regroup phase (`MOVE.exhausted` into `resource`, `[W-45]`), and `active` on every
+`ROUND_START`. `minimal` and `other-writer` are written by hand. How the vectors are regenerated is in `swupgn/README.md`.
 
 **Negative vectors**, in `swupgn/test-vectors/negative/`, are each the `minimal` vector with
 one thing broken. A reader MUST reject or warn on each as the manifest says:
@@ -3671,6 +3745,12 @@ one thing broken. A reader MUST reject or warn on each as the manifest says:
 | `unsupported-major` | `SWU-PGN/2.0` | malformed | error `unsupported-major` |
 | `duplicate-key` | a `PASS` with two `p` keys | malformed | error `duplicate-key` |
 | `bad-move` | a `MOVE` to `sideboard`, not a zone | well-formed | error `bad-zone` |
+| `bad-token-name` | a `CREATE_TOKEN` whose token id breaks the token-name grammar ([§6.1](#the-token-grammar)) | well-formed | error `bad-token-name` |
+| `credit-zone` | a `MOVE` of a Credit token into `resource`; Credit tokens are recorded in `base` `[W-42]` | well-formed | error `credit-zone` |
+| `deck-build-move` | a `MOVE` from `outsideTheGame` into `deck` `[W-41]` | well-formed | error `deck-build-move` |
+| `fortify-enemy-base` | a Fortify upgrade attached to the other seat's base ([§10.3](#103-homeworlds-fortify-beast-and-weakness), `[V-06]`) | well-formed | error `fortify-host` |
+| `token-to-hand` | a token that leaves play for `hand` instead of `outsideTheGame` (`[V-07]`) | well-formed | error `token-zone` |
+| `round-start-no-active` | a `ROUND_START` with no `active` seat (`[V-08]`) | well-formed | error `round-start-active` |
 | `duplicate-seq` | two records labelled `R1.A.1` | well-formed | error `duplicate-seq` |
 | `result-mismatch` | `[Result "P1"]` on a file with no `GAME_END` | well-formed | error `result-mismatch` |
 | `dangling-ref` | an annotation on a `seq` that is not there | well-formed | error `dangling-ref` |
@@ -3880,6 +3960,55 @@ A last pass over the writer and reader (2026-10-28) changed:
   ([§16](#16-rendering--turning-a-file-into-a-story)).
 - The reference writer derives `P1Id` / `P2Id` from the player's account id, not the display
   name, as [§17](#17-privacy-considerations) requires ([Appendix D](#appendix-d-reference-writer-notes-informative)).
+
+#### CR v9.0 coverage pass (2026-10-28)
+
+A pass of the format against Comprehensive Rules v9.0 and the board state of CR 1.16 changed:
+
+- Rules citations are to CR v9.0, and the rules audit's clarifications are settled in the text:
+  "in an arena" against the CR's wider "in play", each zone against its CR section, `damageType`,
+  `uniqueRule` and the causes of `frameworkEffect`, Plot, exchange of control, and a play, attack
+  or action ability made while another ability resolves being a sub-step of it.
+- The format covers the two-player game only; a writer MUST NOT write more than two players `[W-44]`.
+- A Fortify upgrade attached to the other seat's base is an error, `fortify-host` `[V-06]`
+  (`fortify-enemy-base` vector).
+- A `MOVE` into `resource` carries `exhausted: true` when the card enters the row exhausted, and
+  the fold counts it so `[W-45]`; a card resourced in the regroup phase enters exhausted (CR 5.5.1.c).
+- Every `ROUND_START` carries `active`, the initiative holder `[W-46]`, the fold takes the
+  initiative from it, and one without it is an error, `round-start-active` `[V-08]`
+  (`round-start-no-active` vector).
+- A token leaving play goes to `outsideTheGame` from every zone `[W-47]`; a token `MOVE` to any
+  other zone is an error, `token-zone` `[V-07]` (`token-to-hand` vector). A leader moving between
+  an arena and `base` sets `leader.deployed` whether or not a `DEPLOY_LEADER` was written.
+- Lasting and delayed effects are records: `EFFECT_START` and `EFFECT_END`, with effect ids
+  `fx@N`, the closed `duration` and `reason` vocabularies, a partial end when a target leaves play,
+  and the board's `effects`, carried in keyframes and gated `[W-48]`. An `EFFECT_END` for no active
+  effect is an error, `effect-end-unknown` `[V-09]` (`effect-end-unknown` vector).
+- A limited ability carries `limit` on every use, the fold counts it in the seat's `abilityUses`
+  and resets it at the boundary `limit.per` names, and `ABILITY_RESET` states a reset at any other
+  moment `[W-49]`.
+- A look at hidden cards is a `LOOK`, and a `SEARCH` carries `owner` and `seen` `[W-50]`.
+- A card named is a `NAME`, before the record that uses the name `[W-51]`.
+- A successful disclose is one `REVEAL` of the hand, and a trigger from a hidden zone writes no
+  `REVEAL` `[W-52]`.
+- Choices made without seeing each other carry `blind`, and the records of one simultaneous
+  resolution (each player's discard, combat damage) carry `simul` `[W-53]`.
+- An ability another card's ability made a player use carries `usedBy`, and its `p` is that
+  player `[W-54]`.
+- `STATS` states every attribute of the unit: `traits` always, `blank`, `leaderUnit`, and for a
+  copy `copyOf`, `name`, `cost` and `aspects`; keyframe cards carry the same `[W-55]`.
+- A change of control of an attached upgrade is a `TAKE_CONTROL`, and the host's
+  `upgradeControllers` records it; a unit in play under a seat that does not own it has `owner`;
+  a resource `TAKE_CONTROL` without `from` carries `owner` `[W-56]`.
+- Every keyframe seat carries `foreignResources`, the resources in its row that the other seat
+  owns `[W-57]`.
+- A play also takes in, as its precursors, what the played card does as it enters play: its own
+  `ABILITY_ACTIVATE` and the `EFFECT_START` it starts on itself, with the cost and choice before
+  them ([Appendix C](#grouping-records-in-a-file-without-for)).
+- [§21](#21-open-issues) names the new fields a perspective rule will have to hide.
+- The conformance suite gains the `effects`, `visibility` and `control` real-game vectors, every
+  real-game vector is regenerated at writer revision 6, and the negative-vector table lists every
+  negative vector ([§20](#20-conformance-suite--test-vectors)).
 
 ---
 
@@ -4648,8 +4777,8 @@ Pre-release files and forceteki writer revisions 1 and 2 wrote `"R1.S.0"` for `I
 
 ### Reference writer revisions (informative)
 
-The eight real-game vectors ([§20](#20-conformance-suite--test-vectors)) were written by
-`forceteki` at writer revision 5, the latest row of the table below; their `writer` in the
+The eleven real-game vectors ([§20](#20-conformance-suite--test-vectors)) were written by
+`forceteki` at writer revision 6, the latest row of the table below; their `writer` in the
 manifest is `forceteki`.
 
 `forceteki` writer revisions so far ([§5.2](#52-optional-tags)). Before publication a revision
@@ -4662,6 +4791,20 @@ could change what a record means. After it, a revision is diagnostic only.
 | 3 | `INIT` is `R0.S.0`, not `R1.S.0` ([§8](#8-the-setup-section)). `GameId` is an opaque hash, not the engine's game id, and the fallback player-id salt is no longer printed in the file ([§17](#17-privacy-considerations)) | the `INIT` seq; a `GameId` matching `^sha256:[0-9a-f]{64}$` |
 | 4 | Each mode picked from a "choose N" modal effect is a `MODAL_CHOICE` ([§10.2](#102-events-that-are-just-notes)). `[W-18]` became a MUST, both ways, and every vector is checked against it. The linking is tighter: a record about another card ends a run, so a consequence of one action (a token's `STATS` change, a Raid ending) is no longer stamped `for` the opponent's next one, and so does a choice or resource payment by the other seat, or another card leaving ([Appendix C](#grouping-records-in-a-file-without-for)). A play's own setup (its choices, an Exploit defeat, a card discarded instead of paying) is stamped `for` the play from what the engine knows, so a discard the previous action forced is never filed under the next play. No `for` now names a different action; 9 over-reaching links were removed ([§9.1](#91-how-seq-is-built)) | `WriterRevision` 4 or later |
 | 5 | An additional phase in the same round (Max Rebo) continues its phase's numbering instead of repeating `start` and `end` ([§9.1](#91-how-seq-is-built)). A card played out of the other seat's deck is the owner's `MOVE` and a `TAKE_CONTROL` (`[W-43]`), and a resource given back to its owner's row is a `TAKE_CONTROL`. `P1Id` / `P2Id` hash the account id, not the display name ([§17](#17-privacy-considerations)) | `WriterRevision` 5 or later |
+| 6 | The CR v9.0 coverage pass ([§22](#cr-v90-coverage-pass-2026-10-28)). New records: `EFFECT_START` / `EFFECT_END` and the board's `effects` (`[W-48]`), `LOOK` (`[W-50]`), `NAME` (`[W-51]`), `ABILITY_RESET` (`[W-49]`). New fields: `ABILITY_ACTIVATE.limit` (`[W-49]`) and `usedBy` (`[W-54]`), `SEARCH.owner` and `seen` (`[W-50]`), `CHOICE.blind` and `simul` (`[W-53]`), `STATS.traits`, `blank`, `leaderUnit`, `copyOf`, `name`, `cost`, `aspects` (`[W-55]`), `TAKE_CONTROL` of an upgrade and `TAKE_CONTROL.owner` on a resource (`[W-56]`), `exhausted` on a `MOVE` into `resource` (`[W-45]`), `active` on every `ROUND_START` (`[W-46]`); in keyframes `effects`, `abilityUses`, `foreignResources`, a card's `owner`, `upgradeControllers` and its attributes (`[W-57]`). A token leaving play goes to `outsideTheGame` from every zone (`[W-47]`). A card resourced in the regroup phase enters the row exhausted, so the regroup's `READY_RESOURCES` counts it. A played card's own entering ability (Clone's copy) and the effect it starts on itself are filed `for` the play, with the cost and choice before them ([below](#grouping-records-in-a-file-without-for)) | `WriterRevision` 6 or later; any of the new records or fields |
+
+**Reading a file from revisions 1–5.** It has none of revision 6's records or fields, and their
+absence says nothing: an absent `EFFECT_START` does not mean no effect was active, an absent
+`limit` does not mean the ability was unlimited, and an absent `traits` or `foreignResources` does
+not mean there were none. The fold leaves `effects`, `abilityUses` and `foreignResources` absent
+rather than empty for such a file ([§11](#11-the-reduced-state--the-board-you-build)), and a reader
+shows them as not recorded. One thing cannot be recovered: such a file has no `exhausted` on a
+`MOVE` into `resource`, so a reader cannot tell whether a card entered the row exhausted, and it
+counts every resourced card as ready. For a card resourced in the regroup phase that is what the
+forceteki engine itself did before revision 6 — it put the card into the row ready, against CR
+5.5.1.c — so such a file is consistent with itself: its regroup `READY_RESOURCES` readies only
+the cards that were exhausted before, one fewer than a revision-6 file's, and its keyframes agree.
+A `ROUND_START` without `active` is read from its keyframe, or the initiative, as before.
 
 ### Grouping records in a file without `for`
 
@@ -4725,7 +4868,7 @@ treat a `for` on a record the rule above would have left out as the number its `
 |---|---|
 | `ATTACK` | `CHOICE`, `MODAL_CHOICE`, `EXHAUST` |
 | an action or Epic `ABILITY_ACTIVATE` | `CHOICE`, `MODAL_CHOICE` — the menu pick and the target. Its costs (the card exhausting, resources spent) are paid after it is announced, under its own step |
-| the plays and `DEPLOY_LEADER` | `MOVE`, `CHOICE`, `MODAL_CHOICE`, `EXHAUST`, `STATS`, `EXHAUST_RESOURCES` |
+| the plays and `DEPLOY_LEADER` | `MOVE`, `CHOICE`, `MODAL_CHOICE`, `EXHAUST`, `STATS`, `EXHAUST_RESOURCES`; and an `ABILITY_ACTIVATE` whose `card` is the played card or an `EFFECT_START` whose `src` is — what the card does as it enters play, before the play is announced (Clone's "enter play as a copy" and the effect it starts on itself). An ability or effect of any other card ends the run. Revision 6 added these two |
 
 An attack announces itself after picking a target and exhausting the attacker, and that is all:
 it never moves a card or restates its stats. A play does the opposite — the card arrives, gets
@@ -4817,6 +4960,51 @@ contents alone cannot show. None of this is required of another writer. Operatio
   otherwise — and a target that was in play when the effect began and is in play no longer is
   dropped with a partial `EFFECT_END`. The keyframe's `effects` lists the effects the engine
   still holds, by the ids the writer gave them.
+- **Resources entering exhausted `[W-45]`.** The engine moves a card into the resource row and
+  only then sets its exhausted flag, inside the move whose event the writer handles, so the flag
+  cannot be read there. The writer holds that `MOVE` open and settles `exhausted` at the start of
+  the next engine event, or when the record is read, and never writes the `EXHAUST_RESOURCES` an
+  ability-placed exhausted resource used to get beside it. The setup and regroup resource prompt
+  says whether its cards enter exhausted, and is read at the move itself.
+- **`active` `[W-46]`.** Taken from the initiative holder when the round starts.
+- **Limited abilities `[W-49]`.** `limit` is the engine limit the resolving ability captured, with
+  its `max` as modified for that player. `ABILITY_RESET` is written when a card the fold still
+  counts uses for changes zone, and after the use of a pending trigger that resolves on the limit
+  its card's zone change replaced. A keyframe's `abilityUses` is projected from the engine's
+  limits on every ability each card holds, blanked abilities included; the `ROUND_END` keyframe
+  restores the regroup phase's uses from the stream, because the engine clears per-phase uses when
+  a phase ends and the fold clears them only at the next start. **A limitation:** a gained
+  ability shares its granting card's limit object in the engine, so when one grant gives the same
+  limited ability to several hosts at once, or the ability moves to another host within the phase
+  or round its `per` names, the engine's one count is projected onto a host the fold never counted
+  a use for. The keyframe then disagrees with the fold for that host, and the writer's
+  verification logs the mismatch; no game in the conformance suite does this. A use of a gained
+  ability whose grant has ended is projected from the limit the writer saw it counted on.
+- **Looks, searches and names `[W-50]`, `[W-51]`.** One `LOOK` per owner and zone looked into,
+  from the engine's look event, and from the prompt of a "look at the top N, put them on the top or
+  the bottom" ability. `SEARCH.seen` is every card the search showed the searcher. `NAME` is
+  written when a dropdown names a card, and not when it names something else (a trait).
+- **`blind` and `simul` `[W-53]`.** When an ability has several players choose at once, the
+  engine says so before the prompts, and every card pick for that ability is a `blind` `CHOICE`
+  valued at the latest `ABILITY_ACTIVATE` of its source in the current action. `simul` is written
+  on the discards of such a resolution and on the two sides of combat damage, grouping the records
+  of the one engine event window they resolve in; a window that writes only one of them writes no
+  `simul`.
+- **`usedBy` `[W-54]`.** Set when the engine's "use an ability again / on another unit" systems
+  resolved the ability, naming the card whose ability did so; `p` is then the context's player.
+- **Attributes `[W-55]`.** `STATS` and the keyframe card read the same function: traits as the
+  engine computes them, `blank` only when the unit has lost every ability, `leaderUnit` only for a
+  unit an ability made a leader unit (not the seat's own leader), and the copy's fields while the
+  engine's copy effect is on the unit.
+- **Control and ownership `[W-56]`, `[W-57]`.** The engine changes an attached upgrade's controller
+  inside the attach, with no event of its own, so the writer reads each upgrade's controller before
+  an attach resolves and writes the `TAKE_CONTROL` when it differs after. `owner` and
+  `foreignResources` in keyframes are read from each card's owner.
+- **What a played card does as it enters play `[W-18]`.** Clone's "enter play as a copy" is a
+  triggered ability of the card being played that resolves while it is put into play, before the
+  play is announced, so its choice, its `ABILITY_ACTIVATE` and the `EFFECT_START` on itself sit
+  between the cost and the card's `MOVE`. `linkActionSteps()` files them under the play
+  ([Appendix C](#grouping-records-in-a-file-without-for)).
 - **Identity `[W-10]`.** No field is built from an account name. The player id is built from the
   account id, so a rename keeps it and two guests sharing a name do not share it. A CI test
   stamps sentinel identities onto a live game and fails if any survives into the file.
@@ -4833,7 +5021,7 @@ not yet covered. The normative list of format gaps is [§21](#21-open-issues). T
 a record: the test files it names are forceteki's.
 
 **The suite is not yet independent evidence.** Every real-game vector was written by one
-writer (the manifest's `writer` is `forceteki` for all eight), and `minimal` and the negative vectors were written by hand and checked with the
+writer (the manifest's `writer` is `forceteki` for all eleven), and `minimal` and the negative vectors were written by hand and checked with the
 reference reader. A reader that passes them agrees with the reference implementation, which is
 not the same as agreeing with this text. Only a second implementation written from the text can
 show that. SWUForge's reader, written separately from this code, is to be that implementation, and
@@ -4894,8 +5082,8 @@ mismatches** against their own keyframes before the fix and **none** after. Both
 
 That leaves the fields §14 lists as not compared — the top-level `round`, `phase`,
 `initiative` and `active`, and each seat's `baseMaxHp` and `seat`, none of which is a delta
-([§14](#14-integrity--checking-a-file-is-honest)). Every player and card field of §11 is compared, and the eight real-game vectors — Raid, Grit, Sentinel, tokens, upgrades, a pilot, a capture,
-a base as captor, a card played out of the opponent's discard, leaders in and out of the base zone, base upgrades, a base defeated outright — pass with nothing to report.
+([§14](#14-integrity--checking-a-file-is-honest)). Every player and card field of §11 is compared, and the eleven real-game vectors — Raid, Grit, Sentinel, tokens, upgrades, a pilot, a capture,
+a base as captor, a card played out of the opponent's discard, leaders in and out of the base zone, base upgrades, a base defeated outright, lasting and delayed effects, limited-ability uses, a copy, a blanked unit, gained traits, a stolen upgrade, unit and resource — pass with nothing to report.
 
 One caveat on `hand`, and it is about a test harness rather than the format: the integration
 specs that bootstrap a game directly at the action phase tear down the natural opening hand

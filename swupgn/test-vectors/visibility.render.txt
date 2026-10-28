@@ -1,0 +1,153 @@
+ ── setup ──
+       ↳ Player 1 draws 6: Alliance X-Wing · Foundling · Remote Scout · Remote Scout #2 · Alliance X-Wing #2 · Wartime Trade Official
+       ↳ Player 2 draws 6: Alliance X-Wing #5 · Alliance X-Wing #6 · Battlefield Marine · Alliance X-Wing #7 · Battlefield Marine #2 · Alliance X-Wing #8
+       ↳ Player 1 keeps their hand
+       ↳ Player 2 keeps their hand
+       ↳ Player 1 resources Alliance X-Wing
+       ↳ Player 1 resources Alliance X-Wing #2
+       ↳ Player 2 resources Alliance X-Wing #5
+       ↳ Player 2 resources Alliance X-Wing #6
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 1                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 2/2   deck 14   leader ready
+ P2  base 30/30   hand 4   resources 2/2   deck 10   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Remote Scout to ground (cost 2)
+       ↳ Remote Scout uses an ability
+       ↳ Player 1 searches their deck
+       ↳ Player 1 reveals Foundling #2
+       ↳ Player 1 draws 0
+  2. Player 2 plays Battlefield Marine to ground (cost 2)
+  3. Player 1 passes
+  4. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Regional Governor #2 · Every Day, More Lies
+       ↳ Player 2 draws 2: Battlefield Marine #3 · Battlefield Marine #4
+       ↳ Player 1 resources Foundling
+       ↳ Player 2 resources Alliance X-Wing #7
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 2                                                 initiative: Player 1 
+ P1  base 30/30   hand 5   resources 3/3   deck 11   leader ready
+      ground: Remote Scout 1/3
+ P2  base 30/30   hand 4   resources 3/3   deck 8   leader ready
+      ground: Battlefield Marine 3/3
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Regional Governor #2 to ground (cost 2)
+       ↳ Player 1 names Battlefield Marine
+       ↳ Regional Governor #2 uses an ability
+       ↳ Player 1: Regional Governor #2 — While this unit is in play, opponents can't play Battlefield Marine for Player 2 (while Regional Governor #2 is in play)
+  2. Player 2 plays Alliance X-Wing #8 to space (cost 2)
+  3. Player 1 plays Every Day, More Lies (cost 1)
+       ↳ Every Day, More Lies uses an ability
+       ↳ Player 1 discards Remote Scout #2
+       ↳ Player 2 discards Battlefield Marine #2
+  4. Player 2 passes
+  5. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Every Day, More Lies #2 · Wartime Trade Official #3
+       ↳ Player 2 draws 2: Battlefield Marine #5 · Battlefield Marine #6
+       ↳ Player 1 resources Wartime Trade Official
+       ↳ Player 2 resources Battlefield Marine #3
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 3                                                 initiative: Player 1 
+ P1  base 30/30   hand 3   resources 4/4   deck 9   leader ready
+      ground: Remote Scout 1/3  ·  Regional Governor #2 1/4
+ P2  base 30/30   hand 3   resources 4/4   deck 6   leader ready
+      ground: Battlefield Marine 3/3
+      space: Alliance X-Wing #8 2/3
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Wartime Trade Official #3 to ground (cost 2)
+  2. Player 2 passes
+  3. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Inferno Four, Unforgetting #2 · Wartime Trade Official #4
+       ↳ Player 2 draws 2: Alliance X-Wing #9 · Alliance X-Wing #10
+       ↳ Player 1 resources Foundling #2
+       ↳ Player 2 resources Alliance X-Wing #9
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 4                                                 initiative: Player 1 
+ P1  base 30/30   hand 3   resources 5/5   deck 7   leader ready
+      ground: Remote Scout 1/3  ·  Regional Governor #2 1/4  ·  Wartime Trade Official #3 1/3
+ P2  base 30/30   hand 4   resources 5/5   deck 4   leader ready
+      ground: Battlefield Marine 3/3
+      space: Alliance X-Wing #8 2/3
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 attacks Battlefield Marine with Wartime Trade Official #3
+       ↳ 1 damage to Battlefield Marine — 2 HP left
+       ↳ 3 damage to Wartime Trade Official #3 — 0 HP left
+       ↳ Wartime Trade Official #3 is defeated by Battlefield Marine
+       ↳ Wartime Trade Official #3 uses an ability
+       ↳ Player 1 creates Battle Droid in ground
+       ↳ Grand Admiral Thrawn, ...How Unfortunate uses an ability
+       ↳ Wartime Trade Official #3 uses an ability (used by Grand Admiral Thrawn, ...How Unfortunate)
+       ↳ Player 1 creates Battle Droid #2 in ground
+  2. Player 2 plays Alliance X-Wing #10 to space (cost 2)
+  3. Player 1 plays Inferno Four, Unforgetting #2 to space (cost 2)
+       ↳ Inferno Four, Unforgetting #2 uses an ability
+       ↳ Player 1 looks at 2 cards of Player 1's deck: Viper Probe Droid · Viper Probe Droid #2
+  4. Player 2 passes
+  5. Player 1 plays Wartime Trade Official #4 to ground (cost 2)
+  6. Player 2 passes
+  7. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Viper Probe Droid #2 · Viper Probe Droid
+       ↳ Player 2 draws 2: Alliance X-Wing #11 · Battlefield Marine #7
+       ↳ Player 1 resources Every Day, More Lies #2
+       ↳ Player 2 resources Alliance X-Wing #11
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 5                                                 initiative: Player 1 
+ P1  base 30/30   hand 2   resources 6/6   deck 5   leader ready
+      ground: Remote Scout 1/3  ·  Regional Governor #2 1/4  ·  Battle Droid 1/1  ·  Battle Droid #2 1/1  ·  Wartime Trade Official #4 1/3
+      space: Inferno Four, Unforgetting #2 2/3
+ P2  base 30/30   hand 4   resources 6/6   deck 2   leader ready
+      ground: Battlefield Marine 3/3 [1 dmg]
+      space: Alliance X-Wing #8 2/3  ·  Alliance X-Wing #10 2/3
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 attacks Battlefield Marine with Wartime Trade Official #4
+       ↳ 1 damage to Battlefield Marine — 1 HP left
+       ↳ 3 damage to Wartime Trade Official #4 — 0 HP left
+       ↳ Wartime Trade Official #4 is defeated by Battlefield Marine
+       ↳ Wartime Trade Official #4 uses an ability
+       ↳ Player 1 creates Battle Droid #3 in ground
+       ↳ Grand Admiral Thrawn, ...How Unfortunate uses an ability
+       ↳ Wartime Trade Official #4 uses an ability (used by Grand Admiral Thrawn, ...How Unfortunate)
+       ↳ Player 1 creates Battle Droid #4 in ground
+  2. Player 2 passes
+  3. Player 1 plays Viper Probe Droid #2 to ground (cost 2)
+       ↳ Viper Probe Droid #2 uses an ability
+       ↳ Player 1 looks at 4 cards of Player 2's hand: Battlefield Marine #4 · Battlefield Marine #5 · Battlefield Marine #6 · Battlefield Marine #7
+  4. Player 2 passes
+  5. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Inferno Four, Unforgetting · Alliance X-Wing #3
+       ↳ Player 2 draws 2: Battlefield Marine #8 · Alliance X-Wing #12
+       ↳ Player 1 resources Alliance X-Wing #3
+       ↳ Player 2 resources Alliance X-Wing #12
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 6                                                 initiative: Player 1 
+ P1  base 30/30   hand 2   resources 7/7   deck 3   leader ready
+      ground: Remote Scout 1/3  ·  Regional Governor #2 1/4  ·  Battle Droid 1/1  ·  Battle Droid #2 1/1  ·  Battle Droid #3 1/1  ·  Battle Droid #4 1/1  ·  Viper Probe Droid #2 3/2
+      space: Inferno Four, Unforgetting #2 2/3
+ P2  base 30/30   hand 5   resources 7/7   deck 0   leader ready
+      ground: Battlefield Marine 3/3 [2 dmg]
+      space: Alliance X-Wing #8 2/3  ·  Alliance X-Wing #10 2/3
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+       ↳ *** Player 1 wins — Concession ***

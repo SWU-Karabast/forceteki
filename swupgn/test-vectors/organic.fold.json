@@ -24,6 +24,7 @@
         "SOR#095",
         "SOR#095:2"
       ],
+      "foreignResources": [],
       "baseUpgrades": [],
       "baseCaptured": [],
       "credits": 0,
@@ -42,7 +43,11 @@
           "captured": [],
           "power": 3,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
         },
         {
           "id": "LOF#164:4",
@@ -58,6 +63,9 @@
           "hp": 5,
           "keywords": [
             "overwhelm"
+          ],
+          "traits": [
+            "creature"
           ]
         },
         {
@@ -72,7 +80,11 @@
           "captured": [],
           "power": 3,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
         },
         {
           "id": "IC27#097:2",
@@ -86,7 +98,11 @@
           "captured": [],
           "power": 3,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
         }
       ],
       "deckSize": 6,
@@ -95,7 +111,8 @@
         "deployed": false,
         "exhausted": false,
         "epicActionUsed": false
-      }
+      },
+      "abilityUses": []
     },
     "2": {
       "seat": 2,
@@ -118,6 +135,7 @@
         "IC27#097:6",
         "LOF#164:5"
       ],
+      "foreignResources": [],
       "baseUpgrades": [],
       "baseCaptured": [],
       "credits": 0,
@@ -136,7 +154,11 @@
           "captured": [],
           "power": 3,
           "hp": 3,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
         },
         {
           "id": "SOR#095:9",
@@ -150,7 +172,11 @@
           "captured": [],
           "power": 3,
           "hp": 3,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
         },
         {
           "id": "LAW#253:6",
@@ -164,7 +190,12 @@
           "captured": [],
           "power": 2,
           "hp": 3,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "fighter",
+            "rebel",
+            "vehicle"
+          ]
         },
         {
           "id": "LAW#253:7",
@@ -178,7 +209,12 @@
           "captured": [],
           "power": 2,
           "hp": 3,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "fighter",
+            "rebel",
+            "vehicle"
+          ]
         }
       ],
       "deckSize": 6,
@@ -187,9 +223,11 @@
         "deployed": false,
         "exhausted": false,
         "epicActionUsed": false
-      }
+      },
+      "abilityUses": []
     }
   },
   "initiativeTaken": false,
-  "active": 1
+  "active": 1,
+  "effects": []
 }

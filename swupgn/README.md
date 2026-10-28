@@ -51,14 +51,28 @@ vector the `.fold.json` a folder produces and the `.render.txt` a strict rendere
 Positive vectors: `minimal` is hand-written and is also the spec's Appendix A, so edit both
 together. `other-writer` is `minimal` as another platform's writer would make it
 (`examplewriter@1.0.0`, no `WriterRevision`); its fold and render files are copies of
-`minimal`'s, so change all three with `minimal`. `organic`, `upgrades`, `pilot`, `capture`, `arrest`, `stolen-hauler`, `homeworlds`
-and `death-star` are real games the writer produced under
+`minimal`'s, so change all three with `minimal`. `organic`, `upgrades`, `pilot`, `capture`, `arrest`, `stolen-hauler`, `homeworlds`,
+`death-star`, `effects`, `visibility` and `control` are real games the writer produced under
 `test/server/chat/SwuPgnVectors.spec.ts` / `SwuPgnOrganicGame.spec.ts`, whose fold and story
 those specs pin byte for byte. `homeworlds` is the one to test Homeworlds support against:
 Fortify upgrades on both bases (`baseUpgrades`), a base using an ability an upgrade granted it
 (`grantedBy`), Beast tokens, and Weakness tokens stacking until one kills (spec §10.3).
 `death-star` is Grand Moff Tarkin deploying as The Death Star (`backSideName`) and defeating a
 base that still has HP (`DEFEAT` on `base@2`, `baseDefeated`; spec §10.4).
+`effects` is lasting effects (`EFFECT_START` / `EFFECT_END`, the board's `effects`): an effect on
+both bases, one on two units that one of them leaves (a partial end), an `until` effect, and a
+blanked unit. `visibility` is `LOOK`, `SEARCH.seen`, `NAME`, `blind` choices with a `simul`
+discard, and a When Defeated used again by the leader (`usedBy`). `control` is an upgrade and a
+unit taken, a limited ability (`limit`), a gained trait, a copy (`copyOf`), and an enemy unit put
+into play as a resource (`foreignResources`). Each scenario's seed is fixed; the `control` seed
+(`swu-pgn-vector-control-b`) is the first of a short list that played every card it is about, so
+if a card-data change makes its assertions fail, try others the same way rather than loosening
+them.
+
+The setup's initiative choice (`R0.S.1`, a `MODAL_CHOICE`) is made before the scenario seeds the
+game, so which seat makes it can differ from run to run. Neither the fold nor the story shows it,
+and it carries no `for`, so the gate never compares it; a regenerated vector may differ from the
+committed one there and nowhere else.
 
 Negative vectors, in `test-vectors/negative/`, are each `minimal` with one thing broken.
 
@@ -68,8 +82,13 @@ To regenerate the real-game vectors after a deliberate writer change:
 SWUPGN_WRITE_VECTORS=1 npm run test-fast build/test/server/chat/SwuPgnVectors.spec.js build/test/server/chat/SwuPgnOrganicGame.spec.js
 ```
 
-then review the diff, bump `SWU_PGN_WRITER_REVISION` if a reader could see the change, update
-the spec's §20 table and Appendix C's writer-revision table, and update `manifest.json` if a vector's level or codes moved.
+from a clean commit (the `Engine` tag records `-dirty` otherwise; check with
+`grep -h '^\[Engine' swupgn/test-vectors/*.swupgn | sort -u`), then review the diff, bump
+`SWU_PGN_WRITER_REVISION` if a reader could see the change, update the spec's §20 table and
+Appendix C's writer-revision table, update `manifest.json` if a vector's level or codes moved,
+and update the spec's quoted records (`specQuotes.spec.ts` names each stale one, `ms` included).
+A regeneration that inserts records renumbers later sub-steps, so also carry
+`test/server/swupgn/fixtures/for-links-rev3.json` over to the new seqs, record for record.
 
 ## Provenance and identity in production
 

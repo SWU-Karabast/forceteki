@@ -40,6 +40,7 @@
   1. Player 1 plays Landing Pad on Player 1's base (cost 3)
   2. Player 2 uses Carbonite Chamber
        ↳ Carbonite Chamber is defeated by Carbonite Chamber
+       ↳ Player 2: Carbonite Chamber — Beast does not ready during this regroup phase on Beast (delayed)
   3. Player 1 passes
   4. Player 2 plays Torrent (cost 2)
        ↳ Torrent uses an ability
@@ -49,13 +50,20 @@
   7. Player 1 passes
   8. Player 2 uses Carbonite Chamber #2
        ↳ Carbonite Chamber #2 is defeated by Carbonite Chamber #2
+       ↳ Player 2: Carbonite Chamber #2 — Beast does not ready during this regroup phase on Beast (delayed)
   9. Player 1 passes
  10. Player 2 passes
  ── regroup ──
+       ↳ Effect from Carbonite Chamber ends (it resolved)
+       ↳ Effect from Carbonite Chamber #2 ends (it resolved)
+       ↳ Player 2: Carbonite Chamber on Beast (for this phase)
+       ↳ Player 2: Carbonite Chamber #2 on Beast (for this phase)
        ↳ Player 1 draws 2: Alliance X-Wing #3 · Landing Pad #2
        ↳ Player 2 draws 2: Occupation Officer #3 · Torrent #4
        ↳ Player 1 resources Alliance X-Wing #3
        ↳ Player 2 resources Occupation Officer #3
+       ↳ Effect from Carbonite Chamber ends (expired)
+       ↳ Effect from Carbonite Chamber #2 ends (expired)
 
 ══════════════════════════════════════════════════════════════════════════════
  ROUND 3                                                 initiative: Player 1 

@@ -22,6 +22,7 @@
         "HMW#059:3",
         "HMW#059:4"
       ],
+      "foreignResources": [],
       "baseUpgrades": [],
       "baseCaptured": [],
       "credits": 0,
@@ -42,7 +43,10 @@
           "captured": [],
           "power": 3,
           "hp": 4,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "creature"
+          ]
         },
         {
           "id": "HMW#242:2",
@@ -56,7 +60,10 @@
           "captured": [],
           "power": 3,
           "hp": 2,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial"
+          ]
         },
         {
           "id": "HMW#242:3",
@@ -70,7 +77,10 @@
           "captured": [],
           "power": 3,
           "hp": 2,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial"
+          ]
         },
         {
           "id": "HMW#087:3",
@@ -84,7 +94,10 @@
           "captured": [],
           "power": 3,
           "hp": 4,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "creature"
+          ]
         },
         {
           "id": "HMW#242:4",
@@ -98,7 +111,10 @@
           "captured": [],
           "power": 3,
           "hp": 2,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial"
+          ]
         },
         {
           "id": "HMW#059:2",
@@ -112,7 +128,12 @@
           "captured": [],
           "power": 1,
           "hp": 3,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "clone",
+            "imperial",
+            "trooper"
+          ]
         },
         {
           "id": "IC27#097:6",
@@ -126,7 +147,11 @@
           "captured": [],
           "power": 3,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
         },
         {
           "id": "IC27#097:7",
@@ -140,7 +165,11 @@
           "captured": [],
           "power": 3,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
         },
         {
           "id": "IC27#097:8",
@@ -154,7 +183,11 @@
           "captured": [],
           "power": 3,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
         },
         {
           "id": "HMW#004",
@@ -168,7 +201,12 @@
           "captured": [],
           "power": 2,
           "hp": 12,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "capital ship",
+            "imperial",
+            "vehicle"
+          ]
         },
         {
           "id": "HMW#242:5",
@@ -182,7 +220,10 @@
           "captured": [],
           "power": 3,
           "hp": 2,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial"
+          ]
         }
       ],
       "deckSize": 2,
@@ -191,7 +232,8 @@
         "deployed": true,
         "exhausted": false,
         "epicActionUsed": true
-      }
+      },
+      "abilityUses": []
     },
     "2": {
       "seat": 2,
@@ -224,6 +266,7 @@
         "LAW#253:7",
         "LAW#253:8"
       ],
+      "foreignResources": [],
       "baseUpgrades": [],
       "baseCaptured": [],
       "credits": 0,
@@ -237,9 +280,11 @@
         "exhausted": false,
         "epicActionUsed": false
       },
+      "abilityUses": [],
       "baseDefeated": true
     }
   },
   "initiativeTaken": false,
-  "active": 1
+  "active": 1,
+  "effects": []
 }

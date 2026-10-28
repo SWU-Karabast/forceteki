@@ -1,0 +1,135 @@
+ ── setup ──
+       ↳ Player 1 draws 6: Death Star Stormtrooper · Force Lightning · Rallying Cry · Death Star Stormtrooper #2 · Give In to Your Anger · Wolffe, Suspicious Veteran
+       ↳ Player 2 draws 6: Alliance X-Wing #5 · Battlefield Marine · Battlefield Marine #2 · Battlefield Marine #3 · Alliance X-Wing #6 · Battlefield Marine #4
+       ↳ Player 1 keeps their hand
+       ↳ Player 2 keeps their hand
+       ↳ Player 1 resources Death Star Stormtrooper
+       ↳ Player 1 resources Force Lightning
+       ↳ Player 2 resources Alliance X-Wing #5
+       ↳ Player 2 resources Alliance X-Wing #6
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 1                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 2/2   deck 15   leader ready
+ P2  base 30/30   hand 4   resources 2/2   deck 10   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Wolffe, Suspicious Veteran to ground (cost 2)
+       ↳ Wolffe, Suspicious Veteran uses an ability
+       ↳ Player 1: Wolffe, Suspicious Veteran — Bases can't be healed on Player 1's base · Player 2's base (for this phase)
+  2. Player 2 plays Battlefield Marine to ground (cost 2)
+  3. Player 1 passes
+  4. Player 2 passes
+       ↳ Effect from Wolffe, Suspicious Veteran ends (expired)
+ ── regroup ──
+       ↳ Player 1 draws 2: Rallying Cry #2 · Death Star Stormtrooper #3
+       ↳ Player 2 draws 2: Alliance X-Wing #7 · Alliance X-Wing #8
+       ↳ Player 1 resources Rallying Cry
+       ↳ Player 2 resources Alliance X-Wing #7
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 2                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 3/3   deck 13   leader ready
+      ground: Wolffe, Suspicious Veteran 3/2
+ P2  base 30/30   hand 4   resources 3/3   deck 8   leader ready
+      ground: Battlefield Marine 3/3
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Give In to Your Anger (cost 1)
+       ↳ Give In to Your Anger uses an ability
+       ↳ 1 damage to Battlefield Marine — 2 HP left
+       ↳ Player 1: Give In to Your Anger — Must attack a unit on its controller's next action this phase, if able on Battlefield Marine (until the phase ends or an action is taken)
+  2. Player 2 attacks Wolffe, Suspicious Veteran with Battlefield Marine
+       ↳ 2 damage to Wolffe, Suspicious Veteran — 0 HP left
+       ↳ 2 damage to Battlefield Marine — 0 HP left
+       ↳ Wolffe, Suspicious Veteran is defeated by Battlefield Marine
+       ↳ Effect from Give In to Your Anger ends on Battlefield Marine (its target left play)
+       ↳ Battlefield Marine is defeated by Wolffe, Suspicious Veteran
+  3. Player 1 plays Death Star Stormtrooper #2 to ground (cost 1)
+  4. Player 2 plays Battlefield Marine #2 to ground (cost 2)
+  5. Player 1 plays Death Star Stormtrooper #3 to ground (cost 1)
+  6. Player 2 passes
+  7. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Alliance X-Wing · Death Star Stormtrooper #4
+       ↳ Player 2 draws 2: Alliance X-Wing #9 · Alliance X-Wing #10
+       ↳ Player 1 resources Alliance X-Wing
+       ↳ Player 2 resources Alliance X-Wing #8
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 3                                                 initiative: Player 1 
+ P1  base 30/30   hand 2   resources 4/4   deck 11   leader ready
+      ground: Death Star Stormtrooper #2 3/1  ·  Death Star Stormtrooper #3 3/1
+ P2  base 30/30   hand 4   resources 4/4   deck 6   leader ready
+      ground: Battlefield Marine #2 3/3
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Rallying Cry #2 (cost 3)
+       ↳ Rallying Cry #2 uses an ability
+       ↳ Player 1: Rallying Cry #2 — Each friendly unit gains Raid 2 this phase on Death Star Stormtrooper #2 · Death Star Stormtrooper #3 (for this phase)
+  2. Player 2 plays Battlefield Marine #3 to ground (cost 2)
+  3. Player 1 attacks Battlefield Marine #2 with Death Star Stormtrooper #2
+       ↳ 3 damage to Battlefield Marine #2 — 0 HP left
+       ↳ 1 damage to Death Star Stormtrooper #2 — 0 HP left
+       ↳ Battlefield Marine #2 is defeated by Death Star Stormtrooper #2
+       ↳ Effect from Rallying Cry #2 ends on Death Star Stormtrooper #2 (its target left play)
+       ↳ Death Star Stormtrooper #2 is defeated by Battlefield Marine #2
+  4. Player 2 plays Battlefield Marine #4 to ground (cost 2)
+  5. Player 1 plays Death Star Stormtrooper #4 to ground (cost 1)
+  6. Player 2 passes
+  7. Player 1 passes
+       ↳ Effect from Rallying Cry #2 ends (expired)
+ ── regroup ──
+       ↳ Player 1 draws 2: Force Lightning #2 · Alliance X-Wing #2
+       ↳ Player 2 draws 2: Alliance X-Wing #11 · Alliance X-Wing #12
+       ↳ Player 1 resources Alliance X-Wing #2
+       ↳ Player 2 resources Alliance X-Wing #9
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 4                                                 initiative: Player 1 
+ P1  base 30/30   hand 1   resources 5/5   deck 9   leader ready
+      ground: Death Star Stormtrooper #3 3/1  ·  Death Star Stormtrooper #4 3/1
+ P2  base 30/30   hand 3   resources 5/5   deck 4   leader ready
+      ground: Battlefield Marine #3 3/3  ·  Battlefield Marine #4 3/3
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Force Lightning #2 (cost 1)
+       ↳ Force Lightning #2 uses an ability
+       ↳ Player 1: Force Lightning #2 — Choose a unit. It loses all abilities for this phase. on Battlefield Marine #3 (for this phase)
+  2. Player 2 plays Alliance X-Wing #10 to space (cost 2)
+  3. Player 1 passes
+  4. Player 2 plays Alliance X-Wing #11 to space (cost 2)
+  5. Player 1 passes
+  6. Player 2 attacks Death Star Stormtrooper #3 with Battlefield Marine #3
+       ↳ 1 damage to Death Star Stormtrooper #3 — 0 HP left
+       ↳ 3 damage to Battlefield Marine #3 — 0 HP left
+       ↳ Death Star Stormtrooper #3 is defeated by Battlefield Marine #3
+       ↳ Effect from Force Lightning #2 ends on Battlefield Marine #3 (its target left play)
+       ↳ Battlefield Marine #3 is defeated by Death Star Stormtrooper #3
+  7. Player 1 passes
+  8. Player 2 attacks Death Star Stormtrooper #4 with Battlefield Marine #4
+       ↳ 1 damage to Death Star Stormtrooper #4 — 0 HP left
+       ↳ 3 damage to Battlefield Marine #4 — 0 HP left
+       ↳ Death Star Stormtrooper #4 is defeated by Battlefield Marine #4
+       ↳ Battlefield Marine #4 is defeated by Death Star Stormtrooper #4
+  9. Player 1 passes
+ 10. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Alliance X-Wing #3 · Alliance X-Wing #4
+       ↳ Player 2 draws 2: Battlefield Marine #5 · Battlefield Marine #6
+       ↳ Player 1 resources Alliance X-Wing #3
+       ↳ Player 2 resources Alliance X-Wing #12
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 5                                                 initiative: Player 1 
+ P1  base 30/30   hand 1   resources 6/6   deck 7   leader ready
+ P2  base 30/30   hand 2   resources 6/6   deck 2   leader ready
+      space: Alliance X-Wing #10 2/3  ·  Alliance X-Wing #11 2/3
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+       ↳ *** Player 1 wins — Concession ***

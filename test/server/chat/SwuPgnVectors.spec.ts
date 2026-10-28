@@ -12,6 +12,9 @@ import { fold, stateAt } from '../../../swupgn/src/fold';
  *   pilot     a pilot flown onto a vehicle as an upgrade, and the vehicle then Vanquished
  *   capture   a unit captured with Take Captive, and rescued when its captor is defeated
  *   arrest    a unit captured by a BASE (Arrest), held in `baseCaptured`, and rescued at the regroup
+ *   effects   lasting effects on bases and units, a partial end, an `until`, a blank
+ *   visibility  LOOK, SEARCH.seen, NAME, blind choices with a simul discard, and usedBy
+ *   control   an upgrade and a unit taken, a limited ability, a gained trait, a copy, a foreign resource
  *
  * The games are scripted adaptively -- each turn picks from what the engine says is playable --
  * on a fixed seed, so they are deterministic, and each asserts the situation it exists for

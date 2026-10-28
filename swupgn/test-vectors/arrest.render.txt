@@ -37,12 +37,14 @@
   1. Player 1 plays Arrest (cost 2)
        ↳ Arrest uses an ability
        ↳ Player 1 captures Alliance X-Wing #3 with Player 1's base
+       ↳ Player 1: Arrest — The captured unit is rescued by its owner for Player 2 (delayed)
   2. Player 2 plays Alliance X-Wing #5 to space (cost 2)
   3. Player 1 attacks Player 2's base with Peridea Bandit
        ↳ 4 damage to Player 2's base — 26 HP left
   4. Player 2 passes
   5. Player 1 passes
  ── regroup ──
+       ↳ Effect from Arrest ends (it resolved)
        ↳ Player 2 rescues Alliance X-Wing #3
        ↳ Player 1 draws 2: Peridea Bandit #3 · Arrest #3
        ↳ Player 2 draws 2: Alliance X-Wing #7 · Battlefield Marine #3
@@ -61,6 +63,7 @@
   1. Player 1 plays Arrest #2 (cost 2)
        ↳ Arrest #2 uses an ability
        ↳ Player 1 captures Alliance X-Wing #5 with Player 1's base
+       ↳ Player 1: Arrest #2 — The captured unit is rescued by its owner for Player 2 (delayed)
   2. Player 2 plays Battlefield Marine to ground (cost 2)
   3. Player 1 plays Peridea Bandit #2 to ground (cost 2)
   4. Player 2 attacks Player 1's base with Alliance X-Wing #3
@@ -70,6 +73,7 @@
   6. Player 2 passes
   7. Player 1 passes
  ── regroup ──
+       ↳ Effect from Arrest #2 ends (it resolved)
        ↳ Player 2 rescues Alliance X-Wing #5
        ↳ Player 1 draws 2: Death Star Stormtrooper #5 · Arrest #4
        ↳ Player 2 draws 2: Alliance X-Wing #8 · Alliance X-Wing #9

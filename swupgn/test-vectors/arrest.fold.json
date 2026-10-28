@@ -22,6 +22,7 @@
         "IC27#097:4",
         "IC27#097:5"
       ],
+      "foreignResources": [],
       "baseUpgrades": [],
       "baseCaptured": [],
       "credits": 0,
@@ -43,7 +44,10 @@
           "captured": [],
           "power": 4,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "fringe"
+          ]
         },
         {
           "id": "ASH#190:2",
@@ -57,7 +61,10 @@
           "captured": [],
           "power": 4,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "fringe"
+          ]
         }
       ],
       "deckSize": 4,
@@ -66,7 +73,8 @@
         "deployed": false,
         "exhausted": false,
         "epicActionUsed": false
-      }
+      },
+      "abilityUses": []
     },
     "2": {
       "seat": 2,
@@ -88,6 +96,7 @@
         "LAW#253:6",
         "LAW#253:7"
       ],
+      "foreignResources": [],
       "baseUpgrades": [],
       "baseCaptured": [],
       "credits": 0,
@@ -106,7 +115,11 @@
           "captured": [],
           "power": 3,
           "hp": 3,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
         },
         {
           "id": "LAW#253:3",
@@ -120,7 +133,12 @@
           "captured": [],
           "power": 2,
           "hp": 3,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "fighter",
+            "rebel",
+            "vehicle"
+          ]
         },
         {
           "id": "LAW#253:5",
@@ -134,7 +152,12 @@
           "captured": [],
           "power": 2,
           "hp": 3,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "fighter",
+            "rebel",
+            "vehicle"
+          ]
         }
       ],
       "deckSize": 4,
@@ -143,9 +166,11 @@
         "deployed": false,
         "exhausted": false,
         "epicActionUsed": false
-      }
+      },
+      "abilityUses": []
     }
   },
   "initiativeTaken": false,
-  "active": 1
+  "active": 1,
+  "effects": []
 }

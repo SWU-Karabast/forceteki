@@ -22,6 +22,7 @@
         "SHD#040:2",
         "SOR#095:4"
       ],
+      "foreignResources": [],
       "baseUpgrades": [],
       "baseCaptured": [],
       "credits": 0,
@@ -47,6 +48,11 @@
           "hp": 5,
           "keywords": [
             "sentinel"
+          ],
+          "traits": [
+            "fighter",
+            "rebel",
+            "vehicle"
           ]
         },
         {
@@ -65,6 +71,11 @@
           "hp": 5,
           "keywords": [
             "sentinel"
+          ],
+          "traits": [
+            "fighter",
+            "rebel",
+            "vehicle"
           ]
         }
       ],
@@ -74,7 +85,8 @@
         "deployed": false,
         "exhausted": false,
         "epicActionUsed": false
-      }
+      },
+      "abilityUses": []
     },
     "2": {
       "seat": 2,
@@ -96,6 +108,7 @@
         "IC27#097:6",
         "IC27#097:7"
       ],
+      "foreignResources": [],
       "baseEpicActionUsed": false,
       "baseUpgrades": [],
       "baseCaptured": [],
@@ -117,7 +130,11 @@
           "captured": [],
           "power": 3,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
         },
         {
           "id": "IC27#097:3",
@@ -131,7 +148,11 @@
           "captured": [],
           "power": 3,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
         },
         {
           "id": "SHD#238:3",
@@ -147,6 +168,10 @@
           "hp": 3,
           "keywords": [
             "sentinel"
+          ],
+          "traits": [
+            "imperial",
+            "trooper"
           ]
         },
         {
@@ -161,7 +186,11 @@
           "captured": [],
           "power": 3,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
         }
       ],
       "deckSize": 2,
@@ -170,9 +199,11 @@
         "deployed": false,
         "exhausted": false,
         "epicActionUsed": false
-      }
+      },
+      "abilityUses": []
     }
   },
   "initiativeTaken": false,
-  "active": 1
+  "active": 1,
+  "effects": []
 }

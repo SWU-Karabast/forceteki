@@ -35,8 +35,10 @@
        ↳ Power of the Dark Side uses an ability
        ↳ Stolen AT-Hauler is defeated by Power of the Dark Side
        ↳ Stolen AT-Hauler uses an ability
+       ↳ Player 1: Stolen AT-Hauler — For this phase, your opponent may play this unit from its owner's discard pile for free on Stolen AT-Hauler (for this phase)
   3. Player 1 passes
   4. Player 2 plays Stolen AT-Hauler to space (cost 3)
+       ↳ Effect from Stolen AT-Hauler ends (expired)
   5. Player 1 passes
   6. Player 2 passes
  ── regroup ──
@@ -58,8 +60,10 @@
        ↳ Power of the Dark Side #2 uses an ability
        ↳ Stolen AT-Hauler #2 is defeated by Power of the Dark Side #2
        ↳ Stolen AT-Hauler #2 uses an ability
+       ↳ Player 1: Stolen AT-Hauler #2 — For this phase, your opponent may play this unit from its owner's discard pile for free on Stolen AT-Hauler #2 (for this phase)
   3. Player 1 passes
   4. Player 2 plays Stolen AT-Hauler #2 to space (cost 3)
+       ↳ Effect from Stolen AT-Hauler #2 ends (expired)
   5. Player 1 passes
   6. Player 2 attacks Player 1's base with Stolen AT-Hauler
        ↳ 4 damage to Player 1's base — 26 HP left

@@ -22,6 +22,7 @@
         "LAW#253:4",
         "LAW#253:5"
       ],
+      "foreignResources": [],
       "baseUpgrades": [],
       "baseCaptured": [],
       "credits": 0,
@@ -43,7 +44,11 @@
           "captured": [],
           "power": 3,
           "hp": 3,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
         },
         {
           "id": "SOR#095:3",
@@ -57,7 +62,11 @@
           "captured": [],
           "power": 3,
           "hp": 3,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
         }
       ],
       "deckSize": 4,
@@ -66,7 +75,8 @@
         "deployed": false,
         "exhausted": false,
         "epicActionUsed": false
-      }
+      },
+      "abilityUses": []
     },
     "2": {
       "seat": 2,
@@ -85,6 +95,7 @@
         "IC27#097:3",
         "SHD#238:3"
       ],
+      "foreignResources": [],
       "baseUpgrades": [],
       "baseCaptured": [],
       "credits": 0,
@@ -105,7 +116,11 @@
           "captured": [],
           "power": 3,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
         },
         {
           "id": "IC27#097",
@@ -119,7 +134,11 @@
           "captured": [],
           "power": 3,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
         },
         {
           "id": "IC27#097:4",
@@ -133,7 +152,11 @@
           "captured": [],
           "power": 3,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
         },
         {
           "id": "IC27#097:5",
@@ -147,7 +170,11 @@
           "captured": [],
           "power": 3,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
         },
         {
           "id": "IC27#097:6",
@@ -161,7 +188,11 @@
           "captured": [],
           "power": 3,
           "hp": 1,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
         }
       ],
       "deckSize": 4,
@@ -170,9 +201,11 @@
         "deployed": false,
         "exhausted": false,
         "epicActionUsed": false
-      }
+      },
+      "abilityUses": []
     }
   },
   "initiativeTaken": false,
-  "active": 1
+  "active": 1,
+  "effects": []
 }

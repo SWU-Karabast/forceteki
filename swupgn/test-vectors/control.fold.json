@@ -1,0 +1,341 @@
+{
+  "round": 8,
+  "phase": "action",
+  "initiative": 1,
+  "players": {
+    "1": {
+      "seat": 1,
+      "baseHp": 30,
+      "baseMaxHp": 30,
+      "handSize": 4,
+      "hand": [
+        "SHD#069:3",
+        "TWI#116:2",
+        "LAW#253:10",
+        "SOR#122:2"
+      ],
+      "resourcesReady": 10,
+      "resourcesExhausted": 0,
+      "resources": [
+        "LAW#253",
+        "LAW#253:2",
+        "LAW#253:3",
+        "LAW#253:4",
+        "LAW#253:5",
+        "LAW#253:6",
+        "LAW#253:7",
+        "LAW#253:8",
+        "LAW#253:18",
+        "LAW#253:9"
+      ],
+      "foreignResources": [
+        "LAW#253:18"
+      ],
+      "baseUpgrades": [],
+      "baseCaptured": [],
+      "credits": 0,
+      "hasForce": false,
+      "discard": [
+        "SHD#077"
+      ],
+      "cards": [
+        {
+          "id": "SOR#095",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [
+            "SOR#122"
+          ],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ],
+          "owner": 2
+        },
+        {
+          "id": "ASH#047",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [
+            "IC27#093:2",
+            "SHD#069",
+            "SHD#069:2"
+          ],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 7,
+          "hp": 8,
+          "keywords": [],
+          "traits": [
+            "mandalorian",
+            "trooper"
+          ]
+        },
+        {
+          "id": "TOKEN:mandalorian#8192010342",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 1,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 2,
+          "hp": 2,
+          "keywords": [
+            "shielded"
+          ],
+          "traits": [
+            "mandalorian"
+          ]
+        },
+        {
+          "id": "TOKEN:mandalorian#8192010342:2",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 1,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 2,
+          "hp": 2,
+          "keywords": [
+            "shielded"
+          ],
+          "traits": [
+            "mandalorian"
+          ]
+        },
+        {
+          "id": "TWI#116",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "clone",
+            "rebel",
+            "trooper"
+          ],
+          "copyOf": "SOR#095:2",
+          "name": "Battlefield Marine",
+          "cost": 2,
+          "aspects": [
+            "command",
+            "heroism"
+          ]
+        },
+        {
+          "id": "SHD#122",
+          "zone": "space",
+          "damage": 2,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 7,
+          "hp": 8,
+          "keywords": [
+            "ambush"
+          ],
+          "traits": [
+            "capital ship",
+            "vehicle"
+          ]
+        }
+      ],
+      "deckSize": 5,
+      "leader": {
+        "id": "HMW#004",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      },
+      "abilityUses": []
+    },
+    "2": {
+      "seat": 2,
+      "baseHp": 30,
+      "baseMaxHp": 30,
+      "handSize": 1,
+      "hand": [
+        "IC27#093:4"
+      ],
+      "resourcesReady": 9,
+      "resourcesExhausted": 0,
+      "resources": [
+        "LAW#253:13",
+        "LAW#253:14",
+        "IC27#093",
+        "LAW#253:15",
+        "LAW#253:16",
+        "LAW#253:17",
+        "LAW#253:19",
+        "LAW#253:20",
+        "SOR#095:8"
+      ],
+      "foreignResources": [],
+      "baseUpgrades": [],
+      "baseCaptured": [],
+      "credits": 0,
+      "hasForce": false,
+      "discard": [],
+      "cards": [
+        {
+          "id": "SOR#095:2",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [
+            "IC27#093:3"
+          ],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 5,
+          "hp": 5,
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
+        },
+        {
+          "id": "SOR#095:3",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
+        },
+        {
+          "id": "SOR#095:4",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
+        },
+        {
+          "id": "SOR#095:5",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
+        },
+        {
+          "id": "SOR#095:6",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
+        },
+        {
+          "id": "SOR#095:7",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
+        }
+      ],
+      "deckSize": 0,
+      "leader": {
+        "id": "SOR#009",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      },
+      "abilityUses": []
+    }
+  },
+  "initiativeTaken": false,
+  "active": 1,
+  "effects": [
+    {
+      "id": "fx@1",
+      "src": "TWI#116",
+      "p": 1,
+      "targets": [
+        "TWI#116"
+      ],
+      "duration": "until"
+    }
+  ]
+}

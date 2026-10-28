@@ -20,6 +20,7 @@
         "LAW#253:4",
         "SOR#095:3"
       ],
+      "foreignResources": [],
       "baseUpgrades": [
         "HMW#147",
         "HMW#271",
@@ -52,6 +53,9 @@
           "hp": 1,
           "keywords": [
             "raid 1"
+          ],
+          "traits": [
+            "creature"
           ]
         },
         {
@@ -68,6 +72,9 @@
           "hp": 3,
           "keywords": [
             "raid 1"
+          ],
+          "traits": [
+            "creature"
           ]
         },
         {
@@ -84,6 +91,9 @@
           "hp": 3,
           "keywords": [
             "raid 1"
+          ],
+          "traits": [
+            "creature"
           ]
         },
         {
@@ -100,6 +110,9 @@
           "hp": 3,
           "keywords": [
             "raid 1"
+          ],
+          "traits": [
+            "creature"
           ]
         }
       ],
@@ -109,7 +122,8 @@
         "deployed": false,
         "exhausted": false,
         "epicActionUsed": false
-      }
+      },
+      "abilityUses": []
     },
     "2": {
       "seat": 2,
@@ -127,6 +141,7 @@
         "HMW#059",
         "HMW#059:2"
       ],
+      "foreignResources": [],
       "baseUpgrades": [],
       "baseCaptured": [],
       "credits": 0,
@@ -152,7 +167,10 @@
           "captured": [],
           "power": 3,
           "hp": 4,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "creature"
+          ]
         },
         {
           "id": "HMW#242:4",
@@ -166,7 +184,10 @@
           "captured": [],
           "power": 3,
           "hp": 2,
-          "keywords": []
+          "keywords": [],
+          "traits": [
+            "imperial"
+          ]
         }
       ],
       "deckSize": 0,
@@ -175,9 +196,11 @@
         "deployed": false,
         "exhausted": false,
         "epicActionUsed": false
-      }
+      },
+      "abilityUses": []
     }
   },
   "initiativeTaken": false,
-  "active": 1
+  "active": 1,
+  "effects": []
 }
