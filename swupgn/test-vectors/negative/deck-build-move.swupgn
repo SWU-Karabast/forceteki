@@ -62,7 +62,6 @@
 {"seq":"R0.S.0","t":"INIT","p1DeckOrder":["SOR#108","SOR#108:2","SOR#108:3","SOR#108:4","SOR#108:5"],"p2DeckOrder":["SOR#045","SOR#045:2","SOR#045:3","SOR#045:4","SOR#045:5"]}
 
 %%% EVENTS
-{"seq":"R1.A.0","t":"MOVE","card":"SOR#108","from":"outsideTheGame","to":"deck","p":1}
 {"seq":"R0.S.start","t":"PHASE_START","phase":"setup"}
 {"seq":"R0.S.1","t":"MODAL_CHOICE","p":1,"offered":["Yourself","Opponent"],"chose":0}
 {"seq":"R0.S.2","t":"SHUFFLE","p":1}
@@ -88,6 +87,7 @@
 {"seq":"R0.S.end","t":"PHASE_END","phase":"setup"}
 {"seq":"R1.start","t":"ROUND_START","round":1,"keyframe":{"round":1,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#045"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
 {"seq":"R1.A.start","t":"PHASE_START","phase":"action"}
+{"seq":"R1.A.0","t":"MOVE","card":"SOR#108","from":"outsideTheGame","to":"deck","p":1}
 {"seq":"R1.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R1.A.1"}
 {"seq":"R1.A.0b","t":"MOVE","card":"SOR#108","from":"hand","to":"ground","p":1,"kind":"unit","for":"R1.A.1"}
 {"seq":"R1.A.0c","t":"STATS","card":"SOR#108","power":4,"hp":5,"keywords":["overwhelm"],"for":"R1.A.1"}
