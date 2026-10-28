@@ -1885,7 +1885,7 @@ These never change the board. A folder MUST read them and do nothing.
 | `ATTACK` | `p`, `atk`, `def`, `defenderType` | An attack was declared. For a base attack, `def` is `base@N`. |
 | `PASS` | `p` | A player took the **Pass** action. It is never written after a play, an attack, an action ability or a claimed counter — those are actions of their own, and the turn passing to the opponent afterwards is not a record. The action phase ends when both players pass one after the other, or a player passes after the other has claimed the initiative (CR 6). |
 | `CHOICE` | `p`, `offered` (string[]), `chose` (index), `prompt` (optional) | A player picked from a list. |
-| `MODAL_CHOICE` | `p`, `offered`, `chose` | A player picked an ability mode. A modal effect that picks several modes writes one `MODAL_CHOICE` per pick, in pick order. |
+| `MODAL_CHOICE` | `p`, `offered`, `chose` | A player picked an ability mode. A modal effect that picks several modes writes one `MODAL_CHOICE` per pick, in pick order. A later pick's `offered` is the modes still available after the earlier picks, in their printed order, and its `chose` indexes that list, not the first one. |
 | `MULLIGAN` | `p` | A player mulliganed. |
 | `KEEP_HAND` | `p` | A player kept their hand. |
 | `SHUFFLE` | `p` | A deck was shuffled. |
