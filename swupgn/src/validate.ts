@@ -390,10 +390,10 @@ export function validate(text: string): ConformanceReport {
         const players = kf ? asRecord(kf['players']) : null;
         for (const ps of Object.values(players ?? {})) {
             const seat = asRecord(ps) ?? {};
-            const lists: unknown[] = ['cards', 'hand', 'discard', 'resources', 'baseUpgrades', 'baseCaptured', 'abilityUses'].map((k) => seat[k]);
+            const lists: unknown[] = ['cards', 'hand', 'discard', 'resources', 'baseUpgrades', 'baseCaptured', 'abilityUses', 'foreignResources'].map((k) => seat[k]);
             for (const c of Array.isArray(seat['cards']) ? seat['cards'] : []) {
                 const card = asRecord(c) ?? {};
-                lists.push(card['upgrades'], card['captured']);
+                lists.push(card['upgrades'], card['captured'], card['traits'], card['aspects']);
                 if (typeof card['zone'] === 'string' && !ZONES.includes(card['zone'])) {
                     error('bad-zone', `record ${seqStr}: keyframe card zone "${card['zone']}" is not a zone`);
                 }

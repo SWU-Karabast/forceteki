@@ -376,3 +376,47 @@ describe('checkKeyframes abilityUses', function () {
         expect(paths([...events, kf('ROUND_START', [entry('SOR#047', 1, 'game')])])).toEqual([]);
     });
 });
+
+describe('checkKeyframes attributes, control and ownership', function () {
+    const unit = (over: Partial<CardInstanceState> = {}): CardInstanceState => ({ id: 'SOR#095', zone: 'ground', damage: 0, exhausted: false,
+        upgrades: [], shields: 0, experience: 0, statusTokens: {}, captured: [], ...over });
+    const kf = (p1: PlayerState, p2: PlayerState = restingSeat(2)): GameEvent => ({ seq: 'R1.end', t: 'ROUND_END', round: 1,
+        keyframe: { round: 1, phase: 'action', initiative: 1, players: { 1: p1, 2: p2 } } });
+    const enter: GameEvent = { seq: 'R1.A.1a', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1, kind: 'unit' };
+    const stats: GameEvent = { seq: 'R1.A.1b', t: 'STATS', card: 'SOR#095', power: 4, hp: 5, traits: ['trooper', 'rebel'], blank: true,
+        copyOf: 'SOR#108', name: 'Wampa', cost: 4, aspects: ['aggression'] };
+    const paths = (events: GameEvent[]) => checkKeyframes(events).mismatches.map((m) => m.path).sort();
+    const copied = { traits: ['rebel', 'trooper'], blank: true, copyOf: 'SOR#108', name: 'Wampa', cost: 4, aspects: ['aggression'] };
+
+    // Value: protects=the gate compares traits, blank, leaderUnit, the copy fields, owner, upgradeControllers and foreignResources once the keyframe records them, and skips them on a keyframe that predates them; fails_when=any of them is ungated, or an older keyframe without them reports a mismatch; why_new=the fields are new; seam=none; no_claim=writer output
+    it('compares the new card fields when the keyframe carries them', function () {
+        expect(paths([enter, stats, kf(restingSeat(1, { cards: [unit(copied)] }))])).toEqual([]);
+        // A keyframe from before the fields existed carries none of them: nothing to compare.
+        expect(paths([enter, stats, kf(restingSeat(1, { cards: [unit()] }))])).toEqual([]);
+        // traits on the keyframe card says it records attributes, so an absent blank or copy means none.
+        expect(paths([enter, stats, kf(restingSeat(1, { cards: [unit({ traits: ['trooper', 'rebel'] })] }))]))
+            .toEqual(['players.1.cards[SOR#095].aspects', 'players.1.cards[SOR#095].blank', 'players.1.cards[SOR#095].copyOf',
+                'players.1.cards[SOR#095].cost', 'players.1.cards[SOR#095].name']);
+        expect(paths([enter, stats, kf(restingSeat(1, { cards: [unit({ ...copied, traits: ['trooper'], leaderUnit: true })] }))]))
+            .toEqual(['players.1.cards[SOR#095].leaderUnit', 'players.1.cards[SOR#095].traits']);
+
+        // Control and ownership: foreignResources on the keyframe seat says it records them, so an absent owner means the holder.
+        const steal: GameEvent[] = [enter, { seq: 'R1.A.2a', t: 'TAKE_CONTROL', p: 2, card: 'SOR#095', zone: 'ground', from: 1 }];
+        const stolenSeat = (over: Partial<CardInstanceState>) => restingSeat(2, { foreignResources: [], cards: [unit(over)] });
+        expect(paths([...steal, kf(restingSeat(1, { foreignResources: [] }), stolenSeat({ owner: 1 }))])).toEqual([]);
+        expect(paths([...steal, kf(restingSeat(1), restingSeat(2, { cards: [unit()] }))])).toEqual([]);
+        expect(paths([...steal, kf(restingSeat(1, { foreignResources: [] }), stolenSeat({}))])).toEqual(['players.2.cards[SOR#095].owner']);
+
+        const attach: GameEvent[] = [enter, { seq: 'R1.A.2a', t: 'MOVE', card: 'LOF#215', from: 'hand', to: 'ground', p: 2, kind: 'upgrade', attachedTo: 'SOR#095' }];
+        const host = (over: Partial<CardInstanceState>) => restingSeat(1, { foreignResources: [], cards: [unit({ upgrades: ['LOF#215'], ...over })] });
+        expect(paths([...attach, kf(host({ upgradeControllers: { 'LOF#215': 2 } }), restingSeat(2, { foreignResources: [] }))])).toEqual([]);
+        expect(paths([...attach, kf(host({}), restingSeat(2, { foreignResources: [] }))])).toEqual(['players.1.cards[SOR#095].upgradeControllers']);
+
+        const row: GameEvent[] = [{ seq: 'R0.S.1', t: 'MOVE', card: 'LAW#253', from: 'hand', to: 'resource', p: 1 },
+            { seq: 'R1.A.1a', t: 'TAKE_CONTROL', p: 2, card: 'LAW#253', zone: 'resource', from: 1 }];
+        const counts = { resourcesReady: 1, resources: ['LAW#253'] };
+        expect(paths([...row, kf(restingSeat(1, { resources: [] }), restingSeat(2, { ...counts, foreignResources: ['LAW#253'] }))])).toEqual([]);
+        expect(paths([...row, kf(restingSeat(1, { resources: [] }), restingSeat(2, counts))])).toEqual([]);
+        expect(paths([...row, kf(restingSeat(1, { resources: [] }), restingSeat(2, { ...counts, foreignResources: [] }))])).toEqual(['players.2.foreignResources']);
+    });
+});

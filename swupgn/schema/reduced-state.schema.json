@@ -73,7 +73,8 @@
         "cards": { "type": "array", "items": { "$ref": "#/$defs/cardState" } },
         "deckSize": { "$ref": "#/$defs/count" },
         "leader": { "$ref": "#/$defs/leaderState" },
-        "abilityUses": { "type": "array", "items": { "$ref": "#/$defs/abilityUse" } }
+        "abilityUses": { "type": "array", "items": { "$ref": "#/$defs/abilityUse" } },
+        "foreignResources": { "$ref": "#/$defs/ids" }
       },
       "additionalProperties": true
     },
@@ -108,7 +109,20 @@
         "captured": { "$ref": "#/$defs/ids" },
         "power": { "type": "integer" },
         "hp": { "type": "integer" },
-        "keywords": { "type": "array", "items": { "type": "string" } }
+        "keywords": { "type": "array", "items": { "type": "string" } },
+        "traits": { "type": "array", "items": { "type": "string" } },
+        "blank": { "type": "boolean" },
+        "leaderUnit": { "type": "boolean" },
+        "copyOf": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "cost": { "type": "integer" },
+        "aspects": { "type": "array", "items": { "type": "string" } },
+        "owner": { "enum": [1, 2] },
+        "upgradeControllers": {
+          "type": "object",
+          "propertyNames": { "not": { "enum": ["__proto__", "constructor", "prototype", "toString", "valueOf"] } },
+          "additionalProperties": { "enum": [1, 2] }
+        }
       },
       "additionalProperties": true
     }

@@ -1231,3 +1231,106 @@ describe('fold limited abilities, looks and names', function () {
         }
     });
 });
+
+// Attributes, control and ownership (spec §10.1 STATS and TAKE_CONTROL, §11, §12.2; CR 1.16.1, 1.5.2, 1.7.5, 8.27).
+describe('fold attributes, control and ownership', function () {
+    const unit = (seq: string, card: string, p: 1 | 2, from = 'hand'): GameEvent => ({ seq, t: 'MOVE', card, from, to: 'ground', p, kind: 'unit' });
+    const upgrade = (seq: string, card: string, host: string, p: 1 | 2): GameEvent => ({ seq, t: 'MOVE', card, from: 'hand', to: 'ground', p, kind: 'upgrade', attachedTo: host });
+    const take = (seq: string, card: string, p: 1 | 2, zone = 'ground', extra: Partial<Extract<GameEvent, { t: 'TAKE_CONTROL' }>> = {}): GameEvent =>
+        ({ seq, t: 'TAKE_CONTROL', p, card, zone, from: p === 1 ? 2 : 1, ...extra });
+    const card = (s: ReturnType<typeof fold>, seat: 1 | 2, id: string) => s.players[seat]?.cards.find((c) => c.id === id);
+
+    // Value: protects=a unit's traits, lost abilities, leader-unit status and copied attributes are on the board as STATS states them (CR 1.16.1, 8.14.2, 8.5, 3.4.7); fails_when=STATS folds only power/hp/keywords; why_new=the attribute fields are new; seam=none; no_claim=writer output
+    it('STATS carries traits, blank, leaderUnit and a copy\'s attributes', function () {
+        const s = fold([
+            unit('R1.A.1a', 'SOR#095', 1),
+            { seq: 'R1.A.1b', t: 'STATS', card: 'SOR#095', power: 4, hp: 5, keywords: [], traits: ['trooper', 'rebel'], blank: true, leaderUnit: true,
+                copyOf: 'SOR#108', name: 'Wampa, Hungry Beast', cost: 4, aspects: ['aggression', 'aggression'] },
+        ]);
+        const c = card(s, 1, 'SOR#095');
+        expect(c?.traits).toEqual(['rebel', 'trooper']);
+        expect(c?.blank).toBe(true);
+        expect(c?.leaderUnit).toBe(true);
+        expect([c?.copyOf, c?.name, c?.cost, c?.aspects]).toEqual(['SOR#108', 'Wampa, Hungry Beast', 4, ['aggression', 'aggression']]);
+    });
+
+    // Value: protects=STATS states the whole attribute set, so a field it leaves out is no longer true (a blanked unit regains its text, a copy ends); fails_when=an absent field keeps its old value; why_new=the attribute fields are new; seam=none; no_claim=none
+    it('a STATS without traits clears them', function () {
+        const s = fold([
+            unit('R1.A.1a', 'SOR#095', 1),
+            { seq: 'R1.A.1b', t: 'STATS', card: 'SOR#095', power: 4, hp: 5, traits: ['trooper'], blank: true, leaderUnit: true, copyOf: 'SOR#108', name: 'Wampa', cost: 4, aspects: ['aggression'] },
+            { seq: 'R1.A.2a', t: 'STATS', card: 'SOR#095', power: 3, hp: 3, keywords: ['sentinel'] },
+        ]);
+        const c = card(s, 1, 'SOR#095');
+        for (const field of ['traits', 'blank', 'leaderUnit', 'copyOf', 'name', 'cost', 'aspects']) {
+            expect(field in (c ?? {})).toBe(false);
+        }
+        expect([c?.power, c?.hp, c?.keywords]).toEqual([3, 3, ['sentinel']]);
+    });
+
+    // Value: protects=an upgrade's controller (CR 1.16.1, 8.27) is on its host's entry when it differs from the host's, and a return clears it; fails_when=an upgrade TAKE_CONTROL re-seats nothing, or moves the host; why_new=the upgrade form of TAKE_CONTROL is new; seam=none; no_claim=writer output
+    it('an upgrade taken by the other seat is listed in upgradeControllers and given back clears it', function () {
+        const setup = [unit('R1.A.1a', 'SOR#095', 1), upgrade('R1.A.2a', 'LOF#215', 'SOR#095', 1)];
+        const taken = fold([...setup, take('R1.A.3a', 'LOF#215', 2)]);
+        expect(card(taken, 1, 'SOR#095')?.upgrades).toEqual(['LOF#215']);
+        expect(card(taken, 1, 'SOR#095')?.upgradeControllers).toEqual({ 'LOF#215': 2 });
+        expect(taken.players[2]?.cards).toEqual([]);
+        const back = fold([...setup, take('R1.A.3a', 'LOF#215', 2), take('R1.A.4a', 'LOF#215', 1)]);
+        expect('upgradeControllers' in (card(back, 1, 'SOR#095') ?? {})).toBe(false);
+        expect(fold(setup)).toEqual(back);
+    });
+
+    // Value: protects=an upgrade played onto an enemy unit is listed under its player, and a host changing hands keeps each upgrade with its own controller; fails_when=the attaching move's seat is ignored, or a host's TAKE_CONTROL takes its upgrades with it; why_new=upgradeControllers is new; seam=none; no_claim=none
+    it('an upgrade on an enemy unit is listed, and its host changing hands re-keys it', function () {
+        const setup = [unit('R1.A.1a', 'SOR#095', 1), upgrade('R1.A.2a', 'LOF#215', 'SOR#095', 2), upgrade('R1.A.3a', 'LOF#216', 'SOR#095', 1)];
+        expect(card(fold(setup), 1, 'SOR#095')?.upgradeControllers).toEqual({ 'LOF#215': 2 });
+        const stolen = fold([...setup, take('R1.A.4a', 'SOR#095', 2)]);
+        expect(card(stolen, 2, 'SOR#095')?.upgradeControllers).toEqual({ 'LOF#216': 1 });
+        // The upgrade leaving play leaves the list with it.
+        const gone = fold([...setup, take('R1.A.4a', 'SOR#095', 2), { seq: 'R1.A.5a', t: 'MOVE', card: 'LOF#216', from: 'ground', to: 'discard', p: 1 }]);
+        expect('upgradeControllers' in (card(gone, 2, 'SOR#095') ?? {})).toBe(false);
+    });
+
+    // Value: protects=a unit's owner is on its entry when another seat controls it (CR 1.7.5), and the return clears it; fails_when=TAKE_CONTROL re-seats without recording the owner, or a stolen-back unit keeps it; why_new=owner is new; seam=none; no_claim=writer output
+    it('a stolen unit records its owner and returning it clears the owner', function () {
+        const stolen = fold([unit('R1.A.1a', 'SOR#095', 1), take('R1.A.2a', 'SOR#095', 2)]);
+        expect(card(stolen, 2, 'SOR#095')?.owner).toBe(1);
+        const back = fold([unit('R1.A.1a', 'SOR#095', 1), take('R1.A.2a', 'SOR#095', 2), take('R1.A.3a', 'SOR#095', 1)]);
+        expect('owner' in (card(back, 1, 'SOR#095') ?? {})).toBe(false);
+        // A unit played out of the other seat's discard (the whose-pile rule of §12.1) is that seat's.
+        const played = fold([
+            { seq: 'R1.A.1a', t: 'MOVE', card: 'JTL#221', from: 'hand', to: 'discard', p: 1 },
+            unit('R1.A.2a', 'JTL#221', 2, 'discard'),
+        ]);
+        expect(card(played, 2, 'JTL#221')?.owner).toBe(1);
+        expect('owner' in (card(fold([unit('R1.A.1a', 'SOR#095', 1)]), 1, 'SOR#095') ?? {})).toBe(false);
+    });
+
+    // Value: protects=a resource controlled by the seat that does not own it is listed in that seat's foreignResources, a return clears it, and the card leaving the row takes its owner with it; fails_when=resource TAKE_CONTROL moves only the counts and membership; why_new=foreignResources is new; seam=none; no_claim=none
+    it('a stolen resource is a foreign resource', function () {
+        const row: GameEvent = { seq: 'R0.S.1', t: 'MOVE', card: 'LAW#253', from: 'hand', to: 'resource', p: 1 };
+        const stolen = fold([row, take('R1.A.1a', 'LAW#253', 2, 'resource')]);
+        expect(stolen.players[2]?.foreignResources).toEqual(['LAW#253']);
+        expect('foreignResources' in (stolen.players[1] ?? {})).toBe(false);
+        const back = fold([row, take('R1.A.1a', 'LAW#253', 2, 'resource'), take('R1.A.2a', 'LAW#253', 1, 'resource')]);
+        expect(back.players[2]?.foreignResources).toEqual([]);
+        expect(back.players[1]?.resources).toEqual(['LAW#253']);
+        // Played out of the row (Smuggle): the unit is the other seat's, and the row no longer lists it.
+        const played = fold([row, take('R1.A.1a', 'LAW#253', 2, 'resource'), { seq: 'R1.A.2a', t: 'MOVE', card: 'LAW#253', from: 'resource', to: 'space', p: 2, kind: 'unit' }]);
+        expect(played.players[2]?.foreignResources).toEqual([]);
+        expect(card(played, 2, 'LAW#253')?.owner).toBe(1);
+    });
+
+    // Value: protects=a keyframe whose upgradeControllers or foreignResources the fold cannot work on is damaged, not snapped to (§13); fails_when=a later TAKE_CONTROL throws on it; why_new=both fields are new; seam=none; no_claim=none
+    it('ignores a keyframe whose control fields are malformed', function () {
+        const seat = (s: 1 | 2, over: Record<string, unknown> = {}) => ({ seat: s, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0,
+            resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [], ...over });
+        const host = (upgradeControllers: unknown) => ({ id: 'SOR#095', zone: 'ground', damage: 0, exhausted: false, upgrades: ['LOF#215'], shields: 0,
+            experience: 0, statusTokens: {}, captured: [], upgradeControllers });
+        for (const bad of [seat(1, { foreignResources: 5 }), seat(1, { cards: [host(5)] }), seat(1, { cards: [host(['x'])] })]) {
+            const s = fold([{ seq: 'R1.start', t: 'ROUND_START', round: 1, active: 1, keyframe: { round: 1, phase: 'action', initiative: 1, players: { 1: bad as any, 2: seat(2) as any } } }]);
+            expect(s.round).toBe(1);
+            expect(s.players[1]?.cards).toEqual([]);
+        }
+    });
+});

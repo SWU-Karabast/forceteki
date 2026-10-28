@@ -1,4 +1,4 @@
-import type { SwuPgnDocument, GameEvent, ReducedState, Seat } from './types';
+import type { CardInstanceState, SwuPgnDocument, GameEvent, ReducedState, Seat } from './types';
 import type { NameResolver } from './cardNames';
 import { baseId, indexResolver, shorten } from './cardNames';
 import { isArena, isCompleteKeyframe } from './fold';
@@ -178,6 +178,29 @@ function copySuffix(ref: string): string {
     return m ? ` #${m[1]}` : '';
 }
 
+/** The copied name a unit that is a copy goes by (spec §16), cut like a card name; else undefined. */
+function copyName(c: Pick<CardInstanceState, 'copyOf' | 'name'>): string | undefined {
+    return typeof c.copyOf === 'string' && typeof c.name === 'string' ? shorten(c.name) : undefined;
+}
+
+/**
+ * Keep `copies` (unit id -> copied name) in step with the records that start and end a copy: a
+ * `STATS` states the whole attribute set, so one without `copyOf` ends it, and a unit leaving play
+ * starts over.
+ */
+function trackCopies(e: GameEvent, copies: Map<string, string>): void {
+    if (e.t === 'STATS') {
+        const name = copyName(e);
+        if (name !== undefined) {
+            copies.set(e.card, name);
+        } else {
+            copies.delete(e.card);
+        }
+    } else if (e.t === 'MOVE' && isArena(e.from) && !isArena(e.to)) {
+        copies.delete(e.card);
+    }
+}
+
 /**
  * The board at a round boundary, from that round's keyframe — the single most useful thing
  * for a human, because it lets them re-sync their mental model without replaying deltas.
@@ -238,7 +261,9 @@ function boardSummary(k: ReducedState, n: NameResolver): string[] {
                 for (const held of c.captured ?? []) {
                     bits.push(`holds ${nm(held)}`);
                 }
-                return nm(c.id) + stats + (bits.length ? ` [${bits.join(', ')}]` : '');
+                // A copy goes by the name it copied (CR 8.5).
+                const copied = copyName(c);
+                return (copied !== undefined ? copied + copySuffix(c.id) : nm(c.id)) + stats + (bits.length ? ` [${bits.join(', ')}]` : '');
             });
             out.push(`      ${zone}: ${rendered.join('  ·  ')}`);
         }
@@ -275,9 +300,11 @@ export function render(doc: SwuPgnDocument, names?: NameResolver): string {
     // leader whose Leader Unit side is another card, a double-sided leader flipped. A card is
     // named by the side that is up, so a deployed Tarkin attacks as The Death Star.
     const backUp = new Set<string>();
+    // Units that are a copy of another card (CR 8.5), by id: named by the copied name while it lasts.
+    const copies = new Map<string, string>();
     const n: SidedResolver = {
         // Sides are tracked per copy (a mirror match has two of one leader), names per card.
-        nameOf: (id) => (backUp.has(id) ? base.backNameOf?.(baseId(id)) : undefined) ?? base.nameOf(baseId(id)),
+        nameOf: (id) => copies.get(id) ?? (backUp.has(id) ? base.backNameOf?.(baseId(id)) : undefined) ?? base.nameOf(baseId(id)),
         backNameOf: (id) => base.backNameOf?.(baseId(id)),
         frontNameOf: (id) => base.nameOf(baseId(id)),
     };
@@ -298,6 +325,16 @@ export function render(doc: SwuPgnDocument, names?: NameResolver): string {
                         backUp.add(leader.id);
                     } else {
                         backUp.delete(leader.id);
+                    }
+                }
+            }
+            // So do the copies: the keyframe states every unit's attributes.
+            copies.clear();
+            for (const seat of [1, 2] as Seat[]) {
+                for (const c of e.keyframe.players[seat]?.cards ?? []) {
+                    const copied = copyName(c);
+                    if (copied !== undefined) {
+                        copies.set(c.id, copied);
                     }
                 }
             }
@@ -329,6 +366,7 @@ export function render(doc: SwuPgnDocument, names?: NameResolver): string {
         }
         const text = line(e, n, effectSources);
         trackSides(e, backUp, base);
+        trackCopies(e, copies);
         if (text == null) {
             continue;
         }

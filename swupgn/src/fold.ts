@@ -74,7 +74,7 @@ export function isCompleteKeyframe(k: unknown): k is ReducedState {
         // A keyframe is snapped to wholesale, so its lists bypass the MAX_ZONE_LIST cap that
         // bounds everything the fold grows itself -- and every later DEFEAT or exit scans them.
         // A list no real game can reach is a damaged checkpoint, not a board.
-        const optional = [ps.baseUpgrades, ps.baseCaptured, ps.resources].filter((l) => l !== undefined);
+        const optional = [ps.baseUpgrades, ps.baseCaptured, ps.resources, ps.foreignResources].filter((l) => l !== undefined);
         if (![ps.cards, ps.hand, ps.discard, ...optional].every((l) => Array.isArray(l) && l.length <= MAX_ZONE_LIST)) {
             return false;
         }
@@ -126,8 +126,12 @@ function isCompleteKeyframeCard(c: unknown): boolean {
     const card = c as Partial<CardInstanceState>;
     const tokens = card.statusTokens as unknown;
     const captured = card.captured as unknown;
+    // `upgradeControllers` is optional, but a later TAKE_CONTROL of an upgrade or of its host
+    // reads and rewrites it, so when present it is a map, not a list or a scalar.
+    const controllers = card.upgradeControllers as unknown;
     return Array.isArray(card.upgrades) && card.upgrades.length <= MAX_ZONE_LIST &&
       (captured === undefined || (Array.isArray(captured) && captured.length <= MAX_ZONE_LIST)) &&
+      (controllers === undefined || (typeof controllers === 'object' && controllers !== null && !Array.isArray(controllers))) &&
       typeof tokens === 'object' && tokens !== null && !Array.isArray(tokens) &&
       typeof card.damage === 'number' && typeof card.shields === 'number' && typeof card.experience === 'number';
 }
@@ -308,6 +312,13 @@ function detach(s: ReducedState, id: string): void {
             const u = c.upgrades.indexOf(id);
             if (u >= 0) {
                 c.upgrades.splice(u, 1);
+            }
+            // Off its host, an upgrade has no entry in the host's controllers either.
+            if (c.upgradeControllers && Object.prototype.hasOwnProperty.call(c.upgradeControllers, id)) {
+                Reflect.deleteProperty(c.upgradeControllers, id);
+                if (Object.keys(c.upgradeControllers).length === 0) {
+                    delete c.upgradeControllers;
+                }
             }
             const captured = arr<string>(c.captured);
             const k = captured.indexOf(id);
@@ -561,6 +572,75 @@ function removeOne(list: string[], id: string): void {
     }
 }
 
+/** The seat whose `cards` hold `id`, if any. */
+function seatHolding(s: ReducedState, id: string): Seat | undefined {
+    return ([1, 2] as Seat[]).find((seat) => s.players[seat]?.cards.some((c) => c.id === id));
+}
+
+/** The arena card that has `id` among its `upgrades`, and the seat that holds it. */
+function hostOf(s: ReducedState, id: string): { host: CardInstanceState; seat: Seat } | undefined {
+    for (const seat of [1, 2] as Seat[]) {
+        const host = s.players[seat]?.cards.find((c) => c.upgrades.includes(id));
+        if (host) {
+            return { host, seat };
+        }
+    }
+    return undefined;
+}
+
+/**
+ * Record that upgrade `id` on `host` (held by `hostSeat`) is controlled by `controller`: listed in the
+ * host's `upgradeControllers` when that is not the host's seat, taken off it when it is, and the map
+ * dropped once empty so a host with no foreign upgrade carries none (spec §11). The id comes from the
+ * file and becomes a key, so a reserved name is never written and the key is defined, not assigned (§23).
+ */
+function setUpgradeController(host: CardInstanceState, hostSeat: Seat, id: string, controller: Seat): void {
+    if (RESERVED_KEYS.has(id)) {
+        return;
+    }
+    const map = host.upgradeControllers;
+    if (controller !== hostSeat) {
+        const next = map ?? {};
+        Object.defineProperty(next, id, { value: controller, enumerable: true, writable: true, configurable: true });
+        host.upgradeControllers = next;
+    } else if (map && Object.prototype.hasOwnProperty.call(map, id)) {
+        Reflect.deleteProperty(map, id);
+    }
+    if (host.upgradeControllers && Object.keys(host.upgradeControllers).length === 0) {
+        delete host.upgradeControllers;
+    }
+}
+
+/**
+ * Upgrade `id` just attached to `hostId` is controlled by `controller` (the attaching record's `p`):
+ * note it on the host when the host is tracked and holds it. A token upgrade is never in `upgrades`,
+ * so it is never noted.
+ */
+function noteUpgradeController(s: ReducedState, hostId: string, id: string, controller: unknown): void {
+    const seat = seatHolding(s, hostId);
+    const host = seat ? s.players[seat]?.cards.find((c) => c.id === hostId) : undefined;
+    if (seat && host && isSeat(controller) && host.upgrades.includes(id)) {
+        setUpgradeController(host, seat, id, controller);
+    }
+}
+
+/** The seat's foreign-resource list, created on first use like `resources` (absent = not recorded). */
+function foreignList(ps: PlayerState): string[] {
+    if (!Array.isArray(ps.foreignResources)) {
+        ps.foreignResources = [];
+    }
+    return ps.foreignResources;
+}
+
+/** Set `owner` on an arena entry, or drop it when the owner is the seat that holds the entry. */
+function setOwner(c: CardInstanceState, holder: Seat, owner: Seat): void {
+    if (owner === holder) {
+        delete c.owner;
+    } else {
+        c.owner = owner;
+    }
+}
+
 /**
  * The seat whose pile a card LEAVES: `p`'s if it holds the card, else the other seat's, else `p`'s.
  * `p` is the card's controller as the move is recorded, which is not always the pile's owner --
@@ -622,6 +702,11 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
         // attributing its counts to an invented seat.
         return;
     }
+    // The card's owner, when the pile it leaves says it is not `p`'s: the other seat's hand,
+    // discard or row held it, or `p`'s row held it as a foreign resource. A unit that arrives in
+    // an arena this way is recorded with that owner (spec §12.1, "Whose pile").
+    let ownerSeat: Seat | undefined;
+    const otherSeat: Seat = e.p === 1 ? 2 : 1;
 
     // Hand: the COUNT and the CONTENTS. Every MOVE names its card, so `hand[]` is exact at
     // every moment, not just at a keyframe — DRAW is only a summary of the deck→hand MOVEs
@@ -634,6 +719,7 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
         const from = holder(s, e.p, ps, e.card, (x) => x.hand);
         from.handSize = Math.max(0, from.handSize - 1);
         removeOne(from.hand, e.card);
+        ownerSeat = from.seat;
     }
 
     // Discard: likewise the pile's CONTENTS, in engine order. DEFEAT cannot be the author —
@@ -643,7 +729,9 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
     if (e.to === 'discard' && e.from !== 'discard') {
         addOnce(ps.discard, e.card);
     } else if (e.from === 'discard' && e.to !== 'discard') {
-        removeOne(holder(s, e.p, ps, e.card, (x) => x.discard).discard, e.card);
+        const from = holder(s, e.p, ps, e.card, (x) => x.discard);
+        removeOne(from.discard, e.card);
+        ownerSeat = from.seat;
     }
 
     // Deck count, once a keyframe has told us where it started.
@@ -684,6 +772,11 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
         const from = holder(s, e.p, ps, e.card, (x) => x.resources);
         countResource(from, -1, e.exhausted === true);
         removeOne(resourceList(from), e.card);
+        const foreign = Array.isArray(from.foreignResources) && from.foreignResources.includes(e.card);
+        if (foreign) {
+            removeOne(from.foreignResources as string[], e.card);
+        }
+        ownerSeat = foreign ? (from.seat === 1 ? 2 : 1) : from.seat;
     }
 
     // Credits and the Force: the only two things that live in `base` and are counted.
@@ -707,6 +800,8 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
             detach(s, e.card);
             removeFromArenas(s, e.card);
             attachTo(s, e.attachedTo, e.card);
+            // `p` is the upgrade's controller as it attaches (§12.1, "Whose pile").
+            noteUpgradeController(s, e.attachedTo, e.card, e.p);
         }
         const upgrade = findCard(s, e.card);
         if (upgrade) {
@@ -728,12 +823,56 @@ function applyMoveCounts(s: ReducedState, e: { card: string; from: string; to: s
             // MOVE is the arena's real author (§12.1) -- PLAY only summarises -- so this is the
             // path a crafted file grows, and it must carry the same ceiling placeCard does.
             // findCard() scans every card in play, so an unbounded arena folds in O(n^2).
-            ps.cards.push(newCard(e.card, e.to));
+            const entry = newCard(e.card, e.to);
+            if (ownerSeat === otherSeat) {
+                entry.owner = otherSeat;
+            }
+            ps.cards.push(entry);
         }
     } else if (existing && ARENA_ZONES.has(existing.zone)) {
         removeFromArenas(s, e.card);
     } else if (existing) {
         existing.zone = e.to;
+    }
+}
+
+/**
+ * STATS states the unit's whole attribute set (spec §10.1), so each of these is replaced: a field the
+ * record carries is set, one it leaves out is removed (a blanked unit regains its text, a copy ends).
+ */
+function applyAttributes(c: CardInstanceState, e: Extract<GameEvent, { t: 'STATS' }>): void {
+    const strings = (x: unknown): string[] | undefined => (Array.isArray(x) ? x.slice(0, MAX_ZONE_LIST).map(String) : undefined);
+    const traits = strings(e.traits);
+    const aspects = strings(e.aspects);
+    const set = <K extends keyof CardInstanceState>(key: K, value: CardInstanceState[K] | undefined): void => {
+        if (value === undefined) {
+            Reflect.deleteProperty(c, key);
+        } else {
+            c[key] = value;
+        }
+    };
+    set('traits', traits?.sort());
+    set('blank', e.blank === true ? true : undefined);
+    set('leaderUnit', e.leaderUnit === true ? true : undefined);
+    set('copyOf', typeof e.copyOf === 'string' ? e.copyOf : undefined);
+    set('name', typeof e.name === 'string' ? e.name : undefined);
+    set('cost', typeof e.cost === 'number' && Number.isFinite(e.cost) ? e.cost : undefined);
+    set('aspects', aspects);
+}
+
+/**
+ * A unit entry moving from seat `from` to seat `to` (an arena TAKE_CONTROL): its owner is the seat it
+ * came from unless it already names one, and a unit going home names none. Each upgrade on it keeps
+ * its own controller -- the host changing hands does not change theirs -- so `upgradeControllers` is
+ * rebuilt against the new seat (spec §12.2).
+ */
+function reseat(c: CardInstanceState, from: Seat, to: Seat): void {
+    setOwner(c, to, c.owner ?? from);
+    const before = c.upgradeControllers;
+    delete c.upgradeControllers;
+    for (const u of c.upgrades) {
+        const own = before && Object.prototype.hasOwnProperty.call(before, u) && isSeat(before[u]) ? before[u] : from;
+        setUpgradeController(c, to, u, own);
     }
 }
 
@@ -784,6 +923,7 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
                     attachToBase(s, baseSeat, e.card);
                 } else {
                     attachTo(s, e.target, e.card);
+                    noteUpgradeController(s, e.target, e.card, e.p);
                 }
             }
             break;
@@ -810,6 +950,7 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             if (e.kind === 'upgrade') {
                 if (e.target) {
                     attachTo(s, e.target, e.card);
+                    noteUpgradeController(s, e.target, e.card, e.p);
                 }
                 break;
             }
@@ -871,14 +1012,16 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
                 if (Array.isArray(e.keywords)) {
                     c.keywords = [...e.keywords].map(String).sort();
                 }
+                applyAttributes(c, e);
             }
             break;
         }
         case 'TAKE_CONTROL': {
             // A control change moves nothing between zones, so no MOVE carries it: re-seat
             // the card here. An arena card moves between the seats' `cards` lists with its
-            // state intact; a resource shifts one resource from `from` to `p`; a Credit or
-            // Force token in `base` shifts one credit, or the Force, from `from` to `p`.
+            // state intact (and its owner noted); an attached upgrade stays on its host, whose
+            // `upgradeControllers` notes the new controller; a resource shifts one resource from
+            // `from` to `p`; a Credit or Force token in `base` shifts one credit, or the Force.
             const ps = player(s, e.p);
             if (!ps) {
                 break;
@@ -900,6 +1043,13 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
                     // for the rest of the game.
                     removeOne(resourceList(fromPs), e.card);
                     addOnce(resourceList(ps), e.card);
+                    // Ownership: a card that was foreign in the losing row goes home; any other
+                    // card becomes foreign in the winning one (spec §11, `foreignResources`).
+                    if (Array.isArray(fromPs.foreignResources) && fromPs.foreignResources.includes(e.card)) {
+                        removeOne(fromPs.foreignResources, e.card);
+                    } else {
+                        addOnce(foreignList(ps), e.card);
+                    }
                 } else {
                     countBaseToken(fromPs, e.card, -1);
                     countBaseToken(ps, e.card, 1);
@@ -910,15 +1060,22 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
                 break; // no zone (an early-1.0 note) or a zone the fold doesn't track: nothing to re-seat
             }
             for (const seat of [1, 2] as Seat[]) {
-                const owner = s.players[seat];
-                if (!owner || seat === e.p) {
+                const prev = s.players[seat];
+                if (!prev || seat === e.p) {
                     continue;
                 }
-                const idx = owner.cards.findIndex((c) => c.id === e.card);
+                const idx = prev.cards.findIndex((c) => c.id === e.card);
                 if (idx >= 0 && ps.cards.length < MAX_ZONE_LIST) {
-                    ps.cards.push(owner.cards.splice(idx, 1)[0]);
-                    break;
+                    const moved = prev.cards.splice(idx, 1)[0];
+                    reseat(moved, seat, e.p);
+                    ps.cards.push(moved);
+                    return s;
                 }
+            }
+            // Not a unit entry: an attached upgrade changing hands while it stays on its host.
+            const held = typeof e.card === 'string' ? hostOf(s, e.card) : undefined;
+            if (held) {
+                setUpgradeController(held.host, held.seat, e.card, e.p);
             }
             break;
         }

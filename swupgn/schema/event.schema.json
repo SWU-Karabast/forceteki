@@ -77,7 +77,7 @@
     },
     {
       "if": { "properties": { "t": { "const": "STATS" } }, "required": ["t"] },
-      "then": { "properties": { "card": { "type": "string" }, "power": { "type": "integer" }, "hp": { "type": "integer" }, "keywords": { "type": "array", "items": { "type": "string" } } }, "required": ["card","power","hp"] }
+      "then": { "properties": { "card": { "type": "string" }, "power": { "type": "integer" }, "hp": { "type": "integer" }, "keywords": { "type": "array", "items": { "type": "string" } }, "traits": { "type": "array", "items": { "type": "string" } }, "blank": { "type": "boolean" }, "leaderUnit": { "type": "boolean" }, "copyOf": { "type": "string" }, "name": { "type": "string" }, "cost": { "type": "integer" }, "aspects": { "type": "array", "items": { "type": "string" } } }, "required": ["card","power","hp"] }
     },
     {
       "if": { "properties": { "t": { "const": "LEADER_FLIP" } }, "required": ["t"] },

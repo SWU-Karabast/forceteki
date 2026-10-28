@@ -391,6 +391,18 @@ requirement, by id. The linked section is where each one is defined.
 - `[W-54]` MUST write `usedBy` on an `ABILITY_ACTIVATE` that another card's ability made the
   player use (CR 7.6.13d, 7.6.14d), with `card` the card the used ability is on and `p` the
   player who used it ([§10.1](#limited-abilities)).
+- `[W-55]` MUST write `traits` on every `STATS`, `blank: true` on a `STATS` of a unit that has lost
+  all its abilities (CR 8.14.2), `leaderUnit: true` on one of a unit an ability made a leader unit
+  (CR 3.4.7), and `copyOf` with the copied `name`, `cost` and `aspects` on one of a unit that is a
+  copy of another card (CR 8.5); and MUST write a `STATS` whenever any of these changes, under the
+  same terms as `[W-22]` ([§10.1](#stats)).
+- `[W-56]` MUST record a change of control of an attached upgrade (CR 8.27) as a `TAKE_CONTROL`
+  whose `card` is the upgrade, `zone` its host's arena, `from` the seat that controlled it and `p`
+  the seat that controls it now ([§10.1](#take_control)).
+- `[W-57]` MUST carry `foreignResources` on every keyframe seat, an empty list when the seat's row
+  holds none of the other seat's cards; `owner` on every keyframe card whose owner is not the seat
+  holding it; and `upgradeControllers` on every keyframe card with an attached upgrade the other
+  seat controls ([§11](#11-the-reduced-state--the-board-you-build)).
 
 ### The Parser (reads the syntax)
 
@@ -952,6 +964,8 @@ the base *card*; a `base@N` ref names the *thing being hit*.)
 | `EFFECT_START.duration` | **Closed — see [§10.1](#effect_start).** `attack`, `phase`, `round`, `whileSourceInPlay`, `until`, `delayed`, `game` |
 | `EFFECT_END.reason` | **Closed — see [§10.1](#effect_start).** `expired`, `fired`, `sourceLeft`, `targetLeft`, `cancelled` |
 | `ABILITY_ACTIVATE.limit.per` | **Closed — see [§10.1](#limited-abilities).** `phase`, `round`, `game` |
+| `STATS.traits` | A unit's traits, each the printed trait in lower case: `rebel`, `trooper`, `bounty hunter`. Open: a set printed tomorrow brings new ones ([§10.1](#stats)). |
+| `STATS.aspects` | `vigilance`, `command`, `aggression`, `cunning`, `villainy`, `heroism` — one entry per aspect icon, so a card with two of one aspect lists it twice ([§10.1](#stats)). |
 
 Treat all of these as **open lists**, except the ones marked closed. A reader MUST NOT crash on a
 value it hasn't seen.
@@ -1617,8 +1631,8 @@ A writer MUST emit one of these per flip, and MUST carry `onStartingSide` in eve
 | Field | Type | Required | Means |
 |---|---|---|---|
 | `p` | 1 or 2 | yes | The new controller. |
-| `card` | string | yes | The card id. |
-| `zone` | string | no | Where the card is now (`ground`, `space`, `resource`, `base`). |
+| `card` | string | yes | The card id: a unit, a resource, a Credit token or the Force, or an attached upgrade. |
+| `zone` | string | no | Where the card is now (`ground`, `space`, `resource`, `base`); for an upgrade, its host's arena. |
 | `from` | 1 or 2 | no | The seat it left. Present only when this record has to carry the counts (see below). |
 | `exhausted` | boolean | no | `resource` only: the stolen resource is exhausted, so the exhausted count moves rather than the ready one. |
 
@@ -1626,14 +1640,29 @@ A writer MUST emit one of these per flip, and MUST carry `onStartingSide` in eve
 the same arena, a stolen resource stays a resource, a stolen Credit token stays in a base. This
 record therefore re-seats the card itself:
 
-- `zone` is an arena → take the card entry, with its damage, exhaustion, tokens, upgrades and
-  captives, out of whichever seat's `cards` holds it and push it onto `players[p].cards`.
+- `zone` is an arena and `card` is a unit entry in the other seat's `cards` → take the entry, with
+  its damage, exhaustion, tokens, upgrades and captives, out of that seat's `cards` and push it
+  onto `players[p].cards`. Record its owner: when the entry has no `owner`, set `owner` to the seat
+  it came from; then, when `owner` is `p`, remove it (the unit went home). Each upgrade on it keeps
+  its own controller — the host changing hands does not change theirs — so rebuild its
+  `upgradeControllers` against `p`: an upgrade whose controller (its entry, or else the seat the
+  host came from) is `p` has no entry, and every other upgrade has one.
+- `zone` is an arena and `card` is in some arena card's `upgrades` → **the upgrade form**
+  `[W-56]`. Nothing moves: the upgrade stays on its host, and the host stays where it is. Set the
+  host's `upgradeControllers[card]` to `p`, or remove that entry when `p` is the seat whose `cards`
+  hold the host; a host left with no entry has no `upgradeControllers`. A writer writes `from`
+  (the seat that controlled the upgrade), but the fold does not need it. An upgrade that also
+  changes host (Pre Vizsla takes it onto one of his own units) is this record and the upgrade's
+  same-arena `MOVE` with the new `attachedTo` ([the binding rule](#binding-an-attachment-to-its-host)).
 - `zone` is `resource` and `from` is present → one resource moves from `from` to `p`, in the
   bucket `exhausted` names: `resourcesExhausted` when `true`, `resourcesReady` otherwise
   (never below 0 on the losing side). The card moves with the count: take `card` out of
   `players[from].resources` and add it to `players[p].resources` (once by id). `resources` is
   gated ([§14](#14-integrity--checking-a-file-is-honest)), so a reader that moves only the count fails the
-  check on both seats for the rest of the game.
+  check on both seats for the rest of the game. Ownership moves too: when `card` is in
+  `players[from].foreignResources` it is going home, so take it out of that list; otherwise it now
+  sits in a row its owner does not control, so add it to `players[p].foreignResources` (created if
+  absent, once by id).
 - `zone` is `base` and `from` is present → a Credit token: `players[from].credits - 1`,
   `players[p].credits + 1`; the Force token: `players[from].hasForce = false`,
   `players[p].hasForce = true` ([§6.1](#two-reserved-token-names)).
@@ -1844,7 +1873,7 @@ until the next regroup.
 ---
 
 <a id="stats"></a>
-**`STATS` — an in-play unit's live power, HP and keywords.**
+**`STATS` — an in-play unit's live power, HP, keywords and other attributes.**
 
 | Field | Type | Required | Means |
 |---|---|---|---|
@@ -1852,8 +1881,23 @@ until the next regroup.
 | `power` | integer | yes | Its power right now, as the engine computes it. |
 | `hp` | integer | yes | Its HP right now (the maximum, not remaining HP — damage is separate). |
 | `keywords` | string[] | no | Its active keywords, sorted; a numeric one as `"raid 2"`. |
+| `traits` | string[] | no | Its traits right now, printed or gained, less any it lost ([§6.4](#64-small-vocabularies)). Written on every `STATS` by a current writer `[W-55]`. |
+| `blank` | boolean | no | `true` while the unit has lost all its abilities (CR 8.14.2). Absent means it has not. |
+| `leaderUnit` | boolean | no | `true` when an ability made the unit a leader unit (CR 3.4.7). Absent means it did not. |
+| `copyOf` | string | no | The unit is a copy (CR 8.5): the card id whose printed attributes it now has. Absent means it is not a copy. |
+| `name` | string | no | With `copyOf`: the copied name, as `Title, Subtitle` (its title alone when it has no subtitle). Display text ([§23](#23-security-considerations)). |
+| `cost` | integer | no | With `copyOf`: the copied printed cost. |
+| `aspects` | string[] | no | With `copyOf`: the copied aspects, one entry per aspect icon ([§6.4](#64-small-vocabularies)). |
 
-Sets those fields on the card. Printed values, upgrades, tokens, lasting effects ("+3/+0 for
+Sets those fields on the card. `power`, `hp` and `keywords` are set as given (`keywords` only
+when present). The other seven are the rest of the unit's attributes (CR 1.16.1), and a `STATS`
+states **all of them at once**: a field it carries is set, and one it leaves out is removed — a
+blanked unit that regains its text has a `STATS` without `blank`, a copy that ends has one without
+`copyOf`, `name`, `cost` and `aspects`. A writer writes a fresh `STATS` whenever any of them
+changes `[W-55]`. `name`, `cost` and `aspects` are written only with `copyOf`: the unit's own are
+card data, which the `%%% CARDS` index names. An ability one card loses while another replaces it
+(CR 8.14.4) is not `blank`: the lasting effect that replaced it is an `EFFECT_START`
+([§10.1](#effect_start)) whose `text` says what replaced what. Printed values, upgrades, tokens, lasting effects ("+3/+0 for
 this attack"), Raid while attacking, Grit — the engine has already added them up, and this
 record states the result. The writer emits one whenever a unit's live values differ from the
 last `STATS` it wrote for that unit (`[W-22]`), so a reader can show the
@@ -2523,6 +2567,7 @@ interface PlayerState {
     cards: CardInstanceState[]; // ONLY cards in the ground/space arenas (a base upgrade is not one)
     leader?: LeaderState;       // the leader card's status, wherever it is
     abilityUses?: AbilityUse[]; // limited abilities used since their reset, in first-use order
+    foreignResources?: string[]; // cards in `resources` the OTHER seat owns
 }
 
 interface AbilityUse {
@@ -2555,6 +2600,15 @@ interface CardInstanceState {
     power?: number;        // live power, ability effects included — from STATS / keyframes
     hp?: number;           // live HP, likewise
     keywords?: string[];   // active keywords, sorted; "raid 2" for a numeric one
+    traits?: string[];     // current traits, sorted — from STATS / keyframes, like power
+    blank?: boolean;       // true while it has lost all its abilities; absent = it has not
+    leaderUnit?: boolean;  // true when an ability made it a leader unit; absent = it did not
+    copyOf?: string;       // it is a copy of this card (CR 8.5); absent = not a copy
+    name?: string;         // with copyOf: the copied name
+    cost?: number;         // with copyOf: the copied printed cost
+    aspects?: string[];    // with copyOf: the copied aspects, one per icon
+    owner?: 1 | 2;         // its owner, ONLY when that is not the seat whose `cards` hold it
+    upgradeControllers?: Record<string, 1 | 2>; // attached upgrades the OTHER seat controls
 }
 ```
 
@@ -2563,7 +2617,28 @@ files written before it existed; a reader treats absent as `[]`.
 
 `power`, `hp` and `keywords` are the engine's **live** values, stated by `STATS` records
 ([§10.1](#stats)) and by keyframes. They are absent until the first `STATS` names the card
-(older files never do), and a reader never computes them: it is told.
+(older files never do), and a reader never computes them: it is told. The same holds for
+`traits`, `blank`, `leaderUnit` and the copy fields `copyOf`, `name`, `cost` and `aspects`, with one
+difference: each `STATS` states all seven, so one it leaves out is removed. `blank` and
+`leaderUnit` appear only when `true`, and the copy fields only while the unit is a copy. A unit
+that is a copy is shown by its copied `name` ([§16](#the-round-banner-and-board-summary)).
+
+**Control and ownership.** A card's controller is the seat whose lists hold it. Its owner is that
+seat too, except where the board says otherwise (CR 1.7.5, 1.5.2):
+
+- an arena card's `owner` is present only when the other seat owns it — set by an arena
+  `TAKE_CONTROL`, and by a unit entering play out of the other seat's `hand`, `discard` or row
+  ([§12.1](#121-the-move-rule-the-big-one)), and gone when the unit goes home or leaves play;
+- a card's `upgradeControllers` lists, by upgrade id, each attached upgrade whose controller is not
+  the seat holding the card — set by the move or record that attaches it (its `p`) and by an
+  upgrade `TAKE_CONTROL`, and kept right when the host itself changes hands ([§10.1](#take_control)).
+  An upgrade with no entry is controlled by its host's controller;
+- a seat's `foreignResources` lists the cards in its `resources` that the other seat owns — a
+  resource `TAKE_CONTROL` adds or removes one, and a card leaving the row leaves the list.
+
+`foreignResources` stays **absent** until a resource `TAKE_CONTROL` or a keyframe supplies one, like
+`resources`; once a keyframe carries it, an absent `owner` or `upgradeControllers` means the
+holder owns the card and controls its upgrades `[W-57]`.
 
 `effects` lists the lasting and delayed effects active now ([§10.1](#effect_start)), in the order
 they started: `EFFECT_START` adds one and `EFFECT_END` removes it, or removes some of its
@@ -2583,8 +2658,8 @@ seat's first limited use, so a file with no limited abilities folds to a board w
 absent has not been used since its reset.
 
 The optional fields marked `?` — `initiativeTaken`, `deckSize`, `leader`, `power`, `hp`,
-`keywords`, `resources`, `baseEpicActionUsed`, `baseUpgrades`, `baseCaptured`, `onStartingSide`,
-`effects`, `abilityUses` — are optional only because files
+`keywords`, `traits`, `resources`, `baseEpicActionUsed`, `baseUpgrades`, `baseCaptured`, `onStartingSide`,
+`effects`, `abilityUses`, `foreignResources` — are optional only because files
 written before they existed lack them. A current writer fills every one that applies, and the
 integrity check compares each whenever the keyframe carries it.
 
@@ -2619,13 +2694,14 @@ already applied the rules, and the file records what it decided. Where each part
 | Game state (CR 1.16) | Where the file carries it |
 |---|---|
 | Each card's **zone** | `MOVE` (every zone change, [§12.1](#121-the-move-rule-the-big-one)); `deckSize`, `handSize`, `hand`, `discard`, the resource counts, `cards`, `captured`, `baseUpgrades`, `baseCaptured`, `credits`, `hasForce`; the leader's `deployed` |
-| Each card's **controller** | the seat whose lists hold it; `TAKE_CONTROL` re-seats a unit, a resource, a Credit token or the Force; an upgrade's controller is the `p` of its `PLAY_UPGRADE` |
-| Each card's **attributes** — power, HP, keywords, modifiers | `STATS` after every change ([§10.1](#stats)), snapshotted in keyframes; `damage`, `upgrades`, `shields`, `experience`, `statusTokens`. An ability a card has only because another card granted it (a base's "Attached base gains: …") is named by `grantedBy` when it is used |
+| Each card's **controller** | the seat whose lists hold it; `TAKE_CONTROL` re-seats a unit, a resource, a Credit token or the Force. An attached upgrade's controller is its host's, unless the host's `upgradeControllers` names another seat — set by the `p` of the record that attached it and by an upgrade `TAKE_CONTROL` ([§10.1](#take_control)) |
+| Each card's **owner** | the seat whose lists hold it, unless the board says otherwise: an arena card's `owner`, and a seat's `foreignResources` for a resource the other seat owns. A card in a hand, deck or discard is always its owner's, and `MOVE.p` names that seat ([§12.1](#121-the-move-rule-the-big-one)) |
+| Each card's **attributes** — power, HP, keywords, traits, modifiers | `STATS` after every change ([§10.1](#stats)), snapshotted in keyframes: `power`, `hp`, `keywords`, `traits`, `blank` (all abilities lost), `leaderUnit` (made a leader unit by an ability), and for a copy `copyOf` with the copied `name`, `cost` and `aspects`; `damage`, `upgrades`, `shields`, `experience`, `statusTokens`. An ability a card has only because another card granted it (a base's "Attached base gains: …") is named by `grantedBy` when it is used |
 | Each card's **status** — ready/exhausted | `EXHAUST` / `READY` for arena cards and the leader, including the `EXHAUST` a unit gets on entering play; `EXHAUST_RESOURCES` / `READY_RESOURCES` and the `MOVE.exhausted` flag for the resource row |
 | Each card's **status** — faceup/facedown | the leader's `deployed` (Leader Unit side up) and, for a double-sided leader, `onStartingSide` — set by `LEADER_FLIP` ([§10.1](#101-events-that-carry-board-detail)); resources are always facedown, and `RESOURCE` names the card for the omniscient reader |
 | The **initiative counter**: controller and taken/available | `initiative` and `initiativeTaken`; `CLAIM_INITIATIVE`, reset at `ROUND_START` |
 | **Open and hidden information** | what each hidden card is: the archive is omniscient ([§17](#17-privacy-considerations)), so `DRAW`, `RESOURCE`, `SEARCH`, `REVEAL` and the keyframe's `hand` name the hidden cards. Who has seen which: the records, not the board — `LOOK` (a player looked), `SEARCH.seen` and `owner` (a player searched), `REVEAL` (everyone saw, a successful disclose included), `ABILITY_ACTIVATE` for a card whose ability triggered from a hidden zone (CR 7.6.3a), and `blind` on choices made without seeing each other ([§10.2](#what-a-search-emits)). The board keeps no per-player knowledge model in 1.0: a reader that needs one builds it from those records. A named card (CR 8.17) is a `NAME` |
-| **Lasting effects** | `effects` on the board: `EFFECT_START` when one is created, `EFFECT_END` when it ends or a target leaves it ([§10.1](#effect_start)) — its source, controller, targets and duration. Its consequences show as well: `STATS` (a unit given +3/+0 for an attack shows it and shows it going away), `keywords` (Sentinel for a phase) |
+| **Lasting effects** | `effects` on the board: `EFFECT_START` when one is created, `EFFECT_END` when it ends or a target leaves it ([§10.1](#effect_start)) — its source, controller, targets and duration. A unit it changes also shows the change in its own attributes: `STATS` (a unit given +3/+0 for an attack shows it and shows it going away), `keywords` (Sentinel for a phase) |
 | **Delayed effects** | `effects` on the board, with `duration` `delayed`, from the moment the effect is created until its `EFFECT_END` with `reason` `fired` ([§10.1](#effect_start)); what it does when it fires is in the records it causes then (a Change of Heart return is a `TAKE_CONTROL` at regroup) |
 | **Limited abilities** used/unused (CR 7.2.5, 1.16.3) | `abilityUses` per seat — each entry's `count` of `max`, spent when they are equal — counted from `ABILITY_ACTIVATE.limit`, cleared at `PHASE_START` / `ROUND_START` by its `per`, and by `ABILITY_RESET` when the card changed zone ([§10.1](#limited-abilities)) |
 | **Epic Actions** used/unused | `epic: true` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`; the leader's `epicActionUsed`, and the seat's `baseEpicActionUsed` — a **base** may carry an Epic Action too (Tarkintown, Security Complex, Jedha City and 9 others), and it is a separate ability on a separate card from the leader's ([§10.1](#101-events-that-carry-board-detail)) |
@@ -2762,7 +2838,7 @@ a `DEPLOY_LEADER` was written (a Leader can enter play without being deployed, C
   ([§10.1](#101-events-that-carry-board-detail)).
 - moving *out of* `resource` to somewhere else → `resourcesExhausted - 1` if the move
   carries `exhausted: true`, else `resourcesReady - 1` (never below 0); and remove `card` from
-  `resources`.
+  `resources`, and from `foreignResources` if that seat has one.
 
 `resources` stays **absent** until a move or a keyframe supplies one, so a file written before it
 existed folds to a state with no `resources` rather than a misleading empty row.
@@ -2798,12 +2874,19 @@ and carries `attachedTo`, first `detach(state, card)` and take it out of every s
 pilot) goes onto that host's `upgrades`, idempotently, because the `PLAY_UPGRADE` /
 `DEPLOY_LEADER` beside it names the same host; a token upgrade (`TOKEN:…`) does not, it is
 counted by its own gain record. Then update the card's zone if you already track it, and
-stop. Steps 1 and 2 still ran: an upgrade really does leave the hand.
+stop. Steps 1 and 2 still ran: an upgrade really does leave the hand. When the printed card
+did go onto the host's `upgrades`, `p` is its controller: set the host's
+`upgradeControllers[card]` to `p` when `p` is not the seat whose `cards` hold the host, and
+remove that entry when it is (a host left with no entry has no `upgradeControllers`).
 
 - moving **into** an arena: `detach(state, card)` first — a unit is nobody's upgrade, and a
   pilot ejected from a vehicle moves arena to arena, so step 0 never detached it. Then, if
   you already track this card id, just set its zone. Otherwise create a fresh card and add it
-  to `players[p].cards`.
+  to `players[p].cards` — with `owner` set to the other seat when the pile it just left says
+  that seat owns it: the other seat's `hand` or `discard` (whose pile, above), the other seat's
+  `resources` where it was not one of that seat's `foreignResources`, or `p`'s own `resources`
+  where it was one of `p`'s. A unit played out of its owner's discard by the other seat is
+  therefore owned by the seat whose pile it left.
 - moving **out of** an arena: remove it from whichever player's `cards` holds it (step 0
   already took it off every host).
 - moving between two non-arena zones: just update its zone if you track it.
@@ -2820,12 +2903,12 @@ twice.
 | `CLAIM_INITIATIVE` | `initiative = event.p`; `initiativeTaken = true` |
 | `PLAY`, `PLAY_SMUGGLE` | place `card` in `zone ?? "ground"` — **idempotent by id**: if already tracked, just set its zone. The paired `MOVE` reports the same arrival, and pushing on both duplicates every unit in play |
 | `PLAY_EVENT` | add `card` to `players[p].discard`, **once by id** — its own hand→discard `MOVE` files the same card |
-| `PLAY_UPGRADE` | if `target` is `base@N` → add `card` to `players[N].baseUpgrades`, once by id; else if `target` is set → `attach(state, target, card)` (nothing if the host isn't tracked); otherwise **nothing**. An upgrade is never an arena card, so there is no fallback placement |
-| `DEPLOY_LEADER` | ignored when it has no `card`. Otherwise `players[p].leader = { id: card, deployed: true, exhausted: false, epicActionUsed: (was already used) or epic === true }`; then if `kind` is `"upgrade"` → `attach(state, target, card)`; else place `card` in `zone ?? "ground"`, idempotent by id |
+| `PLAY_UPGRADE` | if `target` is `base@N` → add `card` to `players[N].baseUpgrades`, once by id; else if `target` is set → `attach(state, target, card)` (nothing if the host isn't tracked) and note `p` as its controller on the host, as [§12.1](#121-the-move-rule-the-big-one) step 3 does; otherwise **nothing**. An upgrade is never an arena card, so there is no fallback placement |
+| `DEPLOY_LEADER` | ignored when it has no `card`. Otherwise `players[p].leader = { id: card, deployed: true, exhausted: false, epicActionUsed: (was already used) or epic === true }`; then if `kind` is `"upgrade"` → `attach(state, target, card)` and note `p` as its controller on the host, as for `PLAY_UPGRADE`; else place `card` in `zone ?? "ground"`, idempotent by id |
 | `ABILITY_ACTIVATE` | if `limit` is present, `card` and `ability` are strings, `p` is `1` or `2` and `limit.per` is `phase`, `round` or `game`: create `players[p].abilityUses` if absent; if it holds an entry with this `card` and `ability`, add 1 to its `count` and set its `per` and `max` to `limit.per` and `limit.max`, else add `{ card, ability, count: 1, per, max }` at the end (`max` is `0` when `limit.max` is not a number) (no more than 1000 entries are kept). Then, if `epic`: `card` of `base@N` → `players[N].baseEpicActionUsed = true`; else if `card` is a seat's `leader.id` → that leader's `epicActionUsed = true`. `usedBy` changes nothing |
 | `LEADER_FLIP` | that seat's `leader.onStartingSide = event.onStartingSide` — the stated face, so applying it twice is the same as once. Find the leader by `card`, falling back to the record's `p` (these leaders never deploy, so early in a file no `DEPLOY_LEADER` has named the id). If that seat has no `leader` yet, create one first: `{ id: card, deployed: false, exhausted: false, epicActionUsed: false }`. A record with no `card` is ignored |
-| `STATS` | if `card` is tracked → set its `power`, `hp`, and `keywords` (sorted) when given |
-| `TAKE_CONTROL` | arena `zone` → move the card entry from the other seat's `cards` to `players[p].cards`; `resource` with `from` → shift one resource from `from` to `p`, in the exhausted bucket if `exhausted` else the ready one, and move `card` from `players[from].resources` to `players[p].resources`; `base` with `from` → shift one credit (or the Force) from `from` to `p`; otherwise nothing ([§10.1](#take_control)) |
+| `STATS` | if `card` is tracked → set its `power`, `hp`, and `keywords` (sorted) when given; then replace its attributes: set `traits` (sorted), `blank`, `leaderUnit`, `copyOf`, `name`, `cost` and `aspects` to the record's values, and **remove** each the record does not carry (`blank` and `leaderUnit` are kept only when `true`) |
+| `TAKE_CONTROL` | arena `zone` → if `card` is a unit entry in the other seat's `cards`, move it to `players[p].cards`, set its `owner` to the seat it came from unless it has one, remove `owner` when it equals `p`, and rebuild its `upgradeControllers` against `p`; else if `card` is in some arena card's `upgrades`, set that host's `upgradeControllers[card] = p`, or remove the entry when `p` holds the host. `resource` with `from` → shift one resource from `from` to `p`, in the exhausted bucket if `exhausted` else the ready one, move `card` from `players[from].resources` to `players[p].resources`, and take it out of `players[from].foreignResources` if it is there, else add it to `players[p].foreignResources`. `base` with `from` → shift one credit (or the Force) from `from` to `p`. Otherwise nothing ([§10.1](#take_control)) |
 | `CAPTURE` | remove `card` from every seat's `cards` (its `MOVE` already did); **nothing more when `card` is a `TOKEN:` id** (a token that leaves play holds nowhere, CR 3.7.3); else if `by` is `base@N`, push `card` onto `players[N].baseCaptured` (created if absent); else if `by` names a tracked card, push `card` onto its `captured`; both idempotently |
 | `RESCUE` | `detach(state, card)` — the `MOVE` out of `capture` beside it places the card |
 | `EXHAUST_RESOURCES` | `n = min(amount, resourcesReady)`; `resourcesReady -= n`; `resourcesExhausted += n` |
@@ -2856,8 +2939,8 @@ Five small helpers:
 - `newCard(id, zone)` → `{ id, zone, damage: 0, exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens: {}, captured: [] }`
 - `attach(state, hostId, id)` → if `id` is a `TOKEN:` id, nothing (tokens are counters); else
   if `hostId` is tracked and `id` is not already in its `upgrades`, push it
-- `detach(state, id)` → remove `id` from every card's `upgrades` and `captured`, and from every
-  seat's `baseCaptured`
+- `detach(state, id)` → remove `id` from every card's `upgrades`, `upgradeControllers` and
+  `captured`, and from every seat's `baseCaptured`
 - `findCard(state, id)` → look through player 1's `cards`, then player 2's. **If it isn't
   there, silently do nothing.** Never crash.
 - `seatOfBaseRef(ref)` → the N out of `base@N`, or `null` if it isn't a base.
@@ -2906,7 +2989,8 @@ state is thrown away and the keyframe takes its place. Everything below follows 
   the initiative holder through `active`. It is not harmless to leave out `active`: without it
   the initiative is whatever the last `CLAIM_INITIATIVE` left. Never ship a partial keyframe.
 - No list in a keyframe (`cards`, `hand`, `discard`, `resources`, `baseUpgrades`, `baseCaptured`, a card's
-  `upgrades` and `captured`, `effects` and an effect's `targets`, `abilityUses`) holds more than 1000 entries: a writer MUST NOT write one that does. A card's `captured` may be absent (a
+  `upgrades`, `captured`, `traits` and `aspects`, `effects` and an effect's `targets`, `abilityUses`,
+  `foreignResources`) holds more than 1000 entries: a writer MUST NOT write one that does. A card's `captured` may be absent (a
   file older than the field), but when present it is a list. A real game never comes close; a reader treats a
   keyframe over that as damaged and ignores it, because a snapped keyframe bypasses the cap the
   fold puts on every list it grows itself ([§14](#14-integrity--checking-a-file-is-honest)).
@@ -2914,8 +2998,10 @@ state is thrown away and the keyframe takes its place. Everything below follows 
   resources and discard are described by their counts and lists, not by `cards`.
 - A keyframe carries every field of [§11](#11-the-reduced-state--the-board-you-build): the
   initiative status, the active `effects` (an empty list when none is active), and per seat the
-  deck count, the leader's status, the `abilityUses` (an empty list when none is spent), and
-  each card's live `power`/`hp`/`keywords`. A writer that cannot read one of them omits that field rather than
+  deck count, the leader's status, the `abilityUses` (an empty list when none is spent), the
+  `foreignResources` (an empty list when there are none), and each card's live
+  `power`/`hp`/`keywords`, its `traits` and its other attributes, and its `owner` and
+  `upgradeControllers` where they apply `[W-57]`. A writer that cannot read one of them omits that field rather than
   inventing a value.
 - Emit a keyframe on `ROUND_END` as well as `ROUND_START` when you can. It halves the
   window between checkpoints, so a round's worth of fold drift is caught a round earlier,
@@ -2935,12 +3021,13 @@ state is thrown away and the keyframe takes its place. Everything below follows 
 - it is not an object, or its `players` is not an object;
 - either seat is missing, or is not an object;
 - a seat's `cards`, `hand` or `discard` is not an array;
-- a seat's `baseUpgrades`, `baseCaptured` or `resources` is present but not an array;
+- a seat's `baseUpgrades`, `baseCaptured`, `resources` or `foreignResources` is present but not an array;
 - any of those lists holds more than 1000 entries;
 - a `cards` entry is not an object, or lacks an `upgrades` array (of at most 1000), a
   `statusTokens` object (not an array), or a number in each of `damage`, `shields` and
   `experience`;
 - a `cards` entry has a `captured` that is present but not an array of at most 1000;
+- a `cards` entry has an `upgradeControllers` that is present but not an object (an array is not one);
 - `effects` is present but not an array of at most 1000 entries, or an entry is not an object
   with a string `id`, or has `targets` that is present but not an array of at most 1000;
 - a seat's `abilityUses` is present but not an array of at most 1000 entries, or an entry is not
@@ -3019,15 +3106,28 @@ problem. A writer that has no such cost SHOULD refuse to emit a file that is not
   `false`**: that keyframe describes a round that has begun, and the `ROUND_START` rule that
   would have reset it ([§12.2](#122-every-other-rule-in-one-table)) is skipped when the reader
   snaps
+- `foreignResources` **as a set** whenever the keyframe carries it
 - for each in-play card matched by `id`: `zone`, `damage`, `exhausted`, `shields`,
   `experience`, `statusTokens` as a map of names to counts (key order is not significant),
   `upgrades` and `captured` **as sets** (attachment order is not part of the model; a missing
   list counts as empty), `power`, `hp`, and `keywords` as a set
+- for each such card, its other attributes: `traits` as a set, `blank` and `leaderUnit` (absent
+  read as `false`), `copyOf`, `name` and `cost`, and `aspects` as a sorted list (a multiset: an
+  aspect may appear twice). **When the keyframe card carries `traits`** all of them are compared,
+  because a writer that records attributes writes `traits` on every unit `[W-55]`: an absent
+  `blank`, `leaderUnit` or copy field then means the unit has none. On a keyframe card without
+  `traits`, only those it does carry are compared
+- for each such card, `owner` and `upgradeControllers` (a map of upgrade ids to seats; key order
+  is not significant, a missing map counts as empty). **When the keyframe's seat carries
+  `foreignResources`** both are compared on each of that seat's cards, because a writer that
+  records control writes `foreignResources` on every seat `[W-57]`: an absent `owner` then means
+  the seat owns the card. On a seat without it, only the fields a card carries are compared
 - a card being in one side but not the other (reported both ways)
 
 Everything except `baseHp` and `deckSize` is compared at **every** keyframe, the first one
 included. A field the keyframe does not carry — `deckSize`, `leader`, `initiativeTaken`, `effects`,
-`abilityUses`, a card's `power`/`hp`/`keywords` — is skipped, so a file written before the field existed still
+`abilityUses`, `foreignResources`, a card's `power`/`hp`/`keywords`, and the attribute and control
+fields on the terms above — is skipped, so a file written before the field existed still
 passes: absent means "not recorded", never "zero".
 
 **Every player and card field of [§11](#11-the-reduced-state--the-board-you-build) is checked.** A
@@ -3126,6 +3226,11 @@ Two helpers:
   double-sided leader per its last `LEADER_FLIP`. Each `ROUND_START` keyframe re-syncs this
   from the seat's `leader` (a `ROUND_END` keyframe does not). So a deployed Tarkin attacks, triggers and defeats bases as `The Death Star, Icon of
   Tyranny`. `front(id)` / `back(id)` are the index's `name` / `backSideName`, cut the same way.
+  A unit that is a **copy** (CR 8.5) is named by its copied name instead, tracked by its full id:
+  the `name` of the last `STATS` for it that carried `copyOf` and `name`, cut the same way, until a
+  `STATS` for it without them or its `MOVE` out of an arena; each `ROUND_START` keyframe re-syncs
+  this from its cards' `copyOf` and `name`. The ` #N` suffix still follows. So a Clone copying a
+  Wampa attacks as `Wampa, Hungry Beast`.
 - `who(p)` — `"Player 1"` for seat 1, `"Player 2"` for seat 2, `""` otherwise.
 
 When no card index is supplied, the renderer uses the document's own — a file with a
@@ -3201,7 +3306,8 @@ included**, ends at column 78. Without a keyframe naming the initiative the bann
   naming each base upgrade, then `holds {name}` for each captive, joined by `  ·  ` — it comes
   before the arenas because all of them are on the base.
 - Then a line per non-empty arena, cards joined by `  ·  `.
-- A card is its name, then ` {power}/{hp}` when the keyframe has both, then its non-default
+- A card is its name — for a copy, its `name` when the keyframe card has `copyOf` and `name`, cut
+  as `nm` cuts one, then ` #N` for a copy suffix — then ` {power}/{hp}` when the keyframe has both, then its non-default
   state in `[...]`, comma-separated, in this order: damage (`3 dmg`), `exhausted`, shields
   (`2 shield`), experience (`1 xp`), each status token (`1 advantage`), each attached upgrade
   by name, then each captive as `holds {name}`.
@@ -3792,8 +3898,11 @@ one (`reserved-key`) `[P-06]`, and a header tag named by one. One value becomes 
 `STATUS_TOKEN`'s `token` names an entry of the card's `statusTokens`
 ([§12](#12-folding--turning-lines-into-a-board)), so a parser MUST also reject a `STATUS_TOKEN` in
 `%%% SETUP` or `%%% EVENTS` whose `token` is a reserved name (`reserved-key`), and one inside an
-annotation's what-if `line`, which a reader may fold too ([§15](#15-annotations)). No other value
-in 1.0 becomes a key. A folder given events some other way MUST NOT apply a `STATUS_TOKEN` with a
+annotation's what-if `line`, which a reader may fold too ([§15](#15-annotations)). One more value
+becomes a key in the fold: the id of an upgrade whose controller differs from its host's is a key
+of the host's `upgradeControllers` ([§11](#11-the-reduced-state--the-board-you-build)), so a folder
+MUST NOT make a reserved name a key there (it skips such an id). No other value in 1.0 becomes a
+key. A folder given events some other way MUST NOT apply a `STATUS_TOKEN` with a
 reserved name. In JavaScript a key of `__proto__` assigned with `obj[key] = …` replaces the
 object's prototype, and every object in the process can inherit from it; an own `toString`,
 `valueOf` or `hasOwnProperty` that is not a function breaks every reader that prints the object
@@ -3808,10 +3917,11 @@ index out of bounds. The reference folder clamps counts at zero and ignores a no
 
 **Display injection.** `CARDS.name`, `backSideName`, `Reason`, `CHOICE.prompt`,
 `CHOICE.offered`, `ABILITY_ACTIVATE.title`, `EFFECT_START.text` and `untilText`, `NAME.name`,
-annotation `text` and `by`, and every unknown field are attacker-controlled text. The story
-([§16](#16-rendering--turning-a-file-into-a-story)) prints `EFFECT_START.text`, `untilText` and
-`NAME.name`, so a `%%% STORY` line carries them too and is escaped like them. `NAME.name` is
-plain text, never markup. A renderer and a consumer MUST escape them for the medium they
+`STATS.name`, `traits` and `aspects` (on a record and on a keyframe card), annotation `text` and
+`by`, and every unknown field are attacker-controlled text. The story
+([§16](#16-rendering--turning-a-file-into-a-story)) prints `EFFECT_START.text`, `untilText`,
+`NAME.name` and a copy's `name`, so a `%%% STORY` line carries them too and is escaped like them.
+`NAME.name` and a copy's `name` are plain text, never markup. A renderer and a consumer MUST escape them for the medium they
 display in (HTML, Markdown, a terminal) and SHOULD neutralise bidirectional-override and control
 characters, which can make a line read differently from what it says `[R-04]`.
 `ABILITY_ACTIVATE.title` and `EFFECT_START.text` may carry the icon markup of

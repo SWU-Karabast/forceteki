@@ -144,6 +144,8 @@ export interface SetupInitRecord {
  *   now — `ground`/`space` (re-seat a unit), `resource` (shift one resource; `exhausted` says
  *   which bucket) or `base` (a Credit or Force token changed hands); `from` is the seat it
  *   left, present only when this record (and not a MOVE beside it) has to carry the counts.
+ *   When `card` is an attached upgrade, `zone` is its host's arena and nothing moves: the host's
+ *   `upgradeControllers` records the upgrade's new controller.
  * - `EXHAUST_RESOURCES` / `READY_RESOURCES`: resources are counted, never named. `amount` ready
  *   resources of `p` became exhausted (a cost paid, an ability, a resource that entered the row
  *   exhausted), or `amount` exhausted ones became ready (the regroup step readies each one; some
@@ -156,7 +158,8 @@ export interface SetupInitRecord {
  *   effects, upgrades, Raid during an attack, all of it — written whenever they change. This is
  *   what lets a reader show a modified unit correctly without a rules engine: it never derives
  *   stats, it is told them. `keywords` is the sorted list of active keywords, a numeric one as
- *   `"raid 2"`; absent means the writer did not record keywords.
+ *   `"raid 2"`; absent means the writer did not record keywords. `traits`, `blank`,
+ *   `leaderUnit` and the copy fields are replaced as a set: one the record leaves out is removed.
  * - `epic` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`: the ability used was an Epic Action, which
  *   the rules track as used/unused game state (CR 1.16).
  */
@@ -223,7 +226,14 @@ export type GameEvent = ActionLink & (
   // AFTER the flip -- an absolute value, not a toggle, so a dropped record cannot invert
   // every later face and a reader joining at a keyframe has something to apply.
   | { seq: string; t: 'LEADER_FLIP'; p: Seat; card: string; onStartingSide: boolean }
-  | { seq: string; t: 'STATS'; card: string; power: number; hp: number; keywords?: string[] }
+  // `traits`, `blank`, `leaderUnit` and the copy fields (`copyOf` with the copied `name`, `cost` and
+  // `aspects`) are the rest of the unit's attributes (spec §10.1, CR 1.16.1): a STATS states the whole
+  // set, so one it leaves out is no longer true.
+  | {
+      seq: string; t: 'STATS'; card: string; power: number; hp: number; keywords?: string[];
+      traits?: string[]; blank?: boolean; leaderUnit?: boolean;
+      copyOf?: string; name?: string; cost?: number; aspects?: string[];
+  }
   // `src` is what dealt it: a card id or `base@N`. Absent only when the rules themselves dealt
   // the damage and no card is responsible (drawing from an empty deck).
   | { seq: string; t: 'DAMAGE'; src?: string; tgt: string; amt: number; damageType: string; hp: number }
@@ -240,6 +250,8 @@ export type GameEvent = ActionLink & (
   | { seq: string; t: 'CREATE_TOKEN'; p: Seat; token: string; zone: string; power?: number; hp?: number; kind?: CardKind }
   | { seq: string; t: 'CAPTURE'; p: Seat; card: string; by?: string }
   | { seq: string; t: 'RESCUE'; p: Seat; card: string }
+  // `card` may also be an attached upgrade (spec §10.1): `zone` is then its host's arena, and the fold
+  // records the upgrade's controller on the host's `upgradeControllers` rather than re-seating anything.
   | { seq: string; t: 'TAKE_CONTROL'; p: Seat; card: string; zone?: string; from?: Seat; exhausted?: boolean }
   | { seq: string; t: 'SHIELD_GAIN' | 'SHIELD_USE'; card: string; count?: number }
   | { seq: string; t: 'EXPERIENCE_GAIN'; card: string; count: number }
@@ -387,6 +399,33 @@ export interface CardInstanceState {
 
     /** Active keywords, sorted, a numeric one as `"raid 2"`. Same provenance as `power`. */
     keywords?: string[];
+
+    /** The unit's current traits, sorted (CR 1.16.1). Set by `STATS` and keyframes, like `power`. */
+    traits?: string[];
+
+    /** `true` while the unit has lost all its abilities (CR 8.14.2). Absent means it has not. */
+    blank?: boolean;
+
+    /** `true` when an ability made this unit a leader unit (CR 3.4.7). Absent means it did not. */
+    leaderUnit?: boolean;
+
+    /**
+     * A copy (CR 8.5): `copyOf` is the card whose printed attributes this unit now has, and `name`,
+     * `cost` and `aspects` are the copied ones. All four are absent when the unit is not a copy.
+     */
+    copyOf?: string;
+    name?: string;
+    cost?: number;
+    aspects?: string[];
+
+    /** The card's owner, present only when it is not the seat whose `cards` hold it (CR 1.7.5). */
+    owner?: Seat;
+
+    /**
+     * Each attached upgrade whose controller is not this unit's controller, by upgrade id
+     * (CR 8.27). Absent when there is none.
+     */
+    upgradeControllers?: Record<string, Seat>;
 }
 
 /**
@@ -500,6 +539,13 @@ export interface PlayerState {
      * before it existed): absent means "not recorded", never "none".
      */
     abilityUses?: AbilityUse[];
+
+    /**
+     * The cards in this seat's `resources` that the other seat owns (CR 1.7.5), a set. Built by a
+     * resource `TAKE_CONTROL` and carried by keyframes. Absent until the first one (and in files
+     * written before it existed): absent means "not recorded", never "none".
+     */
+    foreignResources?: string[];
 }
 
 export interface ReducedState {

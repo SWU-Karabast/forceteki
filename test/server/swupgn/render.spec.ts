@@ -336,3 +336,28 @@ describe('render looks, names, used-by and simultaneous groups', function () {
         ]);
     });
 });
+
+describe('render copies', function () {
+    const nm = { nameOf: (id: string) => ({ 'SOR#108': 'Wampa', 'SOR#095': 'Battlefield Marine', 'SOR#200': 'Clone' }[id] ?? id) };
+    const doc = (events: any[]) => ({ header: {} as any, decks: [], setup: [], events, annotations: [], cards: [] });
+    const seat = (s: 1 | 2, cards: any[] = []) => ({ seat: s, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0,
+        resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards });
+
+    // Value: protects=a unit that is a copy of another (CR 8.5) is named by the copied name, on the board and in the story, until a STATS ends the copy; fails_when=a copy is named by its printed card, or keeps the copied name after it ends; why_new=copyOf and name are new; seam=none; no_claim=escaping for a medium (§23)
+    it('a copied unit is named by its copy name', function () {
+        const clone = { id: 'SOR#200', zone: 'ground', damage: 0, exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens: {}, captured: [],
+            power: 4, hp: 5, traits: [], copyOf: 'SOR#108', name: 'Wampa, Hungry Beast', cost: 4, aspects: [] };
+        const out = render(doc([
+            { seq: 'R2.start', t: 'ROUND_START', round: 2, active: 1, keyframe: { round: 2, phase: 'action', initiative: 1, players: { 1: seat(1, [clone]), 2: seat(2) } } },
+            { seq: 'R2.A.1', t: 'ATTACK', p: 1, atk: 'SOR#200', def: 'SOR#095', defenderType: 'unit' },
+            { seq: 'R2.A.1a', t: 'STATS', card: 'SOR#200', power: 0, hp: 0, traits: [] },
+            { seq: 'R2.A.2', t: 'ATTACK', p: 1, atk: 'SOR#200', def: 'SOR#095', defenderType: 'unit' },
+            { seq: 'R2.A.2a', t: 'STATS', card: 'SOR#200:2', power: 1, hp: 1, copyOf: 'SOR#095', name: 'x'.repeat(200) },
+            { seq: 'R2.A.3', t: 'ATTACK', p: 1, atk: 'SOR#200:2', def: 'SOR#095', defenderType: 'unit' },
+        ]), nm).split('\n');
+        expect(out).toContain('      ground: Wampa, Hungry Beast 4/5');
+        expect(out).toContain('  1. Player 1 attacks Battlefield Marine with Wampa, Hungry Beast');
+        expect(out).toContain('  2. Player 1 attacks Battlefield Marine with Clone');
+        expect(out).toContain(`  3. Player 1 attacks Battlefield Marine with ${'x'.repeat(119)}… #2`);
+    });
+});
