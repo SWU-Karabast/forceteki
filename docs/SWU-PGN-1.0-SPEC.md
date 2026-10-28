@@ -277,7 +277,8 @@ requirement, by id. The linked section is where each one is defined.
 - `[W-17]` MUST write an `EXHAUST` for a unit that enters play exhausted — the normal case, which
   no attack or ability announces — and nothing for one that enters ready
   ([§10.1](#101-events-that-carry-board-detail)).
-- `[W-18]` MUST stamp `for` on every record that belongs to an action announced after it. A record
+- `[W-18]` MUST stamp `for` on every record that belongs to an action announced after it
+  (belonging is defined in [§9.1](#91-how-seq-is-built)). A record
   without `for` belongs to the action whose number its `seq` carries. MUST NOT stamp `for` on a
   record that does not belong to that action ([§9.1](#91-how-seq-is-built)).
 - `[W-19]` MUST record the resource row's membership as well as its two counts, and a base's
@@ -1113,6 +1114,10 @@ number. `for` names the action a record belongs to. From the `arrest` vector:
 {"seq":"R2.A.3","t":"ATTACK","p":1,"atk":"ASH#190","def":"base@2","defenderType":"base","ms":6}
 ```
 
+**Belonging.** A record **belongs to** action `N` when it records `N`'s announcement, its
+targeting, its cost payment, or a change made while resolving `N`. A record that records none
+of these for `N` does not belong to it, wherever it sits.
+
 **Ownership** `[W-18]`: a writer MUST stamp `for` on every record that belongs to an action
 announced after it, and MUST NOT stamp it on a record that does not. A record without `for`
 belongs to the action whose number its `seq` carries. So "everything action `N` did" is every record carrying `for: "R<n>.<phase>.N"`, plus
@@ -1130,7 +1135,11 @@ other seat's commit) and a reader that trusts `for` files the card under the wro
 changes happened in its own engine, and a reader MUST NOT depend on any other order. A writer
 MUST keep these:
 
-1. a card's `MOVE` into an arena precedes every record that names it in play;
+1. a card's `MOVE` into an arena precedes every other record that changes that card in play.
+   Two records are exempt: the action record that puts the card there (`PLAY`,
+   `PLAY_SMUGGLE`, `PLAY_UPGRADE`, `DEPLOY_LEADER`), which a writer may write before or after
+   the `MOVE`, and `CREATE_TOKEN`, which names a token before the `MOVE` that places it
+   ([§10.3](#103-homeworlds-fortify-beast-and-weakness));
 2. a unit's first `STATS` follows its arriving `MOVE`;
 3. a base's `DEFEAT` precedes the `GAME_END` it causes;
 4. a keyframe is the board at its own `seq` `[W-24]`.

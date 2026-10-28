@@ -1024,6 +1024,15 @@ describe('fold record order', function () {
         const reordered = announceFirst(announceFirst(events, 'R1.A.1'), 'R2.A.3');
         expect(reordered.map((e) => e.seq)).not.toEqual(events.map((e) => e.seq));
 
+        // The reordered file keeps §9.1's ordering constraint 1: the PLAY may come before the card's
+        // MOVE into the arena, but every other record that changes the card comes after it.
+        const play = reordered.find((e) => e.seq === 'R1.A.1') as { card: string };
+        const arrival = reordered.findIndex((e) => e.t === 'MOVE' && e.card === play.card && e.for === 'R1.A.1');
+        const announced = reordered.findIndex((e) => e.seq === 'R1.A.1');
+        expect(announced).toBeLessThan(arrival);
+        const before = reordered.slice(announced + 1, arrival).filter((e) => (e as { card?: string }).card === play.card);
+        expect(before.map((e) => e.seq)).toEqual([]);
+
         // The board once the action is done, before the next one, and at the end of the file.
         const plain = (x: unknown) => JSON.parse(JSON.stringify(x));
         expect(plain(stateAt(reordered, 'R1.A.2'))).toEqual(plain(stateAt(events, 'R1.A.2')));
