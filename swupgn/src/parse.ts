@@ -224,6 +224,12 @@ export const JSON_SECTIONS = ['DECKS', 'CARDS', 'SETUP', 'EVENTS', 'ANNOTATIONS'
  */
 export const KNOWN_SECTIONS: readonly string[] = ['STORY', ...JSON_SECTIONS];
 
+/** The writer named by an `Engine` value: the text before the first `@`, or all of it. */
+export function engineProduct(engine: string): string {
+    const at = engine.indexOf('@');
+    return at < 0 ? engine : engine.slice(0, at);
+}
+
 /** Drop leading/trailing blank lines a section banner's spacing leaves around the prose. */
 function trimBlankEdges(lines: string[]): string[] {
     let start = 0;

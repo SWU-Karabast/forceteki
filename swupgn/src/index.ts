@@ -1,6 +1,6 @@
 // public API barrel
 export * from './types';
-export { DEFAULT_LIMITS, parse, READER_MAJOR, RESERVED_KEYS, SwuPgnError } from './parse';
+export { DEFAULT_LIMITS, engineProduct, parse, READER_MAJOR, RESERVED_KEYS, SwuPgnError } from './parse';
 export type { ParseLimits } from './parse';
 export { MAX_ISSUES, validate } from './validate';
 export { fold, reduce, stateAt } from './fold';

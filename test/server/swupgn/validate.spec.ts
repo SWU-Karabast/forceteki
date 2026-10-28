@@ -1,3 +1,4 @@
+import { engineProduct } from '../../../swupgn/src/parse';
 import { MAX_ISSUES, validate } from '../../../swupgn/src/validate';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -194,6 +195,36 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(codes(good.replace('[WriterRevision "4"]\n', ''))).toEqual(['warning:pre-release']);
         expect(validate(good.replace('[Rounds "2"]', '[Rounds "2"] [RecorderErrors "1"]')).level).toBe('verified');
         expect(validate(addEvent('{"seq":"R1.A.9","t":"DEFEAT","card":"SOR#108","reason":"unknown"}')).level).toBe('verified');
+    });
+
+    describe('WriterRevision is diagnostic (spec section 5.2, Appendix C)', function () {
+        const withoutRevision = (engine: string) => good
+            .replace('[WriterRevision "4"]\n', '')
+            .replace('[Engine "forceteki@reference"]', `[Engine "${engine}"]`);
+
+        it('treats a file with no WriterRevision from another writer as conformant', function () {
+            const result = validate(withoutRevision('examplewriter@1.0.0'));
+            expect(result.issues.map((i) => i.code)).not.toContain('pre-release');
+            expect(result.level).toBe('complete');
+        });
+
+        it('still reads a forceteki file with no WriterRevision as pre-release', function () {
+            for (const engine of ['forceteki@7dd39a09-dirty', 'forceteki@unknown', 'forceteki@reference']) {
+                const result = validate(withoutRevision(engine));
+                expect(codes(withoutRevision(engine))).toContain('warning:pre-release');
+                expect(result.level).toBe('well-formed');
+            }
+        });
+
+        it('compares the product exactly', function () {
+            const result = validate(withoutRevision('Forceteki@1'));
+            expect(result.issues.map((i) => i.code)).not.toContain('pre-release');
+        });
+
+        it('takes the product as the text before the first @', function () {
+            expect(engineProduct('forceteki@a@b')).toBe('forceteki');
+            expect(engineProduct('forceteki')).toBe('forceteki');
+        });
     });
 
     it('drops to valid, not invalid, when the stream does not account for a keyframe', function () {

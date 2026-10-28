@@ -39,6 +39,8 @@ export const BANNED: { phrase: RegExp; task: number; why: string }[] = [
     { phrase: /The clamp is the engine's own/, task: 6, why: 'describes one engine\'s behaviour as the rule' },
     { phrase: /the reference\s+writer's does/, task: 6, why: 'describes one implementation\'s output as the norm' },
     { phrase: /the reference writer does not emit/, task: 6, why: 'describes one implementation\'s output as the norm' },
+    { phrase: /forceteki writer revisions/, task: 7, why: 'defines the normative text by one writer\'s revision history' },
+    { phrase: /reports with a `WriterRevision` bump/, task: 7, why: 'ties the strict wording to a writer revision instead of the spec version' },
 ];
 
 /** The lines a conforming implementation must obey, with 1-based line numbers. */

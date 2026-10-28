@@ -129,7 +129,7 @@ You can:
 | **fold** | Rebuilding the reduced state by applying events in file order ([§12](#12-folding--turning-lines-into-a-board)). |
 | **omniscient file** | A file that names every card, hidden ones included. The only kind 1.0 defines. |
 | **perspective file** | A file recorded through one seat's eyes ([§5.2](#52-optional-tags)). Reserved, see [§21](#21-open-issues). |
-| **pre-release file** | A file with no `WriterRevision` tag, written during the 1.0 pilot ([Appendix C](#appendix-c-reading-pre-release-files-informative)). |
+| **pre-release file** | A file that [Appendix C](#appendix-c-reading-pre-release-files-informative) identifies as written during the 1.0 pilot. |
 | **writer, reader** | A program that makes files; a program that reads them. A reader is any of the parser, validator, folder, renderer and consumer classes of [§3](#3-conformance-classes--who-has-to-do-what). |
 
 ---
@@ -173,7 +173,7 @@ A file is at one of five levels. Each level includes the ones before it.
 |---|---|---|
 | **malformed** | does not parse: it breaks the grammar of [§4](#4-file-syntax--what-a-file-looks-like) and [Appendix B](#appendix-b-grammar-abnf), or exceeds a reader's limits ([§23](#23-security-considerations)). | a parser |
 | **well-formed** | parses. It may still fail a schema or a cross-record rule, or be a pre-release file. | a parser |
-| **valid** | is well-formed, carries `WriterRevision`, and every record passes its schema and every cross-record rule below. | a validator |
+| **valid** | is well-formed, is not a pre-release file, and every record passes its schema and every cross-record rule below. | a validator |
 | **verified** | is valid, and folding its events reproduces every keyframe with zero mismatches ([§14](#14-integrity--checking-a-file-is-honest)). | a validator with a folder |
 | **complete** | is verified, has no `RecorderErrors` tag above zero, and no `DEFEAT` whose reason is `"unknown"` or reads as unknown ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)): the writer lost nothing it knew of. | a validator with a folder |
 
@@ -251,8 +251,8 @@ requirement, by id. The linked section is where each one is defined.
   `MOVE` carried the counts), and a leader deployed as a pilot as a `DEPLOY_LEADER` carrying
   `kind: "upgrade"` + `target` — neither is a zone move, so nothing else tells a reader
   ([§10.1](#101-events-that-carry-board-detail)).
-- `[W-12]` MUST write `WriterRevision`, and MUST bump it whenever a reader could see the
-  difference in what it writes ([§5.2](#52-optional-tags), [§22](#22-version-history)).
+- `[W-12]` SHOULD write `WriterRevision`. If it does, MUST bump it whenever a reader could see
+  the difference in what it writes ([§5.2](#52-optional-tags), [§22](#22-version-history)).
 - `[W-13]` MUST write `RecorderErrors` in the header if any record was lost while recording
   ([§5.2](#52-optional-tags)). A file that silently lost records MUST NOT look complete.
 - `[W-14]` MUST record the resource row as counts: an `EXHAUST_RESOURCES` for every resource that
@@ -370,8 +370,8 @@ requirement, by id. The linked section is where each one is defined.
   ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
 - `[V-03]` MUST warn on an unknown event type or section, and MUST NOT warn on one that carries
   an extension prefix ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
-- `[V-04]` MUST report a file with no `WriterRevision` as pre-release
-  ([Appendix C](#appendix-c-reading-pre-release-files-informative)).
+- `[V-04]` MUST report as pre-release a file that
+  [Appendix C](#appendix-c-reading-pre-release-files-informative) identifies as one.
 - `[V-05]` MUST report a `TOKEN:` id or a `STATUS_TOKEN.token` that breaks the token-name grammar
   (`bad-token-name`, error) ([§6.1](#the-token-grammar)).
 
@@ -591,7 +591,7 @@ Counts are base-10 digits with no sign, space or exponent.
 
 | Tag | Format | What it holds |
 |---|---|---|
-| `WriterRevision` | count, 1 or more | Which revision of its writer produced the file. **Required for a valid file** ([§2.1](#21-document-conformance-levels)). It is listed here only because pre-release files lack it ([Appendix C](#appendix-c-reading-pre-release-files-informative)). See below. |
+| `WriterRevision` | count, 1 or more | Which revision of its writer produced the file. **Optional, and diagnostic for every writer.** A file without it is conformant if it follows this document ([§2.1](#21-document-conformance-levels)); only the pilot files of [Appendix C](#appendix-c-reading-pre-release-files-informative) are judged by its absence. See below. |
 | `Format` | any | The tournament format, e.g. `"premier"`. Case is **not** standardised — accept any case. An open vocabulary ([§25](#25-registries)). |
 | `Perspective` | `P1` or `P2` | Reserved for perspective files, which 1.0 does not define. A 1.0 writer MUST NOT write it ([§21](#21-open-issues)). A reader that meets it MUST treat the other seat's hidden information as possibly missing. Case-sensitive. |
 | `EndDate` | RFC 3339 | When the game **ended**. With `Date` (when it started) this gives the game's duration. Absent for an unfinished game, or a writer that cannot tell. |
@@ -607,17 +607,16 @@ file malformed (`bad-count`): a corrupt count is neither zero nor absent, and re
 
 **`WriterRevision`** is the writer's revision. The writer bumps it on every change to what it
 writes that a reader can observe, so two files that both say `SWU-PGN/1.0` can be told apart
-without guessing from their contents ([§22](#22-version-history)). It is **scoped to the product
-named in `Engine`** before the `@`: `forceteki@…` revision 3 and a SWUForge writer's revision 3
+without guessing from their contents ([Appendix C](#reference-writer-revisions-informative)). It is **scoped to the product
+named in `Engine`** before the `@`: `examplewriter@…` revision 3 and another writer's revision 3
 are unrelated. It is not the build (`Engine` names that, [§5.3](#53-provenance-engine-and-seed)):
 many builds share one revision, and a build that changes nothing a reader sees does not bump
 it. The reference writer puts it right after `Game`.
 
-**After this specification is published, `WriterRevision` is diagnostic only.** It identifies
-a writer's behaviour for bug reports, and no change to what a record *means* may ride on it: a
-change of meaning needs a new version ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
-Before publication it was the only way to tell pilot behaviours apart, which is why
-[§22](#22-version-history) lists revisions.
+**`WriterRevision` is diagnostic only.** It identifies a writer's behaviour for bug reports, and
+no change to what a record *means* may ride on it: a change of meaning needs a new version
+([§18](#18-versioning-and-extensibility--versions-and-unknown-things)). A writer SHOULD write it
+`[W-12]`, and a reader MUST NOT refuse a file for lacking it.
 
 ### 5.2.1 Timing: `ms`
 
@@ -1007,8 +1006,7 @@ With it plus the `Seed` tag, an engine can replay the same game.
 
 `INIT` is the first record of setup, so it is numbered like the rest of setup (round `0`,
 phase `S`) and takes step `0`, before the setup events `R0.S.1`, `R0.S.2`, … in `%%% EVENTS`.
-Pre-release files and forceteki writer revisions 1 and 2 wrote `"R1.S.0"`; a reader MUST accept
-either ([Appendix C](#appendix-c-reading-pre-release-files-informative)).
+A reader MUST accept `"R1.S.0"` as well ([Appendix C](#appendix-c-reading-pre-release-files-informative)).
 
 ### 8.1 Determinism
 
@@ -2888,10 +2886,9 @@ A strict renderer also follows these, which the tables above leave implicit:
 
 ### How binding is the wording?
 
-**For a strict renderer, all of it.** For any other renderer, the exact wording is not a wire
-format: `%%% STORY` is prose for humans, and improving the reference wording is a change to the
-strict renderer that a writer reports with a `WriterRevision` bump
-([§5.2](#52-optional-tags)), never a new version of the format.
+**For a strict renderer, all of it.** The strict wording is part of this document. It changes
+only in a new minor version, and a strict renderer of `1.<n>` produces `1.<n>`'s wording. For any
+other renderer, the exact wording is not a wire format: `%%% STORY` is prose for humans.
 
 What binds **every** renderer is the structure, because that is what a reader can rely on `[R-01]`:
 
@@ -3147,7 +3144,7 @@ one thing broken. A reader MUST reject or warn on each as the manifest says:
 | `newer-minor-bad-seat` | `SWU-PGN/1.7`, with a `PASS` by seat 3 | well-formed | error `schema`, warning `newer-minor` |
 | `newer-minor-result-seat` | `SWU-PGN/1.7`, with `[Result "P3"]` | well-formed | error `schema`, warning `newer-minor` |
 | `over-cap` | a keyframe hand of 1002 cards | well-formed | error `over-cap` |
-| `pre-release` | no `WriterRevision` | well-formed | warning `pre-release` |
+| `pre-release` | no `WriterRevision`, `Engine` product `forceteki` | well-formed | warning `pre-release` |
 | `damaged-keyframe` | a keyframe the events do not fold to | valid | warning `keyframe-mismatch` |
 | `unknown-type` | an event type from a later version | complete | warning `unknown-type` |
 | `unknown-section` | a section from a later version | complete | warning `unknown-section` |
@@ -3190,9 +3187,8 @@ two ways.
 ### 1.0 — first release
 
 SWU-PGN/1.0 is the first version of the format. Files were written and shared during its pilot,
-and they also say `SWU-PGN/1.0`: a file with no `WriterRevision` is one of them, a pre-release
-file, and [Appendix C](#appendix-c-reading-pre-release-files-informative) says how to read it.
-A file that carries `WriterRevision` and follows this document is SWU-PGN/1.0.
+and they also say `SWU-PGN/1.0`: some are pre-release files, and [Appendix C](#appendix-c-reading-pre-release-files-informative) says how to read it.
+A file that follows this document is SWU-PGN/1.0.
 
 1.0 ships six sections, of which two exist purely so the artifact stands on its own:
 `%%% CARDS` ([§6.5](#65-the-cards-index)) so no card database is needed to name anything,
@@ -3205,17 +3201,7 @@ a MINOR bump for additions old readers can ignore, a MAJOR bump for anything tha
 them. When one lands, this section gains a row per behaviour change and how to detect it from
 the file, so a reader can tell versions apart without trusting the header alone.
 
-### Reference writer revisions
-
-`forceteki` writer revisions so far ([§5.2](#52-optional-tags)). Before publication a revision
-could change what a record means. After it, a revision is diagnostic only.
-
-| Revision | What changed | Detect |
-|---|---|---|
-| 1 | `WriterRevision` introduced. A unit captured by a base is held in the seat's `baseCaptured` ([§10.1](#101-events-that-carry-board-detail)) | the tag's presence; a keyframe carrying `baseCaptured` |
-| 2 | `%%% STORY` joins a list of cards with ` · `, not `, `, which a card's own title-and-subtitle comma made impossible to split ([§16](#strict-layout-rules)) | `WriterRevision` 2 or later; in an older file, a `draws N:` story line whose names are separated by `, ` |
-| 3 | `INIT` is `R0.S.0`, not `R1.S.0` ([§8](#8-the-setup-section)). `GameId` is an opaque hash, not the engine's game id, and the fallback player-id salt is no longer printed in the file ([§17](#17-privacy-considerations)) | the `INIT` seq; a `GameId` matching `^sha256:[0-9a-f]{64}$` |
-| 4 | Each mode picked from a "choose N" modal effect is a `MODAL_CHOICE` ([§10.2](#102-events-that-are-just-notes)). `[W-18]` became a MUST, both ways, and every vector is checked against it. The linking is tighter: a record about another card ends a run, so a consequence of one action (a token's `STATS` change, a Raid ending) is no longer stamped `for` the opponent's next one ([Appendix C](#grouping-records-in-a-file-without-for)). No `for` now names a different action; 9 over-reaching links were removed ([§9.1](#91-how-seq-is-built)) | `WriterRevision` 4 or later |
+The table of reference writer revisions is in [Appendix C](#reference-writer-revisions-informative).
 
 ### Changes to this document before publication
 
@@ -3237,8 +3223,7 @@ The review before publication (2026-10-28) changed what conforms, as well as wha
   malformed. Each was silently accepted before ([§4](#4-file-syntax--what-a-file-looks-like),
   [Appendix B](#appendix-b-grammar-abnf)).
 - Header values have formats: RFC 3339 dates, `sha256:` ids of 64 hex digits, opaque `GameId`
-  ([§5](#5-header-tags)). `WriterRevision` is required for a valid file and scoped to the
-  writer's product.
+  ([§5](#5-header-tags)). `WriterRevision` is scoped to the writer's product.
 - `%%% DECKS` is open, a newer minor version's unknown closed-vocabulary value is a warning,
   and `X_` / `x_` / `X` extensions are reserved
   ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
@@ -3404,7 +3389,7 @@ matched by a program.
 | `same-zone-move` | error | A `MOVE` from a zone to itself that is not an arena | well-formed |
 | `number-range` | error | A number that is not an integer within ±(2^53−1) | well-formed |
 | `over-cap` | error | A keyframe list longer than 1000 | well-formed |
-| `pre-release` | warning | No `WriterRevision`: a pre-release file | well-formed |
+| `pre-release` | warning | A file that [Appendix C](#appendix-c-reading-pre-release-files-informative) identifies as pre-release | well-formed |
 | `keyframe-mismatch` | warning | Folding does not reproduce a keyframe | valid |
 | `recorder-errors` | warning | `RecorderErrors` is above zero | verified |
 | `unknown-defeat` | warning | A `DEFEAT` whose `reason` is `"unknown"`, or a reason outside the reader's vocabulary, which reads as unknown | verified |
@@ -3938,8 +3923,12 @@ SHOULD treat it as pre-release and use the **Detect** column below to tell which
 has. Nothing in it is guaranteed.
 
 **From `WriterRevision` 1 on, the header says which writer made the file**
-([§5.2](#52-optional-tags)). A file with no `WriterRevision` is a pilot file. A file
-with one was written by that revision, and every row added below from here on names the
+([§5.2](#52-optional-tags)). `WriterRevision` is optional for every writer, so its absence alone
+says nothing. A **pre-release file**, the one `[V-04]` has a validator report, is a file with
+no `WriterRevision` and an `Engine` product of exactly `forceteki` (the text before the first
+`@`, compared case-sensitively, whatever follows it): the pilot writer did not yet write the
+tag. A file from any other writer without the tag is read as an ordinary file. A file
+with the tag was written by that revision, and every row added below from here on names the
 revision that introduced it, so a reader can switch on the number instead of guessing from the
 contents.
 
@@ -4008,6 +3997,20 @@ Each is detectable from the file:
 | `hand[]` grew from `DRAW` and nothing removed, so a folded "hand" was a cumulative draw log; `discard` was filed by `DEFEAT`, which fires after the `MOVE` that already removed the card, so no defeated unit reached the pile | both are folded from `MOVE` and gated ([§12.1](#121-the-move-rule-the-big-one), [§14](#14-integrity--checking-a-file-is-honest)) | not a file change; a reader's fold. Fold any vector's deltas to a keyframe and compare `hand`/`discard` — 45 mismatches before, 0 after |
 | No header tag said which writer made a file, so a pilot file and a current one were told apart only by their contents | `WriterRevision` ([§5.2](#52-optional-tags)); revision 1 is the first | the tag's presence |
 | A unit captured by a **base** (Arrest) left the board and was held nowhere, so it vanished from the fold until its rescue, and §10.1 said no card captures with a base | the seat's `baseCaptured`, pushed by a `CAPTURE` whose `by` is `base@N`, cleared on leaving `capture`, carried in every keyframe and gated ([§10.1](#101-events-that-carry-board-detail), [§11](#11-the-reduced-state--the-board-you-build)). Revision 1 | a keyframe carrying `baseCaptured` |
+
+Pre-release files and forceteki writer revisions 1 and 2 wrote `"R1.S.0"` for `INIT` ([§8](#8-the-setup-section)); a reader MUST accept either.
+
+### Reference writer revisions (informative)
+
+`forceteki` writer revisions so far ([§5.2](#52-optional-tags)). Before publication a revision
+could change what a record means. After it, a revision is diagnostic only.
+
+| Revision | What changed | Detect |
+|---|---|---|
+| 1 | `WriterRevision` introduced. A unit captured by a base is held in the seat's `baseCaptured` ([§10.1](#101-events-that-carry-board-detail)) | the tag's presence; a keyframe carrying `baseCaptured` |
+| 2 | `%%% STORY` joins a list of cards with ` · `, not `, `, which a card's own title-and-subtitle comma made impossible to split ([§16](#strict-layout-rules)) | `WriterRevision` 2 or later; in an older file, a `draws N:` story line whose names are separated by `, ` |
+| 3 | `INIT` is `R0.S.0`, not `R1.S.0` ([§8](#8-the-setup-section)). `GameId` is an opaque hash, not the engine's game id, and the fallback player-id salt is no longer printed in the file ([§17](#17-privacy-considerations)) | the `INIT` seq; a `GameId` matching `^sha256:[0-9a-f]{64}$` |
+| 4 | Each mode picked from a "choose N" modal effect is a `MODAL_CHOICE` ([§10.2](#102-events-that-are-just-notes)). `[W-18]` became a MUST, both ways, and every vector is checked against it. The linking is tighter: a record about another card ends a run, so a consequence of one action (a token's `STATS` change, a Raid ending) is no longer stamped `for` the opponent's next one ([Appendix C](#grouping-records-in-a-file-without-for)). No `for` now names a different action; 9 over-reaching links were removed ([§9.1](#91-how-seq-is-built)) | `WriterRevision` 4 or later |
 
 ### Grouping records in a file without `for`
 
