@@ -1017,6 +1017,22 @@ export class SwuPgnRecorder {
         return this.buildSeq(false);
     }
 
+    /**
+     * How many times phase `letter` has started in the current round, read off the records
+     * themselves so an undo needs nothing of its own to roll back.
+     */
+    private phaseStartsThisRound(letter: string): number {
+        const prefix = `R${this.currentRound}.`;
+        let count = 0;
+        for (let i = this.events.length - 1; i >= 0 && this.events[i].seq.startsWith(prefix); i--) {
+            const e = this.events[i];
+            if (e.t === 'PHASE_START' && this.phaseAbbr(e.phase) === letter) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     /** Engine PhaseName → v1.0 abbreviation (S/A/G) for seq strings. */
     private phaseAbbr(phase: string): string {
         switch (phase) {
@@ -1273,11 +1289,17 @@ export class SwuPgnRecorder {
             this.syncRound();
             const phaseName: string = event?.phase ?? this.game.currentPhase ?? '';
             this.currentPhase = this.phaseAbbr(phaseName);
-            this.phaseEventCounter = 0;
-            this.actionCounter = 0;
-            this.subEventCounter = 0;
+            // A phase a card grants in the same round (Max Rebo's extra regroup) continues its
+            // phase's numbering: the round already has this phase's `start`, and every seq in a
+            // file is unique (spec §9.1).
+            const additional = this.phaseStartsThisRound(this.currentPhase) > 0;
+            if (!additional) {
+                this.phaseEventCounter = 0;
+                this.actionCounter = 0;
+                this.subEventCounter = 0;
+            }
             this.push({
-                seq: `R${this.currentRound}.${this.currentPhase}.start`,
+                seq: additional ? this.nextSeq(this.currentPhase === 'A') : `R${this.currentRound}.${this.currentPhase}.start`,
                 t: 'PHASE_START',
                 phase: this.phaseVocab(phaseName),
                 ...(this.activeSeat() != null ? { active: this.activeSeat() } : {}),
@@ -1286,8 +1308,10 @@ export class SwuPgnRecorder {
 
         this.on(EventName.OnPhaseEnded, (event: any) => {
             const phaseName: string = event?.phase ?? this.game.currentPhase ?? '';
+            const letter = this.phaseAbbr(phaseName);
+            const additional = this.phaseStartsThisRound(letter) > 1;
             this.push({
-                seq: `R${this.currentRound}.${this.phaseAbbr(phaseName)}.end`,
+                seq: additional ? this.nextSeq(letter === 'A') : `R${this.currentRound}.${letter}.end`,
                 t: 'PHASE_END',
                 phase: this.phaseVocab(phaseName),
             });

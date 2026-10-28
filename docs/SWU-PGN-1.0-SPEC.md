@@ -1158,7 +1158,10 @@ An `UNDO` note ([§10.2](#102-events-that-are-just-notes)) takes the seq it reac
 along with the game, so the replay re-issues the very same number and the file would carry two
 records claiming to be `R2.A.3`.
 
-`R1.A.start` / `R1.A.end` mark the edges of a phase. `GAME_END` takes its own step,
+`R1.A.start` / `R1.A.end` mark the edges of a phase. A phase that a card adds to the same round
+(an additional regroup phase) does not restart its phase's numbering: its `PHASE_START` and
+`PHASE_END` take the next numbers in that phase (`R1.G.5`, `R1.G.9`), so its seqs never repeat the
+first one's. `GAME_END` takes its own step,
 `.game-end`, in the phase it happened in — `R7.A.game-end` for a base destroyed in the action
 phase, `R5.G.game-end` for a concession during regroup. It is its own step because play may
 continue after game end, in which case that phase's `PHASE_END` is written too, and every
