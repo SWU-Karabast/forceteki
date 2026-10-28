@@ -61,5 +61,37 @@ describe('SWU-PGN/1.0 cross-seat piles', function () {
                 .withContext('none of them in P1\'s pile')
                 .toBeFalse();
         });
+
+        // Value: protects=a card played out of the OPPONENT's deck leaves its owner's deck count and lands under the player who played it; fails_when=the recorder writes the controller as p on the deck->arena MOVE, so the fold takes the card from the wrong deck; why_new=the cases above all discard, and Vermillion is the first card that plays from another seat's deck; seam=none; no_claim=deck order, which the fold does not model
+        it('takes a card the opponent plays out of your deck from YOUR deck', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { spaceArena: ['vermillion#qiras-auction-house'], deck: ['battlefield-marine'] },
+                player2: { deck: ['desperado-freighter'] },
+            });
+            const { context } = contextRef;
+            const state = () => fold(writerOutput(context.game).doc.events);
+            // The harness deals decks before placing them, with no MOVE, so compare changes.
+            const before = state();
+
+            context.player1.clickCard(context.vermillion);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickPrompt('Your deck');
+            context.player1.clickDone();
+            context.player1.clickPrompt('Opponent');
+            context.player2.clickPrompt('Trigger');
+            expect(context.battlefieldMarine).toBeInZone('groundArena', context.player2);
+
+            const after = state();
+            expect(validate(writerOutput(context.game).text).issues.filter((i) => i.severity === 'error')).toEqual([]);
+            expect(after.players[1].deckSize).withContext('P1\'s deck lost the card')
+                .toBe(before.players[1].deckSize - 1);
+            expect(after.players[2].deckSize).withContext('P2\'s deck is untouched')
+                .toBe(before.players[2].deckSize);
+            expect(after.players[2].cards.some((c) => c.zone === 'ground')).withContext('the marine is P2\'s')
+                .toBeTrue();
+            expect(after.players[1].cards.some((c) => c.zone === 'ground')).withContext('and not P1\'s')
+                .toBeFalse();
+        });
     });
 });

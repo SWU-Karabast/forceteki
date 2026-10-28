@@ -2383,10 +2383,12 @@ play it out of its owner's discard, and that `MOVE` says `"p": 2` for Player 1's
 card leaves `hand`, `discard` or `resource`, take it (and the count) from the seat whose list
 holds it: `p`'s if it is there, else the other seat's, else `p`'s. Ids are unique for the whole
 game ([§6.1](#61-card-ids)), so at most one list holds it. The `stolen-hauler` vector covers
-this. The deck is counted, not listed, so a move out of `deck` is counted on `p`. That is
-right because a card leaving a deck is still with its owner: every card that reaches into an
-opponent's deck (Never Tell Me the Odds, Vigilance, Satine Kryze) discards from it, and the
-writer records the owner (`SwuPgnCrossSeatPiles.spec.ts`).
+this. The deck is counted, not listed, so a move out of `deck` is counted on `p`, and a
+writer MUST write the deck's owner as `p` on it: a card leaving a deck is still with its owner.
+Most cards that reach into an opponent's deck discard from it (Never Tell Me the Odds,
+Vigilance, Satine Kryze). One that puts the card into play under the other seat (Vermillion lets
+the opponent play your top card) is written as the owner's `MOVE` followed by a `TAKE_CONTROL`
+to the seat that played it (`SwuPgnCrossSeatPiles.spec.ts`).
 
 **1. The hand — count AND contents**
 

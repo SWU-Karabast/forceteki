@@ -1692,7 +1692,13 @@ export class SwuPgnRecorder {
             // and exhausted resources as two counts and has to know which one to decrement.
             // The engine has already reset `exhausted` for the new zone by the time this
             // fires, hence `exhaustedBeforeMove`.
-            const seat = this.seatOf(card?.controller ?? card?.owner);
+            //
+            // A card leaving a deck is still its owner's, and the fold counts the deck on `p`
+            // (spec §12.1), so the move is the owner's even when another player put the card into
+            // play (Vermillion lets the opponent play your top card). The control change that
+            // came with it follows as its own TAKE_CONTROL, which re-seats the card.
+            const controllerSeat = this.seatOf(card?.controller ?? card?.owner);
+            const seat = from === 'deck' ? this.seatOf(card?.owner ?? card?.controller) : controllerSeat;
             const kind = cardKind(card);
             const leftExhausted = from === 'resource' && card?.exhaustedBeforeMove === true;
             this.push({
@@ -1705,6 +1711,16 @@ export class SwuPgnRecorder {
                 ...(kind ? { kind } : {}),
                 ...(leftExhausted ? { exhausted: true } : {}),
             });
+            if (controllerSeat !== seat) {
+                this.push({
+                    seq: this.nextSeq(false),
+                    t: 'TAKE_CONTROL',
+                    p: controllerSeat,
+                    card: this.idOf(card),
+                    zone: to,
+                    from: seat,
+                });
+            }
 
             // A Leader Unit that was defeated comes home to the base zone EXHAUSTED (CR 3.4.5),
             // by direct assignment in the engine, so the move is the only place to say so.
@@ -1982,6 +1998,9 @@ export class SwuPgnRecorder {
             // is omitted and the fold shifts nothing twice.
             this.resourceRowChanges.delete(card.uuid);
             const last = this.events[this.events.length - 1];
+            if (last?.t === 'TAKE_CONTROL' && last.card === this.idOf(card) && last.p === this.seatOf(event?.newController ?? card?.controller)) {
+                return; // already recorded beside the move that brought it out of its owner's deck
+            }
             const movedByThisSteal = last?.t === 'MOVE' && last.card === this.idOf(card);
             const zone = this.normalizeZone(card?.zoneName);
             // A stolen resource keeps its ready state, and the fold keeps two counts, so say
