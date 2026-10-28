@@ -449,7 +449,7 @@ export class Game extends EventEmitter {
     private _actionsSinceLastUndo?: number;
 
     // ── SWU-PGN/1.0 (single-file, event-sourced path) ──
-    /** Owns 1.1 generation: recorder, stable-id/deck-order bookkeeping, and board projections. */
+    /** Owns 1.0 generation: recorder, stable-id/deck-order bookkeeping, and board projections. */
     private readonly _swuPgnAdapter: SwuPgnGameAdapter;
     private _cachedSwuPgnFile?: string;
     private _swuPgnFileServed = false;
@@ -1035,7 +1035,7 @@ export class Game extends EventEmitter {
         this._swuPgnAdapter.recordGameEnd(winnerSeat, reasonCode);
 
         try {
-            // Single-file 1.1 artifact, cached at game end.
+            // Single-file 1.0 artifact, cached at game end.
             this._cachedSwuPgnFile = this._swuPgnAdapter.generateFile();
             // NOTE: do NOT clear the recorder's raw arrays here. A player can undo
             // past game-end (handleUndoGameEnd): that rolls back winnerNames so the

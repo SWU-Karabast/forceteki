@@ -88,7 +88,7 @@ export function buildHeader(ctx: HeaderContext): Header {
 export interface SwuPgnResolver {
     cardId(uuid: string): string;
     seat(playerId: string): Seat;
-    reducedState?(round: number): ReducedState;                 // engine board → 1.1 reduced state
+    reducedState?(round: number): ReducedState;                 // engine board → 1.0 reduced state
     deckOrder?(): { p1: string[]; p2: string[] };               // initial deck order after shuffle
 }
 
@@ -772,7 +772,7 @@ export class SwuPgnRecorder {
     /**
      * Map an engine damage/heal target to either a base ref `base@<seat>` or a card id.
      * Mirrors how the v1.0 `OnDamageDealt` handler resolves the target card, but adds
-     * the 1.1 base-vs-card distinction the fold relies on (`base@<seat>` snaps baseHp).
+     * the 1.0 base-vs-card distinction the fold relies on (`base@<seat>` snaps baseHp).
      */
     private targetRef(target: any): string {
         try {
@@ -1054,7 +1054,7 @@ export class SwuPgnRecorder {
         return ABILITY_KIND_OF[readOr<AbilityType>(() => ability.type, undefined)];
     }
 
-    /** Engine PhaseName → 1.1 reader vocabulary ('setup'|'action'|'regroup'). */
+    /** Engine PhaseName → 1.0 reader vocabulary ('setup'|'action'|'regroup'). */
     private phaseVocab(phase: string): ReducedState['phase'] {
         switch (phase) {
             case PhaseName.Setup: return 'setup';
@@ -1086,7 +1086,7 @@ export class SwuPgnRecorder {
         this.actionCounter = 0;
         this.subEventCounter = 0;
         // Emit a full ReducedState keyframe when the resolver can project one (SwuPgnGameAdapter). The
-        // 1.1 reader uses it both as a fast-forward anchor and as an integrity checkpoint
+        // 1.0 reader uses it both as a fast-forward anchor and as an integrity checkpoint
         // (checkKeyframes folds forward and asserts the running fold equals each keyframe).
         // Absent a resolver projection, ROUND_START stays valid without a keyframe.
         this.syncStats();
@@ -1474,7 +1474,7 @@ export class SwuPgnRecorder {
             // rolls onto the defending base, emitted by AttackFlow as an OnDamageDealt with
             // DamageType.Overwhelm ('overwhelm') targeting that base (see attack/AttackFlow.ts).
             // We surface it as a dedicated OVERWHELM record (instead of DAMAGE) when the engine
-            // tags the damage as overwhelm-type onto a base; the 1.1 OVERWHELM reducer snaps base
+            // tags the damage as overwhelm-type onto a base; the 1.0 OVERWHELM reducer snaps base
             // hp exactly like a DAMAGE-to-base record.
             if (damageType === 'overwhelm' && card?.isBase?.()) {
                 this.push({
@@ -1641,7 +1641,7 @@ export class SwuPgnRecorder {
             }
 
             const seq = this.nextSeq(false);
-            // Seat lets the 1.1 fold attribute zone-membership counts (handSize,
+            // Seat lets the 1.0 fold attribute zone-membership counts (handSize,
             // resourcesReady) and arena-card placement to a player: the engine performs
             // these via card moves, not via DRAW/RESOURCE/PLAY summary events, so MOVE is
             // the fold's source of truth for those counts.
@@ -1692,7 +1692,7 @@ export class SwuPgnRecorder {
         // We emit SHIELD_GAIN only when the attached upgrade isShield(); printed upgrades get no
         // token record but have their host back-filled onto the MOVE/PLAY_UPGRADE (see the
         // `!kind` branch). Recorded against the parent unit;
-        // the 1.1 reducer increments shields by `count` (default 1).
+        // the 1.0 reducer increments shields by `count` (default 1).
         //
         // EXPERIENCE_GAIN and STATUS_TOKEN ride the same OnUpgradeAttached event because, like
         // shields, experience and advantage are token-upgrade cards (Experience/Advantage extend

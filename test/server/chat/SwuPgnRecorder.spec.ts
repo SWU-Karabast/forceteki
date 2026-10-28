@@ -23,7 +23,7 @@ describe('SwuPgnRecorder.buildHeader', function () {
         p2: { username: 'bob', leader: 'SOR#005', base: 'SOR#020' },
     };
 
-    it('emits a 1.1 header with provenance and salted ids', function () {
+    it('emits a 1.0 header with provenance and salted ids', function () {
         const h = buildHeader(ctx);
         expect(h.game).toBe('SWU-PGN/1.0');
         expect(h.writerRevision).toBe(SWU_PGN_WRITER_REVISION);
@@ -152,7 +152,7 @@ describe('SwuPgnRecorder events fold to expected state', function () {
         game.emit(EventName.OnPhaseStarted, { phase: 'action' });
         // The engine performs every zone transition as an OnCardMoved (which the recorder maps
         // to a MOVE) and ALSO emits the higher-level summary events (OnCardsDrawn/Resourced).
-        // The 1.1 fold reconstructs handSize/resourcesReady from MOVE (the source of truth), so
+        // The 1.0 fold reconstructs handSize/resourcesReady from MOVE (the source of truth), so
         // we emit both here exactly as the engine would.
         game.emit(EventName.OnCardMoved, { card: drawn[0], originalZone: 'deck', newZone: 'hand' });
         game.emit(EventName.OnCardMoved, { card: drawn[1], originalZone: 'deck', newZone: 'hand' });

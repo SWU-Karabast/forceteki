@@ -281,7 +281,7 @@ export class SelectCardPrompt extends UiPrompt {
     /**
      * Pure-log SWU-PGN/1.0 hook (§10.2 CHOICE): surface a resolved card-selection prompt for the
      * recorder — the offered candidate cards and the single card chosen. Only single-card
-     * selections are emitted; the 1.1 CHOICE record models one pick, so multi/zero-select prompts
+     * selections are emitted; the 1.0 CHOICE record models one pick, so multi/zero-select prompts
      * are skipped. Fully wrapped: recording instrumentation must never affect gameplay.
      */
     private emitCardSelection() {

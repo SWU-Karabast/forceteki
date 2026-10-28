@@ -30,8 +30,8 @@ function emptyPlayerState(seat: Seat): PlayerState {
 /**
  * Owns the SWU-PGN/1.0 (single-file, event-sourced) generation for a Game: it holds the
  * event recorder, the stable card-id/deck-order bookkeeping, and the omniscient board →
- * 1.1 projections, and assembles the one self-contained `.swupgn` (header + decks + setup +
- * events) the 1.1 reader parses/validates/folds/renders.
+ * 1.0 projections, and assembles the one self-contained `.swupgn` (header + decks + setup +
+ * events) the 1.0 reader parses/validates/folds/renders.
  *
  * This is a stateful delegate, not a free-standing module: it reads live engine state through
  * a back-reference to its Game (all via public Game members). Game retains only the cache and
@@ -41,10 +41,10 @@ export class SwuPgnGameAdapter {
     private readonly game: Game;
     private readonly recorder: SwuPgnRecorder;
 
-    /** Stable SET#NUM[:copy] id per engine card instance uuid (1.1 path). */
+    /** Stable SET#NUM[:copy] id per engine card instance uuid (1.0 path). */
     private readonly cardIdByUuid = new Map<string, string>();
 
-    /** Count of distinct instances seen per base id, for assigning :N copy suffixes (1.1 path). */
+    /** Count of distinct instances seen per base id, for assigning :N copy suffixes (1.0 path). */
     private readonly copyCountByBase = new Map<string, number>();
 
     /** Initial post-shuffle / pre-draw deck order for both seats, captured once at setup. */
@@ -191,7 +191,7 @@ export class SwuPgnGameAdapter {
      * Register the one-time initial-deck-order capture. The setup phase shuffles each
      * player's deck and *then* draws the opening hand in the same step (see
      * SetupPhase.drawStartingHands), so OnDeckShuffled fires post-shuffle but pre-draw —
-     * exactly the order the 1.1 SETUP INIT record wants. We capture each seat's deck
+     * exactly the order the 1.0 SETUP INIT record wants. We capture each seat's deck
      * order the first time that seat shuffles, then emit recordInit() once both are
      * captured (before any draw mutates the deck).
      */
@@ -320,10 +320,10 @@ export class SwuPgnGameAdapter {
         return playerId === this.cachedPlayer2Id ? 2 : 1;
     }
 
-    // ── Omniscient board → 1.1 projections ──────────────────────────────────────
+    // ── Omniscient board → 1.0 projections ──────────────────────────────────────
 
     /**
-     * Project the live, omniscient engine board into a FRESH 1.1 ReducedState keyframe.
+     * Project the live, omniscient engine board into a FRESH 1.0 ReducedState keyframe.
      * Reads engine card/player objects directly (rather than the UI-shaped getState
      * summary) so per-card fields map faithfully. Contains NO real usernames/ids: card
      * ids use the stable scheme and players are anonymized to seats.
@@ -381,7 +381,7 @@ export class SwuPgnGameAdapter {
     }
 
     /**
-     * Project a single player's omniscient state into a fresh 1.1 PlayerState.
+     * Project a single player's omniscient state into a fresh 1.0 PlayerState.
      *
      * EVERY read here goes through `read()`. That is not defensive noise: engine card
      * accessors such as `damage`, `exhausted` and `remainingHp` call
@@ -486,7 +486,7 @@ export class SwuPgnGameAdapter {
     }
 
     /**
-     * Project a single in-play card into a fresh 1.1 CardInstanceState.
+     * Project a single in-play card into a fresh 1.0 CardInstanceState.
      *
      * Token upgrades become the three counters, classified by the SAME function the recorder
      * uses for its gain/removal records (`tokenUpgradeKind`), so a snapshot and the deltas that
@@ -679,7 +679,7 @@ export class SwuPgnGameAdapter {
         }
     }
 
-    /** Build the 1.1 HeaderContext (provenance + identities). */
+    /** Build the 1.0 HeaderContext (provenance + identities). */
     private swuPgnHeaderContext(): HeaderContext {
         const players = this.game.getPlayers();
         const player1 = players[0];
@@ -720,7 +720,7 @@ export class SwuPgnGameAdapter {
         };
     }
 
-    /** Port buildPlayerDecklist to the 1.1 DeckRecord shape (stable SET#NUM ids). */
+    /** Port buildPlayerDecklist to the 1.0 DeckRecord shape (stable SET#NUM ids). */
     private buildSwuPgnDecks(): DeckRecord[] {
         const records: DeckRecord[] = [];
         const players = this.game.getPlayers();
