@@ -19,7 +19,7 @@ describe('SWU-PGN/1.0 recorder undo handling', function() {
         // regenerated .swupgn file therefore reflects the restored game state, not the
         // undone tail. (Earlier the v1.0 path either wiped the ENTIRE replay on any undo,
         // or kept undone actions in the stream — both wrong.)
-        undoIt('drops the undone action from the 1.1 event stream but keeps prior history', function () {
+        undoIt('drops the undone action from the 1.0 event stream but keeps prior history', function () {
             const { context } = contextRef;
             const game: any = context.game;
             const recorder: any = game._swuPgnAdapter.getRecorder();
@@ -169,6 +169,39 @@ describe('SWU-PGN/1.0 recorder undo handling', function() {
             // the replay resumed from — never to a seq the truncation deleted.
             const file: string = game.getCachedSwuPgn();
             expect(validate(file).issues.filter((i) => i.severity === 'error')).toEqual([]);
+        });
+    });
+});
+
+describe('SWU-PGN/1.0 card ids after an undone token creation', function() {
+    undoIntegration(function(contextRef) {
+        // Value: protects=undoing an action that created tokens leaves no trace in the card ids: the file is written without a severe engine error, and replayed tokens get the ids they would have had; fails_when=the adapter keeps ids for undone cards, so writing the file looks up unregistered objects (a severe error players and the dev team see) and replayed copies are numbered past the undone ones; why_new=no undo spec created a token; seam=none; no_claim=undo of a printed card's first appearance
+        it('writes the file without an engine error and reuses the undone tokens\' ids', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { hand: ['droid-deployment'], resources: 6 },
+                player2: { groundArena: ['wampa'] },
+            });
+            const { context } = contextRef;
+            const game: any = context.game;
+            const reportError = spyOn(game, 'reportError').and.callThrough();
+            const tokenIds = () => (parse(game.getCachedSwuPgn()).events as any[])
+                .filter((e) => e.t === 'MOVE' && e.from === 'outsideTheGame' && e.card.startsWith('TOKEN:'))
+                .map((e) => e.card);
+
+            context.player1.clickCard(context.droidDeployment);
+            const firstTime = tokenIds();
+            contextRef.snapshot.quickRollback(context.player1.id);
+            context.player1.clickCard(context.droidDeployment);
+            const replayed = tokenIds();
+            contextRef.snapshot.quickRollback(context.player1.id);
+            game.concede(context.player2.id);
+            context.ignoreUnresolvedActionPhasePrompts = true;
+            game.getCachedSwuPgn();
+
+            expect(firstTime.length).toBe(2);
+            expect(replayed).toEqual(firstTime);
+            expect(reportError).not.toHaveBeenCalled();
         });
     });
 });

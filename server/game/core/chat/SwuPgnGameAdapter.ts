@@ -47,6 +47,13 @@ export class SwuPgnGameAdapter {
     /** Count of distinct instances seen per base id, for assigning :N copy suffixes (1.0 path). */
     private readonly copyCountByBase = new Map<string, number>();
 
+    /**
+     * Where in the recorded streams each id was first assigned, so an undo can take back the ids
+     * of cards it took back (see `rollbackTo`). Plain bookkeeping beside the recorder, which
+     * rolls back by stream length.
+     */
+    private readonly cardIdAssignedAt = new Map<string, { setupLen: number; eventsLen: number; base: string }>();
+
     /** Initial post-shuffle / pre-draw deck order for both seats, captured once at setup. */
     private initialDeckOrder?: { p1: string[]; p2: string[] };
 
@@ -168,6 +175,25 @@ export class SwuPgnGameAdapter {
         // that follows must capture the deck order again, or the file loses it for good.
         if (hadInit && !hasInit()) {
             this.deckOrderCaptured.clear();
+        }
+        this.dropUndoneCardIds();
+    }
+
+    /**
+     * Forget the ids first assigned for records the undo just truncated. A card first seen in
+     * the undone tail may no longer exist (an undone token is unregistered, and looking it up
+     * reports a severe engine error), and keeping its id would number a replayed copy past it.
+     * Ids are assigned in stream order, so the forgotten ones are each base's latest copies.
+     */
+    private dropUndoneCardIds(): void {
+        const setupLen = this.recorder.getSetup().length;
+        const eventsLen = this.recorder.getEvents().length;
+        for (const [uuid, at] of this.cardIdAssignedAt) {
+            if (at.setupLen >= setupLen && at.eventsLen >= eventsLen) {
+                this.cardIdAssignedAt.delete(uuid);
+                this.cardIdByUuid.delete(uuid);
+                this.copyCountByBase.set(at.base, (this.copyCountByBase.get(at.base) ?? 1) - 1);
+            }
         }
     }
 
@@ -293,6 +319,11 @@ export class SwuPgnGameAdapter {
         this.copyCountByBase.set(base, copyNumber);
         const id = copyNumber === 1 ? base : `${base}:${copyNumber}`;
         this.cardIdByUuid.set(uuid, id);
+        this.cardIdAssignedAt.set(uuid, {
+            setupLen: this.recorder.getSetup().length,
+            eventsLen: this.recorder.getEvents().length,
+            base,
+        });
         return id;
     }
 
