@@ -3,7 +3,7 @@ import type { ErrorObject } from 'ajv';
 import * as fs from 'fs';
 import * as path from 'path';
 import type { ConformanceReport, ConformanceIssue, ConformanceLevel } from './types';
-import { engineProduct, KNOWN_SECTIONS, parse, SwuPgnError } from './parse';
+import { engineProduct, KNOWN_SECTIONS, parse, PILOT_WRITER_PRODUCTS, SwuPgnError } from './parse';
 import { checkKeyframes } from './integrity';
 import { isArena, MAX_ZONE_LIST } from './fold';
 import { TOKEN_ID, TOKEN_NAME } from './ids';
@@ -233,11 +233,11 @@ export function validate(text: string): ConformanceReport {
     if (!vHeader(headerObj)) {
         schemaIssues(vHeader.errors, 'header');
     }
-    // WriterRevision is optional and diagnostic. Appendix C names the one writer whose files
-    // without it predate the published spec: it is read, but not as conformant SWU-PGN/1.0.
-    const preRelease = doc.header.writerRevision === undefined && engineProduct(doc.header.engine) === 'forceteki';
+    // WriterRevision is optional and diagnostic. The §25 pilot writer registry names the writers
+    // whose files without it predate the published spec: read, but not as conformant SWU-PGN/1.0.
+    const preRelease = doc.header.writerRevision === undefined && PILOT_WRITER_PRODUCTS.has(engineProduct(doc.header.engine));
     if (preRelease) {
-        warn('pre-release', 'no [WriterRevision] tag from a pilot writer: a pre-release file (Appendix C), not conformant SWU-PGN/1.0');
+        warn('pre-release', 'no [WriterRevision] tag from a pilot writer (§25): a pre-release file, not conformant SWU-PGN/1.0');
     }
 
     // Cross-record rule 5 holds for every record, DECKS and CARDS included: a deck record is

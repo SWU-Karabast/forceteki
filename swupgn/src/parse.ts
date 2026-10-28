@@ -230,6 +230,13 @@ export function engineProduct(engine: string): string {
     return at < 0 ? engine : engine.slice(0, at);
 }
 
+/**
+ * The closed §25 "Pilot writer products" registry: the `Engine` products whose files with no
+ * `WriterRevision` are pre-release. Compared exactly, case included. `validate.spec.ts` checks
+ * this list against the spec's.
+ */
+export const PILOT_WRITER_PRODUCTS: ReadonlySet<string> = new Set(['forceteki']);
+
 /** Drop leading/trailing blank lines a section banner's spacing leaves around the prose. */
 function trimBlankEdges(lines: string[]): string[] {
     let start = 0;

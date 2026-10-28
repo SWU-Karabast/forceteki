@@ -134,7 +134,7 @@ You can:
 | **fold** | Rebuilding the reduced state by applying events in file order ([§12](#12-folding--turning-lines-into-a-board)). |
 | **omniscient file** | A file that names every card, hidden ones included. The only kind 1.0 defines. |
 | **perspective file** | A file recorded through one seat's eyes ([§5.2](#52-optional-tags)). Reserved, see [§21](#21-open-issues). |
-| **pre-release file** | A file that [Appendix C](#appendix-c-reading-pre-release-files-informative) identifies as written during the 1.0 pilot. |
+| **pre-release file** | A file with no `WriterRevision` tag whose `Engine` product (the text before the first `@`, compared exactly) is listed in the closed [pilot writer products](#pilot-writer-products) registry ([§25](#25-registries)): a file written during the 1.0 pilot. How to read one is in [Appendix C](#appendix-c-reading-pre-release-files-informative). |
 | **writer, reader** | A program that makes files; a program that reads them. A reader is any of the parser, validator, folder, renderer and consumer classes of [§3](#3-conformance-classes--who-has-to-do-what). |
 
 ---
@@ -178,7 +178,7 @@ A file is at one of five levels. Each level includes the ones before it.
 |---|---|---|
 | **malformed** | does not parse: it breaks the grammar of [§4](#4-file-syntax--what-a-file-looks-like) and [Appendix B](#appendix-b-grammar-abnf), or exceeds a reader's limits ([§23](#23-security-considerations)). | a parser |
 | **well-formed** | parses. It may still fail a schema or a cross-record rule, or be a pre-release file. | a parser |
-| **valid** | is well-formed, is not a pre-release file, and every record passes its schema and every cross-record rule below. | a validator |
+| **valid** | is well-formed, is not a pre-release file ([§25](#pilot-writer-products)), and every record passes its schema and every cross-record rule below. | a validator |
 | **verified** | is valid, and folding its events reproduces every keyframe with zero mismatches ([§14](#14-integrity--checking-a-file-is-honest)). | a validator with a folder |
 | **complete** | is verified, has no `RecorderErrors` tag above zero, and no `DEFEAT` whose reason is `"unknown"` or reads as unknown ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)): the writer lost nothing it knew of. | a validator with a folder |
 
@@ -375,8 +375,9 @@ requirement, by id. The linked section is where each one is defined.
   ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
 - `[V-03]` MUST warn on an unknown event type or section, and MUST NOT warn on one that carries
   an extension prefix ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
-- `[V-04]` MUST report as pre-release a file that
-  [Appendix C](#appendix-c-reading-pre-release-files-informative) identifies as one.
+- `[V-04]` MUST report as pre-release a file with no `WriterRevision` whose `Engine` product is
+  listed in the [pilot writer products](#pilot-writer-products) registry ([§25](#25-registries)).
+  How to read one is in [Appendix C](#appendix-c-reading-pre-release-files-informative).
 - `[V-05]` MUST report a `TOKEN:` id or a `STATUS_TOKEN.token` that breaks the token-name grammar
   (`bad-token-name`, error) ([§6.1](#the-token-grammar)).
 
@@ -609,7 +610,7 @@ Counts are base-10 digits with no sign, space or exponent.
 
 | Tag | Format | What it holds |
 |---|---|---|
-| `WriterRevision` | count, 1 or more | Which revision of its writer produced the file. **Optional, and diagnostic for every writer.** A file without it is conformant if it follows this document ([§2.1](#21-document-conformance-levels)); only the pilot files of [Appendix C](#appendix-c-reading-pre-release-files-informative) are judged by its absence. See below. |
+| `WriterRevision` | count, 1 or more | Which revision of its writer produced the file. **Optional, and diagnostic for every writer.** A file without it is conformant if it follows this document ([§2.1](#21-document-conformance-levels)); only the pilot writers listed in [§25](#pilot-writer-products) are judged by its absence. See below. |
 | `Format` | any | The tournament format, e.g. `"premier"`. Case is **not** standardised — accept any case. An open vocabulary ([§25](#25-registries)). |
 | `Perspective` | `P1` or `P2` | Reserved for perspective files, which 1.0 does not define. A 1.0 writer MUST NOT write it ([§21](#21-open-issues)). A reader that meets it MUST treat the other seat's hidden information as possibly missing. Case-sensitive. |
 | `EndDate` | RFC 3339 | When the game **ended**. With `Date` (when it started) this gives the game's duration. Absent for an unfinished game, or a writer that cannot tell. |
@@ -3177,7 +3178,7 @@ one thing broken. A reader MUST reject or warn on each as the manifest says:
 | `newer-minor-bad-seat` | `SWU-PGN/1.7`, with a `PASS` by seat 3 | well-formed | error `schema`, warning `newer-minor` |
 | `newer-minor-result-seat` | `SWU-PGN/1.7`, with `[Result "P3"]` | well-formed | error `schema`, warning `newer-minor` |
 | `over-cap` | a keyframe hand of 1002 cards | well-formed | error `over-cap` |
-| `pre-release` | no `WriterRevision`, and an `Engine` product that [Appendix C](#appendix-c-reading-pre-release-files-informative) names | well-formed | warning `pre-release` |
+| `pre-release` | no `WriterRevision`, and an `Engine` product the [pilot writer products](#pilot-writer-products) registry lists | well-formed | warning `pre-release` |
 | `damaged-keyframe` | a keyframe the events do not fold to | valid | warning `keyframe-mismatch` |
 | `unknown-type` | an event type from a later version | complete | warning `unknown-type` |
 | `unknown-section` | a section from a later version | complete | warning `unknown-section` |
@@ -3454,7 +3455,7 @@ matched by a program.
 | `same-zone-move` | error | A `MOVE` from a zone to itself that is not an arena | well-formed |
 | `number-range` | error | A number that is not an integer within ±(2^53−1) | well-formed |
 | `over-cap` | error | A keyframe list longer than 1000 | well-formed |
-| `pre-release` | warning | A file that [Appendix C](#appendix-c-reading-pre-release-files-informative) identifies as pre-release | well-formed |
+| `pre-release` | warning | No `WriterRevision`, and an `Engine` product the [pilot writer products](#pilot-writer-products) registry ([§25](#25-registries)) lists: a pre-release file | well-formed |
 | `keyframe-mismatch` | warning | Folding does not reproduce a keyframe | valid |
 | `recorder-errors` | warning | `RecorderErrors` is above zero | verified |
 | `unknown-defeat` | warning | A `DEFEAT` whose `reason` is `"unknown"`, or a reason outside the reader's vocabulary, which reads as unknown | verified |
@@ -3508,6 +3509,23 @@ to an **open** one needs no version change: readers already accept values they d
 | `Reason`, `Format` | open | [§5](#5-header-tags) |
 | Error codes | open: a reader that meets a code it does not know treats it by its severity | [§24](#24-error-model) |
 | Extension prefixes | closed | [§18](#extensions) |
+| Pilot writer products | closed | [§25 below](#pilot-writer-products) |
+
+#### Pilot writer products
+
+Closed. A file with no `WriterRevision` tag whose `Engine` product is listed here is a
+**pre-release file** ([§1.1](#11-terminology), `[V-04]`): it was written during the 1.0 pilot, before
+the tag existed, and is at most well-formed ([§2.1](#21-document-conformance-levels)). The
+product is the text of `Engine` before the first `@`, or the whole value when it has no `@`,
+compared exactly with each line below, case included. A file from a product not listed here
+that carries no `WriterRevision` is an ordinary file. How to read a pre-release file is in
+[Appendix C](#appendix-c-reading-pre-release-files-informative), which is informative.
+
+One product per line:
+
+```text
+forceteki
+```
 
 #### Token names
 
@@ -3989,10 +4007,10 @@ has. Nothing in it is guaranteed.
 
 **From `WriterRevision` 1 on, the header says which writer made the file**
 ([§5.2](#52-optional-tags)). `WriterRevision` is optional for every writer, so its absence alone
-says nothing. A **pre-release file**, the one `[V-04]` has a validator report, is a file with
-no `WriterRevision` and an `Engine` product of exactly `forceteki` (the text before the first
-`@`, compared case-sensitively, whatever follows it): the pilot writer did not yet write the
-tag. A file from any other writer without the tag is read as an ordinary file. A file
+says nothing. A **pre-release file**, the one `[V-04]` has a validator report, is defined in
+[§25](#pilot-writer-products): a file with no `WriterRevision` and an `Engine` product of exactly
+`forceteki`, the one pilot writer the registry lists (the text before the first `@`, compared
+case-sensitively, whatever follows it). The pilot writer did not yet write the tag. A file from any other writer without the tag is read as an ordinary file. A file
 with the tag was written by that revision, and every row added below from here on names the
 revision that introduced it, so a reader can switch on the number instead of guessing from the
 contents.

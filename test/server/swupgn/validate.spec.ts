@@ -1,4 +1,4 @@
-import { engineProduct } from '../../../swupgn/src/parse';
+import { engineProduct, PILOT_WRITER_PRODUCTS } from '../../../swupgn/src/parse';
 import { MAX_ISSUES, validate } from '../../../swupgn/src/validate';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -219,6 +219,16 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         it('compares the product exactly', function () {
             const result = validate(withoutRevision('Forceteki@1'));
             expect(result.issues.map((i) => i.code)).not.toContain('pre-release');
+        });
+
+        // Value: protects=the validator's pre-release test reads the same closed list the spec's §25 registry gives; fails_when=a product is added to or dropped from one but not the other; why_new=pre-release rested on informative Appendix C; seam=none; no_claim=Appendix C's reading advice
+        it('judges pre-release by the §25 pilot writer registry, and the code lists the same products', function () {
+            const spec = fs.readFileSync(path.resolve(__dirname, '../../../../docs/SWU-PGN-1.0-SPEC.md'), 'utf8');
+            const section = spec.slice(spec.indexOf('#### Pilot writer products'));
+            const fenced = (/```text\n([\s\S]*?)```/).exec(section);
+            expect(fenced).not.toBeNull();
+            const listed = (fenced?.[1] ?? '').split('\n').filter((l) => l.trim() !== '');
+            expect([...PILOT_WRITER_PRODUCTS].sort()).toEqual(listed.sort());
         });
 
         it('takes the product as the text before the first @', function () {
