@@ -266,16 +266,109 @@ describe('SWU-PGN/1.0 effects (writer)', function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
-                    hand: ['rallying-cry'],
+                    hand: ['fives#i-have-proof'],
                     groundArena: ['wampa', 'battlefield-marine'],
                     deck: ['porg', 'porg', 'porg', 'porg', 'porg', 'porg'],
+                    resources: 12,
                 },
                 player2: {
                     hand: ['change-of-heart'],
                     groundArena: ['atst'],
+                    spaceArena: ['patrolling-vwing'],
                     resources: 10,
                     deck: ['porg', 'porg', 'porg', 'porg', 'porg', 'porg'],
+                },
+            });
+            const { context } = contextRef;
+
+            // Fives copies the V-Wing's When Played "until this unit leaves play": a lasting
+            // effect that is still active at every later keyframe.
+            context.player1.clickCard(context.fives);
+            context.player1.clickCard(context.patrollingVwing);
+            context.player2.clickCard(context.changeOfHeart);
+            context.player2.clickCard(context.battlefieldMarine);
+            context.moveToNextActionPhase();
+            context.moveToNextActionPhase();
+
+            const { text, doc } = writerOutput(context.game);
+            const fives = idOf(doc, 'Fives');
+            const keyframes = doc.events.filter((e: any) => (e.t === 'ROUND_START' || e.t === 'ROUND_END') && e.keyframe) as any[];
+            expect(keyframes.length).toBeGreaterThan(2);
+            for (const k of keyframes) {
+                expect(Array.isArray(k.keyframe.effects)).withContext(`${k.seq} carries effects`)
+                    .toBeTrue();
+            }
+            const fivesEffect = ofType(doc, 'EFFECT_START').find((e) => e.src === fives);
+            expect(fivesEffect).toEqual(jasmine.objectContaining({ duration: 'until', targets: [fives] }));
+            const later = keyframes.filter((k) => doc.events.indexOf(k) > doc.events.indexOf(fivesEffect));
+            expect(later.length).toBeGreaterThan(1);
+            for (const k of later) {
+                expect(k.keyframe.effects.map((e: any) => e.id)).withContext(`${k.seq} holds Fives' effect`)
+                    .toContain(fivesEffect.id);
+            }
+            expect(ofType(doc, 'EFFECT_START').length).toBeGreaterThan(1);
+            expect(checkKeyframes(doc.events).mismatches.filter((m) => !isHarnessCountArtifact(m)))
+                .withContext('fold reproduces every keyframe')
+                .toEqual([]);
+            expectCleanEffects(text);
+        });
+
+        it('separately stated effects in one ability are separate records', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['sword-and-shield-maneuver'],
+                    groundArena: ['death-trooper', 'plo-koon#kohtoyah', 'battlefield-marine'],
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.swordAndShieldManeuver);
+
+            const { text, doc } = writerOutput(context.game);
+            const starts = ofType(doc, 'EFFECT_START');
+            expect(starts.length).withContext('Raid on the Troopers, Sentinel on the Jedi')
+                .toBe(2);
+            expect(starts.map((e) => sorted(e.targets))).toEqual(jasmine.arrayWithExactContents([
+                sorted([idOf(doc, 'Death Trooper'), idOf(doc, 'Battlefield Marine')]),
+                [idOf(doc, 'Plo Koon')],
+            ]));
+            expect(new Set(starts.map((e) => e.id)).size).toBe(2);
+            expectCleanEffects(text);
+        });
+
+        it('two effects stated on one unit are two records, each naming it', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['guarding-the-way'],
+                    groundArena: ['wampa'],
+                    hasInitiative: true,
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.guardingTheWay);
+            context.player1.clickCard(context.wampa);
+
+            const { text, doc } = writerOutput(context.game);
+            const wampa = idOf(doc, 'Wampa');
+            expect(ofType(doc, 'EFFECT_START').map((e) => [e.id, e.targets, e.duration])).toEqual([
+                ['fx@1', [wampa], 'phase'],
+                ['fx@2', [wampa], 'phase'],
+            ]);
+            expectCleanEffects(text);
+        });
+
+        it('Kazuda\'s extra action ends when it is used', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                    groundArena: ['wampa', 'battlefield-marine'],
+                },
+                player2: {
+                    groundArena: ['atst'],
                 },
             });
             const { context } = contextRef;
@@ -283,27 +376,20 @@ describe('SWU-PGN/1.0 effects (writer)', function () {
             context.player1.clickCard(context.kazudaXiono);
             context.player1.clickPrompt('Remove all abilities from a friendly unit, then take another action');
             context.player1.clickCard(context.wampa);
-            context.player1.clickCard(context.rallyingCry);
-            context.player2.clickCard(context.changeOfHeart);
-            context.player2.clickCard(context.battlefieldMarine);
-            context.moveToNextActionPhase();
-            context.moveToNextActionPhase();
+            expect(context.player1).toBeActivePlayer();
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.p2Base);
 
             const { text, doc } = writerOutput(context.game);
-            const keyframes = doc.events.filter((e: any) => (e.t === 'ROUND_START' || e.t === 'ROUND_END') && e.keyframe) as any[];
-            expect(keyframes.length).toBeGreaterThan(2);
-            // Kazuda's "take another action" is a player effect for the rest of the game, so the
-            // keyframes after it carry a non-empty list.
-            expect(keyframes.some((k) => k.keyframe.effects?.length > 0)).withContext('some keyframe holds an effect')
-                .toBeTrue();
-            for (const k of keyframes) {
-                expect(Array.isArray(k.keyframe.effects)).withContext(`${k.seq} carries effects`)
-                    .toBeTrue();
-            }
-            expect(ofType(doc, 'EFFECT_START').length).toBeGreaterThan(2);
-            expect(checkKeyframes(doc.events).mismatches.filter((m) => !isHarnessCountArtifact(m)))
-                .withContext('fold reproduces every keyframe')
-                .toEqual([]);
+            const extra = ofType(doc, 'EFFECT_START').find((e) => e.seat === 1);
+            expect(extra).withContext('the player effect "take another action"')
+                .toEqual(jasmine.objectContaining({ p: 1, duration: 'game' }));
+            expect(ofType(doc, 'EFFECT_END').filter((e) => e.id === extra.id)
+                .map((e) => e.reason)).toEqual(['expired']);
+            // Gone from the board; the round-long "lose all abilities" on Wampa is not.
+            const active = fold(doc.events).effects ?? [];
+            expect(active.map((e) => e.id)).not.toContain(extra.id);
+            expect(active).toEqual([jasmine.objectContaining({ duration: 'round', targets: [idOf(doc, 'Wampa')] })]);
             expectCleanEffects(text);
         });
     });

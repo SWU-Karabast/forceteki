@@ -319,6 +319,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     protected createEvent(target: any, context: TContext, additionalProperties: Partial<TProperties>): GameEvent {
         const { cannotBeCancelled } = this.generatePropertiesFromContext(context, additionalProperties);
         const event = new GameEvent(this.eventName, context, { cannotBeCancelled });
+        event.createdBySystem = this;
         return event;
     }
 

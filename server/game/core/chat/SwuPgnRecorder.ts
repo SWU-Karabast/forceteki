@@ -314,6 +314,7 @@ interface PendingEffectGroup {
     window: any;
     kind: 'card' | 'player' | 'delayed';
     engineDuration: unknown;
+    system: object | null;
     sourceCard: any;
     objects: any[];
 }
@@ -1422,16 +1423,37 @@ export class SwuPgnRecorder {
     }
 
     /**
+     * Whether an engine effect object still holds: it is in the engine's active set and, when it
+     * applies to players, at least one of them still carries it. The engine consumes some player
+     * effects by stripping them from the player alone (the action phase spends an "take another
+     * action" that way), leaving the object in the active set for good; such an effect is over.
+     * An object whose targets are cards, or that has no targets right now (a condition that is
+     * false for the moment), is judged by the active set alone.
+     */
+    private effectHolds(effect: any, live: ReadonlySet<any>): boolean {
+        if (!live.has(effect)) {
+            return false;
+        }
+        const players = readOr<any[]>(() => [...(effect.targets ?? [])].filter((t) => t?.isPlayer?.() === true), []);
+        if (players.length === 0) {
+            return true;
+        }
+        return players.some((player) => readOr(() => player.hasOngoingEffectInstance?.(effect) !== false, true));
+    }
+
+    /**
      * One `OnEffectApplied`: the engine objects its handler just added, filed under the stated
      * effect they belong to.
      *
      * The engine emits one event per target, and builds each target's properties (and, for a
-     * card whose properties are a function, its effect factories) afresh, so no object on the
-     * event is shared by the targets of one effect. What they share is the ability resolution
-     * (`event.context`) and the event window they resolve in; with the kind of target (cards,
-     * a player, delayed) and the engine duration, that is one effect as the card text states it.
-     * Two separately stated effects of one ability differ in one of those, or resolve in
-     * separate windows.
+     * card whose properties are a function, its effect factories) afresh, so no effect object is
+     * shared by the targets of one effect. What they share is the game system that created the
+     * events (`event.createdBySystem`, one lasting-effect or delayed-effect system per stated
+     * effect: "Give each friendly Trooper unit Raid 1 for this phase. Give each friendly Jedi
+     * unit Sentinel for this phase." is two systems in one `simultaneous`), the ability
+     * resolution (`event.context`; a system is reused each time its ability resolves) and the
+     * event window. Those three are the key; kind and engine duration are kept in it as well, for
+     * an event no system built.
      */
     private collectEffect(event: any): void {
         const before = this.effectsBeforeApply;
@@ -1448,10 +1470,11 @@ export class SwuPgnRecorder {
         const context = event?.context ?? null;
         const window = readOr(() => event?.window ?? null, null);
         const engineDuration = created[0]?.duration;
-        let group = this.pendingEffects.find((g) =>
-            g.context === context && g.window === window && g.kind === kind && g.engineDuration === engineDuration);
+        const system = readOr<object | null>(() => event?.createdBySystem ?? null, null);
+        let group = this.pendingEffects.find((g) => g.system === system && g.context === context && g.window === window &&
+          g.kind === kind && g.engineDuration === engineDuration);
         if (group == null) {
-            group = { context, window, kind, engineDuration, sourceCard: event?.sourceCard ?? context?.source, objects: [] };
+            group = { context, window, kind, engineDuration, system, sourceCard: event?.sourceCard ?? context?.source, objects: [] };
             this.pendingEffects.push(group);
         }
         group.objects.push(...created);
@@ -1567,7 +1590,7 @@ export class SwuPgnRecorder {
         for (const [fx, info] of [...this.effectInfo]) {
             const objects = (uuidsOf.get(fx) ?? []).map((uuid) => this.effectObjects.get(uuid));
             const targets = this.effectTargets.get(fx) ?? new Set<string>();
-            if (!objects.some((effect) => live.has(effect))) {
+            if (!objects.some((effect) => this.effectHolds(effect, live))) {
                 const left = [...targets].filter(leftPlay);
                 let reason: EffectEndReason = 'expired';
                 if (info.delayed && objects.some((effect) =>
@@ -1627,7 +1650,7 @@ export class SwuPgnRecorder {
         const live = new Set(this.engineEffects());
         const holding = new Set<string>();
         for (const [uuid, fx] of this.effectIds) {
-            if (live.has(this.effectObjects.get(uuid))) {
+            if (this.effectHolds(this.effectObjects.get(uuid), live)) {
                 holding.add(fx);
             }
         }

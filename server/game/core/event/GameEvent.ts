@@ -62,6 +62,13 @@ export class GameEvent {
         this._cardRef = cardRef;
     }
 
+    /**
+     * The game system whose `createEvent` built this event, when one did. Observation only: the engine
+     * never reads it. The SWU-PGN recorder uses it to tell the per-target events of one lasting-effect
+     * system (one stated effect) from those of another system resolved in the same window.
+     */
+    public createdBySystem?: object;
+
     public get eventId() {
         return this._eventId;
     }

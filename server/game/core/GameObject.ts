@@ -59,6 +59,11 @@ export abstract class GameObject extends GameObjectBase {
         this._ongoingEffects = this._ongoingEffects.filter((e) => e.uuid !== ongoingEffect.uuid);
     }
 
+    /** Whether this object currently carries that exact ongoing effect. Read-only. */
+    public hasOngoingEffectInstance(ongoingEffect: { uuid: string }): boolean {
+        return this._ongoingEffects.some((e) => e.uuid === ongoingEffect.uuid);
+    }
+
     public removeOngoingEffects(type: EffectName) {
         this._ongoingEffects = this._ongoingEffects.filter((e) => e.type !== type);
     }
