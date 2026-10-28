@@ -11,10 +11,10 @@ import type { Seat } from '../../../../swupgn/src/types';
  *   cannot confirm a guess -- and the same player hashes the SAME across that server's games,
  *   so a consumer can group a player's history without ever learning who they are.
  *
- * - Unset (fallback): salted with the `GameId`. Ids cannot be joined across files, and nobody
- *   reading one casually sees a username -- but it is NOT resistant to a targeted guess. The
- *   salt is printed two lines above the id in the same header and usernames are low-entropy, so
- *   anyone holding the file and a candidate list can confirm a player by re-hashing.
+ * - Unset (fallback): salted with the engine's internal game id. Ids cannot be joined across
+ *   files, and nobody reading one casually sees a username. The salt is no longer printed: the
+ *   file's `GameId` is a hash of it (`anonymizedGameId`), so confirming a guess needs the
+ *   server's game id as well. Still weaker than the HMAC: that id is in the server's logs.
  *
  * A reader cannot tell the two apart -- both are `sha256:<hex>` -- so this needs no format
  * change and no version bump. Consumers that attribute a file to an account should take the
@@ -56,6 +56,21 @@ export function idSecretStartupError(env: NodeJS.ProcessEnv): string | undefined
 export function anonymizedMatchId(lobbyId: string): string {
     const digest = createHash('sha256')
         .update(`swupgn-match:${lobbyId}`)
+        .digest('hex');
+    return `sha256:${digest}`;
+}
+
+/**
+ * Opaque id for ONE game, written as `GameId`.
+ *
+ * The engine's game id is host-internal: it is in the server's logs next to the lobby and the
+ * players, so publishing it would let anyone with log access tie a shared replay to accounts.
+ * Spec §17 forbids that for `GameId` as it does for `Match`. Hashed with a different prefix from
+ * `anonymizedMatchId` so a game id and a match id never collide.
+ */
+export function anonymizedGameId(gameId: string): string {
+    const digest = createHash('sha256')
+        .update(`swupgn-game:${gameId}`)
         .digest('hex');
     return `sha256:${digest}`;
 }

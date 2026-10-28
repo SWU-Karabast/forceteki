@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:swu-pgn:1.0:reduced-state",
+  "title": "SWU-PGN/1.0 ReducedState",
+  "description": "The board a fold produces (spec §11), serialized as a .fold.json file. Two boards are equal when they are equal as JSON values: object key order is not significant, array order is, and an absent field is not the same as null (spec §20). Fields marked optional in §11 are absent in files written before they existed.",
+  "type": "object",
+  "required": ["round", "phase", "initiative", "players"],
+  "properties": {
+    "round": { "type": "integer", "minimum": 0 },
+    "phase": { "enum": ["setup", "action", "regroup"] },
+    "initiative": { "enum": [1, 2, null] },
+    "initiativeTaken": { "type": "boolean" },
+    "active": { "enum": [1, 2] },
+    "players": {
+      "type": "object",
+      "properties": {
+        "1": { "$ref": "#/$defs/playerState" },
+        "2": { "$ref": "#/$defs/playerState" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "ids": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+    "count": { "type": "integer", "minimum": 0 },
+    "playerState": {
+      "type": "object",
+      "required": ["seat", "baseHp", "baseMaxHp", "handSize", "hand", "resourcesReady", "resourcesExhausted", "credits", "hasForce", "discard", "cards"],
+      "properties": {
+        "seat": { "enum": [1, 2] },
+        "baseHp": { "type": "integer" },
+        "baseMaxHp": { "type": "integer" },
+        "handSize": { "$ref": "#/$defs/count" },
+        "hand": { "$ref": "#/$defs/ids" },
+        "resourcesReady": { "$ref": "#/$defs/count" },
+        "resourcesExhausted": { "$ref": "#/$defs/count" },
+        "resources": { "$ref": "#/$defs/ids" },
+        "baseEpicActionUsed": { "type": "boolean" },
+        "baseUpgrades": { "$ref": "#/$defs/ids" },
+        "baseCaptured": { "$ref": "#/$defs/ids" },
+        "baseDefeated": { "type": "boolean" },
+        "credits": { "$ref": "#/$defs/count" },
+        "hasForce": { "type": "boolean" },
+        "discard": { "$ref": "#/$defs/ids" },
+        "cards": { "type": "array", "items": { "$ref": "#/$defs/cardState" } },
+        "deckSize": { "$ref": "#/$defs/count" },
+        "leader": { "$ref": "#/$defs/leaderState" }
+      },
+      "additionalProperties": true
+    },
+    "leaderState": {
+      "type": "object",
+      "required": ["id", "deployed", "exhausted", "epicActionUsed"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "deployed": { "type": "boolean" },
+        "exhausted": { "type": "boolean" },
+        "epicActionUsed": { "type": "boolean" },
+        "onStartingSide": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "cardState": {
+      "type": "object",
+      "required": ["id", "zone", "damage", "exhausted", "upgrades", "shields", "experience", "statusTokens", "captured"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "zone": { "enum": ["ground", "space"] },
+        "damage": { "$ref": "#/$defs/count" },
+        "exhausted": { "type": "boolean" },
+        "upgrades": { "$ref": "#/$defs/ids" },
+        "shields": { "$ref": "#/$defs/count" },
+        "experience": { "$ref": "#/$defs/count" },
+        "statusTokens": {
+          "type": "object",
+          "propertyNames": { "not": { "enum": ["__proto__", "constructor", "prototype"] } },
+          "additionalProperties": { "type": "integer", "minimum": 1 }
+        },
+        "captured": { "$ref": "#/$defs/ids" },
+        "power": { "type": "integer" },
+        "hp": { "type": "integer" },
+        "keywords": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    }
+  }
+}

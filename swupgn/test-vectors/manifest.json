@@ -1,0 +1,228 @@
+{
+  "format": "SWU-PGN/1.0",
+  "description": "Conformance suite (spec §20). For every entry a conforming validator reports exactly `level`, and exactly the error and warning codes listed (as sets). For a positive entry a conforming folder produces `fold` (equal as JSON values: key order not significant, array order significant, absent is not null) and a strict renderer produces `render` byte for byte.",
+  "vectors": [
+    {
+      "file": "arrest.swupgn",
+      "class": "positive",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "arrest.fold.json",
+      "render": "arrest.render.txt"
+    },
+    {
+      "file": "capture.swupgn",
+      "class": "positive",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "capture.fold.json",
+      "render": "capture.render.txt"
+    },
+    {
+      "file": "death-star.swupgn",
+      "class": "positive",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "death-star.fold.json",
+      "render": "death-star.render.txt"
+    },
+    {
+      "file": "homeworlds.swupgn",
+      "class": "positive",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "homeworlds.fold.json",
+      "render": "homeworlds.render.txt"
+    },
+    {
+      "file": "minimal.swupgn",
+      "class": "positive",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "minimal.fold.json",
+      "render": "minimal.render.txt"
+    },
+    {
+      "file": "organic.swupgn",
+      "class": "positive",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "organic.fold.json",
+      "render": "organic.render.txt"
+    },
+    {
+      "file": "pilot.swupgn",
+      "class": "positive",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "pilot.fold.json",
+      "render": "pilot.render.txt"
+    },
+    {
+      "file": "stolen-hauler.swupgn",
+      "class": "positive",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "stolen-hauler.fold.json",
+      "render": "stolen-hauler.render.txt"
+    },
+    {
+      "file": "upgrades.swupgn",
+      "class": "positive",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "upgrades.fold.json",
+      "render": "upgrades.render.txt"
+    },
+    {
+      "file": "negative/bad-escape.swupgn",
+      "class": "negative",
+      "level": "malformed",
+      "errors": [
+        "bad-escape"
+      ],
+      "warnings": [],
+      "about": "A header escape other than \\\\ and \\\" (§4, Appendix B)."
+    },
+    {
+      "file": "negative/bad-move.swupgn",
+      "class": "negative",
+      "level": "well-formed",
+      "errors": [
+        "bad-zone"
+      ],
+      "warnings": [],
+      "about": "A MOVE to a zone outside the vocabulary (§6.2)."
+    },
+    {
+      "file": "negative/damaged-keyframe.swupgn",
+      "class": "negative",
+      "level": "valid",
+      "errors": [],
+      "warnings": [
+        "keyframe-mismatch"
+      ],
+      "about": "A keyframe the stream does not fold to: valid but not verified (§14)."
+    },
+    {
+      "file": "negative/dangling-ref.swupgn",
+      "class": "negative",
+      "level": "well-formed",
+      "errors": [
+        "dangling-ref"
+      ],
+      "warnings": [],
+      "about": "An annotation whose ref names no record (§15)."
+    },
+    {
+      "file": "negative/duplicate-section.swupgn",
+      "class": "negative",
+      "level": "malformed",
+      "errors": [
+        "duplicate-section"
+      ],
+      "warnings": [],
+      "about": "Two %%% EVENTS banners (§4)."
+    },
+    {
+      "file": "negative/duplicate-seq.swupgn",
+      "class": "negative",
+      "level": "well-formed",
+      "errors": [
+        "duplicate-seq"
+      ],
+      "warnings": [],
+      "about": "Two records with one seq (§9)."
+    },
+    {
+      "file": "negative/higher-minor.swupgn",
+      "class": "negative",
+      "level": "complete",
+      "errors": [],
+      "warnings": [
+        "newer-minor",
+        "unknown-value"
+      ],
+      "about": "A newer minor version using a value 1.0 does not know: warnings, not errors (§18)."
+    },
+    {
+      "file": "negative/not-swupgn.swupgn",
+      "class": "negative",
+      "level": "malformed",
+      "errors": [
+        "not-swupgn"
+      ],
+      "warnings": [],
+      "about": "Text before the [Game] line: the magic number check (§19)."
+    },
+    {
+      "file": "negative/over-cap.swupgn",
+      "class": "negative",
+      "level": "well-formed",
+      "errors": [
+        "over-cap"
+      ],
+      "warnings": [],
+      "about": "A keyframe list longer than the reader limit (§17.1)."
+    },
+    {
+      "file": "negative/pre-release.swupgn",
+      "class": "negative",
+      "level": "well-formed",
+      "errors": [],
+      "warnings": [
+        "pre-release"
+      ],
+      "about": "No WriterRevision: a pre-release file (Appendix C)."
+    },
+    {
+      "file": "negative/proto-token.swupgn",
+      "class": "negative",
+      "level": "well-formed",
+      "errors": [
+        "reserved-key"
+      ],
+      "warnings": [],
+      "about": "A reserved key in a keyframe map (§17.1)."
+    },
+    {
+      "file": "negative/rounds-not-digits.swupgn",
+      "class": "negative",
+      "level": "malformed",
+      "errors": [
+        "bad-count"
+      ],
+      "warnings": [],
+      "about": "A required count that is not base-10 digits (§5.1)."
+    },
+    {
+      "file": "negative/unknown-section.swupgn",
+      "class": "negative",
+      "level": "complete",
+      "errors": [],
+      "warnings": [
+        "unknown-section"
+      ],
+      "about": "A section from a later version: skipped with a warning (§18)."
+    },
+    {
+      "file": "negative/unknown-type.swupgn",
+      "class": "negative",
+      "level": "complete",
+      "errors": [],
+      "warnings": [
+        "unknown-type"
+      ],
+      "about": "An event type from a later version: skipped with a warning (§18)."
+    }
+  ]
+}

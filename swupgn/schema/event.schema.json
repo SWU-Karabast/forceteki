@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://karabast.net/swu-pgn/1.0/event.schema.json",
+  "$id": "urn:swu-pgn:1.0:event",
   "title": "SWU-PGN/1.0 Event",
   "description": "One %%% EVENTS (or %%% SETUP) record. Open by design (additionalProperties: true, spec §18) so a reader tolerates fields added later; the per-type constraints below pin the SHAPE of the fields the fold dereferences, so a malformed file is rejected here rather than surfacing as a TypeError in a browser. A keyframe missing a seat still validates here and is ignored by the fold (spec §13).",
   "type": "object",
@@ -32,7 +32,7 @@
     },
     {
       "if": { "properties": { "t": { "const": "UNDO" } }, "required": ["t"] },
-      "then": { "properties": { "at": { "type": "string" }, "by": { "enum": [1,2] } }, "required": ["at"] }
+      "then": { "properties": { "at": { "type": "string", "pattern": "^R\\d+\\.(S|A|G)(\\.[A-Za-z0-9-]+)?$|^R\\d+\\.(start|end)$" }, "by": { "enum": [1,2] } }, "required": ["at"] }
     },
     {
       "if": { "properties": { "t": { "const": "DEFEAT" } }, "required": ["t"] },

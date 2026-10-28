@@ -43,6 +43,15 @@ describe('SwuPgnRecorder.buildHeader', function () {
         expect(JSON.stringify(h)).not.toContain('alice');
         expect(JSON.stringify(h)).not.toContain('bob');
     });
+
+    // Spec §17: GameId is opaque. The engine's game id is in the server's logs beside the lobby
+    // and the players, so it must not be what a shared replay prints.
+    it('writes GameId as a hash of the engine game id, never the id itself', function () {
+        const h = buildHeader(ctx);
+        expect(h.gameId).toMatch(/^sha256:[0-9a-f]{64}$/);
+        expect(JSON.stringify(h)).not.toContain('game-xyz');
+        expect(buildHeader({ ...ctx, gameId: 'other-game' }).gameId).not.toBe(h.gameId);
+    });
 });
 
 class FakeEmitter {

@@ -1,4 +1,4 @@
-import { parse } from '../../../swupgn/src/parse';
+import { parse, SwuPgnError } from '../../../swupgn/src/parse';
 import { validate } from '../../../swupgn/src/validate';
 
 const SAMPLE = [
@@ -15,7 +15,7 @@ const SAMPLE = [
     '{"p":1,"leader":"SOR#010","base":"SOR#028","deck":[["SOR#087",2]]}',
     '',
     '%%% SETUP',
-    '{"seq":"R1.S.0","t":"INIT","p1DeckOrder":["SOR#087"],"p2DeckOrder":["SOR#045"]}',
+    '{"seq":"R0.S.0","t":"INIT","p1DeckOrder":["SOR#087"],"p2DeckOrder":["SOR#045"]}',
     '',
     '%%% EVENTS',
     '{"seq":"R1.A.1","t":"PLAY","p":1,"card":"SOR#108","zone":"ground","cost":2}',
@@ -89,8 +89,8 @@ describe('parse error paths', function () {
 
 describe('parse header numbers', function () {
     const header = (rounds: string) => [
-        '[Game "SWU-PGN/1.0"] [GameId "g"] [Date "d"] [CardPool "SOR"] [Engine "e"] [Seed "s"]',
-        '[P1Id "sha256:a"] [P2Id "sha256:b"] [P1 "Player 1"] [P2 "Player 2"]',
+        '[Game "SWU-PGN/1.0"] [GameId "g"] [Date "2026-06-16T00:00:00Z"] [CardPool "SOR"] [Engine "e"] [Seed "s"]',
+        '[P1Id "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] [P2Id "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] [P1 "Player 1"] [P2 "Player 2"]',
         '[P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]',
         `[Result "P1"] [Reason "r"] [Rounds "${rounds}"]`,
         '', '%%% EVENTS',
@@ -100,11 +100,13 @@ describe('parse header numbers', function () {
         expect(parse(header('7')).header.rounds).toBe(7);
     });
 
-    // NaN is not an error anywhere, so it propagates silently into anything that reads it.
-    it('never yields NaN for a non-numeric Rounds tag', function () {
-        const rounds = parse(header('seven')).header.rounds;
-        expect(Number.isFinite(rounds)).toBe(true);
-        expect(rounds).toBe(0);
+    // Rounds is required, so a corrupt value cannot fall back to "absent" the way an optional
+    // count does. It used to read as 0 and validate clean; now the file is not well-formed.
+    it('rejects a Rounds tag that is not base-10 digits', function () {
+        for (const bad of ['seven', '-1', '1.5', ' 4', '']) {
+            expect(() => parse(header(bad))).withContext(`Rounds "${bad}"`)
+                .toThrowMatching((e) => e instanceof SwuPgnError && e.code === 'bad-count');
+        }
     });
 
     it('reads RecorderErrors when present and leaves it absent otherwise', function () {
@@ -133,14 +135,68 @@ describe('parse header numbers', function () {
         expect(parse(header('4')).header.writerRevision).toBeUndefined();
         const stamped = header('4').replace('[Rounds "4"]', '[Rounds "4"] [WriterRevision "1"]');
         expect(parse(stamped).header.writerRevision).toBe(1);
-        expect(validate(stamped).issues).toEqual([]);
+        expect(validate(stamped).issues.filter((i) => i.severity === 'error')).toEqual([]);
         const zero = header('4').replace('[Rounds "4"]', '[Rounds "4"] [WriterRevision "0"]');
         expect(validate(zero).issues.map((i) => i.message).join(' ')).toContain('WriterRevision');
     });
 
     it('does not mistake a [-prefixed record inside a JSON section for a header line', function () {
-        const text = header('4') + '\n%%% EVENTS\n["not","an","event"]\n';
+        const text = header('4') + '\n["not","an","event"]\n';
         const doc = parse(text);
         expect(doc.events.length).toBe(1); // it reached the record path (validate() rejects it)
+    });
+});
+
+describe('parse grammar (spec §4, Appendix B)', function () {
+    const HEAD = [
+        '[Game "SWU-PGN/1.0"] [GameId "g"] [Date "2026-06-16T00:00:00Z"] [CardPool "SOR"] [Engine "e"] [Seed "s"]',
+        '[P1Id "p"] [P2Id "q"] [P1 "Player 1"] [P2 "Player 2"]',
+        '[P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]',
+        '[Result "P1"] [Reason "r"] [Rounds "1"]',
+    ].join('\n');
+    const code = (text: string, limits = {}) => {
+        try {
+            parse(text, limits);
+            return 'ok';
+        } catch (e) {
+            return e instanceof SwuPgnError ? e.code : `untyped: ${(e as Error).message}`;
+        }
+    };
+
+    it('strips a leading byte order mark', function () {
+        expect(code('\uFEFF' + HEAD)).toBe('ok');
+    });
+
+    it('requires the first line to be the Game tag', function () {
+        expect(code('[GameId "g"]\n' + HEAD)).toBe('not-swupgn');
+        expect(code('hello\n' + HEAD)).toBe('not-swupgn');
+        expect(code('')).toBe('not-swupgn');
+    });
+
+    it('rejects text outside the brackets of a header line', function () {
+        expect(code(HEAD.replace('[Rounds "1"]', '[Rounds "1"] trailing'))).toBe('bad-header-line');
+    });
+
+    it('rejects an escape other than \\\\ and \\" instead of dropping the backslash', function () {
+        expect(code(HEAD.replace('[Reason "r"]', '[Reason "a\\nb"]'))).toBe('bad-escape');
+        const ok = parse(HEAD.replace('[Reason "r"]', '[Reason "say \\"hi\\" \\\\ n"]'));
+        expect(ok.header.reason).toBe('say "hi" \\ n');
+    });
+
+    it('rejects a tag given twice and a section given twice', function () {
+        expect(code(HEAD + '\n[Rounds "2"]')).toBe('duplicate-tag');
+        expect(code(HEAD + '\n%%% EVENTS\n%%% EVENTS')).toBe('duplicate-section');
+    });
+
+    it('skips an unknown section unread, even when its lines are not JSON', function () {
+        expect(code(HEAD + '\n%%% X_NOTES\nfree text, not JSON\n%%% EVENTS')).toBe('ok');
+    });
+
+    it('rejects input over a limit rather than reading part of it', function () {
+        const events = HEAD + '\n%%% EVENTS\n' + '{"seq":"R1.A.1","t":"PASS","p":1}\n'.repeat(3);
+        expect(code(events, { maxRecords: 2 })).toBe('too-many-records');
+        expect(code(events, { maxBytes: 100 })).toBe('too-large');
+        expect(code(events, { maxLineLength: 20 })).toBe('line-too-long');
+        expect(code(HEAD + '\n%%% EVENTS\n' + '['.repeat(70) + ']'.repeat(70))).toBe('too-deep');
     });
 });

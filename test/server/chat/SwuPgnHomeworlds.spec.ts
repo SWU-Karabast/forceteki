@@ -30,7 +30,9 @@ function realMismatches(doc: SwuPgnDocument) {
 }
 
 function expectClean(text: string, doc: SwuPgnDocument): void {
-    expect(validate(text).issues).withContext('validate()')
+    // The keyframe gate is checked on its own below, with the harness's setup artifacts set aside;
+    // validate() cannot tell those from a real mismatch.
+    expect(validate(text).issues.filter((i) => i.code !== 'keyframe-mismatch')).withContext('validate()')
         .toEqual([]);
     expect(realMismatches(doc)).withContext('fold reproduces every keyframe')
         .toEqual([]);

@@ -1,0 +1,121 @@
+[Game "SWU-PGN/1.0"]
+[WriterRevision "3"]
+[GameId "vector-minimal"]
+[Date "2026-06-16T00:00:00Z"]
+[Format "Premier"] [CardPool "SOR"] [Engine "forceteki@reference"]
+[Seed "0"]
+[P1Id "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] [P2Id "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] [P1 "Player 1"] [P2 "Player 2"]
+[P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]
+[Result "Incomplete"] [Reason "Sample"] [Rounds "2"]
+
+%%% STORY
+ ── setup ──
+       ↳ Player 1 draws 3: Wampa · Wampa #2 · Wampa #3
+       ↳ Player 2 draws 3: Cell Block Guard · Cell Block Guard #2 · Cell Block Guard #3
+       ↳ Player 1 keeps their hand
+       ↳ Player 2 keeps their hand
+       ↳ Player 1 resources Wampa #2
+       ↳ Player 1 resources Wampa #3
+       ↳ Player 2 resources Cell Block Guard #2
+       ↳ Player 2 resources Cell Block Guard #3
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 1                                                 initiative: Player 1 
+ P1  base 30/30   hand 1   resources 2/2   deck 2   leader ready
+ P2  base 30/30   hand 1   resources 2/2   deck 2   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Wampa to ground (cost 2)
+  2. Player 2 passes
+  3. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Wampa #4 · Wampa #5
+       ↳ Player 2 draws 2: Cell Block Guard #4 · Cell Block Guard #5
+       ↳ Player 1 resources Wampa #4
+       ↳ Player 2 resources Cell Block Guard #4
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 2                                                 initiative: Player 1 
+ P1  base 30/30   hand 1   resources 3/3   deck 0   leader ready
+      ground: Wampa 4/5
+ P2  base 30/30   hand 2   resources 3/3   deck 0   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 attacks Player 2's base with Wampa
+       ↳ 4 damage to Player 2's base — 26 HP left
+
+%%% DECKS
+{"p":1,"leader":"SOR#010","base":"SOR#028","deck":[["SOR#108",5]]}
+{"p":2,"leader":"SOR#005","base":"SOR#020","deck":[["SOR#045",5]]}
+
+%%% CARDS
+{"id":"SOR#005","name":"Darth Vader, Dark Lord of the Sith"}
+{"id":"SOR#010","name":"Luke Skywalker, Faithful Friend"}
+{"id":"SOR#020","name":"Command Center"}
+{"id":"SOR#028","name":"Echo Base"}
+{"id":"SOR#045","name":"Cell Block Guard","kind":"unit"}
+{"id":"SOR#108","name":"Wampa","kind":"unit"}
+
+%%% SETUP
+{"seq":"R0.S.0","t":"INIT","p1DeckOrder":["SOR#108","SOR#108:2","SOR#108:3","SOR#108:4","SOR#108:5"],"p2DeckOrder":["SOR#045","SOR#045:2","SOR#045:3","SOR#045:4","SOR#045:5"]}
+
+%%% EVENTS
+{"seq":"R0.S.start","t":"PHASE_START","phase":"setup"}
+{"seq":"R0.S.1","t":"MODAL_CHOICE","p":1,"offered":["Yourself","Opponent"],"chose":0}
+{"seq":"R0.S.2","t":"SHUFFLE","p":1}
+{"seq":"R0.S.3","t":"MOVE","card":"SOR#108","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.4","t":"MOVE","card":"SOR#108:2","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.5","t":"MOVE","card":"SOR#108:3","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.6","t":"DRAW","p":1,"count":3,"cards":["SOR#108","SOR#108:2","SOR#108:3"]}
+{"seq":"R0.S.7","t":"SHUFFLE","p":2}
+{"seq":"R0.S.8","t":"MOVE","card":"SOR#045","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.9","t":"MOVE","card":"SOR#045:2","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.10","t":"MOVE","card":"SOR#045:3","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.11","t":"DRAW","p":2,"count":3,"cards":["SOR#045","SOR#045:2","SOR#045:3"]}
+{"seq":"R0.S.12","t":"KEEP_HAND","p":1}
+{"seq":"R0.S.13","t":"KEEP_HAND","p":2}
+{"seq":"R0.S.14","t":"MOVE","card":"SOR#108:2","from":"hand","to":"resource","p":1,"kind":"unit"}
+{"seq":"R0.S.15","t":"RESOURCE","p":1,"card":"SOR#108:2"}
+{"seq":"R0.S.16","t":"MOVE","card":"SOR#108:3","from":"hand","to":"resource","p":1,"kind":"unit"}
+{"seq":"R0.S.17","t":"RESOURCE","p":1,"card":"SOR#108:3"}
+{"seq":"R0.S.18","t":"MOVE","card":"SOR#045:2","from":"hand","to":"resource","p":2,"kind":"unit"}
+{"seq":"R0.S.19","t":"RESOURCE","p":2,"card":"SOR#045:2"}
+{"seq":"R0.S.20","t":"MOVE","card":"SOR#045:3","from":"hand","to":"resource","p":2,"kind":"unit"}
+{"seq":"R0.S.21","t":"RESOURCE","p":2,"card":"SOR#045:3"}
+{"seq":"R0.S.end","t":"PHASE_END","phase":"setup"}
+{"seq":"R1.start","t":"ROUND_START","round":1,"keyframe":{"round":1,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:1","SOR#108:2","SOR#108:3","SOR#108:4","SOR#108:5","SOR#108:6","SOR#108:7","SOR#108:8","SOR#108:9","SOR#108:10","SOR#108:11","SOR#108:12","SOR#108:13","SOR#108:14","SOR#108:15","SOR#108:16","SOR#108:17","SOR#108:18","SOR#108:19","SOR#108:20","SOR#108:21","SOR#108:22","SOR#108:23","SOR#108:24","SOR#108:25","SOR#108:26","SOR#108:27","SOR#108:28","SOR#108:29","SOR#108:30","SOR#108:31","SOR#108:32","SOR#108:33","SOR#108:34","SOR#108:35","SOR#108:36","SOR#108:37","SOR#108:38","SOR#108:39","SOR#108:40","SOR#108:41","SOR#108:42","SOR#108:43","SOR#108:44","SOR#108:45","SOR#108:46","SOR#108:47","SOR#108:48","SOR#108:49","SOR#108:50","SOR#108:51","SOR#108:52","SOR#108:53","SOR#108:54","SOR#108:55","SOR#108:56","SOR#108:57","SOR#108:58","SOR#108:59","SOR#108:60","SOR#108:61","SOR#108:62","SOR#108:63","SOR#108:64","SOR#108:65","SOR#108:66","SOR#108:67","SOR#108:68","SOR#108:69","SOR#108:70","SOR#108:71","SOR#108:72","SOR#108:73","SOR#108:74","SOR#108:75","SOR#108:76","SOR#108:77","SOR#108:78","SOR#108:79","SOR#108:80","SOR#108:81","SOR#108:82","SOR#108:83","SOR#108:84","SOR#108:85","SOR#108:86","SOR#108:87","SOR#108:88","SOR#108:89","SOR#108:90","SOR#108:91","SOR#108:92","SOR#108:93","SOR#108:94","SOR#108:95","SOR#108:96","SOR#108:97","SOR#108:98","SOR#108:99","SOR#108:100","SOR#108:101","SOR#108:102","SOR#108:103","SOR#108:104","SOR#108:105","SOR#108:106","SOR#108:107","SOR#108:108","SOR#108:109","SOR#108:110","SOR#108:111","SOR#108:112","SOR#108:113","SOR#108:114","SOR#108:115","SOR#108:116","SOR#108:117","SOR#108:118","SOR#108:119","SOR#108:120","SOR#108:121","SOR#108:122","SOR#108:123","SOR#108:124","SOR#108:125","SOR#108:126","SOR#108:127","SOR#108:128","SOR#108:129","SOR#108:130","SOR#108:131","SOR#108:132","SOR#108:133","SOR#108:134","SOR#108:135","SOR#108:136","SOR#108:137","SOR#108:138","SOR#108:139","SOR#108:140","SOR#108:141","SOR#108:142","SOR#108:143","SOR#108:144","SOR#108:145","SOR#108:146","SOR#108:147","SOR#108:148","SOR#108:149","SOR#108:150","SOR#108:151","SOR#108:152","SOR#108:153","SOR#108:154","SOR#108:155","SOR#108:156","SOR#108:157","SOR#108:158","SOR#108:159","SOR#108:160","SOR#108:161","SOR#108:162","SOR#108:163","SOR#108:164","SOR#108:165","SOR#108:166","SOR#108:167","SOR#108:168","SOR#108:169","SOR#108:170","SOR#108:171","SOR#108:172","SOR#108:173","SOR#108:174","SOR#108:175","SOR#108:176","SOR#108:177","SOR#108:178","SOR#108:179","SOR#108:180","SOR#108:181","SOR#108:182","SOR#108:183","SOR#108:184","SOR#108:185","SOR#108:186","SOR#108:187","SOR#108:188","SOR#108:189","SOR#108:190","SOR#108:191","SOR#108:192","SOR#108:193","SOR#108:194","SOR#108:195","SOR#108:196","SOR#108:197","SOR#108:198","SOR#108:199","SOR#108:200","SOR#108:201","SOR#108:202","SOR#108:203","SOR#108:204","SOR#108:205","SOR#108:206","SOR#108:207","SOR#108:208","SOR#108:209","SOR#108:210","SOR#108:211","SOR#108:212","SOR#108:213","SOR#108:214","SOR#108:215","SOR#108:216","SOR#108:217","SOR#108:218","SOR#108:219","SOR#108:220","SOR#108:221","SOR#108:222","SOR#108:223","SOR#108:224","SOR#108:225","SOR#108:226","SOR#108:227","SOR#108:228","SOR#108:229","SOR#108:230","SOR#108:231","SOR#108:232","SOR#108:233","SOR#108:234","SOR#108:235","SOR#108:236","SOR#108:237","SOR#108:238","SOR#108:239","SOR#108:240","SOR#108:241","SOR#108:242","SOR#108:243","SOR#108:244","SOR#108:245","SOR#108:246","SOR#108:247","SOR#108:248","SOR#108:249","SOR#108:250","SOR#108:251","SOR#108:252","SOR#108:253","SOR#108:254","SOR#108:255","SOR#108:256","SOR#108:257","SOR#108:258","SOR#108:259","SOR#108:260","SOR#108:261","SOR#108:262","SOR#108:263","SOR#108:264","SOR#108:265","SOR#108:266","SOR#108:267","SOR#108:268","SOR#108:269","SOR#108:270","SOR#108:271","SOR#108:272","SOR#108:273","SOR#108:274","SOR#108:275","SOR#108:276","SOR#108:277","SOR#108:278","SOR#108:279","SOR#108:280","SOR#108:281","SOR#108:282","SOR#108:283","SOR#108:284","SOR#108:285","SOR#108:286","SOR#108:287","SOR#108:288","SOR#108:289","SOR#108:290","SOR#108:291","SOR#108:292","SOR#108:293","SOR#108:294","SOR#108:295","SOR#108:296","SOR#108:297","SOR#108:298","SOR#108:299","SOR#108:300","SOR#108:301","SOR#108:302","SOR#108:303","SOR#108:304","SOR#108:305","SOR#108:306","SOR#108:307","SOR#108:308","SOR#108:309","SOR#108:310","SOR#108:311","SOR#108:312","SOR#108:313","SOR#108:314","SOR#108:315","SOR#108:316","SOR#108:317","SOR#108:318","SOR#108:319","SOR#108:320","SOR#108:321","SOR#108:322","SOR#108:323","SOR#108:324","SOR#108:325","SOR#108:326","SOR#108:327","SOR#108:328","SOR#108:329","SOR#108:330","SOR#108:331","SOR#108:332","SOR#108:333","SOR#108:334","SOR#108:335","SOR#108:336","SOR#108:337","SOR#108:338","SOR#108:339","SOR#108:340","SOR#108:341","SOR#108:342","SOR#108:343","SOR#108:344","SOR#108:345","SOR#108:346","SOR#108:347","SOR#108:348","SOR#108:349","SOR#108:350","SOR#108:351","SOR#108:352","SOR#108:353","SOR#108:354","SOR#108:355","SOR#108:356","SOR#108:357","SOR#108:358","SOR#108:359","SOR#108:360","SOR#108:361","SOR#108:362","SOR#108:363","SOR#108:364","SOR#108:365","SOR#108:366","SOR#108:367","SOR#108:368","SOR#108:369","SOR#108:370","SOR#108:371","SOR#108:372","SOR#108:373","SOR#108:374","SOR#108:375","SOR#108:376","SOR#108:377","SOR#108:378","SOR#108:379","SOR#108:380","SOR#108:381","SOR#108:382","SOR#108:383","SOR#108:384","SOR#108:385","SOR#108:386","SOR#108:387","SOR#108:388","SOR#108:389","SOR#108:390","SOR#108:391","SOR#108:392","SOR#108:393","SOR#108:394","SOR#108:395","SOR#108:396","SOR#108:397","SOR#108:398","SOR#108:399","SOR#108:400","SOR#108:401","SOR#108:402","SOR#108:403","SOR#108:404","SOR#108:405","SOR#108:406","SOR#108:407","SOR#108:408","SOR#108:409","SOR#108:410","SOR#108:411","SOR#108:412","SOR#108:413","SOR#108:414","SOR#108:415","SOR#108:416","SOR#108:417","SOR#108:418","SOR#108:419","SOR#108:420","SOR#108:421","SOR#108:422","SOR#108:423","SOR#108:424","SOR#108:425","SOR#108:426","SOR#108:427","SOR#108:428","SOR#108:429","SOR#108:430","SOR#108:431","SOR#108:432","SOR#108:433","SOR#108:434","SOR#108:435","SOR#108:436","SOR#108:437","SOR#108:438","SOR#108:439","SOR#108:440","SOR#108:441","SOR#108:442","SOR#108:443","SOR#108:444","SOR#108:445","SOR#108:446","SOR#108:447","SOR#108:448","SOR#108:449","SOR#108:450","SOR#108:451","SOR#108:452","SOR#108:453","SOR#108:454","SOR#108:455","SOR#108:456","SOR#108:457","SOR#108:458","SOR#108:459","SOR#108:460","SOR#108:461","SOR#108:462","SOR#108:463","SOR#108:464","SOR#108:465","SOR#108:466","SOR#108:467","SOR#108:468","SOR#108:469","SOR#108:470","SOR#108:471","SOR#108:472","SOR#108:473","SOR#108:474","SOR#108:475","SOR#108:476","SOR#108:477","SOR#108:478","SOR#108:479","SOR#108:480","SOR#108:481","SOR#108:482","SOR#108:483","SOR#108:484","SOR#108:485","SOR#108:486","SOR#108:487","SOR#108:488","SOR#108:489","SOR#108:490","SOR#108:491","SOR#108:492","SOR#108:493","SOR#108:494","SOR#108:495","SOR#108:496","SOR#108:497","SOR#108:498","SOR#108:499","SOR#108:500","SOR#108:501","SOR#108:502","SOR#108:503","SOR#108:504","SOR#108:505","SOR#108:506","SOR#108:507","SOR#108:508","SOR#108:509","SOR#108:510","SOR#108:511","SOR#108:512","SOR#108:513","SOR#108:514","SOR#108:515","SOR#108:516","SOR#108:517","SOR#108:518","SOR#108:519","SOR#108:520","SOR#108:521","SOR#108:522","SOR#108:523","SOR#108:524","SOR#108:525","SOR#108:526","SOR#108:527","SOR#108:528","SOR#108:529","SOR#108:530","SOR#108:531","SOR#108:532","SOR#108:533","SOR#108:534","SOR#108:535","SOR#108:536","SOR#108:537","SOR#108:538","SOR#108:539","SOR#108:540","SOR#108:541","SOR#108:542","SOR#108:543","SOR#108:544","SOR#108:545","SOR#108:546","SOR#108:547","SOR#108:548","SOR#108:549","SOR#108:550","SOR#108:551","SOR#108:552","SOR#108:553","SOR#108:554","SOR#108:555","SOR#108:556","SOR#108:557","SOR#108:558","SOR#108:559","SOR#108:560","SOR#108:561","SOR#108:562","SOR#108:563","SOR#108:564","SOR#108:565","SOR#108:566","SOR#108:567","SOR#108:568","SOR#108:569","SOR#108:570","SOR#108:571","SOR#108:572","SOR#108:573","SOR#108:574","SOR#108:575","SOR#108:576","SOR#108:577","SOR#108:578","SOR#108:579","SOR#108:580","SOR#108:581","SOR#108:582","SOR#108:583","SOR#108:584","SOR#108:585","SOR#108:586","SOR#108:587","SOR#108:588","SOR#108:589","SOR#108:590","SOR#108:591","SOR#108:592","SOR#108:593","SOR#108:594","SOR#108:595","SOR#108:596","SOR#108:597","SOR#108:598","SOR#108:599","SOR#108:600","SOR#108:601","SOR#108:602","SOR#108:603","SOR#108:604","SOR#108:605","SOR#108:606","SOR#108:607","SOR#108:608","SOR#108:609","SOR#108:610","SOR#108:611","SOR#108:612","SOR#108:613","SOR#108:614","SOR#108:615","SOR#108:616","SOR#108:617","SOR#108:618","SOR#108:619","SOR#108:620","SOR#108:621","SOR#108:622","SOR#108:623","SOR#108:624","SOR#108:625","SOR#108:626","SOR#108:627","SOR#108:628","SOR#108:629","SOR#108:630","SOR#108:631","SOR#108:632","SOR#108:633","SOR#108:634","SOR#108:635","SOR#108:636","SOR#108:637","SOR#108:638","SOR#108:639","SOR#108:640","SOR#108:641","SOR#108:642","SOR#108:643","SOR#108:644","SOR#108:645","SOR#108:646","SOR#108:647","SOR#108:648","SOR#108:649","SOR#108:650","SOR#108:651","SOR#108:652","SOR#108:653","SOR#108:654","SOR#108:655","SOR#108:656","SOR#108:657","SOR#108:658","SOR#108:659","SOR#108:660","SOR#108:661","SOR#108:662","SOR#108:663","SOR#108:664","SOR#108:665","SOR#108:666","SOR#108:667","SOR#108:668","SOR#108:669","SOR#108:670","SOR#108:671","SOR#108:672","SOR#108:673","SOR#108:674","SOR#108:675","SOR#108:676","SOR#108:677","SOR#108:678","SOR#108:679","SOR#108:680","SOR#108:681","SOR#108:682","SOR#108:683","SOR#108:684","SOR#108:685","SOR#108:686","SOR#108:687","SOR#108:688","SOR#108:689","SOR#108:690","SOR#108:691","SOR#108:692","SOR#108:693","SOR#108:694","SOR#108:695","SOR#108:696","SOR#108:697","SOR#108:698","SOR#108:699","SOR#108:700","SOR#108:701","SOR#108:702","SOR#108:703","SOR#108:704","SOR#108:705","SOR#108:706","SOR#108:707","SOR#108:708","SOR#108:709","SOR#108:710","SOR#108:711","SOR#108:712","SOR#108:713","SOR#108:714","SOR#108:715","SOR#108:716","SOR#108:717","SOR#108:718","SOR#108:719","SOR#108:720","SOR#108:721","SOR#108:722","SOR#108:723","SOR#108:724","SOR#108:725","SOR#108:726","SOR#108:727","SOR#108:728","SOR#108:729","SOR#108:730","SOR#108:731","SOR#108:732","SOR#108:733","SOR#108:734","SOR#108:735","SOR#108:736","SOR#108:737","SOR#108:738","SOR#108:739","SOR#108:740","SOR#108:741","SOR#108:742","SOR#108:743","SOR#108:744","SOR#108:745","SOR#108:746","SOR#108:747","SOR#108:748","SOR#108:749","SOR#108:750","SOR#108:751","SOR#108:752","SOR#108:753","SOR#108:754","SOR#108:755","SOR#108:756","SOR#108:757","SOR#108:758","SOR#108:759","SOR#108:760","SOR#108:761","SOR#108:762","SOR#108:763","SOR#108:764","SOR#108:765","SOR#108:766","SOR#108:767","SOR#108:768","SOR#108:769","SOR#108:770","SOR#108:771","SOR#108:772","SOR#108:773","SOR#108:774","SOR#108:775","SOR#108:776","SOR#108:777","SOR#108:778","SOR#108:779","SOR#108:780","SOR#108:781","SOR#108:782","SOR#108:783","SOR#108:784","SOR#108:785","SOR#108:786","SOR#108:787","SOR#108:788","SOR#108:789","SOR#108:790","SOR#108:791","SOR#108:792","SOR#108:793","SOR#108:794","SOR#108:795","SOR#108:796","SOR#108:797","SOR#108:798","SOR#108:799","SOR#108:800","SOR#108:801","SOR#108:802","SOR#108:803","SOR#108:804","SOR#108:805","SOR#108:806","SOR#108:807","SOR#108:808","SOR#108:809","SOR#108:810","SOR#108:811","SOR#108:812","SOR#108:813","SOR#108:814","SOR#108:815","SOR#108:816","SOR#108:817","SOR#108:818","SOR#108:819","SOR#108:820","SOR#108:821","SOR#108:822","SOR#108:823","SOR#108:824","SOR#108:825","SOR#108:826","SOR#108:827","SOR#108:828","SOR#108:829","SOR#108:830","SOR#108:831","SOR#108:832","SOR#108:833","SOR#108:834","SOR#108:835","SOR#108:836","SOR#108:837","SOR#108:838","SOR#108:839","SOR#108:840","SOR#108:841","SOR#108:842","SOR#108:843","SOR#108:844","SOR#108:845","SOR#108:846","SOR#108:847","SOR#108:848","SOR#108:849","SOR#108:850","SOR#108:851","SOR#108:852","SOR#108:853","SOR#108:854","SOR#108:855","SOR#108:856","SOR#108:857","SOR#108:858","SOR#108:859","SOR#108:860","SOR#108:861","SOR#108:862","SOR#108:863","SOR#108:864","SOR#108:865","SOR#108:866","SOR#108:867","SOR#108:868","SOR#108:869","SOR#108:870","SOR#108:871","SOR#108:872","SOR#108:873","SOR#108:874","SOR#108:875","SOR#108:876","SOR#108:877","SOR#108:878","SOR#108:879","SOR#108:880","SOR#108:881","SOR#108:882","SOR#108:883","SOR#108:884","SOR#108:885","SOR#108:886","SOR#108:887","SOR#108:888","SOR#108:889","SOR#108:890","SOR#108:891","SOR#108:892","SOR#108:893","SOR#108:894","SOR#108:895","SOR#108:896","SOR#108:897","SOR#108:898","SOR#108:899","SOR#108:900","SOR#108:901","SOR#108:902","SOR#108:903","SOR#108:904","SOR#108:905","SOR#108:906","SOR#108:907","SOR#108:908","SOR#108:909","SOR#108:910","SOR#108:911","SOR#108:912","SOR#108:913","SOR#108:914","SOR#108:915","SOR#108:916","SOR#108:917","SOR#108:918","SOR#108:919","SOR#108:920","SOR#108:921","SOR#108:922","SOR#108:923","SOR#108:924","SOR#108:925","SOR#108:926","SOR#108:927","SOR#108:928","SOR#108:929","SOR#108:930","SOR#108:931","SOR#108:932","SOR#108:933","SOR#108:934","SOR#108:935","SOR#108:936","SOR#108:937","SOR#108:938","SOR#108:939","SOR#108:940","SOR#108:941","SOR#108:942","SOR#108:943","SOR#108:944","SOR#108:945","SOR#108:946","SOR#108:947","SOR#108:948","SOR#108:949","SOR#108:950","SOR#108:951","SOR#108:952","SOR#108:953","SOR#108:954","SOR#108:955","SOR#108:956","SOR#108:957","SOR#108:958","SOR#108:959","SOR#108:960","SOR#108:961","SOR#108:962","SOR#108:963","SOR#108:964","SOR#108:965","SOR#108:966","SOR#108:967","SOR#108:968","SOR#108:969","SOR#108:970","SOR#108:971","SOR#108:972","SOR#108:973","SOR#108:974","SOR#108:975","SOR#108:976","SOR#108:977","SOR#108:978","SOR#108:979","SOR#108:980","SOR#108:981","SOR#108:982","SOR#108:983","SOR#108:984","SOR#108:985","SOR#108:986","SOR#108:987","SOR#108:988","SOR#108:989","SOR#108:990","SOR#108:991","SOR#108:992","SOR#108:993","SOR#108:994","SOR#108:995","SOR#108:996","SOR#108:997","SOR#108:998","SOR#108:999","SOR#108:1000","SOR#108:1001","SOR#108:1002"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#045"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
+{"seq":"R1.A.start","t":"PHASE_START","phase":"action"}
+{"seq":"R1.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2}
+{"seq":"R1.A.0b","t":"MOVE","card":"SOR#108","from":"hand","to":"ground","p":1,"kind":"unit"}
+{"seq":"R1.A.0c","t":"STATS","card":"SOR#108","power":4,"hp":5,"keywords":["overwhelm"]}
+{"seq":"R1.A.1","t":"PLAY","p":1,"card":"SOR#108","zone":"ground","cost":2}
+{"seq":"R1.A.1a","t":"EXHAUST","card":"SOR#108"}
+{"seq":"R1.A.2","t":"PASS","p":2}
+{"seq":"R1.A.3","t":"PASS","p":1}
+{"seq":"R1.A.end","t":"PHASE_END","phase":"action"}
+{"seq":"R1.G.start","t":"PHASE_START","phase":"regroup"}
+{"seq":"R1.G.1","t":"MOVE","card":"SOR#108:4","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R1.G.2","t":"MOVE","card":"SOR#108:5","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R1.G.3","t":"DRAW","p":1,"count":2,"cards":["SOR#108:4","SOR#108:5"]}
+{"seq":"R1.G.4","t":"MOVE","card":"SOR#045:4","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R1.G.5","t":"MOVE","card":"SOR#045:5","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R1.G.6","t":"DRAW","p":2,"count":2,"cards":["SOR#045:4","SOR#045:5"]}
+{"seq":"R1.G.7","t":"MOVE","card":"SOR#108:4","from":"hand","to":"resource","p":1,"kind":"unit"}
+{"seq":"R1.G.8","t":"RESOURCE","p":1,"card":"SOR#108:4"}
+{"seq":"R1.G.9","t":"MOVE","card":"SOR#045:4","from":"hand","to":"resource","p":2,"kind":"unit"}
+{"seq":"R1.G.10","t":"RESOURCE","p":2,"card":"SOR#045:4"}
+{"seq":"R1.G.11","t":"READY","card":"SOR#108"}
+{"seq":"R1.G.12","t":"READY_RESOURCES","p":1,"amount":2}
+{"seq":"R1.G.end","t":"PHASE_END","phase":"regroup"}
+{"seq":"R1.end","t":"ROUND_END","round":1,"keyframe":{"round":1,"phase":"regroup","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#108","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":["overwhelm"]}],"deckSize":0,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#045","SOR#045:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":0,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
+{"seq":"R2.start","t":"ROUND_START","round":2,"keyframe":{"round":2,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#108","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":["overwhelm"]}],"deckSize":0,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#045","SOR#045:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":0,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
+{"seq":"R2.A.start","t":"PHASE_START","phase":"action"}
+{"seq":"R2.A.0a","t":"CHOICE","p":1,"prompt":"Wampa","offered":["base@2"],"chose":0}
+{"seq":"R2.A.0b","t":"EXHAUST","card":"SOR#108"}
+{"seq":"R2.A.1","t":"ATTACK","p":1,"atk":"SOR#108","def":"base@2","defenderType":"base"}
+{"seq":"R2.A.1a","t":"DAMAGE","src":"SOR#108","tgt":"base@2","amt":4,"damageType":"combat","hp":26}
+
+%%% ANNOTATIONS
+{"ref":"R2.A.1","nag":"?!","text":"attacking the base rather than developing the board"}

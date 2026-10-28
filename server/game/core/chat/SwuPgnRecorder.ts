@@ -3,11 +3,14 @@ import { AbilityType, CardType, DeployType, EventName, PhaseName, PlayType, Zone
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 import { logger } from '../../../logger';
 import type { AbilityKind, DefeatReason, Header, GameEvent, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
-import { anonymizedMatchId, saltedPlayerId, anonymizePlayerLabel } from './swuPgnIdentity';
+import { anonymizedGameId, anonymizedMatchId, saltedPlayerId, anonymizePlayerLabel } from './swuPgnIdentity';
 import { isTopLevelActionRecord } from '../../../../swupgn/src/actionLinks';
 import { isArena } from '../../../../swupgn/src/fold';
 
 export interface HeaderContext {
+
+    /** The engine's own game id. Host-internal: it salts the fallback player ids and is hashed
+     *  into the `GameId` tag, never written as is (spec §17). */
     gameId: string;
     date: string;            // ISO-8601 UTC
     format?: string;
@@ -44,13 +47,13 @@ export interface HeaderContext {
  * reader can observe, so two files that both say `SWU-PGN/1.0` can still be told apart. Files
  * written before the tag existed (the 1.0 pilot) carry none.
  */
-export const SWU_PGN_WRITER_REVISION = 2;
+export const SWU_PGN_WRITER_REVISION = 3;
 
 export function buildHeader(ctx: HeaderContext): Header {
     return {
         game: 'SWU-PGN/1.0',
         writerRevision: SWU_PGN_WRITER_REVISION,
-        gameId: ctx.gameId,
+        gameId: anonymizedGameId(ctx.gameId),
         date: ctx.date,
         format: ctx.format,
         cardPool: ctx.cardPool,
@@ -425,7 +428,7 @@ export class SwuPgnRecorder {
             }
             const { p1, p2 } = this.resolver.deckOrder();
             this.setup.push({
-                seq: 'R1.S.0',
+                seq: 'R0.S.0',
                 t: 'INIT',
                 p1DeckOrder: p1,
                 p2DeckOrder: p2,

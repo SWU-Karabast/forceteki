@@ -1,42 +1,95 @@
-# SWU-PGN/1.0 — The Spec
+# SWU-PGN/1.0 — Star Wars: Unlimited Portable Game Notation
 
 **Name:** SWU-PGN/1.0-SPEC
-**Status:** Draft Standard
-**Editors:** Karabast Project
-**Reference code:** the `swupgn/` folder in this repo
+**Version:** 1.0, Candidate Recommendation (pilot), 2026-10-28
+**Editors:** the Karabast Project
+**Reference implementation (informative):** the `swupgn/` folder of the
+[forceteki repository](https://github.com/SWU-Karabast/forceteki)
+**Feedback:** an issue or pull request on that repository with `SWU-PGN` in its title
+
+---
+
+## Abstract
+
+SWU-PGN is a plain-text format that records one complete game of the Star Wars: Unlimited
+trading card game. A file holds a header of tag pairs, the game written out as prose, both
+decks, and an ordered stream of JSON records, one for every change to the board, with full
+snapshots of the board ("keyframes") at round boundaries. A reader rebuilds the board at any
+moment by applying the records in order, with no rules engine and no card database. This
+document defines the syntax, the records, how a reader folds them into a board, how a file is
+checked against its own snapshots, and how the prose is produced.
+
+## Status of This Document
+
+This is a **Candidate Recommendation in a pilot**. Its text is stable: the editors expect to
+change it only to correct errata and to close the open issues listed in
+[§21](#21-open-issues). Every change made before final publication is recorded in
+[§22](#22-version-history). Files written during the pilot are pre-release files; how to read
+them is in [Appendix C](#appendix-c-reading-pre-release-files-informative).
+
+It becomes a Recommendation when two independent implementations pass the conformance suite
+([§20](#20-conformance-suite--test-vectors)) and each open issue in §21 is either closed or
+deferred to a later minor version. SWUForge and Karabuddy are implementing it.
+
+## Copyright and License
+
+Copyright © 2026 the Karabast Project contributors.
+
+The text of this specification is licensed under the
+[Creative Commons Attribution 4.0 International License (CC-BY-4.0)](https://creativecommons.org/licenses/by/4.0/).
+The JSON schemas (`swupgn/schema/`), the conformance suite (`swupgn/test-vectors/`) and the
+reference implementation (`swupgn/src/`) are licensed under the MIT License, the license of the
+forceteki repository.
+
+## Trademarks
+
+Star Wars and related names are trademarks of Lucasfilm Ltd. Star Wars: Unlimited is published
+by Fantasy Flight Games. This specification is an independent fan project. It is not affiliated
+with, endorsed by or sponsored by Lucasfilm, Disney or Fantasy Flight Games. Card names and set
+codes appear only to identify cards.
 
 ---
 
 ## Contents
 
-1. [What this is](#1-what-this-is)
-2. [How to read this spec](#2-how-to-read-this-spec)
-3. [Who has to do what](#3-who-has-to-do-what)
-4. [What a file looks like](#4-what-a-file-looks-like)
-5. [The header tags](#5-the-header-tags)
-6. [The names used inside a file](#6-the-names-used-inside-a-file)
+1. [Introduction — what this is](#1-introduction--what-this-is)
+2. [Conventions and conformance — how to read this spec](#2-conventions-and-conformance--how-to-read-this-spec)
+3. [Conformance classes — who has to do what](#3-conformance-classes--who-has-to-do-what)
+4. [File syntax — what a file looks like](#4-file-syntax--what-a-file-looks-like)
+5. [Header tags](#5-header-tags)
+6. [Identifiers and vocabularies — the names used inside a file](#6-identifiers-and-vocabularies--the-names-used-inside-a-file)
 7. [The DECKS section](#7-the-decks-section)
 8. [The SETUP section](#8-the-setup-section)
 9. [The EVENTS section and `seq` numbers](#9-the-events-section-and-seq-numbers)
-10. [Every event type](#10-every-event-type) — including [10.3 Homeworlds: Fortify, Beast and Weakness](#103-homeworlds-fortify-beast-and-weakness) and [10.4 Grand Moff Tarkin and The Death Star](#104-grand-moff-tarkin-and-the-death-star)
-11. [The board you build (ReducedState)](#11-the-board-you-build-reducedstate)
-12. [Folding: turning lines into a board](#12-folding-turning-lines-into-a-board)
+10. [Event types](#10-event-types) — including [10.3 Homeworlds: Fortify, Beast and Weakness](#103-homeworlds-fortify-beast-and-weakness) and [10.4 Grand Moff Tarkin and The Death Star](#104-grand-moff-tarkin-and-the-death-star)
+11. [The reduced state — the board you build](#11-the-reduced-state--the-board-you-build)
+12. [Folding — turning lines into a board](#12-folding--turning-lines-into-a-board)
 13. [Keyframes](#13-keyframes)
-14. [Checking a file is honest](#14-checking-a-file-is-honest)
+14. [Integrity — checking a file is honest](#14-integrity--checking-a-file-is-honest)
 15. [Annotations](#15-annotations)
-16. [Turning a file into a story](#16-turning-a-file-into-a-story)
-17. [Privacy](#17-privacy)
-18. [Versions and unknown things](#18-versions-and-unknown-things)
-19. [File type](#19-file-type)
-20. [Test vectors](#20-test-vectors)
-21. [What is still not verified](#21-what-is-still-not-verified)
+16. [Rendering — turning a file into a story](#16-rendering--turning-a-file-into-a-story)
+17. [Privacy considerations](#17-privacy-considerations)
+18. [Versioning and extensibility — versions and unknown things](#18-versioning-and-extensibility--versions-and-unknown-things)
+19. [Media type and file extension](#19-media-type-and-file-extension)
+20. [Conformance suite — test vectors](#20-conformance-suite--test-vectors)
+21. [Open issues](#21-open-issues)
 22. [Version history](#22-version-history)
+23. [Security considerations](#23-security-considerations)
+24. [Error model](#24-error-model)
+25. [Registries](#25-registries)
+26. [References](#26-references)
 
-[Appendix A: a whole tiny game](#appendix-a-a-whole-tiny-game)
+Appendices:
+[A. A whole tiny game](#appendix-a-a-whole-tiny-game) ·
+[B. Grammar (ABNF)](#appendix-b-grammar-abnf) ·
+[C. Reading pre-release files](#appendix-c-reading-pre-release-files-informative) ·
+[D. Reference writer notes](#appendix-d-reference-writer-notes-informative) ·
+[E. Implementation report](#appendix-e-implementation-report-informative) ·
+[F. Acknowledgements](#appendix-f-acknowledgements-informative)
 
 ---
 
-## 1. What this is
+## 1. Introduction — what this is
 
 A `.swupgn` file is a **text file that remembers a whole game of Star Wars: Unlimited**.
 
@@ -56,149 +109,303 @@ You can:
 - **add notes** afterwards ("this attack was a mistake"),
 - **share it safely** — no real names are in the file.
 
+### 1.1 Terminology
+
+| Term | Means |
+|---|---|
+| **file** | One `.swupgn` document: one game. |
+| **seat** | Player 1 or Player 2, written `1` or `2` in records and `P1` / `P2` in the header. |
+| **record** | One JSON object on one line of a JSON section ([§4](#4-file-syntax--what-a-file-looks-like)). |
+| **event** | A record in `%%% SETUP` or `%%% EVENTS`. Every event has a `seq` and a `t`. |
+| **`seq`** | An event's label, unique in the file ([§9.1](#91-how-seq-is-built)). |
+| **action** | An event a player chose to do: a play, an attack, a pass, an action ability. Its `seq` ends in a bare number (`R2.A.3`). |
+| **consequence** | An event that happened because of an action. Its `seq` ends in a number and letters (`R2.A.3a`). |
+| **in play** | In the ground or space arena. No other zone is in play ([§6.2](#62-zone-names)). |
+| **keyframe** | A full snapshot of the board inside a `ROUND_START` or `ROUND_END` event ([§13](#13-keyframes)). |
+| **reduced state** | The board as a reader holds it ([§11](#11-the-reduced-state--the-board-you-build)). Its JSON form is a `.fold.json` file. |
+| **fold** | Rebuilding the reduced state by applying events in file order ([§12](#12-folding--turning-lines-into-a-board)). |
+| **omniscient file** | A file that names every card, hidden ones included. The only kind 1.0 defines. |
+| **perspective file** | A file recorded through one seat's eyes ([§5.2](#52-optional-tags)). Reserved, see [§21](#21-open-issues). |
+| **pre-release file** | A file with no `WriterRevision` tag, written during the 1.0 pilot ([Appendix C](#appendix-c-reading-pre-release-files-informative)). |
+| **writer, reader** | A program that makes files; a program that reads them. A reader is any of the parser, validator, folder, renderer and consumer classes of [§3](#3-conformance-classes--who-has-to-do-what). |
+
 ---
 
-## 2. How to read this spec
+## 2. Conventions and conformance — how to read this spec
 
-Some words are rules, not suggestions:
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT",
+"RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as
+described in BCP 14 [[RFC2119](#26-references)] [[RFC8174](#26-references)] when, and only when,
+they appear in all capitals, as shown here.
+
+In plain words:
 
 - **MUST** — you have to do this, or your file/reader is broken.
 - **MUST NOT** — never do this.
 - **SHOULD** — do this unless you have a real reason not to.
 - **MAY** — your choice.
 
-(This is [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) wording.)
+**This text is normative.** The test vectors are its conformance suite
+([§20](#20-conformance-suite--test-vectors)). The reference code in `swupgn/` is informative: it
+shows one way to meet this text. If the code and the text disagree, the disagreement is an
+erratum. Until it is corrected, the text governs. Report it as described under Feedback above.
 
-**When this document and the code disagree, the code in `swupgn/` wins.** This document
-is meant to describe that code exactly. If you find a difference, that's a bug in this
-document — please fix it here.
+Informative, not normative: examples, notes, the "In plain words" passages, the appendices
+marked informative, and any sentence about what the reference writer or reader happens to do.
+Each section states its rule first and then explains it in plain words. Where the two seem to
+differ, the rule wins.
+
+**Requirement ids.** Each requirement a conformance class must meet has an id, such as
+`[W-07]`, listed in [§3](#3-conformance-classes--who-has-to-do-what) with a link to the section
+that defines it. The letter is the class: **W** writer, **P** parser, **V** validator, **F**
+folder, **R** renderer, **A** annotator, **C** consumer.
+
+### 2.1 Document conformance levels
+
+A file is at one of five levels. Each level includes the ones before it.
+
+| Level | A file at this level… | Checked by |
+|---|---|---|
+| **malformed** | does not parse: it breaks the grammar of [§4](#4-file-syntax--what-a-file-looks-like) and [Appendix B](#appendix-b-grammar-abnf), or exceeds a reader's limits ([§23](#23-security-considerations)). | a parser |
+| **well-formed** | parses. It may still fail a schema or a cross-record rule, or be a pre-release file. | a parser |
+| **valid** | is well-formed, carries `WriterRevision`, and every record passes its schema and every cross-record rule below. | a validator |
+| **verified** | is valid, and folding its events reproduces every keyframe with zero mismatches ([§14](#14-integrity--checking-a-file-is-honest)). | a validator with a folder |
+| **complete** | is verified, has no `RecorderErrors` tag above zero, and no `DEFEAT` with `reason: "unknown"`: the writer lost nothing it knew of. | a validator with a folder |
+
+**The cross-record rules** a valid file meets, which no per-record schema can state:
+
+1. every `seq` in `%%% SETUP` and `%%% EVENTS` is unique;
+2. every `for` names a `seq` in the file, and every annotation `ref` names a `seq` in the file;
+3. every `from`, `to` and `zone`, and every keyframe card's `zone`, is in the zone vocabulary
+   ([§6.2](#62-zone-names));
+4. a `MOVE` whose `from` equals its `to` names an arena: only an attachment changing in place
+   moves from a zone to itself ([§10.1](#binding-an-attachment-to-its-host));
+5. no object key anywhere is `__proto__`, `constructor` or `prototype`, and every number is an
+   integer in the range ±(2^53−1) ([§23](#23-security-considerations));
+6. no keyframe list holds more than 1000 entries ([§13](#13-keyframes)).
+
+An `UNDO`'s `at` is exempt from rule 2: it names a record the undo deleted
+([§10.2](#102-events-that-are-just-notes)). An annotation's `parent` that names no note is a
+warning, not an error: the reply is shown as a top-level note ([§15](#15-annotations)).
+
+**What each class produces and accepts:**
+
+| Class | Produces | Accepts |
+|---|---|---|
+| Writer | valid files, and SHOULD produce verified and complete ones `[W-01]` | — |
+| Parser | — | every well-formed file `[P-01]` |
+| Validator | a level and a list of coded issues ([§24](#24-error-model)) `[V-01]` | any input |
+| Folder | a reduced state | every well-formed file. On a file that is not valid it MUST NOT crash, and its board is best-effort `[F-01]` |
+| Renderer | the story | every well-formed file `[R-01]` |
+| Consumer | — | every valid file. It SHOULD say so when a file is below verified `[C-01]` |
+
+A validator reports issues with **error** severity (the file is below valid) and **warning**
+severity (the file is at least valid, or it is a pre-release file, which is otherwise well-formed
+and readable, but something is worth saying). The codes are in [§24](#24-error-model).
 
 ---
 
-## 3. Who has to do what
+## 3. Conformance classes — who has to do what
 
-There are four jobs. You might do one, or all of them.
+There are seven jobs. You might do one, or all of them. This section is the index of every
+requirement, by id. The linked section is where each one is defined.
 
 ### The Writer (makes files)
 
-- MUST write every required header tag ([§5](#5-the-header-tags)).
-- MUST write one JSON object per line, in the right section.
-- MUST write a line for **every** change to the board. Nothing silent.
-- MUST run `checkKeyframes()` before saving, and MUST report a failure loudly
-  ([§14](#14-checking-a-file-is-honest)).
-- MUST NOT attach a keyframe that is missing a seat. Leave it off instead
+- `[W-01]` MUST produce **valid** files ([§2.1](#21-document-conformance-levels)), SHOULD produce
+  **verified** and **complete** ones, and MUST report to its operator every file it emits that is
+  not verified ([§14](#14-integrity--checking-a-file-is-honest)).
+- `[W-02]` MUST write `[Game "SWU-PGN/1.0"]` as the first line, every required header tag, and
+  each tag value in the format [§5](#5-header-tags) gives it. MUST NOT write a byte order mark,
+  and MUST end the file with a line feed ([§4](#4-file-syntax--what-a-file-looks-like)).
+- `[W-03]` MUST write one JSON object per line, in the right section, as I-JSON
+  [[RFC7493](#26-references)] ([§4](#4-file-syntax--what-a-file-looks-like)).
+- `[W-04]` MUST write a line for **every** change to the board. Nothing silent.
+- `[W-05]` MUST NOT attach a keyframe that is missing a seat. Leave it off instead
   ([§13](#13-keyframes)).
-- MUST record a removal for every token it records a gain for
+- `[W-06]` MUST record a removal for every token it records a gain for
   ([§10.1](#the-token-gainremoval-contract)).
-- MUST NOT emit a `MOVE` with an empty `from`/`to`, or with `from` equal to `to` except to
+- `[W-07]` MUST NOT emit a `MOVE` with an empty `from`/`to`, or with `from` equal to `to` except to
   rebind an attachment that stays in its arena
   ([§10.1](#101-events-that-carry-board-detail), [the binding rule](#binding-an-attachment-to-its-host)).
-- MUST put real values in `Engine` and `Seed` in production output
+- `[W-08]` MUST put real values in `Engine` and `Seed` in production output
   ([§5.3](#53-provenance-engine-and-seed)).
-- SHOULD emit `%%% CARDS` covering every id the file mentions, and `%%% STORY` matching
-  what the renderer produces ([§6.5](#65-the-cards-index), [§16](#16-turning-a-file-into-a-story)).
-- MUST NOT put real usernames or any real identifying info in the file.
-- MUST record a control change as a `TAKE_CONTROL` carrying `zone` (and `from` when no
+- `[W-09]` SHOULD emit `%%% CARDS` covering every id the file mentions, and `%%% STORY` equal to
+  what a strict renderer produces ([§6.5](#65-the-cards-index), [§16](#16-rendering--turning-a-file-into-a-story)).
+- `[W-10]` MUST NOT put real usernames or any real identifying information in the file, and MUST
+  NOT write a host-internal identifier in `GameId` or `Match` ([§17](#17-privacy-considerations)).
+- `[W-11]` MUST record a control change as a `TAKE_CONTROL` carrying `zone` (and `from` when no
   `MOVE` carried the counts), and a leader deployed as a pilot as a `DEPLOY_LEADER` carrying
   `kind: "upgrade"` + `target` — neither is a zone move, so nothing else tells a reader
   ([§10.1](#101-events-that-carry-board-detail)).
-- SHOULD write `WriterRevision` in the header, and bump it whenever a reader could see the
-  difference in what it writes ([§5.2](#52-you-may-have-these), [§22](#22-version-history)).
-- MUST write `RecorderErrors` in the header if any of its handlers failed
-  ([§5.2](#52-you-may-have-these)); a silently under-recorded file must not look complete.
-- MUST record the resource row as counts: an `EXHAUST_RESOURCES` for every resource that
+- `[W-12]` MUST write `WriterRevision`, and MUST bump it whenever a reader could see the
+  difference in what it writes ([§5.2](#52-optional-tags), [§22](#22-version-history)).
+- `[W-13]` MUST write `RecorderErrors` in the header if any record was lost while recording
+  ([§5.2](#52-optional-tags)). A file that silently lost records MUST NOT look complete.
+- `[W-14]` MUST record the resource row as counts: an `EXHAUST_RESOURCES` for every resource that
   becomes exhausted (a cost paid, an ability, a card resourced exhausted), a `READY_RESOURCES`
   accounting for every one that readies — one record per unbroken run, not one per resource —
   and `exhausted: true` on a `MOVE` out of `resource` when the card left exhausted
   ([§10.1](#101-events-that-carry-board-detail)).
-- MUST name the host with `attachedTo` on the `MOVE` that attaches a card, and MUST NOT name
-  one on any `MOVE` out of an arena or out of `base` — exits are host-less
+- `[W-15]` MUST name the host with `attachedTo` on the `MOVE` that attaches a card, and MUST NOT
+  name one on any `MOVE` out of an arena or out of `base` — exits are host-less
   ([§10.1](#binding-an-attachment-to-its-host)).
-- MUST record a capture as a `CAPTURE` whose `p` is the seat that now holds the card and whose
-  `by` is the captor — `base@N` when a base captures — and MUST carry each seat's
+- `[W-16]` MUST record a capture as a `CAPTURE` whose `p` is the seat that now holds the card and
+  whose `by` is the captor — `base@N` when a base captures — and MUST carry each seat's
   `baseCaptured` in every keyframe, since a base's captive is held by no unit
   ([§10.1](#101-events-that-carry-board-detail)).
-- MUST write an `EXHAUST` for a unit that enters play exhausted — the normal case, which no
-  attack or ability announces — and nothing for one that enters ready
+- `[W-17]` MUST write an `EXHAUST` for a unit that enters play exhausted — the normal case, which
+  no attack or ability announces — and nothing for one that enters ready
   ([§10.1](#101-events-that-carry-board-detail)).
-- SHOULD stamp `for` on every record that belongs to an action announced after it, so no reader
-  has to implement §9.1's heuristic ([§9.1](#91-how-seq-is-built)).
-- MUST record the resource row's membership as well as its two counts, and a base's spent Epic
-  Action as `baseEpicActionUsed` ([§11](#11-the-board-you-build-reducedstate)).
-- MUST name the destination arena in a `CREATE_TOKEN`'s `zone`, and MUST omit `power`/`hp`
-  rather than invent them when the token cannot yet report its live stats
+- `[W-18]` SHOULD stamp `for` on every record that belongs to an action announced after it, so no
+  reader has to implement §9.1's heuristic, and MUST NOT link more loosely than §9.1 allows
+  ([§9.1](#91-how-seq-is-built)).
+- `[W-19]` MUST record the resource row's membership as well as its two counts, and a base's
+  spent Epic Action as `baseEpicActionUsed` ([§11](#11-the-reduced-state--the-board-you-build)).
+- `[W-20]` MUST name the destination arena in a `CREATE_TOKEN`'s `zone`, and MUST omit
+  `power`/`hp` rather than invent them when the token cannot yet report its live stats
   ([§10.1](#101-events-that-carry-board-detail)).
-- MUST write a `LEADER_FLIP` whenever a double-sided leader turns over, carrying the face it
-  landed on, and MUST carry `onStartingSide` in every keyframe for that leader — the flip is not
-  a zone change, so nothing else records it ([§10.1](#101-events-that-carry-board-detail)).
-- MUST write a `STATS` record whenever an in-play unit's live power, HP or keywords change,
-  with the values the engine computed — a reader has no rules engine to derive them
+- `[W-21]` MUST write a `LEADER_FLIP` whenever a double-sided leader turns over, carrying the face
+  it landed on, and MUST carry `onStartingSide` in every keyframe for that leader — the flip is
+  not a zone change, so nothing else records it ([§10.1](#101-events-that-carry-board-detail)).
+- `[W-22]` MUST write a `STATS` record whenever an in-play unit's live power, HP or keywords
+  change, with the values the engine computed — a reader has no rules engine to derive them
   ([§10.1](#stats)).
-- MUST mark a `DEPLOY_LEADER` or `ABILITY_ACTIVATE` that spends an Epic Action with `epic: true`,
-  and MUST carry the leader's status, the deck count and the initiative counter's status in
-  every keyframe ([§11](#11-the-board-you-build-reducedstate)).
-- MUST take a keyframe's snapshot at the moment its `seq` names, **before** the engine cleans up
-  after that moment. A `ROUND_END` snapshot taken a step late reports the between-rounds state —
-  `initiativeTaken: false` for a round that claimed, `phase: "setup"` for a round that just
-  finished its regroup — and fails [§14](#14-checking-a-file-is-honest) every time
-  ([§13](#13-keyframes)).
-- SHOULD say what KIND of ability an `ABILITY_ACTIVATE` was, and MUST give an action or Epic one
-  its own step number rather than filing it under the last action — which for an ability used
-  after the opponent's turn is the opponent's `PASS`
+- `[W-23]` MUST mark a `DEPLOY_LEADER` or `ABILITY_ACTIVATE` that spends an Epic Action with
+  `epic: true`, and MUST carry the leader's status, the deck count and the initiative counter's
+  status in every keyframe ([§11](#11-the-reduced-state--the-board-you-build)).
+- `[W-24]` MUST make every keyframe equal the board at the moment its `seq` names. For a
+  `ROUND_END` that is after the round's last record and before anything the next round does —
+  in particular `initiativeTaken` is still `true` for a round in which the initiative was
+  claimed, and `phase` is still `regroup` ([§13](#13-keyframes)).
+- `[W-25]` SHOULD say what KIND of ability an `ABILITY_ACTIVATE` was, and MUST give an action or
+  Epic one its own step number rather than filing it under the last action — which for an
+  ability used after the opponent's turn is the opponent's `PASS`
   ([§10.1](#101-events-that-carry-board-detail), [§9](#9-the-events-section-and-seq-numbers)).
-- MUST write a `DEFEAT`'s `reason` from the closed set, and MUST NOT invent a value outside it
-  ([§6.4](#64-small-vocabularies)).
-- SHOULD name what healed with `src` on a `HEAL`: nothing later in the file can supply it
+- `[W-26]` MUST write a `DEFEAT`'s `reason` from the closed set, and MUST NOT invent a value
+  outside it ([§6.4](#64-small-vocabularies)).
+- `[W-27]` SHOULD name what healed with `src` on a `HEAL`: nothing later in the file can supply it
   ([§10.1](#101-events-that-carry-board-detail)).
-- MUST NOT silently discard an undo. A writer that drops the retracted records MUST count them
-  in `Undos` and SHOULD leave an `UNDO` note where the truncation happened
-  ([§5.2](#52-you-may-have-these), [§10.2](#102-events-that-are-just-notes)).
-- MUST NOT put `ms` on anything but a numbered action, a `ROUND_START` or a `PHASE_START`, and
-  MUST write it as a duration from `Date` rather than a wall-clock time
+- `[W-28]` MUST NOT silently discard an undo. A writer that drops the retracted records MUST
+  count them in `Undos` and SHOULD leave an `UNDO` note where the truncation happened
+  ([§5.2](#52-optional-tags), [§10.2](#102-events-that-are-just-notes)).
+- `[W-29]` MUST NOT put `ms` on anything but a numbered action, a `ROUND_START` or a
+  `PHASE_START`, and MUST write it as a duration from `Date` rather than a wall-clock time
   ([§5.2.1](#521-timing-ms)).
-- MUST record an upgrade attached to a base (Fortify) as a `MOVE` into `base` with
+- `[W-30]` MUST record an upgrade attached to a base (Fortify) as a `MOVE` into `base` with
   `attachedTo: "base@N"` and a `PLAY_UPGRADE` whose `target` is `base@N`, and MUST carry the
   seat's `baseUpgrades` in every keyframe — a base upgrade is in play in no arena, so `cards`
   cannot hold it ([§10.3](#103-homeworlds-fortify-beast-and-weakness)).
-- SHOULD name the granting card in `grantedBy` when an `ABILITY_ACTIVATE` is an ability `card`
-  does not print ([§10.1](#101-events-that-carry-board-detail)).
-- MUST NOT write a `DAMAGE.src`, `HEAL.src` or `DEFEAT.defeatedBy` that is not a card id or
-  `base@N`; when no card is responsible, it omits the field
+- `[W-31]` SHOULD name the granting card in `grantedBy` when an `ABILITY_ACTIVATE` is an ability
+  `card` does not print ([§10.1](#101-events-that-carry-board-detail)).
+- `[W-32]` MUST NOT write a `DAMAGE.src`, `HEAL.src` or `DEFEAT.defeatedBy` that is not a card id
+  or `base@N`. When no card is responsible, it omits the field
   ([§10.1](#101-events-that-carry-board-detail)).
-- MUST write a `DEFEAT` on `base@N` for every defeated base, before the `GAME_END` it causes —
-  above all for a base defeated **outright** by an ability, whose HP does not show it
+- `[W-33]` MUST write a `DEFEAT` on `base@N` for every defeated base, before the `GAME_END` it
+  causes — above all for a base defeated **outright** by an ability, whose HP does not show it
   ([§10.4](#104-grand-moff-tarkin-and-the-death-star)).
-- MUST name a card with two sides by its printed **front** in `%%% CARDS`, with the other side as
-  `backSideName` ([§6.5](#65-the-cards-index)), and MUST file a deploy performed by the leader's
-  own Epic Action or Action ability as that ability's sub-step, not as a second action
-  ([§10.1](#101-events-that-carry-board-detail)).
+- `[W-34]` MUST name a card with two sides by its printed **front** in `%%% CARDS`, with the
+  other side as `backSideName` ([§6.5](#65-the-cards-index)), and MUST file a deploy performed by
+  the leader's own Epic Action or Action ability as that ability's sub-step, not as a second
+  action ([§10.1](#101-events-that-carry-board-detail)).
+- `[W-35]` MUST write the `INIT` record with `seq` `R0.S.0` ([§8](#8-the-setup-section)).
+- `[W-36]` MUST NOT write a perspective file. 1.0 defines omniscient files only
+  ([§21](#21-open-issues)).
+- `[W-37]` MUST NOT emit an omniscient file to a participant of the game before the match is
+  over ([§23](#23-security-considerations)).
+- `[W-38]` MUST use the `X_` / `x_` / `X` extension prefixes for anything it adds that this
+  document does not define ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
+
+### The Parser (reads the syntax)
+
+- `[P-01]` MUST accept every well-formed file, and MUST reject a malformed one with the error
+  code [§24](#24-error-model) gives it, rather than reading part of it.
+- `[P-02]` MUST strip a leading byte order mark, and MUST accept `\r\n` line ends and a missing
+  final line feed ([§4](#4-file-syntax--what-a-file-looks-like)).
+- `[P-03]` MUST skip the lines of a section it does not know, without parsing them
+  ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
+- `[P-04]` MUST keep `%%% STORY` lines verbatim and MUST NOT parse them as JSON
+  ([§4](#the-record-lines)).
+- `[P-05]` MAY cap the file size, line length, record count and nesting depth, and MUST reject
+  a file over a cap rather than truncate it ([§23](#23-security-considerations)).
+- `[P-06]` MUST NOT let a key read from the file reach an object's prototype
+  ([§23](#23-security-considerations)).
+
+### The Validator (says how good a file is)
+
+- `[V-01]` MUST report the file's level ([§2.1](#21-document-conformance-levels)) and every
+  issue with a code from [§24](#24-error-model).
+- `[V-02]` MUST report a closed-vocabulary value it does not know, in a file whose minor version
+  is higher than its own, as a warning rather than an error
+  ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
+- `[V-03]` MUST warn on an unknown event type or section, and MUST NOT warn on one that carries
+  an extension prefix ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
+- `[V-04]` MUST report a file with no `WriterRevision` as pre-release
+  ([Appendix C](#appendix-c-reading-pre-release-files-informative)).
 
 ### The Folder (rebuilds the board)
 
-- MUST read the file shape in [§4](#4-what-a-file-looks-like) without crashing.
-- MUST apply every event exactly as [§12](#12-folding-turning-lines-into-a-board) says.
-- MUST produce the same `.fold.json` as each test vector.
-- MUST treat an event type it doesn't recognise as "do nothing" — a warning, never a crash.
+- `[F-01]` MUST read every well-formed file without crashing, and MUST process events in file
+  order — never sorted by `seq` ([§4](#4-file-syntax--what-a-file-looks-like)).
+- `[F-02]` MUST apply every event exactly as [§12](#12-folding--turning-lines-into-a-board) says.
+- `[F-03]` MUST produce, for every positive vector, a reduced state equal to its `.fold.json`
+  as [§20](#20-conformance-suite--test-vectors) defines equality.
+- `[F-04]` MUST treat an event type it doesn't recognise as "do nothing" — a warning, never a
+  crash ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
+- `[F-05]` MUST NOT snap to a damaged keyframe, and MUST cap every list it grows at 1000
+  entries ([§12](#12-folding--turning-lines-into-a-board), [§13](#13-keyframes)).
 
-### The Storyteller (makes readable text)
+### The Renderer (makes readable text)
 
-- MUST follow [§16](#16-turning-a-file-into-a-story) exactly.
-- MUST produce the same `.render.txt` as each test vector.
-- SHOULD resolve names from the file's own `%%% CARDS` index rather than requiring a card
-  database, and MUST fall back to the raw id for an id the index doesn't cover.
+There are two renderers. A **strict renderer** reproduces the reference wording byte for byte,
+which is what lets a reader check a file's `%%% STORY` against its events. A **renderer** is bound
+only by the structure, so it may word the story its own way
+([§16](#16-rendering--turning-a-file-into-a-story)).
+
+- `[R-01]` A renderer MUST follow the structural rules of
+  [§16](#how-binding-is-the-wording): numbered actions, indented consequences, a banner per round.
+- `[R-02]` A strict renderer MUST produce, for every positive vector, its `.render.txt` byte for
+  byte, following every rule of [§16](#16-rendering--turning-a-file-into-a-story) including
+  [the layout rules](#strict-layout-rules).
+- `[R-03]` SHOULD resolve names from the file's own `%%% CARDS` index rather than requiring a
+  card database, and MUST fall back to the raw id for an id the index doesn't cover
+  ([§6.5](#65-the-cards-index)).
+- `[R-04]` MUST escape every string from the file for the medium it displays in, and neutralise
+  bidirectional and control characters ([§23](#23-security-considerations)).
 
 ### The Annotator (adds notes)
 
-- MUST only **add** notes at the end. Never edit or delete an existing note.
-- MUST point each note at a `seq` that really exists in the file.
-- MUST NOT put a real name in the `by` field.
+- `[A-01]` MUST only **add** notes at the end. Never edit or delete an existing note.
+- `[A-02]` MUST point each note at a `seq` that really exists in the file.
+- `[A-03]` MUST NOT put a real name in the `by` field, or anything identifying in `text`
+  ([§17](#17-privacy-considerations)).
+
+### The Consumer (does something with the board)
+
+A consumer is a program that uses what the other classes produce: a replay viewer, a stats
+site, a deck tracker.
+
+- `[C-01]` SHOULD tell its user when a file is below verified, has `RecorderErrors`, carries a
+  `-dirty` or `@unknown` `Engine`, or is a pre-release file
+  ([§5](#5-header-tags), [§14](#14-integrity--checking-a-file-is-honest)).
+- `[C-02]` MUST NOT attribute a file to an account by re-hashing candidate usernames. It takes
+  the seat from the authenticated delivery ([§17](#17-privacy-considerations)).
+- `[C-03]` MUST treat a verified file as internally consistent only, not as proof that the game
+  happened ([§23](#23-security-considerations)).
 
 ---
 
-## 4. What a file looks like
+## 4. File syntax — what a file looks like
 
-A `.swupgn` file is UTF-8 text. Lines end with `\n` (a `\r\n` is tolerated — the parser
-trims each line). Blank lines are ignored everywhere.
+A `.swupgn` file is UTF-8 text [[RFC3629](#26-references)]. Lines end with `\n`. A reader MUST
+also accept `\r\n` and trims each line. A writer MUST NOT begin the file with a byte order mark,
+and a reader MUST strip one if it is there, because text editors add it. A writer MUST end the
+file with `\n`, and a reader MUST accept a file without one. Blank lines are ignored everywhere
+except inside `%%% STORY`. The grammar is in [Appendix B](#appendix-b-grammar-abnf).
+
+**The first line MUST be the `Game` tag** — `[Game "SWU-PGN/1.0"]` — alone on its line. It is the
+file's magic number ([§19](#19-media-type-and-file-extension)): a reader whose first non-blank
+line is anything else MUST reject the input as not SWU-PGN.
 
 It has two parts:
 
@@ -242,40 +449,58 @@ There are six sections. Four carry the game, two make the file usable on its own
 `STORY` and `CARDS` are **derived**: everything in them can be rebuilt from `EVENTS`. They
 exist so that a person can open the file and read it, and so that a program can show card
 names without shipping a card database. A file without them is still valid — just harder to
-use. See [§6.5](#65-the-cards-index) and [§16](#16-turning-a-file-into-a-story).
+use. See [§6.5](#65-the-cards-index) and [§16](#16-rendering--turning-a-file-into-a-story).
 
 ### The header lines
 
-- Every header line starts with `[`.
-- One line MAY hold several tags: `[Format "Premier"] [CardPool "SOR"]`.
-- Tag names are letters and digits only, and are **case-sensitive**.
-- Values are in double quotes. Inside a value, a backslash means "take the next
-  character literally" — so `\"` is a quote and `\\` is a backslash.
+- Every header line starts with `[`, and holds one or more `[Tag "Value"]` pairs separated by
+  spaces and nothing else. A writer SHOULD write one tag per line, as the reference writer
+  does. A reader MUST accept several: `[Format "Premier"] [CardPool "SOR"]`.
+- Any other text on a header line makes the file malformed. A reader MUST NOT skip it,
+  because a skipped fragment can be half of a tag.
+- Tag names are ASCII letters and digits only, and are **case-sensitive**.
+- Values are in double quotes. The only escapes are `\"` (a quote) and `\\` (a backslash).
+  Any other backslash makes the file malformed. A value cannot hold a line break. The reference
+  writer turns a line break in a value into a space.
 - All header lines MUST come **before** the first `%%%` banner. Inside a section, a line
-  starting with `[` is a record (a JSON array), not a header: it reaches the JSON path so
-  that `validate()` can reject it.
-- If the same tag appears twice, the **last one wins**.
+  starting with `[` is a record (a JSON array), not a header. It reaches the JSON path, so a
+  validator rejects it.
+- A tag MUST NOT appear twice. A file that repeats one is malformed.
 
-The exact pattern used to find tags is:
+A pattern that finds the tags of a well-formed line (informative; Appendix B is normative):
 
 ```
-/\[([A-Za-z0-9]+)\s+"((?:[^"\\]|\\.)*)"\]/g
+/\[([A-Za-z0-9]+)\s+"((?:[^"\\]|\\["\\])*)"\]/g
 ```
 
 ### The section banners
 
 A banner is a line starting with `%%%`, then the section name. The name is
-case-insensitive (the parser uppercases it). There are exactly six:
+case-insensitive (the parser uppercases it). This version defines exactly six:
 
 `STORY`, `DECKS`, `CARDS`, `SETUP`, `EVENTS`, `ANNOTATIONS`
+
+Each section appears **at most once**. A file with two banners naming one section is
+malformed. Nothing defines the order to fold two event streams in.
 
 Sections MAY appear in any order. The canonical order is the one shown above — `STORY`
 first, so that opening the file shows the game rather than 500 lines of JSON.
 
+A banner naming a section this version does not define belongs to a later version or to an
+extension ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)). A reader MUST
+skip every line up to the next banner without parsing it. Its lines need not be JSON, since a
+later version may define a prose section the way `STORY` is one.
+
 ### The record lines
 
 Every non-blank line in `DECKS`, `CARDS`, `SETUP`, `EVENTS` and `ANNOTATIONS` MUST be one
-valid JSON object, on one line. That's it — this is NDJSON (newline-delimited JSON).
+JSON object, on one line, and MUST be I-JSON [[RFC7493](#26-references)]: no duplicate keys,
+and numbers that are integers exactly representable in an IEEE double. That's it — this is
+NDJSON (newline-delimited JSON). Every number this version defines is an integer.
+
+**Records are processed in file order.** A reader MUST apply the events of `%%% SETUP` and then
+`%%% EVENTS` in the order they appear, and MUST NOT sort them by `seq`. The `seq` scheme is a
+label, not a sort key: as strings, `R2.A.10` sorts before `R2.A.2`, and `R2.A.start` after `R2.A.9`.
 
 **`STORY` is the one exception**: it is prose, and its lines are plain text. A parser MUST
 NOT try to JSON-parse them, and MUST keep them verbatim — blank lines inside the prose
@@ -285,52 +510,71 @@ spacing around the banners, not part of the story.
 
 ### When to throw an error
 
-| What went wrong | Error message |
-|---|---|
-| A required header tag is missing | `SWU-PGN: missing required header tag [TagName]` |
-| A line isn't valid JSON | `SWU-PGN: invalid JSON on line N` |
-| A JSON line appears before any banner | `SWU-PGN: record before any %%% section on line N` |
+A reader that cannot parse a file MUST reject it rather than read part of it, and SHOULD say
+which line and why. The conditions, and the stable code for each, are in
+[§24](#24-error-model). Messages are free text and are not part of this specification.
 
 A JSON line under a banner that isn't one of the five NDJSON sections is **not** an error. It
 belongs to a later version's section, so a reader skips it and keeps going
-([§18](#18-versions-and-unknown-things)); `validate()` reports the section as a warning.
+([§18](#18-versioning-and-extensibility--versions-and-unknown-things)), and a validator reports
+the section as a warning.
 
 ---
 
-## 5. The header tags
+## 5. Header tags
 
-### 5.1 You must have these
+Every value is a string in the file. Where this section gives a value a format, a value outside
+it fails validation. `Date`-like values follow RFC 3339 [[RFC3339](#26-references)] with a seconds
+field and an explicit offset: `2026-09-04T15:58:16.695Z`. A writer SHOULD use UTC (`Z`).
+Counts are base-10 digits with no sign, space or exponent.
 
-| Tag | What it holds |
-|---|---|
-| `Game` | Exactly `"SWU-PGN/1.0"`. |
-| `GameId` | A unique id for this one game. Any opaque string. |
-| `Date` | When the game started, ISO-8601 UTC, e.g. `"2026-09-04T15:58:16.695Z"`. |
-| `CardPool` | Which sets were legal. **This is a comma-separated list**, e.g. `"ASH,HMW,IBH,IC27,JTL,LAW,LOF,SEC,SHD,SOR,TS26,TWI"`. A single set id like `"SOR"` is also valid. |
-| `Engine` | Which build wrote the file, e.g. `"forceteki@a1b2c3d"` or `"forceteki@2.3.1"`. See §5.3. |
-| `Seed` | The random seed this game actually ran on, e.g. a UUID. See §5.3. |
-| `P1Id` / `P2Id` | A fake-but-stable id per player. MUST look like `sha256:<hex>`. See [§17](#17-privacy). |
-| `P1` / `P2` | The name shown to humans. MUST be generic — use `"Player 1"` and `"Player 2"`. |
-| `P1Leader` / `P1Base` | Player 1's leader and base card ids, e.g. `"ASH#017"`, `"JTL#024"`. |
-| `P2Leader` / `P2Base` | Same for Player 2. |
-| `Result` | One of `"P1"`, `"P2"`, `"Draw"`, `"Incomplete"`. |
-| `Reason` | How it ended, in words, e.g. `"Base Destroyed"`. |
-| `Rounds` | How many rounds were played, written as a string of digits, e.g. `"7"`. |
+### 5.1 Required tags
 
-### 5.2 You may have these
+| Tag | Format | What it holds |
+|---|---|---|
+| `Game` | `SWU-PGN/<major>.<minor>` | The format version. A 1.0 writer writes exactly `SWU-PGN/1.0`. A reader accepts any `1.<minor>` ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)). Always the first line. |
+| `GameId` | 1–128 characters | A unique id for this one game, **opaque**: it MUST NOT be, or reveal, an identifier internal to the host that ran the game ([§17](#17-privacy-considerations)). The reference writer writes `sha256:` and the hex SHA-256 of `swupgn-game:<engine game id>`. |
+| `Date` | RFC 3339 | When the game started. |
+| `CardPool` | set codes joined by `,` | Which sets were legal, e.g. `"ASH,HMW,IBH,IC27,JTL,LAW,LOF,SEC,SHD,SOR,TS26,TWI"`. A single set code like `"SOR"` is also valid. Each is a set code of [§6.1](#61-card-ids). |
+| `Engine` | `<product>@<build>` | Which build wrote the file, e.g. `"forceteki@a1b2c3d"` or `"forceteki@2.3.1"`. `<product>` names the writer and scopes `WriterRevision`. See [§5.3](#53-provenance-engine-and-seed). |
+| `Seed` | any | The random seed this game actually ran on, e.g. a UUID. See [§5.3](#53-provenance-engine-and-seed). |
+| `P1Id` / `P2Id` | `sha256:` + 64 lowercase hex digits | A pseudonymous, stable-per-scheme id per player. See [§17](#17-privacy-considerations). |
+| `P1` / `P2` | any | The name shown to humans. MUST be generic — use `"Player 1"` and `"Player 2"`. |
+| `P1Leader` / `P1Base` | card id | Player 1's leader and base card ids, e.g. `"ASH#017"`, `"JTL#024"`. |
+| `P2Leader` / `P2Base` | card id | Same for Player 2. |
+| `Result` | `P1`, `P2`, `Draw` or `Incomplete` | Who won. Case-sensitive: `p1` is not a value. `GAME_END.winner` says the same thing as `1`, `2` or `"Draw"` ([§10.2](#102-events-that-are-just-notes)). A game with no `GAME_END` is `Incomplete`. |
+| `Reason` | any | How it ended, in words, e.g. `"Base Destroyed"`. An open vocabulary ([§25](#25-registries)): show it, never branch on it. |
+| `Rounds` | count | How many rounds were started, e.g. `"7"`. For an `Incomplete` game, the round it stopped in. |
 
-| Tag | What it holds |
-|---|---|
-| `Format` | The tournament format, e.g. `"premier"`. Case is **not** standardised — accept any case. |
-| `Perspective` | `"P1"` or `"P2"`. If it's there, the file was recorded through that player's eyes, so the other player's hidden cards MAY be missing. If it's absent, the file sees everything. |
-| `EndDate` | When the game **ended**, ISO-8601 UTC. With `Date` (when it started) this gives the game's duration. Absent for an unfinished game, or a writer that cannot tell. |
-| `Match` | An opaque id for the **match** this game belongs to, stable across the games of one Bo3. Lets a file that travels on its own — shared, archived, attached to a bug report — still say which match it came from, the way chess PGN's `Round` does. A writer MUST NOT put a host-internal lobby id here; the reference writer emits `sha256:<hex>` of it. |
-| `GameNumber` | Which game of that match this is, 1-based, as digits. Meaningless without `Match`. The reference writer never sets it — a game does not know its own place in a series — so it is for whatever delivers the file. |
-| `Undos` | How many times a player took a decision back, as digits. **Absent means none.** An undo removes the records it retracted, so a file with no tag and a file whose players undid six times are otherwise indistinguishable — and "was this line of play rehearsed" is a review question. The matching `UNDO` notes say WHERE ([§10.2](#102-events-that-are-just-notes)); this tag is the authoritative count. |
-| `WriterRevision` | Which revision of its writer produced the file, as digits, e.g. `"1"`. The writer bumps it on every change to what it writes that a reader can observe, so two files that both say `SWU-PGN/1.0` can be told apart without guessing from their contents ([§22](#22-version-history)). **Absent** on files written before the tag existed — the 1.0 pilot. The reference writer puts it right after `Game`. It is not the build (`Engine` names that, §5.3): many builds share one revision, and a build that changes nothing a reader sees does not bump it. |
-| `RecorderErrors` | How many of the writer's event handlers failed while recording, as digits, e.g. `"2"`. **Absent means none.** Present means some events were never written: the keyframes are still exact (they are read from the engine, not folded), but the deltas between them are incomplete, so `checkKeyframes()` will report mismatches and `stateAt()` between keyframes may be wrong. A reader SHOULD surface it. |
+### 5.2 Optional tags
 
-Unknown tags MUST be accepted and ignored.
+| Tag | Format | What it holds |
+|---|---|---|
+| `WriterRevision` | count, 1 or more | Which revision of its writer produced the file. **Required for a valid file** ([§2.1](#21-document-conformance-levels)). It is listed here only because pre-release files lack it ([Appendix C](#appendix-c-reading-pre-release-files-informative)). See below. |
+| `Format` | any | The tournament format, e.g. `"premier"`. Case is **not** standardised — accept any case. An open vocabulary ([§25](#25-registries)). |
+| `Perspective` | `P1` or `P2` | Reserved for perspective files, which 1.0 does not define. A 1.0 writer MUST NOT write it ([§21](#21-open-issues)). A reader that meets it MUST treat the other seat's hidden information as possibly missing. Case-sensitive. |
+| `EndDate` | RFC 3339 | When the game **ended**. With `Date` (when it started) this gives the game's duration. Absent for an unfinished game, or a writer that cannot tell. |
+| `Match` | `sha256:` + 64 lowercase hex digits | An opaque id for the **match** this game belongs to, stable across the games of one Bo3. Lets a file that travels on its own — shared, archived, attached to a bug report — still say which match it came from, the way chess PGN's `Round` does. A writer MUST NOT put a host-internal lobby id here; the reference writer emits the SHA-256 of `swupgn-match:<lobby id>`. |
+| `GameNumber` | count, 1 or more | Which game of that match this is. Meaningless without `Match`. The reference writer never sets it — a game does not know its own place in a series — so it is for whatever delivers the file. |
+| `Undos` | count | How many times a player took a decision back. **Absent means none.** An undo removes the records it retracted, so a file with no tag and a file whose players undid six times are otherwise indistinguishable — and "was this line of play rehearsed" is a review question. The matching `UNDO` notes say WHERE ([§10.2](#102-events-that-are-just-notes)); this tag is the authoritative count. |
+| `RecorderErrors` | count | How many records the writer lost while recording (a handler that failed). **Absent means none.** Present means some events were never written: the keyframes are still exact (they are read from the engine, not folded), but the deltas between them are incomplete, so the file is not verified and the board between keyframes may be wrong. A reader SHOULD surface it. |
+
+Unknown tags MUST be accepted and ignored. A count that is not base-10 digits makes an optional
+tag absent and a required one (`Rounds`) malformed: a corrupt count is not zero.
+
+**`WriterRevision`** is the writer's revision. The writer bumps it on every change to what it
+writes that a reader can observe, so two files that both say `SWU-PGN/1.0` can be told apart
+without guessing from their contents ([§22](#22-version-history)). It is **scoped to the product
+named in `Engine`** before the `@`: `forceteki@…` revision 3 and a SWUForge writer's revision 3
+are unrelated. It is not the build (`Engine` names that, [§5.3](#53-provenance-engine-and-seed)):
+many builds share one revision, and a build that changes nothing a reader sees does not bump
+it. The reference writer puts it right after `Game`.
+
+**After this specification is published, `WriterRevision` is diagnostic only.** It identifies
+a writer's behaviour for bug reports, and no change to what a record *means* may ride on it: a
+change of meaning needs a new version ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
+Before publication it was the only way to tell pilot behaviours apart, which is why
+[§22](#22-version-history) lists revisions.
 
 ### 5.2.1 Timing: `ms`
 
@@ -339,7 +583,7 @@ There are **no per-event timestamps**. There is one optional integer, `ms`, and 
 
 A writer MAY put it on:
 
-- every **numbered action** ([§16](#16-turning-a-file-into-a-story)) — the plays,
+- every **numbered action** ([§16](#16-rendering--turning-a-file-into-a-story)) — the plays,
   `DEPLOY_LEADER`, `ATTACK`, `PASS`, `CLAIM_INITIATIVE`, an action or Epic `ABILITY_ACTIVATE`;
 - `ROUND_START` and `PHASE_START`.
 
@@ -352,12 +596,9 @@ The fold ignores it entirely, and so does the story. `Date` and `EndDate` give a
 duration and nothing else; "how long did this decision take" is a review question in exactly the
 way chess PGN's `%clk` is, and no arrangement of the two header tags reaches it.
 
-**What this costs, and it is not nothing.** Inter-action timing is a behavioural fingerprint.
-[§17](#17-privacy) goes to some trouble to make a player unlinkable across files — the reference
-salt is per-game, and a publishing deployment is required to switch to a keyed one — and a
-corpus carrying `ms` can be clustered by playing rhythm even though every id in it differs. A
-deployment publishing files at scale SHOULD weigh that; a writer MAY omit `ms` and stays
-conformant, since it is optional everywhere.
+**What this costs, and it is not nothing:** timing is a behavioural fingerprint. See
+[§17](#17-privacy-considerations). A writer MAY omit `ms` and stays conformant, since it is
+optional everywhere.
 
 ### 5.3 Provenance: `Engine` and `Seed`
 
@@ -366,29 +607,21 @@ carry real values in both.**
 
 - **`Engine`** MUST name the build that produced the file — a git SHA, a release version,
   anything that identifies **one** build. Without it you cannot tell which build produced a
-  bad replay, which is exactly the position a bug report leaves you in. The reference writer
-  resolves, in order: the `FORCETEKI_VERSION` environment variable, the git SHA of its working
-  tree, then its package version. The package version comes last because it never changes
-  between deploys (`package.json` has said `0.1.0` for the project's whole life, so every
-  production file once read `forceteki@0.1.0` and identified nothing). A deployed image has
-  no `.git`, so **production MUST set `FORCETEKI_VERSION` from the commit CI built**.
+  bad replay, which is exactly the position a bug report leaves you in. How the reference
+  writer resolves its build is in [Appendix D](#appendix-d-reference-writer-notes-informative).
 
-  **A build identifier names the CODE THAT RAN, not the last commit.** A bare HEAD SHA does
+  **A build identifier names the CODE THAT RAN, not the last commit.** A bare commit id does
   not: a day of writer changes on one commit stamps every file identically, and a reader
   holding a defective file and a fixed one cannot tell them apart from the header. So a writer
-  resolving its own SHA MUST mark an uncommitted tree — the reference writer appends `-dirty`
-  (`forceteki@7dd39a09-dirty`), the convention `git describe --dirty` uses. A reader SHOULD
-  treat a `-dirty` build as a development build and not attribute it to the named commit.
-
-  A writer that caches this value for its process lifetime (the reference writer does, because
-  shelling out to git on a game-end path would block every concurrent game) MUST re-resolve it
-  on restart. A long-running development server keeps stamping the SHA it started with.
+  that names a build by commit MUST mark a build from an uncommitted tree, with a `-dirty`
+  suffix (`forceteki@7dd39a09-dirty`, the convention `git describe --dirty` uses). A reader
+  SHOULD treat a `-dirty` build as a development build and not attribute it to the named commit.
 - **`Seed`** MUST be the seed the game's RNG actually ran on. A writer whose RNG self-seeds
   from entropy MUST generate and record a seed instead, otherwise the seed is unrecoverable
   and [§8.1](#81-determinism)'s deterministic replay is impossible.
 
 Two sentinel values are reserved for when a writer genuinely cannot do better. Both tags
-are required and must be non-empty, so a sentinel is used rather than an empty string:
+are required and MUST be non-empty, so a sentinel is used rather than an empty string:
 
 | Value | Means | What a reader may assume |
 |---|---|---|
@@ -401,7 +634,7 @@ traceable.
 
 ---
 
-## 6. The names used inside a file
+## 6. Identifiers and vocabularies — the names used inside a file
 
 Everything in a file refers to things by short strings. Here they all are.
 
@@ -413,6 +646,45 @@ Everything in a file refers to things by short strings. Here they all are.
 | `SET#NUM:N` | The Nth **copy** of the same card in the same game, e.g. `ASH#110:2` is the second copy. The first copy has no suffix. |
 | `TOKEN:<name>#<id>` | A token, e.g. `TOKEN:advantage#5844562972`. |
 | `TOKEN:<name>#<id>:N` | The Nth copy of a token, e.g. `TOKEN:advantage#5844562972:2`. |
+
+#### Where set codes and numbers come from
+
+The authority for every card id is the **official Star Wars: Unlimited card database** published
+by Fantasy Flight Games at [starwarsunlimited.com](https://starwarsunlimited.com/cards), as it
+stood when the file was written. The reference writer reads it through that site's card API
+(`admin.starwarsunlimited.com/api/cards`). The rules:
+
+- `SET` is the card's **set code** in upper case, from the registry below.
+- `NUM` is the card's **collector number** in that set, in base 10, zero-padded to at least
+  three digits: `SOR#010`, never `SOR#10`. A number of four or more digits is written as is.
+- **A reprint** — one card printed in more than one set — may be written with any of its
+  printings in the sets below: each is a correct id for the card. Within one file a writer MUST
+  name a card by one id throughout. Across files the same card can carry different ids, so a
+  consumer comparing cards across files SHOULD resolve both ids through the card database
+  rather than comparing strings.
+- **A variant printing** (Hyperspace, Showcase, foil and the like) and a **promotional printing**
+  are written as the standard printing they are a variant of. A file never names a variant.
+- **A token's** numeric `<cardId>` ([below](#the-token-grammar)) is the token card's own id in
+  that database, the same id the database uses for its art.
+
+A card the database does not list yet (one previewed but not published) has no authority to
+name it. A writer SHOULD then use the id the card will have when it is published, and a reader
+MUST NOT reject an id it cannot resolve: it falls back to the id itself
+([§6.5](#65-the-cards-index)).
+
+**Set codes**, in release order:
+
+| Order | Code | | Order | Code |
+|---|---|---|---|---|
+| 1 | `SOR` | | 7 | `SEC` |
+| 2 | `SHD` | | 8 | `LAW` |
+| 3 | `TWI` | | 9 | `TS26` |
+| 4 | `JTL` | | 10 | `ASH` |
+| 5 | `LOF` | | 11 | `HMW` |
+| 6 | `IBH` | | 12 | `IC27` |
+
+This table is a registry ([§25](#25-registries)): a new set adds a row and needs no new
+version of the format. A reader MUST accept a set code it does not know.
 
 #### The `TOKEN:` grammar
 
@@ -495,7 +767,7 @@ That is the **complete** list — it is the engine's zone set, with the two aren
 `to` or `zone` field is non-conformant.
 
 Only `ground` and `space` count as "in play". That matters a lot in
-[§12](#12-folding-turning-lines-into-a-board).
+[§12](#12-folding--turning-lines-into-a-board).
 
 ### 6.3 Pointing at a base
 
@@ -548,7 +820,7 @@ upgrade falling off its host?) is already answerable from the record itself: the
 is an upgrade, and its host's own `DEFEAT` sits beside it.
 
 Adding a value here is a **spec revision**: writer, schema and this table move together. A
-reader still MUST NOT crash on a value from a newer writer ([§18](#18-versions-and-unknown-things));
+reader still MUST NOT crash on a value from a newer writer ([§18](#18-versioning-and-extensibility--versions-and-unknown-things));
 treat one as `unknown`.
 
 ### 6.5 The CARDS index
@@ -567,7 +839,7 @@ One JSON object per line:
 | Field | Type | Required | Means |
 |---|---|---|---|
 | `id` | string | Yes | A **base** id — no `:N` copy suffix, since every copy shares a name. |
-| `name` | string | Yes | What to show a human. Include the subtitle: `"Greef Karga, Gracious Magistrate"`. |
+| `name` | string | Yes | What to show a human. Include the subtitle: `"Greef Karga, Gracious Magistrate"`. The card's **English** printed name, which a writer SHOULD write in Unicode Normalization Form C. A reader MAY show a translated name from its own card database instead. |
 | `kind` | `"unit"` or `"upgrade"` | No | What the card is. Lets a reader classify from the id alone — in particular which `TOKEN:` ids are upgrades. **Absent is meaningful: it means neither** — see below. |
 | `backSideName` | string | No | The name of the card's **other side**, when it has a different one. `name` is then always the printed **front**. See below. |
 
@@ -585,7 +857,7 @@ on. Which side is up at a given moment is **game state**, carried by the events:
 leader with a `backSideName`, its `MOVE` back to `base` shows the front again, and a
 `LEADER_FLIP` sets a double-sided leader's face. A keyframe's `leader.deployed` /
 `leader.onStartingSide` says the same at a round boundary. A reader showing a name SHOULD show
-the side that is up; the renderer does ([§16](#16-turning-a-file-into-a-story)).
+the side that is up; the renderer does ([§16](#16-rendering--turning-a-file-into-a-story)).
 
 **An absent `kind` means "neither a unit nor an upgrade", not "unknown".** `kind` is derived
 from the card's printed type, so a writer emits it for every unit and every upgrade and omits
@@ -647,7 +919,10 @@ One line per player. Two lines total.
 | `deck` | array of `[id, count]` | yes | The deck list. |
 | `sideboard` | array of `[id, count]` | no | The sideboard, same shape. |
 
-No other fields are allowed here (`additionalProperties: false`).
+A reader MUST ignore a field it does not know. The schema is open
+(`additionalProperties: true`), so a later minor version can add a field to a deck
+([§18](#18-versioning-and-extensibility--versions-and-unknown-things)), and an extension can add
+an `x_` one.
 
 Example:
 
@@ -663,7 +938,7 @@ This section holds **one `INIT` line**, and MAY hold nothing else.
 
 | Field | Type | Required | Means |
 |---|---|---|---|
-| `seq` | string | yes | Always the literal `"R1.S.0"`. |
+| `seq` | string | yes | Always the literal `"R0.S.0"`. |
 | `t` | string | yes | Always `"INIT"`. |
 | `p1DeckOrder` | string[] | yes | Player 1's whole deck, top card first, **after shuffling**. |
 | `p2DeckOrder` | string[] | yes | Same for Player 2. |
@@ -671,9 +946,10 @@ This section holds **one `INIT` line**, and MAY hold nothing else.
 The deck order is captured right after the shuffle and before the first card is drawn.
 With it plus the `Seed` tag, an engine can replay the same game.
 
-> **Odd but true:** `INIT` uses `seq: "R1.S.0"`, while the setup *events* in the EVENTS
-> section use round **0** (`R0.S.1`, `R0.S.2`, …). Don't sort by `seq` string; keep file
-> order.
+`INIT` is the first record of setup, so it is numbered like the rest of setup (round `0`,
+phase `S`) and takes step `0`, before the setup events `R0.S.1`, `R0.S.2`, … in `%%% EVENTS`.
+Pre-release files and forceteki writer revisions 1 and 2 wrote `"R1.S.0"`; a reader MUST accept
+either ([Appendix C](#appendix-c-reading-pre-release-files-informative)).
 
 ### 8.1 Determinism
 
@@ -683,7 +959,7 @@ enough for a compatible engine to re-run the game and get the same random outcom
 That is a bonus, not the mechanism. Three rules:
 
 - A reader **MUST NOT** need deterministic re-execution to rebuild state. Folding
-  ([§12](#12-folding-turning-lines-into-a-board)) is sufficient on its own and needs no
+  ([§12](#12-folding--turning-lines-into-a-board)) is sufficient on its own and needs no
   engine — that is the whole point of recording every delta.
 - Seed-based replay is **OPTIONAL**, and exists for analysis (exploring what a different
   line would have done).
@@ -703,7 +979,7 @@ Every line here is one event. Every event MUST have:
 | `t` | string | The event type. |
 
 Everything else depends on `t`. `event.schema.json` stays open (unknown fields and unknown
-types pass, [§18](#18-versions-and-unknown-things)) but pins, per known `t`, the **shape** of
+types pass, [§18](#18-versioning-and-extensibility--versions-and-unknown-things)) but pins, per known `t`, the **shape** of
 the fields the fold dereferences — `cards` is an array, `amt`/`hp`/`count` are integers, a
 `keyframe`'s per-seat lists are arrays — so a malformed file fails `validate()` instead of
 throwing inside a reader. **The schema checks shape, not presence**: a field §10 marks
@@ -835,14 +1111,14 @@ continue after game end, in which case that phase's `PHASE_END` is written too, 
 
 ---
 
-## 10. Every event type
+## 10. Event types
 
 Two groups: events that **change the board**, and events that are **just notes**.
 
 ### 10.1 Events that carry board detail
 
 Each one lists its fields, then what it does to the board. The exact code is in
-[§12](#12-folding-turning-lines-into-a-board).
+[§12](#12-folding--turning-lines-into-a-board).
 
 Most of these change the folded state. A few — `RESOURCE` is the clearest — are **summary
 records** whose actual change is carried by a paired `MOVE`; each says so in its own entry,
@@ -1012,7 +1288,7 @@ that `ABILITY_ACTIVATE` is the numbered action and the `DEPLOY_LEADER` is one of
 sub-steps (`R8.A.1` the Epic Action, `R8.A.1c` the deploy). The player spent one action, and a
 reader counting actions counts one.
 
-It also sets the seat's **leader status** ([§11](#11-the-board-you-build-reducedstate)): the
+It also sets the seat's **leader status** ([§11](#11-the-reduced-state--the-board-you-build)): the
 leader is `card`, it is `deployed`, and it is **ready** — a leader deploys ready whatever
 state it was in (CR 3.4.4), so this record is where a reader that never saw a keyframe learns
 which card the leader is. `epic: true` means the deploy spent the leader's Epic Action, which
@@ -1044,7 +1320,7 @@ writer knows which card granted it and SHOULD say so: `ability` often spells the
 (`gained_from_heavy-ion-cannon_constant_1`), but it is not a stable key, and a reader that parses
 it is back to maintaining a regex.
 
-**`kind` is what a reader should branch on.** Without it the only signal is the shape of
+**`kind` is what a reader SHOULD branch on.** Without it the only signal is the shape of
 `ability` (`…_action_1`, `…_triggered_0`, `mandalorian_keyword_shielded_0`,
 `shield_replacement_0`, `reforge_anonymous`) — an engine-internal string this format does not
 promise to keep stable, so every reader ends up with its own regex for it. A writer knows the
@@ -1069,7 +1345,7 @@ missing its `kind` in the first place.
 **`title` is the ability's full printed text, not a short caption.** It is whatever the card's
 menu entry says, which for most cards is the entire rules text ("Choose a friendly unit and
 give it +2/+2 for this phase. Then, …" — 140 characters). The engine has no shorter name to
-offer, so a reader wanting a caption should build one from `kind` plus the card name and keep
+offer, so a reader wanting a caption SHOULD build one from `kind` plus the card name and keep
 `title` for a tooltip or detail line.
 
 **`title` carries icon markup.** The engine writes keywords, resource costs and aspects as
@@ -1093,7 +1369,7 @@ by side with nothing between them. From a real game:
 
 A reader that draws no icons replaces each token with its plain text ("Disclose Aggression
 Heroism to create a Spy token and ready it"). The test vectors carry no markup: the engine
-writes the plain text itself when it runs under test, so a reader must handle both.
+writes the plain text itself when it runs under test, so a reader MUST handle both.
 
 **`kind: "action"` and `kind: "epic"` are TOP-LEVEL ACTIONS** and take their own step number
 ([§9](#9-the-events-section-and-seq-numbers)): CR 6.1 lists "use an action ability" among the six things a player
@@ -1130,7 +1406,7 @@ has a different **title, aspects and traits**. That is not a zone change, so the
 it is not a deploy, so there is no `DEPLOY_LEADER`. Without this record nothing in the file says
 the leader changed at all, and a reader shows the starting face for the whole game.
 
-Sets the seat's `leader.onStartingSide` ([§11](#11-the-board-you-build-reducedstate)).
+Sets the seat's `leader.onStartingSide` ([§11](#11-the-reduced-state--the-board-you-build)).
 
 **`onStartingSide` is stated, never toggled.** The record carries the resulting face, not "it
 flipped", for two reasons: a reader that snapped to a keyframe mid-game can apply it without
@@ -1164,7 +1440,7 @@ record therefore re-seats the card itself:
   bucket `exhausted` names: `resourcesExhausted` when `true`, `resourcesReady` otherwise
   (never below 0 on the losing side). The card moves with the count: take `card` out of
   `players[from].resources` and add it to `players[p].resources` (once by id). `resources` is
-  gated ([§14](#14-checking-a-file-is-honest)), so a reader that moves only the count fails the
+  gated ([§14](#14-integrity--checking-a-file-is-honest)), so a reader that moves only the count fails the
   check on both seats for the rest of the game.
 - `zone` is `base` and `from` is present → a Credit token: `players[from].credits - 1`,
   `players[p].credits + 1`; the Force token: `players[from].hasForce = false`,
@@ -1217,7 +1493,7 @@ and `MOVE`, and the captor's entry disappears with its list.
 **The row's READY STATE is counted; its MEMBERSHIP is named.** Two different questions:
 
 - *Which cards are in the row* is fully recoverable — every `MOVE` in and out names its card —
-  and the fold keeps it in `resources[]` ([§11](#11-the-board-you-build-reducedstate)).
+  and the fold keeps it in `resources[]` ([§11](#11-the-reduced-state--the-board-you-build)).
 - *Which of them are exhausted* is not: no record names the individual card that exhausted, so
   that stays two numbers, `resourcesReady` and `resourcesExhausted`, and these two records move
   them.
@@ -1425,7 +1701,7 @@ Fields: `p`, `cards`. Adds those ids to the discard pile, **once by id**. **Does
 **This event changes nothing in the fold.** The `MOVE` into `resource` does all the work;
 `RESOURCE` is its human-readable summary, exactly as `DRAW` summarises the deck→hand moves
 beside it. It is what lets a reader say "Player 1 resources Wampa" in the story
-([§16](#16-turning-a-file-into-a-story)) — a `MOVE` renders nothing.
+([§16](#16-rendering--turning-a-file-into-a-story)) — a `MOVE` renders nothing.
 
 **Both are always present, and they are not alternatives.** A writer MUST emit exactly one
 `RESOURCE` for every move into the `resource` zone, immediately after it. A reader:
@@ -1451,7 +1727,7 @@ when a token is attached, and loses it when that token is defeated. Both directi
 recorded. Shield and Experience have their own counters; **every other token upgrade is a
 status token counted under its own name** — a writer classifies by the card's type, not by a
 list, so a token upgrade printed later records itself. Token upgrades never appear in a host's
-`upgrades[]`; that list is for printed cards ([§11](#11-the-board-you-build-reducedstate)).
+`upgrades[]`; that list is for printed cards ([§11](#11-the-reduced-state--the-board-you-build)).
 
 **Gain** — the token attaches to a host:
 
@@ -1478,10 +1754,10 @@ Four rules make this work:
 2. **`card` is the HOST, not the token.** The token names itself in its own `MOVE` /
    `DEFEAT` records; these records name the unit whose counter changes.
 3. **Counts clamp at zero.** `max(0, current + count)`. A removal with no matching gain
-   must not drive a counter negative.
+   MUST NOT drive a counter negative.
 4. **A key that reaches zero is DELETED**, not left as `{"advantage": 0}`. This is
    load-bearing: an engine keyframe writes a unit with no tokens as `statusTokens: {}`, and
-   the integrity check ([§14](#14-checking-a-file-is-honest)) compares the two **as JSON**.
+   the integrity check ([§14](#14-integrity--checking-a-file-is-honest)) compares the two **as JSON**.
    `{"advantage": 0}` is not equal to `{}`, so a reader that keeps the zero key will fail
    the gate on a file that is perfectly correct. Same for `experience` and `shields`, which
    are plain numbers and simply clamp to `0`.
@@ -1543,7 +1819,7 @@ when present.
 `active` is the seat whose turn it is, `1` or `2`. The writer states it whenever the engine has
 an action-phase active player, so the action phase's `PHASE_START` and every `ROUND_START`
 carry it, and the setup and regroup `PHASE_START`s do not
-([§11](#11-the-board-you-build-reducedstate)). `ms` is in [§5.2.1](#521-timing-ms).
+([§11](#11-the-reduced-state--the-board-you-build)). `ms` is in [§5.2.1](#521-timing-ms).
 
 **`CLAIM_INITIATIVE`** — field `p`. Sets who has initiative.
 
@@ -1565,7 +1841,7 @@ These never change the board. A folder MUST read them and do nothing.
 | `TRIGGER` | `card`, `p` (optional) | A triggered ability fired. |
 | `PHASE_END` | `phase` | A phase ended. |
 | `ROUND_END` | `round`, `keyframe` (optional) | A round ended. |
-| `GAME_END` | `winner` (1, 2, or `"Draw"`), `reason` | The game is over. |
+| `GAME_END` | `winner` (1, 2, or `"Draw"`), `reason` | The game is over. `winner` is a seat number like every other seat in a record, and `"Draw"` when nobody won. It MUST agree with the header's `Result`: `1` ↔ `P1`, `2` ↔ `P2`, `"Draw"` ↔ `Draw`. A file whose `Result` is `Incomplete` has no `GAME_END`. |
 | `UNDO` | `at`, `by` (optional seat) | A player took a decision back. See the rule below. |
 
 > **`UNDO` — the one record about the FILE rather than the game.** An undo deletes the records
@@ -1606,9 +1882,9 @@ game once produced 28 of that file's 136 MOVE records, all of them noise.
 
 Homeworlds (`HMW`) puts three things on the board that a reader has to get right. None of them
 needs a new event type. Fortify needs one new board field, `baseUpgrades`
-([§11](#11-the-board-you-build-reducedstate)), and a base as a host; Beast and Weakness tokens
+([§11](#11-the-reduced-state--the-board-you-build)), and a base as a host; Beast and Weakness tokens
 follow the token rules that already exist. This section shows each one as it appears in a file.
-Every record quoted is from the `homeworlds` test vector ([§20](#20-test-vectors)), which plays
+Every record quoted is from the `homeworlds` test vector ([§20](#20-conformance-suite--test-vectors)), which plays
 all three in one real game. `swupgn/test-vectors/homeworlds.swupgn` is the file to test a reader
 against.
 
@@ -1629,8 +1905,8 @@ base as its host. The `PLAY_UPGRADE` beside it points at the base the same way:
 
 The fold puts `HMW#147` on `players[1].baseUpgrades` ([§12.1](#121-the-move-rule-the-big-one)
 step 2c). It is **never** in `cards`: it is in play, but in no arena. A board that draws a base
-should draw its `baseUpgrades` on it. Every keyframe carries them, and the integrity check
-compares them ([§14](#14-checking-a-file-is-honest)).
+SHOULD draw its `baseUpgrades` on it. Every keyframe carries them, and the integrity check
+compares them ([§14](#14-integrity--checking-a-file-is-honest)).
 
 **What the base gains** shows up in the records the gained ability causes. There is no
 "the base now has this ability" record, because the ability's text is card data:
@@ -1699,7 +1975,7 @@ Three things to get right:
 
 **A defeated token unit goes back to `outsideTheGame`, not to `discard`.** Its exit `MOVE` says so
 (`"from":"ground","to":"outsideTheGame"`), and it is followed by its `DEFEAT`. It never reaches a
-discard pile, and a reader must not put it there.
+discard pile, and a reader MUST NOT put it there.
 
 #### Weakness tokens: a −1/−1 token upgrade
 
@@ -1741,7 +2017,7 @@ Read this the way the engine resolved it:
 - **The defeat is decided at the `hp: 0` `STATS`.** The `STATS` records between it and the
   `DEFEAT` (`1/1`, `2/2`, …) describe the unit as each attachment comes off a host that is
   already being defeated. They are correct values, not a recovery. A replay may show them or skip
-  straight to the defeat, but it must not show the unit surviving.
+  straight to the defeat, but it MUST NOT show the unit surviving.
 - **The `DEFEAT.reason` is `frameworkEffect`, with no `defeatedBy`** ([§6.4](#64-small-vocabularies)).
   No card dealt damage, so no card is blamed. To say *what* killed it, look back to the action:
   the `STATUS_TOKEN` +1 that caused the `hp: 0` sits under the play that gave the token.
@@ -1774,6 +2050,8 @@ from a card database if you want to explain it.
 
 #### A reader handles Homeworlds if…
 
+*Informative: a checklist restating the rules of §12 and §6.3.*
+
 | Check | Rule |
 |---|---|
 | A `MOVE` into `base` with `kind: "upgrade"` adds to `baseUpgrades`, not to `cards` | [§12.1](#121-the-move-rule-the-big-one) step 2c |
@@ -1785,7 +2063,7 @@ from a card database if you want to explain it.
 | `statusTokens.weakness` counts stacked tokens, and a key at 0 is deleted | [the token contract](#the-token-gainremoval-contract) |
 | Power/HP come from `STATS`, never from counting Weakness tokens | [§10.1](#stats) |
 | `DEFEAT` with `frameworkEffect` after an `hp: 0` `STATS` is a Weakness (or −X/−X) kill | [§6.4](#64-small-vocabularies) |
-| The `homeworlds` vector folds to `homeworlds.fold.json` and renders to `homeworlds.render.txt` | [§20](#20-test-vectors) |
+| The `homeworlds` vector folds to `homeworlds.fold.json` and renders to `homeworlds.render.txt` | [§20](#20-conformance-suite--test-vectors) |
 | Keywords and stats a base or a trait grants are read from `STATS`, never derived from the condition | [§10.1](#stats) |
 
 ### 10.4 Grand Moff Tarkin and The Death Star
@@ -1848,14 +2126,19 @@ says what was legal.
 | A leader with a `backSideName` is shown by that name while deployed, under the same id | [§6.5](#65-the-cards-index) |
 | A deploy performed by the leader's own Epic Action counts as one action | [§10.1](#101-events-that-carry-board-detail) |
 | A `DEFEAT` whose `card` is `base@N` sets `baseDefeated`, and nothing else | [§12.2](#122-every-other-rule-in-one-table) |
-| "Base destroyed" is `baseDefeated`, not `baseHp <= 0` | [§11](#11-the-board-you-build-reducedstate) |
-| The `death-star` vector folds to `death-star.fold.json` and renders to `death-star.render.txt` | [§20](#20-test-vectors) |
+| "Base destroyed" is `baseDefeated`, not `baseHp <= 0` | [§11](#11-the-reduced-state--the-board-you-build) |
+| The `death-star` vector folds to `death-star.fold.json` and renders to `death-star.render.txt` | [§20](#20-conformance-suite--test-vectors) |
 
 ---
 
-## 11. The board you build (ReducedState)
+## 11. The reduced state — the board you build
 
-This is the whole board, and it's all you ever need to build.
+This is the whole board, and it's all you ever need to build. Its JSON form — what a folder
+writes as a `.fold.json` and what a keyframe carries — is published as a JSON Schema
+[[JSON-Schema](#26-references)], `swupgn/schema/reduced-state.schema.json`. The schema is
+normative for the shape. This section is normative for what each field means. Serialized, a
+reduced state is one JSON object: an optional field that has no value is **absent**, never
+`null`, and `initiative` is the one field that may be `null` (no one holds the counter yet).
 
 ```typescript
 interface ReducedState {
@@ -1940,13 +2223,13 @@ continued past the end of the game.
 
 So `active` is **exact at the start of each round and of each action phase**, and at every
 keyframe — the places a scrubber jumps to — and **stale between them**. It is not part of the integrity gate for that reason
-([§14](#14-checking-a-file-is-honest)). A reader that shows whose turn it is should show it at a
+([§14](#14-integrity--checking-a-file-is-honest)). A reader that shows whose turn it is SHOULD show it at a
 keyframe and treat it as unknown after the first action of the phase.
 
 <a id="what-the-board-covers-against-the-rules"></a>
 ### What the board covers, against the rules
 
-The Comprehensive Rules define "the game state" in one paragraph (CR 1.16.1, v8.0): each card's
+The Comprehensive Rules define "the game state" in one paragraph (CR 1.16.1 [[SWU-CR](#26-references)]): each card's
 zone, controller, attributes and status (ready/exhausted, faceup/facedown); the initiative
 counter's controller and status; the status of open and hidden information; the status of
 lasting and delayed effects; and the status of Epic Actions. The format's promise is that a
@@ -1961,7 +2244,7 @@ already applied the rules, and the file records what it decided. Where each part
 | Each card's **status** — ready/exhausted | `EXHAUST` / `READY` for arena cards and the leader, including the `EXHAUST` a unit gets on entering play; `EXHAUST_RESOURCES` / `READY_RESOURCES` and the `MOVE.exhausted` flag for the resource row |
 | Each card's **status** — faceup/facedown | the leader's `deployed` (Leader Unit side up) and, for a double-sided leader, `onStartingSide` — set by `LEADER_FLIP` ([§10.1](#101-events-that-carry-board-detail)); resources are always facedown, and `RESOURCE` names the card for the omniscient reader |
 | The **initiative counter**: controller and taken/available | `initiative` and `initiativeTaken`; `CLAIM_INITIATIVE`, reset at `ROUND_START` |
-| **Open and hidden information** | the archive is omniscient ([§17](#17-privacy)): `DRAW`, `RESOURCE`, `SEARCH`, `REVEAL` and the keyframe's `hand` name the hidden cards; `Perspective` in the header says when a file is not |
+| **Open and hidden information** | the archive is omniscient ([§17](#17-privacy-considerations)): `DRAW`, `RESOURCE`, `SEARCH`, `REVEAL` and the keyframe's `hand` name the hidden cards; `Perspective` in the header says when a file is not |
 | **Lasting effects** | by their observable consequences: `STATS` (a unit given +3/+0 for an attack shows it and shows it going away), `keywords` (Sentinel for a phase), and the records they cause. The effect's text is not recorded — the card is named, and card data has the text |
 | **Delayed effects** | by the records they produce when they fire (a Change of Heart return is a `TAKE_CONTROL` at regroup); they are invisible until then, as they are on a table |
 | **Epic Actions** used/unused | `epic: true` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`; the leader's `epicActionUsed`, and the seat's `baseEpicActionUsed` — a **base** may carry an Epic Action too (Tarkintown, Security Complex, Jedha City and 9 others), and it is a separate ability on a separate card from the leader's ([§10.1](#101-events-that-carry-board-detail)) |
@@ -1988,13 +2271,18 @@ players 1 and 2, each:
 > it from the **first keyframe**, which the fold then snaps to. So base HP is a guess
 > until the first keyframe lands, and correct from then on — every `DAMAGE`, `HEAL` and
 > `OVERWHELM` carries an absolute `hp`, so it stays correct. This is why the integrity
-> check skips `baseHp` at the first keyframe ([§14](#14-checking-a-file-is-honest)).
+> check skips `baseHp` at the first keyframe ([§14](#14-integrity--checking-a-file-is-honest)).
 
 ---
 
-## 12. Folding: turning lines into a board
+## 12. Folding — turning lines into a board
 
 **Fold** means: start with an empty board, then apply each event in order. That's it.
+
+**This section is the one normative home of fold semantics.** The field tables of
+[§10](#10-event-types) are normative for the syntax of each record. What a record does to the
+board is defined here, and the "A reader handles Homeworlds if…" checklist of §10.3 is an
+informative restatement of it.
 
 ```
 fold(events):
@@ -2223,27 +2511,24 @@ state is thrown away and the keyframe takes its place. Everything below follows 
   is perfectly valid and completely harmless — the reader just keeps folding deltas. Never
   ship a partial one.
 - No list in a keyframe (`cards`, `hand`, `discard`, `resources`, `baseUpgrades`, `baseCaptured`, a card's
-  `upgrades` and `captured`) may hold more than 1000 entries. A card's `captured` may be absent (a
+  `upgrades` and `captured`) holds more than 1000 entries: a writer MUST NOT write one that does. A card's `captured` may be absent (a
   file older than the field), but when present it is a list. A real game never comes close; a reader treats a
   keyframe over that as damaged and ignores it, because a snapped keyframe bypasses the cap the
-  fold puts on every list it grows itself ([§14](#14-checking-a-file-is-honest)).
+  fold puts on every list it grows itself ([§14](#14-integrity--checking-a-file-is-honest)).
 - A keyframe's `cards` list contains **only** ground and space arena cards. Hand,
   resources and discard are described by their counts and lists, not by `cards`.
-- A keyframe carries every field of [§11](#11-the-board-you-build-reducedstate): the
+- A keyframe carries every field of [§11](#11-the-reduced-state--the-board-you-build): the
   initiative status, and per seat the deck count, the leader's status, and each card's live
   `power`/`hp`/`keywords`. A writer that cannot read one of them omits that field rather than
   inventing a value.
 - Emit a keyframe on `ROUND_END` as well as `ROUND_START` when you can. It halves the
   window between checkpoints, so a round's worth of fold drift is caught a round earlier,
   and costs one snapshot.
-- A keyframe describes the state **at its own seq**, so take the snapshot before the engine
-  cleans up after that moment. A `ROUND_END` keyframe is the trap: an engine typically
-  clears the initiative counter and leaves the current phase as it tears the round down, so
-  a snapshot taken a step too late reports `"initiativeTaken": false` for a round that did
-  claim, and `"phase": "setup"` for a round that just finished its regroup. Round-scoped
-  fields that the engine has already reset are best recovered from the records you just
-  wrote for that round (`CLAIM_INITIATIVE`, the last `PHASE_START`) — those are exactly what
-  the reader folds, so the keyframe agrees with the fold by construction.
+- A keyframe MUST equal the board **at the moment its own seq names** `[W-24]`. A `ROUND_END`
+  keyframe is the trap: it describes the round that is ending, so `initiativeTaken` is `true`
+  for a round in which the initiative was claimed and `phase` is `regroup`, even though an
+  engine typically resets both as it tears the round down. How the reference writer gets this
+  right is in [Appendix D](#appendix-d-reference-writer-notes-informative).
 
 <a id="damaged-keyframe"></a>
 **A keyframe is damaged** when any of these is true:
@@ -2261,16 +2546,17 @@ state is thrown away and the keyframe takes its place. Everything below follows 
 **Readers, on meeting a damaged keyframe:** do NOT snap to it — snapping
 would delete a player you have correct state for. **Ignore the keyframe**, keep folding
 your running state, and report the file as non-conformant. Treat it as a damaged
-checkpoint, not as truth. (Files written before this rule was enforced are in the wild;
-see [§22](#22-version-history).)
+checkpoint, not as truth. (Pre-release files written before this rule was enforced are in
+the wild; see [Appendix C](#appendix-c-reading-pre-release-files-informative).)
 
 ---
 
-## 14. Checking a file is honest
+## 14. Integrity — checking a file is honest
 
-Before saving, a writer MUST run `checkKeyframes(events)`.
-
-What it does:
+A file is **verified** ([§2.1](#21-document-conformance-levels)) when folding its events
+reproduces every keyframe it carries. This section defines that check. A writer SHOULD emit
+only verified files and MUST report to its operator any file it emits that is not `[W-01]`.
+The reference reader's `checkKeyframes(events)` implements the check:
 
 1. Start from `emptyState()`.
 2. Fold forward normally.
@@ -2279,13 +2565,12 @@ What it does:
 4. Return `{ ok, mismatches }`.
 
 If `ok` is `false`, the deltas between two keyframes don't add up to what the engine
-reported — the file is under-recording something. A writer MUST report that loudly.
+reported — the file is under-recording something.
 
-Whether to also *refuse to save* is the writer's call. This repo's writer logs the
-mismatches at error level and still emits the file, on purpose: the keyframes themselves
-are authoritative, so a reader that trusts them still gets every round boundary right,
-and withholding the file would cost a player their whole replay to fix a partial-fidelity
-problem. A writer that has no such cost SHOULD treat `ok: false` as fatal.
+Whether to also *refuse to save* such a file is the writer's call. The keyframes themselves
+are authoritative, so a reader that trusts them still gets every round boundary right, and
+withholding the file would cost a player their whole replay to fix a partial-fidelity
+problem. A writer that has no such cost SHOULD refuse to emit a file that is not verified.
 
 ### What is compared, per seat
 
@@ -2293,12 +2578,12 @@ problem. A writer that has no such cost SHOULD treat `ok: false` as fatal.
 
 - `baseHp` — **except at the very first keyframe**. Nothing in the stream carries a base's
   starting HP, so before the first keyframe there is nothing to compare against but the
-  placeholder 30 ([§11](#11-the-board-you-build-reducedstate)). The first keyframe is what
+  placeholder 30 ([§11](#11-the-reduced-state--the-board-you-build)). The first keyframe is what
   *supplies* the real number; every keyframe after it is compared normally.
 - `deckSize` — **except at the very first keyframe**, for the same reason as `baseHp`: the
   starting deck is not in the stream.
 - `handSize`, and `hand` **as a set** — a hand is unordered
-- `discard` **in order** — the pile is ordered ([§11](#11-the-board-you-build-reducedstate))
+- `discard` **in order** — the pile is ordered ([§11](#11-the-reduced-state--the-board-you-build))
 - `resources` **as a set** whenever the keyframe carries it — the row's order is not part of the
   model, and its ready/exhausted split is the two counts, not this list
 - `baseEpicActionUsed` whenever the keyframe carries it
@@ -2329,7 +2614,7 @@ included. A field the keyframe does not carry — `deckSize`, `leader`, `initiat
 card's `power`/`hp`/`keywords` — is skipped, so a file written before the field existed still
 passes: absent means "not recorded", never "zero".
 
-**Every player and card field of [§11](#11-the-board-you-build-reducedstate) is checked.** A
+**Every player and card field of [§11](#11-the-reduced-state--the-board-you-build) is checked.** A
 passing check means the deltas between two keyframes add up to the whole board the engine
 reported. **Not compared:** the top-level `round`, `phase`, `initiative` and `active`, and each
 seat's `baseMaxHp` and `seat`. `round` and `phase` come straight from `ROUND_START` /
@@ -2337,14 +2622,8 @@ seat's `baseMaxHp` and `seat`. `round` and `phase` come straight from `ROUND_STA
 so none of them is a delta that could fail to add up.
 
 **`active` is the one field deliberately NOT compared**, because it is stated rather than
-reconstructed — see [§11](#11-the-board-you-build-reducedstate). Comparing the fold against
+reconstructed — see [§11](#11-the-reduced-state--the-board-you-build). Comparing the fold against
 the keyframe would only restate that.
-
-> **This changed.** Earlier text said `hand` and `discard` **contents** were not checked,
-> because "only the counts are reconstructable". That was wrong. Every `MOVE` names its card,
-> so both lists are exact at every moment, and both are now folded from `MOVE` and gated here.
-> See [§22](#10-writer-changes-before-first-release) for how to spot a reader that
-> still has the old behaviour.
 
 A mismatch looks like:
 
@@ -2374,7 +2653,7 @@ Notes people add after the game. One JSON object per line in `%%% ANNOTATIONS`.
 | `parent` | string | no | The `id` of the note this one replies to. Absent for a top-level note. |
 | `ts` | integer | no | When the note was written, epoch milliseconds. Orders a thread; never a real-name timestamp. |
 
-Other fields are allowed (`annotation.schema.json` has `additionalProperties: true`), so a later version can add one; a reader ignores a field it does not know ([§18](#18-versions-and-unknown-things)).
+Other fields are allowed (`annotation.schema.json` has `additionalProperties: true`), so a later version can add one; a reader ignores a field it does not know ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
 
 `id`, `parent` and `ts` are what let several notes form a **thread** on one `seq`. A reader
 that does not thread simply ignores them and shows the notes in file order — they are optional
@@ -2404,11 +2683,19 @@ Other glyphs MAY appear. Treat one you don't know as "some kind of note".
 
 ---
 
-## 16. Turning a file into a story
+## 16. Rendering — turning a file into a story
 
-This is the specification of the `%%% STORY` section. A conforming renderer, given the same
-events and the same card index, MUST produce exactly these lines — that is what lets a
-reader verify the prose in a file against the events beside it.
+This is the specification of the `%%% STORY` section. It binds two kinds of renderer
+([§3](#the-renderer-makes-readable-text)):
+
+- A **strict renderer**, given the same events and the same card index, MUST produce exactly
+  the lines this section describes, byte for byte `[R-02]`. That is what lets a reader verify
+  the prose in a file against the events beside it, and what a writer's `%%% STORY` matches.
+- A **renderer** is bound only by the structure ([below](#how-binding-is-the-wording)) `[R-01]`.
+  It MAY word the story its own way.
+
+Everything in this section binds a strict renderer. For a renderer, the wording, the helpers'
+output and the board summary's layout are a recommendation.
 
 Two helpers:
 
@@ -2549,127 +2836,237 @@ which is where a reader actually wants it.
 
 One detail that is easy to get wrong: "the other player" is `p === 1 ? 2 : 1`.
 
+<a id="strict-layout-rules"></a>
+### Strict layout rules
+
+A strict renderer also follows these, which the tables above leave implicit:
+
+- **Lists of cards** in one line (`draws 3: …`, `discards …`) are joined with ` · ` (space,
+  U+00B7 MIDDLE DOT, space). A card's own name may contain `, ` ("Greef Karga, Gracious
+  Magistrate"), which is why a comma cannot separate cards.
+- **Cards on the board summary** are joined with `  ·  ` (two spaces either side), and a card's
+  state inside `[...]` with `, `.
+- **The round banner** is ` ROUND {n}` followed by spaces so that `initiative: {who} ` — with
+  its **trailing space** — ends at column 78. If the two parts do not fit in 78 columns, they
+  are joined with no space between them. Nothing else is padded.
+- **No line is wrapped.** An arena line or an action line longer than 78 columns is written
+  whole.
+- **Action numbers** are right-aligned in two columns (` 1.`, `12.`). From 100 up the number
+  takes the width it needs (`100.`).
+- **Lines are joined with `\n`** and the story has **no trailing line feed**. A `.render.txt`
+  vector holds the story followed by one `\n`. In a file, the `%%% STORY` lines are the story's
+  lines, and the section ends where the next banner's blank line begins.
+- Characters are written as they are: the `═`, `─`, `↳` and `·` glyphs are UTF-8, and a strict
+  renderer MUST NOT substitute them. A renderer for a medium without them MAY use ASCII
+  (`=`, `-`, `->`, `*`), and is then a renderer, not a strict one.
+
 ### How binding is the wording?
 
-**The exact wording is advisory, not a wire format.** The table above is what the reference
-renderer produces and what the test vectors pin, so an implementation that wants byte-identical
-output has something to match. But `%%% STORY` is prose for humans: a renderer MAY word it
-differently, and improving the wording is NOT a breaking change and does NOT require a version
-bump.
+**For a strict renderer, all of it.** For any other renderer, the exact wording is not a wire
+format: `%%% STORY` is prose for humans, and improving the reference wording is a change to the
+strict renderer that a writer reports with a `WriterRevision` bump
+([§5.2](#52-optional-tags)), never a new version of the format.
 
-What IS binding is the structure, because that is what a reader can rely on:
+What binds **every** renderer is the structure, because that is what a reader can rely on `[R-01]`:
 
 - numbered lines are actions a player chose, from the list above;
 - indented lines are consequences of the numbered line above them;
 - a round banner introduces each round, and carries the board when a keyframe is present.
 
-A writer SHOULD keep `%%% STORY` consistent with its own renderer, so that regenerating it
-reproduces what the file says. A reader that re-renders and finds a difference SHOULD NOT
-treat the file as invalid — wording drifts between versions. **`%%% EVENTS` is always the
-truth; `%%% STORY` is a convenience.** If they disagree about what happened, believe the
-events.
+A writer SHOULD write `%%% STORY` as a strict renderer produces it `[W-09]`, so that
+regenerating it reproduces what the file says. A reader that re-renders and finds a
+difference SHOULD NOT treat the file as invalid — the strict wording changes between writer
+revisions. **`%%% EVENTS` is always the truth; `%%% STORY` is a convenience.** If they
+disagree about what happened, believe the events.
 
 ---
 
-## 17. Privacy
+## 17. Privacy considerations
 
 A `.swupgn` file MUST NOT contain a real username, account id, email address, IP address,
-or anything else that points at a real person.
+or anything else that points at a real person `[W-10]`.
 
-- `P1Id` / `P2Id` MUST be `sha256:<hex>` — the username, salted and hashed. The
-  reference writer's salt is the **`GameId`**: `sha256("<GameId>:<username>")`.
+- `P1Id` / `P2Id` MUST be `sha256:` and 64 lowercase hex digits: a pseudonym derived from the
+  player's account, never the account name itself.
 - `P1` / `P2` MUST be generic labels like `"Player 1"`.
-- `by` in an annotation MUST be a fake name.
+- `GameId` and `Match` MUST be opaque. Neither may be, or reveal, an identifier internal to the
+  host — a lobby id, a database key, a game id that appears in the host's logs. Anyone with
+  access to those logs could otherwise tie a shared file to the accounts that played it. The
+  reference writer writes the SHA-256 of each, with a fixed prefix per tag so the two never
+  collide.
+- `by` in an annotation MUST be a fake name, and annotation `text` MUST NOT identify anyone
+  `[A-03]`. What an annotator writes is the annotator's responsibility.
 - Spectator ids MUST NOT appear anywhere.
 
-What a `GameId`-salted hash gives you, and what it does not:
+**The two id schemes.** The reference writer derives `P1Id` / `P2Id` in one of two ways:
 
-- **per-game** — the same player hashes *differently* in every file. Ids cannot be joined
-  across games; that is the point of a per-game salt.
-- **not casually readable** — nobody opening the file sees a username.
-- **not resistant to a targeted guess.** The salt sits two lines above the id, and usernames
-  are low-entropy: anyone holding the file and a candidate list can confirm a player by
-  re-hashing `"<GameId>:<candidate>"`.
+- **Keyed (RECOMMENDED, and REQUIRED for a deployment that publishes files):** an HMAC-SHA-256
+  [[RFC2104](#26-references)] [[FIPS180-4](#26-references)] of the username, keyed with a
+  server-side secret. The same player hashes the *same* across that server's games, so a
+  consumer can group one player's history without learning who they are, and without the key
+  nobody can confirm a guess.
+- **Per-game salt (fallback):** `sha256("<engine game id>:<username>")`. The same player hashes
+  *differently* in every file, so ids cannot be joined across games. The salt is the engine's
+  internal game id, which the file does not print — `GameId` is a hash of it — so confirming a
+  guess takes that id as well as a candidate list. It is still weaker than the keyed scheme:
+  the internal id is in the host's logs.
 
-A writer whose files are **published** SHOULD key an HMAC with a server-side secret instead.
-That flips the first property — the same player then hashes the *same* across that server's
-games, so a consumer can group one player's history without ever learning who they are — and
-makes the id genuinely non-reversible. A reader cannot tell the two schemes apart (both are
-`sha256:<hex>`), so this needs no format change and no version bump.
+A reader cannot tell the two apart (both are `sha256:<hex>`), and switching needs no format
+change. Either way, a consumer that attributes a file to an account MUST take the seat from the
+authenticated delivery rather than by re-hashing candidate usernames against the file `[C-02]`.
+Under the keyed scheme that is not merely discouraged, it is impossible.
 
-The reference writer implements both: setting `SWUPGN_ID_SECRET` switches it to the keyed
-scheme, and leaving it unset keeps the `GameId` salt. **A deployment that publishes files MUST
-set it.**
+**Pseudonymous is not anonymous.** A keyed id is stable across a host's games, so it is
+pseudonymous personal data in the sense of data-protection law: a host that publishes files
+should treat a corpus of them as personal data about its players.
 
-Either way, a consumer that attributes a file to an account MUST take the seat from the
-authenticated delivery rather than by re-hashing candidate usernames against the file. Under the
-keyed scheme that is not merely discouraged, it is impossible.
+**Deck lists are a fingerprint.** `%%% DECKS` carries both decklists and sideboards in full. A
+player who plays one list across many games is recognisable from it whatever id scheme is in
+force, and the per-game salt does nothing against that. A host publishing a corpus SHOULD weigh
+this, and a consumer SHOULD NOT present a deck list as anonymous.
 
-A writer MUST have a PII gate. The reference writer's gate is structural plus CI: no field is
-ever built from a username except the salted id, and
-`test/server/chat/SwuPgnPiiScan.spec.ts` stamps sentinel identities onto a live game and fails
-if any of them survive into the file. A writer that builds strings from user data SHOULD also
-scan the finished file, and MUST NOT write one the scan rejects.
+**Timing is a fingerprint.** `ms` ([§5.2.1](#521-timing-ms)) is the other field that works
+against all of this: inter-action timing is a behavioural fingerprint that survives any id
+scheme, and a corpus carrying `ms` can be clustered by playing rhythm even though every id in it
+differs. It is optional everywhere, and a deployment publishing a corpus SHOULD decide
+deliberately whether to emit it.
 
-`ms` ([§5.2.1](#521-timing-ms)) is the one field that works against all of this: a timing
-fingerprint survives any id scheme. It is optional everywhere, and a deployment that publishes a
-corpus SHOULD decide deliberately whether to emit it.
+A writer MUST have a gate that keeps identifying data out of its files: a writer that builds
+any string from user data SHOULD scan the finished file for it, and MUST NOT write one the scan
+rejects. The reference writer's gate is in [Appendix D](#appendix-d-reference-writer-notes-informative).
 
-When `Perspective` is `P1` or `P2`, the other player's hidden cards SHOULD be missing or
-blanked. Files that see everything MUST only be produced by a trusted server.
+**Omniscient files reveal hidden information**: every hand, the shuffled deck order, the seed.
+They MUST NOT reach a participant before the match is over ([§23](#23-security-considerations)).
+1.0 defines no perspective files ([§21](#21-open-issues)).
 
 ---
 
-## 18. Versions and unknown things
+## 18. Versioning and extensibility — versions and unknown things
 
 The version lives in the `Game` tag: `"SWU-PGN/MAJOR.MINOR"`.
 
 - **MAJOR** goes up when old readers would break. Readers MUST refuse a different major
   version.
 - **MINOR** goes up for additions that don't break anything — a new optional tag, a new
-  optional field, a new event type. Readers MUST accept a **higher** minor version.
+  optional field, a new event type, a new section, a new value in a closed vocabulary. Readers
+  MUST accept a **higher** minor version, and SHOULD warn that the file is newer than they are.
 
-To accept a higher minor version, a reader:
+**What a minor version may and may not do.**
+
+- It MAY add a header tag, a field to any record (`DECKS` included), an event type, a section,
+  and a value to a closed vocabulary such as `DEFEAT.reason`.
+- It MUST NOT add an event whose absence would change a field of the reduced state that an
+  older reader already folds. New state goes in **new** fields, which only readers that know
+  them fold and compare. That is what keeps an older reader's board right when it skips a
+  record it does not know.
+- It MUST NOT change the zone vocabulary, the `seq` grammar, the card id grammar or the seat
+  values. Each of those is a **major** change: every older reader would misread the file.
+
+**To read a file with a higher minor version, a reader:**
 
 - MUST accept and ignore header tags it doesn't know;
+- MUST accept fields it doesn't know, in every record and inside keyframes, and MUST NOT act
+  on them. A folder that snaps to a keyframe MAY carry an unknown field along in its board (the
+  reference folder copies the keyframe whole), but nothing may depend on it, and the integrity
+  check ([§14](#14-integrity--checking-a-file-is-honest)) compares only the fields it knows;
 - MUST accept event types it doesn't know, treat them as "do nothing", and warn;
-- MUST NOT throw on an unknown `t`.
+- MUST skip a section it doesn't know, and warn;
+- MUST NOT throw on an unknown `t`;
+- MUST treat a closed-vocabulary value it doesn't know as a warning, not an error, and
+  otherwise handle it the way the vocabulary says — an unknown `DEFEAT.reason` reads as
+  `unknown` ([§6.4](#64-small-vocabularies)).
+
+In a file of the reader's **own** minor version, an unknown closed-vocabulary value is an error:
+no writer of that version may produce it.
+
+### Extensions
+
+A writer may carry data this document does not define, under a reserved prefix that every
+reader MUST ignore without a warning:
+
+| What | Prefix | Example |
+|---|---|---|
+| event type | `X_` | `{"seq":"R2.A.3x","t":"X_SWUFORGE_HINT", …}` |
+| section | `X_` | `%%% X_SWUFORGE` |
+| record field | `x_` | `"x_deckName":"Wampa Rush"` |
+| header tag | `X` (tag names are letters and digits only) | `[XSwuforgeDeckId "…"]` |
+
+An extension MUST NOT change the meaning of anything this document defines: a file stripped of
+every extension folds, renders and verifies exactly as it did with them. Use a name that says
+whose it is (`X_SWUFORGE_…`) so two extensions do not collide.
 
 ---
 
-## 19. File type
+## 19. Media type and file extension
 
-- **MIME type:** `application/vnd.swu-pgn`
-- **Extension:** `.swupgn`
-- **Encoding:** UTF-8
-- **Line endings:** `\n` (`\r\n` tolerated)
-
-The MIME type isn't registered with IANA yet.
-
----
-
-## 20. Test vectors
-
-`swupgn/test-vectors/` holds the **normative** examples. They are part of this spec: if
-your code doesn't reproduce them exactly, it isn't conformant.
-
-Each vector is three files with the same base name:
-
-| File | Holds |
+| | |
 |---|---|
-| `.swupgn` | the input |
-| `.fold.json` | the board `fold(events)` must produce |
-| `.render.txt` | the text `render(doc, resolver)` must produce |
+| **Media type** | `text/x-swu-pgn` |
+| **Extension** | `.swupgn` |
+| **Encoding** | UTF-8, always ([§4](#4-file-syntax--what-a-file-looks-like)). A `charset` parameter, if present, MUST be `utf-8`. |
+| **Line endings** | `\n` (`\r\n` accepted) |
+| **Magic number** | the first line, `[Game "SWU-PGN/` |
 
-To be conformant:
+The media type is unregistered, so it carries the `x-` prefix. A server SHOULD serve a
+`.swupgn` with it, and SHOULD compress the transfer: a game is 20–70 KB as text and about 6 KB
+gzipped, and keyframes repeat across rounds.
 
-1. `parse()` succeeds.
-2. `validate()` returns no **errors** (warnings are fine).
-3. Your fold matches `.fold.json`.
-4. Your render matches `.render.txt` (if you render).
-5. Your `checkKeyframes()` reports **no** mismatch. Every vector is internally consistent —
+**Fragment identifiers.** A URL fragment that is a `seq` names that record: `game.swupgn#R2.A.3`.
+A replay viewer opening such a link SHOULD show the board at that record
+([§12.3](#123-rewinding-to-a-moment)). A fragment that names no record SHOULD open the file at
+its start.
+
+The details a registration needs:
+
+- **Type name / subtype:** `text` / `x-swu-pgn`
+- **Required parameters:** none. **Optional parameters:** `charset` (only `utf-8`).
+- **Encoding considerations:** 8bit; UTF-8 text with LF line ends.
+- **Security considerations:** [§23](#23-security-considerations).
+- **Interoperability considerations:** [§18](#18-versioning-and-extensibility--versions-and-unknown-things), [§20](#20-conformance-suite--test-vectors).
+- **Published specification:** this document.
+- **Applications that use this media type:** forceteki (Karabast), SWUForge, Karabuddy.
+- **Fragment identifier considerations:** above.
+- **Magic number:** `[Game "SWU-PGN/` at the start of the file.
+- **File extension:** `.swupgn`.
+- **Person to contact / change controller:** the Karabast Project, through the forceteki
+  repository.
+
+---
+
+## 20. Conformance suite — test vectors
+
+`swupgn/test-vectors/` is the **conformance suite**. Its vectors are normative: they are part
+of this spec, and code that does not reproduce them exactly is not conformant.
+
+`swupgn/test-vectors/manifest.json` lists every vector with what a conforming implementation
+does with it:
+
+| Field | Means |
+|---|---|
+| `file` | The input, relative to the folder. |
+| `class` | `positive` (a file to read and reproduce) or `negative` (a file to reject or warn on). |
+| `level` | The level ([§2.1](#21-document-conformance-levels)) a conforming validator reports. |
+| `errors`, `warnings` | The issue codes ([§24](#24-error-model)) it reports, as sets: exactly these, in any order. |
+| `fold` | Positive only: the reduced state a conforming folder produces. |
+| `render` | Positive only: the text a strict renderer produces, plus one `\n`. |
+| `about` | Negative only: what the vector breaks, in words. |
+
+**Pass criteria, per conformance class:**
+
+1. **Parser:** every positive vector parses. Every negative vector whose `level` is
+   `malformed` is rejected with its listed code.
+2. **Validator:** for every vector, the level and the error and warning codes equal the
+   manifest's.
+3. **Folder:** for every positive vector, the folded board **equals** `fold` as JSON values: key
+   order is not significant, array order is, a number equals the same number however it is
+   written, and an absent field is not equal to `null`. Folding every keyframe-bearing vector
+   reproduces each of its keyframes with no mismatch. Every vector is internally consistent —
    each keyframe is exactly what folding the deltas before it produces — so a reader that
-   reports one has a fold rule wrong, not a bad file.
+   reports a mismatch on one has a fold rule wrong, not a bad file.
+4. **Strict renderer:** for every positive vector, the story plus one `\n` equals `render`
+   byte for byte.
+
+**Positive vectors** are below. Every one is at level `complete`.
 
 | Vector | Covers |
 |---|---|
@@ -2683,140 +3080,57 @@ To be conformant:
 | `stolen-hauler` | Real game: Stolen AT-Hauler defeated by Power of the Dark Side into its owner's discard, then played from there by the **opponent** (`MOVE` from `discard` with `"p": 2` for Player 1's card), twice. Gates the "whose pile" rule of [§12.1](#121-the-move-rule-the-big-one): the card leaves Player 1's pile, not Player 2's. |
 | `death-star` | Real game, eight rounds ([§10.4](#104-grand-moff-tarkin-and-the-death-star)): Grand Moff Tarkin builds to nine resources and deploys by Epic Action as **The Death Star** (`backSideName` in `%%% CARDS`, the `DEPLOY_LEADER` a sub-step of the Epic Action, arriving in `space`), then at the start of the regroup phase defeats Player 2's base with 9 HP left — a `DEFEAT` on `base@2`, `baseDefeated: true` beside a non-zero `baseHp`. Along the way a Weakness given to the player's own unit stacks to a kill. |
 
-The eight real-game vectors are regenerated from the writer by
-`test/server/chat/SwuPgnVectors.spec.ts` and `SwuPgnOrganicGame.spec.ts` with
-`SWUPGN_WRITE_VECTORS=1`; those specs also pin the fold and story byte for byte, so the
-writer cannot drift from its own vectors unnoticed.
+The eight real-game vectors were produced by the reference writer at writer revision 3.
+`minimal` is written by hand. How the vectors are regenerated is in `swupgn/README.md`.
+
+**Negative vectors**, in `swupgn/test-vectors/negative/`, are each the `minimal` vector with
+one thing broken. A reader MUST reject or warn on each as the manifest says:
+
+| Vector | Breaks | Level | Codes |
+|---|---|---|---|
+| `not-swupgn` | text before the `[Game]` line | malformed | error `not-swupgn` |
+| `bad-escape` | a header escape other than `\\` and `\"` | malformed | error `bad-escape` |
+| `duplicate-section` | two `%%% EVENTS` banners | malformed | error `duplicate-section` |
+| `rounds-not-digits` | `[Rounds "two"]` | malformed | error `bad-count` |
+| `bad-move` | a `MOVE` to `sideboard`, not a zone | well-formed | error `bad-zone` |
+| `duplicate-seq` | two records labelled `R1.A.1` | well-formed | error `duplicate-seq` |
+| `dangling-ref` | an annotation on a `seq` that is not there | well-formed | error `dangling-ref` |
+| `proto-token` | `__proto__` as a status token name in a keyframe | well-formed | error `reserved-key` |
+| `over-cap` | a keyframe hand of 1002 cards | well-formed | error `over-cap` |
+| `pre-release` | no `WriterRevision` | well-formed | warning `pre-release` |
+| `damaged-keyframe` | a keyframe the events do not fold to | valid | warning `keyframe-mismatch` |
+| `unknown-type` | an event type from a later version | complete | warning `unknown-type` |
+| `unknown-section` | a section from a later version | complete | warning `unknown-section` |
+| `higher-minor` | `SWU-PGN/1.7`, with a `DEFEAT.reason` 1.0 does not know | complete | warnings `newer-minor`, `unknown-value` |
 
 ---
 
-## 21. What is still not verified
+## 21. Open issues
 
-This document describes the format as the reference implementation actually writes it. It
-was shaken out against a real 7-round game (551 events) that exposed nine writer defects —
-partial keyframes, unrecorded token removals, unresolvable token ids, malformed and no-op
-MOVEs, placeholder provenance, and a specified-but-never-emitted `RESOURCE` — all fixed
-before this version was published. That game now folds with **zero** keyframe mismatches.
+These are known gaps in the format, each a candidate for a later minor version. None of them
+makes a 1.0 file ambiguous: each is something 1.0 cannot yet record, not something it records
+two ways.
 
-The writer contract is gated on a real completed game by
-`test/server/chat/SwuPgnWriterContract.spec.ts`: every keyframe carries both seats, folding
-the events forward reproduces every keyframe, every status-token gain has a matching removal
-by game end, no `MOVE` has an empty or identical `from`/`to` (and every zone named is in the
-vocabulary), and `Engine`/`Seed` are not placeholders.
-
-It is gated again on **organic** games — a natural setup phase (initiative, mulligan,
-resourcing) through several rounds of plays, attacks and regroup resourcing to a concession —
-folded with **no** field excluded: `SwuPgnOrganicGame.spec.ts` (four rounds), and the seven
-scenario games of `SwuPgnVectors.spec.ts` that are also the `upgrades`, `pilot`, `capture`,
-`arrest`, `stolen-hauler`, `homeworlds` and `death-star` vectors ([§20](#20-test-vectors)). In every one, every keyframe field reproduces exactly:
-`handSize`, `resourcesReady` **and `resourcesExhausted`**, `credits`, `hasForce`, and per card
-`upgrades` and `captured` alongside the counters; `validate()` returns no issue at all;
-`%%% CARDS` covers every leader, base and deck id; and `GAME_END` takes the `.game-end` step of
-the phase it happened in. Two further real-game gates cover the cases that first broke the
-fold: a Change of Heart steal and return (`TAKE_CONTROL` re-seating), and Kazuda Xiono
-deploying as a pilot (`DEPLOY_LEADER` with `target`). Six more cover what a second reading of
-that export turned up: the `ROUND_END` keyframe taken at the seq it names, an action ability
-numbered as its own action with the opponent's `PASS` left childless, `for` on every resourcing
-`MOVE` with the regroup row readied in one record, `HEAL.src` with each `DEFEAT` under its
-closed-set reason, `kind` on every activation, and `ms` on the numbered actions and nowhere
-else. The undo trace is gated separately, against a real rollback
-(`test/scenarios/undo/SwuPgnUndoRetention.spec.ts`). (The other real-game specs bootstrap at
-the action phase, which discards the natural hand without a `MOVE`, so they cannot assert the
-hand and resource counts past `R1.start`.) The credit rule was additionally checked against a
-real 10-round export in which one Credit token was created, held across two rounds and spent:
-0 mismatches under the widened gate.
-
-`hand` and `discard` **contents** used to be the one un-gated pair here, on the grounds that
-only the counts were reconstructable. That was wrong, and it was found by an implementer
-building a replay client against this document rather than by the gate. Every `MOVE` names its
-card, so both lists are exact; the fold simply discarded the information — `DRAW` appended to
-`hand` and nothing ever removed, and `discard` was left to `DEFEAT`, which fires *after* the
-`MOVE` that already emptied `cards`. Folding the five vectors' deltas produced **45
-mismatches** against their own keyframes before the fix and **none** after. Both are now
-`MOVE`-driven and gated at every keyframe.
-
-That leaves the fields §14 lists as not compared — the top-level `round`, `phase`,
-`initiative` and `active`, and each seat's `baseMaxHp` and `seat`, none of which is a delta
-([§14](#14-checking-a-file-is-honest)). Every player and card field of §11 is compared, and the eight real-game vectors — Raid, Grit, Sentinel, tokens, upgrades, a pilot, a capture,
-a base as captor, a card played out of the opponent's discard, leaders in and out of the base zone, base upgrades, a base defeated outright — pass with nothing to report.
-
-One caveat on `hand`, and it is about a test harness rather than the format: the integration
-specs that bootstrap a game directly at the action phase tear down the natural opening hand
-without emitting a `MOVE` for it, so the folded hand keeps those cards. Those two specs defer
-`hand` past the first keyframe exactly as they already defer `handSize`. An organic game —
-natural setup, one bootstrap — reconstructs both exactly, which is what
-`SwuPgnOrganicGame.spec.ts` gates.
-
-Three engine paths the resource rule covers by construction have no dedicated real-game gate
-yet, and a reader should treat their split (not their total, which every regroup re-syncs) as
-best-effort until one exists: a card Smuggled or played from the resource row (its exit `MOVE`
-carries `exhausted: true`), a resource a friendly effect returns to hand (swapped exhausted on
-the way out, same flag), and a resource stolen while exhausted (`TAKE_CONTROL` with
-`exhausted`). Each is exercised by unit tests of the recorder against the engine's documented
-behaviour, not by a played game.
-
-The **base Epic Action** was the one genuine hole in [§11](#what-the-board-covers-against-the-rules)'s
-claim to cover CR 1.16's definition of the game state, and it was found the same way the hand and
-discard bugs were: by an implementer reading the document against a real client, not by the gate.
-§11 tracked Epic Actions only on the leader, while 12 bases carry one of their own. It is now
-`baseEpicActionUsed`, gated, with a real-game spec against Tarkintown.
-
-That leaves the leader's own flag, which one implementer reasonably asked about: a leader has
-exactly **one** Epic Action, its deploy, and both forms of it — as a unit and as a pilot — share
-a single limit, so one boolean is right by construction rather than by luck. It would stop being
-right only if the engine let a leader register a second Epic Action, which today it structurally
-cannot.
-
-`baseHp`/`baseMaxHp` are still absent from the SETUP `INIT` record. A reader that ships card
-data can derive a base's starting HP itself, and the first keyframe supplies it either way,
-so this is low priority — but emitting it would give the keyframe gate an independent value
-to check the first keyframe against, which is the one place it currently can't
-([§14](#14-checking-a-file-is-honest)).
-
-**A base as captor** (Arrest, SEC#195) is gated by the `arrest` vector, where Player 1's base
-captures twice and each captive is rescued at the next regroup, and by
-`test/server/chat/SwuPgnBaseCapture.spec.ts`, which compares the fold mid-phase with the engine
-(the base holds the unit in `baseCaptured`, and no unit holds it) and again after the rescue.
-One limit: Arrest's captive is always rescued at the start of the regroup phase, before the
-`ROUND_END` keyframe, so in a real game the keyframe gate only ever sees an **empty**
-`baseCaptured`. The held state is checked by the fold, the vector's `stateAt`, and that spec, not
-by a keyframe.
-
-**Homeworlds** ([§10.3](#103-homeworlds-fortify-beast-and-weakness)) is gated by the
-`homeworlds` vector (five organic rounds, Fortify on both bases, Beasts, stacked Weakness and a
-Weakness kill) and by `test/server/chat/SwuPgnHomeworlds.spec.ts`. That spec plays each
-mechanic through the engine: a Fortify upgrade attached and sacrificed, a base's gained Action
-and gained trigger with `grantedBy`, Alliance Shield Generator's replacement, a Beast created
-for the opponent, a Beast readied on creation, a Weakness kill, and two stacked Weakness tokens.
-The same spec gates Grand Moff Tarkin (a deploy counted as one action and named The Death Star; a
-base defeated outright; the Pass that declines it; a damage kill's `DEFEAT` on `base@N`) and six
-cards whose abilities depend on a base or a trait (Kashyyyk keywords and discounts, Gunga City
-Guard losing Shielded, Ritual Dragon's ready entry, Surveillance Cruiser on the opponent's base,
-The Tarkin Doctrine on a Fortification upgrade, Queen Amidala on an upgraded base). Four paths
-have **no** real-game gate, and a reader should treat them as best-effort until one exists:
-
-- **Continued play after the game has ended.** The writer records it, and writes a `DEFEAT` for a
-  second base that falls then (a real-engine test plays exactly that, through a heal). But the file
-  the server hands out is frozen at the moment the game ended, so today no served file contains
-  continued play at all.
-- **Tarkin defeating his own base.** The trigger may target either base. The writer records it
-  the same way (`DEFEAT` on `base@1`, the opponent winning), but only the opponent's base has been
-  played.
-- **A base upgrade changing control.** No Homeworlds card does it today. If one ever does, there
-  is no `TAKE_CONTROL` shape for a base upgrade yet. `TAKE_CONTROL` with `zone: "base"` means a
-  Credit token or the Force.
-- **An opponent's Fortify upgrade attached to your base** (playing it from their discard with an
-  effect such as A Fine Addition). The writer names the host base in `attachedTo` / `target` and
-  the owner in the `MOVE`'s `p`, so the fold attaches it to the right base and discards it to the
-  right pile. But no played game exercises that split.
-
-Some defined event types still never appear in a given real file, simply because nothing in
-that game triggers them (`OVERWHELM`, `SEARCH` and friends). That is absence of the situation,
-not a gap — unlike `RESOURCE`, which was specified, folded and rendered but had no code path
-that emitted it at all; it is now emitted for every resourcing
-([§10.1](#101-events-that-carry-board-detail)). `CAPTURE` and `RESCUE` were in that position
-for a board reader — recorded, but with nothing a reader could file the card under — until the
-`capture` vector.
+1. **Perspective files are not defined.** 1.0 has no rule for writing a `MOVE` or a `DRAW` whose
+   card the perspective seat cannot see, or for keeping the fold consistent when it is hidden.
+   Until a later version defines that, a 1.0 writer MUST NOT write a perspective file `[W-36]`,
+   and the `Perspective` tag is reserved ([§5.2](#52-optional-tags)).
+2. **A base upgrade cannot change control.** There is no `TAKE_CONTROL` shape for an upgrade
+   attached to a base. `TAKE_CONTROL` with `zone: "base"` means a Credit token or the Force
+   ([§10.1](#101-events-that-carry-board-detail)). No card does this today.
+3. **The `INIT` record carries no base HP.** `baseHp` and `baseMaxHp` are not in `INIT`, so the
+   first keyframe is the first place a reader learns them, and the integrity check cannot
+   compare the first keyframe's `baseHp` ([§11](#the-starting-board),
+   [§14](#14-integrity--checking-a-file-is-honest)).
+4. **`active` cannot be rebuilt from the events.** Whose turn it is is stated by keyframes and
+   phase starts, not derived, so it is stale between them
+   ([§11](#11-the-reduced-state--the-board-you-build)).
+5. **Paths without a played game behind them.** These are specified, and recorded by the
+   reference writer, but no real game in the conformance suite exercises them, so a reader
+   should treat them as best-effort ([Appendix E](#appendix-e-implementation-report-informative)):
+   continued play after the game has ended, a player's own base defeated by Grand Moff Tarkin,
+   an opponent's Fortify upgrade attached to your base, and the ready/exhausted split of a
+   resource that is Smuggled, returned to hand or stolen while exhausted.
 
 ---
 
@@ -2824,121 +3138,246 @@ for a board reader — recorded, but with nothing a reader could file the card u
 
 ### 1.0 — first release
 
-Nothing before this. SWU-PGN/1.0 is the first published version of the format, so there is
-no earlier file in the wild and no migration to do: a file either declares
-`[Game "SWU-PGN/1.0"]` and follows this document, or it isn't SWU-PGN.
+SWU-PGN/1.0 is the first version of the format. Files were written and shared during its pilot,
+and they also say `SWU-PGN/1.0`: a file with no `WriterRevision` is one of them, a pre-release
+file, and [Appendix C](#appendix-c-reading-pre-release-files-informative) says how to read it.
+A file that carries `WriterRevision` and follows this document is SWU-PGN/1.0.
 
 1.0 ships six sections, of which two exist purely so the artifact stands on its own:
 `%%% CARDS` ([§6.5](#65-the-cards-index)) so no card database is needed to name anything,
-and `%%% STORY` ([§16](#16-turning-a-file-into-a-story)) so a person can open the file and
-read the game. Both are derived from `%%% EVENTS` and verifiable against it, and together
-they cost about a fifth of the file — on a real game, 23 KB instead of 18 KB.
+and `%%% STORY` ([§16](#16-rendering--turning-a-file-into-a-story)) so a person can open the
+file and read the game. Both are derived from `%%% EVENTS` and verifiable against it, and
+together they cost about a fifth of the file — on a real game, 23 KB instead of 18 KB.
 
-Future versions follow the rules in [§18](#18-versions-and-unknown-things): a MINOR bump
-for additions old readers can ignore, a MAJOR bump for anything that would break them. When
-one lands, this section gains a row per behaviour change and how to detect it from the file,
-so a reader can tell versions apart without trusting the header alone.
+Future versions follow the rules in [§18](#18-versioning-and-extensibility--versions-and-unknown-things):
+a MINOR bump for additions old readers can ignore, a MAJOR bump for anything that would break
+them. When one lands, this section gains a row per behaviour change and how to detect it from
+the file, so a reader can tell versions apart without trusting the header alone.
 
-### 1.0 writer changes before first release
+### Reference writer revisions
 
-**1.0 is in a pilot until it is published, and pilot files are pre-release.** The reference
-writer changed behaviour several times while 1.0 was being shaken out against real games, and
-files from that period were shared with other readers. They all say `SWU-PGN/1.0`, and some of
-these changes alter what a record **means** under that one version string, not only what it
-adds. Two matter most: `PASS` is now written only for the Pass action, which renumbers every
-later action in a round, and a leader deployed by its own Epic Action is now a lettered sub-step
-of that action rather than a numbered action of its own. A reader that meets a pilot file
-SHOULD treat it as pre-release and use the **Detect** column below to tell which behaviour it
-has. Nothing in it is guaranteed.
+`forceteki` writer revisions so far ([§5.2](#52-optional-tags)). Before publication a revision
+could change what a record means. After it, a revision is diagnostic only.
 
-**From `WriterRevision` 1 on, the header says which writer made the file**
-([§5.2](#52-you-may-have-these)). A file with no `WriterRevision` is a pilot file. A file
-with one was written by that revision, and every row added below from here on names the
-revision that introduced it, so a reader can switch on the number instead of guessing from the
-contents.
-
-None of these bumped the version, because 1.0 had not been published. Most are additions or
-corrections a 1.0 reader already tolerates; the `PASS` and Epic Action deploy rows are not, and
-after publication a change like them would need a new version ([§18](#18-versions-and-unknown-things)).
-Each is detectable from the file:
-
-| Earlier 1.0 files | Current 1.0 files | Detect |
+| Revision | What changed | Detect |
 |---|---|---|
-| Story wrote `(2 resources)` after a play | `(cost 2)` — it is the printed cost ([§10.1](#101-events-that-carry-board-detail)) | a story line containing `resources)` |
-| `CHOICE.offered` named a base by its card id (`SOR#029`) | `base@N` ([§6.3](#63-pointing-at-a-base)) | `offered` entry matching `^base@[12]$` |
-| Deck construction emitted 40 `MOVE`s `outsideTheGame` → `deck` | not recorded ([§10.1](#101-events-that-carry-board-detail)) | any `MOVE` with `from: "outsideTheGame"`, `to: "deck"` |
-| `%%% CARDS.kind` followed the live role (a pilot said `upgrade` while attached) | the printed identity ([§10.1](#kind-on-an-event-is-a-role-kind-in-cards-is-an-identity)) | not detectable from the index alone; a pilot's `MOVE` `kind` disagreeing with its index `kind` shows the current writer |
-| `%%% CARDS` covered only ids that events mentioned | also the header's leaders/bases and every deck id ([§6.5](#65-the-cards-index)) | an undeployed leader (`P1Leader`) absent from the index |
-| `GAME_END` seq was `R<n>.A.end`, shared with that phase's `PHASE_END` | `R<n>.<phase>.game-end`, its own step ([§9.1](#91-how-seq-is-built)) | a `GAME_END` whose seq ends in `.game-end` |
-| A control change (`TAKE_CONTROL`) was a note with no fold effect, so a stolen unit stayed under its old seat | it re-seats the card ([§10.1](#101-events-that-carry-board-detail)) | a `TAKE_CONTROL` carrying `zone` |
-| A leader deployed as a pilot was a `DEPLOY_LEADER` with no host, folded as its own unit | `kind: "upgrade"` + `target` ([§10.1](#101-events-that-carry-board-detail)) | a `DEPLOY_LEADER` carrying `target` |
-| No way to tell a complete file from one whose writer dropped events | header carries `RecorderErrors` when a handler failed ([§5.2](#52-you-may-have-these)) | the tag's presence |
-| A malformed keyframe, or a non-array `cards`/`hand`/`discard`, crashed the reference reader | ignored and reported ([§13](#13-keyframes), [§14](#14-checking-a-file-is-honest)); `validate()` rejects the shapes the fold dereferences | `validate()` errors, or a `keyframe` mismatch |
-| `Date` was when the file was written | when the game started ([§5.1](#51-you-must-have-these)) | not detectable; treat an early file's `Date` as "at or after game end" |
-| Nothing recorded resources being spent: the row read "all ready" for a whole action phase | `EXHAUST_RESOURCES` / `READY_RESOURCES` counters, and `exhausted` on a `MOVE` out of the row ([§10.1](#101-events-that-carry-board-detail)); `resourcesExhausted` gated | any `EXHAUST_RESOURCES` record |
-| A resource card readied at regroup was a per-card `READY` a reader had no card to apply to | the counter record ([§10.1](#101-events-that-carry-board-detail)) | a `READY` naming a card that was resourced shows the early writer |
-| A token upgrade's exit `MOVE` named its host (`attachedTo`); a printed upgrade's and a pilot's did not | no exit names a host; readers detach on the zone transition ([§10.1](#binding-an-attachment-to-its-host)) | a `MOVE` out of an arena carrying `attachedTo` |
-| The fold ignored `attachedTo` and never detached, so `upgrades[]` only grew | `attachedTo` attaches, exits and `DEFEAT` detach ([§12.1](#121-the-move-rule-the-big-one)); `upgrades` gated | not a file change; a reader's fold |
-| Credit tokens and the Force moved on `MOVE`s the fold ignored; a Credit token changing hands was dropped as a `base` → `base` no-op | `credits` / `hasForce` folded from those moves ([§12.1](#121-the-move-rule-the-big-one)); the steal is a `TAKE_CONTROL` with `zone: "base"` | a `TAKE_CONTROL` whose `zone` is `base` |
-| `CAPTURE.p` was the captured card's owner, and no field named the captor | `p` is the seat that now holds the card, `by` is the captor; `CardInstanceState.captured` ([§10.1](#101-events-that-carry-board-detail)) | a `CAPTURE` carrying `by` |
-| A Weakness token (any token upgrade other than Shield/Experience/Advantage) was recorded as a printed upgrade | a `STATUS_TOKEN` under its own name, by type ([the token contract](#the-token-gainremoval-contract)) | a `STATUS_TOKEN` whose `token` is not `advantage` |
-| Keyframe cards carried no stats and no captives | `power`, `hp` and `captured` ([§11](#11-the-board-you-build-reducedstate)) | the fields' presence |
-| `Engine` preferred the package version, so every production file said `forceteki@0.1.0` | git SHA before package version ([§5.3](#53-provenance-engine-and-seed)) | an `Engine` that is a SHA |
-| The `minimal` vector began at the `R1.start` keyframe and failed its own gate | a setup prologue; four real-game vectors added ([§20](#20-test-vectors)) | not a file change |
-| A `ROUND_END` keyframe was snapshotted after the engine tore the round down, so it reported `phase: "setup"` and `initiativeTaken: false` for a round that claimed | snapshotted at the seq it names ([§13](#13-keyframes)) | a `ROUND_END` keyframe whose `phase` is `regroup` |
-| An action ability was a sub-event, so it was filed under the last numbered action — the opponent's `PASS` — along with everything it did | its own numbered action ([§9](#9-the-events-section-and-seq-numbers), [§16](#16-turning-a-file-into-a-story)) | an `ABILITY_ACTIVATE` on a top-level step, or carrying `kind` |
-| The only clue to what sort of ability fired was the shape of `ability` | `kind`, and `title` ([§10.1](#101-events-that-carry-board-detail)) | the fields' presence |
-| The hand→`resource` `MOVE` carried the previous beat's number and no `for`, so a reader filed the card under the wrong player | stamped with its `RESOURCE`'s seq ([§9.1](#91-how-seq-is-built)) | a `MOVE` to `resource` carrying `for` |
-| The regroup wrote one `READY_RESOURCES` per resource — 54 in a 7-round game, every one `amount: 1` | one per unbroken run ([§10.1](#101-events-that-carry-board-detail)) | a `READY_RESOURCES` whose `amount` is above 1 |
-| `HEAL` said HP went up and nothing about what healed | optional `src`, on `DAMAGE.src`'s terms ([§10.1](#101-events-that-carry-board-detail)) | a `HEAL` carrying `src` |
-| `DEFEAT.reason` was an open list, so a reader could not switch on it, and an unresolved cause wrote `""` | a closed set, `unknown` included ([§6.4](#64-small-vocabularies)) | a `DEFEAT` whose `reason` is `unknown`, or `validate()` rejecting one outside the set |
-| An undo left no trace: a file where six decisions were retracted read like one where none were | `Undos` and `UNDO` notes ([§5.2](#52-you-may-have-these), [§10.2](#102-events-that-are-just-notes)) | the tag, or any `UNDO` record |
-| Nothing in a file said how long a decision took; `Date` and `EndDate` give only the whole game | optional `ms` on numbered actions and round/phase starts ([§5.2.1](#521-timing-ms)) | any record carrying `ms` |
-| A unit entering play exhausted was never written, so every replay showed a just-played unit ready | an `EXHAUST` right after its arrival ([§10.1](#101-events-that-carry-board-detail)) | an `EXHAUST` for a card in the same action as its `PLAY` |
-| Nothing carried a unit's live stats between keyframes; keyframes carried none at all | `STATS` after every change; `power`/`hp`/`keywords` on keyframe cards, gated ([§10.1](#stats)) | any `STATS` record |
-| The leader in the base zone, the deck count and the initiative counter's status were not in the board | `leader`, `deckSize`, `initiativeTaken` in every keyframe; `epic` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`; a returning Leader Unit's `EXHAUST` ([§11](#11-the-board-you-build-reducedstate)) | a keyframe carrying `leader` |
-| The `minimal` vector attacked with a unit the turn it was played | rules-legal two-round game ([§20](#20-test-vectors)) | not a file change |
-| The resource row was counted only, so a reader could not draw the cards in it | `resources[]` membership alongside the two counts ([§10.1](#101-events-that-carry-board-detail)) | a keyframe carrying `resources` |
-| A base's Epic Action was not tracked at all, though 12 bases carry one | `baseEpicActionUsed`, set by an `ABILITY_ACTIVATE` whose `card` is `base@N` ([§10.1](#101-events-that-carry-board-detail)) | an `ABILITY_ACTIVATE` whose `card` matches `^base@[12]$` |
-| A base activating its own ability named itself by card id | `base@N`, like every other reference to a base ([§6.3](#63-pointing-at-a-base)) | the same |
-| Nothing linked a pre-announcement record to its action; readers had to implement §9.1's prose | `for` on each such record, stamped by the writer ([§9.1](#91-how-seq-is-built)) | any `for` field |
-| Whose turn it is was not recorded | `active` in keyframes ([§11](#11-the-board-you-build-reducedstate)) | a keyframe carrying `active` |
-| No game duration, no match grouping | `EndDate`, `Match`, `GameNumber` header tags ([§5.2](#52-you-may-have-these)) | the tags' presence |
-| A token unit's `CREATE_TOKEN` was dropped and `RecorderErrors` set, because the writer read the token's live stats while it was still outside the game | stats guarded and omitted when unreadable; `zone` names the destination arena ([§10.1](#101-events-that-carry-board-detail)) | a game containing a token unit but no `CREATE_TOKEN`, and a `RecorderErrors` tag |
-| A double-sided leader's face was not recorded, so a flipped leader replayed as its starting side for the whole game | `LEADER_FLIP` + `leader.onStartingSide` ([§10.1](#101-events-that-carry-board-detail)) | any `LEADER_FLIP` record, or a keyframe leader carrying `onStartingSide` |
-| A Fortify upgrade (Homeworlds) was in no board field at all: its `MOVE` into `base` named no host, `PLAY_UPGRADE.target` was the base's card id, and no keyframe listed it, so a reader could not show what was on a base | `attachedTo` / `target` `base@N`, and `baseUpgrades` on the seat, folded and gated ([§10.3](#103-homeworlds-fortify-beast-and-weakness), [§12.1](#121-the-move-rule-the-big-one)) | a keyframe carrying `baseUpgrades` |
-| An ability a base gained from an upgrade said only that the base used it; the grantor was inside the engine's `ability` string | `grantedBy` ([§10.1](#101-events-that-carry-board-detail)) | an `ABILITY_ACTIVATE` carrying `grantedBy` |
-| Damage and heals dealt by a base, and units defeated by one, named the base by its card id | `base@N` in `DAMAGE.src`, `HEAL.src` and `DEFEAT.defeatedBy` ([§6.3](#63-pointing-at-a-base)) | a `src` or `defeatedBy` matching `^base@[12]$` |
-| Damage the rules dealt with no card responsible (drawing from an empty deck) wrote the engine's display string as `src` — `"Framework effect"`, then `"Framework effect:2"` | `src` omitted ([§10.1](#101-events-that-carry-board-detail)) | a `DAMAGE` with no `src` |
-| An effect applied a step after its event (a base's gained "+1/+0") had its `STATS` filed under the record after the action, and so `for` the opponent's next action | settled before the turn passes, under the action that caused it ([§10.1](#stats)) | not detectable from a single record |
-| A unit arriving in play just before an action (a start-of-phase trigger's Beast) had its `MOVE`, `STATS` and `EXHAUST` stamped `for` that action | another card's arrival ends the run ([§9.1](#91-how-seq-is-built)) | not detectable from a single record |
-| `PASS` was written every time the turn passed to the opponent, so every play and attack was followed by a `PASS` from the same player, and the story read "Player 1 passes" after each action | `PASS` only for the Pass action ([§10.2](#102-events-that-are-just-notes)); every action after the first renumbers | two `PASS` records in a row from the same player, or a `PASS` right after that player's own `PLAY`/`ATTACK`, shows the early writer |
-| `DRAW.count` was the number of cards asked for, so a draw from a short deck said 2 and listed 1 | the cards actually drawn ([§10.1](#101-events-that-carry-board-detail)) | a `DRAW` whose `count` differs from `cards.length` |
-| A keyframe's lists were snapped to at any length | over 1000 entries makes the keyframe damaged ([§13](#13-keyframes)) | not a file change; a reader's trust check |
-| A base defeated outright by an ability (Grand Moff Tarkin) left no record: the game ended with the base standing at its HP | a `DEFEAT` on `base@N` for every defeated base, by damage or outright, and `baseDefeated` on the seat ([§10.1](#101-events-that-carry-board-detail), [§10.4](#104-grand-moff-tarkin-and-the-death-star)) | a `DEFEAT` whose `card` matches `^base@[12]$` |
-| A leader whose deployed side is another card (Tarkin / The Death Star; also a flipped Palpatine) was named in `%%% CARDS` by whichever side ended the game up | the printed front as `name`, the other side as `backSideName` ([§6.5](#65-the-cards-index)) | an index entry carrying `backSideName` |
-| A leader deployed by its own Epic Action was two numbered actions — the ability, then the `DEPLOY_LEADER` | the deploy is the ability's sub-step ([§10.1](#101-events-that-carry-board-detail)) | a `DEPLOY_LEADER` with a lettered seq |
-| `hand[]` grew from `DRAW` and nothing removed, so a folded "hand" was a cumulative draw log; `discard` was filed by `DEFEAT`, which fires after the `MOVE` that already removed the card, so no defeated unit reached the pile | both are folded from `MOVE` and gated ([§12.1](#121-the-move-rule-the-big-one), [§14](#14-checking-a-file-is-honest)) | not a file change; a reader's fold. Fold any vector's deltas to a keyframe and compare `hand`/`discard` — 45 mismatches before, 0 after |
-| No header tag said which writer made a file, so a pilot file and a current one were told apart only by their contents | `WriterRevision` ([§5.2](#52-you-may-have-these)); revision 1 is the first | the tag's presence |
-| A unit captured by a **base** (Arrest) left the board and was held nowhere, so it vanished from the fold until its rescue, and §10.1 said no card captures with a base | the seat's `baseCaptured`, pushed by a `CAPTURE` whose `by` is `base@N`, cleared on leaving `capture`, carried in every keyframe and gated ([§10.1](#101-events-that-carry-board-detail), [§11](#11-the-board-you-build-reducedstate)). Revision 1 | a keyframe carrying `baseCaptured` |
-| **Revision 2.** Story joined a list of cards with `, `, which a card's own title-and-subtitle comma made impossible to split | ` · ` between cards ([§16](#16-turning-a-file-into-a-story)) | `WriterRevision` 2 or later; in an older file, a `draws N:` story line whose names are separated by `, ` |
+| 1 | `WriterRevision` introduced. A unit captured by a base is held in the seat's `baseCaptured` ([§10.1](#101-events-that-carry-board-detail)) | the tag's presence; a keyframe carrying `baseCaptured` |
+| 2 | `%%% STORY` joins a list of cards with ` · `, not `, `, which a card's own title-and-subtitle comma made impossible to split ([§16](#strict-layout-rules)) | `WriterRevision` 2 or later; in an older file, a `draws N:` story line whose names are separated by `, ` |
+| 3 | `INIT` is `R0.S.0`, not `R1.S.0` ([§8](#8-the-setup-section)). `GameId` is an opaque hash, not the engine's game id, and the fallback player-id salt is no longer printed in the file ([§17](#17-privacy-considerations)) | the `INIT` seq; a `GameId` matching `^sha256:[0-9a-f]{64}$` |
+
+### Changes to this document before publication
+
+The review before publication (2026-10-28) changed what conforms, as well as what is written:
+
+- The text is normative and the reference code informative ([§2](#2-conventions-and-conformance--how-to-read-this-spec)).
+  Conformance levels, requirement ids and seven conformance classes were added
+  ([§2.1](#21-document-conformance-levels), [§3](#3-conformance-classes--who-has-to-do-what)).
+- The header grammar is strict: a repeated tag, an unknown escape, text outside the brackets,
+  a repeated section, a first line that is not `Game` and a non-digit `Rounds` make a file
+  malformed. Each was silently accepted before ([§4](#4-file-syntax--what-a-file-looks-like),
+  [Appendix B](#appendix-b-grammar-abnf)).
+- Header values have formats: RFC 3339 dates, `sha256:` ids of 64 hex digits, opaque `GameId`
+  ([§5](#5-header-tags)). `WriterRevision` is required for a valid file and scoped to the
+  writer's product.
+- `%%% DECKS` is open, a newer minor version's unknown closed-vocabulary value is a warning,
+  and `X_` / `x_` / `X` extensions are reserved
+  ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
+- New sections: security ([§23](#23-security-considerations)), the error model with codes
+  ([§24](#24-error-model)), registries ([§25](#25-registries)), references
+  ([§26](#26-references)), the ABNF grammar ([Appendix B](#appendix-b-grammar-abnf)), the
+  card id authority and set codes ([§6.1](#where-set-codes-and-numbers-come-from)), the
+  reduced-state schema ([§11](#11-the-reduced-state--the-board-you-build)), and a conformance
+  manifest with negative vectors ([§20](#20-conformance-suite--test-vectors)).
+
+---
+
+## 23. Security considerations
+
+A `.swupgn` file is untrusted input: readers open files that players upload, share and
+download. Everything in this section applies to every reader class.
+
+**Resource limits.** A reader MAY cap the file size, the length of a line, the number of
+records, and the nesting depth of a record, and MUST reject a file over a cap rather than read
+part of it `[P-05]`: a truncated game folds to a plausible wrong board. The reference reader's
+defaults are 16 MiB, 1 MiB per line, 1,000,000 records and a depth of 64. A real game is under
+100 KB with lines under 4 KB. The folder caps every list it grows at 1000 entries
+([§12](#12-folding--turning-lines-into-a-board)), and a keyframe over that cap is damaged
+([§13](#13-keyframes)).
+
+**Keys from the file.** Status token names, the `players` map of a keyframe, and every other
+object key in a record come from the file. A reader MUST NOT let one reach an object's
+prototype `[P-06]`: in JavaScript a key of `__proto__` assigned with `obj[key] = …` replaces the
+object's prototype, and every object in the process can inherit from it. A valid file has no
+key named `__proto__`, `constructor` or `prototype` ([§2.1](#21-document-conformance-levels)),
+but a reader MUST be safe on a file that is not valid. Use own-property checks, maps without a
+prototype, or define properties explicitly. Only `1` and `2` are seats.
+
+**Numbers.** Every number in a valid file is an integer within ±(2^53−1). A reader MUST NOT
+assume one is in range: a count of `1e308` or a negative `amount` MUST NOT make it loop, allocate or
+index out of bounds. The reference folder clamps counts at zero and ignores a non-number.
+
+**Display injection.** `CARDS.name`, `backSideName`, `Reason`, `CHOICE.prompt`,
+`CHOICE.offered`, `ABILITY_ACTIVATE.title`, annotation `text` and `by`, and every unknown field
+are attacker-controlled text. A renderer and a consumer MUST escape them for the medium they
+display in (HTML, Markdown, a terminal) and SHOULD neutralise bidirectional-override and control
+characters, which can make a line read differently from what it says `[R-04]`.
+`ABILITY_ACTIVATE.title` may carry the icon markup of [§10.1](#101-events-that-carry-board-detail).
+A reader that renders it MUST treat it as markup to interpret, never as HTML.
+
+**Integrity is not authenticity.** A verified file proves that its events and keyframes agree
+with each other. It does not prove the game happened, or that a particular server wrote it:
+anyone can write a verified file by hand. A consumer MUST NOT treat a verified file as evidence
+of a result `[C-03]`. A host that needs to vouch for a file must sign it or serve it over an
+authenticated channel. This version defines neither.
+
+**Omniscient files reveal hidden information.** An omniscient file carries both decklists and
+sideboards, every hand, the shuffled deck order and the seed. Before the match is over that is
+everything a player must not know about an opponent: what is left in the deck and in what
+order, and which sideboard cards can come in for the next game. A host MUST NOT let an
+omniscient file reach a participant of the game before the match is over `[W-37]`. The
+reference host serves the file only once the match has ended.
+
+**Seeds.** With `Seed` and the `INIT` deck orders a compatible engine can re-run the game
+([§8.1](#81-determinism)). This is why the rule above covers the whole match, not one game:
+a host whose RNG carries state from one game to the next must not reveal a seed while a later
+game that depends on it is unplayed.
+
+---
+
+## 24. Error model
+
+Every problem a reader can find has a **code**. A validator reports each issue with its code
+and a severity `[V-01]`, and a parser that rejects a file says which code. Codes are stable
+identifiers. Messages are free text, are not part of this specification, and MUST NOT be
+matched by a program.
+
+| Code | Severity | Condition | Level at most |
+|---|---|---|---|
+| `not-swupgn` | fatal | The first non-blank line is not `[Game "SWU-PGN/…"]`, or the file is empty | malformed |
+| `too-large` | fatal | The file is over the reader's size cap | malformed |
+| `line-too-long` | fatal | A line is over the reader's line cap | malformed |
+| `too-many-records` | fatal | More records than the reader's cap | malformed |
+| `too-deep` | fatal | A record nests deeper than the reader's cap | malformed |
+| `bad-header-line` | fatal | A header line holds something other than `[Tag "value"]` pairs | malformed |
+| `bad-escape` | fatal | A header value uses an escape other than `\\` and `\"` | malformed |
+| `duplicate-tag` | fatal | A header tag appears twice | malformed |
+| `missing-tag` | fatal | A required header tag is missing | malformed |
+| `bad-count` | fatal | `Rounds` is not base-10 digits | malformed |
+| `duplicate-section` | fatal | A section banner appears twice | malformed |
+| `record-outside-section` | fatal | A record before the first banner | malformed |
+| `bad-json` | fatal | A line in a JSON section is not JSON | malformed |
+| `schema` | error | A record or the header fails its schema | well-formed |
+| `not-object` | error | A record is JSON but not an object | well-formed |
+| `card-index` | error | A `%%% CARDS` entry lacks a string `id` or `name` | well-formed |
+| `duplicate-seq` | error | Two events share a `seq` | well-formed |
+| `dangling-ref` | error | A `for` or an annotation `ref` names no `seq` | well-formed |
+| `bad-zone` | error | A `from`, `to` or `zone` outside the zone vocabulary | well-formed |
+| `same-zone-move` | error | A `MOVE` from a zone to itself that is not an arena | well-formed |
+| `reserved-key` | error | An object key `__proto__`, `constructor` or `prototype` | well-formed |
+| `number-range` | error | A number that is not an integer within ±(2^53−1) | well-formed |
+| `over-cap` | error | A keyframe list longer than 1000 | well-formed |
+| `pre-release` | warning | No `WriterRevision`: a pre-release file | well-formed |
+| `keyframe-mismatch` | warning | Folding does not reproduce a keyframe | valid |
+| `recorder-errors` | warning | `RecorderErrors` is above zero | verified |
+| `unknown-defeat` | warning | A `DEFEAT` with `reason: "unknown"` | verified |
+| `newer-minor` | warning | The file's minor version is above the reader's | — |
+| `unknown-value` | warning | In a newer minor version, a closed-vocabulary value the reader does not know | — |
+| `unknown-type` | warning | An event type the reader does not know, without the `X_` prefix | — |
+| `unknown-section` | warning | A section the reader does not know, without the `X_` prefix | — |
+| `dangling-parent` | warning | An annotation `parent` names no annotation `id` | — |
+
+**Fatal** means the file is malformed: a parser MUST reject it, and nothing in it is read. **One
+bad JSON line rejects the whole file.** Skipping it would fold a game with a hole in it, and a
+reader cannot know what the hole held. **Error** means the file parses but is not valid:
+a reader MAY still fold and show it, and SHOULD say it is not valid. **Warning** means the
+file is as valid as its level says, and something is worth telling the user.
+
+A reader that is not a validator MAY stop at the first fatal problem. A validator reports
+every error and warning it finds, not just the first.
+
+---
+
+## 25. Registries
+
+Some vocabularies grow without a new version of the format. Each is a registry, kept in this
+document. Adding a value to a registry is a change to this document, made by a pull request
+to the forceteki repository that adds a row and, for a closed vocabulary, the schema value and
+the reference reader's handling in the same change. Adding to a **closed** registry is a
+minor version ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)). Adding
+to an **open** one needs no version change: readers already accept values they do not know.
+
+| Registry | Open or closed | Where |
+|---|---|---|
+| Event types (`t`) | closed for meaning, open for readers: an unknown type is skipped | [§10](#10-event-types), `event.schema.json` |
+| Header tags | open | [§5](#5-header-tags) |
+| Sections | open: an unknown section is skipped | [§4](#the-section-banners) |
+| Zones | **closed, major** ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)) | [§6.2](#62-zone-names) |
+| Reserved token names (`credit`, `the-force`) | closed | [§6.1](#two-reserved-token-names) |
+| `DEFEAT.reason` | closed | [§6.4](#64-small-vocabularies), `event.schema.json` |
+| `ABILITY_ACTIVATE.kind` | closed | [§10.1](#101-events-that-carry-board-detail), `event.schema.json` |
+| `MOVE.kind`, `CREATE_TOKEN.kind`, `%%% CARDS` `kind` | closed | [§6.5](#65-the-cards-index), `event.schema.json` |
+| `damageType`, `defenderType`, `PHASE_START.phase`, `STATUS_TOKEN.token` | open | [§6.4](#64-small-vocabularies) |
+| NAG glyphs | open | [§15](#the-glyphs) |
+| Set codes | open | [§6.1](#where-set-codes-and-numbers-come-from) |
+| `Result`, `Perspective` | closed | [§5](#5-header-tags) |
+| `Reason`, `Format` | open | [§5](#5-header-tags) |
+| Error codes | open: a reader that meets a code it does not know treats it by its severity | [§24](#24-error-model) |
+| Extension prefixes | closed | [§18](#extensions) |
+
+---
+
+## 26. References
+
+**Normative:**
+
+- **[RFC2119]** Bradner, S., "Key words for use in RFCs to Indicate Requirement Levels", BCP 14,
+  RFC 2119, March 1997. <https://www.rfc-editor.org/rfc/rfc2119>
+- **[RFC8174]** Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words", BCP 14,
+  RFC 8174, May 2017. <https://www.rfc-editor.org/rfc/rfc8174>
+- **[RFC8259]** Bray, T., Ed., "The JavaScript Object Notation (JSON) Data Interchange Format",
+  STD 90, RFC 8259, December 2017. <https://www.rfc-editor.org/rfc/rfc8259>
+- **[RFC7493]** Bray, T., Ed., "The I-JSON Message Format", RFC 7493, March 2015.
+  <https://www.rfc-editor.org/rfc/rfc7493>
+- **[RFC3339]** Klyne, G. and C. Newman, "Date and Time on the Internet: Timestamps", RFC 3339,
+  July 2002. <https://www.rfc-editor.org/rfc/rfc3339>
+- **[RFC5234]** Crocker, D., Ed. and P. Overell, "Augmented BNF for Syntax Specifications:
+  ABNF", STD 68, RFC 5234, January 2008. <https://www.rfc-editor.org/rfc/rfc5234>
+- **[RFC3629]** Yergeau, F., "UTF-8, a transformation format of ISO 10646", STD 63, RFC 3629,
+  November 2003. <https://www.rfc-editor.org/rfc/rfc3629>
+- **[JSON-Schema]** Wright, A., Andrews, H., Hutton, B. and G. Dennis, "JSON Schema: A Media
+  Type for Describing JSON Documents", draft 2020-12. <https://json-schema.org/draft/2020-12>
+- **[FIPS180-4]** NIST, "Secure Hash Standard (SHS)", FIPS PUB 180-4, August 2015.
+  <https://doi.org/10.6028/NIST.FIPS.180-4>
+- **[RFC2104]** Krawczyk, H., Bellare, M. and R. Canetti, "HMAC: Keyed-Hashing for Message
+  Authentication", RFC 2104, February 1997. <https://www.rfc-editor.org/rfc/rfc2104>
+- **[SWU-Cards]** Fantasy Flight Games, the official Star Wars: Unlimited card database.
+  <https://starwarsunlimited.com/cards>
+
+**Informative:**
+
+- **[PGN]** Edwards, S. J., "Portable Game Notation Specification and Implementation Guide",
+  1994. The chess format this one is named after.
+- **[JSON-Lines]** "JSON Lines". <https://jsonlines.org/>
+- **[SWU-CR]** Fantasy Flight Games, "Star Wars: Unlimited Comprehensive Rules", version 8.0.
+  Every "CR" citation in this document is to that version.
 
 ---
 
 ## Appendix A: a whole tiny game
 
-This is the `minimal` test vector. It is normative — your code must turn A.1 into A.2 and
-A.3 exactly.
+This is the `minimal` test vector. It is normative — a folder MUST turn A.1 into A.2, and a
+strict renderer MUST turn it into A.3, exactly.
 
 ### A.1 The file
 
 ```
 [Game "SWU-PGN/1.0"]
+[WriterRevision "3"]
 [GameId "vector-minimal"]
 [Date "2026-06-16T00:00:00Z"]
 [Format "Premier"] [CardPool "SOR"] [Engine "forceteki@reference"]
 [Seed "0"]
-[P1Id "sha256:aaaa"] [P2Id "sha256:bbbb"] [P1 "Player 1"] [P2 "Player 2"]
+[P1Id "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] [P2Id "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] [P1 "Player 1"] [P2 "Player 2"]
 [P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]
 [Result "Incomplete"] [Reason "Sample"] [Rounds "2"]
 
@@ -2993,7 +3432,7 @@ A.3 exactly.
 {"id":"SOR#108","name":"Wampa","kind":"unit"}
 
 %%% SETUP
-{"seq":"R1.S.0","t":"INIT","p1DeckOrder":["SOR#108","SOR#108:2","SOR#108:3","SOR#108:4","SOR#108:5"],"p2DeckOrder":["SOR#045","SOR#045:2","SOR#045:3","SOR#045:4","SOR#045:5"]}
+{"seq":"R0.S.0","t":"INIT","p1DeckOrder":["SOR#108","SOR#108:2","SOR#108:3","SOR#108:4","SOR#108:5"],"p2DeckOrder":["SOR#045","SOR#045:2","SOR#045:3","SOR#045:4","SOR#045:5"]}
 
 %%% EVENTS
 {"seq":"R0.S.start","t":"PHASE_START","phase":"setup"}
@@ -3201,7 +3640,7 @@ begins, so the setup deltas are what it has to add up to:
 | `MOVE` + `RESOURCE` (`SOR#108:3`) | `handSize` 1, `resourcesReady` 2 |
 | the same two for Player 2 | `handSize` 1, `resourcesReady` 2 |
 | `PHASE_END` | nothing |
-| `ROUND_START {round:1, keyframe}` | the keyframe says exactly what the fold has built — hand 1, resources 2, each seat — plus what the fold could not know: `deckSize` 2 and each `leader` (both in the base zone, ready, Epic Action unused). It is authoritative: the state is **replaced** by it. `checkKeyframes()` compares first and finds nothing to report (`baseHp` and `deckSize` are exempt here, [§14](#14-checking-a-file-is-honest)). |
+| `ROUND_START {round:1, keyframe}` | the keyframe says exactly what the fold has built — hand 1, resources 2, each seat — plus what the fold could not know: `deckSize` 2 and each `leader` (both in the base zone, ready, Epic Action unused). It is authoritative: the state is **replaced** by it. `checkKeyframes()` compares first and finds nothing to report (`baseHp` and `deckSize` are exempt here, [§14](#14-integrity--checking-a-file-is-honest)). |
 | `PHASE_START {phase:"action"}` | `phase = "action"` |
 | `EXHAUST_RESOURCES {p:1, amount:2}` | Player 1 pays for the Wampa: `resourcesReady` 2 → 0, `resourcesExhausted` 0 → 2. Under action `0`: the engine pays before it announces the play ([§9.1](#91-how-seq-is-built)). |
 | `MOVE hand → ground` (`SOR#108`) | `handSize` 1 → 0; a fresh `SOR#108` is added to player 1's `cards` — `exhausted: false`, no stats yet |
@@ -3239,3 +3678,344 @@ begins, so the setup deltas are what it has to add up to:
 | `PASS` | numbered: `  2. Player 2 passes` |
 | `ATTACK` | numbered: `  1. Player 1 attacks Player 2's base with Wampa` |
 | `DAMAGE` | indented under it: `       ↳ 4 damage to Player 2's base — 26 HP left` |
+
+---
+
+## Appendix B: Grammar (ABNF)
+
+This grammar is normative. It uses ABNF [[RFC5234](#26-references)] and its core rules
+(`ALPHA`, `DIGIT`, `DQUOTE`, `HTAB`, `LF`, `CRLF`, `WSP`). Where it and a prose rule seem to
+differ, the grammar governs the syntax and the prose governs the meaning. A JSON object is as
+RFC 8259 defines it, restricted to I-JSON [[RFC7493](#26-references)].
+
+### B.1 The file
+
+```abnf
+swupgn-file    = [bom] *blank-line game-line *( header-line / blank-line ) *section [last-line]
+bom            = %xFEFF                 ; readers strip it; writers MUST NOT write it
+game-line      = "[Game" 1*WSP DQUOTE "SWU-PGN/" major "." minor DQUOTE "]" *WSP eol
+major          = 1*DIGIT
+minor          = 1*DIGIT
+header-line    = *WSP tag-pair *( *WSP tag-pair ) *WSP eol
+tag-pair       = "[" tag-name 1*WSP DQUOTE tag-value DQUOTE "]"
+tag-name       = 1*( ALPHA / DIGIT )    ; case-sensitive; unique in the file
+tag-value      = *( tag-char / escape )
+tag-char       = %x20-21 / %x23-5B / %x5D-7E / %x80-10FFFF
+                                        ; any character but DQUOTE, "\" and controls
+escape         = "\" ( DQUOTE / "\" )   ; the only two escapes
+section        = json-section / story-section / unknown-section
+json-section   = banner *( record-line / blank-line )
+story-section  = banner *story-line     ; banner name STORY
+unknown-section= banner *any-line       ; skipped unread
+banner         = *WSP "%%%" *WSP section-name *WSP eol
+section-name   = 1*( ALPHA / DIGIT / "_" )
+                                        ; case-insensitive; each name at most once
+record-line    = *WSP json-object *WSP eol
+story-line     = any-line               ; any line that does not start with "%%%"
+any-line       = *( %x09 / %x20-10FFFF ) eol
+blank-line     = *WSP eol
+eol            = LF / CRLF
+last-line      = *( %x09 / %x20-10FFFF )   ; a final line with no line feed
+```
+
+### B.2 Header values
+
+```abnf
+date-time      = full-date "T" full-time    ; RFC 3339 §5.6, seconds and offset required
+full-date      = 4DIGIT "-" 2DIGIT "-" 2DIGIT
+full-time      = 2DIGIT ":" 2DIGIT ":" 2DIGIT [ "." 1*9DIGIT ] ( "Z" / ( "+" / "-" ) 2DIGIT ":" 2DIGIT )
+count          = 1*DIGIT                    ; base 10, no sign
+sha256-id      = "sha256:" 64hex-lower      ; P1Id, P2Id, Match
+hex-lower      = DIGIT / %x61-66
+card-pool      = set-code *( "," set-code )
+engine         = product "@" build          ; e.g. forceteki@7dd39a09-dirty
+product        = 1*( ALPHA / DIGIT / "-" / "_" / "." )
+build          = 1*%x21-7E
+result         = "P1" / "P2" / "Draw" / "Incomplete"   ; case-sensitive, unlike ABNF strings
+perspective    = "P1" / "P2"                          ; case-sensitive
+```
+
+### B.3 Names inside records
+
+```abnf
+seq            = "R" number "." ( phase "." step / edge ) [ undo ]
+phase          = "S" / "A" / "G"            ; setup, action, regroup
+step           = number [ letters ] / "start" / "end" / "game-end"
+                                            ; letters only in phase A (§9.1)
+edge           = "start" / "end"            ; R3.start, R3.end
+undo           = "-undo"                    ; an UNDO note (§10.2)
+letters        = 1*%x61-7A                  ; bijective base 26: a … z, aa, ab …
+number         = 1*DIGIT
+
+card-id        = printed-card / token-card
+printed-card   = set-code "#" collector [ copy ]
+set-code       = 1*( %x41-5A / DIGIT )      ; upper case, §6.1
+collector      = 3*DIGIT                    ; zero-padded to at least 3
+copy           = ":" ( %x32-39 *DIGIT / %x31 1*DIGIT )
+                                            ; 2 and up; the first copy has none
+token-card     = "TOKEN:" token-name [ "#" 1*DIGIT ] [ copy ]
+token-name     = 1*( %x61-7A / DIGIT / "-" / "_" )
+base-ref       = "base@" ( "1" / "2" )
+seat           = "1" / "2"                  ; a JSON number in records
+```
+
+The schema's `seq` pattern (`event.schema.json`) is looser than B.3, so that a reader accepts
+a pre-release file. A writer MUST write `seq` as B.3 gives it.
+
+---
+
+## Appendix C: Reading pre-release files (informative)
+
+**1.0 is in a pilot until it is published, and pilot files are pre-release.** The reference
+writer changed behaviour several times while 1.0 was being shaken out against real games, and
+files from that period were shared with other readers. They all say `SWU-PGN/1.0`, and some of
+these changes alter what a record **means** under that one version string, not only what it
+adds. Two matter most: `PASS` is now written only for the Pass action, which renumbers every
+later action in a round, and a leader deployed by its own Epic Action is now a lettered sub-step
+of that action rather than a numbered action of its own. A reader that meets a pilot file
+SHOULD treat it as pre-release and use the **Detect** column below to tell which behaviour it
+has. Nothing in it is guaranteed.
+
+**From `WriterRevision` 1 on, the header says which writer made the file**
+([§5.2](#52-optional-tags)). A file with no `WriterRevision` is a pilot file. A file
+with one was written by that revision, and every row added below from here on names the
+revision that introduced it, so a reader can switch on the number instead of guessing from the
+contents.
+
+None of these bumped the version, because 1.0 had not been published. Most are additions or
+corrections a 1.0 reader already tolerates; the `PASS` and Epic Action deploy rows are not, and
+after publication a change like them would need a new version ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
+Each is detectable from the file:
+
+| Earlier 1.0 files | Current 1.0 files | Detect |
+|---|---|---|
+| Story wrote `(2 resources)` after a play | `(cost 2)` — it is the printed cost ([§10.1](#101-events-that-carry-board-detail)) | a story line containing `resources)` |
+| `CHOICE.offered` named a base by its card id (`SOR#029`) | `base@N` ([§6.3](#63-pointing-at-a-base)) | `offered` entry matching `^base@[12]$` |
+| Deck construction emitted 40 `MOVE`s `outsideTheGame` → `deck` | not recorded ([§10.1](#101-events-that-carry-board-detail)) | any `MOVE` with `from: "outsideTheGame"`, `to: "deck"` |
+| `%%% CARDS.kind` followed the live role (a pilot said `upgrade` while attached) | the printed identity ([§10.1](#kind-on-an-event-is-a-role-kind-in-cards-is-an-identity)) | not detectable from the index alone; a pilot's `MOVE` `kind` disagreeing with its index `kind` shows the current writer |
+| `%%% CARDS` covered only ids that events mentioned | also the header's leaders/bases and every deck id ([§6.5](#65-the-cards-index)) | an undeployed leader (`P1Leader`) absent from the index |
+| `GAME_END` seq was `R<n>.A.end`, shared with that phase's `PHASE_END` | `R<n>.<phase>.game-end`, its own step ([§9.1](#91-how-seq-is-built)) | a `GAME_END` whose seq ends in `.game-end` |
+| A control change (`TAKE_CONTROL`) was a note with no fold effect, so a stolen unit stayed under its old seat | it re-seats the card ([§10.1](#101-events-that-carry-board-detail)) | a `TAKE_CONTROL` carrying `zone` |
+| A leader deployed as a pilot was a `DEPLOY_LEADER` with no host, folded as its own unit | `kind: "upgrade"` + `target` ([§10.1](#101-events-that-carry-board-detail)) | a `DEPLOY_LEADER` carrying `target` |
+| No way to tell a complete file from one whose writer dropped events | header carries `RecorderErrors` when a handler failed ([§5.2](#52-optional-tags)) | the tag's presence |
+| A malformed keyframe, or a non-array `cards`/`hand`/`discard`, crashed the reference reader | ignored and reported ([§13](#13-keyframes), [§14](#14-integrity--checking-a-file-is-honest)); `validate()` rejects the shapes the fold dereferences | `validate()` errors, or a `keyframe` mismatch |
+| `Date` was when the file was written | when the game started ([§5.1](#51-required-tags)) | not detectable; treat an early file's `Date` as "at or after game end" |
+| Nothing recorded resources being spent: the row read "all ready" for a whole action phase | `EXHAUST_RESOURCES` / `READY_RESOURCES` counters, and `exhausted` on a `MOVE` out of the row ([§10.1](#101-events-that-carry-board-detail)); `resourcesExhausted` gated | any `EXHAUST_RESOURCES` record |
+| A resource card readied at regroup was a per-card `READY` a reader had no card to apply to | the counter record ([§10.1](#101-events-that-carry-board-detail)) | a `READY` naming a card that was resourced shows the early writer |
+| A token upgrade's exit `MOVE` named its host (`attachedTo`); a printed upgrade's and a pilot's did not | no exit names a host; readers detach on the zone transition ([§10.1](#binding-an-attachment-to-its-host)) | a `MOVE` out of an arena carrying `attachedTo` |
+| The fold ignored `attachedTo` and never detached, so `upgrades[]` only grew | `attachedTo` attaches, exits and `DEFEAT` detach ([§12.1](#121-the-move-rule-the-big-one)); `upgrades` gated | not a file change; a reader's fold |
+| Credit tokens and the Force moved on `MOVE`s the fold ignored; a Credit token changing hands was dropped as a `base` → `base` no-op | `credits` / `hasForce` folded from those moves ([§12.1](#121-the-move-rule-the-big-one)); the steal is a `TAKE_CONTROL` with `zone: "base"` | a `TAKE_CONTROL` whose `zone` is `base` |
+| `CAPTURE.p` was the captured card's owner, and no field named the captor | `p` is the seat that now holds the card, `by` is the captor; `CardInstanceState.captured` ([§10.1](#101-events-that-carry-board-detail)) | a `CAPTURE` carrying `by` |
+| A Weakness token (any token upgrade other than Shield/Experience/Advantage) was recorded as a printed upgrade | a `STATUS_TOKEN` under its own name, by type ([the token contract](#the-token-gainremoval-contract)) | a `STATUS_TOKEN` whose `token` is not `advantage` |
+| Keyframe cards carried no stats and no captives | `power`, `hp` and `captured` ([§11](#11-the-reduced-state--the-board-you-build)) | the fields' presence |
+| `Engine` preferred the package version, so every production file said `forceteki@0.1.0` | git SHA before package version ([§5.3](#53-provenance-engine-and-seed)) | an `Engine` that is a SHA |
+| The `minimal` vector began at the `R1.start` keyframe and failed its own gate | a setup prologue; four real-game vectors added ([§20](#20-conformance-suite--test-vectors)) | not a file change |
+| A `ROUND_END` keyframe was snapshotted after the engine tore the round down, so it reported `phase: "setup"` and `initiativeTaken: false` for a round that claimed | snapshotted at the seq it names ([§13](#13-keyframes)) | a `ROUND_END` keyframe whose `phase` is `regroup` |
+| An action ability was a sub-event, so it was filed under the last numbered action — the opponent's `PASS` — along with everything it did | its own numbered action ([§9](#9-the-events-section-and-seq-numbers), [§16](#16-rendering--turning-a-file-into-a-story)) | an `ABILITY_ACTIVATE` on a top-level step, or carrying `kind` |
+| The only clue to what sort of ability fired was the shape of `ability` | `kind`, and `title` ([§10.1](#101-events-that-carry-board-detail)) | the fields' presence |
+| The hand→`resource` `MOVE` carried the previous beat's number and no `for`, so a reader filed the card under the wrong player | stamped with its `RESOURCE`'s seq ([§9.1](#91-how-seq-is-built)) | a `MOVE` to `resource` carrying `for` |
+| The regroup wrote one `READY_RESOURCES` per resource — 54 in a 7-round game, every one `amount: 1` | one per unbroken run ([§10.1](#101-events-that-carry-board-detail)) | a `READY_RESOURCES` whose `amount` is above 1 |
+| `HEAL` said HP went up and nothing about what healed | optional `src`, on `DAMAGE.src`'s terms ([§10.1](#101-events-that-carry-board-detail)) | a `HEAL` carrying `src` |
+| `DEFEAT.reason` was an open list, so a reader could not switch on it, and an unresolved cause wrote `""` | a closed set, `unknown` included ([§6.4](#64-small-vocabularies)) | a `DEFEAT` whose `reason` is `unknown`, or `validate()` rejecting one outside the set |
+| An undo left no trace: a file where six decisions were retracted read like one where none were | `Undos` and `UNDO` notes ([§5.2](#52-optional-tags), [§10.2](#102-events-that-are-just-notes)) | the tag, or any `UNDO` record |
+| Nothing in a file said how long a decision took; `Date` and `EndDate` give only the whole game | optional `ms` on numbered actions and round/phase starts ([§5.2.1](#521-timing-ms)) | any record carrying `ms` |
+| A unit entering play exhausted was never written, so every replay showed a just-played unit ready | an `EXHAUST` right after its arrival ([§10.1](#101-events-that-carry-board-detail)) | an `EXHAUST` for a card in the same action as its `PLAY` |
+| Nothing carried a unit's live stats between keyframes; keyframes carried none at all | `STATS` after every change; `power`/`hp`/`keywords` on keyframe cards, gated ([§10.1](#stats)) | any `STATS` record |
+| The leader in the base zone, the deck count and the initiative counter's status were not in the board | `leader`, `deckSize`, `initiativeTaken` in every keyframe; `epic` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`; a returning Leader Unit's `EXHAUST` ([§11](#11-the-reduced-state--the-board-you-build)) | a keyframe carrying `leader` |
+| The `minimal` vector attacked with a unit the turn it was played | rules-legal two-round game ([§20](#20-conformance-suite--test-vectors)) | not a file change |
+| The resource row was counted only, so a reader could not draw the cards in it | `resources[]` membership alongside the two counts ([§10.1](#101-events-that-carry-board-detail)) | a keyframe carrying `resources` |
+| A base's Epic Action was not tracked at all, though 12 bases carry one | `baseEpicActionUsed`, set by an `ABILITY_ACTIVATE` whose `card` is `base@N` ([§10.1](#101-events-that-carry-board-detail)) | an `ABILITY_ACTIVATE` whose `card` matches `^base@[12]$` |
+| A base activating its own ability named itself by card id | `base@N`, like every other reference to a base ([§6.3](#63-pointing-at-a-base)) | the same |
+| Nothing linked a pre-announcement record to its action; readers had to implement §9.1's prose | `for` on each such record, stamped by the writer ([§9.1](#91-how-seq-is-built)) | any `for` field |
+| Whose turn it is was not recorded | `active` in keyframes ([§11](#11-the-reduced-state--the-board-you-build)) | a keyframe carrying `active` |
+| No game duration, no match grouping | `EndDate`, `Match`, `GameNumber` header tags ([§5.2](#52-optional-tags)) | the tags' presence |
+| A token unit's `CREATE_TOKEN` was dropped and `RecorderErrors` set, because the writer read the token's live stats while it was still outside the game | stats guarded and omitted when unreadable; `zone` names the destination arena ([§10.1](#101-events-that-carry-board-detail)) | a game containing a token unit but no `CREATE_TOKEN`, and a `RecorderErrors` tag |
+| A double-sided leader's face was not recorded, so a flipped leader replayed as its starting side for the whole game | `LEADER_FLIP` + `leader.onStartingSide` ([§10.1](#101-events-that-carry-board-detail)) | any `LEADER_FLIP` record, or a keyframe leader carrying `onStartingSide` |
+| A Fortify upgrade (Homeworlds) was in no board field at all: its `MOVE` into `base` named no host, `PLAY_UPGRADE.target` was the base's card id, and no keyframe listed it, so a reader could not show what was on a base | `attachedTo` / `target` `base@N`, and `baseUpgrades` on the seat, folded and gated ([§10.3](#103-homeworlds-fortify-beast-and-weakness), [§12.1](#121-the-move-rule-the-big-one)) | a keyframe carrying `baseUpgrades` |
+| An ability a base gained from an upgrade said only that the base used it; the grantor was inside the engine's `ability` string | `grantedBy` ([§10.1](#101-events-that-carry-board-detail)) | an `ABILITY_ACTIVATE` carrying `grantedBy` |
+| Damage and heals dealt by a base, and units defeated by one, named the base by its card id | `base@N` in `DAMAGE.src`, `HEAL.src` and `DEFEAT.defeatedBy` ([§6.3](#63-pointing-at-a-base)) | a `src` or `defeatedBy` matching `^base@[12]$` |
+| Damage the rules dealt with no card responsible (drawing from an empty deck) wrote the engine's display string as `src` — `"Framework effect"`, then `"Framework effect:2"` | `src` omitted ([§10.1](#101-events-that-carry-board-detail)) | a `DAMAGE` with no `src` |
+| An effect applied a step after its event (a base's gained "+1/+0") had its `STATS` filed under the record after the action, and so `for` the opponent's next action | settled before the turn passes, under the action that caused it ([§10.1](#stats)) | not detectable from a single record |
+| A unit arriving in play just before an action (a start-of-phase trigger's Beast) had its `MOVE`, `STATS` and `EXHAUST` stamped `for` that action | another card's arrival ends the run ([§9.1](#91-how-seq-is-built)) | not detectable from a single record |
+| `PASS` was written every time the turn passed to the opponent, so every play and attack was followed by a `PASS` from the same player, and the story read "Player 1 passes" after each action | `PASS` only for the Pass action ([§10.2](#102-events-that-are-just-notes)); every action after the first renumbers | two `PASS` records in a row from the same player, or a `PASS` right after that player's own `PLAY`/`ATTACK`, shows the early writer |
+| `DRAW.count` was the number of cards asked for, so a draw from a short deck said 2 and listed 1 | the cards actually drawn ([§10.1](#101-events-that-carry-board-detail)) | a `DRAW` whose `count` differs from `cards.length` |
+| A keyframe's lists were snapped to at any length | over 1000 entries makes the keyframe damaged ([§13](#13-keyframes)) | not a file change; a reader's trust check |
+| A base defeated outright by an ability (Grand Moff Tarkin) left no record: the game ended with the base standing at its HP | a `DEFEAT` on `base@N` for every defeated base, by damage or outright, and `baseDefeated` on the seat ([§10.1](#101-events-that-carry-board-detail), [§10.4](#104-grand-moff-tarkin-and-the-death-star)) | a `DEFEAT` whose `card` matches `^base@[12]$` |
+| A leader whose deployed side is another card (Tarkin / The Death Star; also a flipped Palpatine) was named in `%%% CARDS` by whichever side ended the game up | the printed front as `name`, the other side as `backSideName` ([§6.5](#65-the-cards-index)) | an index entry carrying `backSideName` |
+| A leader deployed by its own Epic Action was two numbered actions — the ability, then the `DEPLOY_LEADER` | the deploy is the ability's sub-step ([§10.1](#101-events-that-carry-board-detail)) | a `DEPLOY_LEADER` with a lettered seq |
+| `hand[]` grew from `DRAW` and nothing removed, so a folded "hand" was a cumulative draw log; `discard` was filed by `DEFEAT`, which fires after the `MOVE` that already removed the card, so no defeated unit reached the pile | both are folded from `MOVE` and gated ([§12.1](#121-the-move-rule-the-big-one), [§14](#14-integrity--checking-a-file-is-honest)) | not a file change; a reader's fold. Fold any vector's deltas to a keyframe and compare `hand`/`discard` — 45 mismatches before, 0 after |
+| No header tag said which writer made a file, so a pilot file and a current one were told apart only by their contents | `WriterRevision` ([§5.2](#52-optional-tags)); revision 1 is the first | the tag's presence |
+| A unit captured by a **base** (Arrest) left the board and was held nowhere, so it vanished from the fold until its rescue, and §10.1 said no card captures with a base | the seat's `baseCaptured`, pushed by a `CAPTURE` whose `by` is `base@N`, cleared on leaving `capture`, carried in every keyframe and gated ([§10.1](#101-events-that-carry-board-detail), [§11](#11-the-reduced-state--the-board-you-build)). Revision 1 | a keyframe carrying `baseCaptured` |
+
+---
+
+## Appendix D: Reference writer notes (informative)
+
+How the reference writer (forceteki, `server/game/core/chat/`) meets the rules that a file's
+contents alone cannot show. None of this is required of another writer. Operational details
+— environment variables, test files, how to regenerate the vectors — are in
+`swupgn/README.md`.
+
+- **`Engine`.** It resolves its build from, in order, an environment variable set by CI, the
+  git SHA of its working tree (with `-dirty` for an uncommitted tree), and its package version
+  as a last resort. It caches the value for the life of the process, because shelling out to
+  git on the game-end path would block every concurrent game, and resolves it again on restart.
+- **Keyframes at their own seq `[W-24]`.** The engine clears the initiative counter and leaves
+  the phase as it tears a round down. The writer takes those round-scoped fields from the
+  records it has just written for the round (`CLAIM_INITIATIVE`, the last `PHASE_START`) rather
+  than from the engine, so the keyframe agrees with the fold by construction.
+- **Verification `[W-01]`.** It runs `checkKeyframes()` on every file before writing it. A
+  mismatch is logged at error level with the paths that differ, and the file is still
+  written: the keyframes are authoritative, and withholding the file would cost a player
+  their replay.
+- **`for` `[W-18]`.** The recorder cannot stamp `for`: when the records arrive it does not yet
+  know an action is about to follow. The writer holds the whole stream before serialising, and
+  `linkActionSteps()` fills `for` in then, by the rule of [§9.1](#91-how-seq-is-built).
+- **Identity `[W-10]`.** No field is built from a username except the player id. A CI test
+  stamps sentinel identities onto a live game and fails if any survives into the file.
+- **Hidden information `[W-37]`.** The host serves a game's file only once the match is over.
+
+---
+
+## Appendix E: Implementation report (informative)
+
+How the reference implementation was tested against this document, and what that testing has
+not yet covered. The normative list of format gaps is [§21](#21-open-issues). This appendix is
+a record: the test files it names are forceteki's.
+
+
+This document describes the format as the reference implementation actually writes it. It
+was shaken out against a real 7-round game (551 events) that exposed nine writer defects —
+partial keyframes, unrecorded token removals, unresolvable token ids, malformed and no-op
+MOVEs, placeholder provenance, and a specified-but-never-emitted `RESOURCE` — all fixed
+before this version was published. That game now folds with **zero** keyframe mismatches.
+
+The writer contract is gated on a real completed game by
+`test/server/chat/SwuPgnWriterContract.spec.ts`: every keyframe carries both seats, folding
+the events forward reproduces every keyframe, every status-token gain has a matching removal
+by game end, no `MOVE` has an empty or identical `from`/`to` (and every zone named is in the
+vocabulary), and `Engine`/`Seed` are not placeholders.
+
+It is gated again on **organic** games — a natural setup phase (initiative, mulligan,
+resourcing) through several rounds of plays, attacks and regroup resourcing to a concession —
+folded with **no** field excluded: `SwuPgnOrganicGame.spec.ts` (four rounds), and the seven
+scenario games of `SwuPgnVectors.spec.ts` that are also the `upgrades`, `pilot`, `capture`,
+`arrest`, `stolen-hauler`, `homeworlds` and `death-star` vectors ([§20](#20-conformance-suite--test-vectors)). In every one, every keyframe field reproduces exactly:
+`handSize`, `resourcesReady` **and `resourcesExhausted`**, `credits`, `hasForce`, and per card
+`upgrades` and `captured` alongside the counters; `validate()` returns no issue at all;
+`%%% CARDS` covers every leader, base and deck id; and `GAME_END` takes the `.game-end` step of
+the phase it happened in. Two further real-game gates cover the cases that first broke the
+fold: a Change of Heart steal and return (`TAKE_CONTROL` re-seating), and Kazuda Xiono
+deploying as a pilot (`DEPLOY_LEADER` with `target`). Six more cover what a second reading of
+that export turned up: the `ROUND_END` keyframe taken at the seq it names, an action ability
+numbered as its own action with the opponent's `PASS` left childless, `for` on every resourcing
+`MOVE` with the regroup row readied in one record, `HEAL.src` with each `DEFEAT` under its
+closed-set reason, `kind` on every activation, and `ms` on the numbered actions and nowhere
+else. The undo trace is gated separately, against a real rollback
+(`test/scenarios/undo/SwuPgnUndoRetention.spec.ts`). (The other real-game specs bootstrap at
+the action phase, which discards the natural hand without a `MOVE`, so they cannot assert the
+hand and resource counts past `R1.start`.) The credit rule was additionally checked against a
+real 10-round export in which one Credit token was created, held across two rounds and spent:
+0 mismatches under the widened gate.
+
+`hand` and `discard` **contents** used to be the one un-gated pair here, on the grounds that
+only the counts were reconstructable. That was wrong, and it was found by an implementer
+building a replay client against this document rather than by the gate. Every `MOVE` names its
+card, so both lists are exact; the fold simply discarded the information — `DRAW` appended to
+`hand` and nothing ever removed, and `discard` was left to `DEFEAT`, which fires *after* the
+`MOVE` that already emptied `cards`. Folding the five vectors' deltas produced **45
+mismatches** against their own keyframes before the fix and **none** after. Both are now
+`MOVE`-driven and gated at every keyframe.
+
+That leaves the fields §14 lists as not compared — the top-level `round`, `phase`,
+`initiative` and `active`, and each seat's `baseMaxHp` and `seat`, none of which is a delta
+([§14](#14-integrity--checking-a-file-is-honest)). Every player and card field of §11 is compared, and the eight real-game vectors — Raid, Grit, Sentinel, tokens, upgrades, a pilot, a capture,
+a base as captor, a card played out of the opponent's discard, leaders in and out of the base zone, base upgrades, a base defeated outright — pass with nothing to report.
+
+One caveat on `hand`, and it is about a test harness rather than the format: the integration
+specs that bootstrap a game directly at the action phase tear down the natural opening hand
+without emitting a `MOVE` for it, so the folded hand keeps those cards. Those two specs defer
+`hand` past the first keyframe exactly as they already defer `handSize`. An organic game —
+natural setup, one bootstrap — reconstructs both exactly, which is what
+`SwuPgnOrganicGame.spec.ts` gates.
+
+Three engine paths the resource rule covers by construction have no dedicated real-game gate
+yet, and a reader should treat their split (not their total, which every regroup re-syncs) as
+best-effort until one exists: a card Smuggled or played from the resource row (its exit `MOVE`
+carries `exhausted: true`), a resource a friendly effect returns to hand (swapped exhausted on
+the way out, same flag), and a resource stolen while exhausted (`TAKE_CONTROL` with
+`exhausted`). Each is exercised by unit tests of the recorder against the engine's documented
+behaviour, not by a played game.
+
+The **base Epic Action** was the one genuine hole in [§11](#what-the-board-covers-against-the-rules)'s
+claim to cover CR 1.16's definition of the game state, and it was found the same way the hand and
+discard bugs were: by an implementer reading the document against a real client, not by the gate.
+§11 tracked Epic Actions only on the leader, while 12 bases carry one of their own. It is now
+`baseEpicActionUsed`, gated, with a real-game spec against Tarkintown.
+
+That leaves the leader's own flag, which one implementer reasonably asked about: a leader has
+exactly **one** Epic Action, its deploy, and both forms of it — as a unit and as a pilot — share
+a single limit, so one boolean is right by construction rather than by luck. It would stop being
+right only if the engine let a leader register a second Epic Action, which today it structurally
+cannot.
+
+`baseHp`/`baseMaxHp` are still absent from the SETUP `INIT` record. A reader that ships card
+data can derive a base's starting HP itself, and the first keyframe supplies it either way,
+so this is low priority — but emitting it would give the keyframe gate an independent value
+to check the first keyframe against, which is the one place it currently can't
+([§14](#14-integrity--checking-a-file-is-honest)).
+
+**A base as captor** (Arrest, SEC#195) is gated by the `arrest` vector, where Player 1's base
+captures twice and each captive is rescued at the next regroup, and by
+`test/server/chat/SwuPgnBaseCapture.spec.ts`, which compares the fold mid-phase with the engine
+(the base holds the unit in `baseCaptured`, and no unit holds it) and again after the rescue.
+One limit: Arrest's captive is always rescued at the start of the regroup phase, before the
+`ROUND_END` keyframe, so in a real game the keyframe gate only ever sees an **empty**
+`baseCaptured`. The held state is checked by the fold, the vector's `stateAt`, and that spec, not
+by a keyframe.
+
+**Homeworlds** ([§10.3](#103-homeworlds-fortify-beast-and-weakness)) is gated by the
+`homeworlds` vector (five organic rounds, Fortify on both bases, Beasts, stacked Weakness and a
+Weakness kill) and by `test/server/chat/SwuPgnHomeworlds.spec.ts`. That spec plays each
+mechanic through the engine: a Fortify upgrade attached and sacrificed, a base's gained Action
+and gained trigger with `grantedBy`, Alliance Shield Generator's replacement, a Beast created
+for the opponent, a Beast readied on creation, a Weakness kill, and two stacked Weakness tokens.
+The same spec gates Grand Moff Tarkin (a deploy counted as one action and named The Death Star; a
+base defeated outright; the Pass that declines it; a damage kill's `DEFEAT` on `base@N`) and six
+cards whose abilities depend on a base or a trait (Kashyyyk keywords and discounts, Gunga City
+Guard losing Shielded, Ritual Dragon's ready entry, Surveillance Cruiser on the opponent's base,
+The Tarkin Doctrine on a Fortification upgrade, Queen Amidala on an upgraded base). Four paths
+have **no** real-game gate, and a reader should treat them as best-effort until one exists:
+
+- **Continued play after the game has ended.** The writer records it, and writes a `DEFEAT` for a
+  second base that falls then (a real-engine test plays exactly that, through a heal). But the file
+  the server hands out is frozen at the moment the game ended, so today no served file contains
+  continued play at all.
+- **Tarkin defeating his own base.** The trigger may target either base. The writer records it
+  the same way (`DEFEAT` on `base@1`, the opponent winning), but only the opponent's base has been
+  played.
+- **A base upgrade changing control.** No Homeworlds card does it today. If one ever does, there
+  is no `TAKE_CONTROL` shape for a base upgrade yet. `TAKE_CONTROL` with `zone: "base"` means a
+  Credit token or the Force.
+- **An opponent's Fortify upgrade attached to your base** (playing it from their discard with an
+  effect such as A Fine Addition). The writer names the host base in `attachedTo` / `target` and
+  the owner in the `MOVE`'s `p`, so the fold attaches it to the right base and discards it to the
+  right pile. But no played game exercises that split.
+
+Some defined event types still never appear in a given real file, simply because nothing in
+that game triggers them (`OVERWHELM`, `SEARCH` and friends). That is absence of the situation,
+not a gap — unlike `RESOURCE`, which was specified, folded and rendered but had no code path
+that emitted it at all; it is now emitted for every resourcing
+([§10.1](#101-events-that-carry-board-detail)). `CAPTURE` and `RESCUE` were in that position
+for a board reader — recorded, but with nothing a reader could file the card under — until the
+`capture` vector.
+
+---
+
+## Appendix F: Acknowledgements (informative)
+
+The SWUForge and Karabuddy teams read this document against their own implementations during
+the pilot and reported what it got wrong, which shaped most of §9–§16. Implementers who built
+replay clients from the text found the hand, discard and base Epic Action gaps that the
+reference tests had missed. The format is named after, and owes its shape to, Steven J.
+Edwards's Portable Game Notation for chess.

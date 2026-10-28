@@ -9,13 +9,13 @@ describe('SwuPgnWriter', function () {
         game: 'SWU-PGN/1.0', gameId: 'g1', date: '2026-06-16T00:00:00Z',
         format: 'Premier', cardPool: 'SOR', engine: 'forceteki@test',
         seed: 'seed-1', perspective: null,
-        p1Id: 'sha256:aaaa', p2Id: 'sha256:bbbb', p1: 'Player 1', p2: 'Player 2',
+        p1Id: `sha256:${'a'.repeat(64)}`, p2Id: `sha256:${'b'.repeat(64)}`, p1: 'Player 1', p2: 'Player 2',
         p1Leader: 'SOR#010', p1Base: 'SOR#028', p2Leader: 'SOR#005', p2Base: 'SOR#020',
         result: 'Incomplete', reason: 'Sample', rounds: 1,
     };
     const decks: DeckRecord[] = [{ p: 1, leader: 'SOR#010', base: 'SOR#028', deck: [['SOR#108', 3]] },
         { p: 2, leader: 'SOR#005', base: 'SOR#020', deck: [['SOR#045', 3]] }];
-    const setup: SetupInitRecord[] = [{ seq: 'R1.S.0', t: 'INIT', p1DeckOrder: ['SOR#108'], p2DeckOrder: ['SOR#045'] }];
+    const setup: SetupInitRecord[] = [{ seq: 'R0.S.0', t: 'INIT', p1DeckOrder: ['SOR#108'], p2DeckOrder: ['SOR#045'] }];
     const events: GameEvent[] = [
         { seq: 'R1.A.start', t: 'PHASE_START', phase: 'action' },
         { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#108', zone: 'ground', cost: 2 },

@@ -197,7 +197,7 @@ function newCard(id: string, zone: string): CardInstanceState {
  * discard, resources. A real game never comes close; a crafted one is trying to make a reader
  * do unbounded work. Past it, records are dropped rather than folded.
  */
-const MAX_ZONE_LIST = 1000;
+export const MAX_ZONE_LIST = 1000;
 
 /**
  * Put a card in an arena, ONCE.
