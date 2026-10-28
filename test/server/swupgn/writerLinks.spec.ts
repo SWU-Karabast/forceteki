@@ -22,8 +22,10 @@ const isTopLevelStep = (seq: string) => (/^R\d+\.[SAG]\.\d+$/).test(seq);
 // card or restates its stats first: a `STATS` naming the attacker just before an `ATTACK` is the
 // previous action's consequence (homeworlds R4.A.2d, a Weakness token landing on the Beast that
 // then attacks), and filing it under the attack would be wrong.
+// An action ability is announced once its menu pick and target are made; its costs come after.
 const PRE_ANNOUNCE = ['CHOICE', 'MODAL_CHOICE', 'EXHAUST', 'MOVE', 'STATS', 'EXHAUST_RESOURCES'];
 const PRE_ATTACK = ['CHOICE', 'MODAL_CHOICE', 'EXHAUST'];
+const PRE_ABILITY = ['CHOICE', 'MODAL_CHOICE'];
 
 /** The card an action is about, or one of its records names: `card`, else `atk`. */
 function cardOf(e: GameEvent): string | undefined {
@@ -44,7 +46,8 @@ describe('SWU-PGN writer links', function () {
                 if (!isTopLevelActionRecord(action) || card == null) {
                     return;
                 }
-                const types = action.t === 'ATTACK' ? PRE_ATTACK : PRE_ANNOUNCE;
+                const types = action.t === 'ATTACK' ? PRE_ATTACK
+                    : action.t === 'ABILITY_ACTIVATE' ? PRE_ABILITY : PRE_ANNOUNCE;
                 for (let j = i - 1; j >= 0; j--) {
                     const e = events[j];
                     if (isTopLevelStep(e.seq) || !types.includes(e.t)) {
@@ -59,19 +62,35 @@ describe('SWU-PGN writer links', function () {
         expect(missing).toEqual([]);
     });
 
-    it('adds links without moving any', function () {
+    // Revision 4 tightened the walk: a record naming another card that did not arrive in the run
+    // ends it. These are the rev-3 links that rule removes, each a consequence of the action its
+    // seq already names (a token's or an upgrade's stat change, a Raid ending), which rev 3 had
+    // filed under the opponent's next action.
+    const OVER_LINKS: Record<string, string[]> = {
+        'homeworlds.swupgn': ['R4.A.1a', 'R4.A.1b', 'R4.A.1c', 'R4.A.3c', 'R5.A.1c'],
+        'pilot.swupgn': ['R2.A.1a'],
+        'upgrades.swupgn': ['R1.A.1d', 'R2.A.1e', 'R3.A.1a'],
+    };
+
+    it('keeps every rev-3 link except the over-links this fix removes, and moves none to a different action', function () {
         const rev3: Record<string, Record<string, string>> = JSON.parse(
             fs.readFileSync(path.join(root, 'test/server/swupgn/fixtures/for-links-rev3.json'), 'utf8')
         );
-        const moved: string[] = [];
+        const changed: string[] = [];
+        const removed: string[] = [];
         for (const [file, links] of Object.entries(rev3)) {
             const now = new Map(eventsOf(file).map((e) => [e.seq, e.for]));
             for (const [seq, owner] of Object.entries(links)) {
-                if (now.get(seq) !== owner) {
-                    moved.push(`${file} ${seq}: was for ${owner}, now ${now.get(seq) ?? 'nothing'}`);
+                const current = now.get(seq);
+                if (current == null) {
+                    removed.push(`${file} ${seq}`);
+                } else if (current !== owner) {
+                    changed.push(`${file} ${seq}: was for ${owner}, now for ${current}`);
                 }
             }
         }
-        expect(moved).toEqual([]);
+        expect(changed).toEqual([]);
+        const expected = Object.entries(OVER_LINKS).flatMap(([file, seqs]) => seqs.map((seq) => `${file} ${seq}`));
+        expect(removed.sort()).toEqual(expected.sort());
     });
 });

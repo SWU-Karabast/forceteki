@@ -1007,14 +1007,28 @@ describe('fold record order', function () {
     it('folds the same when a writer announces the action before its records', function () {
         const vectors = path.resolve(__dirname, '../../../../swupgn/test-vectors');
         const events = parse(fs.readFileSync(path.join(vectors, 'arrest.swupgn'), 'utf8')).events;
-        const owned = events.filter((e) => e.for === 'R2.A.3');
-        expect(owned.length).withContext('arrest has records filed under R2.A.3')
-            .toBeGreaterThan(0);
-        const rest = events.filter((e) => e.for !== 'R2.A.3');
-        const at = rest.findIndex((e) => e.seq === 'R2.A.3');
-        const reordered = [...rest.slice(0, at + 1), ...owned, ...rest.slice(at + 1)];
 
+        /** Move every record filed `for` the action to sit right after it, keeping seq and `for`. */
+        const announceFirst = (list: GameEvent[], action: string): GameEvent[] => {
+            const owned = list.filter((e) => e.for === action);
+            const rest = list.filter((e) => e.for !== action);
+            const at = rest.findIndex((e) => e.seq === action);
+            return [...rest.slice(0, at + 1), ...owned, ...rest.slice(at + 1)];
+        };
+        // R1.A.1 is a PLAY whose resources, MOVE into the arena, STATS and entering EXHAUST all
+        // come first; R2.A.3 is an ATTACK whose target CHOICE and EXHAUST do.
+        expect(events.filter((e) => e.for === 'R1.A.1').map((e) => e.t))
+            .toEqual(['EXHAUST_RESOURCES', 'MOVE', 'STATS', 'EXHAUST']);
+        expect(events.filter((e) => e.for === 'R2.A.3').map((e) => e.t))
+            .toEqual(['CHOICE', 'EXHAUST']);
+        const reordered = announceFirst(announceFirst(events, 'R1.A.1'), 'R2.A.3');
+        expect(reordered.map((e) => e.seq)).not.toEqual(events.map((e) => e.seq));
+
+        // The board once the action is done, before the next one, and at the end of the file.
+        const plain = (x: unknown) => JSON.parse(JSON.stringify(x));
+        expect(plain(stateAt(reordered, 'R1.A.2'))).toEqual(plain(stateAt(events, 'R1.A.2')));
+        expect(plain(stateAt(reordered, 'R2.A.4'))).toEqual(plain(stateAt(events, 'R2.A.4')));
         const expected = JSON.parse(fs.readFileSync(path.join(vectors, 'arrest.fold.json'), 'utf8'));
-        expect(JSON.parse(JSON.stringify(fold(reordered)))).toEqual(expected);
+        expect(plain(fold(reordered))).toEqual(expected);
     });
 });

@@ -76,6 +76,24 @@ function actionCard(e: GameEvent): string | undefined {
     return typeof any.atk === 'string' ? any.atk : undefined;
 }
 
+/**
+ * The cards an action is about: its own card, plus the host an upgrade (or a leader deployed as a
+ * pilot) is played onto. The host's `STATS` lands before a `PLAY_UPGRADE` just as the upgrade's
+ * own `MOVE` does, so it is the play's.
+ */
+function actionCards(e: GameEvent): Set<string> {
+    const out = new Set<string>();
+    const card = actionCard(e);
+    if (card != null) {
+        out.add(card);
+    }
+    const target = (e as { target?: unknown }).target;
+    if ((e.t === 'PLAY_UPGRADE' || e.t === 'DEPLOY_LEADER') && typeof target === 'string') {
+        out.add(target);
+    }
+    return out;
+}
+
 /** Whether a precursor record names `card` -- the anchor that ties a run to its action. */
 function names(e: GameEvent, card: string): boolean {
     const any = e as { card?: unknown; atk?: unknown };
@@ -179,30 +197,27 @@ export function linkActionSteps(events: GameEvent[]): GameEvent[] {
         }
 
         // Walk back over the contiguous run of precursor records immediately before the action.
+        //
+        // A record about some other card ends it. That card's stat change or exhaust is the
+        // previous action's consequence (a token landing on it, a Raid ending), not this action's
+        // precursor, however close it sits. So is another card ARRIVING in play: a "When the
+        // action phase starts" trigger's Beast lands just before the first play, with the same
+        // MOVE/STATS/EXHAUST shape a play's precursors have. A card LEAVING -- a discard paid as
+        // a cost -- is the one record about another card that stays the action's.
         const precursors = precursorsFor(action.t);
+        const own = actionCards(action);
         let start = i;
         while (start > 0) {
             const prev = out[start - 1];
             if (isTopLevelStep(prev.seq) || !precursors.has(prev.t)) {
                 break;
             }
-            start--;
-        }
-        // Another card ARRIVING in play is never a precursor of this action: it is that card's own
-        // story (a "When the action phase starts" trigger's Beast lands just before the first play,
-        // with the same MOVE/STATS/EXHAUST shape a play's precursors have). Start after the last
-        // such arrival and the records naming that card beside it. A card LEAVING -- a discard
-        // paid as a cost -- is not an arrival and stays the action's.
-        for (let j = i - 1; j >= start; j--) {
-            const e = out[j];
-            if (e.t === 'MOVE' && e.card !== card && (isArena(e.to) || (e.to === 'base' && e.kind === 'upgrade'))) {
-                let end = j;
-                while (end + 1 < i && names(out[end + 1], e.card)) {
-                    end++;
-                }
-                start = end + 1;
+            const named = actionCard(prev);
+            const leaving = prev.t === 'MOVE' && !isArena(prev.to) && !(prev.to === 'base' && prev.kind === 'upgrade');
+            if (named != null && !own.has(named) && !leaving) {
                 break;
             }
+            start--;
         }
         if (start >= i) {
             continue;

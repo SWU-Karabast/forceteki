@@ -234,6 +234,43 @@ describe('linkActionSteps: a base attachment ends a precursor run', function () 
     });
 });
 
+// Value: protects=a consequence of one action that names another card never joins the next action's run (spec Appendix C); fails_when=the walk files a whole run once anything in it names the action's card; why_new=rev 3 filed a token's stat change under the opponent's next play; seam=none; no_claim=a discard paid as a cost
+describe('linkActionSteps: a record naming another card ends the run', function () {
+    it('leaves the previous action\'s stat change under its own number', function () {
+        const events: GameEvent[] = [
+            { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'ASH#251', zone: 'ground', cost: 2 },
+            { seq: 'R1.A.1a', t: 'STATUS_TOKEN', card: 'ASH#251', token: 'advantage', count: 1 },
+            { seq: 'R1.A.1b', t: 'STATS', card: 'ASH#251', power: 3, hp: 3 },
+            { seq: 'R1.A.1c', t: 'EXHAUST_RESOURCES', p: 2, amount: 1 },
+            { seq: 'R1.A.1d', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 2 },
+            { seq: 'R1.A.2', t: 'PLAY', p: 2, card: 'SOR#095', zone: 'ground', cost: 1 },
+        ];
+        expect(linkActionSteps(events).map((e) => (e as { for?: string }).for))
+            .toEqual([undefined, undefined, undefined, 'R1.A.2', 'R1.A.2', undefined]);
+    });
+
+    it('keeps an upgrade\'s host in the run: the play names it as its target', function () {
+        const events: GameEvent[] = [
+            { seq: 'R3.A.0a', t: 'EXHAUST_RESOURCES', p: 1, amount: 2 },
+            { seq: 'R3.A.0b', t: 'MOVE', card: 'LOF#215', from: 'hand', to: 'ground', p: 1, kind: 'upgrade', attachedTo: 'ASH#251' },
+            { seq: 'R3.A.0c', t: 'STATS', card: 'ASH#251', power: 5, hp: 7 },
+            { seq: 'R3.A.1', t: 'PLAY_UPGRADE', p: 1, card: 'LOF#215', zone: 'ground', target: 'ASH#251', cost: 2 },
+        ];
+        expect(linkActionSteps(events).map((e) => (e as { for?: string }).for))
+            .toEqual(['R3.A.1', 'R3.A.1', 'R3.A.1', undefined]);
+    });
+
+    it('keeps a discard paid as a cost in the run', function () {
+        const events: GameEvent[] = [
+            { seq: 'R1.A.0a', t: 'MOVE', card: 'SOR#200', from: 'hand', to: 'discard', p: 1 },
+            { seq: 'R1.A.0b', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1 },
+            { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#095', zone: 'ground', cost: 2 },
+        ];
+        expect(linkActionSteps(events).map((e) => (e as { for?: string }).for))
+            .toEqual(['R1.A.1', 'R1.A.1', undefined]);
+    });
+});
+
 // Value: protects=a lettered seq is a sub-step whatever its type, an unlettered action type is an action, a non-action ability never is; fails_when=the lettered-seq rule is dropped or applies to unlettered seqs; why_new=only DEPLOY_LEADER engine tests touched it; seam=none; no_claim=writer numbering
 describe('isTopLevelActionRecord', function () {
     it('treats a lettered seq as a sub-step, whatever the record type', function () {

@@ -271,7 +271,8 @@ requirement, by id. The linked section is where each one is defined.
   no attack or ability announces — and nothing for one that enters ready
   ([§10.1](#101-events-that-carry-board-detail)).
 - `[W-18]` MUST stamp `for` on every record that belongs to an action announced after it. A record
-  without `for` belongs to the action whose number its `seq` carries ([§9.1](#91-how-seq-is-built)).
+  without `for` belongs to the action whose number its `seq` carries. MUST NOT stamp `for` on a
+  record that does not belong to that action ([§9.1](#91-how-seq-is-built)).
 - `[W-19]` MUST record the resource row's membership as well as its two counts, and a base's
   spent Epic Action as `baseEpicActionUsed` ([§11](#11-the-reduced-state--the-board-you-build)).
 - `[W-20]` MUST name the destination arena in a `CREATE_TOKEN`'s `zone`, and MUST omit
@@ -1081,12 +1082,12 @@ number. `for` names the action a record belongs to. From the `arrest` vector:
 ```json
 {"seq":"R2.A.2a","t":"CHOICE","p":1,"prompt":"Peridea Bandit","offered":["base@2"],"chose":0,"for":"R2.A.3"}
 {"seq":"R2.A.2b","t":"EXHAUST","card":"ASH#190","for":"R2.A.3"}
-{"seq":"R2.A.3","t":"ATTACK","p":1,"atk":"ASH#190","def":"base@2","defenderType":"base","ms":7}
+{"seq":"R2.A.3","t":"ATTACK","p":1,"atk":"ASH#190","def":"base@2","defenderType":"base","ms":6}
 ```
 
 **Ownership** `[W-18]`: a writer MUST stamp `for` on every record that belongs to an action
-announced after it. A record without `for` belongs to the action whose number its `seq`
-carries. So "everything action `N` did" is every record carrying `for: "R<n>.<phase>.N"`, plus
+announced after it, and MUST NOT stamp it on a record that does not. A record without `for`
+belongs to the action whose number its `seq` carries. So "everything action `N` did" is every record carrying `for: "R<n>.<phase>.N"`, plus
 the `Na…` records after it that carry no `for`. In a file that meets `[W-18]`, a reader MUST
 NOT infer ownership from where a record sits relative to the announcement: one writer may write
 an action's records before it and another after it, and with `for` the two files mean the same.
@@ -1787,7 +1788,7 @@ by **`attachedTo`** on the `MOVE` that carries it **into the arena**. From the `
 {"seq":"R1.A.1c","t":"STATUS_TOKEN","card":"ASH#251:2","token":"advantage","count":1}
 
 {"seq":"R3.A.0c","t":"MOVE","card":"LOF#215:2","from":"hand","to":"ground","p":1,"kind":"upgrade","attachedTo":"ASH#251:2","for":"R3.A.1"}
-{"seq":"R3.A.1","t":"PLAY_UPGRADE","p":1,"card":"LOF#215:2","zone":"ground","target":"ASH#251:2","cost":2,"ms":32}
+{"seq":"R3.A.1","t":"PLAY_UPGRADE","p":1,"card":"LOF#215:2","zone":"ground","target":"ASH#251:2","cost":2,"ms":31}
 ```
 
 An attachment that changes while the card stays in its arena — a printed upgrade moved to
@@ -1809,7 +1810,7 @@ on that seat's `baseUpgrades` ([§12.1](#121-the-move-rule-the-big-one) step 2c)
 
 ```json
 {"seq":"R2.A.0k","t":"MOVE","card":"HMW#271","from":"hand","to":"base","p":1,"kind":"upgrade","attachedTo":"base@1","for":"R2.A.1"}
-{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#271","zone":"base","target":"base@1","cost":3,"ms":8}
+{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#271","zone":"base","target":"base@1","cost":3,"ms":7}
 ```
 
 **Exits are host-less.** The move back out — the token defeated, the upgrade destroyed, the
@@ -1942,7 +1943,7 @@ Damage it deals is written with `src: "base@1"`: the base dealt it ([§6.3](#63-
 base, and the exit is host-less like every other ([§10.1](#binding-an-attachment-to-its-host)):
 
 ```json
-{"seq":"R2.A.2","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#095","ability":"carbonite-chamber_action_0","kind":"action","title":"Choose a non-Vehicle unit. It doesn't ready during the next regroup phase","ms":9}
+{"seq":"R2.A.2","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#095","ability":"carbonite-chamber_action_0","kind":"action","title":"Choose a non-Vehicle unit. It doesn't ready during the next regroup phase","ms":8}
 {"seq":"R2.A.2a","t":"MOVE","card":"HMW#095","from":"base","to":"discard","p":2,"kind":"upgrade"}
 {"seq":"R2.A.2b","t":"DEFEAT","card":"HMW#095","reason":"ability","defeatedBy":"HMW#095"}
 ```
@@ -2105,7 +2106,7 @@ may read `"The Death Star"`. That field is advisory, [§6.4](#64-small-vocabular
 arrival in **space** are its sub-steps:
 
 ```json
-{"seq":"R8.A.1","t":"ABILITY_ACTIVATE","p":1,"card":"HMW#004","ability":"grand-moff-tarkin#tyrant-of-the-outer-rim_action_0","kind":"epic","title":"Deploy Grand Moff Tarkin","epic":true,"ms":36}
+{"seq":"R8.A.1","t":"ABILITY_ACTIVATE","p":1,"card":"HMW#004","ability":"grand-moff-tarkin#tyrant-of-the-outer-rim_action_0","kind":"epic","title":"Deploy Grand Moff Tarkin","epic":true,"ms":34}
 {"seq":"R8.A.1a","t":"MOVE","card":"HMW#004","from":"base","to":"space","p":1,"kind":"unit"}
 {"seq":"R8.A.1c","t":"DEPLOY_LEADER","p":1,"card":"HMW#004","zone":"space","epic":true,"cost":9}
 ```
@@ -3205,7 +3206,7 @@ could change what a record means. After it, a revision is diagnostic only.
 | 1 | `WriterRevision` introduced. A unit captured by a base is held in the seat's `baseCaptured` ([§10.1](#101-events-that-carry-board-detail)) | the tag's presence; a keyframe carrying `baseCaptured` |
 | 2 | `%%% STORY` joins a list of cards with ` · `, not `, `, which a card's own title-and-subtitle comma made impossible to split ([§16](#strict-layout-rules)) | `WriterRevision` 2 or later; in an older file, a `draws N:` story line whose names are separated by `, ` |
 | 3 | `INIT` is `R0.S.0`, not `R1.S.0` ([§8](#8-the-setup-section)). `GameId` is an opaque hash, not the engine's game id, and the fallback player-id salt is no longer printed in the file ([§17](#17-privacy-considerations)) | the `INIT` seq; a `GameId` matching `^sha256:[0-9a-f]{64}$` |
-| 4 | Each mode picked from a "choose N" modal effect is a `MODAL_CHOICE` ([§10.2](#102-events-that-are-just-notes)). `[W-18]` became a MUST and every vector is checked against it; the linking rule did not change, so no `for` a revision-3 file carries moved ([§9.1](#91-how-seq-is-built)) | `WriterRevision` 4 or later |
+| 4 | Each mode picked from a "choose N" modal effect is a `MODAL_CHOICE` ([§10.2](#102-events-that-are-just-notes)). `[W-18]` became a MUST, both ways, and every vector is checked against it. The linking is tighter: a record about another card ends a run, so a consequence of one action (a token's `STATS` change, a Raid ending) is no longer stamped `for` the opponent's next one ([Appendix C](#grouping-records-in-a-file-without-for)). No link moved to a different action ([§9.1](#91-how-seq-is-built)) | `WriterRevision` 4 or later |
 
 ### Changes to this document before publication
 
@@ -3238,8 +3239,8 @@ The review before publication (2026-10-28) changed what conforms, as well as wha
 Platform neutrality (2026-10-28):
 
 - `for` decides which action owns a record, whatever order a writer writes them in. A writer
-  MUST stamp it on every record that belongs to an action announced after it `[W-18]`, and a
-  record without it belongs to the number its `seq` carries. §9.1 lists the only orders a
+  MUST stamp it on every record that belongs to an action announced after it, and on no other
+  `[W-18]`; a record without it belongs to the number its `seq` carries. §9.1 lists the only orders a
   writer must keep. The backward walk that grouped unstamped records moved to
   [Appendix C](#grouping-records-in-a-file-without-for), for old files only. A modal effect that
   picks several modes writes one `MODAL_CHOICE` per pick ([§10.2](#102-events-that-are-just-notes)).
@@ -3973,6 +3974,7 @@ Each is detectable from the file:
 | Damage and heals dealt by a base, and units defeated by one, named the base by its card id | `base@N` in `DAMAGE.src`, `HEAL.src` and `DEFEAT.defeatedBy` ([§6.3](#63-pointing-at-a-base)) | a `src` or `defeatedBy` matching `^base@[12]$` |
 | Damage the rules dealt with no card responsible (drawing from an empty deck) wrote the engine's display string as `src` — `"Framework effect"`, then `"Framework effect:2"` | `src` omitted ([§10.1](#101-events-that-carry-board-detail)) | a `DAMAGE` with no `src` |
 | An effect applied a step after its event (a base's gained "+1/+0") had its `STATS` filed under the record after the action, and so `for` the opponent's next action | settled before the turn passes, under the action that caused it ([§10.1](#stats)) | not detectable from a single record |
+| A consequence naming another card (a token's or an upgrade's `STATS` change, a Raid ending) sat just before the opponent's next play and was stamped `for` it | any record about another card ends the run ([below](#grouping-records-in-a-file-without-for)). Revision 4 | `WriterRevision` 4 or later |
 | A unit arriving in play just before an action (a start-of-phase trigger's Beast) had its `MOVE`, `STATS` and `EXHAUST` stamped `for` that action | another card's arrival ends the run ([§9.1](#91-how-seq-is-built)) | not detectable from a single record |
 | `PASS` was written every time the turn passed to the opponent, so every play and attack was followed by a `PASS` from the same player, and the story read "Player 1 passes" after each action | `PASS` only for the Pass action ([§10.2](#102-events-that-are-just-notes)); every action after the first renumbers | two `PASS` records in a row from the same player, or a `PASS` right after that player's own `PLAY`/`ATTACK`, shows the early writer |
 | `DRAW.count` was the number of cards asked for, so a draw from a short deck said 2 and listed 1 | the cards actually drawn ([§10.1](#101-events-that-carry-board-detail)) | a `DRAW` whose `count` differs from `cards.length` |
@@ -4008,12 +4010,21 @@ There are two anchors:
 
 `PASS` and `CLAIM_INITIATIVE` name no card, so nothing is ever filed under them.
 
-**Another card arriving in play ends the run.** A `MOVE` of a different card into `ground` or
-`space` (or into `base` as an upgrade) is that card's own story, and so are the records naming it
-right after its arrival — its `STATS`, its entering `EXHAUST`. A start-of-phase trigger puts
-exactly that in front of the first action: Beast Lair's Beast lands, gets its stats and exhausts,
-then the player's first play begins with the same record types. The run starts after the
-arrival. A card *leaving* (a discard paid as a cost) is not an arrival and stays in the run.
+**A record about another card ends the run.** A record whose `card` (or `atk`) is neither the
+action's card nor, for a `PLAY_UPGRADE` or a `DEPLOY_LEADER` with a `target`, the host it is
+played onto, is that card's own story: a token landing on it changes its `STATS`, a Raid ending
+after its attack restates them, and those are consequences of the action before. A record that
+names no card (a target `CHOICE`, an `EXHAUST_RESOURCES`) does not end the run. Another card
+**arriving** in play ends it the same way: a `MOVE` of a different card into `ground` or `space`
+(or into `base` as an upgrade) is that card's own story, and so are the records naming it right
+after its arrival — its `STATS`, its entering `EXHAUST`. A start-of-phase trigger puts exactly
+that in front of the first action: Beast Lair's Beast lands, gets its stats and exhausts, then
+the player's first play begins with the same record types. A card *leaving* (a discard paid as a
+cost) is not an arrival and stays in the run.
+
+Revisions 1–3 ended the run only at an arrival, so in their files a consequence naming another
+card can carry `for` the next action, usually the opponent's. A reader of such a file SHOULD
+treat a `for` on a record the rule above would have left out as the number its `seq` carries.
 
 **Which types can precede depends on the action**, and one shared list is wrong:
 
