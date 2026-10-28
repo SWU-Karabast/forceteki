@@ -250,10 +250,31 @@ function trimBlankEdges(lines: string[]): string[] {
     return lines.slice(start, end);
 }
 
+/** The UTF-8 encoded length of `text`, counted without encoding it. */
+function utf8Length(text: string): number {
+    let bytes = 0;
+    for (let i = 0; i < text.length; i++) {
+        const unit = text.charCodeAt(i);
+        if (unit < 0x80) {
+            bytes += 1;
+        } else if (unit < 0x800) {
+            bytes += 2;
+        } else if (unit >= 0xD800 && unit <= 0xDBFF && (text.charCodeAt(i + 1) & 0xFC00) === 0xDC00) {
+            bytes += 4;   // a surrogate pair: one code point above U+FFFF
+            i++;
+        } else {
+            bytes += 3;
+        }
+    }
+    return bytes;
+}
+
 export function parse(text: string, limits: ParseLimits = {}): SwuPgnDocument {
     const lim = { ...DEFAULT_LIMITS, ...limits };
-    if (text.length > lim.maxBytes) {
-        throw new SwuPgnError('too-large', `file is ${text.length} characters, over the ${lim.maxBytes} limit`);
+    // A UTF-16 unit is 1 to 3 UTF-8 bytes, so the length bounds the byte count from below.
+    const size = text.length > lim.maxBytes ? text.length : utf8Length(text);
+    if (size > lim.maxBytes) {
+        throw new SwuPgnError('too-large', `file is over the ${lim.maxBytes}-byte limit`);
     }
     // Writers MUST NOT emit a byte order mark; readers strip one, because editors add it.
     if (text.charCodeAt(0) === 0xFEFF) {

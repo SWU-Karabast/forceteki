@@ -92,7 +92,7 @@ describe('parse header numbers', function () {
         '[Game "SWU-PGN/1.0"]', '[GameId "g"] [Date "2026-06-16T00:00:00Z"] [CardPool "SOR"] [Engine "e@1"] [Seed "s"]',
         '[P1Id "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] [P2Id "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] [P1 "Player 1"] [P2 "Player 2"]',
         '[P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]',
-        `[Result "P1"] [Reason "r"] [Rounds "${rounds}"]`,
+        `[Result "Incomplete"] [Reason "r"] [Rounds "${rounds}"]`,
         '', '%%% EVENTS',
     ].join('\n');
 
@@ -268,6 +268,16 @@ describe('parse grammar (spec §4, Appendix B)', function () {
         expect(code(events, { maxBytes: 100 })).toBe('too-large');
         expect(code(events, { maxLineLength: 20 })).toBe('line-too-long');
         expect(code(HEAD + '\n%%% EVENTS\n' + '['.repeat(70) + ']'.repeat(70))).toBe('too-deep');
+    });
+
+    // Value: protects=the size cap counts UTF-8 bytes, as its name and §23's 16 MiB say; fails_when=parse compares the string's length, which counts UTF-16 units, so text of multi-byte characters passes at up to 4x the cap; why_new=the limit case uses ASCII only, where the two agree; seam=none; no_claim=the cap's value
+    it('measures the size cap in UTF-8 bytes, not characters', function () {
+        const text = HEAD + '\n%%% EVENTS\n';
+        const bytes = new TextEncoder().encode(text).length;
+        const emoji = '\u{1F600}'.repeat(10);   // 20 UTF-16 units, 40 UTF-8 bytes
+        const padded = text.replace('%%% EVENTS', `%%% X_PAD\n${emoji}\n%%% EVENTS`);
+        expect(code(padded, { maxBytes: bytes + 40 })).toBe('too-large');
+        expect(code(padded, { maxBytes: bytes + 60 })).toBe('ok');
     });
 
     // Value: protects=brackets inside a JSON string (free annotation text) do not count toward the depth limit; fails_when=scanJson stops tracking strings or escaped quotes and rejects a shallow record as too-deep; why_new=the too-deep case uses bare brackets only; seam=none; no_claim=the limit value itself
