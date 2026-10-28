@@ -409,6 +409,7 @@ export class SwuPgnRecorder {
         errorCount: number;
         tokenParents: [string, { parent: any; kind: TokenUpgradeKind }][];
         lastStats: [string, string][];
+        pendingResourceMove: { event: GameEvent; card: any } | null;
     }[] = [];
 
     public constructor(game: Game, resolver: SwuPgnResolver) {
@@ -580,8 +581,6 @@ export class SwuPgnRecorder {
             if (restoredSnapshotId == null) {
                 return undefined;
             }
-            // The record a pending flag points at may be truncated below.
-            this.pendingResourceMove = null;
             // Checkpoints are taken lazily, on the first push under a snapshot id, so the
             // restored id may have none of its own while later ids do (a snapshot during
             // which nothing was recorded). Ids are monotonic, so the boundary is the first
@@ -620,6 +619,7 @@ export class SwuPgnRecorder {
             for (const [uuid, entry] of boundary.tokenParents) {
                 this.tokenParents.set(uuid, entry);
             }
+            this.pendingResourceMove = boundary.pendingResourceMove;
             this.lastStats.clear();
             for (const [uuid, key] of boundary.lastStats) {
                 this.lastStats.set(uuid, key);
@@ -686,6 +686,7 @@ export class SwuPgnRecorder {
                 errorCount: this.errorCount,
                 tokenParents: [...this.tokenParents.entries()],
                 lastStats: [...this.lastStats.entries()],
+                pendingResourceMove: this.pendingResourceMove,
             });
             // Not capped. The engine keeps its phase snapshots per phase name, and the setup
             // phase only happens once, so a rollback can reach any checkpoint in the game. A cap

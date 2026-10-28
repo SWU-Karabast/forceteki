@@ -1128,6 +1128,21 @@ describe('SwuPgnRecorder: resources, base tokens, captures, exits', function () 
         expect(fold(rec.getEvents()).players[1]?.resourcesReady).toBe(1);
     });
 
+    it('keeps a pending resource flag when the undo lands after its move', function () {
+        const { game, rec } = mk();
+        const card: any = fakeCard({ uuid: 'SOR#063', zoneName: 'resource', owner: p1 });
+        game.emit(EventName.OnCardMoved, { card, originalZone: 'hand', newZone: 'resource' });
+        // Checkpoint taken after the move: the next engine event settles the flag.
+        rec.checkpoint(5);
+        game.emit(EventName.OnCardDiscarded, { card: fakeCard({ uuid: 'SOR#064', owner: p1 }) });
+        rec.rollbackTo(5);
+        card.exhausted = true;
+        game.emit(EventName.OnPhaseEnded, { phase: 'regroup' });
+
+        const move = ofType(rec, 'MOVE').find((m) => m.card === 'SOR#063');
+        expect(move).toEqual(jasmine.objectContaining({ to: 'resource', exhausted: true }));
+    });
+
     it('does not carry a pending resource flag across an undo', function () {
         const { game, rec } = mk();
         rec.checkpoint(1);
