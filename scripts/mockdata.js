@@ -634,7 +634,7 @@ const mockCards = [
         },
         unique: true,
         arena: 'ground',
-        internalName: 'bo-katan-kryze#right-place-right-time'
+        internalName: 'bokatan-kryze#right-place-right-time'
     }),
     // -------- End Mock Cards --------
 ];
