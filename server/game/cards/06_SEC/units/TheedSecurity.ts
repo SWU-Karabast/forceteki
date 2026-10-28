@@ -17,7 +17,8 @@ export default class TheedSecurity extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: abilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.player.opponent.hasSomeArenaUpgrade(),
+                    // TODO: Check all opponents for Twin Suns
+                    condition: (context) => context.player.opponent.hasSomeInPlayUpgrade(),
                     onTrue: abilityHelper.immediateEffects.giveExperience()
                 })
             }

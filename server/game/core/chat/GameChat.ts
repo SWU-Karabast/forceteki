@@ -92,7 +92,7 @@ export class GameChat {
                     continue;
                 }
 
-                const prevFragmentType = typeof formatOutput.at(-1);
+                const prevFragmentType = typeof formatOutput[formatOutput.length - 1];
                 const thisFragmentType = typeof formattedFragment;
 
                 if (prevFragmentType === 'string' && (thisFragmentType === 'string' || thisFragmentType === 'number')) {

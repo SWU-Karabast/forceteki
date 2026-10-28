@@ -19,7 +19,7 @@ Follow these instructions to get to the point of being able to run the [unit tes
 #### Required Software
 
 - Git
-- Node.js v22.x
+- Node.js v26.x (see `.tool-versions`)
 
 ### Install Dependencies
 
