@@ -866,7 +866,7 @@ export class GameServer {
                 // Call the changeUsername method
                 const modActionService = this.getModActionService('change-username');
                 const activeRename = modActionService?.playerActiveRename(user.getId()) ?? null;
-                const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername, {
+                const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername.trim(), {
                     source: activeRename ? UsernameChangeSource.ForcedRename : UsernameChangeSource.UserInitiated,
                     relatedModActionId: activeRename?.modActionId,
                     usernameChangesBlocked: modActionService?.isUsernameChangesBlocked(user.getId()) ?? false,

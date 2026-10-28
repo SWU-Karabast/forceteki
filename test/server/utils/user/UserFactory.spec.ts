@@ -51,6 +51,16 @@ describe('UserFactory username changes', function() {
     const lastProfileUpdate = (): Partial<IUserProfileDataEntity> => fakeDb.updateUserProfileAsync.calls.mostRecent().args[1];
 
     describe('changeUsernameAsync', function() {
+        it('rejects an invalid username without touching the database', async function() {
+            const result = await userFactory.changeUsernameAsync(userId, 'New Name', forcedRename);
+
+            expect(result.success).toBeFalse();
+            expect(result.message).toBe('Username can only contain letters, numbers, underscores (_), and periods (.).');
+            expect(fakeDb.getUserProfileAsync).not.toHaveBeenCalled();
+            expect(fakeDb.saveUsernameLinkAsync).not.toHaveBeenCalled();
+            expect(fakeDb.updateUserProfileAsync).not.toHaveBeenCalled();
+        });
+
         it('rejects a voluntary rename inside the 30-day cooldown', async function() {
             const result = await userFactory.changeUsernameAsync(userId, 'NewName');
 
