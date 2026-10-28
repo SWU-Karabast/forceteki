@@ -4042,7 +4042,8 @@ Each is detectable from the file:
 | Damage the rules dealt with no card responsible (drawing from an empty deck) wrote the engine's display string as `src` — `"Framework effect"`, then `"Framework effect:2"` | `src` omitted ([§10.1](#101-events-that-carry-board-detail)) | a `DAMAGE` with no `src` |
 | An effect applied a step after its event (a base's gained "+1/+0") had its `STATS` filed under the record after the action, and so `for` the opponent's next action | settled before the turn passes, under the action that caused it ([§10.1](#stats)) | not detectable from a single record |
 | A consequence naming another card (a token's or an upgrade's `STATS` change, a Raid ending) sat just before the opponent's next play and was stamped `for` it | any record about another card ends the run ([below](#grouping-records-in-a-file-without-for)). Revision 4 | `WriterRevision` 4 or later |
-| A unit arriving in play just before an action (a start-of-phase trigger's Beast) had its `MOVE`, `STATS` and `EXHAUST` stamped `for` that action | another card's arrival ends the run ([§9.1](#91-how-seq-is-built)) | not detectable from a single record |
+| A previous action's choices and the card it moved (Cunning's mode choice, target choice and bounce) sat just before the opponent's next play and were stamped `for` it | a `CHOICE`, `MODAL_CHOICE` or `EXHAUST_RESOURCES` by the other seat ends the run, and a card leaving stays in it only as a cost the actor paid from hand or resources ([below](#grouping-records-in-a-file-without-for)). Revision 4 | `WriterRevision` 4 or later |
+| A unit arriving in play just before an action (a start-of-phase trigger's Beast) had its `MOVE`, `STATS` and `EXHAUST` stamped `for` that action | another card's arrival ends the run ([below](#grouping-records-in-a-file-without-for)) | not detectable from a single record |
 | `PASS` was written every time the turn passed to the opponent, so every play and attack was followed by a `PASS` from the same player, and the story read "Player 1 passes" after each action | `PASS` only for the Pass action ([§10.2](#102-events-that-are-just-notes)); every action after the first renumbers | two `PASS` records in a row from the same player, or a `PASS` right after that player's own `PLAY`/`ATTACK`, shows the early writer |
 | `DRAW.count` was the number of cards asked for, so a draw from a short deck said 2 and listed 1 | the cards actually drawn ([§10.1](#101-events-that-carry-board-detail)) | a `DRAW` whose `count` differs from `cards.length` |
 | A keyframe's lists were snapped to at any length | over 1000 entries makes the keyframe damaged ([§13](#13-keyframes)) | not a file change; a reader's trust check |
@@ -4070,7 +4071,7 @@ could change what a record means. After it, a revision is diagnostic only.
 | 1 | `WriterRevision` introduced. A unit captured by a base is held in the seat's `baseCaptured` ([§10.1](#101-events-that-carry-board-detail)) | the tag's presence; a keyframe carrying `baseCaptured` |
 | 2 | `%%% STORY` joins a list of cards with ` · `, not `, `, which a card's own title-and-subtitle comma made impossible to split ([§16](#strict-layout-rules)) | `WriterRevision` 2 or later; in an older file, a `draws N:` story line whose names are separated by `, ` |
 | 3 | `INIT` is `R0.S.0`, not `R1.S.0` ([§8](#8-the-setup-section)). `GameId` is an opaque hash, not the engine's game id, and the fallback player-id salt is no longer printed in the file ([§17](#17-privacy-considerations)) | the `INIT` seq; a `GameId` matching `^sha256:[0-9a-f]{64}$` |
-| 4 | Each mode picked from a "choose N" modal effect is a `MODAL_CHOICE` ([§10.2](#102-events-that-are-just-notes)). `[W-18]` became a MUST, both ways, and every vector is checked against it. The linking is tighter: a record about another card ends a run, so a consequence of one action (a token's `STATS` change, a Raid ending) is no longer stamped `for` the opponent's next one ([Appendix C](#grouping-records-in-a-file-without-for)). No `for` now names a different action; 9 over-reaching links were removed ([§9.1](#91-how-seq-is-built)) | `WriterRevision` 4 or later |
+| 4 | Each mode picked from a "choose N" modal effect is a `MODAL_CHOICE` ([§10.2](#102-events-that-are-just-notes)). `[W-18]` became a MUST, both ways, and every vector is checked against it. The linking is tighter: a record about another card ends a run, so a consequence of one action (a token's `STATS` change, a Raid ending) is no longer stamped `for` the opponent's next one, and so does a choice or resource payment by the other seat, or a card leaving that is not a cost the actor paid from hand or resources ([Appendix C](#grouping-records-in-a-file-without-for)). No `for` now names a different action; 9 over-reaching links were removed ([§9.1](#91-how-seq-is-built)) | `WriterRevision` 4 or later |
 
 ### Grouping records in a file without `for`
 
@@ -4103,16 +4104,26 @@ after its attack restates them, and those are consequences of the action before.
 counts as the action's card only after the action card's own `MOVE` in file order, so the walk
 back stops treating it so once it has passed that `MOVE`. A host `STATS` before it was left by an
 earlier action (a Weakness token the opponent gave the unit), and it ends the run like any other
-card's record. A record that names no card (a target `CHOICE`, an `EXHAUST_RESOURCES`) does
-not end the run. Another card **arriving** in play ends it the same way: a `MOVE` of a different card into `ground` or `space`
+card's record. Another card **arriving** in play ends it the same way: a `MOVE` of a different card into `ground` or `space`
 (or into `base` as an upgrade) is that card's own story, and so are the records naming it right
 after its arrival — its `STATS`, its entering `EXHAUST`. A start-of-phase trigger puts exactly
 that in front of the first action: Beast Lair's Beast lands, gets its stats and exhausts, then
-the player's first play begins with the same record types. A card *leaving* (a discard paid as a
-cost) is not an arrival and stays in the run.
+the player's first play begins with the same record types. Another card *leaving* stays in the
+run only when it is a cost the acting player paid: a `MOVE` whose `p` is the action's `p` and
+whose `from` is `hand` or `resource` (a discard from hand, a resource spent). Any other card
+leaving — a bounce, a draw, the other seat's discard — ends the run.
 
-Revisions 1–3 ended the run only at an arrival, so in their files a consequence naming another
-card can carry `for` the next action, usually the opponent's. A reader of such a file SHOULD
+**A record by the other seat ends the run.** A `CHOICE`, `MODAL_CHOICE` or `EXHAUST_RESOURCES`
+names no card, so only its `p` says whose it is. One whose `p` is not the action's `p` was the
+previous action's: when a player plays Cunning, picks "return a unit" and bounces an enemy unit,
+the mode choice, the target choice and the bounce sit right in front of the opponent's next
+play, and they are Cunning's. A record of these types made by the acting player does not end
+the run.
+
+Revisions 1–3 ended the run only at an arrival, and kept any card leaving play and every choice
+and resource payment in the run whoever made them. So in their files a consequence naming
+another card, or a previous action's choices and the card it moved, can carry `for` the next
+action, usually the opponent's. A reader of such a file SHOULD
 treat a `for` on a record the rule above would have left out as the number its `seq` carries.
 
 **Which types can precede depends on the action**, and one shared list is wrong:

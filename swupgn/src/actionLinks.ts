@@ -86,6 +86,11 @@ function actionHost(e: GameEvent): string | undefined {
     return (e.t === 'PLAY_UPGRADE' || e.t === 'DEPLOY_LEADER') && typeof target === 'string' ? target : undefined;
 }
 
+/** The seat a record names as its `p`, if it has one. */
+function seatOf(e: GameEvent): unknown {
+    return (e as { p?: unknown }).p;
+}
+
 /** Whether a precursor record names `card` -- the anchor that ties a run to its action. */
 function names(e: GameEvent, card: string): boolean {
     const any = e as { card?: unknown; atk?: unknown };
@@ -194,8 +199,13 @@ export function linkActionSteps(events: GameEvent[]): GameEvent[] {
         // previous action's consequence (a token landing on it, a Raid ending), not this action's
         // precursor, however close it sits. So is another card ARRIVING in play: a "When the
         // action phase starts" trigger's Beast lands just before the first play, with the same
-        // MOVE/STATS/EXHAUST shape a play's precursors have. A card LEAVING -- a discard paid as
-        // a cost -- is the one record about another card that stays the action's.
+        // MOVE/STATS/EXHAUST shape a play's precursors have. A cost the actor paid by moving
+        // another card -- a discard from hand, a resource spent -- is the one record about
+        // another card that stays the action's. Any other card leaving (a bounce, a draw, the
+        // other seat's discard) is the previous action's.
+        // A choice or a resource payment by the OTHER seat ends the run too: those carry no card
+        // id, so only the seat says they were the previous action's, such as an event's target
+        // choice in front of the opponent's next play.
         // A played upgrade's host is the action's own card too, but only between the upgrade's
         // own MOVE and its announcement (see actionHost); walking back, that is until the walk
         // has passed that MOVE.
@@ -207,9 +217,14 @@ export function linkActionSteps(events: GameEvent[]): GameEvent[] {
             if (isTopLevelStep(prev.seq) || !precursors.has(prev.t)) {
                 break;
             }
+            const otherSeat = seatOf(prev) !== seatOf(action);
+            if (otherSeat && (prev.t === 'CHOICE' || prev.t === 'MODAL_CHOICE' || prev.t === 'EXHAUST_RESOURCES')) {
+                break;
+            }
             const named = actionCard(prev);
-            const leaving = prev.t === 'MOVE' && !isArena(prev.to) && !(prev.to === 'base' && prev.kind === 'upgrade');
-            if (named != null && named !== card && named !== host && !leaving) {
+            const paidCost = prev.t === 'MOVE' && !otherSeat && (prev.from === 'hand' || prev.from === 'resource') &&
+              !isArena(prev.to) && !(prev.to === 'base' && prev.kind === 'upgrade');
+            if (named != null && named !== card && named !== host && !paidCost) {
                 break;
             }
             if (prev.t === 'MOVE' && named === card) {

@@ -288,6 +288,52 @@ describe('linkActionSteps: a record naming another card ends the run', function 
     });
 });
 
+// Value: protects=the previous action's choices and the card it moved stay under that action when the other seat plays next (spec Appendix C); fails_when=a CHOICE, MODAL_CHOICE or EXHAUST_RESOURCES by the other seat, or a MOVE that is not a cost the actor paid, stays in the run; why_new=Cunning's mode choice, target choice and bounce were filed under the opponent's next play; seam=none; no_claim=a cost paid from hand
+describe('linkActionSteps: the other seat\'s records end the run', function () {
+    it('leaves Cunning\'s choices and bounce under Cunning when the opponent plays next', function () {
+        const events: GameEvent[] = [
+            { seq: 'R1.A.3', t: 'PLAY_EVENT', p: 1, card: 'SOR#203', zone: 'discard', cost: 1 },
+            { seq: 'R1.A.3a', t: 'ABILITY_ACTIVATE', p: 1, card: 'SOR#203', kind: 'event' },
+            { seq: 'R1.A.3b', t: 'MODAL_CHOICE', p: 1, offered: ['Return', 'Buff'], chose: 0 },
+            { seq: 'R1.A.3c', t: 'CHOICE', p: 1, prompt: 'Cunning', offered: ['SOR#095'], chose: 0 },
+            { seq: 'R1.A.3d', t: 'MOVE', card: 'SOR#095', from: 'ground', to: 'hand', p: 2 },
+            { seq: 'R1.A.3e', t: 'EXHAUST_RESOURCES', p: 2, amount: 2 },
+            { seq: 'R1.A.3f', t: 'MOVE', card: 'SOR#108', from: 'hand', to: 'ground', p: 2, kind: 'unit' },
+            { seq: 'R1.A.4', t: 'PLAY', p: 2, card: 'SOR#108', zone: 'ground', cost: 2 },
+        ];
+        expect(linkActionSteps(events).map((e) => (e as { for?: string }).for)).toEqual([
+            undefined, undefined, undefined, undefined, undefined, 'R1.A.4', 'R1.A.4', undefined,
+        ]);
+    });
+
+    it('ends the run at a choice the other seat made, even with no card between', function () {
+        const events: GameEvent[] = [
+            { seq: 'R1.A.3', t: 'PLAY_EVENT', p: 1, card: 'SOR#203', zone: 'discard', cost: 1 },
+            { seq: 'R1.A.3a', t: 'CHOICE', p: 1, prompt: 'Cunning', offered: ['SOR#095'], chose: 0 },
+            { seq: 'R1.A.3b', t: 'EXHAUST_RESOURCES', p: 1, amount: 2 },
+            { seq: 'R1.A.3c', t: 'EXHAUST_RESOURCES', p: 2, amount: 2 },
+            { seq: 'R1.A.3d', t: 'MOVE', card: 'SOR#108', from: 'hand', to: 'ground', p: 2, kind: 'unit' },
+            { seq: 'R1.A.4', t: 'PLAY', p: 2, card: 'SOR#108', zone: 'ground', cost: 2 },
+        ];
+        expect(linkActionSteps(events).map((e) => (e as { for?: string }).for)).toEqual([
+            undefined, undefined, undefined, 'R1.A.4', 'R1.A.4', undefined,
+        ]);
+    });
+
+    it('ends the run at a card the actor moved out of play or drew: only a cost from hand or resources stays', function () {
+        const events: GameEvent[] = [
+            { seq: 'R1.A.3', t: 'PLAY_EVENT', p: 1, card: 'SOR#203', zone: 'discard', cost: 1 },
+            { seq: 'R1.A.3a', t: 'MOVE', card: 'SOR#128', from: 'deck', to: 'hand', p: 1 },
+            { seq: 'R1.A.3b', t: 'MOVE', card: 'SOR#200', from: 'resource', to: 'discard', p: 1 },
+            { seq: 'R1.A.3c', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1 },
+            { seq: 'R1.A.4', t: 'PLAY', p: 1, card: 'SOR#095', zone: 'ground', cost: 2 },
+        ];
+        expect(linkActionSteps(events).map((e) => (e as { for?: string }).for)).toEqual([
+            undefined, undefined, 'R1.A.4', 'R1.A.4', undefined,
+        ]);
+    });
+});
+
 // Value: protects=a lettered seq is a sub-step whatever its type, an unlettered action type is an action, a non-action ability never is; fails_when=the lettered-seq rule is dropped or applies to unlettered seqs; why_new=only DEPLOY_LEADER engine tests touched it; seam=none; no_claim=writer numbering
 describe('isTopLevelActionRecord', function () {
     it('treats a lettered seq as a sub-step, whatever the record type', function () {
