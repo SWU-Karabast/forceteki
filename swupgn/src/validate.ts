@@ -327,6 +327,15 @@ export function validate(text: string): ConformanceReport {
                     error('bad-zone', `record ${seqStr}: ${k} "${r[k] as string}" is not a zone`);
                 }
             }
+            // Building the decks is stated by DECKS and INIT, never by moves (§10.1, [W-41]).
+            if (r['from'] === 'outsideTheGame' && r['to'] === 'deck') {
+                error('deck-build-move', `record ${seqStr}: MOVE from outsideTheGame into deck (the decks are built by DECKS and INIT)`);
+            }
+            // A Credit token is recorded in base, whatever zone the rules place it in (§6.2, [W-41]).
+            const isCredit = typeof r['card'] === 'string' && r['card'].startsWith('TOKEN:credit#');
+            if (isCredit && (r['from'] === 'resource' || r['to'] === 'resource')) {
+                error('credit-zone', `record ${seqStr}: Credit token "${r['card']}" MOVE names resource (a Credit token is recorded in base)`);
+            }
             // Only an arena may be both ends of a move: an attachment changing in place (§10.1).
             if (r['from'] === r['to'] && !isArena(String(r['from']))) {
                 error('same-zone-move', `record ${seqStr}: MOVE from ${String(r['from'])} to itself`);

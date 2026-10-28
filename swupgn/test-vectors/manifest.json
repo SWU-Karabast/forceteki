@@ -114,6 +114,16 @@
       "about": "A CREATE_TOKEN whose token id breaks the token-name grammar (§6.1)."
     },
     {
+      "file": "negative/credit-zone.swupgn",
+      "class": "negative",
+      "level": "well-formed",
+      "errors": [
+        "credit-zone"
+      ],
+      "warnings": [],
+      "about": "A MOVE of a Credit token into resource; the format records Credit tokens in base (§6.2, [W-41])."
+    },
+    {
       "file": "negative/damaged-keyframe.swupgn",
       "class": "negative",
       "level": "valid",
@@ -264,6 +274,16 @@
       ],
       "warnings": [],
       "about": "A record that repeats a key in one object: not I-JSON (§4)."
+    },
+    {
+      "file": "negative/deck-build-move.swupgn",
+      "class": "negative",
+      "level": "well-formed",
+      "errors": [
+        "deck-build-move"
+      ],
+      "warnings": [],
+      "about": "A MOVE from outsideTheGame into deck; the decks are built by DECKS and INIT (§10.1, [W-41])."
     },
     {
       "file": "negative/deck-reserved-key.swupgn",

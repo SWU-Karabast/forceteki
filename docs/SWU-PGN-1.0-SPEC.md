@@ -281,9 +281,10 @@ requirement, by id. The linked section is where each one is defined.
 - `[W-21]` MUST write a `LEADER_FLIP` whenever a double-sided leader turns over, carrying the face
   it landed on, and MUST carry `onStartingSide` in every keyframe for that leader — the flip is
   not a zone change, so nothing else records it ([§10.1](#101-events-that-carry-board-detail)).
-- `[W-22]` MUST write a `STATS` record whenever an in-play unit's live power, HP or keywords
-  change, with the values the engine computed — a reader has no rules engine to derive them
-  ([§10.1](#stats)).
+- `[W-22]` MUST write a `STATS` for each in-play unit whose live power, HP or keywords changed,
+  before the next numbered action and before any keyframe, filed under the action that caused
+  the change. The values are the ones the writer computed — a reader has no rules engine to
+  derive them ([§10.1](#stats)).
 - `[W-23]` MUST mark a `DEPLOY_LEADER` or `ABILITY_ACTIVATE` that spends an Epic Action with
   `epic: true`, and MUST carry the leader's status, the deck count and the initiative counter's
   status in every keyframe ([§11](#11-the-reduced-state--the-board-you-build)).
@@ -332,6 +333,12 @@ requirement, by id. The linked section is where each one is defined.
   for instance by an undo past its end ([§23](#23-security-considerations)).
 - `[W-40]` MUST name a token by the rule in [§6.1](#the-token-grammar), derived from its English
   printed title.
+- `[W-41]` MUST NOT write a `MOVE` from `outsideTheGame` into `deck`. Building the decks is
+  stated by `DECKS` and `INIT`, and no card enters a deck from outside the game during play.
+  A validator reports one as `deck-build-move` ([§24](#24-error-model)). A writer MUST also
+  record every Credit token `MOVE` with `base` as the zone, arriving from and returning to
+  `outsideTheGame`, whatever zone the rules place it in, and MUST NOT name `resource` for a
+  Credit token. A validator reports one as `credit-zone` ([§6.2](#62-zone-names)).
 
 ### The Parser (reads the syntax)
 
@@ -809,7 +816,7 @@ in the Comprehensive Rules (CR 4), except where the table says otherwise:
 | `ground` | The ground arena. **In play.** | the ground arena, CR 4.3 |
 | `space` | The space arena. **In play.** | the space arena, CR 4.4 |
 | `discard` | The discard pile. | the discard pile, CR 4.8 |
-| `base` | The base zone: where an undeployed or defeated leader sits, where Credit tokens and the Force live, and where an upgrade with **Fortify** attaches ([§10.3](#103-homeworlds-fortify-beast-and-weakness)). | the base zone, CR 4.2 |
+| `base` | The base zone: where an undeployed or defeated leader sits, where Credit tokens and the Force live, and where an upgrade with **Fortify** attaches ([§10.3](#103-homeworlds-fortify-beast-and-weakness)). | the base zone, CR 4.2. **The format's `base` zone also holds Credit tokens.** The Comprehensive Rules create a Credit token in the resource zone, where it is "not a resource" (CR 4.5.4, CR 3.7.13); this format records it in `base` instead, and a reader counts Credits through `base`. That is this format's choice, and it differs from CR 4.5.4: a writer MUST NOT name `resource` for a Credit token (`[W-41]`) |
 | `outsideTheGame` | Nowhere — where tokens come from and go back to. | Not a zone. A card that is set aside is in no zone, and a token that leaves play is set aside again (CR 4.1.2, CR 4.11) |
 | `capture` | Cards captured by an opponent. | Not a zone. A captured card is held facedown under the capturing unit, out of play but open information (CR 8.34); the format gives it a name so a card in that state can be moved to and from |
 
@@ -925,9 +932,8 @@ it exactly when the card is neither. That covers more than tokens:
 
 The same rule holds wherever `kind` appears — `%%% CARDS`, `MOVE`, `CREATE_TOKEN`: an Event's
 and a Credit token's records carry no `kind`, and every unit's and upgrade's records do, with
-one exception: a leader's **undeploy** `MOVE` (`ground` → `base`) is emitted after the engine
-has already stopped counting the card as a unit, so it carries no `kind`. Leaving an arena
-needs none.
+one exception: a leader's **undeploy** `MOVE` (`ground` → `base`) leaves an arena, and a
+`MOVE` out of an arena MAY carry `kind`; the fold ignores it. Leaving an arena needs none.
 
 Note that this index reports what a card **is** (its printed type), while the same field on an
 event reports what that **event did**. They disagree for pilots, deliberately — see
@@ -1215,11 +1221,11 @@ transition and never needs one ([the binding rule](#binding-an-attachment-to-its
   stays in its arena — an upgrade moved to another host there, or a pilot ejected from a ground
   vehicle. `from` and `to` are that arena, and the record carries the new role and host
   ([the binding rule](#binding-an-attachment-to-its-host)).
-- **Building the decks is not a move.** Before the first shuffle every card enters its deck
-  from `outsideTheGame`. That is the deck list, which `DECKS` already states and `INIT`
-  already orders, so the reference writer does not emit those `outsideTheGame` → `deck`
-  records (they were 40 of one organic game's 237 events). A token, or anything else, that
-  later enters **play** from `outsideTheGame` is still recorded.
+- **Building the decks is not a move** `[W-41]`. Before the first shuffle every card enters
+  its deck from `outsideTheGame`. That is the deck list, which `DECKS` already states and
+  `INIT` already orders, so a writer MUST NOT emit those `outsideTheGame` → `deck` records; a
+  validator reports one as `deck-build-move`. A token, or anything else, that later enters
+  **play** from `outsideTheGame` is still recorded.
 
 A reader that meets a MOVE breaking any of these rules SHOULD ignore that record and
 report the file as non-conformant. It MUST NOT crash.
@@ -1247,7 +1253,7 @@ hand.
 | `p` | 1 or 2 | yes | Who played it. |
 | `card` | string | yes | The card id. |
 | `zone` | string | no | Where it went. Defaults to `"ground"`. |
-| `cost` | integer | no | The card's **printed** cost. Not the resources actually paid: aspect penalties, discounts and Exploit are settled inside the engine's cost payment and never reach the play event. What was paid is the `EXHAUST_RESOURCES` written beside this record ([below](#101-events-that-carry-board-detail)). |
+| `cost` | integer | no | The card's **printed** cost. What was paid is the `EXHAUST_RESOURCES` written beside this record ([below](#101-events-that-carry-board-detail)). |
 
 Puts the card in play. The matching `MOVE` (hand → ground) handles the hand count, so
 `PLAY` MUST NOT touch `handSize`.
@@ -1265,7 +1271,7 @@ Puts the card in play. The matching `MOVE` (hand → ground) handles the hand co
 | `p` | 1 or 2 | yes | Who played it. |
 | `card` | string | yes | The card id. |
 | `zone` | string | no | Recorded for completeness; usually `"discard"`. |
-| `cost` | integer | no | The card's **printed** cost. Not the resources actually paid: aspect penalties, discounts and Exploit are settled inside the engine's cost payment and never reach the play event. What was paid is the `EXHAUST_RESOURCES` written beside this record ([below](#101-events-that-carry-board-detail)). |
+| `cost` | integer | no | The card's **printed** cost. What was paid is the `EXHAUST_RESOURCES` written beside this record ([below](#101-events-that-carry-board-detail)). |
 
 Event cards go straight to the discard pile — never into play.
 
@@ -1279,7 +1285,7 @@ Event cards go straight to the discard pile — never into play.
 | `card` | string | yes | The upgrade's card id. |
 | `target` | string | no | The unit it went onto, or `base@N` for a Fortify upgrade ([§10.3](#103-homeworlds-fortify-beast-and-weakness)). |
 | `zone` | string | no | Where the card went, recorded for completeness. It is **not** a fallback placement. |
-| `cost` | integer | no | The card's **printed** cost. Not the resources actually paid: aspect penalties, discounts and Exploit are settled inside the engine's cost payment and never reach the play event. What was paid is the `EXHAUST_RESOURCES` written beside this record ([below](#101-events-that-carry-board-detail)). |
+| `cost` | integer | no | The card's **printed** cost. What was paid is the `EXHAUST_RESOURCES` written beside this record ([below](#101-events-that-carry-board-detail)). |
 
 If `target` is given and that unit is on the board, the upgrade id is pushed onto that
 unit's `upgrades` list — **idempotently**, because the attaching `MOVE` beside this record
@@ -1512,8 +1518,8 @@ and `MOVE`, and the captor's entry disappears with its list.
   them.
 
 A reader that draws the resource row needs both. `EXHAUST_RESOURCES` moves `min(amount, resourcesReady)` from ready to exhausted;
-`READY_RESOURCES` moves `min(amount, resourcesExhausted)` back. The clamp is the engine's own
-behaviour, not leniency: it exhausts as many as it can find.
+`READY_RESOURCES` moves `min(amount, resourcesExhausted)` back. The clamp is not leniency: the rules exhaust only resources that exist, so an
+`amount` larger than the ready count exhausts as many as there are.
 
 A writer emits `EXHAUST_RESOURCES` for **every** way a resource becomes exhausted — a cost
 paid (the `amount` is what was actually paid, after aspect penalties, discounts and Exploit;
@@ -1554,8 +1560,8 @@ a unit and is not an arena card at all, or `zone` is not an arena, in which case
 nothing ([§12.2](#122-every-other-rule-in-one-table)).
 
 **`zone` is the arena the token is entering, not wherever the writer found it.** An engine may
-well create a token outside the game and move it into play as a separate step — the reference
-writer's does — so the token's *current* zone at creation time is `outsideTheGame`. Writing that
+well create a token outside the game and move it into play as a separate step, so the token's
+*current* zone at creation time is `outsideTheGame`. Writing that
 would put a card in the folded `cards[]` with a non-arena zone, which no keyframe agrees with. A
 reader is defended against it anyway (the fold places arena zones only), but a writer MUST name
 the destination.
@@ -1668,15 +1674,14 @@ until the next regroup.
 Sets those fields on the card. Printed values, upgrades, tokens, lasting effects ("+3/+0 for
 this attack"), Raid while attacking, Grit — the engine has already added them up, and this
 record states the result. The writer emits one whenever a unit's live values differ from the
-last `STATS` it wrote for that unit, after **every** engine event, so a reader can show the
+last `STATS` it wrote for that unit (`[W-22]`), so a reader can show the
 right numbers at every moment without evaluating a single card ability. A unit's first
 `STATS` arrives right after it enters play; a unit that leaves and returns starts over.
 
 **A `STATS` is filed under the action that caused it.** Some effects are applied a step after
 the event that set them up: a Fortify upgrade grants its base an ability, and *that* ability
-buffs units (Landing Pad's "Friendly space units get +1/+0"). The writer settles every unit's
-stats again just before the turn passes, so such a change is a sub-step of the play that caused
-it, never of the next player's action.
+buffs units (Landing Pad's "Friendly space units get +1/+0"). Such a change is a sub-step of
+the play that caused it, never of the next player's action (`[W-22]`).
 
 `keywords` covers what CR 1.16 calls a card's attributes as far as the text box goes: the
 keyword abilities in effect (printed, granted by an upgrade, or given for a phase). Full
@@ -2540,9 +2545,12 @@ state is thrown away and the keyframe takes its place. Everything below follows 
   and costs one snapshot.
 - A keyframe MUST equal the board **at the moment its own seq names** `[W-24]`. A `ROUND_END`
   keyframe is the trap: it describes the round that is ending, so `initiativeTaken` is `true`
-  for a round in which the initiative was claimed and `phase` is `regroup`, even though an
-  engine typically resets both as it tears the round down. How the reference writer gets this
-  right is in [Appendix D](#appendix-d-reference-writer-notes-informative).
+  for a round in which the initiative was claimed and `phase` is `regroup`, even though the
+  round's teardown resets both. How the reference writer gets this right is in
+  [Appendix D](#appendix-d-reference-writer-notes-informative).
+
+  > **Note (informative):** An engine typically resets both as it tears the round down, which is
+  > why a keyframe taken after the teardown reads wrongly.
 
 <a id="damaged-keyframe"></a>
 **A keyframe is damaged** when any of these is true:
@@ -3216,6 +3224,10 @@ The review before publication (2026-10-28) changed what conforms, as well as wha
   implementation's `internalName`. A writer MUST derive them from the English printed title
   `[W-40]`, a validator reports `bad-token-name` for an id that breaks the grammar `[V-05]`, and
   [§25](#25-registries) lists the names of today's tokens.
+- Engine timing became required outcomes. A writer MUST NOT write a `MOVE` from `outsideTheGame`
+  into `deck`, and a validator reports `deck-build-move` `[W-41]`. A Credit token is always
+  recorded in `base`, never `resource`, and a validator reports `credit-zone` `[W-41]`. A `STATS`
+  is due before the next numbered action and before any keyframe `[W-22]`.
 - The text is normative and the reference code informative ([§2](#2-conventions-and-conformance--how-to-read-this-spec)).
   Conformance levels, requirement ids and seven conformance classes were added
   ([§2.1](#21-document-conformance-levels), [§3](#3-conformance-classes--who-has-to-do-what)).
@@ -3386,6 +3398,8 @@ matched by a program.
 | `dangling-ref` | error | A `for` or an annotation `ref` names no `seq` | well-formed |
 | `bad-zone` | error | A `from`, `to` or `zone` outside the zone vocabulary | well-formed |
 | `bad-token-name` | error | A `TOKEN:` id, or a `STATUS_TOKEN.token`, that breaks the token-name grammar ([§6.1](#the-token-grammar)) | well-formed |
+| `deck-build-move` | error | A `MOVE` from `outsideTheGame` into `deck` (`[W-41]`, [§10.1](#101-events-that-carry-board-detail)) | well-formed |
+| `credit-zone` | error | A `MOVE` of a `TOKEN:credit…` id from or into `resource`; a Credit token is recorded in `base` ([§6.2](#62-zone-names), `[W-41]`) | well-formed |
 | `same-zone-move` | error | A `MOVE` from a zone to itself that is not an arena | well-formed |
 | `number-range` | error | A number that is not an integer within ±(2^53−1) | well-formed |
 | `over-cap` | error | A keyframe list longer than 1000 | well-formed |

@@ -33,6 +33,12 @@ export const BANNED: { phrase: RegExp; task: number; why: string }[] = [
     { phrase: /the engine's zone set/, task: 5, why: 'defines the zone list by one engine instead of the Comprehensive Rules' },
     { phrase: /engine writes the plain text itself when it runs under test/, task: 5, why: 'describes one implementation\'s test mode as the norm' },
     { phrase: /whatever the card's\s+menu entry says/, task: 5, why: 'defines title by one engine\'s menu UI' },
+    { phrase: /stopped counting the card as a unit/, task: 6, why: 'describes one engine\'s internal order as the format' },
+    { phrase: /after \*\*every\*\* engine event/, task: 6, why: 'defines STATS timing by one engine\'s events' },
+    { phrase: /settled inside the engine's cost payment/, task: 6, why: 'defines cost by one engine\'s cost payment' },
+    { phrase: /The clamp is the engine's own/, task: 6, why: 'describes one engine\'s behaviour as the rule' },
+    { phrase: /the reference\s+writer's does/, task: 6, why: 'describes one implementation\'s output as the norm' },
+    { phrase: /the reference writer does not emit/, task: 6, why: 'describes one implementation\'s output as the norm' },
 ];
 
 /** The lines a conforming implementation must obey, with 1-based line numbers. */

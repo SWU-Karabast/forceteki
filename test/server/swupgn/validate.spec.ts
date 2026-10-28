@@ -225,6 +225,24 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(codes(addEvent('{"seq":"R1.A.9","t":"MOVE","card":"SOR#108","from":"ground","to":"ground","p":1,"kind":"unit"}'))).not.toContain('error:same-zone-move');
     });
 
+    it('reports a move from outsideTheGame into deck', function () {
+        const organic = fs.readFileSync(
+            path.resolve(__dirname, '../../../../swupgn/test-vectors/organic.swupgn'), 'utf8');
+        const bad = organic.replace('%%% EVENTS', '%%% EVENTS\n{"seq":"R0.S.x1","t":"MOVE","card":"SOR#108","from":"outsideTheGame","to":"deck","p":1}');
+        expect(bad).not.toBe(organic);
+        const report = validate(bad);
+        expect(report.issues.filter((i) => i.severity === 'error').map((i) => i.code)).toEqual(['deck-build-move']);
+        expect(report.level).toBe('well-formed');
+        expect(validate(organic).issues.map((i) => i.code)).not.toContain('deck-build-move');
+    });
+
+    it('reports a Credit token moved into resource', function () {
+        const move = (to: string) => addEvent(`{"seq":"R1.A.9","t":"MOVE","card":"TOKEN:credit#1234567890","from":"outsideTheGame","to":"${to}","p":1}`);
+        expect(codes(move('resource'))).toContain('error:credit-zone');
+        expect(validate(move('resource')).level).toBe('well-formed');
+        expect(codes(move('base'))).not.toContain('error:credit-zone');
+    });
+
     // Value: protects=a keyframe card in a zone outside the vocabulary is an error, not a silently folded board; fails_when=the keyframe card zone check is dropped from validate(); why_new=bad-zone was only tested on record zone and MOVE from/to; seam=none; no_claim=the fold's own handling of such a card
     it('rejects a keyframe card whose zone is outside the vocabulary', function () {
         const bad = good.replace('"cards":[{"id":"SOR#108","zone":"ground"', '"cards":[{"id":"SOR#108","zone":"limbo"');
