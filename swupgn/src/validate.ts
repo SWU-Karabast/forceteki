@@ -321,6 +321,13 @@ export function validate(text: string): ConformanceReport {
         if (typeof r['zone'] === 'string' && !ZONES.includes(r['zone'])) {
             error('bad-zone', `record ${seqStr}: zone "${r['zone']}" is not a zone`);
         }
+        // A Fortify upgrade attaches to the base of the seat that played it (§10.3, [V-06]).
+        const fortifyHost = r['t'] === 'MOVE' && r['to'] === 'base' ? r['attachedTo']
+            : r['t'] === 'PLAY_UPGRADE' ? r['target'] : undefined;
+        if (typeof fortifyHost === 'string' && (/^base@[12]$/).test(fortifyHost) && typeof r['p'] === 'number' &&
+          fortifyHost !== `base@${r['p']}`) {
+            error('fortify-host', `record ${seqStr}: an upgrade played by seat ${r['p']} attaches to ${fortifyHost} (a Fortify upgrade attaches to its own seat's base)`);
+        }
         if (r['t'] === 'MOVE') {
             for (const k of ['from', 'to']) {
                 if (typeof r[k] === 'string' && !ZONES.includes(r[k] as string)) {

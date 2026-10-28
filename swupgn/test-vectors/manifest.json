@@ -147,6 +147,17 @@
       "about": "A MOVE of a Credit token into resource; the format records Credit tokens in base (§6.2, [W-42])."
     },
     {
+      "file": "negative/fortify-enemy-base.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "fortify-host"
+      ],
+      "warnings": [],
+      "about": "A Fortify upgrade attached to the other seat's base (§10.3, [V-06])."
+    },
+    {
       "file": "negative/result-mismatch.swupgn",
       "class": "negative",
       "writer": "hand",

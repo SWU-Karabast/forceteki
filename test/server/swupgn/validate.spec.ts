@@ -322,6 +322,21 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(copyOne).not.toContain('error:credit-zone');
     });
 
+    it('reports a Fortify upgrade attached to the other seat\'s base', function () {
+        const move = (p: number, base: string) => addEvent(`{"seq":"R1.A.9","t":"MOVE","card":"HMW#147","from":"hand","to":"base","p":${p},"kind":"upgrade","attachedTo":"${base}"}`);
+        const play = (p: number, base: string) => addEvent(`{"seq":"R1.A.9","t":"PLAY_UPGRADE","p":${p},"card":"HMW#147","zone":"base","target":"${base}","cost":2}`);
+        expect(codes(move(1, 'base@2')).filter((c) => c === 'error:fortify-host')).toEqual(['error:fortify-host']);
+        expect(codes(play(1, 'base@2')).filter((c) => c === 'error:fortify-host')).toEqual(['error:fortify-host']);
+        expect(validate(move(1, 'base@2')).level).toBe('well-formed');
+    });
+
+    it('accepts a Fortify upgrade on its own seat\'s base', function () {
+        const move = addEvent('{"seq":"R1.A.9","t":"MOVE","card":"HMW#147","from":"hand","to":"base","p":1,"kind":"upgrade","attachedTo":"base@1"}');
+        const play = addEvent('{"seq":"R1.A.9","t":"PLAY_UPGRADE","p":1,"card":"HMW#147","zone":"base","target":"base@1","cost":2}');
+        expect(codes(move)).not.toContain('error:fortify-host');
+        expect(codes(play)).not.toContain('error:fortify-host');
+    });
+
     // Value: protects=a keyframe card in a zone outside the vocabulary is an error, not a silently folded board; fails_when=the keyframe card zone check is dropped from validate(); why_new=bad-zone was only tested on record zone and MOVE from/to; seam=none; no_claim=the fold's own handling of such a card
     it('rejects a keyframe card whose zone is outside the vocabulary', function () {
         const bad = good.replace('"cards":[{"id":"SOR#108","zone":"ground"', '"cards":[{"id":"SOR#108","zone":"limbo"');

@@ -117,6 +117,9 @@ You can:
 - **add notes** afterwards ("this attack was a mistake"),
 - **share it safely** — no real names are in the file.
 
+The format covers the two-player game. Multiplayer formats (CR 11-12) are out of scope, and a
+writer MUST NOT write a game with more than two players `[W-44]`.
+
 ### 1.1 Terminology
 
 | Term | Means |
@@ -128,7 +131,7 @@ You can:
 | **`seq`** | An event's label, unique in the file ([§9.1](#91-how-seq-is-built)). |
 | **action** | An event a player chose to do: a play, an attack, a pass, an action ability. Its `seq` ends in a bare number (`R2.A.3`). |
 | **consequence** | An event that happened because of an action. Its `seq` ends in a number and letters (`R2.A.3a`). |
-| **in play** | In the ground or space arena. No other zone is in play ([§6.2](#62-zone-names)). |
+| **in an arena** | In the ground or space arena. No other zone is an arena ([§6.2](#62-zone-names)). The Comprehensive Rules' "in play" (CR 4.9.1) is wider — it also covers both bases and both resource rows — so this document keeps "in play" for that meaning and says "in an arena" for this one. |
 | **keyframe** | A full snapshot of the board inside a `ROUND_START` or `ROUND_END` event ([§13](#13-keyframes)). |
 | **reduced state** | The board as a reader holds it ([§11](#11-the-reduced-state--the-board-you-build)). Its JSON form is a `.fold.json` file. |
 | **fold** | Rebuilding the reduced state by applying events in file order ([§12](#12-folding--turning-lines-into-a-board)). |
@@ -316,7 +319,7 @@ requirement, by id. The linked section is where each one is defined.
   ([§5.2.1](#521-timing-ms)).
 - `[W-30]` MUST record an upgrade attached to a base (Fortify) as a `MOVE` into `base` with
   `attachedTo: "base@N"` and a `PLAY_UPGRADE` whose `target` is `base@N`, and MUST carry the
-  seat's `baseUpgrades` in every keyframe — a base upgrade is in play in no arena, so `cards`
+  seat's `baseUpgrades` in every keyframe — a base upgrade is in play but in no arena, so `cards`
   cannot hold it ([§10.3](#103-homeworlds-fortify-beast-and-weakness)).
 - `[W-31]` SHOULD name the granting card in `grantedBy` when an `ABILITY_ACTIVATE` is an ability
   `card` does not print ([§10.1](#101-events-that-carry-board-detail)).
@@ -349,6 +352,8 @@ requirement, by id. The linked section is where each one is defined.
 - `[W-43]` MUST write the deck's owner as `p` on a `MOVE` out of `deck`, and when the card goes
   into play under the other seat, follow the `MOVE` with a `TAKE_CONTROL` to that seat
   ([§12.1](#121-the-move-rule-the-big-one)).
+- `[W-44]` MUST NOT write a game with more than two players (CR 11-12)
+  ([§1](#1-introduction--what-this-is), [§11](#what-the-board-covers-against-the-rules)).
 
 ### The Parser (reads the syntax)
 
@@ -384,6 +389,9 @@ requirement, by id. The linked section is where each one is defined.
   How to read one is in [Appendix C](#appendix-c-reading-pre-release-files-informative).
 - `[V-05]` MUST report a `TOKEN:` id or a `STATUS_TOKEN.token` that breaks the token-name grammar
   (`bad-token-name`, error) ([§6.1](#the-token-grammar)).
+- `[V-06]` MUST report a Fortify upgrade attached to the other seat's base: a `MOVE` into `base`
+  whose `attachedTo` is `base@N`, or a `PLAY_UPGRADE` whose `target` is `base@N`, with N not the
+  record's `p` (`fortify-host`, error) ([§10.3](#103-homeworlds-fortify-beast-and-weakness)).
 
 ### The Folder (rebuilds the board)
 
@@ -619,7 +627,7 @@ Counts are base-10 digits with no sign, space or exponent.
 | `Perspective` | `P1` or `P2` | Reserved for perspective files, which 1.0 does not define. A 1.0 writer MUST NOT write it ([§21](#21-open-issues)). A reader that meets it MUST treat the other seat's hidden information as possibly missing. Case-sensitive. |
 | `EndDate` | RFC 3339 | When the game **ended**. With `Date` (when it started) this gives the game's duration. Absent for an unfinished game, or a writer that cannot tell. |
 | `Match` | `sha256:` + 64 lowercase hex digits | An opaque id for the **match** this game belongs to, stable across the games of one match (a series of games, such as a best of three). Lets a file that travels on its own — shared, archived, attached to a bug report — still say which match it came from, the way chess PGN's `Round` does. A writer MUST NOT put a platform-internal id for the match here. See [Appendix D](#appendix-d-reference-writer-notes-informative) for one way to derive it. |
-| `GameNumber` | count, 1 or more | Which game of that match this is. Meaningless without `Match`. A game does not know its own place in a series, so a writer may leave it off and let whatever delivers the file set it. |
+| `GameNumber` | count, 1 or more | Which game of that match this is. Meaningless without `Match`. A game does not know its own place in a series, so a writer may leave it off and let whatever delivers the file set it. It may exceed 3: a Trilogy replays a drawn game, so the numbering continues. Trilogy and Limited match data (scores, sideboarding, draft) is out of scope for this format. |
 | `Undos` | count | How many times a player took a decision back, on a platform that lets players take back a decision. **Absent means none.** An undo removes the records it retracted, so a file with no tag and a file whose players undid six times are otherwise indistinguishable — and "was this line of play rehearsed" is a review question. The matching `UNDO` notes say WHERE ([§10.2](#102-events-that-are-just-notes)); this tag is the authoritative count. |
 | `RecorderErrors` | count | How many records the writer lost while recording (a handler that failed). **Absent means none.** Present means some events were never written: the keyframes are still exact (a writer takes them from its own game state, not by folding its records), but the deltas between them are incomplete, so the file is not verified and the board between keyframes may be wrong. A reader SHOULD surface it. |
 
@@ -843,19 +851,19 @@ in the Comprehensive Rules (CR 4), except where the table says otherwise:
 | `deck` | Face-down draw pile. | the deck, CR 4.6 |
 | `hand` | A player's hand. | the hand, CR 4.7 |
 | `resource` | The resource row. | the resource zone, CR 4.5 |
-| `ground` | The ground arena. **In play.** | the ground arena, CR 4.3 |
-| `space` | The space arena. **In play.** | the space arena, CR 4.4 |
+| `ground` | The ground arena. **In an arena.** | the ground arena, CR 4.3 |
+| `space` | The space arena. **In an arena.** | the space arena, CR 4.4 |
 | `discard` | The discard pile. | the discard pile, CR 4.8 |
-| `base` | The base zone: where an undeployed or defeated leader sits, where Credit tokens and the Force live, and where an upgrade with **Fortify** attaches ([§10.3](#103-homeworlds-fortify-beast-and-weakness)). | the base zone, CR 4.2. **The format's `base` zone also holds Credit tokens.** The Comprehensive Rules create a Credit token in the resource zone, where it is "not a resource" (CR 4.5.4, CR 3.7.13); this format records it in `base` instead, and a reader counts Credits through `base`. That is this format's choice, and it differs from CR 4.5.4: a writer MUST NOT name `resource` for a Credit token (`[W-42]`) |
+| `base` | The base zone: where an undeployed or defeated leader sits, where Credit tokens and the Force live, and where an upgrade with **Fortify** attaches (CR 7.5.21, [§10.3](#103-homeworlds-fortify-beast-and-weakness)). | the base zone, CR 4.2. **The format's `base` zone also holds Credit tokens.** The Comprehensive Rules create a Credit token in the resource zone, where it is "not a resource" (CR 4.5.4, CR 3.7.13); this format records it in `base` instead, and a reader counts Credits through `base`. That is this format's choice, and it differs from CR 4.5.4: a writer MUST NOT name `resource` for a Credit token (`[W-42]`) |
 | `outsideTheGame` | Nowhere — where tokens come from and go back to. | Not a zone. A card that is set aside is in no zone, and a token that leaves play is set aside again (CR 4.1.2, CR 4.11) |
-| `capture` | Cards captured by an opponent. | Not a zone. A captured card is held facedown under the capturing unit, out of play but open information (CR 8.34); the format gives it a name so a card in that state can be moved to and from |
+| `capture` | Cards captured by an opponent. | Not a zone. A captured card is held facedown under the capturing unit, out of play but open information (CR 8.33); the format gives it a name so a card in that state can be moved to and from |
 
 That is the **complete** list. The CR names the two arenas "ground arena" and "space arena"; this
 format writes them `ground` and `space` rather than `groundArena`/`spaceArena`, and writes the
 other names as the table shows. Any other string in a `from`, `to` or `zone` field is
 non-conformant.
 
-Only `ground` and `space` count as "in play". That matters a lot in
+Only `ground` and `space` count as "in an arena". That matters a lot in
 [§12](#12-folding--turning-lines-into-a-board).
 
 ### 6.3 Pointing at a base
@@ -880,7 +888,7 @@ the base *card*; a `base@N` ref names the *thing being hit*.)
 
 | Field | Values seen in real files (more MAY appear) |
 |---|---|
-| `damageType` | `combat`: combat damage, CR 6.3.4. `ability`: damage a card ability dealt. `excess`: damage beyond what defeated a unit, which a card ability deals elsewhere (Blizzard Assault AT-AT). Overwhelm onto a base is written as its own `OVERWHELM` record, never as a `DAMAGE` with `damageType: "overwhelm"`. |
+| `damageType` | `combat`: combat damage, CR 6.3.0c, 6.3.5. `ability`: damage a card ability dealt. `excess`: damage beyond what defeated a unit, which a card ability deals elsewhere (Blizzard Assault AT-AT). Overwhelm onto a base is written as its own `OVERWHELM` record, never as a `DAMAGE` with `damageType: "overwhelm"`. |
 | `defenderType` | `unit`, `base` |
 | `DEFEAT.reason` | **Closed — see below.** |
 | `CHOICE.prompt` | The text the writer showed the choosing player, if any. Display only, open. |
@@ -899,8 +907,8 @@ is pinned here and in the schema rather than left open:
 | `attack` | Combat damage from an attack killed it. `defeatedBy` names the unit that dealt that damage: the attacker, or the defender when the attacker dies to the defender's return damage. |
 | `ability` | A card ability defeated it **outright**, with no damage: "defeat a unit" (Vanquish), "defeat a base" (Grand Moff Tarkin), a cost paid by defeating it. `defeatedBy` names that card. |
 | `nonCombatDamage` | **Damage** from something that is not an attack killed it — an event, an ability, an ongoing effect. `defeatedBy` names the card that dealt it. |
-| `uniqueRule` | The uniqueness rule: a second copy of a unique card that its controller already has in play. |
-| `frameworkEffect` | No card did it. The name is historical; the four causes below are its whole meaning, and they are the whole set: an **upgrade whose host left play**; a unit whose **remaining HP fell to its damage without damage being dealt** — a modifier lowered its HP (a Weakness token attaching, a −X/−X effect) or an HP-granting effect expired or was removed; a **leader unit that would have changed control** (it is defeated instead); and a **base killed by damage no card dealt** — drawing from an empty deck. The `STATS` record with the lowered `hp` just before the `DEFEAT` is the reason ([§10.3](#103-homeworlds-fortify-beast-and-weakness)). |
+| `uniqueRule` | The uniqueness rule (CR 8.29.3): one of two copies of a unique card its controller has in play is defeated, the one the controller chose. |
+| `frameworkEffect` | No card did it. The name is historical; the four causes below are its whole meaning, and they are the whole set: an **upgrade whose host left play**; a unit whose **remaining HP fell to its damage without damage being dealt** — a modifier lowered its HP (a Weakness token attaching, a −X/−X effect) or an HP-granting effect expired or was removed; a **leader unit or leader upgrade that follows CR 3.4 and would have changed control or moved to an out-of-play zone** (CR 3.4.6, 3.4.7: it is defeated instead); and a **base killed by damage no card dealt** — drawing from an empty deck. The `STATS` record with the lowered `hp` just before the `DEFEAT` is the reason ([§10.3](#103-homeworlds-fortify-beast-and-weakness)). |
 | `unknown` | The writer could not resolve a cause. A reader SHOULD surface this the way it surfaces `RecorderErrors`; it should not appear in a healthy file. |
 
 `frameworkEffect` is deliberately not split further. Its four causes are one thing from the
@@ -1103,7 +1111,9 @@ with more than 26 consequences still gets a unique label (`R1.A.0ce` is the 83rd
 The numbers-and-letters rule is the useful part:
 
 - **`R2.A.3`** — a *thing a player chose to do*. Play a card. Attack. Pass. Use a card's
-  action ability (`ABILITY_ACTIVATE` with `kind: "action"` or `"epic"`).
+  action ability (`ABILITY_ACTIVATE` with `kind: "action"` or `"epic"`). A play, attack or
+  action ability made while resolving another ability is not one of these (CR 1.15.1, 6.2.0e,
+  6.3.0d, 6.4.0a, 7.1.6): it is a lettered sub-step of the ability that made it.
 - **`R2.A.3a`, `R2.A.3b`, `R2.A.3c`** — everything that *happened because of it*.
   The damage. The exhaust. The ability that triggered. In order.
 
@@ -1143,7 +1153,7 @@ other seat's commit) and a reader that trusts `for` files the card under the wro
 changes happened in its own engine, and a reader MUST NOT depend on any other order. A writer
 MUST keep these:
 
-1. a card's `MOVE` into an arena precedes every other record that changes that card in play.
+1. a card's `MOVE` into an arena precedes every other record that changes that card in an arena.
    Two records are exempt: the action record that puts the card there (`PLAY`,
    `PLAY_SMUGGLE`, `PLAY_UPGRADE`, `DEPLOY_LEADER`), which a writer may write before or after
    the `MOVE`, and `CREATE_TOKEN`, which names a token before the `MOVE` that places it
@@ -1202,7 +1212,7 @@ doesn't move the needle. They are documented here rather than with the pure note
 | `kind` | `"unit"` or `"upgrade"` | no | The **role this move enacts**, not what the card is. REQUIRED whenever determinable — see below. |
 
 **`MOVE` is the most important event in the format.** It is the *single source of truth*
-for hand size, the resource row, credits, the Force, which cards are in play and which cards
+for hand size, the resource row, credits, the Force, which cards are in an arena and which cards
 are attached to which. Every other "a card went somewhere" event (`DRAW`, `PLAY`, `DISCARD`,
 `RESOURCE`) is a **summary** that sits next to the MOVEs, and MUST NOT be counted a second
 time.
@@ -1236,8 +1246,8 @@ A reader applies `kind` exactly as [§12.1](#121-the-move-rule-the-big-one) says
 arena as its own unit — in the *space* arena, for a card whose printed arena is ground — and
 no keyframe will agree with the resulting state.
 
-**Every attaching move MUST also carry `attachedTo`, and the matching `PLAY_UPGRADE` MUST
-carry `target`.** Without a host there is nothing to attach to: `kind: "upgrade"` correctly
+**Every attaching move MUST also carry `attachedTo`, and the matching `PLAY_UPGRADE` that
+attaches MUST carry `target`.** Without a host there is nothing to attach to: `kind: "upgrade"` correctly
 keeps the card out of the arena, so a reader that is told the role but not the host loses the
 card entirely and the replay shows the play doing nothing. Note the writer learns the host
 only when the attachment happens, which is *after* the move is emitted — so both fields are
@@ -1258,8 +1268,8 @@ transition and never needs one ([the binding rule](#binding-an-attachment-to-its
   **bases**, because each seat has its own. That is how a Credit token changes hands, and the
   writer records it as the `TAKE_CONTROL` it is (`zone: "base"`, [below](#take_control)).
   The one `MOVE` that may name the same zone twice is an attachment changing while the card
-  stays in its arena — an upgrade moved to another host there, or a pilot ejected from a ground
-  vehicle. `from` and `to` are that arena, and the record carries the new role and host
+  stays in its arena — an upgrade moved to another host there, a pilot ejected from a ground
+  vehicle, or a unit in play attached as an upgrade (CR 3.5.6). `from` and `to` are that arena, and the record carries the new role and host
   ([the binding rule](#binding-an-attachment-to-its-host)).
 - **Building the decks is not a move** `[W-41]`. Before the first shuffle every card enters
   its deck from `outsideTheGame`. That is the deck list, which `DECKS` already states and
@@ -1327,12 +1337,23 @@ Event cards go straight to the discard pile — never into play.
 | `zone` | string | no | Where the card went, recorded for completeness. It is **not** a fallback placement. |
 | `cost` | integer | no | The card's **printed** cost. What was paid is the `EXHAUST_RESOURCES` written beside this record ([below](#101-events-that-carry-board-detail)). |
 
+**An upgrade with no eligible unit** (CR 6.2.5b) is played anyway and never attaches: the cost is
+paid, the card goes to its owner's discard pile, and the writer records a `MOVE` to `discard` and
+a `PLAY_UPGRADE` with `zone: "discard"` and no `target`. That record attaches nothing, so it needs
+no `attachedTo`.
+
 If `target` is given and that unit is on the board, the upgrade id is pushed onto that
 unit's `upgrades` list — **idempotently**, because the attaching `MOVE` beside this record
 already did the same through `attachedTo` ([§12.1](#121-the-move-rule-the-big-one)). If `target`
 is `base@N`, the id goes onto that seat's `baseUpgrades` instead, just as idempotently. Otherwise
 the event changes **nothing**: an upgrade is never an arena card, so there is no fallback
 placement ([§12.2](#122-every-other-rule-in-one-table)).
+
+**Plot** (CR 7.5.19). Plot cards are revealed from the resource row when a leader deploys, and each
+is then played for free. The writer records one `REVEAL` with `zone: "resource"` naming the Plot
+cards, then each play in the usual way, filed under the `DEPLOY_LEADER` that caused it (a lettered
+sub-step, with `for` where the rules of [§9.1](#91-how-seq-is-built) ask for it). There is no
+`PLAY_PLOT` event.
 
 ---
 
@@ -1433,12 +1454,14 @@ Heroism to create a Spy token and ready it"). The test vectors carry no markup, 
 with no icon markup writes plain text, so a reader MUST handle both.
 
 **`kind: "action"` and `kind: "epic"` are TOP-LEVEL ACTIONS** and take their own step number
-([§9](#9-the-events-section-and-seq-numbers)): CR 6.1 lists "use an action ability" among the six things a player
-may spend their action on, so it is the player's turn, not a consequence of anyone else's. A
+([§9](#9-the-events-section-and-seq-numbers)): CR 1.15.1 lists "use an action ability" among the five actions a player
+may take (and CR 6.4.0a gives it its own timing), so it is the player's turn, not a consequence of anyone else's. A
 writer that numbers it as a sub-event files it under whatever was numbered last — which for a
 leader ability used after the opponent's turn is the **opponent's `PASS`**, and the ability's
 own consequences then hang off the wrong player's action. Every other kind IS a consequence of
-the action that caused it and stays a sub-step.
+the action that caused it and stays a sub-step. So is a play, an attack or an action ability
+that an ability makes while it resolves: it is not an action of the player's (CR 1.15.1, 6.2.0e,
+6.3.0d, 6.4.0a, 7.1.6), and it is a lettered sub-step of the action that caused it.
 
 **Epic Actions come from two places, and they are separate.** `card` says which:
 
@@ -1507,6 +1530,10 @@ record therefore re-seats the card itself:
   `players[p].credits + 1`; the Force token: `players[from].hasForce = false`,
   `players[p].hasForce = true` ([§6.1](#two-reserved-token-names)).
 - otherwise → nothing.
+
+**Exchange control** (CR 1.5.2.e): when an ability has two players exchange control of two cards,
+the writer records two `TAKE_CONTROL` records, one per card, under the one action. When the
+exchange fails (a card is not eligible), it records none.
 
 `from` is omitted when the steal **did** change zone (a unit taken straight into the resource
 row): a `MOVE` was written beside it and already carried the counts, and shifting them twice
@@ -1621,7 +1648,7 @@ them: the token's `STATS` record after its `MOVE` carries the real values
 |---|---|---|---|
 | `src` | string | no | What dealt it: a card id, or `base@N` when a base's ability did ([§6.3](#63-pointing-at-a-base)). For combat damage it is the unit that dealt it, so the defender's return damage to the attacker names the **defender**. Absent **only** when the rules themselves dealt it and no card is responsible — drawing from an empty deck. |
 | `tgt` | string | yes | `base@N` or a card id. |
-| `amt` | integer | yes | How much. |
+| `amt` | integer | yes | How much. With no redirect, the full amount dealt, and `hp` may be 0 or below. With a redirect, only the part that defeats the unit; the rest is a second `DAMAGE` with `damageType: "excess"` (an `OVERWHELM` for a base) (CR 1.9.11.a). |
 | `damageType` | string | yes | e.g. `"combat"`, `"ability"`. |
 | `hp` | integer | yes | HP left **after** the damage. |
 
@@ -1692,7 +1719,7 @@ of that id, on the seat's leader if that is its id, or both. Never written for a
 resource row: the row is counted, and those are `EXHAUST_RESOURCES` / `READY_RESOURCES`
 ([above](#101-events-that-carry-board-detail)).
 
-**Entering play is an `EXHAUST`.** A non-leader unit enters play exhausted (CR 5.4.5.a) — when
+**Entering play is an `EXHAUST`.** A non-leader unit enters play exhausted (CR 1.5.4.b, 3.5.3) — when
 played, created, smuggled or rescued — and no attack or ability announces it, so the writer
 does: an `EXHAUST` for the card right after its arrival. A unit that enters **ready** (an
 "enters ready" effect) gets no record; Ambush is not one of those — an Ambush unit enters
@@ -1726,7 +1753,11 @@ buffs units (Landing Pad's "Friendly space units get +1/+0"). Such a change is a
 the play that caused it, never of the next player's action (`[W-22]`).
 
 `keywords` covers what CR 1.16 calls a card's attributes as far as the text box goes: the
-keyword abilities in effect (printed, granted by an upgrade, or given for a phase). Full
+keyword abilities in effect (printed, granted by an upgrade, or given for a phase). A numbered
+keyword appears **once**, with the sum of every instance (`"raid 3"`, not `"raid 1"` twice);
+a keyword with a dash or a cost (Piloting, Smuggle) appears **once per instance** (CR 7.5.4). A
+Bounty a player collects is written with `ABILITY_ACTIVATE.p` as the **collecting opponent**, the
+player who gets to use it (CR 7.5.13). Full
 ability text is not recorded — it is card data, and the `%%% CARDS` index names the card.
 
 ---
@@ -1890,7 +1921,7 @@ These never change the board. A folder MUST read them and do nothing.
 | `t` | Fields | Means |
 |---|---|---|
 | `ATTACK` | `p`, `atk`, `def`, `defenderType` | An attack was declared. For a base attack, `def` is `base@N`. |
-| `PASS` | `p` | A player took the **Pass** action. It is never written after a play, an attack, an action ability or a claimed counter — those are actions of their own, and the turn passing to the opponent afterwards is not a record. The action phase ends when both players pass one after the other, or a player passes after the other has claimed the initiative (CR 6). |
+| `PASS` | `p` | A player took the **Pass** action. It is never written after a play, an attack, an action ability or a claimed counter — those are actions of their own, and the turn passing to the opponent afterwards is not a record. The action phase ends when both players pass one after the other, or a player passes after the other has claimed the initiative (CR 5.4.1.b, 1.15.5.b-c). |
 | `CHOICE` | `p`, `offered` (string[]), `chose` (index), `prompt` (optional) | A player picked from a list. |
 | `MODAL_CHOICE` | `p`, `offered`, `chose` | A player picked an ability mode. A modal effect that picks several modes writes one `MODAL_CHOICE` per pick, in pick order. A later pick's `offered` is the modes still available after the earlier picks, in their printed order, and its `chose` indexes that list, not the first one. |
 | `MULLIGAN` | `p` | A player mulliganed. |
@@ -1933,6 +1964,10 @@ emits:
 2. a **`REVEAL`** where the opponent gets to see the cards too;
 3. a **`MOVE`** for **only** the card (or cards) that actually **leave** the searched zone.
 
+**A trigger from a hidden zone writes no `REVEAL`.** A card whose ability triggers from a hidden zone
+is shown to the opponents (CR 7.6.3a), but the rules say that is not "revealing" the card, so the
+writer records the ability (`ABILITY_ACTIVATE`) and nothing for the showing.
+
 **Examining a card produces no `MOVE`.** A card that is looked at and put back has not
 changed zone, so there is nothing to record — and a `deck` → `deck` record would break the
 `from` ≠ `to` rule above anyway. This matters more than it sounds: two searches in one real
@@ -1964,7 +1999,7 @@ base as its host. The `PLAY_UPGRADE` beside it points at the base the same way:
 ```
 
 The fold puts `HMW#147` on `players[1].baseUpgrades` ([§12.1](#121-the-move-rule-the-big-one)
-step 2c). It is **never** in `cards`: it is in play, but in no arena. A board that draws a base
+step 2c). It is **never** in `cards`: it is in play (CR 4.9.1), but in no arena. A board that draws a base
 SHOULD draw its `baseUpgrades` on it. Every keyframe carries them, and the integrity check
 compares them ([§14](#14-integrity--checking-a-file-is-honest)).
 
@@ -2003,9 +2038,11 @@ the upgrade as `card`. The prevented damage writes **no** `DAMAGE`, so base HP d
 does a `DEFEAT` naming it. A sacrificed or destroyed base upgrade goes to its owner's `discard`
 on that move, like any other card.
 
-**Who it belongs to.** The seat in `attachedTo` / `target` is the base it is on. The `MOVE`'s `p`
-is its owner, whose discard pile it goes to when it leaves. The two are the same unless an
-effect let a player attach an opponent's upgrade.
+**Who it belongs to.** A Fortify upgrade attaches to the base of the player who plays it (CR 7.5.21),
+so `attachedTo` / `target` is `base@<p>`, where `p` is that player. The `MOVE`'s `p` is the
+upgrade's **controller**, as [§12.1](#121-the-move-rule-the-big-one) has it, so it names the same
+seat as the host. A validator reports a host that is the other seat's base (`fortify-host`,
+`[V-06]`). A card that leaves `base` goes to its owner's discard pile.
 
 #### Beast tokens: a token unit, sometimes for the opponent
 
@@ -2466,7 +2503,7 @@ step needs no `p` when `attachedTo` is there
 Nothing else that enters or leaves `base` changes anything: a leader deploying or being
 defeated is an arena move handled in step 3.
 
-**3. In-play list** (in play = `ground` or `space`)
+**3. In-arena list** (in an arena = `ground` or `space`)
 
 If `kind` is `"upgrade"`: this card never joins an arena. If the move is **into** an arena
 and carries `attachedTo`, first `detach(state, card)` and take it out of every seat's `cards`
@@ -2572,7 +2609,7 @@ state is thrown away and the keyframe takes its place. Everything below follows 
 
 - A keyframe MUST contain **every seat** (both of them). A keyframe missing a player does
   not merely lose detail, it **erases that player's board** — hand size, resources, and
-  every card in play reset. A keyframe with `"players":{}` erases both players, leaving a
+  every card in an arena reset. A keyframe with `"players":{}` erases both players, leaving a
   conforming reader with no players at all.
 - A partial or empty `players` map is **non-conformant**. If you can't build a complete
   snapshot, **omit the keyframe entirely**. A `ROUND_START` or `ROUND_END` with no keyframe
@@ -2800,8 +2837,14 @@ The numbered ones are exactly:
 `PLAY`, `PLAY_EVENT`, `PLAY_UPGRADE`, `PLAY_SMUGGLE`, `DEPLOY_LEADER`, `ATTACK`,
 `PASS`, `CLAIM_INITIATIVE`, and an `ABILITY_ACTIVATE` whose `kind` is `action` or `epic`
 
-That last one is a whole action, not a consequence: CR 6.1 lets a player spend their action on
-using a card's action ability, so it is their turn the same way a play or an attack is. An
+each one only when it is a player's action for the turn (CR 1.15.1); the same event made while an ability
+resolves is a lettered sub-step.
+
+That last one is a whole action, not a consequence, when the player takes it as their action:
+CR 1.15.1 lets a player spend their action on using a card's action ability, so it is their turn
+the same way a play or an attack is. A `PLAY`, `ATTACK` or action `ABILITY_ACTIVATE` made while an
+ability resolves is not an action (CR 1.15.1, 6.2.0e, 6.3.0d, 6.4.0a, 7.1.6): it is a lettered
+sub-step of that ability, never numbered. An
 `ABILITY_ACTIVATE` of any other `kind` — `triggered`, `keyword`, `replacement`, `constant`,
 `event`, `delayed` — happened *because of* something else, and is indented under it.
 
@@ -3019,7 +3062,7 @@ A writer MUST have a gate that keeps identifying data out of its files: a writer
 any string from user data SHOULD scan the finished file for it, and MUST NOT write one the scan
 rejects. One writer's gate is in [Appendix D](#appendix-d-reference-writer-notes-informative).
 
-**Omniscient files reveal hidden information**: every hand, the shuffled deck order, the seed.
+**Omniscient files reveal hidden information**: every hand, the starting deck order, the seed.
 They MUST NOT reach a participant before the match is over ([§23](#23-security-considerations)).
 1.0 defines no perspective files ([§21](#21-open-issues)).
 
@@ -3517,6 +3560,7 @@ matched by a program.
 | `bad-token-name` | error | A `TOKEN:` id, or a `STATUS_TOKEN.token`, that breaks the token-name grammar ([§6.1](#the-token-grammar)) | well-formed |
 | `deck-build-move` | error | A `MOVE` from `outsideTheGame` into `deck` (`[W-41]`, [§10.1](#101-events-that-carry-board-detail)) | well-formed |
 | `credit-zone` | error | A `MOVE` of a `TOKEN:credit…` id from or into `resource`; a Credit token is recorded in `base` ([§6.2](#62-zone-names), `[W-42]`) | well-formed |
+| `fortify-host` | error | A Fortify upgrade attached to the other seat's base: a `MOVE` into `base` with `attachedTo: "base@N"`, or a `PLAY_UPGRADE` with `target: "base@N"`, where N is not the record's `p` ([§10.3](#103-homeworlds-fortify-beast-and-weakness), `[V-06]`) | well-formed |
 | `same-zone-move` | error | A `MOVE` from a zone to itself that is not an arena | well-formed |
 | `result-mismatch` | error | The header's `Result` disagrees with the last `GAME_END.winner`, or is not `Incomplete` in a file with no `GAME_END` ([§10.2](#102-events-that-are-just-notes)) | well-formed |
 | `number-range` | error | A number that is not an integer within ±(2^53−1) | well-formed |
@@ -3652,7 +3696,7 @@ unit nor an upgrade, so they have none.
 - **[PGN]** Edwards, S. J., "Portable Game Notation Specification and Implementation Guide",
   1994. The chess format this one is named after.
 - **[JSON-Lines]** "JSON Lines". <https://jsonlines.org/>
-- **[SWU-CR]** Fantasy Flight Games, "Star Wars: Unlimited Comprehensive Rules", version 8.0.
+- **[SWU-CR]** Fantasy Flight Games, "Star Wars: Unlimited Comprehensive Rules", version 9.0 (10/9/26).
   Every "CR" citation in this document is to that version.
 
 ---
