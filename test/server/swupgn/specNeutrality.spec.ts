@@ -26,6 +26,8 @@ export const BANNED: { phrase: RegExp; task: number; why: string }[] = [
     { phrase: /performs part of an action\s+\*?before\*? it announces/, task: 3, why: 'describes one engine\'s emission order as the format' },
     { phrase: /The \*recorder\* genuinely cannot/, task: 3, why: 'describes one implementation\'s recorder' },
     { phrase: /in every real file/, task: 3, why: 'describes one implementation\'s output as the norm' },
+    { phrase: /maps the\s+engine's ability types/, task: 4, why: 'defines ability kinds by one engine\'s class hierarchy' },
+    { phrase: /compile error/, task: 4, why: 'describes one implementation\'s type system as the norm' },
 ];
 
 /** The lines a conforming implementation must obey, with 1-based line numbers. */

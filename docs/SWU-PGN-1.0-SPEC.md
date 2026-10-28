@@ -1339,21 +1339,22 @@ it is back to maintaining a regex.
 promise to keep stable, so every reader ends up with its own regex for it. A writer knows the
 answer from the ability itself and SHOULD state it.
 
-| `kind` | What fired |
+| `kind` | Definition |
 |---|---|
-| `action` | A card's "Action:" ability, used as the player's action for the turn. |
-| `epic` | An Epic Action. Its own kind because the rules track used/unused as game state (CR 1.16). |
-| `triggered` | A "When played" / "On attack" / "When defeated" ability, fired by something else. |
-| `keyword` | A keyword's ability (Shielded, Ambush, Restore, …). |
-| `replacement` | An ability that replaces an effect before it happens, or modifies incoming damage. |
-| `constant` | A continuous ability, active while the card is in play. |
-| `event` | An **event card's** own ability. It follows the `PLAY_EVENT` that paid for it. |
-| `delayed` | An effect set up earlier in the game that comes due now. |
+| `epic` | An Epic Action (CR 7.2.4). Its own kind because the rules track used/unused as game state (CR 1.16). |
+| `action` | Any other action ability (CR 7.2): a card's "Action:" ability, used as the player's action for the turn. |
+| `keyword` | The ability a keyword gives (CR 7.5), even when it resolves like a triggered ability: Shielded, Ambush, Restore, Raid and the rest. |
+| `triggered` | Any other triggered ability (CR 7.6): a "When played" / "On attack" / "When defeated" ability, fired by something else. |
+| `constant` | A constant ability (CR 7.3): active while the card is in play. |
+| `event` | An event card's own ability (CR 7.4). It follows the `PLAY_EVENT` that paid for it. |
+| `delayed` | A delayed effect coming due (CR 7.7.4): an effect set up earlier in the game that resolves now. |
+| `replacement` | A replacement effect (CR 7.7.5), including one that prevents or changes damage before it is dealt. |
 
-A writer MUST NOT omit `kind` for an ability it can classify. The reference writer maps the
-engine's ability types exhaustively, so a type nobody has mapped is a compile error rather than
-a record that quietly ships without the field — which is how `event` reached a published export
-missing its `kind` in the first place.
+When more than one row applies, the first row that matches wins. A Shielded ability is a
+replacement effect in CR 7.7.5's sense, and is `keyword`; an Epic Action is an action ability,
+and is `epic`.
+
+A writer MUST NOT omit `kind` for an ability it can classify.
 
 **`title` is the ability's full printed text, not a short caption.** It is whatever the card's
 menu entry says, which for most cards is the entire rules text ("Choose a friendly unit and
@@ -3269,6 +3270,9 @@ SWUForge's review of that text (2026-10-28) changed:
 - A schema or a vector that disagrees with the text is an erratum, like the code
   ([§2](#2-conventions-and-conformance--how-to-read-this-spec)). The front matter names the
   canonical copy, and the Status section says how errata are handled.
+- `ABILITY_ACTIVATE.kind` is defined by the Comprehensive Rules section each value names
+  ([§10.1](#101-events-that-carry-board-detail)), not by one engine's ability classes, with a
+  precedence sentence (the first matching row wins). The values are unchanged.
 - Seven quoted records had a stale `ms`. Every quoted record, `ms` included, is now checked
   against the vectors.
 
@@ -4069,6 +4073,13 @@ contents alone cannot show. None of this is required of another writer. Operatio
   mismatch is logged at error level with the paths that differ, and the file is still
   written: the keyframes are authoritative, and withholding the file would cost a player
   their replay.
+- **`kind` `[W-25]`.** The writer maps the engine's ability types onto the table of
+  [§10.1](#101-events-that-carry-board-detail) exhaustively, in a type the compiler checks, so
+  an engine type nobody has mapped is a build failure rather than a record that quietly ships
+  without the field. That is how `event` once reached a published export missing its `kind`.
+  Keyword and Epic abilities are decided before that map is consulted: the engine builds a
+  keyword's ability as an ordinary triggered ability, and an Epic Action as an action ability
+  with an epic limit.
 - **`for` `[W-18]`.** The recorder cannot stamp `for`: when the records arrive it does not yet
   know an action is about to follow, and guessing would mis-file a previous action's genuine
   consequences. The writer holds the whole stream before serialising, and `linkActionSteps()`
