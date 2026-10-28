@@ -59,5 +59,22 @@ export function vectorGate(name: string, text: string): SwuPgnDocument {
         .toBe(expectedFold);
     expect(story).withContext(`${name}: render.txt (regenerate with SWUPGN_WRITE_VECTORS=1 if the change is intended)`)
         .toBe(expectedStory);
+
+    // Value: protects=a real game's [W-18] `for` links stay the reviewed ones; fails_when=a recorder or linker change moves, adds or drops a `for` in a real game; why_new=the fold and the story ignore `for`, and writerLinks.spec reads the committed files, never a fresh one; seam=none; no_claim=links in plays no vector contains (Exploit, alternate costs)
+    const committed = parse(fs.readFileSync(path.join(VECTOR_DIR, `${name}.swupgn`), 'utf8'));
+    expect(forLinks(doc)).withContext(`${name}: for links (regenerate with SWUPGN_WRITE_VECTORS=1 if the change is intended)`)
+        .toEqual(forLinks(committed));
     return doc;
+}
+
+/** Each record's `for`, by seq: what the fold and the story leave out. */
+function forLinks(doc: SwuPgnDocument): Record<string, string> {
+    const links: Record<string, string> = {};
+    for (const e of doc.events) {
+        const link = (e as { for?: unknown }).for;
+        if (typeof link === 'string') {
+            links[e.seq] = link;
+        }
+    }
+    return links;
 }
