@@ -69,7 +69,7 @@ const KNOWN_EVENT_TYPES = new Set([
     'CREATE_TOKEN', 'MOVE', 'CAPTURE', 'RESCUE', 'TAKE_CONTROL', 'SHIELD_GAIN', 'SHIELD_USE',
     'EXPERIENCE_GAIN', 'STATUS_TOKEN', 'OVERWHELM', 'SEARCH', 'REVEAL', 'TRIGGER',
     'PHASE_START', 'PHASE_END', 'ROUND_START', 'ROUND_END', 'GAME_END', 'INIT', 'UNDO',
-    'EFFECT_START', 'EFFECT_END', 'LOOK', 'NAME',
+    'EFFECT_START', 'EFFECT_END', 'LOOK', 'NAME', 'ABILITY_RESET',
 ]);
 
 /** The minor version this reader implements (`SWU-PGN/1.<minor>`). */

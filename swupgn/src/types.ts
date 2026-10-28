@@ -180,7 +180,7 @@ export interface ActionLink {
     ms?: number;
 
     /**
-     * The records of one simultaneous resolution share a `simul` group (spec §10.1; CR 7.1.4a,
+     * The records of one simultaneous resolution share a `simul` group (spec §10.2; CR 7.1.4a,
      * 6.3.5): the seq of the group's first record. A renderer and a scrubber treat the group as one
      * instant and never stop inside it. Ignored by the fold.
      */
@@ -254,6 +254,10 @@ export type GameEvent = ActionLink & (
   | { seq: string; t: 'LOOK'; p: Seat; owner: Seat; zone: string; cards: string[]; count: number }
   // `p` named a card (CR 8.17): `name` is its `Title, Subtitle` as text, not an id. A note.
   | { seq: string; t: 'NAME'; p: Seat; name: string }
+  // `card`'s limited-ability uses were reset other than at the boundary their `per` names (the card
+  // changed zone, so it is a new object): every seat's `abilityUses` entries for `card`, only the one
+  // for `ability` when it is given, are removed.
+  | { seq: string; t: 'ABILITY_RESET'; card: string; ability?: string }
   | { seq: string; t: 'TRIGGER'; p?: Seat; card: string }
   | { seq: string; t: 'PHASE_START' | 'PHASE_END'; phase: string; active?: Seat }
   // `active` is REQUIRED on ROUND_START (the initiative holder; the schema and the `round-start-active`
@@ -400,13 +404,14 @@ export interface ActiveEffect {
 
 /**
  * A limited ability's uses so far (spec §11; CR 7.2.5, 1.16.3): `card`'s ability `ability`, used
- * `count` times since its `per` last reset.
+ * `count` times of `max` since its `per` last reset. Spent when `count` reaches `max`.
  */
 export interface AbilityUse {
     card: string;
     ability: string;
     count: number;
     per: LimitPer;
+    max: number;
 }
 
 /** The leader card's status: where it is and whether it can still act. */
@@ -491,7 +496,7 @@ export interface PlayerState {
     /**
      * The limited abilities this seat has used and not yet had reset, in first-use order. Built by
      * `ABILITY_ACTIVATE` records that carry `limit`, cleared by `PHASE_START` / `ROUND_START` per
-     * `per`, and carried by keyframes. Absent until the first limited ability (and in files written
+     * `per` and by `ABILITY_RESET`, and carried by keyframes. Absent until the first limited ability (and in files written
      * before it existed): absent means "not recorded", never "none".
      */
     abilityUses?: AbilityUse[];

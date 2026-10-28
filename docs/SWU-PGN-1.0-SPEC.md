@@ -370,7 +370,9 @@ requirement, by id. The linked section is where each one is defined.
   `EFFECT_END` naming that target; and MUST write `untilText` on every `EFFECT_START` whose
   `duration` is `until` ([§10.1](#effect_start)).
 - `[W-49]` MUST write `limit` (with `ability`) on every `ABILITY_ACTIVATE` of an ability that may
-  be used only a set number of times each phase, each round or in the game (CR 7.2.5), and MUST
+  be used only a set number of times each phase, each round or in the game (CR 7.2.5), MUST write
+  an `ABILITY_RESET` whenever a card's limited-ability uses are reset other than at the phase or
+  round boundary their `per` names (the card changed zone and is a new object), and MUST
   carry each seat's `abilityUses` in every keyframe ([§10.1](#limited-abilities),
   [§11](#11-the-reduced-state--the-board-you-build)).
 - `[W-50]` MUST write a `LOOK` for every time a player looks at hidden cards (CR 8.13) — a look
@@ -1541,7 +1543,14 @@ uses since the last reset and know the card's limit text. So every use of such a
 ([§11](#11-the-reduced-state--the-board-you-build)) under `card` and `ability`. The count resets
 at the boundary `per` names, and the reset is a stated fold rule keyed on that field, not
 rules knowledge: `PHASE_START` clears the `phase` uses, `ROUND_START` clears the `phase` and
-`round` uses, and nothing clears a `game` use ([§12.2](#122-every-other-rule-in-one-table)). An
+`round` uses, and nothing clears a `game` use ([§12.2](#122-every-other-rule-in-one-table)). Each
+entry also keeps the latest `limit.max`, so a reader can tell a spent ability (`count` has
+reached `max`) from one that can still be used.
+
+A count can also reset at another moment: a card that changes zone is a new object (CR 8.7),
+and its limited abilities start unused, even inside the phase or round. The fold cannot know
+that from a `MOVE`, so the writer states it with an `ABILITY_RESET` naming the card, and the
+ability when only one of its abilities resets `[W-49]`. An
 Epic Action keeps its own fields (`epic`, `epicActionUsed`) and is not written with `limit`.
 
 `limit.per` is **closed**: a reader may branch on it. A value from a newer minor version is read
@@ -1553,6 +1562,18 @@ a use whose `per` it does not know, because it cannot know when that use resets.
 | `phase` | each phase |
 | `round` | each round |
 | `game` | in the game |
+
+**`ABILITY_RESET` — a card's limited-ability uses were reset.**
+
+| Field | Type | Required | Means |
+|---|---|---|---|
+| `card` | string | yes | The card whose uses reset: a card id, or `base@N`. |
+| `ability` | string | no | Only this ability's uses reset, in the form of `ABILITY_ACTIVATE.ability`. Absent: every limited ability of `card`. |
+
+Written when the uses reset other than at the boundary their `per` names — the card changed
+zone and is a new object `[W-49]`. Removes every seat's `abilityUses` entries for `card`, only
+the one for `ability` when it is given ([§12.2](#122-every-other-rule-in-one-table)). It is
+filed under the record that moved the card, and prints nothing in the story.
 
 **An ability used by another ability: `usedBy`.** Some abilities make a player use an ability on
 another card ("use a When Defeated ability on another friendly unit"; CR 7.6.13d, 7.6.14d). The
@@ -2509,6 +2530,7 @@ interface AbilityUse {
     ability: string;            // the ability, as ABILITY_ACTIVATE.ability names it
     count: number;              // uses since the last reset, at least 1
     per: string;                // §10.1: phase, round, game — when the count resets
+    max: number;                // the latest limit.max: spent when count reaches it
 }
 
 interface LeaderState {
@@ -2552,8 +2574,10 @@ active.
 
 `abilityUses` lists, per seat, the limited abilities the seat has used since their count last
 reset ([§10.1](#limited-abilities)): an `ABILITY_ACTIVATE` with `limit` adds one use to the entry
-for its `card` and `ability` (creating it, with `count` 1), `PHASE_START` removes the `phase`
-entries, and `ROUND_START` the `phase` and `round` entries. The fold creates the list at the
+for its `card` and `ability` (creating it, with `count` 1) and sets its `max` to the record's
+`limit.max`; `PHASE_START` removes the `phase` entries, `ROUND_START` the `phase` and `round`
+entries, and `ABILITY_RESET` a card's entries when it changed zone. An entry whose `count` has
+reached its `max` is spent. The fold creates the list at the
 seat's first limited use, so a file with no limited abilities folds to a board with no
 `abilityUses`; once created, it stays, empty when nothing is spent. An ability whose entry is
 absent has not been used since its reset.
@@ -2603,7 +2627,7 @@ already applied the rules, and the file records what it decided. Where each part
 | **Open and hidden information** | what each hidden card is: the archive is omniscient ([§17](#17-privacy-considerations)), so `DRAW`, `RESOURCE`, `SEARCH`, `REVEAL` and the keyframe's `hand` name the hidden cards. Who has seen which: the records, not the board — `LOOK` (a player looked), `SEARCH.seen` and `owner` (a player searched), `REVEAL` (everyone saw, a successful disclose included), `ABILITY_ACTIVATE` for a card whose ability triggered from a hidden zone (CR 7.6.3a), and `blind` on choices made without seeing each other ([§10.2](#what-a-search-emits)). The board keeps no per-player knowledge model in 1.0: a reader that needs one builds it from those records. A named card (CR 8.17) is a `NAME` |
 | **Lasting effects** | `effects` on the board: `EFFECT_START` when one is created, `EFFECT_END` when it ends or a target leaves it ([§10.1](#effect_start)) — its source, controller, targets and duration. Its consequences show as well: `STATS` (a unit given +3/+0 for an attack shows it and shows it going away), `keywords` (Sentinel for a phase) |
 | **Delayed effects** | `effects` on the board, with `duration` `delayed`, from the moment the effect is created until its `EFFECT_END` with `reason` `fired` ([§10.1](#effect_start)); what it does when it fires is in the records it causes then (a Change of Heart return is a `TAKE_CONTROL` at regroup) |
-| **Limited abilities** used/unused (CR 7.2.5, 1.16.3) | `abilityUses` per seat, counted from `ABILITY_ACTIVATE.limit` and cleared at `PHASE_START` / `ROUND_START` by its `per` ([§10.1](#limited-abilities)) |
+| **Limited abilities** used/unused (CR 7.2.5, 1.16.3) | `abilityUses` per seat — each entry's `count` of `max`, spent when they are equal — counted from `ABILITY_ACTIVATE.limit`, cleared at `PHASE_START` / `ROUND_START` by its `per`, and by `ABILITY_RESET` when the card changed zone ([§10.1](#limited-abilities)) |
 | **Epic Actions** used/unused | `epic: true` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`; the leader's `epicActionUsed`, and the seat's `baseEpicActionUsed` — a **base** may carry an Epic Action too (Tarkintown, Security Complex, Jedha City and 9 others), and it is a separate ability on a separate card from the leader's ([§10.1](#101-events-that-carry-board-detail)) |
 
 What the file deliberately does **not** encode is the rulebook itself: why a cost was 4 and
@@ -2798,7 +2822,7 @@ twice.
 | `PLAY_EVENT` | add `card` to `players[p].discard`, **once by id** — its own hand→discard `MOVE` files the same card |
 | `PLAY_UPGRADE` | if `target` is `base@N` → add `card` to `players[N].baseUpgrades`, once by id; else if `target` is set → `attach(state, target, card)` (nothing if the host isn't tracked); otherwise **nothing**. An upgrade is never an arena card, so there is no fallback placement |
 | `DEPLOY_LEADER` | ignored when it has no `card`. Otherwise `players[p].leader = { id: card, deployed: true, exhausted: false, epicActionUsed: (was already used) or epic === true }`; then if `kind` is `"upgrade"` → `attach(state, target, card)`; else place `card` in `zone ?? "ground"`, idempotent by id |
-| `ABILITY_ACTIVATE` | if `limit` is present, `card` and `ability` are strings, `p` is `1` or `2` and `limit.per` is `phase`, `round` or `game`: create `players[p].abilityUses` if absent; if it holds an entry with this `card` and `ability`, add 1 to its `count` and set its `per` to `limit.per`, else add `{ card, ability, count: 1, per }` at the end (no more than 1000 entries are kept). Then, if `epic`: `card` of `base@N` → `players[N].baseEpicActionUsed = true`; else if `card` is a seat's `leader.id` → that leader's `epicActionUsed = true`. `usedBy` changes nothing |
+| `ABILITY_ACTIVATE` | if `limit` is present, `card` and `ability` are strings, `p` is `1` or `2` and `limit.per` is `phase`, `round` or `game`: create `players[p].abilityUses` if absent; if it holds an entry with this `card` and `ability`, add 1 to its `count` and set its `per` and `max` to `limit.per` and `limit.max`, else add `{ card, ability, count: 1, per, max }` at the end (`max` is `0` when `limit.max` is not a number) (no more than 1000 entries are kept). Then, if `epic`: `card` of `base@N` → `players[N].baseEpicActionUsed = true`; else if `card` is a seat's `leader.id` → that leader's `epicActionUsed = true`. `usedBy` changes nothing |
 | `LEADER_FLIP` | that seat's `leader.onStartingSide = event.onStartingSide` — the stated face, so applying it twice is the same as once. Find the leader by `card`, falling back to the record's `p` (these leaders never deploy, so early in a file no `DEPLOY_LEADER` has named the id). If that seat has no `leader` yet, create one first: `{ id: card, deployed: false, exhausted: false, epicActionUsed: false }`. A record with no `card` is ignored |
 | `STATS` | if `card` is tracked → set its `power`, `hp`, and `keywords` (sorted) when given |
 | `TAKE_CONTROL` | arena `zone` → move the card entry from the other seat's `cards` to `players[p].cards`; `resource` with `from` → shift one resource from `from` to `p`, in the exhausted bucket if `exhausted` else the ready one, and move `card` from `players[from].resources` to `players[p].resources`; `base` with `from` → shift one credit (or the Force) from `from` to `p`; otherwise nothing ([§10.1](#take_control)) |
@@ -2822,6 +2846,7 @@ twice.
 | `EXPERIENCE_GAIN` | `card.experience = max(0, experience + count)` — `count` may be negative |
 | `STATUS_TOKEN` | `n = max(0, (statusTokens[token] ?? 0) + count)`; if `n` is 0 **delete** `statusTokens[token]`, else set it to `n`. `count` may be negative — deleting the key at zero is required, see [the token contract](#the-token-gainremoval-contract) |
 | `EFFECT_START` | ignored unless `id`, `src` and `duration` are strings and `p` is `1` or `2`. Otherwise create `effects` if absent, and add `{ id, src, p, targets, seat, duration }` at the end — `targets` only when given (at most 1000 strings), `seat` only when it is `1` or `2`. An effect with the same `id` already in `effects` is replaced in place. No more than 1000 effects are kept |
+| `ABILITY_RESET` | ignored unless `card` is a string. Otherwise, in every seat that has `abilityUses`, remove each entry whose `card` matches — when `ability` is a string, only the entry whose `ability` also matches. A seat without the list keeps none |
 | `EFFECT_END` | find the effect with that `id` in `effects`; if there is none, **nothing**. Without `targets` (or with an empty list), remove it. With `targets`, remove those ids from the effect's `targets`, and remove the effect if none are left; an effect that has no `targets` is left as it is |
 | anything in [§10.2](#102-events-that-are-just-notes) | nothing |
 | an event type you don't know | nothing (and warn) |
@@ -2984,7 +3009,7 @@ problem. A writer that has no such cost SHOULD refuse to emit a file that is not
   `seat`, `duration`, and `targets` as a set. Start order is not part of the model, and an absent
   list on the fold's side counts as empty. A mismatch is reported once, with `path: "effects"`
 - `abilityUses` whenever the keyframe carries it, **as a set keyed by `card` and `ability`**:
-  each entry's `count` and `per`. First-use order is not part of the model, an absent list on the
+  each entry's `count`, `per` and `max`. First-use order is not part of the model, an absent list on the
   fold's side counts as empty, and an entry whose `per` the reader does not know is left out on
   both sides. A mismatch is reported once per seat, with `path: "players.N.abilityUses"`.
   **Before comparing a `ROUND_START` keyframe, remove the running `phase` and `round` entries**,
@@ -3230,7 +3255,7 @@ Friends"), so a comma-joined list could not be split back into cards.
 | `EFFECT_END` | `Effect from {nm(src)} ends` — `src` from the `EFFECT_START` with the same `id` earlier in the file; `Effect {id} ends` when there is none — + ` on {names(targets)}` if `targets` is non-empty + ` ({why})`. `{why}` is `expired`, `it resolved`, `its source left play`, `its target left play` or `cancelled` for the five `reason` values, and the value itself for any other |
 
 **These print nothing**: `MOVE`, `EXHAUST`, `READY`, `EXHAUST_RESOURCES`, `READY_RESOURCES`,
-`STATS`, `CHOICE`, `MODAL_CHOICE`, `SHUFFLE`, `PHASE_END`, `ROUND_END`.
+`STATS`, `CHOICE`, `MODAL_CHOICE`, `SHUFFLE`, `PHASE_END`, `ROUND_END`, `ABILITY_RESET`.
 
 **A `simul` group prints as its records do without it**, one line each, in file order
 ([§10.2](#simultaneous-groups)). `simul` and `blind` change no line. A renderer that animates or

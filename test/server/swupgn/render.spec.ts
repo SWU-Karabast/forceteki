@@ -312,6 +312,11 @@ describe('render looks, names, used-by and simultaneous groups', function () {
         expect(out).toBe('       ↳ Wampa uses an ability (used by Chimaera)');
     });
 
+    // Value: protects=ABILITY_RESET is mechanism and prints nothing (§16); fails_when=it renders a line; why_new=fix round 1; seam=none; no_claim=none
+    it('prints nothing for an ability reset', function () {
+        expect(render(doc([{ seq: 'R1.A.1a', t: 'ABILITY_RESET', card: 'SOR#108', ability: 'a1' }]), nm)).toBe('');
+    });
+
     // Value: protects=a simul group renders exactly as the same records without it, in file order (§16); fails_when=simul reorders, merges or changes a line; why_new=simul is new; seam=none; no_claim=a scrubber's stopping points
     it('keeps a simultaneous group on consecutive lines in file order', function () {
         const records = [

@@ -377,11 +377,13 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
             '{"seq":"R1.A.9b","t":"NAME","p":1,"name":"Wampa"}',
             '{"seq":"R1.A.9c","t":"CHOICE","p":2,"offered":["SOR#045"],"chose":0,"blind":"R1.A.9","simul":"R1.A.9c"}',
             '{"seq":"R1.A.9d","t":"SEARCH","p":1,"owner":2,"zone":"deck","seen":["SOR#045"]}',
+            '{"seq":"R1.A.9e","t":"ABILITY_RESET","card":"SOR#108","ability":"a1"}',
         ].join('\n');
         expect(codes(addEvent(clean))).toEqual([]);
         const one = (json: string, game = 'SWU-PGN/1.0') => codes(addEvent(json).replace('SWU-PGN/1.0', game));
         expect(one('{"seq":"R1.A.9","t":"LOOK","p":1,"zone":"deck","cards":[],"count":0}')).toEqual(['error:schema']);
         expect(one('{"seq":"R1.A.9","t":"NAME","p":1}')).toEqual(['error:schema']);
+        expect(one('{"seq":"R1.A.9","t":"ABILITY_RESET","ability":"a1"}')).toEqual(['error:schema']);
         expect(one('{"seq":"R1.A.9","t":"ABILITY_ACTIVATE","p":1,"card":"SOR#108","limit":{"max":1,"per":"phase"}}')).toEqual(['error:schema']);
         expect(one('{"seq":"R1.A.9","t":"ABILITY_ACTIVATE","p":1,"card":"SOR#108","ability":"a1","limit":{"max":0,"per":"phase"}}')).toEqual(['error:schema']);
         expect(one('{"seq":"R1.A.9","t":"PASS","p":1,"simul":5}')).toEqual(['error:schema']);
@@ -393,7 +395,7 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
 
     // Value: protects=a keyframe abilityUses over the list cap is over-cap (§13, §23), as the fold treats it as damaged; fails_when=abilityUses is left out of the keyframe list check; why_new=abilityUses are new; seam=none; no_claim=none
     it('reports a keyframe abilityUses list over the cap', function () {
-        const uses = JSON.stringify(new Array(1001).fill({ card: 'SOR#108', ability: 'a1', count: 1, per: 'game' }));
+        const uses = JSON.stringify(new Array(1001).fill({ card: 'SOR#108', ability: 'a1', count: 1, per: 'game', max: 1 }));
         const bad = good.replace('"deckSize":2,"leader"', `"deckSize":2,"abilityUses":${uses},"leader"`);
         expect(bad).not.toBe(good);
         expect(codes(bad)).toContain('error:over-cap');

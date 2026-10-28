@@ -11,7 +11,7 @@
     "p": { "enum": [1,2] },
     "for": { "type": "string" },
     "ms": { "type": "integer", "minimum": 0, "description": "Milliseconds from the header's Date to this record (spec 5.2.1). A duration, never a clock. Only on numbered actions and ROUND_START / PHASE_START." },
-    "simul": { "type": "string", "description": "The simultaneous group this record belongs to (spec 10.1): the seq of the group's first record. Any record may carry it." }
+    "simul": { "type": "string", "description": "The simultaneous group this record belongs to (spec 10.2, Simultaneous groups): the seq of the group's first record. Any record may carry it." }
   },
   "additionalProperties": true,
   "allOf": [
@@ -38,6 +38,10 @@
     {
       "if": { "properties": { "t": { "const": "NAME" } }, "required": ["t"] },
       "then": { "properties": { "name": { "type": "string" } }, "required": ["p","name"] }
+    },
+    {
+      "if": { "properties": { "t": { "const": "ABILITY_RESET" } }, "required": ["t"] },
+      "then": { "properties": { "card": { "type": "string" }, "ability": { "type": "string" } }, "required": ["card"] }
     },
     {
       "if": { "properties": { "t": { "const": "CHOICE" } }, "required": ["t"] },
@@ -147,12 +151,13 @@
     },
     "abilityUse": {
       "type": "object",
-      "required": ["card","ability","count","per"],
+      "required": ["card","ability","count","per","max"],
       "properties": {
         "card": { "type": "string" },
         "ability": { "type": "string" },
         "count": { "type": "integer", "minimum": 1 },
-        "per": { "type": "string" }
+        "per": { "type": "string" },
+        "max": { "type": "integer", "minimum": 1 }
       }
     },
     "playerState": {

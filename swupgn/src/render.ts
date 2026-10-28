@@ -164,7 +164,7 @@ function line(e: GameEvent, n: SidedResolver, effectSources: ReadonlyMap<string,
         // counters fire on every play and every regroup.
         case 'CHOICE': case 'PHASE_END': case 'ROUND_END': case 'SHUFFLE':
         case 'MODAL_CHOICE': case 'MOVE': case 'EXHAUST': case 'READY':
-        case 'EXHAUST_RESOURCES': case 'READY_RESOURCES': case 'STATS':
+        case 'EXHAUST_RESOURCES': case 'READY_RESOURCES': case 'STATS': case 'ABILITY_RESET':
             return null;
         case 'PHASE_START': return null;       // handled as a banner below
         case 'ROUND_START': return null;       // handled as a banner below

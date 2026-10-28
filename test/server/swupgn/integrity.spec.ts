@@ -355,7 +355,7 @@ describe('checkKeyframes effects', function () {
 describe('checkKeyframes abilityUses', function () {
     const use = (seq: string, per: 'phase' | 'round' | 'game', card = 'SOR#045'): GameEvent =>
         ({ seq, t: 'ABILITY_ACTIVATE', p: 1, card, ability: 'a1', kind: 'triggered', limit: { max: 2, per } });
-    const entry = (card: string, count: number, per: 'phase' | 'round' | 'game') => ({ card, ability: 'a1', count, per });
+    const entry = (card: string, count: number, per: 'phase' | 'round' | 'game', max = 2) => ({ card, ability: 'a1', count, per, max });
     const kf = (t: 'ROUND_START' | 'ROUND_END', abilityUses?: ReturnType<typeof entry>[]): GameEvent => ({ seq: t === 'ROUND_END' ? 'R1.end' : 'R2.start', t, round: t === 'ROUND_END' ? 1 : 2, active: 1,
         keyframe: { round: 1, phase: 'action', initiative: 1, players: { 1: restingSeat(1, abilityUses ? { abilityUses } : {}), 2: restingSeat(2) } } });
     const paths = (events: GameEvent[]) => checkKeyframes(events).mismatches.map((m) => m.path);
@@ -366,6 +366,7 @@ describe('checkKeyframes abilityUses', function () {
         expect(paths([...events, kf('ROUND_END', [entry('SOR#046', 1, 'game'), entry('SOR#045', 2, 'phase')])])).toEqual([]);
         expect(paths([...events, kf('ROUND_END', [entry('SOR#045', 1, 'phase'), entry('SOR#046', 1, 'game')])])).toEqual(['players.1.abilityUses']);
         expect(paths([...events, kf('ROUND_END', [entry('SOR#045', 2, 'phase')])])).toEqual(['players.1.abilityUses']);
+        expect(paths([...events, kf('ROUND_END', [entry('SOR#046', 1, 'game'), entry('SOR#045', 2, 'phase', 3)])])).toEqual(['players.1.abilityUses']);
         expect(paths([...events, kf('ROUND_END')])).toEqual([]);
     });
 

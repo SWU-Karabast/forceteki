@@ -1146,21 +1146,21 @@ describe('fold limited abilities, looks and names', function () {
     it('counts a limited ability\'s uses and clears them at its reset boundary', function () {
         const counted = fold([use('R1.A.1', 'phase'), use('R1.A.2', 'phase'), use('R1.A.3', 'round', 'SOR#046'), use('R1.A.4', 'game', 'SOR#047', 'a2', 2)]);
         expect(counted.players[1]?.abilityUses).toEqual([
-            { card: 'SOR#045', ability: 'a1', count: 2, per: 'phase' },
-            { card: 'SOR#046', ability: 'a1', count: 1, per: 'round' },
+            { card: 'SOR#045', ability: 'a1', count: 2, per: 'phase', max: 2 },
+            { card: 'SOR#046', ability: 'a1', count: 1, per: 'round', max: 2 },
         ]);
-        expect(counted.players[2]?.abilityUses).toEqual([{ card: 'SOR#047', ability: 'a2', count: 1, per: 'game' }]);
+        expect(counted.players[2]?.abilityUses).toEqual([{ card: 'SOR#047', ability: 'a2', count: 1, per: 'game', max: 2 }]);
 
         // A phase ends the per-phase uses; the per-round and per-game ones survive it.
         const afterPhase = fold([use('R1.A.1', 'phase'), use('R1.A.3', 'round', 'SOR#046'), use('R1.A.4', 'game', 'SOR#047'), phase('R1.G.0', 'regroup')]);
         expect(afterPhase.players[1]?.abilityUses).toEqual([
-            { card: 'SOR#046', ability: 'a1', count: 1, per: 'round' },
-            { card: 'SOR#047', ability: 'a1', count: 1, per: 'game' },
+            { card: 'SOR#046', ability: 'a1', count: 1, per: 'round', max: 2 },
+            { card: 'SOR#047', ability: 'a1', count: 1, per: 'game', max: 2 },
         ]);
 
         // A round ends the per-round ones too; a per-game use is never cleared.
         const afterRound = fold([use('R1.A.1', 'phase'), use('R1.A.3', 'round', 'SOR#046'), use('R1.A.4', 'game', 'SOR#047'), round('R2.start', 2)]);
-        expect(afterRound.players[1]?.abilityUses).toEqual([{ card: 'SOR#047', ability: 'a1', count: 1, per: 'game' }]);
+        expect(afterRound.players[1]?.abilityUses).toEqual([{ card: 'SOR#047', ability: 'a1', count: 1, per: 'game', max: 2 }]);
     });
 
     // Value: protects=an ability without limit, or a limit the fold cannot key, adds no entry; fails_when=every ABILITY_ACTIVATE is counted, or a limit with no ability id or an unknown per makes an entry; why_new=abilityUses are new; seam=none; no_claim=none
@@ -1191,6 +1191,24 @@ describe('fold limited abilities, looks and names', function () {
         expect(fold(noted)).toEqual(fold(base));
     });
 
+    // Value: protects=a use count reset off the per boundary (the card changed zone) is a stated record that clears only that card, or only that ability; fails_when=ABILITY_RESET does nothing, clears other cards or abilities, or creates a list; why_new=ABILITY_RESET is new (fix round 1); seam=none; no_claim=when the writer emits it
+    it('ABILITY_RESET clears only that card, and only that ability when it names one', function () {
+        const uses = [use('R1.A.1', 'round'), use('R1.A.2', 'round', 'SOR#045', 'a2'), use('R1.A.3', 'round', 'SOR#046'), use('R1.A.4', 'round', 'SOR#045', 'a1', 2)];
+        const whole = fold([...uses, { seq: 'R1.A.5a', t: 'ABILITY_RESET', card: 'SOR#045' }]);
+        expect(whole.players[1]?.abilityUses).toEqual([{ card: 'SOR#046', ability: 'a1', count: 1, per: 'round', max: 2 }]);
+        expect(whole.players[2]?.abilityUses).toEqual([]);
+        const one = fold([...uses, { seq: 'R1.A.5a', t: 'ABILITY_RESET', card: 'SOR#045', ability: 'a2' }]);
+        expect(one.players[1]?.abilityUses?.map((u) => `${u.card}/${u.ability}`)).toEqual(['SOR#045/a1', 'SOR#046/a1']);
+        expect(one.players[2]?.abilityUses?.length).toBe(1);
+        expect('abilityUses' in (fold([{ seq: 'R1.A.1a', t: 'ABILITY_RESET', card: 'SOR#045' }]).players[1] ?? {})).toBe(false);
+    });
+
+    // Value: protects=max on the board is the latest limit.max, so a reader can say "spent"; fails_when=max is not folded or not updated; why_new=fix round 1; seam=none; no_claim=none
+    it('keeps the latest limit max on the entry', function () {
+        const s = fold([use('R1.A.1', 'game'), { seq: 'R1.A.2', t: 'ABILITY_ACTIVATE', p: 1, card: 'SOR#045', ability: 'a1', limit: { max: 3, per: 'game' } }]);
+        expect(s.players[1]?.abilityUses).toEqual([{ card: 'SOR#045', ability: 'a1', count: 2, per: 'game', max: 3 }]);
+    });
+
     // Value: protects=absent means "not recorded" for files older than abilityUses; fails_when=emptyPlayer or the fold seeds abilityUses for every file; why_new=abilityUses are new; seam=none; no_claim=none
     it('a file without limited abilities folds with no abilityUses field', function () {
         const vectors = path.resolve(__dirname, '../../../../swupgn/test-vectors');
@@ -1209,7 +1227,7 @@ describe('fold limited abilities, looks and names', function () {
                 { seq: 'R1.start', t: 'ROUND_START', round: 1, active: 1, keyframe: { round: 1, phase: 'action', initiative: 1, players: { 1: seat(1, bad) as any, 2: seat(2) as any } } },
                 use('R1.A.1', 'game'),
             ]);
-            expect(s.players[1]?.abilityUses).toEqual([{ card: 'SOR#045', ability: 'a1', count: 1, per: 'game' }]);
+            expect(s.players[1]?.abilityUses).toEqual([{ card: 'SOR#045', ability: 'a1', count: 1, per: 'game', max: 2 }]);
         }
     });
 });

@@ -185,7 +185,7 @@ function sameEffects(a: unknown, b: unknown): boolean {
 
 /**
  * Two `abilityUses` lists hold the same uses, compared AS A SET keyed by card and ability (first-use
- * order is not part of the model): each with the same `count` and `per`. An entry whose `per` this
+ * order is not part of the model): each with the same `count`, `per` and `max`. An entry whose `per` this
  * reader does not know (a newer minor version, §18) is left out on both sides: the fold cannot
  * reset it, so it cannot be held to it. A missing list is an empty one.
  */
@@ -193,7 +193,7 @@ function sameUses(a: unknown, b: unknown): boolean {
     const known = new Set(['phase', 'round', 'game']);
     const norm = (x: unknown) => (Array.isArray(x) ? (x as Partial<AbilityUse>[]) : [])
         .filter((u) => known.has(String(u?.per)))
-        .map((u) => [String(u?.card), String(u?.ability), u?.count, u?.per])
+        .map((u) => [String(u?.card), String(u?.ability), u?.count, u?.per, u?.max])
         .sort((x, y) => {
             const kx = JSON.stringify(x.slice(0, 2));
             const ky = JSON.stringify(y.slice(0, 2));
@@ -253,7 +253,7 @@ export function checkKeyframes(events: GameEvent[]): IntegrityResult {
             }
             // A ROUND_START keyframe describes a round that has begun: the initiative counter is
             // available again, whatever last round did with it, and the limited abilities' per-phase
-            // and per-round uses are spent (the ROUND_START rule the snap skips would have reset both).
+            // and per-round uses are cleared (the ROUND_START rule the snap skips would have reset both).
             if (e.t === 'ROUND_START') {
                 s.initiativeTaken = false;
                 // Likewise the per-phase and per-round uses of limited abilities.

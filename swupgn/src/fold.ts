@@ -502,7 +502,9 @@ const LIMIT_PERS: ReadonlySet<string> = new Set<LimitPer>(['phase', 'round', 'ga
  * `per` is a value this reader knows: one it does not know has a reset point it cannot apply.
  */
 function countUse(s: ReducedState, e: Extract<GameEvent, { t: 'ABILITY_ACTIVATE' }>): void {
-    const per = (e.limit as { per?: unknown } | undefined)?.per;
+    const limit = e.limit as { per?: unknown; max?: unknown } | undefined;
+    const per = limit?.per;
+    const max = typeof limit?.max === 'number' && Number.isFinite(limit.max) ? limit.max : 0;
     if (typeof per !== 'string' || !LIMIT_PERS.has(per) || typeof e.card !== 'string' || typeof e.ability !== 'string') {
         return;
     }
@@ -515,8 +517,27 @@ function countUse(s: ReducedState, e: Extract<GameEvent, { t: 'ABILITY_ACTIVATE'
     if (held) {
         held.count += 1;
         held.per = per as LimitPer;
+        held.max = max;
     } else if (uses.length < MAX_ZONE_LIST) {
-        uses.push({ card: e.card, ability: e.ability, count: 1, per: per as LimitPer });
+        uses.push({ card: e.card, ability: e.ability, count: 1, per: per as LimitPer, max });
+    }
+}
+
+/**
+ * ABILITY_RESET: `card`'s uses were reset off the `per` boundary (it changed zone and is a new
+ * object). Removes every seat's entries for `card`, only the one for `ability` when it is a string.
+ * A seat without the list keeps none.
+ */
+function resetUses(s: ReducedState, e: Extract<GameEvent, { t: 'ABILITY_RESET' }>): void {
+    if (typeof e.card !== 'string') {
+        return;
+    }
+    const only = typeof e.ability === 'string' ? e.ability : undefined;
+    for (const seat of [1, 2] as Seat[]) {
+        const ps = s.players[seat];
+        if (ps && Array.isArray(ps.abilityUses)) {
+            ps.abilityUses = ps.abilityUses.filter((u) => u.card !== e.card || (only !== undefined && u.ability !== only));
+        }
     }
 }
 
@@ -1080,6 +1101,7 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         }
         case 'EFFECT_START': startEffect(s, e); break;
         case 'EFFECT_END': endEffect(s, e); break;
+        case 'ABILITY_RESET': resetUses(s, e); break;
         // Pure-log events with no state delta:
         case 'ATTACK': case 'PASS': case 'CHOICE': case 'MULLIGAN':
         case 'KEEP_HAND': case 'MODAL_CHOICE': case 'SHUFFLE':
