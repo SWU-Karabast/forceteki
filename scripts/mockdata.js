@@ -512,6 +512,130 @@ const mockCards = [
         arena: 'ground',
         internalName: 'admiral-motti#conan-in-command'
     }),
+    buildMockCard({
+        title: 'Dryden Vos',
+        subtitle: 'Thumb-Spiking the Scale',
+        cost: 2,
+        power: 1,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['underworld'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 14
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'dryden-vos#thumbspiking-the-scale'
+    }),
+    buildMockCard({
+        title: 'General Grievous',
+        subtitle: 'Four-Armed Menace',
+        cost: 4,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['separatist', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 21
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'general-grievous#fourarmed-menace'
+    }),
+    buildMockCard({
+        title: 'Qi\'ra',
+        subtitle: 'Survivor',
+        cost: 3,
+        power: 1,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'vigilance'],
+        traits: ['underworld'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 45
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'qira#survivor'
+    }),
+    buildMockCard({
+        title: 'Dexter Jettster',
+        subtitle: 'Obi-Wannnn!!!',
+        cost: 3,
+        power: 2,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['fringe'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 49
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'dexter-jettster#obiwannnn'
+    }),
+    buildMockCard({
+        title: 'Vigilant Defense',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'vigilance'],
+        traits: ['tactic'],
+        types: ['event'],
+        setId: {
+            set: 'IC27',
+            number: 46
+        },
+        unique: false,
+        internalName: 'vigilant-defense'
+    }),
+    buildMockCard({
+        title: 'The Mandalorian',
+        subtitle: 'From the Shadows',
+        cost: 4,
+        power: 5,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['shielded'],
+        traits: ['mandalorian', 'bounty hunter'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 157
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-mandalorian#from-the-shadows'
+    }),
+    buildMockCard({
+        title: 'Bo-Katan Kryze',
+        subtitle: 'Right Place, Right Time',
+        cost: 7,
+        power: 7,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['shielded'],
+        traits: ['mandalorian'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 163
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'bo-katan-kryze#right-place-right-time'
+    }),
     // -------- End Mock Cards --------
 ];
 
