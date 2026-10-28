@@ -34,6 +34,11 @@
       "maxLength": 128,
       "description": "Opaque and unique per game. MUST NOT be a host-internal identifier (spec §17)."
     },
+    "Engine": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]+@[\\x21-\\x7E]+$",
+      "description": "The writer that made the file: product \"@\" build (spec §5.3, Appendix B.2). The product is the text before the first @, compared exactly."
+    },
     "Date": {
       "type": "string",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$",
@@ -79,7 +84,7 @@
     "WriterRevision": {
       "type": "integer",
       "minimum": 1,
-      "description": "The writer's revision, scoped to the product named before the @ in Engine (spec §5.2). Bumped on every change a reader can observe. Absent only on pre-release files (Appendix C)."
+      "description": "The writer's revision, scoped to the product named before the @ in Engine (spec §5.2). Bumped on every change a reader can observe. Optional and diagnostic for every writer: a file without it is conformant, unless its Engine product is in the pilot writer registry (spec §25), which makes it pre-release."
     },
     "Undos": {
       "type": "integer",

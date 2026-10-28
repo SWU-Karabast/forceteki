@@ -52,7 +52,7 @@ describe('parse', function () {
 describe('parse error paths', function () {
     const HEAD = [
         '[Game "SWU-PGN/1.0"]', '[GameId "g1"]', '[Date "2026-06-16T00:00:00Z"]',
-        '[CardPool "LOF"] [Engine "e"] [Seed "s"]',
+        '[CardPool "LOF"] [Engine "e@1"] [Seed "s"]',
         '[P1Id "a"] [P2Id "b"] [P1 "Player 1"] [P2 "Player 2"]',
         '[P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]',
         '[Result "P1"] [Reason "X"] [Rounds "1"]',
@@ -89,7 +89,7 @@ describe('parse error paths', function () {
 
 describe('parse header numbers', function () {
     const header = (rounds: string) => [
-        '[Game "SWU-PGN/1.0"]', '[GameId "g"] [Date "2026-06-16T00:00:00Z"] [CardPool "SOR"] [Engine "e"] [Seed "s"]',
+        '[Game "SWU-PGN/1.0"]', '[GameId "g"] [Date "2026-06-16T00:00:00Z"] [CardPool "SOR"] [Engine "e@1"] [Seed "s"]',
         '[P1Id "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] [P2Id "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] [P1 "Player 1"] [P2 "Player 2"]',
         '[P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]',
         `[Result "P1"] [Reason "r"] [Rounds "${rounds}"]`,
@@ -150,7 +150,7 @@ describe('parse header numbers', function () {
 
 describe('parse grammar (spec §4, Appendix B)', function () {
     const HEAD = [
-        '[Game "SWU-PGN/1.0"]', '[GameId "g"] [Date "2026-06-16T00:00:00Z"] [CardPool "SOR"] [Engine "e"] [Seed "s"]',
+        '[Game "SWU-PGN/1.0"]', '[GameId "g"] [Date "2026-06-16T00:00:00Z"] [CardPool "SOR"] [Engine "e@1"] [Seed "s"]',
         '[P1Id "p"] [P2Id "q"] [P1 "Player 1"] [P2 "Player 2"]',
         '[P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]',
         '[Result "P1"] [Reason "r"] [Rounds "1"]',

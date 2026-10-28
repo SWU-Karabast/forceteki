@@ -231,6 +231,19 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
             expect([...PILOT_WRITER_PRODUCTS].sort()).toEqual(listed.sort());
         });
 
+        // Value: protects=the header schema holds Engine to B.2's product "@" build, so a writer cannot leave its build out; fails_when=the Engine pattern is dropped or loosened; why_new=Engine had no pattern despite the grammar; seam=none; no_claim=what the build part means
+        it('holds Engine to the product "@" build grammar', function () {
+            const engine = (value: string) => good.replace('[Engine "forceteki@reference"]', `[Engine "${value}"]`);
+            for (const bad of ['forceteki', '@reference', 'fork teki@1', 'forceteki@']) {
+                expect(codes(engine(bad))).withContext(bad)
+                    .toContain('error:schema');
+            }
+            for (const ok of ['examplewriter@1.0.0', 'forceteki@7dd39a09-dirty', 'a.b_c-d@x@y']) {
+                expect(validate(engine(ok)).level).withContext(ok)
+                    .toBe('complete');
+            }
+        });
+
         it('takes the product as the text before the first @', function () {
             expect(engineProduct('forceteki@a@b')).toBe('forceteki');
             expect(engineProduct('forceteki')).toBe('forceteki');
