@@ -3117,7 +3117,7 @@ does with it:
 |---|---|
 | `file` | The input, relative to the folder. |
 | `class` | `positive` (a file to read and reproduce) or `negative` (a file to reject or warn on). |
-| `writer` | Who made the file: the `Engine` product ([§5.3](#53-provenance-engine-and-seed)) of a vector a real writer generated, or `hand` for one written by hand (`minimal` and every negative vector). For a generated positive vector it equals the product in the file's `Engine` tag. |
+| `writer` | Who made the file: the `Engine` product ([§5.3](#53-provenance-engine-and-seed)) of a vector a real writer generated, or `hand` for one written by hand (`minimal`, `other-writer` and every negative vector). For a generated positive vector it equals the product in the file's `Engine` tag. |
 | `level` | The level ([§2.1](#21-document-conformance-levels)) a conforming validator reports. |
 | `errors`, `warnings` | The issue codes ([§24](#24-error-model)) it reports, as sets: exactly these, in any order. |
 | `fold` | Positive only: the reduced state a conforming folder produces. |
@@ -3151,6 +3151,7 @@ reader in the suite reproduces its fold and rendering.
 | Vector | Covers |
 |---|---|
 | `minimal` | Hand-written, rules-legal. A setup phase (draws, resourcing, the `R1.start` keyframe it leads to), a unit played in round 1 (`EXHAUST_RESOURCES`, `MOVE`, `STATS`, `PLAY`, the entering `EXHAUST`), a regroup (`READY`, `READY_RESOURCES`, two more keyframes), and the attack in round 2. Appendix A walks through it. |
+| `other-writer` | Hand-written: `minimal` as another platform's writer would make it, with `[Engine "examplewriter@1.0.0"]` and no `WriterRevision`. Its fold and rendering are `minimal`'s. Gates that a file with no `WriterRevision` from a writer the [pilot writer products](#pilot-writer-products) registry does not list is conformant ([§5.2](#52-optional-tags)), not pre-release. |
 | `organic` | A real game, from a real engine: natural setup with a mulligan, four rounds of plays, attacks and regroups, a concession. Keyframes at every round boundary. |
 | `upgrades` | Real game: a printed upgrade (`PLAY_UPGRADE` + `attachedTo`) and Advantage and Experience tokens on one host (Zealous Soldier #2), defeated with all of it attached — every removal record, and the detach on exit. Shield tokens (`SHIELD_GAIN`) on a second unit (Cloaked StarViper), which survives, so they are never used: no vector has a `SHIELD_USE`. |
 | `pilot` | Real game: a pilot flown onto a vehicle (`kind: "upgrade"` on a unit card, `%%% CARDS` saying `unit`), a second one, and a piloted vehicle Vanquished. |
@@ -3161,7 +3162,7 @@ reader in the suite reproduces its fold and rendering.
 | `death-star` | Real game, eight rounds ([§10.4](#104-grand-moff-tarkin-and-the-death-star)): Grand Moff Tarkin builds to nine resources and deploys by Epic Action as **The Death Star** (`backSideName` in `%%% CARDS`, the `DEPLOY_LEADER` a sub-step of the Epic Action, arriving in `space`), then at the start of the regroup phase defeats Player 2's base with 9 HP left — a `DEFEAT` on `base@2`, `baseDefeated: true` beside a non-zero `baseHp`. Along the way a Weakness given to the player's own unit stacks to a kill. |
 
 The eight real-game vectors were written by one real engine; [Appendix C](#reference-writer-revisions-informative)
-names it and its writer revision. `minimal` is written by hand. How the vectors are regenerated is in `swupgn/README.md`.
+names it and its writer revision. `minimal` and `other-writer` are written by hand. How the vectors are regenerated is in `swupgn/README.md`.
 
 **Negative vectors**, in `swupgn/test-vectors/negative/`, are each the `minimal` vector with
 one thing broken. A reader MUST reject or warn on each as the manifest says:

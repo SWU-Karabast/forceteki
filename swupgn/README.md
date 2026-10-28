@@ -44,7 +44,9 @@ vector the `.fold.json` a folder produces and the `.render.txt` a strict rendere
 `test/server/swupgn/manifest.spec.ts` runs the whole manifest against this reader.
 
 Positive vectors: `minimal` is hand-written and is also the spec's Appendix A, so edit both
-together. `organic`, `upgrades`, `pilot`, `capture`, `arrest`, `stolen-hauler`, `homeworlds`
+together. `other-writer` is `minimal` as another platform's writer would make it
+(`examplewriter@1.0.0`, no `WriterRevision`); its fold and render files are copies of
+`minimal`'s, so change all three with `minimal`. `organic`, `upgrades`, `pilot`, `capture`, `arrest`, `stolen-hauler`, `homeworlds`
 and `death-star` are real games the writer produced under
 `test/server/chat/SwuPgnVectors.spec.ts` / `SwuPgnOrganicGame.spec.ts`, whose fold and story
 those specs pin byte for byte. `homeworlds` is the one to test Homeworlds support against:

@@ -63,6 +63,16 @@
       "render": "organic.render.txt"
     },
     {
+      "file": "other-writer.swupgn",
+      "class": "positive",
+      "writer": "hand",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "other-writer.fold.json",
+      "render": "other-writer.render.txt"
+    },
+    {
       "file": "pilot.swupgn",
       "class": "positive",
       "writer": "forceteki",
