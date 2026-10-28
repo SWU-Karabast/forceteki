@@ -88,7 +88,7 @@ export abstract class Phase extends BaseStepWithPipeline {
         // reset trackers indicating if a player has been prompted
         this.game.resetPromptedPlayersTracking();
 
-        this.game.createEventAndOpenWindow(EventName.OnPhaseStarted, null, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers, () => {
+        this.game.createEventAndOpenWindow(EventName.OnPhaseStarted, null, { phase: this.name, additional: this.isAdditionalPhase() }, TriggerHandlingMode.ResolvesTriggers, () => {
             if (this.name !== PhaseName.Setup) {
                 const additionalArg = this.isAdditionalPhase() ? 'Additional ' : '';
                 const effect = this.isAdditionalPhase() ? this.additionalPhaseEffect : null;
@@ -117,7 +117,7 @@ export abstract class Phase extends BaseStepWithPipeline {
         this.game.createEventAndOpenWindow(
             EventName.OnPhaseEnded,
             null,
-            { phase: this.name },
+            { phase: this.name, additional: this.isAdditionalPhase() },
             TriggerHandlingMode.ResolvesTriggers,
             () => this.game.currentPhase = null
         );

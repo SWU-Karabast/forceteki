@@ -557,11 +557,14 @@ export class SwuPgnRecorder {
      * the header's `Undos` tag. Without those the file is not merely quiet about the undo, it
      * actively misreports: the retracted records are gone, so a reader sees a game in which no
      * decision was ever taken back. The note folds to nothing, so nobody's board changes.
+     *
+     * Returns the stream lengths it truncated to (before the note), or undefined when nothing
+     * was truncated.
      */
-    public rollbackTo(restoredSnapshotId: number | null, undoingPlayerId?: string): void {
+    public rollbackTo(restoredSnapshotId: number | null, undoingPlayerId?: string): { setupLen: number; eventsLen: number } | undefined {
         try {
             if (restoredSnapshotId == null) {
-                return;
+                return undefined;
             }
             // Checkpoints are taken lazily, on the first push under a snapshot id, so the
             // restored id may have none of its own while later ids do (a snapshot during
@@ -571,7 +574,7 @@ export class SwuPgnRecorder {
             // returned early here and left the undone events in the file.
             const idx = this.checkpoints.findIndex((c) => c.snapshotId >= restoredSnapshotId);
             if (idx === -1) {
-                return; // nothing was recorded after the restored snapshot
+                return undefined; // nothing was recorded after the restored snapshot
             }
             const boundary = this.checkpoints[idx];
             // The first record being dropped is what the undo reached back to; capture it
@@ -631,8 +634,10 @@ export class SwuPgnRecorder {
                     ...(by != null ? { by } : {}),
                 });
             }
+            return { setupLen: boundary.setupLen, eventsLen: boundary.eventsLen };
         } catch (error) {
             this.logError('rollbackTo', error);
+            return undefined;
         }
     }
 
@@ -1023,22 +1028,6 @@ export class SwuPgnRecorder {
         return this.buildSeq(false);
     }
 
-    /**
-     * How many times phase `letter` has started in the current round, read off the records
-     * themselves so an undo needs nothing of its own to roll back.
-     */
-    private phaseStartsThisRound(letter: string): number {
-        const prefix = `R${this.currentRound}.`;
-        let count = 0;
-        for (let i = this.events.length - 1; i >= 0 && this.events[i].seq.startsWith(prefix); i--) {
-            const e = this.events[i];
-            if (e.t === 'PHASE_START' && this.phaseAbbr(e.phase) === letter) {
-                count++;
-            }
-        }
-        return count;
-    }
-
     /** Engine PhaseName → v1.0 abbreviation (S/A/G) for seq strings. */
     private phaseAbbr(phase: string): string {
         switch (phase) {
@@ -1297,8 +1286,8 @@ export class SwuPgnRecorder {
             this.currentPhase = this.phaseAbbr(phaseName);
             // A phase a card grants in the same round (Max Rebo's extra regroup) continues its
             // phase's numbering: the round already has this phase's `start`, and every seq in a
-            // file is unique (spec §9.1).
-            const additional = this.phaseStartsThisRound(this.currentPhase) > 0;
+            // file is unique (spec §9.1). The engine says which phases are granted ones.
+            const additional = event?.additional === true;
             if (!additional) {
                 this.phaseEventCounter = 0;
                 this.actionCounter = 0;
@@ -1315,7 +1304,7 @@ export class SwuPgnRecorder {
         this.on(EventName.OnPhaseEnded, (event: any) => {
             const phaseName: string = event?.phase ?? this.game.currentPhase ?? '';
             const letter = this.phaseAbbr(phaseName);
-            const additional = this.phaseStartsThisRound(letter) > 1;
+            const additional = event?.additional === true;
             this.push({
                 seq: additional ? this.nextSeq(letter === 'A') : `R${this.currentRound}.${letter}.end`,
                 t: 'PHASE_END',

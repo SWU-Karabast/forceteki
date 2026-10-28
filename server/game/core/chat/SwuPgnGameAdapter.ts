@@ -170,13 +170,15 @@ export class SwuPgnGameAdapter {
     public rollbackTo(restoredSnapshotId: number | null, undoingPlayerId?: string): void {
         const hasInit = () => this.recorder.getSetup().some((r: any) => r.t === 'INIT');
         const hadInit = hasInit();
-        this.recorder.rollbackTo(restoredSnapshotId, undoingPlayerId);
+        const truncatedTo = this.recorder.rollbackTo(restoredSnapshotId, undoingPlayerId);
         // An undo back into setup truncates the INIT record with the rest of setup. The shuffle
         // that follows must capture the deck order again, or the file loses it for good.
         if (hadInit && !hasInit()) {
             this.deckOrderCaptured.clear();
         }
-        this.dropUndoneCardIds();
+        if (truncatedTo) {
+            this.dropUndoneCardIds(truncatedTo);
+        }
     }
 
     /**
@@ -185,9 +187,7 @@ export class SwuPgnGameAdapter {
      * reports a severe engine error), and keeping its id would number a replayed copy past it.
      * Ids are assigned in stream order, so the forgotten ones are each base's latest copies.
      */
-    private dropUndoneCardIds(): void {
-        const setupLen = this.recorder.getSetup().length;
-        const eventsLen = this.recorder.getEvents().length;
+    private dropUndoneCardIds({ setupLen, eventsLen }: { setupLen: number; eventsLen: number }): void {
         for (const [uuid, at] of this.cardIdAssignedAt) {
             if (at.setupLen >= setupLen && at.eventsLen >= eventsLen) {
                 this.cardIdAssignedAt.delete(uuid);
