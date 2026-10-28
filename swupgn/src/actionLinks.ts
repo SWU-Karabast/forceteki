@@ -1,5 +1,4 @@
 import type { GameEvent } from './types';
-import { isArena } from './fold';
 
 /**
  * Actions a sub-record can be filed under. `render.ts` uses the same test, `isTopLevelActionRecord`.
@@ -84,6 +83,28 @@ function actionCard(e: GameEvent): string | undefined {
 function actionHost(e: GameEvent): string | undefined {
     const target = (e as { target?: unknown }).target;
     return (e.t === 'PLAY_UPGRADE' || e.t === 'DEPLOY_LEADER') && typeof target === 'string' ? target : undefined;
+}
+
+/**
+ * Records a writer wrote while a play of a card was being set up -- its choices and the costs paid
+ * before it is announced (an Exploit defeat, a card discarded instead of paying), keyed by record.
+ *
+ * Position cannot say this. A card the actor discards just before their play is that play's cost
+ * when the play demanded it, and the previous action's consequence when that action forced it;
+ * the two records look the same. Only the writer knows which, from the engine, so it says so with
+ * `markPlaySetup` and the linker takes it at its word. The mark lives beside the record, never in
+ * it, so it never reaches the file; keyed weakly, it goes when the record does.
+ */
+const playSetupMarks = new WeakMap<GameEvent, string>();
+
+/** Writer side: `e` was written while a play of `card` was being set up (see `playSetupMarks`). */
+export function markPlaySetup(e: GameEvent, card: string): void {
+    playSetupMarks.set(e, card);
+}
+
+/** The card whose play's setup wrote `e`, when the writer marked it. */
+function playSetupOf(e: GameEvent): string | undefined {
+    return playSetupMarks.get(e);
 }
 
 /** The seat a record names as its `p`, if it has one. */
@@ -195,14 +216,17 @@ export function linkActionSteps(events: GameEvent[]): GameEvent[] {
 
         // Walk back over the contiguous run of precursor records immediately before the action.
         //
-        // A record about some other card ends it. That card's stat change or exhaust is the
-        // previous action's consequence (a token landing on it, a Raid ending), not this action's
-        // precursor, however close it sits. So is another card ARRIVING in play: a "When the
-        // action phase starts" trigger's Beast lands just before the first play, with the same
-        // MOVE/STATS/EXHAUST shape a play's precursors have. A cost the actor paid by moving
-        // another card -- a discard from hand, a resource spent -- is the one record about
-        // another card that stays the action's. Any other card leaving (a bounce, a draw, the
-        // other seat's discard) is the previous action's.
+        // A record the writer marked as this play's setup is the play's, whatever it is: an
+        // Exploit's DEFEAT, a card discarded instead of paying and its DISCARD (see
+        // playSetupMarks). Marks are read off `events`, not `out`, whose entries may be copies.
+        //
+        // An unmarked record about some other card ends the run. That card's stat change or
+        // exhaust is the previous action's consequence (a token landing on it, a Raid ending), not
+        // this action's precursor, however close it sits. So is another card ARRIVING in play: a
+        // "When the action phase starts" trigger's Beast lands just before the first play, with
+        // the same MOVE/STATS/EXHAUST shape a play's precursors have. So is another card LEAVING:
+        // a discard just before the actor's play is the play's cost only when the writer says so;
+        // left to position it is just as likely a discard the previous action forced.
         // A choice or a resource payment by the OTHER seat ends the run too: those carry no card
         // id, so only the seat says they were the previous action's, such as an event's target
         // choice in front of the opponent's next play.
@@ -214,7 +238,14 @@ export function linkActionSteps(events: GameEvent[]): GameEvent[] {
         let start = i;
         while (start > 0) {
             const prev = out[start - 1];
-            if (isTopLevelStep(prev.seq) || !precursors.has(prev.t)) {
+            if (isTopLevelStep(prev.seq)) {
+                break;
+            }
+            if (playSetupOf(events[start - 1]) === card) {
+                start--;
+                continue;
+            }
+            if (!precursors.has(prev.t)) {
                 break;
             }
             const otherSeat = seatOf(prev) !== seatOf(action);
@@ -222,9 +253,7 @@ export function linkActionSteps(events: GameEvent[]): GameEvent[] {
                 break;
             }
             const named = actionCard(prev);
-            const paidCost = prev.t === 'MOVE' && !otherSeat && (prev.from === 'hand' || prev.from === 'resource') &&
-              !isArena(prev.to) && !(prev.to === 'base' && prev.kind === 'upgrade');
-            if (named != null && named !== card && named !== host && !paidCost) {
+            if (named != null && named !== card && named !== host) {
                 break;
             }
             if (prev.t === 'MOVE' && named === card) {

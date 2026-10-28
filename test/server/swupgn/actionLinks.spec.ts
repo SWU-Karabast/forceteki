@@ -1,4 +1,4 @@
-import { coalesceResourceReadies, isTopLevelActionRecord, linkActionSteps } from '../../../swupgn/src/actionLinks';
+import { coalesceResourceReadies, isTopLevelActionRecord, linkActionSteps, markPlaySetup } from '../../../swupgn/src/actionLinks';
 import type { GameEvent } from '../../../swupgn/src/types';
 
 /**
@@ -66,14 +66,16 @@ describe('linkActionSteps', function () {
         ]);
     });
 
-    // The cut is ARRIVALS only: a card leaving for the discard pile as a cost is the play's own.
-    it('still files a cost paid by moving another card, such as a discard', function () {
+    // Position alone cannot tell a discard paid as this play's cost from one the previous action
+    // forced: both are the actor's card leaving their hand just before the play. Only the writer's
+    // mark (see markPlaySetup) says it was a cost, so an unmarked one stays where it is.
+    it('does not take another card\'s unmarked discard into the run', function () {
         const events: GameEvent[] = [
             { seq: 'R1.A.0a', t: 'MOVE', card: 'SOR#128', from: 'hand', to: 'discard', p: 1 },
             { seq: 'R1.A.0b', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1 },
             { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#095', zone: 'ground', cost: 2 },
         ];
-        expect(forOf(events)).toEqual(['R1.A.1', 'R1.A.1', undefined]);
+        expect(forOf(events)).toEqual([undefined, 'R1.A.1', undefined]);
     });
 
     // A run with nothing naming the action's card is just as likely to be the PREVIOUS action's
@@ -276,19 +278,9 @@ describe('linkActionSteps: a record naming another card ends the run', function 
             undefined, undefined, undefined, undefined, 'R4.A.3', 'R4.A.3', 'R4.A.3', 'R4.A.3', undefined,
         ]);
     });
-
-    it('keeps a discard paid as a cost in the run', function () {
-        const events: GameEvent[] = [
-            { seq: 'R1.A.0a', t: 'MOVE', card: 'SOR#200', from: 'hand', to: 'discard', p: 1 },
-            { seq: 'R1.A.0b', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1 },
-            { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#095', zone: 'ground', cost: 2 },
-        ];
-        expect(linkActionSteps(events).map((e) => (e as { for?: string }).for))
-            .toEqual(['R1.A.1', 'R1.A.1', undefined]);
-    });
 });
 
-// Value: protects=the previous action's choices and the card it moved stay under that action when the other seat plays next (spec Appendix C); fails_when=a CHOICE, MODAL_CHOICE or EXHAUST_RESOURCES by the other seat, or a MOVE that is not a cost the actor paid, stays in the run; why_new=Cunning's mode choice, target choice and bounce were filed under the opponent's next play; seam=none; no_claim=a cost paid from hand
+// Value: protects=the previous action's choices and the card it moved stay under that action when the other seat plays next (spec Appendix C); fails_when=a CHOICE, MODAL_CHOICE or EXHAUST_RESOURCES by the other seat, or an unmarked MOVE of another card, stays in the run; why_new=Cunning's mode choice, target choice and bounce were filed under the opponent's next play; seam=none; no_claim=a cost the writer marked (see the play-setup describe)
 describe('linkActionSteps: the other seat\'s records end the run', function () {
     it('leaves Cunning\'s choices and bounce under Cunning when the opponent plays next', function () {
         const events: GameEvent[] = [
@@ -320,7 +312,7 @@ describe('linkActionSteps: the other seat\'s records end the run', function () {
         ]);
     });
 
-    it('ends the run at a card the actor moved out of play or drew: only a cost from hand or resources stays', function () {
+    it('ends the run at any other card the actor moved, unless the writer marked it as this play\'s setup', function () {
         const events: GameEvent[] = [
             { seq: 'R1.A.3', t: 'PLAY_EVENT', p: 1, card: 'SOR#203', zone: 'discard', cost: 1 },
             { seq: 'R1.A.3a', t: 'MOVE', card: 'SOR#128', from: 'deck', to: 'hand', p: 1 },
@@ -329,8 +321,71 @@ describe('linkActionSteps: the other seat\'s records end the run', function () {
             { seq: 'R1.A.4', t: 'PLAY', p: 1, card: 'SOR#095', zone: 'ground', cost: 2 },
         ];
         expect(linkActionSteps(events).map((e) => (e as { for?: string }).for)).toEqual([
-            undefined, undefined, 'R1.A.4', 'R1.A.4', undefined,
+            undefined, undefined, undefined, 'R1.A.4', undefined,
         ]);
+    });
+});
+
+// Value: protects=a play's own setup -- its choices, an Exploit defeat, a discard paid instead of its cost -- is filed under the play, and a discard the previous action forced never is (spec §9.1 belonging, [W-18]); fails_when=the linker guesses costs from position again, or stops honouring the writer's play-setup mark; why_new=Exploit's and Bamboozle's cost records carried no `for`, and an unmarked forced discard could be filed under the next play; seam=markPlaySetup; no_claim=how the recorder decides what to mark (SwuPgnRecorder.spec)
+describe('linkActionSteps: records the writer marked as a play\'s setup', function () {
+    const forOf = (events: GameEvent[]) =>
+        linkActionSteps(events).map((e) => (e as { for?: string }).for);
+    const marked = (events: GameEvent[], card: string, seqs: string[]) => {
+        for (const e of events) {
+            if (seqs.includes(e.seq)) {
+                markPlaySetup(e, card);
+            }
+        }
+        return events;
+    };
+
+    it('files an Exploit play\'s choices, defeat and the defeated unit\'s move under the play', function () {
+        const events = marked([
+            { seq: 'R1.A.0a', t: 'PASS', p: 2 },
+            { seq: 'R1.A.0b', t: 'MODAL_CHOICE', p: 1, offered: ['Trigger Exploit', 'Cancel'], chose: 0 },
+            { seq: 'R1.A.0c', t: 'CHOICE', p: 1, prompt: 'Droideka Security', offered: ['SOR#079'], chose: 0 },
+            { seq: 'R1.A.0d', t: 'MOVE', card: 'SOR#079', from: 'ground', to: 'discard', p: 1, kind: 'unit' },
+            { seq: 'R1.A.0e', t: 'DEFEAT', card: 'SOR#079', reason: 'ability', defeatedBy: 'TWI#037' },
+            { seq: 'R1.A.0f', t: 'EXHAUST_RESOURCES', p: 1, amount: 6 },
+            { seq: 'R1.A.0g', t: 'MOVE', card: 'TWI#037', from: 'hand', to: 'ground', p: 1, kind: 'unit' },
+            { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'TWI#037', zone: 'ground', cost: 6 },
+        ], 'TWI#037', ['R1.A.0b', 'R1.A.0c', 'R1.A.0d', 'R1.A.0e', 'R1.A.0f', 'R1.A.0g']);
+        expect(forOf(events)).toEqual([
+            undefined, 'R1.A.1', 'R1.A.1', 'R1.A.1', 'R1.A.1', 'R1.A.1', 'R1.A.1', undefined,
+        ]);
+    });
+
+    it('files a discard paid instead of an event\'s cost under the event, across its DISCARD summary', function () {
+        const events = marked([
+            { seq: 'R1.A.0a', t: 'MOVE', card: 'SOR#207', from: 'hand', to: 'discard', p: 1, kind: 'unit' },
+            { seq: 'R1.A.0b', t: 'DISCARD', p: 1, cards: ['SOR#207'] },
+            { seq: 'R1.A.0c', t: 'MOVE', card: 'SOR#199', from: 'hand', to: 'discard', p: 1 },
+            { seq: 'R1.A.1', t: 'PLAY_EVENT', p: 1, card: 'SOR#199', zone: 'discard', cost: 2 },
+        ], 'SOR#199', ['R1.A.0a', 'R1.A.0b', 'R1.A.0c']);
+        expect(forOf(events)).toEqual(['R1.A.1', 'R1.A.1', 'R1.A.1', undefined]);
+    });
+
+    it('never files a discard the previous action forced under the discarding player\'s next play', function () {
+        // Cunning's "an opponent discards a random card" picked last, so nothing of player 1's
+        // sits between the discard and player 2's play. Shaped exactly like a cost, and unmarked.
+        const events: GameEvent[] = [
+            { seq: 'R1.A.3', t: 'PLAY_EVENT', p: 1, card: 'SOR#203', zone: 'discard', cost: 4 },
+            { seq: 'R1.A.3a', t: 'MODAL_CHOICE', p: 1, offered: ['Buff', 'Discard'], chose: 1 },
+            { seq: 'R1.A.3b', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'discard', p: 2, kind: 'unit' },
+            { seq: 'R1.A.3c', t: 'EXHAUST_RESOURCES', p: 2, amount: 2 },
+            { seq: 'R1.A.3d', t: 'MOVE', card: 'SOR#095:2', from: 'hand', to: 'ground', p: 2, kind: 'unit' },
+            { seq: 'R1.A.4', t: 'PLAY', p: 2, card: 'SOR#095:2', zone: 'ground', cost: 2 },
+        ];
+        expect(forOf(events)).toEqual([undefined, undefined, undefined, 'R1.A.4', 'R1.A.4', undefined]);
+    });
+
+    it('does not let a mark for one card pull records into another card\'s play', function () {
+        const events = marked([
+            { seq: 'R1.A.0a', t: 'MOVE', card: 'SOR#207', from: 'hand', to: 'discard', p: 1 },
+            { seq: 'R1.A.0b', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1 },
+            { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#095', zone: 'ground', cost: 2 },
+        ], 'SOR#199', ['R1.A.0a']);
+        expect(forOf(events)).toEqual([undefined, 'R1.A.1', undefined]);
     });
 });
 

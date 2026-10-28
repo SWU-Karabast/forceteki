@@ -1423,3 +1423,75 @@ describe('SwuPgnRecorder: modal effects', function () {
         });
     });
 });
+
+describe('SwuPgnRecorder: a play\'s setup is filed under the play', function () {
+    integration(function (contextRef) {
+        // The cost's own records: the card going to the discard pile, and its DEFEAT or DISCARD.
+        const costRecords = (events: any[], card: string) => events.filter((e) =>
+            (e.t === 'MOVE' && e.card === card && e.to === 'discard') ||
+            ((e.t === 'DEFEAT' && e.card === card) || (e.t === 'DISCARD' && e.cards.includes(card))));
+
+        // Value: protects=the records a play's cost writes before the play is announced carry the play's `for` (spec §9.1 belonging, [W-18]); fails_when=the recorder stops marking records written while a play ability is set up, or the linker stops honouring the mark; why_new=Exploit's choices and defeat, and a discard paid instead of a cost, carried no `for`; seam=none; no_claim=costs of action abilities, which are paid after they are announced
+        it('files an Exploit defeat and its choices under the play', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { hand: ['droideka-security'], groundArena: ['admiral-piett#captain-of-the-executor'], resources: 6 },
+                player2: { groundArena: ['wampa'] },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.droidekaSecurity);
+            context.player1.clickPrompt('Trigger Exploit');
+            context.player1.clickCard(context.admiralPiett);
+            context.player1.clickPrompt('Done');
+
+            const events = parse(context.game.getCachedSwuPgn()).events as any[];
+            const play = events.find((e) => e.t === 'PLAY');
+            const piett = events.find((e) => e.t === 'DEFEAT').card;
+            expect(costRecords(events, piett).map((e) => [e.t, e.for])).toEqual([['MOVE', play.seq], ['DEFEAT', play.seq]]);
+            const choices = events.slice(0, events.indexOf(play)).filter((e) => e.t === 'CHOICE' || e.t === 'MODAL_CHOICE')
+                .slice(-2);
+            expect(choices.map((e) => e.for)).toEqual([play.seq, play.seq]);
+        });
+
+        it('files a discard paid instead of an event\'s cost under the event', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { hand: ['bamboozle', 'crafty-smuggler'] },
+                player2: { groundArena: ['wampa'] },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.bamboozle);
+            context.player1.clickPrompt('Play Bamboozle by discarding a Cunning card');
+            context.player1.clickCard(context.craftySmuggler);
+            context.player1.clickCard(context.wampa);
+
+            const events = parse(context.game.getCachedSwuPgn()).events as any[];
+            const play = events.find((e) => e.t === 'PLAY_EVENT');
+            const smuggler = events.find((e) => e.t === 'DISCARD').cards[0];
+            expect(costRecords(events, smuggler).map((e) => [e.t, e.for])).toEqual([['MOVE', play.seq], ['DISCARD', play.seq]]);
+        });
+
+        // Value: protects=a discard the previous action forced stays under that action, not the discarding player's next play (spec §9.1, [W-18]); fails_when=the linker files an unmarked discard of another card under the next play; why_new=the linker took any same-seat discard from hand to be a cost; seam=none; no_claim=forced discards picked in a different mode order
+        it('never files a discard the opponent forced under the discarding player\'s next play', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { hand: ['cunning'], groundArena: ['wampa'] },
+                player2: { hand: ['battlefield-marine', 'battlefield-marine'], resources: 6 },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.cunning);
+            context.player1.clickPrompt('Give a unit +4/+0 for this phase');
+            context.player1.clickCard(context.wampa);
+            context.player1.clickPrompt('An opponent discards a random card from their hand');
+            const left = context.player2.findCardsByName('battlefield-marine').find((c: any) => c.zoneName === 'hand');
+            context.player2.clickCard(left);
+
+            const events = parse(context.game.getCachedSwuPgn()).events as any[];
+            const discard = events.find((e) => e.t === 'DISCARD');
+            expect(costRecords(events, discard.cards[0]).map((e) => [e.t, e.for])).toEqual([['MOVE', undefined], ['DISCARD', undefined]]);
+        });
+    });
+});

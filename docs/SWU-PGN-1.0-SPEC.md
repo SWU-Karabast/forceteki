@@ -3334,8 +3334,8 @@ Platform neutrality (2026-10-28):
   records the action's announcement, targeting, cost payment or a change made while resolving
   it ([§9.1](#91-how-seq-is-built)), and ordering constraint 1 lets a writer announce an action
   before the card's `MOVE`. In the [Appendix C](#grouping-records-in-a-file-without-for) walk, a
-  choice or resource payment by the other seat, or a card leaving that is not a cost the actor
-  paid from hand or resources, ends the run. A Credit or Force token is recognised by the name
+  choice or resource payment by the other seat, or another card leaving, ends the run: from the
+  file alone a discard paid as a play's cost and one the previous action forced look the same. A Credit or Force token is recognised by the name
   part of its id, so `TOKEN:credit` counts and `TOKEN:credit:1` is only a bad token name
   ([§6.1](#two-reserved-token-names)), and the `TOKEN:` check covers records, `%%% DECKS`,
   `%%% CARDS` and an annotation's `line`, never its `text`. `Engine` must match
@@ -4108,7 +4108,7 @@ Each is detectable from the file:
 | Damage the rules dealt with no card responsible (drawing from an empty deck) wrote the engine's display string as `src` — `"Framework effect"`, then `"Framework effect:2"` | `src` omitted ([§10.1](#101-events-that-carry-board-detail)) | a `DAMAGE` with no `src` |
 | An effect applied a step after its event (a base's gained "+1/+0") had its `STATS` filed under the record after the action, and so `for` the opponent's next action | settled before the turn passes, under the action that caused it ([§10.1](#stats)) | not detectable from a single record |
 | A consequence naming another card (a token's or an upgrade's `STATS` change, a Raid ending) sat just before the opponent's next play and was stamped `for` it | any record about another card ends the run ([below](#grouping-records-in-a-file-without-for)). Revision 4 | `WriterRevision` 4 or later |
-| A previous action's choices and the card it moved (Cunning's mode choice, target choice and bounce) sat just before the opponent's next play and were stamped `for` it | a `CHOICE`, `MODAL_CHOICE` or `EXHAUST_RESOURCES` by the other seat ends the run, and a card leaving stays in it only as a cost the actor paid from hand or resources ([below](#grouping-records-in-a-file-without-for)). Revision 4 | `WriterRevision` 4 or later |
+| A previous action's choices and the card it moved (Cunning's mode choice, target choice and bounce) sat just before the opponent's next play and were stamped `for` it | a `CHOICE`, `MODAL_CHOICE` or `EXHAUST_RESOURCES` by the other seat ends the run, and so does another card leaving; the writer stamps a cost it paid from what the engine knows ([below](#grouping-records-in-a-file-without-for)). Revision 4 | `WriterRevision` 4 or later |
 | A unit arriving in play just before an action (a start-of-phase trigger's Beast) had its `MOVE`, `STATS` and `EXHAUST` stamped `for` that action | another card's arrival ends the run ([below](#grouping-records-in-a-file-without-for)) | not detectable from a single record |
 | `PASS` was written every time the turn passed to the opponent, so every play and attack was followed by a `PASS` from the same player, and the story read "Player 1 passes" after each action | `PASS` only for the Pass action ([§10.2](#102-events-that-are-just-notes)); every action after the first renumbers | two `PASS` records in a row from the same player, or a `PASS` right after that player's own `PLAY`/`ATTACK`, shows the early writer |
 | `DRAW.count` was the number of cards asked for, so a draw from a short deck said 2 and listed 1 | the cards actually drawn ([§10.1](#101-events-that-carry-board-detail)) | a `DRAW` whose `count` differs from `cards.length` |
@@ -4138,7 +4138,7 @@ could change what a record means. After it, a revision is diagnostic only.
 | 1 | `WriterRevision` introduced. A unit captured by a base is held in the seat's `baseCaptured` ([§10.1](#101-events-that-carry-board-detail)) | the tag's presence; a keyframe carrying `baseCaptured` |
 | 2 | `%%% STORY` joins a list of cards with ` · `, not `, `, which a card's own title-and-subtitle comma made impossible to split ([§16](#strict-layout-rules)) | `WriterRevision` 2 or later; in an older file, a `draws N:` story line whose names are separated by `, ` |
 | 3 | `INIT` is `R0.S.0`, not `R1.S.0` ([§8](#8-the-setup-section)). `GameId` is an opaque hash, not the engine's game id, and the fallback player-id salt is no longer printed in the file ([§17](#17-privacy-considerations)) | the `INIT` seq; a `GameId` matching `^sha256:[0-9a-f]{64}$` |
-| 4 | Each mode picked from a "choose N" modal effect is a `MODAL_CHOICE` ([§10.2](#102-events-that-are-just-notes)). `[W-18]` became a MUST, both ways, and every vector is checked against it. The linking is tighter: a record about another card ends a run, so a consequence of one action (a token's `STATS` change, a Raid ending) is no longer stamped `for` the opponent's next one, and so does a choice or resource payment by the other seat, or a card leaving that is not a cost the actor paid from hand or resources ([Appendix C](#grouping-records-in-a-file-without-for)). No `for` now names a different action; 9 over-reaching links were removed ([§9.1](#91-how-seq-is-built)) | `WriterRevision` 4 or later |
+| 4 | Each mode picked from a "choose N" modal effect is a `MODAL_CHOICE` ([§10.2](#102-events-that-are-just-notes)). `[W-18]` became a MUST, both ways, and every vector is checked against it. The linking is tighter: a record about another card ends a run, so a consequence of one action (a token's `STATS` change, a Raid ending) is no longer stamped `for` the opponent's next one, and so does a choice or resource payment by the other seat, or another card leaving ([Appendix C](#grouping-records-in-a-file-without-for)). A play's own setup (its choices, an Exploit defeat, a card discarded instead of paying) is stamped `for` the play from what the engine knows, so a discard the previous action forced is never filed under the next play. No `for` now names a different action; 9 over-reaching links were removed ([§9.1](#91-how-seq-is-built)) | `WriterRevision` 4 or later |
 
 ### Grouping records in a file without `for`
 
@@ -4175,10 +4175,13 @@ card's record. Another card **arriving** in play ends it the same way: a `MOVE` 
 (or into `base` as an upgrade) is that card's own story, and so are the records naming it right
 after its arrival — its `STATS`, its entering `EXHAUST`. A start-of-phase trigger puts exactly
 that in front of the first action: Beast Lair's Beast lands, gets its stats and exhausts, then
-the player's first play begins with the same record types. Another card *leaving* stays in the
-run only when it is a cost the acting player paid: a `MOVE` whose `p` is the action's `p` and
-whose `from` is `hand` or `resource` (a discard from hand, a resource spent). Any other card
-leaving — a bounce, a draw, the other seat's discard — ends the run.
+the player's first play begins with the same record types. Another card *leaving* ends it too.
+A card the acting player discards just before their play is that play's cost when the play
+demanded it (a card discarded instead of paying, a unit defeated for Exploit), and the previous
+action's consequence when that action forced it ("an opponent discards a card"). The two
+records look alike, so a reader with only the file cannot tell them apart, and leaves both under
+the number their `seq` carries. A writer can tell them apart, and stamps the cost `for` the play
+`[W-18]`.
 
 **A record by the other seat ends the run.** A `CHOICE`, `MODAL_CHOICE` or `EXHAUST_RESOURCES`
 names no card, so only its `p` says whose it is. One whose `p` is not the action's `p` was the
@@ -4260,7 +4263,12 @@ contents alone cannot show. None of this is required of another writer. Operatio
   consequences. The writer holds the whole stream before serialising, and `linkActionSteps()`
   fills `for` in then, by the rule of [Appendix C](#grouping-records-in-a-file-without-for). A
   test over every vector checks that each record before an action that names the action's card
-  is stamped.
+  is stamped. The rule cannot see a play's setup, which names other cards: Exploit's choices and
+  the unit it defeats, a card discarded instead of paying. So the recorder marks every record it
+  writes while the ability resolving is a play that has not reached its effect yet (the engine's
+  cost and targeting stages), with the card being played, and `linkActionSteps()` files a marked
+  record under that card's play whatever it is. The mark is kept beside the record and never
+  written. An action ability needs none: its costs are paid after it is announced.
 - **Identity `[W-10]`.** No field is built from an account name except the player id. A CI test
   stamps sentinel identities onto a live game and fails if any survives into the file.
 - **Hidden information `[H-01]`, `[H-02]`.** The host serves a game's file only to its two

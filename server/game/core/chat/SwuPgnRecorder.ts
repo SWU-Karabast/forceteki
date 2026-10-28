@@ -1,10 +1,10 @@
 import type { Game } from '../Game';
-import { AbilityType, CardType, DeployType, EventName, PhaseName, PlayType, ZoneName } from '../Constants';
+import { AbilityType, CardType, DeployType, EventName, PhaseName, PlayType, Stage, ZoneName } from '../Constants';
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 import { logger } from '../../../logger';
 import type { AbilityKind, DefeatReason, Header, GameEvent, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
 import { anonymizedGameId, anonymizedMatchId, saltedPlayerId, anonymizePlayerLabel } from './swuPgnIdentity';
-import { isTopLevelActionRecord } from '../../../../swupgn/src/actionLinks';
+import { isTopLevelActionRecord, markPlaySetup } from '../../../../swupgn/src/actionLinks';
 import { isArena } from '../../../../swupgn/src/fold';
 
 export interface HeaderContext {
@@ -678,7 +678,29 @@ export class SwuPgnRecorder {
         if (isTopLevelActionRecord(e) || e.t === 'ROUND_START' || e.t === 'PHASE_START') {
             e.ms = this.elapsedMs();
         }
+        this.markIfPlaySetup(e);
         this.events.push(e);
+    }
+
+    /**
+     * Tells the writer's linker that `e` is part of a play still being set up (spec §9.1: a
+     * record belongs to the action whose targeting or cost payment it records).
+     *
+     * A play pays its costs before it is announced, so those records -- Exploit's choices and
+     * defeat, a card discarded instead of paying -- arrive numbered under the previous action,
+     * and nothing in them names the play. The engine knows: the ability resolving is the play,
+     * and it has not reached its effect yet. Once it has, the play is announced and what follows
+     * is lettered under it anyway. An action ability's costs are paid after it is announced, so
+     * only plays need this.
+     */
+    private markIfPlaySetup(e: GameEvent): void {
+        const context = readOr(() => this.game.currentAbilityResolver?.context, undefined);
+        if (context == null || context.stage === Stage.Effect || context.source == null) {
+            return;
+        }
+        if (readOr(() => context.ability?.isPlayCardAbility?.() === true, false)) {
+            markPlaySetup(e, this.idOf(context.source));
+        }
     }
 
     /**
