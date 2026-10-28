@@ -6,7 +6,8 @@ Engine-independent reference reader for the SWU-PGN/1.0 game format. Informative
 
 - `parse(text, limits?)` -> structured document (header, story, decks, cards, setup, events,
   annotations). Throws a `SwuPgnError` whose `code` is from the spec's error table (§24) for a
-  malformed file, and rejects a file over `limits` (`DEFAULT_LIMITS`: 16 MiB, 1 MiB per line,
+  malformed file, and rejects a file over `limits` (`DEFAULT_LIMITS`: 16 MiB counted in UTF-8
+  bytes, not string length, 1 MiB per line,
   1,000,000 records, depth 64) rather than reading part of it. `RESERVED_KEYS` is every
   `Object.prototype` name plus `prototype` (spec §23): a record key, a header tag name, or a
   `STATUS_TOKEN` `token` (in `SETUP`, `EVENTS` or an annotation's what-if `line`) that is one
@@ -26,7 +27,9 @@ Engine-independent reference reader for the SWU-PGN/1.0 game format. Informative
 - `linkActionSteps(events)` -> stamps `for` on the records the engine numbered before the action
   they belong to (spec §9.1 `[W-18]`, by the rule in Appendix C). Writers run this; a reader
   of an old file without `for` can run it too.
-- `indexResolver(cards)` / `baseId(ref)` -> the card-name lookup `render` takes as `names`
+- `indexResolver(cards)` / `baseId(ref)` -> the card-name lookup `render` takes as `names`.
+  It shortens any name or `backSideName` longer than 120 characters (the longest real card's is
+  49), because the story repeats a name on every line that names the card.
 
 This module MUST NOT import from `server/game/` (the SWU rules engine).
 
@@ -64,7 +67,7 @@ SWUPGN_WRITE_VECTORS=1 npm run test-fast build/test/server/chat/SwuPgnVectors.sp
 ```
 
 then review the diff, bump `SWU_PGN_WRITER_REVISION` if a reader could see the change, update
-the spec's §20 and §22 tables, and update `manifest.json` if a vector's level or codes moved.
+the spec's §20 table and Appendix C's writer-revision table, and update `manifest.json` if a vector's level or codes moved.
 
 ## Provenance and identity in production
 
@@ -91,4 +94,6 @@ The PII gate is `test/server/chat/SwuPgnPiiScan.spec.ts`: it stamps sentinel ide
 live game and fails if any of them survive into the file.
 
 The host serves a game's file through `Lobby.getGameLog`, and only once the match is over
-(spec §23).
+(spec §23). Only the game attached to the lobby is served: in a best-of-three that is the last
+game, because each earlier game's file is dropped when the next game replaces it, and a rematch
+drops the finished game's file the same way (a `TODO` in `Lobby.getGameLog`).

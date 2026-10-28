@@ -346,6 +346,9 @@ requirement, by id. The linked section is where each one is defined.
   returning to `outsideTheGame`, whatever zone the rules place it in, and MUST NOT name
   `resource` for a Credit token. A validator reports one as `credit-zone`
   ([§6.2](#62-zone-names), [§24](#24-error-model)).
+- `[W-43]` MUST write the deck's owner as `p` on a `MOVE` out of `deck`, and when the card goes
+  into play under the other seat, follow the `MOVE` with a `TAKE_CONTROL` to that seat
+  ([§12.1](#121-the-move-rule-the-big-one)).
 
 ### The Parser (reads the syntax)
 
@@ -1116,7 +1119,7 @@ number. `for` names the action a record belongs to. From the `arrest` vector:
 ```json
 {"seq":"R2.A.2a","t":"CHOICE","p":1,"prompt":"Peridea Bandit","offered":["base@2"],"chose":0,"for":"R2.A.3"}
 {"seq":"R2.A.2b","t":"EXHAUST","card":"ASH#190","for":"R2.A.3"}
-{"seq":"R2.A.3","t":"ATTACK","p":1,"atk":"ASH#190","def":"base@2","defenderType":"base","ms":8}
+{"seq":"R2.A.3","t":"ATTACK","p":1,"atk":"ASH#190","def":"base@2","defenderType":"base","ms":6}
 ```
 
 **Belonging.** A record **belongs to** action `N` when it records `N`'s announcement, its
@@ -1225,7 +1228,7 @@ writer MUST derive an event's `kind` from what the event does, not from the card
 
 // Flown onto the X-Wing: this move attaches, so it is an upgrade move.
 {"seq":"R2.A.0d","t":"MOVE","card":"JTL#058","from":"hand","to":"space","p":1,"kind":"upgrade","attachedTo":"LAW#253","for":"R2.A.1"}
-{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"JTL#058","zone":"space","target":"LAW#253","cost":2,"ms":12}
+{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"JTL#058","zone":"space","target":"LAW#253","cost":2,"ms":8}
 ```
 
 A reader applies `kind` exactly as [§12.1](#121-the-move-rule-the-big-one) says: an
@@ -1832,7 +1835,7 @@ by **`attachedTo`** on the `MOVE` that carries it **into the arena**. From the `
 {"seq":"R1.A.1c","t":"STATUS_TOKEN","card":"ASH#251:2","token":"advantage","count":1}
 
 {"seq":"R3.A.0c","t":"MOVE","card":"LOF#215:2","from":"hand","to":"ground","p":1,"kind":"upgrade","attachedTo":"ASH#251:2","for":"R3.A.1"}
-{"seq":"R3.A.1","t":"PLAY_UPGRADE","p":1,"card":"LOF#215:2","zone":"ground","target":"ASH#251:2","cost":2,"ms":27}
+{"seq":"R3.A.1","t":"PLAY_UPGRADE","p":1,"card":"LOF#215:2","zone":"ground","target":"ASH#251:2","cost":2,"ms":29}
 ```
 
 An attachment that changes while the card stays in its arena — a printed upgrade moved to
@@ -1957,7 +1960,7 @@ base as its host. The `PLAY_UPGRADE` beside it points at the base the same way:
 
 ```json
 {"seq":"R1.A.0c","t":"MOVE","card":"HMW#147","from":"hand","to":"base","p":1,"kind":"upgrade","attachedTo":"base@1","for":"R1.A.1"}
-{"seq":"R1.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#147","zone":"base","target":"base@1","cost":2,"ms":2}
+{"seq":"R1.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#147","zone":"base","target":"base@1","cost":2,"ms":3}
 ```
 
 The fold puts `HMW#147` on `players[1].baseUpgrades` ([§12.1](#121-the-move-rule-the-big-one)
@@ -2150,7 +2153,7 @@ may read `"The Death Star"`. That field is advisory, [§6.4](#64-small-vocabular
 arrival in **space** are its sub-steps:
 
 ```json
-{"seq":"R8.A.1","t":"ABILITY_ACTIVATE","p":1,"card":"HMW#004","ability":"grand-moff-tarkin#tyrant-of-the-outer-rim_action_0","kind":"epic","title":"Deploy Grand Moff Tarkin","epic":true,"ms":37}
+{"seq":"R8.A.1","t":"ABILITY_ACTIVATE","p":1,"card":"HMW#004","ability":"grand-moff-tarkin#tyrant-of-the-outer-rim_action_0","kind":"epic","title":"Deploy Grand Moff Tarkin","epic":true,"ms":36}
 {"seq":"R8.A.1a","t":"MOVE","card":"HMW#004","from":"base","to":"space","p":1,"kind":"unit"}
 {"seq":"R8.A.1c","t":"DEPLOY_LEADER","p":1,"card":"HMW#004","zone":"space","epic":true,"cost":9}
 ```
@@ -2384,7 +2387,7 @@ card leaves `hand`, `discard` or `resource`, take it (and the count) from the se
 holds it: `p`'s if it is there, else the other seat's, else `p`'s. Ids are unique for the whole
 game ([§6.1](#61-card-ids)), so at most one list holds it. The `stolen-hauler` vector covers
 this. The deck is counted, not listed, so a move out of `deck` is counted on `p`, and a
-writer MUST write the deck's owner as `p` on it: a card leaving a deck is still with its owner.
+writer MUST write the deck's owner as `p` on it `[W-43]`: a card leaving a deck is still with its owner.
 Most cards that reach into an opponent's deck discard from it (Never Tell Me the Odds,
 Vigilance, Satine Kryze). One that puts the card into play under the other seat (Vermillion lets
 the opponent play your top card) is written as the owner's `MOVE` followed by a `TAKE_CONTROL`
@@ -2770,7 +2773,9 @@ Two helpers:
 
 - `nm(id)` — the display name. **Strip the `:N` copy suffix**, look the base up in the
   `%%% CARDS` index ([§6.5](#65-the-cards-index)), then append ` #N` back for a copy, so two
-  Wampas read as `Wampa` and `Wampa #2`. A `base@N` ref renders as `Player N's base`. For a card
+  Wampas read as `Wampa` and `Wampa #2`. A `name` or `backSideName` longer than 120 characters
+  (UTF-16 code units) is cut to its first 119 and `…`, so a hostile index cannot make the story
+  grow without bound; no printed card's name comes near it. A `base@N` ref renders as `Player N's base`. For a card
   with a `backSideName`, `nm` gives the side that is **up**, tracked per copy by its full id
 (`:N` included), since a mirror match has two of one leader: the back from its `DEPLOY_LEADER`
   (or its `MOVE` from `base` into an arena) until its `MOVE` back to `base`, and for a
@@ -3381,6 +3386,21 @@ SWUForge's review of that text (2026-10-28) changed:
 > **Note (informative):** The reference host serves an omniscient file only to the game's two
 > players (`[H-01]` above).
 
+A last pass over the writer and reader (2026-10-28) changed:
+
+- A validator reports `result-mismatch` when the header's `Result` disagrees with the last
+  `GAME_END`, or is not `Incomplete` in a file with no `GAME_END`. [§10.2](#102-events-that-are-just-notes)
+  already required the agreement ([§24](#24-error-model), `result-mismatch` vector).
+- A phase a card adds to a round continues its phase's numbering, so its seqs never repeat the
+  first one's ([§9.1](#91-how-seq-is-built)).
+- A writer MUST write the deck's owner as `p` on a `MOVE` out of `deck` `[W-43]`. A card the
+  other seat puts into play from your deck is your `MOVE` followed by a `TAKE_CONTROL`
+  ([§12.1](#121-the-move-rule-the-big-one)).
+- `nm(id)` cuts a display name longer than 120 characters to 119 and `…`
+  ([§16](#16-rendering--turning-a-file-into-a-story)).
+- The reference writer derives `P1Id` / `P2Id` from the player's account id, not the display
+  name, as [§17](#17-privacy-considerations) requires ([Appendix D](#appendix-d-reference-writer-notes-informative)).
+
 ---
 
 ## 23. Security considerations
@@ -3495,7 +3515,7 @@ matched by a program.
 | `deck-build-move` | error | A `MOVE` from `outsideTheGame` into `deck` (`[W-41]`, [§10.1](#101-events-that-carry-board-detail)) | well-formed |
 | `credit-zone` | error | A `MOVE` of a `TOKEN:credit…` id from or into `resource`; a Credit token is recorded in `base` ([§6.2](#62-zone-names), `[W-42]`) | well-formed |
 | `same-zone-move` | error | A `MOVE` from a zone to itself that is not an arena | well-formed |
-| `result-mismatch` | error | The header's `Result` disagrees with the last `GAME_END.winner`, or names a winner in a file with no `GAME_END` ([§10.2](#102-events-that-are-just-notes)) | well-formed |
+| `result-mismatch` | error | The header's `Result` disagrees with the last `GAME_END.winner`, or is not `Incomplete` in a file with no `GAME_END` ([§10.2](#102-events-that-are-just-notes)) | well-formed |
 | `number-range` | error | A number that is not an integer within ±(2^53−1) | well-formed |
 | `over-cap` | error | A keyframe list longer than 1000 | well-formed |
 | `pre-release` | warning | No `WriterRevision`, and an `Engine` product the [pilot writer products](#pilot-writer-products) registry ([§25](#25-registries)) lists: a pre-release file | well-formed |
@@ -4134,7 +4154,7 @@ Pre-release files and forceteki writer revisions 1 and 2 wrote `"R1.S.0"` for `I
 ### Reference writer revisions (informative)
 
 The eight real-game vectors ([§20](#20-conformance-suite--test-vectors)) were written by
-`forceteki` at writer revision 4, the latest row of the table below; their `writer` in the
+`forceteki` at writer revision 5, the latest row of the table below; their `writer` in the
 manifest is `forceteki`.
 
 `forceteki` writer revisions so far ([§5.2](#52-optional-tags)). Before publication a revision
@@ -4146,6 +4166,7 @@ could change what a record means. After it, a revision is diagnostic only.
 | 2 | `%%% STORY` joins a list of cards with ` · `, not `, `, which a card's own title-and-subtitle comma made impossible to split ([§16](#strict-layout-rules)) | `WriterRevision` 2 or later; in an older file, a `draws N:` story line whose names are separated by `, ` |
 | 3 | `INIT` is `R0.S.0`, not `R1.S.0` ([§8](#8-the-setup-section)). `GameId` is an opaque hash, not the engine's game id, and the fallback player-id salt is no longer printed in the file ([§17](#17-privacy-considerations)) | the `INIT` seq; a `GameId` matching `^sha256:[0-9a-f]{64}$` |
 | 4 | Each mode picked from a "choose N" modal effect is a `MODAL_CHOICE` ([§10.2](#102-events-that-are-just-notes)). `[W-18]` became a MUST, both ways, and every vector is checked against it. The linking is tighter: a record about another card ends a run, so a consequence of one action (a token's `STATS` change, a Raid ending) is no longer stamped `for` the opponent's next one, and so does a choice or resource payment by the other seat, or another card leaving ([Appendix C](#grouping-records-in-a-file-without-for)). A play's own setup (its choices, an Exploit defeat, a card discarded instead of paying) is stamped `for` the play from what the engine knows, so a discard the previous action forced is never filed under the next play. No `for` now names a different action; 9 over-reaching links were removed ([§9.1](#91-how-seq-is-built)) | `WriterRevision` 4 or later |
+| 5 | An additional phase in the same round (Max Rebo) continues its phase's numbering instead of repeating `start` and `end` ([§9.1](#91-how-seq-is-built)). A card played out of the other seat's deck is the owner's `MOVE` and a `TAKE_CONTROL` (`[W-43]`), and a resource given back to its owner's row is a `TAKE_CONTROL`. `P1Id` / `P2Id` hash the account id, not the display name ([§17](#17-privacy-considerations)) | `WriterRevision` 5 or later |
 
 ### Grouping records in a file without `for`
 
@@ -4276,7 +4297,8 @@ contents alone cannot show. None of this is required of another writer. Operatio
   cost and targeting stages), with the card being played, and `linkActionSteps()` files a marked
   record under that card's play whatever it is. The mark is kept beside the record and never
   written. An action ability needs none: its costs are paid after it is announced.
-- **Identity `[W-10]`.** No field is built from an account name except the player id. A CI test
+- **Identity `[W-10]`.** No field is built from an account name. The player id is built from the
+  account id, so a rename keeps it and two guests sharing a name do not share it. A CI test
   stamps sentinel identities onto a live game and fails if any survives into the file.
 - **Hidden information `[H-01]`, `[H-02]`.** The host serves a game's file only to its two
   players and only once the match is over. Serving it closes the game to undo; a game reopened

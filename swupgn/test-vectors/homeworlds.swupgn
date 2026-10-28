@@ -1,13 +1,13 @@
 [Game "SWU-PGN/1.0"]
-[WriterRevision "4"]
+[WriterRevision "5"]
 [GameId "sha256:661f4f0c4325e8154c8c3a9ed622ce0284caeab7b5fd2f46a3f2a29742c4f645"]
-[Date "2026-10-28T17:13:30.609Z"]
+[Date "2026-10-28T19:06:24.962Z"]
 [Format "premier"]
 [CardPool "ASH,HMW,IBH,IC27,JTL,LAW,LOF,SEC,SHD,SOR,TS26,TWI"]
-[Engine "forceteki@0064257c0"]
+[Engine "forceteki@c89abd86a-dirty"]
 [Seed "swu-pgn-vector-homeworlds"]
-[P1Id "sha256:fcc5452e9bd8d2c0df1bcb3a4648163cbb5723c1c88f6c04aabeb5e76cecdf62"]
-[P2Id "sha256:f9188a804748f400c0c5abb9cf7125d0b3a51c75af21b2292dd44de3276df787"]
+[P1Id "sha256:8849aa57ad283a2eb0d1a026cd1fa670ad8d48cf6b7cb55db80a6ef70960abb8"]
+[P2Id "sha256:d484debd88f2263d58ca8abbccc39bdd155f07d2b6ef472275312d173460ddf1"]
 [P1 "Player 1"]
 [P2 "Player 2"]
 [P1Leader "HMW#010"]
@@ -17,7 +17,7 @@
 [Result "P1"]
 [Reason "Concession"]
 [Rounds "6"]
-[EndDate "2026-10-28T17:13:30.660Z"]
+[EndDate "2026-10-28T19:06:25.008Z"]
 
 %%% STORY
  ── setup ──
@@ -214,7 +214,7 @@
 
 %%% EVENTS
 {"seq":"R0.S.start","t":"PHASE_START","phase":"setup","ms":0}
-{"seq":"R0.S.1","t":"MODAL_CHOICE","p":2,"offered":["Yourself","Opponent"],"chose":1}
+{"seq":"R0.S.1","t":"MODAL_CHOICE","p":1,"offered":["Yourself","Opponent"],"chose":0}
 {"seq":"R0.S.2","t":"SHUFFLE","p":1}
 {"seq":"R0.S.3","t":"MOVE","card":"HMW#147","from":"deck","to":"hand","p":1,"kind":"upgrade"}
 {"seq":"R0.S.4","t":"MOVE","card":"HMW#147:2","from":"deck","to":"hand","p":1,"kind":"upgrade"}
@@ -247,11 +247,11 @@
 {"seq":"R1.A.0a","t":"CHOICE","p":1,"prompt":"Beast Lair","offered":["base@1"],"chose":0,"for":"R1.A.1"}
 {"seq":"R1.A.0b","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R1.A.1"}
 {"seq":"R1.A.0c","t":"MOVE","card":"HMW#147","from":"hand","to":"base","p":1,"kind":"upgrade","attachedTo":"base@1","for":"R1.A.1"}
-{"seq":"R1.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#147","zone":"base","target":"base@1","cost":2,"ms":2}
+{"seq":"R1.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#147","zone":"base","target":"base@1","cost":2,"ms":3}
 {"seq":"R1.A.1a","t":"CHOICE","p":2,"prompt":"Carbonite Chamber","offered":["base@2"],"chose":0,"for":"R1.A.2"}
 {"seq":"R1.A.1b","t":"EXHAUST_RESOURCES","p":2,"amount":1,"for":"R1.A.2"}
 {"seq":"R1.A.1c","t":"MOVE","card":"HMW#095","from":"hand","to":"base","p":2,"kind":"upgrade","attachedTo":"base@2","for":"R1.A.2"}
-{"seq":"R1.A.2","t":"PLAY_UPGRADE","p":2,"card":"HMW#095","zone":"base","target":"base@2","cost":1,"ms":3}
+{"seq":"R1.A.2","t":"PLAY_UPGRADE","p":2,"card":"HMW#095","zone":"base","target":"base@2","cost":1,"ms":4}
 {"seq":"R1.A.3","t":"PASS","p":1,"ms":4}
 {"seq":"R1.A.4","t":"PASS","p":2,"ms":4}
 {"seq":"R1.A.end","t":"PHASE_END","phase":"action"}
@@ -292,19 +292,19 @@
 {"seq":"R2.A.3a","t":"CHOICE","p":2,"prompt":"Torrent","offered":["TOKEN:beast#6445363199"],"chose":0,"for":"R2.A.4"}
 {"seq":"R2.A.3b","t":"EXHAUST_RESOURCES","p":2,"amount":2,"for":"R2.A.4"}
 {"seq":"R2.A.3c","t":"MOVE","card":"HMW#100","from":"hand","to":"discard","p":2,"for":"R2.A.4"}
-{"seq":"R2.A.4","t":"PLAY_EVENT","p":2,"card":"HMW#100","zone":"discard","cost":2,"ms":11}
+{"seq":"R2.A.4","t":"PLAY_EVENT","p":2,"card":"HMW#100","zone":"discard","cost":2,"ms":10}
 {"seq":"R2.A.4a","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#100","ability":"torrent_anonymous","kind":"event","title":"Give a Weakness token to a unit. If you control a Naboo base, give 2 Weakness tokens to that unit instead."}
 {"seq":"R2.A.4b","t":"MOVE","card":"TOKEN:weakness#7816991190","from":"outsideTheGame","to":"ground","p":1,"kind":"upgrade","attachedTo":"TOKEN:beast#6445363199"}
 {"seq":"R2.A.4c","t":"STATUS_TOKEN","card":"TOKEN:beast#6445363199","token":"weakness","count":1}
 {"seq":"R2.A.4d","t":"STATS","card":"TOKEN:beast#6445363199","power":2,"hp":2,"keywords":[]}
-{"seq":"R2.A.5","t":"PASS","p":1,"ms":12}
+{"seq":"R2.A.5","t":"PASS","p":1,"ms":11}
 {"seq":"R2.A.5a","t":"CHOICE","p":2,"prompt":"Carbonite Chamber","offered":["base@2"],"chose":0,"for":"R2.A.6"}
 {"seq":"R2.A.5b","t":"EXHAUST_RESOURCES","p":2,"amount":1,"for":"R2.A.6"}
 {"seq":"R2.A.5c","t":"MOVE","card":"HMW#095:2","from":"hand","to":"base","p":2,"kind":"upgrade","attachedTo":"base@2","for":"R2.A.6"}
-{"seq":"R2.A.6","t":"PLAY_UPGRADE","p":2,"card":"HMW#095:2","zone":"base","target":"base@2","cost":1,"ms":13}
+{"seq":"R2.A.6","t":"PLAY_UPGRADE","p":2,"card":"HMW#095:2","zone":"base","target":"base@2","cost":1,"ms":12}
 {"seq":"R2.A.7","t":"PASS","p":1,"ms":13}
 {"seq":"R2.A.7a","t":"CHOICE","p":2,"prompt":"Carbonite Chamber","offered":["TOKEN:beast#6445363199"],"chose":0}
-{"seq":"R2.A.8","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#095:2","ability":"carbonite-chamber_action_0","kind":"action","title":"Choose a non-Vehicle unit. It doesn't ready during the next regroup phase","ms":14}
+{"seq":"R2.A.8","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#095:2","ability":"carbonite-chamber_action_0","kind":"action","title":"Choose a non-Vehicle unit. It doesn't ready during the next regroup phase","ms":13}
 {"seq":"R2.A.8a","t":"MOVE","card":"HMW#095:2","from":"base","to":"discard","p":2,"kind":"upgrade"}
 {"seq":"R2.A.8b","t":"DEFEAT","card":"HMW#095:2","reason":"ability","defeatedBy":"HMW#095:2"}
 {"seq":"R2.A.9","t":"PASS","p":1,"ms":15}
@@ -325,8 +325,8 @@
 {"seq":"R2.G.14","t":"READY_RESOURCES","p":2,"amount":3}
 {"seq":"R2.G.end","t":"PHASE_END","phase":"regroup"}
 {"seq":"R2.end","t":"ROUND_END","round":2,"keyframe":{"round":2,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["HMW#147:2","HMW#150","HMW#271:2"],"resourcesReady":4,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","LAW#253","LAW#253:3"],"baseUpgrades":["HMW#147","HMW#271"],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#253:2"],"cards":[{"id":"TOKEN:beast#6445363199","zone":"ground","damage":0,"exhausted":true,"upgrades":[],"shields":0,"experience":0,"statusTokens":{"weakness":1},"captured":[],"power":2,"hp":2,"keywords":[]}],"deckSize":5,"leader":{"id":"HMW#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["HMW#100:2","HMW#100:3","HMW#100:4"],"resourcesReady":4,"resourcesExhausted":0,"resources":["HMW#087","HMW#242","HMW#242:2","HMW#242:3"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["HMW#095","HMW#100","HMW#095:2"],"cards":[],"deckSize":4,"leader":{"id":"HMW#003","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false}}
-{"seq":"R3.start","t":"ROUND_START","round":3,"active":1,"keyframe":{"round":3,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["HMW#147:2","HMW#150","HMW#271:2"],"resourcesReady":4,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","LAW#253","LAW#253:3"],"baseUpgrades":["HMW#147","HMW#271"],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#253:2"],"cards":[{"id":"TOKEN:beast#6445363199","zone":"ground","damage":0,"exhausted":true,"upgrades":[],"shields":0,"experience":0,"statusTokens":{"weakness":1},"captured":[],"power":2,"hp":2,"keywords":[]}],"deckSize":5,"leader":{"id":"HMW#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["HMW#100:2","HMW#100:3","HMW#100:4"],"resourcesReady":4,"resourcesExhausted":0,"resources":["HMW#087","HMW#242","HMW#242:2","HMW#242:3"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["HMW#095","HMW#100","HMW#095:2"],"cards":[],"deckSize":4,"leader":{"id":"HMW#003","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":17}
-{"seq":"R3.A.start","t":"PHASE_START","phase":"action","active":1,"ms":17}
+{"seq":"R3.start","t":"ROUND_START","round":3,"active":1,"keyframe":{"round":3,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["HMW#147:2","HMW#150","HMW#271:2"],"resourcesReady":4,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","LAW#253","LAW#253:3"],"baseUpgrades":["HMW#147","HMW#271"],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#253:2"],"cards":[{"id":"TOKEN:beast#6445363199","zone":"ground","damage":0,"exhausted":true,"upgrades":[],"shields":0,"experience":0,"statusTokens":{"weakness":1},"captured":[],"power":2,"hp":2,"keywords":[]}],"deckSize":5,"leader":{"id":"HMW#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":3,"hand":["HMW#100:2","HMW#100:3","HMW#100:4"],"resourcesReady":4,"resourcesExhausted":0,"resources":["HMW#087","HMW#242","HMW#242:2","HMW#242:3"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["HMW#095","HMW#100","HMW#095:2"],"cards":[],"deckSize":4,"leader":{"id":"HMW#003","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":16}
+{"seq":"R3.A.start","t":"PHASE_START","phase":"action","active":1,"ms":16}
 {"seq":"R3.A.0a","t":"ABILITY_ACTIVATE","p":1,"card":"base@1","ability":"gained_from_beast-lair_constant_0","kind":"triggered","title":"Discard a card from your hand to create a Beast token","grantedBy":"HMW#147"}
 {"seq":"R3.A.0b","t":"CHOICE","p":1,"prompt":"Tusken Camp","offered":["HMW#147:2","HMW#150","HMW#271:2"],"chose":0}
 {"seq":"R3.A.0c","t":"MOVE","card":"HMW#147:2","from":"hand","to":"discard","p":1,"kind":"upgrade"}
@@ -337,7 +337,7 @@
 {"seq":"R3.A.0h","t":"EXHAUST","card":"TOKEN:beast#6445363199:2"}
 {"seq":"R3.A.0i","t":"EXHAUST_RESOURCES","p":1,"amount":3,"for":"R3.A.1"}
 {"seq":"R3.A.0j","t":"MOVE","card":"HMW#150","from":"hand","to":"discard","p":1,"for":"R3.A.1"}
-{"seq":"R3.A.1","t":"PLAY_EVENT","p":1,"card":"HMW#150","zone":"discard","cost":3,"ms":19}
+{"seq":"R3.A.1","t":"PLAY_EVENT","p":1,"card":"HMW#150","zone":"discard","cost":3,"ms":18}
 {"seq":"R3.A.1a","t":"ABILITY_ACTIVATE","p":1,"card":"HMW#150","ability":"migrate_anonymous","kind":"event","title":"For every 3 resources you control, create a Beast token."}
 {"seq":"R3.A.1b","t":"CREATE_TOKEN","p":1,"token":"TOKEN:beast#6445363199:3","zone":"ground","kind":"unit"}
 {"seq":"R3.A.1c","t":"MOVE","card":"TOKEN:beast#6445363199:3","from":"outsideTheGame","to":"ground","p":1,"kind":"unit"}
@@ -346,16 +346,16 @@
 {"seq":"R3.A.1f","t":"CHOICE","p":2,"prompt":"Torrent","offered":["TOKEN:beast#6445363199","TOKEN:beast#6445363199:2","TOKEN:beast#6445363199:3"],"chose":0,"for":"R3.A.2"}
 {"seq":"R3.A.1g","t":"EXHAUST_RESOURCES","p":2,"amount":2,"for":"R3.A.2"}
 {"seq":"R3.A.1h","t":"MOVE","card":"HMW#100:2","from":"hand","to":"discard","p":2,"for":"R3.A.2"}
-{"seq":"R3.A.2","t":"PLAY_EVENT","p":2,"card":"HMW#100:2","zone":"discard","cost":2,"ms":21}
+{"seq":"R3.A.2","t":"PLAY_EVENT","p":2,"card":"HMW#100:2","zone":"discard","cost":2,"ms":19}
 {"seq":"R3.A.2a","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#100:2","ability":"torrent_anonymous","kind":"event","title":"Give a Weakness token to a unit. If you control a Naboo base, give 2 Weakness tokens to that unit instead."}
 {"seq":"R3.A.2b","t":"MOVE","card":"TOKEN:weakness#7816991190:2","from":"outsideTheGame","to":"ground","p":1,"kind":"upgrade","attachedTo":"TOKEN:beast#6445363199"}
 {"seq":"R3.A.2c","t":"STATUS_TOKEN","card":"TOKEN:beast#6445363199","token":"weakness","count":1}
 {"seq":"R3.A.2d","t":"STATS","card":"TOKEN:beast#6445363199","power":1,"hp":1,"keywords":[]}
-{"seq":"R3.A.3","t":"PASS","p":1,"ms":22}
+{"seq":"R3.A.3","t":"PASS","p":1,"ms":20}
 {"seq":"R3.A.3a","t":"CHOICE","p":2,"prompt":"Torrent","offered":["TOKEN:beast#6445363199","TOKEN:beast#6445363199:2","TOKEN:beast#6445363199:3"],"chose":0,"for":"R3.A.4"}
 {"seq":"R3.A.3b","t":"EXHAUST_RESOURCES","p":2,"amount":2,"for":"R3.A.4"}
 {"seq":"R3.A.3c","t":"MOVE","card":"HMW#100:3","from":"hand","to":"discard","p":2,"for":"R3.A.4"}
-{"seq":"R3.A.4","t":"PLAY_EVENT","p":2,"card":"HMW#100:3","zone":"discard","cost":2,"ms":22}
+{"seq":"R3.A.4","t":"PLAY_EVENT","p":2,"card":"HMW#100:3","zone":"discard","cost":2,"ms":20}
 {"seq":"R3.A.4a","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#100:3","ability":"torrent_anonymous","kind":"event","title":"Give a Weakness token to a unit. If you control a Naboo base, give 2 Weakness tokens to that unit instead."}
 {"seq":"R3.A.4b","t":"MOVE","card":"TOKEN:weakness#7816991190:3","from":"outsideTheGame","to":"ground","p":1,"kind":"upgrade","attachedTo":"TOKEN:beast#6445363199"}
 {"seq":"R3.A.4c","t":"STATUS_TOKEN","card":"TOKEN:beast#6445363199","token":"weakness","count":1}
@@ -371,10 +371,10 @@
 {"seq":"R3.A.4m","t":"STATUS_TOKEN","card":"TOKEN:beast#6445363199","token":"weakness","count":-1}
 {"seq":"R3.A.4n","t":"MOVE","card":"TOKEN:beast#6445363199","from":"ground","to":"outsideTheGame","p":1,"kind":"unit"}
 {"seq":"R3.A.4o","t":"DEFEAT","card":"TOKEN:beast#6445363199","reason":"frameworkEffect"}
-{"seq":"R3.A.5","t":"PASS","p":1,"ms":24}
-{"seq":"R3.A.6","t":"PASS","p":2,"ms":24}
+{"seq":"R3.A.5","t":"PASS","p":1,"ms":22}
+{"seq":"R3.A.6","t":"PASS","p":2,"ms":22}
 {"seq":"R3.A.end","t":"PHASE_END","phase":"action"}
-{"seq":"R3.G.start","t":"PHASE_START","phase":"regroup","ms":24}
+{"seq":"R3.G.start","t":"PHASE_START","phase":"regroup","ms":22}
 {"seq":"R3.G.1","t":"MOVE","card":"HMW#150:2","from":"deck","to":"hand","p":1}
 {"seq":"R3.G.2","t":"MOVE","card":"HMW#126","from":"deck","to":"hand","p":1,"kind":"upgrade"}
 {"seq":"R3.G.3","t":"DRAW","p":1,"count":2,"cards":["HMW#150:2","HMW#126"]}
@@ -391,8 +391,8 @@
 {"seq":"R3.G.16","t":"READY_RESOURCES","p":2,"amount":4}
 {"seq":"R3.G.end","t":"PHASE_END","phase":"regroup"}
 {"seq":"R3.end","t":"ROUND_END","round":3,"keyframe":{"round":3,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["HMW#150:2","HMW#126"],"resourcesReady":5,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","LAW#253","LAW#253:3","HMW#271:2"],"baseUpgrades":["HMW#147","HMW#271"],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#253:2","HMW#147:2","HMW#150"],"cards":[{"id":"TOKEN:beast#6445363199:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[]},{"id":"TOKEN:beast#6445363199:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[]}],"deckSize":3,"leader":{"id":"HMW#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["HMW#100:4","HMW#087:2"],"resourcesReady":5,"resourcesExhausted":0,"resources":["HMW#087","HMW#242","HMW#242:2","HMW#242:3","HMW#059"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["HMW#095","HMW#100","HMW#095:2","HMW#100:2","HMW#100:3"],"cards":[],"deckSize":2,"leader":{"id":"HMW#003","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false}}
-{"seq":"R4.start","t":"ROUND_START","round":4,"active":1,"keyframe":{"round":4,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["HMW#150:2","HMW#126"],"resourcesReady":5,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","LAW#253","LAW#253:3","HMW#271:2"],"baseUpgrades":["HMW#147","HMW#271"],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#253:2","HMW#147:2","HMW#150"],"cards":[{"id":"TOKEN:beast#6445363199:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[]},{"id":"TOKEN:beast#6445363199:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[]}],"deckSize":3,"leader":{"id":"HMW#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["HMW#100:4","HMW#087:2"],"resourcesReady":5,"resourcesExhausted":0,"resources":["HMW#087","HMW#242","HMW#242:2","HMW#242:3","HMW#059"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["HMW#095","HMW#100","HMW#095:2","HMW#100:2","HMW#100:3"],"cards":[],"deckSize":2,"leader":{"id":"HMW#003","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":25}
-{"seq":"R4.A.start","t":"PHASE_START","phase":"action","active":1,"ms":25}
+{"seq":"R4.start","t":"ROUND_START","round":4,"active":1,"keyframe":{"round":4,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["HMW#150:2","HMW#126"],"resourcesReady":5,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","LAW#253","LAW#253:3","HMW#271:2"],"baseUpgrades":["HMW#147","HMW#271"],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#253:2","HMW#147:2","HMW#150"],"cards":[{"id":"TOKEN:beast#6445363199:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[]},{"id":"TOKEN:beast#6445363199:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":[]}],"deckSize":3,"leader":{"id":"HMW#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["HMW#100:4","HMW#087:2"],"resourcesReady":5,"resourcesExhausted":0,"resources":["HMW#087","HMW#242","HMW#242:2","HMW#242:3","HMW#059"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["HMW#095","HMW#100","HMW#095:2","HMW#100:2","HMW#100:3"],"cards":[],"deckSize":2,"leader":{"id":"HMW#003","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":23}
+{"seq":"R4.A.start","t":"PHASE_START","phase":"action","active":1,"ms":23}
 {"seq":"R4.A.0a","t":"ABILITY_ACTIVATE","p":1,"card":"base@1","ability":"gained_from_beast-lair_constant_0","kind":"triggered","title":"Discard a card from your hand to create a Beast token","grantedBy":"HMW#147"}
 {"seq":"R4.A.0b","t":"CHOICE","p":1,"prompt":"Tusken Camp","offered":["HMW#150:2","HMW#126"],"chose":0}
 {"seq":"R4.A.0c","t":"MOVE","card":"HMW#150:2","from":"hand","to":"discard","p":1}
@@ -404,21 +404,21 @@
 {"seq":"R4.A.0i","t":"CHOICE","p":1,"prompt":"Verdant Fortress","offered":["base@1"],"chose":0,"for":"R4.A.1"}
 {"seq":"R4.A.0j","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R4.A.1"}
 {"seq":"R4.A.0k","t":"MOVE","card":"HMW#126","from":"hand","to":"base","p":1,"kind":"upgrade","attachedTo":"base@1","for":"R4.A.1"}
-{"seq":"R4.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#126","zone":"base","target":"base@1","cost":2,"ms":27}
+{"seq":"R4.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#126","zone":"base","target":"base@1","cost":2,"ms":25}
 {"seq":"R4.A.1a","t":"STATS","card":"TOKEN:beast#6445363199:2","power":3,"hp":3,"keywords":["raid 1"]}
 {"seq":"R4.A.1b","t":"STATS","card":"TOKEN:beast#6445363199:3","power":3,"hp":3,"keywords":["raid 1"]}
 {"seq":"R4.A.1c","t":"STATS","card":"TOKEN:beast#6445363199:4","power":3,"hp":3,"keywords":["raid 1"]}
 {"seq":"R4.A.1d","t":"CHOICE","p":2,"prompt":"Torrent","offered":["TOKEN:beast#6445363199:2","TOKEN:beast#6445363199:3","TOKEN:beast#6445363199:4"],"chose":0,"for":"R4.A.2"}
 {"seq":"R4.A.1e","t":"EXHAUST_RESOURCES","p":2,"amount":2,"for":"R4.A.2"}
 {"seq":"R4.A.1f","t":"MOVE","card":"HMW#100:4","from":"hand","to":"discard","p":2,"for":"R4.A.2"}
-{"seq":"R4.A.2","t":"PLAY_EVENT","p":2,"card":"HMW#100:4","zone":"discard","cost":2,"ms":29}
+{"seq":"R4.A.2","t":"PLAY_EVENT","p":2,"card":"HMW#100:4","zone":"discard","cost":2,"ms":26}
 {"seq":"R4.A.2a","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#100:4","ability":"torrent_anonymous","kind":"event","title":"Give a Weakness token to a unit. If you control a Naboo base, give 2 Weakness tokens to that unit instead."}
 {"seq":"R4.A.2b","t":"MOVE","card":"TOKEN:weakness#7816991190:4","from":"outsideTheGame","to":"ground","p":1,"kind":"upgrade","attachedTo":"TOKEN:beast#6445363199:2"}
 {"seq":"R4.A.2c","t":"STATUS_TOKEN","card":"TOKEN:beast#6445363199:2","token":"weakness","count":1}
 {"seq":"R4.A.2d","t":"STATS","card":"TOKEN:beast#6445363199:2","power":2,"hp":2,"keywords":["raid 1"]}
 {"seq":"R4.A.2e","t":"CHOICE","p":1,"prompt":"Beast","offered":["base@2"],"chose":0,"for":"R4.A.3"}
 {"seq":"R4.A.2f","t":"EXHAUST","card":"TOKEN:beast#6445363199:2","for":"R4.A.3"}
-{"seq":"R4.A.3","t":"ATTACK","p":1,"atk":"TOKEN:beast#6445363199:2","def":"base@2","defenderType":"base","ms":30}
+{"seq":"R4.A.3","t":"ATTACK","p":1,"atk":"TOKEN:beast#6445363199:2","def":"base@2","defenderType":"base","ms":28}
 {"seq":"R4.A.3a","t":"STATS","card":"TOKEN:beast#6445363199:2","power":3,"hp":2,"keywords":["raid 1"]}
 {"seq":"R4.A.3b","t":"DAMAGE","src":"TOKEN:beast#6445363199:2","tgt":"base@2","amt":3,"damageType":"combat","hp":27}
 {"seq":"R4.A.3c","t":"STATS","card":"TOKEN:beast#6445363199:2","power":2,"hp":2,"keywords":["raid 1"]}
@@ -426,17 +426,17 @@
 {"seq":"R4.A.3e","t":"MOVE","card":"HMW#087:2","from":"hand","to":"ground","p":2,"kind":"unit","for":"R4.A.4"}
 {"seq":"R4.A.3f","t":"STATS","card":"HMW#087:2","power":3,"hp":4,"keywords":[],"for":"R4.A.4"}
 {"seq":"R4.A.3g","t":"EXHAUST","card":"HMW#087:2","for":"R4.A.4"}
-{"seq":"R4.A.4","t":"PLAY","p":2,"card":"HMW#087:2","zone":"ground","cost":3,"ms":32}
+{"seq":"R4.A.4","t":"PLAY","p":2,"card":"HMW#087:2","zone":"ground","cost":3,"ms":29}
 {"seq":"R4.A.4a","t":"CHOICE","p":1,"prompt":"Beast","offered":["HMW#087:2","base@2"],"chose":1,"for":"R4.A.5"}
 {"seq":"R4.A.4b","t":"EXHAUST","card":"TOKEN:beast#6445363199:3","for":"R4.A.5"}
-{"seq":"R4.A.5","t":"ATTACK","p":1,"atk":"TOKEN:beast#6445363199:3","def":"base@2","defenderType":"base","ms":33}
+{"seq":"R4.A.5","t":"ATTACK","p":1,"atk":"TOKEN:beast#6445363199:3","def":"base@2","defenderType":"base","ms":30}
 {"seq":"R4.A.5a","t":"STATS","card":"TOKEN:beast#6445363199:3","power":4,"hp":3,"keywords":["raid 1"]}
 {"seq":"R4.A.5b","t":"DAMAGE","src":"TOKEN:beast#6445363199:3","tgt":"base@2","amt":4,"damageType":"combat","hp":23}
 {"seq":"R4.A.5c","t":"STATS","card":"TOKEN:beast#6445363199:3","power":3,"hp":3,"keywords":["raid 1"]}
-{"seq":"R4.A.6","t":"PASS","p":2,"ms":34}
-{"seq":"R4.A.7","t":"PASS","p":1,"ms":34}
+{"seq":"R4.A.6","t":"PASS","p":2,"ms":31}
+{"seq":"R4.A.7","t":"PASS","p":1,"ms":32}
 {"seq":"R4.A.end","t":"PHASE_END","phase":"action"}
-{"seq":"R4.G.start","t":"PHASE_START","phase":"regroup","ms":35}
+{"seq":"R4.G.start","t":"PHASE_START","phase":"regroup","ms":32}
 {"seq":"R4.G.1","t":"MOVE","card":"HMW#126:2","from":"deck","to":"hand","p":1,"kind":"upgrade"}
 {"seq":"R4.G.2","t":"MOVE","card":"LAW#253:4","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R4.G.3","t":"DRAW","p":1,"count":2,"cards":["HMW#126:2","LAW#253:4"]}
@@ -455,8 +455,8 @@
 {"seq":"R4.G.17","t":"READY_RESOURCES","p":2,"amount":5}
 {"seq":"R4.G.end","t":"PHASE_END","phase":"regroup"}
 {"seq":"R4.end","t":"ROUND_END","round":4,"keyframe":{"round":4,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["HMW#126:2"],"resourcesReady":6,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","LAW#253","LAW#253:3","HMW#271:2","LAW#253:4"],"baseUpgrades":["HMW#147","HMW#271","HMW#126"],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#253:2","HMW#147:2","HMW#150","HMW#150:2"],"cards":[{"id":"TOKEN:beast#6445363199:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{"weakness":1},"captured":[],"power":2,"hp":2,"keywords":["raid 1"]},{"id":"TOKEN:beast#6445363199:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["raid 1"]},{"id":"TOKEN:beast#6445363199:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["raid 1"]}],"deckSize":1,"leader":{"id":"HMW#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":23,"baseMaxHp":30,"handSize":1,"hand":["HMW#242:4"],"resourcesReady":6,"resourcesExhausted":0,"resources":["HMW#087","HMW#242","HMW#242:2","HMW#242:3","HMW#059","HMW#059:2"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["HMW#095","HMW#100","HMW#095:2","HMW#100:2","HMW#100:3","HMW#100:4"],"cards":[{"id":"HMW#087:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":4,"keywords":[]}],"deckSize":0,"leader":{"id":"HMW#003","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false}}
-{"seq":"R5.start","t":"ROUND_START","round":5,"active":1,"keyframe":{"round":5,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["HMW#126:2"],"resourcesReady":6,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","LAW#253","LAW#253:3","HMW#271:2","LAW#253:4"],"baseUpgrades":["HMW#147","HMW#271","HMW#126"],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#253:2","HMW#147:2","HMW#150","HMW#150:2"],"cards":[{"id":"TOKEN:beast#6445363199:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{"weakness":1},"captured":[],"power":2,"hp":2,"keywords":["raid 1"]},{"id":"TOKEN:beast#6445363199:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["raid 1"]},{"id":"TOKEN:beast#6445363199:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["raid 1"]}],"deckSize":1,"leader":{"id":"HMW#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":23,"baseMaxHp":30,"handSize":1,"hand":["HMW#242:4"],"resourcesReady":6,"resourcesExhausted":0,"resources":["HMW#087","HMW#242","HMW#242:2","HMW#242:3","HMW#059","HMW#059:2"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["HMW#095","HMW#100","HMW#095:2","HMW#100:2","HMW#100:3","HMW#100:4"],"cards":[{"id":"HMW#087:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":4,"keywords":[]}],"deckSize":0,"leader":{"id":"HMW#003","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":36}
-{"seq":"R5.A.start","t":"PHASE_START","phase":"action","active":1,"ms":36}
+{"seq":"R5.start","t":"ROUND_START","round":5,"active":1,"keyframe":{"round":5,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["HMW#126:2"],"resourcesReady":6,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","LAW#253","LAW#253:3","HMW#271:2","LAW#253:4"],"baseUpgrades":["HMW#147","HMW#271","HMW#126"],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#253:2","HMW#147:2","HMW#150","HMW#150:2"],"cards":[{"id":"TOKEN:beast#6445363199:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{"weakness":1},"captured":[],"power":2,"hp":2,"keywords":["raid 1"]},{"id":"TOKEN:beast#6445363199:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["raid 1"]},{"id":"TOKEN:beast#6445363199:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["raid 1"]}],"deckSize":1,"leader":{"id":"HMW#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":23,"baseMaxHp":30,"handSize":1,"hand":["HMW#242:4"],"resourcesReady":6,"resourcesExhausted":0,"resources":["HMW#087","HMW#242","HMW#242:2","HMW#242:3","HMW#059","HMW#059:2"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["HMW#095","HMW#100","HMW#095:2","HMW#100:2","HMW#100:3","HMW#100:4"],"cards":[{"id":"HMW#087:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":4,"keywords":[]}],"deckSize":0,"leader":{"id":"HMW#003","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":34}
+{"seq":"R5.A.start","t":"PHASE_START","phase":"action","active":1,"ms":34}
 {"seq":"R5.A.0a","t":"ABILITY_ACTIVATE","p":1,"card":"base@1","ability":"gained_from_beast-lair_constant_0","kind":"triggered","title":"Discard a card from your hand to create a Beast token","grantedBy":"HMW#147"}
 {"seq":"R5.A.0b","t":"CHOICE","p":1,"prompt":"Tusken Camp","offered":["HMW#126:2"],"chose":0}
 {"seq":"R5.A.0c","t":"MOVE","card":"HMW#126:2","from":"hand","to":"discard","p":1,"kind":"upgrade"}
@@ -468,7 +468,7 @@
 {"seq":"R5.A.0i","t":"CHOICE","p":1,"prompt":"Beast","offered":["HMW#087:2","base@2"],"chose":1}
 {"seq":"R5.A.0j","t":"STATS","card":"TOKEN:beast#6445363199:5","power":3,"hp":3,"keywords":["raid 1"]}
 {"seq":"R5.A.0k","t":"EXHAUST","card":"TOKEN:beast#6445363199:2","for":"R5.A.1"}
-{"seq":"R5.A.1","t":"ATTACK","p":1,"atk":"TOKEN:beast#6445363199:2","def":"base@2","defenderType":"base","ms":39}
+{"seq":"R5.A.1","t":"ATTACK","p":1,"atk":"TOKEN:beast#6445363199:2","def":"base@2","defenderType":"base","ms":36}
 {"seq":"R5.A.1a","t":"STATS","card":"TOKEN:beast#6445363199:2","power":3,"hp":2,"keywords":["raid 1"]}
 {"seq":"R5.A.1b","t":"DAMAGE","src":"TOKEN:beast#6445363199:2","tgt":"base@2","amt":3,"damageType":"combat","hp":20}
 {"seq":"R5.A.1c","t":"STATS","card":"TOKEN:beast#6445363199:2","power":2,"hp":2,"keywords":["raid 1"]}
@@ -476,7 +476,7 @@
 {"seq":"R5.A.1e","t":"MOVE","card":"HMW#242:4","from":"hand","to":"ground","p":2,"kind":"unit","for":"R5.A.2"}
 {"seq":"R5.A.1f","t":"STATS","card":"HMW#242:4","power":3,"hp":2,"keywords":[],"for":"R5.A.2"}
 {"seq":"R5.A.1g","t":"EXHAUST","card":"HMW#242:4","for":"R5.A.2"}
-{"seq":"R5.A.2","t":"PLAY","p":2,"card":"HMW#242:4","zone":"ground","cost":2,"ms":40}
+{"seq":"R5.A.2","t":"PLAY","p":2,"card":"HMW#242:4","zone":"ground","cost":2,"ms":37}
 {"seq":"R5.A.2a","t":"CHOICE","p":2,"prompt":"Occupation Officer","offered":["HMW#087:2","HMW#242:4","TOKEN:beast#6445363199:2","TOKEN:beast#6445363199:3","TOKEN:beast#6445363199:4","TOKEN:beast#6445363199:5"],"chose":2}
 {"seq":"R5.A.2b","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#242:4","ability":"occupation-officer_triggered_0","kind":"triggered","title":"Give a Weakness token to a unit"}
 {"seq":"R5.A.2c","t":"MOVE","card":"TOKEN:weakness#7816991190:5","from":"outsideTheGame","to":"ground","p":1,"kind":"upgrade","attachedTo":"TOKEN:beast#6445363199:2"}
@@ -484,21 +484,21 @@
 {"seq":"R5.A.2e","t":"STATS","card":"TOKEN:beast#6445363199:2","power":1,"hp":1,"keywords":["raid 1"]}
 {"seq":"R5.A.2f","t":"CHOICE","p":1,"prompt":"Beast","offered":["HMW#087:2","HMW#242:4","base@2"],"chose":2,"for":"R5.A.3"}
 {"seq":"R5.A.2g","t":"EXHAUST","card":"TOKEN:beast#6445363199:3","for":"R5.A.3"}
-{"seq":"R5.A.3","t":"ATTACK","p":1,"atk":"TOKEN:beast#6445363199:3","def":"base@2","defenderType":"base","ms":43}
+{"seq":"R5.A.3","t":"ATTACK","p":1,"atk":"TOKEN:beast#6445363199:3","def":"base@2","defenderType":"base","ms":39}
 {"seq":"R5.A.3a","t":"STATS","card":"TOKEN:beast#6445363199:3","power":4,"hp":3,"keywords":["raid 1"]}
 {"seq":"R5.A.3b","t":"DAMAGE","src":"TOKEN:beast#6445363199:3","tgt":"base@2","amt":4,"damageType":"combat","hp":16}
 {"seq":"R5.A.3c","t":"STATS","card":"TOKEN:beast#6445363199:3","power":3,"hp":3,"keywords":["raid 1"]}
-{"seq":"R5.A.4","t":"PASS","p":2,"ms":44}
+{"seq":"R5.A.4","t":"PASS","p":2,"ms":40}
 {"seq":"R5.A.4a","t":"CHOICE","p":1,"prompt":"Beast","offered":["HMW#087:2","HMW#242:4","base@2"],"chose":2,"for":"R5.A.5"}
 {"seq":"R5.A.4b","t":"EXHAUST","card":"TOKEN:beast#6445363199:4","for":"R5.A.5"}
-{"seq":"R5.A.5","t":"ATTACK","p":1,"atk":"TOKEN:beast#6445363199:4","def":"base@2","defenderType":"base","ms":46}
+{"seq":"R5.A.5","t":"ATTACK","p":1,"atk":"TOKEN:beast#6445363199:4","def":"base@2","defenderType":"base","ms":42}
 {"seq":"R5.A.5a","t":"STATS","card":"TOKEN:beast#6445363199:4","power":4,"hp":3,"keywords":["raid 1"]}
 {"seq":"R5.A.5b","t":"DAMAGE","src":"TOKEN:beast#6445363199:4","tgt":"base@2","amt":4,"damageType":"combat","hp":12}
 {"seq":"R5.A.5c","t":"STATS","card":"TOKEN:beast#6445363199:4","power":3,"hp":3,"keywords":["raid 1"]}
-{"seq":"R5.A.6","t":"PASS","p":2,"ms":47}
-{"seq":"R5.A.7","t":"PASS","p":1,"ms":48}
+{"seq":"R5.A.6","t":"PASS","p":2,"ms":43}
+{"seq":"R5.A.7","t":"PASS","p":1,"ms":43}
 {"seq":"R5.A.end","t":"PHASE_END","phase":"action"}
-{"seq":"R5.G.start","t":"PHASE_START","phase":"regroup","ms":48}
+{"seq":"R5.G.start","t":"PHASE_START","phase":"regroup","ms":43}
 {"seq":"R5.G.1","t":"MOVE","card":"SOR#095:3","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R5.G.2","t":"DRAW","p":1,"count":1,"cards":["SOR#095:3"]}
 {"seq":"R5.G.3","t":"DRAW","p":2,"count":0,"cards":[]}
@@ -514,8 +514,8 @@
 {"seq":"R5.G.13","t":"READY_RESOURCES","p":2,"amount":2}
 {"seq":"R5.G.end","t":"PHASE_END","phase":"regroup"}
 {"seq":"R5.end","t":"ROUND_END","round":5,"keyframe":{"round":5,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":27,"baseMaxHp":30,"handSize":0,"hand":[],"resourcesReady":7,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","LAW#253","LAW#253:3","HMW#271:2","LAW#253:4","SOR#095:3"],"baseUpgrades":["HMW#147","HMW#271","HMW#126"],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#253:2","HMW#147:2","HMW#150","HMW#150:2","HMW#126:2"],"cards":[{"id":"TOKEN:beast#6445363199:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{"weakness":2},"captured":[],"power":1,"hp":1,"keywords":["raid 1"]},{"id":"TOKEN:beast#6445363199:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["raid 1"]},{"id":"TOKEN:beast#6445363199:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["raid 1"]},{"id":"TOKEN:beast#6445363199:5","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["raid 1"]}],"deckSize":0,"leader":{"id":"HMW#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":6,"baseMaxHp":30,"handSize":0,"hand":[],"resourcesReady":6,"resourcesExhausted":0,"resources":["HMW#087","HMW#242","HMW#242:2","HMW#242:3","HMW#059","HMW#059:2"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["HMW#095","HMW#100","HMW#095:2","HMW#100:2","HMW#100:3","HMW#100:4"],"cards":[{"id":"HMW#087:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":4,"keywords":[]},{"id":"HMW#242:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":2,"keywords":[]}],"deckSize":0,"leader":{"id":"HMW#003","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false}}
-{"seq":"R6.start","t":"ROUND_START","round":6,"active":1,"keyframe":{"round":6,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":27,"baseMaxHp":30,"handSize":0,"hand":[],"resourcesReady":7,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","LAW#253","LAW#253:3","HMW#271:2","LAW#253:4","SOR#095:3"],"baseUpgrades":["HMW#147","HMW#271","HMW#126"],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#253:2","HMW#147:2","HMW#150","HMW#150:2","HMW#126:2"],"cards":[{"id":"TOKEN:beast#6445363199:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{"weakness":2},"captured":[],"power":1,"hp":1,"keywords":["raid 1"]},{"id":"TOKEN:beast#6445363199:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["raid 1"]},{"id":"TOKEN:beast#6445363199:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["raid 1"]},{"id":"TOKEN:beast#6445363199:5","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["raid 1"]}],"deckSize":0,"leader":{"id":"HMW#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":6,"baseMaxHp":30,"handSize":0,"hand":[],"resourcesReady":6,"resourcesExhausted":0,"resources":["HMW#087","HMW#242","HMW#242:2","HMW#242:3","HMW#059","HMW#059:2"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["HMW#095","HMW#100","HMW#095:2","HMW#100:2","HMW#100:3","HMW#100:4"],"cards":[{"id":"HMW#087:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":4,"keywords":[]},{"id":"HMW#242:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":2,"keywords":[]}],"deckSize":0,"leader":{"id":"HMW#003","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":50}
-{"seq":"R6.A.start","t":"PHASE_START","phase":"action","active":1,"ms":50}
+{"seq":"R6.start","t":"ROUND_START","round":6,"active":1,"keyframe":{"round":6,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":27,"baseMaxHp":30,"handSize":0,"hand":[],"resourcesReady":7,"resourcesExhausted":0,"resources":["SOR#095","SOR#095:2","LAW#253","LAW#253:3","HMW#271:2","LAW#253:4","SOR#095:3"],"baseUpgrades":["HMW#147","HMW#271","HMW#126"],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LAW#253:2","HMW#147:2","HMW#150","HMW#150:2","HMW#126:2"],"cards":[{"id":"TOKEN:beast#6445363199:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{"weakness":2},"captured":[],"power":1,"hp":1,"keywords":["raid 1"]},{"id":"TOKEN:beast#6445363199:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["raid 1"]},{"id":"TOKEN:beast#6445363199:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["raid 1"]},{"id":"TOKEN:beast#6445363199:5","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":3,"keywords":["raid 1"]}],"deckSize":0,"leader":{"id":"HMW#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":6,"baseMaxHp":30,"handSize":0,"hand":[],"resourcesReady":6,"resourcesExhausted":0,"resources":["HMW#087","HMW#242","HMW#242:2","HMW#242:3","HMW#059","HMW#059:2"],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["HMW#095","HMW#100","HMW#095:2","HMW#100:2","HMW#100:3","HMW#100:4"],"cards":[{"id":"HMW#087:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":4,"keywords":[]},{"id":"HMW#242:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":2,"keywords":[]}],"deckSize":0,"leader":{"id":"HMW#003","deployed":false,"exhausted":false,"epicActionUsed":false}}},"initiativeTaken":false,"active":1},"ms":45}
+{"seq":"R6.A.start","t":"PHASE_START","phase":"action","active":1,"ms":45}
 {"seq":"R6.A.game-end","t":"GAME_END","winner":1,"reason":"Concession"}
 
 %%% ANNOTATIONS
