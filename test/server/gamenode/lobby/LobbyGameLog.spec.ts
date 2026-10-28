@@ -1,3 +1,4 @@
+import { SwuPgnGameAdapter } from '../../../../server/game/core/chat/SwuPgnGameAdapter';
 import { premierBestOfOne, premierBestOfThree } from '../../../helpers/server/MatchConfigs';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 import type { TestClient } from '../../../helpers/server/TestClient';
@@ -113,5 +114,32 @@ describe('Lobby game log download', function () {
             expect(player.gameState?.winners?.length).toBe(1);
             expect(await requestGameLogAsync(player)).toEqual(served);
         });
+
+        // TODO: cover getGameLog's players-only refusal ('Only the players of this game can download its
+        // log'). It cannot be reached over the socket yet: someone who takes a seat after the game was
+        // played is dropped while connecting ("Error connecting to lobby"): addLobbyUserAsync's
+        // updateUserLastActivity calls game.onPlayerAction for them, and getPlayerById fails its
+        // Contract for a non-player. See Open finding #10 in long-term-project-docs/game-node-test-suite.md.
+
+        // Value: protects=a log that failed to generate at game end is reported as an error, not served, and leaves the game open to undo; fails_when=getGameLog sends a success-shaped reply without a file, retries generation, or marks the game served; why_new=no case made generation fail; seam=none; no_claim=what makes generation fail in production
+        it('reports a log that failed to generate, and leaves the game open to undo', async function () {
+            const { harness } = contextRef;
+            const { first: player } = await harness.startQuickGameAsync();
+            const generate = spyOn(SwuPgnGameAdapter.prototype, 'generateFile').and.throwError('generation broke');
+
+            await player.sendGameMessageAsync('concede');
+            const reply = await requestGameLogAsync(player);
+            const attempts = generate.calls.count();
+            await undoToSetupAsync(player);
+
+            expect(reply).toEqual({ error: 'Failed to generate game log' });
+            expect(attempts).withContext('generated once at game end, never again on request')
+                .toBe(1);
+            expect(player.gameState?.winners).toEqual([]);
+        });
+
+        // TODO: the withheld path (Game.isSwuPgnWithheld, set by postRollbackOperations when a served
+        // game is reopened) has no spec. Every rollback path refuses once the log is served
+        // (SwuPgnServedLogUndoLock.spec), so reaching it needs a rollback route that skips that check.
     });
 });
