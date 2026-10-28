@@ -46,6 +46,9 @@ export const BANNED: { phrase: RegExp; task: number; why: string }[] = [
     { phrase: /\busername\b/, task: 8, why: 'assumes one platform\'s account model' },
     { phrase: /engine game id/, task: 8, why: 'assumes one engine\'s game id' },
     { phrase: /The reference writer (writes|emits|derives|never sets)/, task: 8, why: 'describes one implementation\'s output as the norm' },
+    { phrase: /\breference writer\b/, task: 9, why: 'names the reference writer in normative text' },
+    { phrase: /\bforceteki\b/, task: 9, why: 'names one implementation in normative text' },
+    { phrase: /\bKarabast\b/, task: 9, why: 'names one project in normative text' },
 ];
 
 /** The lines a conforming implementation must obey, with 1-based line numbers. */

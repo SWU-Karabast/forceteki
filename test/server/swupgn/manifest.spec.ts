@@ -1,7 +1,7 @@
 import Ajv from 'ajv/dist/2020';
 import * as fs from 'fs';
 import * as path from 'path';
-import { fold, parse, render, validate } from '../../../swupgn/src/index';
+import { engineProduct, fold, parse, render, validate } from '../../../swupgn/src/index';
 
 const VECTOR_DIR = path.resolve(__dirname, '../../../../swupgn/test-vectors');
 const SCHEMA_DIR = path.resolve(__dirname, '../../../../swupgn/schema');
@@ -9,6 +9,7 @@ const SCHEMA_DIR = path.resolve(__dirname, '../../../../swupgn/schema');
 interface ManifestEntry {
     file: string;
     class: 'positive' | 'negative';
+    writer: string;
     level: string;
     errors: string[];
     warnings: string[];
@@ -29,6 +30,19 @@ describe('SWU-PGN conformance manifest', function () {
             ...fs.readdirSync(path.join(VECTOR_DIR, 'negative')).map((f) => `negative/${f}`),
         ].sort();
         expect(manifest.vectors.map((v) => v.file).sort()).toEqual(onDisk);
+    });
+
+    it('names the writer of every vector', function () {
+        for (const v of manifest.vectors) {
+            expect(typeof v.writer).withContext(v.file)
+                .toBe('string');
+            expect(v.writer.length).withContext(v.file)
+                .toBeGreaterThan(0);
+            if (v.class === 'positive' && v.writer !== 'hand') {
+                expect(v.writer).withContext(v.file)
+                    .toBe(engineProduct(parse(read(v.file)).header.engine));
+            }
+        }
     });
 
     for (const v of manifest.vectors) {

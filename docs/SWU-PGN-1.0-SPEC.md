@@ -34,6 +34,11 @@ It becomes a Recommendation when two independent implementations pass the confor
 ([§20](#20-conformance-suite--test-vectors)) and each open issue in §21 is either closed or
 deferred to a later minor version. SWUForge and Karabuddy are implementing it.
 
+**Exit criterion.** Two independent writers, on different engines, each contribute at least one
+real-game vector, and each of those vectors is `verified` under at least two independent readers.
+Until then the suite shows what one writer produces, not what the text requires
+([Appendix E](#appendix-e-implementation-report-informative)).
+
 ## Copyright and License
 
 Copyright © 2026 the Karabast Project contributors.
@@ -155,7 +160,7 @@ with the text, the disagreement is an erratum. Until it is corrected, the text g
 as described under Feedback above.
 
 Informative, not normative: examples, notes, the "In plain words" passages, the appendices
-marked informative, and any sentence about what the reference writer or reader happens to do.
+marked informative, and any sentence about what one particular implementation happens to do.
 Each section states its rule first and then explains it in plain words. Where the two seem to
 differ, the rule wins. A block that begins `> **Note (informative):**` is informative, wherever it
 appears.
@@ -253,7 +258,8 @@ requirement, by id. The linked section is where each one is defined.
   `kind: "upgrade"` + `target` — neither is a zone move, so nothing else tells a reader
   ([§10.1](#101-events-that-carry-board-detail)).
 - `[W-12]` SHOULD write `WriterRevision`. If it does, MUST bump it whenever a reader could see
-  the difference in what it writes ([§5.2](#52-optional-tags), [§22](#22-version-history)).
+  the difference in what it writes ([§5.2](#52-optional-tags),
+  [Appendix C](#reference-writer-revisions-informative)).
 - `[W-13]` MUST write `RecorderErrors` in the header if any record was lost while recording
   ([§5.2](#52-optional-tags)). A file that silently lost records MUST NOT look complete.
 - `[W-14]` MUST record the resource row as counts: an `EXHAUST_RESOURCES` for every resource that
@@ -501,14 +507,13 @@ use. See [§6.5](#65-the-cards-index) and [§16](#16-rendering--turning-a-file-i
 ### The header lines
 
 - Every header line starts with `[`, and holds one or more `[Tag "Value"]` pairs separated by
-  spaces and nothing else. A writer SHOULD write one tag per line, as the reference writer
-  does. A reader MUST accept several: `[Format "Premier"] [CardPool "SOR"]`.
+  spaces and nothing else. A writer SHOULD write one tag per line. A reader MUST accept several: `[Format "Premier"] [CardPool "SOR"]`.
 - Any other text on a header line makes the file malformed. A reader MUST NOT skip it,
   because a skipped fragment can be half of a tag.
 - Tag names are ASCII letters and digits only, and are **case-sensitive**.
 - Values are in double quotes. The only escapes are `\"` (a quote) and `\\` (a backslash).
-  Any other backslash makes the file malformed. A value cannot hold a line break. The reference
-  writer turns a line break in a value into a space.
+  Any other backslash makes the file malformed. A value cannot hold a line break. A writer
+  can turn a line break in a value into a space.
 - All header lines MUST come **before** the first `%%%` banner. Inside a section, a line
   starting with `[` is a record (a JSON array), not a header. It reaches the JSON path, so a
   validator rejects it.
@@ -590,7 +595,7 @@ Counts are base-10 digits with no sign, space or exponent.
 | `GameId` | 1–128 characters | A unique id for this one game, **opaque**: it MUST NOT be, or reveal, an identifier internal to the host that ran the game ([§17](#17-privacy-considerations)). See [Appendix D](#appendix-d-reference-writer-notes-informative) for one way to derive it. |
 | `Date` | RFC 3339 | When the game started. |
 | `CardPool` | set codes joined by `,` | Which sets were legal, e.g. `"ASH,HMW,IBH,IC27,JTL,LAW,LOF,SEC,SHD,SOR,TS26,TWI"`. A single set code like `"SOR"` is also valid. Each is a set code of [§6.1](#61-card-ids). |
-| `Engine` | `<product>@<build>` | Which build wrote the file, e.g. `"forceteki@a1b2c3d"` or `"forceteki@2.3.1"`. `<product>` names the writer and scopes `WriterRevision`. See [§5.3](#53-provenance-engine-and-seed). |
+| `Engine` | `<product>@<build>` | Which build wrote the file, e.g. `"examplewriter@a1b2c3d"` or `"examplewriter@2.3.1"`. `<product>` names the writer and scopes `WriterRevision`. See [§5.3](#53-provenance-engine-and-seed). |
 | `Seed` | any | The random seed this game actually ran on, e.g. a UUID. See [§5.3](#53-provenance-engine-and-seed). |
 | `P1Id` / `P2Id` | `sha256:` + 64 lowercase hex digits | A pseudonymous, stable-per-scheme id per player. See [§17](#17-privacy-considerations). |
 | `P1` / `P2` | any | The name shown to humans. MUST be generic — use `"Player 1"` and `"Player 2"`. |
@@ -624,7 +629,7 @@ without guessing from their contents ([Appendix C](#reference-writer-revisions-i
 named in `Engine`** before the `@`: `examplewriter@…` revision 3 and another writer's revision 3
 are unrelated. It is not the build (`Engine` names that, [§5.3](#53-provenance-engine-and-seed)):
 many builds share one revision, and a build that changes nothing a reader sees does not bump
-it. The reference writer puts it right after `Game`.
+it. It is conventionally written right after `Game`.
 
 **`WriterRevision` is diagnostic only.** It identifies a writer's behaviour for bug reports, and
 no change to what a record *means* may ride on it: a change of meaning needs a new version
@@ -662,14 +667,14 @@ carry real values in both.**
 
 - **`Engine`** MUST name the build that produced the file — a git SHA, a release version,
   anything that identifies **one** build. Without it you cannot tell which build produced a
-  bad replay, which is exactly the position a bug report leaves you in. How the reference
+  bad replay, which is exactly the position a bug report leaves you in. How one
   writer resolves its build is in [Appendix D](#appendix-d-reference-writer-notes-informative).
 
   **A build identifier names the CODE THAT RAN, not the last commit.** A bare commit id does
   not: a day of writer changes on one commit stamps every file identically, and a reader
   holding a defective file and a fixed one cannot tell them apart from the header. So a writer
   that names a build by commit MUST mark a build from an uncommitted tree, with a `-dirty`
-  suffix (`forceteki@7dd39a09-dirty`, the convention `git describe --dirty` uses). A reader
+  suffix (`examplewriter@7dd39a09-dirty`, the convention `git describe --dirty` uses). A reader
   SHOULD treat a `-dirty` build as a development build and not attribute it to the named commit.
 - **`Seed`** MUST be the seed the game's RNG actually ran on. A writer whose RNG self-seeds
   from entropy MUST generate and record a seed instead, otherwise the seed is unrecoverable
@@ -680,7 +685,7 @@ are required and MUST be non-empty, so a sentinel is used rather than an empty s
 
 | Value | Means | What a reader may assume |
 |---|---|---|
-| `"forceteki@unknown"` (any `@unknown`) | Provenance unavailable | The file is **untraceable**. Do not attribute it to any known build. |
+| `"<product>@unknown"` (any `@unknown`) | Provenance unavailable | The file is **untraceable**. Do not attribute it to any known build. |
 | `"unseeded"` | No seed was recorded | Deterministic replay is **impossible** for this file. The fold still works — it never needs the seed. |
 
 A reader MUST accept a file carrying either sentinel; they mark missing information, not a
@@ -706,7 +711,7 @@ Everything in a file refers to things by short strings. Here they all are.
 
 The authority for every card id is the **official Star Wars: Unlimited card database** published
 by Fantasy Flight Games at [starwarsunlimited.com](https://starwarsunlimited.com/cards), as it
-stood when the file was written. The reference writer reads it through that site's card API
+stood when the file was written. A writer can read it through that site's card API
 (`admin.starwarsunlimited.com/api/cards`). The rules:
 
 - `SET` is the card's **set code** in upper case, from the registry below.
@@ -775,7 +780,9 @@ A token's name is derived from its English printed title:
 name a token this way `[W-40]`. A `STATUS_TOKEN.token` is the name of the token upgrade, derived
 the same way. A validator MUST report a `TOKEN:` id or a `STATUS_TOKEN.token` that breaks the
 token-name grammar (`bad-token-name`, error) `[V-05]`. The names of the tokens printed today are
-in the "Token names" registry ([§25](#25-registries)).
+in the "Token names" registry ([§25](#25-registries)). Any string in a record that begins
+`TOKEN:` is read as a token id, wherever it appears, so a validator applies the grammar to all of
+them.
 
 The `:N` suffix is what makes each card **unique for the whole game**, so `EXHAUST` on
 `ASH#110:2` can never hit the wrong copy. When you look up a card's *display name*,
@@ -966,8 +973,8 @@ role omits `kind`, and the move still folds as the common case rather than being
 Rules:
 
 - A writer SHOULD emit an entry for **every** id that appears anywhere in the file: the
-  header's leaders and bases, every `DECKS` entry, and every id an event writes. The reference
-  writer takes the **union** of all three — the deck lists alone miss tokens, and the events
+  header's leaders and bases, every `DECKS` entry, and every id an event writes. Take the
+  **union** of all three — the deck lists alone miss tokens, and the events
   alone miss a leader that was never deployed or a card that was never drawn.
 - A reader looks up `baseId(ref)` — strip the `:N` first.
 - An id with no entry falls back to **the id itself**. An incomplete index degrades to
@@ -1369,9 +1376,9 @@ and SHOULD state it.
 | `replacement` | A replacement effect (CR 7.7.5), including one that prevents or changes damage before it is dealt. |
 
 When more than one row applies, the first row that matches wins. An Epic Action is an
-action ability, and is `epic`. The ability Shielded gives (entering play with a Shield token) is
-`keyword`; the Shield token's own damage prevention is a replacement effect (CR 7.7.5), and is
-`replacement`.
+action ability, and is `epic`. The ability Shielded gives (its When Played / When Deployed / When Created grant of a Shield
+token, CR 7.5.12) is `keyword`; the Shield token's own damage prevention (CR 3.7.6) is a
+replacement effect (CR 7.7.5), and is `replacement`.
 
 A writer MUST NOT omit `kind` for an ability it can classify.
 
@@ -1897,7 +1904,7 @@ These never change the board. A folder MUST read them and do nothing.
 Searching a deck looks at cards and usually puts most of them back. A conformant search
 emits:
 
-1. one **`SEARCH`** record. `found` is optional, and the reference writer omits it: the
+1. one **`SEARCH`** record. `found` is optional, and a writer MAY omit it when the
    engine announces the search before the player has chosen, and what left the deck is
    stated by the `MOVE` in step 3;
 2. a **`REVEAL`** where the opponent gets to see the cards too;
@@ -2317,7 +2324,7 @@ informative restatement of it.
 
 ```
 fold(events):
-  state = emptyState()
+  state = the empty state of §11
   for each event e:
     if (e.t is ROUND_START or ROUND_END) and e.keyframe is not damaged:   # see §13
       state = deepCopy(e.keyframe)   # the keyframe is the truth
@@ -2558,7 +2565,7 @@ state is thrown away and the keyframe takes its place. Everything below follows 
 - A keyframe MUST equal the board **at the moment its own seq names** `[W-24]`. A `ROUND_END`
   keyframe is the trap: it describes the round that is ending, so `initiativeTaken` is `true`
   for a round in which the initiative was claimed and `phase` is `regroup`, even though the
-  round's teardown resets both. How the reference writer gets this right is in
+  round's teardown resets both. How one writer gets this right is in
   [Appendix D](#appendix-d-reference-writer-notes-informative).
 
   > **Note (informative):** An engine typically resets both as it tears the round down, which is
@@ -2596,9 +2603,11 @@ The check is:
 2. Fold forward normally.
 3. At every keyframe: **compare** your fold against the photo, write down every
    difference, then snap to the photo and carry on.
-4. Return `{ ok, mismatches }`.
+4. Report whether the fold matched, and list every mismatch written down in step 3. A check
+   reports at least the pair `ok` (true when there were none) and `mismatches`.
 
-> **Note (informative):** The reference reader implements this check as `checkKeyframes(events)`.
+> **Note (informative):** The reference reader implements this check as `checkKeyframes(events)`,
+> which returns an object of that shape.
 
 If `ok` is `false`, the deltas between two keyframes don't add up to what the engine
 reported — the file is under-recording something.
@@ -2973,7 +2982,7 @@ deliberately whether to emit it.
 
 A writer MUST have a gate that keeps identifying data out of its files: a writer that builds
 any string from user data SHOULD scan the finished file for it, and MUST NOT write one the scan
-rejects. The reference writer's gate is in [Appendix D](#appendix-d-reference-writer-notes-informative).
+rejects. One writer's gate is in [Appendix D](#appendix-d-reference-writer-notes-informative).
 
 **Omniscient files reveal hidden information**: every hand, the shuffled deck order, the seed.
 They MUST NOT reach a participant before the match is over ([§23](#23-security-considerations)).
@@ -3078,8 +3087,7 @@ The details a registration needs:
 - **Fragment identifier considerations:** above.
 - **Magic number:** `[Game "SWU-PGN/` at the start of the file.
 - **File extension:** `.swupgn`.
-- **Person to contact / change controller:** the Karabast Project, through the forceteki
-  repository.
+- **Person to contact / change controller:** the editors, through the canonical repository named in the front matter.
 
 ---
 
@@ -3097,6 +3105,7 @@ does with it:
 |---|---|
 | `file` | The input, relative to the folder. |
 | `class` | `positive` (a file to read and reproduce) or `negative` (a file to reject or warn on). |
+| `writer` | Who made the file: the `Engine` product ([§5.3](#53-provenance-engine-and-seed)) of a vector a real writer generated, or `hand` for one written by hand (`minimal` and every negative vector). For a generated positive vector it equals the product in the file's `Engine` tag. |
 | `level` | The level ([§2.1](#21-document-conformance-levels)) a conforming validator reports. |
 | `errors`, `warnings` | The issue codes ([§24](#24-error-model)) it reports, as sets: exactly these, in any order. |
 | `fold` | Positive only: the reduced state a conforming folder produces. |
@@ -3118,12 +3127,19 @@ does with it:
 4. **Strict renderer:** for every positive vector, the story plus one `\n` equals `render`
    byte for byte.
 
+**How a platform contributes a vector.** A platform with its own writer adds a real game it
+produced: the `.swupgn` file, its `.fold.json` and its `.render.txt`, made with the reference
+folder and strict renderer and checked by hand against the text, and a manifest row whose
+`writer` is that platform's `Engine` product. The file MUST contain no identifying data
+([§17](#17-privacy-considerations)). The editors accept it once the file is `complete` and every
+reader in the suite reproduces its fold and rendering.
+
 **Positive vectors** are below. Every one is at level `complete`.
 
 | Vector | Covers |
 |---|---|
 | `minimal` | Hand-written, rules-legal. A setup phase (draws, resourcing, the `R1.start` keyframe it leads to), a unit played in round 1 (`EXHAUST_RESOURCES`, `MOVE`, `STATS`, `PLAY`, the entering `EXHAUST`), a regroup (`READY`, `READY_RESOURCES`, two more keyframes), and the attack in round 2. Appendix A walks through it. |
-| `organic` | A real game the reference writer produced: natural setup with a mulligan, four rounds of plays, attacks and regroups, a concession. Keyframes at every round boundary. |
+| `organic` | A real game, from a real engine: natural setup with a mulligan, four rounds of plays, attacks and regroups, a concession. Keyframes at every round boundary. |
 | `upgrades` | Real game: a printed upgrade (`PLAY_UPGRADE` + `attachedTo`) and Advantage and Experience tokens on one host (Zealous Soldier #2), defeated with all of it attached — every removal record, and the detach on exit. Shield tokens (`SHIELD_GAIN`) on a second unit (Cloaked StarViper), which survives, so they are never used: no vector has a `SHIELD_USE`. |
 | `pilot` | Real game: a pilot flown onto a vehicle (`kind: "upgrade"` on a unit card, `%%% CARDS` saying `unit`), a second one, and a piloted vehicle Vanquished. |
 | `capture` | Real game: a unit taken captive (`CAPTURE` with `by`, the `MOVE` into `capture`) and rescued when its captor is defeated. |
@@ -3132,8 +3148,8 @@ does with it:
 | `stolen-hauler` | Real game: Stolen AT-Hauler defeated by Power of the Dark Side into its owner's discard, then played from there by the **opponent** (`MOVE` from `discard` with `"p": 2` for Player 1's card), twice. Gates the "whose pile" rule of [§12.1](#121-the-move-rule-the-big-one): the card leaves Player 1's pile, not Player 2's. |
 | `death-star` | Real game, eight rounds ([§10.4](#104-grand-moff-tarkin-and-the-death-star)): Grand Moff Tarkin builds to nine resources and deploys by Epic Action as **The Death Star** (`backSideName` in `%%% CARDS`, the `DEPLOY_LEADER` a sub-step of the Epic Action, arriving in `space`), then at the start of the regroup phase defeats Player 2's base with 9 HP left — a `DEFEAT` on `base@2`, `baseDefeated: true` beside a non-zero `baseHp`. Along the way a Weakness given to the player's own unit stacks to a kill. |
 
-The eight real-game vectors were produced by the reference writer at writer revision 3.
-`minimal` is written by hand. How the vectors are regenerated is in `swupgn/README.md`.
+The eight real-game vectors were written by one real engine; [Appendix C](#reference-writer-revisions-informative)
+names it and its writer revision. `minimal` is written by hand. How the vectors are regenerated is in `swupgn/README.md`.
 
 **Negative vectors**, in `swupgn/test-vectors/negative/`, are each the `minimal` vector with
 one thing broken. A reader MUST reject or warn on each as the manifest says:
@@ -3159,7 +3175,7 @@ one thing broken. A reader MUST reject or warn on each as the manifest says:
 | `newer-minor-bad-seat` | `SWU-PGN/1.7`, with a `PASS` by seat 3 | well-formed | error `schema`, warning `newer-minor` |
 | `newer-minor-result-seat` | `SWU-PGN/1.7`, with `[Result "P3"]` | well-formed | error `schema`, warning `newer-minor` |
 | `over-cap` | a keyframe hand of 1002 cards | well-formed | error `over-cap` |
-| `pre-release` | no `WriterRevision`, `Engine` product `forceteki` | well-formed | warning `pre-release` |
+| `pre-release` | no `WriterRevision`, and an `Engine` product that [Appendix C](#appendix-c-reading-pre-release-files-informative) names | well-formed | warning `pre-release` |
 | `damaged-keyframe` | a keyframe the events do not fold to | valid | warning `keyframe-mismatch` |
 | `unknown-type` | an event type from a later version | complete | warning `unknown-type` |
 | `unknown-section` | a section from a later version | complete | warning `unknown-section` |
@@ -3188,8 +3204,8 @@ two ways.
 4. **`active` cannot be rebuilt from the events.** Whose turn it is is stated by keyframes and
    phase starts, not derived, so it is stale between them
    ([§11](#11-the-reduced-state--the-board-you-build)).
-5. **Paths without a played game behind them.** These are specified, and recorded by the
-   reference writer, but no real game in the conformance suite exercises them, so a reader
+5. **Paths without a played game behind them.** These are specified, and a writer can
+   record them, but no real game in the conformance suite exercises them, so a reader
    should treat them as best-effort ([Appendix E](#appendix-e-implementation-report-informative)):
    continued play after the game has ended, a player's own base defeated by Grand Moff Tarkin,
    an opponent's Fortify upgrade attached to your base, and the ready/exhausted split of a
@@ -3202,7 +3218,7 @@ two ways.
 ### 1.0 — first release
 
 SWU-PGN/1.0 is the first version of the format. Files were written and shared during its pilot,
-and they also say `SWU-PGN/1.0`: some are pre-release files, and [Appendix C](#appendix-c-reading-pre-release-files-informative) says how to read it.
+and they also say `SWU-PGN/1.0`: some are pre-release files, and [Appendix C](#appendix-c-reading-pre-release-files-informative) says how to read them.
 A file that follows this document is SWU-PGN/1.0.
 
 1.0 ships six sections, of which two exist purely so the artifact stands on its own:
@@ -3264,6 +3280,18 @@ Platform neutrality (2026-10-28):
   writer must keep. The backward walk that grouped unstamped records moved to
   [Appendix C](#grouping-records-in-a-file-without-for), for old files only. A modal effect that
   picks several modes writes one `MODAL_CHOICE` per pick ([§10.2](#102-events-that-are-just-notes)).
+- The conformance suite records who made each vector. Every manifest row has a `writer`: the
+  `Engine` product of a generated vector, or `hand` ([§20](#20-conformance-suite--test-vectors)).
+  The Status section states the exit criterion for two independent writers. A test fails if
+  normative text says `reference writer`, `forceteki` or `Karabast`. Governance text says "the
+  editors" and "the canonical repository named in the front matter" ([§19](#19-media-type-and-file-extension),
+  [§25](#25-registries)). An annotation's what-if `line` is checked for token ids like any
+  record `[V-05]`, and any string that begins `TOKEN:` is read as a token id
+  ([§6.1](#the-token-grammar)).
+- `token-name` in [Appendix B.3](#b3-names-inside-records) narrowed: it no longer allows `_`, and
+  a `-` must sit between two runs of letters or digits, to match the derivation in
+  [§6.1](#the-token-grammar).
+
 - Normative text no longer names a reference-implementation function or claims what one
   implementation's files contain. Such remarks are informative notes, marked
   `> **Note (informative):**` ([§2](#2-conventions-and-conformance--how-to-read-this-spec)). The
@@ -3446,7 +3474,7 @@ level still counts every issue, listed or not. The conformance suite stays under
 
 Some vocabularies grow without a new version of the format. Each is a registry, kept in this
 document. Adding a value to a registry is a change to this document, made by a pull request
-to the forceteki repository that adds a row and, for a closed vocabulary, the schema value and
+to the canonical repository named in the front matter that adds a row and, for a closed vocabulary, the schema value and
 the reference reader's handling in the same change. Adding to a **closed** registry is a
 minor version ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)). Adding
 to an **open** one needs no version change: readers already accept values they do not know.
@@ -4025,9 +4053,14 @@ Each is detectable from the file:
 | No header tag said which writer made a file, so a pilot file and a current one were told apart only by their contents | `WriterRevision` ([§5.2](#52-optional-tags)); revision 1 is the first | the tag's presence |
 | A unit captured by a **base** (Arrest) left the board and was held nowhere, so it vanished from the fold until its rescue, and §10.1 said no card captures with a base | the seat's `baseCaptured`, pushed by a `CAPTURE` whose `by` is `base@N`, cleared on leaving `capture`, carried in every keyframe and gated ([§10.1](#101-events-that-carry-board-detail), [§11](#11-the-reduced-state--the-board-you-build)). Revision 1 | a keyframe carrying `baseCaptured` |
 
+### The early `INIT` seq
+
 Pre-release files and forceteki writer revisions 1 and 2 wrote `"R1.S.0"` for `INIT` ([§8](#8-the-setup-section)); a reader MUST accept either.
 
 ### Reference writer revisions (informative)
+
+The eight real-game vectors ([§20](#20-conformance-suite--test-vectors)) were written by
+`forceteki` at writer revision 3; their `writer` in the manifest is `forceteki`.
 
 `forceteki` writer revisions so far ([§5.2](#52-optional-tags)). Before publication a revision
 could change what a record means. After it, a revision is diagnostic only.
@@ -4164,12 +4197,19 @@ How the reference implementation was tested against this document, and what that
 not yet covered. The normative list of format gaps is [§21](#21-open-issues). This appendix is
 a record: the test files it names are forceteki's.
 
-**The suite is not yet independent evidence.** The real-game vectors were written by the
-reference writer, and `minimal` and the negative vectors were written by hand and checked with the
+**The suite is not yet independent evidence.** Every real-game vector was written by one
+writer (the manifest's `writer` is `forceteki` for all eight), and `minimal` and the negative vectors were written by hand and checked with the
 reference reader. A reader that passes them agrees with the reference implementation, which is
 not the same as agreeing with this text. Only a second implementation written from the text can
 show that. SWUForge's reader, written separately from this code, is to be that implementation, and
-its results against the suite will be recorded here. Until then, a disagreement between this text
+its results against the suite will be recorded here.
+
+**Writers and readers recorded so far.** One writer (`forceteki`, one engine) has contributed
+real-game vectors, and the reference reader is the only reader that has run the suite. The exit
+criterion in the Status section is therefore not met: it needs a second writer on a different
+engine, with a vector of its own, and two independent readers that verify each of those vectors
+([§20](#20-conformance-suite--test-vectors) says how a platform contributes one). Each result
+will be added here as it arrives. Until then, a disagreement between this text
 and the vectors is an erratum in one of them ([§2](#2-conventions-and-conformance--how-to-read-this-spec)),
 not proof that the text is wrong.
 
