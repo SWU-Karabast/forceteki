@@ -1,7 +1,7 @@
 import type { SwuPgnDocument, Header, DeckRecord, GameEvent, Annotation, SetupInitRecord, CardIndexRecord } from './types';
 
 /**
- * A reader error with a stable `code` (spec §19 error table) so a consumer can branch on what went
+ * A reader error with a stable `code` (spec §24 error table) so a consumer can branch on what went
  * wrong without matching message text, which is free to change.
  */
 export class SwuPgnError extends Error {
@@ -17,7 +17,7 @@ export class SwuPgnError extends Error {
 }
 
 /**
- * Resource limits (spec §17.1). A reader MAY cap these and MUST reject a file that exceeds one
+ * Resource limits (spec §23). A reader MAY cap these and MUST reject a file that exceeds one
  * rather than read part of it. The defaults sit far above any real game (the largest vector is
  * 66 KB, its longest line under 4 KB, under 1000 records) and far below what hurts a browser.
  */
@@ -59,42 +59,76 @@ function parseHeaderLine(line: string, lineNo: number, raw: Record<string, strin
 }
 
 /**
- * Nesting depth of one JSON line, counted before `JSON.parse` sees it, so a line of ten thousand
- * `[` is refused cheaply instead of being handed to every recursive consumer downstream.
+ * One pass over a JSON line before `JSON.parse` sees it. It measures the nesting depth, so a line
+ * of ten thousand `[` is refused cheaply instead of being handed to every recursive consumer
+ * downstream, and it finds the first key an object repeats. I-JSON forbids that (spec §4), and
+ * `JSON.parse` would silently keep the last one where another language's parser keeps the first,
+ * so two readers would fold the same line differently.
  */
-function jsonDepth(line: string): number {
-    let depth = 0;
+function scanJson(line: string): { depth: number; duplicateKey?: string } {
+    // One frame per open object or array; an object frame holds its keys so far.
+    const frames: { keys: Set<string> | null; expectKey: boolean }[] = [];
     let max = 0;
-    let inString = false;
+    let duplicateKey: string | undefined;
+    let stringStart = -1;
     for (let i = 0; i < line.length; i++) {
         const ch = line[i];
-        if (inString) {
+        if (stringStart >= 0) {
             if (ch === '\\') {
                 i++;
             } else if (ch === '"') {
-                inString = false;
+                const top = frames[frames.length - 1];
+                if (top?.keys && top.expectKey) {
+                    top.expectKey = false;
+                    const literal = line.slice(stringStart, i + 1);
+                    let key: string | undefined;
+                    try {
+                        // Compare keys as JSON reads them, so `"a"` and `"a"` are one key.
+                        key = literal.includes('\\') ? JSON.parse(literal) as string : literal.slice(1, -1);
+                    } catch {
+                        key = undefined;   // not JSON; JSON.parse rejects the whole line next
+                    }
+                    if (key !== undefined && duplicateKey === undefined && top.keys.has(key)) {
+                        duplicateKey = key;
+                    }
+                    if (key !== undefined) {
+                        top.keys.add(key);
+                    }
+                }
+                stringStart = -1;
             }
         } else if (ch === '"') {
-            inString = true;
+            stringStart = i;
         } else if (ch === '{' || ch === '[') {
-            depth++;
-            if (depth > max) {
-                max = depth;
+            frames.push({ keys: ch === '{' ? new Set<string>() : null, expectKey: ch === '{' });
+            if (frames.length > max) {
+                max = frames.length;
             }
         } else if (ch === '}' || ch === ']') {
-            depth--;
+            frames.pop();
+        } else if (ch === ',') {
+            const top = frames[frames.length - 1];
+            if (top?.keys) {
+                top.expectKey = true;
+            }
         }
     }
-    return max;
+    return { depth: max, ...(duplicateKey !== undefined ? { duplicateKey } : {}) };
 }
 
-/**
- * A header count: base-10 digits only. Anything else is corrupt, not zero, so the tag is left
- * absent -- absent and zero mean different things for `Undos` and `RecorderErrors`.
- */
+/** A header count: base-10 digits only, within the safe-integer range. */
 function strictCount(value: string): number | undefined {
     return (/^\d+$/).test(value) && Number.isSafeInteger(Number(value)) ? Number(value) : undefined;
 }
+
+/**
+ * The first line of every file (spec §4, Appendix B `game-line`): the `Game` tag alone, with a
+ * numeric major and minor version.
+ */
+const GAME_LINE = /^\[Game[ \t]+"SWU-PGN\/(\d+)\.(\d+)"\]$/;
+
+/** The major version this reader reads. A file of any other major is refused (spec §18). */
+export const READER_MAJOR = 1;
 
 function buildHeader(raw: Record<string, string>): Header {
     const req = (k: string): string => {
@@ -110,6 +144,14 @@ function buildHeader(raw: Record<string, string>): Header {
         }
         return n;
     };
+    // An optional count that is present must be a count too. Dropping a corrupt one would read
+    // `[RecorderErrors "x"]` as "no errors recorded", and absent and zero mean different things.
+    const optionalCount = (k: string): number | undefined =>
+        (Object.prototype.hasOwnProperty.call(raw, k) ? requiredCount(raw[k], k) : undefined);
+    const recorderErrors = optionalCount('RecorderErrors');
+    const undos = optionalCount('Undos');
+    const writerRevision = optionalCount('WriterRevision');
+    const gameNumber = optionalCount('GameNumber');
     return {
         game: req('Game'), gameId: req('GameId'), date: req('Date'),
         format: raw['Format'], cardPool: req('CardPool'), engine: req('Engine'),
@@ -123,12 +165,12 @@ function buildHeader(raw: Record<string, string>): Header {
         p2Leader: req('P2Leader'), p2Base: req('P2Base'),
         result: req('Result') as Header['result'], reason: req('Reason'),
         rounds: requiredCount(req('Rounds'), 'Rounds'),
-        ...(strictCount(raw['RecorderErrors'] ?? '') !== undefined ? { recorderErrors: strictCount(raw['RecorderErrors']) } : {}),
-        ...(strictCount(raw['Undos'] ?? '') !== undefined ? { undos: strictCount(raw['Undos']) } : {}),
-        ...(strictCount(raw['WriterRevision'] ?? '') !== undefined ? { writerRevision: strictCount(raw['WriterRevision']) } : {}),
+        ...(recorderErrors !== undefined ? { recorderErrors } : {}),
+        ...(undos !== undefined ? { undos } : {}),
+        ...(writerRevision !== undefined ? { writerRevision } : {}),
         ...(raw['EndDate'] != null ? { endDate: raw['EndDate'] } : {}),
         ...(raw['Match'] != null ? { match: raw['Match'] } : {}),
-        ...(strictCount(raw['GameNumber'] ?? '') !== undefined ? { gameNumber: strictCount(raw['GameNumber']) } : {}),
+        ...(gameNumber !== undefined ? { gameNumber } : {}),
     };
 }
 
@@ -193,8 +235,12 @@ export function parse(text: string, limits: ParseLimits = {}): SwuPgnDocument {
                 continue;
             }
             sawFirst = true;
-            if (!(/^\[Game\s+"SWU-PGN\//).test(line)) {
-                throw new SwuPgnError('not-swupgn', 'the first line is not a [Game "SWU-PGN/…"] tag', i + 1);
+            const game = GAME_LINE.exec(line);
+            if (!game) {
+                throw new SwuPgnError('not-swupgn', 'the first line is not a [Game "SWU-PGN/<major>.<minor>"] tag alone on its line', i + 1);
+            }
+            if (Number(game[1]) !== READER_MAJOR) {
+                throw new SwuPgnError('unsupported-major', `SWU-PGN/${game[1]}.${game[2]} is major version ${game[1]}; this reader reads major version ${READER_MAJOR}`, i + 1);
             }
         }
 
@@ -238,7 +284,8 @@ export function parse(text: string, limits: ParseLimits = {}): SwuPgnDocument {
         if (++records > lim.maxRecords) {
             throw new SwuPgnError('too-many-records', `more than ${lim.maxRecords} records`, i + 1);
         }
-        if (jsonDepth(line) > lim.maxDepth) {
+        const scanned = scanJson(line);
+        if (scanned.depth > lim.maxDepth) {
             throw new SwuPgnError('too-deep', `line ${i + 1} nests JSON deeper than ${lim.maxDepth}`, i + 1);
         }
         let rec: unknown;
@@ -246,6 +293,9 @@ export function parse(text: string, limits: ParseLimits = {}): SwuPgnDocument {
             rec = JSON.parse(line);
         } catch {
             throw new SwuPgnError('bad-json', `invalid JSON on line ${i + 1}`, i + 1);
+        }
+        if (scanned.duplicateKey !== undefined) {
+            throw new SwuPgnError('duplicate-key', `line ${i + 1} repeats the key "${scanned.duplicateKey}" in one object`, i + 1);
         }
         switch (section) {
             case 'DECKS': decks.push(rec as DeckRecord); break;

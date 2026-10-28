@@ -1,4 +1,4 @@
-import { validate } from '../../../swupgn/src/validate';
+import { MAX_ISSUES, validate } from '../../../swupgn/src/validate';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -183,7 +183,7 @@ describe('validate edge cases', function () {
     });
 });
 
-describe('validate conformance levels and cross-record rules (spec §3.1)', function () {
+describe('validate conformance levels and cross-record rules (spec §2.1)', function () {
     const codes = (text: string) => validate(text).issues.map((i) => `${i.severity}:${i.code}`);
     const addEvent = (json: string) => good.replace('%%% EVENTS', `%%% EVENTS\n${json}`);
 
@@ -225,6 +225,33 @@ describe('validate conformance levels and cross-record rules (spec §3.1)', func
         expect(codes(addEvent('{"seq":"R1.A.9","t":"MOVE","card":"SOR#108","from":"ground","to":"ground","p":1,"kind":"unit"}'))).not.toContain('error:same-zone-move');
     });
 
+    // Value: protects=a keyframe card in a zone outside the vocabulary is an error, not a silently folded board; fails_when=the keyframe card zone check is dropped from validate(); why_new=bad-zone was only tested on record zone and MOVE from/to; seam=none; no_claim=the fold's own handling of such a card
+    it('rejects a keyframe card whose zone is outside the vocabulary', function () {
+        const bad = good.replace('"cards":[{"id":"SOR#108","zone":"ground"', '"cards":[{"id":"SOR#108","zone":"limbo"');
+        expect(bad).not.toBe(good);
+        expect(codes(bad)).toContain('error:bad-zone');
+        expect(validate(bad).level).toBe('well-formed');
+    });
+
+    // Value: protects=an annotation is walked for reserved keys and unsafe numbers like a record is; fails_when=validate() stops calling walkValues on annotations; why_new=reserved-key and number-range were tested on events only; seam=none; no_claim=none
+    it('rejects reserved keys and unsafe integers inside an annotation', function () {
+        const ann = (extra: string) => good.replace('{"ref":"R2.A.1"', `{${extra},"ref":"R2.A.1"`);
+        expect(codes(ann('"x":{"__proto__":{"polluted":true}}'))).toContain('error:reserved-key');
+        expect(codes(ann('"x":9007199254740993'))).toContain('error:number-range');
+    });
+
+    // Value: protects=a malformed file reports the parser's stable code and line to the consumer; fails_when=validate() maps every parse failure to 'malformed' or drops SwuPgnError.line; why_new=the manifest checks codes only, never the line; seam=none; no_claim=the message wording
+    it('reports a parse failure with its error code and line number', function () {
+        const lines = good.split('\n');
+        const at = lines.indexOf('%%% EVENTS') + 1;
+        lines.splice(at, 0, '{not json}');
+        const report = validate(lines.join('\n'));
+        expect(report.level).toBe('malformed');
+        expect(report.valid).toBe(false);
+        expect(report.issues.map((i) => ({ severity: i.severity, code: i.code, line: i.line })))
+            .toEqual([{ severity: 'error', code: 'bad-json', line: at + 1 }]);
+    });
+
     it('rejects reserved keys and integers a JSON reader cannot hold exactly', function () {
         expect(codes(addEvent('{"seq":"R1.A.9","t":"PASS","p":1,"x":{"__proto__":{"polluted":true}}}'))).toContain('error:reserved-key');
         expect(codes(addEvent('{"seq":"R1.A.9","t":"DAMAGE","tgt":"base@1","amt":9007199254740993,"hp":1}'))).toContain('error:number-range');
@@ -240,6 +267,49 @@ describe('validate conformance levels and cross-record rules (spec §3.1)', func
         expect(newer).toContain('warning:newer-minor');
         expect(newer).toContain('warning:unknown-value');
         expect(newer.filter((c) => c.startsWith('error'))).toEqual([]);
+        // §18: a reason this version does not know reads as `unknown`, so the file is at most verified.
+        expect(newer).toContain('warning:unknown-defeat');
+        expect(validate(addEvent(defeat).replace('SWU-PGN/1.0', 'SWU-PGN/1.1')).level).toBe('verified');
+    });
+
+    // §18: seat values are not a vocabulary a minor version may grow, so a bad seat is an error
+    // in a file of any minor version.
+    it('keeps an unknown seat an error in a newer minor version', function () {
+        const newer = codes(addEvent('{"seq":"R1.A.9","t":"PASS","p":3}').replace('SWU-PGN/1.0', 'SWU-PGN/1.1'));
+        expect(newer).toContain('error:schema');
+        expect(newer).not.toContain('warning:unknown-value');
+    });
+
+    // Cross-record rule 5 covers every record. A deck record is open (§7), so its schema alone
+    // no longer rejects an unknown key.
+    it('rejects reserved keys and unsafe integers in DECKS and CARDS records', function () {
+        const deck = good.replace('"deck":[["SOR#108",5]]}', '"deck":[["SOR#108",5]],"x":{"__proto__":{"polluted":true}}}');
+        expect(deck).not.toBe(good);
+        expect(codes(deck)).toContain('error:reserved-key');
+        expect(codes(good.replace('"deck":[["SOR#108",5]]}', '"deck":[["SOR#108",9007199254740993]]}'))).toContain('error:number-range');
+        const card = good.replace('%%% CARDS', '%%% CARDS\n{"id":"SOR#999","name":"X","x":{"constructor":1}}');
+        expect(card).not.toBe(good);
+        expect(codes(card)).toContain('error:reserved-key');
+    });
+
+    // §24: a validator reports every issue it finds, so a file below valid still says the
+    // writer lost records.
+    it('reports recorder-errors and unknown-defeat even when the file has errors', function () {
+        const broken = addEvent('{"seq":"R1.A.1","t":"PASS","p":1}').replace('[Rounds "2"]', '[Rounds "2"] [RecorderErrors "2"]');
+        expect(codes(broken)).toContain('error:duplicate-seq');
+        expect(codes(broken)).toContain('warning:recorder-errors');
+        expect(validate(broken).level).toBe('well-formed');
+    });
+
+    // A hostile file can break a rule on every record; the list stops at the cap, the level
+    // still counts every issue.
+    it('stops listing issues at the cap and says so', function () {
+        const flood = good.replace('%%% EVENTS', '%%% EVENTS\n' + '{}\n'.repeat(2000));
+        const report = validate(flood);
+        expect(report.issues.length).toBe(MAX_ISSUES + 1);
+        expect(report.issues[MAX_ISSUES].code).toBe('too-many-issues');
+        expect(report.level).toBe('well-formed');
+        expect(report.valid).toBe(false);
     });
 
     it('skips X_ extension events and sections without a warning, and accepts new deck fields', function () {

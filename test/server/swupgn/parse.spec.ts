@@ -89,7 +89,7 @@ describe('parse error paths', function () {
 
 describe('parse header numbers', function () {
     const header = (rounds: string) => [
-        '[Game "SWU-PGN/1.0"] [GameId "g"] [Date "2026-06-16T00:00:00Z"] [CardPool "SOR"] [Engine "e"] [Seed "s"]',
+        '[Game "SWU-PGN/1.0"]', '[GameId "g"] [Date "2026-06-16T00:00:00Z"] [CardPool "SOR"] [Engine "e"] [Seed "s"]',
         '[P1Id "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] [P2Id "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] [P1 "Player 1"] [P2 "Player 2"]',
         '[P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]',
         `[Result "P1"] [Reason "r"] [Rounds "${rounds}"]`,
@@ -119,12 +119,16 @@ describe('parse header numbers', function () {
     // A count that is not digits is CORRUPT, not zero. finiteOr ran before any schema saw the
     // value, so `[Undos "garbage"]` became `undos: 0` and validated clean -- a mangled audit
     // trail reporting, confidently, that no undo ever happened.
-    it('drops a non-numeric count tag rather than reading it as zero', function () {
-        for (const bad of ['garbage', '1e309', '-1', '']) {
-            const text = header('4').replace('[Rounds "4"]', `[Rounds "4"] [Undos "${bad}"]`);
-            expect(parse(text).header.undos)
-                .withContext(`Undos "${bad}" must not parse to a number`)
-                .toBeUndefined();
+    // A corrupt count is a broken file, not an absent tag: dropping `[RecorderErrors "x"]` would
+    // read as "no errors recorded" and let the file grade complete (spec §24 bad-count).
+    it('rejects an optional count tag that is present but not base-10 digits', function () {
+        for (const tag of ['RecorderErrors', 'Undos', 'WriterRevision', 'GameNumber']) {
+            for (const bad of ['garbage', '1e309', '-1', '', '99999999999999999999']) {
+                const text = header('4').replace('[Rounds "4"]', `[Rounds "4"] [${tag} "${bad}"]`);
+                expect(() => parse(text))
+                    .withContext(`${tag} "${bad}"`)
+                    .toThrowMatching((e: unknown) => e instanceof SwuPgnError && e.code === 'bad-count');
+            }
         }
         const good = header('4').replace('[Rounds "4"]', '[Rounds "4"] [Undos "3"]');
         expect(parse(good).header.undos).toBe(3);
@@ -149,7 +153,7 @@ describe('parse header numbers', function () {
 
 describe('parse grammar (spec §4, Appendix B)', function () {
     const HEAD = [
-        '[Game "SWU-PGN/1.0"] [GameId "g"] [Date "2026-06-16T00:00:00Z"] [CardPool "SOR"] [Engine "e"] [Seed "s"]',
+        '[Game "SWU-PGN/1.0"]', '[GameId "g"] [Date "2026-06-16T00:00:00Z"] [CardPool "SOR"] [Engine "e"] [Seed "s"]',
         '[P1Id "p"] [P2Id "q"] [P1 "Player 1"] [P2 "Player 2"]',
         '[P1Leader "SOR#010"] [P1Base "SOR#028"] [P2Leader "SOR#005"] [P2Base "SOR#020"]',
         '[Result "P1"] [Reason "r"] [Rounds "1"]',
@@ -171,6 +175,28 @@ describe('parse grammar (spec §4, Appendix B)', function () {
         expect(code('[GameId "g"]\n' + HEAD)).toBe('not-swupgn');
         expect(code('hello\n' + HEAD)).toBe('not-swupgn');
         expect(code('')).toBe('not-swupgn');
+        // The Game tag stands alone, with a numeric version (Appendix B game-line).
+        expect(code(HEAD.replace('[Game "SWU-PGN/1.0"]', '[Game "SWU-PGN/x"]'))).toBe('not-swupgn');
+        expect(code(HEAD.replace('[Game "SWU-PGN/1.0"]', '[Game "SWU-PGN/1.0"] [Format "Premier"]'))).toBe('not-swupgn');
+    });
+
+    // §18: a different major version would be misread, so it is refused, not read as 1.x.
+    it('refuses a file of another major version', function () {
+        expect(code(HEAD.replace('SWU-PGN/1.0', 'SWU-PGN/2.0'))).toBe('unsupported-major');
+        expect(code(HEAD.replace('SWU-PGN/1.0', 'SWU-PGN/0.9'))).toBe('unsupported-major');
+        expect(code(HEAD.replace('SWU-PGN/1.0', 'SWU-PGN/1.7'))).toBe('ok');
+    });
+
+    // I-JSON (spec §4): JSON.parse keeps the last of two equal keys, another language's parser
+    // the first, so a repeated key would fold to two different boards.
+    it('rejects a record that repeats a key in one object', function () {
+        const events = (line: string) => HEAD + '\n%%% EVENTS\n' + line;
+        expect(code(events('{"seq":"R1.A.1","t":"MOVE","to":"hand","to":"ground"}'))).toBe('duplicate-key');
+        expect(code(events('{"seq":"R1.A.1","t":"PASS","p":1,"x":{"a":1,"\\u0061":2}}'))).toBe('duplicate-key');
+        // The same key in two different objects, and key-like text inside a value, are fine.
+        expect(code(events('{"seq":"R1.A.1","t":"PASS","p":1,"x":{"p":1},"y":[{"p":2},{"p":3}],"z":"\\"p\\":1"}'))).toBe('ok');
+        // Not JSON at all is still bad-json, not a duplicate.
+        expect(code(events('{"a":1,"a":}'))).toBe('bad-json');
     });
 
     it('rejects text outside the brackets of a header line', function () {
@@ -198,5 +224,12 @@ describe('parse grammar (spec §4, Appendix B)', function () {
         expect(code(events, { maxBytes: 100 })).toBe('too-large');
         expect(code(events, { maxLineLength: 20 })).toBe('line-too-long');
         expect(code(HEAD + '\n%%% EVENTS\n' + '['.repeat(70) + ']'.repeat(70))).toBe('too-deep');
+    });
+
+    // Value: protects=brackets inside a JSON string (free annotation text) do not count toward the depth limit; fails_when=jsonDepth stops tracking strings or escaped quotes and rejects a shallow record as too-deep; why_new=the too-deep case uses bare brackets only; seam=none; no_claim=the limit value itself
+    it('does not count brackets inside a JSON string toward the depth limit', function () {
+        // The deep `{` run sits between escaped quotes, so a scanner that ends the string at `\"` sees it.
+        const text = '"' + '['.repeat(70) + ' \\"' + '{'.repeat(70) + '\\" "';
+        expect(code(HEAD + '\n%%% EVENTS\n{"seq":"R1.A.1","t":"PASS","p":1}\n%%% ANNOTATIONS\n{"ref":"R1.A.1","text":' + text + '}')).toBe('ok');
     });
 });

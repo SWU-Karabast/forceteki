@@ -9,7 +9,8 @@ Engine-independent reference reader for the SWU-PGN/1.0 game format. Informative
   malformed file, and rejects a file over `limits` (`DEFAULT_LIMITS`: 16 MiB, 1 MiB per line,
   1,000,000 records, depth 64) rather than reading part of it.
 - `validate(text)` -> conformance report: `level` (`malformed` … `complete`, spec §2.1) and
-  `issues`, each with a `code` and a `severity`. Branch on `code`, never on `message`.
+  `issues`, each with a `code` and a `severity`. Branch on `code`, never on `message`. The list
+  stops at `MAX_ISSUES` (1000) with one `too-many-issues` warning; `level` counts every issue.
 - `fold(events)` / `stateAt(events, seq)` -> reconstructed board state (no rules engine)
 - `render(doc, names?)` -> the story, as a strict renderer writes it (spec §16)
 - `checkKeyframes(events)` -> keyframe integrity report (spec §14). A conformant file reports no
@@ -68,8 +69,9 @@ long-running development server keeps stamping the SHA it started with until it 
 
 `SWUPGN_ID_SECRET` — set it and player ids become an HMAC keyed by that secret: non-reversible,
 and the same player hashes the same across that server's games. Leave it unset and ids fall back
-to a salt of the engine's internal game id, which the file does not print (`GameId` is a hash of
-it), so confirming a guess needs that id from the server's logs. Both schemes emit
+to a salt of the engine's internal game id. The file does not print it (`GameId` is a hash of
+it), but it is not a secret: the server names the game by that id to its players and spectators,
+and logs it, so the fallback only keeps ids from being joined across files. Both schemes emit
 `sha256:<hex>`, so nothing downstream can tell them apart — a deployment that publishes files
 MUST set it (spec §17). An empty value reads as unset, so `SWUPGN_ID_SECRET=` in a deploy config
 publishes salted ids, not HMACs. A production server logs an error at startup when it is unset.

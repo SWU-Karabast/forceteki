@@ -560,6 +560,8 @@ describe('SwuPgnRecorder keyframes + INIT', function () {
 
         const setup = rec.getSetup();
         expect(setup[0].t).toBe('INIT');
+        // Value: protects=INIT is written as R0.S.0 (spec W-35, writer revision 3); fails_when=the recorder reverts to the revision-1/2 seq R1.S.0; why_new=no spec read the INIT seq the recorder writes, and the vector gate pins only fold and render; seam=none; no_claim=readers still accept R1.S.0
+        expect(setup[0].seq).toBe('R0.S.0');
         expect((setup[0] as any).p1DeckOrder).toEqual(['SOR#108', 'SOR#200']);
 
         const events = rec.getEvents();

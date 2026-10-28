@@ -1,7 +1,8 @@
 // public API barrel
 export * from './types';
-export { parse } from './parse';
-export { validate } from './validate';
+export { DEFAULT_LIMITS, parse, SwuPgnError } from './parse';
+export type { ParseLimits } from './parse';
+export { MAX_ISSUES, validate } from './validate';
 export { fold, reduce, stateAt } from './fold';
 export { render } from './render';
 export type { NameResolver } from './cardNames';

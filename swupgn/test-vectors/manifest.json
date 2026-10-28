@@ -146,13 +146,14 @@
     {
       "file": "negative/higher-minor.swupgn",
       "class": "negative",
-      "level": "complete",
+      "level": "verified",
       "errors": [],
       "warnings": [
         "newer-minor",
-        "unknown-value"
+        "unknown-value",
+        "unknown-defeat"
       ],
-      "about": "A newer minor version using a value 1.0 does not know: warnings, not errors (§18)."
+      "about": "A newer minor version using a DEFEAT.reason 1.0 does not know: warnings, not errors, and the reason reads as unknown (§18)."
     },
     {
       "file": "negative/not-swupgn.swupgn",
@@ -172,7 +173,7 @@
         "over-cap"
       ],
       "warnings": [],
-      "about": "A keyframe list longer than the reader limit (§17.1)."
+      "about": "A keyframe list longer than the reader limit (§23)."
     },
     {
       "file": "negative/pre-release.swupgn",
@@ -192,7 +193,7 @@
         "reserved-key"
       ],
       "warnings": [],
-      "about": "A reserved key in a keyframe map (§17.1)."
+      "about": "A reserved key in a keyframe map (§23)."
     },
     {
       "file": "negative/rounds-not-digits.swupgn",
@@ -223,6 +224,58 @@
         "unknown-type"
       ],
       "about": "An event type from a later version: skipped with a warning (§18)."
+    },
+    {
+      "file": "negative/unsupported-major.swupgn",
+      "class": "negative",
+      "level": "malformed",
+      "errors": [
+        "unsupported-major"
+      ],
+      "warnings": [],
+      "about": "A different major version: refused, not read as 1.x (§18)."
+    },
+    {
+      "file": "negative/bad-recorder-errors.swupgn",
+      "class": "negative",
+      "level": "malformed",
+      "errors": [
+        "bad-count"
+      ],
+      "warnings": [],
+      "about": "An optional count tag that is present but not base-10 digits (§5)."
+    },
+    {
+      "file": "negative/duplicate-key.swupgn",
+      "class": "negative",
+      "level": "malformed",
+      "errors": [
+        "duplicate-key"
+      ],
+      "warnings": [],
+      "about": "A record that repeats a key in one object: not I-JSON (§4)."
+    },
+    {
+      "file": "negative/deck-reserved-key.swupgn",
+      "class": "negative",
+      "level": "well-formed",
+      "errors": [
+        "reserved-key"
+      ],
+      "warnings": [],
+      "about": "A reserved key in an open DECKS record: cross-record rule 5 covers every record (§2.1)."
+    },
+    {
+      "file": "negative/newer-minor-bad-seat.swupgn",
+      "class": "negative",
+      "level": "well-formed",
+      "errors": [
+        "schema"
+      ],
+      "warnings": [
+        "newer-minor"
+      ],
+      "about": "A seat outside 1 and 2 in a newer minor version: still an error, seats cannot grow (§18)."
     }
   ]
 }

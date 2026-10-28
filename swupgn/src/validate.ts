@@ -2,10 +2,10 @@ import Ajv from 'ajv/dist/2020';
 import type { ErrorObject } from 'ajv';
 import * as fs from 'fs';
 import * as path from 'path';
-import type { ConformanceReport, ConformanceIssue } from './types';
+import type { ConformanceReport, ConformanceIssue, ConformanceLevel } from './types';
 import { KNOWN_SECTIONS, parse, SwuPgnError } from './parse';
 import { checkKeyframes } from './integrity';
-import { MAX_ZONE_LIST } from './fold';
+import { isArena, MAX_ZONE_LIST } from './fold';
 
 // Schemas are loaded at runtime from the published swupgn/schema directory.
 // This path is relative to the compiled output (build/swupgn/src/validate.js):
@@ -19,10 +19,31 @@ function loadSchema(name: string): object {
 
 // Compile validators once at module load to avoid re-compilation on every call.
 const ajv = new Ajv({ allErrors: true, strict: false });
+const eventSchema = loadSchema('event.schema.json');
 const vHeader = ajv.compile(loadSchema('header.schema.json'));
 const vDeck = ajv.compile(loadSchema('deck.schema.json'));
-const vEvent = ajv.compile(loadSchema('event.schema.json'));
+const vEvent = ajv.compile(eventSchema);
 const vAnn = ajv.compile(loadSchema('annotation.schema.json'));
+
+interface SchemaBranch {
+    if?: { properties?: { t?: { const?: string } } };
+    then?: { properties?: { reason?: { enum?: string[] } } };
+}
+
+/**
+ * This version's closed `DEFEAT.reason` vocabulary (§6.4), read from the event schema so there is
+ * one copy. A reason outside it reads as `unknown` (§18).
+ */
+const DEFEAT_REASONS: ReadonlySet<string> = new Set(
+    ((eventSchema as { allOf?: SchemaBranch[] }).allOf ?? [])
+        .find((b) => b.if?.properties?.t?.const === 'DEFEAT')?.then?.properties?.reason?.enum ?? []
+);
+
+/**
+ * How many issues a validator lists before it stops (§24). A hostile file can break a rule on
+ * every one of a million records; the level still counts every issue, the list does not hold them.
+ */
+export const MAX_ISSUES = 1000;
 
 const KNOWN_EVENT_TYPES = new Set([
     'PLAY', 'PLAY_EVENT', 'PLAY_UPGRADE', 'PLAY_SMUGGLE', 'DEPLOY_LEADER', 'ATTACK', 'PASS',
@@ -39,9 +60,8 @@ export const READER_MINOR = 0;
 
 /** Spec §6.2: the complete zone vocabulary. */
 export const ZONES: readonly string[] = ['deck', 'hand', 'resource', 'ground', 'space', 'discard', 'base', 'outsideTheGame', 'capture'];
-const ARENAS = new Set(['ground', 'space']);
 
-/** Keys a reader MUST NOT treat as ordinary map keys (spec §17.1): they name the object model. */
+/** Keys a reader MUST NOT treat as ordinary map keys (spec §23): they name the object model. */
 const RESERVED_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
 /**
@@ -93,11 +113,33 @@ function minorOf(game: unknown): number | null {
     return m ? Number(m[1]) : null;
 }
 
+/** The level each warning caps a file at (§24 "Level at most"); a warning not listed caps nothing. */
+const WARNING_CAP: Readonly<Record<string, ConformanceLevel>> = {
+    'pre-release': 'well-formed',
+    'keyframe-mismatch': 'valid',
+    'recorder-errors': 'verified',
+    'unknown-defeat': 'verified',
+};
+
 export function validate(text: string): ConformanceReport {
     const issues: ConformanceIssue[] = [];
+    // Every code reported, listed or not: the level comes from these, never from the capped list.
+    const seen = new Set<string>();
+    let hasErrors = false;
     let formatVersion: string | null = null;
-    const error = (code: string, message: string) => issues.push({ severity: 'error', code, message });
-    const warn = (code: string, message: string) => issues.push({ severity: 'warning', code, message });
+    const add = (issue: ConformanceIssue) => {
+        seen.add(issue.code);
+        if (issue.severity === 'error') {
+            hasErrors = true;
+        }
+        if (issues.length < MAX_ISSUES) {
+            issues.push(issue);
+        } else if (issues.length === MAX_ISSUES) {
+            issues.push({ severity: 'warning', code: 'too-many-issues', message: `stopped listing issues after ${MAX_ISSUES}; the level still counts every one` });
+        }
+    };
+    const error = (code: string, message: string) => add({ severity: 'error', code, message });
+    const warn = (code: string, message: string) => add({ severity: 'warning', code, message });
 
     let doc;
     try {
@@ -124,7 +166,10 @@ export function validate(text: string): ConformanceReport {
             if (err.keyword === 'if') {
                 continue;
             }
-            if (newer && err.keyword === 'enum') {
+            // Only a vocabulary of names may grow in a minor version. Seat numbers may not (§18),
+            // so `"p":3` stays an error in a file of any minor version.
+            const allowed = (err.params as { allowedValues?: unknown[] }).allowedValues;
+            if (newer && err.keyword === 'enum' && allowed?.every((v) => typeof v === 'string')) {
                 warn('unknown-value', `${where}${err.instancePath} has a value this reader does not know`);
             } else {
                 error('schema', `${where}${err.instancePath} ${err.message}`);
@@ -158,11 +203,19 @@ export function validate(text: string): ConformanceReport {
         warn('pre-release', 'no [WriterRevision] tag: a pre-release file (Appendix C), not conformant SWU-PGN/1.0');
     }
 
+    // Cross-record rule 5 holds for every record, DECKS and CARDS included: a deck record is
+    // open (§7), so its schema no longer rejects an unknown key on its own.
     for (const d of doc.decks) {
         if (!asRecord(d)) {
             error('not-object', 'deck record is not a JSON object');
-        } else if (!vDeck(d)) {
+            continue;
+        }
+        if (!vDeck(d)) {
             schemaIssues(vDeck.errors, 'deck ');
+        }
+        const walked = walkValues(d, 'deck record');
+        if (walked) {
+            error(walked.code, walked.message);
         }
     }
 
@@ -171,10 +224,14 @@ export function validate(text: string): ConformanceReport {
         if (!card || typeof card['id'] !== 'string' || typeof card['name'] !== 'string') {
             error('card-index', 'card index entry must be an object with a string id and name');
         }
+        const walked = card ? walkValues(card, 'card index entry') : null;
+        if (walked) {
+            error(walked.code, walked.message);
+        }
     }
 
     // One pass over SETUP then EVENTS: per-record schema, then the cross-record rules that a
-    // schema cannot state (§3, "valid").
+    // schema cannot state (§2.1, "valid").
     const seqs = new Set<string>();
     const records: Record<string, unknown>[] = [];
     for (const [label, list] of [['setup', doc.setup], ['event', doc.events]] as const) {
@@ -219,7 +276,7 @@ export function validate(text: string): ConformanceReport {
                 }
             }
             // Only an arena may be both ends of a move: an attachment changing in place (§10.1).
-            if (r['from'] === r['to'] && !ARENAS.has(String(r['from']))) {
+            if (r['from'] === r['to'] && !isArena(String(r['from']))) {
                 error('same-zone-move', `record ${seqStr}: MOVE from ${String(r['from'])} to itself`);
             }
         }
@@ -235,7 +292,7 @@ export function validate(text: string): ConformanceReport {
                     error('bad-zone', `record ${seqStr}: keyframe card zone "${card['zone']}" is not a zone`);
                 }
             }
-            // §17.1: no real board comes near it, and a reader that holds the list would
+            // §23: no real board comes near it, and a reader that holds the list would
             // otherwise grow without bound on a hostile file (the fold refuses such a keyframe).
             if (lists.some((l) => Array.isArray(l) && l.length > MAX_ZONE_LIST)) {
                 error('over-cap', `record ${seqStr}: a keyframe list is longer than ${MAX_ZONE_LIST}`);
@@ -255,7 +312,7 @@ export function validate(text: string): ConformanceReport {
         const name = trimmed.slice(3).trim()
             .toUpperCase();
         if (!KNOWN_SECTIONS.includes(name) && !name.startsWith('X_')) {
-            issues.push({ severity: 'warning', code: 'unknown-section', line: i + 1, message: `line ${i + 1}: unknown section "%%% ${name}" — its records were skipped (tolerated for forward compatibility)` });
+            add({ severity: 'warning', code: 'unknown-section', line: i + 1, message: `line ${i + 1}: unknown section "%%% ${name}" — its records were skipped (tolerated for forward compatibility)` });
         }
     }
 
@@ -289,28 +346,42 @@ export function validate(text: string): ConformanceReport {
         }
     }
 
-    const hasErrors = issues.some((i) => i.severity === 'error');
-    if (hasErrors || preRelease) {
-        return { valid: !hasErrors, level: 'well-formed', formatVersion, issues };
+    // complete: the writer lost nothing it knows of. These are reported whatever else is wrong
+    // with the file (§24: a validator reports every issue it finds). A reason this version does
+    // not know reads as `unknown` (§18).
+    if ((doc.header.recorderErrors ?? 0) > 0) {
+        warn('recorder-errors', `[RecorderErrors "${doc.header.recorderErrors}"]: the writer lost records`);
+    }
+    const unknownDefeats = [...doc.setup, ...doc.events].filter((e) => {
+        const r = asRecord(e);
+        return r?.['t'] === 'DEFEAT' && (r['reason'] === 'unknown' || !DEFEAT_REASONS.has(String(r['reason'])));
+    }).length;
+    if (unknownDefeats > 0) {
+        warn('unknown-defeat', `${unknownDefeats} DEFEAT record(s) whose reason reads as "unknown"`);
     }
 
-    // verified: the stream accounts for every keyframe (§14). complete: and the writer lost
-    // nothing it knows of. Neither is an error: §14 lets a writer ship a file that fails the
-    // gate, because the keyframes stay authoritative.
-    const integrity = checkKeyframes(doc.events);
-    if (!integrity.ok) {
-        warn('keyframe-mismatch', `${integrity.mismatches.length} keyframe mismatch(es), first at ${integrity.mismatches[0]?.seq ?? '?'}`);
-        return { valid: true, level: 'valid', formatVersion, issues };
-    }
-    const unknownDefeats = doc.events.filter((e) => asRecord(e)?.['t'] === 'DEFEAT' && asRecord(e)?.['reason'] === 'unknown').length;
-    if ((doc.header.recorderErrors ?? 0) > 0 || unknownDefeats > 0) {
-        if ((doc.header.recorderErrors ?? 0) > 0) {
-            warn('recorder-errors', `[RecorderErrors "${doc.header.recorderErrors}"]: the writer lost records`);
+    // verified: the stream accounts for every keyframe (§14). Not an error: §14 lets a writer
+    // ship a file that fails the gate, because the keyframes stay authoritative. Folding a file
+    // that breaks a schema or cross-record rule proves nothing, so the check needs a clean file.
+    if (!hasErrors) {
+        const integrity = checkKeyframes(doc.events);
+        if (!integrity.ok) {
+            warn('keyframe-mismatch', `${integrity.mismatches.length} keyframe mismatch(es), first at ${integrity.mismatches[0]?.seq ?? '?'}`);
         }
-        if (unknownDefeats > 0) {
-            warn('unknown-defeat', `${unknownDefeats} DEFEAT record(s) with reason "unknown"`);
-        }
-        return { valid: true, level: 'verified', formatVersion, issues };
     }
-    return { valid: true, level: 'complete', formatVersion, issues };
+
+    return { valid: !hasErrors, level: levelOf(hasErrors, seen), formatVersion, issues };
+}
+
+/** The highest level every reported issue allows (§2.1, §24 "Level at most"). */
+function levelOf(hasErrors: boolean, codes: ReadonlySet<string>): ConformanceLevel {
+    const order: ConformanceLevel[] = ['malformed', 'well-formed', 'valid', 'verified', 'complete'];
+    let level = order.indexOf(hasErrors ? 'well-formed' : 'complete');
+    for (const code of codes) {
+        const cap = WARNING_CAP[code];
+        if (cap !== undefined) {
+            level = Math.min(level, order.indexOf(cap));
+        }
+    }
+    return order[level];
 }

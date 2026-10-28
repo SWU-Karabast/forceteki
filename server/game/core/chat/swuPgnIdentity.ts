@@ -12,9 +12,11 @@ import type { Seat } from '../../../../swupgn/src/types';
  *   so a consumer can group a player's history without ever learning who they are.
  *
  * - Unset (fallback): salted with the engine's internal game id. Ids cannot be joined across
- *   files, and nobody reading one casually sees a username. The salt is no longer printed: the
- *   file's `GameId` is a hash of it (`anonymizedGameId`), so confirming a guess needs the
- *   server's game id as well. Still weaker than the HMAC: that id is in the server's logs.
+ *   files, and nobody reading one casually sees a username. The file does not print the salt
+ *   (its `GameId` is a hash of it, `anonymizedGameId`), but the salt is NOT a secret: the server
+ *   names the game by that id to the game's players and spectators, and logs it. So this mode
+ *   gives no protection against anyone who took part in or watched the game. Only the HMAC is
+ *   pseudonymous, which is why a deployment that publishes files must set the secret (spec §17).
  *
  * A reader cannot tell the two apart -- both are `sha256:<hex>` -- so this needs no format
  * change and no version bump. Consumers that attribute a file to an account should take the

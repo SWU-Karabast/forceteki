@@ -170,7 +170,7 @@ A file is at one of five levels. Each level includes the ones before it.
 | **well-formed** | parses. It may still fail a schema or a cross-record rule, or be a pre-release file. | a parser |
 | **valid** | is well-formed, carries `WriterRevision`, and every record passes its schema and every cross-record rule below. | a validator |
 | **verified** | is valid, and folding its events reproduces every keyframe with zero mismatches ([§14](#14-integrity--checking-a-file-is-honest)). | a validator with a folder |
-| **complete** | is verified, has no `RecorderErrors` tag above zero, and no `DEFEAT` with `reason: "unknown"`: the writer lost nothing it knew of. | a validator with a folder |
+| **complete** | is verified, has no `RecorderErrors` tag above zero, and no `DEFEAT` whose reason is `"unknown"` or reads as unknown ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)): the writer lost nothing it knew of. | a validator with a folder |
 
 **The cross-record rules** a valid file meets, which no per-record schema can state:
 
@@ -181,7 +181,8 @@ A file is at one of five levels. Each level includes the ones before it.
 4. a `MOVE` whose `from` equals its `to` names an arena: only an attachment changing in place
    moves from a zone to itself ([§10.1](#binding-an-attachment-to-its-host));
 5. no object key anywhere is `__proto__`, `constructor` or `prototype`, and every number is an
-   integer in the range ±(2^53−1) ([§23](#23-security-considerations));
+   integer in the range ±(2^53−1), in every record of every section, `%%% DECKS` and
+   `%%% CARDS` included ([§23](#23-security-considerations));
 6. no keyframe list holds more than 1000 entries ([§13](#13-keyframes)).
 
 An `UNDO`'s `at` is exempt from rule 2: it names a record the undo deleted
@@ -201,7 +202,10 @@ warning, not an error: the reply is shown as a top-level note ([§15](#15-annota
 
 A validator reports issues with **error** severity (the file is below valid) and **warning**
 severity (the file is at least valid, or it is a pre-release file, which is otherwise well-formed
-and readable, but something is worth saying). The codes are in [§24](#24-error-model).
+and readable, but something is worth saying). The codes are in [§24](#24-error-model). A
+file's level is the highest one that every issue reported for it allows, by the "Level at most"
+column of [§24](#24-error-model). A validator folds a file to check its keyframes only when the
+file has no errors: folding a file that breaks a schema or a cross-record rule proves nothing.
 
 ---
 
@@ -330,6 +334,9 @@ requirement, by id. The linked section is where each one is defined.
   a file over a cap rather than truncate it ([§23](#23-security-considerations)).
 - `[P-06]` MUST NOT let a key read from the file reach an object's prototype
   ([§23](#23-security-considerations)).
+- `[P-07]` MUST refuse a file of a major version it does not read (`unsupported-major`), and
+  MUST reject a record that repeats a key within one object (`duplicate-key`)
+  ([§4](#the-record-lines), [§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
 
 ### The Validator (says how good a file is)
 
@@ -405,7 +412,9 @@ except inside `%%% STORY`. The grammar is in [Appendix B](#appendix-b-grammar-ab
 
 **The first line MUST be the `Game` tag** — `[Game "SWU-PGN/1.0"]` — alone on its line. It is the
 file's magic number ([§19](#19-media-type-and-file-extension)): a reader whose first non-blank
-line is anything else MUST reject the input as not SWU-PGN.
+line is anything else MUST reject the input as not SWU-PGN (`not-swupgn`). A first line that is
+the `Game` tag of another major version is SWU-PGN, but not one this reader can read: it MUST
+refuse it (`unsupported-major`, [§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
 
 It has two parts:
 
@@ -498,6 +507,12 @@ JSON object, on one line, and MUST be I-JSON [[RFC7493](#26-references)]: no dup
 and numbers that are integers exactly representable in an IEEE double. That's it — this is
 NDJSON (newline-delimited JSON). Every number this version defines is an integer.
 
+Who checks what: a **parser** rejects a line that is not JSON (`bad-json`) and a line that
+repeats a key within one object (`duplicate-key`). Common JSON parsers keep the last of two equal
+keys and others keep the first, so two readers would fold such a line differently. A
+**validator** reports a line that is JSON but not an object (`not-object`) and a number outside
+the integer range (`number-range`): those break a rule of this document, not the JSON grammar.
+
 **Records are processed in file order.** A reader MUST apply the events of `%%% SETUP` and then
 `%%% EVENTS` in the order they appear, and MUST NOT sort them by `seq`. The `seq` scheme is a
 label, not a sort key: as strings, `R2.A.10` sorts before `R2.A.2`, and `R2.A.start` after `R2.A.9`.
@@ -559,8 +574,10 @@ Counts are base-10 digits with no sign, space or exponent.
 | `Undos` | count | How many times a player took a decision back. **Absent means none.** An undo removes the records it retracted, so a file with no tag and a file whose players undid six times are otherwise indistinguishable — and "was this line of play rehearsed" is a review question. The matching `UNDO` notes say WHERE ([§10.2](#102-events-that-are-just-notes)); this tag is the authoritative count. |
 | `RecorderErrors` | count | How many records the writer lost while recording (a handler that failed). **Absent means none.** Present means some events were never written: the keyframes are still exact (they are read from the engine, not folded), but the deltas between them are incomplete, so the file is not verified and the board between keyframes may be wrong. A reader SHOULD surface it. |
 
-Unknown tags MUST be accepted and ignored. A count that is not base-10 digits makes an optional
-tag absent and a required one (`Rounds`) malformed: a corrupt count is not zero.
+Unknown tags MUST be accepted and ignored. A count tag (`Rounds`, `RecorderErrors`, `Undos`,
+`WriterRevision`, `GameNumber`) that is present but not base-10 digits within ±(2^53−1) makes the
+file malformed (`bad-count`): a corrupt count is neither zero nor absent, and reading
+`[RecorderErrors "x"]` as absent would grade a file whose writer lost records as complete.
 
 **`WriterRevision`** is the writer's revision. The writer bumps it on every change to what it
 writes that a reader can observe, so two files that both say `SWU-PGN/1.0` can be told apart
@@ -2907,9 +2924,11 @@ or anything else that points at a real person `[W-10]`.
   nobody can confirm a guess.
 - **Per-game salt (fallback):** `sha256("<engine game id>:<username>")`. The same player hashes
   *differently* in every file, so ids cannot be joined across games. The salt is the engine's
-  internal game id, which the file does not print — `GameId` is a hash of it — so confirming a
-  guess takes that id as well as a candidate list. It is still weaker than the keyed scheme:
-  the internal id is in the host's logs.
+  internal game id. The file does not print it (`GameId` is a hash of it), but it is not a
+  secret: a host also uses it to name the game to the game's own players and spectators, and
+  it is in the host's logs. So this scheme only stops ids being joined across files. It does not
+  keep a player's identity from anyone who took part in or watched the game, which is why a
+  deployment that publishes files MUST use the keyed scheme.
 
 A reader cannot tell the two apart (both are `sha256:<hex>`), and switching needs no format
 change. Either way, a consumer that attributes a file to an account MUST take the seat from the
@@ -2946,7 +2965,7 @@ They MUST NOT reach a participant before the match is over ([§23](#23-security-
 The version lives in the `Game` tag: `"SWU-PGN/MAJOR.MINOR"`.
 
 - **MAJOR** goes up when old readers would break. Readers MUST refuse a different major
-  version.
+  version (`unsupported-major`) rather than read it as their own `[P-07]`.
 - **MINOR** goes up for additions that don't break anything — a new optional tag, a new
   optional field, a new event type, a new section, a new value in a closed vocabulary. Readers
   MUST accept a **higher** minor version, and SHOULD warn that the file is newer than they are.
@@ -2974,7 +2993,11 @@ The version lives in the `Game` tag: `"SWU-PGN/MAJOR.MINOR"`.
 - MUST NOT throw on an unknown `t`;
 - MUST treat a closed-vocabulary value it doesn't know as a warning, not an error, and
   otherwise handle it the way the vocabulary says — an unknown `DEFEAT.reason` reads as
-  `unknown` ([§6.4](#64-small-vocabularies)).
+  `unknown` ([§6.4](#64-small-vocabularies)), so the file is at most verified
+  (`unknown-defeat`, [§2.1](#21-document-conformance-levels)).
+
+Seat values are not a vocabulary a minor version may grow: a seat other than `1` or `2` is an
+error in a file of any minor version.
 
 In a file of the reader's **own** minor version, an unknown closed-vocabulary value is an error:
 no writer of that version may produce it.
@@ -3092,16 +3115,21 @@ one thing broken. A reader MUST reject or warn on each as the manifest says:
 | `bad-escape` | a header escape other than `\\` and `\"` | malformed | error `bad-escape` |
 | `duplicate-section` | two `%%% EVENTS` banners | malformed | error `duplicate-section` |
 | `rounds-not-digits` | `[Rounds "two"]` | malformed | error `bad-count` |
+| `bad-recorder-errors` | `[RecorderErrors "none"]`: an optional count that is not digits | malformed | error `bad-count` |
+| `unsupported-major` | `SWU-PGN/2.0` | malformed | error `unsupported-major` |
+| `duplicate-key` | a `PASS` with two `p` keys | malformed | error `duplicate-key` |
 | `bad-move` | a `MOVE` to `sideboard`, not a zone | well-formed | error `bad-zone` |
 | `duplicate-seq` | two records labelled `R1.A.1` | well-formed | error `duplicate-seq` |
 | `dangling-ref` | an annotation on a `seq` that is not there | well-formed | error `dangling-ref` |
 | `proto-token` | `__proto__` as a status token name in a keyframe | well-formed | error `reserved-key` |
+| `deck-reserved-key` | `__proto__` inside an extension field of a `DECKS` record | well-formed | error `reserved-key` |
+| `newer-minor-bad-seat` | `SWU-PGN/1.7`, with a `PASS` by seat 3 | well-formed | error `schema`, warning `newer-minor` |
 | `over-cap` | a keyframe hand of 1002 cards | well-formed | error `over-cap` |
 | `pre-release` | no `WriterRevision` | well-formed | warning `pre-release` |
 | `damaged-keyframe` | a keyframe the events do not fold to | valid | warning `keyframe-mismatch` |
 | `unknown-type` | an event type from a later version | complete | warning `unknown-type` |
 | `unknown-section` | a section from a later version | complete | warning `unknown-section` |
-| `higher-minor` | `SWU-PGN/1.7`, with a `DEFEAT.reason` 1.0 does not know | complete | warnings `newer-minor`, `unknown-value` |
+| `higher-minor` | `SWU-PGN/1.7`, with a `DEFEAT.reason` 1.0 does not know | verified | warnings `newer-minor`, `unknown-value`, `unknown-defeat` |
 
 ---
 
@@ -3253,7 +3281,8 @@ matched by a program.
 
 | Code | Severity | Condition | Level at most |
 |---|---|---|---|
-| `not-swupgn` | fatal | The first non-blank line is not `[Game "SWU-PGN/…"]`, or the file is empty | malformed |
+| `not-swupgn` | fatal | The first non-blank line is not `[Game "SWU-PGN/<major>.<minor>"]` alone on its line, or the file is empty | malformed |
+| `unsupported-major` | fatal | The `Game` tag names a major version the reader does not read | malformed |
 | `too-large` | fatal | The file is over the reader's size cap | malformed |
 | `line-too-long` | fatal | A line is over the reader's line cap | malformed |
 | `too-many-records` | fatal | More records than the reader's cap | malformed |
@@ -3262,10 +3291,11 @@ matched by a program.
 | `bad-escape` | fatal | A header value uses an escape other than `\\` and `\"` | malformed |
 | `duplicate-tag` | fatal | A header tag appears twice | malformed |
 | `missing-tag` | fatal | A required header tag is missing | malformed |
-| `bad-count` | fatal | `Rounds` is not base-10 digits | malformed |
+| `bad-count` | fatal | A count tag (`Rounds`, or a present `RecorderErrors`, `Undos`, `WriterRevision` or `GameNumber`) is not base-10 digits within ±(2^53−1) | malformed |
 | `duplicate-section` | fatal | A section banner appears twice | malformed |
 | `record-outside-section` | fatal | A record before the first banner | malformed |
 | `bad-json` | fatal | A line in a JSON section is not JSON | malformed |
+| `duplicate-key` | fatal | A line in a JSON section repeats a key within one object | malformed |
 | `schema` | error | A record or the header fails its schema | well-formed |
 | `not-object` | error | A record is JSON but not an object | well-formed |
 | `card-index` | error | A `%%% CARDS` entry lacks a string `id` or `name` | well-formed |
@@ -3279,12 +3309,13 @@ matched by a program.
 | `pre-release` | warning | No `WriterRevision`: a pre-release file | well-formed |
 | `keyframe-mismatch` | warning | Folding does not reproduce a keyframe | valid |
 | `recorder-errors` | warning | `RecorderErrors` is above zero | verified |
-| `unknown-defeat` | warning | A `DEFEAT` with `reason: "unknown"` | verified |
+| `unknown-defeat` | warning | A `DEFEAT` whose `reason` is `"unknown"`, or a reason outside the reader's vocabulary, which reads as unknown | verified |
 | `newer-minor` | warning | The file's minor version is above the reader's | — |
-| `unknown-value` | warning | In a newer minor version, a closed-vocabulary value the reader does not know | — |
+| `unknown-value` | warning | In a newer minor version, a closed-vocabulary name the reader does not know (never a seat) | — |
 | `unknown-type` | warning | An event type the reader does not know, without the `X_` prefix | — |
 | `unknown-section` | warning | A section the reader does not know, without the `X_` prefix | — |
 | `dangling-parent` | warning | An annotation `parent` names no annotation `id` | — |
+| `too-many-issues` | warning | The validator stopped listing issues at its cap | — |
 
 **Fatal** means the file is malformed: a parser MUST reject it, and nothing in it is read. **One
 bad JSON line rejects the whole file.** Skipping it would fold a game with a hole in it, and a
@@ -3293,7 +3324,11 @@ a reader MAY still fold and show it, and SHOULD say it is not valid. **Warning**
 file is as valid as its level says, and something is worth telling the user.
 
 A reader that is not a validator MAY stop at the first fatal problem. A validator reports
-every error and warning it finds, not just the first.
+every error and warning it finds, not just the first, whatever the file's level: a file with
+errors still gets its `recorder-errors` and `unknown-defeat` warnings. A hostile file can break
+a rule on every one of a million records, so a validator MAY stop listing issues after a cap of
+at least 1000 (the reference validator's is 1000) and then reports `too-many-issues` once. The
+level still counts every issue, listed or not. The conformance suite stays under any such cap.
 
 ---
 
@@ -3685,8 +3720,10 @@ begins, so the setup deltas are what it has to add up to:
 
 This grammar is normative. It uses ABNF [[RFC5234](#26-references)] and its core rules
 (`ALPHA`, `DIGIT`, `DQUOTE`, `HTAB`, `LF`, `CRLF`, `WSP`). Where it and a prose rule seem to
-differ, the grammar governs the syntax and the prose governs the meaning. A JSON object is as
-RFC 8259 defines it, restricted to I-JSON [[RFC7493](#26-references)].
+differ, the grammar governs the syntax and the prose governs the meaning. A `json-text` is a
+JSON text as RFC 8259 defines it, restricted to I-JSON [[RFC7493](#26-references)]: no object
+repeats a key. That a record is an object, and that its numbers are integers in range, are rules
+a validator checks (`not-object`, `number-range`), not part of the grammar.
 
 ### B.1 The file
 
@@ -3694,7 +3731,7 @@ RFC 8259 defines it, restricted to I-JSON [[RFC7493](#26-references)].
 swupgn-file    = [bom] *blank-line game-line *( header-line / blank-line ) *section [last-line]
 bom            = %xFEFF                 ; readers strip it; writers MUST NOT write it
 game-line      = "[Game" 1*WSP DQUOTE "SWU-PGN/" major "." minor DQUOTE "]" *WSP eol
-major          = 1*DIGIT
+major          = 1*DIGIT                ; "1" for this version; any other is unsupported-major
 minor          = 1*DIGIT
 header-line    = *WSP tag-pair *( *WSP tag-pair ) *WSP eol
 tag-pair       = "[" tag-name 1*WSP DQUOTE tag-value DQUOTE "]"
@@ -3710,7 +3747,7 @@ unknown-section= banner *any-line       ; skipped unread
 banner         = *WSP "%%%" *WSP section-name *WSP eol
 section-name   = 1*( ALPHA / DIGIT / "_" )
                                         ; case-insensitive; each name at most once
-record-line    = *WSP json-object *WSP eol
+record-line    = *WSP json-text *WSP eol   ; an object, by the not-object rule
 story-line     = any-line               ; any line that does not start with "%%%"
 any-line       = *( %x09 / %x20-10FFFF ) eol
 blank-line     = *WSP eol
