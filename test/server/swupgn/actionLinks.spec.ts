@@ -410,8 +410,8 @@ describe('linkActionSteps: records the writer marked as a play\'s setup', functi
 describe('linkActionSteps: what a played card does as it enters play', function () {
     const forOf = (events: GameEvent[]) => linkActionSteps(events).map((e) => (e as { for?: string }).for);
 
-    // Value: protects=[W-18] for a card that uses its own ability as it enters play (Clone's copy choice, its ability, the effect on itself) before the PLAY; fails_when=an ABILITY_ACTIVATE or EFFECT_START of the played card ends the run and leaves the cost and choice unfiled; why_new=the control vector's Clone left four records without `for`; seam=none; no_claim=a writer that marks them itself
-    it('files the played card\'s own entering ability and effect, and the cost and choice before them, under the play', function () {
+    // Value: protects=[W-18] for a card that uses its own ability as it enters play (Clone's copy choice, its ability, the effect on itself) before the PLAY; fails_when=the writer's marks on those records stop filing them, cost included, under the play; why_new=the control vector's Clone left four records without `for`; seam=markPlaySetup; no_claim=the recorder marks them (SwuPgnVectors control gates that)
+    it('files the records the writer marked as the play\'s, its own entering ability and effect included', function () {
         const events: GameEvent[] = [
             { seq: 'R6.A.start', t: 'PHASE_START', phase: 'action' },
             { seq: 'R6.A.0a', t: 'EXHAUST_RESOURCES', p: 1, amount: 7 },
@@ -421,19 +421,24 @@ describe('linkActionSteps: what a played card does as it enters play', function 
             { seq: 'R6.A.0e', t: 'MOVE', card: 'TWI#116', from: 'hand', to: 'ground', p: 1 },
             { seq: 'R6.A.1', t: 'PLAY', p: 1, card: 'TWI#116', zone: 'ground', cost: 2 },
         ];
+        for (const e of events.slice(1, 5)) {
+            markPlaySetup(e, 'TWI#116');
+        }
         expect(forOf(events)).toEqual([undefined, 'R6.A.1', 'R6.A.1', 'R6.A.1', 'R6.A.1', 'R6.A.1', undefined]);
     });
 
-    // Value: protects=another card's ability or effect still ends a play's run; fails_when=the entering-ability rule takes any ABILITY_ACTIVATE or EFFECT_START; why_new=the rule is new; seam=none; no_claim=none
-    it('still ends the run at another card\'s ability or effect', function () {
+    // Value: protects=[W-18] MUST NOT: a card's own ability and effect from the previous action stay that action's; fails_when=a position rule files every ABILITY_ACTIVATE / EFFECT_START naming the played card under the play; why_new=review repro, the stolen-hauler flow; seam=none; no_claim=none
+    it('never files the played card\'s earlier, unmarked ability and effect under its play (a Hauler played from the discard)', function () {
         const events: GameEvent[] = [
-            { seq: 'R1.A.1', t: 'PLAY', p: 2, card: 'SEC#001', zone: 'ground', cost: 2 },
-            { seq: 'R1.A.1a', t: 'ABILITY_ACTIVATE', p: 2, card: 'SEC#001', ability: 'a1', kind: 'triggered' },
-            { seq: 'R1.A.1b', t: 'EFFECT_START', id: 'fx@1', src: 'SEC#001', p: 2, targets: ['base@1'], duration: 'phase' },
-            { seq: 'R1.A.1c', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1 },
-            { seq: 'R1.A.2', t: 'PLAY', p: 1, card: 'SOR#095', zone: 'ground', cost: 2 },
+            { seq: 'R2.A.4', t: 'PLAY_EVENT', p: 2, card: 'SHD#039', zone: 'discard', cost: 3 },
+            { seq: 'R2.A.4a', t: 'MOVE', card: 'TWI#174', from: 'space', to: 'discard', p: 1, kind: 'unit' },
+            { seq: 'R2.A.4b', t: 'DEFEAT', card: 'TWI#174', reason: 'ability' },
+            { seq: 'R2.A.4e', t: 'ABILITY_ACTIVATE', p: 1, card: 'TWI#174', ability: 'a1', kind: 'triggered' },
+            { seq: 'R2.A.4f', t: 'EFFECT_START', id: 'fx@1', src: 'TWI#174', p: 1, targets: ['TWI#174'], duration: 'phase' },
+            { seq: 'R2.A.4g', t: 'MOVE', card: 'TWI#174', from: 'discard', to: 'space', p: 2, kind: 'unit' },
+            { seq: 'R2.A.5', t: 'PLAY', p: 2, card: 'TWI#174', zone: 'space', cost: 0 },
         ];
-        expect(forOf(events)).toEqual([undefined, undefined, undefined, 'R1.A.2', undefined]);
+        expect(forOf(events)).toEqual([undefined, undefined, undefined, undefined, undefined, 'R2.A.5', undefined]);
     });
 });
 

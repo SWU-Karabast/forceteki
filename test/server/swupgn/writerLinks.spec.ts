@@ -23,9 +23,7 @@ const isTopLevelStep = (seq: string) => (/^R\d+\.[SAG]\.\d+$/).test(seq);
 // previous action's consequence (homeworlds R4.A.2d, a Weakness token landing on the Beast that
 // then attacks), and filing it under the attack would be wrong.
 // An action ability is announced once its menu pick and target are made; its costs come after.
-// A play is also preceded by what the played card does as it enters play: its own ability (Clone's
-// copy) and the effect that ability starts on it.
-const PRE_ANNOUNCE = ['CHOICE', 'MODAL_CHOICE', 'EXHAUST', 'MOVE', 'STATS', 'EXHAUST_RESOURCES', 'ABILITY_ACTIVATE', 'EFFECT_START'];
+const PRE_ANNOUNCE = ['CHOICE', 'MODAL_CHOICE', 'EXHAUST', 'MOVE', 'STATS', 'EXHAUST_RESOURCES'];
 const PRE_ATTACK = ['CHOICE', 'MODAL_CHOICE', 'EXHAUST'];
 const PRE_ABILITY = ['CHOICE', 'MODAL_CHOICE'];
 

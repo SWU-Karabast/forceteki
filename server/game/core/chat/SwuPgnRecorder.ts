@@ -939,6 +939,9 @@ export class SwuPgnRecorder {
 
     private push(e: GameEvent): void {
         this.maybeCheckpoint();
+        if (isTopLevelActionRecord(e)) {
+            this.noteAnnouncedPlay();
+        }
         // Elapsed time, on the records a reviewer asks it of: the numbered actions, and the
         // round/phase boundaries they sit between (spec §5.2). NOT on lettered consequences --
         // the engine resolves those in the same instant as the action that caused them, so a
@@ -948,6 +951,24 @@ export class SwuPgnRecorder {
         }
         this.markIfPlaySetup(e);
         this.events.push(e);
+    }
+
+    /**
+     * Play contexts whose play record has been written: what their card's own abilities write
+     * after that is lettered under the play anyway, and must not be marked as its setup (an Ambush
+     * trigger would then follow the card into its attack). Keyed weakly by the engine context; a
+     * rollback rebuilds contexts, so a stale entry can never match again.
+     */
+    private readonly announcedPlays = new WeakSet<object>();
+
+    /** Every play context on the resolver chain is announced once a top-level action is written. */
+    private noteAnnouncedPlay(): void {
+        for (let r = readOr<any>(() => this.game.currentAbilityResolver, null); r != null; r = readOr<any>(() => r.parentResolver, null)) {
+            const c = r.context;
+            if (c != null && readOr(() => c.ability?.isPlayCardAbility?.() === true, false)) {
+                this.announcedPlays.add(c);
+            }
+        }
     }
 
     /**
@@ -962,12 +983,30 @@ export class SwuPgnRecorder {
      * only plays need this.
      */
     private markIfPlaySetup(e: GameEvent): void {
-        const context = readOr(() => this.game.currentAbilityResolver?.context, undefined);
-        if (context == null || context.stage === Stage.Effect || context.source == null) {
+        const resolver = readOr<any>(() => this.game.currentAbilityResolver, null);
+        const context = resolver?.context;
+        if (context == null || context.source == null) {
             return;
         }
-        if (readOr(() => context.ability?.isPlayCardAbility?.() === true, false)) {
-            markPlaySetup(e, this.idOf(context.source));
+        const isPlay = (c: any) => readOr(() => c?.ability?.isPlayCardAbility?.() === true, false);
+        if (isPlay(context)) {
+            if (context.stage !== Stage.Effect) {
+                markPlaySetup(e, this.idOf(context.source));
+            }
+            return;
+        }
+        // The played card's own ability resolving while the play puts it into play, before the
+        // play is announced: Clone's "enter play as a copy" -- its choice, its ABILITY_ACTIVATE and
+        // the effect it starts on itself. The engine knows the play is still resolving (it is an
+        // ancestor resolver) and has not been announced; position alone could not say so.
+        for (let outer = readOr<any>(() => resolver.parentResolver, null); outer != null; outer = readOr<any>(() => outer.parentResolver, null)) {
+            const playContext = outer.context;
+            if (isPlay(playContext)) {
+                if (playContext.source === context.source && !this.announcedPlays.has(playContext)) {
+                    markPlaySetup(e, this.idOf(context.source));
+                }
+                return;
+            }
         }
     }
 

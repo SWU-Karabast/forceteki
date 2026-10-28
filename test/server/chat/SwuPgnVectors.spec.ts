@@ -13,8 +13,9 @@ import { fold, stateAt } from '../../../swupgn/src/fold';
  *   capture   a unit captured with Take Captive, and rescued when its captor is defeated
  *   arrest    a unit captured by a BASE (Arrest), held in `baseCaptured`, and rescued at the regroup
  *   effects   lasting effects on bases and units, a partial end, an `until`, a blank
- *   visibility  LOOK, SEARCH.seen, NAME, blind choices with a simul discard, and usedBy
- *   control   an upgrade and a unit taken, a limited ability, a gained trait, a copy, a foreign resource
+ *   visibility  LOOK, SEARCH.seen, NAME, blind choices with a simul discard, usedBy, ABILITY_RESET
+ *   control   an upgrade taken, a unit taken with the other seat's upgrade on it, a limited
+ *             ability, a gained trait, a copy, a foreign resource
  *
  * The games are scripted adaptively -- each turn picks from what the engine says is playable --
  * on a fixed seed, so they are deterministic, and each asserts the situation it exists for
@@ -995,7 +996,8 @@ describe('SWU-PGN/1.0 vectors (real games)', function () {
                     deck: ['wartime-trade-official', 'wartime-trade-official', 'wartime-trade-official', 'wartime-trade-official',
                         'regional-governor', 'regional-governor', 'remote-scout', 'remote-scout',
                         'every-day-more-lies', 'every-day-more-lies', 'viper-probe-droid', 'viper-probe-droid',
-                        'inferno-four#unforgetting', 'inferno-four#unforgetting', 'foundling', 'foundling', ...REBEL],
+                        'inferno-four#unforgetting', 'inferno-four#unforgetting', 'foundling', 'foundling',
+                        'migs-mayfeld#triggerman', 'migs-mayfeld#triggerman', ...REBEL, ...REBEL],
                 },
                 player2: {
                     leader: 'leia-organa#alliance-general',
@@ -1006,13 +1008,14 @@ describe('SWU-PGN/1.0 vectors (real games)', function () {
             });
         });
 
-        it('visibility: looks, a search, a name, blind discards, and a When Defeated used again by the leader', function () {
+        it('visibility: looks, a search, a name, blind discards, a When Defeated used again by the leader, and a limited use reset', function () {
             const { context } = contextRef;
             const keep: Keep = {
-                p1: ['wartime-trade-official', 'regional-governor', 'remote-scout', 'every-day-more-lies', 'viper-probe-droid', 'inferno-four#unforgetting', 'foundling'],
+                p1: ['wartime-trade-official', 'regional-governor', 'remote-scout', 'every-day-more-lies', 'viper-probe-droid', 'inferno-four#unforgetting',
+                    'foundling', 'migs-mayfeld#triggerman'],
                 p2: ['battlefield-marine'],
             };
-            runSetup(context, 'swu-pgn-vector-visibility', keep);
+            runSetup(context, 'swu-pgn-vector-visibility-14', keep);
             const game: any = context.game;
             const p1 = context.player1;
             const p2 = context.player2;
@@ -1030,6 +1033,23 @@ describe('SWU-PGN/1.0 vectors (real games)', function () {
                     const theirs = ground(p2);
                     // A Wartime Trade Official attacks into a Battlefield Marine and dies: its When
                     // Defeated, then Thrawn's "use that ability again".
+                    // Migs Mayfeld used his once-each-round trigger on the discards: he attacks into a
+                    // Battlefield Marine and dies the same round, so his use is reset (ABILITY_RESET).
+                    const ready = (name: string) => (p1.currentActionTargets ?? []).find((c: any) => c.internalName === name && c.isInPlay?.());
+                    const migs = ready('migs-mayfeld#triggerman');
+                    if (migs && theirs.length > 0 && !once(`migs-${game.roundNumber}`)) {
+                        p1.clickCard(migs);
+                        answerAll(context, { prefer: theirs });
+                        return;
+                    }
+                    if (migs && theirs.length > 0 && p2.hand.length > 0 && p1.hand.some((c: any) => c.internalName === 'every-day-more-lies')) {
+                        const lies = playable(p1, 'every-day-more-lies');
+                        if (lies) {
+                            played.add(`migs-${game.roundNumber}`);
+                            play(p1, lies, { prefer: theirs });
+                            return;
+                        }
+                    }
                     const official = (p1.currentActionTargets ?? []).find((c: any) => c.internalName === 'wartime-trade-official' && c.isInPlay?.());
                     if (official && theirs.length > 0 && once(`trade-${game.roundNumber}`)) {
                         played.add(`trade-${game.roundNumber}`);
@@ -1037,8 +1057,9 @@ describe('SWU-PGN/1.0 vectors (real games)', function () {
                         answerAll(context, { prefer: theirs });
                         return;
                     }
-                    let card = once('regional-governor') ? playable(p1, 'regional-governor') : undefined;
-                    card = card ?? (once('every-day-more-lies') && p2.hand.length > 0 ? playable(p1, 'every-day-more-lies') : undefined);
+                    let card = playable(p1, 'migs-mayfeld#triggerman');
+                    card = card ?? (once('regional-governor') ? playable(p1, 'regional-governor') : undefined);
+                    card = card ?? (once('every-day-more-lies') && game.roundNumber >= 4 && p2.hand.length > 0 ? playable(p1, 'every-day-more-lies') : undefined);
                     card = card ?? (once('viper-probe-droid') && p2.hand.length > 0 ? playable(p1, 'viper-probe-droid') : undefined);
                     card = card ?? (once('inferno-four#unforgetting') ? playable(p1, 'inferno-four#unforgetting') : undefined);
                     card = card ?? (once('remote-scout') ? playable(p1, 'remote-scout') : undefined);
@@ -1059,7 +1080,7 @@ describe('SWU-PGN/1.0 vectors (real games)', function () {
                 p2.passAction();
             };
 
-            const doc = vectorGate('visibility', playRounds(context, 5, keep, takeTurn));
+            const doc = vectorGate('visibility', playRounds(context, 6, keep, takeTurn));
 
             expect(byType(doc, 'LOOK').some((e) => e.zone === 'hand' && e.owner === 2)).withContext('a look at the opponent\'s hand')
                 .toBe(true);
@@ -1074,6 +1095,8 @@ describe('SWU-PGN/1.0 vectors (real games)', function () {
                 .toBe(2);
             expect(doc.events.some((e: any) => e.t === 'DISCARD' && e.simul)).withContext('the discards are one simultaneous group')
                 .toBe(true);
+            expect(byType(doc, 'ABILITY_RESET').length).withContext('Migs Mayfeld\'s use reset when he left play')
+                .toBeGreaterThan(0);
             expect(byType(doc, 'ABILITY_ACTIVATE').some((e) => e.usedBy === doc.header.p1Leader)).withContext('Thrawn used a When Defeated again')
                 .toBe(true);
         });
@@ -1132,14 +1155,22 @@ describe('SWU-PGN/1.0 vectors (real games)', function () {
                         return;
                     }
                     card = units(p1).length + theirs.length > 0 ? playable(p1, 'clone') : undefined;
-                    card = card ?? (theirs.some((u) => u.upgrades.length === 0) ? playable(p1, 'traitorous') : undefined);
+                    // Traitorous takes a unit carrying P2's Academy Training when there is one, so the
+                    // upgrade's controller differs from its host's (`upgradeControllers`).
+                    card = card ?? (upgraded().length > 0 || (theirs.length > 0 && context.game.roundNumber >= 6) ? playable(p1, 'traitorous') : undefined);
                     card = card ?? (upgraded().length > 0 && units(p1).length > 0 ? playable(p1, 'evidence-of-the-crime') : undefined);
                     card = card ?? (gar() ? undefined : playable(p1, 'gar-saxon#coveting-power'));
-                    card = card ?? (units(p1).length > 0 && once('foundling') ? playable(p1, 'foundling') : undefined);
+                    const garHasFoundling = gar()?.upgrades.some((x: any) => x.internalName === 'foundling') ?? true;
+                    const notMandalorian = units(p1).filter((u) => !u.isToken?.() && !u.hasSomeTrait?.('mandalorian'));
+                    card = card ?? ((!garHasFoundling || notMandalorian.length > 0) && once('foundling') ? playable(p1, 'foundling') : undefined);
                     if (card) {
                         const host = gar();
-                        const mine = [...(host ? [host] : []), ...units(p1)];
-                        const prefer = card.internalName === 'traitorous' ? theirs.filter((u) => u.upgrades.length === 0)
+                        // The first Foundling goes on Gar Saxon (his once-each-round trigger); later
+                        // ones on a unit that is not a Mandalorian, which then gains the trait.
+                        const plain = units(p1).filter((u) => !u.isToken?.() && !u.hasSomeTrait?.('mandalorian'));
+                        const mine = host && !host.upgrades.some((x: any) => x.internalName === 'foundling')
+                            ? [host, ...units(p1)] : [...plain, ...units(p1)];
+                        const prefer = card.internalName === 'traitorous' ? [...theirs.filter((u) => u.upgrades.length > 0), ...theirs]
                             : card.internalName === 'evidence-of-the-crime' ? [...upgraded().flatMap((u) => u.upgrades), ...mine]
                                 : card.internalName === 'clone' ? theirs
                                     : mine;
@@ -1162,19 +1193,31 @@ describe('SWU-PGN/1.0 vectors (real games)', function () {
             const doc = vectorGate('control', playRounds(context, 7, keep, takeTurn));
 
             const kindOf = (id: string) => doc.cards?.find((c) => c.id === id.replace(/:\d+$/, ''))?.kind;
+            const keyframes = () => doc.events.filter((e: any) => e.keyframe);
             expect(byType(doc, 'TAKE_CONTROL').some((e) => kindOf(e.card) === 'upgrade')).withContext('an upgrade changed control')
                 .toBe(true);
             expect(byType(doc, 'STATS').some((e) => e.copyOf)).withContext('a copy')
                 .toBe(true);
-            expect(byType(doc, 'STATS').some((e) => (e.traits ?? []).includes('mandalorian') && e.card !== doc.cards?.find((c) => c.name.startsWith('Gar Saxon'))?.id))
-                .withContext('a gained trait')
+            // A card (not a token) whose STATS gains `mandalorian` it did not have before.
+            const traitsBefore = new Map<string, string[]>();
+            let gained = false;
+            for (const e of byType(doc, 'STATS')) {
+                const before = traitsBefore.get(e.card);
+                if (!e.card.startsWith('TOKEN:') && before && !before.includes('mandalorian') && (e.traits ?? []).includes('mandalorian')) {
+                    gained = true;
+                }
+                traitsBefore.set(e.card, e.traits ?? []);
+            }
+            expect(gained).withContext('a gained trait')
+                .toBe(true);
+            expect(keyframes().some((e: any) => e.keyframe.players[1].cards.some((c: any) => c.upgradeControllers && Object.keys(c.upgradeControllers).length > 0)))
+                .withContext('an upgrade P2 controls on a unit P1 controls')
                 .toBe(true);
             expect(byType(doc, 'ABILITY_ACTIVATE').some((e) => e.limit)).withContext('a limited ability')
                 .toBe(true);
-            const keyframes = doc.events.filter((e: any) => e.keyframe);
-            expect(keyframes.some((e: any) => e.keyframe.players[1].foreignResources.length > 0)).withContext('a resource P2 owns in P1\'s row')
+            expect(keyframes().some((e: any) => e.keyframe.players[1].foreignResources.length > 0)).withContext('a resource P2 owns in P1\'s row')
                 .toBe(true);
-            expect(keyframes.some((e: any) => e.keyframe.players[1].cards.some((c: any) => c.owner === 2))).withContext('a unit P1 controls and P2 owns')
+            expect(keyframes().some((e: any) => e.keyframe.players[1].cards.some((c: any) => c.owner === 2))).withContext('a unit P1 controls and P2 owns')
                 .toBe(true);
         });
     });

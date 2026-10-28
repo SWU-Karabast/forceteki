@@ -3723,8 +3723,8 @@ reader in the suite reproduces its fold and rendering.
 | `homeworlds` | Real game, Homeworlds mechanics ([§10.3](#103-homeworlds-fortify-beast-and-weakness)): Fortify upgrades on **both** bases (`MOVE` into `base` with `attachedTo: "base@N"`, `PLAY_UPGRADE.target` `base@N`, `baseUpgrades` in every keyframe); a base upgrade sacrificed to its own Action (Carbonite Chamber) leaving `base`; a base using a granted triggered ability every round (`ABILITY_ACTIVATE` on `base@1` with `grantedBy`); a static base buff arriving as `STATS` (Verdant Fortress's Raid 1 on each Beast; Landing Pad is attached too, but no unit enters space, so its +1/+0 never shows); Beast tokens from a granted trigger and from an event; Weakness tokens stacking on a Beast until it dies at 0 HP (`frameworkEffect`, the token unit leaving for `outsideTheGame`); an empty-deck draw dealing damage with no `src`. |
 | `stolen-hauler` | Real game: Stolen AT-Hauler defeated by Power of the Dark Side into its owner's discard, then played from there by the **opponent** (`MOVE` from `discard` with `"p": 2` for Player 1's card), twice. Gates the "whose pile" rule of [§12.1](#121-the-move-rule-the-big-one): the card leaves Player 1's pile, not Player 2's. |
 | `effects` | Real game: lasting effects ([§10.1](#effect_start)). Wolffe's "Bases can't be healed" on both bases (`targets` `base@1` and `base@2`, `duration` `phase`, `EFFECT_END` `expired` at the phase's end); Rallying Cry's Raid 2 on two Stormtroopers, one of which trades with an enemy unit and leaves the effect (a partial `EFFECT_END` with `targets`, `reason` `targetLeft`) while the rest of it expires with the phase; Give In to Your Anger's `until` effect with its `untilText`; Force Lightning blanking a unit (`STATS.blank`) and its effect ending when the unit leaves play; combat damage both ways in one `simul` group. |
-| `visibility` | Real game: hidden information and simultaneous choices ([§10.2](#102-events-that-are-just-notes)). A search of the top eight cards (`SEARCH` with `owner` and `seen`); looks at the top of the player's own deck and at the opponent's hand (`LOOK`); Regional Governor naming a card (`NAME`, before the `EFFECT_START` that uses it); Every Day, More Lies having each player discard (two `blind` `CHOICE`s, the discards one `simul` group); a When Defeated used again by the leader (`ABILITY_ACTIVATE.usedBy`). |
-| `control` | Real game, seven rounds: control and ownership. Evidence of the Crime taking an enemy upgrade onto a friendly unit (an upgrade `TAKE_CONTROL` and the host's `upgradeControllers`); Traitorous taking a unit (the keyframe `owner`); Gar Saxon's once-each-round trigger (`ABILITY_ACTIVATE.limit`); Foundling adding a trait (`STATS.traits`); Clone entering play as a copy (`STATS.copyOf`, `name`, `cost`, `aspects`); Arquitens Assault Cruiser putting a defeated enemy unit into play as a resource (a resource `TAKE_CONTROL` with `owner`, `foreignResources`). |
+| `visibility` | Real game, six rounds: hidden information and simultaneous choices ([§10.2](#102-events-that-are-just-notes)). A search of the top eight cards (`SEARCH` with `owner` and `seen`); looks at the top of the player's own deck and at the opponent's hand (`LOOK`); Regional Governor naming a card (`NAME`, before the `EFFECT_START` that uses it); Every Day, More Lies having each player discard (two `blind` `CHOICE`s, the discards one `simul` group); a When Defeated used again by the leader (`ABILITY_ACTIVATE.usedBy`); Migs Mayfeld using his once-each-round trigger on those discards and then dying in an attack the same round (`ABILITY_RESET`). |
+| `control` | Real game, seven rounds: control and ownership. Evidence of the Crime taking an enemy upgrade onto a friendly unit (an upgrade `TAKE_CONTROL`); Traitorous taking a unit that carries the other seat's Academy Training (the keyframe `owner`, and the host's `upgradeControllers` naming seat 2 for that upgrade); Gar Saxon's once-each-round trigger (`ABILITY_ACTIVATE.limit`); Foundling on the stolen Battlefield Marine, which gains the Mandalorian trait (`STATS.traits`); Clone entering play as a copy (`STATS.copyOf`, `name`, `cost`, `aspects`); Arquitens Assault Cruiser putting a defeated enemy unit into play as a resource (a resource `TAKE_CONTROL` with `owner`, `foreignResources`). |
 | `death-star` | Real game, eight rounds ([§10.4](#104-grand-moff-tarkin-and-the-death-star)): Grand Moff Tarkin builds to nine resources and deploys by Epic Action as **The Death Star** (`backSideName` in `%%% CARDS`, the `DEPLOY_LEADER` a sub-step of the Epic Action, arriving in `space`), then at the start of the regroup phase defeats Player 2's base with 9 HP left — a `DEFEAT` on `base@2`, `baseDefeated: true` beside a non-zero `baseHp`. Along the way a Weakness given to the player's own unit stacks to a kill. |
 
 The eleven real-game vectors were written by one real engine; [Appendix C](#reference-writer-revisions-informative)
@@ -3982,11 +3982,24 @@ A pass of the format against Comprehensive Rules v9.0 and the board state of CR 
   an arena and `base` sets `leader.deployed` whether or not a `DEPLOY_LEADER` was written.
 - Lasting and delayed effects are records: `EFFECT_START` and `EFFECT_END`, with effect ids
   `fx@N`, the closed `duration` and `reason` vocabularies, a partial end when a target leaves play,
-  and the board's `effects`, carried in keyframes and gated `[W-48]`. An `EFFECT_END` for no active
-  effect is an error, `effect-end-unknown` `[V-09]` (`effect-end-unknown` vector).
+  and the board's `effects`, carried in keyframes and gated `[W-48]`. One record is one effect as
+  the card text states it: one for every unit "each friendly unit" gives it to, two for two
+  separately stated effects. An `EFFECT_END` for no active effect is an error,
+  `effect-end-unknown` `[V-09]` (`effect-end-unknown` vector).
+- `untilText` is REQUIRED on an `EFFECT_START` whose `duration` is `until`, and a record without it
+  fails its schema `[W-48]`; it is plain text, never markup.
+- The story prints the new records ([§16](#16-rendering--turning-a-file-into-a-story)): `EFFECT_START`
+  (who, source, `plain(text)` — the effect text with each icon-markup token replaced by its plain
+  text — its targets or seat, and how long it lasts), `EFFECT_END` (the source looked up by `id`,
+  the targets of a partial end, and why), `LOOK`, `NAME` (cut like a card name), and ` (used by …)`
+  on an `ABILITY_ACTIVATE` with `usedBy`. `ABILITY_RESET` prints nothing, `SEARCH.owner`/`seen`,
+  `limit`, `blind` and `simul` change no line, and a `simul` group prints in file order.
+- `EFFECT_START.text` and `untilText` are attacker-controlled text that the story carries, so a
+  renderer escapes them, and `text` may carry icon markup, which is never HTML
+  ([§23](#23-security-considerations)).
 - A limited ability carries `limit` on every use, the fold counts it in the seat's `abilityUses`
-  and resets it at the boundary `limit.per` names, and `ABILITY_RESET` states a reset at any other
-  moment `[W-49]`.
+  (keeping the latest `limit.max`) and resets it at the boundary `limit.per` names, and
+  `ABILITY_RESET` states a reset at any other moment, such as the card changing zone `[W-49]`.
 - A look at hidden cards is a `LOOK`, and a `SEARCH` carries `owner` and `seen` `[W-50]`.
 - A card named is a `NAME`, before the record that uses the name `[W-51]`.
 - A successful disclose is one `REVEAL` of the hand, and a trigger from a hidden zone writes no
@@ -3996,15 +4009,18 @@ A pass of the format against Comprehensive Rules v9.0 and the board state of CR 
 - An ability another card's ability made a player use carries `usedBy`, and its `p` is that
   player `[W-54]`.
 - `STATS` states every attribute of the unit: `traits` always, `blank`, `leaderUnit`, and for a
-  copy `copyOf`, `name`, `cost` and `aspects`; keyframe cards carry the same `[W-55]`.
+  copy `copyOf`, `name`, `cost` and `aspects`; every keyframe card carries `traits` and the rest
+  the same way, and the integrity check compares them `[W-55]`.
 - A change of control of an attached upgrade is a `TAKE_CONTROL`, and the host's
-  `upgradeControllers` records it; a unit in play under a seat that does not own it has `owner`;
-  a resource `TAKE_CONTROL` without `from` carries `owner` `[W-56]`.
+  `upgradeControllers` records it; a unit in play under a seat that does not own it has `owner`,
+  set on its arrival whatever order the arrival's records come in; a resource `TAKE_CONTROL`
+  without `from` (a steal that changed zone) carries `owner` `[W-56]`.
 - Every keyframe seat carries `foreignResources`, the resources in its row that the other seat
   owns `[W-57]`.
-- A play also takes in, as its precursors, what the played card does as it enters play: its own
-  `ABILITY_ACTIVATE` and the `EFFECT_START` it starts on itself, with the cost and choice before
-  them ([Appendix C](#grouping-records-in-a-file-without-for)).
+- A writer files under a play what the played card itself does while the play puts it into play,
+  before the play is announced: its own `ABILITY_ACTIVATE` (Clone's copy), the `CHOICE` it asks
+  for and the `EFFECT_START` it starts on itself, with the cost before them `[W-18]`. The same
+  card's ability or effect from an earlier action stays that action's.
 - [§21](#21-open-issues) names the new fields a perspective rule will have to hide.
 - The conformance suite gains the `effects`, `visibility` and `control` real-game vectors, every
   real-game vector is regenerated at writer revision 6, and the negative-vector table lists every
@@ -4284,7 +4300,7 @@ strict renderer MUST turn it into A.3, exactly.
 
 ```
 [Game "SWU-PGN/1.0"]
-[WriterRevision "4"]
+[WriterRevision "6"]
 [GameId "vector-minimal"]
 [Date "2026-06-16T00:00:00Z"]
 [Format "Premier"] [CardPool "SOR"] [Engine "forceteki@reference"]
@@ -4370,11 +4386,11 @@ strict renderer MUST turn it into A.3, exactly.
 {"seq":"R0.S.20","t":"MOVE","card":"SOR#045:3","from":"hand","to":"resource","p":2,"kind":"unit","for":"R0.S.21"}
 {"seq":"R0.S.21","t":"RESOURCE","p":2,"card":"SOR#045:3"}
 {"seq":"R0.S.end","t":"PHASE_END","phase":"setup"}
-{"seq":"R1.start","t":"ROUND_START","round":1,"active":1,"keyframe":{"round":1,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#045"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
+{"seq":"R1.start","t":"ROUND_START","round":1,"active":1,"keyframe":{"round":1,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108"],"resourcesReady":2,"resourcesExhausted":0,"foreignResources":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#045"],"resourcesReady":2,"resourcesExhausted":0,"foreignResources":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"effects":[]}}
 {"seq":"R1.A.start","t":"PHASE_START","phase":"action"}
 {"seq":"R1.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R1.A.1"}
 {"seq":"R1.A.0b","t":"MOVE","card":"SOR#108","from":"hand","to":"ground","p":1,"kind":"unit","for":"R1.A.1"}
-{"seq":"R1.A.0c","t":"STATS","card":"SOR#108","power":4,"hp":5,"keywords":["overwhelm"],"for":"R1.A.1"}
+{"seq":"R1.A.0c","t":"STATS","card":"SOR#108","power":4,"hp":5,"keywords":["overwhelm"],"traits":["creature"],"for":"R1.A.1"}
 {"seq":"R1.A.1","t":"PLAY","p":1,"card":"SOR#108","zone":"ground","cost":2}
 {"seq":"R1.A.1a","t":"EXHAUST","card":"SOR#108"}
 {"seq":"R1.A.2","t":"PASS","p":2}
@@ -4395,8 +4411,8 @@ strict renderer MUST turn it into A.3, exactly.
 {"seq":"R1.G.12","t":"READY_RESOURCES","p":1,"amount":3}
 {"seq":"R1.G.13","t":"READY_RESOURCES","p":2,"amount":1}
 {"seq":"R1.G.end","t":"PHASE_END","phase":"regroup"}
-{"seq":"R1.end","t":"ROUND_END","round":1,"keyframe":{"round":1,"phase":"regroup","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#108","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":["overwhelm"]}],"deckSize":0,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#045","SOR#045:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":0,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
-{"seq":"R2.start","t":"ROUND_START","round":2,"active":1,"keyframe":{"round":2,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#108","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":["overwhelm"]}],"deckSize":0,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#045","SOR#045:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":0,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
+{"seq":"R1.end","t":"ROUND_END","round":1,"keyframe":{"round":1,"phase":"regroup","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:5"],"resourcesReady":3,"resourcesExhausted":0,"foreignResources":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#108","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":["overwhelm"],"traits":["creature"]}],"deckSize":0,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#045","SOR#045:5"],"resourcesReady":3,"resourcesExhausted":0,"foreignResources":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":0,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"effects":[]}}
+{"seq":"R2.start","t":"ROUND_START","round":2,"active":1,"keyframe":{"round":2,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:5"],"resourcesReady":3,"resourcesExhausted":0,"foreignResources":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#108","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":["overwhelm"],"traits":["creature"]}],"deckSize":0,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#045","SOR#045:5"],"resourcesReady":3,"resourcesExhausted":0,"foreignResources":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":0,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"effects":[]}}
 {"seq":"R2.A.start","t":"PHASE_START","phase":"action"}
 {"seq":"R2.A.0a","t":"CHOICE","p":1,"prompt":"Wampa","offered":["base@2"],"chose":0,"for":"R2.A.1"}
 {"seq":"R2.A.0b","t":"EXHAUST","card":"SOR#108","for":"R2.A.1"}
@@ -4426,6 +4442,7 @@ strict renderer MUST turn it into A.3, exactly.
       ],
       "resourcesReady": 3,
       "resourcesExhausted": 0,
+      "foreignResources": [],
       "credits": 0,
       "hasForce": false,
       "discard": [],
@@ -4444,6 +4461,9 @@ strict renderer MUST turn it into A.3, exactly.
           "hp": 5,
           "keywords": [
             "overwhelm"
+          ],
+          "traits": [
+            "creature"
           ]
         }
       ],
@@ -4453,7 +4473,8 @@ strict renderer MUST turn it into A.3, exactly.
         "deployed": false,
         "exhausted": false,
         "epicActionUsed": false
-      }
+      },
+      "abilityUses": []
     },
     "2": {
       "seat": 2,
@@ -4466,6 +4487,7 @@ strict renderer MUST turn it into A.3, exactly.
       ],
       "resourcesReady": 3,
       "resourcesExhausted": 0,
+      "foreignResources": [],
       "credits": 0,
       "hasForce": false,
       "discard": [],
@@ -4476,9 +4498,11 @@ strict renderer MUST turn it into A.3, exactly.
         "deployed": false,
         "exhausted": false,
         "epicActionUsed": false
-      }
+      },
+      "abilityUses": []
     }
-  }
+  },
+  "effects": []
 }
 ```
 
@@ -4791,7 +4815,7 @@ could change what a record means. After it, a revision is diagnostic only.
 | 3 | `INIT` is `R0.S.0`, not `R1.S.0` ([§8](#8-the-setup-section)). `GameId` is an opaque hash, not the engine's game id, and the fallback player-id salt is no longer printed in the file ([§17](#17-privacy-considerations)) | the `INIT` seq; a `GameId` matching `^sha256:[0-9a-f]{64}$` |
 | 4 | Each mode picked from a "choose N" modal effect is a `MODAL_CHOICE` ([§10.2](#102-events-that-are-just-notes)). `[W-18]` became a MUST, both ways, and every vector is checked against it. The linking is tighter: a record about another card ends a run, so a consequence of one action (a token's `STATS` change, a Raid ending) is no longer stamped `for` the opponent's next one, and so does a choice or resource payment by the other seat, or another card leaving ([Appendix C](#grouping-records-in-a-file-without-for)). A play's own setup (its choices, an Exploit defeat, a card discarded instead of paying) is stamped `for` the play from what the engine knows, so a discard the previous action forced is never filed under the next play. No `for` now names a different action; 9 over-reaching links were removed ([§9.1](#91-how-seq-is-built)) | `WriterRevision` 4 or later |
 | 5 | An additional phase in the same round (Max Rebo) continues its phase's numbering instead of repeating `start` and `end` ([§9.1](#91-how-seq-is-built)). A card played out of the other seat's deck is the owner's `MOVE` and a `TAKE_CONTROL` (`[W-43]`), and a resource given back to its owner's row is a `TAKE_CONTROL`. `P1Id` / `P2Id` hash the account id, not the display name ([§17](#17-privacy-considerations)) | `WriterRevision` 5 or later |
-| 6 | The CR v9.0 coverage pass ([§22](#cr-v90-coverage-pass-2026-10-28)). New records: `EFFECT_START` / `EFFECT_END` and the board's `effects` (`[W-48]`), `LOOK` (`[W-50]`), `NAME` (`[W-51]`), `ABILITY_RESET` (`[W-49]`). New fields: `ABILITY_ACTIVATE.limit` (`[W-49]`) and `usedBy` (`[W-54]`), `SEARCH.owner` and `seen` (`[W-50]`), `CHOICE.blind` and `simul` (`[W-53]`), `STATS.traits`, `blank`, `leaderUnit`, `copyOf`, `name`, `cost`, `aspects` (`[W-55]`), `TAKE_CONTROL` of an upgrade and `TAKE_CONTROL.owner` on a resource (`[W-56]`), `exhausted` on a `MOVE` into `resource` (`[W-45]`), `active` on every `ROUND_START` (`[W-46]`); in keyframes `effects`, `abilityUses`, `foreignResources`, a card's `owner`, `upgradeControllers` and its attributes (`[W-57]`). A token leaving play goes to `outsideTheGame` from every zone (`[W-47]`). A card resourced in the regroup phase enters the row exhausted, so the regroup's `READY_RESOURCES` counts it. A played card's own entering ability (Clone's copy) and the effect it starts on itself are filed `for` the play, with the cost and choice before them ([below](#grouping-records-in-a-file-without-for)) | `WriterRevision` 6 or later; any of the new records or fields |
+| 6 | The CR v9.0 coverage pass ([§22](#cr-v90-coverage-pass-2026-10-28)). New records: `EFFECT_START` / `EFFECT_END` and the board's `effects` (`[W-48]`), `LOOK` (`[W-50]`), `NAME` (`[W-51]`), `ABILITY_RESET` (`[W-49]`). New fields: `ABILITY_ACTIVATE.limit` (`[W-49]`) and `usedBy` (`[W-54]`), `SEARCH.owner` and `seen` (`[W-50]`), `CHOICE.blind` and `simul` (`[W-53]`), `STATS.traits`, `blank`, `leaderUnit`, `copyOf`, `name`, `cost`, `aspects` (`[W-55]`), `TAKE_CONTROL` of an upgrade and `TAKE_CONTROL.owner` on a resource (`[W-56]`), `exhausted` on a `MOVE` into `resource` (`[W-45]`), `active` on every `ROUND_START` (`[W-46]`); in keyframes `effects`, `abilityUses`, `foreignResources`, a card's `owner`, `upgradeControllers` and its attributes (`[W-57]`). A token leaving play goes to `outsideTheGame` from every zone (`[W-47]`). A card resourced in the regroup phase enters the row exhausted, so the regroup's `READY_RESOURCES` counts it. What a played card's own ability does while the play puts it into play (Clone's copy: its choice, its `ABILITY_ACTIVATE`, the `EFFECT_START` on itself) is filed `for` the play, with the cost before it, from what the engine knows; the same card's ability from an earlier action is not ([Appendix D](#appendix-d-reference-writer-notes-informative)) | `WriterRevision` 6 or later; any of the new records or fields |
 
 **Reading a file from revisions 1–5.** It has none of revision 6's records or fields, and their
 absence says nothing: an absent `EFFECT_START` does not mean no effect was active, an absent
@@ -4868,7 +4892,7 @@ treat a `for` on a record the rule above would have left out as the number its `
 |---|---|
 | `ATTACK` | `CHOICE`, `MODAL_CHOICE`, `EXHAUST` |
 | an action or Epic `ABILITY_ACTIVATE` | `CHOICE`, `MODAL_CHOICE` — the menu pick and the target. Its costs (the card exhausting, resources spent) are paid after it is announced, under its own step |
-| the plays and `DEPLOY_LEADER` | `MOVE`, `CHOICE`, `MODAL_CHOICE`, `EXHAUST`, `STATS`, `EXHAUST_RESOURCES`; and an `ABILITY_ACTIVATE` whose `card` is the played card or an `EFFECT_START` whose `src` is — what the card does as it enters play, before the play is announced (Clone's "enter play as a copy" and the effect it starts on itself). An ability or effect of any other card ends the run. Revision 6 added these two |
+| the plays and `DEPLOY_LEADER` | `MOVE`, `CHOICE`, `MODAL_CHOICE`, `EXHAUST`, `STATS`, `EXHAUST_RESOURCES` |
 
 An attack announces itself after picking a target and exhausting the attacker, and that is all:
 it never moves a card or restates its stats. A play does the opposite — the card arrives, gets
@@ -5001,10 +5025,14 @@ contents alone cannot show. None of this is required of another writer. Operatio
   an attach resolves and writes the `TAKE_CONTROL` when it differs after. `owner` and
   `foreignResources` in keyframes are read from each card's owner.
 - **What a played card does as it enters play `[W-18]`.** Clone's "enter play as a copy" is a
-  triggered ability of the card being played that resolves while it is put into play, before the
-  play is announced, so its choice, its `ABILITY_ACTIVATE` and the `EFFECT_START` on itself sit
-  between the cost and the card's `MOVE`. `linkActionSteps()` files them under the play
-  ([Appendix C](#grouping-records-in-a-file-without-for)).
+  triggered ability of the card being played that resolves while the play puts it into play,
+  before the play is announced, so its choice, its `ABILITY_ACTIVATE` and the `EFFECT_START` on
+  itself sit between the cost and the card's `MOVE`, and name no card the walk can anchor on.
+  Position cannot tell them from the same card's ability left by an earlier action (a Stolen
+  AT-Hauler's When Defeated, written just before the opponent plays it from the discard). The
+  engine can: the recorder marks a record as the play's setup when the ability resolving is the
+  played card's own and the play, not yet announced, is a resolver it is nested in, and
+  `linkActionSteps()` files a marked record under that card's play.
 - **Identity `[W-10]`.** No field is built from an account name. The player id is built from the
   account id, so a rename keeps it and two guests sharing a name do not share it. A CI test
   stamps sentinel identities onto a live game and fails if any survives into the file.

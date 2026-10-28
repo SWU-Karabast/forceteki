@@ -1129,9 +1129,9 @@ describe('fold effects', function () {
 
     // Value: protects=absent means "not recorded" for files older than effects; fails_when=emptyState or the fold seeds effects: [] for every file; why_new=effects are new; seam=none; no_claim=none
     it('a file without effect records folds with no effects field', function () {
-        const vectors = path.resolve(__dirname, '../../../../swupgn/test-vectors');
-        // `minimal` is a revision-4 file: older than effect records.
-        const doc = parse(fs.readFileSync(path.join(vectors, 'minimal.swupgn'), 'utf8'));
+        const fixtures = path.resolve(__dirname, '../../../../test/server/swupgn/fixtures');
+        // A synthetic revision-4 file (`minimal` as it was before revision 6): older than effect records.
+        const doc = parse(fs.readFileSync(path.join(fixtures, 'minimal-rev4.swupgn'), 'utf8'));
         expect(doc.header.writerRevision).toBe(4);
         expect('effects' in fold(doc.events)).toBe(false);
     });
@@ -1212,9 +1212,9 @@ describe('fold limited abilities, looks and names', function () {
 
     // Value: protects=absent means "not recorded" for files older than abilityUses; fails_when=emptyPlayer or the fold seeds abilityUses for every file; why_new=abilityUses are new; seam=none; no_claim=none
     it('a file without limited abilities folds with no abilityUses field', function () {
-        const vectors = path.resolve(__dirname, '../../../../swupgn/test-vectors');
-        // `minimal` is a revision-4 file: older than limited-ability uses.
-        const doc = parse(fs.readFileSync(path.join(vectors, 'minimal.swupgn'), 'utf8'));
+        const fixtures = path.resolve(__dirname, '../../../../test/server/swupgn/fixtures');
+        // A synthetic revision-4 file (`minimal` as it was before revision 6): older than limited-ability uses.
+        const doc = parse(fs.readFileSync(path.join(fixtures, 'minimal-rev4.swupgn'), 'utf8'));
         expect(doc.header.writerRevision).toBe(4);
         const s = fold(doc.events);
         expect('abilityUses' in (s.players[1] ?? {})).toBe(false);

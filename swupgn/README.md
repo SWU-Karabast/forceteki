@@ -62,12 +62,14 @@ base that still has HP (`DEFEAT` on `base@2`, `baseDefeated`; spec §10.4).
 `effects` is lasting effects (`EFFECT_START` / `EFFECT_END`, the board's `effects`): an effect on
 both bases, one on two units that one of them leaves (a partial end), an `until` effect, and a
 blanked unit. `visibility` is `LOOK`, `SEARCH.seen`, `NAME`, `blind` choices with a `simul`
-discard, and a When Defeated used again by the leader (`usedBy`). `control` is an upgrade and a
-unit taken, a limited ability (`limit`), a gained trait, a copy (`copyOf`), and an enemy unit put
-into play as a resource (`foreignResources`). Each scenario's seed is fixed; the `control` seed
-(`swu-pgn-vector-control-b`) is the first of a short list that played every card it is about, so
-if a card-data change makes its assertions fail, try others the same way rather than loosening
-them.
+discard, a When Defeated used again by the leader (`usedBy`), and a limited use reset when its card
+leaves play (`ABILITY_RESET`). `control` is an upgrade taken, a unit taken while it carries the
+other seat's upgrade (`owner`, `upgradeControllers`), a limited ability (`limit`), a trait gained
+by a unit that did not have it, a copy (`copyOf`), and an enemy unit put into play as a resource
+(`foreignResources`). Each scenario's seed is fixed. The `control` and `visibility` seeds
+(`swu-pgn-vector-control-b`, `swu-pgn-vector-visibility-14`) were picked from a numbered run of
+seeds as the first that played every card the scenario is about, so if a card-data change makes
+their assertions fail, try others the same way rather than loosening them.
 
 The setup's initiative choice (`R0.S.1`, a `MODAL_CHOICE`) is made before the scenario seeds the
 game, so which seat makes it can differ from run to run. Neither the fold nor the story shows it,

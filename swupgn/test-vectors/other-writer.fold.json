@@ -14,6 +14,7 @@
       ],
       "resourcesReady": 3,
       "resourcesExhausted": 0,
+      "foreignResources": [],
       "credits": 0,
       "hasForce": false,
       "discard": [],
@@ -32,6 +33,9 @@
           "hp": 5,
           "keywords": [
             "overwhelm"
+          ],
+          "traits": [
+            "creature"
           ]
         }
       ],
@@ -41,7 +45,8 @@
         "deployed": false,
         "exhausted": false,
         "epicActionUsed": false
-      }
+      },
+      "abilityUses": []
     },
     "2": {
       "seat": 2,
@@ -54,6 +59,7 @@
       ],
       "resourcesReady": 3,
       "resourcesExhausted": 0,
+      "foreignResources": [],
       "credits": 0,
       "hasForce": false,
       "discard": [],
@@ -64,7 +70,9 @@
         "deployed": false,
         "exhausted": false,
         "epicActionUsed": false
-      }
+      },
+      "abilityUses": []
     }
-  }
+  },
+  "effects": []
 }
