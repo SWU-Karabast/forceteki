@@ -7,11 +7,14 @@ Engine-independent reference reader for the SWU-PGN/1.0 game format. Informative
 - `parse(text, limits?)` -> structured document (header, story, decks, cards, setup, events,
   annotations). Throws a `SwuPgnError` whose `code` is from the spec's error table (§24) for a
   malformed file, and rejects a file over `limits` (`DEFAULT_LIMITS`: 16 MiB, 1 MiB per line,
-  1,000,000 records, depth 64) rather than reading part of it.
+  1,000,000 records, depth 64) rather than reading part of it. A record with a key in
+  `RESERVED_KEYS` (`reserved-key`) or a major version other than `READER_MAJOR`
+  (`unsupported-major`) is malformed, so no consumer ever sees one.
 - `validate(text)` -> conformance report: `level` (`malformed` … `complete`, spec §2.1) and
   `issues`, each with a `code` and a `severity`. Branch on `code`, never on `message`. The list
   stops at `MAX_ISSUES` (1000) with one `too-many-issues` warning; `level` counts every issue.
-- `fold(events)` / `stateAt(events, seq)` -> reconstructed board state (no rules engine)
+- `fold(events)` / `stateAt(events, seq)` -> reconstructed board state (no rules engine);
+  `reduce(state, event)` is the per-event rule both apply between keyframes (spec §12)
 - `render(doc, names?)` -> the story, as a strict renderer writes it (spec §16)
 - `checkKeyframes(events)` -> keyframe integrity report (spec §14). A conformant file reports no
   mismatch, so one that does means your fold has a rule wrong, not that the file is bad.
