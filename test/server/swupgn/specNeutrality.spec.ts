@@ -77,18 +77,54 @@ function normativeLines(): { line: number; text: string }[] {
     return out;
 }
 
+/**
+ * The normative lines grouped into paragraphs: runs of consecutive non-blank lines joined with a
+ * single space, so a phrase that wraps across a line break still matches. `line` is the first
+ * line of the paragraph.
+ */
+function normativeParagraphs(): { line: number; text: string }[] {
+    const out: { line: number; text: string }[] = [];
+    let current: { line: number; parts: string[] } | null = null;
+    let previous = 0;
+    const flush = () => {
+        if (current) {
+            out.push({ line: current.line, text: current.parts.join(' ') });
+            current = null;
+        }
+    };
+    for (const { line, text } of normativeLines()) {
+        // A gap in line numbers means lines were excluded between these two, so the paragraph ends.
+        if (text.trim() === '' || (current && line !== previous + 1)) {
+            flush();
+        }
+        if (text.trim() !== '') {
+            current = current ?? { line, parts: [] };
+            current.parts.push(text.trim());
+        }
+        previous = line;
+    }
+    flush();
+    return out;
+}
+
 describe('SWU-PGN spec neutrality', function () {
     it('keeps platform-specific wording out of normative text', function () {
-        const lines = normativeLines();
+        const paragraphs = normativeParagraphs();
         const hits: string[] = [];
         for (const row of BANNED) {
-            for (const { line, text } of lines) {
-                if (row.phrase.test(text)) {
-                    hits.push(`task ${row.task} (${row.why}) ${row.phrase} -> ${line}: ${text}`);
+            for (const { line, text } of paragraphs) {
+                const match = row.phrase.exec(text);
+                if (match) {
+                    hits.push(`task ${row.task} (${row.why}) ${row.phrase} -> paragraph at line ${line}: "${match[0]}"`);
                 }
             }
         }
         expect(hits).toEqual([]);
+    });
+
+    it('checks a normative region that is not empty', function () {
+        // Guards against the `## 1.` heading moving or being renamed, which would make the scan pass vacuously.
+        expect(normativeParagraphs().length).toBeGreaterThan(100);
     });
 
     it('defines the informative note marker', function () {
