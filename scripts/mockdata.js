@@ -649,8 +649,8 @@ const mockReprints = [
     { internalName: 'concord-dawn-interceptors', setId: { set: 'IC27', number: 36 } },
     { internalName: 'disciples-devotion', setId: { set: 'IC27', number: 53 } },
     { internalName: 'apology-accepted', setId: { set: 'IC27', number: 69 } },
+    { internalName: 'homestead-militia', setId: { set: 'IC27', number: 90 } },
     { internalName: 'dogfight', setId: { set: 'IC27', number: 94 } },
-    { internalName: 'homestead-militia', setId: { set: 'IC27', number: 94 } },
     { internalName: 'cham-syndulla#rallying-ryloth', setId: { set: 'IC27', number: 131 } },
 ];
 // -------- End Mock Reprints --------
