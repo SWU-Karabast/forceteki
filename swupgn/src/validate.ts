@@ -398,6 +398,19 @@ export function validate(text: string): ConformanceReport {
         if (walked) {
             error(walked.code, walked.message);
         }
+        // [V-05] also holds inside a what-if `line` (an array of events), but not in `text`, which
+        // is prose and may mention a token however it likes.
+        const what = Array.isArray(ann['line']) ? ann['line'] : [];
+        for (const e of what) {
+            const bad = badTokenRef(e);
+            if (bad !== undefined) {
+                error('bad-token-name', `annotation on ${String(ann['ref'])}: "${bad}" breaks the token id grammar`);
+            }
+            const ev = asRecord(e);
+            if (ev && ev['t'] === 'STATUS_TOKEN' && typeof ev['token'] === 'string' && !TOKEN_NAME.test(ev['token'])) {
+                error('bad-token-name', `annotation on ${String(ann['ref'])}: STATUS_TOKEN token "${ev['token']}" breaks the token-name grammar`);
+            }
+        }
         if (!seqs.has(ann['ref'] as string)) {
             error('dangling-ref', `annotation ref "${String(ann['ref'])}" names no record`);
         }

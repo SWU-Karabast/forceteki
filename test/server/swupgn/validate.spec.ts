@@ -297,6 +297,17 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(codes(ann('"x":9007199254740993'))).toContain('error:number-range');
     });
 
+    // Value: protects=[V-05] holds inside an annotation's what-if line but not its prose text; fails_when=the annotation loop stops checking line events, or starts checking text; why_new=the token check only ran over events, cards and decks; seam=none; no_claim=the token grammar itself
+    it('checks token ids in an annotation line, and not in its text', function () {
+        const ann = (extra: string) => good.replace('{"ref":"R2.A.1"', `{${extra},"ref":"R2.A.1"`);
+        const bad = ann('"line":[{"seq":"R2.A.1","t":"CREATE_TOKEN","card":"TOKEN:Bad_Name#1","p":1}]');
+        expect(codes(bad)).toContain('error:bad-token-name');
+        expect(codes(ann('"line":[{"seq":"R2.A.1","t":"CREATE_TOKEN","card":"TOKEN:xwing#1","p":1}]'))).not.toContain('error:bad-token-name');
+        const prose = good.replace('"text":"attacking', '"text":"I would not name it TOKEN:Bad_Name; attacking');
+        expect(prose).not.toBe(good);
+        expect(codes(prose)).not.toContain('error:bad-token-name');
+    });
+
     // Value: protects=a malformed file reports the parser's stable code and line to the consumer; fails_when=validate() maps every parse failure to 'malformed' or drops SwuPgnError.line; why_new=the manifest checks codes only, never the line; seam=none; no_claim=the message wording
     it('reports a parse failure with its error code and line number', function () {
         const lines = good.split('\n');
