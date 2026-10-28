@@ -1350,9 +1350,10 @@ answer from the ability itself and SHOULD state it.
 | `delayed` | A delayed effect coming due (CR 7.7.4): an effect set up earlier in the game that resolves now. |
 | `replacement` | A replacement effect (CR 7.7.5), including one that prevents or changes damage before it is dealt. |
 
-When more than one row applies, the first row that matches wins. A Shielded ability is a
-replacement effect in CR 7.7.5's sense, and is `keyword`; an Epic Action is an action ability,
-and is `epic`.
+When more than one row applies, the first row that matches wins. An Epic Action is an
+action ability, and is `epic`. The ability Shielded gives (entering play with a Shield token) is
+`keyword`; the Shield token's own damage prevention is a replacement effect (CR 7.7.5), and is
+`replacement`.
 
 A writer MUST NOT omit `kind` for an ability it can classify.
 
