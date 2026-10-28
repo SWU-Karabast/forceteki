@@ -24,7 +24,8 @@ Engine-independent reference reader for the SWU-PGN/1.0 game format. Informative
 - `checkKeyframes(events)` -> keyframe integrity report (spec §14). A conformant file reports no
   mismatch, so one that does means your fold has a rule wrong, not that the file is bad.
 - `linkActionSteps(events)` -> stamps `for` on the records the engine numbered before the action
-  they belong to (spec §9.1), so a reader never implements that heuristic. Writers run this.
+  they belong to (spec §9.1 `[W-18]`, by the rule in Appendix C). Writers run this; a reader
+  of an old file without `for` can run it too.
 - `indexResolver(cards)` / `baseId(ref)` -> the card-name lookup `render` takes as `names`
 
 This module MUST NOT import from `server/game/` (the SWU rules engine).

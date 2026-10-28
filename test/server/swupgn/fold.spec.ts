@@ -1,6 +1,9 @@
 import { fold, stateAt } from '../../../swupgn/src/fold';
 import { checkKeyframes } from '../../../swupgn/src/integrity';
 import type { GameEvent } from '../../../swupgn/src/types';
+import { parse } from '../../../swupgn/src/parse';
+import * as fs from 'fs';
+import * as path from 'path';
 
 function ev(e: GameEvent): GameEvent {
     return e;
@@ -996,5 +999,22 @@ describe('fold attachment list cap', function () {
         const host = fold(events).players[1]?.cards.find((c) => c.id === 'SOR#010');
         expect(host?.upgrades.length).toBe(1000);
         expect(host?.captured.length).toBe(1000);
+    });
+});
+
+describe('fold record order', function () {
+    // Value: protects=`for`, not file position, is what ties a record to its action (spec §9.1 [W-18]); fails_when=the fold depends on a writer emitting an action's records before announcing it; why_new=every vector comes from one writer, which always emits them first; seam=none; no_claim=records with no `for`
+    it('folds the same when a writer announces the action before its records', function () {
+        const vectors = path.resolve(__dirname, '../../../../swupgn/test-vectors');
+        const events = parse(fs.readFileSync(path.join(vectors, 'arrest.swupgn'), 'utf8')).events;
+        const owned = events.filter((e) => e.for === 'R2.A.3');
+        expect(owned.length).withContext('arrest has records filed under R2.A.3')
+            .toBeGreaterThan(0);
+        const rest = events.filter((e) => e.for !== 'R2.A.3');
+        const at = rest.findIndex((e) => e.seq === 'R2.A.3');
+        const reordered = [...rest.slice(0, at + 1), ...owned, ...rest.slice(at + 1)];
+
+        const expected = JSON.parse(fs.readFileSync(path.join(vectors, 'arrest.fold.json'), 'utf8'));
+        expect(JSON.parse(JSON.stringify(fold(reordered)))).toEqual(expected);
     });
 });

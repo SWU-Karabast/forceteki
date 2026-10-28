@@ -190,8 +190,8 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
     it('rates the minimal vector complete, and says why when a file falls short', function () {
         expect(validate(good).level).toBe('complete');
         expect(validate('not a file').level).toBe('malformed');
-        expect(validate(good.replace('[WriterRevision "3"]\n', '')).level).toBe('well-formed');
-        expect(codes(good.replace('[WriterRevision "3"]\n', ''))).toEqual(['warning:pre-release']);
+        expect(validate(good.replace('[WriterRevision "4"]\n', '')).level).toBe('well-formed');
+        expect(codes(good.replace('[WriterRevision "4"]\n', ''))).toEqual(['warning:pre-release']);
         expect(validate(good.replace('[Rounds "2"]', '[Rounds "2"] [RecorderErrors "1"]')).level).toBe('verified');
         expect(validate(addEvent('{"seq":"R1.A.9","t":"DEFEAT","card":"SOR#108","reason":"unknown"}')).level).toBe('verified');
     });

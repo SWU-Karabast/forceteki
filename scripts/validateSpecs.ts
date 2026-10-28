@@ -74,7 +74,6 @@ const gameGroupExemptions: IGameGroupExemption[] = [
     { pattern: 'server/chat/SwuPgn.spec.ts', reason: 'SWU-PGN writer unit test: drives the recorder/adapter/writer with stand-in engine objects, no Game' },
     { pattern: 'server/chat/SwuPgnGameAdapter.spec.ts', reason: 'SWU-PGN writer unit test: drives the recorder/adapter/writer with stand-in engine objects, no Game' },
     { pattern: 'server/chat/SwuPgnIdentity.spec.ts', reason: 'SWU-PGN writer unit test: drives the recorder/adapter/writer with stand-in engine objects, no Game' },
-    { pattern: 'server/chat/SwuPgnRecorder.spec.ts', reason: 'SWU-PGN writer unit test: drives the recorder/adapter/writer with stand-in engine objects, no Game' },
     { pattern: 'server/chat/SwuPgnSeed.spec.ts', reason: 'SWU-PGN writer unit test: drives the recorder/adapter/writer with stand-in engine objects, no Game' },
     { pattern: 'server/chat/SwuPgnWriter.spec.ts', reason: 'SWU-PGN writer unit test: drives the recorder/adapter/writer with stand-in engine objects, no Game' },
 ];

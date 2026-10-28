@@ -1,7 +1,7 @@
 import { buildHeader, SWU_PGN_WRITER_REVISION, SwuPgnRecorder } from '../../../server/game/core/chat/SwuPgnRecorder';
 import { SwuPgn } from '../../../server/game/core/chat/SwuPgn';
 import { saltedPlayerId } from '../../../server/game/core/chat/swuPgnIdentity';
-import { fold } from '../../../swupgn/src/index';
+import { fold, parse } from '../../../swupgn/src/index';
 import type { GameEvent, ReducedState } from '../../../swupgn/src/types';
 import { checkKeyframes } from '../../../swupgn/src/integrity';
 import { AbilityType, EventName } from '../../../server/game/core/Constants';
@@ -1382,5 +1382,44 @@ describe('SwuPgnRecorder: ABILITY_ACTIVATE.grantedBy names only another card', f
             .toBeUndefined();
         expect(grantedByFor(() => ({ ...fakeCard({ uuid: 'HMW#126', zoneName: 'base', owner: p1 }), setId: { set: 'hmw', number: 126 } })))
             .toBe('HMW#126');
+    });
+});
+
+describe('SwuPgnRecorder: modal effects', function () {
+    integration(function (contextRef) {
+        // Value: protects=each mode picked from a "choose N" prompt is a MODAL_CHOICE under the play (spec §10.2, writer revision 4); fails_when=ModalEffectSelectionPrompt stops emitting OnModalChoice and the picks reach no record; why_new=only HandlerMenuPrompt and ActionSelectionPrompt picks were recorded; seam=none; no_claim=modes picked by the opponent
+        it('records each mode a player picks from a modal effect', async function () {
+            const returnPrompt = 'Return a non-leader unit with 4 or less power to its owner\'s hand';
+            const buffPrompt = 'Give a unit +4/+0 for this phase';
+            const exhaustPrompt = 'Exhaust up to 2 units';
+            const discardPrompt = 'An opponent discards a random card from their hand';
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { hand: ['cunning'], groundArena: ['wampa'] },
+                player2: { hand: ['pyke-sentinel', 'moisture-farmer'] },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.cunning);
+            context.player1.clickPrompt(discardPrompt);
+            context.player1.clickPrompt(buffPrompt);
+            context.player1.clickCard(context.wampa);
+            expect(context.player2).toBeActivePlayer();
+
+            const events = parse(context.game.getCachedSwuPgn()).events as any[];
+            const play = events.find((e) => e.t === 'PLAY_EVENT');
+            expect(play).withContext('Cunning is played')
+                .toBeDefined();
+            // Setup's own MODAL_CHOICE (who goes first) comes earlier; only the play's picks count.
+            const picks = events.slice(events.indexOf(play)).filter((e) => e.t === 'MODAL_CHOICE');
+            expect(picks).toEqual([
+                jasmine.objectContaining({ p: 1, offered: [returnPrompt, buffPrompt, exhaustPrompt, discardPrompt], chose: 3 }),
+                jasmine.objectContaining({ p: 1, offered: [returnPrompt, buffPrompt, exhaustPrompt], chose: 1 }),
+            ]);
+            for (const pick of picks) {
+                expect(pick.seq).withContext('lettered under the PLAY_EVENT')
+                    .toMatch(new RegExp(`^${play.seq.replace(/\./g, '\\.')}[a-z]+$`));
+            }
+        });
     });
 });

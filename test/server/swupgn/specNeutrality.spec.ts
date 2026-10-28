@@ -23,6 +23,9 @@ export const BANNED: { phrase: RegExp; task: number; why: string }[] = [
     { phrase: /server\/game\/core\/chat/, task: 1, why: 'names a path in one implementation' },
     { phrase: /internal name/i, task: 2, why: 'defines a token name by one implementation\'s card key' },
     { phrase: /<internalName>/, task: 2, why: 'defines a token name by one implementation\'s card key' },
+    { phrase: /performs part of an action\s+\*?before\*? it announces/, task: 3, why: 'describes one engine\'s emission order as the format' },
+    { phrase: /The \*recorder\* genuinely cannot/, task: 3, why: 'describes one implementation\'s recorder' },
+    { phrase: /in every real file/, task: 3, why: 'describes one implementation\'s output as the norm' },
 ];
 
 /** The lines a conforming implementation must obey, with 1-based line numbers. */

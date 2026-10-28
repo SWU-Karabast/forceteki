@@ -270,9 +270,8 @@ requirement, by id. The linked section is where each one is defined.
 - `[W-17]` MUST write an `EXHAUST` for a unit that enters play exhausted — the normal case, which
   no attack or ability announces — and nothing for one that enters ready
   ([§10.1](#101-events-that-carry-board-detail)).
-- `[W-18]` SHOULD stamp `for` on every record that belongs to an action announced after it, so no
-  reader has to implement §9.1's heuristic, and MUST NOT link more loosely than §9.1 allows
-  ([§9.1](#91-how-seq-is-built)).
+- `[W-18]` MUST stamp `for` on every record that belongs to an action announced after it. A record
+  without `for` belongs to the action whose number its `seq` carries ([§9.1](#91-how-seq-is-built)).
 - `[W-19]` MUST record the resource row's membership as well as its two counts, and a base's
   spent Epic Action as `baseEpicActionUsed` ([§11](#11-the-reduced-state--the-board-you-build)).
 - `[W-20]` MUST name the destination arena in a `CREATE_TOKEN`'s `zone`, and MUST omit
@@ -1073,82 +1072,43 @@ The numbers-and-letters rule is the useful part:
 So `3a`, `3b` … `3z`, `3aa` … all belong to action `3`. That's how a reader groups a play with
 its consequences.
 
-**One wrinkle, and it is in every real file.** The engine performs part of an action
-*before* it announces the action: a card's `MOVE` into the arena lands before its `PLAY`, and
-an attack's target `CHOICE` and the attacker's `EXHAUST` land before its `ATTACK`. Those
-records are numbered when they arrive, so they carry the **previous** action's number. A real
-file reads:
-
-```
-R2.A.0a  CHOICE   (target picked)
-R2.A.0b  EXHAUST  (attacker exhausts)
-R2.A.1   ATTACK
-R2.A.1a  DAMAGE
-```
-
-**A writer SHOULD file these with `for`, so no reader has to implement that sentence.** `for`
-names the action a record belongs to. From the `arrest` vector:
+**An action can own records written before it.** A writer may perform part of an action
+before it writes the record that announces it: the target `CHOICE` and the attacker's `EXHAUST`
+can come before the `ATTACK`, and a card's `MOVE` into the arena before its `PLAY`. Those
+records are numbered when they are written, so their `seq` carries the **previous** action's
+number. `for` names the action a record belongs to. From the `arrest` vector:
 
 ```json
 {"seq":"R2.A.2a","t":"CHOICE","p":1,"prompt":"Peridea Bandit","offered":["base@2"],"chose":0,"for":"R2.A.3"}
 {"seq":"R2.A.2b","t":"EXHAUST","card":"ASH#190","for":"R2.A.3"}
-{"seq":"R2.A.3","t":"ATTACK","p":1,"atk":"ASH#190","def":"base@2","defenderType":"base","ms":8}
+{"seq":"R2.A.3","t":"ATTACK","p":1,"atk":"ASH#190","def":"base@2","defenderType":"base","ms":7}
 ```
 
-It is legal on **any** record, and OPTIONAL: a reader that ignores it loses the grouping and
-nothing else. Nor does what it names have to be an action: **a resourcing is announced the same
-way round** — the card's hand->`resource` `MOVE` lands first and the `RESOURCE` that summarises
-it follows — so a writer SHOULD stamp that `MOVE` with the `RESOURCE`'s seq. Left unstamped it
-carries the previous beat's number (the draw burst, or the other seat's commit) and a reader
-that trusts `for` files the card under the wrong player.
+**Ownership** `[W-18]`: a writer MUST stamp `for` on every record that belongs to an action
+announced after it. A record without `for` belongs to the action whose number its `seq`
+carries. So "everything action `N` did" is every record carrying `for: "R<n>.<phase>.N"`, plus
+the `Na…` records after it that carry no `for`. In a file that meets `[W-18]`, a reader MUST
+NOT infer ownership from where a record sits relative to the announcement: one writer may write
+an action's records before it and another after it, and with `for` the two files mean the same.
 
-The *recorder* genuinely cannot produce `for` — when those records arrive it does not
-yet know an action is about to follow, and guessing would mis-file a previous action's genuine
-consequences — but the **writer** holds the whole event list before serialising, so it fills them
-in then.
+`for` is legal on **any** record, and what it names does not have to be an action: **a
+resourcing is announced the same way round** — the card's hand->`resource` `MOVE` lands first
+and the `RESOURCE` that summarises it follows — so a writer SHOULD stamp that `MOVE` with the
+`RESOURCE`'s seq. Left unstamped it carries the previous beat's number (the draw burst, or the
+other seat's commit) and a reader that trusts `for` files the card under the wrong player.
 
-> **Note (informative):** The reference writer does this in its `linkActionSteps()` function.
+**Record order.** Apart from the constraints below, a writer writes records in the order the
+changes happened in its own engine, and a reader MUST NOT depend on any other order. A writer
+MUST keep these:
 
-Its rule, and a writer MUST NOT be looser: walk back from an action over the contiguous run of
-records that could precede it, stopping at the first top-level step or any other record type.
-File the whole run **only if something in it is anchored to the action**. Without an anchor the
-run is just as likely to be the previous action's tail, and a wrong link is worse than none.
-There are two anchors:
+1. a card's `MOVE` into an arena precedes every record that names it in play;
+2. a unit's first `STATS` follows its arriving `MOVE`;
+3. a base's `DEFEAT` precedes the `GAME_END` it causes;
+4. a keyframe is the board at its own `seq` `[W-24]`.
 
-- a record that **names the action's card** — `card`, or `atk` for an attack; and
-- for an action or Epic `ABILITY_ACTIVATE`, a `CHOICE` or `MODAL_CHOICE` whose **chosen option
-  is the ability's `title`** (`offered[chose] === title`). A menu prompt carries no card id, but
-  the option the player picked is the ability, so it names it as exactly as a card id names a
-  play.
-
-`PASS` and `CLAIM_INITIATIVE` name no card, so nothing is ever filed under them.
-
-**Another card arriving in play ends the run.** A `MOVE` of a different card into `ground` or
-`space` (or into `base` as an upgrade) is that card's own story, and so are the records naming it
-right after its arrival — its `STATS`, its entering `EXHAUST`. A start-of-phase trigger puts
-exactly that in front of the first action: Beast Lair's Beast lands, gets its stats and exhausts,
-then the player's first play begins with the same record types. The run starts after the
-arrival. A card *leaving* (a discard paid as a cost) is not an arrival and stays in the run.
-
-**Which types can precede depends on the action**, and a writer MUST NOT use one shared list:
-
-| Action | May be preceded by |
-|---|---|
-| `ATTACK` | `CHOICE`, `MODAL_CHOICE`, `EXHAUST` |
-| an action or Epic `ABILITY_ACTIVATE` | `CHOICE`, `MODAL_CHOICE` — the menu pick and the target. Its costs (the card exhausting, resources spent) are paid after it is announced, under its own step |
-| the plays and `DEPLOY_LEADER` | `MOVE`, `CHOICE`, `MODAL_CHOICE`, `EXHAUST`, `STATS`, `EXHAUST_RESOURCES` |
-
-An attack announces itself after picking a target and exhausting the attacker, and that is all:
-it never moves a card or restates its stats. A play does the opposite — the card arrives, gets
-its stats, enters exhausted, and the cost is paid — before the `PLAY` is announced. One shared
-list gets an **Ambush** unit wrong: it is played and attacks in the same phase, so the play's own
-`MOVE` and `STATS` sit immediately before the `ATTACK` and name the same card, and the card-name
-anchor does not save you. Those records belong to the play, which already owns them through its
-own step number.
-
-So "everything action `N` did" is the `Na…` records *after* it, plus every record carrying
-`for: "R<n>.<phase>.N"` — and, in a file whose writer did not stamp them, the trailing
-`MOVE` / `CHOICE` / `EXHAUST` before it that name the same card.
+> **Note (informative):** Files from forceteki writer revisions 1–3, and pre-release files, did
+> not stamp every such record. [Appendix C](#grouping-records-in-a-file-without-for) gives the
+> rule a reader applies to group them.
 
 An `UNDO` note ([§10.2](#102-events-that-are-just-notes)) takes the seq it reached back to plus
 `-undo`: `R2.A.3-undo`. It MUST NOT reuse that seq bare — the writer's counters were rewound
@@ -1219,7 +1179,7 @@ writer MUST derive an event's `kind` from what the event does, not from the card
 
 // Flown onto the X-Wing: this move attaches, so it is an upgrade move.
 {"seq":"R2.A.0d","t":"MOVE","card":"JTL#058","from":"hand","to":"space","p":1,"kind":"upgrade","attachedTo":"LAW#253","for":"R2.A.1"}
-{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"JTL#058","zone":"space","target":"LAW#253","cost":2,"ms":7}
+{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"JTL#058","zone":"space","target":"LAW#253","cost":2,"ms":8}
 ```
 
 A reader applies `kind` exactly as [§12.1](#121-the-move-rule-the-big-one) says: an
@@ -1827,7 +1787,7 @@ by **`attachedTo`** on the `MOVE` that carries it **into the arena**. From the `
 {"seq":"R1.A.1c","t":"STATUS_TOKEN","card":"ASH#251:2","token":"advantage","count":1}
 
 {"seq":"R3.A.0c","t":"MOVE","card":"LOF#215:2","from":"hand","to":"ground","p":1,"kind":"upgrade","attachedTo":"ASH#251:2","for":"R3.A.1"}
-{"seq":"R3.A.1","t":"PLAY_UPGRADE","p":1,"card":"LOF#215:2","zone":"ground","target":"ASH#251:2","cost":2,"ms":17}
+{"seq":"R3.A.1","t":"PLAY_UPGRADE","p":1,"card":"LOF#215:2","zone":"ground","target":"ASH#251:2","cost":2,"ms":32}
 ```
 
 An attachment that changes while the card stays in its arena — a printed upgrade moved to
@@ -1849,7 +1809,7 @@ on that seat's `baseUpgrades` ([§12.1](#121-the-move-rule-the-big-one) step 2c)
 
 ```json
 {"seq":"R2.A.0k","t":"MOVE","card":"HMW#271","from":"hand","to":"base","p":1,"kind":"upgrade","attachedTo":"base@1","for":"R2.A.1"}
-{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#271","zone":"base","target":"base@1","cost":3,"ms":7}
+{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#271","zone":"base","target":"base@1","cost":3,"ms":8}
 ```
 
 **Exits are host-less.** The move back out — the token defeated, the upgrade destroyed, the
@@ -1884,7 +1844,7 @@ These never change the board. A folder MUST read them and do nothing.
 | `ATTACK` | `p`, `atk`, `def`, `defenderType` | An attack was declared. For a base attack, `def` is `base@N`. |
 | `PASS` | `p` | A player took the **Pass** action. It is never written after a play, an attack, an action ability or a claimed counter — those are actions of their own, and the turn passing to the opponent afterwards is not a record. The action phase ends when both players pass one after the other, or a player passes after the other has claimed the initiative (CR 6). |
 | `CHOICE` | `p`, `offered` (string[]), `chose` (index), `prompt` (optional) | A player picked from a list. |
-| `MODAL_CHOICE` | `p`, `offered`, `chose` | A player picked an ability mode. |
+| `MODAL_CHOICE` | `p`, `offered`, `chose` | A player picked an ability mode. A modal effect that picks several modes writes one `MODAL_CHOICE` per pick, in pick order. |
 | `MULLIGAN` | `p` | A player mulliganed. |
 | `KEEP_HAND` | `p` | A player kept their hand. |
 | `SHUFFLE` | `p` | A deck was shuffled. |
@@ -1982,7 +1942,7 @@ Damage it deals is written with `src: "base@1"`: the base dealt it ([§6.3](#63-
 base, and the exit is host-less like every other ([§10.1](#binding-an-attachment-to-its-host)):
 
 ```json
-{"seq":"R2.A.2","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#095","ability":"carbonite-chamber_action_0","kind":"action","title":"Choose a non-Vehicle unit. It doesn't ready during the next regroup phase","ms":8}
+{"seq":"R2.A.2","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#095","ability":"carbonite-chamber_action_0","kind":"action","title":"Choose a non-Vehicle unit. It doesn't ready during the next regroup phase","ms":9}
 {"seq":"R2.A.2a","t":"MOVE","card":"HMW#095","from":"base","to":"discard","p":2,"kind":"upgrade"}
 {"seq":"R2.A.2b","t":"DEFEAT","card":"HMW#095","reason":"ability","defeatedBy":"HMW#095"}
 ```
@@ -3245,6 +3205,7 @@ could change what a record means. After it, a revision is diagnostic only.
 | 1 | `WriterRevision` introduced. A unit captured by a base is held in the seat's `baseCaptured` ([§10.1](#101-events-that-carry-board-detail)) | the tag's presence; a keyframe carrying `baseCaptured` |
 | 2 | `%%% STORY` joins a list of cards with ` · `, not `, `, which a card's own title-and-subtitle comma made impossible to split ([§16](#strict-layout-rules)) | `WriterRevision` 2 or later; in an older file, a `draws N:` story line whose names are separated by `, ` |
 | 3 | `INIT` is `R0.S.0`, not `R1.S.0` ([§8](#8-the-setup-section)). `GameId` is an opaque hash, not the engine's game id, and the fallback player-id salt is no longer printed in the file ([§17](#17-privacy-considerations)) | the `INIT` seq; a `GameId` matching `^sha256:[0-9a-f]{64}$` |
+| 4 | Each mode picked from a "choose N" modal effect is a `MODAL_CHOICE` ([§10.2](#102-events-that-are-just-notes)). `[W-18]` became a MUST and every vector is checked against it; the linking rule did not change, so no `for` a revision-3 file carries moved ([§9.1](#91-how-seq-is-built)) | `WriterRevision` 4 or later |
 
 ### Changes to this document before publication
 
@@ -3276,6 +3237,12 @@ The review before publication (2026-10-28) changed what conforms, as well as wha
 
 Platform neutrality (2026-10-28):
 
+- `for` decides which action owns a record, whatever order a writer writes them in. A writer
+  MUST stamp it on every record that belongs to an action announced after it `[W-18]`, and a
+  record without it belongs to the number its `seq` carries. §9.1 lists the only orders a
+  writer must keep. The backward walk that grouped unstamped records moved to
+  [Appendix C](#grouping-records-in-a-file-without-for), for old files only. A modal effect that
+  picks several modes writes one `MODAL_CHOICE` per pick ([§10.2](#102-events-that-are-just-notes)).
 - Normative text no longer names a reference-implementation function or claims what one
   implementation's files contain. Such remarks are informative notes, marked
   `> **Note (informative):**` ([§2](#2-conventions-and-conformance--how-to-read-this-spec)). The
@@ -3539,7 +3506,7 @@ strict renderer MUST turn it into A.3, exactly.
 
 ```
 [Game "SWU-PGN/1.0"]
-[WriterRevision "3"]
+[WriterRevision "4"]
 [GameId "vector-minimal"]
 [Date "2026-06-16T00:00:00Z"]
 [Format "Premier"] [CardPool "SOR"] [Engine "forceteki@reference"]
@@ -3627,9 +3594,9 @@ strict renderer MUST turn it into A.3, exactly.
 {"seq":"R0.S.end","t":"PHASE_END","phase":"setup"}
 {"seq":"R1.start","t":"ROUND_START","round":1,"keyframe":{"round":1,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#045"],"resourcesReady":2,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":2,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
 {"seq":"R1.A.start","t":"PHASE_START","phase":"action"}
-{"seq":"R1.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2}
-{"seq":"R1.A.0b","t":"MOVE","card":"SOR#108","from":"hand","to":"ground","p":1,"kind":"unit"}
-{"seq":"R1.A.0c","t":"STATS","card":"SOR#108","power":4,"hp":5,"keywords":["overwhelm"]}
+{"seq":"R1.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R1.A.1"}
+{"seq":"R1.A.0b","t":"MOVE","card":"SOR#108","from":"hand","to":"ground","p":1,"kind":"unit","for":"R1.A.1"}
+{"seq":"R1.A.0c","t":"STATS","card":"SOR#108","power":4,"hp":5,"keywords":["overwhelm"],"for":"R1.A.1"}
 {"seq":"R1.A.1","t":"PLAY","p":1,"card":"SOR#108","zone":"ground","cost":2}
 {"seq":"R1.A.1a","t":"EXHAUST","card":"SOR#108"}
 {"seq":"R1.A.2","t":"PASS","p":2}
@@ -3652,8 +3619,8 @@ strict renderer MUST turn it into A.3, exactly.
 {"seq":"R1.end","t":"ROUND_END","round":1,"keyframe":{"round":1,"phase":"regroup","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#108","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":["overwhelm"]}],"deckSize":0,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#045","SOR#045:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":0,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
 {"seq":"R2.start","t":"ROUND_START","round":2,"keyframe":{"round":2,"phase":"action","initiative":1,"initiativeTaken":false,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":1,"hand":["SOR#108:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"SOR#108","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":["overwhelm"]}],"deckSize":0,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false}},"2":{"seat":2,"baseHp":30,"baseMaxHp":30,"handSize":2,"hand":["SOR#045","SOR#045:5"],"resourcesReady":3,"resourcesExhausted":0,"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":0,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false}}}}}
 {"seq":"R2.A.start","t":"PHASE_START","phase":"action"}
-{"seq":"R2.A.0a","t":"CHOICE","p":1,"prompt":"Wampa","offered":["base@2"],"chose":0}
-{"seq":"R2.A.0b","t":"EXHAUST","card":"SOR#108"}
+{"seq":"R2.A.0a","t":"CHOICE","p":1,"prompt":"Wampa","offered":["base@2"],"chose":0,"for":"R2.A.1"}
+{"seq":"R2.A.0b","t":"EXHAUST","card":"SOR#108","for":"R2.A.1"}
 {"seq":"R2.A.1","t":"ATTACK","p":1,"atk":"SOR#108","def":"base@2","defenderType":"base"}
 {"seq":"R2.A.1a","t":"DAMAGE","src":"SOR#108","tgt":"base@2","amt":4,"damageType":"combat","hp":26}
 
@@ -3809,7 +3776,7 @@ begins, so the setup deltas are what it has to add up to:
 | `PHASE_END` | nothing |
 | `ROUND_START {round:1, keyframe}` | the keyframe says exactly what the fold has built — hand 1, resources 2, each seat — plus what the fold could not know: `deckSize` 2 and each `leader` (both in the base zone, ready, Epic Action unused). It is authoritative: the state is **replaced** by it. A reader that compares first finds nothing to report (`baseHp` and `deckSize` are exempt here, [§14](#14-integrity--checking-a-file-is-honest)). |
 | `PHASE_START {phase:"action"}` | `phase = "action"` |
-| `EXHAUST_RESOURCES {p:1, amount:2}` | Player 1 pays for the Wampa: `resourcesReady` 2 → 0, `resourcesExhausted` 0 → 2. Under action `0`: the engine pays before it announces the play ([§9.1](#91-how-seq-is-built)). |
+| `EXHAUST_RESOURCES {p:1, amount:2}` | Player 1 pays for the Wampa: `resourcesReady` 2 → 0, `resourcesExhausted` 0 → 2. It is numbered under action `0`, because the cost is paid before the play is announced, and its `for` files it under `R1.A.1`, the play ([§9.1](#91-how-seq-is-built)). |
 | `MOVE hand → ground` (`SOR#108`) | `handSize` 1 → 0; a fresh `SOR#108` is added to player 1's `cards` — `exhausted: false`, no stats yet |
 | `STATS {power:4, hp:5, keywords:["overwhelm"]}` | the Wampa's live numbers, stated; nothing was derived |
 | `PLAY {p:1, card:"SOR#108", zone:"ground"}` | already tracked: nothing but its zone, which is unchanged. **Not** added twice. |
@@ -3824,7 +3791,7 @@ begins, so the setup deltas are what it has to add up to:
 | `ROUND_START {round:2, keyframe}` | likewise; `initiativeTaken` is `false` again |
 | `PHASE_START {phase:"action"}` | `phase = "action"` |
 | `CHOICE` | nothing (a note: the attack target was picked) |
-| `EXHAUST {card:"SOR#108"}` | the attacker exhausts, before the attack is announced ([§9.1](#91-how-seq-is-built)) |
+| `EXHAUST {card:"SOR#108"}` | the attacker exhausts, before the attack is announced; its `for` files it, and the `CHOICE`, under `R2.A.1` ([§9.1](#91-how-seq-is-built)) |
 | `ATTACK` | nothing (it's just a note) |
 | `DAMAGE {tgt:"base@2", amt:4, hp:26}` | `players[2].baseHp = 26` — a Wampa hits for 4 |
 
@@ -3996,7 +3963,7 @@ Each is detectable from the file:
 | The resource row was counted only, so a reader could not draw the cards in it | `resources[]` membership alongside the two counts ([§10.1](#101-events-that-carry-board-detail)) | a keyframe carrying `resources` |
 | A base's Epic Action was not tracked at all, though 12 bases carry one | `baseEpicActionUsed`, set by an `ABILITY_ACTIVATE` whose `card` is `base@N` ([§10.1](#101-events-that-carry-board-detail)) | an `ABILITY_ACTIVATE` whose `card` matches `^base@[12]$` |
 | A base activating its own ability named itself by card id | `base@N`, like every other reference to a base ([§6.3](#63-pointing-at-a-base)) | the same |
-| Nothing linked a pre-announcement record to its action; readers had to implement §9.1's prose | `for` on each such record, stamped by the writer ([§9.1](#91-how-seq-is-built)) | any `for` field |
+| Nothing linked a pre-announcement record to its action; readers had to apply a backward walk | `for` on each such record, stamped by the writer ([§9.1](#91-how-seq-is-built)); the walk is [below](#grouping-records-in-a-file-without-for) | any `for` field |
 | Whose turn it is was not recorded | `active` in keyframes ([§11](#11-the-reduced-state--the-board-you-build)) | a keyframe carrying `active` |
 | No game duration, no match grouping | `EndDate`, `Match`, `GameNumber` header tags ([§5.2](#52-optional-tags)) | the tags' presence |
 | A token unit's `CREATE_TOKEN` was dropped and `RecorderErrors` set, because the writer read the token's live stats while it was still outside the game | stats guarded and omitted when unreadable; `zone` names the destination arena ([§10.1](#101-events-that-carry-board-detail)) | a game containing a token unit but no `CREATE_TOKEN`, and a `RecorderErrors` tag |
@@ -4016,6 +3983,56 @@ Each is detectable from the file:
 | `hand[]` grew from `DRAW` and nothing removed, so a folded "hand" was a cumulative draw log; `discard` was filed by `DEFEAT`, which fires after the `MOVE` that already removed the card, so no defeated unit reached the pile | both are folded from `MOVE` and gated ([§12.1](#121-the-move-rule-the-big-one), [§14](#14-integrity--checking-a-file-is-honest)) | not a file change; a reader's fold. Fold any vector's deltas to a keyframe and compare `hand`/`discard` — 45 mismatches before, 0 after |
 | No header tag said which writer made a file, so a pilot file and a current one were told apart only by their contents | `WriterRevision` ([§5.2](#52-optional-tags)); revision 1 is the first | the tag's presence |
 | A unit captured by a **base** (Arrest) left the board and was held nowhere, so it vanished from the fold until its rescue, and §10.1 said no card captures with a base | the seat's `baseCaptured`, pushed by a `CAPTURE` whose `by` is `base@N`, cleared on leaving `capture`, carried in every keyframe and gated ([§10.1](#101-events-that-carry-board-detail), [§11](#11-the-reduced-state--the-board-you-build)). Revision 1 | a keyframe carrying `baseCaptured` |
+
+### Grouping records in a file without `for`
+
+Before forceteki writer revision 4, `[W-18]` was a SHOULD, and the rule that stamped `for`
+changed more than once (the rows above). A pre-release file, or one from forceteki writer
+revisions 1–3, can therefore hold records that belong to a later action but carry no `for`. A
+reader SHOULD group such a file's unstamped records by the rule below, and SHOULD NOT apply it
+to any other file, where a record without `for` is owned by the number its `seq` carries. The
+forceteki writer still stamps `for` by this rule when it writes a file, in its
+`linkActionSteps()` function.
+
+Walk back from an action over the contiguous run of records that could precede it, stopping at
+the first top-level step or any other record type.
+File the whole run **only if something in it is anchored to the action**. Without an anchor the
+run is just as likely to be the previous action's tail, and a wrong link is worse than none.
+There are two anchors:
+
+- a record that **names the action's card** — `card`, or `atk` for an attack; and
+- for an action or Epic `ABILITY_ACTIVATE`, a `CHOICE` or `MODAL_CHOICE` whose **chosen option
+  is the ability's `title`** (`offered[chose] === title`). A menu prompt carries no card id, but
+  the option the player picked is the ability, so it names it as exactly as a card id names a
+  play.
+
+`PASS` and `CLAIM_INITIATIVE` name no card, so nothing is ever filed under them.
+
+**Another card arriving in play ends the run.** A `MOVE` of a different card into `ground` or
+`space` (or into `base` as an upgrade) is that card's own story, and so are the records naming it
+right after its arrival — its `STATS`, its entering `EXHAUST`. A start-of-phase trigger puts
+exactly that in front of the first action: Beast Lair's Beast lands, gets its stats and exhausts,
+then the player's first play begins with the same record types. The run starts after the
+arrival. A card *leaving* (a discard paid as a cost) is not an arrival and stays in the run.
+
+**Which types can precede depends on the action**, and one shared list is wrong:
+
+| Action | May be preceded by |
+|---|---|
+| `ATTACK` | `CHOICE`, `MODAL_CHOICE`, `EXHAUST` |
+| an action or Epic `ABILITY_ACTIVATE` | `CHOICE`, `MODAL_CHOICE` — the menu pick and the target. Its costs (the card exhausting, resources spent) are paid after it is announced, under its own step |
+| the plays and `DEPLOY_LEADER` | `MOVE`, `CHOICE`, `MODAL_CHOICE`, `EXHAUST`, `STATS`, `EXHAUST_RESOURCES` |
+
+An attack announces itself after picking a target and exhausting the attacker, and that is all:
+it never moves a card or restates its stats. A play does the opposite — the card arrives, gets
+its stats, enters exhausted, and the cost is paid — before the `PLAY` is announced. One shared
+list gets an **Ambush** unit wrong: it is played and attacks in the same phase, so the play's own
+`MOVE` and `STATS` sit immediately before the `ATTACK` and name the same card, and the card-name
+anchor does not save you. Those records belong to the play, which already owns them through its
+own step number.
+
+So, in such a file, "everything action `N` did" also takes in the trailing `MOVE` / `CHOICE` /
+`EXHAUST` before it that name the same card.
 
 ---
 
@@ -4039,8 +4056,11 @@ contents alone cannot show. None of this is required of another writer. Operatio
   written: the keyframes are authoritative, and withholding the file would cost a player
   their replay.
 - **`for` `[W-18]`.** The recorder cannot stamp `for`: when the records arrive it does not yet
-  know an action is about to follow. The writer holds the whole stream before serialising, and
-  `linkActionSteps()` fills `for` in then, by the rule of [§9.1](#91-how-seq-is-built).
+  know an action is about to follow, and guessing would mis-file a previous action's genuine
+  consequences. The writer holds the whole stream before serialising, and `linkActionSteps()`
+  fills `for` in then, by the rule of [Appendix C](#grouping-records-in-a-file-without-for). A
+  test over every vector checks that each record before an action that names the action's card
+  is stamped.
 - **Identity `[W-10]`.** No field is built from a username except the player id. A CI test
   stamps sentinel identities onto a live game and fails if any survives into the file.
 - **Hidden information `[W-37]`, `[W-39]`.** The host serves a game's file only to its two

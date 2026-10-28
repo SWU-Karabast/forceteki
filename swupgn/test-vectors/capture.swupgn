@@ -1,10 +1,10 @@
 [Game "SWU-PGN/1.0"]
-[WriterRevision "3"]
+[WriterRevision "4"]
 [GameId "sha256:661f4f0c4325e8154c8c3a9ed622ce0284caeab7b5fd2f46a3f2a29742c4f645"]
-[Date "2026-10-28T01:26:12.957Z"]
+[Date "2026-10-28T15:53:27.837Z"]
 [Format "premier"]
 [CardPool "ASH,HMW,IBH,IC27,JTL,LAW,LOF,SEC,SHD,SOR,TS26,TWI"]
-[Engine "forceteki@56b0349c7-dirty"]
+[Engine "forceteki@d3c1b26c3-dirty"]
 [Seed "swu-pgn-vector-capture"]
 [P1Id "sha256:fcc5452e9bd8d2c0df1bcb3a4648163cbb5723c1c88f6c04aabeb5e76cecdf62"]
 [P2Id "sha256:f9188a804748f400c0c5abb9cf7125d0b3a51c75af21b2292dd44de3276df787"]
@@ -17,7 +17,7 @@
 [Result "P1"]
 [Reason "Concession"]
 [Rounds "4"]
-[EndDate "2026-10-28T01:26:12.976Z"]
+[EndDate "2026-10-28T15:53:27.857Z"]
 
 %%% STORY
  ── setup ──
@@ -137,7 +137,7 @@
 
 %%% EVENTS
 {"seq":"R0.S.start","t":"PHASE_START","phase":"setup","ms":0}
-{"seq":"R0.S.1","t":"MODAL_CHOICE","p":2,"offered":["Yourself","Opponent"],"chose":1}
+{"seq":"R0.S.1","t":"MODAL_CHOICE","p":1,"offered":["Yourself","Opponent"],"chose":0}
 {"seq":"R0.S.2","t":"SHUFFLE","p":1}
 {"seq":"R0.S.3","t":"MOVE","card":"TWI#128","from":"deck","to":"hand","p":1}
 {"seq":"R0.S.4","t":"MOVE","card":"SOR#095","from":"deck","to":"hand","p":1,"kind":"unit"}
@@ -171,13 +171,13 @@
 {"seq":"R1.A.0b","t":"MOVE","card":"SOR#095","from":"hand","to":"ground","p":1,"kind":"unit","for":"R1.A.1"}
 {"seq":"R1.A.0c","t":"STATS","card":"SOR#095","power":3,"hp":3,"keywords":[],"for":"R1.A.1"}
 {"seq":"R1.A.0d","t":"EXHAUST","card":"SOR#095","for":"R1.A.1"}
-{"seq":"R1.A.1","t":"PLAY","p":1,"card":"SOR#095","zone":"ground","cost":2,"ms":3}
+{"seq":"R1.A.1","t":"PLAY","p":1,"card":"SOR#095","zone":"ground","cost":2,"ms":2}
 {"seq":"R1.A.1a","t":"EXHAUST_RESOURCES","p":2,"amount":1,"for":"R1.A.2"}
 {"seq":"R1.A.1b","t":"MOVE","card":"IC27#097","from":"hand","to":"ground","p":2,"kind":"unit","for":"R1.A.2"}
 {"seq":"R1.A.1c","t":"STATS","card":"IC27#097","power":3,"hp":1,"keywords":[],"for":"R1.A.2"}
 {"seq":"R1.A.1d","t":"EXHAUST","card":"IC27#097","for":"R1.A.2"}
 {"seq":"R1.A.2","t":"PLAY","p":2,"card":"IC27#097","zone":"ground","cost":1,"ms":3}
-{"seq":"R1.A.3","t":"PASS","p":1,"ms":4}
+{"seq":"R1.A.3","t":"PASS","p":1,"ms":3}
 {"seq":"R1.A.3a","t":"EXHAUST_RESOURCES","p":2,"amount":1,"for":"R1.A.4"}
 {"seq":"R1.A.3b","t":"MOVE","card":"IC27#097:2","from":"hand","to":"ground","p":2,"kind":"unit","for":"R1.A.4"}
 {"seq":"R1.A.3c","t":"STATS","card":"IC27#097:2","power":3,"hp":1,"keywords":[],"for":"R1.A.4"}
@@ -234,7 +234,7 @@
 {"seq":"R2.A.5","t":"PASS","p":1,"ms":9}
 {"seq":"R2.A.6","t":"PASS","p":2,"ms":9}
 {"seq":"R2.A.end","t":"PHASE_END","phase":"action"}
-{"seq":"R2.G.start","t":"PHASE_START","phase":"regroup","ms":10}
+{"seq":"R2.G.start","t":"PHASE_START","phase":"regroup","ms":9}
 {"seq":"R2.G.1","t":"MOVE","card":"LAW#253:4","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R2.G.2","t":"MOVE","card":"TWI#128:3","from":"deck","to":"hand","p":1}
 {"seq":"R2.G.3","t":"DRAW","p":1,"count":2,"cards":["LAW#253:4","TWI#128:3"]}
@@ -257,7 +257,7 @@
 {"seq":"R3.A.0b","t":"MOVE","card":"SOR#095:2","from":"hand","to":"ground","p":1,"kind":"unit","for":"R3.A.1"}
 {"seq":"R3.A.0c","t":"STATS","card":"SOR#095:2","power":3,"hp":3,"keywords":[],"for":"R3.A.1"}
 {"seq":"R3.A.0d","t":"EXHAUST","card":"SOR#095:2","for":"R3.A.1"}
-{"seq":"R3.A.1","t":"PLAY","p":1,"card":"SOR#095:2","zone":"ground","cost":2,"ms":11}
+{"seq":"R3.A.1","t":"PLAY","p":1,"card":"SOR#095:2","zone":"ground","cost":2,"ms":10}
 {"seq":"R3.A.1a","t":"EXHAUST_RESOURCES","p":2,"amount":1,"for":"R3.A.2"}
 {"seq":"R3.A.1b","t":"MOVE","card":"IC27#097:4","from":"hand","to":"ground","p":2,"kind":"unit","for":"R3.A.2"}
 {"seq":"R3.A.1c","t":"STATS","card":"IC27#097:4","power":3,"hp":1,"keywords":[],"for":"R3.A.2"}
@@ -267,19 +267,19 @@
 {"seq":"R3.A.2b","t":"MOVE","card":"SOR#095:3","from":"hand","to":"ground","p":1,"kind":"unit","for":"R3.A.3"}
 {"seq":"R3.A.2c","t":"STATS","card":"SOR#095:3","power":3,"hp":3,"keywords":[],"for":"R3.A.3"}
 {"seq":"R3.A.2d","t":"EXHAUST","card":"SOR#095:3","for":"R3.A.3"}
-{"seq":"R3.A.3","t":"PLAY","p":1,"card":"SOR#095:3","zone":"ground","cost":2,"ms":12}
+{"seq":"R3.A.3","t":"PLAY","p":1,"card":"SOR#095:3","zone":"ground","cost":2,"ms":11}
 {"seq":"R3.A.3a","t":"EXHAUST_RESOURCES","p":2,"amount":1,"for":"R3.A.4"}
 {"seq":"R3.A.3b","t":"MOVE","card":"IC27#097:5","from":"hand","to":"ground","p":2,"kind":"unit","for":"R3.A.4"}
 {"seq":"R3.A.3c","t":"STATS","card":"IC27#097:5","power":3,"hp":1,"keywords":[],"for":"R3.A.4"}
 {"seq":"R3.A.3d","t":"EXHAUST","card":"IC27#097:5","for":"R3.A.4"}
 {"seq":"R3.A.4","t":"PLAY","p":2,"card":"IC27#097:5","zone":"ground","cost":1,"ms":12}
-{"seq":"R3.A.5","t":"PASS","p":1,"ms":13}
+{"seq":"R3.A.5","t":"PASS","p":1,"ms":12}
 {"seq":"R3.A.5a","t":"EXHAUST_RESOURCES","p":2,"amount":1,"for":"R3.A.6"}
 {"seq":"R3.A.5b","t":"MOVE","card":"IC27#097:6","from":"hand","to":"ground","p":2,"kind":"unit","for":"R3.A.6"}
 {"seq":"R3.A.5c","t":"STATS","card":"IC27#097:6","power":3,"hp":1,"keywords":[],"for":"R3.A.6"}
 {"seq":"R3.A.5d","t":"EXHAUST","card":"IC27#097:6","for":"R3.A.6"}
-{"seq":"R3.A.6","t":"PLAY","p":2,"card":"IC27#097:6","zone":"ground","cost":1,"ms":14}
-{"seq":"R3.A.7","t":"PASS","p":1,"ms":14}
+{"seq":"R3.A.6","t":"PLAY","p":2,"card":"IC27#097:6","zone":"ground","cost":1,"ms":13}
+{"seq":"R3.A.7","t":"PASS","p":1,"ms":13}
 {"seq":"R3.A.7a","t":"CHOICE","p":2,"prompt":"Death Star Stormtrooper","offered":["SOR#095:2","SOR#095:3","base@1"],"chose":2,"for":"R3.A.8"}
 {"seq":"R3.A.7b","t":"EXHAUST","card":"IC27#097:2","for":"R3.A.8"}
 {"seq":"R3.A.8","t":"ATTACK","p":2,"atk":"IC27#097:2","def":"base@1","defenderType":"base","ms":15}
