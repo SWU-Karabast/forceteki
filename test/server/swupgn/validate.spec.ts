@@ -244,6 +244,10 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         for (const id of ['TOKEN:credit', 'TOKEN:credit:2', 'TOKEN:credit#123:2']) {
             expect(codes(addEvent(`{"seq":"R1.A.9","t":"MOVE","card":"${id}","from":"outsideTheGame","to":"resource","p":1}`))).toContain('error:credit-zone');
         }
+        // Malformed per 6.1, so it is a bad token name and not a credit-zone.
+        const malformed = codes(addEvent('{"seq":"R1.A.9","t":"MOVE","card":"TOKEN:credit#abc","from":"outsideTheGame","to":"resource","p":1}'));
+        expect(malformed).toContain('error:bad-token-name');
+        expect(malformed).not.toContain('error:credit-zone');
         expect(codes(addEvent('{"seq":"R1.A.9","t":"MOVE","card":"TOKEN:credits#1","from":"outsideTheGame","to":"resource","p":1}'))).not.toContain('error:credit-zone');
     });
 

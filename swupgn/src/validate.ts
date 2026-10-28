@@ -331,7 +331,7 @@ export function validate(text: string): ConformanceReport {
             if (r['from'] === 'outsideTheGame' && r['to'] === 'deck') {
                 error('deck-build-move', `record ${seqStr}: MOVE from outsideTheGame into deck (the decks are built by DECKS and INIT)`);
             }
-            // A Credit token is recorded in base, whatever zone the rules place it in (§6.2, [W-41]).
+            // A Credit token is recorded in base, whatever zone the rules place it in (§6.2, [W-42]).
             const isCredit = typeof r['card'] === 'string' && (/^TOKEN:credit(#\d+)?(:\d+)?$/).test(r['card']);
             if (isCredit && (r['from'] === 'resource' || r['to'] === 'resource')) {
                 error('credit-zone', `record ${seqStr}: Credit token "${r['card']}" MOVE names resource (a Credit token is recorded in base)`);
