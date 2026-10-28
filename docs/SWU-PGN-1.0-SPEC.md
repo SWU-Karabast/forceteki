@@ -618,7 +618,7 @@ Counts are base-10 digits with no sign, space or exponent.
 | `Match` | `sha256:` + 64 lowercase hex digits | An opaque id for the **match** this game belongs to, stable across the games of one match (a series of games, such as a best of three). Lets a file that travels on its own — shared, archived, attached to a bug report — still say which match it came from, the way chess PGN's `Round` does. A writer MUST NOT put a platform-internal id for the match here. See [Appendix D](#appendix-d-reference-writer-notes-informative) for one way to derive it. |
 | `GameNumber` | count, 1 or more | Which game of that match this is. Meaningless without `Match`. A game does not know its own place in a series, so a writer may leave it off and let whatever delivers the file set it. |
 | `Undos` | count | How many times a player took a decision back, on a platform that lets players take back a decision. **Absent means none.** An undo removes the records it retracted, so a file with no tag and a file whose players undid six times are otherwise indistinguishable — and "was this line of play rehearsed" is a review question. The matching `UNDO` notes say WHERE ([§10.2](#102-events-that-are-just-notes)); this tag is the authoritative count. |
-| `RecorderErrors` | count | How many records the writer lost while recording (a handler that failed). **Absent means none.** Present means some events were never written: the keyframes are still exact (they are read from the engine, not folded), but the deltas between them are incomplete, so the file is not verified and the board between keyframes may be wrong. A reader SHOULD surface it. |
+| `RecorderErrors` | count | How many records the writer lost while recording (a handler that failed). **Absent means none.** Present means some events were never written: the keyframes are still exact (a writer takes them from its own game state, not by folding its records), but the deltas between them are incomplete, so the file is not verified and the board between keyframes may be wrong. A reader SHOULD surface it. |
 
 Unknown tags MUST be accepted and ignored. A count tag (`Rounds`, `RecorderErrors`, `Undos`,
 `WriterRevision`, `GameNumber`) that is present but not base-10 digits within ±(2^53−1) makes the
@@ -760,8 +760,8 @@ TOKEN:<name>#<cardId>[:<copy>]
 
 - The **`TOKEN:` prefix is normative**: a reader keys off it to tell a token from a
   `SET#NUM` card, so it MUST be present.
-- **`<cardId>` is the part you resolve.** It is the same numeric id the card database and
-  the token image pipeline use, so art and metadata are a direct lookup. Do not try to
+- **`<cardId>` is the part you resolve.** It is the token's numeric card id in the card
+  database ([§6.1](#where-set-codes-and-numbers-come-from)), so its art and metadata are a direct lookup. Do not try to
   resolve `<name>` — it is there to keep the id readable.
 - `TOKEN:<name>` with **no** `#<cardId>` is a degraded form, emitted only when a writer
   could not determine a numeric id. It is stable and usable as an identity, but a reader
@@ -788,8 +788,9 @@ read as a token id, wherever it appears in it, so a validator applies the gramma
 An annotation's `text` is prose and is not checked.
 
 The `:N` suffix is what makes each card **unique for the whole game**, so `EXHAUST` on
-`ASH#110:2` can never hit the wrong copy. When you look up a card's *display name*,
-strip the `:N` first (`baseId()` does this).
+`ASH#110:2` can never hit the wrong copy. An id with its copy suffix removed is its **base
+id**; this document writes that as the helper `baseId(x) = x.replace(/:\d+$/, '')`. When you
+look up a card's *display name*, take its base id first.
 
 #### Extracting the resolvable id — strip `:N` FIRST
 
@@ -811,11 +812,11 @@ resolves fine, so the bug looks like bad data rather than bad parsing.
 const cardId = id.split('#')[1];
 
 // RIGHT — strip the copy suffix, then split
-const cardId = baseId(id).split('#')[1];   // baseId(x) = x.replace(/:\d+$/, '')
+const cardId = baseId(id).split('#')[1];   // baseId, defined above
 ```
 
-The same order applies to `SET#NUM:N`: strip `:N`, then read `SET` and `NUM`. Always
-`baseId()` first, for both id shapes and for both art lookup and name lookup.
+The same order applies to `SET#NUM:N`: strip `:N`, then read `SET` and `NUM`. Always take
+the base id first, for both id shapes and for both art lookup and name lookup.
 
 #### Two reserved token names
 
@@ -1803,14 +1804,14 @@ Four rules make this work:
 1. **A writer MUST emit the decrement.** The token pseudo-card leaving play (its `MOVE` and
    `DEFEAT`) is **not** a removal record — it says a card moved, not that the host lost a
    token. Without the decrement a reader leaves the token on its host for the rest of the
-   replay, while the engine's own keyframe reports the host as clean.
+   replay, while the next keyframe reports the host as clean.
 2. **`card` is the HOST, not the token.** The token names itself in its own `MOVE` /
    `DEFEAT` records; these records name the unit whose counter changes.
 3. **Counts clamp at zero.** `max(0, current + count)`. A removal with no matching gain
    MUST NOT drive a counter negative.
 4. **A key that reaches zero is DELETED**, not left as `{"advantage": 0}`. This is
-   load-bearing: an engine keyframe writes a unit with no tokens as `statusTokens: {}`, and
-   the integrity check ([§14](#14-integrity--checking-a-file-is-honest)) compares the two as
+   load-bearing: a keyframe MUST NOT carry a zero count, so it writes a unit with no tokens as
+   `statusTokens: {}`, and the integrity check ([§14](#14-integrity--checking-a-file-is-honest)) compares the two as
    maps of names to counts, in any key order. `{"advantage": 0}` is not equal to `{}`, so a reader that keeps the zero key will fail
    the gate on a file that is perfectly correct. Same for `experience` and `shields`, which
    are plain numbers and simply clamp to `0`.
@@ -2139,7 +2140,7 @@ defeats a base without damaging it. Both need handling.
 It is the **same card id** on both sides, so every rule keyed on the id is unchanged: the seat's
 `leader.id`, its `epicActionUsed`, its `exhausted`. Only the name a reader *shows* changes. Show
 `backSideName` while `leader.deployed` is true and `name` otherwise. Do not look for a new id:
-there isn't one. (The engine's own prompt titles use whichever side is up, so a `CHOICE.prompt`
+there isn't one. (A writer's prompt text may use whichever side is up, so a `CHOICE.prompt`
 may read `"The Death Star"`. That field is advisory, [§6.4](#64-small-vocabularies).)
 
 **The deploy is one action.** The Epic Action is the numbered action, and the deploy and the
@@ -2529,9 +2530,11 @@ Five small helpers:
 `stateAt(events, seq)` = fold everything up to and including the event with that `seq`.
 If no event has that `seq`, it folds the whole list.
 
-The reference reader starts from the last usable keyframe at or before `seq` rather than
-from the beginning — everything before a keyframe is disposable, so the result is identical
-and a replay scrubber calling it once per position stays linear instead of quadratic.
+A reader MAY start from the last usable keyframe at or before `seq` rather than from the
+beginning: everything before a keyframe is disposable, so the result is identical, and a
+replay scrubber calling it once per position stays linear instead of quadratic.
+
+> **Note (informative):** The reference reader's `stateAt` does this.
 
 ---
 
@@ -2925,8 +2928,11 @@ A strict renderer also follows these, which the tables above leave implicit:
 ### How binding is the wording?
 
 **For a strict renderer, all of it.** The strict wording is part of this document. It changes
-only in a new minor version, and a strict renderer of `1.<n>` produces `1.<n>`'s wording. For any
-other renderer, the exact wording is not a wire format: `%%% STORY` is prose for humans.
+only in a new minor version, and a strict renderer of `1.<n>` produces `1.<n>`'s wording. A
+strict renderer renders each file in the wording of **that file's own minor version**, the
+`1.<m>` its `Game` tag names, not the newest wording the renderer knows; a renderer that does
+not know that version's wording is not strict for that file. For any other renderer, the exact
+wording is not a wire format: `%%% STORY` is prose for humans.
 
 What binds **every** renderer is the structure, because that is what a reader can rely on `[R-01]`:
 
@@ -3324,6 +3330,20 @@ Platform neutrality (2026-10-28):
   closed pilot-writer registry ([§25](#25-registries)) `[V-04]`; a file from any other writer
   without the tag is read as an ordinary file. The strict `%%% STORY` wording is fixed per minor
   version: a strict renderer of `1.<n>` produces `1.<n>`'s wording ([§16](#16-rendering--turning-a-file-into-a-story)).
+- The final review of that work (2026-10-28) changed: a record **belongs to** an action when it
+  records the action's announcement, targeting, cost payment or a change made while resolving
+  it ([§9.1](#91-how-seq-is-built)), and ordering constraint 1 lets a writer announce an action
+  before the card's `MOVE`. In the [Appendix C](#grouping-records-in-a-file-without-for) walk, a
+  choice or resource payment by the other seat, or a card leaving that is not a cost the actor
+  paid from hand or resources, ends the run. A Credit or Force token is recognised by the name
+  part of its id, so `TOKEN:credit` counts and `TOKEN:credit:1` is only a bad token name
+  ([§6.1](#two-reserved-token-names)), and the `TOKEN:` check covers records, `%%% DECKS`,
+  `%%% CARDS` and an annotation's `line`, never its `text`. `Engine` must match
+  `product "@" build` in the header schema. A strict renderer uses the wording of the file's own
+  minor version ([§16](#16-rendering--turning-a-file-into-a-story)). A later pick from a modal
+  effect offers only the modes still available ([§10.2](#102-events-that-are-just-notes)). The
+  `other-writer` vector, a file with no `WriterRevision` from an unlisted writer, is `complete`
+  ([§20](#20-conformance-suite--test-vectors)).
 - Normative text no longer names a reference-implementation function or claims what one
   implementation's files contain. Such remarks are informative notes, marked
   `> **Note (informative):**` ([§2](#2-conventions-and-conformance--how-to-read-this-spec)). The
@@ -3364,11 +3384,13 @@ download. Everything in this section applies to every reader class.
 
 **Resource limits.** A reader MAY cap the file size, the length of a line, the number of
 records, and the nesting depth of a record, and MUST reject a file over a cap rather than read
-part of it `[P-05]`: a truncated game folds to a plausible wrong board. The reference reader's
-defaults are 16 MiB, 1 MiB per line, 1,000,000 records and a depth of 64. A real game is under
+part of it `[P-05]`: a truncated game folds to a plausible wrong board. Caps of 16 MiB,
+1 MiB per line, 1,000,000 records and a depth of 64 are ample. A real game is under
 100 KB with lines under 4 KB. The folder caps every list it grows at 1000 entries
 ([§12](#12-folding--turning-lines-into-a-board)), and a keyframe over that cap is damaged
 ([§13](#13-keyframes)).
+
+> **Note (informative):** The reference reader's defaults are those four caps.
 
 **Keys from the file.** Status token names, the `players` map of a keyframe, header tag names
 and every other object key in a record come from the file. Thirteen names belong to the object
@@ -3490,8 +3512,10 @@ A reader that is not a validator MAY stop at the first fatal problem. A validato
 every error and warning it finds, not just the first, whatever the file's level: a file with
 errors still gets its `recorder-errors` and `unknown-defeat` warnings. A hostile file can break
 a rule on every one of a million records, so a validator MAY stop listing issues after a cap of
-at least 1000 (the reference validator's is 1000) and then reports `too-many-issues` once. The
+at least 1000 and then reports `too-many-issues` once. The
 level still counts every issue, listed or not. The conformance suite stays under any such cap.
+
+> **Note (informative):** The reference validator's cap is 1000.
 
 ---
 
@@ -3971,7 +3995,7 @@ count          = 1*DIGIT                    ; base 10, no sign
 sha256-id      = "sha256:" 64hex-lower      ; P1Id, P2Id, Match
 hex-lower      = DIGIT / %x61-66
 card-pool      = set-code *( "," set-code )
-engine         = product "@" build          ; e.g. forceteki@7dd39a09-dirty
+engine         = product "@" build          ; e.g. examplewriter@7dd39a09-dirty
 product        = 1*( ALPHA / DIGIT / "-" / "_" / "." )
 build          = 1*%x21-7E
 result         = "P1" / "P2" / "Draw" / "Incomplete"   ; case-sensitive, unlike ABNF strings

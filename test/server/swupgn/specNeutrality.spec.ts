@@ -49,6 +49,10 @@ export const BANNED: { phrase: RegExp; task: number; why: string }[] = [
     { phrase: /\breference writer\b/, task: 9, why: 'names the reference writer in normative text' },
     { phrase: /\bforceteki\b/, task: 9, why: 'names one implementation in normative text' },
     { phrase: /\bKarabast\b/, task: 9, why: 'names one project in normative text' },
+    // `(?!'s handling)` leaves §25's "the reference reader's handling in the same change" alone:
+    // that sentence is gated Task 10's to reword, and Task 10 drops the lookahead.
+    { phrase: /\breference (reader|validator)\b(?!'s handling)/, task: 10, why: 'names the reference reader or validator in normative text' },
+    { phrase: /\btoken image pipeline\b/, task: 10, why: 'names one platform\'s art pipeline, a term the format does not define' },
 ];
 
 /** The lines a conforming implementation must obey, with 1-based line numbers. */
