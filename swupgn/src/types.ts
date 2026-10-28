@@ -30,8 +30,8 @@ export type AbilityKind =
   | 'event' | 'delayed';
 
 /**
- * Why a card was defeated (spec §6.4). The one CLOSED vocabulary in the format: these are the
- * engine's own defeat-source kinds, and a reader is expected to switch on them.
+ * Why a card was defeated (spec §6.4). A CLOSED vocabulary: these are the engine's own
+ * defeat-source kinds, and a reader is expected to switch on them.
  *
  * - `attack`   — combat damage from an attack. `defeatedBy` names the attacker.
  * - `ability`  — a card ability defeated it outright, or dealt the damage that did.
@@ -44,6 +44,24 @@ export type AbilityKind =
  */
 export type DefeatReason =
   | 'attack' | 'ability' | 'nonCombatDamage' | 'uniqueRule' | 'frameworkEffect' | 'unknown';
+
+/**
+ * How long a lasting or delayed effect lasts (spec §6.4, §10.1). Closed: a reader may branch on
+ * it. A value from a newer minor version is read per §18 (kept, not understood).
+ *
+ * - `attack` / `phase` / `round` — a lasting effect (CR 7.7.3): "for this attack", "for this phase", "for this round".
+ * - `whileSourceInPlay` — while the card that created it stays in play.
+ * - `until` — "until X happens"; `untilText` on the EFFECT_START says what X is, in words.
+ * - `delayed` — a delayed effect: it waits for a timing point or condition and then resolves (CR 7.7.4).
+ * - `game` — for the rest of the game.
+ */
+export type EffectDuration = 'attack' | 'phase' | 'round' | 'whileSourceInPlay' | 'until' | 'delayed' | 'game';
+
+/**
+ * Why an effect, or some of its targets, ended (spec §6.4, §10.1). Closed, like `EffectDuration`.
+ * `fired` is a delayed effect that resolved; `targetLeft` is the one a partial EFFECT_END carries.
+ */
+export type EffectEndReason = 'expired' | 'fired' | 'sourceLeft' | 'targetLeft' | 'cancelled';
 
 export interface Header {
     game: string;            // "SWU-PGN/1.0"
@@ -214,6 +232,17 @@ export type GameEvent = ActionLink & (
   // check enforce it) but typed optional so a reader-side fixture need not carry it.
   | { seq: string; t: 'ROUND_START' | 'ROUND_END'; round: number; keyframe?: ReducedState; active?: Seat }
   | { seq: string; t: 'GAME_END'; winner: Seat | 'Draw'; reason: string }
+  // A lasting or delayed effect began (spec §10.1): ONE record per effect as the card text states
+  // it. `id` is `fx@N`; `src` the card (or `base@N`) whose ability created it; `p` the seat that
+  // controls it; `targets` what it applies to, or `seat` for a player-wide effect. `ability`,
+  // `text` and `untilText` are advisory and never folded.
+  | {
+      seq: string; t: 'EFFECT_START'; id: string; src: string; p: Seat; targets?: string[]; seat?: Seat;
+      duration: EffectDuration; untilText?: string; ability?: string; text?: string;
+  }
+  // The effect ended. With `targets`, only those targets left it (a target left play) and the
+  // effect stays active for the rest; once none are left it is gone. Without, it all ended.
+  | { seq: string; t: 'EFFECT_END'; id: string; reason: EffectEndReason; targets?: string[] }
   | {
       seq: string; t: 'MOVE'; card: string; from: string; to: string; p?: Seat;
 
@@ -328,6 +357,19 @@ export interface CardInstanceState {
     keywords?: string[];
 }
 
+/**
+ * A lasting or delayed effect that is active now (spec §11): what `EFFECT_START` said, less its
+ * advisory words, with the targets a partial `EFFECT_END` removed already gone.
+ */
+export interface ActiveEffect {
+    id: string;
+    src: string;
+    p: Seat;
+    targets?: string[];
+    seat?: Seat;
+    duration: EffectDuration;
+}
+
 /** The leader card's status: where it is and whether it can still act. */
 export interface LeaderState {
     id: string;                     // SET#NUM
@@ -430,6 +472,13 @@ export interface ReducedState {
      */
     active?: Seat;
     players: Partial<Record<Seat, PlayerState>>;
+
+    /**
+     * The lasting and delayed effects active now, in the order they started (CR 1.16.1). Built by
+     * `EFFECT_START` / `EFFECT_END` and carried by keyframes. Absent in files written before it
+     * existed: absent means "not recorded", never "none".
+     */
+    effects?: ActiveEffect[];
 }
 
 export interface ConformanceIssue {

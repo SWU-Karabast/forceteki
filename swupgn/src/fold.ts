@@ -1,4 +1,4 @@
-import type { GameEvent, ReducedState, PlayerState, CardInstanceState, Seat } from './types';
+import type { ActiveEffect, GameEvent, ReducedState, PlayerState, CardInstanceState, Seat } from './types';
 import { RESERVED_KEYS } from './parse';
 import { tokenNameOf } from './ids';
 
@@ -85,6 +85,22 @@ export function isCompleteKeyframe(k: unknown): k is ReducedState {
         // is not a detail to tolerate -- it is a damaged checkpoint (spec §13).
         if (!ps.cards.every(isCompleteKeyframeCard)) {
             return false;
+        }
+    }
+    // `effects` is optional (a file older than it), but when present every entry is an effect the
+    // fold may later end by id or by target: a list of capped size, each with a string id and,
+    // if any, a capped list of targets.
+    const effects = (k as { effects?: unknown }).effects;
+    if (effects !== undefined) {
+        if (!Array.isArray(effects) || effects.length > MAX_ZONE_LIST) {
+            return false;
+        }
+        for (const fx of effects as unknown[]) {
+            const targets = typeof fx === 'object' && fx !== null ? (fx as { targets?: unknown }).targets : undefined;
+            if (typeof fx !== 'object' || fx === null || typeof (fx as { id?: unknown }).id !== 'string' ||
+              (targets !== undefined && (!Array.isArray(targets) || targets.length > MAX_ZONE_LIST))) {
+                return false;
+            }
         }
     }
     return true;
@@ -402,6 +418,62 @@ function resourceList(ps: PlayerState): string[] {
 function setActive(s: ReducedState, active: unknown): void {
     if (isSeat(active)) {
         s.active = active;
+    }
+}
+
+/** The string ids of an untrusted `targets` value, capped like every list the fold grows. */
+function targetList(x: unknown): string[] {
+    return arr<unknown>(x).filter((t): t is string => typeof t === 'string')
+        .slice(0, MAX_ZONE_LIST);
+}
+
+/**
+ * EFFECT_START: add the effect, in start order. The list is created by the first one, so a file
+ * written before effects existed folds with no `effects` at all ("not recorded", spec §11). A
+ * repeated id replaces the effect in place rather than listing it twice.
+ */
+function startEffect(s: ReducedState, e: Extract<GameEvent, { t: 'EFFECT_START' }>): void {
+    if (typeof e.id !== 'string' || typeof e.src !== 'string' || !isSeat(e.p) || typeof e.duration !== 'string') {
+        return;
+    }
+    const fx: ActiveEffect = {
+        id: e.id, src: e.src, p: e.p,
+        ...(Array.isArray(e.targets) ? { targets: targetList(e.targets) } : {}),
+        ...(isSeat(e.seat) ? { seat: e.seat } : {}),
+        duration: e.duration,
+    };
+    const effects = s.effects ??= [];
+    const at = effects.findIndex((x) => x.id === e.id);
+    if (at >= 0) {
+        effects[at] = fx;
+    } else if (effects.length < MAX_ZONE_LIST) {
+        effects.push(fx);
+    }
+}
+
+/**
+ * EFFECT_END: without `targets` the effect is gone; with them only those targets leave it, and an
+ * effect left with no targets is gone too. The fold never drops a target on its own: a target
+ * leaving play is the writer's partial EFFECT_END to state (spec §10.1).
+ */
+function endEffect(s: ReducedState, e: Extract<GameEvent, { t: 'EFFECT_END' }>): void {
+    const effects = s.effects;
+    const at = effects ? effects.findIndex((x) => x.id === e.id) : -1;
+    if (!effects || at < 0) {
+        return;
+    }
+    const gone = targetList(e.targets);
+    const fx = effects[at];
+    if (gone.length === 0) {
+        effects.splice(at, 1);
+        return;
+    }
+    if (!fx.targets) {
+        return;
+    }
+    fx.targets = fx.targets.filter((t) => !gone.includes(t));
+    if (fx.targets.length === 0) {
+        effects.splice(at, 1);
     }
 }
 
@@ -944,6 +1016,8 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
             }
             break;
         }
+        case 'EFFECT_START': startEffect(s, e); break;
+        case 'EFFECT_END': endEffect(s, e); break;
         // Pure-log events with no state delta:
         case 'ATTACK': case 'PASS': case 'CHOICE': case 'MULLIGAN':
         case 'KEEP_HAND': case 'MODAL_CHOICE': case 'SHUFFLE':

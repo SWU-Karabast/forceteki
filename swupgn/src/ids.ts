@@ -1,5 +1,8 @@
 // Name rules for ids (spec 6.1). Imports nothing outside swupgn/.
 
+/** An effect id (spec 6.1): `fx@N`, N counting up from 1 within one game, no leading zero. */
+export const EFFECT_ID = /^fx@[1-9][0-9]*$/;
+
 /** A token's name: lower-case words joined by single hyphens. */
 export const TOKEN_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 

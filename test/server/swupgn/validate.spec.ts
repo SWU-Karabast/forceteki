@@ -337,6 +337,28 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(codes(good)).not.toContain('error:round-start-active');
     });
 
+    // Value: protects=[V-09] an EFFECT_END names an active effect, and only targets it still has; fails_when=the check is missing, or a valid partial end is reported; why_new=effects are new; seam=none; no_claim=fold tolerance
+    it('reports an EFFECT_END for an unknown effect', function () {
+        const fx = '{"seq":"R1.A.8","t":"EFFECT_START","id":"fx@1","src":"SOR#108","p":1,"targets":["SOR#108","SOR#045"],"duration":"phase"}';
+        const endOf = (seq: string, id: string, targets?: string) => `{"seq":"${seq}","t":"EFFECT_END","id":"${id}","reason":"targetLeft"${targets ? `,"targets":${targets}` : ''}}`;
+        const unknown = (text: string) => codes(text).filter((c) => c === 'error:effect-end-unknown');
+        // A start, a partial end and a final end: clean.
+        expect(codes(addEvent(`${fx}\n${endOf('R1.A.9', 'fx@1', '["SOR#045"]')}\n${endOf('R1.A.10', 'fx@1')}`))).toEqual([]);
+        // No EFFECT_START for the id, an id already ended, and a target the effect does not have.
+        expect(unknown(addEvent(endOf('R1.A.9', 'fx@2')))).toEqual(['error:effect-end-unknown']);
+        expect(unknown(addEvent(`${fx}\n${endOf('R1.A.9', 'fx@1')}\n${endOf('R1.A.10', 'fx@1')}`))).toEqual(['error:effect-end-unknown']);
+        expect(unknown(addEvent(`${fx}\n${endOf('R1.A.9', 'fx@1', '["SOR#045"]')}\n${endOf('R1.A.10', 'fx@1', '["SOR#045"]')}`))).toEqual(['error:effect-end-unknown']);
+        expect(validate(addEvent(endOf('R1.A.9', 'fx@2'))).level).toBe('well-formed');
+    });
+
+    // Value: protects=the effect id grammar fx@N (§6.1, Appendix B) is enforced by the schema; fails_when=the pattern is missing or admits a zero or a leading zero; why_new=effect ids are new; seam=none; no_claim=none
+    it('reports an effect id that breaks the grammar', function () {
+        const fx = (id: string) => addEvent(`{"seq":"R1.A.9","t":"EFFECT_START","id":"${id}","src":"SOR#108","p":1,"targets":["SOR#108"],"duration":"phase"}`);
+        expect(codes(fx('fx@0'))).toContain('error:schema');
+        expect(codes(fx('fx@01'))).toContain('error:schema');
+        expect(codes(fx('fx@12'))).toEqual([]);
+    });
+
     it('reports a Fortify upgrade attached to the other seat\'s base', function () {
         const move = (p: number, base: string) => addEvent(`{"seq":"R1.A.9","t":"MOVE","card":"HMW#147","from":"hand","to":"base","p":${p},"kind":"upgrade","attachedTo":"${base}"}`);
         const play = (p: number, base: string) => addEvent(`{"seq":"R1.A.9","t":"PLAY_UPGRADE","p":${p},"card":"HMW#147","zone":"base","target":"${base}","cost":2}`);

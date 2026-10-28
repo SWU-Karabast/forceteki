@@ -1101,3 +1101,37 @@ describe('fold wrong-board fixes', function () {
         expect(s.players[1]?.cards.find((c) => c.id === 'U')?.captured).toEqual([]);
     });
 });
+
+// Lasting and delayed effects (spec §10.1, §11, §12.2; CR 1.16.1).
+describe('fold effects', function () {
+    const start = (seq: string, id: string, targets?: string[], extra: Partial<Extract<GameEvent, { t: 'EFFECT_START' }>> = {}): GameEvent =>
+        ({ seq, t: 'EFFECT_START', id, src: 'SOR#142', p: 1, duration: 'phase', ...(targets ? { targets } : {}), ...extra });
+    const end = (seq: string, id: string, targets?: string[]): GameEvent =>
+        ({ seq, t: 'EFFECT_END', id, reason: targets ? 'targetLeft' : 'expired', ...(targets ? { targets } : {}) });
+
+    // Value: protects=the board carries each active effect from its start to its end; fails_when=EFFECT_START/EFFECT_END fold to nothing, or the list is not kept in start order; why_new=effects are new; seam=none; no_claim=writer output
+    it('EFFECT_START adds an active effect and EFFECT_END removes it', function () {
+        const started = fold([start('R1.A.1a', 'fx@1', ['SOR#108']), start('R1.A.2a', 'fx@2', undefined, { seat: 2, duration: 'round', text: 'costs 1 more' })]);
+        expect(started.effects).toEqual([
+            { id: 'fx@1', src: 'SOR#142', p: 1, targets: ['SOR#108'], duration: 'phase' },
+            { id: 'fx@2', src: 'SOR#142', p: 1, seat: 2, duration: 'round' },
+        ]);
+        const ended = fold([start('R1.A.1a', 'fx@1', ['SOR#108']), start('R1.A.2a', 'fx@2', undefined, { seat: 2 }), end('R1.A.3a', 'fx@1')]);
+        expect(ended.effects?.map((e) => e.id)).toEqual(['fx@2']);
+    });
+
+    // Value: protects=a target leaving play drops only that target (CR 7.7.3.d, 8.7) and the last one ends the effect; fails_when=a partial EFFECT_END ends the whole effect, or an effect with no targets left lingers; why_new=effects are new; seam=none; no_claim=writer emits the partial end
+    it('a partial EFFECT_END drops only the named targets', function () {
+        const both = start('R1.A.1a', 'fx@1', ['A', 'B']);
+        expect(fold([both, end('R1.A.2a', 'fx@1', ['A'])]).effects).toEqual([{ id: 'fx@1', src: 'SOR#142', p: 1, targets: ['B'], duration: 'phase' }]);
+        expect(fold([both, end('R1.A.2a', 'fx@1', ['A']), end('R1.A.3a', 'fx@1', ['B'])]).effects).toEqual([]);
+    });
+
+    // Value: protects=absent means "not recorded" for files older than effects; fails_when=emptyState or the fold seeds effects: [] for every file; why_new=effects are new; seam=none; no_claim=none
+    it('a file without effect records folds with no effects field', function () {
+        const vectors = path.resolve(__dirname, '../../../../swupgn/test-vectors');
+        const doc = parse(fs.readFileSync(path.join(vectors, 'arrest.swupgn'), 'utf8'));
+        expect(doc.header.writerRevision).toBe(5);
+        expect('effects' in fold(doc.events)).toBe(false);
+    });
+});

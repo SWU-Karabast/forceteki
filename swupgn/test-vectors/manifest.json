@@ -180,6 +180,17 @@
       "about": "A ROUND_START with no active seat (§10.5, [V-08])."
     },
     {
+      "file": "negative/effect-end-unknown.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "effect-end-unknown"
+      ],
+      "warnings": [],
+      "about": "An EFFECT_END naming an effect id no EFFECT_START began (§10.1, [V-09])."
+    },
+    {
       "file": "negative/result-mismatch.swupgn",
       "class": "negative",
       "writer": "hand",

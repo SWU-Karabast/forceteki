@@ -364,6 +364,10 @@ requirement, by id. The linked section is where each one is defined.
 - `[W-47]` MUST write `outsideTheGame` as the `to` of every `MOVE` of a `TOKEN:` id out of an
   arena or out of `base`, and MUST NOT write a `CAPTURE` for a token: a token that leaves play
   ceases to exist (CR 3.7.3, 8.33.5) ([§10.1](#101-events-that-carry-board-detail)).
+- `[W-48]` MUST write one `EFFECT_START` for each lasting or delayed effect (CR 7.7.3, 7.7.4) an
+  ability resolution creates, **as the card text states it**, and one `EFFECT_END` when it ends;
+  when a target leaves play while the effect goes on for the others, MUST write a partial
+  `EFFECT_END` naming that target ([§10.1](#effect_start)).
 
 ### The Parser (reads the syntax)
 
@@ -406,6 +410,9 @@ requirement, by id. The linked section is where each one is defined.
   but `outsideTheGame` (`token-zone`, error) ([§10.1](#101-events-that-carry-board-detail)).
 - `[V-08]` MUST report a `ROUND_START` with no `active` seat (`round-start-active`, error)
   ([§10.1](#101-events-that-carry-board-detail)).
+- `[V-09]` MUST report an `EFFECT_END` whose `id` names no active effect — no earlier
+  `EFFECT_START` began it, or it has already ended — or whose `targets` names a target the effect
+  does not have (`effect-end-unknown`, error) ([§10.1](#effect_start)).
 
 ### The Folder (rebuilds the board)
 
@@ -843,6 +850,16 @@ const cardId = baseId(id).split('#')[1];   // baseId, defined above
 The same order applies to `SET#NUM:N`: strip `:N`, then read `SET` and `NUM`. Always take
 the base id first, for both id shapes and for both art lookup and name lookup.
 
+#### Effect ids
+
+A lasting or delayed effect ([§10.1](#effect_start)) is named `fx@N`: the literal `fx@` and a
+number counting up from `1` within one game, with no leading zero (`fx@1`, `fx@12`, never
+`fx@0` or `fx@01`). A writer gives each `EFFECT_START` the next unused number, and never reuses
+one in the same game. An effect id names an effect, never a card: it appears only in
+`EFFECT_START.id`, `EFFECT_END.id` and the board's `effects` ([§11](#11-the-reduced-state--the-board-you-build)).
+A record whose effect id breaks this grammar fails its schema (`schema`, error). The grammar is
+`effect-id` in [Appendix B](#b3-names-inside-records).
+
 #### Two reserved token names
 
 Two tokens are neither units nor upgrades, and the format has a field for each: a **Credit
@@ -909,12 +926,15 @@ the base *card*; a `base@N` ref names the *thing being hit*.)
 | `STATUS_TOKEN.token` | `advantage`, `weakness` — the name of any token upgrade ([§6.1](#the-token-grammar)) that is not a Shield or an Experience, so a token upgrade printed tomorrow needs no format change |
 | `PHASE_START.phase` | `setup`, `action`, `regroup` |
 | `ABILITY_ACTIVATE.ability` | An identifier the writer chooses, stable only within one `Engine` product (see the `ability` field in [§10.1](#101-events-that-carry-board-detail)). A reader MUST NOT branch on it. Its `kind` is the field for that ([§10.1](#101-events-that-carry-board-detail)). |
+| `EFFECT_START.duration` | **Closed — see [§10.1](#effect_start).** `attack`, `phase`, `round`, `whileSourceInPlay`, `until`, `delayed`, `game` |
+| `EFFECT_END.reason` | **Closed — see [§10.1](#effect_start).** `expired`, `fired`, `sourceLeft`, `targetLeft`, `cancelled` |
 
-Treat all of these as **open lists**. A reader MUST NOT crash on a value it hasn't seen.
+Treat all of these as **open lists**, except the ones marked closed. A reader MUST NOT crash on a
+value it hasn't seen.
 
-**`DEFEAT.reason` is the exception: it is CLOSED.** It is the only vocabulary a reader is meant
-to branch on — "did this unit die in combat or to an effect" changes what a replay shows — so it
-is pinned here and in the schema rather than left open:
+**`DEFEAT.reason` is CLOSED**, as are the two effect vocabularies above. It is a vocabulary a
+reader is meant to branch on — "did this unit die in combat or to an effect" changes what a
+replay shows — so it is pinned here and in the schema rather than left open:
 
 | Value | What it means |
 |---|---|
@@ -1781,6 +1801,96 @@ ability text is not recorded — it is card data, and the `%%% CARDS` index name
 
 ---
 
+<a id="effect_start"></a>
+**`EFFECT_START` — a lasting or delayed effect began.**
+
+| Field | Type | Required | Means |
+|---|---|---|---|
+| `id` | string | yes | The effect's id, `fx@N` ([§6.1](#effect-ids)). |
+| `src` | string | yes | The card whose ability created the effect, or `base@N` for a base's ability. |
+| `p` | 1 or 2 | yes | The seat that controls the effect: the controller of the ability that created it. |
+| `targets` | string[] | no | What the effect applies to: card ids and/or `base@N`, at least one. Absent for an effect that applies to a player rather than to cards; `seat` then says which. |
+| `seat` | 1 or 2 | no | For a player-wide effect ("the next card you play this phase costs 1 less"), the seat it applies to. |
+| `duration` | string | yes | How long it lasts. **Closed** — the table below. |
+| `untilText` | string | no | With `duration` `until`: the condition that ends the effect, in words that read after "until" (`this unit attacks`). A writer SHOULD write it with `until`. Advisory, like `text`. |
+| `ability` | string | no | The ability that created the effect, in the form of `ABILITY_ACTIVATE.ability`. A reader MUST NOT branch on it. |
+| `text` | string | no | The effect in words (`+2/+2 and Sentinel`). Advisory, like `ABILITY_ACTIVATE.title`, and it MAY carry icon markup the same way. |
+
+Adds the effect to the board's `effects` ([§12.2](#122-every-other-rule-in-one-table)).
+
+**`EFFECT_END` — a lasting or delayed effect ended, or some of its targets left it.**
+
+| Field | Type | Required | Means |
+|---|---|---|---|
+| `id` | string | yes | The effect, as its `EFFECT_START` named it. |
+| `reason` | string | yes | Why. **Closed** — the table below. |
+| `targets` | string[] | no | Present: only these targets leave the effect, at least one, and it stays active for the rest. Absent: the whole effect ends. |
+
+Removes the effect from `effects`, or with `targets` removes only those targets; an effect left
+with no targets is removed too ([§12.2](#122-every-other-rule-in-one-table)). An `EFFECT_END`
+for an effect that is not active, or naming a target the effect does not have, is an error
+(`effect-end-unknown`, `[V-09]`).
+
+**Why these exist.** The status of lasting effects (CR 7.7.3) and delayed effects (CR 7.7.4) is
+part of the game state (CR 1.16.1). Their consequences show elsewhere — a unit given +3/+0 for an
+attack shows it in `STATS` — but a consequence does not say that an effect is waiting, how long
+it lasts, or which card it came from: "the next card you play this phase costs 1 less" changes
+nothing on the board until the card is played, and a delayed "at the start of the regroup phase"
+effect changes nothing until it fires. These two records state the effect's whole lifetime.
+
+**What one effect is.** A writer writes one `EFFECT_START` for each lasting or delayed effect
+**as the card text states it** in one resolution of an ability `[W-48]`:
+
+- "It gets +2/+2 and gains Sentinel for this phase" on one unit is **one** effect.
+- "Each friendly unit gets +1/+0 for this phase" is **one** effect, with every unit it applies
+  to in `targets`.
+- Two separately stated effects in one ability ("It gets +2/+0 for this phase. Its controller
+  can't …") are **two** effects, and two records.
+- A writer whose engine holds one stated effect as several internal objects groups them into one
+  record, and ends the effect when the last of them ends.
+
+This is what lets two writers produce the same `effects` for the same game, so integrity can
+compare it ([§14](#14-integrity--checking-a-file-is-honest)). A constant ability (CR 7.3) is not
+an effect in this sense: it is on while its card is in play, and what it changes is carried by
+`STATS`.
+
+**When a target leaves play.** A lasting effect applies only to cards in play when it was
+created (CR 7.7.3.d), so a card that leaves play and comes back is a new object the effect no
+longer applies to. When a target leaves play and the effect goes on for its other targets, the
+writer writes a partial `EFFECT_END` with that target in `targets` and `reason` `targetLeft`
+`[W-48]`. When its last target leaves, the effect ends: an `EFFECT_END` with or without `targets`
+says so. The source leaving play ends nothing by itself — lasting and delayed effects from a card
+that left play remain active (CR 8.12.1) — except an effect whose `duration` is
+`whileSourceInPlay`, which ends with `reason` `sourceLeft`. A reader never drops a target or an
+effect on its own; it applies what the records say.
+
+**`duration`** is closed: a reader may branch on it. A value from a newer minor version is read
+per [§18](#18-versioning-and-extensibility--versions-and-unknown-things): kept as it is, not
+understood, never a reason to reject the file.
+
+| Value | The effect lasts |
+|---|---|
+| `attack` | for this attack ("for this attack") |
+| `phase` | for this phase ("for this phase") |
+| `round` | for this round ("for this round") |
+| `whileSourceInPlay` | while `src` is in play |
+| `until` | until a condition is met ("until this unit attacks"); `untilText` says which |
+| `delayed` | until it resolves: a delayed effect, waiting for a future timing point or condition (CR 7.7.4). Its `EFFECT_END` has `reason` `fired` when it resolves |
+| `game` | for the rest of the game |
+
+**`reason`** is closed on the same terms. A reader that does not know a value still ends the
+effect.
+
+| Value | The effect ended because |
+|---|---|
+| `expired` | its duration ran out (CR 7.7.3.e) |
+| `fired` | it was a delayed effect, and it resolved |
+| `sourceLeft` | its `duration` was `whileSourceInPlay`, and `src` left play |
+| `targetLeft` | a target left play — with `targets`, those targets; the effect goes on for the rest |
+| `cancelled` | something else ended it before its duration ran out, such as an ability that removes it |
+
+---
+
 **`DRAW` — a player drew cards.**
 
 | Field | Type | Required | Means |
@@ -2266,6 +2376,16 @@ interface ReducedState {
     initiativeTaken?: boolean;                // it was taken this round (back to false each round)
     active?: 1 | 2;                           // whose turn it is — STATED, not derived, see below
     players: Partial<Record<1 | 2, PlayerState>>;
+    effects?: ActiveEffect[];                 // lasting and delayed effects active now, in start order
+}
+
+interface ActiveEffect {
+    id: string;                 // "fx@3" (§6.1)
+    src: string;                // the card whose ability created it, or "base@N"
+    p: 1 | 2;                   // the seat that controls it
+    targets?: string[];         // what it applies to: card ids and/or "base@N"
+    seat?: 1 | 2;               // a player-wide effect: the seat it applies to
+    duration: string;           // §10.1: attack, phase, round, whileSourceInPlay, until, delayed, game
 }
 
 interface PlayerState {
@@ -2321,8 +2441,16 @@ files written before it existed; a reader treats absent as `[]`.
 ([§10.1](#stats)) and by keyframes. They are absent until the first `STATS` names the card
 (older files never do), and a reader never computes them: it is told.
 
+`effects` lists the lasting and delayed effects active now ([§10.1](#effect_start)), in the order
+they started: `EFFECT_START` adds one and `EFFECT_END` removes it, or removes some of its
+targets. Each holds what its `EFFECT_START` stated, less the advisory `untilText`, `ability` and
+`text`. The fold creates the list at the first `EFFECT_START`, so a file with no effect records
+folds to a board with no `effects` at all; once created, the list stays, empty when nothing is
+active.
+
 The optional fields marked `?` — `initiativeTaken`, `deckSize`, `leader`, `power`, `hp`,
-`keywords`, `resources`, `baseEpicActionUsed`, `baseUpgrades`, `baseCaptured`, `onStartingSide` — are optional only because files
+`keywords`, `resources`, `baseEpicActionUsed`, `baseUpgrades`, `baseCaptured`, `onStartingSide`,
+`effects` — are optional only because files
 written before they existed lack them. A current writer fills every one that applies, and the
 integrity check compares each whenever the keyframe carries it.
 
@@ -2363,8 +2491,8 @@ already applied the rules, and the file records what it decided. Where each part
 | Each card's **status** — faceup/facedown | the leader's `deployed` (Leader Unit side up) and, for a double-sided leader, `onStartingSide` — set by `LEADER_FLIP` ([§10.1](#101-events-that-carry-board-detail)); resources are always facedown, and `RESOURCE` names the card for the omniscient reader |
 | The **initiative counter**: controller and taken/available | `initiative` and `initiativeTaken`; `CLAIM_INITIATIVE`, reset at `ROUND_START` |
 | **Open and hidden information** | the archive is omniscient ([§17](#17-privacy-considerations)): `DRAW`, `RESOURCE`, `SEARCH`, `REVEAL` and the keyframe's `hand` name the hidden cards; `Perspective` in the header says when a file is not |
-| **Lasting effects** | by their observable consequences: `STATS` (a unit given +3/+0 for an attack shows it and shows it going away), `keywords` (Sentinel for a phase), and the records they cause. The effect's text is not recorded — the card is named, and card data has the text |
-| **Delayed effects** | by the records they produce when they fire (a Change of Heart return is a `TAKE_CONTROL` at regroup); they are invisible until then, as they are on a table |
+| **Lasting effects** | `effects` on the board: `EFFECT_START` when one is created, `EFFECT_END` when it ends or a target leaves it ([§10.1](#effect_start)) — its source, controller, targets and duration. Its consequences show as well: `STATS` (a unit given +3/+0 for an attack shows it and shows it going away), `keywords` (Sentinel for a phase) |
+| **Delayed effects** | `effects` on the board, with `duration` `delayed`, from the moment the effect is created until its `EFFECT_END` with `reason` `fired` ([§10.1](#effect_start)); what it does when it fires is in the records it causes then (a Change of Heart return is a `TAKE_CONTROL` at regroup) |
 | **Epic Actions** used/unused | `epic: true` on `DEPLOY_LEADER` / `ABILITY_ACTIVATE`; the leader's `epicActionUsed`, and the seat's `baseEpicActionUsed` — a **base** may carry an Epic Action too (Tarkintown, Security Complex, Jedha City and 9 others), and it is a separate ability on a separate card from the leader's ([§10.1](#101-events-that-carry-board-detail)) |
 
 What the file deliberately does **not** encode is the rulebook itself: why a cost was 4 and
@@ -2582,6 +2710,8 @@ twice.
 | `SHIELD_USE` | `card.shields = max(0, shields - (count ?? 1))` |
 | `EXPERIENCE_GAIN` | `card.experience = max(0, experience + count)` — `count` may be negative |
 | `STATUS_TOKEN` | `n = max(0, (statusTokens[token] ?? 0) + count)`; if `n` is 0 **delete** `statusTokens[token]`, else set it to `n`. `count` may be negative — deleting the key at zero is required, see [the token contract](#the-token-gainremoval-contract) |
+| `EFFECT_START` | ignored unless `id`, `src` and `duration` are strings and `p` is `1` or `2`. Otherwise create `effects` if absent, and add `{ id, src, p, targets, seat, duration }` at the end — `targets` only when given (at most 1000 strings), `seat` only when it is `1` or `2`. An effect with the same `id` already in `effects` is replaced in place. No more than 1000 effects are kept |
+| `EFFECT_END` | find the effect with that `id` in `effects`; if there is none, **nothing**. Without `targets` (or with an empty list), remove it. With `targets`, remove those ids from the effect's `targets`, and remove the effect if none are left; an effect that has no `targets` is left as it is |
 | anything in [§10.2](#102-events-that-are-just-notes) | nothing |
 | an event type you don't know | nothing (and warn) |
 
@@ -2640,15 +2770,15 @@ state is thrown away and the keyframe takes its place. Everything below follows 
   the initiative holder through `active`. It is not harmless to leave out `active`: without it
   the initiative is whatever the last `CLAIM_INITIATIVE` left. Never ship a partial keyframe.
 - No list in a keyframe (`cards`, `hand`, `discard`, `resources`, `baseUpgrades`, `baseCaptured`, a card's
-  `upgrades` and `captured`) holds more than 1000 entries: a writer MUST NOT write one that does. A card's `captured` may be absent (a
+  `upgrades` and `captured`, `effects` and an effect's `targets`) holds more than 1000 entries: a writer MUST NOT write one that does. A card's `captured` may be absent (a
   file older than the field), but when present it is a list. A real game never comes close; a reader treats a
   keyframe over that as damaged and ignores it, because a snapped keyframe bypasses the cap the
   fold puts on every list it grows itself ([§14](#14-integrity--checking-a-file-is-honest)).
 - A keyframe's `cards` list contains **only** ground and space arena cards. Hand,
   resources and discard are described by their counts and lists, not by `cards`.
 - A keyframe carries every field of [§11](#11-the-reduced-state--the-board-you-build): the
-  initiative status, and per seat the deck count, the leader's status, and each card's live
-  `power`/`hp`/`keywords`. A writer that cannot read one of them omits that field rather than
+  initiative status, the active `effects` (an empty list when none is active), and per seat the
+  deck count, the leader's status, and each card's live `power`/`hp`/`keywords`. A writer that cannot read one of them omits that field rather than
   inventing a value.
 - Emit a keyframe on `ROUND_END` as well as `ROUND_START` when you can. It halves the
   window between checkpoints, so a round's worth of fold drift is caught a round earlier,
@@ -2673,7 +2803,9 @@ state is thrown away and the keyframe takes its place. Everything below follows 
 - a `cards` entry is not an object, or lacks an `upgrades` array (of at most 1000), a
   `statusTokens` object (not an array), or a number in each of `damage`, `shields` and
   `experience`;
-- a `cards` entry has a `captured` that is present but not an array of at most 1000.
+- a `cards` entry has a `captured` that is present but not an array of at most 1000;
+- `effects` is present but not an array of at most 1000 entries, or an entry is not an object
+  with a string `id`, or has `targets` that is present but not an array of at most 1000.
 
 **Readers, on meeting a damaged keyframe:** do NOT snap to it — snapping
 would delete a player you have correct state for. **Ignore the keyframe**, keep folding
@@ -2734,6 +2866,9 @@ problem. A writer that has no such cost SHOULD refuse to emit a file that is not
   **only when both the keyframe and the fold have a leader for that seat**. The fold learns a
   leader from a keyframe or a `DEPLOY_LEADER`; before either it has none to be wrong about, so
   the `minimal` vector's first keyframe, which names both leaders, reports nothing
+- `effects` whenever the keyframe carries it, **as a set by `id`**: each effect's `src`, `p`,
+  `seat`, `duration`, and `targets` as a set. Start order is not part of the model, and an absent
+  list on the fold's side counts as empty. A mismatch is reported once, with `path: "effects"`
 - `initiativeTaken`, whenever the keyframe carries it, absent on the fold's side read as
   `false`. **Before comparing a `ROUND_START` keyframe, set the running `initiativeTaken` to
   `false`**: that keyframe describes a round that has begun, and the `ROUND_START` rule that
@@ -2746,7 +2881,7 @@ problem. A writer that has no such cost SHOULD refuse to emit a file that is not
 - a card being in one side but not the other (reported both ways)
 
 Everything except `baseHp` and `deckSize` is compared at **every** keyframe, the first one
-included. A field the keyframe does not carry — `deckSize`, `leader`, `initiativeTaken`, a
+included. A field the keyframe does not carry — `deckSize`, `leader`, `initiativeTaken`, `effects`, a
 card's `power`/`hp`/`keywords` — is skipped, so a file written before the field existed still
 passes: absent means "not recorded", never "zero".
 
@@ -2969,6 +3104,8 @@ Friends"), so a comma-joined list could not be split back into cards.
 | `MULLIGAN` | `{who(p)} mulligans` |
 | `KEEP_HAND` | `{who(p)} keeps their hand` |
 | `GAME_END` | `*** {who(winner)} wins — {reason} ***` · draw: `*** Game ends in a draw — {reason} ***` |
+| `EFFECT_START` | `{who(p)}: {nm(src)}` + ` — {text}` if `text` + ` on {names(targets)}` if `targets` is non-empty, else ` for {who(seat)}` if `seat` + ` ({lasts})`. `{lasts}` is `for this attack`, `for this phase`, `for this round`, `while {nm(src)} is in play`, `until {untilText}` (`until a condition is met` without `untilText`), `delayed` or `for the rest of the game` for the seven `duration` values, and the value itself for any other |
+| `EFFECT_END` | `Effect from {nm(src)} ends` — `src` from the `EFFECT_START` with the same `id` earlier in the file; `Effect {id} ends` when there is none — + ` on {names(targets)}` if `targets` is non-empty + ` ({why})`. `{why}` is `expired`, `it resolved`, `its source left play`, `its target left play` or `cancelled` for the five `reason` values, and the value itself for any other |
 
 **These print nothing**: `MOVE`, `EXHAUST`, `READY`, `EXHAUST_RESOURCES`, `READY_RESOURCES`,
 `STATS`, `CHOICE`, `MODAL_CHOICE`, `SHUFFLE`, `PHASE_END`, `ROUND_END`.
@@ -3279,6 +3416,7 @@ one thing broken. A reader MUST reject or warn on each as the manifest says:
 | `newer-minor-bad-seat` | `SWU-PGN/1.7`, with a `PASS` by seat 3 | well-formed | error `schema`, warning `newer-minor` |
 | `newer-minor-result-seat` | `SWU-PGN/1.7`, with `[Result "P3"]` | well-formed | error `schema`, warning `newer-minor` |
 | `over-cap` | a keyframe hand of 1002 cards | well-formed | error `over-cap` |
+| `effect-end-unknown` | an `EFFECT_END` for `fx@1`, which no `EFFECT_START` began | well-formed | error `effect-end-unknown` |
 | `pre-release` | no `WriterRevision`, and an `Engine` product the [pilot writer products](#pilot-writer-products) registry lists | well-formed | warning `pre-release` |
 | `damaged-keyframe` | a keyframe the events do not fold to | valid | warning `keyframe-mismatch` |
 | `unknown-type` | an event type from a later version | complete | warning `unknown-type` |
@@ -3586,6 +3724,7 @@ matched by a program.
 | `credit-zone` | error | A `MOVE` of a `TOKEN:credit…` id from or into `resource`; a Credit token is recorded in `base` ([§6.2](#62-zone-names), `[W-42]`) | well-formed |
 | `token-zone` | error | A `MOVE` of a `TOKEN:` id out of an arena or out of `base` to a zone other than `outsideTheGame`; a token that leaves play ceases to exist ([§10.1](#101-events-that-carry-board-detail), `[V-07]`) | well-formed |
 | `round-start-active` | error | A `ROUND_START` with no `active` seat ([§10.1](#101-events-that-carry-board-detail), `[V-08]`) | well-formed |
+| `effect-end-unknown` | error | An `EFFECT_END` whose `id` names no active effect (no earlier `EFFECT_START`, or it already ended), or whose `targets` names a target the effect does not have ([§10.1](#effect_start), `[V-09]`) | well-formed |
 | `fortify-host` | error | A Fortify upgrade attached to the other seat's base: a `MOVE` into `base` with `attachedTo: "base@N"`, or a `PLAY_UPGRADE` with `target: "base@N"`, where N is not the record's `p` ([§10.3](#103-homeworlds-fortify-beast-and-weakness), `[V-06]`) | well-formed |
 | `same-zone-move` | error | A `MOVE` from a zone to itself that is not an arena | well-formed |
 | `result-mismatch` | error | The header's `Result` disagrees with the last `GAME_END.winner`, or is not `Incomplete` in a file with no `GAME_END` ([§10.2](#102-events-that-are-just-notes)) | well-formed |
@@ -4125,6 +4264,7 @@ copy           = ":" ( %x32-39 *DIGIT / %x31 1*DIGIT )
 token-card     = "TOKEN:" token-name [ "#" 1*DIGIT ] [ copy ]
 token-name     = 1*( %x61-7A / DIGIT ) *( "-" 1*( %x61-7A / DIGIT ) )
 base-ref       = "base@" ( "1" / "2" )
+effect-id      = "fx@" %x31-39 *DIGIT       ; fx@1, fx@2 …: no zero, no leading zero
 seat           = "1" / "2"                  ; a JSON number in records
 ```
 

@@ -87,6 +87,18 @@
       "then": { "properties": { "card": { "type": "string" } }, "required": ["card"] }
     },
     {
+      "if": { "properties": { "t": { "const": "EFFECT_START" } }, "required": ["t"] },
+      "then": { "properties": { "src": { "type": "string" }, "targets": { "type": "array", "minItems": 1, "items": { "type": "string" } }, "seat": { "enum": [1,2] }, "duration": { "enum": ["attack","phase","round","whileSourceInPlay","until","delayed","game"] }, "untilText": { "type": "string" }, "ability": { "type": "string" }, "text": { "type": "string" } }, "required": ["id","src","p","duration"] }
+    },
+    {
+      "if": { "properties": { "t": { "const": "EFFECT_END" } }, "required": ["t"] },
+      "then": { "properties": { "reason": { "enum": ["expired","fired","sourceLeft","targetLeft","cancelled"] }, "targets": { "type": "array", "minItems": 1, "items": { "type": "string" } } }, "required": ["id","reason"] }
+    },
+    {
+      "if": { "properties": { "t": { "enum": ["EFFECT_START","EFFECT_END"] } }, "required": ["t"] },
+      "then": { "properties": { "id": { "type": "string", "pattern": "^fx@[1-9][0-9]*$" } } }
+    },
+    {
       "if": { "properties": { "t": { "const": "ATTACK" } }, "required": ["t"] },
       "then": { "properties": { "atk": { "type": "string" }, "def": { "type": "string" } }, "required": ["atk","def"] }
     }
@@ -98,6 +110,7 @@
       "properties": {
         "round": { "type": "integer" },
         "initiativeTaken": { "type": "boolean" },
+        "effects": { "type": "array", "items": { "$ref": "#/$defs/activeEffect" } },
         "players": {
           "type": "object",
           "properties": {
@@ -105,6 +118,18 @@
             "2": { "$ref": "#/$defs/playerState" }
           }
         }
+      }
+    },
+    "activeEffect": {
+      "type": "object",
+      "required": ["id","src","p","duration"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^fx@[1-9][0-9]*$" },
+        "src": { "type": "string" },
+        "p": { "enum": [1,2] },
+        "targets": { "type": "array", "items": { "type": "string" } },
+        "seat": { "enum": [1,2] },
+        "duration": { "type": "string" }
       }
     },
     "playerState": {

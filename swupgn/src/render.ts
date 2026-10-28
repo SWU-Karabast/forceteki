@@ -20,8 +20,34 @@ interface SidedResolver extends NameResolver {
     frontNameOf(id: string): string;
 }
 
+/** Each `EffectDuration` as the words that close an `EFFECT_START` line (spec §16). */
+function durationWords(duration: unknown, src: string, untilText: unknown, nm: (id: string) => string): string {
+    switch (duration) {
+        case 'attack': return 'for this attack';
+        case 'phase': return 'for this phase';
+        case 'round': return 'for this round';
+        case 'whileSourceInPlay': return `while ${nm(src)} is in play`;
+        case 'until': return `until ${typeof untilText === 'string' ? untilText : 'a condition is met'}`;
+        case 'delayed': return 'delayed';
+        case 'game': return 'for the rest of the game';
+        default: return String(duration);
+    }
+}
+
+/** Each `EffectEndReason` as the words that close an `EFFECT_END` line (spec §16). */
+function endWords(reason: unknown): string {
+    switch (reason) {
+        case 'expired': return 'expired';
+        case 'fired': return 'it resolved';
+        case 'sourceLeft': return 'its source left play';
+        case 'targetLeft': return 'its target left play';
+        case 'cancelled': return 'cancelled';
+        default: return String(reason);
+    }
+}
+
 /** Normative one-line rendering of a single event. `null` means "not part of the story". */
-function line(e: GameEvent, n: SidedResolver): string | null {
+function line(e: GameEvent, n: SidedResolver, effectSources: ReadonlyMap<string, string> = new Map()): string | null {
     const nm = (id: string) => {
         if (typeof id === 'string' && id.startsWith('base@')) {
             return `${who(Number(id.slice(5)) as Seat)}'s base`;
@@ -91,6 +117,20 @@ function line(e: GameEvent, n: SidedResolver): string | null {
         case 'TAKE_CONTROL': return `${who(e.p)} takes control of ${nm(e.card)}`;
         case 'MULLIGAN': return `${who(e.p)} mulligans`;
         case 'KEEP_HAND': return `${who(e.p)} keeps their hand`;
+        // An effect names its source card, then what it does in words when the file says, then
+        // what it applies to: the targets, or the seat a player-wide effect is for.
+        case 'EFFECT_START': {
+            const what = e.text ? ` — ${e.text}` : '';
+            const on = arr(e.targets).length ? ` on ${list(e.targets)}` : e.seat === 1 || e.seat === 2 ? ` for ${who(e.seat)}` : '';
+            return `${who(e.p)}: ${nm(e.src)}${what}${on} (${durationWords(e.duration, e.src, e.untilText, nm)})`;
+        }
+        // Named by the source its EFFECT_START gave, or by its id when the file never started it.
+        case 'EFFECT_END': {
+            const src = effectSources.get(e.id);
+            const which = src !== undefined ? `Effect from ${nm(src)}` : `Effect ${e.id}`;
+            const on = arr(e.targets).length ? ` on ${list(e.targets)}` : '';
+            return `${which} ends${on} (${endWords(e.reason)})`;
+        }
         case 'GAME_END': return `*** ${e.winner === 'Draw' ? 'Game ends in a draw' : `${who(e.winner)} wins`} — ${e.reason} ***`;
         // Mechanism, not story: these are how the board changes, and each is already implied
         // by the action it sits under. MOVE in particular is the fold's source of truth and
@@ -217,7 +257,12 @@ export function render(doc: SwuPgnDocument, names?: NameResolver): string {
     };
     const out: string[] = [];
     let actionNum = 0;
+    // Effect id -> source card, so an EFFECT_END (which carries only the id) can name it.
+    const effectSources = new Map<string, string>();
     for (const e of doc.events) {
+        if (e.t === 'EFFECT_START' && typeof e.id === 'string' && typeof e.src === 'string') {
+            effectSources.set(e.id, e.src);
+        }
         if (e.t === 'ROUND_START' && isCompleteKeyframe(e.keyframe)) {
             // A keyframe states each leader's status, so the sides snap to it like the board does.
             for (const seat of [1, 2] as Seat[]) {
@@ -256,7 +301,7 @@ export function render(doc: SwuPgnDocument, names?: NameResolver): string {
             actionNum = 0;
             continue;
         }
-        const text = line(e, n);
+        const text = line(e, n, effectSources);
         trackSides(e, backUp, base);
         if (text == null) {
             continue;

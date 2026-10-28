@@ -43,6 +43,14 @@ describe('parse', function () {
         expect(doc.annotations[0].nag).toBe('?!');
     });
 
+    // Value: protects=effect records parse into typed events with every field kept; fails_when=parse drops or rewrites a field of EFFECT_START / EFFECT_END; why_new=effects are new; seam=none; no_claim=validation
+    it('reads EFFECT_START and EFFECT_END as events', function () {
+        const start = '{"seq":"R1.A.1a","t":"EFFECT_START","id":"fx@1","src":"SOR#108","p":1,"targets":["SOR#108"],"duration":"until","untilText":"it attacks","ability":"a1","text":"+2/+0"}';
+        const end = '{"seq":"R1.A.2a","t":"EFFECT_END","id":"fx@1","reason":"targetLeft","targets":["SOR#108"]}';
+        const doc = parse(SAMPLE.replace('%%% EVENTS\n', `%%% EVENTS\n${start}\n${end}\n`));
+        expect(doc.events.slice(0, 2)).toEqual([JSON.parse(start), JSON.parse(end)]);
+    });
+
     it('ignores blank lines and tolerates trailing whitespace', function () {
         const doc = parse(SAMPLE + '\n\n   \n');
         expect(doc.events.length).toBe(1);

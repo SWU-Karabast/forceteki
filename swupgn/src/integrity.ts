@@ -1,4 +1,4 @@
-import type { CardInstanceState, GameEvent, PlayerState, ReducedState } from './types';
+import type { ActiveEffect, CardInstanceState, GameEvent, PlayerState, ReducedState } from './types';
 import { emptyState, isCompleteKeyframe, reduce, snapTo } from './fold';
 
 export interface KeyframeMismatch {
@@ -24,7 +24,7 @@ function sameTokens(a: unknown, b: unknown): boolean {
  * Fields that the keyframe gate verifies, per seat.
  *
  * GATED (reconstructable from the event model, single source of truth = the event stream):
- * `initiativeTaken`; per seat `baseHp`, `handSize`, `deckSize`, `resourcesReady`,
+ * `initiativeTaken`; `effects` (as a set by id, see sameEffects); per seat `baseHp`, `handSize`, `deckSize`, `resourcesReady`,
  * `resourcesExhausted`, `credits`, `hasForce`, `baseEpicActionUsed`, the leader's `id`/
  * `deployed`/`exhausted`/`epicActionUsed`/`onStartingSide`; `hand` (as a set — a hand is
  * unordered), `discard` (in order — the pile is), `resources`, `baseUpgrades` and
@@ -34,7 +34,7 @@ function sameTokens(a: unknown, b: unknown): boolean {
  * not part of the model), `power`, `hp` and `keywords` (the live values `STATS` records carry).
  * `baseHp` and `deckSize` are exempt at the first keyframe only — see checkKeyframes. Fields an
  * older file's keyframe lacks (`deckSize`, `leader`, `power`, `hp`, `keywords`,
- * `initiativeTaken`, `resources`, `baseUpgrades`, `baseCaptured`) are skipped: absent is "not recorded", not "zero".
+ * `initiativeTaken`, `resources`, `baseUpgrades`, `baseCaptured`, `effects`) are skipped: absent is "not recorded", not "zero".
  *
  * `hand`/`discard` CONTENTS were previously ungated, on the belief that only the counts were
  * reconstructable. They are not: every MOVE names its card, so both lists are exact. The fold
@@ -165,11 +165,28 @@ function diffSeat(seq: string, seat: 1 | 2, e: PlayerState, g: PlayerState, chec
     return out;
 }
 
+/**
+ * Two effect lists hold the same effects, compared AS A SET BY ID (start order is not part of the
+ * model): each id with the same `src`, `p`, `seat`, `duration` and targets as a set. A missing
+ * list is an empty one.
+ */
+function sameEffects(a: unknown, b: unknown): boolean {
+    const norm = (x: unknown) => (Array.isArray(x) ? (x as Partial<ActiveEffect>[]) : [])
+        .map((fx) => [String(fx?.id), fx?.src, fx?.p, Array.isArray(fx?.targets) ? [...fx.targets].map(String).sort() : null, fx?.seat ?? null, fx?.duration])
+        .sort(([i1], [i2]) => (String(i1) < String(i2) ? -1 : String(i1) > String(i2) ? 1 : 0));
+    return JSON.stringify(norm(a)) === JSON.stringify(norm(b));
+}
+
 /** Compares the gated set of fold-tracked invariants against each keyframe (see above). */
 function diff(seq: string, expected: ReducedState, got: ReducedState, checkBaseHp: boolean): KeyframeMismatch[] {
     const out: KeyframeMismatch[] = [];
     if (typeof expected.initiativeTaken === 'boolean' && expected.initiativeTaken !== (got.initiativeTaken ?? false)) {
         out.push({ seq, path: 'initiativeTaken', expected: expected.initiativeTaken, got: got.initiativeTaken ?? false });
+    }
+    // Lasting and delayed effects, as a set by id. Compared only when the keyframe carries them,
+    // so a file written before `effects` existed still passes.
+    if (Array.isArray(expected.effects) && !sameEffects(expected.effects, got.effects)) {
+        out.push({ seq, path: 'effects', expected: expected.effects, got: got.effects });
     }
     // `active` is deliberately NOT compared. It is stated, not reconstructed: ROUND_START,
     // PHASE_START and keyframes carry it, and deriving it from the actions in between would mean

@@ -328,3 +328,26 @@ describe('checkKeyframes — the resource, credit, Force and attachment fields',
         expect(paths([...arrested, rescue, kf('R1.end', seat(1, { baseCaptured: ['SOR#095'] }), seat(2, { discard: ['SEC#253'] }))])).toEqual([]);
     });
 });
+
+describe('checkKeyframes effects', function () {
+    const effect = (id: string, targets: string[]) => ({ id, src: 'SOR#142', p: 1 as const, targets, duration: 'phase' as const });
+    const starts: GameEvent[] = [
+        { seq: 'R1.A.1a', t: 'EFFECT_START', id: 'fx@1', src: 'SOR#142', p: 1, targets: ['A', 'B'], duration: 'phase' },
+        { seq: 'R1.A.2a', t: 'EFFECT_START', id: 'fx@2', src: 'SOR#142', p: 1, targets: ['C'], duration: 'phase' },
+    ];
+    const kf = (effects?: ReturnType<typeof effect>[]): GameEvent => ({ seq: 'R1.end', t: 'ROUND_END', round: 1,
+        keyframe: { round: 1, phase: 'action', initiative: 1, players: { 1: restingSeat(1), 2: restingSeat(2) }, ...(effects ? { effects } : {}) } });
+    const paths = (events: GameEvent[]) => checkKeyframes(events).mismatches.map((m) => m.path);
+
+    // Value: protects=the gate compares effects by id as a set, targets as a set; fails_when=effects ungated or compared in order; why_new=effects are new; seam=none; no_claim=writer output
+    it('compares effects by id as a set', function () {
+        expect(paths([...starts, kf([effect('fx@2', ['C']), effect('fx@1', ['B', 'A'])])])).toEqual([]);
+        expect(paths([...starts, kf([effect('fx@1', ['A', 'B'])])])).toEqual(['effects']);
+        expect(paths([...starts, kf([effect('fx@1', ['A']), effect('fx@2', ['C'])])])).toEqual(['effects']);
+    });
+
+    // Value: protects=a keyframe written before effects existed still verifies; fails_when=an absent effects list reads as empty; why_new=effects are new; seam=none; no_claim=none
+    it('does not compare effects when the keyframe has none', function () {
+        expect(paths([...starts, kf()])).toEqual([]);
+    });
+});

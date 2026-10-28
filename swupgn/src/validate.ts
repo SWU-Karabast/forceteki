@@ -69,6 +69,7 @@ const KNOWN_EVENT_TYPES = new Set([
     'CREATE_TOKEN', 'MOVE', 'CAPTURE', 'RESCUE', 'TAKE_CONTROL', 'SHIELD_GAIN', 'SHIELD_USE',
     'EXPERIENCE_GAIN', 'STATUS_TOKEN', 'OVERWHELM', 'SEARCH', 'REVEAL', 'TRIGGER',
     'PHASE_START', 'PHASE_END', 'ROUND_START', 'ROUND_END', 'GAME_END', 'INIT', 'UNDO',
+    'EFFECT_START', 'EFFECT_END',
 ]);
 
 /** The minor version this reader implements (`SWU-PGN/1.<minor>`). */
@@ -306,8 +307,32 @@ export function validate(text: string): ConformanceReport {
             records.push(r);
         }
     }
+    // The effects active at each record, by id, with the targets each still has (null: an effect
+    // with no targets). Followed in file order, as the fold does ([V-09]).
+    const activeEffects = new Map<string, Set<string> | null>();
+    const strings = (x: unknown): string[] => (Array.isArray(x) ? x.filter((v): v is string => typeof v === 'string') : []);
     for (const r of records) {
         const seqStr = String(r['seq'] ?? '');
+        if (r['t'] === 'EFFECT_START' && typeof r['id'] === 'string') {
+            activeEffects.set(r['id'], Array.isArray(r['targets']) ? new Set(strings(r['targets'])) : null);
+        }
+        if (r['t'] === 'EFFECT_END' && typeof r['id'] === 'string') {
+            const id = r['id'];
+            const held = activeEffects.get(id);
+            const gone = strings(r['targets']);
+            if (held === undefined) {
+                error('effect-end-unknown', `record ${seqStr}: EFFECT_END names ${id}, which is not an active effect (no EFFECT_START, or it already ended)`);
+            } else if (gone.length > 0 && (held === null || gone.some((t) => !held.has(t)))) {
+                error('effect-end-unknown', `record ${seqStr}: EFFECT_END removes a target ${id} does not have`);
+            } else if (gone.length === 0 || held === null) {
+                activeEffects.delete(id);
+            } else {
+                gone.forEach((t) => held.delete(t));
+                if (held.size === 0) {
+                    activeEffects.delete(id);
+                }
+            }
+        }
         const walked = walkValues(r, `record ${seqStr}`);
         if (walked) {
             error(walked.code, walked.message);
@@ -378,6 +403,11 @@ export function validate(text: string): ConformanceReport {
             if (lists.some((l) => Array.isArray(l) && l.length > MAX_ZONE_LIST)) {
                 error('over-cap', `record ${seqStr}: a keyframe list is longer than ${MAX_ZONE_LIST}`);
             }
+        }
+        const kfEffects = kf ? kf['effects'] : undefined;
+        const overCap = (l: unknown) => Array.isArray(l) && l.length > MAX_ZONE_LIST;
+        if (Array.isArray(kfEffects) && (overCap(kfEffects) || kfEffects.some((fx) => overCap(asRecord(fx)?.['targets'])))) {
+            error('over-cap', `record ${seqStr}: a keyframe list is longer than ${MAX_ZONE_LIST}`);
         }
     }
 

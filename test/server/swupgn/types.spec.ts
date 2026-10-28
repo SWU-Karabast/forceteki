@@ -1,4 +1,5 @@
-import type { AbilityKind, DefeatReason, SwuPgnDocument, GameEvent, ReducedState, Header } from '../../../swupgn/src/types';
+import type { AbilityKind, DefeatReason, EffectDuration, EffectEndReason, SwuPgnDocument, GameEvent, ReducedState, Header } from '../../../swupgn/src/types';
+import { EFFECT_ID } from '../../../swupgn/src/ids';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -51,5 +52,21 @@ describe('swupgn closed vocabularies stay in lockstep', function () {
             uniqueRule: true, frameworkEffect: true, unknown: true,
         };
         expect(Object.keys(exhaustive).sort()).toEqual(enumFor('DEFEAT', 'reason').sort());
+    });
+
+    it('EFFECT_START.duration and EFFECT_END.reason: the aliases equal the schema enums', function () {
+        const durations: Record<EffectDuration, true> = {
+            attack: true, phase: true, round: true, whileSourceInPlay: true, until: true, delayed: true, game: true,
+        };
+        const reasons: Record<EffectEndReason, true> = {
+            expired: true, fired: true, sourceLeft: true, targetLeft: true, cancelled: true,
+        };
+        expect(Object.keys(durations).sort()).toEqual(enumFor('EFFECT_START', 'duration').sort());
+        expect(Object.keys(reasons).sort()).toEqual(enumFor('EFFECT_END', 'reason').sort());
+    });
+
+    it('the effect id pattern in the schema is EFFECT_ID', function () {
+        const branch = schema.allOf.find((b: any) => Array.isArray(b.if?.properties?.t?.enum) && b.if.properties.t.enum.includes('EFFECT_END'));
+        expect(branch?.then?.properties?.id?.pattern).toBe(EFFECT_ID.source);
     });
 });

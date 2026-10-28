@@ -11,6 +11,7 @@
     "initiative": { "enum": [1, 2, null] },
     "initiativeTaken": { "type": "boolean" },
     "active": { "enum": [1, 2] },
+    "effects": { "type": "array", "items": { "$ref": "#/$defs/activeEffect" } },
     "players": {
       "type": "object",
       "properties": {
@@ -25,6 +26,19 @@
     "id": { "type": "string", "minLength": 1 },
     "ids": { "type": "array", "items": { "$ref": "#/$defs/id" } },
     "count": { "type": "integer", "minimum": 0 },
+    "activeEffect": {
+      "type": "object",
+      "required": ["id", "src", "p", "duration"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^fx@[1-9][0-9]*$" },
+        "src": { "$ref": "#/$defs/id" },
+        "p": { "enum": [1, 2] },
+        "targets": { "$ref": "#/$defs/ids" },
+        "seat": { "enum": [1, 2] },
+        "duration": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
     "playerState": {
       "type": "object",
       "required": ["seat", "baseHp", "baseMaxHp", "handSize", "hand", "resourcesReady", "resourcesExhausted", "credits", "hasForce", "discard", "cards"],

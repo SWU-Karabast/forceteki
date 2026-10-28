@@ -239,3 +239,28 @@ describe('render card lists', function () {
         expect(() => render(doc([{ seq: 'R1.start', t: 'ROUND_START', round: 1, keyframe: { round: 1, phase: 'action', initiative: 1, players: { 1: seat(1, [card]), 2: seat(2, []) } } }]), nm)).not.toThrow();
     });
 });
+
+describe('render effects', function () {
+    const nm = { nameOf: (id: string) => ({ 'SOR#142': 'Bold Resistance', 'SOR#108': 'Wampa', 'SOR#095': 'Battlefield Marine' }[id] ?? id) };
+    const doc = (events: any[]) => ({ header: {} as any, decks: [], setup: [], events, annotations: [], cards: [] });
+
+    // Value: protects=the §16 wording of EFFECT_START / EFFECT_END; fails_when=either line drifts from the spec table; why_new=effects are new; seam=none; no_claim=board summary
+    it('renders an effect start and end', function () {
+        const out = render(doc([
+            { seq: 'R1.A.1a', t: 'EFFECT_START', id: 'fx@1', src: 'SOR#142', p: 1, targets: ['SOR#108', 'SOR#095'], duration: 'phase', text: '+2/+0' },
+            { seq: 'R1.A.1b', t: 'EFFECT_START', id: 'fx@2', src: 'SOR#142', p: 2, seat: 1, duration: 'until', untilText: 'Player 1 plays a unit' },
+            { seq: 'R1.A.1c', t: 'EFFECT_START', id: 'fx@3', src: 'SOR#108', p: 1, targets: ['base@2'], duration: 'whileSourceInPlay' },
+            { seq: 'R1.A.2a', t: 'EFFECT_END', id: 'fx@1', reason: 'targetLeft', targets: ['SOR#095'] },
+            { seq: 'R1.A.2b', t: 'EFFECT_END', id: 'fx@2', reason: 'fired' },
+            { seq: 'R1.A.2c', t: 'EFFECT_END', id: 'fx@9', reason: 'expired' },
+        ]), nm).split('\n');
+        expect(out).toEqual([
+            '       ↳ Player 1: Bold Resistance — +2/+0 on Wampa · Battlefield Marine (for this phase)',
+            '       ↳ Player 2: Bold Resistance for Player 1 (until Player 1 plays a unit)',
+            '       ↳ Player 1: Wampa on Player 2\'s base (while Wampa is in play)',
+            '       ↳ Effect from Bold Resistance ends on Battlefield Marine (its target left play)',
+            '       ↳ Effect from Bold Resistance ends (it resolved)',
+            '       ↳ Effect fx@9 ends (expired)',
+        ]);
+    });
+});
