@@ -534,6 +534,26 @@ describe('SwuPgnRecorder gap events: counters + upgrades', function () {
     });
 });
 
+describe('SwuPgnRecorder: ROUND_START states the active seat', function () {
+    const p1 = { id: 'p1' };
+    const p2 = { id: 'p2' };
+
+    it('writes every ROUND_START with active', function () {
+        const game: any = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game, resolver);
+        game.initiativePlayer = p2;
+        game.actionPhaseActivePlayer = null; // not yet assigned when the round opens
+        game.roundNumber = 1;
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.initiativePlayer = p1;
+        game.roundNumber = 2;
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+
+        const starts = (rec.getEvents() as any[]).filter((e) => e.t === 'ROUND_START');
+        expect(starts.map((e) => [e.round, e.active])).toEqual([[1, 2], [2, 1]]);
+    });
+});
+
 describe('SwuPgnRecorder keyframes + INIT', function () {
     it('embeds a ReducedState keyframe on ROUND_START and records INIT deck order', function () {
         const game = new FakeEmitter();
@@ -1063,18 +1083,60 @@ describe('SwuPgnRecorder: resources, base tokens, captures, exits', function () 
         expect(ofType(rec, 'READY_RESOURCES').map((e) => [e.p, e.amount])).toEqual([[1, 2]]);
     });
 
-    it('a card an ability resources exhausted is one more exhausted resource; a ready one is not', function () {
+    it('a card an ability resources exhausted is a move into the row exhausted, not one more EXHAUST_RESOURCES; a ready one is not', function () {
         const { game, rec } = mk();
-        const tired = fakeCard({ uuid: 'TWI#127', zoneName: 'resource', owner: p1, exhausted: true });
-        const fresh = fakeCard({ uuid: 'SOR#050', zoneName: 'resource', owner: p1, exhausted: false });
+        const tired: any = fakeCard({ uuid: 'TWI#127', zoneName: 'resource', owner: p1 });
+        const fresh: any = fakeCard({ uuid: 'SOR#050', zoneName: 'resource', owner: p1, exhausted: false });
+        // The engine sets the flag AFTER the move event fires (Player.resourceCard).
         game.emit(EventName.OnCardMoved, { card: tired, originalZone: 'hand', newZone: 'resource' });
+        tired.exhausted = true;
         game.emit(EventName.OnCardResourced, { card: tired });
         game.emit(EventName.OnCardMoved, { card: fresh, originalZone: 'deck', newZone: 'resource' });
         game.emit(EventName.OnCardResourced, { card: fresh });
 
-        expect(ofType(rec, 'EXHAUST_RESOURCES')).toEqual([{ seq: 'R1.A.0c', t: 'EXHAUST_RESOURCES', p: 1, amount: 1 }]);
+        expect(ofType(rec, 'EXHAUST_RESOURCES')).toEqual([]);
+        expect(ofType(rec, 'MOVE').map((m) => [m.card, m.exhausted])).toEqual([['TWI#127', true], ['SOR#050', undefined]]);
         const s = fold(rec.getEvents());
         expect([s.players[1]?.resourcesReady, s.players[1]?.resourcesExhausted]).toEqual([1, 1]);
+    });
+
+    it('writes a regroup resource as a move into the row exhausted', function () {
+        const { game, rec } = mk();
+        const card: any = fakeCard({ uuid: 'SOR#060', zoneName: 'resource', owner: p1 });
+        game.emit(EventName.OnCardMoved, { card, originalZone: 'hand', newZone: 'resource' });
+        card.exhausted = true; // Player.resourceCard(card, true), after moveTo
+        game.emit(EventName.OnPhaseEnded, { phase: 'regroup' });
+
+        const move = ofType(rec, 'MOVE').find((m) => m.card === 'SOR#060');
+        expect(move).toEqual(jasmine.objectContaining({ from: 'hand', to: 'resource', exhausted: true }));
+        const resource = ofType(rec, 'RESOURCE').find((r) => r.card === 'SOR#060');
+        expect(resource).toBeDefined();
+        expect(ofType(rec, 'EXHAUST_RESOURCES')).toEqual([]);
+        expect(fold(rec.getEvents()).players[1]?.resourcesExhausted).toBe(1);
+    });
+
+    it('writes setup resources without the flag', function () {
+        const { game, rec } = mk();
+        const card: any = fakeCard({ uuid: 'SOR#061', zoneName: 'resource', owner: p1 });
+        game.emit(EventName.OnCardMoved, { card, originalZone: 'hand', newZone: 'resource' });
+        card.exhausted = false;
+        game.emit(EventName.OnPhaseEnded, { phase: 'setup' });
+
+        const move = ofType(rec, 'MOVE').find((m) => m.card === 'SOR#061');
+        expect(move).toBeDefined();
+        expect('exhausted' in move).toBeFalse();
+        expect(fold(rec.getEvents()).players[1]?.resourcesReady).toBe(1);
+    });
+
+    it('does not carry a pending resource flag across an undo', function () {
+        const { game, rec } = mk();
+        rec.checkpoint(1);
+        const card: any = fakeCard({ uuid: 'SOR#062', zoneName: 'resource', owner: p1 });
+        game.emit(EventName.OnCardMoved, { card, originalZone: 'hand', newZone: 'resource' });
+        rec.rollbackTo(1);
+        card.exhausted = true;
+        game.emit(EventName.OnPhaseEnded, { phase: 'regroup' });
+        expect(ofType(rec, 'MOVE').filter((m) => m.card === 'SOR#062')).toEqual([]);
     });
 
     it('a resource leaving the row says whether it left exhausted', function () {

@@ -710,6 +710,78 @@ describe('SWU-PGN/1.0 writer contract (resource records)', function () {
     });
 });
 
+describe('SWU-PGN/1.0 writer contract (resources enter exhausted)', function () {
+    integration(function (contextRef) {
+        // Value: protects=a card resourced in the regroup phase is written as a move into the row exhausted and no EXHAUST_RESOURCES repeats it, while setup resources carry no flag;
+        // fails_when=the recorder stops reading the flag the engine sets after the move, or writes both the flag and the counter;
+        // why_new=the recorder spec drives the flag with fake cards; only a real regroup proves the engine sets it after the move event;
+        // seam=none; no_claim=an ability resourcing (covered by the recorder spec)
+        it('writes a regroup resource as a move into the row exhausted, once', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { hand: ['wampa'], resources: 4, deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'] },
+                player2: { groundArena: ['battlefield-marine'], deck: ['cartel-spacer', 'cartel-spacer', 'cartel-spacer'] },
+            });
+            const { context } = contextRef;
+
+            context.moveToRegroupPhase();
+            context.player1.clickCard(context.wampa);
+            context.player1.clickDone();
+            context.player2.clickDone();
+
+            const doc = parse((context.game as any).getCachedSwuPgn() as string);
+            const intoRow = doc.events.filter((e: any) => e.t === 'MOVE' && e.to === 'resource' && e.from === 'hand') as any[];
+            expect(intoRow.length).toBeGreaterThan(0);
+            const regroup = intoRow.filter((m) => String(m.seq).includes('.G.'));
+            const setupMoves = intoRow.filter((m) => String(m.seq).includes('.S.'));
+            expect(setupMoves.length).toBeGreaterThan(0);
+            expect(setupMoves.some((m) => 'exhausted' in m)).toBeFalse();
+            expect(regroup.length).toBeGreaterThan(0);
+            expect(regroup.every((m) => m.exhausted === true)).toBeTrue();
+            const duplicated = doc.events.filter((e: any) => e.t === 'EXHAUST_RESOURCES' && regroup.some((m) => m.seq === e.for));
+            expect(duplicated).toEqual([]);
+        });
+    });
+});
+
+describe('SWU-PGN/1.0 writer contract (tokens leave play to outsideTheGame)', function () {
+    integration(function (contextRef) {
+        const tokenExits = (text: string) => {
+            const doc = parse(text);
+            const tokenIds = new Set((doc.cards ?? []).filter((c: any) => String(c.id).startsWith('TOKEN')).map((c: any) => c.id));
+            const moves = doc.events.filter((e: any) => e.t === 'MOVE' && tokenIds.has(e.card) && ['groundArena', 'ground', 'spaceArena', 'space', 'base'].includes(e.from)) as any[];
+            const captures = doc.events.filter((e: any) => e.t === 'CAPTURE' && tokenIds.has(e.card));
+            return { tokenIds, moves, captures };
+        };
+
+        // Value: protects=a token that is bounced or captured is written leaving to outsideTheGame and never as a CAPTURE;
+        // fails_when=the recorder trusts an effect's stated destination over the zone the engine moves a token to;
+        // why_new=the engine's token exit is only visible through the file the recorder writes;
+        // seam=none; no_claim=tokens leaving by defeat (covered by the token specs)
+        it('never moves a token out of play anywhere but outsideTheGame', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { hand: ['waylay', 'arrest'] },
+                player2: { groundArena: ['battle-droid', 'battle-droid'] },
+            });
+            const { context } = contextRef;
+            const [bounced, captured] = context.player2.findCardsByName('battle-droid');
+
+            context.player1.clickCard(context.waylay);
+            context.player1.clickCard(bounced);
+            context.player2.passAction();
+            context.player1.clickCard(context.arrest);
+            context.player1.clickCard(captured);
+
+            const { tokenIds, moves, captures } = tokenExits((context.game as any).getCachedSwuPgn() as string);
+            expect(tokenIds.size).toBeGreaterThan(0);
+            expect(moves.length).toBeGreaterThan(0);
+            expect(moves.map((m) => m.to)).toEqual(moves.map(() => 'outsideTheGame'));
+            expect(captures).toEqual([]);
+        });
+    });
+});
+
 // DAMAGE says what dealt it; HEAL said only that HP went up. Nothing later in the file can
 // supply the missing half — OVERWHELM omits its source too, but a reader recovers that from the
 // beat's ATTACK, and a heal has no attack to fall back on.

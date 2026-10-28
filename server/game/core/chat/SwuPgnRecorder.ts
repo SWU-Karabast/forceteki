@@ -5,6 +5,7 @@ import { logger } from '../../../logger';
 import type { AbilityKind, DefeatReason, Header, GameEvent, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
 import { anonymizedGameId, anonymizedMatchId, saltedPlayerId, anonymizePlayerLabel } from './swuPgnIdentity';
 import { isTopLevelActionRecord, markPlaySetup } from '../../../../swupgn/src/actionLinks';
+import { ResourcePrompt } from '../gameSteps/prompts/ResourcePrompt';
 import { isArena } from '../../../../swupgn/src/fold';
 
 export interface HeaderContext {
@@ -377,6 +378,18 @@ export class SwuPgnRecorder {
     private readonly lastStats = new Map<string, string>();
 
     /**
+     * The MOVE into the resource row whose `exhausted` flag is not final yet.
+     *
+     * `Player.resourceCard` moves the card and only THEN sets `exhausted` (the regroup phase's
+     * resourcing enters exhausted, CR 5.5.1.c; so do abilities'), and OnCardMoved fires inside
+     * the move, so the flag cannot be read in the move's own handler. It is read at the start of
+     * the next engine event or any read of the record (`settleResourceMove`), by which time the
+     * flag is final, and written onto this record. Transient: dropped by `rollbackTo`, never
+     * held across a checkpoint (the record it points at is truncated with the rest).
+     */
+    private pendingResourceMove: { event: GameEvent; card: any } | null = null;
+
+    /**
      * Rollback checkpoints (array lengths + counters + tokenParents snapshot) keyed by
      * snapshot id, so the recorder rewinds in lockstep with the game on undo.
      * tokenParents is captured here because a
@@ -407,6 +420,7 @@ export class SwuPgnRecorder {
     // ── Public interface ──────────────────────────────────────────────────────
 
     public getEvents(): GameEvent[] {
+        this.settleResourceMove();
         return this.events;
     }
 
@@ -566,6 +580,8 @@ export class SwuPgnRecorder {
             if (restoredSnapshotId == null) {
                 return undefined;
             }
+            // The record a pending flag points at may be truncated below.
+            this.pendingResourceMove = null;
             // Checkpoints are taken lazily, on the first push under a snapshot id, so the
             // restored id may have none of its own while later ids do (a snapshot during
             // which nothing was recorded). Ids are monotonic, so the boundary is the first
@@ -774,6 +790,12 @@ export class SwuPgnRecorder {
         return player?.id != null ? this.resolver.seat(player.id) : undefined;
     }
 
+    /** The seat holding the initiative: who is first active player this round. */
+    private initiativeSeat(): Seat | undefined {
+        const player = readOr<any>(() => this.game.initiativePlayer ?? this.game.actionPhaseActivePlayer, null);
+        return player?.id != null ? this.resolver.seat(player.id) : undefined;
+    }
+
     /** Resolve a card-like engine object to its stable SET#NUM[:copy] id. */
     private idOf(card: any): string {
         if (card?.uuid == null) {
@@ -962,6 +984,18 @@ export class SwuPgnRecorder {
         this.push({ seq: this.nextSeq(false), t, p: this.seatOf(player), amount });
     }
 
+    /** Write the now-final ready state onto a pending MOVE into the resource row. */
+    private settleResourceMove(): void {
+        const pending = this.pendingResourceMove;
+        if (!pending) {
+            return;
+        }
+        this.pendingResourceMove = null;
+        if (this.isInResourceRow(pending.card) && readOr(() => pending.card.exhausted === true, false)) {
+            (pending.event as any).exhausted = true;
+        }
+    }
+
     private isInResourceRow(card: any): boolean {
         try {
             return card?.zoneName === ZoneName.Resource;
@@ -1107,7 +1141,9 @@ export class SwuPgnRecorder {
             seq: `R${this.currentRound}.start`,
             t: 'ROUND_START',
             round: this.currentRound,
-            ...(this.activeSeat() != null ? { active: this.activeSeat() } : {}),
+            // The initiative holder is the round's first active player (CR 5.4.1.b); the engine
+            // copies it to the action-phase active player when the round begins, so either names it.
+            ...(this.initiativeSeat() != null ? { active: this.initiativeSeat() } : {}),
         };
         const keyframe = this.projectKeyframe();
         if (keyframe) {
@@ -1166,6 +1202,7 @@ export class SwuPgnRecorder {
      * for both seats; anything else is dropped and logged.
      */
     private projectKeyframe(): ReducedState | undefined {
+        this.settleResourceMove();
         if (!this.resolver.reducedState) {
             return undefined;
         }
@@ -1245,6 +1282,11 @@ export class SwuPgnRecorder {
      */
     private on(name: EventName, fn: (event: any) => void, { syncAfter = true }: { syncAfter?: boolean } = {}): void {
         this.game.on(name, (event: any) => {
+            try {
+                this.settleResourceMove();
+            } catch (error) {
+                this.logError('settleResourceMove', error);
+            }
             try {
                 fn(event);
             } catch (error) {
@@ -1690,7 +1732,7 @@ export class SwuPgnRecorder {
             const seat = from === 'deck' ? this.seatOf(card?.owner ?? card?.controller) : controllerSeat;
             const kind = cardKind(card);
             const leftExhausted = from === 'resource' && card?.exhaustedBeforeMove === true;
-            this.push({
+            const move: GameEvent = {
                 seq,
                 t: 'MOVE',
                 card: this.idOf(card),
@@ -1699,7 +1741,22 @@ export class SwuPgnRecorder {
                 p: seat,
                 ...(kind ? { kind } : {}),
                 ...(leftExhausted ? { exhausted: true } : {}),
-            });
+            };
+            this.push(move);
+            if (to === 'resource') {
+                // The setup and regroup prompts decide the entry state themselves, and do it after
+                // this event (see pendingResourceMove); a regroup resource is also readied before
+                // anything else is emitted, so the prompt is the only place that says. Everything
+                // else (an ability, a stolen resource) has the engine's flag settled by the next event.
+                const prompt = readOr<any>(() => this.game.getCurrentOpenPrompt?.(), null);
+                if (prompt instanceof ResourcePrompt) {
+                    if (prompt.entersExhausted) {
+                        move.exhausted = true;
+                    }
+                } else {
+                    this.pendingResourceMove = { event: move, card };
+                }
+            }
             if (controllerSeat !== seat) {
                 this.push({
                     seq: this.nextSeq(false),
@@ -1852,9 +1909,7 @@ export class SwuPgnRecorder {
 
         // A card that an ability puts into the resource row enters EXHAUSTED unless the ability
         // says otherwise (Resupply, the card Smuggle draws from the top of the deck, ...). The
-        // MOVE into `resource` counted it as ready -- that is what the row does by default and
-        // the setup/regroup prompt never fires this event -- so the exhausted entry is the same
-        // one-resource exhaustion any other would be. Read after the handler: the flag is final.
+        // MOVE into `resource` carries that as `exhausted: true` (see settleResourceMove).
         this.on(EventName.OnCardResourced, (event: any) => {
             const card = event?.card;
             if (card?.uuid != null && this.resourceRowChanges.delete(card.uuid)) {
@@ -1872,9 +1927,8 @@ export class SwuPgnRecorder {
                 });
                 return;
             }
-            if (this.isInResourceRow(card) && card.exhausted === true) {
-                this.resourceRecord('EXHAUST_RESOURCES', card.controller ?? card.owner, 1);
-            }
+            // An exhausted entry is the MOVE's own `exhausted` flag (set when it settles), not an
+            // EXHAUST_RESOURCES: writing both would count the card twice (spec [W-45]).
         });
 
         this.on(EventName.OnCardsDrawn, (event: any) => {

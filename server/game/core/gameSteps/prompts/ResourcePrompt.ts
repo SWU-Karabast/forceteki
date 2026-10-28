@@ -11,6 +11,12 @@ export class ResourcePrompt extends AllPlayerPrompt {
     private readonly nCardsToResource: number;
     private readonly enterExhausted: boolean;
 
+    /** Whether the cards this prompt resources enter the row exhausted (regroup) or ready (setup). */
+    public get entersExhausted(): boolean {
+        return this.enterExhausted;
+    }
+
+
     protected selectedCards = new Map<string, Card[]>();
     protected selectableCards = new Map<string, Card[]>();
     protected playersDone = new Map<string, boolean>();
