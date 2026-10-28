@@ -5,6 +5,8 @@
 **Editors:** the Karabast Project
 **Reference implementation (informative):** the `swupgn/` folder of the
 [forceteki repository](https://github.com/SWU-Karabast/forceteki)
+**Latest version:** <https://github.com/SWU-Karabast/forceteki/blob/main/docs/SWU-PGN-1.0-SPEC.md>,
+the canonical copy. A copy anywhere else is informative.
 **Feedback:** an issue or pull request on that repository with `SWU-PGN` in its title
 
 ---
@@ -23,8 +25,9 @@ checked against its own snapshots, and how the prose is produced.
 
 This is a **Candidate Recommendation in a pilot**. Its text is stable: the editors expect to
 change it only to correct errata and to close the open issues listed in
-[§21](#21-open-issues). Every change made before final publication is recorded in
-[§22](#22-version-history). Files written during the pilot are pre-release files; how to read
+[§21](#21-open-issues). An erratum is reported as described under Feedback, corrected by a pull
+request to the canonical copy, and recorded in [§22](#22-version-history), as is every change
+made before final publication. Files written during the pilot are pre-release files; how to read
 them is in [Appendix C](#appendix-c-reading-pre-release-files-informative).
 
 It becomes a Recommendation when two independent implementations pass the conformance suite
@@ -147,8 +150,9 @@ In plain words:
 
 **This text is normative.** The test vectors are its conformance suite
 ([§20](#20-conformance-suite--test-vectors)). The reference code in `swupgn/` is informative: it
-shows one way to meet this text. If the code and the text disagree, the disagreement is an
-erratum. Until it is corrected, the text governs. Report it as described under Feedback above.
+shows one way to meet this text. If the code, a schema in `swupgn/schema/` or a vector disagrees
+with the text, the disagreement is an erratum. Until it is corrected, the text governs. Report it
+as described under Feedback above.
 
 Informative, not normative: examples, notes, the "In plain words" passages, the appendices
 marked informative, and any sentence about what the reference writer or reader happens to do.
@@ -199,9 +203,9 @@ warning, not an error: the reply is shown as a top-level note ([§15](#15-annota
 | Renderer | the story | every well-formed file `[R-01]` |
 | Consumer | — | every valid file. It SHOULD say so when a file is below verified `[C-01]` |
 
-A key that names the object model (`__proto__`, `constructor`, `prototype`, `toString`,
-`valueOf`) is not a cross-record rule: a parser rejects it, so a file that has one is malformed
-([§23](#23-security-considerations)).
+A key that names the object model (the reserved names of
+[§23](#23-security-considerations)) is not a cross-record rule: a parser rejects it, so a file
+that has one is malformed.
 
 A validator reports issues with **error** severity (the file is below valid) and **warning**
 severity (something worth saying that does not by itself make the file invalid). A warning can
@@ -319,10 +323,12 @@ requirement, by id. The linked section is where each one is defined.
 - `[W-35]` MUST write the `INIT` record with `seq` `R0.S.0` ([§8](#8-the-setup-section)).
 - `[W-36]` MUST NOT write a perspective file. 1.0 defines omniscient files only
   ([§21](#21-open-issues)).
-- `[W-37]` MUST NOT emit an omniscient file to a participant of the game before the match is
-  over ([§23](#23-security-considerations)).
+- `[W-37]` MUST NOT emit an omniscient file to a participant of the game, directly or through
+  anyone else it serves, before the match is over ([§23](#23-security-considerations)).
 - `[W-38]` MUST use the `X_` / `x_` / `X` extension prefixes for anything it adds that this
   document does not define ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
+- `[W-39]` A host that has served a game's omniscient file MUST NOT let that game be played on,
+  for instance by an undo past its end ([§23](#23-security-considerations)).
 
 ### The Parser (reads the syntax)
 
@@ -336,8 +342,10 @@ requirement, by id. The linked section is where each one is defined.
   ([§4](#the-record-lines)).
 - `[P-05]` MAY cap the file size, line length, record count and nesting depth, and MUST reject
   a file over a cap rather than truncate it ([§23](#23-security-considerations)).
-- `[P-06]` MUST reject a record that has a reserved key (`reserved-key`), and MUST NOT let a key
-  read from the file reach an object's prototype ([§23](#23-security-considerations)).
+- `[P-06]` MUST reject a record or a header tag that uses a reserved name as a key, and a
+  `STATUS_TOKEN` (in a folded section or an annotation's `line`) whose `token` is one
+  (`reserved-key`), and MUST NOT let a key read from the file reach an object's prototype
+  ([§23](#23-security-considerations)).
 - `[P-07]` MUST refuse a file of a major version it does not read (`unsupported-major`), and
   MUST reject a record that repeats a key within one object (`duplicate-key`)
   ([§4](#the-record-lines), [§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
@@ -562,7 +570,7 @@ Counts are base-10 digits with no sign, space or exponent.
 | `P1` / `P2` | any | The name shown to humans. MUST be generic — use `"Player 1"` and `"Player 2"`. |
 | `P1Leader` / `P1Base` | card id | Player 1's leader and base card ids, e.g. `"ASH#017"`, `"JTL#024"`. |
 | `P2Leader` / `P2Base` | card id | Same for Player 2. |
-| `Result` | `P1`, `P2`, `Draw` or `Incomplete` | Who won. Case-sensitive: `p1` is not a value. `GAME_END.winner` says the same thing as `1`, `2` or `"Draw"` ([§10.2](#102-events-that-are-just-notes)). A game with no `GAME_END` is `Incomplete`. |
+| `Result` | `P1`, `P2`, `Draw` or `Incomplete` | Who won. Case-sensitive: `p1` is not a value. `GAME_END.winner` says the same thing as `1`, `2` or `"Draw"` ([§10.2](#102-events-that-are-just-notes)). A game with no `GAME_END` is `Incomplete`. A later minor version MAY add an outcome ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)); a consumer treats one it does not know as `Incomplete`, and a parser keeps the value as written. |
 | `Reason` | any | How it ended, in words, e.g. `"Base Destroyed"`. An open vocabulary ([§25](#25-registries)): show it, never branch on it. |
 | `Rounds` | count | How many rounds were started, e.g. `"7"`. For an `Incomplete` game, the round it stopped in. |
 
@@ -1064,7 +1072,7 @@ names the action a record belongs to. From the `arrest` vector:
 ```json
 {"seq":"R2.A.2a","t":"CHOICE","p":1,"prompt":"Peridea Bandit","offered":["base@2"],"chose":0,"for":"R2.A.3"}
 {"seq":"R2.A.2b","t":"EXHAUST","card":"ASH#190","for":"R2.A.3"}
-{"seq":"R2.A.3","t":"ATTACK","p":1,"atk":"ASH#190","def":"base@2","defenderType":"base","ms":7}
+{"seq":"R2.A.3","t":"ATTACK","p":1,"atk":"ASH#190","def":"base@2","defenderType":"base","ms":8}
 ```
 
 It is legal on **any** record, and OPTIONAL: a reader that ignores it loses the grouping and
@@ -1189,7 +1197,7 @@ writer MUST derive an event's `kind` from what the event does, not from the card
 
 // Flown onto the X-Wing: this move attaches, so it is an upgrade move.
 {"seq":"R2.A.0d","t":"MOVE","card":"JTL#058","from":"hand","to":"space","p":1,"kind":"upgrade","attachedTo":"LAW#253","for":"R2.A.1"}
-{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"JTL#058","zone":"space","target":"LAW#253","cost":2,"ms":8}
+{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"JTL#058","zone":"space","target":"LAW#253","cost":2,"ms":7}
 ```
 
 A reader applies `kind` exactly as [§12.1](#121-the-move-rule-the-big-one) says: an
@@ -1779,8 +1787,8 @@ Four rules make this work:
    MUST NOT drive a counter negative.
 4. **A key that reaches zero is DELETED**, not left as `{"advantage": 0}`. This is
    load-bearing: an engine keyframe writes a unit with no tokens as `statusTokens: {}`, and
-   the integrity check ([§14](#14-integrity--checking-a-file-is-honest)) compares the two **as JSON**.
-   `{"advantage": 0}` is not equal to `{}`, so a reader that keeps the zero key will fail
+   the integrity check ([§14](#14-integrity--checking-a-file-is-honest)) compares the two as
+   maps of names to counts, in any key order. `{"advantage": 0}` is not equal to `{}`, so a reader that keeps the zero key will fail
    the gate on a file that is perfectly correct. Same for `experience` and `shields`, which
    are plain numbers and simply clamp to `0`.
 
@@ -1797,7 +1805,7 @@ by **`attachedTo`** on the `MOVE` that carries it **into the arena**. From the `
 {"seq":"R1.A.1c","t":"STATUS_TOKEN","card":"ASH#251:2","token":"advantage","count":1}
 
 {"seq":"R3.A.0c","t":"MOVE","card":"LOF#215:2","from":"hand","to":"ground","p":1,"kind":"upgrade","attachedTo":"ASH#251:2","for":"R3.A.1"}
-{"seq":"R3.A.1","t":"PLAY_UPGRADE","p":1,"card":"LOF#215:2","zone":"ground","target":"ASH#251:2","cost":2,"ms":28}
+{"seq":"R3.A.1","t":"PLAY_UPGRADE","p":1,"card":"LOF#215:2","zone":"ground","target":"ASH#251:2","cost":2,"ms":17}
 ```
 
 An attachment that changes while the card stays in its arena — a printed upgrade moved to
@@ -1819,7 +1827,7 @@ on that seat's `baseUpgrades` ([§12.1](#121-the-move-rule-the-big-one) step 2c)
 
 ```json
 {"seq":"R2.A.0k","t":"MOVE","card":"HMW#271","from":"hand","to":"base","p":1,"kind":"upgrade","attachedTo":"base@1","for":"R2.A.1"}
-{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#271","zone":"base","target":"base@1","cost":3,"ms":8}
+{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#271","zone":"base","target":"base@1","cost":3,"ms":7}
 ```
 
 **Exits are host-less.** The move back out — the token defeated, the upgrade destroyed, the
@@ -1863,7 +1871,7 @@ These never change the board. A folder MUST read them and do nothing.
 | `TRIGGER` | `card`, `p` (optional) | A triggered ability fired. |
 | `PHASE_END` | `phase` | A phase ended. |
 | `ROUND_END` | `round`, `keyframe` (optional) | A round ended. |
-| `GAME_END` | `winner` (1, 2, or `"Draw"`), `reason` | The game is over. `winner` is a seat number like every other seat in a record, and `"Draw"` when nobody won. It MUST agree with the header's `Result`: `1` ↔ `P1`, `2` ↔ `P2`, `"Draw"` ↔ `Draw`. A file whose `Result` is `Incomplete` has no `GAME_END`. |
+| `GAME_END` | `winner` (1, 2, or `"Draw"`), `reason` | The game is over. `winner` is a seat number like every other seat in a record, and `"Draw"` when nobody won. It MUST agree with the header's `Result`: `1` ↔ `P1`, `2` ↔ `P2`, `"Draw"` ↔ `Draw`. A file whose `Result` is `Incomplete` has no `GAME_END`. A reader that checks this agreement skips it for a `Result` outcome it does not know ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)). |
 | `UNDO` | `at`, `by` (optional seat) | A player took a decision back. See the rule below. |
 
 > **`UNDO` — the one record about the FILE rather than the game.** An undo deletes the records
@@ -1922,7 +1930,7 @@ base as its host. The `PLAY_UPGRADE` beside it points at the base the same way:
 
 ```json
 {"seq":"R1.A.0c","t":"MOVE","card":"HMW#147","from":"hand","to":"base","p":1,"kind":"upgrade","attachedTo":"base@1","for":"R1.A.1"}
-{"seq":"R1.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#147","zone":"base","target":"base@1","cost":2,"ms":3}
+{"seq":"R1.A.1","t":"PLAY_UPGRADE","p":1,"card":"HMW#147","zone":"base","target":"base@1","cost":2,"ms":2}
 ```
 
 The fold puts `HMW#147` on `players[1].baseUpgrades` ([§12.1](#121-the-move-rule-the-big-one)
@@ -1952,7 +1960,7 @@ Damage it deals is written with `src: "base@1"`: the base dealt it ([§6.3](#63-
 base, and the exit is host-less like every other ([§10.1](#binding-an-attachment-to-its-host)):
 
 ```json
-{"seq":"R2.A.2","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#095","ability":"carbonite-chamber_action_0","kind":"action","title":"Choose a non-Vehicle unit. It doesn't ready during the next regroup phase","ms":9}
+{"seq":"R2.A.2","t":"ABILITY_ACTIVATE","p":2,"card":"HMW#095","ability":"carbonite-chamber_action_0","kind":"action","title":"Choose a non-Vehicle unit. It doesn't ready during the next regroup phase","ms":8}
 {"seq":"R2.A.2a","t":"MOVE","card":"HMW#095","from":"base","to":"discard","p":2,"kind":"upgrade"}
 {"seq":"R2.A.2b","t":"DEFEAT","card":"HMW#095","reason":"ability","defeatedBy":"HMW#095"}
 ```
@@ -2115,7 +2123,7 @@ may read `"The Death Star"`. That field is advisory, [§6.4](#64-small-vocabular
 arrival in **space** are its sub-steps:
 
 ```json
-{"seq":"R8.A.1","t":"ABILITY_ACTIVATE","p":1,"card":"HMW#004","ability":"grand-moff-tarkin#tyrant-of-the-outer-rim_action_0","kind":"epic","title":"Deploy Grand Moff Tarkin","epic":true,"ms":35}
+{"seq":"R8.A.1","t":"ABILITY_ACTIVATE","p":1,"card":"HMW#004","ability":"grand-moff-tarkin#tyrant-of-the-outer-rim_action_0","kind":"epic","title":"Deploy Grand Moff Tarkin","epic":true,"ms":36}
 {"seq":"R8.A.1a","t":"MOVE","card":"HMW#004","from":"base","to":"space","p":1,"kind":"unit"}
 {"seq":"R8.A.1c","t":"DEPLOY_LEADER","p":1,"card":"HMW#004","zone":"space","epic":true,"cost":9}
 ```
@@ -2158,7 +2166,8 @@ says what was legal.
 This is the whole board, and it's all you ever need to build. Its JSON form — what a folder
 writes as a `.fold.json` and what a keyframe carries — is published as a JSON Schema
 [[JSON-Schema](#26-references)], `swupgn/schema/reduced-state.schema.json`. The schema is
-normative for the shape. This section is normative for what each field means. Serialized, a
+normative for the shape, subject to [§2](#2-conventions-and-conformance--how-to-read-this-spec):
+where it disagrees with this text, the text governs. This section is normative for what each field means. Serialized, a
 reduced state is one JSON object: an optional field that has no value is **absent**, never
 `null`, and `initiative` is the one field that may be `null` (no one holds the counter yet).
 
@@ -2626,9 +2635,9 @@ problem. A writer that has no such cost SHOULD refuse to emit a file that is not
   would have reset it ([§12.2](#122-every-other-rule-in-one-table)) is skipped when the reader
   snaps
 - for each in-play card matched by `id`: `zone`, `damage`, `exhausted`, `shields`,
-  `experience`, `statusTokens`, `upgrades` and `captured` **as sets** (attachment order
-  is not part of the model; a missing list counts as empty), `power`, `hp`, and `keywords`
-  as a set
+  `experience`, `statusTokens` as a map of names to counts (key order is not significant),
+  `upgrades` and `captured` **as sets** (attachment order is not part of the model; a missing
+  list counts as empty), `power`, `hp`, and `keywords` as a set
 - a card being in one side but not the other (reported both ways)
 
 Everything except `baseHp` and `deckSize` is compared at **every** keyframe, the first one
@@ -2668,7 +2677,7 @@ Notes people add after the game. One JSON object per line in `%%% ANNOTATIONS`.
 |---|---|---|---|
 | `ref` | string | yes | The `seq` this note is about. |
 | `nag` | string | no | A short glyph (below). |
-| `text` | string | no | What you want to say. |
+| `text` | string | no | What you want to say. A writer SHOULD write it, like `by`, in Unicode Normalization Form C, so two notes that look the same compare the same. |
 | `by` | string | no | A fake name for the author. Never a real one. |
 | `line` | GameEvent[] | no | A "what if" — a made-up sequence of events. |
 | `id` | string | no | A stable id for this note, so another note can reply to it. Opaque; a UUID is fine. |
@@ -2724,7 +2733,8 @@ Two helpers:
 - `nm(id)` — the display name. **Strip the `:N` copy suffix**, look the base up in the
   `%%% CARDS` index ([§6.5](#65-the-cards-index)), then append ` #N` back for a copy, so two
   Wampas read as `Wampa` and `Wampa #2`. A `base@N` ref renders as `Player N's base`. For a card
-  with a `backSideName`, `nm` gives the side that is **up**: the back from its `DEPLOY_LEADER`
+  with a `backSideName`, `nm` gives the side that is **up**, tracked per copy by its full id
+(`:N` included), since a mirror match has two of one leader: the back from its `DEPLOY_LEADER`
   (or its `MOVE` from `base` into an arena) until its `MOVE` back to `base`, and for a
   double-sided leader per its last `LEADER_FLIP`. Each `ROUND_START` keyframe re-syncs this
   from the seat's `leader` (a `ROUND_END` keyframe does not). So a deployed Tarkin attacks, triggers and defeats bases as `The Death Star, Icon of
@@ -3003,8 +3013,12 @@ The version lives in the `Game` tag: `"SWU-PGN/MAJOR.MINOR"`.
 
 Seat values are not a vocabulary a minor version may grow: a seat other than `1` or `2` (or,
 in the header's `Result` and `Perspective`, other than `P1` or `P2`) is an error in a file of any
-minor version. Nor may a minor version change a value's type: a vocabulary of names only gains
-names, so a number where a name belongs is an error too.
+minor version. `Perspective` holds only seats. `Result` holds seats and outcomes: a value of the
+form `P` and digits is a seat, so `P3` is an error, while any other name is an outcome, a vocabulary
+a minor version MAY grow, so an unknown one such as `Abandoned` is a warning (`unknown-value`)
+and reads as `Incomplete` ([§5.1](#51-required-tags)).
+Nor may a minor version change a value's type: a vocabulary of names only gains names, so a
+number where a name belongs is an error too.
 
 In a file of the reader's **own** minor version, an unknown closed-vocabulary value is an error:
 no writer of that version may produce it.
@@ -3066,7 +3080,9 @@ The details a registration needs:
 ## 20. Conformance suite — test vectors
 
 `swupgn/test-vectors/` is the **conformance suite**. Its vectors are normative: they are part
-of this spec, and code that does not reproduce them exactly is not conformant.
+of this spec, and code that does not reproduce them exactly is not conformant. Where a vector
+disagrees with the text, [§2](#2-conventions-and-conformance--how-to-read-this-spec) applies: the
+text governs and the vector is an erratum.
 
 `swupgn/test-vectors/manifest.json` lists every vector with what a conforming implementation
 does with it:
@@ -3131,13 +3147,18 @@ one thing broken. A reader MUST reject or warn on each as the manifest says:
 | `proto-token` | `__proto__` as a status token name in a keyframe | malformed | error `reserved-key` |
 | `deck-reserved-key` | `__proto__` inside an extension field of a `DECKS` record | malformed | error `reserved-key` |
 | `to-string-key` | a `toString` key inside an extension field of a `PASS` | malformed | error `reserved-key` |
+| `reserved-token-name` | a `STATUS_TOKEN` whose `token` is `toString` | malformed | error `reserved-key` |
+| `nested-reserved-token` | the same `STATUS_TOKEN` inside an annotation's what-if `line` | malformed | error `reserved-key` |
+| `reserved-tag-name` | a header tag `[hasOwnProperty "x"]` | malformed | error `reserved-key` |
 | `newer-minor-bad-seat` | `SWU-PGN/1.7`, with a `PASS` by seat 3 | well-formed | error `schema`, warning `newer-minor` |
+| `newer-minor-result-seat` | `SWU-PGN/1.7`, with `[Result "P3"]` | well-formed | error `schema`, warning `newer-minor` |
 | `over-cap` | a keyframe hand of 1002 cards | well-formed | error `over-cap` |
 | `pre-release` | no `WriterRevision` | well-formed | warning `pre-release` |
 | `damaged-keyframe` | a keyframe the events do not fold to | valid | warning `keyframe-mismatch` |
 | `unknown-type` | an event type from a later version | complete | warning `unknown-type` |
 | `unknown-section` | a section from a later version | complete | warning `unknown-section` |
 | `higher-minor` | `SWU-PGN/1.7`, with a `DEFEAT.reason` 1.0 does not know | verified | warnings `newer-minor`, `unknown-value`, `unknown-defeat` |
+| `newer-minor-result` | `SWU-PGN/1.7`, with `[Result "Abandoned"]`, an outcome 1.0 does not know | complete | warnings `newer-minor`, `unknown-value` |
 
 ---
 
@@ -3225,6 +3246,29 @@ The review before publication (2026-10-28) changed what conforms, as well as wha
   reduced-state schema ([§11](#11-the-reduced-state--the-board-you-build)), and a conformance
   manifest with negative vectors ([§20](#20-conformance-suite--test-vectors)).
 
+SWUForge's review of that text (2026-10-28) changed:
+
+- The reserved names are every property of `Object.prototype` and `prototype`, not five, and
+  they are refused as header tag names too. A `STATUS_TOKEN` whose `token` is one is malformed,
+  in a folded section or an annotation's `line`, because the fold makes that value a key, and a
+  folder skips such a record however it got it ([§23](#23-security-considerations),
+  `reserved-token-name`, `nested-reserved-token` and `reserved-tag-name` vectors).
+- The keyframe check compares status tokens without regard to key order, and a renderer tracks a
+  leader's shown side per copy, so a mirror match names each leader by its own side
+  ([§14](#14-integrity--checking-a-file-is-honest), [§16](#16-rendering--turning-a-file-into-a-story)).
+- In `Result`, only `P` and digits is a seat. Any other unknown value is an outcome, which a
+  newer minor version may add, reads as `Incomplete`, and is a warning
+  ([§18](#18-versioning-and-extensibility--versions-and-unknown-things), `newer-minor-result`
+  and `newer-minor-result-seat` vectors).
+- An omniscient file must not reach a participant through anyone the host serves (`[W-37]`),
+  and a host that has served it must not let the game be played on (`[W-39]`)
+  ([§23](#23-security-considerations)). The reference host serves only the game's two players.
+- A schema or a vector that disagrees with the text is an erratum, like the code
+  ([§2](#2-conventions-and-conformance--how-to-read-this-spec)). The front matter names the
+  canonical copy, and the Status section says how errata are handled.
+- Seven quoted records had a stale `ms`. Every quoted record, `ms` included, is now checked
+  against the vectors.
+
 ---
 
 ## 23. Security considerations
@@ -3240,16 +3284,25 @@ defaults are 16 MiB, 1 MiB per line, 1,000,000 records and a depth of 64. A real
 ([§12](#12-folding--turning-lines-into-a-board)), and a keyframe over that cap is damaged
 ([§13](#13-keyframes)).
 
-**Keys from the file.** Status token names, the `players` map of a keyframe, and every other
-object key in a record come from the file. Five keys name the object model rather than data, and
-no record may carry one anywhere: `__proto__`, `constructor`, `prototype`, `toString` and
-`valueOf`. A parser MUST reject a record that has one (`reserved-key`) `[P-06]`. In JavaScript a
-key of `__proto__` assigned with `obj[key] = …` replaces the object's prototype, and every object
-in the process can inherit from it; an own `toString` or `valueOf` that is not a function makes
-an object impossible to turn into text, so every reader that prints or compares the field
-throws. Rejecting them at the parser protects every consumer in one place. A reader MUST still
-not let a key reach an object's prototype: use own-property checks, maps without a prototype, or
-define properties explicitly. Only `1` and `2` are seats.
+**Keys from the file.** Status token names, the `players` map of a keyframe, header tag names
+and every other object key in a record come from the file. Thirteen names belong to the object
+model rather than to data, and no record may carry one as a key anywhere: every property of
+`Object.prototype` (`__proto__`, `__defineGetter__`, `__defineSetter__`, `__lookupGetter__`,
+`__lookupSetter__`, `constructor`, `hasOwnProperty`, `isPrototypeOf`, `propertyIsEnumerable`,
+`toLocaleString`, `toString`, `valueOf`) and `prototype`. A parser MUST reject a record that has
+one (`reserved-key`) `[P-06]`, and a header tag named by one. One value becomes a key too: a
+`STATUS_TOKEN`'s `token` names an entry of the card's `statusTokens`
+([§12](#12-folding--turning-lines-into-a-board)), so a parser MUST also reject a `STATUS_TOKEN` in
+`%%% SETUP` or `%%% EVENTS` whose `token` is a reserved name (`reserved-key`), and one inside an
+annotation's what-if `line`, which a reader may fold too ([§15](#15-annotations)). No other value
+in 1.0 becomes a key. A folder given events some other way MUST NOT apply a `STATUS_TOKEN` with a
+reserved name. In JavaScript a key of `__proto__` assigned with `obj[key] = …` replaces the
+object's prototype, and every object in the process can inherit from it; an own `toString`,
+`valueOf` or `hasOwnProperty` that is not a function breaks every reader that prints the object
+or calls that method on it. Rejecting them at the parser protects every consumer of a parsed
+file in one place. A reader MUST still not let a key reach an object's prototype: use
+own-property checks, maps without a prototype, or define properties explicitly. Only `1` and `2`
+are seats.
 
 **Numbers.** Every number in a valid file is an integer within ±(2^53−1). A reader MUST NOT
 assume one is in range: a count of `1e308` or a negative `amount` MUST NOT make it loop, allocate or
@@ -3273,8 +3326,15 @@ authenticated channel. This version defines neither.
 sideboards, every hand, the shuffled deck order and the seed. Before the match is over that is
 everything a player must not know about an opponent: what is left in the deck and in what
 order, and which sideboard cards can come in for the next game. A host MUST NOT let an
-omniscient file reach a participant of the game before the match is over `[W-37]`. The
-reference host serves the file only once the match has ended.
+omniscient file reach a participant of the game before the match is over `[W-37]`, directly or
+through anyone else it serves. The reference host serves the file only to the game's two
+players, and only once the match has ended.
+
+**A served file closes its game.** Once a player holds the file, they know everything hidden in
+that game, so the game must not continue: a host that has served it MUST NOT let the game be
+played on, for instance by an undo past its end `[W-39]`. The reference host refuses every undo
+of an ended game once its file has been served, and stops serving the file if the game is ever
+reopened.
 
 **Seeds.** With `Seed` and the `INIT` deck orders a compatible engine can re-run the game
 ([§8.1](#81-determinism)). This is why the rule above covers the whole match, not one game:
@@ -3307,7 +3367,7 @@ matched by a program.
 | `record-outside-section` | fatal | A record before the first banner | malformed |
 | `bad-json` | fatal | A line in a JSON section is not JSON | malformed |
 | `duplicate-key` | fatal | A line in a JSON section repeats a key within one object | malformed |
-| `reserved-key` | fatal | A record has an object key `__proto__`, `constructor`, `prototype`, `toString` or `valueOf` | malformed |
+| `reserved-key` | fatal | A record has an object key, or a header has a tag, that is a reserved name ([§23](#23-security-considerations)), or a `STATUS_TOKEN` in `%%% SETUP`, `%%% EVENTS` or an annotation's `line` has a reserved `token` | malformed |
 | `schema` | error | A record or the header fails its schema | well-formed |
 | `not-object` | error | A record is JSON but not an object | well-formed |
 | `card-index` | error | A `%%% CARDS` entry lacks a string `id` or `name` | well-formed |
@@ -3362,10 +3422,11 @@ to an **open** one needs no version change: readers already accept values they d
 | `DEFEAT.reason` | closed | [§6.4](#64-small-vocabularies), `event.schema.json` |
 | `ABILITY_ACTIVATE.kind` | closed | [§10.1](#101-events-that-carry-board-detail), `event.schema.json` |
 | `MOVE.kind`, `CREATE_TOKEN.kind`, `%%% CARDS` `kind` | closed | [§6.5](#65-the-cards-index), `event.schema.json` |
-| `damageType`, `defenderType`, `PHASE_START.phase`, `STATUS_TOKEN.token` | open | [§6.4](#64-small-vocabularies) |
+| `damageType`, `defenderType`, `PHASE_START.phase`, `STATUS_TOKEN.token` | open; a `token` is never a reserved name ([§23](#23-security-considerations)) | [§6.4](#64-small-vocabularies) |
 | NAG glyphs | open | [§15](#the-glyphs) |
 | Set codes | open | [§6.1](#where-set-codes-and-numbers-come-from) |
-| `Result`, `Perspective` | closed | [§5](#5-header-tags) |
+| `Result` outcomes (`Draw`, `Incomplete`) | closed | [§5](#5-header-tags) |
+| `Result` and `Perspective` seats (`P1`, `P2`) | **closed, never grows** ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)) | [§5](#5-header-tags) |
 | `Reason`, `Format` | open | [§5](#5-header-tags) |
 | Error codes | open: a reader that meets a code it does not know treats it by its severity | [§24](#24-error-model) |
 | Extension prefixes | closed | [§18](#extensions) |
@@ -3658,7 +3719,7 @@ strict renderer MUST turn it into A.3, exactly.
 
 ### A.4 Step by step
 
-**Header** — every `[Tag "Value"]` pair is pulled out, including the three on one line.
+**Header** — every `[Tag "Value"]` pair is pulled out, including the lines that carry three or four.
 
 **STORY** — plain text, kept verbatim. It is what §16 produces from the sections below, so a
 reader can check it rather than trust it.
@@ -3922,7 +3983,9 @@ contents alone cannot show. None of this is required of another writer. Operatio
   `linkActionSteps()` fills `for` in then, by the rule of [§9.1](#91-how-seq-is-built).
 - **Identity `[W-10]`.** No field is built from a username except the player id. A CI test
   stamps sentinel identities onto a live game and fails if any survives into the file.
-- **Hidden information `[W-37]`.** The host serves a game's file only once the match is over.
+- **Hidden information `[W-37]`, `[W-39]`.** The host serves a game's file only to its two
+  players and only once the match is over. Serving it closes the game to undo; a game reopened
+  anyway is no longer served.
 
 ---
 
@@ -3931,6 +3994,15 @@ contents alone cannot show. None of this is required of another writer. Operatio
 How the reference implementation was tested against this document, and what that testing has
 not yet covered. The normative list of format gaps is [§21](#21-open-issues). This appendix is
 a record: the test files it names are forceteki's.
+
+**The suite is not yet independent evidence.** The real-game vectors were written by the
+reference writer, and `minimal` and the negative vectors were written by hand and checked with the
+reference reader. A reader that passes them agrees with the reference implementation, which is
+not the same as agreeing with this text. Only a second implementation written from the text can
+show that. SWUForge's reader, written separately from this code, is to be that implementation, and
+its results against the suite will be recorded here. Until then, a disagreement between this text
+and the vectors is an erratum in one of them ([§2](#2-conventions-and-conformance--how-to-read-this-spec)),
+not proof that the text is wrong.
 
 
 This document describes the format as the reference implementation actually writes it. It
