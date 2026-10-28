@@ -18,8 +18,6 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
             title: `Play a unit from your hand. It costs ${TextHelper.resource(1)} less. Deal 2 damage to it.`,
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
-                // TODO remove cardTypeFilter but fix Choose nothing button before
-                cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
@@ -39,8 +37,6 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
         registrar.addActionAbility({
             title: `Play a unit from your hand. It costs ${TextHelper.resource(1)} less. Deal 2 damage to it.`,
             targetResolver: {
-                // TODO remove cardTypeFilter but fix Choose nothing button before
-                cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
                 mustChangeGameState: GameStateChangeRequired.MustFullyResolve,

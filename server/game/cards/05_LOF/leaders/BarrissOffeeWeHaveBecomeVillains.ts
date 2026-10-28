@@ -18,8 +18,6 @@ export default class BarrissOffeeWeHaveBecomeVillains extends LeaderUnitCard {
             title: `Play an event from your hand. It costs ${TextHelper.resource(1)} less.`,
             cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.useTheForce()],
             targetResolver: {
-                // TODO remove cardTypeFilter but fix Choose nothing button before
-                cardTypeFilter: CardType.Event,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
@@ -35,8 +33,6 @@ export default class BarrissOffeeWeHaveBecomeVillains extends LeaderUnitCard {
             title: `Play an event from your hand. It costs ${TextHelper.resource(1)} less.`,
             cost: AbilityHelper.costs.useTheForce(),
             targetResolver: {
-                // TODO remove cardTypeFilter but fix Choose nothing button before
-                cardTypeFilter: CardType.Event,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
