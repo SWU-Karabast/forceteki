@@ -4516,6 +4516,25 @@ contents alone cannot show. None of this is required of another writer. Operatio
   cost and targeting stages), with the card being played, and `linkActionSteps()` files a marked
   record under that card's play whatever it is. The mark is kept beside the record and never
   written. An action ability needs none: its costs are paid after it is announced.
+- **Effects `[W-48]`.** The engine emits one effect-applied event per target, and each of its
+  handlers adds one or more engine objects (one per target, one per effect factory) to its
+  active-effect set. The writer files the objects of one event window under one effect when they
+  share the ability resolution that created them, the kind of target (cards, a player, delayed)
+  and the engine duration; two separately stated effects differ in one of those or resolve in
+  separate windows. It writes the `EFFECT_START` once the window has resolved the targets. Its
+  `duration` comes from the engine's: until the end of the attack, phase or round → `attack`,
+  `phase`, `round`; while the source is in play → `whileSourceInPlay`; the engine's custom
+  duration (which always has an `until`) → `until`; persistent → `game`; and any delayed effect →
+  `delayed`, whatever duration the engine gave it. Its `untilText` names the engine events that
+  end a custom-duration effect (`the phase ends or an action is taken`); its `text` is the
+  effect's own title, else the ability's title, else the engine's description of the effect.
+  Removing an effect emits nothing in the engine, so after every engine event, and before every
+  keyframe, the writer compares the engine's active set with the effects it has written: an
+  effect none of whose objects remain ends — `fired` when a delayed effect used up its one
+  firing, `sourceLeft` for a `whileSourceInPlay` effect whose source left play, `targetLeft` when
+  every target it had left play, `expired` otherwise — and a target that was in play when the
+  effect began and is in play no longer is dropped with a partial `EFFECT_END`. The keyframe's
+  `effects` lists the effects the engine still holds, by the ids the writer gave them.
 - **Identity `[W-10]`.** No field is built from an account name. The player id is built from the
   account id, so a rename keeps it and two guests sharing a name do not share it. A CI test
   stamps sentinel identities onto a live game and fails if any survives into the file.

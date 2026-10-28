@@ -411,6 +411,11 @@ export class SwuPgnGameAdapter {
                 : emptyPlayerState(seat);
         }
 
+        // The active lasting and delayed effects (spec §11, §13): an empty list when none is. The
+        // engine has no `fx@N`, so the recorder, which numbered them, lists the ones the engine
+        // still holds.
+        state.effects = read(() => this.recorder.activeEffects(), []);
+
         return state;
     }
 

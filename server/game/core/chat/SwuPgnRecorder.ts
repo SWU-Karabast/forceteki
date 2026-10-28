@@ -1,8 +1,8 @@
 import type { Game } from '../Game';
-import { AbilityType, CardType, DeployType, EventName, PhaseName, PlayType, Stage, ZoneName } from '../Constants';
+import { AbilityType, CardType, DeployType, Duration, EffectName, EventName, PhaseName, PlayType, Stage, ZoneName } from '../Constants';
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 import { logger } from '../../../logger';
-import type { AbilityKind, DefeatReason, Header, GameEvent, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
+import type { AbilityKind, ActiveEffect, DefeatReason, EffectDuration, EffectEndReason, Header, GameEvent, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
 import { anonymizedGameId, anonymizedMatchId, saltedPlayerId, anonymizePlayerLabel } from './swuPgnIdentity';
 import { isTopLevelActionRecord, markPlaySetup } from '../../../../swupgn/src/actionLinks';
 import { ResourcePrompt } from '../gameSteps/prompts/ResourcePrompt';
@@ -298,6 +298,67 @@ export function tokenUpgradeKind(upgrade: any): TokenUpgradeKind | null {
     return null;
 }
 
+/** What the recorder keeps about one effect it has written an `EFFECT_START` for (spec §10.1). */
+interface RecordedEffect {
+    duration: EffectDuration;
+    delayed: boolean;
+    sourceCard: any;
+}
+
+/**
+ * The engine objects one `OnEffectApplied` window created for one stated effect, waiting for the
+ * window to resolve their targets before the `EFFECT_START` is written (see `collectEffect`).
+ */
+interface PendingEffectGroup {
+    context: any;
+    window: any;
+    kind: 'card' | 'player' | 'delayed';
+    engineDuration: unknown;
+    sourceCard: any;
+    objects: any[];
+}
+
+/**
+ * The words that end a `Duration.Custom` effect, read after "until" (`untilText`, spec §10.1): one
+ * phrase per engine event the effect listens for, joined with "or". The engine states the
+ * condition as event names and functions, so the phrase names the event, not the function's test.
+ */
+const untilEventPhrases: Partial<Record<string, string>> = {
+    [EventName.OnPhaseEnded]: 'the phase ends',
+    [EventName.OnRoundEnded]: 'the round ends',
+    [EventName.OnActionTaken]: 'an action is taken',
+    [EventName.OnCardLeavesPlay]: 'a card leaves play',
+    [EventName.OnAttackDeclared]: 'an attack is declared',
+    [EventName.OnAttackEnd]: 'an attack ends',
+    [EventName.OnCardPlayed]: 'a card is played',
+    [EventName.OnCardDefeated]: 'a card is defeated',
+};
+
+export function untilTextOf(until: unknown): string {
+    const names = until != null && typeof until === 'object' ? Object.keys(until) : [];
+    const spelledOut = (name: string): string => name
+        .replace(/^on(?=[A-Z])/, '')
+        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+        .toLowerCase();
+    const phrases = names.map((name) => untilEventPhrases[name] ?? spelledOut(name));
+    return phrases.length > 0 ? phrases.join(' or ') : 'a condition is met';
+}
+
+/** The `duration` vocabulary (spec §10.1) for an engine lasting effect's `Duration`. */
+export function effectDurationOf(engineDuration: unknown, delayed: boolean): EffectDuration {
+    if (delayed) {
+        return 'delayed';
+    }
+    switch (engineDuration) {
+        case Duration.UntilEndOfAttack: return 'attack';
+        case Duration.UntilEndOfPhase: return 'phase';
+        case Duration.UntilEndOfRound: return 'round';
+        case Duration.WhileSourceInPlay: return 'whileSourceInPlay';
+        case Duration.Custom: return 'until';
+        default: return 'game';
+    }
+}
+
 /**
  * Emits SWU-PGN/1.0 `GameEvent`s by subscribing to engine events. Every handler is
  * wrapped in try/catch with rate-limited error logging so a recording bug can never
@@ -390,6 +451,38 @@ export class SwuPgnRecorder {
     private pendingResourceMove: { event: GameEvent; card: any } | null = null;
 
     /**
+     * Lasting and delayed effects written so far and still active (spec §10.1, `[W-48]`), all held
+     * in each checkpoint: an undo past an `EFFECT_START` must forget the effect, and one past an
+     * `EFFECT_END` must bring it back, or `syncEffects` would end an effect twice or never.
+     *
+     * - `effectIds`: engine OngoingEffect uuid -> the `fx@N` it belongs to. One stated effect can
+     *   be several engine objects (one per target, one per effect factory).
+     * - `effectObjects`: the same uuids -> the engine objects, to tell why one ended.
+     * - `effectTargets`: `fx@N` -> the targets it still has, as written (card ids, `base@N`).
+     * - `effectTargetObjects`: target id -> the engine card, and whether it was in play when the
+     *   effect began: only a target that was in play can leave play (an effect can name a card
+     *   in a discard pile, "your opponent may play this unit from its owner's discard pile").
+     * - `effectInfo`: `fx@N` -> what is needed to end it, in start order.
+     * - `nextEffectNumber`: the last N given out; ids are never reused (spec §6.1).
+     */
+    private readonly effectIds = new Map<string, string>();
+    private readonly effectObjects = new Map<string, any>();
+    private readonly effectTargets = new Map<string, Set<string>>();
+    private readonly effectTargetObjects = new Map<string, { card: any; inPlay: boolean }>();
+    private readonly effectInfo = new Map<string, RecordedEffect>();
+    private nextEffectNumber = 0;
+
+    /**
+     * Effects applied in the event window resolving now, not written yet: their targets are
+     * resolved by the window's game-state check, after every `OnEffectApplied` of the window.
+     * Transient: always empty between windows, so never checkpointed; `rollbackTo` clears it.
+     */
+    private pendingEffects: PendingEffectGroup[] = [];
+
+    /** The engine's effects just before the `OnEffectApplied` handler that is running now. */
+    private effectsBeforeApply: Set<any> | null = null;
+
+    /**
      * Rollback checkpoints (array lengths + counters + tokenParents snapshot) keyed by
      * snapshot id, so the recorder rewinds in lockstep with the game on undo.
      * tokenParents is captured here because a
@@ -410,6 +503,12 @@ export class SwuPgnRecorder {
         tokenParents: [string, { parent: any; kind: TokenUpgradeKind }][];
         lastStats: [string, string][];
         pendingResourceMove: { event: GameEvent; card: any } | null;
+        effectIds: [string, string][];
+        effectObjects: [string, any][];
+        effectTargets: [string, string[]][];
+        effectTargetObjects: [string, { card: any; inPlay: boolean }][];
+        effectInfo: [string, RecordedEffect][];
+        nextEffectNumber: number;
     }[] = [];
 
     public constructor(game: Game, resolver: SwuPgnResolver) {
@@ -624,6 +723,7 @@ export class SwuPgnRecorder {
             for (const [uuid, key] of boundary.lastStats) {
                 this.lastStats.set(uuid, key);
             }
+            this.restoreEffects(boundary);
             // Drop this checkpoint and any later ones; the redo re-checkpoints as it records.
             this.checkpoints.length = idx;
 
@@ -687,6 +787,12 @@ export class SwuPgnRecorder {
                 tokenParents: [...this.tokenParents.entries()],
                 lastStats: [...this.lastStats.entries()],
                 pendingResourceMove: this.pendingResourceMove,
+                effectIds: [...this.effectIds.entries()],
+                effectObjects: [...this.effectObjects.entries()],
+                effectTargets: [...this.effectTargets.entries()].map(([fx, targets]) => [fx, [...targets]]),
+                effectTargetObjects: [...this.effectTargetObjects.entries()],
+                effectInfo: [...this.effectInfo.entries()],
+                nextEffectNumber: this.nextEffectNumber,
             });
             // Not capped. The engine keeps its phase snapshots per phase name, and the setup
             // phase only happens once, so a rollback can reach any checkpoint in the game. A cap
@@ -1204,6 +1310,11 @@ export class SwuPgnRecorder {
      */
     private projectKeyframe(): ReducedState | undefined {
         this.settleResourceMove();
+        try {
+            this.syncEffects();
+        } catch (error) {
+            this.logError('syncEffects', error);
+        }
         if (!this.resolver.reducedState) {
             return undefined;
         }
@@ -1276,6 +1387,268 @@ export class SwuPgnRecorder {
         }
     }
 
+    // ── Lasting and delayed effects (spec §10.1 EFFECT_START / EFFECT_END, [W-48]) ──
+
+    /** The effect state a checkpoint held, put back by `rollbackTo`. */
+    private restoreEffects(boundary: SwuPgnRecorder['checkpoints'][number]): void {
+        this.effectIds.clear();
+        for (const [uuid, fx] of boundary.effectIds) {
+            this.effectIds.set(uuid, fx);
+        }
+        this.effectObjects.clear();
+        for (const [uuid, effect] of boundary.effectObjects) {
+            this.effectObjects.set(uuid, effect);
+        }
+        this.effectTargets.clear();
+        for (const [fx, targets] of boundary.effectTargets) {
+            this.effectTargets.set(fx, new Set(targets));
+        }
+        this.effectTargetObjects.clear();
+        for (const [ref, target] of boundary.effectTargetObjects) {
+            this.effectTargetObjects.set(ref, target);
+        }
+        this.effectInfo.clear();
+        for (const [fx, info] of boundary.effectInfo) {
+            this.effectInfo.set(fx, info);
+        }
+        this.nextEffectNumber = boundary.nextEffectNumber;
+        this.pendingEffects = [];
+        this.effectsBeforeApply = null;
+    }
+
+    /** The engine's active ongoing effects: lasting, delayed and constant alike. */
+    private engineEffects(): readonly any[] {
+        return readOr<readonly any[]>(() => this.game.ongoingEffectEngine?.effects ?? [], []);
+    }
+
+    /**
+     * One `OnEffectApplied`: the engine objects its handler just added, filed under the stated
+     * effect they belong to.
+     *
+     * The engine emits one event per target, and builds each target's properties (and, for a
+     * card whose properties are a function, its effect factories) afresh, so no object on the
+     * event is shared by the targets of one effect. What they share is the ability resolution
+     * (`event.context`) and the event window they resolve in; with the kind of target (cards,
+     * a player, delayed) and the engine duration, that is one effect as the card text states it.
+     * Two separately stated effects of one ability differ in one of those, or resolve in
+     * separate windows.
+     */
+    private collectEffect(event: any): void {
+        const before = this.effectsBeforeApply;
+        this.effectsBeforeApply = null;
+        if (before == null) {
+            return;
+        }
+        const created = this.engineEffects().filter((effect) => !before.has(effect));
+        if (created.length === 0) {
+            return; // nothing applied: a blanked target, a restriction
+        }
+        const delayed = created.some((effect) => readOr(() => effect.impl?.type === EffectName.DelayedEffect, false));
+        const kind: PendingEffectGroup['kind'] = delayed ? 'delayed' : (event?.card != null ? 'card' : 'player');
+        const context = event?.context ?? null;
+        const window = readOr(() => event?.window ?? null, null);
+        const engineDuration = created[0]?.duration;
+        let group = this.pendingEffects.find((g) =>
+            g.context === context && g.window === window && g.kind === kind && g.engineDuration === engineDuration);
+        if (group == null) {
+            group = { context, window, kind, engineDuration, sourceCard: event?.sourceCard ?? context?.source, objects: [] };
+            this.pendingEffects.push(group);
+        }
+        group.objects.push(...created);
+        if (window == null) {
+            this.flushPendingEffects(); // no window to wait for
+        }
+    }
+
+    /** Write the `EFFECT_START` of every effect collected in the window that has just resolved. */
+    private flushPendingEffects(): void {
+        const pending = this.pendingEffects;
+        this.pendingEffects = [];
+        for (const group of pending) {
+            try {
+                this.startEffect(group);
+            } catch (error) {
+                this.logError('startEffect', error);
+            }
+        }
+    }
+
+    private startEffect(group: PendingEffectGroup): void {
+        const live = new Set(this.engineEffects());
+        const objects = group.objects.filter((effect) => live.has(effect));
+        if (objects.length === 0) {
+            return; // gone before its window finished: it never held
+        }
+        const targets = new Map<string, any>();
+        let seat: Seat | undefined;
+        for (const effect of objects) {
+            const resolved = readOr<any[]>(() => [...(effect.targets ?? [])], []);
+            const matchTarget = readOr(() => effect.matchTarget, null);
+            const list = resolved.length > 0 ? resolved : (matchTarget != null && typeof matchTarget === 'object' ? [matchTarget] : []);
+            for (const target of list) {
+                if (readOr(() => target?.isCard?.() === true, false)) {
+                    const ref = this.targetRef(target);
+                    if (ref !== 'unknown') {
+                        targets.set(ref, target);
+                    }
+                } else if (target?.id != null) {
+                    seat = this.seatOf(target); // a player-wide effect
+                }
+            }
+        }
+
+        const context = group.context;
+        const delayed = group.kind === 'delayed';
+        const duration = effectDurationOf(group.engineDuration, delayed);
+        const first = objects[0];
+        const words = (value: unknown): string | undefined => (typeof value === 'string' && value !== '' ? value : undefined);
+        // The engine's own order for describing an effect (its ongoing-effect summary): the
+        // effect's standalone title, then the creating ability's title, then the chat fragment
+        // (`ongoingEffectDescription`, "remove all abilities from"), which reads only inside a sentence.
+        const title = delayed
+            ? words(readOr(() => first.impl.getValue()?.title, undefined))
+            : words(readOr(() => first.ongoingEffect?.title, undefined));
+        const abilityTitle = words(readOr(() => context?.ability?.getTitle?.(context) ?? context?.ability?.title, undefined));
+        // A chat fragment can be a format string ("prevent {0} from readying"): its placeholders
+        // are filled by the chat, never here, so one that has any is not words for a reader.
+        const fragment = words(readOr(() => first.ongoingEffect?.ongoingEffectDescription, undefined));
+        const text = title ?? abilityTitle ?? (fragment != null && !(/\{\d+\}/).test(fragment) ? fragment : undefined);
+        const ability = readOr(() => context?.ability?.abilityIdentifier, undefined);
+        const src = this.targetRef(group.sourceCard);
+        const p = this.seatOf(context?.player ?? readOr(() => group.sourceCard?.controller, null));
+
+        const id = `fx@${++this.nextEffectNumber}`;
+        this.push({
+            seq: this.nextSeq(false),
+            t: 'EFFECT_START',
+            id,
+            src,
+            p,
+            ...(targets.size > 0 ? { targets: [...targets.keys()] } : (seat != null ? { seat } : {})),
+            duration,
+            ...(duration === 'until' ? { untilText: untilTextOf(first.until) } : {}),
+            ...(typeof ability === 'string' ? { ability } : {}),
+            ...(text ? { text } : {}),
+        });
+        for (const effect of objects) {
+            const uuid = readOr(() => effect.uuid, undefined);
+            if (uuid != null) {
+                this.effectIds.set(uuid, id);
+                this.effectObjects.set(uuid, effect);
+            }
+        }
+        this.effectTargets.set(id, new Set(targets.keys()));
+        for (const [ref, card] of targets) {
+            this.effectTargetObjects.set(ref, { card, inPlay: readOr(() => card?.isInPlay?.() === true, false) });
+        }
+        this.effectInfo.set(id, { duration, delayed, sourceCard: group.sourceCard });
+    }
+
+    /**
+     * Write the ends of effects the engine no longer holds, and the partial ends of effects whose
+     * target left play (spec §10.1). Removals emit nothing in the engine, so this diffs the engine's
+     * active set against what was written. Runs before and after every engine event (see `on`) and
+     * before a keyframe, so a keyframe's `effects` never gets ahead of the records.
+     */
+    private syncEffects(): void {
+        if (this.effectInfo.size === 0) {
+            return;
+        }
+        const live = new Set(this.engineEffects());
+        const uuidsOf = new Map<string, string[]>();
+        for (const [uuid, fx] of this.effectIds) {
+            uuidsOf.set(fx, [...(uuidsOf.get(fx) ?? []), uuid]);
+        }
+        const leftPlay = (ref: string): boolean => {
+            const target = this.effectTargetObjects.get(ref);
+            return target?.inPlay === true && !ref.startsWith('base@') && !readOr(() => target.card?.isInPlay?.() === true, false);
+        };
+
+        for (const [fx, info] of [...this.effectInfo]) {
+            const objects = (uuidsOf.get(fx) ?? []).map((uuid) => this.effectObjects.get(uuid));
+            const targets = this.effectTargets.get(fx) ?? new Set<string>();
+            if (!objects.some((effect) => live.has(effect))) {
+                const left = [...targets].filter(leftPlay);
+                let reason: EffectEndReason = 'expired';
+                if (info.delayed && objects.some((effect) =>
+                    readOr(() => effect.impl.getValue().limit.isAtMax(effect.context.player) === true, false))) {
+                    reason = 'fired';
+                } else if (info.duration === 'whileSourceInPlay' && !readOr(() => info.sourceCard?.isInPlay?.() === true, false)) {
+                    reason = 'sourceLeft';
+                } else if (targets.size > 0 && left.length === targets.size) {
+                    reason = 'targetLeft';
+                }
+                this.push({
+                    seq: this.nextSeq(false), t: 'EFFECT_END', id: fx, reason,
+                    ...(reason === 'targetLeft' ? { targets: left } : {}),
+                });
+                this.forgetEffect(fx);
+                continue;
+            }
+            const left = [...targets].filter(leftPlay);
+            if (left.length === 0) {
+                continue;
+            }
+            // A partial end that takes the last target IS the effect's end: nothing more is
+            // written for it, even while an engine object (a "for the rest of the game" one, which
+            // the engine keeps when its target leaves) lingers.
+            this.push({ seq: this.nextSeq(false), t: 'EFFECT_END', id: fx, reason: 'targetLeft', targets: left });
+            for (const ref of left) {
+                targets.delete(ref);
+            }
+            if (targets.size === 0) {
+                this.forgetEffect(fx);
+            }
+        }
+    }
+
+    private forgetEffect(fx: string): void {
+        this.effectInfo.delete(fx);
+        this.effectTargets.delete(fx);
+        for (const [uuid, id] of [...this.effectIds]) {
+            if (id === fx) {
+                this.effectIds.delete(uuid);
+                this.effectObjects.delete(uuid);
+            }
+        }
+        const stillTargeted = new Set([...this.effectTargets.values()].flatMap((targets) => [...targets]));
+        for (const ref of [...this.effectTargetObjects.keys()]) {
+            if (!stillTargeted.has(ref)) {
+                this.effectTargetObjects.delete(ref);
+            }
+        }
+    }
+
+    /**
+     * The board's `effects` for a keyframe (spec §11, §13): every written effect the engine still
+     * holds an object of, in start order, with the targets it has left.
+     */
+    public activeEffects(): ActiveEffect[] {
+        const live = new Set(this.engineEffects());
+        const holding = new Set<string>();
+        for (const [uuid, fx] of this.effectIds) {
+            if (live.has(this.effectObjects.get(uuid))) {
+                holding.add(fx);
+            }
+        }
+        const out: ActiveEffect[] = [];
+        for (const event of this.events) {
+            if (event.t !== 'EFFECT_START' || !holding.has(event.id) || !this.effectInfo.has(event.id)) {
+                continue;
+            }
+            const targets = [...(this.effectTargets.get(event.id) ?? [])];
+            out.push({
+                id: event.id,
+                src: event.src,
+                p: event.p,
+                ...(targets.length > 0 ? { targets } : {}),
+                ...(event.seat != null && targets.length === 0 ? { seat: event.seat } : {}),
+                duration: event.duration,
+            });
+        }
+        return out;
+    }
+
     /**
      * Subscribe with the recorder's one error policy: a handler that throws is logged
      * (rate-limited) and its record skipped, and gameplay never sees the exception. Every
@@ -1287,6 +1660,13 @@ export class SwuPgnRecorder {
                 this.settleResourceMove();
             } catch (error) {
                 this.logError('settleResourceMove', error);
+            }
+            // An effect the engine removed since the last event (at a phase's end, an attack's
+            // end) ended before this event, so its end is written before this event's records.
+            try {
+                this.syncEffects();
+            } catch (error) {
+                this.logError('syncEffects', error);
             }
             try {
                 fn(event);
@@ -1301,12 +1681,37 @@ export class SwuPgnRecorder {
             } catch (error) {
                 this.logError('syncStats', error);
             }
+            try {
+                this.syncEffects();
+            } catch (error) {
+                this.logError('syncEffects', error);
+            }
         });
     }
 
     // ── Listener registration ──────────────────────────────────────────────────
 
     private registerListeners(): void {
+        // Lasting and delayed effects (spec §10.1). The handler of each OnEffectApplied adds the
+        // engine objects; the set just before it tells which. The window's game-state check then
+        // resolves their targets, and its postResolve emit, after every event of the window, is
+        // where the EFFECT_START can name them all.
+        this.game.on(`${EventName.OnEffectApplied}:preResolve`, () => {
+            try {
+                this.effectsBeforeApply = new Set(this.engineEffects());
+            } catch (error) {
+                this.logError('effectsBeforeApply', error);
+            }
+        });
+        this.on(EventName.OnEffectApplied, (event: any) => this.collectEffect(event));
+        this.game.on(`${EventName.OnEffectApplied}:postResolve`, () => {
+            try {
+                this.flushPendingEffects();
+            } catch (error) {
+                this.logError('flushPendingEffects', error);
+            }
+        });
+
         this.on(EventName.OnRoundEnded, () => {
             // ROUND_END carries a keyframe too. Now that keyframes are complete and
             // trustworthy, an end-of-round snapshot is the cheapest place to catch a round's
