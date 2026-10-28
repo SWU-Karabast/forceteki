@@ -163,7 +163,7 @@ appears.
 **Requirement ids.** Each requirement a conformance class must meet has an id, such as
 `[W-07]`, listed in [§3](#3-conformance-classes--who-has-to-do-what) with a link to the section
 that defines it. The letter is the class: **W** writer, **P** parser, **V** validator, **F**
-folder, **R** renderer, **A** annotator, **C** consumer.
+folder, **R** renderer, **A** annotator, **C** consumer, **H** host.
 
 ### 2.1 Document conformance levels
 
@@ -203,6 +203,7 @@ warning, not an error: the reply is shown as a top-level note ([§15](#15-annota
 | Folder | a reduced state | every well-formed file. On a file that is not valid it MUST NOT crash, and its board is best-effort `[F-01]` |
 | Renderer | the story | every well-formed file `[R-01]` |
 | Consumer | — | every valid file. It SHOULD say so when a file is below verified `[C-01]` |
+| Host | — | — (it serves files and sets platform policy: `[H-01]`, `[H-02]`, `[H-03]`) |
 
 A key that names the object model (the reserved names of
 [§23](#23-security-considerations)) is not a cross-record rule: a parser rejects it, so a file
@@ -220,7 +221,7 @@ file has no errors: folding a file that breaks a schema or a cross-record rule p
 
 ## 3. Conformance classes — who has to do what
 
-There are seven jobs. You might do one, or all of them. This section is the index of every
+There are eight jobs. You might do one, or all of them. This section is the index of every
 requirement, by id. The linked section is where each one is defined.
 
 ### The Writer (makes files)
@@ -245,7 +246,7 @@ requirement, by id. The linked section is where each one is defined.
   ([§5.3](#53-provenance-engine-and-seed)).
 - `[W-09]` SHOULD emit `%%% CARDS` covering every id the file mentions, and `%%% STORY` equal to
   what a strict renderer produces ([§6.5](#65-the-cards-index), [§16](#16-rendering--turning-a-file-into-a-story)).
-- `[W-10]` MUST NOT put real usernames or any real identifying information in the file, and MUST
+- `[W-10]` MUST NOT put real account names or any real identifying information in the file, and MUST
   NOT write a host-internal identifier in `GameId` or `Match` ([§17](#17-privacy-considerations)).
 - `[W-11]` MUST record a control change as a `TAKE_CONTROL` carrying `zone` (and `from` when no
   `MOVE` carried the counts), and a leader deployed as a pilot as a `DEPLOY_LEADER` carrying
@@ -325,12 +326,10 @@ requirement, by id. The linked section is where each one is defined.
 - `[W-35]` MUST write the `INIT` record with `seq` `R0.S.0` ([§8](#8-the-setup-section)).
 - `[W-36]` MUST NOT write a perspective file. 1.0 defines omniscient files only
   ([§21](#21-open-issues)).
-- `[W-37]` MUST NOT emit an omniscient file to a participant of the game, directly or through
-  anyone else it serves, before the match is over ([§23](#23-security-considerations)).
+- `[W-37]` Moved to `[H-01]`.
 - `[W-38]` MUST use the `X_` / `x_` / `X` extension prefixes for anything it adds that this
   document does not define ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
-- `[W-39]` A host that has served a game's omniscient file MUST NOT let that game be played on,
-  for instance by an undo past its end ([§23](#23-security-considerations)).
+- `[W-39]` Moved to `[H-02]`.
 - `[W-40]` MUST name a token by the rule in [§6.1](#the-token-grammar), derived from its English
   printed title.
 - `[W-41]` MUST NOT write a `MOVE` from `outsideTheGame` into `deck`. Building the decks is
@@ -420,10 +419,24 @@ site, a deck tracker.
 - `[C-01]` SHOULD tell its user when a file is below verified, has `RecorderErrors`, carries a
   `-dirty` or `@unknown` `Engine`, or is a pre-release file
   ([§5](#5-header-tags), [§14](#14-integrity--checking-a-file-is-honest)).
-- `[C-02]` MUST NOT attribute a file to an account by re-hashing candidate usernames. It takes
+- `[C-02]` MUST NOT attribute a file to an account by re-hashing candidate account identifiers. It takes
   the seat from the authenticated delivery ([§17](#17-privacy-considerations)).
 - `[C-03]` MUST treat a verified file as internally consistent only, not as proof that the game
   happened ([§23](#23-security-considerations)).
+
+### The Host (serves files)
+
+A host is the platform that runs games and hands the files to people: a game server, a
+tournament site, a replay service. It may be the same program as the writer. These rules are
+about who is allowed to see a file and when, which a file's contents cannot show, so they are
+rules for the host and not for whatever writes the bytes.
+
+- `[H-01]` MUST NOT serve an omniscient file to a participant of the game, directly or through
+  anyone else it serves, before the match is over ([§23](#23-security-considerations)).
+- `[H-02]` MUST NOT let a game whose omniscient file it has served be played on, for instance by
+  an undo past its end ([§23](#23-security-considerations)).
+- `[H-03]` A host that publishes files MUST derive `P1Id` / `P2Id` with a keyed scheme
+  ([§17](#17-privacy-considerations)).
 
 ---
 
@@ -574,7 +587,7 @@ Counts are base-10 digits with no sign, space or exponent.
 | Tag | Format | What it holds |
 |---|---|---|
 | `Game` | `SWU-PGN/<major>.<minor>` | The format version. A 1.0 writer writes exactly `SWU-PGN/1.0`. A reader accepts any `1.<minor>` ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)). Always the first line. |
-| `GameId` | 1–128 characters | A unique id for this one game, **opaque**: it MUST NOT be, or reveal, an identifier internal to the host that ran the game ([§17](#17-privacy-considerations)). The reference writer writes `sha256:` and the hex SHA-256 of `swupgn-game:<engine game id>`. |
+| `GameId` | 1–128 characters | A unique id for this one game, **opaque**: it MUST NOT be, or reveal, an identifier internal to the host that ran the game ([§17](#17-privacy-considerations)). See [Appendix D](#appendix-d-reference-writer-notes-informative) for one way to derive it. |
 | `Date` | RFC 3339 | When the game started. |
 | `CardPool` | set codes joined by `,` | Which sets were legal, e.g. `"ASH,HMW,IBH,IC27,JTL,LAW,LOF,SEC,SHD,SOR,TS26,TWI"`. A single set code like `"SOR"` is also valid. Each is a set code of [§6.1](#61-card-ids). |
 | `Engine` | `<product>@<build>` | Which build wrote the file, e.g. `"forceteki@a1b2c3d"` or `"forceteki@2.3.1"`. `<product>` names the writer and scopes `WriterRevision`. See [§5.3](#53-provenance-engine-and-seed). |
@@ -595,9 +608,9 @@ Counts are base-10 digits with no sign, space or exponent.
 | `Format` | any | The tournament format, e.g. `"premier"`. Case is **not** standardised — accept any case. An open vocabulary ([§25](#25-registries)). |
 | `Perspective` | `P1` or `P2` | Reserved for perspective files, which 1.0 does not define. A 1.0 writer MUST NOT write it ([§21](#21-open-issues)). A reader that meets it MUST treat the other seat's hidden information as possibly missing. Case-sensitive. |
 | `EndDate` | RFC 3339 | When the game **ended**. With `Date` (when it started) this gives the game's duration. Absent for an unfinished game, or a writer that cannot tell. |
-| `Match` | `sha256:` + 64 lowercase hex digits | An opaque id for the **match** this game belongs to, stable across the games of one Bo3. Lets a file that travels on its own — shared, archived, attached to a bug report — still say which match it came from, the way chess PGN's `Round` does. A writer MUST NOT put a host-internal lobby id here; the reference writer emits the SHA-256 of `swupgn-match:<lobby id>`. |
-| `GameNumber` | count, 1 or more | Which game of that match this is. Meaningless without `Match`. The reference writer never sets it — a game does not know its own place in a series — so it is for whatever delivers the file. |
-| `Undos` | count | How many times a player took a decision back. **Absent means none.** An undo removes the records it retracted, so a file with no tag and a file whose players undid six times are otherwise indistinguishable — and "was this line of play rehearsed" is a review question. The matching `UNDO` notes say WHERE ([§10.2](#102-events-that-are-just-notes)); this tag is the authoritative count. |
+| `Match` | `sha256:` + 64 lowercase hex digits | An opaque id for the **match** this game belongs to, stable across the games of one match (a series of games, such as a best of three). Lets a file that travels on its own — shared, archived, attached to a bug report — still say which match it came from, the way chess PGN's `Round` does. A writer MUST NOT put a platform-internal id for the match here. See [Appendix D](#appendix-d-reference-writer-notes-informative) for one way to derive it. |
+| `GameNumber` | count, 1 or more | Which game of that match this is. Meaningless without `Match`. A game does not know its own place in a series, so a writer may leave it off and let whatever delivers the file set it. |
+| `Undos` | count | How many times a player took a decision back, on a platform that lets players take back a decision. **Absent means none.** An undo removes the records it retracted, so a file with no tag and a file whose players undid six times are otherwise indistinguishable — and "was this line of play rehearsed" is a review question. The matching `UNDO` notes say WHERE ([§10.2](#102-events-that-are-just-notes)); this tag is the authoritative count. |
 | `RecorderErrors` | count | How many records the writer lost while recording (a handler that failed). **Absent means none.** Present means some events were never written: the keyframes are still exact (they are read from the engine, not folded), but the deltas between them are incomplete, so the file is not verified and the board between keyframes may be wrong. A reader SHOULD surface it. |
 
 Unknown tags MUST be accepted and ignored. A count tag (`Rounds`, `RecorderErrors`, `Undos`,
@@ -2906,39 +2919,41 @@ disagree about what happened, believe the events.
 
 ## 17. Privacy considerations
 
-A `.swupgn` file MUST NOT contain a real username, account id, email address, IP address,
+A `.swupgn` file MUST NOT contain a real account name, account id, email address, IP address,
 or anything else that points at a real person `[W-10]`.
 
 - `P1Id` / `P2Id` MUST be `sha256:` and 64 lowercase hex digits: a pseudonym derived from the
   player's account, never the account name itself.
 - `P1` / `P2` MUST be generic labels like `"Player 1"`.
 - `GameId` and `Match` MUST be opaque. Neither may be, or reveal, an identifier internal to the
-  host — a lobby id, a database key, a game id that appears in the host's logs. Anyone with
-  access to those logs could otherwise tie a shared file to the accounts that played it. The
-  reference writer writes the SHA-256 of each, with a fixed prefix per tag so the two never
-  collide.
+  platform — a room or match id, a database key, a game id that appears in its logs. Anyone with
+  access to those logs could otherwise tie a shared file to the accounts that played it. One
+  way is to hash each, with a fixed prefix per tag so the two never collide.
 - `by` in an annotation MUST be a fake name, and annotation `text` MUST NOT identify anyone
   `[A-03]`. What an annotator writes is the annotator's responsibility.
 - Spectator ids MUST NOT appear anywhere.
 
-**The two id schemes.** The reference writer derives `P1Id` / `P2Id` in one of two ways:
+**The two id schemes.** A writer derives `P1Id` / `P2Id` in one of two ways:
 
-- **Keyed (RECOMMENDED, and REQUIRED for a deployment that publishes files):** an HMAC-SHA-256
-  [[RFC2104](#26-references)] [[FIPS180-4](#26-references)] of the username, keyed with a
-  server-side secret. The same player hashes the *same* across that server's games, so a
-  consumer can group one player's history without learning who they are, and without the key
-  nobody can confirm a guess.
-- **Per-game salt (fallback):** `sha256("<engine game id>:<username>")`. The same player hashes
-  *differently* in every file, so ids cannot be joined across games. The salt is the engine's
-  internal game id. The file does not print it (`GameId` is a hash of it), but it is not a
-  secret: a host also uses it to name the game to the game's own players and spectators, and
-  it is in the host's logs. So this scheme only stops ids being joined across files. It does not
-  keep a player's identity from anyone who took part in or watched the game, which is why a
-  deployment that publishes files MUST use the keyed scheme.
+- **Keyed (RECOMMENDED, and REQUIRED for a host that publishes files `[H-03]`):** an HMAC-SHA-256
+  [[RFC2104](#26-references)] [[FIPS180-4](#26-references)] of the player's account identifier on
+  the platform, keyed with a secret held by the platform. The same player hashes the *same*
+  across that platform's games, so a consumer can group one player's history without learning
+  who they are, and without the key nobody can confirm a guess.
+- **Per-game salt (fallback):** a SHA-256 of the platform's own id for the game joined to the
+  player's account identifier. The same player hashes *differently* in every file, so ids cannot
+  be joined across games. The salt is not a secret: a platform also uses its own id for the game
+  to name the game to the game's own players and spectators, and it is in its logs. So this
+  scheme only stops ids being joined across files. It does not keep a player's identity from
+  anyone who took part in or watched the game, which is why a host that publishes files MUST use
+  the keyed scheme.
+
+> **Note (informative):** [Appendix D](#appendix-d-reference-writer-notes-informative) gives the
+> exact formulas the reference writer uses.
 
 A reader cannot tell the two apart (both are `sha256:<hex>`), and switching needs no format
 change. Either way, a consumer that attributes a file to an account MUST take the seat from the
-authenticated delivery rather than by re-hashing candidate usernames against the file `[C-02]`.
+authenticated delivery rather than by re-hashing candidate account identifiers against the file `[C-02]`.
 Under the keyed scheme that is not merely discouraged, it is impossible.
 
 **Pseudonymous is not anonymous.** A keyed id is stable across a host's games, so it is
@@ -3207,6 +3222,13 @@ The table of reference writer revisions is in [Appendix C](#reference-writer-rev
 
 The review before publication (2026-10-28) changed what conforms, as well as what is written:
 
+- Rules about serving files and undo are rules for a platform, not for whatever writes the file,
+  so they moved to a new Host class: `[W-37]` is now `[H-01]`, `[W-39]` is now `[H-02]`, and the
+  keyed-id requirement for a host that publishes files is `[H-03]`. The old ids stay as stubs.
+  The privacy text no longer assumes one platform's lobby or username model, and the formulas the
+  reference writer uses for `GameId`, `Match` and the per-game salt moved to
+  [Appendix D](#appendix-d-reference-writer-notes-informative).
+
 - Token names are defined by a rule any writer can apply ([§6.1](#the-token-grammar)), not by one
   implementation's `internalName`. A writer MUST derive them from the English printed title
   `[W-40]`, a validator reports `bad-token-name` for an id that breaks the grammar `[V-05]`, and
@@ -3261,9 +3283,11 @@ SWUForge's review of that text (2026-10-28) changed:
   newer minor version may add, reads as `Incomplete`, and is a warning
   ([§18](#18-versioning-and-extensibility--versions-and-unknown-things), `newer-minor-result`
   and `newer-minor-result-seat` vectors).
-- An omniscient file must not reach a participant through anyone the host serves (`[W-37]`),
-  and a host that has served it must not let the game be played on (`[W-39]`)
-  ([§23](#23-security-considerations)). The reference host serves only the game's two players.
+- An omniscient file must not reach a participant through anyone the host serves (`[H-01]`),
+  and a host that has served it must not let the game be played on (`[H-02]`)
+  ([§23](#23-security-considerations)).
+
+> **Note (informative):** The reference host serves only the game's two players.
 - A schema or a vector that disagrees with the text is an erratum, like the code
   ([§2](#2-conventions-and-conformance--how-to-read-this-spec)). The front matter names the
   canonical copy, and the Status section says how errata are handled.
@@ -3335,15 +3359,18 @@ authenticated channel. This version defines neither.
 sideboards, every hand, the shuffled deck order and the seed. Before the match is over that is
 everything a player must not know about an opponent: what is left in the deck and in what
 order, and which sideboard cards can come in for the next game. A host MUST NOT let an
-omniscient file reach a participant of the game before the match is over `[W-37]`, directly or
-through anyone else it serves. The reference host serves the file only to the game's two
-players, and only once the match has ended.
+omniscient file reach a participant of the game before the match is over `[H-01]`, directly or
+through anyone else it serves.
+
+> **Note (informative):** The reference host serves the file only to the game's two players, and
+> only once the match has ended.
 
 **A served file closes its game.** Once a player holds the file, they know everything hidden in
 that game, so the game must not continue: a host that has served it MUST NOT let the game be
-played on, for instance by an undo past its end `[W-39]`. The reference host refuses every undo
-of an ended game once its file has been served, and stops serving the file if the game is ever
-reopened.
+played on, for instance by an undo past its end `[H-02]`.
+
+> **Note (informative):** The reference host refuses every undo of an ended game once its file
+> has been served, and stops serving the file if the game is ever reopened.
 
 **Seeds.** With `Seed` and the `INIT` deck orders a compatible engine can re-run the game
 ([§8.1](#81-determinism)). This is why the rule above covers the whole match, not one game:
@@ -4083,6 +4110,12 @@ contents alone cannot show. None of this is required of another writer. Operatio
 — environment variables, test files, how to regenerate the vectors — are in
 `swupgn/README.md`.
 
+- **Identifiers `[W-10]`, `[H-03]`.** `GameId` is `sha256:` and the hex SHA-256 of
+  `swupgn-game:<engine game id>`. `Match` is the SHA-256 of `swupgn-match:<lobby id>`, and the
+  reference writer never sets `GameNumber`. The keyed `P1Id` / `P2Id` is an HMAC-SHA-256 of the
+  username, keyed with a server-side secret. The per-game salt fallback is
+  `sha256("<engine game id>:<username>")`, where the salt is the engine's internal game id (the
+  file does not print it, because `GameId` is a hash of it).
 - **Field contents.** The reference writer's `ABILITY_ACTIVATE.title` is the card menu entry's
   text, which for most cards is the whole rules text, and it writes plain text when it runs under
   test (the vectors carry no icon markup). Its `ability` values look like
@@ -4117,9 +4150,9 @@ contents alone cannot show. None of this is required of another writer. Operatio
   fills `for` in then, by the rule of [Appendix C](#grouping-records-in-a-file-without-for). A
   test over every vector checks that each record before an action that names the action's card
   is stamped.
-- **Identity `[W-10]`.** No field is built from a username except the player id. A CI test
+- **Identity `[W-10]`.** No field is built from an account name except the player id. A CI test
   stamps sentinel identities onto a live game and fails if any survives into the file.
-- **Hidden information `[W-37]`, `[W-39]`.** The host serves a game's file only to its two
+- **Hidden information `[H-01]`, `[H-02]`.** The host serves a game's file only to its two
   players and only once the match is over. Serving it closes the game to undo; a game reopened
   anyway is no longer served.
 

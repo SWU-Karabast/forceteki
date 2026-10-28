@@ -41,6 +41,11 @@ export const BANNED: { phrase: RegExp; task: number; why: string }[] = [
     { phrase: /the reference writer does not emit/, task: 6, why: 'describes one implementation\'s output as the norm' },
     { phrase: /forceteki writer revisions/, task: 7, why: 'defines the normative text by one writer\'s revision history' },
     { phrase: /reports with a `WriterRevision` bump/, task: 7, why: 'ties the strict wording to a writer revision instead of the spec version' },
+    { phrase: /reference host/, task: 8, why: 'names the reference implementation\'s server as the host' },
+    { phrase: /\blobby\b/, task: 8, why: 'assumes one platform\'s lobby model' },
+    { phrase: /\busername\b/, task: 8, why: 'assumes one platform\'s account model' },
+    { phrase: /engine game id/, task: 8, why: 'assumes one engine\'s game id' },
+    { phrase: /The reference writer (writes|emits|derives|never sets)/, task: 8, why: 'describes one implementation\'s output as the norm' },
 ];
 
 /** The lines a conforming implementation must obey, with 1-based line numbers. */
