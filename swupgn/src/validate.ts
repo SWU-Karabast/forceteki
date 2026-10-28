@@ -6,7 +6,7 @@ import type { ConformanceReport, ConformanceIssue, ConformanceLevel } from './ty
 import { engineProduct, KNOWN_SECTIONS, parse, PILOT_WRITER_PRODUCTS, SwuPgnError } from './parse';
 import { checkKeyframes } from './integrity';
 import { isArena, MAX_ZONE_LIST } from './fold';
-import { TOKEN_ID, TOKEN_NAME } from './ids';
+import { TOKEN_ID, TOKEN_NAME, tokenNameOf } from './ids';
 
 // Schemas are loaded at runtime from the published swupgn/schema directory.
 // This path is relative to the compiled output (build/swupgn/src/validate.js):
@@ -332,7 +332,8 @@ export function validate(text: string): ConformanceReport {
                 error('deck-build-move', `record ${seqStr}: MOVE from outsideTheGame into deck (the decks are built by DECKS and INIT)`);
             }
             // A Credit token is recorded in base, whatever zone the rules place it in (§6.2, [W-42]).
-            const isCredit = typeof r['card'] === 'string' && (/^TOKEN:credit(#\d+)?(:\d+)?$/).test(r['card']);
+            // A malformed id is a bad-token-name only, so a Credit is one whose id is well-formed.
+            const isCredit = typeof r['card'] === 'string' && TOKEN_ID.test(r['card']) && tokenNameOf(r['card']) === 'credit';
             if (isCredit && (r['from'] === 'resource' || r['to'] === 'resource')) {
                 error('credit-zone', `record ${seqStr}: Credit token "${r['card']}" MOVE names resource (a Credit token is recorded in base)`);
             }

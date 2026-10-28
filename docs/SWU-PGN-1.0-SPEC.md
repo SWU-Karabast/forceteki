@@ -782,9 +782,10 @@ A token's name is derived from its English printed title:
 name a token this way `[W-40]`. A `STATUS_TOKEN.token` is the name of the token upgrade, derived
 the same way. A validator MUST report a `TOKEN:` id or a `STATUS_TOKEN.token` that breaks the
 token-name grammar (`bad-token-name`, error) `[V-05]`. The names of the tokens printed today are
-in the "Token names" registry ([§25](#25-registries)). Any string in a record that begins
-`TOKEN:` is read as a token id, wherever it appears, so a validator applies the grammar to all of
-them.
+in the "Token names" registry ([§25](#25-registries)). Any string that begins `TOKEN:` in a
+setup or event record, a `%%% DECKS` or `%%% CARDS` record, or an annotation's what-if `line` is
+read as a token id, wherever it appears in it, so a validator applies the grammar to all of them.
+An annotation's `text` is prose and is not checked.
 
 The `:N` suffix is what makes each card **unique for the whole game**, so `EXHAUST` on
 `ASH#110:2` can never hit the wrong copy. When you look up a card's *display name*,
@@ -819,10 +820,13 @@ The same order applies to `SET#NUM:N`: strip `:N`, then read `SET` and `NUM`. Al
 #### Two reserved token names
 
 Two tokens are neither units nor upgrades, and the format has a field for each: a **Credit
-token** (`TOKEN:credit#…`) feeds `credits`, and **the Force token** (`TOKEN:the-force#…`) feeds
+token** (`TOKEN:credit…`) feeds `credits`, and **the Force token** (`TOKEN:the-force…`) feeds
 `hasForce`. Both live in the `base` zone, arrive from and return to `outsideTheGame`, and are
-recognised by these two names in the `TOKEN:<name>#` grammar — the format defines the two
-fields, so it has to define what drives them ([§12.1](#121-the-move-rule-the-big-one)). No
+recognised by the **name part** of their id: the text after `TOKEN:`, with a copy suffix `:N`
+(`N` of 2 or more, as the grammar allows) and then any `#<cardId>` removed, is exactly `credit`
+or `the-force`. So `TOKEN:credit`, `TOKEN:credit:2` and `TOKEN:credit#8015500527:2` are all
+Credit tokens, and `TOKEN:credit:1`, which breaks the grammar, is not one. The format defines the
+two fields, so it has to define what drives them ([§12.1](#121-the-move-rule-the-big-one)). No
 other token name is reserved; every other token is classified by `kind`.
 
 ### 6.2 Zone names
@@ -2431,9 +2435,9 @@ existed folds to a state with no `resources` rather than a misleading empty row.
 **2b. Credits and the Force** — the two reserved token names
 ([§6.1](#two-reserved-token-names))
 
-- a `TOKEN:credit#…` moving *into* `base` → `credits + 1`; *out of* `base` → `credits - 1`
+- a Credit token ([§6.1](#two-reserved-token-names)) moving *into* `base` → `credits + 1`; *out of* `base` → `credits - 1`
   (never below 0)
-- a `TOKEN:the-force#…` moving *into* `base` → `hasForce = true`; *out of* `base` →
+- the Force token moving *into* `base` → `hasForce = true`; *out of* `base` →
   `hasForce = false`
 
 **2c. Base attachments** (Fortify, [§10.3](#103-homeworlds-fortify-beast-and-weakness)) — this

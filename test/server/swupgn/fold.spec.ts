@@ -297,6 +297,15 @@ describe('fold credits and the Force', function () {
         expect(s.players[2]?.cards).toEqual([]);   // a token in the base is not an arena card
     });
 
+    // Value: protects=the fold recognises a Credit by the same name rule as the validator (spec 6.1), so the degraded form and a later copy count; fails_when=the fold matches only `TOKEN:credit#`; why_new=fold and validate disagreed on `TOKEN:credit`; seam=none; no_claim=what the validator reports for the same ids
+    it('counts a Credit token written in the degraded form, and a later copy of one', function () {
+        const s = fold([
+            { seq: 'R1.A.1a', t: 'MOVE', card: 'TOKEN:credit', from: 'outsideTheGame', to: 'base', p: 1 },
+            { seq: 'R1.A.1b', t: 'MOVE', card: 'TOKEN:credit:2', from: 'outsideTheGame', to: 'base', p: 1 },
+        ] as any);
+        expect(s.players[1]?.credits).toBe(2);
+    });
+
     it('a Credit token changing hands is a TAKE_CONTROL in the base zone', function () {
         const s = fold([
             { seq: 'R1.A.1a', t: 'MOVE', card: 'TOKEN:credit#8015500527', from: 'outsideTheGame', to: 'base', p: 2 },

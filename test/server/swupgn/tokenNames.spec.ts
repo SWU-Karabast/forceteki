@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { TOKEN_ID, TOKEN_NAME, tokenName } from '../../../swupgn/src/index';
+import { TOKEN_ID, TOKEN_NAME, tokenName, tokenNameOf } from '../../../swupgn/src/index';
 
 const CARD_DIR = path.resolve(__dirname, '../../../../test/json/Card');
 
@@ -55,5 +55,17 @@ describe('SWU-PGN token names (spec 6.1)', function () {
         expect(TOKEN_ID.test('TOKEN:X-Wing#1')).toBeFalse();
         expect(TOKEN_ID.test('TOKEN:advantage#5844562972:1')).toBeFalse();
         expect(TOKEN_ID.test('TOKEN:weakness#weakness-id')).toBeFalse();
+    });
+
+    // Value: protects=one definition of a token id's name part, shared by the fold and the validator (spec 6.1); fails_when=the copy suffix or the card id is left on the name, or a non-token id gets a name; why_new=fold and validate each matched Credit with their own pattern and disagreed; seam=none; no_claim=whether the id is well-formed
+    it('reads the name part of a token id, with the copy suffix and card id stripped', function () {
+        expect(tokenNameOf('TOKEN:credit')).toBe('credit');
+        expect(tokenNameOf('TOKEN:credit:2')).toBe('credit');
+        expect(tokenNameOf('TOKEN:credit#8015500527')).toBe('credit');
+        expect(tokenNameOf('TOKEN:credit#8015500527:12')).toBe('credit');
+        expect(tokenNameOf('TOKEN:the-force#4571900905')).toBe('the-force');
+        expect(tokenNameOf('TOKEN:credit:1')).not.toBe('credit');
+        expect(tokenNameOf('SOR#095')).toBeUndefined();
+        expect(tokenNameOf('base@1')).toBeUndefined();
     });
 });

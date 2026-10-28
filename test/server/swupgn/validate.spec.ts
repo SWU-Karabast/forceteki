@@ -290,6 +290,10 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(malformed).toContain('error:bad-token-name');
         expect(malformed).not.toContain('error:credit-zone');
         expect(codes(addEvent('{"seq":"R1.A.9","t":"MOVE","card":"TOKEN:credits#1","from":"outsideTheGame","to":"resource","p":1}'))).not.toContain('error:credit-zone');
+        // A copy suffix of 1 is outside the grammar's range: a bad token name, and not a Credit.
+        const copyOne = codes(addEvent('{"seq":"R1.A.9","t":"MOVE","card":"TOKEN:credit:1","from":"outsideTheGame","to":"resource","p":1}'));
+        expect(copyOne).toContain('error:bad-token-name');
+        expect(copyOne).not.toContain('error:credit-zone');
     });
 
     // Value: protects=a keyframe card in a zone outside the vocabulary is an error, not a silently folded board; fails_when=the keyframe card zone check is dropped from validate(); why_new=bad-zone was only tested on record zone and MOVE from/to; seam=none; no_claim=the fold's own handling of such a card
@@ -310,10 +314,11 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
     // Value: protects=[V-05] holds inside an annotation's what-if line but not its prose text; fails_when=the annotation loop stops checking line events, or starts checking text; why_new=the token check only ran over events, cards and decks; seam=none; no_claim=the token grammar itself
     it('checks token ids in an annotation line, and not in its text', function () {
         const ann = (extra: string) => good.replace('{"ref":"R2.A.1"', `{${extra},"ref":"R2.A.1"`);
-        const bad = ann('"line":[{"seq":"R2.A.1","t":"CREATE_TOKEN","card":"TOKEN:Bad_Name#1","p":1}]');
+        const bad = ann('"line":[{"seq":"R2.A.1","t":"CREATE_TOKEN","token":"TOKEN:Bad_Name#1","p":1}]');
         expect(codes(bad)).toContain('error:bad-token-name');
-        expect(codes(ann('"line":[{"seq":"R2.A.1","t":"CREATE_TOKEN","card":"TOKEN:xwing#1","p":1}]'))).not.toContain('error:bad-token-name');
-        const prose = good.replace('"text":"attacking', '"text":"I would not name it TOKEN:Bad_Name; attacking');
+        expect(codes(ann('"line":[{"seq":"R2.A.1","t":"CREATE_TOKEN","token":"TOKEN:xwing#1","p":1}]'))).not.toContain('error:bad-token-name');
+        // The whole text is a malformed token id, so this passes only because `text` is not checked.
+        const prose = good.replace('"text":"attacking the base rather than developing the board"', '"text":"TOKEN:Bad_Name"');
         expect(prose).not.toBe(good);
         expect(codes(prose)).not.toContain('error:bad-token-name');
     });

@@ -1,5 +1,6 @@
 import type { GameEvent, ReducedState, PlayerState, CardInstanceState, Seat } from './types';
 import { RESERVED_KEYS } from './parse';
+import { tokenNameOf } from './ids';
 
 function emptyPlayer(seat: Seat): PlayerState {
     return {
@@ -161,14 +162,15 @@ function seatOfBaseRef(ref: string): Seat | null {
 /**
  * The two reserved token names (spec §6.1). A Credit token and the Force token are neither
  * units nor upgrades; they live in the `base` zone and are the only things that drive
- * `credits` and `hasForce`. They are recognised by the `TOKEN:<name>#` grammar, not by a card
- * database, because the format defines the two fields and so must define what feeds them.
+ * `credits` and `hasForce`. They are recognised by the name part of their `TOKEN:` id
+ * (`tokenNameOf`, which the validator reads too), not by a card database, because the format
+ * defines the two fields and so must define what feeds them.
  */
 function isCreditToken(id: string): boolean {
-    return typeof id === 'string' && id.startsWith('TOKEN:credit#');
+    return tokenNameOf(id) === 'credit';
 }
 function isForceToken(id: string): boolean {
-    return typeof id === 'string' && id.startsWith('TOKEN:the-force#');
+    return tokenNameOf(id) === 'the-force';
 }
 function isTokenId(id: string): boolean {
     return typeof id === 'string' && id.startsWith('TOKEN:');
