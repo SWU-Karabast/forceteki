@@ -9,6 +9,7 @@ import { GameCardMetric } from '../../../../gameStatistics/GameStatisticsTracker
 
 export class ResourcePrompt extends AllPlayerPrompt {
     private readonly nCardsToResource: number;
+    private readonly enterExhausted: boolean;
 
     protected selectedCards = new Map<string, Card[]>();
     protected selectableCards = new Map<string, Card[]>();
@@ -17,11 +18,14 @@ export class ResourcePrompt extends AllPlayerPrompt {
     public constructor(
         game: Game,
         nCardsToResource: number,
-        resetActionTimerOnComplete = false
+        resetActionTimerOnComplete = false,
+        // CR 5.2.1.f: setup resources are placed facedown and ready; CR 5.5.1.c: regroup resources are facedown and exhausted
+        enterExhausted = false
     ) {
         super(game, resetActionTimerOnComplete);
 
         this.nCardsToResource = nCardsToResource;
+        this.enterExhausted = enterExhausted;
 
         for (const player of game.getPlayers()) {
             this.selectedCards[player.name] = [];
@@ -135,7 +139,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
     protected resourceSelectedCards(player: Player) {
         if (this.selectedCards[player.name].length > 0) {
             for (const card of this.selectedCards[player.name]) {
-                player.resourceCard(card, false);
+                player.resourceCard(card, this.enterExhausted);
                 this.game.statsTracker.trackCardMetric(GameCardMetric.Resourced, card, player);
             }
             this.game.addMessage('{0} has resourced {1} {2} from hand', player, this.selectedCards[player.name].length, this.selectedCards[player.name].length === 1 ? 'card' : 'cards');
