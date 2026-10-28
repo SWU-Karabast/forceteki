@@ -28,6 +28,11 @@ export const BANNED: { phrase: RegExp; task: number; why: string }[] = [
     { phrase: /in every real file/, task: 3, why: 'describes one implementation\'s output as the norm' },
     { phrase: /maps the\s+engine's ability types/, task: 4, why: 'defines ability kinds by one engine\'s class hierarchy' },
     { phrase: /compile error/, task: 4, why: 'describes one implementation\'s type system as the norm' },
+    { phrase: /as the engine built it/, task: 5, why: 'defines CHOICE.prompt by one engine\'s UI' },
+    { phrase: /engine-internal/, task: 5, why: 'defines ability by one engine\'s identifiers' },
+    { phrase: /the engine's zone set/, task: 5, why: 'defines the zone list by one engine instead of the Comprehensive Rules' },
+    { phrase: /engine writes the plain text itself when it runs under test/, task: 5, why: 'describes one implementation\'s test mode as the norm' },
+    { phrase: /whatever the card's\s+menu entry says/, task: 5, why: 'defines title by one engine\'s menu UI' },
 ];
 
 /** The lines a conforming implementation must obey, with 1-based line numbers. */

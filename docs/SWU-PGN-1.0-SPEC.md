@@ -798,23 +798,25 @@ other token name is reserved; every other token is classified by `kind`.
 
 ### 6.2 Zone names
 
-These are the strings that appear in `from`, `to`, and `zone`:
+These are the strings that appear in `from`, `to`, and `zone`. Each is the zone of the same name
+in the Comprehensive Rules (CR 4), except where the table says otherwise:
 
-| Zone | Means |
-|---|---|
-| `deck` | Face-down draw pile. |
-| `hand` | A player's hand. |
-| `resource` | The resource row. |
-| `ground` | The ground arena. **In play.** |
-| `space` | The space arena. **In play.** |
-| `discard` | The discard pile. |
-| `base` | The base zone: where an undeployed or defeated leader sits, where Credit tokens and the Force live, and where an upgrade with **Fortify** attaches ([§10.3](#103-homeworlds-fortify-beast-and-weakness)). |
-| `outsideTheGame` | Nowhere — where tokens come from and go back to. |
-| `capture` | Cards captured by an opponent. |
+| Zone | Means | Comprehensive Rules |
+|---|---|---|
+| `deck` | Face-down draw pile. | the deck, CR 4.6 |
+| `hand` | A player's hand. | the hand, CR 4.7 |
+| `resource` | The resource row. | the resource zone, CR 4.5 |
+| `ground` | The ground arena. **In play.** | the ground arena, CR 4.3 |
+| `space` | The space arena. **In play.** | the space arena, CR 4.4 |
+| `discard` | The discard pile. | the discard pile, CR 4.8 |
+| `base` | The base zone: where an undeployed or defeated leader sits, where Credit tokens and the Force live, and where an upgrade with **Fortify** attaches ([§10.3](#103-homeworlds-fortify-beast-and-weakness)). | the base zone, CR 4.2 |
+| `outsideTheGame` | Nowhere — where tokens come from and go back to. | Not a zone. A card that is set aside is in no zone, and a token that leaves play is set aside again (CR 4.1.2, CR 4.11) |
+| `capture` | Cards captured by an opponent. | Not a zone. A captured card is held facedown under the capturing unit, out of play but open information (CR 8.34); the format gives it a name so a card in that state can be moved to and from |
 
-That is the **complete** list — it is the engine's zone set, with the two arenas written as
-`ground` and `space` rather than `groundArena`/`spaceArena`. Any other string in a `from`,
-`to` or `zone` field is non-conformant.
+That is the **complete** list. The CR names the two arenas "ground arena" and "space arena"; this
+format writes them `ground` and `space` rather than `groundArena`/`spaceArena`, and writes the
+other names as the table shows. Any other string in a `from`, `to` or `zone` field is
+non-conformant.
 
 Only `ground` and `space` count as "in play". That matters a lot in
 [§12](#12-folding--turning-lines-into-a-board).
@@ -841,13 +843,13 @@ the base *card*; a `base@N` ref names the *thing being hit*.)
 
 | Field | Values seen in real files (more MAY appear) |
 |---|---|
-| `damageType` | `combat`, `ability`, `excess`. Overwhelm onto a base is written as its own `OVERWHELM` record, never as a `DAMAGE` with `damageType: "overwhelm"`. |
+| `damageType` | `combat`: combat damage, CR 6.3.4. `ability`: damage a card ability dealt. `excess`: damage beyond what defeated a unit, which a card ability deals elsewhere (Blizzard Assault AT-AT). Overwhelm onto a base is written as its own `OVERWHELM` record, never as a `DAMAGE` with `damageType: "overwhelm"`. |
 | `defenderType` | `unit`, `base` |
 | `DEFEAT.reason` | **Closed — see below.** |
-| `CHOICE.prompt` | The prompt's title as the engine built it. For an attack-target choice this is the attacking card's name. |
+| `CHOICE.prompt` | The text the writer showed the choosing player, if any. Display only, open. |
 | `STATUS_TOKEN.token` | `advantage`, `weakness` — the name of any token upgrade ([§6.1](#the-token-grammar)) that is not a Shield or an Experience, so a token upgrade printed tomorrow needs no format change |
 | `PHASE_START.phase` | `setup`, `action`, `regroup` |
-| `ABILITY_ACTIVATE.ability` | `card-slug#subtitle_triggered_N`, `card-slug_action_N`, `name_anonymous`. An engine-internal slug: useful in a bug report, **never** something to branch on. Its `kind` is the field for that ([§10.1](#101-events-that-carry-board-detail)). |
+| `ABILITY_ACTIVATE.ability` | An identifier the writer chooses, stable only within one `Engine` product (see the `ability` field in [§10.1](#101-events-that-carry-board-detail)). A reader MUST NOT branch on it. Its `kind` is the field for that ([§10.1](#101-events-that-carry-board-detail)). |
 
 Treat all of these as **open lists**. A reader MUST NOT crash on a value it hasn't seen.
 
@@ -861,7 +863,7 @@ is pinned here and in the schema rather than left open:
 | `ability` | A card ability defeated it **outright**, with no damage: "defeat a unit" (Vanquish), "defeat a base" (Grand Moff Tarkin), a cost paid by defeating it. `defeatedBy` names that card. |
 | `nonCombatDamage` | **Damage** from something that is not an attack killed it — an event, an ability, an ongoing effect. `defeatedBy` names the card that dealt it. |
 | `uniqueRule` | The uniqueness rule: a second copy of a unique card that its controller already has in play. |
-| `frameworkEffect` | The rules engine, with no card to blame. Four causes, and they are the whole set: an **upgrade whose host left play**; a unit whose **remaining HP fell to its damage without damage being dealt** — a modifier lowered its HP (a Weakness token attaching, a −X/−X effect) or an HP-granting effect expired or was removed; a **leader unit that would have changed control** (it is defeated instead); and a **base killed by damage no card dealt** — drawing from an empty deck. The `STATS` record with the lowered `hp` just before the `DEFEAT` is the reason ([§10.3](#103-homeworlds-fortify-beast-and-weakness)). |
+| `frameworkEffect` | No card did it. The name is historical; the four causes below are its whole meaning, and they are the whole set: an **upgrade whose host left play**; a unit whose **remaining HP fell to its damage without damage being dealt** — a modifier lowered its HP (a Weakness token attaching, a −X/−X effect) or an HP-granting effect expired or was removed; a **leader unit that would have changed control** (it is defeated instead); and a **base killed by damage no card dealt** — drawing from an empty deck. The `STATS` record with the lowered `hp` just before the `DEFEAT` is the reason ([§10.3](#103-homeworlds-fortify-beast-and-weakness)). |
 | `unknown` | The writer could not resolve a cause. A reader SHOULD surface this the way it surfaces `RecorderErrors`; it should not appear in a healthy file. |
 
 `frameworkEffect` is deliberately not split further. Its four causes are one thing from the
@@ -1319,8 +1321,8 @@ to `base`, with an `EXHAUST` beside it (a defeated Leader Unit comes back exhaus
 | `p` | 1 or 2 | yes | Who used it. |
 | `card` | string | yes | The card whose ability it is (`base@N` for a base's, [§6.3](#63-pointing-at-a-base)). |
 | `kind` | string | no | What sort of ability: `action`, `epic`, `triggered`, `keyword`, `replacement`, `constant`, `event`, `delayed`. |
-| `title` | string | no | The ability's printable name, as the card menu shows it. |
-| `ability` | string | no | The engine's own identifier. Debugging aid; **not** a stable key. |
+| `title` | string | no | Text that identifies the ability to a human, normally its printed text. It MAY contain the three markup forms below, which this format defines. A writer with no icon markup writes plain text, and a reader MUST accept both. |
+| `ability` | string | no | An identifier the writer chooses, stable only within one `Engine` product. A reader MUST NOT branch on it. |
 | `epic` | boolean | no | The ability was an Epic Action. Equivalent to `kind: "epic"`. |
 | `grantedBy` | string | no | The card whose text **gave** `card` this ability — a Fortify upgrade's "Attached base gains: …", an upgrade's "Attached unit gains: …". A card id, or `base@N`. Absent when the ability is `card`'s own printed text. |
 
@@ -1329,15 +1331,13 @@ ability *did* is recorded by the records that follow it.
 
 **`grantedBy` is how a reader explains an ability `card` does not print.** When Kestro City uses
 "Deal 2 damage to a unit", the base has no such text; Heavy Ion Cannon attached to it does. The
-writer knows which card granted it and SHOULD say so: `ability` often spells the grantor out
-(`gained_from_heavy-ion-cannon_constant_1`), but it is not a stable key, and a reader that parses
-it is back to maintaining a regex.
+writer knows which card granted it and SHOULD say so: a writer's `ability` may spell the grantor
+out, but it is not a stable key, and a reader that parses it is back to maintaining a regex.
 
 **`kind` is what a reader SHOULD branch on.** Without it the only signal is the shape of
-`ability` (`…_action_1`, `…_triggered_0`, `mandalorian_keyword_shielded_0`,
-`shield_replacement_0`, `reforge_anonymous`) — an engine-internal string this format does not
-promise to keep stable, so every reader ends up with its own regex for it. A writer knows the
-answer from the ability itself and SHOULD state it.
+`ability` — a string the writer chose, which this format does not promise to keep stable, so
+every reader ends up with its own regex for it. A writer knows the answer from the ability itself
+and SHOULD state it.
 
 | `kind` | Definition |
 |---|---|
@@ -1357,15 +1357,13 @@ action ability, and is `epic`. The ability Shielded gives (entering play with a 
 
 A writer MUST NOT omit `kind` for an ability it can classify.
 
-**`title` is the ability's full printed text, not a short caption.** It is whatever the card's
-menu entry says, which for most cards is the entire rules text ("Choose a friendly unit and
-give it +2/+2 for this phase. Then, …" — 140 characters). The engine has no shorter name to
-offer, so a reader wanting a caption SHOULD build one from `kind` plus the card name and keep
+**`title` is the ability's full printed text, not a short caption.** For most cards that is
+the entire rules text ("Choose a friendly unit and give it +2/+2 for this phase. Then, …" — 140
+characters). A reader wanting a caption SHOULD build one from `kind` plus the card name and keep
 `title` for a tooltip or detail line.
 
-**`title` carries icon markup.** The engine writes keywords, resource costs and aspects as
-tokens that a client draws as icons. There are three forms, and nothing else in `title` is
-markup:
+**`title` MAY carry icon markup.** A writer that draws keywords, resource costs and aspects as
+icons writes them as tokens. There are three forms, and nothing else in `title` is markup:
 
 | Token | Means | Plain text |
 |---|---|---|
@@ -1383,8 +1381,8 @@ by side with nothing between them. From a real game:
 ```
 
 A reader that draws no icons replaces each token with its plain text ("Disclose Aggression
-Heroism to create a Spy token and ready it"). The test vectors carry no markup: the engine
-writes the plain text itself when it runs under test, so a reader MUST handle both.
+Heroism to create a Spy token and ready it"). The test vectors carry no markup, and a writer
+with no icon markup writes plain text, so a reader MUST handle both.
 
 **`kind: "action"` and `kind: "epic"` are TOP-LEVEL ACTIONS** and take their own step number
 ([§9](#9-the-events-section-and-seq-numbers)): CR 6.1 lists "use an action ability" among the six things a player
@@ -3274,6 +3272,11 @@ SWUForge's review of that text (2026-10-28) changed:
 - `ABILITY_ACTIVATE.kind` is defined by the Comprehensive Rules section each value names
   ([§10.1](#101-events-that-carry-board-detail)), not by one engine's ability classes, with a
   precedence sentence (the first matching row wins). The values are unchanged.
+- The contents of `title`, `ability`, `CHOICE.prompt` and `damageType`, and the zone list
+  ([§6.2](#62-zone-names)), are defined by the format and the Comprehensive Rules, not by one
+  engine's UI or zone set. Each zone is named against its CR 4 section, or says that the CR has no
+  zone for it (`outsideTheGame`, `capture`). `frameworkEffect` keeps its value, and the text says
+  the name is historical. No value or schema changes.
 - Seven quoted records had a stale `ms`. Every quoted record, `ms` included, is now checked
   against the vectors.
 
@@ -4062,6 +4065,15 @@ contents alone cannot show. None of this is required of another writer. Operatio
 — environment variables, test files, how to regenerate the vectors — are in
 `swupgn/README.md`.
 
+- **Field contents.** The reference writer's `ABILITY_ACTIVATE.title` is the card menu entry's
+  text, which for most cards is the whole rules text, and it writes plain text when it runs under
+  test (the vectors carry no icon markup). Its `ability` values look like
+  `card-slug#subtitle_triggered_N`, `card-slug_action_N`, `name_anonymous`,
+  `gained_from_heavy-ion-cannon_constant_1`, `mandalorian_keyword_shielded_0`,
+  `shield_replacement_0` and `reforge_anonymous`; they are its own strings and a reader MUST NOT
+  branch on them. Its `CHOICE.prompt` is the prompt's title as the reference engine built it, and
+  for an attack-target choice that is the attacking card's name. Its `excess` damage comes from
+  the engine's excess-damage effect, which cards such as Blizzard Assault AT-AT use.
 - **`Engine`.** It resolves its build from, in order, an environment variable set by CI, the
   git SHA of its working tree (with `-dirty` for an uncommitted tree), and its package version
   as a last resort. It caches the value for the life of the process, because shelling out to
