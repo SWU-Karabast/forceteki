@@ -176,9 +176,12 @@ export class SwuPgnGameAdapter {
         if (hadInit && !hasInit()) {
             this.deckOrderCaptured.clear();
         }
-        if (truncatedTo) {
-            this.dropUndoneCardIds(truncatedTo);
-        }
+        // Without a boundary (nothing was recorded after the snapshot, or the rollback threw part
+        // way) what is left in the streams is what survived, so it is the boundary.
+        this.dropUndoneCardIds(truncatedTo ?? {
+            setupLen: this.recorder.getSetup().length,
+            eventsLen: this.recorder.getEvents().length,
+        });
     }
 
     /**
