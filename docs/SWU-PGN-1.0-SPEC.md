@@ -2391,7 +2391,10 @@ writer MUST write the deck's owner as `p` on it `[W-43]`: a card leaving a deck 
 Most cards that reach into an opponent's deck discard from it (Never Tell Me the Odds,
 Vigilance, Satine Kryze). One that puts the card into play under the other seat (Vermillion lets
 the opponent play your top card) is written as the owner's `MOVE` followed by a `TAKE_CONTROL`
-to the seat that played it (`SwuPgnCrossSeatPiles.spec.ts`).
+to the seat that played it `[W-43]`.
+
+> **Note (informative):** No vector plays a card out of the other seat's deck. The reference
+> writer's `test/server/chat/SwuPgnCrossSeatPiles.spec.ts` covers it.
 
 **1. The hand — count AND contents**
 
@@ -2781,7 +2784,7 @@ Two helpers:
   (or its `MOVE` from `base` into an arena) until its `MOVE` back to `base`, and for a
   double-sided leader per its last `LEADER_FLIP`. Each `ROUND_START` keyframe re-syncs this
   from the seat's `leader` (a `ROUND_END` keyframe does not). So a deployed Tarkin attacks, triggers and defeats bases as `The Death Star, Icon of
-  Tyranny`. `front(id)` / `back(id)` are the index's `name` / `backSideName`.
+  Tyranny`. `front(id)` / `back(id)` are the index's `name` / `backSideName`, cut the same way.
 - `who(p)` — `"Player 1"` for seat 1, `"Player 2"` for seat 2, `""` otherwise.
 
 When no card index is supplied, the renderer uses the document's own — a file with a

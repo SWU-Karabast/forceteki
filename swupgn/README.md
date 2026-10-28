@@ -7,8 +7,8 @@ Engine-independent reference reader for the SWU-PGN/1.0 game format. Informative
 - `parse(text, limits?)` -> structured document (header, story, decks, cards, setup, events,
   annotations). Throws a `SwuPgnError` whose `code` is from the spec's error table (§24) for a
   malformed file, and rejects a file over `limits` (`DEFAULT_LIMITS`: 16 MiB counted in UTF-8
-  bytes, not string length, 1 MiB per line,
-  1,000,000 records, depth 64) rather than reading part of it. `RESERVED_KEYS` is every
+  bytes, not string length; 1,048,576 characters (UTF-16 code units) per line;
+  1,000,000 records; depth 64) rather than reading part of it. `RESERVED_KEYS` is every
   `Object.prototype` name plus `prototype` (spec §23): a record key, a header tag name, or a
   `STATUS_TOKEN` `token` (in `SETUP`, `EVENTS` or an annotation's what-if `line`) that is one
   of them (`reserved-key`), or a major version other than `READER_MAJOR`
@@ -28,8 +28,10 @@ Engine-independent reference reader for the SWU-PGN/1.0 game format. Informative
   they belong to (spec §9.1 `[W-18]`, by the rule in Appendix C). Writers run this; a reader
   of an old file without `for` can run it too.
 - `indexResolver(cards)` / `baseId(ref)` -> the card-name lookup `render` takes as `names`.
-  It shortens any name or `backSideName` longer than 120 characters (the longest real card's is
-  49), because the story repeats a name on every line that names the card.
+  It cuts any name or `backSideName` longer than 120 characters (UTF-16 code units) to its first
+  119 and `…`, as spec §16's `nm(id)` requires (the longest real card's is 49), because the story
+  repeats a name on every line that names the card. It also skips an index entry whose `id` or
+  `name` is not a string. A resolver you pass to `render` yourself is used as is.
 
 This module MUST NOT import from `server/game/` (the SWU rules engine).
 
