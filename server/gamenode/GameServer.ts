@@ -2245,7 +2245,7 @@ export class GameServer {
             this.playerMatchmakingDisconnectedTime.delete(userId);
         }
 
-        // check if user is already in a lobby and if their last activity was within 30s, just in case the lobby entry is stale somehow
+        // Active lobbies retain the 60s activity guard. Completed matches can be left immediately.
         const previousLobbyForUser = this.userLobbyMap.get(userId)?.lobbyId;
         if (previousLobbyForUser) {
             const previousRole = this.userLobbyMap.get(userId)?.role;
@@ -2253,7 +2253,7 @@ export class GameServer {
             if (previousLobby) {
                 const userLastActivity = previousLobby.getLastActivityForUser(userId);
 
-                if (previousRole === UserRole.Player) {
+                if (previousRole === UserRole.Player && !previousLobby.isMatchComplete) {
                     if (userLastActivity == null) {
                         return true;
                     }
@@ -2263,6 +2263,14 @@ export class GameServer {
                         logger.info(`GameServer: user ${userId} blocked from joining due to still being in lobby ${previousLobby.id}`);
                         return false;
                     }
+                }
+
+                if (previousRole === UserRole.Player && previousLobby.isMatchComplete) {
+                    // The result screen may still be open in another tab. Retire its socket before
+                    // transferring the user so a late disconnect/requeue cannot affect the new session.
+                    const previousSocket = previousLobby.users.find((u) => u.id === userId)?.socket;
+                    previousSocket?.removeEventsListeners(['disconnect', 'game', 'lobby', 'requeue']);
+                    previousSocket?.disconnect();
                 }
 
                 this.userLobbyMap.delete(userId);
