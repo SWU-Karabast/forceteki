@@ -140,5 +140,98 @@ describe('SWU-PGN/1.0 limited abilities (writer)', function () {
             const after = writerOutput(context.game);
             expectCleanFile(after.text, after.doc);
         });
+
+        it('a blanked card keeps its uses for the round', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['agent-kallus#seeking-the-rebels', 'wampa'],
+                },
+                player2: {
+                    hand: ['imprisoned'],
+                    groundArena: ['general-veers#blizzard-force-commander'],
+                },
+            });
+            const { context } = contextRef;
+
+            useKallus(context);
+            // Imprisoned blanks Kallus: his ability is hidden, its use is not undone.
+            context.player2.clickCard(context.imprisoned);
+            context.player2.clickCard(context.agentKallus);
+            context.player1.passAction();
+            context.moveToNextActionPhase();
+
+            const { text, doc } = writerOutput(context.game);
+            const kallus = idOf(doc, 'Agent Kallus');
+            expect(keyframeAt(doc, 'R1.end').players[1].abilityUses)
+                .toEqual([jasmine.objectContaining({ card: kallus, count: 1, max: 1, per: 'round' })]);
+            expectCleanFile(text, doc);
+        });
+
+        it('a gained ability keeps its uses when its grant ends', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [{ card: 'wampa', upgrades: ['improvised-identity'] }],
+                    deck: ['battlefield-marine', 'cartel-spacer', 'takedown'],
+                },
+                player2: {
+                    hand: ['confiscate'],
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickPrompt('Search the top 3 cards of your deck for a ground unit and discard it. Then, you may attack with this unit. For this attack, this unit gains the discarded unit\'s abilities.');
+            context.player1.clickPrompt('Take nothing');
+            context.player1.clickPrompt('Pass attack');
+            // Confiscate defeats the upgrade: Wampa loses the ability, the engine keeps its use.
+            context.player2.clickCard(context.confiscate);
+            context.player2.clickCard(context.improvisedIdentity);
+            context.player1.passAction();
+            context.moveToNextActionPhase();
+
+            const { text, doc } = writerOutput(context.game);
+            const wampa = idOf(doc, 'Wampa');
+            const use = doc.events.find((e: any) => e.t === 'ABILITY_ACTIVATE' && e.card === wampa && e.limit != null) as any;
+            expect(use?.limit).toEqual({ max: 1, per: 'round' });
+            expect(use?.grantedBy).toBe(idOf(doc, 'Improvised Identity'));
+            expect(keyframeAt(doc, 'R1.end').players[1].abilityUses)
+                .toEqual([{ card: wampa, ability: use.ability, count: 1, max: 1, per: 'round' }]);
+            expect(keyframeAt(doc, 'R2.start').players[1].abilityUses).toEqual([]);
+            expectCleanFile(text, doc);
+        });
+
+        it('a trigger that resolves after its card left play is counted, then reset', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [{ card: 'agent-kallus#seeking-the-rebels', damage: 2 }],
+                },
+                player2: {
+                    groundArena: ['general-veers#blizzard-force-commander'],
+                },
+            });
+            const { context } = contextRef;
+
+            // Kallus and Veers defeat each other; Kallus's draw resolves after his move to discard.
+            context.player1.clickCard(context.agentKallus);
+            context.player1.clickCard(context.generalVeers);
+            expect(context.agentKallus).toBeInZone('discard');
+            expect(context.player1).toHavePassAbilityPrompt('Draw a card');
+            context.player1.clickPrompt('Trigger');
+            context.player2.passAction();
+            context.moveToNextActionPhase();
+
+            const { text, doc } = writerOutput(context.game);
+            const kallus = idOf(doc, 'Agent Kallus');
+            const useAt = doc.events.findIndex((e: any) => e.t === 'ABILITY_ACTIVATE' && e.card === kallus);
+            expect((doc.events[useAt] as any).limit).toEqual({ max: 1, per: 'round' });
+            const reset = doc.events.findIndex((e: any) => e.t === 'ABILITY_RESET' && e.card === kallus);
+            expect(reset).toBeGreaterThan(useAt);
+            expect((doc.events[reset] as any).ability).toBe((doc.events[useAt] as any).ability);
+            expect(keyframeAt(doc, 'R1.end').players[1].abilityUses).toEqual([]);
+            expectCleanFile(text, doc);
+        });
     });
 });

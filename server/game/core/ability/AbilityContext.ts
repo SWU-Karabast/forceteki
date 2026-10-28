@@ -108,6 +108,11 @@ export class AbilityContext<TSource extends Card = Card> {
         return false;
     }
 
+    /** The limit this resolution counts against. Read-only, for the SWU-PGN recorder's `limit`. */
+    public getCapturedLimit(): AbilityLimit | undefined {
+        return this.limit;
+    }
+
     public isAtLimit(): boolean {
         return this.limit?.isAtMax(this.player) ?? false;
     }

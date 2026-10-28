@@ -429,6 +429,14 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
     // ******************************************* ABILITY GETTERS *******************************************
     /**
+     * Every action and triggered ability the card holds, blanked or not. Read-only, for the SWU-PGN
+     * keyframe's `abilityUses`: blanking hides an ability but keeps its uses. Nothing in the game reads it.
+     */
+    public getAllAbilitiesForRecording(): readonly PlayerOrCardAbility[] {
+        return [...this.actionAbilities, ...this.triggeredAbilities];
+    }
+
+    /**
      * `SWU 7.2.1`: An action ability is an ability indicated by the bolded word “Action.” Most action
      * abilities have a cost in brackets that must be paid in order to use the ability.
      */

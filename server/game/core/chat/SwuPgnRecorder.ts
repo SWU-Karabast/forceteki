@@ -511,12 +511,22 @@ export class SwuPgnRecorder {
     private effectsBeforeApply: Set<any> | null = null;
 
     /**
-     * Cards with limited-ability uses written since the last boundary that clears them (card ref ->
-     * the `per` values used), so a zone change writes `ABILITY_RESET` only for a card the fold still
-     * counts uses for (spec §10.1, `[W-49]`). Held in each checkpoint: an undo past a use must
-     * forget it, and one past a reset must bring the card back.
+     * Limited-ability uses written since the last boundary that clears them (`seat|card ref` -> the
+     * `per` values used, the seat being the one that used them), so a zone change writes
+     * `ABILITY_RESET` only for a card the fold still counts uses for (spec §10.1, `[W-49]`). Held
+     * in each checkpoint: an undo past a use must forget it, and one past a reset must bring it back.
      */
     private readonly limitedUses = new Map<string, Set<LimitPer>>();
+
+    /**
+     * Uses of a GAINED limited ability (`seat|card|ability` -> the engine limit and player counted).
+     * A gained ability shares its granting card's limit object, and when the grant ends the engine
+     * removes the ability but keeps the limit's count (and restores it if the ability is granted
+     * again), so the keyframe cannot find the count on the card any more; the projection reads it
+     * from here (see `heldGainedUses`). Dropped with the card's `ABILITY_RESET` and at the boundary
+     * its `per` names. Held in each checkpoint.
+     */
+    private readonly gainedUses = new Map<string, { seat: Seat; card: string; ability: string; per: LimitPer; limit: any; player: any }>();
 
     /**
      * The ask whose card picks are `blind` (spec §10.2 simultaneous groups): the ability context
@@ -560,6 +570,7 @@ export class SwuPgnRecorder {
         effectInfo: [string, RecordedEffect][];
         nextEffectNumber: number;
         limitedUses: [string, LimitPer[]][];
+        gainedUses: [string, { seat: Seat; card: string; ability: string; per: LimitPer; limit: any; player: any }][];
         blindAsk: { context: any; seq: string } | null;
         simulGroup: { window: any; first: GameEvent; seq: string } | null;
     }[] = [];
@@ -781,6 +792,10 @@ export class SwuPgnRecorder {
             for (const [card, pers] of boundary.limitedUses) {
                 this.limitedUses.set(card, new Set(pers));
             }
+            this.gainedUses.clear();
+            for (const [key, entry] of boundary.gainedUses) {
+                this.gainedUses.set(key, entry);
+            }
             this.blindAsk = boundary.blindAsk;
             this.simulGroup = boundary.simulGroup;
             // Drop this checkpoint and any later ones; the redo re-checkpoints as it records.
@@ -853,6 +868,7 @@ export class SwuPgnRecorder {
                 effectInfo: [...this.effectInfo.entries()],
                 nextEffectNumber: this.nextEffectNumber,
                 limitedUses: [...this.limitedUses.entries()].map(([card, pers]) => [card, [...pers]]),
+                gainedUses: [...this.gainedUses.entries()],
                 blindAsk: this.blindAsk,
                 simulGroup: this.simulGroup,
             });
@@ -1746,6 +1762,45 @@ export class SwuPgnRecorder {
                 this.limitedUses.delete(card);
             }
         }
+        for (const [key, entry] of [...this.gainedUses.entries()]) {
+            if (pers.includes(entry.per)) {
+                this.gainedUses.delete(key);
+            }
+        }
+    }
+
+    /** Forget every use of `ref` (an `ABILITY_RESET` of the card, or of one `ability` of it). */
+    private forgetUses(ref: string, ability?: string): void {
+        if (ability == null) {
+            for (const key of [...this.limitedUses.keys()]) {
+                if (key.slice(key.indexOf('|') + 1) === ref) {
+                    this.limitedUses.delete(key);
+                }
+            }
+        }
+        for (const [key, entry] of [...this.gainedUses.entries()]) {
+            if (entry.card === ref && (ability == null || entry.ability === ability)) {
+                this.gainedUses.delete(key);
+            }
+        }
+    }
+
+    /** True when the fold still counts a use of `ref` for some seat. */
+    private hasUses(ref: string): boolean {
+        for (const key of this.limitedUses.keys()) {
+            if (key.slice(key.indexOf('|') + 1) === ref) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The gained limited-ability uses the fold still counts, with the engine limit each is counted
+     * on, for the keyframe projection: the card may no longer hold the ability (see `gainedUses`).
+     */
+    public heldGainedUses(): { seat: Seat; card: string; ability: string; limit: any; player: any }[] {
+        return [...this.gainedUses.values()];
     }
 
     /**
@@ -2442,8 +2497,8 @@ export class SwuPgnRecorder {
             // (CR 8.7); the engine resets them unless it only moved between arenas. The fold cannot
             // know that from the MOVE, so it is stated, for a card the fold still counts uses for.
             const ref = this.idOf(card);
-            if (!(isArena(from) && isArena(to)) && this.limitedUses.has(ref)) {
-                this.limitedUses.delete(ref);
+            if (!(isArena(from) && isArena(to)) && this.hasUses(ref)) {
+                this.forgetUses(ref);
                 this.push({ seq: this.nextSeq(false), t: 'ABILITY_RESET', card: ref });
             }
         });
@@ -2798,20 +2853,25 @@ export class SwuPgnRecorder {
             } else {
                 seq = this.nextSeq(false);
             }
+            // The player who used the ability, whom the engine counts the use for. It is the card's
+            // controller unless another card's ability made someone use it.
+            const user = readOr<any>(() => event?.context?.player, null) ?? player;
             // A limited ability (spec §10.1, `[W-49]`): the limit the engine counts this use against,
-            // read from the context that resolves it. Only with an `ability` to key the count on.
-            const limit = typeof ability === 'string'
-                ? limitRecordOf(readOr(() => event?.context?.limit ?? event?.ability?.captureLimit?.(), undefined), event?.context?.player ?? player)
-                : undefined;
+            // the one the resolving context captured. Only with an `ability` to key the count on.
+            const counted = readOr<any>(() => event?.context?.getCapturedLimit?.() ?? event?.ability?.captureLimit?.(), undefined);
+            const limit = typeof ability === 'string' ? limitRecordOf(counted, user) : undefined;
             // An ability another card's ability made the player use (`[W-54]`).
             const usedBy = readOr<string | undefined>(() => {
                 const by = event?.context?.retriggeredBy;
                 return by == null ? undefined : this.sourceRef(by);
             }, undefined);
+            // `p` is who used it ([W-54]) wherever the difference matters: the fold counts a
+            // limited use under `p`, and the engine counts it for the context's player.
+            const seat = this.seatOf(limit || usedBy ? user : player);
             this.push({
                 seq,
                 t: 'ABILITY_ACTIVATE',
-                p: this.seatOf(player),
+                p: seat,
                 card: cardId,
                 ability: typeof ability === 'string' ? ability : undefined,
                 ...(kind ? { kind } : {}),
@@ -2821,10 +2881,24 @@ export class SwuPgnRecorder {
                 ...(limit ? { limit } : {}),
                 ...(usedBy ? { usedBy } : {}),
             });
-            if (limit) {
-                const used = this.limitedUses.get(cardId) ?? new Set<LimitPer>();
-                used.add(limit.per);
-                this.limitedUses.set(cardId, used);
+            if (!limit) {
+                return;
+            }
+            // A pending trigger whose card changed zone since it triggered resolves on the limit it
+            // captured, which the zone change replaced (TriggeredAbility.resetLimitForNewZone): the
+            // engine counts this use on a limit the card no longer has. The fold counts it, so the
+            // reset the zone change made is stated after it.
+            const live = readOr<any>(() => event?.ability?.captureLimit?.(), undefined);
+            if (counted != null && live != null && counted !== live) {
+                this.push({ seq: this.nextSeq(false), t: 'ABILITY_RESET', card: cardId, ability });
+                return;
+            }
+            const key = `${seat}|${cardId}`;
+            const used = this.limitedUses.get(key) ?? new Set<LimitPer>();
+            used.add(limit.per);
+            this.limitedUses.set(key, used);
+            if (readOr(() => event?.ability?.printedAbility === false, false)) {
+                this.gainedUses.set(`${key}|${ability}`, { seat, card: cardId, ability, per: limit.per, limit: counted, player: user });
             }
         });
 

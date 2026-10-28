@@ -50,8 +50,13 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
 
     public override addPropertiesToEvent(event, cards, context: TContext, additionalProperties): void {
         super.addPropertiesToEvent(event, cards, context, additionalProperties);
-        // Recorder-only (SWU-PGN §10.2 LOOK): who looks. Nothing in the game reads it.
-        event.viewer = this.getPromptedPlayer(this.generatePropertiesFromContext(context, additionalProperties), context);
+        // Recorder-only (SWU-PGN §10.2 LOOK): who looks. Nothing in the game reads it, and a failure
+        // here must never reach gameplay.
+        try {
+            event.viewer = this.getPromptedPlayer(this.generatePropertiesFromContext(context, additionalProperties), context);
+        } catch {
+            // the recorder falls back to the context's player
+        }
     }
 
     public override checkEventCondition(): boolean {

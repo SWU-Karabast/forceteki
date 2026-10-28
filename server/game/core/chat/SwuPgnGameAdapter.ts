@@ -431,6 +431,12 @@ export class SwuPgnGameAdapter {
      * action and triggered abilities whose limit the format counts (`limitRecordOf`) and that the
      * engine says were used at least once this phase, round or game.
      *
+     * The abilities are read unfiltered (`getAllAbilitiesForRecording`): a blanked card hides its
+     * abilities, but blanking does not reset their uses. A GAINED ability whose grant has ended is
+     * no longer on the card at all, while the engine keeps its count on the granting card's limit
+     * (and restores it if the ability is granted again); those uses come from the recorder, which
+     * remembers the limit each was counted on, read live here.
+     *
      * The engine counts most limits per player, which is the seat. A `PerGameAbilityLimit` counts
      * for the card whatever player used it; the fold counts per seat, under the seat that used the
      * ability, so that count is projected onto the card's controller: the player who uses a card's
@@ -439,10 +445,7 @@ export class SwuPgnGameAdapter {
     private buildSwuPgnAbilityUses(players: Player[]): Map<Seat, AbilityUse[]> {
         const bySeat = new Map<Seat, AbilityUse[]>();
         for (const card of read<any[]>(() => this.game.allCards as any[], [])) {
-            const abilities = new Set<any>([
-                ...read<any[]>(() => card.getActionAbilities?.() ?? [], []),
-                ...read<any[]>(() => card.getTriggeredAbilities?.() ?? [], []),
-            ]);
+            const abilities = new Set<any>(read<any[]>(() => [...(card.getAllAbilitiesForRecording?.() ?? [])], []));
             for (const ability of abilities) {
                 const id = read<unknown>(() => ability?.abilityIdentifier, undefined);
                 const limit = read<any>(() => ability?.captureLimit?.(), null);
@@ -464,10 +467,25 @@ export class SwuPgnGameAdapter {
                         ? `base@${this.swuPgnSeat(card.owner.id)}`
                         : this.swuPgnCardId(card.uuid);
                     const list = bySeat.get(seat) ?? [];
-                    list.push({ card: ref, ability: id, count, max: recorded.max, per: recorded.per });
+                    if (!list.some((u) => u.card === ref && u.ability === id)) {
+                        list.push({ card: ref, ability: id, count, max: recorded.max, per: recorded.per });
+                    }
                     bySeat.set(seat, list);
                 }
             }
+        }
+        for (const held of read(() => this.recorder.heldGainedUses(), [])) {
+            const list = bySeat.get(held.seat) ?? [];
+            if (list.some((u) => u.card === held.card && u.ability === held.ability)) {
+                continue;
+            }
+            const recorded = limitRecordOf(held.limit, held.player);
+            const count = read<number>(() => held.limit.currentForPlayer(held.player), 0);
+            if (recorded == null || !(count > 0)) {
+                continue;
+            }
+            list.push({ card: held.card, ability: held.ability, count, max: recorded.max, per: recorded.per });
+            bySeat.set(held.seat, list);
         }
         return bySeat;
     }

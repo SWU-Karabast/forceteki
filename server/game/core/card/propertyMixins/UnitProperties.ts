@@ -1,3 +1,4 @@
+import type { PlayerOrCardAbility } from '../../ability/PlayerOrCardAbility';
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 import type { Attack } from '../../attack/Attack';
 import type { Arena, MoveZoneDestination } from '../../Constants';
@@ -590,6 +591,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 title: 'Give triggered ability to the attached card',
                 ...properties
             });
+        }
+
+        /** Adds the piloting abilities to the recorder-only list (see Card.getAllAbilitiesForRecording). */
+        public override getAllAbilitiesForRecording(): readonly PlayerOrCardAbility[] {
+            return [...super.getAllAbilitiesForRecording(), ...this.pilotingTriggeredAbilities];
         }
 
         public override getTriggeredAbilities(): TriggeredAbilityBase[] {
