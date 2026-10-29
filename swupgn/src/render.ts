@@ -58,7 +58,7 @@ function endWords(reason: unknown): string {
         case 'expired': return 'expired';
         case 'fired': return 'it resolved';
         case 'sourceLeft': return 'its source left play';
-        case 'targetLeft': return 'its target left play';
+        case 'targetLeft': return 'its target changed zone';
         case 'cancelled': return 'cancelled';
         default: return String(reason);
     }

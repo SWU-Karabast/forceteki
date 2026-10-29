@@ -2096,7 +2096,7 @@ effect.
 | `expired` | its duration ran out (CR 7.7.3.e) |
 | `fired` | it was a delayed effect, and it resolved |
 | `sourceLeft` | its `duration` was `whileSourceInPlay`, and `src` left play |
-| `targetLeft` | a target left play — with `targets`, those targets; the effect goes on for the rest |
+| `targetLeft` | a target left the effect by changing zone: it left play, or, outside play, moved from the zone it was in (CR 8.7) — with `targets`, those targets; the effect goes on for the rest |
 | `cancelled` | something else ended it before its duration ran out, such as an ability that removes it |
 
 ---
@@ -3497,7 +3497,7 @@ Friends"), so a comma-joined list could not be split back into cards.
 | `KEEP_HAND` | `{who(p)} keeps their hand` |
 | `GAME_END` | `*** {who(winner)} wins — {reason} ***` · draw: `*** Game ends in a draw — {reason} ***` |
 | `EFFECT_START` | `{who(p)}: {nm(src)}` + ` — {plain(text)}` if `text` + ` on {names(targets)}` if `targets` is non-empty, else ` for {who(seat)}` if `seat` is 1 or 2, ` for both players` if it is `both` + ` ({lasts})`. `{lasts}` is `for this attack`, `for this phase`, `for this round`, `while {nm(src)} is in play`, `until {untilText}` (`until a condition is met` without `untilText`), `delayed` or `for the rest of the game` for the seven `duration` values, and the value itself for any other. `plain(text)` is `text` with each icon-markup token of [§10.1](#101-events-that-carry-board-detail) replaced by its plain text (aspect tokens side by side are joined by one space); the story is plain text, so markup never reaches it. `plain(text)` and `untilText` are cut as `nm` cuts a card name: longer than 120 characters (UTF-16 code units), their first 119 and `…` |
-| `EFFECT_END` | `Effect from {nm(src)} ends` — `src` from the `EFFECT_START` with the same `id` earlier in the file; `Effect {id} ends` when there is none — + ` on {names(targets)}` if `targets` is non-empty + ` ({why})`. `{why}` is `expired`, `it resolved`, `its source left play`, `its target left play` or `cancelled` for the five `reason` values, and the value itself for any other |
+| `EFFECT_END` | `Effect from {nm(src)} ends` — `src` from the `EFFECT_START` with the same `id` earlier in the file; `Effect {id} ends` when there is none — + ` on {names(targets)}` if `targets` is non-empty + ` ({why})`. `{why}` is `expired`, `it resolved`, `its source left play`, `its target changed zone` or `cancelled` for the five `reason` values, and the value itself for any other |
 
 **These print nothing**: `MOVE`, `EXHAUST`, `READY`, `EXHAUST_RESOURCES`, `READY_RESOURCES`,
 `STATS`, `CHOICE`, `MODAL_CHOICE`, `SHUFFLE`, `PHASE_END`, `ROUND_END`, `ABILITY_RESET`.
@@ -4101,7 +4101,8 @@ A pass of the format against Comprehensive Rules v9.0 and the board state of CR 
   that changes zone leaves the effect with a partial `EFFECT_END` (CR 8.7).
 - An attached upgrade moved onto another host carries its controller after the move as the
   `MOVE`'s `p`, and the upgrade `TAKE_CONTROL` follows the `MOVE` ([§12.1](#121-the-move-rule-the-big-one)).
-- The story cuts `EFFECT_START.text` and `untilText` as it cuts a card name
+- The story cuts `EFFECT_START.text` and `untilText` as it cuts a card name, prints `seat` `both`
+  as `for both players`, and words `targetLeft` as `its target changed zone`
   ([§16](#16-rendering--turning-a-file-into-a-story)).
 - A writer files under a play what the played card itself does while the play puts it into play,
   before the play is announced: its own `ABILITY_ACTIVATE` (Clone's copy), the `CHOICE` it asks
@@ -5075,7 +5076,7 @@ contents alone cannot show. None of this is required of another writer. Operatio
   least one of them still carries it: the engine spends some player effects (an extra action)
   by stripping them from the player alone. An effect none of whose objects is held ends —
   `fired` when a delayed effect used up its one firing, `sourceLeft` for a `whileSourceInPlay`
-  effect whose source left play, `targetLeft` when every target it had left play, `expired`
+  effect whose source left play, `targetLeft` when every target it had changed zone, `expired`
   otherwise — and a target that was in play when the effect began and is in play no longer, or
   one outside play that has since changed zone, is dropped with a partial `EFFECT_END`. A card its
   own play is putting into play when the effect starts (Clone's copy, started before it arrives)

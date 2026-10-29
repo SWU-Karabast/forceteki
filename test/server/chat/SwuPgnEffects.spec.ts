@@ -215,6 +215,13 @@ describe('SWU-PGN/1.0 effects (writer)', function () {
             const during = writerOutput(context.game).doc;
             const hauler = idOf(during, 'Stolen AT-Hauler');
             expect(ofType(during, 'EFFECT_END').map((e) => [e.id, e.reason, e.targets])).toEqual([['fx@1', 'targetLeft', [hauler]]]);
+            // The end follows the MOVE that took the card out of the pile, inside the play.
+            const leave = during.events.findIndex((e: any) => e.t === 'MOVE' && e.card === hauler && e.from === 'discard');
+            const ended = during.events.findIndex((e: any) => e.t === 'EFFECT_END');
+            expect(ended).toBeGreaterThan(leave);
+            const play = during.events.find((e: any) => e.t === 'PLAY' && e.card === hauler) as any;
+            const end = during.events[ended] as any;
+            expect(end.for ?? end.seq.replace(/[a-z]+$/, '')).toBe(play.seq);
 
             context.moveToNextActionPhase();
             const { text, doc } = writerOutput(context.game);

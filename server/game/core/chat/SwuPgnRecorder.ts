@@ -1846,7 +1846,7 @@ export class SwuPgnRecorder {
      * active set against what was written. Runs before and after every engine event (see `on`) and
      * before a keyframe, so a keyframe's `effects` never gets ahead of the records.
      */
-    private syncEffects(): void {
+    private syncEffects({ zoneChanges = true }: { zoneChanges?: boolean } = {}): void {
         if (this.effectInfo.size === 0) {
             return;
         }
@@ -1866,8 +1866,10 @@ export class SwuPgnRecorder {
             if (target.inPlay) {
                 return !readOr(() => target.card?.isInPlay?.() === true, false);
             }
+            // Only after an engine event's own records: the card's zone has already changed when
+            // its MOVE is handled, and the end must follow that MOVE, not precede it.
             const zone = readOr<unknown>(() => target.card?.zoneName, undefined);
-            return target.zone != null && zone != null && zone !== target.zone;
+            return zoneChanges && target.zone != null && zone != null && zone !== target.zone;
         };
 
         for (const [fx, info] of [...this.effectInfo]) {
@@ -2187,7 +2189,7 @@ export class SwuPgnRecorder {
             // An effect the engine removed since the last event (at a phase's end, an attack's
             // end) ended before this event, so its end is written before this event's records.
             try {
-                this.syncEffects();
+                this.syncEffects({ zoneChanges: false });
             } catch (error) {
                 this.logError('syncEffects', error);
             }

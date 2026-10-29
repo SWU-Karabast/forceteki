@@ -258,7 +258,7 @@ describe('render effects', function () {
             '       ↳ Player 1: Bold Resistance — +2/+0 on Wampa · Battlefield Marine (for this phase)',
             '       ↳ Player 2: Bold Resistance for Player 1 (until Player 1 plays a unit)',
             '       ↳ Player 1: Wampa on Player 2\'s base (while Wampa is in play)',
-            '       ↳ Effect from Bold Resistance ends on Battlefield Marine (its target left play)',
+            '       ↳ Effect from Bold Resistance ends on Battlefield Marine (its target changed zone)',
             '       ↳ Effect from Bold Resistance ends (it resolved)',
             '       ↳ Effect fx@9 ends (expired)',
         ]);
