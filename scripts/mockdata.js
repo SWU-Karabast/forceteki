@@ -639,6 +639,30 @@ const mockCards = [
     // -------- End Mock Cards --------
 ];
 
+// -------- Begin Mock Reprints --------
+// For cards already in the official data that are reprinted in an upcoming (mocked) set.
+// Instead of a buildMockCard entry - which would shadow the official card data and drop
+// the real card's other printings - the new set code is grafted onto the official card's
+// setCodes, so the real stats and the existing card implementation are reused as-is.
+// Note: `set` must exist in the `setNumber` map in fetchdata.js to be picked up.
+const mockReprints = [
+    { internalName: 'magistrates-scout', setId: { set: 'IC27', number: 18 } },
+    { internalName: 'concord-dawn-interceptors', setId: { set: 'IC27', number: 36 } },
+    { internalName: 'disciples-devotion', setId: { set: 'IC27', number: 53 } },
+    { internalName: 'betrayed-trust', setId: { set: 'IC27', number: 55 } },
+    { internalName: 'exegol-patroller', setId: { set: 'IC27', number: 59 } },
+    { internalName: 'knight-of-ren', setId: { set: 'IC27', number: 61 } },
+    { internalName: 'captain-phasma#on-my-command', setId: { set: 'IC27', number: 64 } },
+    { internalName: 'apology-accepted', setId: { set: 'IC27', number: 69 } },
+    { internalName: 'homestead-militia', setId: { set: 'IC27', number: 90 } },
+    { internalName: 'dogfight', setId: { set: 'IC27', number: 94 } },
+    { internalName: 'special-forces-tie-fighter', setId: { set: 'IC27', number: 100 } },
+    { internalName: 'battle-fury', setId: { set: 'IC27', number: 111 } },
+    { internalName: 'cham-syndulla#rallying-ryloth', setId: { set: 'IC27', number: 131 } },
+    { internalName: 'infiltrators-skill', setId: { set: 'IC27', number: 133 } },
+];
+// -------- End Mock Reprints --------
+
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string, text: string?, deployBox: string?, epicAction: string?, backSideTitle: string?, backSideSubtitle: string?, backSideTraits: string[]?, backSideAspects: string[]? }} cardData */
 function buildMockCard(cardData) {
     let textElements = [];
@@ -744,7 +768,39 @@ function addMockCards(cards) {
         allCards.push(card);
     }
 
+    applyMockReprints(allCards);
+
     return { mockCardNames, cards: allCards };
+}
+
+/** @param {Array<{ internalName: string, setCodes?: { set: string, number: number }[], setId: { set: string, number: number } }>} allCards */
+function applyMockReprints(allCards) {
+    for (const reprint of mockReprints) {
+        const matches = allCards.filter((card) => card.internalName === reprint.internalName);
+
+        if (matches.length === 0) {
+            console.log(`\nWARNING: mock reprint target '${reprint.internalName}' not found in card data. Check the internalName.`);
+            continue;
+        }
+
+        let patchedCount = 0;
+        for (const card of matches) {
+            if (!card.setCodes) {
+                card.setCodes = [card.setId];
+            }
+
+            if (card.setCodes.some((setCode) => setCode.set === reprint.setId.set && setCode.number === reprint.setId.number)) {
+                continue;
+            }
+
+            card.setCodes.push(reprint.setId);
+            patchedCount++;
+        }
+
+        if (patchedCount === 0) {
+            console.log(`\nMock reprint '${reprint.internalName}' (${buildSetStr(reprint)}) found in official data. The mock reprint can now be safely removed from mockdata.js`);
+        }
+    }
 }
 
 module.exports = { addMockCards };
