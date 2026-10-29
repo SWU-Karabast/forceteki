@@ -518,6 +518,31 @@ describe('SwuPgnRecorder gap events: counters + upgrades', function () {
         expect((choice as any).prompt).toBe('Choose a unit');
     });
 
+    // Value: protects=only the asked players' first picks are blind (spec §10.2); fails_when=the ask is never cleared, so a later pick in the same ability is marked blind; why_new=ship review (adversarial); seam=none; no_claim=the engine's own emit, covered by SwuPgnVisibility.spec
+    it('marks only the asked players\' picks blind, and not a later pick in the same ability', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const p2 = { id: 'p2' };
+        const a = fakeCard({ uuid: 'SOR#101', owner: p1, controller: p1 });
+        const b = fakeCard({ uuid: 'SOR#102', owner: p2, controller: p2 });
+        const context = { player: p1, source: a };
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnBlindChoicesRequested, { context, players: [p1, p2] });
+        game.emit(EventName.OnCardSelection, { player: p2, offered: [b], chosen: b, context });
+        game.emit(EventName.OnCardSelection, { player: p1, offered: [a], chosen: a, context });
+        game.emit(EventName.OnCardSelection, { player: p1, offered: [a, b], chosen: b, context });
+
+        const choices = rec.getEvents().filter((e: any) => e.t === 'CHOICE') as any[];
+        expect(choices.length).toBe(3);
+        expect(choices[0].blind).toBeDefined();
+        expect(choices[1].blind).toBe(choices[0].blind);
+        expect(choices[2].blind).withContext('a later pick in the same ability')
+            .toBeUndefined();
+    });
+
     it('skips a CHOICE when the chosen card is unresolvable or absent from the offered pool', function () {
         const game = new FakeEmitter();
         const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });

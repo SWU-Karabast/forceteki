@@ -93,5 +93,35 @@ describe('SWU-PGN/1.0 cross-seat piles', function () {
             expect(after.players[1].cards.some((c) => c.zone === 'ground')).withContext('and not P1\'s')
                 .toBeFalse();
         });
+
+        // Value: protects=an event the opponent plays out of your deck is used by the opponent and leaves no phantom in either discard; fails_when=ABILITY_ACTIVATE.p falls back to the card's controller, or PLAY_EVENT files the card in the player's pile beside its owner's MOVE; why_new=ship review (Codex); seam=none; no_claim=deck order
+        it('an event the opponent plays out of your deck is theirs to use and no discard keeps it', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { spaceArena: ['vermillion#qiras-auction-house'], deck: ['resupply'] },
+                player2: { deck: ['desperado-freighter'], resources: 3 },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.vermillion);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickPrompt('Your deck');
+            context.player1.clickDone();
+            context.player1.clickPrompt('Opponent');
+            context.player2.clickPrompt('Trigger');
+            expect(context.resupply).toBeInZone('resource', context.player2);
+
+            const { text, doc } = writerOutput(context.game);
+            expect(validate(text).issues.filter((i) => i.severity === 'error')).toEqual([]);
+            const resupply = (doc.cards ?? []).find((c) => c.name.startsWith('Resupply'))?.id;
+            const uses = doc.events.filter((e: any) => e.t === 'ABILITY_ACTIVATE' && e.card === resupply);
+            expect(uses.length).withContext('its ability is recorded')
+                .toBeGreaterThan(0);
+            expect(uses.map((e: any) => e.p)).withContext('used by the player who played it')
+                .toEqual(uses.map(() => 2));
+            const s = fold(doc.events);
+            expect([...s.players[1].discard, ...s.players[2].discard]).withContext('no discard keeps it')
+                .not.toContain(resupply);
+        });
     });
 });

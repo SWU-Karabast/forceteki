@@ -634,7 +634,7 @@ export class SwuPgnRecorder {
      * that asked several players to choose at once, and the seq of the record that asked. Held in
      * each checkpoint.
      */
-    private blindAsk: { context: any; seq: string } | null = null;
+    private blindAsk: { context: any; seq: string; waiting: readonly any[] } | null = null;
 
     /**
      * The `simul` group being written: the engine event window it resolves in, its first record,
@@ -673,7 +673,7 @@ export class SwuPgnRecorder {
         nextEffectNumber: number;
         limitedUses: [string, LimitPer[]][];
         gainedUses: [string, { seat: Seat; card: string; ability: string; per: LimitPer; limit: any; player: any }][];
-        blindAsk: { context: any; seq: string } | null;
+        blindAsk: { context: any; seq: string; waiting: readonly any[] } | null;
         simulGroup: { window: any; first: GameEvent; seq: string } | null;
         pendingLimits: PendingLimit[];
     }[] = [];
@@ -984,7 +984,9 @@ export class SwuPgnRecorder {
                 limitedUses: [...this.limitedUses.entries()].map(([card, pers]) => [card, [...pers]]),
                 gainedUses: [...this.gainedUses.entries()],
                 blindAsk: this.blindAsk,
-                simulGroup: this.simulGroup,
+                // A group whose window has ended takes no more records, so a checkpoint keeps
+                // none: holding it would keep that finished window alive for the rest of the game.
+                simulGroup: this.simulGroup?.window != null && this.simulGroup.window === readOr<any>(() => this.game.currentEventWindow, null) ? this.simulGroup : null,
                 pendingLimits: [...this.pendingLimits],
             });
             // Not capped. The engine keeps its phase snapshots per phase name, and the setup
@@ -2178,6 +2180,15 @@ export class SwuPgnRecorder {
      * event, handled or not, is followed by a stats sync (see syncStats).
      */
     private on(name: EventName, fn: (event: any) => void, { syncAfter = true }: { syncAfter?: boolean } = {}): void {
+        // A pending resource move is settled before the next event's handler runs, when its flag is
+        // final and the handler (a payment exhausting resources, a readying) has not yet changed it.
+        this.game.on(`${name}:preResolve`, () => {
+            try {
+                this.settleResourceMove();
+            } catch (error) {
+                this.logError('settleResourceMove', error);
+            }
+        });
         this.game.on(name, (event: any) => {
             try {
                 this.settleResourceMove();
@@ -3177,9 +3188,9 @@ export class SwuPgnRecorder {
                 const by = event?.context?.retriggeredBy;
                 return by == null ? undefined : this.sourceRef(by);
             }, undefined);
-            // `p` is who used it ([W-54]) wherever the difference matters: the fold counts a
-            // limited use under `p`, and the engine counts it for the context's player.
-            const seat = this.seatOf(limit || usedBy ? user : player);
+            // `p` is who used it (spec §10.1, [W-54]): the context's player, which is not the card's
+            // controller for an event played out of the other seat's deck or a Bounty collected.
+            const seat = this.seatOf(user);
             this.push({
                 seq,
                 t: 'ABILITY_ACTIVATE',
@@ -3287,7 +3298,8 @@ export class SwuPgnRecorder {
         // 7.1.4a): their card picks for this context are `blind`, valued at the asking record.
         this.on(EventName.OnBlindChoicesRequested, (event: any) => {
             const seq = event?.context != null ? this.askingSeq(event.context) : undefined;
-            this.blindAsk = seq != null ? { context: event.context, seq } : null;
+            const waiting: any[] = Array.isArray(event?.players) ? [...event.players] : [];
+            this.blindAsk = seq != null && waiting.length > 0 ? { context: event.context, seq, waiting } : null;
         }, { syncAfter: false });
 
         // ── Decision context (pure-log; no fold delta) ────────────────────────
@@ -3348,7 +3360,14 @@ export class SwuPgnRecorder {
                 .map((c: any) => this.targetRef(c))
                 .filter((id: string) => id !== 'unknown');
             // A pick made without seeing the other players' (spec §10.2, `[W-53]`).
-            const blind = event?.context != null && this.blindAsk?.context === event.context ? this.blindAsk.seq : undefined;
+            const ask = this.blindAsk;
+            const blind = event?.context != null && ask?.context === event.context && ask.waiting.includes(event?.player) ? ask.seq : undefined;
+            // Each asked player picks once; once all have, a later pick in the same context is not blind.
+            // A fresh object, never a mutation: checkpoints hold the old one.
+            if (blind != null && ask) {
+                const waiting = ask.waiting.filter((p) => p !== event?.player);
+                this.blindAsk = waiting.length > 0 ? { ...ask, waiting } : null;
+            }
             // A CHOICE is one pick. A multi-card pick is written, one CHOICE per card, only in a
             // blind group, where each card is a choice the rules make without the others seeing.
             const picked: any[] = event?.chosen != null
