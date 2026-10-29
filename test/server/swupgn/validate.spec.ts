@@ -272,6 +272,15 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(codes(good)).not.toContain('error:result-mismatch');
     });
 
+    // Value: protects=a GAME_END winner is a seat or "Draw" (§10.2), so a winner of 3 is not a complete file; fails_when=GAME_END has no schema rule and an unknown winner skips the Result comparison; why_new=ship review (Codex); seam=none; no_claim=an outcome a newer minor version adds, which is a warning
+    it('rejects a GAME_END whose winner is not a seat or Draw', function () {
+        const ended = (winner: string) => addEventAtEnd(`{"seq":"R2.A.game-end","t":"GAME_END","winner":${winner},"reason":"Base Destroyed"}`)
+            .replace('[Result "Incomplete"]', '[Result "P1"]');
+        expect(codes(ended('3'))).toContain('error:schema');
+        expect(validate(ended('3')).level).toBe('well-formed');
+        expect(codes(ended('1'))).not.toContain('error:schema');
+    });
+
     it('rejects a seq used twice, and a for or ref that names nothing', function () {
         expect(codes(addEvent('{"seq":"R1.A.1","t":"PASS","p":1}'))).toContain('error:duplicate-seq');
         expect(codes(addEvent('{"seq":"R1.A.9","t":"PASS","p":1,"for":"R9.A.9"}'))).toContain('error:dangling-ref');

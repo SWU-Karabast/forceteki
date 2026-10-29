@@ -116,6 +116,10 @@
       "then": { "properties": { "id": { "type": "string", "pattern": "^fx@[1-9][0-9]*$" } } }
     },
     {
+      "if": { "properties": { "t": { "const": "GAME_END" } }, "required": ["t"] },
+      "then": { "properties": { "winner": { "enum": [1,2,"Draw"] }, "reason": { "type": "string" } }, "required": ["winner","reason"] }
+    },
+    {
       "if": { "properties": { "t": { "const": "ATTACK" } }, "required": ["t"] },
       "then": { "properties": { "atk": { "type": "string" }, "def": { "type": "string" } }, "required": ["atk","def"] }
     }

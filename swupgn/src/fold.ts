@@ -92,6 +92,12 @@ export function isCompleteKeyframe(k: unknown): k is ReducedState {
         if (uses !== undefined && (!Array.isArray(uses) || uses.length > MAX_ZONE_LIST || !uses.every(isCompleteAbilityUse))) {
             return false;
         }
+        // `leader` is optional too, but when present later records write its flags in place
+        // (LEADER_FLIP, DEPLOY_LEADER, EXHAUST): it must be an object with a string id.
+        const leader = ps.leader as unknown;
+        if (leader !== undefined && leader !== null && (typeof leader !== 'object' || typeof (leader as { id?: unknown }).id !== 'string')) {
+            return false;
+        }
     }
     // `effects` is optional (a file older than it), but when present every entry is an effect the
     // fold may later end by id or by target: a list of capped size, each with a string id and,
@@ -497,7 +503,8 @@ function endEffect(s: ReducedState, e: Extract<GameEvent, { t: 'EFFECT_END' }>):
     if (!fx.targets) {
         return;
     }
-    fx.targets = fx.targets.filter((t) => !gone.includes(t));
+    const leaving = new Set(gone);
+    fx.targets = fx.targets.filter((t) => !leaving.has(t));
     if (fx.targets.length === 0) {
         effects.splice(at, 1);
     }
@@ -908,9 +915,11 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
         case 'PLAY': case 'PLAY_SMUGGLE':
             placeCard(s, e.p, e.card, e.zone ?? 'ground'); break;
         case 'PLAY_EVENT': {
-            // Idempotent beside its own hand->discard MOVE, which is the pile's author.
+            // Idempotent beside its own MOVE, which is the pile's author and files the card under
+            // its owner: an event played out of the other seat's deck is in that seat's discard,
+            // not the player's, so it is filed only when no discard holds it yet.
             const ps = player(s, e.p);
-            if (ps) {
+            if (ps && !([1, 2] as Seat[]).some((seat) => s.players[seat]?.discard.includes(e.card))) {
                 addOnce(ps.discard, e.card);
             }
             break;

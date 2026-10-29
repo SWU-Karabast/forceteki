@@ -6,6 +6,12 @@ import { isTopLevelActionRecord } from './actionLinks';
 
 const RULE_WIDTH = 78;
 
+/** The longest story render() writes, in UTF-16 code units (spec §16): 16 MiB, the size of a file. */
+const MAX_STORY_LENGTH = 16 * 1024 * 1024;
+
+/** The line a story longer than MAX_STORY_LENGTH ends with (spec §16). */
+const STORY_CUT = '… the story stops here: it is longer than 16777216 characters';
+
 /** `x` if it is an array, else `[]`: a file is untrusted input and `cards: 5` must not throw. */
 function arr(x: unknown): string[] {
     return Array.isArray(x) ? (x as string[]) : [];
@@ -310,10 +316,23 @@ export function render(doc: SwuPgnDocument, names?: NameResolver): string {
         frontNameOf: (id) => base.nameOf(baseId(id)),
     };
     const out: string[] = [];
+    // The story's size so far, in UTF-16 code units with a line feed per line: a file names a
+    // card in a few bytes and the story in up to 120 characters, so it is capped (spec §16).
+    let size = 0;
+    const put = (...lines: string[]) => {
+        for (const l of lines) {
+            out.push(l);
+            size += l.length + 1;
+        }
+    };
     let actionNum = 0;
     // Effect id -> source card, so an EFFECT_END (which carries only the id) can name it.
     const effectSources = new Map<string, string>();
     for (const e of doc.events) {
+        if (size > MAX_STORY_LENGTH) {
+            out.push(STORY_CUT);
+            break;
+        }
         if (e.t === 'EFFECT_START' && typeof e.id === 'string' && typeof e.src === 'string') {
             effectSources.set(e.id, e.src);
         }
@@ -341,27 +360,27 @@ export function render(doc: SwuPgnDocument, names?: NameResolver): string {
             }
         }
         if (e.t === 'ROUND_START') {
-            out.push('', '═'.repeat(RULE_WIDTH));
+            put('', '═'.repeat(RULE_WIDTH));
             const left = ` ROUND ${e.round}`;
             // Only a complete keyframe is laid out; a damaged one is not a board (spec §13).
             const keyframe = isCompleteKeyframe(e.keyframe) ? e.keyframe : undefined;
             const right = keyframe?.initiative ? `initiative: ${who(keyframe.initiative)} ` : '';
-            out.push(right ? left.padEnd(RULE_WIDTH - right.length) + right : left);
+            put(right ? left.padEnd(RULE_WIDTH - right.length) + right : left);
             if (keyframe) {
-                out.push(...boardSummary(keyframe, n));
+                put(...boardSummary(keyframe, n));
             }
-            out.push('═'.repeat(RULE_WIDTH), '');
+            put('═'.repeat(RULE_WIDTH), '');
             actionNum = 0;
             continue;
         }
         // Neither an action nor a consequence: the records it retracted are gone from the file,
         // so it is a mark in the margin saying the narrative below was replayed from here.
         if (e.t === 'UNDO') {
-            out.push(`    ·· ${e.by ? who(e.by) : 'A player'} undid back to ${e.at} ··`);
+            put(`    ·· ${e.by ? who(e.by) : 'A player'} undid back to ${e.at} ··`);
             continue;
         }
         if (e.t === 'PHASE_START') {
-            out.push(` ── ${e.phase} ──`);
+            put(` ── ${e.phase} ──`);
             actionNum = 0;
             continue;
         }
@@ -377,9 +396,9 @@ export function render(doc: SwuPgnDocument, names?: NameResolver): string {
         // `R2.A.3b`, … — the causal grouping is already in the data, and indenting shows it.
         if (isTopLevelActionRecord(e)) {
             actionNum += 1;
-            out.push(` ${String(actionNum).padStart(2)}. ${text}`);
+            put(` ${String(actionNum).padStart(2)}. ${text}`);
         } else {
-            out.push(`       ↳ ${text}`);
+            put(`       ↳ ${text}`);
         }
     }
     // Every story line is one line, whatever a file put in a field it prints (spec §16, R-04).

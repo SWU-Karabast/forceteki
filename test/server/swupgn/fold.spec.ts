@@ -649,6 +649,19 @@ describe('fold arena membership', function () {
             expect(s.players[1]?.cards.map((c) => c.id)).toEqual(['SOR#108']);
         });
 
+        // Value: protects=a keyframe whose leader is not an object is a damaged checkpoint, so a later LEADER_FLIP does not throw (spec §13); fails_when=the leader's shape is not checked before the snap; why_new=ship review (Codex); seam=none; no_claim=none
+        it('ignores a keyframe whose leader is not an object', function () {
+            const seat = (n: 1 | 2, leader?: unknown) => ({ seat: n, baseHp: 30, baseMaxHp: 30, handSize: 0, hand: [], resourcesReady: 0, resourcesExhausted: 0,
+                credits: 0, hasForce: false, discard: [], cards: [], ...(leader === undefined ? {} : { leader }) });
+            const hostile: GameEvent[] = [
+                { seq: 'R2.start', t: 'ROUND_START', round: 2, active: 1, keyframe: { round: 2, phase: 'action', initiative: 1, players: { 1: seat(1, 'broken'), 2: seat(2) } } } as any,
+                ev({ seq: 'R2.A.1', t: 'LEADER_FLIP', p: 1, card: 'TWI#017', onStartingSide: false }),
+            ];
+            expect(() => fold(hostile)).not.toThrow();
+            expect(() => stateAt(hostile, 'R2.A.1')).not.toThrow();
+            expect(() => checkKeyframes(hostile)).not.toThrow();
+        });
+
         it('stateAt folds from the nearest usable keyframe and equals a fold from the start', function () {
             const seat = (n: 1 | 2) => ({ seat: n, baseHp: 30, baseMaxHp: 30, handSize: 2, hand: [], resourcesReady: 3, resourcesExhausted: 0, credits: 0, hasForce: false, discard: [], cards: [] });
             const withKeyframes: GameEvent[] = [

@@ -437,3 +437,17 @@ describe('render keeps every record on one line', function () {
         expect(out).toContain('(later FAKE)');
     });
 });
+
+describe('render size', function () {
+    // Value: protects=the story stops at 16 MiB however a file's names expand its ids (spec §16); fails_when=render writes every record whatever its total size; why_new=ship review (adversarial): a few-byte id names a card in up to 120 characters; seam=none; no_claim=the 16 MiB file cap, which parse enforces
+    it('stops the story at 16 MiB with a closing line', function () {
+        const ids = Array.from({ length: 1000 }, (_, i) => `A#${i}`);
+        const cards = ids.map((id) => ({ id, name: 'n'.repeat(120) }));
+        const events = Array.from({ length: 150 }, (_, i) => ({ seq: `R1.A.${i + 1}`, t: 'DISCARD', p: 1, cards: ids }));
+        const out = render({ header: {} as any, decks: [], setup: [], events, annotations: [], cards } as any);
+        const lines = out.split('\n');
+        expect(out.length).toBeLessThan(16 * 1024 * 1024 + 200000);
+        expect(lines[lines.length - 1]).toBe('… the story stops here: it is longer than 16777216 characters');
+        expect(lines.length).toBeLessThan(150);
+    });
+});

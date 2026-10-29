@@ -3036,7 +3036,7 @@ twice.
 | `PHASE_START` | `phase = event.phase`; remove every seat's `abilityUses` entries whose `per` is `phase`; `active = event.active` when it is `1` or `2` |
 | `CLAIM_INITIATIVE` | `initiative = event.p`; `initiativeTaken = true` |
 | `PLAY`, `PLAY_SMUGGLE` | place `card` in `zone ?? "ground"` — **idempotent by id**: if already tracked, just set its zone. The paired `MOVE` reports the same arrival, and pushing on both duplicates every unit in play |
-| `PLAY_EVENT` | add `card` to `players[p].discard`, **once by id** — its own hand→discard `MOVE` files the same card |
+| `PLAY_EVENT` | add `card` to `players[p].discard`, **once by id**, unless a seat's `discard` already holds it — its own `MOVE` files the same card under its owner, so an event played out of the other seat's deck stays in that seat's discard |
 | `PLAY_UPGRADE` | if `target` is `base@N` → add `card` to `players[N].baseUpgrades`, once by id; else if `target` is set → `attach(state, target, card)` (nothing if the host isn't tracked) and note `p` as its controller on the host, as [§12.1](#121-the-move-rule-the-big-one) step 3 does; otherwise **nothing**. An upgrade is never an arena card, so there is no fallback placement |
 | `DEPLOY_LEADER` | ignored when it has no `card`. Otherwise `players[p].leader = { id: card, deployed: true, exhausted: false, epicActionUsed: (was already used) or epic === true }`; then if `kind` is `"upgrade"` → `attach(state, target, card)` and note `p` as its controller on the host, as for `PLAY_UPGRADE`; else place `card` in `zone ?? "ground"`, idempotent by id |
 | `ABILITY_ACTIVATE` | if `limit` is present, `card` and `ability` are strings, `p` is `1` or `2` and `limit.per` is `phase`, `round` or `game`: create `players[p].abilityUses` if absent; if it holds an entry with this `card` and `ability`, add 1 to its `count` and set its `per` and `max` to `limit.per` and `limit.max`, else add `{ card, ability, count: 1, per, max }` at the end (`max` is `0` when `limit.max` is not a number) (no more than 1000 entries are kept). Then, if `epic`: `card` of `base@N` → `players[N].baseEpicActionUsed = true`; else if `card` is a seat's `leader.id` → that leader's `epicActionUsed = true`. `usedBy` changes nothing |
@@ -3539,6 +3539,11 @@ A strict renderer also follows these, which the tables above leave implicit:
 - **One record is never more than one line.** Whatever a file puts in a field the story prints
   (a name, a zone, a reason, an id), each line break, other control character and
   bidirectional control in it is written as a space (`[R-04]`).
+- **A story is at most 16,777,216 characters** (UTF-16 code units, a line feed counted per line).
+  A file names a card in a few bytes and the story in up to 120 characters, so before a record
+  is printed while the story is already longer than that, the story ends with the line
+  `… the story stops here: it is longer than 16777216 characters` and nothing after it. No real
+  game comes near it.
 - **Action numbers** are right-aligned in two columns (` 1.`, `12.`). From 100 up the number
   takes the width it needs (`100.`).
 - **Lines are joined with `\n`** and the story has **no trailing line feed**. A `.render.txt`
@@ -4132,6 +4137,13 @@ A pass of the format against Comprehensive Rules v9.0 and the board state of CR 
   and cutting text like a card name also turns each line break, other control character and
   bidirectional control into a space; every other field the story prints is written the same
   way, so one record is one story line ([§16](#16-rendering--turning-a-file-into-a-story), `[R-04]`).
+- A story stops at 16,777,216 characters with a closing line ([§16](#strict-layout-rules)).
+- `PLAY_EVENT` files its card only when no seat's `discard` already holds it: its own `MOVE`
+  files it under its owner, so an event played out of the other seat's deck is not also put in
+  the player's pile ([§12.2](#122-every-other-rule-in-one-table)).
+- `GAME_END.winner` is `1`, `2` or `"Draw"`, and another value fails its schema (`schema`, error);
+  an outcome a newer minor version adds is a warning, as for every growable vocabulary
+  ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
 - The conformance suite gains the `effects`, `visibility` and `control` real-game vectors, every
   real-game vector is regenerated at writer revision 6, and the negative-vector table lists every
   negative vector ([§20](#20-conformance-suite--test-vectors)).
@@ -5142,7 +5154,7 @@ contents alone cannot show. None of this is required of another writer. Operatio
   the bottom" ability. `SEARCH.seen` is every card the search showed the searcher. `NAME` is
   written when a dropdown names a card, and not when it names something else (a trait).
 - **`blind` and `simul` `[W-53]`.** When an ability has several players choose at once, the
-  engine says so before the prompts, and every card pick for that ability is a `blind` `CHOICE`
+  engine says so before the prompts, naming the players, and each named player's pick for that ability is a `blind` `CHOICE` (a later pick in the same ability is not)
   valued at the latest `ABILITY_ACTIVATE` of its source in the current action, else at the
   action's own record. `simul` is written on the discards of such a resolution (each card's `MOVE`
   from `hand` and its `DISCARD`) and on combat damage (its `DAMAGE` records and an `OVERWHELM`),
