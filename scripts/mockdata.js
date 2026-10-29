@@ -636,6 +636,154 @@ const mockCards = [
         arena: 'ground',
         internalName: 'bokatan-kryze#right-place-right-time'
     }),
+    buildMockCard({
+        title: 'Kylo Ren',
+        subtitle: 'Supreme Leader',
+        cost: 5,
+        power: 5,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['force', 'first order', 'official'],
+        types: ['leader'],
+        setId: {
+            set: 'IC27',
+            number: 3
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'kylo-ren#supreme-leader'
+    }),
+    buildMockCard({
+        title: 'Kylo\'s TIE Silencer',
+        subtitle: 'Follow My Lead',
+        cost: 4,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        keywords: ['restore 1'],
+        traits: ['first order', 'vehicle', 'fighter'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 63
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'kylos-tie-silencer#follow-my-lead'
+    }),
+    buildMockCard({
+        title: 'Mother Talzin',
+        subtitle: 'The Time Has Come',
+        cost: 7,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['force', 'night'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 66
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'mother-talzin#the-time-has-come'
+    }),
+    buildMockCard({
+        title: 'Allegiant General Pryde',
+        subtitle: 'Heartless Efficiency',
+        cost: 1,
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['first order', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 56
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'allegiant-general-pryde#heartless-efficiency'
+    }),
+    buildMockCard({
+        title: 'Devastator',
+        subtitle: 'Lord Vader\'s Flagship',
+        cost: 10,
+        power: 9,
+        hp: 9,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        keywords: ['overwhelm'],
+        traits: ['imperial', 'vehicle', 'capital ship'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 68
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'devastator#lord-vaders-flagship'
+    }),
+    buildMockCard({
+        title: 'General Hux',
+        subtitle: 'Fire Ventral Cannons!',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        keywords: ['overwhelm'],
+        traits: ['first order', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 101
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'general-hux#fire-ventral-cannons'
+    }),
+    buildMockCard({
+        title: 'Aurra Sing',
+        subtitle: 'Getting Even',
+        cost: 6,
+        power: 1,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        keywords: ['hidden'],
+        traits: ['underworld', 'bounty hunter'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 107
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'aurra-sing#getting-even'
+    }),
+    buildMockCard({
+        title: 'Supremacy',
+        subtitle: 'Destroy the Resistance',
+        cost: 10,
+        power: 10,
+        hp: 10,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        traits: ['first order', 'vehicle', 'capital ship'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 110
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'supremacy#destroy-the-resistance'
+    }),
     // -------- End Mock Cards --------
 ];
 
