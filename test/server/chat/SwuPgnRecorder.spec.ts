@@ -543,6 +543,40 @@ describe('SwuPgnRecorder gap events: counters + upgrades', function () {
             .toBeUndefined();
     });
 
+    // Value: protects=a blind pick is one by an asked player, an ask naming nobody marks none, and undo restores who is still to pick; fails_when=waiting is ignored, or mutated in place so a checkpoint loses it; why_new=the test above asks both seats and never undoes; seam=none; no_claim=the engine's emit
+    it('marks only an asked player\'s pick blind, and an undo restores who is still to pick', function () {
+        const game = new FakeEmitter();
+        const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
+
+        const p1 = { id: 'p1' };
+        const p2 = { id: 'p2' };
+        const a = fakeCard({ uuid: 'SOR#101', owner: p1, controller: p1 });
+        const b = fakeCard({ uuid: 'SOR#102', owner: p2, controller: p2 });
+        const context = { player: p1, source: a };
+        const blinds = () => (rec.getEvents().filter((e: any) => e.t === 'CHOICE') as any[]).map((e) => e.blind);
+
+        game.emit(EventName.OnPhaseStarted, { phase: 'action' });
+        game.emit(EventName.OnBlindChoicesRequested, { context, players: [] });
+        game.emit(EventName.OnCardSelection, { player: p1, offered: [a, b], chosen: a, context });
+        expect(blinds()).withContext('an ask naming no player')
+            .toEqual([undefined]);
+
+        game.emit(EventName.OnBlindChoicesRequested, { context, players: [p2] });
+        game.emit(EventName.OnCardSelection, { player: p1, offered: [a, b], chosen: a, context });
+        expect(blinds()[1]).withContext('a player who was not asked')
+            .toBeUndefined();
+
+        rec.checkpoint(7);
+        game.emit(EventName.OnCardSelection, { player: p2, offered: [a, b], chosen: b, context });
+        const asked = blinds()[2];
+        expect(asked).withContext('the asked player')
+            .toBeDefined();
+        rec.rollbackTo(7, 'p2');
+        game.emit(EventName.OnCardSelection, { player: p2, offered: [a, b], chosen: b, context });
+        expect(blinds()).withContext('the same pick again after the undo')
+            .toEqual([undefined, undefined, asked]);
+    });
+
     it('skips a CHOICE when the chosen card is unresolvable or absent from the offered pool', function () {
         const game = new FakeEmitter();
         const rec = new SwuPgnRecorder(game as any, { cardId: (u: string) => u, seat: (p: string) => (p === 'p1' ? 1 : 2) as 1 | 2 });
@@ -1166,6 +1200,22 @@ describe('SwuPgnRecorder: resources, base tokens, captures, exits', function () 
 
         const move = ofType(rec, 'MOVE').find((m) => m.card === 'SOR#063');
         expect(move).toEqual(jasmine.objectContaining({ to: 'resource', exhausted: true }));
+    });
+
+    // Value: protects=a resource that entered ready is not written exhausted when the next event's handler exhausts it (a payment); fails_when=the pending move settles only after that handler, not on its :preResolve; why_new=every settle test changes the flag between events; seam=none; no_claim=the engine's emit order, which EventWindow owns
+    it('settles a pending resource move before the next event\'s handler changes the flag', function () {
+        const { game, rec } = mk();
+        const card: any = fakeCard({ uuid: 'SOR#065', zoneName: 'resource', owner: p1, exhausted: false });
+        game.emit(EventName.OnCardMoved, { card, originalZone: 'hand', newZone: 'resource' });
+        const discarded = { card: fakeCard({ uuid: 'SOR#066', owner: p1 }) };
+        game.emit(`${EventName.OnCardDiscarded}:preResolve`, discarded);
+        card.exhausted = true; // the next event's handler spends it
+        game.emit(EventName.OnCardDiscarded, discarded);
+
+        const move = ofType(rec, 'MOVE').find((m) => m.card === 'SOR#065');
+        expect(move).toBeDefined();
+        expect('exhausted' in move).withContext('it entered ready')
+            .toBeFalse();
     });
 
     it('does not carry a pending resource flag across an undo', function () {

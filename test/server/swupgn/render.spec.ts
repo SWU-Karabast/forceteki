@@ -436,6 +436,31 @@ describe('render keeps every record on one line', function () {
         expect(out).toContain('Effect fx@9 FAKE ends (gone FAKE)');
         expect(out).toContain('(later FAKE)');
     });
+
+    // Value: protects=control and bidirectional characters never reach a story line (§16, R-04); fails_when=flatten's class is narrowed to line breaks; why_new=the tests above use only CR, LF and U+2028; seam=none; no_claim=characters outside the listed set
+    it('turns control and bidirectional characters into spaces', function () {
+        const between = [0x0000, 0x0085, 0x202e, 0x2066, 0x200f, 0x061c, 0x2029, 0x007f];
+        const out = render(doc([
+            { seq: 'R1.A.1', t: 'GAME_END', winner: 1, reason: 'abcdefghi'.split('').map((c, k) => (k > 0 ? String.fromCharCode(between[k - 1]) : '') + c)
+                .join('') },
+        ]));
+        expect(out).toContain('a b c d e f g h i');
+    });
+
+    // Value: protects=a resolver's long leader names are cut on deploy and flip lines (§16 nm); fails_when=DEPLOY_LEADER or LEADER_FLIP prints frontNameOf/backNameOf raw; why_new=side tests use the index, which cuts names itself; seam=none; no_claim=none
+    it('cuts a resolver\'s long leader side names on deploy and flip lines', function () {
+        const front = 'f'.repeat(200);
+        const back = 'b'.repeat(200);
+        const names = { nameOf: () => front, backNameOf: () => back };
+        const out = render(doc([
+            { seq: 'R1.A.1', t: 'DEPLOY_LEADER', p: 1, card: 'SOR#010' },
+            { seq: 'R1.A.1a', t: 'LEADER_FLIP', p: 2, card: 'TWI#017', onStartingSide: false },
+        ]), names).split('\n');
+        const cut = (c: string) => `${c.repeat(119)}…`;
+        expect(out[0]).toBe(`  1. Player 1 deploys ${cut('f')} as ${cut('b')}`);
+        expect(out[1].length).toBeLessThan(300);
+        expect(out[1]).toContain(` to ${cut('b')}`);
+    });
 });
 
 describe('render size', function () {
