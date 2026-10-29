@@ -1,4 +1,5 @@
 import { SwuPgnGameAdapter } from '../../../../server/game/core/chat/SwuPgnGameAdapter';
+import { parse } from '../../../../swupgn/src/parse';
 import { premierBestOfOne, premierBestOfThree } from '../../../helpers/server/MatchConfigs';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 import type { TestClient } from '../../../helpers/server/TestClient';
@@ -254,6 +255,59 @@ describe('Lobby game log download', function () {
 
             expect(player.lobbyState.rematchRequest).withContext('the first log named the opponent\'s deck')
                 .toBeNull();
+        });
+
+        // Value: protects=a downloaded log names the downloader's own deck too, so an opponent who later loads that deck is still refused; fails_when=the download records only the other players' decks; why_new=the other cases have both players on one list; seam=none; no_claim=two-leader decks, whose leader order the key also ignores
+        it('refuses once the opponent loads the deck the downloader played', async function () {
+            const { harness } = contextRef;
+            const { first: player, second: opponent } = await harness.startQuickGameAsync();
+            const lobbyId = player.lobbyState.id;
+            const mine = harness.decklists.validDecklist({ leaderIndex: 1 });
+
+            await player.sendGameMessageAsync('concede');
+            expect((await player.changeDeckAsync(lobbyId, mine)).status).toBe(200);
+            await player.sendLobbyMessageAsync('requestRematch', 'regular');
+            await opponent.sendLobbyMessageAsync('rematch');
+            await player.sendLobbyMessageAsync('setReadyStatus', true);
+            await opponent.sendLobbyMessageAsync('setReadyStatus', true);
+            const owner = player.lobbyState.lobbyOwnerId === player.id ? player : opponent;
+            await owner.sendLobbyMessageAsync('startGameAsync');
+            await player.sendGameMessageAsync('concede');
+            expect(typeof (await requestGameLogAsync(player))?.swuPgnFile).toBe('string');
+
+            expect((await opponent.changeDeckAsync(lobbyId, mine)).status).toBe(200);
+            expect((await player.changeDeckAsync(lobbyId, harness.decklists.validDecklist({ leaderIndex: 2 }))).status).toBe(200);
+            await player.sendLobbyMessageAsync('requestRematch', 'bo1ConvertToBo3');
+
+            expect(player.lobbyState.rematchRequest).withContext('the log named the deck the opponent holds now')
+                .toBeNull();
+        });
+
+        // Value: protects=the file names every card %%% DECKS lists, a card only in a sideboard included, so a reader needs no card database; fails_when=the CARDS index is built only from the cards loaded into the game; why_new=no spec plays a deck with a sideboard; seam=none; no_claim=a sideboard card's kind, which the card map does not carry
+        it('names a card that is only in a sideboard in the downloaded file', async function () {
+            const { harness } = contextRef;
+            const { first: player, second: opponent } = await harness.startQuickGameAsync();
+            const lobbyId = player.lobbyState.id;
+            const withSideboard = harness.decklists.validDecklist({ leaderIndex: 1, sideboardCards: 1 });
+            const sideboardId = withSideboard.sideboard[0].id;
+
+            await player.sendGameMessageAsync('concede');
+            expect((await player.changeDeckAsync(lobbyId, withSideboard)).status).toBe(200);
+            await player.sendLobbyMessageAsync('requestRematch', 'regular');
+            await opponent.sendLobbyMessageAsync('rematch');
+            await player.sendLobbyMessageAsync('setReadyStatus', true);
+            await opponent.sendLobbyMessageAsync('setReadyStatus', true);
+            const owner = player.lobbyState.lobbyOwnerId === player.id ? player : opponent;
+            await owner.sendLobbyMessageAsync('startGameAsync');
+            await player.sendGameMessageAsync('concede');
+            const doc = parse((await requestGameLogAsync(player))?.swuPgnFile);
+            const [set, number] = sideboardId.split('_');
+            const printedId = `${set.toUpperCase()}#${number.padStart(3, '0')}`;
+
+            expect(doc.decks.some((d) => d.sideboard?.some(([id]) => id === printedId))).withContext('the deck record lists it')
+                .toBeTrue();
+            expect(doc.cards?.find((c) => c.id === printedId)?.name).withContext('the index names it')
+                .toEqual(jasmine.any(String));
         });
 
         // Value: protects=a refused conversion request leaves a pending rematch of another mode in place; fails_when=the refusal clears whatever request is pending; why_new=the cases above have no other request pending; seam=none; no_claim=the rematch itself, accepted elsewhere

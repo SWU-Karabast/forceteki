@@ -180,7 +180,7 @@ export class Lobby {
 
     /**
      * The decks a served game log revealed, by the player it was served to: each entry is a deck
-     * another player played that game with (see `revealedDeckKey`). A file
+     * that game was played with, the player's own included (see `revealedDeckKey`). A file
      * names both decklists and sideboards, which a best-of-three keeps hidden between its games,
      * so while a seated player holds a log naming the current deck of another seated player,
      * whoever that is, this lobby does not convert into one. Every serve adds; nothing is
@@ -876,7 +876,8 @@ export class Lobby {
     /**
      * The cards a deck reveals: leaders, base, and main deck and sideboard counted
      * together (moving a card between the two reveals nothing new), each card by its internal name
-     * so a reprint's set code is the same card. Order-independent.
+     * so a reprint's set code is the same card. Order-independent, the two leaders of a
+     * two-leader deck included.
      */
     private static revealedDeckKey(deck: Deck): string {
         const list = deck.getDecklist();
@@ -885,7 +886,8 @@ export class Lobby {
             counts.set(card.internalName, (counts.get(card.internalName) ?? 0) + card.count);
         }
         const cards = [...counts.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([name, n]) => `${name}x${n}`);
-        return [list.leader?.internalName, list.secondLeader?.internalName ?? '', list.base?.internalName, ...cards].join(',');
+        const leaders = [list.leader?.internalName ?? '', list.secondLeader?.internalName ?? ''].sort();
+        return [...leaders, list.base?.internalName, ...cards].join(',');
     }
 
     /**
@@ -2849,9 +2851,10 @@ export class Lobby {
         this.game.markSwuPgnServed();
         const requesterId = socket.user.getId();
         const revealed = this.decksRevealedTo.get(requesterId) ?? new Set<string>();
-        // The game's players, not the lobby's: one who left is still named in the file.
+        // Every deck the file names, from the game's players, not the lobby's: one who left is
+        // still named in the file, and another player may load the requester's own deck later.
         for (const player of this.game.getPlayers()) {
-            if (player.id !== requesterId && player.lobbyDeck) {
+            if (player.lobbyDeck) {
                 revealed.add(Lobby.revealedDeckKey(player.lobbyDeck));
             }
         }

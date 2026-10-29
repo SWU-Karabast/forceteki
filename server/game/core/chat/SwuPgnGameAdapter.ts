@@ -20,6 +20,16 @@ function leaderSetId(player: Player): string {
     return SwuPgn.formatSetId(leader.setId.set, leader.setId.number);
 }
 
+/**
+ * A decklist entry's id (`SOR_229`) as a printed SET#NUM. Deck ids come from the user's
+ * decklist: a non-numeric suffix would otherwise be written as `SET#NaN`, so it is kept raw.
+ */
+function deckEntryId(setCode: string): string {
+    const parts = setCode.split('_');
+    const num = Number(parts[1]);
+    return parts.length === 2 && Number.isFinite(num) ? SwuPgn.formatSetId(parts[0], num) : setCode;
+}
+
 /** A seat with nothing on the board — used only when a seat can't be resolved at all. */
 function emptyPlayerState(seat: Seat): PlayerState {
     return {
@@ -163,6 +173,16 @@ export class SwuPgnGameAdapter {
                 );
                 if (printedId) {
                     add(printedId, card);
+                }
+            }
+            // A card only in the sideboard is named by `%%% DECKS` but never loaded into the game,
+            // so its name comes from the card map. It has no `kind`: the map has no printed type.
+            const sideboard = read<{ id: string; internalName: string }[]>(() => player.lobbyDeck?.getDecklist().sideboard ?? [], []);
+            for (const entry of sideboard) {
+                const id = deckEntryId(entry.id);
+                const mapped = read<{ title?: string; subtitle?: string } | undefined>(() => this.game.cardDataGetter?.cardMap?.get(entry.internalName), undefined);
+                if (!entries.has(id) && mapped?.title) {
+                    entries.set(id, { id, name: mapped.subtitle ? `${mapped.title}, ${mapped.subtitle}` : mapped.title });
                 }
             }
         }
@@ -862,14 +882,7 @@ export class SwuPgnGameAdapter {
             const toEntries = (entries: { id: string; count: number }[]): [string, number][] =>
                 entries
                     .filter((e) => e.count > 0)
-                    .map((e) => {
-                        // Deck ids come from the user's decklist. A non-numeric suffix would
-                        // otherwise be written as `SET#NaN`; keep the raw id instead.
-                        const parts = e.id.split('_');
-                        const num = Number(parts[1]);
-                        const id = parts.length === 2 && Number.isFinite(num) ? SwuPgn.formatSetId(parts[0], num) : e.id;
-                        return [id, e.count] as [string, number];
-                    });
+                    .map((e) => [deckEntryId(e.id), e.count] as [string, number]);
 
             let deck: [string, number][] = [];
             let sideboard: [string, number][] | undefined;
