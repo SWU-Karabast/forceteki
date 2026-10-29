@@ -5241,10 +5241,11 @@ by game end, no `MOVE` has an empty or identical `from`/`to` (and every zone nam
 vocabulary), and `Engine`/`Seed` are not placeholders.
 
 It is gated again on **organic** games — a natural setup phase (initiative, mulligan,
-resourcing) through several rounds of plays, attacks and regroup resourcing to a concession —
-folded with **no** field excluded: `SwuPgnOrganicGame.spec.ts` (four rounds), and the seven
+resourcing) through several rounds of plays, attacks and regroup resourcing to a concession
+(in `death-star`, to a base defeated) —
+folded with **no** field excluded: `SwuPgnOrganicGame.spec.ts` (four rounds), and the ten
 scenario games of `SwuPgnVectors.spec.ts` that are also the `upgrades`, `pilot`, `capture`,
-`arrest`, `stolen-hauler`, `homeworlds` and `death-star` vectors ([§20](#20-conformance-suite--test-vectors)). In every one, every keyframe field reproduces exactly:
+`arrest`, `stolen-hauler`, `homeworlds`, `death-star`, `effects`, `visibility` and `control` vectors ([§20](#20-conformance-suite--test-vectors)). In every one, every keyframe field reproduces exactly:
 `handSize`, `resourcesReady` **and `resourcesExhausted`**, `credits`, `hasForce`, and per card
 `upgrades` and `captured` alongside the counters; `validate()` returns no issue at all;
 `%%% CARDS` covers every leader, base and deck id; and `GAME_END` takes the `.game-end` step of
@@ -5278,7 +5279,7 @@ a base as captor, a card played out of the opponent's discard, leaders in and ou
 
 One caveat on `hand`, and it is about a test harness rather than the format: the integration
 specs that bootstrap a game directly at the action phase tear down the natural opening hand
-without emitting a `MOVE` for it, so the folded hand keeps those cards. Those two specs defer
+without emitting a `MOVE` for it, so the folded hand keeps those cards. Those specs defer
 `hand` past the first keyframe exactly as they already defer `handSize`. An organic game —
 natural setup, one bootstrap — reconstructs both exactly, which is what
 `SwuPgnOrganicGame.spec.ts` gates.
