@@ -1,10 +1,10 @@
 [Game "SWU-PGN/1.0"]
 [WriterRevision "6"]
 [GameId "sha256:661f4f0c4325e8154c8c3a9ed622ce0284caeab7b5fd2f46a3f2a29742c4f645"]
-[Date "2026-10-28T23:54:34.235Z"]
+[Date "2026-10-29T00:42:09.109Z"]
 [Format "premier"]
 [CardPool "ASH,HMW,IBH,IC27,JTL,LAW,LOF,SEC,SHD,SOR,TS26,TWI"]
-[Engine "forceteki@3061eeda3"]
+[Engine "forceteki@f74700d3f"]
 [Seed "swu-pgn-vector-stolen-hauler"]
 [P1Id "sha256:8849aa57ad283a2eb0d1a026cd1fa670ad8d48cf6b7cb55db80a6ef70960abb8"]
 [P2Id "sha256:d484debd88f2263d58ca8abbccc39bdd155f07d2b6ef472275312d173460ddf1"]
@@ -17,7 +17,7 @@
 [Result "P1"]
 [Reason "Concession"]
 [Rounds "4"]
-[EndDate "2026-10-28T23:54:34.248Z"]
+[EndDate "2026-10-29T00:42:09.121Z"]
 
 %%% STORY
  ── setup ──
@@ -59,8 +59,8 @@
        ↳ Stolen AT-Hauler uses an ability
        ↳ Player 1: Stolen AT-Hauler — For this phase, your opponent may play this unit from its owner's discard pile for free on Stolen AT-Hauler (for this phase)
   3. Player 1 passes
+       ↳ Effect from Stolen AT-Hauler ends on Stolen AT-Hauler (its target changed zone)
   4. Player 2 plays Stolen AT-Hauler to space (cost 3)
-       ↳ Effect from Stolen AT-Hauler ends (expired)
   5. Player 1 passes
   6. Player 2 passes
  ── regroup ──
@@ -84,8 +84,8 @@
        ↳ Stolen AT-Hauler #2 uses an ability
        ↳ Player 1: Stolen AT-Hauler #2 — For this phase, your opponent may play this unit from its owner's discard pile for free on Stolen AT-Hauler #2 (for this phase)
   3. Player 1 passes
+       ↳ Effect from Stolen AT-Hauler #2 ends on Stolen AT-Hauler #2 (its target changed zone)
   4. Player 2 plays Stolen AT-Hauler #2 to space (cost 3)
-       ↳ Effect from Stolen AT-Hauler #2 ends (expired)
   5. Player 1 passes
   6. Player 2 attacks Player 1's base with Stolen AT-Hauler
        ↳ 4 damage to Player 1's base — 26 HP left
@@ -126,7 +126,7 @@
 
 %%% EVENTS
 {"seq":"R0.S.start","t":"PHASE_START","phase":"setup","ms":0}
-{"seq":"R0.S.1","t":"MODAL_CHOICE","p":2,"offered":["Yourself","Opponent"],"chose":1}
+{"seq":"R0.S.1","t":"MODAL_CHOICE","p":1,"offered":["Yourself","Opponent"],"chose":0}
 {"seq":"R0.S.2","t":"SHUFFLE","p":1}
 {"seq":"R0.S.3","t":"MOVE","card":"LAW#253","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R0.S.4","t":"MOVE","card":"JTL#221","from":"deck","to":"hand","p":1,"kind":"unit"}
@@ -154,9 +154,9 @@
 {"seq":"R0.S.26","t":"MOVE","card":"IC27#097:2","from":"hand","to":"resource","p":2,"kind":"unit","for":"R0.S.27"}
 {"seq":"R0.S.27","t":"RESOURCE","p":2,"card":"IC27#097:2"}
 {"seq":"R0.S.end","t":"PHASE_END","phase":"setup"}
-{"seq":"R1.start","t":"ROUND_START","round":1,"active":1,"keyframe":{"round":1,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["JTL#221","LAW#253:3","LAW#253:4","LAW#253:5"],"resourcesReady":2,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":8,"leader":{"id":"SHD#013","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":4,"hand":["SOR#041","SOR#041:2","SOR#041:3","IC27#097:3"],"resourcesReady":2,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":6,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":2}
-{"seq":"R1.A.start","t":"PHASE_START","phase":"action","active":1,"ms":2}
-{"seq":"R1.A.1","t":"PASS","p":1,"ms":2}
+{"seq":"R1.start","t":"ROUND_START","round":1,"active":1,"keyframe":{"round":1,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["JTL#221","LAW#253:3","LAW#253:4","LAW#253:5"],"resourcesReady":2,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":8,"leader":{"id":"SHD#013","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":4,"hand":["SOR#041","SOR#041:2","SOR#041:3","IC27#097:3"],"resourcesReady":2,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":6,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":1}
+{"seq":"R1.A.start","t":"PHASE_START","phase":"action","active":1,"ms":1}
+{"seq":"R1.A.1","t":"PASS","p":1,"ms":1}
 {"seq":"R1.A.2","t":"PASS","p":2,"ms":2}
 {"seq":"R1.A.end","t":"PHASE_END","phase":"action"}
 {"seq":"R1.G.start","t":"PHASE_START","phase":"regroup","ms":2}
@@ -174,8 +174,8 @@
 {"seq":"R1.G.12","t":"READY_RESOURCES","p":2,"amount":1}
 {"seq":"R1.G.end","t":"PHASE_END","phase":"regroup"}
 {"seq":"R1.end","t":"ROUND_END","round":1,"keyframe":{"round":1,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":5,"hand":["JTL#221","LAW#253:4","LAW#253:5","LAW#253:6","JTL#221:2"],"resourcesReady":3,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":6,"leader":{"id":"SHD#013","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":5,"hand":["SOR#041","SOR#041:2","SOR#041:3","IC27#097:4","IC27#097:5"],"resourcesReady":3,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:3"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":4,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[]}}
-{"seq":"R2.start","t":"ROUND_START","round":2,"active":1,"keyframe":{"round":2,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":5,"hand":["JTL#221","LAW#253:4","LAW#253:5","LAW#253:6","JTL#221:2"],"resourcesReady":3,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":6,"leader":{"id":"SHD#013","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":5,"hand":["SOR#041","SOR#041:2","SOR#041:3","IC27#097:4","IC27#097:5"],"resourcesReady":3,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:3"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":4,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":3}
-{"seq":"R2.A.start","t":"PHASE_START","phase":"action","active":1,"ms":3}
+{"seq":"R2.start","t":"ROUND_START","round":2,"active":1,"keyframe":{"round":2,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":5,"hand":["JTL#221","LAW#253:4","LAW#253:5","LAW#253:6","JTL#221:2"],"resourcesReady":3,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":6,"leader":{"id":"SHD#013","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":5,"hand":["SOR#041","SOR#041:2","SOR#041:3","IC27#097:4","IC27#097:5"],"resourcesReady":3,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:3"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":4,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":2}
+{"seq":"R2.A.start","t":"PHASE_START","phase":"action","active":1,"ms":2}
 {"seq":"R2.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":3,"for":"R2.A.1"}
 {"seq":"R2.A.0b","t":"MOVE","card":"JTL#221","from":"hand","to":"space","p":1,"kind":"unit","for":"R2.A.1"}
 {"seq":"R2.A.0c","t":"STATS","card":"JTL#221","power":4,"hp":5,"keywords":[],"traits":["transport","underworld","vehicle"],"for":"R2.A.1"}
@@ -183,20 +183,20 @@
 {"seq":"R2.A.1","t":"PLAY","p":1,"card":"JTL#221","zone":"space","cost":3,"ms":3}
 {"seq":"R2.A.1a","t":"EXHAUST_RESOURCES","p":2,"amount":3,"for":"R2.A.2"}
 {"seq":"R2.A.1b","t":"MOVE","card":"SOR#041","from":"hand","to":"discard","p":2,"for":"R2.A.2"}
-{"seq":"R2.A.2","t":"PLAY_EVENT","p":2,"card":"SOR#041","zone":"discard","cost":3,"ms":4}
+{"seq":"R2.A.2","t":"PLAY_EVENT","p":2,"card":"SOR#041","zone":"discard","cost":3,"ms":3}
 {"seq":"R2.A.2a","t":"ABILITY_ACTIVATE","p":2,"card":"SOR#041","ability":"power-of-the-dark-side_anonymous","kind":"event","title":"An opponent chooses a unit they control. Defeat that unit"}
 {"seq":"R2.A.2b","t":"CHOICE","p":1,"prompt":"Power of the Dark Side","offered":["JTL#221"],"chose":0}
 {"seq":"R2.A.2c","t":"MOVE","card":"JTL#221","from":"space","to":"discard","p":1,"kind":"unit"}
 {"seq":"R2.A.2d","t":"DEFEAT","card":"JTL#221","reason":"ability","defeatedBy":"SOR#041"}
 {"seq":"R2.A.2e","t":"ABILITY_ACTIVATE","p":1,"card":"JTL#221","ability":"stolen-athauler_triggered_0","kind":"triggered","title":"For this phase, your opponent may play this unit from its owner's discard pile for free"}
 {"seq":"R2.A.2f","t":"EFFECT_START","id":"fx@1","src":"JTL#221","p":1,"targets":["JTL#221"],"duration":"phase","ability":"stolen-athauler_triggered_0","text":"For this phase, your opponent may play this unit from its owner's discard pile for free"}
-{"seq":"R2.A.3","t":"PASS","p":1,"ms":5}
+{"seq":"R2.A.3","t":"PASS","p":1,"ms":4}
 {"seq":"R2.A.3a","t":"MOVE","card":"JTL#221","from":"discard","to":"space","p":2,"kind":"unit","for":"R2.A.4"}
 {"seq":"R2.A.3b","t":"STATS","card":"JTL#221","power":4,"hp":5,"keywords":[],"traits":["transport","underworld","vehicle"],"for":"R2.A.4"}
-{"seq":"R2.A.3c","t":"EXHAUST","card":"JTL#221","for":"R2.A.4"}
-{"seq":"R2.A.4","t":"PLAY","p":2,"card":"JTL#221","zone":"space","cost":3,"ms":6}
-{"seq":"R2.A.4a","t":"EFFECT_END","id":"fx@1","reason":"expired"}
-{"seq":"R2.A.5","t":"PASS","p":1,"ms":6}
+{"seq":"R2.A.3c","t":"EFFECT_END","id":"fx@1","reason":"targetLeft","targets":["JTL#221"],"for":"R2.A.4"}
+{"seq":"R2.A.3d","t":"EXHAUST","card":"JTL#221","for":"R2.A.4"}
+{"seq":"R2.A.4","t":"PLAY","p":2,"card":"JTL#221","zone":"space","cost":3,"ms":5}
+{"seq":"R2.A.5","t":"PASS","p":1,"ms":5}
 {"seq":"R2.A.6","t":"PASS","p":2,"ms":6}
 {"seq":"R2.A.end","t":"PHASE_END","phase":"action"}
 {"seq":"R2.G.start","t":"PHASE_START","phase":"regroup","ms":6}
@@ -215,8 +215,8 @@
 {"seq":"R2.G.16","t":"READY_RESOURCES","p":2,"amount":4}
 {"seq":"R2.G.end","t":"PHASE_END","phase":"regroup"}
 {"seq":"R2.end","t":"ROUND_END","round":2,"keyframe":{"round":2,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":5,"hand":["LAW#253:5","LAW#253:6","JTL#221:2","JTL#221:3","JTL#221:4"],"resourcesReady":4,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3","LAW#253:4"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":4,"leader":{"id":"SHD#013","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":5,"hand":["SOR#041:2","SOR#041:3","IC27#097:5","IC27#097:6","SOR#041:4"],"resourcesReady":4,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:3","IC27#097:4"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#041"],"cards":[{"id":"JTL#221","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":[],"traits":["transport","underworld","vehicle"],"owner":1}],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[]}}
-{"seq":"R3.start","t":"ROUND_START","round":3,"active":1,"keyframe":{"round":3,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":5,"hand":["LAW#253:5","LAW#253:6","JTL#221:2","JTL#221:3","JTL#221:4"],"resourcesReady":4,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3","LAW#253:4"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":4,"leader":{"id":"SHD#013","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":5,"hand":["SOR#041:2","SOR#041:3","IC27#097:5","IC27#097:6","SOR#041:4"],"resourcesReady":4,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:3","IC27#097:4"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#041"],"cards":[{"id":"JTL#221","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":[],"traits":["transport","underworld","vehicle"],"owner":1}],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":7}
-{"seq":"R3.A.start","t":"PHASE_START","phase":"action","active":1,"ms":7}
+{"seq":"R3.start","t":"ROUND_START","round":3,"active":1,"keyframe":{"round":3,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":5,"hand":["LAW#253:5","LAW#253:6","JTL#221:2","JTL#221:3","JTL#221:4"],"resourcesReady":4,"resourcesExhausted":0,"resources":["LAW#253","LAW#253:2","LAW#253:3","LAW#253:4"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":4,"leader":{"id":"SHD#013","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":5,"hand":["SOR#041:2","SOR#041:3","IC27#097:5","IC27#097:6","SOR#041:4"],"resourcesReady":4,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:3","IC27#097:4"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["SOR#041"],"cards":[{"id":"JTL#221","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":4,"hp":5,"keywords":[],"traits":["transport","underworld","vehicle"],"owner":1}],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":6}
+{"seq":"R3.A.start","t":"PHASE_START","phase":"action","active":1,"ms":6}
 {"seq":"R3.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":3,"for":"R3.A.1"}
 {"seq":"R3.A.0b","t":"MOVE","card":"JTL#221:2","from":"hand","to":"space","p":1,"kind":"unit","for":"R3.A.1"}
 {"seq":"R3.A.0c","t":"STATS","card":"JTL#221:2","power":4,"hp":5,"keywords":[],"traits":["transport","underworld","vehicle"],"for":"R3.A.1"}
@@ -224,28 +224,28 @@
 {"seq":"R3.A.1","t":"PLAY","p":1,"card":"JTL#221:2","zone":"space","cost":3,"ms":7}
 {"seq":"R3.A.1a","t":"EXHAUST_RESOURCES","p":2,"amount":3,"for":"R3.A.2"}
 {"seq":"R3.A.1b","t":"MOVE","card":"SOR#041:2","from":"hand","to":"discard","p":2,"for":"R3.A.2"}
-{"seq":"R3.A.2","t":"PLAY_EVENT","p":2,"card":"SOR#041:2","zone":"discard","cost":3,"ms":8}
+{"seq":"R3.A.2","t":"PLAY_EVENT","p":2,"card":"SOR#041:2","zone":"discard","cost":3,"ms":7}
 {"seq":"R3.A.2a","t":"ABILITY_ACTIVATE","p":2,"card":"SOR#041:2","ability":"power-of-the-dark-side_anonymous","kind":"event","title":"An opponent chooses a unit they control. Defeat that unit"}
 {"seq":"R3.A.2b","t":"CHOICE","p":1,"prompt":"Power of the Dark Side","offered":["JTL#221:2"],"chose":0}
 {"seq":"R3.A.2c","t":"MOVE","card":"JTL#221:2","from":"space","to":"discard","p":1,"kind":"unit"}
 {"seq":"R3.A.2d","t":"DEFEAT","card":"JTL#221:2","reason":"ability","defeatedBy":"SOR#041:2"}
 {"seq":"R3.A.2e","t":"ABILITY_ACTIVATE","p":1,"card":"JTL#221:2","ability":"stolen-athauler_triggered_0","kind":"triggered","title":"For this phase, your opponent may play this unit from its owner's discard pile for free"}
 {"seq":"R3.A.2f","t":"EFFECT_START","id":"fx@2","src":"JTL#221:2","p":1,"targets":["JTL#221:2"],"duration":"phase","ability":"stolen-athauler_triggered_0","text":"For this phase, your opponent may play this unit from its owner's discard pile for free"}
-{"seq":"R3.A.3","t":"PASS","p":1,"ms":9}
+{"seq":"R3.A.3","t":"PASS","p":1,"ms":8}
 {"seq":"R3.A.3a","t":"MOVE","card":"JTL#221:2","from":"discard","to":"space","p":2,"kind":"unit","for":"R3.A.4"}
 {"seq":"R3.A.3b","t":"STATS","card":"JTL#221:2","power":4,"hp":5,"keywords":[],"traits":["transport","underworld","vehicle"],"for":"R3.A.4"}
-{"seq":"R3.A.3c","t":"EXHAUST","card":"JTL#221:2","for":"R3.A.4"}
+{"seq":"R3.A.3c","t":"EFFECT_END","id":"fx@2","reason":"targetLeft","targets":["JTL#221:2"],"for":"R3.A.4"}
+{"seq":"R3.A.3d","t":"EXHAUST","card":"JTL#221:2","for":"R3.A.4"}
 {"seq":"R3.A.4","t":"PLAY","p":2,"card":"JTL#221:2","zone":"space","cost":3,"ms":9}
-{"seq":"R3.A.4a","t":"EFFECT_END","id":"fx@2","reason":"expired"}
-{"seq":"R3.A.5","t":"PASS","p":1,"ms":10}
+{"seq":"R3.A.5","t":"PASS","p":1,"ms":9}
 {"seq":"R3.A.5a","t":"CHOICE","p":2,"prompt":"Stolen AT-Hauler","offered":["base@1"],"chose":0,"for":"R3.A.6"}
 {"seq":"R3.A.5b","t":"EXHAUST","card":"JTL#221","for":"R3.A.6"}
 {"seq":"R3.A.6","t":"ATTACK","p":2,"atk":"JTL#221","def":"base@1","defenderType":"base","ms":10}
 {"seq":"R3.A.6a","t":"DAMAGE","src":"JTL#221","tgt":"base@1","amt":4,"damageType":"combat","hp":26}
-{"seq":"R3.A.7","t":"PASS","p":1,"ms":11}
-{"seq":"R3.A.8","t":"PASS","p":2,"ms":12}
+{"seq":"R3.A.7","t":"PASS","p":1,"ms":10}
+{"seq":"R3.A.8","t":"PASS","p":2,"ms":10}
 {"seq":"R3.A.end","t":"PHASE_END","phase":"action"}
-{"seq":"R3.G.start","t":"PHASE_START","phase":"regroup","ms":12}
+{"seq":"R3.G.start","t":"PHASE_START","phase":"regroup","ms":10}
 {"seq":"R3.G.1","t":"MOVE","card":"LAW#253:7","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R3.G.2","t":"MOVE","card":"LAW#253:8","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R3.G.3","t":"DRAW","p":1,"count":2,"cards":["LAW#253:7","LAW#253:8"]}

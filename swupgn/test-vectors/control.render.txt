@@ -126,8 +126,8 @@
 
  ── action ──
        ↳ Clone uses an ability
-       ↳ Player 1: Clone — This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not unique on Clone (until a card leaves play)
-  1. Player 1 plays Battlefield Marine to ground (cost 2)
+       ↳ Player 1: Clone — This unit enters play as a copy of a non-leader, non-Vehicle unit in play, except it gains the Clone trait and is not u… on Clone (while Clone is in play)
+  1. Player 1 plays Battlefield Marine to ground (cost 7)
   2. Player 2 plays Battlefield Marine #6 to ground (cost 2)
   3. Player 1 passes
   4. Player 2 passes
@@ -149,16 +149,16 @@
  ── action ──
   1. Player 1 plays Arquitens Assault Cruiser to space (cost 8)
        ↳ Arquitens Assault Cruiser uses an ability
-  2. Player 1 attacks Alliance X-Wing #18 with Arquitens Assault Cruiser
+       ↳ Player 1 attacks Alliance X-Wing #18 with Arquitens Assault Cruiser
        ↳ 3 damage to Alliance X-Wing #18 — 0 HP left
        ↳ 2 damage to Arquitens Assault Cruiser — 6 HP left
        ↳ Alliance X-Wing #18 is defeated by Arquitens Assault Cruiser
        ↳ Arquitens Assault Cruiser uses an ability
        ↳ Player 1 resources Alliance X-Wing #18
        ↳ Player 1 takes control of Alliance X-Wing #18
-  3. Player 2 plays Battlefield Marine #7 to ground (cost 2)
-  4. Player 1 passes
-  5. Player 2 passes
+  2. Player 2 plays Battlefield Marine #7 to ground (cost 2)
+  3. Player 1 passes
+  4. Player 2 passes
  ── regroup ──
        ↳ Player 1 draws 2: Alliance X-Wing #10 · Traitorous #2
        ↳ Player 2 draws 2: Battlefield Marine #8 · Academy Training #4

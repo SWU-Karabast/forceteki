@@ -319,7 +319,7 @@
       "targets": [
         "TWI#116"
       ],
-      "duration": "until"
+      "duration": "whileSourceInPlay"
     }
   ]
 }

@@ -1,10 +1,10 @@
 [Game "SWU-PGN/1.0"]
 [WriterRevision "6"]
 [GameId "sha256:661f4f0c4325e8154c8c3a9ed622ce0284caeab7b5fd2f46a3f2a29742c4f645"]
-[Date "2026-10-28T23:54:34.150Z"]
+[Date "2026-10-29T00:42:09.024Z"]
 [Format "premier"]
 [CardPool "ASH,HMW,IBH,IC27,JTL,LAW,LOF,SEC,SHD,SOR,TS26,TWI"]
-[Engine "forceteki@3061eeda3"]
+[Engine "forceteki@f74700d3f"]
 [Seed "swu-pgn-vector-pilot"]
 [P1Id "sha256:8849aa57ad283a2eb0d1a026cd1fa670ad8d48cf6b7cb55db80a6ef70960abb8"]
 [P2Id "sha256:d484debd88f2263d58ca8abbccc39bdd155f07d2b6ef472275312d173460ddf1"]
@@ -17,7 +17,7 @@
 [Result "P1"]
 [Reason "Concession"]
 [Rounds "5"]
-[EndDate "2026-10-28T23:54:34.181Z"]
+[EndDate "2026-10-29T00:42:09.055Z"]
 
 %%% STORY
  ── setup ──
@@ -152,7 +152,7 @@
 
 %%% EVENTS
 {"seq":"R0.S.start","t":"PHASE_START","phase":"setup","ms":0}
-{"seq":"R0.S.1","t":"MODAL_CHOICE","p":2,"offered":["Yourself","Opponent"],"chose":1}
+{"seq":"R0.S.1","t":"MODAL_CHOICE","p":1,"offered":["Yourself","Opponent"],"chose":0}
 {"seq":"R0.S.2","t":"SHUFFLE","p":1}
 {"seq":"R0.S.3","t":"MOVE","card":"SOR#095","from":"deck","to":"hand","p":1,"kind":"unit"}
 {"seq":"R0.S.4","t":"MOVE","card":"JTL#058","from":"deck","to":"hand","p":1,"kind":"unit"}
@@ -198,7 +198,7 @@
 {"seq":"R1.A.3c","t":"STATS","card":"IC27#097:3","power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"],"for":"R1.A.4"}
 {"seq":"R1.A.3d","t":"EXHAUST","card":"IC27#097:3","for":"R1.A.4"}
 {"seq":"R1.A.4","t":"PLAY","p":2,"card":"IC27#097:3","zone":"ground","cost":1,"ms":4}
-{"seq":"R1.A.5","t":"PASS","p":1,"ms":4}
+{"seq":"R1.A.5","t":"PASS","p":1,"ms":5}
 {"seq":"R1.A.6","t":"PASS","p":2,"ms":5}
 {"seq":"R1.A.end","t":"PHASE_END","phase":"action"}
 {"seq":"R1.G.start","t":"PHASE_START","phase":"regroup","ms":5}
@@ -227,7 +227,7 @@
 {"seq":"R2.A.0d","t":"MOVE","card":"JTL#058","from":"hand","to":"space","p":1,"kind":"upgrade","attachedTo":"LAW#253","for":"R2.A.1"}
 {"seq":"R2.A.0e","t":"STATS","card":"JTL#058","power":1,"hp":2,"keywords":["piloting","sentinel"],"traits":["imperial","pilot"],"for":"R2.A.1"}
 {"seq":"R2.A.0f","t":"STATS","card":"LAW#253","power":3,"hp":5,"keywords":[],"traits":["fighter","rebel","vehicle"],"for":"R2.A.1"}
-{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"JTL#058","zone":"space","target":"LAW#253","cost":2,"ms":7}
+{"seq":"R2.A.1","t":"PLAY_UPGRADE","p":1,"card":"JTL#058","zone":"space","target":"LAW#253","cost":2,"ms":8}
 {"seq":"R2.A.1a","t":"STATS","card":"LAW#253","power":3,"hp":5,"keywords":["sentinel"],"traits":["fighter","rebel","vehicle"]}
 {"seq":"R2.A.1b","t":"EXHAUST_RESOURCES","p":2,"amount":3,"for":"R2.A.2"}
 {"seq":"R2.A.1c","t":"MOVE","card":"SHD#238:3","from":"hand","to":"ground","p":2,"kind":"unit","for":"R2.A.2"}
@@ -310,7 +310,7 @@
 {"seq":"R4.A.0b","t":"MOVE","card":"LAW#253:3","from":"hand","to":"space","p":1,"kind":"unit","for":"R4.A.1"}
 {"seq":"R4.A.0c","t":"STATS","card":"LAW#253:3","power":2,"hp":3,"keywords":[],"traits":["fighter","rebel","vehicle"],"for":"R4.A.1"}
 {"seq":"R4.A.0d","t":"EXHAUST","card":"LAW#253:3","for":"R4.A.1"}
-{"seq":"R4.A.1","t":"PLAY","p":1,"card":"LAW#253:3","zone":"space","cost":2,"ms":23}
+{"seq":"R4.A.1","t":"PLAY","p":1,"card":"LAW#253:3","zone":"space","cost":2,"ms":22}
 {"seq":"R4.A.1a","t":"CHOICE","p":2,"prompt":"Vanquish","offered":["IC27#097:2","IC27#097:3","SHD#238:3","IC27#097:5","LAW#253","LAW#253:2","LAW#253:3"],"chose":4,"for":"R4.A.2"}
 {"seq":"R4.A.1b","t":"EXHAUST_RESOURCES","p":2,"amount":5,"for":"R4.A.2"}
 {"seq":"R4.A.1c","t":"MOVE","card":"TWI#077","from":"hand","to":"discard","p":2,"for":"R4.A.2"}

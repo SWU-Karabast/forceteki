@@ -45,7 +45,7 @@
        ↳ 2 damage to Wolffe, Suspicious Veteran — 0 HP left
        ↳ 2 damage to Battlefield Marine — 0 HP left
        ↳ Wolffe, Suspicious Veteran is defeated by Battlefield Marine
-       ↳ Effect from Give In to Your Anger ends on Battlefield Marine (its target left play)
+       ↳ Effect from Give In to Your Anger ends on Battlefield Marine (its target changed zone)
        ↳ Battlefield Marine is defeated by Wolffe, Suspicious Veteran
   3. Player 1 plays Death Star Stormtrooper #2 to ground (cost 1)
   4. Player 2 plays Battlefield Marine #2 to ground (cost 2)
@@ -75,7 +75,7 @@
        ↳ 3 damage to Battlefield Marine #2 — 0 HP left
        ↳ 1 damage to Death Star Stormtrooper #2 — 0 HP left
        ↳ Battlefield Marine #2 is defeated by Death Star Stormtrooper #2
-       ↳ Effect from Rallying Cry #2 ends on Death Star Stormtrooper #2 (its target left play)
+       ↳ Effect from Rallying Cry #2 ends on Death Star Stormtrooper #2 (its target changed zone)
        ↳ Death Star Stormtrooper #2 is defeated by Battlefield Marine #2
   4. Player 2 plays Battlefield Marine #4 to ground (cost 2)
   5. Player 1 plays Death Star Stormtrooper #4 to ground (cost 1)
@@ -108,7 +108,7 @@
        ↳ 1 damage to Death Star Stormtrooper #3 — 0 HP left
        ↳ 3 damage to Battlefield Marine #3 — 0 HP left
        ↳ Death Star Stormtrooper #3 is defeated by Battlefield Marine #3
-       ↳ Effect from Force Lightning #2 ends on Battlefield Marine #3 (its target left play)
+       ↳ Effect from Force Lightning #2 ends on Battlefield Marine #3 (its target changed zone)
        ↳ Battlefield Marine #3 is defeated by Death Star Stormtrooper #3
   7. Player 1 passes
   8. Player 2 attacks Death Star Stormtrooper #4 with Battlefield Marine #4
