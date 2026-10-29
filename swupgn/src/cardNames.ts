@@ -34,7 +34,14 @@ export function indexResolver(cards: readonly CardIndexRecord[] = []): NameResol
 /** Longer than any printed card's `Title, Subtitle`. */
 const MAX_NAME_LENGTH = 120;
 
-/** `name` cut to 119 UTF-16 code units and `…` when it is longer than 120 (spec §16). */
+/** Line breaks, other control characters and bidirectional controls, which a story line never holds (spec §16, §23). */
+const NOT_ON_A_LINE = /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069]/g;
+
+/**
+ * `name` as one story line (spec §16): each line break or other control character becomes a space,
+ * then a result longer than 120 UTF-16 code units is cut to 119 and `…`.
+ */
 export function shorten(name: string): string {
-    return name.length > MAX_NAME_LENGTH ? `${name.slice(0, MAX_NAME_LENGTH - 1)}…` : name;
+    const flat = name.replace(NOT_ON_A_LINE, ' ');
+    return flat.length > MAX_NAME_LENGTH ? `${flat.slice(0, MAX_NAME_LENGTH - 1)}…` : flat;
 }

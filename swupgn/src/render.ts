@@ -70,7 +70,7 @@ function line(e: GameEvent, n: SidedResolver, effectSources: ReadonlyMap<string,
         if (typeof id === 'string' && id.startsWith('base@')) {
             return `${who(Number(id.slice(5)) as Seat)}'s base`;
         }
-        return n.nameOf(id) + copySuffix(id);
+        return shorten(n.nameOf(id)) + shorten(copySuffix(id));
     };
     // ` · `, not `, `: a card's name has its own comma between title and subtitle, so a
     // comma-joined list cannot be split back into cards. The board lines use the same dot.
@@ -89,8 +89,8 @@ function line(e: GameEvent, n: SidedResolver, effectSources: ReadonlyMap<string,
         // Tarkin, Tyrant of the Outer Rim as The Death Star, Icon of Tyranny".
         case 'DEPLOY_LEADER': {
             const unitSide = n.backNameOf?.(e.card);
-            const leader = n.frontNameOf(baseId(e.card)) + copySuffix(e.card);
-            return `${who(e.p)} deploys ${leader}${unitSide ? ` as ${unitSide}${copySuffix(e.card)}` : ''}${e.target ? ` as a pilot on ${nm(e.target)}` : ''}`;
+            const leader = shorten(n.frontNameOf(baseId(e.card))) + shorten(copySuffix(e.card));
+            return `${who(e.p)} deploys ${leader}${unitSide ? ` as ${shorten(unitSide)}${shorten(copySuffix(e.card))}` : ''}${e.target ? ` as a pilot on ${nm(e.target)}` : ''}`;
         }
         // A double-sided leader flipping is a real, visible beat -- its title, aspects and
         // traits all change -- and no other line implies it, so it is story, not mechanism.
@@ -98,7 +98,7 @@ function line(e: GameEvent, n: SidedResolver, effectSources: ReadonlyMap<string,
             // Named by the face it left, then the face it landed on, when the index has both.
             const front = n.frontNameOf(baseId(e.card));
             const back = n.backNameOf?.(e.card);
-            return `${who(e.p)} flips ${nm(e.card)}${back ? ` to ${e.onStartingSide ? front : back}` : ''}`;
+            return `${who(e.p)} flips ${nm(e.card)}${back ? ` to ${shorten(e.onStartingSide ? front : back)}` : ''}`;
         }
         case 'ATTACK': return `${who(e.p)} attacks ${e.defenderType === 'base' ? `${who(e.p === 1 ? 2 : 1)}'s base` : nm(e.def)} with ${nm(e.atk)}`;
         case 'PASS': return `${who(e.p)} passes`;
@@ -208,7 +208,7 @@ function trackCopies(e: GameEvent, copies: Map<string, string>): void {
  * No new data: this is the keyframe the file already carries, laid out to be read.
  */
 function boardSummary(k: ReducedState, n: NameResolver): string[] {
-    const nm = (id: string) => n.nameOf(id) + copySuffix(id);
+    const nm = (id: string) => shorten(n.nameOf(id)) + shorten(copySuffix(id));
     const out: string[] = [];
     for (const seat of [1, 2] as Seat[]) {
         const p = k.players[seat];

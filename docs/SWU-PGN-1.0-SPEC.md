@@ -3360,9 +3360,13 @@ Two helpers:
 
 - `nm(id)` — the display name. **Strip the `:N` copy suffix**, look the base up in the
   `%%% CARDS` index ([§6.5](#65-the-cards-index)), then append ` #N` back for a copy, so two
-  Wampas read as `Wampa` and `Wampa #2`. A `name` or `backSideName` longer than 120 characters
-  (UTF-16 code units) is cut to its first 119 and `…`, so a hostile index cannot make the story
-  grow without bound; no printed card's name comes near it. A `base@N` ref renders as `Player N's base`. For a card
+  Wampas read as `Wampa` and `Wampa #2`. The name, whether the index's `name` or `backSideName`
+  or the id itself when the index does not list it, is **cut like a card name**, and so is the
+  ` #N` after it: each line break or other control character (C0, C1, U+2028, U+2029) and each
+  bidirectional control becomes a space, and a result longer than 120 characters (UTF-16 code
+  units) is cut to its first 119 and `…`. So a hostile file cannot make the story grow without
+  bound or split one record over several lines; no printed card's name comes near it. Every other
+  text the story prints "cut as `nm` cuts a card name" is treated the same way. A `base@N` ref renders as `Player N's base`. For a card
   with a `backSideName`, `nm` gives the side that is **up**, tracked per copy by its full id
 (`:N` included), since a mirror match has two of one leader: the back from its `DEPLOY_LEADER`
   (or its `MOVE` from `base` into an arena) until its `MOVE` back to `base`, and for a
@@ -4121,6 +4125,10 @@ A pass of the format against Comprehensive Rules v9.0 and the board state of CR 
   for and the `EFFECT_START` it starts on itself, with the cost before them `[W-18]`. The same
   card's ability or effect from an earlier action stays that action's.
 - [§21](#21-open-issues) names the new fields a perspective rule will have to hide.
+- `nm(id)` cuts the name, the id itself included when the index does not list it, and its ` #N`,
+  and cutting text like a card name also turns each line break, other control character and
+  bidirectional control into a space, so one record is one story line
+  ([§16](#16-rendering--turning-a-file-into-a-story), `[R-04]`).
 - The conformance suite gains the `effects`, `visibility` and `control` real-game vectors, every
   real-game vector is regenerated at writer revision 6, and the negative-vector table lists every
   negative vector ([§20](#20-conformance-suite--test-vectors)).

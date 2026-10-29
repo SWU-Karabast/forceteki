@@ -289,6 +289,38 @@ describe('render effects', function () {
         ]), nm);
         expect(out).toBe(`       ↳ Player 1: Bold Resistance — ${'t'.repeat(119)}… on Wampa (until ${'u'.repeat(119)}…)`);
     });
+
+    // Value: protects=one record is one story line (§16 strict layout, R-04); fails_when=a line break in text, untilText or a name reaches the story; why_new=ship review: only length was cut; seam=none; no_claim=bidi controls beyond the listed ones
+    it('keeps an effect\'s text, untilText and a named card on one line', function () {
+        const out = render(doc([
+            { seq: 'R1.A.1a', t: 'EFFECT_START', id: 'fx@1', src: 'SOR#142', p: 1, targets: ['SOR#108'], duration: 'until',
+                text: '+1/+0\nnext', untilText: 'it\r\nattacks' },
+            { seq: 'R1.A.1b', t: 'NAME', p: 1, name: 'Wampa\u2028Battlefield Marine' },
+        ]), nm);
+        expect(out.split('\n')).toEqual([
+            '       ↳ Player 1: Bold Resistance — +1/+0 next on Wampa (until it  attacks)',
+            '       ↳ Player 1 names Wampa Battlefield Marine',
+        ]);
+    });
+
+    // Value: protects=an id the cards index does not list is cut like a card name wherever the story names it (§16 nm); fails_when=the raw id is printed in full; why_new=ship review: EFFECT_END names its effect's source; seam=none; no_claim=none
+    it('cuts an unlisted id like a card name, on the start and the end of an effect', function () {
+        const src = `X#${'9'.repeat(200)}`;
+        const out = render(doc([
+            { seq: 'R1.A.1a', t: 'EFFECT_START', id: 'fx@1', src, p: 1, seat: 1, duration: 'game' },
+            { seq: 'R1.A.1b', t: 'EFFECT_END', id: 'fx@1', reason: 'expired' },
+            { seq: 'R1.A.1c', t: 'EFFECT_START', id: 'fx@2', src: `SOR#108:${'2'.repeat(200)}`, p: 1, seat: 1, duration: 'game' },
+            { seq: 'R1.A.1d', t: 'EFFECT_END', id: 'fx@2', reason: 'expired' },
+        ]), nm);
+        const cut = `X#${'9'.repeat(117)}…`;
+        const copy = `Wampa #${'2'.repeat(117)}…`;
+        expect(out.split('\n')).toEqual([
+            `       ↳ Player 1: ${cut} for Player 1 (for the rest of the game)`,
+            `       ↳ Effect from ${cut} ends (expired)`,
+            `       ↳ Player 1: ${copy} for Player 1 (for the rest of the game)`,
+            `       ↳ Effect from ${copy} ends (expired)`,
+        ]);
+    });
 });
 
 describe('render looks, names, used-by and simultaneous groups', function () {

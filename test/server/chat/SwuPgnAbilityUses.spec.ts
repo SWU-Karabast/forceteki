@@ -235,3 +235,52 @@ describe('SWU-PGN/1.0 limited abilities (writer)', function () {
         });
     });
 });
+
+describe('SWU-PGN/1.0 limited abilities across undo (writer)', function () {
+    undoIntegration(function (contextRef) {
+        // Value: protects=the recorder's limited-use state follows undo both ways (a use undone is forgotten, a reset undone restores the use); fails_when=limitedUses is left out of the checkpoint or not restored; why_new=ship review state matrix; seam=none; no_claim=gained abilities (same map pair, covered by the undo lane)
+        it('undoing past a use forgets it, and undoing past its reset restores it', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['agent-kallus#seeking-the-rebels', 'wampa'],
+                },
+                player2: {
+                    hand: ['waylay'],
+                    groundArena: ['general-veers#blizzard-force-commander'],
+                },
+            });
+            const { context } = contextRef;
+            const useKallus = () => {
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.generalVeers);
+                context.player1.clickPrompt('Trigger');
+            };
+            const uses = () => fold(writerOutput(context.game).doc.events).players[1].abilityUses ?? [];
+
+            useKallus();
+            expect(uses().length).withContext('the use is counted')
+                .toBe(1);
+            contextRef.snapshot.quickRollback(context.player1.id);
+            expect(uses()).withContext('the undone use is forgotten')
+                .toEqual([]);
+
+            useKallus();
+            const counted = uses();
+            expect(counted.length).toBe(1);
+
+            // Waylay returns Kallus to hand: his uses reset. Undo it, and the use is back.
+            context.player2.clickCard(context.waylay);
+            context.player2.clickCard(context.agentKallus);
+            expect(uses()).withContext('reset by the zone change')
+                .toEqual([]);
+            contextRef.snapshot.quickRollback(context.player2.id);
+            expect(uses()).withContext('the undone reset restores the use')
+                .toEqual(counted);
+
+            const { text, doc } = writerOutput(context.game);
+            expect(doc.events.filter((e: any) => e.t === 'ABILITY_RESET')).toEqual([]);
+            expectCleanFile(text, doc);
+        });
+    });
+});

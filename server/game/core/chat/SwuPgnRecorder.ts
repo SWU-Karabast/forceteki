@@ -389,6 +389,16 @@ export function untilTextOf(until: unknown): string {
     return phrases.length > 0 ? phrases.join(' or ') : 'a condition is met';
 }
 
+/** Every engine duration, so a new one is a compile error rather than a silent `game`. */
+const EFFECT_DURATION_OF: Record<Duration, EffectDuration> = {
+    [Duration.UntilEndOfAttack]: 'attack',
+    [Duration.UntilEndOfPhase]: 'phase',
+    [Duration.UntilEndOfRound]: 'round',
+    [Duration.WhileSourceInPlay]: 'whileSourceInPlay',
+    [Duration.Custom]: 'until',
+    [Duration.Persistent]: 'game',
+};
+
 /**
  * The `duration` vocabulary (spec §10.1) for an engine lasting effect's `Duration`. A custom
  * duration whose only end is its source leaving play (`until: { onCardLeavesPlay }`, see
@@ -405,14 +415,7 @@ export function effectDurationOf(engineDuration: unknown, delayed: boolean, unti
             return 'whileSourceInPlay';
         }
     }
-    switch (engineDuration) {
-        case Duration.UntilEndOfAttack: return 'attack';
-        case Duration.UntilEndOfPhase: return 'phase';
-        case Duration.UntilEndOfRound: return 'round';
-        case Duration.WhileSourceInPlay: return 'whileSourceInPlay';
-        case Duration.Custom: return 'until';
-        default: return 'game';
-    }
+    return EFFECT_DURATION_OF[engineDuration as Duration] ?? 'game';
 }
 
 /**
