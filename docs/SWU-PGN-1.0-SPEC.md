@@ -3536,6 +3536,9 @@ A strict renderer also follows these, which the tables above leave implicit:
   are joined with no space between them. Nothing else is padded.
 - **No line is wrapped.** An arena line or an action line longer than 78 columns is written
   whole.
+- **One record is never more than one line.** Whatever a file puts in a field the story prints
+  (a name, a zone, a reason, an id), each line break, other control character and
+  bidirectional control in it is written as a space (`[R-04]`).
 - **Action numbers** are right-aligned in two columns (` 1.`, `12.`). From 100 up the number
   takes the width it needs (`100.`).
 - **Lines are joined with `\n`** and the story has **no trailing line feed**. A `.render.txt`
@@ -4127,8 +4130,8 @@ A pass of the format against Comprehensive Rules v9.0 and the board state of CR 
 - [§21](#21-open-issues) names the new fields a perspective rule will have to hide.
 - `nm(id)` cuts the name, the id itself included when the index does not list it, and its ` #N`,
   and cutting text like a card name also turns each line break, other control character and
-  bidirectional control into a space, so one record is one story line
-  ([§16](#16-rendering--turning-a-file-into-a-story), `[R-04]`).
+  bidirectional control into a space; every other field the story prints is written the same
+  way, so one record is one story line ([§16](#16-rendering--turning-a-file-into-a-story), `[R-04]`).
 - The conformance suite gains the `effects`, `visibility` and `control` real-game vectors, every
   real-game vector is regenerated at writer revision 6, and the negative-vector table lists every
   negative vector ([§20](#20-conformance-suite--test-vectors)).

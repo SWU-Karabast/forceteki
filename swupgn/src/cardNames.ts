@@ -42,6 +42,11 @@ const NOT_ON_A_LINE = /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u2028\u2029
  * then a result longer than 120 UTF-16 code units is cut to 119 and `…`.
  */
 export function shorten(name: string): string {
-    const flat = name.replace(NOT_ON_A_LINE, ' ');
+    const flat = flatten(name);
     return flat.length > MAX_NAME_LENGTH ? `${flat.slice(0, MAX_NAME_LENGTH - 1)}…` : flat;
+}
+
+/** `text` with each line break, other control character and bidirectional control turned into a space (spec §16, R-04). */
+export function flatten(text: string): string {
+    return text.replace(NOT_ON_A_LINE, ' ');
 }

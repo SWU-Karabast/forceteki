@@ -409,4 +409,31 @@ describe('render copies', function () {
         expect(out).toContain('  2. Player 1 attacks Battlefield Marine with Clone');
         expect(out).toContain(`  3. Player 1 attacks Battlefield Marine with ${'x'.repeat(119)}… #2`);
     });
+
+    // Value: protects=a copy's #N on the board is cut like a card name (§16 nm); fails_when=the board appends the raw suffix; why_new=ship review pass 2; seam=none; no_claim=none
+    it('cuts a copied unit\'s #N on the board', function () {
+        const clone = { id: `SOR#200:${'2'.repeat(200)}`, zone: 'ground', damage: 0, exhausted: false, upgrades: [], shields: 0, experience: 0, statusTokens: {}, captured: [],
+            power: 4, hp: 5, traits: [], copyOf: 'SOR#108', name: 'Wampa', cost: 4, aspects: [] };
+        const out = render(doc([
+            { seq: 'R2.start', t: 'ROUND_START', round: 2, active: 1, keyframe: { round: 2, phase: 'action', initiative: 1, players: { 1: seat(1, [clone]), 2: seat(2) } } },
+        ]), nm).split('\n');
+        expect(out).toContain(`      ground: Wampa #${'2'.repeat(117)}… 4/5`);
+    });
+});
+
+describe('render keeps every record on one line', function () {
+    const doc = (events: any[]) => ({ header: {} as any, decks: [], setup: [], events, annotations: [], cards: [] });
+
+    // Value: protects=a line break in any field the story prints never starts a new story line (§16 strict layout, R-04); fails_when=a field other than names and effect text is printed raw; why_new=ship review pass 2; seam=none; no_claim=length cuts beyond names and effect text
+    it('turns line breaks in any printed field into spaces', function () {
+        const out = render(doc([
+            { seq: 'R1.A.1', t: 'PASS', p: 1 },
+            { seq: 'R1.A.1a', t: 'EFFECT_END', id: 'fx@9\nFAKE', reason: 'gone\nFAKE' },
+            { seq: 'R1.A.1b', t: 'EFFECT_START', id: 'fx@1', src: 'SOR#108', p: 1, seat: 1, duration: 'later\nFAKE' },
+            { seq: 'R1.A.2', t: 'GAME_END', winner: 1, reason: 'basesDestroyed\r\nFAKE' },
+        ]));
+        expect(out.split('\n').filter((l) => l.trimStart().startsWith('FAKE'))).toEqual([]);
+        expect(out).toContain('Effect fx@9 FAKE ends (gone FAKE)');
+        expect(out).toContain('(later FAKE)');
+    });
 });

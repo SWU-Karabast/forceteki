@@ -1,6 +1,6 @@
 import type { CardInstanceState, SwuPgnDocument, GameEvent, ReducedState, Seat } from './types';
 import type { NameResolver } from './cardNames';
-import { baseId, indexResolver, shorten } from './cardNames';
+import { baseId, flatten, indexResolver, shorten } from './cardNames';
 import { isArena, isCompleteKeyframe } from './fold';
 import { isTopLevelActionRecord } from './actionLinks';
 
@@ -264,7 +264,7 @@ function boardSummary(k: ReducedState, n: NameResolver): string[] {
                 }
                 // A copy goes by the name it copied (CR 8.5).
                 const copied = copyName(c);
-                return (copied !== undefined ? copied + copySuffix(c.id) : nm(c.id)) + stats + (bits.length ? ` [${bits.join(', ')}]` : '');
+                return (copied !== undefined ? copied + shorten(copySuffix(c.id)) : nm(c.id)) + stats + (bits.length ? ` [${bits.join(', ')}]` : '');
             });
             out.push(`      ${zone}: ${rendered.join('  ·  ')}`);
         }
@@ -382,5 +382,6 @@ export function render(doc: SwuPgnDocument, names?: NameResolver): string {
             out.push(`       ↳ ${text}`);
         }
     }
-    return out.join('\n');
+    // Every story line is one line, whatever a file put in a field it prints (spec §16, R-04).
+    return out.map(flatten).join('\n');
 }
