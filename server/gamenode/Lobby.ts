@@ -179,12 +179,13 @@ export class Lobby {
     private rematchRequest?: RematchRequest = null;
 
     /**
-     * The players whose current deck is named in a game log that was served. A file names both
-     * decklists and sideboards, which a best-of-three keeps hidden between its games, so while a
-     * current player's deck is here this lobby does not convert into one. Loading a deck removes
-     * that player; a rematch does not, since the decks carry over.
+     * Each player of a game whose log was served, with the deck that log names (see
+     * `deckFingerprint`). A file names both decklists and sideboards, which a best-of-three keeps
+     * hidden between its games, so while a seated player's current deck is one recorded here this
+     * lobby does not convert into one. The deck, not the seat, is what the file reveals: loading
+     * the same deck again changes nothing, and a rematch carries the decks over.
      */
-    private readonly decksInServedLog = new Set<string>();
+    private readonly decksInServedLog = new Map<string, string>();
     private userLastActivity = new Map<string, Date>();
     private matchingCountdownText?: string;
     private matchingCountdownTask?: IScheduledTask;
@@ -532,7 +533,6 @@ export class Lobby {
         const deck = decklist ? new Deck(decklist, this.cardDataGetter) : null;
         if (existingUser) {
             existingUser.deck = deck;
-            this.decksInServedLog.delete(existingUser.id);
             if (matchmakingSearchContext) {
                 existingUser.matchmakingSearchContext = matchmakingSearchContext;
             }
@@ -873,12 +873,26 @@ export class Lobby {
     }
 
     /**
-     * True, after alerting the players, when a current player's deck is named in a served game
-     * log (see `decksInServedLog`). Only a pending conversion request is dropped; a pending
+     * The cards a deck reveals: leaders, base, and main deck and sideboard counted together, since
+     * moving a card between the two reveals nothing new. Order-independent.
+     */
+    private static deckFingerprint(deck: Deck): string {
+        const list = deck.getDecklist();
+        const counts = new Map<string, number>();
+        for (const card of [...list.deck, ...(list.sideboard ?? [])]) {
+            counts.set(card.id, (counts.get(card.id) ?? 0) + card.count);
+        }
+        const cards = [...counts.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([id, n]) => `${id}x${n}`);
+        return [list.leader?.id, list.secondLeader?.id ?? '', list.base?.id, ...cards].join(',');
+    }
+
+    /**
+     * True, after alerting the players, when a seated player's current deck is one a served game
+     * log names (see `decksInServedLog`). Only a pending conversion request is dropped; a pending
      * rematch of another mode stays.
      */
     private refuseConversionAfterLogServed(): boolean {
-        if (!this.users.some((u) => this.decksInServedLog.has(u.id))) {
+        if (!this.users.some((u) => u.deck && this.decksInServedLog.get(u.id) === Lobby.deckFingerprint(u.deck))) {
             return false;
         }
         if (this.rematchRequest?.mode === RematchMode.Bo1ConvertToBo3) {
@@ -1111,7 +1125,6 @@ export class Lobby {
             : DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
         if (Object.keys(blockingErrors).length === 0) {
             activeUser.deck = new Deck(deck, this.cardDataGetter);
-            this.decksInServedLog.delete(activeUser.id);
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(
                 activeUser.deck.getDecklist(),
                 validationProperties
@@ -2827,8 +2840,11 @@ export class Lobby {
         // Mark before replying: the file is on its way out, and the game may be reopened by
         // an undo past game end (see Game.markSwuPgnServed).
         this.game.markSwuPgnServed();
-        for (const user of this.users) {
-            this.decksInServedLog.add(user.id);
+        for (const player of this.game.getPlayers()) {
+            const deck = this.users.find((u) => u.id === player.id)?.deck;
+            if (deck) {
+                this.decksInServedLog.set(player.id, Lobby.deckFingerprint(deck));
+            }
         }
         callback({ swuPgnFile });
     }

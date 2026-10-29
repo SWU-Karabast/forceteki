@@ -11,6 +11,9 @@ export interface IDecklistFixtureOptions {
     cardPool?: CardPool;
     name?: string;
     author?: string;
+
+    /** Which legal leader to lead with (default the first), for a second deck that differs. */
+    leaderIndex?: number;
 }
 
 interface ICandidateCards {
@@ -63,7 +66,7 @@ export class DecklistFixtures {
                 name: options.name ?? `Test Deck (${format}/${cardPool})`,
                 author: options.author ?? 'server-test',
             },
-            leader: { id: leaders[0], count: 1 },
+            leader: { id: leaders[options.leaderIndex ?? 0], count: 1 },
             base: { id: bases[0], count: 1 },
             deck,
         };
