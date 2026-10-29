@@ -186,6 +186,14 @@ export abstract class TriggerWindowBase extends BaseStep {
     }
 
     protected promptUnresolvedAbilities() {
+        // The "resolve all" handler of a grouped trigger calls this method outside of continue() and drops the result. If
+        // none of the remaining triggers has a legal effect any more, that call uses up the player order and finishes the
+        // window; the pipeline then calls continue() once more, which must report that the window is done (it was already told
+        // so when the last player ran out of abilities below) instead of looking for a resolving player that no longer exists.
+        if (this.choosePlayerResolutionOrderComplete && this.resolvePlayerOrder?.length === 0) {
+            return true;
+        }
+
         Contract.assertNotNullLike(this.currentlyResolvingPlayer);
 
         this.choosePlayerResolutionOrderComplete = true;
