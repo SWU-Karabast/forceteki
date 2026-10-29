@@ -591,6 +591,42 @@ describe('The Mandalorian, Devoted Rescuer', function () {
                 expect(context.battlefieldMarine).toBeInZone('discard'); // indirect damage not prevented
                 expect(context.p1Base.damage).toBe(2);
             });
+
+            it('should not throw when another replacement effect defeats The Mandalorian first (Queen Amidala, sharing the Mandalorian trait from Foundling)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [
+                            { card: 'queen-amidala#championing-her-people', upgrades: ['foundling'] },
+                            { card: 'the-mandalorian#devoted-rescuer', upgrades: ['shield'] }
+                        ],
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.queenAmidala);
+
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Defeat a friendly unit that shares a trait with Queen Amidala to prevent all damage to her',
+                    'Defeat a Shield attached to The Mandalorian to prevent all damage to Queen Amidala'
+                ]);
+
+                // Queen Amidala's ability defeats The Mandalorian: his own ability is checked again while he is in the discard pile
+                context.player1.clickPrompt('Defeat a friendly unit that shares a trait with Queen Amidala to prevent all damage to her');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.theMandalorian);
+
+                expect(context.theMandalorian).toBeInZone('discard');
+                expect(context.queenAmidala.damage).toBe(0);
+                expect(context.player1).toBeActivePlayer();
+            });
         });
     });
 });
