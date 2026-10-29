@@ -784,6 +784,130 @@ const mockCards = [
         arena: 'space',
         internalName: 'supremacy#destroy-the-resistance'
     }),
+    buildMockCard({
+        title: 'Poe Dameron',
+        subtitle: 'Hero of the Resistance',
+        cost: 2,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['resistance'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 115
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'poe-dameron#hero-of-the-resistance'
+    }),
+    buildMockCard({
+        title: 'Black One',
+        subtitle: 'Draw Fire, Twice',
+        cost: 3,
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['resistance', 'vehicle', 'fighter'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 116
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'black-one#draw-fire-twice'
+    }),
+    buildMockCard({
+        title: 'Act of Aggression',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'aggression'],
+        traits: ['innate'],
+        types: ['event'],
+        setId: {
+            set: 'IC27',
+            number: 127
+        },
+        unique: false,
+        internalName: 'act-of-aggression'
+    }),
+    buildMockCard({
+        title: 'Saw Gerrera',
+        subtitle: 'For the Cause',
+        cost: 5,
+        power: 6,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'aggression'],
+        traits: ['rebel'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 126
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'saw-gerrera#for-the-cause'
+    }),
+    buildMockCard({
+        title: 'Greedo',
+        subtitle: 'Big-Timer',
+        cost: 3,
+        power: 5,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        keywords: ['ambush'],
+        traits: ['underworld', 'bounty hunter'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 142
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'greedo#bigtimer'
+    }),
+    buildMockCard({
+        title: 'Jango Fett',
+        subtitle: 'Straight Shooter',
+        cost: 4,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        keywords: ['ambush'],
+        traits: ['separatist', 'bounty hunter'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 144
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'jango-fett#straight-shooter'
+    }),
+    buildMockCard({
+        title: 'Princess Leia',
+        subtitle: 'Calculated Distraction',
+        cost: 5,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['rebel', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 159
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'princess-leia#calculated-distraction'
+    }),
     // -------- End Mock Cards --------
 ];
 
@@ -808,6 +932,7 @@ const mockReprints = [
     { internalName: 'battle-fury', setId: { set: 'IC27', number: 111 } },
     { internalName: 'cham-syndulla#rallying-ryloth', setId: { set: 'IC27', number: 131 } },
     { internalName: 'infiltrators-skill', setId: { set: 'IC27', number: 133 } },
+    { internalName: 'frozen-in-carbonite', setId: { set: 'IC27', number: 150 } }
 ];
 // -------- End Mock Reprints --------
 
