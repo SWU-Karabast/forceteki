@@ -151,9 +151,14 @@ function isCompleteAbilityUse(u: unknown): boolean {
     return typeof use.card === 'string' && typeof use.ability === 'string' && typeof use.count === 'number';
 }
 
+/** True for a value an events line can hold that is a record at all: an object, not an array. */
+export function isRecord(e: unknown): e is GameEvent {
+    return typeof e === 'object' && e !== null && !Array.isArray(e);
+}
+
 /** True for a ROUND_START/ROUND_END that carries a keyframe a reader may snap to. */
 export function hasSnapKeyframe(e: GameEvent): e is GameEvent & { keyframe: ReducedState } {
-    return (e.t === 'ROUND_START' || e.t === 'ROUND_END') && isCompleteKeyframe(e.keyframe);
+    return isRecord(e) && (e.t === 'ROUND_START' || e.t === 'ROUND_END') && isCompleteKeyframe(e.keyframe);
 }
 
 /**
@@ -913,6 +918,11 @@ function reseat(c: CardInstanceState, from: Seat, to: Seat): void {
 
 /** Apply a single event to state, mutating and returning it. */
 export function reduce(s: ReducedState, e: GameEvent): ReducedState {
+    // A file is untrusted input: an events line that parses to null, a number or an array is a
+    // record the fold cannot read, not a crash (spec §12).
+    if (!isRecord(e)) {
+        return s;
+    }
     switch (e.t) {
         // `active` is stated rather than derived: working out whose turn it is from the last
         // action means modelling passing and priority, which is exactly the rules knowledge the
@@ -1356,7 +1366,7 @@ export function fold(events: GameEvent[]): ReducedState {
  * position, which made a full scrub O(n^2) in the stream length.
  */
 export function stateAt(events: GameEvent[], seq: string): ReducedState {
-    const idx = events.findIndex((e) => e.seq === seq);
+    const idx = events.findIndex((e) => isRecord(e) && e.seq === seq);
     // An unknown seq folds the whole list. That is the DOCUMENTED contract (spec §12.3), not an
     // oversight: an adversarial review flagged the fallback as a silent wrong answer, which it
     // is, but it is normative and external readers are built on it. The dangling-reference case

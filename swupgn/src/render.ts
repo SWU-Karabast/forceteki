@@ -1,7 +1,7 @@
 import type { CardInstanceState, SwuPgnDocument, GameEvent, ReducedState, Seat } from './types';
 import type { NameResolver } from './cardNames';
 import { baseId, flatten, indexResolver, shorten } from './cardNames';
-import { isArena, isCompleteKeyframe } from './fold';
+import { isArena, isCompleteKeyframe, isRecord } from './fold';
 import { isTopLevelActionRecord } from './actionLinks';
 
 const RULE_WIDTH = 78;
@@ -329,6 +329,10 @@ export function render(doc: SwuPgnDocument, names?: NameResolver): string {
     // Effect id -> source card, so an EFFECT_END (which carries only the id) can name it.
     const effectSources = new Map<string, string>();
     for (const e of doc.events) {
+        // A line that is not a record tells no story (spec §16), as the fold skips it.
+        if (!isRecord(e)) {
+            continue;
+        }
         if (size > MAX_STORY_LENGTH) {
             out.push(STORY_CUT);
             break;

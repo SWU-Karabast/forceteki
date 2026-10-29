@@ -192,18 +192,27 @@ export function coalesceResourceReadies(events: GameEvent[], referencedSeqs: Rea
  * Returns a new array; the input is not mutated. Re-running it is harmless.
  */
 
+/** A record, not a line a file parsed to null, a number or an array. */
+function isRecordLine(e: unknown): e is GameEvent {
+    return typeof e === 'object' && e !== null && !Array.isArray(e);
+}
+
 export function linkActionSteps(events: GameEvent[]): GameEvent[] {
     const out = events.slice();
 
     for (let i = 0; i < out.length; i++) {
         const action = out[i];
+        // A line that is not a record anchors nothing and is never anchored.
+        if (!isRecordLine(action)) {
+            continue;
+        }
         // A resourcing is announced the same way round: the card's hand->resource MOVE lands
         // first and the RESOURCE that summarises it follows, so the move carries the PREVIOUS
         // beat's number (the draw burst, or the other seat's commit) unless it is stamped.
         // It is the one pre-announcement run `for` used to miss.
         if (action.t === 'RESOURCE' && i > 0) {
             const prev = out[i - 1];
-            if (prev.t === 'MOVE' && prev.to === 'resource' && prev.card === action.card && prev.for == null) {
+            if (isRecordLine(prev) && prev.t === 'MOVE' && prev.to === 'resource' && prev.card === action.card && prev.for == null) {
                 out[i - 1] = { ...prev, for: action.seq };
             }
             continue;
@@ -240,7 +249,7 @@ export function linkActionSteps(events: GameEvent[]): GameEvent[] {
         let start = i;
         while (start > 0) {
             const prev = out[start - 1];
-            if (isTopLevelStep(prev.seq)) {
+            if (!isRecordLine(prev) || isTopLevelStep(prev.seq)) {
                 break;
             }
             const named = actionCard(prev);

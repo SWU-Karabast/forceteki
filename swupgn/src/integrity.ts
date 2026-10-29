@@ -1,5 +1,5 @@
 import type { AbilityUse, ActiveEffect, CardInstanceState, GameEvent, PlayerState, ReducedState } from './types';
-import { clearAbilityUses, emptyState, isCompleteKeyframe, reduce, snapTo } from './fold';
+import { clearAbilityUses, emptyState, isCompleteKeyframe, isRecord, reduce, snapTo } from './fold';
 
 export interface KeyframeMismatch {
     seq: string; path: string; expected: unknown; got: unknown;
@@ -297,6 +297,10 @@ export function checkKeyframes(events: GameEvent[]): IntegrityResult {
     const mismatches: KeyframeMismatch[] = [];
     let seenKeyframe = false;
     for (const e of events) {
+        // A line that is not a record is skipped, as the fold skips it.
+        if (!isRecord(e)) {
+            continue;
+        }
         if ((e.t === 'ROUND_START' || e.t === 'ROUND_END') && e.keyframe) {
             // A keyframe missing a seat, or malformed, is a damaged checkpoint (spec §13): it
             // is reported, never snapped to, and folding carries on from the running state.

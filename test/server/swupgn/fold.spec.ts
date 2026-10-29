@@ -2,6 +2,8 @@ import { fold, stateAt } from '../../../swupgn/src/fold';
 import { checkKeyframes } from '../../../swupgn/src/integrity';
 import type { GameEvent } from '../../../swupgn/src/types';
 import { parse } from '../../../swupgn/src/parse';
+import { render } from '../../../swupgn/src/render';
+import { linkActionSteps } from '../../../swupgn/src/actionLinks';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -716,6 +718,22 @@ describe('fold zone list cap', function () {
 // Both of these are reachable from a schema-VALID file: validation passing is not the same as
 // the fold being safe to run on the result.
 describe('fold hardening against crafted files', function () {
+    // Value: protects=an events line that parses to something other than a record is skipped by every reader entry point, as parse and validate already accept the file (spec §12); fails_when=fold, stateAt, checkKeyframes, render or linkActionSteps dereference it; why_new=the hardening cases below all use records; seam=none; no_claim=what validate reports for such a line
+    it('skips an events line that is not a record in every reader entry point', function () {
+        const minimal = fs.readFileSync(path.resolve(__dirname, '../../../../swupgn/test-vectors/minimal.swupgn'), 'utf8');
+        const clean = parse(minimal);
+        const doc = parse(minimal.replace('%%% EVENTS\n', '%%% EVENTS\nnull\n5\n[]\n"x"\n'));
+        expect(doc.events.length).withContext('the four lines were read')
+            .toBe(clean.events.length + 4);
+        const last = clean.events[clean.events.length - 1].seq;
+
+        expect(fold(doc.events)).toEqual(fold(clean.events));
+        expect(stateAt(doc.events, last)).toEqual(stateAt(clean.events, last));
+        expect(checkKeyframes(doc.events).mismatches).toEqual(checkKeyframes(clean.events).mismatches);
+        expect(render(doc)).toEqual(render(clean));
+        expect(() => linkActionSteps(doc.events)).not.toThrow();
+    });
+
     it('bounds arena growth, so a file of unique arena MOVEs cannot make the fold quadratic', function () {
         // findCard() scans every card in play, so an unbounded arena is O(n^2) to fold. A real
         // game never approaches the cap; only a crafted file does.

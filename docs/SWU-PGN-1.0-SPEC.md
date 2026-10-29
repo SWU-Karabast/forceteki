@@ -447,8 +447,9 @@ requirement, by id. The linked section is where each one is defined.
 - `[V-06]` MUST report a Fortify upgrade attached to the other seat's base: a `MOVE` into `base`
   whose `attachedTo` is `base@N`, or a `PLAY_UPGRADE` whose `target` is `base@N`, with N not the
   record's `p` (`fortify-host`, error) ([§10.3](#103-homeworlds-fortify-beast-and-weakness)).
-- `[V-07]` MUST report a `MOVE` of a `TOKEN:` id out of an arena or out of `base` to any zone
-  but `outsideTheGame` (`token-zone`, error) ([§10.1](#101-events-that-carry-board-detail)).
+- `[V-07]` MUST report a `MOVE` of a `TOKEN:` id out of an arena or out of `base` to a zone
+  outside play other than `outsideTheGame` (`token-zone`, error); a token moving with its unit
+  to the other arena, or to `base`, stays in play ([§10.1](#101-events-that-carry-board-detail)).
 - `[V-08]` MUST report a `ROUND_START` with no `active` seat (`round-start-active`, error)
   ([§10.1](#101-events-that-carry-board-detail)).
 - `[V-09]` MUST report an `EFFECT_END` whose `id` names no active effect — no earlier
@@ -463,7 +464,8 @@ requirement, by id. The linked section is where each one is defined.
 - `[F-03]` MUST produce, for every positive vector, a reduced state equal to its `.fold.json`
   as [§20](#20-conformance-suite--test-vectors) defines equality.
 - `[F-04]` MUST treat an event type it doesn't recognise as "do nothing" — a warning, never a
-  crash ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
+  crash ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)). A line that is
+  JSON but not an object (a validator's `not-object`) is skipped the same way.
 - `[F-05]` MUST NOT snap to a damaged keyframe, and MUST cap every list it grows at 1000
   entries, and a seat's upgrades and captives at 1000 between them ([§12](#12-folding--turning-lines-into-a-board), [§13](#13-keyframes)).
 
@@ -1757,8 +1759,9 @@ took it off the board. This record files it under its captor, idempotently:
   of play either way.
 - `card` is a `TOKEN:` id → nothing. A token that leaves play ceases to exist (CR 3.7.3, 8.33.5),
   so it is never captured: its exit is a `MOVE` to `outsideTheGame`, a writer MUST NOT write a
-  `CAPTURE` for it `[W-47]`, and a `MOVE` of a token out of an arena or out of `base` to any
-  other zone is a `token-zone` error `[V-07]`. A reader ignores a `CAPTURE` of a token id.
+  `CAPTURE` for it `[W-47]`, and a `MOVE` of a token out of an arena or out of `base` to a zone
+  outside play other than `outsideTheGame` is a `token-zone` error `[V-07]`. A reader ignores a
+  `CAPTURE` of a token id.
 
 **`RESCUE` — `card` returned to play under `p`, its owner.**
 
@@ -4068,8 +4071,9 @@ A pass of the format against Comprehensive Rules v9.0 and the board state of CR 
 - Every `ROUND_START` carries `active`, the initiative holder `[W-46]`, the fold takes the
   initiative from it, and one without it is an error, `round-start-active` `[V-08]`
   (`round-start-no-active` vector).
-- A token leaving play goes to `outsideTheGame` from every zone `[W-47]`; a token `MOVE` to any
-  other zone is an error, `token-zone` `[V-07]` (`token-to-hand` vector). A leader moving between
+- A token leaving play goes to `outsideTheGame` from every zone `[W-47]`; a token `MOVE` out of
+  play to any other zone is an error, `token-zone` `[V-07]` (`token-to-hand` vector), and one
+  moving with its unit to the other arena is not. A leader moving between
   an arena and `base` sets `leader.deployed` whether or not a `DEPLOY_LEADER` was written.
 - Lasting and delayed effects are records: `EFFECT_START` and `EFFECT_END`, with effect ids
   `fx@N`, the closed `duration` and `reason` vocabularies, a partial end when a target leaves play,
@@ -4143,6 +4147,8 @@ A pass of the format against Comprehensive Rules v9.0 and the board state of CR 
   bidirectional control into a space; every other field the story prints is written the same
   way, so one record is one story line ([§16](#16-rendering--turning-a-file-into-a-story), `[R-04]`).
 - A story stops at 16,777,216 characters with a closing line ([§16](#strict-layout-rules)).
+- A reader skips an events line that is JSON but not an object, as it skips an unknown event
+  type `[F-04]`.
 - A seat's cards hold at most 1000 upgrades and captives between them: the fold adds no more, a
   `TAKE_CONTROL` does not move a unit that would take its new seat past it, and a keyframe over it is damaged (`over-cap`) `[F-05]` ([§12](#12-folding--turning-lines-into-a-board), [§13](#damaged-keyframe)).
 - `PLAY_EVENT` files its card only when no seat's `discard` already holds it: its own `MOVE`
@@ -4276,7 +4282,7 @@ matched by a program.
 | `bad-token-name` | error | A `TOKEN:` id, or a `STATUS_TOKEN.token`, that breaks the token-name grammar ([§6.1](#the-token-grammar)) | well-formed |
 | `deck-build-move` | error | A `MOVE` from `outsideTheGame` into `deck` (`[W-41]`, [§10.1](#101-events-that-carry-board-detail)) | well-formed |
 | `credit-zone` | error | A `MOVE` of a `TOKEN:credit…` id from or into `resource`; a Credit token is recorded in `base` ([§6.2](#62-zone-names), `[W-42]`) | well-formed |
-| `token-zone` | error | A `MOVE` of a `TOKEN:` id out of an arena or out of `base` to a zone other than `outsideTheGame`; a token that leaves play ceases to exist ([§10.1](#101-events-that-carry-board-detail), `[V-07]`) | well-formed |
+| `token-zone` | error | A `MOVE` of a `TOKEN:` id out of an arena or out of `base` to a zone outside play other than `outsideTheGame`; a token that leaves play ceases to exist ([§10.1](#101-events-that-carry-board-detail), `[V-07]`) | well-formed |
 | `round-start-active` | error | A `ROUND_START` with no `active` seat ([§10.1](#101-events-that-carry-board-detail), `[V-08]`) | well-formed |
 | `effect-end-unknown` | error | An `EFFECT_END` whose `id` names no active effect (no earlier `EFFECT_START`, or it already ended), or whose `targets` names a target the effect does not have ([§10.1](#effect_start), `[V-09]`) | well-formed |
 | `fortify-host` | error | A Fortify upgrade attached to the other seat's base: a `MOVE` into `base` with `attachedTo: "base@N"`, or a `PLAY_UPGRADE` with `target: "base@N"`, where N is not the record's `p` ([§10.3](#103-homeworlds-fortify-beast-and-weakness), `[V-06]`) | well-formed |

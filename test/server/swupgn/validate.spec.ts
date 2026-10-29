@@ -337,6 +337,8 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(validate(move('TOKEN:battle-droid#1', 'hand')).level).toBe('well-formed');
         expect(codes(move('TOKEN:battle-droid#1', 'outsideTheGame'))).not.toContain('error:token-zone');
         expect(codes(move('SOR#108', 'hand'))).not.toContain('error:token-zone');
+        // Value: protects=a token moving with its unit to the other arena stays in play, so it is no token-zone error; fails_when=the check fires on every token leaving an arena; why_new=the cases above move a token out of play; seam=none; no_claim=which tokens the rules let change arenas
+        expect(codes(move('TOKEN:shield#1', 'space'))).not.toContain('error:token-zone');
     });
 
     it('reports a ROUND_START without active', function () {
