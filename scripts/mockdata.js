@@ -646,12 +646,20 @@ const mockCards = [
 // setCodes, so the real stats and the existing card implementation are reused as-is.
 // Note: `set` must exist in the `setNumber` map in fetchdata.js to be picked up.
 const mockReprints = [
+    { internalName: 'magistrates-scout', setId: { set: 'IC27', number: 18 } },
     { internalName: 'concord-dawn-interceptors', setId: { set: 'IC27', number: 36 } },
     { internalName: 'disciples-devotion', setId: { set: 'IC27', number: 53 } },
+    { internalName: 'betrayed-trust', setId: { set: 'IC27', number: 55 } },
+    { internalName: 'exegol-patroller', setId: { set: 'IC27', number: 59 } },
+    { internalName: 'knight-of-ren', setId: { set: 'IC27', number: 61 } },
+    { internalName: 'captain-phasma#on-my-command', setId: { set: 'IC27', number: 64 } },
     { internalName: 'apology-accepted', setId: { set: 'IC27', number: 69 } },
     { internalName: 'homestead-militia', setId: { set: 'IC27', number: 90 } },
     { internalName: 'dogfight', setId: { set: 'IC27', number: 94 } },
+    { internalName: 'special-forces-tie-fighter', setId: { set: 'IC27', number: 100 } },
+    { internalName: 'battle-fury', setId: { set: 'IC27', number: 111 } },
     { internalName: 'cham-syndulla#rallying-ryloth', setId: { set: 'IC27', number: 131 } },
+    { internalName: 'infiltrators-skill', setId: { set: 'IC27', number: 133 } },
 ];
 // -------- End Mock Reprints --------
 
