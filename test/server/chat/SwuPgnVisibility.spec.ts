@@ -139,6 +139,23 @@ describe('SWU-PGN/1.0 looks, names, used-by and simultaneous groups (writer)', f
             expectValid(text);
         });
 
+        // Value: protects=naming a trait writes no NAME (NAME is card titles only); fails_when=namesCard is dropped so trait picks emit NAME; why_new=only the card-title path is covered; seam=none; no_claim=other dropdown kinds
+        it('naming a trait writes no NAME', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { groundArena: ['the-first-legion#vaders-fist'] },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.theFirstLegion);
+            context.player1.clickCard(context.p2Base);
+            context.player1.chooseListOption('Trooper');
+
+            const { text, doc } = writerOutput(context.game);
+            expect(ofType(doc, 'NAME')).toEqual([]);
+            expectValid(text);
+        });
+
         it('a When Defeated used by Chimaera names Chimaera in usedBy', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
