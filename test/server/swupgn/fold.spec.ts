@@ -859,6 +859,25 @@ describe('fold keyframe trust boundary', function () {
         expect(s.players[2]?.cards.map((c) => c.id)).toEqual(['SOR#2']);
     });
 
+    // Value: protects=TAKE_CONTROL's cap is inclusive and counts the moved unit's captives as well as its upgrades (spec §12, [F-05]); fails_when=the check becomes `<` (a unit landing its seat exactly at 1000 is refused) or drops captured from the count; why_new=the case above refuses at 1200 and moves a bare unit, never at the boundary or with captives; seam=none; no_claim=fold time itself is not measured
+    it('moves a unit by TAKE_CONTROL that lands its new seat exactly at the cap, counting its captives', function () {
+        const attach = (p: number, host: string, from: number, n: number) => Array.from({ length: n }, (_, i) => ({ seq: `R1.A.${p}u${from + i}`, t: 'MOVE', card: `SHD#${from + i}`, from: 'hand', to: 'ground', p, kind: 'upgrade', attachedTo: host }));
+        const s = fold([
+            { seq: 'R1.A.1', t: 'MOVE', card: 'SOR#1', from: 'hand', to: 'ground', p: 1, kind: 'unit' },
+            { seq: 'R1.A.2', t: 'MOVE', card: 'SOR#2', from: 'hand', to: 'ground', p: 2, kind: 'unit' },
+            { seq: 'R1.A.3', t: 'MOVE', card: 'SOR#3', from: 'hand', to: 'ground', p: 2, kind: 'unit' },
+            ...attach(1, 'SOR#1', 0, 400),
+            ...attach(2, 'SOR#2', 1000, 599),
+            { seq: 'R1.A.4', t: 'CAPTURE', p: 2, card: 'SOR#900', by: 'SOR#2' },
+            { seq: 'R1.A.5', t: 'CAPTURE', p: 2, card: 'SOR#901', by: 'SOR#3' },
+            { seq: 'R1.A.6', t: 'TAKE_CONTROL', p: 1, card: 'SOR#2', zone: 'ground' },
+            { seq: 'R1.A.7', t: 'TAKE_CONTROL', p: 1, card: 'SOR#3', zone: 'ground' },
+        ] as any);
+        expect(s.players[1]?.cards.map((c) => c.id)).withContext('400 + 599 + 1 captive is exactly the cap; one more captive is past it')
+            .toEqual(['SOR#1', 'SOR#2']);
+        expect(s.players[2]?.cards.map((c) => c.id)).toEqual(['SOR#3']);
+    });
+
     // Value: protects=a keyframe whose seat's cards hold more than 1000 upgrades and captives between them is not snapped to (spec §13); fails_when=the keyframe check counts each card's list only; why_new=the next test grows one card's list; seam=none; no_claim=none
     it('ignores a keyframe whose seat\'s cards hold more upgrades than the cap between them', function () {
         const card = (id: string, upgrades: string[]) => ({ id, zone: 'ground', damage: 0, exhausted: false, upgrades, shields: 0, experience: 0, statusTokens: {}, captured: [] });
@@ -872,6 +891,16 @@ describe('fold keyframe trust boundary', function () {
         expect(withUnits(400).players[1]?.cards.length).withContext('1000 between them is a board')
             .toBe(2);
         expect(withUnits(401).players[1]?.cards).withContext('the damaged keyframe is not snapped to')
+            .toEqual([]);
+        // Value: protects=a keyframe's captives count toward the seat cap as the fold's own CAPTURE does; fails_when=isCompleteKeyframe counts upgrades only; why_new=the lines above carry no captives; seam=none; no_claim=none
+        const withCaptive = fold([{
+            seq: 'R1.start', t: 'ROUND_START', round: 1,
+            keyframe: { round: 1, phase: 'action', initiative: 1, players: {
+                1: { ...seat(1, []), cards: [card('SOR#010', Array.from({ length: 600 }, (_, i) => `SHD#${i}`)), { ...card('SOR#011', Array.from({ length: 400 }, (_, i) => `TWI#${i}`)), captured: ['SOR#200'] }] },
+                2: seat(2, []),
+            } },
+        } as any]);
+        expect(withCaptive.players[1]?.cards).withContext('1000 upgrades and a captive is past the cap')
             .toEqual([]);
     });
 

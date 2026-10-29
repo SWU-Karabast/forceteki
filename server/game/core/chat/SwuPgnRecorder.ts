@@ -504,7 +504,10 @@ export class SwuPgnRecorder {
     /** Incremented for sub-events within an action; reset when actionCounter increments. */
     private subEventCounter = 0;
 
-    /** Caps repeated recorder-error logging so a broken handler can't flood the logs. */
+    /**
+     * Caps repeated recorder-error logging so a broken handler can't flood the logs. A fact about
+     * the session, not the recording, so never checkpointed: an undo does not reopen the log.
+     */
     private static readonly maxLoggedErrors = 20;
     private loggedErrorCount = 0;
 
@@ -644,7 +647,7 @@ export class SwuPgnRecorder {
     private simulGroup: { window: any; first: GameEvent; seq: string } | null = null;
 
     /**
-     * Rollback checkpoints (array lengths + counters + tokenParents snapshot) keyed by
+     * Rollback checkpoints (the fields of the type below are the whole list) keyed by
      * snapshot id, so the recorder rewinds in lockstep with the game on undo.
      * tokenParents is captured here because a
      * rollback that rewinds past a token attach without restoring the map would make a
@@ -659,7 +662,6 @@ export class SwuPgnRecorder {
         actionCounter: number;
         phaseEventCounter: number;
         subEventCounter: number;
-        loggedErrorCount: number;
         errorCount: number;
         tokenParents: [string, { parent: any; kind: TokenUpgradeKind }][];
         lastStats: [string, string][];
@@ -878,7 +880,6 @@ export class SwuPgnRecorder {
             this.actionCounter = boundary.actionCounter;
             this.phaseEventCounter = boundary.phaseEventCounter;
             this.subEventCounter = boundary.subEventCounter;
-            this.loggedErrorCount = boundary.loggedErrorCount;
             this.errorCount = boundary.errorCount;
             // Rebuild tokenParents from the snapshot taken at the boundary so a removal record for
             // a token gained after the boundary no longer finds a parent (and is skipped).
@@ -945,8 +946,8 @@ export class SwuPgnRecorder {
     }
 
     /**
-     * Capture a rollback checkpoint for `snapshotId`, recording the current array lengths,
-     * counters, and a snapshot of the tokenParents map. Mirrors v1.0's checkpoint semantics:
+     * Capture a rollback checkpoint for `snapshotId`, recording every field `checkpoints`
+     * holds. Mirrors v1.0's checkpoint semantics:
      * if the most recent checkpoint already belongs to this snapshot id it is a no-op (one
      * checkpoint per snapshot boundary). Exposed publicly so tests (and any explicit Game-side
      * hook) can checkpoint deterministically; gameplay drives it lazily via push().
@@ -969,7 +970,6 @@ export class SwuPgnRecorder {
                 actionCounter: this.actionCounter,
                 phaseEventCounter: this.phaseEventCounter,
                 subEventCounter: this.subEventCounter,
-                loggedErrorCount: this.loggedErrorCount,
                 errorCount: this.errorCount,
                 tokenParents: [...this.tokenParents.entries()],
                 lastStats: [...this.lastStats.entries()],
