@@ -285,5 +285,39 @@ describe('Asajj Ventress, No Time for Regret', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('Asajj Ventress\'s leader side ability, when the attacker has Raid 0', function() {
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'asajj-ventress#no-time-for-regret',
+                        resources: 4,
+                        base: { card: 'kestro-city', damage: 5 },
+                        spaceArena: ['punishing-one#takes-no-prisoners']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+            });
+
+            it('should not offer or throw on a Restore 0 trigger when Raid 0 (Punishing One with no damaged enemy unit) becomes Restore 0', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.asajjVentress);
+                context.player1.clickCard(context.punishingOne);
+                context.player1.clickPrompt(raidToRestore);
+                context.player1.clickCard(context.p2Base);
+
+                // Restore 0 heals nothing and is not offered as a trigger; only Punishing One's own On Attack ability is
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.punishingOne, context.wampa]);
+                context.player1.clickPrompt('Pass');
+
+                expect(context.p1Base.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
