@@ -9,7 +9,50 @@ import type { Card } from '../card/Card';
 import type { IOngoingCardEffectProps } from '../../Interfaces';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
 import type { AbilityContext } from '../ability/AbilityContext';
-import { registerState } from '../GameObjectUtils';
+import { registerState, type GameObjectId } from '../GameObjectUtils';
+
+interface IAttackableCandidateCache {
+    allCardIds: readonly GameObjectId<Card>[];
+    allCardCount: number;
+    zoneCards: readonly (readonly Card[])[];
+    baseCards: readonly (Card | null)[];
+    candidates: Card[];
+}
+
+const attackableCandidateCaches = new WeakMap<Game, IAttackableCandidateCache>();
+
+function getAttackableCandidates(game: Game): Card[] {
+    const allCardIds = game.state.allCards;
+    const zoneCards: (readonly Card[])[] = [game.groundArena.cards, game.spaceArena.cards];
+    const baseCards: (Card | null)[] = [];
+    for (const player of game.getPlayers()) {
+        const baseZone = player.baseZone;
+        zoneCards.push(baseZone.leaders, baseZone.credits, baseZone.upgrades);
+        baseCards.push(baseZone.base, baseZone.forceToken);
+    }
+    let cached = attackableCandidateCaches.get(game);
+
+    // Arena and base-zone membership changes replace these arrays, including during rollback.
+    // allCards is replaced on rollback, but token generation appends to the existing array.
+    if (!cached || cached.allCardIds !== allCardIds || cached.allCardCount !== allCardIds.length ||
+      cached.zoneCards.length !== zoneCards.length || cached.baseCards.length !== baseCards.length ||
+      zoneCards.some((cards, index) => cards !== cached.zoneCards[index]) ||
+      baseCards.some((card, index) => card !== cached.baseCards[index])) {
+        cached = {
+            allCardIds,
+            allCardCount: allCardIds.length,
+            zoneCards,
+            baseCards,
+            // Keep the original registration order rather than each zone's insertion order.
+            candidates: game.allCards.filter((card) => EnumHelpers.isAttackableZone(card.zoneName))
+        };
+        attackableCandidateCaches.set(game, cached);
+    }
+
+    // Only candidate discovery is cached. Eligibility and dynamic values are reevaluated normally.
+    // Preserve the fresh array returned by getTargets so callers cannot mutate the cached list.
+    return cached.candidates.slice();
+}
 
 @registerState()
 export class OngoingCardEffect extends OngoingEffect<Card> {
@@ -54,7 +97,8 @@ export class OngoingCardEffect extends OngoingEffect<Card> {
             return target === this.context.source;
         }
 
-        if (target.isBlank() && this.impl.valueWrapper.isGainAbility()) {
+        // Only gain effects need to scan the target's ongoing effects for blanking.
+        if (this.impl.valueWrapper.isGainAbility() && target.isBlank()) {
             const gainSource = this.impl.valueWrapper.gainAbilitySource;
 
             if (!target.canGainAbilityFromSource(gainSource)) {
@@ -64,7 +108,7 @@ export class OngoingCardEffect extends OngoingEffect<Card> {
 
         // If the target is blanked, it cannot gain keywords unless it is in an hidden zone,
         // this is to allow blanked cards to be played if they gain smuggle
-        if (target.isBlank() && this.impl.type === EffectName.GainKeyword && !EnumHelpers.isHiddenFromOpponent(target.zoneName, RelativePlayer.Self)) {
+        if (this.impl.type === EffectName.GainKeyword && target.isBlank() && !EnumHelpers.isHiddenFromOpponent(target.zoneName, RelativePlayer.Self)) {
             const keywords = Helpers.asArray(this.impl.getValue(target))
                 .map((k) => (typeof k === 'string' ? k : k.keyword));
 
@@ -99,6 +143,8 @@ export class OngoingCardEffect extends OngoingEffect<Card> {
             return this.game.allCards;
         } else if (EnumHelpers.isArena(this.targetZoneFilter)) {
             return this.game.findAnyCardsInPlay();
+        } else if (this.targetZoneFilter === WildcardZoneName.AnyAttackable && typeof this.matchTarget === 'function') {
+            return getAttackableCandidates(this.game);
         }
         return this.game.allCards;
     }
