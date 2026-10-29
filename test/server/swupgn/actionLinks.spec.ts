@@ -469,3 +469,25 @@ describe('isTopLevelActionRecord', function () {
         expect(linkActionSteps(events).map((e) => (e as { for?: string }).for)).toEqual([undefined, undefined, undefined, undefined]);
     });
 });
+
+describe('linkActionSteps on a line that is not a record', function () {
+    // Value: protects=a parsed events line that is null, a number or an array neither anchors nor is anchored, and stops the backward walk instead of crashing it; fails_when=the RESOURCE look-back or the precursor walk dereferences such a line, or a run is linked across it; why_new=the fold hardening case puts these lines only ahead of the setup phase, where no walk reaches them; seam=none; no_claim=what validate reports for such a line
+    it('neither links across it nor throws on it', function () {
+        const junk = [null, 5, []] as unknown as GameEvent[];
+        for (const line of junk) {
+            const events: GameEvent[] = [
+                { seq: 'R0.S.14', t: 'MOVE', card: 'SOR#108:2', from: 'hand', to: 'resource', p: 1 },
+                line,
+                { seq: 'R0.S.15', t: 'RESOURCE', p: 1, card: 'SOR#108:2' },
+                { seq: 'R1.A.0b', t: 'MOVE', card: 'SOR#095', from: 'hand', to: 'ground', p: 1 },
+                line,
+                { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#095', zone: 'ground', cost: 2 },
+            ];
+            const out = linkActionSteps(events);
+            expect(out.map((e) => (e as { for?: string } | null)?.for)).withContext(JSON.stringify(line))
+                .toEqual([undefined, undefined, undefined, undefined, undefined, undefined]);
+            expect(out[1]).withContext(JSON.stringify(line))
+                .toBe(line);
+        }
+    });
+});

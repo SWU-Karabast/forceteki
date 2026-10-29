@@ -362,8 +362,9 @@ requirement, by id. The linked section is where each one is defined.
 - `[W-46]` MUST write `active` on every `ROUND_START`: the seat that holds the initiative that
   round, the round's first active player (CR 5.4.1.b)
   ([§10.1](#101-events-that-carry-board-detail)).
-- `[W-47]` MUST write `outsideTheGame` as the `to` of every `MOVE` of a `TOKEN:` id out of an
-  arena or out of `base`, and MUST NOT write a `CAPTURE` for a token: a token that leaves play
+- `[W-47]` MUST write `outsideTheGame` as the `to` of every `MOVE` of a `TOKEN:` id that leaves
+  play (out of an arena or out of `base`, except a token moving with its unit to the other
+  arena), and MUST NOT write a `CAPTURE` for a token: a token that leaves play
   ceases to exist (CR 3.7.3, 8.33.5) ([§10.1](#101-events-that-carry-board-detail)).
 - `[W-48]` MUST write one `EFFECT_START` for each lasting or delayed effect (CR 7.7.3, 7.7.4) an
   ability resolution creates, **as the card text states it**, and one `EFFECT_END` when it ends;
@@ -447,9 +448,10 @@ requirement, by id. The linked section is where each one is defined.
 - `[V-06]` MUST report a Fortify upgrade attached to the other seat's base: a `MOVE` into `base`
   whose `attachedTo` is `base@N`, or a `PLAY_UPGRADE` whose `target` is `base@N`, with N not the
   record's `p` (`fortify-host`, error) ([§10.3](#103-homeworlds-fortify-beast-and-weakness)).
-- `[V-07]` MUST report a `MOVE` of a `TOKEN:` id out of an arena or out of `base` to a zone
-  outside play other than `outsideTheGame` (`token-zone`, error); a token moving with its unit
-  to the other arena, or to `base`, stays in play ([§10.1](#101-events-that-carry-board-detail)).
+- `[V-07]` MUST report a `MOVE` of a `TOKEN:` id out of an arena or out of `base` to any zone
+  but `outsideTheGame` (`token-zone`, error), except a token other than a Credit or the Force
+  token moving with its unit to the other arena, which stays in play
+  ([§10.1](#101-events-that-carry-board-detail)).
 - `[V-08]` MUST report a `ROUND_START` with no `active` seat (`round-start-active`, error)
   ([§10.1](#101-events-that-carry-board-detail)).
 - `[V-09]` MUST report an `EFFECT_END` whose `id` names no active effect — no earlier
@@ -1759,8 +1761,9 @@ took it off the board. This record files it under its captor, idempotently:
   of play either way.
 - `card` is a `TOKEN:` id → nothing. A token that leaves play ceases to exist (CR 3.7.3, 8.33.5),
   so it is never captured: its exit is a `MOVE` to `outsideTheGame`, a writer MUST NOT write a
-  `CAPTURE` for it `[W-47]`, and a `MOVE` of a token out of an arena or out of `base` to a zone
-  outside play other than `outsideTheGame` is a `token-zone` error `[V-07]`. A reader ignores a
+  `CAPTURE` for it `[W-47]`, and a `MOVE` of a token out of an arena or out of `base` to any
+  zone but `outsideTheGame` is a `token-zone` error `[V-07]`, except one moving with its unit to
+  the other arena. A reader ignores a
   `CAPTURE` of a token id.
 
 **`RESCUE` — `card` returned to play under `p`, its owner.**
@@ -4073,7 +4076,7 @@ A pass of the format against Comprehensive Rules v9.0 and the board state of CR 
   (`round-start-no-active` vector).
 - A token leaving play goes to `outsideTheGame` from every zone `[W-47]`; a token `MOVE` out of
   play to any other zone is an error, `token-zone` `[V-07]` (`token-to-hand` vector), and one
-  moving with its unit to the other arena is not. A leader moving between
+  moving with its unit to the other arena is not (a Credit or the Force token never does). A leader moving between
   an arena and `base` sets `leader.deployed` whether or not a `DEPLOY_LEADER` was written.
 - Lasting and delayed effects are records: `EFFECT_START` and `EFFECT_END`, with effect ids
   `fx@N`, the closed `duration` and `reason` vocabularies, a partial end when a target leaves play,
@@ -4282,7 +4285,7 @@ matched by a program.
 | `bad-token-name` | error | A `TOKEN:` id, or a `STATUS_TOKEN.token`, that breaks the token-name grammar ([§6.1](#the-token-grammar)) | well-formed |
 | `deck-build-move` | error | A `MOVE` from `outsideTheGame` into `deck` (`[W-41]`, [§10.1](#101-events-that-carry-board-detail)) | well-formed |
 | `credit-zone` | error | A `MOVE` of a `TOKEN:credit…` id from or into `resource`; a Credit token is recorded in `base` ([§6.2](#62-zone-names), `[W-42]`) | well-formed |
-| `token-zone` | error | A `MOVE` of a `TOKEN:` id out of an arena or out of `base` to a zone outside play other than `outsideTheGame`; a token that leaves play ceases to exist ([§10.1](#101-events-that-carry-board-detail), `[V-07]`) | well-formed |
+| `token-zone` | error | A `MOVE` of a `TOKEN:` id out of an arena or out of `base` to any zone but `outsideTheGame`, except a token (not a Credit or the Force) moving with its unit to the other arena; a token that leaves play ceases to exist ([§10.1](#101-events-that-carry-board-detail), `[V-07]`) | well-formed |
 | `round-start-active` | error | A `ROUND_START` with no `active` seat ([§10.1](#101-events-that-carry-board-detail), `[V-08]`) | well-formed |
 | `effect-end-unknown` | error | An `EFFECT_END` whose `id` names no active effect (no earlier `EFFECT_START`, or it already ended), or whose `targets` names a target the effect does not have ([§10.1](#effect_start), `[V-09]`) | well-formed |
 | `fortify-host` | error | A Fortify upgrade attached to the other seat's base: a `MOVE` into `base` with `attachedTo: "base@N"`, or a `PLAY_UPGRADE` with `target: "base@N"`, where N is not the record's `p` ([§10.3](#103-homeworlds-fortify-beast-and-weakness), `[V-06]`) | well-formed |

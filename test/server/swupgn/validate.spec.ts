@@ -339,6 +339,9 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(codes(move('SOR#108', 'hand'))).not.toContain('error:token-zone');
         // Value: protects=a token moving with its unit to the other arena stays in play, so it is no token-zone error; fails_when=the check fires on every token leaving an arena; why_new=the cases above move a token out of play; seam=none; no_claim=which tokens the rules let change arenas
         expect(codes(move('TOKEN:shield#1', 'space'))).not.toContain('error:token-zone');
+        // Value: protects=only a move to the other arena is exempt: a token moving from an arena to a base, or a Credit leaving base for an arena, is still token-zone (§6.5); fails_when=the exemption covers every in-play destination; why_new=the case above moves a token to the other arena; seam=none; no_claim=which tokens the rules let change arenas
+        expect(codes(move('TOKEN:shield#1', 'base'))).toContain('error:token-zone');
+        expect(codes(addEvent('{"seq":"R1.A.9","t":"MOVE","card":"TOKEN:credit#1234567890","from":"base","to":"ground","p":1}'))).toContain('error:token-zone');
     });
 
     it('reports a ROUND_START without active', function () {

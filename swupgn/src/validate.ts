@@ -377,9 +377,12 @@ export function validate(text: string): ConformanceReport {
                 error('credit-zone', `record ${seqStr}: Credit token "${r['card']}" MOVE names resource (a Credit token is recorded in base)`);
             }
             // A token that leaves play ceases to exist, so the move names outsideTheGame (CR 3.7.3, [W-47]).
-            // One moving with its unit to the other arena, or to a base, stays in play.
+            // One moving with its unit to the other arena stays in play; a Credit or the Force token
+            // never takes an arena slot (§6.5), so it has no such move.
+            const changesArena = isArena(String(r['from'])) && isArena(String(r['to'])) && !isCredit &&
+              !(typeof r['card'] === 'string' && TOKEN_ID.test(r['card']) && tokenNameOf(r['card']) === 'the-force');
             if (typeof r['card'] === 'string' && r['card'].startsWith('TOKEN:') && r['to'] !== 'outsideTheGame' &&
-              r['to'] !== 'base' && !isArena(String(r['to'])) && (r['from'] === 'base' || isArena(String(r['from'])))) {
+              r['from'] !== r['to'] && !changesArena && (r['from'] === 'base' || isArena(String(r['from'])))) {
                 error('token-zone', `record ${seqStr}: token "${r['card']}" leaves ${String(r['from'])} for ${String(r['to'])} (a token leaving play goes to outsideTheGame)`);
             }
             // Only an arena may be both ends of a move: an attachment changing in place (§10.1).

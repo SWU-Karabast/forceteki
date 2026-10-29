@@ -183,3 +183,36 @@ describe('SwuPgnGameAdapter header Date', function () {
         expect(headerFor({ createdAt: new Date() }).gameNumber).toBeUndefined();
     });
 });
+
+describe('SwuPgnGameAdapter %%% CARDS index from a sideboard', function () {
+    // Value: protects=a sideboard-only card is named from the card map (title, subtitle when it has one), a card the game loaded keeps its own entry and kind, and an entry the map does not know is left out; fails_when=a sideboard entry overwrites a loaded card's entry, drops the subtitle, or is added without a name; why_new=the lobby spec only checks that some name appears for one sideboard card; seam=none; no_claim=which cards a real sideboard may hold
+    it('names sideboard-only cards from the card map without overwriting a loaded card', function () {
+        const loaded = { setId: { set: 'sor', number: 95 }, isToken: () => false, printedType: 'basicUnit', cardData: { title: 'Loaded', subtitle: 'In Deck' } };
+        const cardMap = new Map<string, { title?: string; subtitle?: string }>([
+            ['loaded', { title: 'Sideboard Copy' }],
+            ['titled', { title: 'Titled', subtitle: 'Subtitled' }],
+            ['plain', { title: 'Plain' }],
+            ['untitled', {}],
+        ]);
+        const player = {
+            id: 'p1',
+            getAllDeckLeaders: () => [],
+            base: null,
+            allCards: [loaded],
+            lobbyDeck: { getDecklist: () => ({ sideboard: [
+                { id: 'sor_095', internalName: 'loaded' },
+                { id: 'sor_100', internalName: 'titled' },
+                { id: 'shd_7', internalName: 'plain' },
+                { id: 'sor_101', internalName: 'untitled' },
+                { id: 'sor_102', internalName: 'not-in-map' },
+            ] }) },
+        };
+        const adapter: any = new SwuPgnGameAdapter({ ...fakeGame({ players: [player] }), cardDataGetter: { cardMap } });
+
+        expect(adapter.buildSwuPgnCardIndex()).toEqual([
+            { id: 'SHD#007', name: 'Plain' },
+            { id: 'SOR#095', name: 'Loaded, In Deck', kind: 'unit' },
+            { id: 'SOR#100', name: 'Titled, Subtitled' },
+        ]);
+    });
+});
