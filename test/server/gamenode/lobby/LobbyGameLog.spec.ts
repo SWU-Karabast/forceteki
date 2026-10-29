@@ -136,6 +136,57 @@ describe('Lobby game log download', function () {
                 .toBeNull();
         });
 
+        // Value: protects=a plain rematch does not reopen conversion for decks a downloaded log names; fails_when=the refusal reads the finished game, which a rematch drops while the result it converts is kept; why_new=the case above converts the downloaded game itself; seam=none; no_claim=a game played between the download and the conversion
+        it('does not convert after a plain rematch while the decks are the ones a downloaded log names', async function () {
+            const { harness } = contextRef;
+            const { first: player, second: opponent } = await harness.startQuickGameAsync();
+
+            await player.sendGameMessageAsync('concede');
+            expect(typeof (await requestGameLogAsync(player))?.swuPgnFile).toBe('string');
+            await player.sendLobbyMessageAsync('requestRematch', 'regular');
+            await opponent.sendLobbyMessageAsync('rematch');
+            expect(player.lobbyState.gameOngoing).withContext('the rematch dropped the game')
+                .toBeFalse();
+
+            await player.sendLobbyMessageAsync('requestRematch', 'bo1ConvertToBo3');
+            await opponent.sendLobbyMessageAsync('rematch');
+
+            expect(player.lobbyState.winHistory.gamesToWinMode).toBe('bestOfOne');
+        });
+
+        // Value: protects=loading a deck again clears that player's deck from the refusal, and only a lobby where every player did converts; fails_when=one player's reload clears the other's deck, or a reload clears nothing; why_new=no case loads a deck after a download; seam=none; no_claim=a reload of the identical list, which also clears it
+        it('converts again once every player has loaded a deck since the download', async function () {
+            const { harness } = contextRef;
+            const { first: player, second: opponent } = await harness.startQuickGameAsync();
+
+            await player.sendGameMessageAsync('concede');
+            expect(typeof (await requestGameLogAsync(player))?.swuPgnFile).toBe('string');
+            const lobbyId = player.lobbyState.id;
+            expect((await player.changeDeckAsync(lobbyId, harness.decklists.validDecklist())).status).toBe(200);
+            await player.sendLobbyMessageAsync('requestRematch', 'bo1ConvertToBo3');
+            expect(player.lobbyState.rematchRequest).withContext('the opponent\'s deck is still the downloaded one')
+                .toBeNull();
+
+            expect((await opponent.changeDeckAsync(lobbyId, harness.decklists.validDecklist())).status).toBe(200);
+            await player.sendLobbyMessageAsync('requestRematch', 'bo1ConvertToBo3');
+            await opponent.sendLobbyMessageAsync('rematch');
+
+            expect(player.lobbyState.winHistory.gamesToWinMode).toBe('bestOfThree');
+        });
+
+        // Value: protects=a refused conversion request leaves a pending rematch of another mode in place; fails_when=the refusal clears whatever request is pending; why_new=the cases above have no other request pending; seam=none; no_claim=the rematch itself, accepted elsewhere
+        it('keeps a pending rematch of another mode when a conversion is refused', async function () {
+            const { harness } = contextRef;
+            const { first: player, second: opponent } = await harness.startQuickGameAsync();
+
+            await player.sendGameMessageAsync('concede');
+            expect(typeof (await requestGameLogAsync(player))?.swuPgnFile).toBe('string');
+            await opponent.sendLobbyMessageAsync('requestRematch', 'regular');
+            await player.sendLobbyMessageAsync('requestRematch', 'bo1ConvertToBo3');
+
+            expect(player.lobbyState.rematchRequest?.mode).toBe('regular');
+        });
+
         // Value: protects=a best-of-one whose log nobody downloaded still converts to a best-of-three (control for the case above); fails_when=the refusal fires on every converted game; why_new=no lobby spec converts; seam=none; no_claim=the second game of the set
         it('still turns a best-of-one into a best-of-three when its log was not downloaded', async function () {
             const { harness } = contextRef;

@@ -2323,11 +2323,6 @@ export class Game extends EventEmitter {
         return true;
     }
 
-    /** True once this game's log reached a player. See `markSwuPgnServed`. */
-    public get isSwuPgnServed(): boolean {
-        return this._swuPgnFileServed;
-    }
-
     /** True once this game was reopened after its log was served: no further copy is served. */
     public get isSwuPgnWithheld(): boolean {
         return this._swuPgnServedThenReopened;

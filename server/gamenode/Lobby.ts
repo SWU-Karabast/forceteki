@@ -177,6 +177,14 @@ export class Lobby {
     public matchmakingType: MatchmakingType;
     public gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
+
+    /**
+     * The players whose current deck is named in a game log that was served. A file names both
+     * decklists and sideboards, which a best-of-three keeps hidden between its games, so while a
+     * current player's deck is here this lobby does not convert into one. Loading a deck removes
+     * that player; a rematch does not, since the decks carry over.
+     */
+    private readonly decksInServedLog = new Set<string>();
     private userLastActivity = new Map<string, Date>();
     private matchingCountdownText?: string;
     private matchingCountdownTask?: IScheduledTask;
@@ -524,6 +532,7 @@ export class Lobby {
         const deck = decklist ? new Deck(decklist, this.cardDataGetter) : null;
         if (existingUser) {
             existingUser.deck = deck;
+            this.decksInServedLog.delete(existingUser.id);
             if (matchmakingSearchContext) {
                 existingUser.matchmakingSearchContext = matchmakingSearchContext;
             }
@@ -864,16 +873,23 @@ export class Lobby {
     }
 
     /**
-     * True, after alerting the players, when this game's log was served. The file names both
-     * decklists and sideboards, which a best-of-three keeps hidden between its games, so a game
-     * whose file a player holds cannot become the first game of one (see `getGameLog`).
+     * True, after alerting the players, when a current player's deck is named in a served game
+     * log (see `decksInServedLog`). Only a pending conversion request is dropped; a pending
+     * rematch of another mode stays.
      */
     private refuseConversionAfterLogServed(): boolean {
-        if (!this.game?.isSwuPgnServed) {
+        if (!this.users.some((u) => this.decksInServedLog.has(u.id))) {
             return false;
         }
-        this.rematchRequest = null;
-        this.game.addAlert(AlertType.Warning, 'This game cannot become a best-of-three: its game log has already been downloaded');
+        if (this.rematchRequest?.mode === RematchMode.Bo1ConvertToBo3) {
+            this.rematchRequest = null;
+        }
+        const alert = 'This match cannot become a best-of-three: a game log naming these decks has already been downloaded';
+        if (this.game) {
+            this.game.addAlert(AlertType.Warning, alert);
+        } else {
+            this.gameChat.addAlert(AlertType.Warning, alert);
+        }
         this.sendLobbyState();
         return true;
     }
@@ -1095,6 +1111,7 @@ export class Lobby {
             : DeckValidator.filterOutSideboardingErrors(activeUser.importDeckValidationErrors);
         if (Object.keys(blockingErrors).length === 0) {
             activeUser.deck = new Deck(deck, this.cardDataGetter);
+            this.decksInServedLog.delete(activeUser.id);
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(
                 activeUser.deck.getDecklist(),
                 validationProperties
@@ -2810,6 +2827,9 @@ export class Lobby {
         // Mark before replying: the file is on its way out, and the game may be reopened by
         // an undo past game end (see Game.markSwuPgnServed).
         this.game.markSwuPgnServed();
+        for (const user of this.users) {
+            this.decksInServedLog.add(user.id);
+        }
         callback({ swuPgnFile });
     }
 }
