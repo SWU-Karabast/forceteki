@@ -387,8 +387,9 @@ requirement, by id. The linked section is where each one is defined.
   ([§10.2](#what-a-search-emits)).
 - `[W-53]` MUST write `blind` on every `CHOICE` made without seeing the other players' choices
   (CR 7.1.4a), and `simul` on every member record ([§10.2](#simultaneous-groups) lists them) of a
-  simultaneous resolution under CR 7.1.4a and of combat damage (CR 6.3.5) that writes two or
-  more of them; MUST NOT write `simul` on a group of one; MAY write `simul` wherever else the
+  simultaneous resolution under CR 7.1.4a that discards two or more cards and of combat damage
+  (CR 6.3.5) that writes two or more `DAMAGE` / `OVERWHELM` records; MUST NOT write `simul` on a
+  resolution of one card or one damage record; MAY write `simul` wherever else the
   rules say records happen simultaneously ([§10.2](#simultaneous-groups)).
 - `[W-54]` MUST write `usedBy` on an `ABILITY_ACTIVATE` that another card's ability made the
   player use (CR 7.6.13d, 7.6.14d), with `card` the card the used ability is on and `p` the
@@ -1993,13 +1994,13 @@ ability text is not recorded — it is card data, and the `%%% CARDS` index name
 | `p` | 1 or 2 | yes | The seat that controls the effect: the controller of the ability that created it. |
 | `targets` | string[] | one of `targets`, `seat` | What the effect applies to: card ids and/or `base@N`, at least one. Absent for an effect that applies to a player rather than to cards; `seat` then says which. |
 | `seat` | 1, 2 or `both` | one of `targets`, `seat` | For a player-wide effect ("the next card you play this phase costs 1 less"), the seat it applies to; `both` for one effect on both players ("each player can't …"), which is one effect, not two. |
-
-A record carries exactly one of `targets` and `seat` (`schema`, error). An effect that applies to
-no card and no player when it is created applies to nothing, and is not written.
 | `duration` | string | yes | How long it lasts. **Closed** — the table below. |
 | `untilText` | string | with `until` | With `duration` `until`: the condition that ends the effect, in words that read after "until" (`this unit attacks`). REQUIRED when `duration` is `until` `[W-48]`, and a record without it fails its schema (`schema`, error). Advisory otherwise, like `text`: a reader never evaluates it. It is plain text, never markup. |
 | `ability` | string | no | The ability that created the effect, in the form of `ABILITY_ACTIVATE.ability`. A reader MUST NOT branch on it. |
 | `text` | string | no | The effect in words (`+2/+2 and Sentinel`). Advisory, like `ABILITY_ACTIVATE.title`, and it MAY carry icon markup the same way. |
+
+A record carries exactly one of `targets` and `seat` (`schema`, error). An effect that applies to
+no card and no player when it is created applies to nothing, and is not written.
 
 Adds the effect to the board's `effects` ([§12.2](#122-every-other-rule-in-one-table)).
 
@@ -2365,9 +2366,11 @@ fold ignores them.
     changes, and the `MOVE` and `DEFEAT` of a unit the damage defeats are not members: they are
     a replacement for the damage, or consequences after it.
 
-  **A group is two or more records.** A resolution that writes only one member — an attack on a base,
-  a combat in which a Shield prevented one side's damage, one player's discard when the other has
-  no card — writes no `simul`. A writer MAY write `simul` wherever else the rules say records happen simultaneously,
+  **A group is two or more of what happened at once**: for discards, two or more cards discarded
+  (each card's `MOVE` and `DISCARD` then carry `simul`); for combat damage, two or more of its
+  `DAMAGE` and `OVERWHELM` records. A resolution with only one — an attack on a base, a combat in
+  which a Shield prevented one side's damage, one card discarded when the other player has no
+  card — writes no `simul`, though a single discard is itself two records. A writer MAY write `simul` wherever else the rules say records happen simultaneously,
   and SHOULD write a group's records one after another.
 
 A renderer and a scrubber treat a `simul` group as **one instant**: a scrubber never stops inside
@@ -2827,7 +2830,7 @@ already applied the rules, and the file records what it decided. Where each part
 | Each card's **attributes** — power, HP, keywords, traits, modifiers | `STATS` after every change ([§10.1](#stats)), snapshotted in keyframes: `power`, `hp`, `keywords`, `traits`, `blank` (all abilities lost), `leaderUnit` (made a leader unit by an ability), and for a copy `copyOf` with the copied `name`, `cost` and `aspects`; `damage`, `upgrades`, `shields`, `experience`, `statusTokens`. An ability a card has only because another card granted it (a base's "Attached base gains: …") is named by `grantedBy` when it is used |
 | Each card's **status** — ready/exhausted | `EXHAUST` / `READY` for arena cards and the leader, including the `EXHAUST` a unit gets on entering play; `EXHAUST_RESOURCES` / `READY_RESOURCES` and the `MOVE.exhausted` flag for the resource row |
 | Each card's **status** — faceup/facedown | the leader's `deployed` (Leader Unit side up) and, for a double-sided leader, `onStartingSide` — set by `LEADER_FLIP` ([§10.1](#101-events-that-carry-board-detail)); resources are always facedown, and `RESOURCE` names the card for the omniscient reader |
-| The **initiative counter**: controller and taken/available | `initiative` and `initiativeTaken`; `CLAIM_INITIATIVE`, reset at `ROUND_START` |
+| The **initiative counter**: controller and taken/available | `initiative` and `initiativeTaken`: `ROUND_START.active` sets `initiative` (the round's first active player holds it, CR 5.4.1.b) and resets `initiativeTaken`; `CLAIM_INITIATIVE` sets both |
 | **Open and hidden information** | what each hidden card is: the archive is omniscient ([§17](#17-privacy-considerations)), so `DRAW`, `RESOURCE`, `SEARCH`, `REVEAL` and the keyframe's `hand` name the hidden cards. Who has seen which: the records, not the board — `LOOK` (a player looked), `SEARCH.seen` and `owner` (a player searched), `REVEAL` (everyone saw, a successful disclose included), `ABILITY_ACTIVATE` for a card whose ability triggered from a hidden zone (CR 7.6.3a), and `blind` on choices made without seeing each other ([§10.2](#what-a-search-emits)). The board keeps no per-player knowledge model in 1.0: a reader that needs one builds it from those records. A named card (CR 8.17) is a `NAME` |
 | **Lasting effects** | `effects` on the board: `EFFECT_START` when one is created, `EFFECT_END` when it ends or a target leaves it ([§10.1](#effect_start)) — its source, controller, targets and duration. A unit it changes also shows the change in its own attributes: `STATS` (a unit given +3/+0 for an attack shows it and shows it going away), `keywords` (Sentinel for a phase) |
 | **Delayed effects** | `effects` on the board, with `duration` `delayed`, from the moment the effect is created until its `EFFECT_END` with `reason` `fired` ([§10.1](#effect_start)); what it does when it fires is in the records it causes then (a Change of Heart return is a `TAKE_CONTROL` at regroup) |
@@ -4085,7 +4088,8 @@ A pass of the format against Comprehensive Rules v9.0 and the board state of CR 
   records of one simultaneous resolution carry `simul` `[W-53]`: each player's discards (each
   card's `MOVE` from `hand` and its `DISCARD`) and combat damage (its `DAMAGE` records and an
   `OVERWHELM`; not a `SHIELD_USE`, nor the `MOVE` and `DEFEAT` of a unit it defeats). A group is
-  two or more records; a resolution that writes one member writes no `simul`.
+  two or more cards discarded, or two or more damage records; a resolution with one writes no
+  `simul`.
 - An ability another card's ability made a player use carries `usedBy`, and its `p` is that
   player `[W-54]`.
 - `STATS` states every attribute of the unit: `traits` always, `blank`, `leaderUnit`, and for a
@@ -5131,8 +5135,8 @@ contents alone cannot show. None of this is required of another writer. Operatio
   valued at the latest `ABILITY_ACTIVATE` of its source in the current action, else at the
   action's own record. `simul` is written on the discards of such a resolution (each card's `MOVE`
   from `hand` and its `DISCARD`) and on combat damage (its `DAMAGE` records and an `OVERWHELM`),
-  grouping the records of the one engine event window they resolve in; a window that writes only
-  one of them writes no `simul`. Several cards one player discards in one window are grouped the
+  grouping the records of the one engine event window they resolve in; a window that discards
+  only one card, or writes only one damage record, writes no `simul`. Several cards one player discards in one window are grouped the
   same way, which the format allows (MAY).
 - **`usedBy` `[W-54]`.** Set when the engine's "use an ability again / on another unit" systems
   resolved the ability, naming the card whose ability did so; `p` is then the context's player.
