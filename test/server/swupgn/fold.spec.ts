@@ -842,6 +842,23 @@ describe('fold keyframe trust boundary', function () {
             .toEqual(['SHD#2000']);
     });
 
+    // Value: protects=a unit changing seats brings its upgrades into its new seat's cap, so control changes cannot pile one seat past it (spec §12, [F-05]); fails_when=TAKE_CONTROL moves a unit without counting its attachments; why_new=the case above attaches within one seat; seam=none; no_claim=fold time itself is not measured
+    it('does not move a unit by TAKE_CONTROL when its upgrades would take its new seat past the cap', function () {
+        const fill = (p: number, host: string, from: number) => Array.from({ length: 600 }, (_, i) => ({ seq: `R1.A.${p}u${from + i}`, t: 'MOVE', card: `SHD#${from + i}`, from: 'hand', to: 'ground', p, kind: 'upgrade', attachedTo: host }));
+        const s = fold([
+            { seq: 'R1.A.1', t: 'MOVE', card: 'SOR#1', from: 'hand', to: 'ground', p: 1, kind: 'unit' },
+            { seq: 'R1.A.2', t: 'MOVE', card: 'SOR#2', from: 'hand', to: 'ground', p: 2, kind: 'unit' },
+            { seq: 'R1.A.3', t: 'MOVE', card: 'SOR#3', from: 'hand', to: 'ground', p: 2, kind: 'unit' },
+            ...fill(1, 'SOR#1', 0),
+            ...fill(2, 'SOR#2', 1000),
+            { seq: 'R1.A.4', t: 'TAKE_CONTROL', p: 1, card: 'SOR#2', zone: 'ground' },
+            { seq: 'R1.A.5', t: 'TAKE_CONTROL', p: 1, card: 'SOR#3', zone: 'ground' },
+        ] as any);
+        expect(s.players[1]?.cards.map((c) => c.id)).withContext('600 + 600 would pass the cap; a bare unit does not')
+            .toEqual(['SOR#1', 'SOR#3']);
+        expect(s.players[2]?.cards.map((c) => c.id)).toEqual(['SOR#2']);
+    });
+
     // Value: protects=a keyframe whose seat's cards hold more than 1000 upgrades and captives between them is not snapped to (spec §13); fails_when=the keyframe check counts each card's list only; why_new=the next test grows one card's list; seam=none; no_claim=none
     it('ignores a keyframe whose seat\'s cards hold more upgrades than the cap between them', function () {
         const card = (id: string, upgrades: string[]) => ({ id, zone: 'ground', damage: 0, exhausted: false, upgrades, shields: 0, experience: 0, statusTokens: {}, captured: [] });

@@ -2888,8 +2888,9 @@ fold(events):
 `resources`, `baseUpgrades`, `baseCaptured`, a card's `upgrades` and `captured`, and the
 number of distinct names in a card's `statusTokens`: an id that would be entry 1001 is
 dropped. A seat's cards hold at most 1000 upgrades and captives between them: an upgrade or
-captive is not added to a card when the cards of that card's seat already hold 1000, since
-every exit looks through all of them. No real game comes near it; the cap exists so a crafted file cannot make the fold grow
+captive is not added to a card when the cards of that card's seat already hold 1000, and a
+`TAKE_CONTROL` does not move a unit whose upgrades and captives would take its new seat past
+1000, since every exit looks through all of them. No real game comes near it; the cap exists so a crafted file cannot make the fold grow
 without bound or turn quadratic. A keyframe over the cap is damaged
 ([§13](#damaged-keyframe)), since snapping to it would bypass the cap.
 
@@ -4142,8 +4143,8 @@ A pass of the format against Comprehensive Rules v9.0 and the board state of CR 
   bidirectional control into a space; every other field the story prints is written the same
   way, so one record is one story line ([§16](#16-rendering--turning-a-file-into-a-story), `[R-04]`).
 - A story stops at 16,777,216 characters with a closing line ([§16](#strict-layout-rules)).
-- A seat's cards hold at most 1000 upgrades and captives between them: the fold adds no more, and
-  a keyframe over it is damaged (`over-cap`) `[F-05]` ([§12](#12-folding--turning-lines-into-a-board), [§13](#damaged-keyframe)).
+- A seat's cards hold at most 1000 upgrades and captives between them: the fold adds no more, a
+  `TAKE_CONTROL` does not move a unit that would take its new seat past it, and a keyframe over it is damaged (`over-cap`) `[F-05]` ([§12](#12-folding--turning-lines-into-a-board), [§13](#damaged-keyframe)).
 - `PLAY_EVENT` files its card only when no seat's `discard` already holds it: its own `MOVE`
   files it under its owner, so an event played out of the other seat's deck is not also put in
   the player's pile ([§12.2](#122-every-other-rule-in-one-table)).

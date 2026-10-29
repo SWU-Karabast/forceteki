@@ -1119,7 +1119,9 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
                     continue;
                 }
                 const idx = prev.cards.findIndex((c) => c.id === e.card);
-                if (idx >= 0 && ps.cards.length < MAX_ZONE_LIST) {
+                // The unit brings its upgrades and captives, which count against its new seat's cap.
+                if (idx >= 0 && ps.cards.length < MAX_ZONE_LIST &&
+                  attachmentsHeld(ps.cards) + attachmentsHeld([prev.cards[idx]]) <= MAX_ZONE_LIST) {
                     const moved = prev.cards.splice(idx, 1)[0];
                     reseat(moved, seat, e.p);
                     ps.cards.push(moved);
