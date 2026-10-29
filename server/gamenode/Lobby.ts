@@ -179,13 +179,14 @@ export class Lobby {
     private rematchRequest?: RematchRequest = null;
 
     /**
-     * Each player of a game whose log was served, with the deck that log names (see
-     * `deckFingerprint`). A file names both decklists and sideboards, which a best-of-three keeps
-     * hidden between its games, so while a seated player's current deck is one recorded here this
-     * lobby does not convert into one. The deck, not the seat, is what the file reveals: loading
-     * the same deck again changes nothing, and a rematch carries the decks over.
+     * The decks a served game log revealed, by the player it was served to: each entry is a deck
+     * another player played that game with (see `revealedDeckKey`). A file
+     * names both decklists and sideboards, which a best-of-three keeps hidden between its games,
+     * so while a seated player holds a log naming the current deck of another seated player,
+     * whoever that is, this lobby does not convert into one. Every serve adds; nothing is
+     * removed, since a downloaded file stays downloaded, and loading the same deck matches again.
      */
-    private readonly decksInServedLog = new Map<string, string>();
+    private readonly decksRevealedTo = new Map<string, Set<string>>();
     private userLastActivity = new Map<string, Date>();
     private matchingCountdownText?: string;
     private matchingCountdownTask?: IScheduledTask;
@@ -873,26 +874,32 @@ export class Lobby {
     }
 
     /**
-     * The cards a deck reveals: leaders, base, and main deck and sideboard counted together, since
-     * moving a card between the two reveals nothing new. Order-independent.
+     * The cards a deck reveals: leaders, base, and main deck and sideboard counted
+     * together (moving a card between the two reveals nothing new), each card by its internal name
+     * so a reprint's set code is the same card. Order-independent.
      */
-    private static deckFingerprint(deck: Deck): string {
+    private static revealedDeckKey(deck: Deck): string {
         const list = deck.getDecklist();
         const counts = new Map<string, number>();
         for (const card of [...list.deck, ...(list.sideboard ?? [])]) {
-            counts.set(card.id, (counts.get(card.id) ?? 0) + card.count);
+            counts.set(card.internalName, (counts.get(card.internalName) ?? 0) + card.count);
         }
-        const cards = [...counts.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([id, n]) => `${id}x${n}`);
-        return [list.leader?.id, list.secondLeader?.id ?? '', list.base?.id, ...cards].join(',');
+        const cards = [...counts.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([name, n]) => `${name}x${n}`);
+        return [list.leader?.internalName, list.secondLeader?.internalName ?? '', list.base?.internalName, ...cards].join(',');
     }
 
     /**
-     * True, after alerting the players, when a seated player's current deck is one a served game
-     * log names (see `decksInServedLog`). Only a pending conversion request is dropped; a pending
-     * rematch of another mode stays.
+     * True, after alerting the players, when a seated player holds a served game log that names
+     * another seated player's current deck (see `decksRevealedTo`). Only a pending conversion
+     * request is dropped; a pending rematch of another mode stays.
      */
     private refuseConversionAfterLogServed(): boolean {
-        if (!this.users.some((u) => u.deck && this.decksInServedLog.get(u.id) === Lobby.deckFingerprint(u.deck))) {
+        const revealsASeatedDeck = this.users.some((viewer) => {
+            const revealed = this.decksRevealedTo.get(viewer.id);
+            return revealed != null && this.users.some((owner) =>
+                owner.id !== viewer.id && owner.deck != null && revealed.has(Lobby.revealedDeckKey(owner.deck)));
+        });
+        if (!revealsASeatedDeck) {
             return false;
         }
         if (this.rematchRequest?.mode === RematchMode.Bo1ConvertToBo3) {
@@ -2840,12 +2847,15 @@ export class Lobby {
         // Mark before replying: the file is on its way out, and the game may be reopened by
         // an undo past game end (see Game.markSwuPgnServed).
         this.game.markSwuPgnServed();
+        const requesterId = socket.user.getId();
+        const revealed = this.decksRevealedTo.get(requesterId) ?? new Set<string>();
+        // The game's players, not the lobby's: one who left is still named in the file.
         for (const player of this.game.getPlayers()) {
-            const deck = this.users.find((u) => u.id === player.id)?.deck;
-            if (deck) {
-                this.decksInServedLog.set(player.id, Lobby.deckFingerprint(deck));
+            if (player.id !== requesterId && player.lobbyDeck) {
+                revealed.add(Lobby.revealedDeckKey(player.lobbyDeck));
             }
         }
+        this.decksRevealedTo.set(requesterId, revealed);
         callback({ swuPgnFile });
     }
 }

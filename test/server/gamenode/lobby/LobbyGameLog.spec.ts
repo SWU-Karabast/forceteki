@@ -190,6 +190,72 @@ describe('Lobby game log download', function () {
             expect(player.lobbyState.winHistory.gamesToWinMode).toBe('bestOfThree');
         });
 
+        // Value: protects=a log names the cards of a deck, so moving one between deck and sideboard, or reordering the list, is the same deck; fails_when=the key counts deck and sideboard apart or depends on order; why_new=the reload case loads an identical list; seam=none; no_claim=reprint set codes, which the key also folds by internal name
+        it('keeps refusing after the downloaded deck is reordered or a card is moved to the sideboard', async function () {
+            const { harness } = contextRef;
+            const { first: player, second: opponent } = await harness.startQuickGameAsync();
+
+            await player.sendGameMessageAsync('concede');
+            expect(typeof (await requestGameLogAsync(player))?.swuPgnFile).toBe('string');
+            const lobbyId = player.lobbyState.id;
+            const played = harness.decklists.validDecklist();
+            expect((await player.changeDeckAsync(lobbyId, harness.decklists.validDecklist({ leaderIndex: 1 }))).status).toBe(200);
+            expect((await opponent.changeDeckAsync(lobbyId, { ...played, deck: [...played.deck].reverse() })).status).toBe(200);
+            await opponent.sendLobbyMessageAsync('updateDeck', 'Deck', played.deck[0].id);
+            await player.sendLobbyMessageAsync('requestRematch', 'bo1ConvertToBo3');
+
+            expect(player.lobbyState.rematchRequest).toBeNull();
+        });
+
+        // Value: protects=what is recorded is the deck the game was played with, not the one loaded after it ended; fails_when=the download records the lobby's current deck; why_new=every other case downloads before any deck change; seam=none; no_claim=a player who left before the download, which the same game-player record covers
+        it('records the deck the game was played with when a player changes deck before the download', async function () {
+            const { harness } = contextRef;
+            const { first: player, second: opponent } = await harness.startQuickGameAsync();
+
+            await player.sendGameMessageAsync('concede');
+            const lobbyId = player.lobbyState.id;
+            expect((await player.changeDeckAsync(lobbyId, harness.decklists.validDecklist({ leaderIndex: 1 }))).status).toBe(200);
+            expect((await opponent.changeDeckAsync(lobbyId, harness.decklists.validDecklist({ leaderIndex: 1 }))).status).toBe(200);
+            expect(typeof (await requestGameLogAsync(player))?.swuPgnFile).toBe('string');
+            await player.sendLobbyMessageAsync('requestRematch', 'bo1ConvertToBo3');
+            expect(player.lobbyState.rematchRequest?.mode).withContext('the decks now are not the ones the log names')
+                .toBe('bo1ConvertToBo3');
+
+            expect((await opponent.changeDeckAsync(lobbyId, harness.decklists.validDecklist())).status).toBe(200);
+            await opponent.sendLobbyMessageAsync('rematch');
+
+            expect(player.lobbyState.winHistory.gamesToWinMode).withContext('the opponent went back to the deck the log names')
+                .toBe('bestOfOne');
+        });
+
+        // Value: protects=every download adds to what a player holds, so a later log does not forget an earlier deck; fails_when=a second download replaces the first record; why_new=the other cases serve one log; seam=none; no_claim=more than two games
+        it('remembers a deck from an earlier downloaded log after a later one', async function () {
+            const { harness } = contextRef;
+            const { first: player, second: opponent } = await harness.startQuickGameAsync();
+            const lobbyId = player.lobbyState.id;
+
+            await player.sendGameMessageAsync('concede');
+            expect(typeof (await requestGameLogAsync(player))?.swuPgnFile).toBe('string');
+            expect((await opponent.changeDeckAsync(lobbyId, harness.decklists.validDecklist({ leaderIndex: 1 }))).status).toBe(200);
+            await player.sendLobbyMessageAsync('requestRematch', 'regular');
+            await opponent.sendLobbyMessageAsync('rematch');
+            await player.sendLobbyMessageAsync('setReadyStatus', true);
+            await opponent.sendLobbyMessageAsync('setReadyStatus', true);
+            const owner = player.lobbyState.lobbyOwnerId === player.id ? player : opponent;
+            await owner.sendLobbyMessageAsync('startGameAsync');
+            expect(player.lobbyState.gameOngoing).withContext('the second game started')
+                .toBeTrue();
+            await player.sendGameMessageAsync('concede');
+            expect(typeof (await requestGameLogAsync(player))?.swuPgnFile).toBe('string');
+
+            expect((await opponent.changeDeckAsync(lobbyId, harness.decklists.validDecklist())).status).toBe(200);
+            expect((await player.changeDeckAsync(lobbyId, harness.decklists.validDecklist({ leaderIndex: 2 }))).status).toBe(200);
+            await player.sendLobbyMessageAsync('requestRematch', 'bo1ConvertToBo3');
+
+            expect(player.lobbyState.rematchRequest).withContext('the first log named the opponent\'s deck')
+                .toBeNull();
+        });
+
         // Value: protects=a refused conversion request leaves a pending rematch of another mode in place; fails_when=the refusal clears whatever request is pending; why_new=the cases above have no other request pending; seam=none; no_claim=the rematch itself, accepted elsewhere
         it('keeps a pending rematch of another mode when a conversion is refused', async function () {
             const { harness } = contextRef;
