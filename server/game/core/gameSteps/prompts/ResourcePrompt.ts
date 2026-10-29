@@ -16,7 +16,6 @@ export class ResourcePrompt extends AllPlayerPrompt {
         return this.enterExhausted;
     }
 
-
     protected selectedCards = new Map<string, Card[]>();
     protected selectableCards = new Map<string, Card[]>();
     protected playersDone = new Map<string, boolean>();

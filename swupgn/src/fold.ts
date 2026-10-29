@@ -465,7 +465,7 @@ function startEffect(s: ReducedState, e: Extract<GameEvent, { t: 'EFFECT_START' 
     const fx: ActiveEffect = {
         id: e.id, src: e.src, p: e.p,
         ...(Array.isArray(e.targets) ? { targets: targetList(e.targets) } : {}),
-        ...(isSeat(e.seat) ? { seat: e.seat } : {}),
+        ...(isSeat(e.seat) || e.seat === 'both' ? { seat: e.seat } : {}),
         duration: e.duration,
     };
     const effects = s.effects ??= [];

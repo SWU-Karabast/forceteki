@@ -369,8 +369,9 @@ requirement, by id. The linked section is where each one is defined.
   when a target leaves play while the effect goes on for the others, MUST write a partial
   `EFFECT_END` naming that target; and MUST write `untilText` on every `EFFECT_START` whose
   `duration` is `until` ([§10.1](#effect_start)).
-- `[W-49]` MUST write `limit` (with `ability`) on every `ABILITY_ACTIVATE` of an ability that may
-  be used only a set number of times each phase, each round or in the game (CR 7.2.5), MUST write
+- `[W-49]` MUST write `limit` (with `ability`) on every `ABILITY_ACTIVATE` that is a use of an
+  ability that may be used only a set number of times each phase, each round or in the game (CR
+  7.2.5), MUST NOT write it on one that is not a use ([§10.1](#limited-abilities)), MUST write
   an `ABILITY_RESET` whenever a card's limited-ability uses are reset other than at the phase or
   round boundary their `per` names (the card changed zone and is a new object), and MUST
   carry each seat's `abilityUses` in every keyframe ([§10.1](#limited-abilities),
@@ -385,9 +386,10 @@ requirement, by id. The linked section is where each one is defined.
   `REVEAL` for a card shown because its ability triggered from a hidden zone (CR 7.6.3a)
   ([§10.2](#what-a-search-emits)).
 - `[W-53]` MUST write `blind` on every `CHOICE` made without seeing the other players' choices
-  (CR 7.1.4a), and `simul` on every record of a simultaneous resolution under CR 7.1.4a and of
-  combat damage (CR 6.3.5); MAY write `simul` wherever else the rules say records happen
-  simultaneously ([§10.2](#simultaneous-groups)).
+  (CR 7.1.4a), and `simul` on every member record ([§10.2](#simultaneous-groups) lists them) of a
+  simultaneous resolution under CR 7.1.4a and of combat damage (CR 6.3.5) that writes two or
+  more of them; MUST NOT write `simul` on a group of one; MAY write `simul` wherever else the
+  rules say records happen simultaneously ([§10.2](#simultaneous-groups)).
 - `[W-54]` MUST write `usedBy` on an `ABILITY_ACTIVATE` that another card's ability made the
   player use (CR 7.6.13d, 7.6.14d), with `card` the card the used ability is on and `p` the
   player who used it ([§10.1](#limited-abilities)).
@@ -1382,6 +1384,11 @@ hand.
 Puts the card in play. The matching `MOVE` (hand → ground) handles the hand count, so
 `PLAY` MUST NOT touch `handSize`.
 
+`cost` is the printed cost of the card played, even when the card enters play as a copy of
+another (Clone, CR 8.5): it is Clone's own cost, the one paid for, not the copied card's. The
+copy's printed attributes, its copied cost among them, are on the unit's `STATS` (`copyOf`,
+`cost`, [below](#stats)).
+
 ---
 
 **`PLAY_SMUGGLE`** — same fields, same effect as `PLAY`. Played using Smuggle.
@@ -1466,7 +1473,7 @@ to `base`, with an `EXHAUST` beside it (a defeated Leader Unit comes back exhaus
 | `ability` | string | no | An identifier the writer chooses, stable only within one `Engine` product. A reader MUST NOT branch on it. |
 | `epic` | boolean | no | The ability was an Epic Action. Equivalent to `kind: "epic"`. |
 | `grantedBy` | string | no | The card whose text **gave** `card` this ability — a Fortify upgrade's "Attached base gains: …", an upgrade's "Attached unit gains: …". A card id, or `base@N`. Absent when the ability is `card`'s own printed text. |
-| `limit` | object | no | The ability may be used only `max` times (an integer, at least 1) each `per`: `phase`, `round` or `game` (**closed**, [below](#limited-abilities)). REQUIRED on every use of such an ability `[W-49]`, and a record with `limit` MUST carry `ability` (`schema`, error). |
+| `limit` | object | no | The ability may be used only `max` times (an integer, at least 1) each `per`: `phase`, `round` or `game` (**closed**, [below](#limited-abilities)). REQUIRED on every use of such an ability, and only on a use `[W-49]` ([below](#limited-abilities)); a record with `limit` MUST carry `ability` (`schema`, error). |
 | `usedBy` | string | no | The card whose ability made `p` use this one (CR 7.6.13d, 7.6.14d). A card id, or `base@N`. Absent when the player used the ability on its own terms ([below](#limited-abilities)). |
 
 Changes nothing — except that `epic: true` marks an **Epic Action** as used, and `limit` counts
@@ -1562,6 +1569,14 @@ rules knowledge: `PHASE_START` clears the `phase` uses, `ROUND_START` clears the
 `round` uses, and nothing clears a `game` use ([§12.2](#122-every-other-rule-in-one-table)). Each
 entry also keeps the latest `limit.max`, so a reader can tell a spent ability (`count` has
 reached `max`) from one that can still be used.
+
+**What counts as a use.** An `ABILITY_ACTIVATE` is a use of a limited ability when the ability
+resolves, or when it is cancelled after any of its costs were paid (CR 7.2.5: the limit counts
+the times the ability was used, and costs paid are not refunded). An ability that never got
+that far is not a use and its record carries no `limit`: an optional ability ("you may …") the
+player declined (CR 8.32.3), or one whose costs the player cancelled before paying any. The fold
+counts exactly the records that carry `limit`, so a writer that writes `limit` on an ability it
+did not count would show it spent while the player can still use it.
 
 A count can also reset at another moment: a card that changes zone is a new object (CR 8.7),
 and its limited abilities start unused, even inside the phase or round. The fold cannot know
@@ -1676,7 +1691,9 @@ record therefore re-seats the card itself:
   hold the host; a host left with no entry has no `upgradeControllers`. A writer writes `from`
   (the seat that controlled the upgrade), but the fold does not need it. An upgrade that also
   changes host (Pre Vizsla takes it onto one of his own units) is this record and the upgrade's
-  same-arena `MOVE` with the new `attachedTo` ([the binding rule](#binding-an-attachment-to-its-host)).
+  same-arena `MOVE` with the new `attachedTo` ([the binding rule](#binding-an-attachment-to-its-host)):
+  the `MOVE` comes first, its `p` is the upgrade's controller **after** the change (the seat that
+  now controls it), and the `TAKE_CONTROL` follows it.
 - `zone` is `resource` and `from` is present → one resource moves from `from` to `p`, in the
   bucket `exhausted` names: `resourcesExhausted` when `true`, `resourcesReady` otherwise
   (never below 0 on the losing side). The card moves with the count: take `card` out of
@@ -1974,8 +1991,11 @@ ability text is not recorded — it is card data, and the `%%% CARDS` index name
 | `id` | string | yes | The effect's id, `fx@N` ([§6.1](#effect-ids)). |
 | `src` | string | yes | The card whose ability created the effect, or `base@N` for a base's ability. |
 | `p` | 1 or 2 | yes | The seat that controls the effect: the controller of the ability that created it. |
-| `targets` | string[] | no | What the effect applies to: card ids and/or `base@N`, at least one. Absent for an effect that applies to a player rather than to cards; `seat` then says which. |
-| `seat` | 1 or 2 | no | For a player-wide effect ("the next card you play this phase costs 1 less"), the seat it applies to. |
+| `targets` | string[] | one of `targets`, `seat` | What the effect applies to: card ids and/or `base@N`, at least one. Absent for an effect that applies to a player rather than to cards; `seat` then says which. |
+| `seat` | 1, 2 or `both` | one of `targets`, `seat` | For a player-wide effect ("the next card you play this phase costs 1 less"), the seat it applies to; `both` for one effect on both players ("each player can't …"), which is one effect, not two. |
+
+A record carries exactly one of `targets` and `seat` (`schema`, error). An effect that applies to
+no card and no player when it is created applies to nothing, and is not written.
 | `duration` | string | yes | How long it lasts. **Closed** — the table below. |
 | `untilText` | string | with `until` | With `duration` `until`: the condition that ends the effect, in words that read after "until" (`this unit attacks`). REQUIRED when `duration` is `until` `[W-48]`, and a record without it fails its schema (`schema`, error). Advisory otherwise, like `text`: a reader never evaluates it. It is plain text, never markup. |
 | `ability` | string | no | The ability that created the effect, in the form of `ABILITY_ACTIVATE.ability`. A reader MUST NOT branch on it. |
@@ -2024,7 +2044,16 @@ created (CR 7.7.3.d), so a card that leaves play and comes back is a new object 
 longer applies to. When a target leaves play and the effect goes on for its other targets, the
 writer writes a partial `EFFECT_END` with that target in `targets` and `reason` `targetLeft`
 `[W-48]`. When its last target leaves, the effect ends: an `EFFECT_END` with or without `targets`
-says so. The source leaving play ends nothing by itself — lasting and delayed effects from a card
+says so. A target that was **outside** play when the effect began (a card in a discard pile an
+effect lets someone play) leaves the effect the same way when it changes zone, played from that
+pile included: it is a new object (CR 8.7), and the writer writes the same partial `EFFECT_END`,
+`reason` `targetLeft` `[W-48]`. A card that its own play is putting into play when the effect
+begins (Clone's copy effect, created before Clone arrives) is the object that arrives, and does
+not leave the effect by arriving.
+
+**A copy is an effect.** A card that enters play as a copy of another (CR 8.5) is under a lasting
+effect for as long as it is in play: the writer writes its `EFFECT_START` (`targets` the copy,
+`duration` `whileSourceInPlay`), and its `STATS` carries the copied attributes ([below](#stats)). The source leaving play ends nothing by itself — lasting and delayed effects from a card
 that left play remain active (CR 8.12.1) — except an effect whose `duration` is
 `whileSourceInPlay`, which ends with `reason` `sourceLeft`. A reader never drops a target or an
 effect on its own; it applies what the records say.
@@ -2321,14 +2350,25 @@ fold ignores them.
 - **`blind`**, on `CHOICE`: choices made **without seeing each other**. When an ability asks each
   player to choose about hidden information ("each player discards a card from their hand"),
   each chooses independently (CR 7.1.4a). Every `CHOICE` of that kind carries `blind`, whose
-  value is the `seq` of the record that asked for the choices, so the choices of one ask share it
-  `[W-53]`.
+  value is the `seq` of **the record that asked** for the choices, so the choices of one ask share
+  it `[W-53]`. The record that asked is the latest `ABILITY_ACTIVATE` of the asking ability's
+  card within the action being resolved; when the action has none, it is the action's own
+  record (the `PLAY_EVENT` of an event, say).
 - **`simul`**, on any record: the records produced by **one simultaneous resolution**. Its value
   is the `seq` of the group's first record, and every record of the group carries it. A writer
-  writes it on every record of a resolution under CR 7.1.4a (the discards of "each player
-  discards a card") and of combat damage (CR 6.3.5: the attacker and the defender deal their
-  damage at the same time), and MAY write it wherever else the rules say records happen
-  simultaneously `[W-53]`. A writer SHOULD write a group's records one after another.
+  writes it `[W-53]` on these members, and on nothing else of the resolution:
+  - a resolution under CR 7.1.4a (the discards of "each player discards a card"): each
+    discarded card's `MOVE` from `hand` to `discard`, and its `DISCARD`;
+  - combat damage (CR 6.3.5: the attacker and the defender deal their damage at the same time):
+    the combat `DAMAGE` records, both ways, and the `OVERWHELM` the attack deals to a base.
+    A Shield token that prevents a side's damage (its `SHIELD_USE`), the `STATS` the damage
+    changes, and the `MOVE` and `DEFEAT` of a unit the damage defeats are not members: they are
+    a replacement for the damage, or consequences after it.
+
+  **A group is two or more records.** A resolution that writes only one member — an attack on a base,
+  a combat in which a Shield prevented one side's damage, one player's discard when the other has
+  no card — writes no `simul`. A writer MAY write `simul` wherever else the rules say records happen simultaneously,
+  and SHOULD write a group's records one after another.
 
 A renderer and a scrubber treat a `simul` group as **one instant**: a scrubber never stops inside
 it, and a renderer prints its records as it would print them without `simul`, in file order
@@ -2628,7 +2668,7 @@ interface ActiveEffect {
     src: string;                // the card whose ability created it, or "base@N"
     p: 1 | 2;                   // the seat that controls it
     targets?: string[];         // what it applies to: card ids and/or "base@N"
-    seat?: 1 | 2;               // a player-wide effect: the seat it applies to
+    seat?: 1 | 2 | 'both';      // a player-wide effect: the seat(s) it applies to
     duration: string;           // §10.1: attack, phase, round, whileSourceInPlay, until, delayed, game
 }
 
@@ -2739,8 +2779,11 @@ for its `card` and `ability` (creating it, with `count` 1) and sets its `max` to
 entries, and `ABILITY_RESET` a card's entries when it changed zone. An entry whose `count` has
 reached its `max` is spent. The fold creates the list at the
 seat's first limited use, so a file with no limited abilities folds to a board with no
-`abilityUses`; once created, it stays, empty when nothing is spent. An ability whose entry is
-absent has not been used since its reset.
+`abilityUses`; once created, it stays, empty when no limited ability has been used since its
+reset. An ability whose entry is absent has not been used since its reset.
+
+The `ROUND_END` board still holds the regroup phase's `phase` entries: nothing clears them until
+the next `PHASE_START` or `ROUND_START`.
 
 The optional fields marked `?` — `initiativeTaken`, `deckSize`, `leader`, `power`, `hp`,
 `keywords`, `traits`, `resources`, `baseEpicActionUsed`, `baseUpgrades`, `baseCaptured`, `onStartingSide`,
@@ -2872,7 +2915,10 @@ writer MUST write the deck's owner as `p` on it `[W-43]`: a card leaving a deck 
 Most cards that reach into an opponent's deck discard from it (Never Tell Me the Odds,
 Vigilance, Satine Kryze). One that puts the card into play under the other seat (Vermillion lets
 the opponent play your top card) is written as the owner's `MOVE` followed by a `TAKE_CONTROL`
-to the seat that played it `[W-43]`.
+to the seat that played it `[W-43]`. An attached upgrade moved onto another host in the same arena
+is a move into play like any other: `p` is the upgrade's controller after the move, and when the
+move also changed who controls it, the upgrade `TAKE_CONTROL` follows the `MOVE`
+([§10.1](#take_control)).
 
 > **Note (informative):** No vector plays a card out of the other seat's deck. The reference
 > writer's `test/server/chat/SwuPgnCrossSeatPiles.spec.ts` covers it.
@@ -3083,7 +3129,8 @@ state is thrown away and the keyframe takes its place. Everything below follows 
   resources and discard are described by their counts and lists, not by `cards`.
 - A keyframe carries every field of [§11](#11-the-reduced-state--the-board-you-build): the
   initiative status, the active `effects` (an empty list when none is active), and per seat the
-  deck count, the leader's status, the `abilityUses` (an empty list when none is spent), the
+  deck count, the leader's status, the `abilityUses` (an empty list when none has been used
+  since its reset), the
   `foreignResources` (an empty list when there are none), and each card's live
   `power`/`hp`/`keywords`, its `traits` and its other attributes, and its `owner` and
   `upgradeControllers` where they apply `[W-57]`. A writer that cannot read one of them omits that field rather than
@@ -3094,8 +3141,11 @@ state is thrown away and the keyframe takes its place. Everything below follows 
 - A keyframe MUST equal the board **at the moment its own seq names** `[W-24]`. A `ROUND_END`
   keyframe is the trap: it describes the round that is ending, so `initiativeTaken` is `true`
   for a round in which the initiative was claimed and `phase` is `regroup`, even though the
-  round's teardown resets both. How one writer gets this right is in
-  [Appendix D](#appendix-d-reference-writer-notes-informative).
+  round's teardown resets both. The same holds for `abilityUses`: a `ROUND_END` keyframe still
+  holds the regroup phase's `phase` uses, which the fold clears only at the next `PHASE_START`
+  or `ROUND_START` ([§11](#11-the-reduced-state--the-board-you-build)), so a writer whose engine
+  has already cleared them when it builds the keyframe MUST add them back. How one writer gets
+  this right is in [Appendix D](#appendix-d-reference-writer-notes-informative).
 
   > **Note (informative):** An engine typically resets both as it tears the round down, which is
   > why a keyframe taken after the teardown reads wrongly.
@@ -3153,6 +3203,9 @@ problem. A writer that has no such cost SHOULD refuse to emit a file that is not
 
 ### What is compared, per seat
 
+"As a set" below means order is not compared: both lists are sorted and compared entry for
+entry, so an entry that appears twice must appear twice on both sides (a multiset).
+
 **Checked:**
 
 - `baseHp` — **except at the very first keyframe**. Nothing in the stream carries a base's
@@ -3185,18 +3238,19 @@ problem. A writer that has no such cost SHOULD refuse to emit a file that is not
   fold's side counts as empty, and an entry whose `per` the reader does not know is left out on
   both sides. A mismatch is reported once per seat, with `path: "players.N.abilityUses"`.
   **Before comparing a `ROUND_START` keyframe, remove the running `phase` and `round` entries**,
-  for the reason given for `initiativeTaken` below
+  for the reason given for `initiativeTaken` below. A `ROUND_END` keyframe is compared as it
+  is: it still holds the regroup phase's `phase` entries ([§13](#13-keyframes))
 - `initiativeTaken`, whenever the keyframe carries it, absent on the fold's side read as
   `false`. **Before comparing a `ROUND_START` keyframe, set the running `initiativeTaken` to
   `false`**: that keyframe describes a round that has begun, and the `ROUND_START` rule that
   would have reset it ([§12.2](#122-every-other-rule-in-one-table)) is skipped when the reader
   snaps
 - `foreignResources` **as a set** whenever the keyframe carries it
-- for each in-play card matched by `id`: `zone`, `damage`, `exhausted`, `shields`,
+- for each arena card matched by `id`: `zone`, `damage`, `exhausted`, `shields`,
   `experience`, `statusTokens` as a map of names to counts (key order is not significant),
   `upgrades` and `captured` **as sets** (attachment order is not part of the model; a missing
   list counts as empty), `power`, `hp`, and `keywords` as a set
-- for each such card, its other attributes: `traits` as a set, `blank` and `leaderUnit` (absent
+- for each such card, its other attributes: `traits` as a set (a multiset, like every set here), `blank` and `leaderUnit` (absent
   read as `false`), `copyOf`, `name` and `cost`, and `aspects` as a sorted list (a multiset: an
   aspect may appear twice). **When the keyframe card carries `traits`** all of them are compared,
   because a writer that records attributes writes `traits` on every unit and every keyframe card
@@ -3332,14 +3386,13 @@ The numbered ones are exactly:
 `PLAY`, `PLAY_EVENT`, `PLAY_UPGRADE`, `PLAY_SMUGGLE`, `DEPLOY_LEADER`, `ATTACK`,
 `PASS`, `CLAIM_INITIATIVE`, and an `ABILITY_ACTIVATE` whose `kind` is `action` or `epic`
 
-each one only when it is a player's action for the turn (CR 1.15.1); the same event made while an ability
-resolves is a lettered sub-step.
+each one only when it is a player's action for the turn (CR 1.15.1).
 
-That last one is a whole action, not a consequence, when the player takes it as their action:
-CR 1.15.1 lets a player spend their action on using a card's action ability, so it is their turn
-the same way a play or an attack is. A `PLAY`, `ATTACK` or action `ABILITY_ACTIVATE` made while an
-ability resolves is not an action (CR 1.15.1, 6.2.0e, 6.3.0d, 6.4.0a, 7.1.6): it is a lettered
-sub-step of that ability, never numbered. An
+The action-ability `ABILITY_ACTIVATE` is a whole action, not a consequence, when the player takes
+it as their action: CR 1.15.1 lets a player spend their action on using a card's action ability,
+so it is their turn the same way a play or an attack is. A `PLAY`, `ATTACK` or action
+`ABILITY_ACTIVATE` made while an ability resolves is not an action (CR 1.15.1, 6.2.0e, 6.3.0d,
+6.4.0a, 7.1.6): it is a lettered sub-step of that ability, never numbered. An
 `ABILITY_ACTIVATE` of any other `kind` — `triggered`, `keyword`, `replacement`, `constant`,
 `event`, `delayed` — happened *because of* something else, and is indented under it.
 
@@ -3443,21 +3496,21 @@ Friends"), so a comma-joined list could not be split back into cards.
 | `MULLIGAN` | `{who(p)} mulligans` |
 | `KEEP_HAND` | `{who(p)} keeps their hand` |
 | `GAME_END` | `*** {who(winner)} wins — {reason} ***` · draw: `*** Game ends in a draw — {reason} ***` |
-| `EFFECT_START` | `{who(p)}: {nm(src)}` + ` — {plain(text)}` if `text` + ` on {names(targets)}` if `targets` is non-empty, else ` for {who(seat)}` if `seat` + ` ({lasts})`. `{lasts}` is `for this attack`, `for this phase`, `for this round`, `while {nm(src)} is in play`, `until {untilText}` (`until a condition is met` without `untilText`), `delayed` or `for the rest of the game` for the seven `duration` values, and the value itself for any other. `plain(text)` is `text` with each icon-markup token of [§10.1](#101-events-that-carry-board-detail) replaced by its plain text (aspect tokens side by side are joined by one space); the story is plain text, so markup never reaches it. `untilText` is printed as it is |
+| `EFFECT_START` | `{who(p)}: {nm(src)}` + ` — {plain(text)}` if `text` + ` on {names(targets)}` if `targets` is non-empty, else ` for {who(seat)}` if `seat` is 1 or 2, ` for both players` if it is `both` + ` ({lasts})`. `{lasts}` is `for this attack`, `for this phase`, `for this round`, `while {nm(src)} is in play`, `until {untilText}` (`until a condition is met` without `untilText`), `delayed` or `for the rest of the game` for the seven `duration` values, and the value itself for any other. `plain(text)` is `text` with each icon-markup token of [§10.1](#101-events-that-carry-board-detail) replaced by its plain text (aspect tokens side by side are joined by one space); the story is plain text, so markup never reaches it. `plain(text)` and `untilText` are cut as `nm` cuts a card name: longer than 120 characters (UTF-16 code units), their first 119 and `…` |
 | `EFFECT_END` | `Effect from {nm(src)} ends` — `src` from the `EFFECT_START` with the same `id` earlier in the file; `Effect {id} ends` when there is none — + ` on {names(targets)}` if `targets` is non-empty + ` ({why})`. `{why}` is `expired`, `it resolved`, `its source left play`, `its target left play` or `cancelled` for the five `reason` values, and the value itself for any other |
 
 **These print nothing**: `MOVE`, `EXHAUST`, `READY`, `EXHAUST_RESOURCES`, `READY_RESOURCES`,
 `STATS`, `CHOICE`, `MODAL_CHOICE`, `SHUFFLE`, `PHASE_END`, `ROUND_END`, `ABILITY_RESET`.
-
-**A `simul` group prints as its records do without it**, one line each, in file order
-([§10.2](#simultaneous-groups)). `simul` and `blind` change no line. A renderer that animates or
-steps through the story treats the group as one instant.
 
 They are mechanism, not story. `MOVE` is the fold's source of truth and appears beside every
 play, draw and discard — printing it would roughly triple the narrative for no reader
 benefit. `EXHAUST`/`READY` fire on every attack and every regroup, and the resource counters
 on every play; the board summary already shows what is exhausted at each round boundary,
 which is where a reader actually wants it.
+
+**A `simul` group prints as its records do without it**, one line each, in file order
+([§10.2](#simultaneous-groups)). `simul` and `blind` change no line. A renderer that animates or
+steps through the story treats the group as one instant.
 
 One detail that is easy to get wrong: "the other player" is `p === 1 ? 2 : 1`.
 
@@ -3739,8 +3792,11 @@ names it and its writer revision. Every one of them records a resource entering 
 in the regroup phase (`MOVE.exhausted` into `resource`, `[W-45]`), and `active` on every
 `ROUND_START`. `minimal` and `other-writer` are written by hand. How the vectors are regenerated is in `swupgn/README.md`.
 
-**Negative vectors**, in `swupgn/test-vectors/negative/`, are each the `minimal` vector with
-one thing broken. A reader MUST reject or warn on each as the manifest says:
+**Negative vectors**, in `swupgn/test-vectors/negative/`, are each a small hand-written file with
+one thing broken. Most were written before `minimal` reached its current revision, so they carry
+an older `WriterRevision` (3 or 4) and the record shapes of their time (a regroup resource that
+enters the row ready, for one); nothing in them but the broken thing is what they test. A reader
+MUST reject or warn on each as the manifest says:
 
 | Vector | Breaks | Level | Codes |
 |---|---|---|---|
@@ -3990,8 +4046,8 @@ A pass of the format against Comprehensive Rules v9.0 and the board state of CR 
 - Lasting and delayed effects are records: `EFFECT_START` and `EFFECT_END`, with effect ids
   `fx@N`, the closed `duration` and `reason` vocabularies, a partial end when a target leaves play,
   and the board's `effects`, carried in keyframes and gated `[W-48]`. One record is one effect as
-  the card text states it: one for every unit "each friendly unit" gives it to, two for two
-  separately stated effects. An `EFFECT_END` for no active effect is an error,
+  the card text states it: one, with every unit in `targets`, for "each friendly unit gets …",
+  and two for two separately stated effects. An `EFFECT_END` for no active effect is an error,
   `effect-end-unknown` `[V-09]` (`effect-end-unknown` vector).
 - `untilText` is REQUIRED on an `EFFECT_START` whose `duration` is `until`, and a record without it
   fails its schema `[W-48]`; it is plain text, never markup.
@@ -4004,15 +4060,24 @@ A pass of the format against Comprehensive Rules v9.0 and the board state of CR 
 - `EFFECT_START.text` and `untilText` are attacker-controlled text that the story carries, so a
   renderer escapes them, and `text` may carry icon markup, which is never HTML
   ([§23](#23-security-considerations)).
-- A limited ability carries `limit` on every use, the fold counts it in the seat's `abilityUses`
+- A limited ability carries `limit` on every use, and only on a use — it resolved, or was
+  cancelled after a cost was paid; a declined optional ability, or one whose costs were cancelled
+  before any was paid, is not a use — the fold counts it in the seat's `abilityUses`
   (keeping the latest `limit.max`) and resets it at the boundary `limit.per` names, and
   `ABILITY_RESET` states a reset at any other moment, such as the card changing zone `[W-49]`.
+  A `ROUND_END` keyframe still holds the regroup phase's `phase` uses, and a writer whose engine
+  has cleared them adds them back ([§13](#13-keyframes)); an empty `abilityUses` means no limited
+  ability has been used since its reset.
 - A look at hidden cards is a `LOOK`, and a `SEARCH` carries `owner` and `seen` `[W-50]`.
 - A card named is a `NAME`, before the record that uses the name `[W-51]`.
 - A successful disclose is one `REVEAL` of the hand, and a trigger from a hidden zone writes no
   `REVEAL` `[W-52]`.
-- Choices made without seeing each other carry `blind`, and the records of one simultaneous
-  resolution (each player's discard, combat damage) carry `simul` `[W-53]`.
+- Choices made without seeing each other carry `blind`, valued at the record that asked (the
+  latest `ABILITY_ACTIVATE` of the asking card in the action, else the action's record), and the
+  records of one simultaneous resolution carry `simul` `[W-53]`: each player's discards (each
+  card's `MOVE` from `hand` and its `DISCARD`) and combat damage (its `DAMAGE` records and an
+  `OVERWHELM`; not a `SHIELD_USE`, nor the `MOVE` and `DEFEAT` of a unit it defeats). A group is
+  two or more records; a resolution that writes one member writes no `simul`.
 - An ability another card's ability made a player use carries `usedBy`, and its `p` is that
   player `[W-54]`.
 - `STATS` states every attribute of the unit: `traits` always, `blank`, `leaderUnit`, and for a
@@ -4024,6 +4089,20 @@ A pass of the format against Comprehensive Rules v9.0 and the board state of CR 
   without `from` (a steal that changed zone) carries `owner` `[W-56]`.
 - Every keyframe seat carries `foreignResources`, the resources in its row that the other seat
   owns `[W-57]`.
+- A play or an attack an ability makes (an Ambush attack, an event's "attack with a unit", an
+  action ability that plays a unit) is a lettered sub-step of the action that caused it, never a
+  numbered action ([§9.1](#91-how-seq-is-built)); the reference writer numbered them before this
+  pass (the `control` vector's Ambush attack was `R7.A.2`, and is now `R7.A.1c`).
+- `PLAY.cost` is the printed cost of the card played, Clone's own when Clone enters play as a copy;
+  a copy (CR 8.5) is a lasting effect with `duration` `whileSourceInPlay`, ended `sourceLeft` when
+  the copy leaves play ([§10.1](#effect_start)).
+- An `EFFECT_START` carries exactly one of `targets` and `seat`, `seat` may be `both` for one
+  effect on both players, and `untilText` is never empty (`schema`, error). A target outside play
+  that changes zone leaves the effect with a partial `EFFECT_END` (CR 8.7).
+- An attached upgrade moved onto another host carries its controller after the move as the
+  `MOVE`'s `p`, and the upgrade `TAKE_CONTROL` follows the `MOVE` ([§12.1](#121-the-move-rule-the-big-one)).
+- The story cuts `EFFECT_START.text` and `untilText` as it cuts a card name
+  ([§16](#16-rendering--turning-a-file-into-a-story)).
 - A writer files under a play what the played card itself does while the play puts it into play,
   before the play is announced: its own `ABILITY_ACTIVATE` (Clone's copy), the `CHOICE` it asks
   for and the `EFFECT_START` it starts on itself, with the cost before them `[W-18]`. The same
@@ -4791,7 +4870,7 @@ Each is detectable from the file:
 | An effect applied a step after its event (a base's gained "+1/+0") had its `STATS` filed under the record after the action, and so `for` the opponent's next action | settled before the turn passes, under the action that caused it ([§10.1](#stats)) | not detectable from a single record |
 | A consequence naming another card (a token's or an upgrade's `STATS` change, a Raid ending) sat just before the opponent's next play and was stamped `for` it | any record about another card ends the run ([below](#grouping-records-in-a-file-without-for)). Revision 4 | `WriterRevision` 4 or later |
 | A previous action's choices and the card it moved (Cunning's mode choice, target choice and bounce) sat just before the opponent's next play and were stamped `for` it | a `CHOICE`, `MODAL_CHOICE` or `EXHAUST_RESOURCES` by the other seat ends the run, and so does another card leaving; the writer stamps a cost it paid from what the engine knows ([below](#grouping-records-in-a-file-without-for)). Revision 4 | `WriterRevision` 4 or later |
-| A unit arriving in play just before an action (a start-of-phase trigger's Beast) had its `MOVE`, `STATS` and `EXHAUST` stamped `for` that action | another card's arrival ends the run ([below](#grouping-records-in-a-file-without-for)) | not detectable from a single record |
+| A unit arriving in an arena just before an action (a start-of-phase trigger's Beast) had its `MOVE`, `STATS` and `EXHAUST` stamped `for` that action | another card's arrival ends the run ([below](#grouping-records-in-a-file-without-for)) | not detectable from a single record |
 | `PASS` was written every time the turn passed to the opponent, so every play and attack was followed by a `PASS` from the same player, and the story read "Player 1 passes" after each action | `PASS` only for the Pass action ([§10.2](#102-events-that-are-just-notes)); every action after the first renumbers | two `PASS` records in a row from the same player, or a `PASS` right after that player's own `PLAY`/`ATTACK`, shows the early writer |
 | `DRAW.count` was the number of cards asked for, so a draw from a short deck said 2 and listed 1 | the cards actually drawn ([§10.1](#101-events-that-carry-board-detail)) | a `DRAW` whose `count` differs from `cards.length` |
 | A keyframe's lists were snapped to at any length | over 1000 entries makes the keyframe damaged ([§13](#13-keyframes)) | not a file change; a reader's trust check |
@@ -4835,7 +4914,8 @@ counts every resourced card as ready. For a card resourced in the regroup phase 
 forceteki engine itself did before revision 6 — it put the card into the row ready, against CR
 5.5.1.c — so such a file is consistent with itself: its regroup `READY_RESOURCES` readies only
 the cards that were exhausted before, one fewer than a revision-6 file's, and its keyframes agree.
-A `ROUND_START` without `active` is read from its keyframe, or the initiative, as before.
+Every forceteki writer revision, 1 to 5 included, wrote `active` on every `ROUND_START`, so a
+`ROUND_START` without it is a `round-start-active` error whatever the file's revision.
 
 ### Grouping records in a file without `for`
 
@@ -4868,7 +4948,7 @@ after its attack restates them, and those are consequences of the action before.
 counts as the action's card only after the action card's own `MOVE` in file order, so the walk
 back stops treating it so once it has passed that `MOVE`. A host `STATS` before it was left by an
 earlier action (a Weakness token the opponent gave the unit), and it ends the run like any other
-card's record. Another card **arriving** in play ends it the same way: a `MOVE` of a different card into `ground` or `space`
+card's record. Another card **arriving** in an arena ends it the same way: a `MOVE` of a different card into `ground` or `space`
 (or into `base` as an upgrade) is that card's own story, and so are the records naming it right
 after its arrival — its `STATS`, its entering `EXHAUST`. A start-of-phase trigger puts exactly
 that in front of the first action: Beast Lair's Beast lands, gets its stats and exhausts, then
@@ -4976,9 +5056,17 @@ contents alone cannot show. None of this is required of another writer. Operatio
   writes the `EFFECT_START` once the window has resolved the targets. Its `duration` comes from
   the engine's: until the end of the attack, phase or round → `attack`, `phase`, `round`; while
   the source is in play → `whileSourceInPlay`; the engine's custom duration (which always has an
-  `until`) → `until`; persistent → `game`; and any delayed effect → `delayed`, whatever duration
-  the engine gave it. Its `untilText` names the engine events that end a custom-duration effect
-  (`the phase ends or an action is taken`). Its `text` is the effect's own title, else the
+  `until`) → `until`, except one whose only end is a card leaving play, which every such effect
+  in the card pool uses for "while this card is in play" (Clone's copy, CR 8.5, and Fives'
+  copied abilities) → `whileSourceInPlay`; persistent → `game`; and any delayed effect →
+  `delayed`, whatever duration the engine gave it. Its `untilText` names the engine events that
+  end a custom-duration effect (`the phase ends or an action is taken`; a card leaving play reads
+  `it leaves play`, because each such effect ends when its own source does). An effect whose
+  targets resolve to no card and no player applies to nothing and is not written; one on both
+  players is written once with `seat` `both`. An effect over "all cards a player has" (Galen
+  Erso, First Legion) takes its targets when it starts, so a card that later joins that set is
+  not added. Arrest's "the captured unit is rescued by its owner" is a delayed effect the engine
+  holds on the captured unit's owner, so it is written with `seat`, not `targets`. Its `text` is the effect's own title, else the
   ability's title, else the engine's description of the effect; a description that is a chat
   template (it contains a `{n}` placeholder) is dropped, and the record then has no `text`.
   Removing an effect emits nothing in the engine, so after every engine event, and before every
@@ -4988,8 +5076,11 @@ contents alone cannot show. None of this is required of another writer. Operatio
   by stripping them from the player alone. An effect none of whose objects is held ends —
   `fired` when a delayed effect used up its one firing, `sourceLeft` for a `whileSourceInPlay`
   effect whose source left play, `targetLeft` when every target it had left play, `expired`
-  otherwise — and a target that was in play when the effect began and is in play no longer is
-  dropped with a partial `EFFECT_END`. The keyframe's `effects` lists the effects the engine
+  otherwise — and a target that was in play when the effect began and is in play no longer, or
+  one outside play that has since changed zone, is dropped with a partial `EFFECT_END`. A card its
+  own play is putting into play when the effect starts (Clone's copy, started before it arrives)
+  counts as in play. A `whileSourceInPlay` effect whose source was in play is ended `sourceLeft`
+  as soon as the source is not, even while the engine still holds its objects. The keyframe's `effects` lists the effects the engine
   still holds, by the ids the writer gave them.
 - **Resources entering exhausted `[W-45]`.** The engine moves a card into the resource row and
   only then sets its exhausted flag, inside the move whose event the writer handles, so the flag
@@ -4999,7 +5090,18 @@ contents alone cannot show. None of this is required of another writer. Operatio
   says whether its cards enter exhausted, and is read at the move itself.
 - **`active` `[W-46]`.** Taken from the initiative holder when the round starts.
 - **Limited abilities `[W-49]`.** `limit` is the engine limit the resolving ability captured, with
-  its `max` as modified for that player. `ABILITY_RESET` is written when a card the fold still
+  its `max` as modified for that player. The `ABILITY_ACTIVATE` is written when the engine
+  initiates the ability, before its costs, and the engine counts the use only when the ability
+  resolves or is cancelled after paying a cost; so the writer holds `limit` open until the
+  engine's count for that player goes up (the use stands) or the ability's resolver finishes
+  without it (the writer takes `limit` off the record). The pending uses are held in each undo
+  checkpoint. A limit the engine shares across both players (a per-game limit on a card, counted
+  once whoever uses it) is projected into the keyframe of the card's controller; a use of it by
+  the other player (`usedBy` on an opponent's card) would be counted under that player by the
+  fold and under the controller by the keyframe, and the keyframe gate would report it (no game
+  in the conformance suite does this). The engine resets every action and triggered ability's
+  limit when a card changes zone other than between arenas (a leader deploying from `base`
+  included), which is where the writer writes `ABILITY_RESET`. `ABILITY_RESET` is written when a card the fold still
   counts uses for changes zone, and after the use of a pending trigger that resolves on the limit
   its card's zone change replaced. A keyframe's `abilityUses` is projected from the engine's
   limits on every ability each card holds, blanked abilities included; the `ROUND_END` keyframe
@@ -5017,10 +5119,12 @@ contents alone cannot show. None of this is required of another writer. Operatio
   written when a dropdown names a card, and not when it names something else (a trait).
 - **`blind` and `simul` `[W-53]`.** When an ability has several players choose at once, the
   engine says so before the prompts, and every card pick for that ability is a `blind` `CHOICE`
-  valued at the latest `ABILITY_ACTIVATE` of its source in the current action. `simul` is written
-  on the discards of such a resolution and on the two sides of combat damage, grouping the records
-  of the one engine event window they resolve in; a window that writes only one of them writes no
-  `simul`.
+  valued at the latest `ABILITY_ACTIVATE` of its source in the current action, else at the
+  action's own record. `simul` is written on the discards of such a resolution (each card's `MOVE`
+  from `hand` and its `DISCARD`) and on combat damage (its `DAMAGE` records and an `OVERWHELM`),
+  grouping the records of the one engine event window they resolve in; a window that writes only
+  one of them writes no `simul`. Several cards one player discards in one window are grouped the
+  same way, which the format allows (MAY).
 - **`usedBy` `[W-54]`.** Set when the engine's "use an ability again / on another unit" systems
   resolved the ability, naming the card whose ability did so; `p` is then the context's player.
 - **Attributes `[W-55]`.** `STATS` and the keyframe card read the same function: traits as the

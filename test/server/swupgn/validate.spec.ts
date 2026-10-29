@@ -370,6 +370,25 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(codes(fx(',"duration":"untilNextTurn"', 'SWU-PGN/1.7')).sort()).toEqual(['warning:newer-minor', 'warning:unknown-value']);
     });
 
+    // Value: protects=an until effect's untilText says something (§10.1, [W-48]); fails_when=an empty untilText passes; why_new=final review item 14; seam=none; no_claim=none
+    it('reports an empty untilText', function () {
+        const fx = (extra: string) => addEventAtEnd(`{"seq":"R2.A.9","t":"EFFECT_START","id":"fx@1","src":"SOR#108","p":1,"targets":["SOR#108"],"duration":"until"${extra}}`);
+        expect(codes(fx(',"untilText":""'))).toEqual(['error:schema']);
+        expect(codes(fx(',"untilText":"it attacks"'))).toEqual([]);
+    });
+
+    // Value: protects=an EFFECT_START names exactly one of targets and seat, and seat may say both players (§10.1); fails_when=a record with neither or both passes, or seat "both" is rejected; why_new=final review item 15; seam=none; no_claim=writer output
+    it('requires exactly one of targets and seat on an effect, and accepts seat both', function () {
+        const fx = (what: string) => addEventAtEnd(`{"seq":"R2.A.9","t":"EFFECT_START","id":"fx@1","src":"SOR#108","p":1${what},"duration":"phase"}`);
+        // A failed `oneOf` reports each branch it failed; one code is enough.
+        const once = (list: string[]) => [...new Set(list)];
+        expect(once(codes(fx('')))).toEqual(['error:schema']);
+        expect(once(codes(fx(',"targets":["SOR#108"],"seat":1')))).toEqual(['error:schema']);
+        expect(codes(fx(',"seat":2'))).toEqual([]);
+        expect(codes(fx(',"seat":"both"'))).toEqual([]);
+        expect(codes(fx(',"seat":"all"'))).toEqual(['error:schema']);
+    });
+
     // Value: protects=[W-56] owner is required on a resource TAKE_CONTROL without from, and only there; fails_when=the schema if/then is missing or applies to a steal that carries from; why_new=fix round 1; seam=none; no_claim=writer output
     it('reports a resource steal without from that names no owner', function () {
         const take = (extra: string) => codes(addEventAtEnd(`{"seq":"R2.A.9","t":"TAKE_CONTROL","p":1,"card":"SOR#108","zone":"resource"${extra}}`));

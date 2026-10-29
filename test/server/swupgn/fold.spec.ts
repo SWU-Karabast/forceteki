@@ -1120,6 +1120,11 @@ describe('fold effects', function () {
         expect(ended.effects?.map((e) => e.id)).toEqual(['fx@2']);
     });
 
+    // Value: protects=a player-wide effect on both players folds as one effect with seat both (§10.1); fails_when=the fold drops seat "both"; why_new=final review item 15; seam=none; no_claim=writer output
+    it('keeps seat both on a player-wide effect', function () {
+        expect(fold([start('R1.A.1a', 'fx@1', undefined, { seat: 'both' })]).effects).toEqual([{ id: 'fx@1', src: 'SOR#142', p: 1, seat: 'both', duration: 'phase' }]);
+    });
+
     // Value: protects=a target leaving play drops only that target (CR 7.7.3.d, 8.7) and the last one ends the effect; fails_when=a partial EFFECT_END ends the whole effect, or an effect with no targets left lingers; why_new=effects are new; seam=none; no_claim=writer emits the partial end
     it('a partial EFFECT_END drops only the named targets', function () {
         const both = start('R1.A.1a', 'fx@1', ['A', 'B']);

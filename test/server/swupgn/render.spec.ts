@@ -264,13 +264,30 @@ describe('render effects', function () {
         ]);
     });
 
-    // Value: protects=icon markup in EFFECT_START.text never reaches the plain-text story (§16); fails_when=text is printed raw; why_new=fix round 1; seam=none; no_claim=untilText (printed as it is)
+    // Value: protects=icon markup in EFFECT_START.text never reaches the plain-text story (§16); fails_when=text is printed raw; why_new=fix round 1; seam=none; no_claim=none
     it('prints an effect text\'s icon markup as plain text', function () {
         const out = render(doc([
             { seq: 'R1.A.1a', t: 'EFFECT_START', id: 'fx@1', src: 'SOR#142', p: 1, targets: ['SOR#108'], duration: 'phase',
                 text: 'gains {keyword:sentinel} and {keyword:raid:2}, costs {resource:1} less, :aggression::heroism:' },
         ]), nm);
         expect(out).toBe('       ↳ Player 1: Bold Resistance — gains Sentinel and Raid 2, costs 1 resource less, Aggression Heroism on Wampa (for this phase)');
+    });
+
+    // Value: protects=a player-wide effect on both players reads as one (§10.1 seat, §16); fails_when=seat both prints nothing or a seat; why_new=final review item 15; seam=none; no_claim=none
+    it('renders an effect on both players', function () {
+        const out = render(doc([
+            { seq: 'R1.A.1a', t: 'EFFECT_START', id: 'fx@1', src: 'SOR#142', p: 1, seat: 'both', duration: 'phase' },
+        ]), nm);
+        expect(out).toBe('       ↳ Player 1: Bold Resistance for both players (for this phase)');
+    });
+
+    // Value: protects=an effect's text and untilText are cut like a card name, so a file cannot grow the story (§16, §23); fails_when=either is printed in full; why_new=final review: NAME was cut and these were not; seam=none; no_claim=none
+    it('cuts a long effect text and untilText as it cuts a card name', function () {
+        const out = render(doc([
+            { seq: 'R1.A.1a', t: 'EFFECT_START', id: 'fx@1', src: 'SOR#142', p: 1, targets: ['SOR#108'], duration: 'until',
+                text: 't'.repeat(200), untilText: 'u'.repeat(200) },
+        ]), nm);
+        expect(out).toBe(`       ↳ Player 1: Bold Resistance — ${'t'.repeat(119)}… on Wampa (until ${'u'.repeat(119)}…)`);
     });
 });
 

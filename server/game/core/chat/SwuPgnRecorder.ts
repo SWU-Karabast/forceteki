@@ -2,7 +2,7 @@ import type { Game } from '../Game';
 import { AbilityType, CardType, DeployType, Duration, EffectName, EventName, PhaseName, PlayType, Stage, ZoneName } from '../Constants';
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 import { logger } from '../../../logger';
-import type { AbilityKind, AbilityUse, ActiveEffect, DefeatReason, EffectDuration, EffectEndReason, Header, GameEvent, LimitPer, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
+import type { AbilityKind, AbilityUse, ActiveEffect, DefeatReason, EffectDuration, EffectEndReason, EffectSeat, Header, GameEvent, LimitPer, ReducedState, Seat, SetupInitRecord } from '../../../../swupgn/src/types';
 import { anonymizedGameId, anonymizedMatchId, saltedPlayerId, anonymizePlayerLabel } from './swuPgnIdentity';
 import { isTopLevelActionRecord, markPlaySetup } from '../../../../swupgn/src/actionLinks';
 import { ResourcePrompt } from '../gameSteps/prompts/ResourcePrompt';
@@ -342,6 +342,9 @@ interface RecordedEffect {
     duration: EffectDuration;
     delayed: boolean;
     sourceCard: any;
+
+    /** The source was in play (or entering it) when the effect began, so it can leave play. */
+    sourceInPlay?: boolean;
 }
 
 /**
@@ -367,7 +370,9 @@ const untilEventPhrases: Partial<Record<string, string>> = {
     [EventName.OnPhaseEnded]: 'the phase ends',
     [EventName.OnRoundEnded]: 'the round ends',
     [EventName.OnActionTaken]: 'an action is taken',
-    [EventName.OnCardLeavesPlay]: 'a card leaves play',
+    // Every lasting effect in the card pool that ends on a card leaving play ends when its own
+    // source does (Clone, Fives, Vernestra Rwoh), so "it" is the effect's source.
+    [EventName.OnCardLeavesPlay]: 'it leaves play',
     [EventName.OnAttackDeclared]: 'an attack is declared',
     [EventName.OnAttackEnd]: 'an attack ends',
     [EventName.OnCardPlayed]: 'a card is played',
@@ -384,10 +389,21 @@ export function untilTextOf(until: unknown): string {
     return phrases.length > 0 ? phrases.join(' or ') : 'a condition is met';
 }
 
-/** The `duration` vocabulary (spec §10.1) for an engine lasting effect's `Duration`. */
-export function effectDurationOf(engineDuration: unknown, delayed: boolean): EffectDuration {
+/**
+ * The `duration` vocabulary (spec §10.1) for an engine lasting effect's `Duration`. A custom
+ * duration whose only end is its source leaving play (`until: { onCardLeavesPlay }`, see
+ * `untilEventPhrases`) is the engine's way of writing "while this is in play" -- Clone's copy,
+ * CR 8.5 -- so it is written `whileSourceInPlay`.
+ */
+export function effectDurationOf(engineDuration: unknown, delayed: boolean, until?: unknown): EffectDuration {
     if (delayed) {
         return 'delayed';
+    }
+    if (engineDuration === Duration.Custom && until != null && typeof until === 'object') {
+        const names = Object.keys(until);
+        if (names.length === 1 && names[0] === EventName.OnCardLeavesPlay) {
+            return 'whileSourceInPlay';
+        }
     }
     switch (engineDuration) {
         case Duration.UntilEndOfAttack: return 'attack';
@@ -424,6 +440,28 @@ export function limitRecordOf(limit: any, player: any): { max: number; per: Limi
         return undefined;
     }
     return { max, per };
+}
+
+/** The printed cost of the card itself, not of a card it is a copy of (spec §10.1 `PLAY.cost`). */
+function playedCost(card: any): number | undefined {
+    const own = readOr<unknown>(() => card?.cardData?.cost, undefined);
+    if (typeof own === 'number') {
+        return own;
+    }
+    return typeof card?.cost === 'number' ? card.cost : undefined;
+}
+
+/** A limited use written but not yet counted by the engine (see `SwuPgnRecorder.pendingLimits`). */
+interface PendingLimit {
+    event: GameEvent & { limit?: { max: number; per: LimitPer } };
+    limit: { max: number; per: LimitPer };
+    resolver: any;
+    counted: any;
+    user: any;
+    before: number;
+
+    /** What to track once counted; null when a zone change reset the limit since it triggered. */
+    use: { seat: Seat; card: string; ability: string; per: LimitPer; gained: boolean } | null;
 }
 
 /**
@@ -521,8 +559,8 @@ export class SwuPgnRecorder {
      * resourcing enters exhausted, CR 5.5.1.c; so do abilities'), and OnCardMoved fires inside
      * the move, so the flag cannot be read in the move's own handler. It is read at the start of
      * the next engine event or any read of the record (`settleResourceMove`), by which time the
-     * flag is final, and written onto this record. Transient: dropped by `rollbackTo`, never
-     * held across a checkpoint (the record it points at is truncated with the rest).
+     * flag is final, and written onto this record. Held in each checkpoint and restored by
+     * `rollbackTo`: an undo to a point between the move and its settling must settle it again.
      */
     private pendingResourceMove: { event: GameEvent; card: any } | null = null;
 
@@ -544,7 +582,7 @@ export class SwuPgnRecorder {
     private readonly effectIds = new Map<string, string>();
     private readonly effectObjects = new Map<string, any>();
     private readonly effectTargets = new Map<string, Set<string>>();
-    private readonly effectTargetObjects = new Map<string, { card: any; inPlay: boolean }>();
+    private readonly effectTargetObjects = new Map<string, { card: any; inPlay: boolean; zone: unknown }>();
     private readonly effectInfo = new Map<string, RecordedEffect>();
     private nextEffectNumber = 0;
 
@@ -575,6 +613,18 @@ export class SwuPgnRecorder {
      * its `per` names. Held in each checkpoint.
      */
     private readonly gainedUses = new Map<string, { seat: Seat; card: string; ability: string; per: LimitPer; limit: any; player: any }>();
+
+    /**
+     * Limited uses written but not counted yet (spec §10.1, `[W-49]`). `ABILITY_ACTIVATE` is
+     * written when the ability is initiated; the engine counts the use only once the ability
+     * resolves, or is cancelled after its costs were paid (AbilityResolver.executeHandler). A use
+     * cancelled before that (a cost the player cancels, say) is not a use, so its record must not
+     * carry `limit`. Each entry is settled when the count goes up (the use is kept, and tracked
+     * for `ABILITY_RESET`) or when the ability's resolver is gone without it (`limit` is taken off
+     * the record). Held in each checkpoint, and a rollback puts `limit` back on a record it
+     * holds, since the record had it at the boundary.
+     */
+    private pendingLimits: PendingLimit[] = [];
 
     /**
      * The ask whose card picks are `blind` (spec §10.2 simultaneous groups): the ability context
@@ -615,13 +665,14 @@ export class SwuPgnRecorder {
         effectIds: [string, string][];
         effectObjects: [string, any][];
         effectTargets: [string, string[]][];
-        effectTargetObjects: [string, { card: any; inPlay: boolean }][];
+        effectTargetObjects: [string, { card: any; inPlay: boolean; zone: unknown }][];
         effectInfo: [string, RecordedEffect][];
         nextEffectNumber: number;
         limitedUses: [string, LimitPer[]][];
         gainedUses: [string, { seat: Seat; card: string; ability: string; per: LimitPer; limit: any; player: any }][];
         blindAsk: { context: any; seq: string } | null;
         simulGroup: { window: any; first: GameEvent; seq: string } | null;
+        pendingLimits: PendingLimit[];
     }[] = [];
 
     public constructor(game: Game, resolver: SwuPgnResolver) {
@@ -634,6 +685,7 @@ export class SwuPgnRecorder {
 
     public getEvents(): GameEvent[] {
         this.settleResourceMove();
+        this.settleLimits();
         return this.events;
     }
 
@@ -851,6 +903,11 @@ export class SwuPgnRecorder {
             }
             this.blindAsk = boundary.blindAsk;
             this.simulGroup = boundary.simulGroup;
+            // A use pending at the boundary had its `limit` then, whatever settled it since.
+            this.pendingLimits = [...boundary.pendingLimits];
+            for (const pending of this.pendingLimits) {
+                pending.event.limit = pending.limit;
+            }
             // Drop this checkpoint and any later ones; the redo re-checkpoints as it records.
             this.checkpoints.length = idx;
 
@@ -925,6 +982,7 @@ export class SwuPgnRecorder {
                 gainedUses: [...this.gainedUses.entries()],
                 blindAsk: this.blindAsk,
                 simulGroup: this.simulGroup,
+                pendingLimits: [...this.pendingLimits],
             });
             // Not capped. The engine keeps its phase snapshots per phase name, and the setup
             // phase only happens once, so a rollback can reach any checkpoint in the game. A cap
@@ -939,7 +997,8 @@ export class SwuPgnRecorder {
 
     private push(e: GameEvent): void {
         this.maybeCheckpoint();
-        if (isTopLevelActionRecord(e)) {
+        // A play an ability made is lettered (§9.1) but announces its play all the same.
+        if (isTopLevelActionRecord(e) || e.t === 'PLAY' || e.t === 'PLAY_EVENT' || e.t === 'PLAY_UPGRADE' || e.t === 'PLAY_SMUGGLE') {
             this.noteAnnouncedPlay();
         }
         // Elapsed time, on the records a reviewer asks it of: the numbered actions, and the
@@ -1010,6 +1069,35 @@ export class SwuPgnRecorder {
                 return;
             }
         }
+    }
+
+    /**
+     * Whether the play, attack or action ability resolving in `context` was made by another
+     * ability rather than taken as the player's action (spec §9.1: CR 1.15.1, 6.2.0e, 6.3.0d,
+     * 6.4.0a, 7.1.6). The engine resolves an ability-made play or attack in a resolver nested in
+     * the resolver of the ability that made it (PlayCardSystem, InitiateAttackSystem), so the
+     * resolver of the action itself has a parent; one the player took from the action window has
+     * none. `isAction` finds that resolver when the event's context is not the resolver's own.
+     * Unknown (no resolver found) reads as the player's action, as every record did before.
+     */
+    private madeByAbility(context: any, isAction: (c: any) => boolean): boolean {
+        for (let r = readOr<any>(() => this.game.currentAbilityResolver, null); r != null; r = readOr<any>(() => r.parentResolver, null)) {
+            const c = r.context;
+            if ((context != null && c === context) || readOr(() => isAction(c), false)) {
+                return readOr<any>(() => r.parentResolver, null) != null;
+            }
+        }
+        return false;
+    }
+
+    /** Whether a play of `card` is resolving now (an ancestor resolver is its play ability). */
+    private isBeingPlayed(card: any): boolean {
+        for (let r = readOr<any>(() => this.game.currentAbilityResolver, null); r != null; r = readOr<any>(() => r.parentResolver, null)) {
+            if (readOr(() => r.context?.ability?.isPlayCardAbility?.() === true && r.context.source === card, false)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1484,6 +1572,7 @@ export class SwuPgnRecorder {
      */
     private projectKeyframe(): ReducedState | undefined {
         this.settleResourceMove();
+        this.settleLimits();
         try {
             this.syncEffects();
         } catch (error) {
@@ -1677,7 +1766,7 @@ export class SwuPgnRecorder {
             return; // gone before its window finished: it never held
         }
         const targets = new Map<string, any>();
-        let seat: Seat | undefined;
+        const seats = new Set<Seat>();
         for (const effect of objects) {
             const resolved = readOr<any[]>(() => [...(effect.targets ?? [])], []);
             const matchTarget = readOr(() => effect.matchTarget, null);
@@ -1689,15 +1778,21 @@ export class SwuPgnRecorder {
                         targets.set(ref, target);
                     }
                 } else if (target?.id != null) {
-                    seat = this.seatOf(target); // a player-wide effect
+                    seats.add(this.seatOf(target)); // a player-wide effect
                 }
             }
+        }
+        // A player-wide effect on both players is one effect, `seat: "both"` (spec §10.1). An
+        // effect that resolved neither a card nor a player applies to nothing, and is not written.
+        const seat: EffectSeat | undefined = seats.size === 0 ? undefined : seats.size > 1 ? 'both' : [...seats][0];
+        if (targets.size === 0 && seat == null) {
+            return;
         }
 
         const context = group.context;
         const delayed = group.kind === 'delayed';
-        const duration = effectDurationOf(group.engineDuration, delayed);
         const first = objects[0];
+        const duration = effectDurationOf(group.engineDuration, delayed, readOr(() => first.until, undefined));
         const words = (value: unknown): string | undefined => (typeof value === 'string' && value !== '' ? value : undefined);
         // The engine's own order for describing an effect (its ongoing-effect summary): the
         // effect's standalone title, then the creating ability's title, then the chat fragment
@@ -1736,9 +1831,13 @@ export class SwuPgnRecorder {
         }
         this.effectTargets.set(id, new Set(targets.keys()));
         for (const [ref, card] of targets) {
-            this.effectTargetObjects.set(ref, { card, inPlay: readOr(() => card?.isInPlay?.() === true, false) });
+            // A card its own play is putting into play (Clone's copy, started before the card
+            // arrives) is a target in play: it is the object that arrives, not one that leaves.
+            const inPlay = readOr(() => card?.isInPlay?.() === true, false) || this.isBeingPlayed(card);
+            this.effectTargetObjects.set(ref, { card, inPlay, zone: readOr(() => card?.zoneName, undefined) });
         }
-        this.effectInfo.set(id, { duration, delayed, sourceCard: group.sourceCard });
+        const sourceInPlay = readOr(() => group.sourceCard?.isInPlay?.() === true, false) || this.isBeingPlayed(group.sourceCard);
+        this.effectInfo.set(id, { duration, delayed, sourceCard: group.sourceCard, sourceInPlay });
     }
 
     /**
@@ -1756,9 +1855,19 @@ export class SwuPgnRecorder {
         for (const [uuid, fx] of this.effectIds) {
             uuidsOf.set(fx, [...(uuidsOf.get(fx) ?? []), uuid]);
         }
+        // A target leaves the effect when it leaves play, or, for a target outside play (a card in
+        // a discard pile the effect lets someone play), when it changes zone: either way it is a
+        // new object the effect no longer applies to (CR 7.7.3.d, 8.7).
         const leftPlay = (ref: string): boolean => {
             const target = this.effectTargetObjects.get(ref);
-            return target?.inPlay === true && !ref.startsWith('base@') && !readOr(() => target.card?.isInPlay?.() === true, false);
+            if (target == null || ref.startsWith('base@')) {
+                return false;
+            }
+            if (target.inPlay) {
+                return !readOr(() => target.card?.isInPlay?.() === true, false);
+            }
+            const zone = readOr<unknown>(() => target.card?.zoneName, undefined);
+            return target.zone != null && zone != null && zone !== target.zone;
         };
 
         for (const [fx, info] of [...this.effectInfo]) {
@@ -1779,6 +1888,13 @@ export class SwuPgnRecorder {
                     seq: this.nextSeq(false), t: 'EFFECT_END', id: fx, reason,
                     ...(reason === 'targetLeft' ? { targets: left } : {}),
                 });
+                this.forgetEffect(fx);
+                continue;
+            }
+            // A `whileSourceInPlay` effect ends when its source leaves play, whenever the engine
+            // gets round to removing its objects.
+            if (info.duration === 'whileSourceInPlay' && info.sourceInPlay === true && !readOr(() => info.sourceCard.isInPlay?.() === true, true)) {
+                this.push({ seq: this.nextSeq(false), t: 'EFFECT_END', id: fx, reason: 'sourceLeft' });
                 this.forgetEffect(fx);
                 continue;
             }
@@ -1847,6 +1963,45 @@ export class SwuPgnRecorder {
     }
 
     // ── Limited abilities, blind and simultaneous groups (spec §10.1, §10.2) ─────
+
+    /** Count a limited use the engine counted, so a later zone change knows to reset it. */
+    private trackUse(use: NonNullable<PendingLimit['use']>, counted: any, user: any): void {
+        const key = `${use.seat}|${use.card}`;
+        const used = this.limitedUses.get(key) ?? new Set<LimitPer>();
+        used.add(use.per);
+        this.limitedUses.set(key, used);
+        if (use.gained) {
+            this.gainedUses.set(`${key}|${use.ability}`, { seat: use.seat, card: use.card, ability: use.ability, per: use.per, limit: counted, player: user });
+        }
+    }
+
+    /**
+     * Settle the pending limited uses (see `pendingLimits`): kept once the engine's count went up,
+     * `limit` taken off once the ability's resolver is gone without it.
+     */
+    private settleLimits(): void {
+        if (this.pendingLimits.length === 0) {
+            return;
+        }
+        const chain = new Set<any>();
+        for (let r = readOr<any>(() => this.game.currentAbilityResolver, null); r != null; r = readOr<any>(() => r.parentResolver, null)) {
+            chain.add(r);
+        }
+        this.pendingLimits = this.pendingLimits.filter((pending) => {
+            const now = readOr<number | undefined>(() => pending.counted.currentForPlayer(pending.user), undefined);
+            if (typeof now === 'number' && now !== pending.before) {
+                if (pending.use) {
+                    this.trackUse(pending.use, pending.counted, pending.user);
+                }
+                return false;
+            }
+            if (chain.has(pending.resolver)) {
+                return true;
+            }
+            delete pending.event.limit;
+            return false;
+        });
+    }
 
     /** Forget the uses a boundary clears, as the fold does at PHASE_START / ROUND_START. */
     private clearLimitedUses(pers: readonly LimitPer[]): void {
@@ -2024,6 +2179,11 @@ export class SwuPgnRecorder {
             } catch (error) {
                 this.logError('settleResourceMove', error);
             }
+            try {
+                this.settleLimits();
+            } catch (error) {
+                this.logError('settleLimits', error);
+            }
             // An effect the engine removed since the last event (at a phase's end, an attack's
             // end) ended before this event, so its end is written before this event's records.
             try {
@@ -2165,7 +2325,10 @@ export class SwuPgnRecorder {
             // the replay entirely. (backfillAttachedTo covers the reverse order, where the
             // attach lands after the play.)
             const host = t === 'PLAY_UPGRADE' ? attachedHost(card) : null;
-            const seq = this.nextSeq(true);
+            // A play an ability made (an event's "play a unit", an action that plays a card) is a
+            // lettered sub-step of the action that caused it, not an action of its own (§9.1).
+            const byAbility = this.madeByAbility(event?.context, (c) => c?.ability?.isPlayCardAbility?.() === true && c.source === card);
+            const seq = this.nextSeq(!byAbility);
             const playRecord: GameEvent = {
                 seq,
                 t,
@@ -2173,11 +2336,12 @@ export class SwuPgnRecorder {
                 card: this.idOf(card),
                 zone: this.normalizeZone(card?.zoneName),
                 target: host ? this.targetRef(host) : undefined,
-                // PRINTED cost (spec §10.1). The resources actually paid -- after aspect
-                // penalties, discounts and Exploit -- are resolved inside the engine's cost
-                // payment and never reach this event; `costs` here is targeted-adjuster
-                // bookkeeping, not an amount.
-                cost: typeof card?.cost === 'number' ? card.cost : undefined,
+                // PRINTED cost of the card played (spec §10.1). The resources actually paid --
+                // after aspect penalties, discounts and Exploit -- are resolved inside the engine's
+                // cost payment and never reach this event; `costs` here is targeted-adjuster
+                // bookkeeping, not an amount. Its own printed cost, read from its card data: a
+                // card entering play as a copy (Clone, CR 8.5) already reports the copied cost.
+                cost: playedCost(card),
             };
             this.push(playRecord);
         });
@@ -2265,7 +2429,10 @@ export class SwuPgnRecorder {
             const targets = attack?.getAllTargets?.() ?? [];
             const defender = targets[0] ?? null;
             const defenderType: 'unit' | 'base' = defender?.isBase?.() ? 'base' : 'unit';
-            const seq = this.nextSeq(true);
+            // An attack an ability made (Ambush, an event's "attack with a unit") is a lettered
+            // sub-step of the action that caused it (§9.1).
+            const byAbility = this.madeByAbility(event?.context, (c) => c?.ability?.isAttackAction?.() === true && c.source === attacker);
+            const seq = this.nextSeq(!byAbility);
             this.push({
                 seq,
                 t: 'ATTACK',
@@ -2986,7 +3153,7 @@ export class SwuPgnRecorder {
             // Otherwise reuse the popped TRIGGER's seq rather than allocating a fresh one, so the
             // collapse leaves no skipped seq number behind it.
             let seq: string;
-            if (kind === 'action' || kind === 'epic') {
+            if ((kind === 'action' || kind === 'epic') && !this.madeByAbility(event?.context, () => false)) {
                 seq = this.nextSeq(true);
             } else if (pairedTrigger) {
                 seq = last.seq;
@@ -3029,16 +3196,27 @@ export class SwuPgnRecorder {
             // engine counts this use on a limit the card no longer has. The fold counts it, so the
             // reset the zone change made is stated after it.
             const live = readOr<any>(() => event?.ability?.captureLimit?.(), undefined);
-            if (counted != null && live != null && counted !== live) {
-                this.push({ seq: this.nextSeq(false), t: 'ABILITY_RESET', card: cardId, ability });
-                return;
+            const resetSince = counted != null && live != null && counted !== live;
+            const use: PendingLimit['use'] = resetSince
+                ? null
+                : { seat, card: cardId, ability, per: limit.per, gained: readOr(() => event?.ability?.printedAbility === false, false) };
+            const record = this.events[this.events.length - 1];
+            // The resolver of this very use: the record is settled when it has resolved.
+            let resolver: any = null;
+            for (let r = readOr<any>(() => this.game.currentAbilityResolver, null); r != null; r = readOr<any>(() => r.parentResolver, null)) {
+                if (r.context === event?.context) {
+                    resolver = r;
+                    break;
+                }
             }
-            const key = `${seat}|${cardId}`;
-            const used = this.limitedUses.get(key) ?? new Set<LimitPer>();
-            used.add(limit.per);
-            this.limitedUses.set(key, used);
-            if (readOr(() => event?.ability?.printedAbility === false, false)) {
-                this.gainedUses.set(`${key}|${ability}`, { seat, card: cardId, ability, per: limit.per, limit: counted, player: user });
+            const before = readOr<number | undefined>(() => counted.currentForPlayer(user), undefined);
+            if (resolver != null && typeof before === 'number' && record?.t === 'ABILITY_ACTIVATE') {
+                this.pendingLimits.push({ event: record, limit, resolver, counted, user, before, use });
+            } else if (use) {
+                this.trackUse(use, counted, user);
+            }
+            if (resetSince) {
+                this.push({ seq: this.nextSeq(false), t: 'ABILITY_RESET', card: cardId, ability });
             }
         });
 

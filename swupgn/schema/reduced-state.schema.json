@@ -34,7 +34,7 @@
         "src": { "$ref": "#/$defs/id" },
         "p": { "enum": [1, 2] },
         "targets": { "$ref": "#/$defs/ids" },
-        "seat": { "enum": [1, 2] },
+        "seat": { "enum": [1, 2, "both"] },
         "duration": { "type": "string", "minLength": 1 }
       },
       "additionalProperties": true

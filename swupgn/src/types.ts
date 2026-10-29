@@ -57,6 +57,9 @@ export type DefeatReason =
  */
 export type EffectDuration = 'attack' | 'phase' | 'round' | 'whileSourceInPlay' | 'until' | 'delayed' | 'game';
 
+/** The player(s) a player-wide effect applies to (spec §10.1 `EFFECT_START.seat`). */
+export type EffectSeat = Seat | 'both';
+
 /**
  * Why an effect, or some of its targets, ended (spec §6.4, §10.1). Closed, like `EffectDuration`.
  * `fired` is a delayed effect that resolved; `targetLeft` is the one a partial EFFECT_END carries.
@@ -280,10 +283,11 @@ export type GameEvent = ActionLink & (
   | { seq: string; t: 'GAME_END'; winner: Seat | 'Draw'; reason: string }
   // A lasting or delayed effect began (spec §10.1): ONE record per effect as the card text states
   // it. `id` is `fx@N`; `src` the card (or `base@N`) whose ability created it; `p` the seat that
-  // controls it; `targets` what it applies to, or `seat` for a player-wide effect. `ability`,
+  // controls it; `targets` what it applies to, or `seat` (1, 2 or `both`) for a player-wide effect --
+  // exactly one of the two. `ability`,
   // `text` and `untilText` are advisory and never folded.
   | {
-      seq: string; t: 'EFFECT_START'; id: string; src: string; p: Seat; targets?: string[]; seat?: Seat;
+      seq: string; t: 'EFFECT_START'; id: string; src: string; p: Seat; targets?: string[]; seat?: EffectSeat;
       duration: EffectDuration; untilText?: string; ability?: string; text?: string;
   }
   // The effect ended. With `targets`, only those targets left it (a target left play) and the
@@ -439,7 +443,7 @@ export interface ActiveEffect {
     src: string;
     p: Seat;
     targets?: string[];
-    seat?: Seat;
+    seat?: EffectSeat;
     duration: EffectDuration;
 }
 

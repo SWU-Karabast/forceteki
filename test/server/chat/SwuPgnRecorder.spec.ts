@@ -1572,3 +1572,120 @@ describe('SwuPgnRecorder: a play\'s setup is filed under the play', function () 
         });
     });
 });
+
+describe('SwuPgnRecorder: a play or attack an ability makes is lettered under the action that made it', function () {
+    integration(function (contextRef) {
+        const lettered = /^R\d+\.A\.\d+[a-z]+$/;
+        const actionOf = (seq: string) => seq.replace(/[a-z]+$/, '');
+
+        // Value: protects=an Ambush attack is a sub-step of the play that triggered it, not a second action (spec §9.1, CR 6.2.0e, 7.1.6); fails_when=the recorder numbers an attack made by a triggered ability; why_new=the control vector numbered Arquitens' Ambush attack as its own action; seam=AbilityResolver.parentResolver; no_claim=attacks made by delayed effects
+        it('letters an Ambush attack under the play, and its target choice carries no for', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { hand: ['syndicate-lackeys'], resources: 10 },
+                player2: { groundArena: ['wampa'] },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.syndicateLackeys);
+            context.player1.clickPrompt('Trigger');
+            context.player1.clickCard(context.wampa);
+
+            const events = parse(context.game.getCachedSwuPgn()).events as any[];
+            const play = events.find((e) => e.t === 'PLAY');
+            const attack = events.find((e) => e.t === 'ATTACK');
+            expect(attack.seq).toMatch(lettered);
+            expect(actionOf(attack.seq)).toBe(play.seq);
+            const between = events.slice(events.indexOf(play) + 1, events.indexOf(attack));
+            expect(between.every((e) => e.for == null && actionOf(e.seq) === play.seq)).toBeTrue();
+            const damage = events.filter((e) => e.t === 'DAMAGE');
+            expect(damage.length).toBeGreaterThan(0);
+            expect(damage.every((e) => actionOf(e.seq) === play.seq)).toBeTrue();
+        });
+
+        // Value: protects=an event's "attack with a unit" is a sub-step of the event's play (spec §9.1, CR 6.3.0d, 7.1.6); fails_when=the recorder numbers an attack made by an event; why_new=every ability-made attack took its own number; seam=AbilityResolver.parentResolver; no_claim=none
+        it('letters an event\'s attack under the event', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { hand: ['surprise-strike'], groundArena: ['wampa'] },
+                player2: {},
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.surpriseStrike);
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.p2Base);
+            expect(context.p2Base.damage).toBe(7);
+
+            const events = parse(context.game.getCachedSwuPgn()).events as any[];
+            const play = events.find((e) => e.t === 'PLAY_EVENT');
+            const attack = events.find((e) => e.t === 'ATTACK');
+            expect(play.seq).toMatch(/^R\d+\.A\.\d+$/);
+            expect(attack.seq).toMatch(lettered);
+            expect(actionOf(attack.seq)).toBe(play.seq);
+        });
+
+        // Value: protects=a unit an action ability plays is a sub-step of the ability (spec §9.1, CR 6.2.0e); fails_when=the recorder numbers a play made by an action ability; why_new=Han Solo's leader action read as two actions; seam=AbilityResolver.parentResolver; no_claim=deploys
+        it('letters a unit an action ability plays under the ability', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { hand: ['cantina-braggart'], leader: 'han-solo#worth-the-risk', resources: 4 },
+                player2: {},
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.hanSolo);
+            context.player1.clickCard(context.cantinaBraggart);
+            expect(context.cantinaBraggart).toBeInZone('groundArena');
+
+            const events = parse(context.game.getCachedSwuPgn()).events as any[];
+            const ability = events.find((e) => e.t === 'ABILITY_ACTIVATE' && e.kind === 'action');
+            const play = events.find((e) => e.t === 'PLAY');
+            expect(ability.seq).toMatch(/^R\d+\.A\.\d+$/);
+            expect(play.seq).toMatch(lettered);
+            expect(actionOf(play.seq)).toBe(ability.seq);
+            expect(events.filter((e) => (/^R\d+\.A\.\d+$/).test(e.seq) && e.t !== 'PASS').length).toBe(1);
+        });
+    });
+});
+
+describe('SwuPgnRecorder: limit is written only on a use the engine counts', function () {
+    integration(function (contextRef) {
+        const setup = () => contextRef.setupTestAsync({
+            phase: 'action',
+            player1: { hand: ['battlefield-marine', 'daring-raid'], base: { card: 'echo-base', upgrades: ['heavy-ion-cannon'] } },
+            player2: { groundArena: ['wampa'], hand: ['green-squadron-awing'] },
+        });
+        const uses = (events: any[]) => events.filter((e) => e.t === 'ABILITY_ACTIVATE' && e.title === 'Deal 2 damage to a unit');
+
+        // Value: protects=a limited ability cancelled before its costs are paid is not a use, so its record carries no `limit` (spec §10.1, [W-49], CR 7.2.5); fails_when=the recorder writes `limit` at initiation whatever the engine counts; why_new=the record said "used" while the engine let the player use it again this phase; seam=AbilityLimit.currentForPlayer; no_claim=that the cancelled initiation is written at all
+        it('takes limit off an ability whose cost the player cancelled', async function () {
+            await setup();
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.p1Base);
+            context.player1.clickCard(context.wampa);
+            context.player1.clickPrompt('Cancel');
+            context.player1.passAction();
+            context.player2.clickCard(context.greenSquadronAwing);
+            expect(context.player1).toBeAbleToSelect(context.p1Base);
+
+            const events = parse(context.game.getCachedSwuPgn()).events as any[];
+            expect(uses(events).length).toBe(1);
+            expect(uses(events)[0].limit).toBeUndefined();
+        });
+
+        it('keeps limit on a use the engine counted', async function () {
+            await setup();
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.p1Base);
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.wampa.damage).toBe(2);
+
+            const events = parse(context.game.getCachedSwuPgn()).events as any[];
+            expect(uses(events).map((e) => e.limit)).toEqual([{ max: 1, per: 'phase' }]);
+        });
+    });
+});

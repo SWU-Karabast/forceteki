@@ -419,7 +419,7 @@ export class AbilityResolver extends BaseStepWithPipeline {
         this.context.ability.executeHandler(this.context);
     }
 
-    /** The resolver this one is nested in, if any (read-only; the game log reads it). */
+    /** The resolver this one is nested in, if any (read-only; the SWU-PGN recorder reads it). */
     public get parentResolver(): AbilityResolver | null {
         return this.currentAbilityResolver;
     }

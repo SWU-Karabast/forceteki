@@ -166,6 +166,40 @@ describe('SWU-PGN/1.0 attributes, control and ownership (writer)', function () {
             expectCleanFile(text, doc);
         });
 
+        // Value: protects=a copy's PLAY carries the played card's own printed cost, and the copy effect lasts while the copy is in play (spec §10.1 PLAY.cost, EFFECT_START duration); fails_when=PLAY.cost reads the copied cost, or the copy effect is written as until "a card leaves play"; why_new=the control vector's Clone PLAY said cost 2 and its effect "until a card leaves play"; seam=none; no_claim=copies of copies
+        it('Clone\'s PLAY carries Clone\'s own cost, and its copy effect lasts while it is in play', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['clone'],
+                    groundArena: ['wampa'],
+                    resources: 12,
+                },
+                player2: {
+                    hand: ['vanquish'],
+                    resources: 12,
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.clone);
+            context.player1.clickCard(context.wampa);
+            expect(context.clone).toBeCloneOf(context.wampa);
+            context.player2.clickCard(context.vanquish);
+            context.player2.clickCard(context.clone);
+            expect(context.clone).toBeInZone('discard');
+
+            const { text, doc } = writerOutput(context.game);
+            const clone = idOf(doc, 'Clone');
+            const play = doc.events.find((e: any) => e.t === 'PLAY' && e.card === clone) as any;
+            expect(play.cost).toBe(7);
+            const start = doc.events.find((e: any) => e.t === 'EFFECT_START' && e.src === clone) as any;
+            expect([start.duration, start.untilText]).toEqual(['whileSourceInPlay', undefined]);
+            const end = doc.events.find((e: any) => e.t === 'EFFECT_END' && e.id === start.id) as any;
+            expect(end.reason).toBe('sourceLeft');
+            expectCleanFile(text, doc);
+        });
+
         it('a vehicle a leader pilots is a leader unit, and the leader card itself is not marked', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

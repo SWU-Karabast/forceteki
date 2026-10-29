@@ -105,7 +105,7 @@
     },
     {
       "if": { "properties": { "t": { "const": "EFFECT_START" } }, "required": ["t"] },
-      "then": { "properties": { "src": { "type": "string" }, "targets": { "type": "array", "minItems": 1, "items": { "type": "string" } }, "seat": { "enum": [1,2] }, "duration": { "enum": ["attack","phase","round","whileSourceInPlay","until","delayed","game"] }, "untilText": { "type": "string" }, "ability": { "type": "string" }, "text": { "type": "string" } }, "required": ["id","src","p","duration"], "if": { "properties": { "duration": { "const": "until" } }, "required": ["duration"] }, "then": { "required": ["untilText"] } }
+      "then": { "properties": { "src": { "type": "string" }, "targets": { "type": "array", "minItems": 1, "items": { "type": "string" } }, "seat": { "enum": [1,2,"both"] }, "duration": { "enum": ["attack","phase","round","whileSourceInPlay","until","delayed","game"] }, "untilText": { "type": "string", "minLength": 1 }, "ability": { "type": "string" }, "text": { "type": "string" } }, "required": ["id","src","p","duration"], "oneOf": [ { "required": ["targets"], "not": { "required": ["seat"] } }, { "required": ["seat"], "not": { "required": ["targets"] } } ], "if": { "properties": { "duration": { "const": "until" } }, "required": ["duration"] }, "then": { "required": ["untilText"] } }
     },
     {
       "if": { "properties": { "t": { "const": "EFFECT_END" } }, "required": ["t"] },
@@ -145,7 +145,7 @@
         "src": { "type": "string" },
         "p": { "enum": [1,2] },
         "targets": { "type": "array", "items": { "type": "string" } },
-        "seat": { "enum": [1,2] },
+        "seat": { "enum": [1,2,"both"] },
         "duration": { "type": "string" }
       }
     },

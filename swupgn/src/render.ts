@@ -44,7 +44,8 @@ function durationWords(duration: unknown, src: string, untilText: unknown, nm: (
         case 'phase': return 'for this phase';
         case 'round': return 'for this round';
         case 'whileSourceInPlay': return `while ${nm(src)} is in play`;
-        case 'until': return `until ${typeof untilText === 'string' ? untilText : 'a condition is met'}`;
+        // The file's text, cut like a card name, so it cannot grow the story (spec §16).
+        case 'until': return `until ${typeof untilText === 'string' ? shorten(untilText) : 'a condition is met'}`;
         case 'delayed': return 'delayed';
         case 'game': return 'for the rest of the game';
         default: return String(duration);
@@ -146,8 +147,8 @@ function line(e: GameEvent, n: SidedResolver, effectSources: ReadonlyMap<string,
         // An effect names its source card, then what it does in words when the file says, then
         // what it applies to: the targets, or the seat a player-wide effect is for.
         case 'EFFECT_START': {
-            const what = e.text ? ` — ${plainText(String(e.text))}` : '';
-            const on = arr(e.targets).length ? ` on ${list(e.targets)}` : e.seat === 1 || e.seat === 2 ? ` for ${who(e.seat)}` : '';
+            const what = e.text ? ` — ${shorten(plainText(String(e.text)))}` : '';
+            const on = arr(e.targets).length ? ` on ${list(e.targets)}` : e.seat === 1 || e.seat === 2 ? ` for ${who(e.seat)}` : e.seat === 'both' ? ' for both players' : '';
             return `${who(e.p)}: ${nm(e.src)}${what}${on} (${durationWords(e.duration, e.src, e.untilText, nm)})`;
         }
         // Named by the source its EFFECT_START gave, or by its id when the file never started it.

@@ -192,6 +192,36 @@ describe('SWU-PGN/1.0 effects (writer)', function () {
             expectCleanEffects(text);
         });
 
+        // Value: protects=a target outside play that changes zone is a new object the effect no longer applies to, so the writer ends it for that target (spec §10.1, CR 8.7, [W-48]); fails_when=the effect stays on a card played from the discard pile until the phase ends; why_new=final review item 17; seam=none; no_claim=a target that changes zone and comes back between two engine events
+        it('an effect on a card outside play ends for it when the card changes zone', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['stolen-athauler'],
+                },
+                player2: {
+                    hand: ['power-of-the-dark-side'],
+                    hasInitiative: true,
+                },
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.powerOfTheDarkSide);
+            context.player1.clickCard(context.stolenAthauler);
+            context.player1.passAction();
+            context.player2.clickCard(context.stolenAthauler);
+            expect(context.stolenAthauler).toBeInZone('spaceArena', context.player2);
+
+            const during = writerOutput(context.game).doc;
+            const hauler = idOf(during, 'Stolen AT-Hauler');
+            expect(ofType(during, 'EFFECT_END').map((e) => [e.id, e.reason, e.targets])).toEqual([['fx@1', 'targetLeft', [hauler]]]);
+
+            context.moveToNextActionPhase();
+            const { text, doc } = writerOutput(context.game);
+            expect(ofType(doc, 'EFFECT_END').length).toBe(1);
+            expectCleanEffects(text);
+        });
+
         it('a delayed effect is written when created and ended when it fires', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -281,7 +311,8 @@ describe('SWU-PGN/1.0 effects (writer)', function () {
             });
             const { context } = contextRef;
 
-            // Fives copies the V-Wing's When Played "until this unit leaves play": a lasting
+            // Fives copies the V-Wing's When Played "until this unit leaves play" (written
+            // whileSourceInPlay, the engine's until-it-leaves-play): a lasting
             // effect that is still active at every later keyframe.
             context.player1.clickCard(context.fives);
             context.player1.clickCard(context.patrollingVwing);
@@ -299,7 +330,7 @@ describe('SWU-PGN/1.0 effects (writer)', function () {
                     .toBeTrue();
             }
             const fivesEffect = ofType(doc, 'EFFECT_START').find((e) => e.src === fives);
-            expect(fivesEffect).toEqual(jasmine.objectContaining({ duration: 'until', targets: [fives] }));
+            expect(fivesEffect).toEqual(jasmine.objectContaining({ duration: 'whileSourceInPlay', targets: [fives] }));
             const later = keyframes.filter((k) => doc.events.indexOf(k) > doc.events.indexOf(fivesEffect));
             expect(later.length).toBeGreaterThan(1);
             for (const k of later) {

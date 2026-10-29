@@ -76,7 +76,8 @@ game, so which seat makes it can differ from run to run. Neither the fold nor th
 and it carries no `for`, so the gate never compares it; a regenerated vector may differ from the
 committed one there and nowhere else.
 
-Negative vectors, in `test-vectors/negative/`, are each `minimal` with one thing broken.
+Negative vectors, in `test-vectors/negative/`, are each a small hand-written file with one thing
+broken; most predate `minimal`'s current revision and carry `WriterRevision` 3 or 4.
 
 To regenerate the real-game vectors after a deliberate writer change:
 
