@@ -824,6 +824,10 @@ export class Lobby {
 
         const user = this.getUser(socket.user.getId());
 
+        if (mode === RematchMode.Bo1ConvertToBo3 && this.refuseConversionAfterLogServed()) {
+            return;
+        }
+
         // Set the rematch request property (allow only one request at a time)
         if (!this.rematchRequest) {
             this.rematchRequest = {
@@ -859,8 +863,26 @@ export class Lobby {
         this.sendLobbyState();
     }
 
+    /**
+     * True, after alerting the players, when this game's log was served. The file names both
+     * decklists and sideboards, which a best-of-three keeps hidden between its games, so a game
+     * whose file a player holds cannot become the first game of one (see `getGameLog`).
+     */
+    private refuseConversionAfterLogServed(): boolean {
+        if (!this.game?.isSwuPgnServed) {
+            return false;
+        }
+        this.rematchRequest = null;
+        this.game.addAlert(AlertType.Warning, 'This game cannot become a best-of-three: its game log has already been downloaded');
+        this.sendLobbyState();
+        return true;
+    }
+
     private rematch() {
         const mode = this.rematchRequest?.mode;
+        if (mode === RematchMode.Bo1ConvertToBo3 && this.refuseConversionAfterLogServed()) {
+            return;
+        }
 
         // Clear the rematch request and reset the game.
         this.rematchRequest = null;

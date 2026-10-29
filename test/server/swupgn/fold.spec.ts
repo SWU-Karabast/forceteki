@@ -46,6 +46,17 @@ describe('fold additional events', function () {
         expect(s.players[1]?.discard).toContain('SOR#142');
     });
 
+    // Value: protects=an event played out of the other seat's deck stays in its owner's discard only (spec §10.1); fails_when=PLAY_EVENT files the card in the player's pile beside its owner's MOVE; why_new=the writer test ends with the card in a resource row, not a discard; seam=none; no_claim=MOVE-less files
+    it('PLAY_EVENT leaves an event its owner\'s MOVE filed in the other seat\'s discard alone', function () {
+        const s = fold([
+            { seq: 'R1.A.0a', t: 'MOVE', card: 'SOR#142', from: 'deck', to: 'discard', p: 1, kind: 'event' },
+            { seq: 'R1.A.1', t: 'PLAY_EVENT', p: 2, card: 'SOR#142' },
+        ] as any);
+        expect(s.players[1]?.discard).toEqual(['SOR#142']);
+        expect(s.players[2]?.discard).withContext('not the player\'s')
+            .toEqual([]);
+    });
+
     it('PLAY_UPGRADE attaches to its host unit', function () {
         const s = fold([
             { seq: 'R1.A.1', t: 'PLAY', p: 1, card: 'SOR#108', zone: 'ground' },
@@ -808,6 +819,45 @@ describe('fold keyframe trust boundary', function () {
         expect(s.round).toBe(1);
     });
 
+    // Value: protects=a seat's cards hold at most 1000 upgrades and captives between them, so an exit's scan of them stays bounded (spec §12, [F-05]); fails_when=attachments are capped only per card; why_new=the cap tests grow one list; seam=none; no_claim=fold time itself is not measured
+    it('stops attaching once a seat\'s cards hold the cap between them, upgrades and captives alike', function () {
+        const hosts = Array.from({ length: 3 }, (_, h) => ({ seq: `R1.A.${h + 1}`, t: 'MOVE', card: `SOR#${h}`, from: 'hand', to: 'ground', p: 1, kind: 'unit' }));
+        const attaches = Array.from({ length: 1000 }, (_, i) => ({ seq: `R1.A.${i + 10}`, t: 'MOVE', card: `SHD#${i}`, from: 'hand', to: 'ground', p: 1, kind: 'upgrade', attachedTo: `SOR#${i % 3}` }));
+        const s = fold([
+            ...hosts,
+            ...attaches,
+            { seq: 'R1.A.2000', t: 'MOVE', card: 'SHD#1000', from: 'hand', to: 'ground', p: 1, kind: 'upgrade', attachedTo: 'SOR#0' },
+            { seq: 'R1.A.2001', t: 'CAPTURE', p: 1, card: 'SOR#900', by: 'SOR#1' },
+            { seq: 'R1.A.2002', t: 'MOVE', card: 'SOR#5', from: 'hand', to: 'ground', p: 2, kind: 'unit' },
+            { seq: 'R1.A.2003', t: 'MOVE', card: 'SHD#2000', from: 'hand', to: 'ground', p: 2, kind: 'upgrade', attachedTo: 'SOR#5' },
+        ] as any);
+        const cards = s.players[1]?.cards ?? [];
+        expect(cards.reduce((n, c) => n + c.upgrades.length + (c.captured ?? []).length, 0)).withContext('seat 1 at the cap')
+            .toBe(1000);
+        expect(cards.some((c) => c.upgrades.includes('SHD#1000'))).withContext('an upgrade past the cap')
+            .toBeFalse();
+        expect(cards.some((c) => (c.captured ?? []).includes('SOR#900'))).withContext('a captive past the cap')
+            .toBeFalse();
+        expect(s.players[2]?.cards.find((c) => c.id === 'SOR#5')?.upgrades).withContext('the other seat has its own cap')
+            .toEqual(['SHD#2000']);
+    });
+
+    // Value: protects=a keyframe whose seat's cards hold more than 1000 upgrades and captives between them is not snapped to (spec §13); fails_when=the keyframe check counts each card's list only; why_new=the next test grows one card's list; seam=none; no_claim=none
+    it('ignores a keyframe whose seat\'s cards hold more upgrades than the cap between them', function () {
+        const card = (id: string, upgrades: string[]) => ({ id, zone: 'ground', damage: 0, exhausted: false, upgrades, shields: 0, experience: 0, statusTokens: {}, captured: [] });
+        const withUnits = (n: number) => fold([{
+            seq: 'R1.start', t: 'ROUND_START', round: 1,
+            keyframe: { round: 1, phase: 'action', initiative: 1, players: {
+                1: { ...seat(1, []), cards: [card('SOR#010', Array.from({ length: 600 }, (_, i) => `SHD#${i}`)), card('SOR#011', Array.from({ length: n }, (_, i) => `TWI#${i}`))] },
+                2: seat(2, []),
+            } },
+        } as any]);
+        expect(withUnits(400).players[1]?.cards.length).withContext('1000 between them is a board')
+            .toBe(2);
+        expect(withUnits(401).players[1]?.cards).withContext('the damaged keyframe is not snapped to')
+            .toEqual([]);
+    });
+
     // Value: protects=a keyframe card whose upgrades list exceeds MAX_ZONE_LIST is not snapped to; fails_when=the per-card upgrades cap is dropped and a crafted keyframe installs an unbounded upgrades list; why_new=the cap test above only grows a player-level list; seam=none; no_claim=real games never approach the cap
     it('ignores a keyframe whose card carries an upgrades list past the cap', function () {
         const withUnit = (upgrades: string[]) => fold([{
@@ -1011,16 +1061,17 @@ describe('fold keyframe snap normalisation', function () {
 });
 
 describe('fold attachment list cap', function () {
-    // Value: protects=a host's upgrades and a captor's captured stop at the cap like every other list the fold grows (spec §12); fails_when=attachTo or CAPTURE push without the cap and a crafted file grows them without bound; why_new=the cap tests above grow zone lists only; seam=none; no_claim=no real game approaches the cap
-    it('caps a host\'s upgrades and a captor\'s captives at 1000', function () {
+    // Value: protects=a host's upgrades and a captor's captured stop at the cap like every other list the fold grows, 1000 between them on one seat (spec §12, [F-05]); fails_when=attachTo or CAPTURE push without the cap and a crafted file grows them without bound; why_new=the cap tests above grow zone lists only; seam=none; no_claim=no real game approaches the cap
+    it('caps a host\'s upgrades and a captor\'s captives at 1000 between them', function () {
         const events: any[] = [{ seq: 'R1.A.1', t: 'MOVE', card: 'SOR#010', from: 'hand', to: 'ground', p: 1, kind: 'unit' }];
         for (let i = 0; i < 1005; i++) {
             events.push({ seq: `R1.A.2u${i}`, t: 'MOVE', card: `LOF#${i}`, from: 'hand', to: 'ground', p: 1, kind: 'upgrade', attachedTo: 'SOR#010' });
             events.push({ seq: `R1.A.2c${i}`, t: 'CAPTURE', p: 1, card: `SOR#${2000 + i}`, by: 'SOR#010' });
         }
         const host = fold(events).players[1]?.cards.find((c) => c.id === 'SOR#010');
-        expect(host?.upgrades.length).toBe(1000);
-        expect(host?.captured.length).toBe(1000);
+        expect((host?.upgrades.length ?? 0) + (host?.captured.length ?? 0)).toBe(1000);
+        expect(host?.upgrades).withContext('the ones under the cap are kept, in order')
+            .toEqual(Array.from({ length: 500 }, (_, i) => `LOF#${i}`));
     });
 });
 

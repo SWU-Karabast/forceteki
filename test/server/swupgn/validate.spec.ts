@@ -439,6 +439,16 @@ describe('validate conformance levels and cross-record rules (spec §2.1)', func
         expect(codes(bad)).toContain('error:over-cap');
     });
 
+    // Value: protects=a keyframe whose seat's cards hold more than 1000 upgrades and captives between them is over-cap, as the fold treats it as damaged (spec §13); fails_when=only each card's own list is checked; why_new=the other over-cap tests grow one list; seam=none; no_claim=none
+    it('reports a keyframe seat whose cards hold more upgrades and captives than the cap between them', function () {
+        const upgrades = JSON.stringify(Array.from({ length: 1000 }, (_, i) => `SHD#${i}`));
+        const bad = good.replace('"upgrades":[]', `"upgrades":${upgrades}`).replace('"captured":[]', '"captured":["SOR#200"]');
+        expect(bad).not.toBe(good);
+        expect(codes(bad)).toContain('error:over-cap');
+        const atCap = good.replace('"upgrades":[]', `"upgrades":${upgrades}`);
+        expect(codes(atCap)).not.toContain('error:over-cap');
+    });
+
     it('reports a Fortify upgrade attached to the other seat\'s base', function () {
         const move = (p: number, base: string) => addEvent(`{"seq":"R1.A.9","t":"MOVE","card":"HMW#147","from":"hand","to":"base","p":${p},"kind":"upgrade","attachedTo":"${base}"}`);
         const play = (p: number, base: string) => addEvent(`{"seq":"R1.A.9","t":"PLAY_UPGRADE","p":${p},"card":"HMW#147","zone":"base","target":"${base}","cost":2}`);

@@ -83,7 +83,7 @@ export function isCompleteKeyframe(k: unknown): k is ReducedState {
         // the fold snapped to it, and the next exit from that arena crashed in detach() on
         // `c.upgrades.indexOf`. A keyframe is snapped to WHOLESALE, so a half-shaped card in one
         // is not a detail to tolerate -- it is a damaged checkpoint (spec §13).
-        if (!ps.cards.every(isCompleteKeyframeCard)) {
+        if (!ps.cards.every(isCompleteKeyframeCard) || attachmentsHeld(ps.cards) > MAX_ZONE_LIST) {
             return false;
         }
         // `abilityUses` is optional too, but when present a later ABILITY_ACTIVATE matches into it
@@ -298,9 +298,33 @@ function attachTo(s: ReducedState, hostId: string, id: string): void {
         return;
     }
     const host = findCard(s, hostId);
-    if (host) {
+    if (host && !seatHoldsMaxAttachments(s, host)) {
         addOnce(host.upgrades, id);
     }
+}
+
+/**
+ * True when the cards of the seat holding `host` already hold MAX_ZONE_LIST upgrades and captives
+ * between them. Each card's list is capped on its own, but every exit scans all of them (detach),
+ * so a seat-wide cap is what keeps that scan bounded (spec §12, `[F-05]`).
+ */
+function seatHoldsMaxAttachments(s: ReducedState, host: CardInstanceState): boolean {
+    for (const seat of [1, 2] as Seat[]) {
+        const cards = s.players[seat]?.cards ?? [];
+        if (cards.includes(host)) {
+            return attachmentsHeld(cards) >= MAX_ZONE_LIST;
+        }
+    }
+    return false;
+}
+
+/** The upgrades and captives `cards` hold between them. */
+function attachmentsHeld(cards: readonly CardInstanceState[]): number {
+    let held = 0;
+    for (const c of cards) {
+        held += c.upgrades.length + arr<string>(c.captured).length;
+    }
+    return held;
 }
 
 /**
@@ -1128,7 +1152,7 @@ export function reduce(s: ReducedState, e: GameEvent): ReducedState {
                 break;
             }
             const captor = e.by ? findCard(s, e.by) : undefined;
-            if (captor) {
+            if (captor && !seatHoldsMaxAttachments(s, captor)) {
                 const captured = arr<string>(captor.captured);
                 addOnce(captured, e.card);
                 captor.captured = captured;

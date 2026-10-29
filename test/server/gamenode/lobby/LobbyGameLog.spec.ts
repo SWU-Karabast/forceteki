@@ -115,6 +115,39 @@ describe('Lobby game log download', function () {
             expect(await requestGameLogAsync(player)).toEqual(served);
         });
 
+        // Value: protects=a best-of-one whose log a player downloaded is not turned into the first game of a best-of-three, whose games keep decklists hidden; fails_when=requestRematch or rematch() accepts bo1ConvertToBo3 after the log was served; why_new=no case downloads and then rematches; seam=none; no_claim=the other rematch modes, which stay best-of-one
+        it('does not turn a best-of-one into a best-of-three once its log was downloaded', async function () {
+            const { harness } = contextRef;
+            const { first: player, second: opponent } = await harness.startQuickGameAsync();
+
+            await player.sendGameMessageAsync('concede');
+            await player.sendLobbyMessageAsync('requestRematch', 'bo1ConvertToBo3');
+            expect(player.lobbyState.rematchRequest?.mode).withContext('asked before the download')
+                .toBe('bo1ConvertToBo3');
+
+            expect(typeof (await requestGameLogAsync(opponent))?.swuPgnFile).toBe('string');
+            await opponent.sendLobbyMessageAsync('rematch');
+            expect(player.lobbyState.rematchRequest).withContext('accepted after the download')
+                .toBeNull();
+            expect(player.lobbyState.winHistory.gamesToWinMode).toBe('bestOfOne');
+
+            await player.sendLobbyMessageAsync('requestRematch', 'bo1ConvertToBo3');
+            expect(player.lobbyState.rematchRequest).withContext('asked after the download')
+                .toBeNull();
+        });
+
+        // Value: protects=a best-of-one whose log nobody downloaded still converts to a best-of-three (control for the case above); fails_when=the refusal fires on every converted game; why_new=no lobby spec converts; seam=none; no_claim=the second game of the set
+        it('still turns a best-of-one into a best-of-three when its log was not downloaded', async function () {
+            const { harness } = contextRef;
+            const { first: player, second: opponent } = await harness.startQuickGameAsync();
+
+            await player.sendGameMessageAsync('concede');
+            await player.sendLobbyMessageAsync('requestRematch', 'bo1ConvertToBo3');
+            await opponent.sendLobbyMessageAsync('rematch');
+
+            expect(player.lobbyState.winHistory.gamesToWinMode).toBe('bestOfThree');
+        });
+
         // TODO: cover getGameLog's players-only refusal ('Only the players of this game can download its
         // log'). It cannot be reached over the socket yet: someone who takes a seat after the game was
         // played is dropped while connecting ("Error connecting to lobby"): addLobbyUserAsync's

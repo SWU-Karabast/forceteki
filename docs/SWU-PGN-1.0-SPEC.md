@@ -195,7 +195,8 @@ A file is at one of five levels. Each level includes the ones before it.
    moves from a zone to itself ([§10.1](#binding-an-attachment-to-its-host));
 5. every number is an integer in the range ±(2^53−1), in every record of every section,
    `%%% DECKS` and `%%% CARDS` included ([§23](#23-security-considerations));
-6. no keyframe list holds more than 1000 entries ([§13](#13-keyframes)).
+6. no keyframe list holds more than 1000 entries, and no seat's cards hold more than 1000
+   upgrades and captives between them ([§13](#13-keyframes)).
 
 An `UNDO`'s `at` is exempt from rule 2: it names a record the undo deleted
 ([§10.2](#102-events-that-are-just-notes)). An annotation's `parent` that names no note is a
@@ -464,7 +465,7 @@ requirement, by id. The linked section is where each one is defined.
 - `[F-04]` MUST treat an event type it doesn't recognise as "do nothing" — a warning, never a
   crash ([§18](#18-versioning-and-extensibility--versions-and-unknown-things)).
 - `[F-05]` MUST NOT snap to a damaged keyframe, and MUST cap every list it grows at 1000
-  entries ([§12](#12-folding--turning-lines-into-a-board), [§13](#13-keyframes)).
+  entries, and a seat's upgrades and captives at 1000 between them ([§12](#12-folding--turning-lines-into-a-board), [§13](#13-keyframes)).
 
 ### The Renderer (makes readable text)
 
@@ -2886,7 +2887,9 @@ fold(events):
 **Every list the fold grows is capped at 1000 entries.** `cards`, `hand`, `discard`,
 `resources`, `baseUpgrades`, `baseCaptured`, a card's `upgrades` and `captured`, and the
 number of distinct names in a card's `statusTokens`: an id that would be entry 1001 is
-dropped. No real game comes near it; the cap exists so a crafted file cannot make the fold grow
+dropped. A seat's cards hold at most 1000 upgrades and captives between them: an upgrade or
+captive is not added to a card when the cards of that card's seat already hold 1000, since
+every exit looks through all of them. No real game comes near it; the cap exists so a crafted file cannot make the fold grow
 without bound or turn quadratic. A keyframe over the cap is damaged
 ([§13](#damaged-keyframe)), since snapping to it would bypass the cap.
 
@@ -3165,6 +3168,7 @@ state is thrown away and the keyframe takes its place. Everything below follows 
   `statusTokens` object (not an array), or a number in each of `damage`, `shields` and
   `experience`;
 - a `cards` entry has a `captured` that is present but not an array of at most 1000;
+- a seat's `cards` hold more than 1000 `upgrades` and `captured` entries between them;
 - a `cards` entry has an `upgradeControllers` that is present but not an object (an array is not one);
 - `effects` is present but not an array of at most 1000 entries, or an entry is not an object
   with a string `id`, or has `targets` that is present but not an array of at most 1000;
@@ -4138,6 +4142,8 @@ A pass of the format against Comprehensive Rules v9.0 and the board state of CR 
   bidirectional control into a space; every other field the story prints is written the same
   way, so one record is one story line ([§16](#16-rendering--turning-a-file-into-a-story), `[R-04]`).
 - A story stops at 16,777,216 characters with a closing line ([§16](#strict-layout-rules)).
+- A seat's cards hold at most 1000 upgrades and captives between them: the fold adds no more, and
+  a keyframe over it is damaged (`over-cap`) `[F-05]` ([§12](#12-folding--turning-lines-into-a-board), [§13](#damaged-keyframe)).
 - `PLAY_EVENT` files its card only when no seat's `discard` already holds it: its own `MOVE`
   files it under its owner, so an event played out of the other seat's deck is not also put in
   the player's pile ([§12.2](#122-every-other-rule-in-one-table)).
@@ -4276,7 +4282,7 @@ matched by a program.
 | `same-zone-move` | error | A `MOVE` from a zone to itself that is not an arena | well-formed |
 | `result-mismatch` | error | The header's `Result` disagrees with the last `GAME_END.winner`, or is not `Incomplete` in a file with no `GAME_END` ([§10.2](#102-events-that-are-just-notes)) | well-formed |
 | `number-range` | error | A number that is not an integer within ±(2^53−1) | well-formed |
-| `over-cap` | error | A keyframe list longer than 1000 | well-formed |
+| `over-cap` | error | A keyframe list longer than 1000, or a seat's cards holding more than 1000 upgrades and captives between them | well-formed |
 | `pre-release` | warning | No `WriterRevision`, and an `Engine` product the [pilot writer products](#pilot-writer-products) registry ([§25](#25-registries)) lists: a pre-release file | well-formed |
 | `keyframe-mismatch` | warning | Folding does not reproduce a keyframe | valid |
 | `recorder-errors` | warning | `RecorderErrors` is above zero | verified |

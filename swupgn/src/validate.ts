@@ -391,9 +391,12 @@ export function validate(text: string): ConformanceReport {
         for (const ps of Object.values(players ?? {})) {
             const seat = asRecord(ps) ?? {};
             const lists: unknown[] = ['cards', 'hand', 'discard', 'resources', 'baseUpgrades', 'baseCaptured', 'abilityUses', 'foreignResources'].map((k) => seat[k]);
+            // The upgrades and captives a seat's cards hold between them, capped like one list (§12).
+            let attachments = 0;
             for (const c of Array.isArray(seat['cards']) ? seat['cards'] : []) {
                 const card = asRecord(c) ?? {};
                 lists.push(card['upgrades'], card['captured'], card['traits'], card['aspects']);
+                attachments += (Array.isArray(card['upgrades']) ? card['upgrades'].length : 0) + (Array.isArray(card['captured']) ? card['captured'].length : 0);
                 if (typeof card['zone'] === 'string' && !ZONES.includes(card['zone'])) {
                     error('bad-zone', `record ${seqStr}: keyframe card zone "${card['zone']}" is not a zone`);
                 }
@@ -402,6 +405,8 @@ export function validate(text: string): ConformanceReport {
             // otherwise grow without bound on a hostile file (the fold refuses such a keyframe).
             if (lists.some((l) => Array.isArray(l) && l.length > MAX_ZONE_LIST)) {
                 error('over-cap', `record ${seqStr}: a keyframe list is longer than ${MAX_ZONE_LIST}`);
+            } else if (attachments > MAX_ZONE_LIST) {
+                error('over-cap', `record ${seqStr}: a keyframe seat's cards hold more than ${MAX_ZONE_LIST} upgrades and captives`);
             }
         }
         const kfEffects = kf ? kf['effects'] : undefined;

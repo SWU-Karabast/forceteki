@@ -2323,6 +2323,11 @@ export class Game extends EventEmitter {
         return true;
     }
 
+    /** True once this game's log reached a player. See `markSwuPgnServed`. */
+    public get isSwuPgnServed(): boolean {
+        return this._swuPgnFileServed;
+    }
+
     /** True once this game was reopened after its log was served: no further copy is served. */
     public get isSwuPgnWithheld(): boolean {
         return this._swuPgnServedThenReopened;
@@ -2356,8 +2361,9 @@ export class Game extends EventEmitter {
 
         // Roll the SWU-PGN/1.0 recorder back to match the restored game state: it
         // checkpoints lazily per snapshot id (in SwuPgnRecorder.push), so rolling back to
-        // the restored snapshot id drops exactly the events recorded after it and restores
-        // counters + shieldParents. currentSnapshotId already reflects the restored snapshot.
+        // the restored snapshot id drops exactly the events recorded after it and restores the
+        // rest of its checkpointed state (see SwuPgnRecorder.rollbackTo). currentSnapshotId
+        // already reflects the restored snapshot.
         this._swuPgnAdapter.rollbackTo(this._snapshotManager.currentSnapshotId, undoingPlayerId);
         // Only an undo that reopens the game invalidates the pinned end-of-game file. Players
         // may keep playing after game end; an undo within that post-game play must not
