@@ -215,17 +215,17 @@ describe('Credential verification', function () {
 
         describe('on a development server', function () {
             serverIntegration(function (contextRef) {
-                it('can use their fixed ids over the API', async function () {
+                it('rejects their fixed ids without authentication over the API', async function () {
                     const response = await contextRef.harness.requestAsync('post', '/api/get-user', { body: { user: devUser } });
 
-                    expect(response.status).toBe(200);
-                    expect(response.body.user.id).toBe('exe66');
+                    expect(response.status).toBe(401);
+                    expect(response.body).toEqual(authenticationFailed);
                 });
 
-                it('can use their fixed ids on a socket', async function () {
+                it('rejects their fixed ids without authentication on a socket', async function () {
                     const result = await contextRef.harness.createClient().attemptConnectAsync({ user: devUser });
 
-                    expect(result).toEqual({ connected: true });
+                    expect(result).toEqual({ connected: false, errorMessage: 'Authentication error' });
                 });
             }, { database: true });
         });

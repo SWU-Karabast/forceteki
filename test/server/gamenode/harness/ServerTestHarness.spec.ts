@@ -23,7 +23,7 @@ describe('ServerTestHarness', function () {
                 const response = await user.requestAsync('post', '/api/mod/find-user');
 
                 expect(response.status).toBe(403);
-                expect(response.body.message).toBe('Error checking user privileges');
+                expect(response.body.message).toBe('Server role service unavailable');
             });
         });
     });
