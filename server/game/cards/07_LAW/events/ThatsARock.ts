@@ -31,7 +31,6 @@ export default class ThatsARock extends EventCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
             }
-
         });
     }
 }
