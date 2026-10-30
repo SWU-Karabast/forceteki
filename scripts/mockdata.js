@@ -908,6 +908,136 @@ const mockCards = [
         arena: 'ground',
         internalName: 'princess-leia#calculated-distraction'
     }),
+    buildMockCard({
+        title: 'Luke Skywalker',
+        subtitle: 'I Have to Face Him',
+        cost: 6,
+        power: 4,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: ['overwhelm'],
+        traits: ['force', 'jedi', 'rebel'],
+        types: ['leader'],
+        setId: {
+            set: 'IC27',
+            number: 6
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'luke-skywalker#i-have-to-face-him'
+    }),
+    buildMockCard({
+        title: 'Yoda',
+        subtitle: 'A Disturbing Puzzle',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['force', 'jedi', 'republic'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 35
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'yoda#a-disturbing-puzzle'
+    }),
+    buildMockCard({
+        title: 'Ahsoka Tano',
+        subtitle: 'Not On My Death Watch',
+        cost: 5,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['force', 'jedi', 'republic'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 39
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'ahsoka-tano#not-on-my-death-watch'
+    }),
+    buildMockCard({
+        title: 'Ezra Bridger',
+        subtitle: 'Down With the Freedom',
+        cost: 2,
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: ['raid 2'],
+        traits: ['force', 'jedi', 'rebel', 'spectre'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 113
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'ezra-bridger#down-with-the-freedom'
+    }),
+    buildMockCard({
+        title: 'Sabine Wren',
+        subtitle: 'Liberator of Krownest',
+        cost: 4,
+        power: 5,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: ['saboteur'],
+        traits: ['mandalorian', 'rebel', 'spectre'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 119
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'sabine-wren#liberator-of-krownest'
+    }),
+    buildMockCard({
+        title: 'Rey',
+        subtitle: 'Embracing Destiny',
+        cost: 5,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['force'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 120
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'rey#embracing-destiny'
+    }),
+    buildMockCard({
+        title: 'The Ghost',
+        subtitle: 'Whale Watching',
+        cost: 7,
+        power: 7,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: ['overwhelm'],
+        traits: ['rebel', 'vehicle', 'transport', 'spectre'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 122
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'the-ghost#whale-watching'
+    }),
     // -------- End Mock Cards --------
 ];
 
@@ -919,6 +1049,7 @@ const mockCards = [
 // Note: `set` must exist in the `setNumber` map in fetchdata.js to be picked up.
 const mockReprints = [
     { internalName: 'magistrates-scout', setId: { set: 'IC27', number: 18 } },
+    { internalName: 'clan-wren-rescuer', setId: { set: 'IC27', number: 33 } },
     { internalName: 'concord-dawn-interceptors', setId: { set: 'IC27', number: 36 } },
     { internalName: 'disciples-devotion', setId: { set: 'IC27', number: 53 } },
     { internalName: 'betrayed-trust', setId: { set: 'IC27', number: 55 } },
