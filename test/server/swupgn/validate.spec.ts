@@ -1,0 +1,625 @@
+import { engineProduct, PILOT_WRITER_PRODUCTS } from '../../../swupgn/src/parse';
+import { MAX_ISSUES, validate } from '../../../swupgn/src/validate';
+import * as fs from 'fs';
+import * as path from 'path';
+
+const good = fs.readFileSync(
+    path.resolve(__dirname, '../../../../swupgn/test-vectors/minimal.swupgn'), 'utf8');
+
+describe('validate', function () {
+    it('accepts a conformant minimal file', function () {
+        const report = validate(good);
+        expect(report.valid).toBe(true);
+        expect(report.formatVersion).toBe('SWU-PGN/1.0');
+        expect(report.issues.filter((i) => i.severity === 'error')).toEqual([]);
+    });
+
+    // Value: protects=a %%% CARDS entry that is not a card record fails validation instead of crashing render later; fails_when=validate() skips the card index; why_new=no spec put a bad entry in the index; seam=none; no_claim=render's own tolerance
+    it('rejects a card index entry that is not a card record', function () {
+        const bad = good.replace('%%% CARDS\n', '%%% CARDS\nnull\n');
+        expect(bad).not.toBe(good);
+        const report = validate(bad);
+        expect(report.valid).toBe(false);
+        expect(report.issues.some((i) => (/card index entry/).test(i.message))).toBe(true);
+    });
+
+    it('rejects a file missing a required header tag', function () {
+        const bad = good.replace('[Result "Incomplete"]', '');
+        const report = validate(bad);
+        expect(report.valid).toBe(false);
+        expect(report.issues.some((i) => (/Result/).test(i.message))).toBe(true);
+    });
+
+    // DEFEAT.reason is the one CLOSED vocabulary in the format (spec §6.4): a reader is meant to
+    // branch on it, so a value outside the set is a file defect, not a forward-compatibility
+    // case. Every other small vocabulary stays open.
+    it('accepts every DEFEAT reason in the closed set and rejects one outside it', function () {
+        const withDefeat = (reason: string) => good.replace(
+            '%%% EVENTS',
+            `%%% EVENTS\n{"seq":"R1.A.9","t":"DEFEAT","card":"SOR#108","reason":"${reason}"}`);
+        for (const reason of ['attack', 'ability', 'nonCombatDamage', 'uniqueRule', 'frameworkEffect', 'unknown']) {
+            const report = validate(withDefeat(reason));
+            expect(report.issues.filter((i) => i.severity === 'error'))
+                .withContext(`reason "${reason}" should be accepted`)
+                .toEqual([]);
+        }
+        const bad = validate(withDefeat('vaporised'));
+        expect(bad.valid).toBe(false);
+        expect(bad.issues.some((i) => i.severity === 'error' && (/reason/).test(i.message))).toBe(true);
+    });
+
+    // An UNDO note is an ordinary record with an extraordinary seq: it hangs a `-undo` suffix off
+    // the seq it reached back to, because the recorder's counters were rewound and the replay
+    // re-issues the original number.
+    it('accepts an UNDO note, including one that reached back to a round boundary', function () {
+        for (const at of ['R1.A.2', 'R1.start']) {
+            const withUndo = good.replace(
+                '%%% EVENTS', `%%% EVENTS\n{"seq":"${at}-undo","t":"UNDO","at":"${at}","by":2}`);
+            const report = validate(withUndo);
+            expect(report.issues.filter((i) => i.severity === 'error'))
+                .withContext(`UNDO at "${at}" should be accepted`)
+                .toEqual([]);
+            expect(report.issues.some((i) => (/UNDO/).test(i.message))).toBe(false);
+        }
+    });
+
+    // `kind` is answered from the ability OBJECT precisely so a reader can trust a fixed
+    // vocabulary instead of regexing the engine's own identifier; a value outside it is a file
+    // defect the schema should catch.
+    it('accepts every ABILITY_ACTIVATE kind and rejects one outside the set', function () {
+        const withKind = (kind: string) => good.replace(
+            '%%% EVENTS',
+            `%%% EVENTS\n{"seq":"R1.A.9","t":"ABILITY_ACTIVATE","p":1,"card":"SOR#010","kind":"${kind}"}`);
+        for (const kind of ['action', 'epic', 'triggered', 'keyword', 'replacement', 'constant']) {
+            const report = validate(withKind(kind));
+            expect(report.issues.filter((i) => i.severity === 'error'))
+                .withContext(`kind "${kind}" should be accepted`)
+                .toEqual([]);
+        }
+        const bad = validate(withKind('mystical'));
+        expect(bad.valid).toBe(false);
+        expect(bad.issues.some((i) => i.severity === 'error' && (/kind/).test(i.message))).toBe(true);
+    });
+
+    // parse() ignores an unrecognized section (§18 forward compatibility), which also means a
+    // typo'd banner would parse to zero events and say nothing. It stays visible here.
+    it('warns on an unrecognized %%% banner without erroring', function () {
+        const typo = good.replace('%%% CARDS', '%%% CARD');
+        const report = validate(typo);
+        expect(report.issues.filter((i) => i.severity === 'error')).toEqual([]);
+        expect(report.issues.some((i) => i.severity === 'warning' && (/unknown section/).test(i.message))).toBe(true);
+        expect(report.valid).toBe(true);
+    });
+
+    // These arrive from an untrusted file. The loops read rec['seq'] before the schema ran, so a
+    // single `null` line under %%% EVENTS threw out of the validator itself -- turning "tell me
+    // if this file is conformant" into a crash for the caller asking the question.
+    it('reports a non-object record instead of crashing on it', function () {
+        for (const junk of ['null', '42', '"a string"', '[1,2,3]']) {
+            const bad = good.replace('%%% EVENTS', `%%% EVENTS\n${junk}`);
+            let report;
+            expect(() => {
+                report = validate(bad);
+            }).withContext(`record ${junk} must not throw`).not.toThrow();
+            expect(report.valid).withContext(`record ${junk} must be invalid`)
+                .toBe(false);
+        }
+    });
+
+    it('tolerates an unknown event type as a warning, not an error', function () {
+        const withUnknown = good.replace('%%% EVENTS', '%%% EVENTS\n{"seq":"R1.A.9","t":"FUTURE_THING","p":1}');
+        const report = validate(withUnknown);
+        expect(report.issues.some((i) => i.severity === 'warning' && (/FUTURE_THING/).test(i.message))).toBe(true);
+        expect(report.valid).toBe(true);
+    });
+});
+
+describe('validate edge cases', function () {
+    it('accepts a deck that includes a sideboard', function () {
+        const withSb = good.replace(
+            '{"p":1,"leader":"SOR#010","base":"SOR#028","deck":[["SOR#108",3]]}',
+            '{"p":1,"leader":"SOR#010","base":"SOR#028","deck":[["SOR#108",3]],"sideboard":[["SOR#099",2]]}');
+        const report = validate(withSb);
+        expect(report.issues.filter((i) => i.severity === 'error')).toEqual([]);
+        expect(report.valid).toBe(true);
+    });
+
+    it('flags a malformed seq in the SETUP section', function () {
+        const badSetup = good.replace(
+            '{"seq":"R0.S.0","t":"INIT","p1DeckOrder":["SOR#108","SOR#108:2","SOR#108:3","SOR#108:4","SOR#108:5"],"p2DeckOrder":["SOR#045","SOR#045:2","SOR#045:3","SOR#045:4","SOR#045:5"]}',
+            '{"seq":"NOT-A-SEQ","t":"INIT","p1DeckOrder":[],"p2DeckOrder":[]}');
+        const report = validate(badSetup);
+        expect(report.valid).toBe(false);
+        expect(report.issues.some((i) => (/^setup /).test(i.message))).toBe(true);
+    });
+
+    // §18 forward compatibility: an annotation field a later version adds must not make a 1.0
+    // reader reject the file. The schema was closed (`additionalProperties: false`), so the
+    // first annotation extension would have failed validation everywhere.
+    it('accepts an annotation carrying a field this version does not know', function () {
+        const forward = good.replace(
+            '{"ref":"R1.A.2","nag":"?!","text":"attacking the base too early"}',
+            '{"ref":"R1.A.2","nag":"?!","text":"attacking the base too early","futureField":{"a":1}}');
+        const report = validate(forward);
+        expect(report.issues.filter((i) => i.severity === 'error')).toEqual([]);
+        expect(report.valid).toBe(true);
+    });
+
+    it('accepts a threaded annotation (spec §15 id/parent/ts)', function () {
+        const threaded = good.replace(
+            '{"ref":"R1.A.2","nag":"?!","text":"attacking the base too early"}',
+            '{"ref":"R1.A.2","nag":"?!","text":"attacking the base too early","id":"n1","ts":1}\n' +
+            '{"ref":"R1.A.2","text":"disagree, the tempo is worth it","by":"someone","id":"n2","parent":"n1","ts":2}');
+        const report = validate(threaded);
+        expect(report.issues.filter((i) => i.severity === 'error')).toEqual([]);
+        expect(report.valid).toBe(true);
+    });
+
+    it('rejects the field shapes the fold dereferences (spec §9): a malformed keyframe, a non-array cards', function () {
+        const badKeyframe = good.replace((/"keyframe":\{.*?"effects":\[\]\}/), '"keyframe":{"players":{"1":{"cards":"x","hand":[],"discard":[]}}}');
+        expect(badKeyframe).not.toBe(good);
+        expect(validate(badKeyframe).valid).toBe(false);
+
+        const badDraw = good.replace(
+            '{"seq":"R1.A.1a","t":"EXHAUST","card":"SOR#108"}',
+            '{"seq":"R1.A.1a","t":"EXHAUST","card":"SOR#108"}\n{"seq":"R1.A.1z","t":"DRAW","p":1,"count":1,"cards":5}');
+        expect(badDraw).not.toBe(good);
+        const report = validate(badDraw);
+        expect(report.valid).toBe(false);
+        expect(report.issues.some((i) => (/R1\.A\.1z/).test(i.message))).toBe(true);
+    });
+
+    // Every event type the writer can emit must be in KNOWN_EVENT_TYPES, or the validator calls
+    // our own output "unknown ... tolerated for forward compatibility" -- which tells a consumer
+    // the file came from a NEWER writer than their reader. LEADER_FLIP shipped without being
+    // added, so every Chancellor Palpatine game validated with a spurious warning. No vector
+    // contains a double-sided leader, so nothing caught it.
+    it('recognises every event type the writer emits (no spurious forward-compat warning)', function () {
+        const withFlip = good.replace(
+            '{"seq":"R1.A.1a","t":"EXHAUST","card":"SOR#108"}',
+            '{"seq":"R1.A.1a","t":"EXHAUST","card":"SOR#108"}\n' +
+            '{"seq":"R1.A.1y","t":"LEADER_FLIP","p":1,"card":"TWI#017","onStartingSide":false}');
+        expect(withFlip).not.toBe(good);
+        expect(validate(withFlip).issues).toEqual([]);
+    });
+});
+
+describe('validate conformance levels and cross-record rules (spec §2.1)', function () {
+    const codes = (text: string) => validate(text).issues.map((i) => `${i.severity}:${i.code}`);
+    const addEvent = (json: string) => good.replace('%%% EVENTS', `%%% EVENTS\n${json}`);
+    const addEventAtEnd = (json: string) => good.replace('\n%%% ANNOTATIONS', `\n${json}\n%%% ANNOTATIONS`);
+
+    it('rates the minimal vector complete, and says why when a file falls short', function () {
+        expect(validate(good).level).toBe('complete');
+        expect(validate('not a file').level).toBe('malformed');
+        expect(validate(good.replace('[WriterRevision "6"]\n', '')).level).toBe('well-formed');
+        expect(codes(good.replace('[WriterRevision "6"]\n', ''))).toEqual(['warning:pre-release']);
+        expect(validate(good.replace('[Rounds "2"]', '[Rounds "2"] [RecorderErrors "1"]')).level).toBe('verified');
+        expect(validate(addEvent('{"seq":"R1.A.9","t":"DEFEAT","card":"SOR#108","reason":"unknown"}')).level).toBe('verified');
+    });
+
+    describe('WriterRevision is diagnostic (spec section 5.2, Appendix C)', function () {
+        const withoutRevision = (engine: string) => good
+            .replace('[WriterRevision "6"]\n', '')
+            .replace('[Engine "forceteki@reference"]', `[Engine "${engine}"]`);
+
+        it('treats a file with no WriterRevision from another writer as conformant', function () {
+            const result = validate(withoutRevision('examplewriter@1.0.0'));
+            expect(result.issues.map((i) => i.code)).not.toContain('pre-release');
+            expect(result.level).toBe('complete');
+        });
+
+        it('still reads a forceteki file with no WriterRevision as pre-release', function () {
+            for (const engine of ['forceteki@7dd39a09-dirty', 'forceteki@unknown', 'forceteki@reference']) {
+                const result = validate(withoutRevision(engine));
+                expect(codes(withoutRevision(engine))).toContain('warning:pre-release');
+                expect(result.level).toBe('well-formed');
+            }
+        });
+
+        it('compares the product exactly', function () {
+            const result = validate(withoutRevision('Forceteki@1'));
+            expect(result.issues.map((i) => i.code)).not.toContain('pre-release');
+        });
+
+        // Value: protects=the validator's pre-release test reads the same closed list the spec's §25 registry gives; fails_when=a product is added to or dropped from one but not the other; why_new=pre-release rested on informative Appendix C; seam=none; no_claim=Appendix C's reading advice
+        it('judges pre-release by the §25 pilot writer registry, and the code lists the same products', function () {
+            const spec = fs.readFileSync(path.resolve(__dirname, '../../../../docs/SWU-PGN-1.0-SPEC.md'), 'utf8');
+            const section = spec.slice(spec.indexOf('#### Pilot writer products'));
+            const fenced = (/```text\n([\s\S]*?)```/).exec(section);
+            expect(fenced).not.toBeNull();
+            const listed = (fenced?.[1] ?? '').split('\n').filter((l) => l.trim() !== '');
+            expect([...PILOT_WRITER_PRODUCTS].sort()).toEqual(listed.sort());
+        });
+
+        // Value: protects=the header schema holds Engine to B.2's product "@" build, so a writer cannot leave its build out; fails_when=the Engine pattern is dropped or loosened; why_new=Engine had no pattern despite the grammar; seam=none; no_claim=what the build part means
+        it('holds Engine to the product "@" build grammar', function () {
+            const engine = (value: string) => good.replace('[Engine "forceteki@reference"]', `[Engine "${value}"]`);
+            for (const bad of ['forceteki', '@reference', 'fork teki@1', 'forceteki@']) {
+                expect(codes(engine(bad))).withContext(bad)
+                    .toContain('error:schema');
+            }
+            for (const ok of ['examplewriter@1.0.0', 'forceteki@7dd39a09-dirty', 'a.b_c-d@x@y']) {
+                expect(validate(engine(ok)).level).withContext(ok)
+                    .toBe('complete');
+            }
+        });
+
+        it('takes the product as the text before the first @', function () {
+            expect(engineProduct('forceteki@a@b')).toBe('forceteki');
+            expect(engineProduct('forceteki')).toBe('forceteki');
+        });
+    });
+
+    it('drops to valid, not invalid, when the stream does not account for a keyframe', function () {
+        const damaged = good.replace('"baseHp":30', '"baseHp":29');
+        expect(damaged).not.toBe(good);
+        const report = validate(damaged);
+        expect(report.valid).toBe(true);
+        expect(report.level).toBe('valid');
+        expect(codes(damaged)).toContain('warning:keyframe-mismatch');
+    });
+
+    // Value: protects=a header Result that contradicts the file's GAME_END is reported (§10.2: they MUST agree, and no GAME_END means Incomplete); fails_when=validate() stops comparing them, so a file can say one player won while its events say the other did; why_new=the rule was written in §10.2 and never checked; seam=none; no_claim=a Result outcome from a newer minor version, which a reader skips
+    it('rejects a Result that disagrees with the GAME_END', function () {
+        const ended = (result: string, winner: string) => addEventAtEnd(`{"seq":"R2.A.game-end","t":"GAME_END","winner":${winner},"reason":"Base Destroyed"}`)
+            .replace('[Result "Incomplete"]', `[Result "${result}"]`);
+        expect(codes(ended('P2', '1'))).toContain('error:result-mismatch');
+        expect(codes(ended('Incomplete', '1'))).toContain('error:result-mismatch');
+        expect(codes(good.replace('[Result "Incomplete"]', '[Result "P1"]'))).toContain('error:result-mismatch');
+        expect(codes(ended('P1', '1'))).not.toContain('error:result-mismatch');
+        expect(codes(ended('Draw', '"Draw"'))).not.toContain('error:result-mismatch');
+        expect(codes(good)).not.toContain('error:result-mismatch');
+    });
+
+    // Value: protects=a GAME_END winner is a seat or "Draw" (§10.2), so a winner of 3 is not a complete file; fails_when=GAME_END has no schema rule and an unknown winner skips the Result comparison; why_new=ship review (Codex); seam=none; no_claim=an outcome a newer minor version adds, which is a warning
+    it('rejects a GAME_END whose winner is not a seat or Draw', function () {
+        const ended = (winner: string) => addEventAtEnd(`{"seq":"R2.A.game-end","t":"GAME_END","winner":${winner},"reason":"Base Destroyed"}`)
+            .replace('[Result "Incomplete"]', '[Result "P1"]');
+        expect(codes(ended('3'))).toContain('error:schema');
+        expect(validate(ended('3')).level).toBe('well-formed');
+        expect(codes(ended('1'))).not.toContain('error:schema');
+    });
+
+    it('rejects a seq used twice, and a for or ref that names nothing', function () {
+        expect(codes(addEvent('{"seq":"R1.A.1","t":"PASS","p":1}'))).toContain('error:duplicate-seq');
+        expect(codes(addEvent('{"seq":"R1.A.9","t":"PASS","p":1,"for":"R9.A.9"}'))).toContain('error:dangling-ref');
+        expect(codes(good.replace('{"ref":"R2.A.1"', '{"ref":"R9.A.9"'))).toContain('error:dangling-ref');
+        // A reply whose parent is gone is still shown (§15), so that one is only a warning.
+        expect(codes(good.replace('{"ref":"R2.A.1"', '{"parent":"nobody","ref":"R2.A.1"'))).toEqual(['warning:dangling-parent']);
+    });
+
+    // UNDO.at names a record the undo DELETED, so it normally names nothing left in the file.
+    it('does not require UNDO.at to resolve', function () {
+        expect(codes(addEvent('{"seq":"R1.A.7-undo","t":"UNDO","at":"R1.A.7"}'))).toEqual([]);
+    });
+
+    it('rejects a zone outside the vocabulary, and a MOVE into its own zone outside an arena', function () {
+        expect(codes(addEvent('{"seq":"R1.A.9","t":"MOVE","card":"SOR#108","from":"hand","to":"limbo","p":1}'))).toContain('error:bad-zone');
+        expect(codes(addEvent('{"seq":"R1.A.9","t":"MOVE","card":"SOR#108","from":"hand","to":"hand","p":1}'))).toContain('error:same-zone-move');
+        // An attachment changing in place is a MOVE from an arena to the same arena (§10.1).
+        expect(codes(addEvent('{"seq":"R1.A.9","t":"MOVE","card":"SOR#108","from":"ground","to":"ground","p":1,"kind":"unit"}'))).not.toContain('error:same-zone-move');
+    });
+
+    it('reports a move from outsideTheGame into deck', function () {
+        const organic = fs.readFileSync(
+            path.resolve(__dirname, '../../../../swupgn/test-vectors/organic.swupgn'), 'utf8');
+        const bad = organic.replace('%%% EVENTS', '%%% EVENTS\n{"seq":"R0.S.x1","t":"MOVE","card":"SOR#108","from":"outsideTheGame","to":"deck","p":1}');
+        expect(bad).not.toBe(organic);
+        const report = validate(bad);
+        expect(report.issues.filter((i) => i.severity === 'error').map((i) => i.code)).toEqual(['deck-build-move']);
+        expect(report.level).toBe('well-formed');
+        expect(validate(organic).issues.map((i) => i.code)).not.toContain('deck-build-move');
+    });
+
+    it('reports a Credit token moved into resource', function () {
+        const move = (to: string) => addEvent(`{"seq":"R1.A.9","t":"MOVE","card":"TOKEN:credit#1234567890","from":"outsideTheGame","to":"${to}","p":1}`);
+        expect(codes(move('resource'))).toContain('error:credit-zone');
+        expect(validate(move('resource')).level).toBe('well-formed');
+        expect(codes(move('base'))).not.toContain('error:credit-zone');
+        for (const id of ['TOKEN:credit', 'TOKEN:credit:2', 'TOKEN:credit#123:2']) {
+            expect(codes(addEvent(`{"seq":"R1.A.9","t":"MOVE","card":"${id}","from":"outsideTheGame","to":"resource","p":1}`))).toContain('error:credit-zone');
+        }
+        // Malformed per 6.1, so it is a bad token name and not a credit-zone.
+        const malformed = codes(addEvent('{"seq":"R1.A.9","t":"MOVE","card":"TOKEN:credit#abc","from":"outsideTheGame","to":"resource","p":1}'));
+        expect(malformed).toContain('error:bad-token-name');
+        expect(malformed).not.toContain('error:credit-zone');
+        expect(codes(addEvent('{"seq":"R1.A.9","t":"MOVE","card":"TOKEN:credits#1","from":"outsideTheGame","to":"resource","p":1}'))).not.toContain('error:credit-zone');
+        // A copy suffix of 1 is outside the grammar's range: a bad token name, and not a Credit.
+        const copyOne = codes(addEvent('{"seq":"R1.A.9","t":"MOVE","card":"TOKEN:credit:1","from":"outsideTheGame","to":"resource","p":1}'));
+        expect(copyOne).toContain('error:bad-token-name');
+        expect(copyOne).not.toContain('error:credit-zone');
+    });
+
+    it('reports a token moved to hand', function () {
+        const move = (card: string, to: string) => addEvent(`{"seq":"R1.A.9","t":"MOVE","card":"${card}","from":"ground","to":"${to}","p":1,"kind":"unit"}`);
+        expect(codes(move('TOKEN:battle-droid#1', 'hand')).filter((c) => c === 'error:token-zone')).toEqual(['error:token-zone']);
+        expect(validate(move('TOKEN:battle-droid#1', 'hand')).level).toBe('well-formed');
+        expect(codes(move('TOKEN:battle-droid#1', 'outsideTheGame'))).not.toContain('error:token-zone');
+        expect(codes(move('SOR#108', 'hand'))).not.toContain('error:token-zone');
+        // Value: protects=a token moving with its unit to the other arena stays in play, so it is no token-zone error; fails_when=the check fires on every token leaving an arena; why_new=the cases above move a token out of play; seam=none; no_claim=which tokens the rules let change arenas
+        expect(codes(move('TOKEN:shield#1', 'space'))).not.toContain('error:token-zone');
+        // Value: protects=only a move to the other arena is exempt: a token moving from an arena to a base, or a Credit leaving base for an arena, is still token-zone (§6.5); fails_when=the exemption covers every in-play destination; why_new=the case above moves a token to the other arena; seam=none; no_claim=which tokens the rules let change arenas
+        expect(codes(move('TOKEN:shield#1', 'base'))).toContain('error:token-zone');
+        expect(codes(addEvent('{"seq":"R1.A.9","t":"MOVE","card":"TOKEN:credit#1234567890","from":"base","to":"ground","p":1}'))).toContain('error:token-zone');
+    });
+
+    it('reports a ROUND_START without active', function () {
+        const without = good.replace('"t":"ROUND_START","round":1,"active":1,', '"t":"ROUND_START","round":1,');
+        expect(without).not.toBe(good);
+        expect(codes(without).filter((c) => c === 'error:round-start-active')).toEqual(['error:round-start-active']);
+        expect(codes(good)).not.toContain('error:round-start-active');
+    });
+
+    // Value: protects=[V-09] an EFFECT_END names an active effect, and only targets it still has; fails_when=the check is missing, or a valid partial end is reported; why_new=effects are new; seam=none; no_claim=fold tolerance
+    it('reports an EFFECT_END for an unknown effect', function () {
+        const fx = '{"seq":"R1.A.8","t":"EFFECT_START","id":"fx@1","src":"SOR#108","p":1,"targets":["SOR#108","SOR#045"],"duration":"phase"}';
+        const endOf = (seq: string, id: string, targets?: string) => `{"seq":"${seq}","t":"EFFECT_END","id":"${id}","reason":"targetLeft"${targets ? `,"targets":${targets}` : ''}}`;
+        const unknown = (text: string) => codes(text).filter((c) => c === 'error:effect-end-unknown');
+        // A start, a partial end and a final end: clean.
+        expect(codes(addEvent(`${fx}\n${endOf('R1.A.9', 'fx@1', '["SOR#045"]')}\n${endOf('R1.A.10', 'fx@1')}`))).toEqual([]);
+        // No EFFECT_START for the id, an id already ended, and a target the effect does not have.
+        expect(unknown(addEvent(endOf('R1.A.9', 'fx@2')))).toEqual(['error:effect-end-unknown']);
+        expect(unknown(addEvent(`${fx}\n${endOf('R1.A.9', 'fx@1')}\n${endOf('R1.A.10', 'fx@1')}`))).toEqual(['error:effect-end-unknown']);
+        expect(unknown(addEvent(`${fx}\n${endOf('R1.A.9', 'fx@1', '["SOR#045"]')}\n${endOf('R1.A.10', 'fx@1', '["SOR#045"]')}`))).toEqual(['error:effect-end-unknown']);
+        expect(validate(addEvent(endOf('R1.A.9', 'fx@2'))).level).toBe('well-formed');
+    });
+
+    // Value: protects=the effect id grammar fx@N (§6.1, Appendix B) is enforced by the schema; fails_when=the pattern is missing or admits a zero or a leading zero; why_new=effect ids are new; seam=none; no_claim=none
+    it('reports an effect id that breaks the grammar', function () {
+        // After the last keyframe, which would otherwise not list the effect.
+        const fx = (id: string) => addEventAtEnd(`{"seq":"R2.A.9","t":"EFFECT_START","id":"${id}","src":"SOR#108","p":1,"targets":["SOR#108"],"duration":"phase"}`);
+        expect(codes(fx('fx@0'))).toContain('error:schema');
+        expect(codes(fx('fx@01'))).toContain('error:schema');
+        expect(codes(fx('fx@12'))).toEqual([]);
+    });
+
+    // Value: protects=[W-48] untilText is required with duration until, and only then; fails_when=the schema if/then is missing or applies to a newer-minor duration; why_new=fix round 1; seam=none; no_claim=none
+    it('reports an until effect without untilText', function () {
+        const fx = (extra: string, game = 'SWU-PGN/1.0') => addEventAtEnd(`{"seq":"R2.A.9","t":"EFFECT_START","id":"fx@1","src":"SOR#108","p":1,"targets":["SOR#108"]${extra}}`).replace('SWU-PGN/1.0', game);
+        expect(codes(fx(',"duration":"until"'))).toEqual(['error:schema']);
+        expect(codes(fx(',"duration":"until","untilText":"it attacks"'))).toEqual([]);
+        expect(codes(fx(',"duration":"phase"'))).toEqual([]);
+        // A duration from a newer minor version is not `until`, so it needs no untilText.
+        expect(codes(fx(',"duration":"untilNextTurn"', 'SWU-PGN/1.7')).sort()).toEqual(['warning:newer-minor', 'warning:unknown-value']);
+    });
+
+    // Value: protects=an until effect's untilText says something (§10.1, [W-48]); fails_when=an empty untilText passes; why_new=final review item 14; seam=none; no_claim=none
+    it('reports an empty untilText', function () {
+        const fx = (extra: string) => addEventAtEnd(`{"seq":"R2.A.9","t":"EFFECT_START","id":"fx@1","src":"SOR#108","p":1,"targets":["SOR#108"],"duration":"until"${extra}}`);
+        expect(codes(fx(',"untilText":""'))).toEqual(['error:schema']);
+        expect(codes(fx(',"untilText":"it attacks"'))).toEqual([]);
+    });
+
+    // Value: protects=an EFFECT_START names exactly one of targets and seat, and seat may say both players (§10.1); fails_when=a record with neither or both passes, or seat "both" is rejected; why_new=final review item 15; seam=none; no_claim=writer output
+    it('requires exactly one of targets and seat on an effect, and accepts seat both', function () {
+        const fx = (what: string) => addEventAtEnd(`{"seq":"R2.A.9","t":"EFFECT_START","id":"fx@1","src":"SOR#108","p":1${what},"duration":"phase"}`);
+        // A failed `oneOf` reports each branch it failed; one code is enough.
+        const once = (list: string[]) => [...new Set(list)];
+        expect(once(codes(fx('')))).toEqual(['error:schema']);
+        expect(once(codes(fx(',"targets":["SOR#108"],"seat":1')))).toEqual(['error:schema']);
+        expect(codes(fx(',"seat":2'))).toEqual([]);
+        expect(codes(fx(',"seat":"both"'))).toEqual([]);
+        expect(codes(fx(',"seat":"all"'))).toEqual(['error:schema']);
+    });
+
+    // Value: protects=[W-56] owner is required on a resource TAKE_CONTROL without from, and only there; fails_when=the schema if/then is missing or applies to a steal that carries from; why_new=fix round 1; seam=none; no_claim=writer output
+    it('reports a resource steal without from that names no owner', function () {
+        const take = (extra: string) => codes(addEventAtEnd(`{"seq":"R2.A.9","t":"TAKE_CONTROL","p":1,"card":"SOR#108","zone":"resource"${extra}}`));
+        expect(take('')).toEqual(['error:schema']);
+        expect(take(',"owner":2')).toEqual([]);
+        // With `from` it shifts a resource the fixture's later keyframe does not show; the schema is satisfied.
+        expect(take(',"from":2')).not.toContain('error:schema');
+    });
+
+    // Value: protects=the schema knows LOOK and NAME and the new limit/blind/simul/usedBy/seen/owner fields, and pins their shape; fails_when=a well-formed record warns unknown-type, a malformed one passes, or a newer-minor per is an error; why_new=the records are new; seam=none; no_claim=writer output
+    it('accepts looks, names, limits, blind and simultaneous groups, and checks their shape', function () {
+        const clean = [
+            '{"seq":"R1.A.9","t":"ABILITY_ACTIVATE","p":1,"card":"SOR#108","ability":"a1","kind":"triggered","limit":{"max":1,"per":"round"},"usedBy":"SOR#045"}',
+            '{"seq":"R1.A.9a","t":"LOOK","p":1,"owner":2,"zone":"deck","cards":["SOR#045"],"count":1}',
+            '{"seq":"R1.A.9b","t":"NAME","p":1,"name":"Wampa"}',
+            '{"seq":"R1.A.9c","t":"CHOICE","p":2,"offered":["SOR#045"],"chose":0,"blind":"R1.A.9","simul":"R1.A.9c"}',
+            '{"seq":"R1.A.9d","t":"SEARCH","p":1,"owner":2,"zone":"deck","seen":["SOR#045"]}',
+            '{"seq":"R1.A.9e","t":"ABILITY_RESET","card":"SOR#108","ability":"a1"}',
+        ].join('\n');
+        expect(codes(addEvent(clean))).toEqual([]);
+        const one = (json: string, game = 'SWU-PGN/1.0') => codes(addEvent(json).replace('SWU-PGN/1.0', game));
+        expect(one('{"seq":"R1.A.9","t":"LOOK","p":1,"zone":"deck","cards":[],"count":0}')).toEqual(['error:schema']);
+        expect(one('{"seq":"R1.A.9","t":"NAME","p":1}')).toEqual(['error:schema']);
+        expect(one('{"seq":"R1.A.9","t":"ABILITY_RESET","ability":"a1"}')).toEqual(['error:schema']);
+        expect(one('{"seq":"R1.A.9","t":"ABILITY_ACTIVATE","p":1,"card":"SOR#108","limit":{"max":1,"per":"phase"}}')).toEqual(['error:schema']);
+        expect(one('{"seq":"R1.A.9","t":"ABILITY_ACTIVATE","p":1,"card":"SOR#108","ability":"a1","limit":{"max":0,"per":"phase"}}')).toEqual(['error:schema']);
+        expect(one('{"seq":"R1.A.9","t":"PASS","p":1,"simul":5}')).toEqual(['error:schema']);
+        const turn = '{"seq":"R1.A.9","t":"ABILITY_ACTIVATE","p":1,"card":"SOR#108","ability":"a1","limit":{"max":1,"per":"turn"}}';
+        expect(one(turn)).toEqual(['error:schema']);
+        // `per` is a closed vocabulary a newer minor version may grow (§18).
+        expect(one(turn, 'SWU-PGN/1.7').sort()).toEqual(['warning:newer-minor', 'warning:unknown-value']);
+    });
+
+    // Value: protects=a keyframe abilityUses over the list cap is over-cap (§13, §23), as the fold treats it as damaged; fails_when=abilityUses is left out of the keyframe list check; why_new=abilityUses are new; seam=none; no_claim=none
+    it('reports a keyframe abilityUses list over the cap', function () {
+        const uses = JSON.stringify(new Array(1001).fill({ card: 'SOR#108', ability: 'a1', count: 1, per: 'game', max: 1 }));
+        const bad = good.replace('"abilityUses":[]', `"abilityUses":${uses}`);
+        expect(bad).not.toBe(good);
+        expect(codes(bad)).toContain('error:over-cap');
+    });
+
+    // Value: protects=a keyframe whose seat's cards hold more than 1000 upgrades and captives between them is over-cap, as the fold treats it as damaged (spec §13); fails_when=only each card's own list is checked; why_new=the other over-cap tests grow one list; seam=none; no_claim=none
+    it('reports a keyframe seat whose cards hold more upgrades and captives than the cap between them', function () {
+        const upgrades = JSON.stringify(Array.from({ length: 1000 }, (_, i) => `SHD#${i}`));
+        const bad = good.replace('"upgrades":[]', `"upgrades":${upgrades}`).replace('"captured":[]', '"captured":["SOR#200"]');
+        expect(bad).not.toBe(good);
+        expect(codes(bad)).toContain('error:over-cap');
+        const atCap = good.replace('"upgrades":[]', `"upgrades":${upgrades}`);
+        expect(codes(atCap)).not.toContain('error:over-cap');
+    });
+
+    it('reports a Fortify upgrade attached to the other seat\'s base', function () {
+        const move = (p: number, base: string) => addEvent(`{"seq":"R1.A.9","t":"MOVE","card":"HMW#147","from":"hand","to":"base","p":${p},"kind":"upgrade","attachedTo":"${base}"}`);
+        const play = (p: number, base: string) => addEvent(`{"seq":"R1.A.9","t":"PLAY_UPGRADE","p":${p},"card":"HMW#147","zone":"base","target":"${base}","cost":2}`);
+        expect(codes(move(1, 'base@2')).filter((c) => c === 'error:fortify-host')).toEqual(['error:fortify-host']);
+        expect(codes(play(1, 'base@2')).filter((c) => c === 'error:fortify-host')).toEqual(['error:fortify-host']);
+        expect(validate(move(1, 'base@2')).level).toBe('well-formed');
+    });
+
+    it('accepts a Fortify upgrade on its own seat\'s base', function () {
+        const move = addEvent('{"seq":"R1.A.9","t":"MOVE","card":"HMW#147","from":"hand","to":"base","p":1,"kind":"upgrade","attachedTo":"base@1"}');
+        const play = addEvent('{"seq":"R1.A.9","t":"PLAY_UPGRADE","p":1,"card":"HMW#147","zone":"base","target":"base@1","cost":2}');
+        expect(codes(move)).not.toContain('error:fortify-host');
+        expect(codes(play)).not.toContain('error:fortify-host');
+    });
+
+    // Value: protects=a keyframe card in a zone outside the vocabulary is an error, not a silently folded board; fails_when=the keyframe card zone check is dropped from validate(); why_new=bad-zone was only tested on record zone and MOVE from/to; seam=none; no_claim=the fold's own handling of such a card
+    it('rejects a keyframe card whose zone is outside the vocabulary', function () {
+        const bad = good.replace('"cards":[{"id":"SOR#108","zone":"ground"', '"cards":[{"id":"SOR#108","zone":"limbo"');
+        expect(bad).not.toBe(good);
+        expect(codes(bad)).toContain('error:bad-zone');
+        expect(validate(bad).level).toBe('well-formed');
+    });
+
+    // Value: protects=an annotation is walked for unsafe numbers like a record is, and a reserved key in one is refused; fails_when=validate() stops calling walkValues on annotations, or the parser stops checking ANNOTATIONS keys; why_new=number-range was tested on events only; seam=none; no_claim=none
+    it('rejects reserved keys and unsafe integers inside an annotation', function () {
+        const ann = (extra: string) => good.replace('{"ref":"R2.A.1"', `{${extra},"ref":"R2.A.1"`);
+        expect(codes(ann('"x":{"__proto__":{"polluted":true}}'))).toContain('error:reserved-key');
+        expect(codes(ann('"x":9007199254740993'))).toContain('error:number-range');
+    });
+
+    // Value: protects=[V-05] holds inside an annotation's what-if line but not its prose text; fails_when=the annotation loop stops checking line events, or starts checking text; why_new=the token check only ran over events, cards and decks; seam=none; no_claim=the token grammar itself
+    it('checks token ids in an annotation line, and not in its text', function () {
+        const ann = (extra: string) => good.replace('{"ref":"R2.A.1"', `{${extra},"ref":"R2.A.1"`);
+        const bad = ann('"line":[{"seq":"R2.A.1","t":"CREATE_TOKEN","token":"TOKEN:Bad_Name#1","p":1}]');
+        expect(codes(bad)).toContain('error:bad-token-name');
+        expect(codes(ann('"line":[{"seq":"R2.A.1","t":"CREATE_TOKEN","token":"TOKEN:xwing#1","p":1}]'))).not.toContain('error:bad-token-name');
+        // The whole text is a malformed token id, so this passes only because `text` is not checked.
+        const prose = good.replace('"text":"attacking the base rather than developing the board"', '"text":"TOKEN:Bad_Name"');
+        expect(prose).not.toBe(good);
+        expect(codes(prose)).not.toContain('error:bad-token-name');
+    });
+
+    // Value: protects=a malformed file reports the parser's stable code and line to the consumer; fails_when=validate() maps every parse failure to 'malformed' or drops SwuPgnError.line; why_new=the manifest checks codes only, never the line; seam=none; no_claim=the message wording
+    it('reports a parse failure with its error code and line number', function () {
+        const lines = good.split('\n');
+        const at = lines.indexOf('%%% EVENTS') + 1;
+        lines.splice(at, 0, '{not json}');
+        const report = validate(lines.join('\n'));
+        expect(report.level).toBe('malformed');
+        expect(report.valid).toBe(false);
+        expect(report.issues.map((i) => ({ severity: i.severity, code: i.code, line: i.line })))
+            .toEqual([{ severity: 'error', code: 'bad-json', line: at + 1 }]);
+    });
+
+    it('rejects reserved keys and integers a JSON reader cannot hold exactly', function () {
+        expect(codes(addEvent('{"seq":"R1.A.9","t":"PASS","p":1,"x":{"__proto__":{"polluted":true}}}'))).toContain('error:reserved-key');
+        expect(codes(addEvent('{"seq":"R1.A.9","t":"DAMAGE","tgt":"base@1","amt":9007199254740993,"hp":1}'))).toContain('error:number-range');
+        expect(codes(addEvent('{"seq":"R1.A.9","t":"DAMAGE","tgt":"base@1","amt":1.5,"hp":1}'))).toContain('error:number-range');
+    });
+
+    // §18: a 1.1 file may use a closed-vocabulary value 1.0 has never seen. That is the newer
+    // writer's business; rejecting it would make every 1.0 validator reject every 1.1 file.
+    it('downgrades an unknown closed-vocabulary value to a warning in a newer minor version', function () {
+        const defeat = '{"seq":"R1.A.9","t":"DEFEAT","card":"SOR#108","reason":"vaporised"}';
+        expect(codes(addEvent(defeat))).toContain('error:schema');
+        const newer = codes(addEvent(defeat).replace('SWU-PGN/1.0', 'SWU-PGN/1.1'));
+        expect(newer).toContain('warning:newer-minor');
+        expect(newer).toContain('warning:unknown-value');
+        expect(newer.filter((c) => c.startsWith('error'))).toEqual([]);
+        // §18: a reason this version does not know reads as `unknown`, so the file is at most verified.
+        expect(newer).toContain('warning:unknown-defeat');
+        expect(validate(addEvent(defeat).replace('SWU-PGN/1.0', 'SWU-PGN/1.1')).level).toBe('verified');
+    });
+
+    // §18: seat values are not a vocabulary a minor version may grow, so a bad seat is an error
+    // in a file of any minor version.
+    it('keeps an unknown seat an error in a newer minor version', function () {
+        const newer = codes(addEvent('{"seq":"R1.A.9","t":"PASS","p":3}').replace('SWU-PGN/1.0', 'SWU-PGN/1.1'));
+        expect(newer).toContain('error:schema');
+        expect(newer).not.toContain('warning:unknown-value');
+        // The header names seats as strings: a third one is not a new vocabulary name either.
+        for (const tag of ['[Result "Incomplete"]', '[Perspective "P1"]']) {
+            const base = tag.startsWith('[Perspective') ? good.replace('[Rounds "2"]', '[Rounds "2"] [Perspective "P1"]') : good;
+            const bad = base.replace(tag, tag.replace(/"[^"]+"\]$/, '"P3"]')).replace('SWU-PGN/1.0', 'SWU-PGN/1.1');
+            expect(bad).toContain('"P3"]');
+            expect(codes(bad)).withContext(tag)
+                .toContain('error:schema');
+            expect(codes(bad)).withContext(tag).not.toContain('warning:unknown-value');
+        }
+        // Value: protects=Perspective holds only seats, so any unknown value (not just P<n>) stays an error in a newer minor; fails_when=isHeaderSeat applies Result's P<digits> test to Perspective too; why_new=the loop above checks P3 only, which both rules reject; seam=none; no_claim=none beyond protects
+        const spectator = good.replace('[Rounds "2"]', '[Rounds "2"] [Perspective "Spectator"]').replace('SWU-PGN/1.0', 'SWU-PGN/1.1');
+        expect(spectator).toContain('[Perspective "Spectator"]');
+        expect(codes(spectator)).toContain('error:schema');
+        expect(codes(spectator)).not.toContain('warning:unknown-value');
+    });
+
+    // A minor version may add names to a vocabulary, never change its type.
+    it('keeps a wrong-typed vocabulary value an error in a newer minor version', function () {
+        const newer = codes(addEvent('{"seq":"R1.A.9","t":"DEFEAT","card":"SOR#108","reason":5}').replace('SWU-PGN/1.0', 'SWU-PGN/1.1'));
+        expect(newer).toContain('error:schema');
+        expect(newer).not.toContain('warning:unknown-value');
+    });
+
+    // Cross-record rule 5 covers every record. A deck record is open (§7), so its schema alone
+    // no longer rejects an unknown key.
+    it('rejects unsafe integers in DECKS and CARDS records, and a reserved key there as malformed', function () {
+        const deck = good.replace('"deck":[["SOR#108",5]]}', '"deck":[["SOR#108",5]],"x":{"__proto__":{"polluted":true}}}');
+        expect(deck).not.toBe(good);
+        expect(codes(deck)).toContain('error:reserved-key');
+        expect(validate(deck).level).toBe('malformed');
+        expect(codes(good.replace('"deck":[["SOR#108",5]]}', '"deck":[["SOR#108",9007199254740993]]}'))).toContain('error:number-range');
+        expect(codes(good.replace('%%% CARDS', '%%% CARDS\n{"id":"SOR#999","name":"X","n":1.5}'))).toContain('error:number-range');
+        const card = good.replace('%%% CARDS', '%%% CARDS\n{"id":"SOR#999","name":"X","x":{"constructor":1}}');
+        expect(card).not.toBe(good);
+        expect(codes(card)).toContain('error:reserved-key');
+    });
+
+    // §24: a validator reports every issue it finds, so a file below valid still says the
+    // writer lost records.
+    it('reports recorder-errors and unknown-defeat even when the file has errors', function () {
+        const broken = addEvent('{"seq":"R1.A.1","t":"PASS","p":1}\n{"seq":"R1.A.9","t":"DEFEAT","card":"SOR#108","reason":"unknown"}')
+            .replace('[Rounds "2"]', '[Rounds "2"] [RecorderErrors "2"]');
+        expect(codes(broken)).toContain('error:duplicate-seq');
+        expect(codes(broken)).toContain('warning:recorder-errors');
+        expect(codes(broken)).toContain('warning:unknown-defeat');
+        expect(validate(broken).level).toBe('well-formed');
+        // A DEFEAT in SETUP counts too.
+        const inSetup = good.replace('%%% SETUP', '%%% SETUP\n{"seq":"R0.S.9","t":"DEFEAT","card":"SOR#108","reason":"unknown"}');
+        expect(inSetup).not.toBe(good);
+        expect(codes(inSetup)).toContain('warning:unknown-defeat');
+    });
+
+    // A hostile file can break a rule on every record; the list stops at the cap, the level
+    // still counts every issue.
+    it('stops listing issues at the cap and says so', function () {
+        const flood = good.replace('%%% EVENTS', '%%% EVENTS\n' + '{}\n'.repeat(2000));
+        const report = validate(flood);
+        expect(report.issues.length).toBe(MAX_ISSUES + 1);
+        expect(report.issues[MAX_ISSUES].code).toBe('too-many-issues');
+        expect(report.level).toBe('well-formed');
+        expect(report.valid).toBe(false);
+
+        // With no errors at all, a warning that lowers the level can arrive after the cap. It is
+        // not listed, and the level still counts it.
+        const newTypes = Array.from({ length: MAX_ISSUES + 1 }, (_, n) => `{"seq":"R2.A.${100 + n}","t":"FUTURE_THING"}`).join('\n');
+        const late = good.replace('%%% EVENTS', `%%% EVENTS\n${newTypes}`)
+            .replace('[Rounds "2"]', '[Rounds "2"] [RecorderErrors "1"]')
+            .replace('SWU-PGN/1.0', 'SWU-PGN/1.1');
+        const lateReport = validate(late);
+        expect(lateReport.issues.filter((i) => i.severity === 'error')).toEqual([]);
+        expect(lateReport.issues.map((i) => i.code)).not.toContain('recorder-errors');
+        expect(lateReport.issues[MAX_ISSUES].code).toBe('too-many-issues');
+        expect(lateReport.level).toBe('verified');
+    });
+
+    it('skips X_ extension events and sections without a warning, and accepts new deck fields', function () {
+        expect(codes(addEvent('{"seq":"R1.A.9","t":"X_SWUFORGE_NOTE","p":1}'))).toEqual([]);
+        expect(codes(good.replace('%%% ANNOTATIONS', '%%% X_VENDOR\nanything at all\n\n%%% ANNOTATIONS'))).toEqual([]);
+        const deck = good.replace('"deck":[["SOR#108",5]]}', '"deck":[["SOR#108",5]],"x_name":"Wampa Rush"}');
+        expect(deck).not.toBe(good);
+        expect(codes(deck)).toEqual([]);
+    });
+
+    it('rejects header values outside their formats (spec §5.1)', function () {
+        expect(codes(good.replace('2026-06-16T00:00:00Z', '16/06/2026'))).toContain('error:schema');
+        expect(codes(good.replace('sha256:' + 'a'.repeat(64), 'sha256:aaaa'))).toContain('error:schema');
+        expect(codes(good.replace('[Result "Incomplete"]', '[Result "incomplete"]'))).toContain('error:schema');
+    });
+});

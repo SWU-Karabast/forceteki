@@ -13,7 +13,7 @@ Node 22.x. TypeScript, CommonJS, compiled with `tsc` into `build/` and run from 
 ```bash
 npm install
 npm run get-cards          # downloads card data into test/json/ (gitignored); required before build/test
-npm run build              # tsc -> build/server
+npm run build              # tsc -> build/server and build/swupgn
 npm run dev                # builds (server + tests) and starts the game node on port 9500
 npm run lint               # eslint --quiet   (lint-fix / lint-verbose also available)
 npm run validate-cards     # structural checks on card impls + their test files (CI gate)
@@ -51,6 +51,7 @@ If you hit `Importing card class with repeated id!`, delete `build/` and rebuild
 - `server/game/core/` — the rules engine. `Game.ts` is the root object; `GamePipeline.ts` runs a stack of nested windows/steps (`gameSteps/`, `AbilityResolver`, `ActionWindow`, phase steps, prompts). When user input is needed the pipeline unwinds to the caller and resumes on the next click.
 - `server/game/cards/` — ~2000 card implementations, one class per card, grouped by set (`01_SOR`, `02_SHD`, …) then card type.
 - `server/services/`, `server/utils/` — DynamoDB, deck fetching/validation, stats, cosmetics, profanity filter, moderation.
+- `swupgn/` — engine-independent reference reader for the SWU-PGN game-record format (`parse`, `validate`, `fold`, `render`); it must not import from `server/game/`. The writer is `server/game/core/chat/SwuPgn*.ts`. Spec: `docs/SWU-PGN-1.0-SPEC.md`; module notes: `swupgn/README.md`.
 
 ### Action & trigger flow
 
@@ -121,7 +122,7 @@ describe('Tarkintown', function() {
 
 ### Writing a server spec (the HTTP / socket connection layer)
 
-Specs for `server/gamenode/`, `server/services/`, `server/utils/` and `server/scripts/` are the **non-game** group (`jasmine-nongame.json`); everything else is the **game** group (`jasmine-game.json`). `npm run validate-specs` fails CI if a spec's harness does not match its group, so an `integration()` spec cannot sit in a non-game directory or the reverse. `npm run test-nongame` runs the non-game group in seconds. The plan, the backlog and the list of known findings are in `long-term-project-docs/game-node-test-suite.md`.
+Specs for `server/gamenode/`, `server/services/`, `server/utils/`, `server/scripts/` and `swupgn/` (in `test/server/swupgn/`) are the **non-game** group (`jasmine-nongame.json`); everything else is the **game** group (`jasmine-game.json`). `npm run validate-specs` fails CI if a spec's harness does not match its group, so an `integration()` spec cannot sit in a non-game directory or the reverse. `npm run test-nongame` runs the non-game group in seconds. The plan, the backlog and the list of known findings are in `long-term-project-docs/game-node-test-suite.md`.
 
 Pick the harness by what the spec drives: `integration()` for the rules engine; `serverIntegration()` (`test/helpers/server/`) for the connection layer — it builds a real `GameServer` in-process on a virtual clock, and `harness.createClient()` makes the same HTTP calls and socket handshake `forceteki-client` does; plain jasmine with spies only for a pure unit (as `UserFactory.spec.ts` does).
 

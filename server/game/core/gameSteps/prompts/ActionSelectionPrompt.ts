@@ -1,6 +1,7 @@
 import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
+import { EventName } from '../../Constants';
 import { PromptType } from '../PromptInterfaces';
 import type { IActionSelectionButton, IButton, ITriggerWindowSourceCard } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
@@ -99,7 +100,14 @@ export class ActionSelectionPrompt extends UiPrompt {
             return false;
         }
 
+        // Snapshot what the player saw before the handler runs, then surface the pick for the SWU-PGN
+        // recorder (pure-log; does not affect gameplay), exactly as HandlerMenuPrompt does. Choosing
+        // which action to take is a fixed-option-list choice, so the recorder maps it to MODAL_CHOICE.
+        const offered = this.choices.map((c) => c.title);
+        const chose = Number(arg);
+
         choice.handler();
+        this.game.emit(EventName.OnModalChoice, { player: this.player, offered, chose });
         this.complete();
         return true;
     }

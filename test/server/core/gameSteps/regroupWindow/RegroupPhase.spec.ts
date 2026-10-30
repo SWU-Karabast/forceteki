@@ -271,6 +271,62 @@ describe('Regroup phase', function() {
             });
         });
 
+        it('a card resourced in the regroup phase enters exhausted, then is readied by the ready step', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['battlefield-marine'],
+                    resources: 3,
+                    deck: ['atst', 'atst', 'atst']
+                },
+                player2: {
+                    deck: ['atst', 'atst', 'atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.passAction();
+            context.player2.claimInitiative();
+
+            const exhaustedBefore = context.player1.exhaustedResourceCount;
+            const readyBefore = context.player1.readyResourceCount;
+
+            // capture the resource state at the moment the ready step begins
+            let atReadyStep = null;
+            context.game.on('onRegroupPhaseReadyCards', () => {
+                atReadyStep = {
+                    exhausted: context.player1.exhaustedResourceCount,
+                    ready: context.player1.readyResourceCount
+                };
+            });
+
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickDone();
+            context.player2.clickDone();
+
+            expect(atReadyStep).toEqual({ exhausted: exhaustedBefore + 1, ready: readyBefore });
+            expect(context.player1.exhaustedResourceCount).toBe(0);
+            expect(context.player1.readyResourceCount).toBe(readyBefore + 1);
+        });
+
+        it('setup resources enter ready', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'setup',
+                player1: {},
+                player2: {}
+            });
+
+            const { context } = contextRef;
+
+            context.skipSetupPhase();
+
+            expect(context.player1.readyResourceCount).toBe(2);
+            expect(context.player1.exhaustedResourceCount).toBe(0);
+            expect(context.player2.readyResourceCount).toBe(2);
+            expect(context.player2.exhaustedResourceCount).toBe(0);
+        });
+
         it('all resources should be able to ready regardless of card type', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',

@@ -1,0 +1,506 @@
+{
+  "format": "SWU-PGN/1.0",
+  "description": "Conformance suite (spec §20). For every entry a conforming validator reports exactly `level`, and exactly the error and warning codes listed (as sets). For a positive entry a conforming folder produces `fold` (equal as JSON values: key order not significant, array order significant, absent is not null) and a strict renderer produces `render` byte for byte. `writer` is the `Engine` product that wrote a generated vector, or `hand` for one written by hand.",
+  "vectors": [
+    {
+      "file": "arrest.swupgn",
+      "class": "positive",
+      "writer": "forceteki",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "arrest.fold.json",
+      "render": "arrest.render.txt"
+    },
+    {
+      "file": "capture.swupgn",
+      "class": "positive",
+      "writer": "forceteki",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "capture.fold.json",
+      "render": "capture.render.txt"
+    },
+    {
+      "file": "control.swupgn",
+      "class": "positive",
+      "writer": "forceteki",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "control.fold.json",
+      "render": "control.render.txt"
+    },
+    {
+      "file": "death-star.swupgn",
+      "class": "positive",
+      "writer": "forceteki",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "death-star.fold.json",
+      "render": "death-star.render.txt"
+    },
+    {
+      "file": "effects.swupgn",
+      "class": "positive",
+      "writer": "forceteki",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "effects.fold.json",
+      "render": "effects.render.txt"
+    },
+    {
+      "file": "homeworlds.swupgn",
+      "class": "positive",
+      "writer": "forceteki",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "homeworlds.fold.json",
+      "render": "homeworlds.render.txt"
+    },
+    {
+      "file": "minimal.swupgn",
+      "class": "positive",
+      "writer": "hand",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "minimal.fold.json",
+      "render": "minimal.render.txt"
+    },
+    {
+      "file": "organic.swupgn",
+      "class": "positive",
+      "writer": "forceteki",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "organic.fold.json",
+      "render": "organic.render.txt"
+    },
+    {
+      "file": "other-writer.swupgn",
+      "class": "positive",
+      "writer": "hand",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "other-writer.fold.json",
+      "render": "other-writer.render.txt"
+    },
+    {
+      "file": "pilot.swupgn",
+      "class": "positive",
+      "writer": "forceteki",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "pilot.fold.json",
+      "render": "pilot.render.txt"
+    },
+    {
+      "file": "stolen-hauler.swupgn",
+      "class": "positive",
+      "writer": "forceteki",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "stolen-hauler.fold.json",
+      "render": "stolen-hauler.render.txt"
+    },
+    {
+      "file": "upgrades.swupgn",
+      "class": "positive",
+      "writer": "forceteki",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "upgrades.fold.json",
+      "render": "upgrades.render.txt"
+    },
+    {
+      "file": "visibility.swupgn",
+      "class": "positive",
+      "writer": "forceteki",
+      "level": "complete",
+      "errors": [],
+      "warnings": [],
+      "fold": "visibility.fold.json",
+      "render": "visibility.render.txt"
+    },
+    {
+      "file": "negative/bad-escape.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "malformed",
+      "errors": [
+        "bad-escape"
+      ],
+      "warnings": [],
+      "about": "A header escape other than \\\\ and \\\" (§4, Appendix B)."
+    },
+    {
+      "file": "negative/bad-move.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "bad-zone"
+      ],
+      "warnings": [],
+      "about": "A MOVE to a zone outside the vocabulary (§6.2)."
+    },
+    {
+      "file": "negative/bad-token-name.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "bad-token-name"
+      ],
+      "warnings": [],
+      "about": "A CREATE_TOKEN whose token id breaks the token-name grammar (§6.1)."
+    },
+    {
+      "file": "negative/credit-zone.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "credit-zone"
+      ],
+      "warnings": [],
+      "about": "A MOVE of a Credit token into resource; the format records Credit tokens in base (§6.2, [W-42])."
+    },
+    {
+      "file": "negative/fortify-enemy-base.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "fortify-host"
+      ],
+      "warnings": [],
+      "about": "A Fortify upgrade attached to the other seat's base (§10.3, [V-06])."
+    },
+    {
+      "file": "negative/token-to-hand.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "token-zone"
+      ],
+      "warnings": [],
+      "about": "A token that leaves play for hand instead of outsideTheGame (§10.1, [V-07])."
+    },
+    {
+      "file": "negative/round-start-no-active.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "round-start-active"
+      ],
+      "warnings": [],
+      "about": "A ROUND_START with no active seat (§10.1, [V-08])."
+    },
+    {
+      "file": "negative/effect-end-unknown.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "effect-end-unknown"
+      ],
+      "warnings": [],
+      "about": "An EFFECT_END naming an effect id no EFFECT_START began (§10.1, [V-09])."
+    },
+    {
+      "file": "negative/result-mismatch.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "result-mismatch"
+      ],
+      "warnings": [],
+      "about": "A [Result \"P1\"] header on a file with no GAME_END; a game that never ended is Incomplete (§10.2)."
+    },
+    {
+      "file": "negative/damaged-keyframe.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "valid",
+      "errors": [],
+      "warnings": [
+        "keyframe-mismatch"
+      ],
+      "about": "A keyframe the stream does not fold to: valid but not verified (§14)."
+    },
+    {
+      "file": "negative/dangling-ref.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "dangling-ref"
+      ],
+      "warnings": [],
+      "about": "An annotation whose ref names no record (§15)."
+    },
+    {
+      "file": "negative/duplicate-section.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "malformed",
+      "errors": [
+        "duplicate-section"
+      ],
+      "warnings": [],
+      "about": "Two %%% EVENTS banners (§4)."
+    },
+    {
+      "file": "negative/duplicate-seq.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "duplicate-seq"
+      ],
+      "warnings": [],
+      "about": "Two records with one seq (§9)."
+    },
+    {
+      "file": "negative/higher-minor.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "verified",
+      "errors": [],
+      "warnings": [
+        "newer-minor",
+        "unknown-value",
+        "unknown-defeat"
+      ],
+      "about": "A newer minor version using a DEFEAT.reason 1.0 does not know: warnings, not errors, and the reason reads as unknown (§18)."
+    },
+    {
+      "file": "negative/not-swupgn.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "malformed",
+      "errors": [
+        "not-swupgn"
+      ],
+      "warnings": [],
+      "about": "Text before the [Game] line: the magic number check (§19)."
+    },
+    {
+      "file": "negative/over-cap.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "over-cap"
+      ],
+      "warnings": [],
+      "about": "A keyframe list longer than the reader limit (§23)."
+    },
+    {
+      "file": "negative/pre-release.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [],
+      "warnings": [
+        "pre-release"
+      ],
+      "about": "No WriterRevision: a pre-release file (Appendix C)."
+    },
+    {
+      "file": "negative/proto-token.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "malformed",
+      "errors": [
+        "reserved-key"
+      ],
+      "warnings": [],
+      "about": "A reserved key (__proto__) as a status token name in a keyframe: the parser rejects it (§23)."
+    },
+    {
+      "file": "negative/rounds-not-digits.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "malformed",
+      "errors": [
+        "bad-count"
+      ],
+      "warnings": [],
+      "about": "A required count that is not base-10 digits (§5.1)."
+    },
+    {
+      "file": "negative/unknown-section.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "complete",
+      "errors": [],
+      "warnings": [
+        "unknown-section"
+      ],
+      "about": "A section from a later version: skipped with a warning (§18)."
+    },
+    {
+      "file": "negative/unknown-type.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "complete",
+      "errors": [],
+      "warnings": [
+        "unknown-type"
+      ],
+      "about": "An event type from a later version: skipped with a warning (§18)."
+    },
+    {
+      "file": "negative/unsupported-major.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "malformed",
+      "errors": [
+        "unsupported-major"
+      ],
+      "warnings": [],
+      "about": "A different major version: refused, not read as 1.x (§18)."
+    },
+    {
+      "file": "negative/bad-recorder-errors.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "malformed",
+      "errors": [
+        "bad-count"
+      ],
+      "warnings": [],
+      "about": "An optional count tag that is present but not base-10 digits (§5)."
+    },
+    {
+      "file": "negative/duplicate-key.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "malformed",
+      "errors": [
+        "duplicate-key"
+      ],
+      "warnings": [],
+      "about": "A record that repeats a key in one object: not I-JSON (§4)."
+    },
+    {
+      "file": "negative/deck-build-move.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "deck-build-move"
+      ],
+      "warnings": [],
+      "about": "A MOVE from outsideTheGame into deck; the decks are built by DECKS and INIT (§10.1, [W-41])."
+    },
+    {
+      "file": "negative/deck-reserved-key.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "malformed",
+      "errors": [
+        "reserved-key"
+      ],
+      "warnings": [],
+      "about": "A reserved key inside an open DECKS record: the parser rejects it in every record (§23)."
+    },
+    {
+      "file": "negative/newer-minor-bad-seat.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "schema"
+      ],
+      "warnings": [
+        "newer-minor"
+      ],
+      "about": "A seat outside 1 and 2 in a newer minor version: still an error, seats cannot grow (§18)."
+    },
+    {
+      "file": "negative/to-string-key.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "malformed",
+      "errors": [
+        "reserved-key"
+      ],
+      "warnings": [],
+      "about": "A toString key, which no reader can turn into text: the parser rejects it (§23)."
+    },
+    {
+      "file": "negative/reserved-token-name.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "malformed",
+      "errors": [
+        "reserved-key"
+      ],
+      "warnings": [],
+      "about": "A reserved name as a STATUS_TOKEN token, which the fold would make a key: the parser rejects it (§23)."
+    },
+    {
+      "file": "negative/nested-reserved-token.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "malformed",
+      "errors": [
+        "reserved-key"
+      ],
+      "warnings": [],
+      "about": "A reserved name as a STATUS_TOKEN token inside an annotation's what-if line, which a reader may fold: the parser rejects it (§23)."
+    },
+    {
+      "file": "negative/reserved-tag-name.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "malformed",
+      "errors": [
+        "reserved-key"
+      ],
+      "warnings": [],
+      "about": "A header tag named by a reserved key (hasOwnProperty), which a reader would make a key of its header: the parser rejects it (§23)."
+    },
+    {
+      "file": "negative/newer-minor-result.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "complete",
+      "errors": [],
+      "warnings": [
+        "newer-minor",
+        "unknown-value"
+      ],
+      "about": "A newer minor version with a Result outcome 1.0 does not know: a warning, because only P1 and P2 are seats (§18)."
+    },
+    {
+      "file": "negative/newer-minor-result-seat.swupgn",
+      "class": "negative",
+      "writer": "hand",
+      "level": "well-formed",
+      "errors": [
+        "schema"
+      ],
+      "warnings": [
+        "newer-minor"
+      ],
+      "about": "A newer minor version with a Result naming a third seat: still an error, seats cannot grow (§18)."
+    }
+  ]
+}

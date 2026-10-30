@@ -61,7 +61,10 @@ export class UseOnAttackSystem<TContext extends AbilityContext = AbilityContext>
         const onAttackProps = { ...(onAttackAbility.properties as ITriggeredAbilityProps), optional: false, target: onAttackSource };
         const ability = event.context.game.gameObjectManager.createWithoutRefsUnsafe(() => new TriggeredAbility(event.context.game, onAttackSource, onAttackProps));
 
-        event.context.game.resolveAbility(ability.createContext(event.context.player, onAttackDeclaredEvent));
+        const context = ability.createContext(event.context.player, onAttackDeclaredEvent);
+        // Recorder-only (SWU-PGN `usedBy`): the card whose ability made the player use this one.
+        context.retriggeredBy = event.context.source;
+        event.context.game.resolveAbility(context);
     }
 
     // Since the actual On Attack effect is resolved in a sub-window, we don't check its effects here

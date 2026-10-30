@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:swu-pgn:1.0:header",
+  "title": "SWU-PGN/1.0 Header",
+  "type": "object",
+  "required": [
+    "Game",
+    "GameId",
+    "Date",
+    "CardPool",
+    "Engine",
+    "Seed",
+    "P1Id",
+    "P2Id",
+    "P1",
+    "P2",
+    "P1Leader",
+    "P1Base",
+    "P2Leader",
+    "P2Base",
+    "Result",
+    "Reason",
+    "Rounds"
+  ],
+  "properties": {
+    "Game": {
+      "type": "string",
+      "pattern": "^SWU-PGN/1\\.\\d+$",
+      "description": "Any SWU-PGN/1.x version string. Spec 18 requires readers to accept a HIGHER minor version and ignore what they do not know, so this must not be pinned to the exact constant \"SWU-PGN/1.0\". A different major version is rejected."
+    },
+    "GameId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Opaque and unique per game. MUST NOT be a host-internal identifier (spec §17)."
+    },
+    "Engine": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]+@[\\x21-\\x7E]+$",
+      "description": "The writer that made the file: product \"@\" build (spec §5.3, Appendix B.2). The product is the text before the first @, compared exactly."
+    },
+    "Date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$",
+      "description": "RFC 3339 date-time with a seconds field and an explicit offset (spec §5.1). Writers SHOULD use UTC (Z)."
+    },
+    "EndDate": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})$",
+      "description": "RFC 3339 date-time with a seconds field and an explicit offset (spec §5.1). Writers SHOULD use UTC (Z)."
+    },
+    "P1Id": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Pseudonymous player id: sha256: and 64 lowercase hex digits (spec §17)."
+    },
+    "P2Id": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "Match": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Opaque match id shared by every game of one match (spec §5.2)."
+    },
+    "Result": {
+      "enum": [
+        "P1",
+        "P2",
+        "Draw",
+        "Incomplete"
+      ]
+    },
+    "Perspective": {
+      "enum": [
+        "P1",
+        "P2"
+      ]
+    },
+    "Rounds": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "WriterRevision": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The writer's revision, scoped to the product named before the @ in Engine (spec §5.2). Bumped on every change a reader can observe. Optional and diagnostic for every writer: a file without it is conformant, unless its Engine product is in the pilot writer registry (spec §25), which makes it pre-release."
+    },
+    "Undos": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "How many undos the game had. Absent means none. Authoritative: an UNDO record is an ordinary record and a later, deeper rollback can truncate one away, so the count MAY exceed the number of UNDO records in the file."
+    },
+    "RecorderErrors": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "GameNumber": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "additionalProperties": true
+}

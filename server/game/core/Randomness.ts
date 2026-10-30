@@ -1,6 +1,7 @@
 import seedrandom from 'seedrandom';
 
 export interface IRandomness<TRngState = object> {
+    seed: string | undefined;
     rngState: TRngState;
     next(): number;
     restore(state: TRngState): void;
@@ -9,11 +10,15 @@ export interface IRandomness<TRngState = object> {
 
 class SeedRandomRng implements IRandomness<seedrandom.PRNGState> {
     private rng: seedrandom.prng;
-    private seed: string | undefined;
+    private _seed: string | undefined;
 
     public constructor(seed?: string) {
-        this.seed = seed;
+        this._seed = seed;
         this.rng = seedrandom(seed, { state: true });
+    }
+
+    public get seed(): string | undefined {
+        return this._seed;
     }
 
     public get rngState(): seedrandom.PRNGState {
@@ -25,11 +30,11 @@ class SeedRandomRng implements IRandomness<seedrandom.PRNGState> {
     }
 
     public restore(state: IRandomness['rngState']): void {
-        this.rng = seedrandom(this.seed, { state });
+        this.rng = seedrandom(this._seed, { state });
     }
 
     public reseed(newSeed: string): void {
-        this.seed = newSeed;
+        this._seed = newSeed;
         this.rng = seedrandom(newSeed, { state: true });
     }
 }

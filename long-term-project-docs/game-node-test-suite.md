@@ -1208,6 +1208,15 @@ numbering are expected.
    **Not fixed**; marked with a `TODO` in `CredentialVerification`. Which behaviour is wanted — refuse before writing, or accept an
    account with no email — is a product decision, so there is no pending spec.
 
+10. **Nobody can take a seat in a lobby whose game is still attached — open, new (2026-10-28).** After a game ends
+    and one player leaves, `join-lobby` accepts a newcomer (`200`), but their socket connection is then refused with
+    `connection_error: Error connecting to lobby`. `addLobbyUserAsync` calls `updateUserLastActivity`, which calls
+    `game.onPlayerAction(id)`, and `Game.getPlayerById` fails its `Contract` for someone who is not one of the game's
+    players. The lobby keeps the ended game until a rematch clears it, so the newcomer is stuck. A side effect is that
+    `getGameLog`'s players-only refusal cannot be reached over the socket; `LobbyGameLog` carries a `TODO` where its
+    spec belongs. Which behaviour is wanted — seat the newcomer and drop the old game, or refuse at `join-lobby` — is
+    a product decision.
+
 *Also noticed, not findings:* three responses spell the success field `succeess` (`toggle-welcome-message`, and
 `change-username`'s two success paths; the FE never reads it, so correcting it is free); and the three deck routes'
 signed-in path currently answers 500 in the suite because the fake has no deck tables yet.

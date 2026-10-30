@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { randomUUID } from 'crypto';
 
 import type { IScheduler } from '../../utils/IScheduler';
 import { GameChat } from './chat/GameChat';
@@ -121,6 +122,8 @@ import type { Deck } from '../../utils/deck/Deck';
 import { ClaimCounterSystem } from '../gameSystems/ClaimCounterSystem';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
 import type { GameObjectId } from './GameObjectUtils';
+import { SwuPgnGameAdapter } from './chat/SwuPgnGameAdapter';
+import type { Seat } from '../../../swupgn/src/types';
 import { AnimationRecorder } from './animation/AnimationRecorder';
 import { buildAnimationDescriptors } from './animation/AnimationLibrary';
 
@@ -245,6 +248,11 @@ export class Game extends EventEmitter {
     public set actionNumber(value: number) {
         Contract.assertNonNegative(value, 'Action number must be non-negative: ' + value);
         this.state.actionNumber = value;
+    }
+
+    /** The RNG seed this game was run with (undefined for an unseeded/test RNG). Read by SwuPgnGameAdapter. */
+    public get randomSeed(): string | undefined {
+        return this._randomGenerator.seed;
     }
 
     public get winnerNames(): readonly string[] {
@@ -440,6 +448,14 @@ export class Game extends EventEmitter {
     public gameEndReason?: GameEndReason;
     private _actionsSinceLastUndo?: number;
 
+    // ── SWU-PGN/1.0 (single-file, event-sourced path) ──
+    /** Owns 1.0 generation: recorder, stable-id/deck-order bookkeeping, and board projections. */
+    private readonly _swuPgnAdapter: SwuPgnGameAdapter;
+    private _cachedSwuPgnFile?: string;
+    private _swuPgnFileServed = false;
+    private _swuPgnServedThenReopened = false;
+    private _swuPgnGenerationFailed = false;
+
     // #endregion
 
     public constructor(details: GameConfiguration, options: GameOptions) {
@@ -451,7 +467,12 @@ export class Game extends EventEmitter {
         validateGameOptions(options);
 
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
-        this._randomGenerator = new Randomness();
+        // Always seed explicitly. An unseeded Randomness() self-seeds from entropy and leaves
+        // `seed` undefined, so the seed a real game actually ran on was unrecoverable and every
+        // production replay recorded `Seed "unseeded"` — which defeats the point of a notation
+        // format that claims deterministic replay. Generating the seed here makes it a recorded
+        // value without changing how random a game is.
+        this._randomGenerator = new Randomness(randomUUID());
         this._router = options.router;
         this._lkiRegistry = new LkiRegistry();
         this._cardStateGetter = new CardStateGetter(() => this._lkiRegistry);
@@ -462,6 +483,7 @@ export class Game extends EventEmitter {
         this.playersAndSpectators = {};
         this.chatMessageOffsets = new Map();
         this.gameChat = new GameChat(details.pushUpdate);
+        this._swuPgnAdapter = new SwuPgnGameAdapter(this);
         this.animations = new AnimationRecorder(this, buildAnimationDescriptors());
         this.pipeline = new GamePipeline();
         this.id = details.id;
@@ -641,6 +663,33 @@ export class Game extends EventEmitter {
         }
 
         return filteredMessages;
+    }
+
+    /**
+     * Single-file `.swupgn` accessor. The cache is only PINNED once the game has ended (endGame
+     * also sets it); before that, each call generates fresh from the current event stream. This
+     * guards against an early mid-game read pinning a stale, incomplete file that subsequent
+     * gameplay would invalidate — the cache is otherwise only cleared on rollback, not on every
+     * new event. Production serving (Lobby.getGameLog) is gated on isEnded, so it always reads the
+     * pinned end-of-game file.
+     */
+    public getCachedSwuPgn(): string {
+        if (this._swuPgnServedThenReopened) {
+            // Defensive; see postRollbackOperations.
+            throw new Error('SWU-PGN log withheld: this game was reopened after its log was served');
+        }
+        if (this._cachedSwuPgnFile != null) {
+            return this._cachedSwuPgnFile;
+        }
+        if (this.isEnded && this._swuPgnGenerationFailed) {
+            // Generation is deterministic: retrying it on every request only repeats the failure.
+            throw new Error('SWU-PGN log generation failed at game end');
+        }
+        const file = this._swuPgnAdapter.generateFile();
+        if (this.isEnded) {
+            this._cachedSwuPgnFile = file;
+        }
+        return file;
     }
 
     /**
@@ -978,6 +1027,28 @@ export class Game extends EventEmitter {
             this.addMessage('{0} has won the game', winnerPlayers as any);
         }
         this.finishedAt = new Date();
+
+        // Record game end in the SWU-PGN/1.0 event stream.
+        const winnerSeat: Seat | 'Draw' = winners.length === 1
+            ? (winners[0] === this.getPlayers()[0] ? 1 : 2)
+            : 'Draw';
+        this._swuPgnAdapter.recordGameEnd(winnerSeat, reasonCode);
+
+        try {
+            // Single-file 1.0 artifact, cached at game end.
+            this._cachedSwuPgnFile = this._swuPgnAdapter.generateFile();
+            // NOTE: do NOT clear the recorder's raw arrays here. A player can undo
+            // past game-end (handleUndoGameEnd): that rolls back winnerNames so the
+            // game re-opens, nulls this cache (postRollbackOperations), and lets
+            // the game re-end later. If the events were cleared, the regenerated
+            // file would contain only the post-undo tail and the rest of the game
+            // would be lost. The arrays are bounded by game length and are freed
+            // when the lobby tears down the Game object.
+        } catch (e) {
+            this._swuPgnGenerationFailed = true;
+            logger.error(`Error caching game log at end of game: ${e}`);
+        }
+
         this._router.handleGameEnd();
         // TODO Tests failed since this._router doesn't exist for them we use an if statement to unblock.
         // TODO maybe later on we could have a check here if the environment test?
@@ -1971,6 +2042,12 @@ export class Game extends EventEmitter {
 
         const player = this.getPlayerById(playerId);
 
+        // Refused here, before any confirmation prompt is queued; rollbackToSnapshotInternal
+        // checks again for the paths that do not come through this method.
+        if (this.refuseUndoAfterLogServed(playerId)) {
+            return false;
+        }
+
         const rollbackInformation = this.snapshotManager.getRollbackInformation(settings);
 
         let message: string;
@@ -1995,7 +2072,7 @@ export class Game extends EventEmitter {
         const rollbackHandler = this._snapshotManager.buildRollbackHandler(settings);
 
         const performRollback = () => {
-            const result = this.rollbackToSnapshotInternal(settings, rollbackHandler);
+            const result = this.rollbackToSnapshotInternal(settings, rollbackHandler, playerId);
 
             if (!result) {
                 return false;
@@ -2089,7 +2166,9 @@ export class Game extends EventEmitter {
             activePromptTitle: `You can no longer pay the cost for ${context.source.title}`,
             waitingPromptTitle: 'Waiting for opponent to recover from being unable to pay a cost',
             choices,
-            handlers
+            handlers,
+            // Undo housekeeping, not a game decision: keep it out of the SWU-PGN log.
+            pgnLog: false
         });
     }
 
@@ -2111,7 +2190,7 @@ export class Game extends EventEmitter {
 
         let rolledBack: boolean;
         try {
-            rolledBack = this.rollbackToSnapshotInternal(settings, this._snapshotManager.buildRollbackHandler(settings));
+            rolledBack = this.rollbackToSnapshotInternal(settings, this._snapshotManager.buildRollbackHandler(settings), player.id);
         } finally {
             this._resumeActionTimerAfterRollback = false;
         }
@@ -2153,8 +2232,14 @@ export class Game extends EventEmitter {
         return `${player.id}:${this.snapshotManager.currentSnapshotId}`;
     }
 
-    private rollbackToSnapshotInternal(settings: IGetSnapshotSettings, rollbackHandler: (() => any) | null = null): boolean {
+    private rollbackToSnapshotInternal(settings: IGetSnapshotSettings, rollbackHandler: (() => any) | null = null, undoingPlayerId?: string): boolean {
         if (!this.isUndoEnabled) {
+            return false;
+        }
+
+        // Every rollback runs through here, including one confirmed after it was requested and
+        // the cost-payment recovery undo, so this is the check that holds.
+        if (this.refuseUndoAfterLogServed(undoingPlayerId)) {
             return false;
         }
 
@@ -2172,7 +2257,7 @@ export class Game extends EventEmitter {
 
             this._actionsSinceLastUndo = 0;
 
-            this.postRollbackOperations(rollbackResult.entryPoint);
+            this.postRollbackOperations(rollbackResult.entryPoint, undoingPlayerId);
 
             if (rollbackResult.rolledPastGameEnd) {
                 this._router.handleUndoGameEnd();
@@ -2223,7 +2308,66 @@ export class Game extends EventEmitter {
         this.reportError(error, GameErrorSeverity.SevereHaltGame);
     }
 
-    public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint): void {
+    /**
+     * True, after alerting the player, when this ended game's log has been served: the game is
+     * then closed to undo. See `markSwuPgnServed`.
+     */
+    private refuseUndoAfterLogServed(playerId?: string): boolean {
+        if (!this.isEnded || !this._swuPgnFileServed) {
+            return false;
+        }
+        const player = playerId != null ? this.getPlayerById(playerId) : null;
+        if (player) {
+            this.addAlert(AlertType.Warning, '{0} cannot undo: the game log has already been downloaded', player);
+        }
+        return true;
+    }
+
+    /** True once this game was reopened after its log was served: no further copy is served. */
+    public get isSwuPgnWithheld(): boolean {
+        return this._swuPgnServedThenReopened;
+    }
+
+    /**
+     * Record that a `.swupgn` reached a player. Lobby calls this after a successful serve.
+     *
+     * The file carries hidden information (hands, deck order, the seed), so from here the ended
+     * game is closed to undo: every rollback path refuses (`refuseUndoAfterLogServed`).
+     */
+    public markSwuPgnServed(): void {
+        // No file is served before the game ends, so a call then is a no-op.
+        if (!this.isEnded) {
+            return;
+        }
+        this._swuPgnFileServed = true;
+    }
+
+    public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint, undoingPlayerId?: string): void {
+        if (this._swuPgnFileServed && !this.isEnded) {
+            // Defensive: every rollback refuses once an ended game's log is served
+            // (`refuseUndoAfterLogServed`), so this should not happen. If it does, withhold
+            // further copies and leave an auditable trail.
+            this._swuPgnServedThenReopened = true;
+            logger.warn(
+                `Game ${this.id}: rolled back into live play after its SWU-PGN log was served; ` +
+                'the served file exposes deck order and seed for the game now resuming'
+            );
+        }
+
+        // Roll the SWU-PGN/1.0 recorder back to match the restored game state: it
+        // checkpoints lazily per snapshot id (in SwuPgnRecorder.push), so rolling back to
+        // the restored snapshot id drops exactly the events recorded after it and restores the
+        // rest of its checkpointed state (see SwuPgnRecorder.rollbackTo). currentSnapshotId
+        // already reflects the restored snapshot.
+        this._swuPgnAdapter.rollbackTo(this._snapshotManager.currentSnapshotId, undoingPlayerId);
+        // Only an undo that reopens the game invalidates the pinned end-of-game file. Players
+        // may keep playing after game end; an undo within that post-game play must not
+        // regenerate (and re-serve) a file that now differs from the one already downloaded.
+        if (!this.isEnded) {
+            this._cachedSwuPgnFile = undefined;
+            this._swuPgnGenerationFailed = false;
+        }
+
         this.pipeline.clearSteps();
         this.initializeCurrentlyResolving();
         if (entryPoint.type === RollbackEntryPointType.Setup) {

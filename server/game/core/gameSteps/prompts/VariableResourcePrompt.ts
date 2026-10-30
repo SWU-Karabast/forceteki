@@ -14,7 +14,8 @@ export class VariableResourcePrompt extends ResourcePrompt {
     public constructor(game: Game, minCardsToResource: number, maxCardsToResource: number) {
         Contract.assertTrue(maxCardsToResource > minCardsToResource, 'VariableResourcePrompt requires different min and max card counts. For fixed card count, use ResourcePrompt.');
 
-        super(game, maxCardsToResource);
+        // CR 5.5.1.c: a card resourced in the regroup phase is placed facedown and exhausted
+        super(game, maxCardsToResource, false, true);
 
         this.minCardsToResource = minCardsToResource;
         this.maxCardsToResource = maxCardsToResource;

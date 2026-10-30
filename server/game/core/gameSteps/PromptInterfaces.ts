@@ -167,6 +167,15 @@ export interface IPromptPropertiesBase {
     activePromptTitle?: ((context: AbilityContext) => string) | string;
     waitingPromptTitle?: string;
     promptTitle?: string;
+
+    /**
+     * When `false`, the prompt's resolution is NOT recorded to the SWU-PGN log (set by
+     * administrative/system prompts whose choices shouldn't appear in the notation, e.g.
+     * UndoConfirmationPrompt). Defaults to logging. Honored by HandlerMenuPrompt (MODAL_CHOICE).
+     * ActionSelectionPrompt also emits MODAL_CHOICE but takes its own properties, not these; it
+     * always logs, since choosing an action is always a game decision.
+     */
+    pgnLog?: boolean;
 }
 
 export interface IDistributeAmongTargetsPromptProperties extends IPromptPropertiesBase {

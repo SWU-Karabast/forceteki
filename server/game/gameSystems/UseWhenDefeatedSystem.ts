@@ -77,6 +77,8 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
         // Mark this as a manually activated ability (not naturally triggered by game events)
         const context = ability.createContext(event.context.player, whenDefeatedEvent);
         context.retriggeredByAbility = true;
+        // Recorder-only (SWU-PGN `usedBy`): the card whose ability made the player use this one.
+        context.retriggeredBy = event.context.source;
         event.context.game.resolveAbility(context);
     }
 

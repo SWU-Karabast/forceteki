@@ -54,6 +54,9 @@ const undoScenarioSpecsWithOwnHarness = [
     'PhaseStartAndEnd',
     'SnapshotTypes',
     'UndoConfirmation',
+    'SwuPgnUndoRetention',
+    'SwuPgnServedLogUndoLock',
+    'SwuPgnGameEndUndo',
 ];
 
 /**
@@ -68,6 +71,11 @@ const gameGroupExemptions: IGameGroupExemption[] = [
     })),
     { pattern: 'server/core/GameObjectBaseInitialization.spec.ts', reason: 'engine unit test of the state registration decorators' },
     { pattern: 'server/core/event/EventWindow.spec.ts', reason: 'engine unit test of event windows' },
+    { pattern: 'server/chat/SwuPgn.spec.ts', reason: 'SWU-PGN writer unit test: drives the recorder/adapter/writer with stand-in engine objects, no Game' },
+    { pattern: 'server/chat/SwuPgnGameAdapter.spec.ts', reason: 'SWU-PGN writer unit test: drives the recorder/adapter/writer with stand-in engine objects, no Game' },
+    { pattern: 'server/chat/SwuPgnIdentity.spec.ts', reason: 'SWU-PGN writer unit test: drives the recorder/adapter/writer with stand-in engine objects, no Game' },
+    { pattern: 'server/chat/SwuPgnSeed.spec.ts', reason: 'SWU-PGN writer unit test: drives the recorder/adapter/writer with stand-in engine objects, no Game' },
+    { pattern: 'server/chat/SwuPgnWriter.spec.ts', reason: 'SWU-PGN writer unit test: drives the recorder/adapter/writer with stand-in engine objects, no Game' },
 ];
 
 const PARTITION_GAP_CHECK = 'partition-gap';

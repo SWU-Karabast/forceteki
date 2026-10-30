@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:swu-pgn:1.0:deck",
+  "type": "object",
+  "required": [
+    "p",
+    "leader",
+    "base",
+    "deck"
+  ],
+  "properties": {
+    "p": {
+      "enum": [
+        1,
+        2
+      ]
+    },
+    "leader": {
+      "type": "string"
+    },
+    "base": {
+      "type": "string"
+    },
+    "deck": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          }
+        ],
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "sideboard": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "prefixItems": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          }
+        ],
+        "minItems": 2,
+        "maxItems": 2
+      }
+    }
+  },
+  "title": "SWU-PGN/1.0 Deck",
+  "description": "One %%% DECKS record. Open (additionalProperties: true) so a later minor version can add a field; a reader ignores fields it does not know (spec §18).",
+  "additionalProperties": true
+}

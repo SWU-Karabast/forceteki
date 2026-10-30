@@ -1,0 +1,180 @@
+ ── setup ──
+       ↳ Player 1 draws 6: Clone X Assassin · Death Star Stormtrooper · Occupation Officer · Venomous Wyyyshokk · Death Star Stormtrooper #2 · Death Star Stormtrooper #3
+       ↳ Player 2 draws 6: Battlefield Marine · Alliance X-Wing · Alliance X-Wing #2 · Alliance X-Wing #3 · Alliance X-Wing #4 · Alliance X-Wing #5
+       ↳ Player 1 keeps their hand
+       ↳ Player 2 keeps their hand
+       ↳ Player 1 resources Clone X Assassin
+       ↳ Player 1 resources Death Star Stormtrooper
+       ↳ Player 2 resources Battlefield Marine
+       ↳ Player 2 resources Alliance X-Wing
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 1                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 2/2   deck 16   leader ready
+ P2  base 30/30   hand 4   resources 2/2   deck 16   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Occupation Officer to ground (cost 2)
+  2. Player 2 passes
+  3. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Venomous Wyyyshokk #2 · Occupation Officer #2
+       ↳ Player 2 draws 2: Alliance X-Wing #6 · Alliance X-Wing #7
+       ↳ Player 1 resources Venomous Wyyyshokk
+       ↳ Player 2 resources Alliance X-Wing #2
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 2                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 3/3   deck 14   leader ready
+      ground: Occupation Officer 3/2
+ P2  base 30/30   hand 5   resources 3/3   deck 14   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 attacks Player 2's base with Occupation Officer
+       ↳ 3 damage to Player 2's base — 27 HP left
+  2. Player 2 passes
+  3. Player 1 plays Venomous Wyyyshokk #2 to ground (cost 3)
+  4. Player 2 passes
+  5. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Death Star Stormtrooper #4 · Occupation Officer #3
+       ↳ Player 2 draws 2: Alliance X-Wing #8 · Alliance X-Wing #9
+       ↳ Player 1 resources Death Star Stormtrooper #2
+       ↳ Player 2 resources Alliance X-Wing #3
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 3                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 4/4   deck 12   leader ready
+      ground: Occupation Officer 3/2  ·  Venomous Wyyyshokk #2 3/4
+ P2  base 27/30   hand 6   resources 4/4   deck 12   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 attacks Player 2's base with Occupation Officer
+       ↳ 3 damage to Player 2's base — 24 HP left
+  2. Player 2 passes
+  3. Player 1 attacks Player 2's base with Venomous Wyyyshokk #2
+       ↳ 3 damage to Player 2's base — 21 HP left
+  4. Player 2 passes
+  5. Player 1 plays Occupation Officer #2 to ground (cost 2)
+  6. Player 2 passes
+  7. Player 1 plays Occupation Officer #3 to ground (cost 2)
+  8. Player 2 passes
+  9. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Death Star Stormtrooper #5 · Venomous Wyyyshokk #3
+       ↳ Player 2 draws 2: Alliance X-Wing #10 · Alliance X-Wing #11
+       ↳ Player 1 resources Death Star Stormtrooper #3
+       ↳ Player 2 resources Alliance X-Wing #4
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 4                                                 initiative: Player 1 
+ P1  base 30/30   hand 3   resources 5/5   deck 10   leader ready
+      ground: Occupation Officer 3/2  ·  Venomous Wyyyshokk #2 3/4  ·  Occupation Officer #2 3/2  ·  Occupation Officer #3 3/2
+ P2  base 21/30   hand 7   resources 5/5   deck 10   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 attacks Player 2's base with Occupation Officer
+       ↳ 3 damage to Player 2's base — 18 HP left
+  2. Player 2 passes
+  3. Player 1 attacks Player 2's base with Venomous Wyyyshokk #2
+       ↳ 3 damage to Player 2's base — 15 HP left
+  4. Player 2 passes
+  5. Player 1 attacks Player 2's base with Occupation Officer #2
+       ↳ 3 damage to Player 2's base — 12 HP left
+  6. Player 2 passes
+  7. Player 1 attacks Player 2's base with Occupation Officer #3
+       ↳ 3 damage to Player 2's base — 9 HP left
+  8. Player 2 passes
+  9. Player 1 plays Venomous Wyyyshokk #3 to ground (cost 3)
+ 10. Player 2 passes
+ 11. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Clone X Assassin #2 · Occupation Officer #4
+       ↳ Player 2 draws 2: Alliance X-Wing #12 · Alliance X-Wing #13
+       ↳ Player 1 resources Death Star Stormtrooper #4
+       ↳ Player 2 resources Alliance X-Wing #5
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 5                                                 initiative: Player 1 
+ P1  base 30/30   hand 3   resources 6/6   deck 8   leader ready
+      ground: Occupation Officer 3/2  ·  Venomous Wyyyshokk #2 3/4  ·  Occupation Officer #2 3/2  ·  Occupation Officer #3 3/2  ·  Venomous Wyyyshokk #3 3/4
+ P2  base 9/30   hand 8   resources 6/6   deck 8   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Occupation Officer #4 to ground (cost 2)
+       ↳ Occupation Officer #4 uses an ability
+       ↳ Occupation Officer gains 1 weakness
+  2. Player 2 passes
+  3. Player 1 plays Clone X Assassin #2 to ground (cost 2)
+  4. Player 2 passes
+  5. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Death Star Stormtrooper #6 · Death Star Stormtrooper #7
+       ↳ Player 2 draws 2: Alliance X-Wing #14 · Alliance X-Wing #15
+       ↳ Player 1 resources Death Star Stormtrooper #5
+       ↳ Player 2 resources Alliance X-Wing #6
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 6                                                 initiative: Player 1 
+ P1  base 30/30   hand 2   resources 7/7   deck 6   leader ready
+      ground: Occupation Officer 2/1 [1 weakness]  ·  Venomous Wyyyshokk #2 3/4  ·  Occupation Officer #2 3/2  ·  Occupation Officer #3 3/2  ·  Venomous Wyyyshokk #3 3/4  ·  Occupation Officer #4 3/2  ·  Clone X Assassin #2 1/3
+ P2  base 9/30   hand 9   resources 7/7   deck 6   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Death Star Stormtrooper #6 to ground (cost 1)
+  2. Player 2 passes
+  3. Player 1 plays Death Star Stormtrooper #7 to ground (cost 1)
+  4. Player 2 passes
+  5. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Clone X Assassin #3 · Death Star Stormtrooper #8
+       ↳ Player 2 draws 2: Alliance X-Wing #16 · Alliance X-Wing #17
+       ↳ Player 1 resources Clone X Assassin #3
+       ↳ Player 2 resources Alliance X-Wing #7
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 7                                                 initiative: Player 1 
+ P1  base 30/30   hand 1   resources 8/8   deck 4   leader ready
+      ground: Occupation Officer 2/1 [1 weakness]  ·  Venomous Wyyyshokk #2 3/4  ·  Occupation Officer #2 3/2  ·  Occupation Officer #3 3/2  ·  Venomous Wyyyshokk #3 3/4  ·  Occupation Officer #4 3/2  ·  Clone X Assassin #2 1/3  ·  Death Star Stormtrooper #6 3/1  ·  Death Star Stormtrooper #7 3/1
+ P2  base 9/30   hand 10   resources 8/8   deck 4   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Death Star Stormtrooper #8 to ground (cost 1)
+  2. Player 2 passes
+  3. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Clone X Assassin #4 · Occupation Officer #5
+       ↳ Player 2 draws 2: Battlefield Marine #2 · Alliance X-Wing #18
+       ↳ Player 1 resources Clone X Assassin #4
+       ↳ Player 2 resources Alliance X-Wing #8
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 8                                                 initiative: Player 1 
+ P1  base 30/30   hand 1   resources 9/9   deck 2   leader ready
+      ground: Occupation Officer 2/1 [1 weakness]  ·  Venomous Wyyyshokk #2 3/4  ·  Occupation Officer #2 3/2  ·  Occupation Officer #3 3/2  ·  Venomous Wyyyshokk #3 3/4  ·  Occupation Officer #4 3/2  ·  Clone X Assassin #2 1/3  ·  Death Star Stormtrooper #6 3/1  ·  Death Star Stormtrooper #7 3/1  ·  Death Star Stormtrooper #8 3/1
+ P2  base 9/30   hand 11   resources 9/9   deck 2   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 uses Grand Moff Tarkin, Tyrant of the Outer Rim's Epic Action
+       ↳ Player 1 deploys Grand Moff Tarkin, Tyrant of the Outer Rim as The Death Star, Icon of Tyranny
+  2. Player 2 passes
+  3. Player 1 plays Occupation Officer #5 to ground (cost 2)
+       ↳ Occupation Officer #5 uses an ability
+       ↳ Occupation Officer gains 1 weakness
+       ↳ Occupation Officer loses 1 weakness
+       ↳ Occupation Officer loses 1 weakness
+       ↳ Occupation Officer is defeated
+  4. Player 2 passes
+  5. Player 1 passes
+ ── regroup ──
+       ↳ The Death Star, Icon of Tyranny uses an ability
+       ↳ Player 2's base is defeated by The Death Star, Icon of Tyranny
+       ↳ *** Player 1 wins — Base Destroyed ***

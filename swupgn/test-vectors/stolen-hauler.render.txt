@@ -1,0 +1,86 @@
+ ── setup ──
+       ↳ Player 1 draws 6: Alliance X-Wing · Stolen AT-Hauler · Alliance X-Wing #2 · Alliance X-Wing #3 · Alliance X-Wing #4 · Alliance X-Wing #5
+       ↳ Player 2 draws 6: Power of the Dark Side · Death Star Stormtrooper · Power of the Dark Side #2 · Power of the Dark Side #3 · Death Star Stormtrooper #2 · Death Star Stormtrooper #3
+       ↳ Player 1 keeps their hand
+       ↳ Player 2 keeps their hand
+       ↳ Player 1 resources Alliance X-Wing
+       ↳ Player 1 resources Alliance X-Wing #2
+       ↳ Player 2 resources Death Star Stormtrooper
+       ↳ Player 2 resources Death Star Stormtrooper #2
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 1                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 2/2   deck 8   leader ready
+ P2  base 25/25   hand 4   resources 2/2   deck 6   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 passes
+  2. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Alliance X-Wing #6 · Stolen AT-Hauler #2
+       ↳ Player 2 draws 2: Death Star Stormtrooper #4 · Death Star Stormtrooper #5
+       ↳ Player 1 resources Alliance X-Wing #3
+       ↳ Player 2 resources Death Star Stormtrooper #3
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 2                                                 initiative: Player 1 
+ P1  base 30/30   hand 5   resources 3/3   deck 6   leader ready
+ P2  base 25/25   hand 5   resources 3/3   deck 4   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Stolen AT-Hauler to space (cost 3)
+  2. Player 2 plays Power of the Dark Side (cost 3)
+       ↳ Power of the Dark Side uses an ability
+       ↳ Stolen AT-Hauler is defeated by Power of the Dark Side
+       ↳ Stolen AT-Hauler uses an ability
+       ↳ Player 1: Stolen AT-Hauler — For this phase, your opponent may play this unit from its owner's discard pile for free on Stolen AT-Hauler (for this phase)
+  3. Player 1 passes
+       ↳ Effect from Stolen AT-Hauler ends on Stolen AT-Hauler (its target changed zone)
+  4. Player 2 plays Stolen AT-Hauler to space (cost 3)
+  5. Player 1 passes
+  6. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Stolen AT-Hauler #3 · Stolen AT-Hauler #4
+       ↳ Player 2 draws 2: Death Star Stormtrooper #6 · Power of the Dark Side #4
+       ↳ Player 1 resources Alliance X-Wing #4
+       ↳ Player 2 resources Death Star Stormtrooper #4
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 3                                                 initiative: Player 1 
+ P1  base 30/30   hand 5   resources 4/4   deck 4   leader ready
+ P2  base 25/25   hand 5   resources 4/4   deck 2   leader ready
+      space: Stolen AT-Hauler 4/5
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Stolen AT-Hauler #2 to space (cost 3)
+  2. Player 2 plays Power of the Dark Side #2 (cost 3)
+       ↳ Power of the Dark Side #2 uses an ability
+       ↳ Stolen AT-Hauler #2 is defeated by Power of the Dark Side #2
+       ↳ Stolen AT-Hauler #2 uses an ability
+       ↳ Player 1: Stolen AT-Hauler #2 — For this phase, your opponent may play this unit from its owner's discard pile for free on Stolen AT-Hauler #2 (for this phase)
+  3. Player 1 passes
+       ↳ Effect from Stolen AT-Hauler #2 ends on Stolen AT-Hauler #2 (its target changed zone)
+  4. Player 2 plays Stolen AT-Hauler #2 to space (cost 3)
+  5. Player 1 passes
+  6. Player 2 attacks Player 1's base with Stolen AT-Hauler
+       ↳ 4 damage to Player 1's base — 26 HP left
+  7. Player 1 passes
+  8. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Alliance X-Wing #7 · Alliance X-Wing #8
+       ↳ Player 2 draws 2: Death Star Stormtrooper #7 · Death Star Stormtrooper #8
+       ↳ Player 1 resources Alliance X-Wing #5
+       ↳ Player 2 resources Death Star Stormtrooper #5
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 4                                                 initiative: Player 1 
+ P1  base 26/30   hand 5   resources 5/5   deck 2   leader ready
+ P2  base 25/25   hand 5   resources 5/5   deck 0   leader ready
+      space: Stolen AT-Hauler 4/5  ·  Stolen AT-Hauler #2 4/5
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+       ↳ *** Player 1 wins — Concession ***

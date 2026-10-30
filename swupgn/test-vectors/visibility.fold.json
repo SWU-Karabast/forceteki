@@ -1,0 +1,343 @@
+{
+  "round": 7,
+  "phase": "action",
+  "initiative": 1,
+  "players": {
+    "1": {
+      "seat": 1,
+      "baseHp": 30,
+      "baseMaxHp": 30,
+      "handSize": 2,
+      "hand": [
+        "SEC#239:2",
+        "SOR#062:2"
+      ],
+      "resourcesReady": 8,
+      "resourcesExhausted": 0,
+      "resources": [
+        "LAW#253",
+        "LAW#253:2",
+        "LAW#253:3",
+        "LAW#253:6",
+        "SHD#069",
+        "SOR#031:2",
+        "LAW#253:7",
+        "LAW#253:8"
+      ],
+      "foreignResources": [],
+      "baseUpgrades": [],
+      "baseCaptured": [],
+      "credits": 0,
+      "hasForce": false,
+      "discard": [
+        "LAW#204",
+        "SHD#069:2",
+        "SHD#163:2",
+        "TWI#032",
+        "TWI#032:4"
+      ],
+      "cards": [
+        {
+          "id": "HMW#085",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 1,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
+        },
+        {
+          "id": "TOKEN:battle-droid#3463348370",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 1,
+          "hp": 1,
+          "keywords": [],
+          "traits": [
+            "droid",
+            "separatist",
+            "trooper"
+          ]
+        },
+        {
+          "id": "TOKEN:battle-droid#3463348370:2",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 1,
+          "hp": 1,
+          "keywords": [],
+          "traits": [
+            "droid",
+            "separatist",
+            "trooper"
+          ]
+        },
+        {
+          "id": "SOR#062",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 1,
+          "hp": 4,
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "official"
+          ]
+        },
+        {
+          "id": "TOKEN:battle-droid#3463348370:3",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 1,
+          "hp": 1,
+          "keywords": [],
+          "traits": [
+            "droid",
+            "separatist",
+            "trooper"
+          ]
+        },
+        {
+          "id": "TOKEN:battle-droid#3463348370:4",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 1,
+          "hp": 1,
+          "keywords": [],
+          "traits": [
+            "droid",
+            "separatist",
+            "trooper"
+          ]
+        },
+        {
+          "id": "SEC#239",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 2,
+          "keywords": [],
+          "traits": [
+            "droid",
+            "imperial"
+          ]
+        },
+        {
+          "id": "SOR#031",
+          "zone": "space",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 2,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "fighter",
+            "imperial",
+            "vehicle"
+          ]
+        }
+      ],
+      "deckSize": 7,
+      "leader": {
+        "id": "JTL#002",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      },
+      "abilityUses": []
+    },
+    "2": {
+      "seat": 2,
+      "baseHp": 24,
+      "baseMaxHp": 30,
+      "handSize": 1,
+      "hand": [
+        "SOR#095:8"
+      ],
+      "resourcesReady": 8,
+      "resourcesExhausted": 0,
+      "resources": [
+        "LAW#253:9",
+        "LAW#253:10",
+        "LAW#253:11",
+        "LAW#253:12",
+        "LAW#253:13",
+        "SOR#095:6",
+        "LAW#253:16",
+        "SOR#095:7"
+      ],
+      "foreignResources": [],
+      "baseUpgrades": [],
+      "baseCaptured": [],
+      "credits": 0,
+      "hasForce": false,
+      "discard": [
+        "SOR#095:5",
+        "SOR#095"
+      ],
+      "cards": [
+        {
+          "id": "SOR#095:2",
+          "zone": "ground",
+          "damage": 2,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
+        },
+        {
+          "id": "SOR#095:3",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
+        },
+        {
+          "id": "SOR#095:4",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "rebel",
+            "trooper"
+          ]
+        },
+        {
+          "id": "LAW#253:14",
+          "zone": "space",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 2,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "fighter",
+            "rebel",
+            "vehicle"
+          ]
+        },
+        {
+          "id": "LAW#253:15",
+          "zone": "space",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 2,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "fighter",
+            "rebel",
+            "vehicle"
+          ]
+        }
+      ],
+      "deckSize": 0,
+      "leader": {
+        "id": "SOR#009",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      },
+      "abilityUses": []
+    }
+  },
+  "initiativeTaken": false,
+  "active": 1,
+  "effects": [
+    {
+      "id": "fx@1",
+      "src": "SOR#062",
+      "p": 1,
+      "seat": 2,
+      "duration": "whileSourceInPlay"
+    }
+  ]
+}

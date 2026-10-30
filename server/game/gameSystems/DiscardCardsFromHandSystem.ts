@@ -80,6 +80,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
 
     public override queueGenerateEventGameSteps(events: any[], context: TContext, additionalProperties: Partial<IDiscardCardsFromHandProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        this.emitBlindChoicesRequested(properties, context);
         for (const player of properties.target as Player[]) {
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context));
             const choosingPlayer = player;
@@ -131,6 +132,23 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                     return true;
                 },
             });
+        }
+    }
+
+    /**
+     * Pure-log SWU-PGN/1.0 hook (§10.2 `blind`): each target player picks their own discards, without
+     * seeing the others' picks (CR 7.1.4a), all for this one `context`. Only when two or more players
+     * discard and the pick is theirs. Fully wrapped: recording instrumentation must never affect gameplay.
+     */
+    private emitBlindChoicesRequested(properties: IDiscardCardsFromHandProperties, context: TContext): void {
+        try {
+            const players = Helpers.asArray(properties.target);
+            if (players.length < 2 || properties.random) {
+                return;
+            }
+            context.game.emit(EventName.OnBlindChoicesRequested, { context, players });
+        } catch {
+            // never let recording instrumentation break an ability
         }
     }
 

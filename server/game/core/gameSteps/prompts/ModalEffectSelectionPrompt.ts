@@ -1,6 +1,7 @@
 import type { Game } from '../../Game';
 import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
+import { EventName } from '../../Constants';
 import { PromptType } from '../PromptInterfaces';
 import type { IModalEffectSelectionButton, ITriggerWindowSourceCard } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
@@ -89,7 +90,14 @@ export class ModalEffectSelectionPrompt extends UiPrompt {
             return false;
         }
 
+        // Snapshot the modes this prompt offered before the handler runs, then surface the pick for
+        // the SWU-PGN recorder (pure-log; does not affect gameplay) once it has, as HandlerMenuPrompt
+        // and ActionSelectionPrompt do: one MODAL_CHOICE per mode picked.
+        const offered = this.properties.choices.map((c) => c.title);
+        const chose = Number(arg);
+
         choice.handler();
+        this.game.emit(EventName.OnModalChoice, { player: this.player, offered, chose });
         this.complete();
         return true;
     }

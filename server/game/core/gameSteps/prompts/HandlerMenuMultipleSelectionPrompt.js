@@ -16,6 +16,10 @@ const HandlerMenuPrompt = require('./HandlerMenuPrompt.js');
 class HandlerMenuMultipleSelectionPrompt extends HandlerMenuPrompt {
     constructor(game, player, properties) {
         const selectedOptions = [];
+        // A SWU-PGN MODAL_CHOICE models one pick: recorded here it would name 'Done', not the
+        // options chosen, so this prompt is not logged. A copy, so the switch stays with this
+        // prompt and never reaches another one built from the caller's object.
+        properties = { ...properties, pgnLog: false };
         properties.handlers = properties.choices.map((choice) => () => {
             if (selectedOptions.includes(choice)) {
                 selectedOptions.splice(selectedOptions.indexOf(choice));

@@ -45,6 +45,14 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
             const actualAmount = Math.min(amount, deckLength);
             const cards = player.drawDeck.slice(0, actualAmount);
 
+            // Pure-log SWU-PGN hook (§10.2 LOOK): this path looks at the cards through a prompt, not a
+            // LookAtSystem event, so nothing else says who saw them. Recording must never affect play.
+            try {
+                context.game.emit(EventName.OnLookMoveDeckCards, { player: context.player, cards, deckOwner: player });
+            } catch {
+                // never let recording instrumentation break an ability
+            }
+
             context.game.promptDisplayCardsWithButtons(context.player, {
                 activePromptTitle: 'Select card to move to the top or bottom of the deck',
                 source: context.source,

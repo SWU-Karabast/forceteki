@@ -218,6 +218,11 @@ export class ActionWindow extends UiPrompt {
     public pass(showMessage = true) {
         if (showMessage) {
             this.game.addMessage('{0} passes', this.activePlayer);
+            // Surface the Pass action for the SWU-PGN recorder (pure-log; does not affect
+            // gameplay). The turn passing to the opponent after any action is a different thing
+            // and is not a pass. A claimed counter arrives here too, without a message: it is
+            // its own recorded action, so it emits nothing.
+            this.game.emit(EventName.OnPassAction, { player: this.activePlayer });
         }
 
         if (this.prevPlayerPassed) {

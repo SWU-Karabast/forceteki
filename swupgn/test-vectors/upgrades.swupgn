@@ -1,0 +1,376 @@
+[Game "SWU-PGN/1.0"]
+[WriterRevision "6"]
+[GameId "sha256:661f4f0c4325e8154c8c3a9ed622ce0284caeab7b5fd2f46a3f2a29742c4f645"]
+[Date "2026-10-29T00:42:08.931Z"]
+[Format "premier"]
+[CardPool "ASH,HMW,IBH,IC27,JTL,LAW,LOF,SEC,SHD,SOR,TS26,TWI"]
+[Engine "forceteki@f74700d3f"]
+[Seed "swu-pgn-vector-upgrades"]
+[P1Id "sha256:8849aa57ad283a2eb0d1a026cd1fa670ad8d48cf6b7cb55db80a6ef70960abb8"]
+[P2Id "sha256:d484debd88f2263d58ca8abbccc39bdd155f07d2b6ef472275312d173460ddf1"]
+[P1 "Player 1"]
+[P2 "Player 2"]
+[P1Leader "SOR#005"]
+[P1Base "IC27#010"]
+[P2Leader "SOR#010"]
+[P2Base "SOR#019"]
+[Result "P1"]
+[Reason "Concession"]
+[Rounds "5"]
+[EndDate "2026-10-29T00:42:08.991Z"]
+
+%%% STORY
+ ── setup ──
+       ↳ Player 1 draws 6: Zealous Soldier · Alliance X-Wing · Ascension Cable · Cloaked StarViper · Clan Wren Rescuer · Zealous Soldier #2
+       ↳ Player 2 draws 6: Vanquish · Death Star Stormtrooper · Death Star Stormtrooper #2 · Death Star Stormtrooper #3 · Death Star Stormtrooper #4 · Open Fire
+       ↳ Player 1 keeps their hand
+       ↳ Player 2 keeps their hand
+       ↳ Player 1 resources Alliance X-Wing
+       ↳ Player 1 resources Zealous Soldier
+       ↳ Player 2 resources Death Star Stormtrooper
+       ↳ Player 2 resources Death Star Stormtrooper #2
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 1                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 2/2   deck 10   leader ready
+ P2  base 25/25   hand 4   resources 2/2   deck 10   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Zealous Soldier #2 to ground (cost 2)
+       ↳ Zealous Soldier #2 uses an ability
+       ↳ Zealous Soldier #2 gains 1 advantage
+  2. Player 2 plays Death Star Stormtrooper #3 to ground (cost 1)
+  3. Player 1 passes
+  4. Player 2 plays Death Star Stormtrooper #4 to ground (cost 1)
+  5. Player 1 passes
+  6. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Clan Wren Rescuer #2 · Battlefield Marine
+       ↳ Player 2 draws 2: Death Star Stormtrooper #5 · Death Star Stormtrooper #6
+       ↳ Player 1 resources Battlefield Marine
+       ↳ Player 2 resources Death Star Stormtrooper #5
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 2                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 3/3   deck 8   leader ready
+      ground: Zealous Soldier #2 3/3 [1 advantage]
+ P2  base 25/25   hand 3   resources 3/3   deck 8   leader ready
+      ground: Death Star Stormtrooper #3 3/1  ·  Death Star Stormtrooper #4 3/1
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Clan Wren Rescuer to ground (cost 2)
+       ↳ Clan Wren Rescuer uses an ability
+       ↳ Zealous Soldier #2 gains 1 experience
+  2. Player 2 plays Death Star Stormtrooper #6 to ground (cost 1)
+  3. Player 1 passes
+  4. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Ascension Cable #2 · Ascension Cable #3
+       ↳ Player 2 draws 2: Death Star Stormtrooper #7 · Death Star Stormtrooper #8
+       ↳ Player 1 resources Ascension Cable
+       ↳ Player 2 resources Death Star Stormtrooper #7
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 3                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 4/4   deck 6   leader ready
+      ground: Zealous Soldier #2 4/4 [1 xp, 1 advantage]  ·  Clan Wren Rescuer 1/2
+ P2  base 25/25   hand 3   resources 4/4   deck 6   leader ready
+      ground: Death Star Stormtrooper #3 3/1  ·  Death Star Stormtrooper #4 3/1  ·  Death Star Stormtrooper #6 3/1
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Ascension Cable #2 on Zealous Soldier #2 (cost 2)
+  2. Player 2 plays Open Fire (cost 3)
+       ↳ Open Fire uses an ability
+       ↳ 4 damage to Zealous Soldier #2 — 3 HP left
+  3. Player 1 attacks Player 2's base with Clan Wren Rescuer
+       ↳ 1 damage to Player 2's base — 24 HP left
+  4. Player 2 plays Death Star Stormtrooper #8 to ground (cost 1)
+  5. Player 1 passes
+  6. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Battlefield Marine #2 · Zealous Soldier #3
+       ↳ Player 2 draws 2: Open Fire #2 · Death Star Stormtrooper #9
+       ↳ Player 1 resources Battlefield Marine #2
+       ↳ Player 2 resources Death Star Stormtrooper #9
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 4                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 5/5   deck 4   leader ready
+      ground: Zealous Soldier #2 5/7 [4 dmg, 1 xp, 1 advantage, Ascension Cable #2]  ·  Clan Wren Rescuer 1/2
+ P2  base 24/25   hand 2   resources 5/5   deck 4   leader ready
+      ground: Death Star Stormtrooper #3 3/1  ·  Death Star Stormtrooper #4 3/1  ·  Death Star Stormtrooper #6 3/1  ·  Death Star Stormtrooper #8 3/1
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Cloaked StarViper to space (cost 4)
+       ↳ Cloaked StarViper uses an ability
+       ↳ Cloaked StarViper gains 1 shield
+       ↳ Cloaked StarViper gains 1 shield
+  2. Player 2 plays Open Fire #2 (cost 3)
+       ↳ Open Fire #2 uses an ability
+       ↳ 3 damage to Zealous Soldier #2 — 0 HP left
+       ↳ Ascension Cable #2 is defeated
+       ↳ Zealous Soldier #2 loses 1 experience
+       ↳ Zealous Soldier #2 loses 1 advantage
+       ↳ Zealous Soldier #2 is defeated by Open Fire #2
+  3. Player 1 attacks Player 2's base with Clan Wren Rescuer
+       ↳ 1 damage to Player 2's base — 23 HP left
+  4. Player 2 passes
+  5. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Alliance X-Wing #2 · Alliance X-Wing #3
+       ↳ Player 2 draws 2: Death Star Stormtrooper #10 · Open Fire #3
+       ↳ Player 1 resources Alliance X-Wing #2
+       ↳ Player 2 resources Death Star Stormtrooper #10
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 5                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 6/6   deck 2   leader ready
+      ground: Clan Wren Rescuer 1/2
+      space: Cloaked StarViper 3/2 [2 shield]
+ P2  base 23/25   hand 2   resources 6/6   deck 2   leader ready
+      ground: Death Star Stormtrooper #3 3/1  ·  Death Star Stormtrooper #4 3/1  ·  Death Star Stormtrooper #6 3/1  ·  Death Star Stormtrooper #8 3/1
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+       ↳ *** Player 1 wins — Concession ***
+
+%%% DECKS
+{"p":1,"leader":"SOR#005","base":"IC27#010","deck":[["ASH#251",3],["SHD#040",2],["LOF#215",3],["JTL#067",2],["SOR#095",2],["LAW#253",4]]}
+{"p":2,"leader":"SOR#010","base":"SOR#019","deck":[["TWI#174",3],["TWI#077",2],["IC27#097",11]]}
+
+%%% CARDS
+{"id":"ASH#251","name":"Zealous Soldier","kind":"unit"}
+{"id":"IC27#010","name":"Echo Base"}
+{"id":"IC27#097","name":"Death Star Stormtrooper","kind":"unit"}
+{"id":"JTL#067","name":"Cloaked StarViper","kind":"unit"}
+{"id":"LAW#253","name":"Alliance X-Wing","kind":"unit"}
+{"id":"LOF#215","name":"Ascension Cable","kind":"upgrade"}
+{"id":"SHD#040","name":"Clan Wren Rescuer","kind":"unit"}
+{"id":"SOR#005","name":"Luke Skywalker, Faithful Friend"}
+{"id":"SOR#010","name":"Darth Vader, Dark Lord of the Sith"}
+{"id":"SOR#019","name":"Security Complex"}
+{"id":"SOR#095","name":"Battlefield Marine","kind":"unit"}
+{"id":"TOKEN:advantage#5844562972","name":"Advantage","kind":"upgrade"}
+{"id":"TOKEN:experience#2007868442","name":"Experience","kind":"upgrade"}
+{"id":"TOKEN:shield#8752877738","name":"Shield","kind":"upgrade"}
+{"id":"TWI#077","name":"Vanquish"}
+{"id":"TWI#174","name":"Open Fire"}
+
+%%% SETUP
+{"seq":"R0.S.0","t":"INIT","p1DeckOrder":["ASH#251","LAW#253","LOF#215","JTL#067","SHD#040","ASH#251:2","SHD#040:2","SOR#095","LOF#215:2","LOF#215:3","SOR#095:2","ASH#251:3","LAW#253:2","LAW#253:3","JTL#067:2","LAW#253:4"],"p2DeckOrder":["TWI#077","IC27#097","IC27#097:2","IC27#097:3","IC27#097:4","TWI#174","IC27#097:5","IC27#097:6","IC27#097:7","IC27#097:8","TWI#174:2","IC27#097:9","IC27#097:10","TWI#174:3","IC27#097:11","TWI#077:2"]}
+
+%%% EVENTS
+{"seq":"R0.S.start","t":"PHASE_START","phase":"setup","ms":1}
+{"seq":"R0.S.1","t":"MODAL_CHOICE","p":1,"offered":["Yourself","Opponent"],"chose":0}
+{"seq":"R0.S.2","t":"SHUFFLE","p":1}
+{"seq":"R0.S.3","t":"MOVE","card":"ASH#251","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.4","t":"MOVE","card":"LAW#253","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.5","t":"MOVE","card":"LOF#215","from":"deck","to":"hand","p":1,"kind":"upgrade"}
+{"seq":"R0.S.6","t":"MOVE","card":"JTL#067","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.7","t":"MOVE","card":"SHD#040","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.8","t":"MOVE","card":"ASH#251:2","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R0.S.9","t":"DRAW","p":1,"count":6,"cards":["ASH#251","LAW#253","LOF#215","JTL#067","SHD#040","ASH#251:2"]}
+{"seq":"R0.S.10","t":"SHUFFLE","p":2}
+{"seq":"R0.S.11","t":"MOVE","card":"TWI#077","from":"deck","to":"hand","p":2}
+{"seq":"R0.S.12","t":"MOVE","card":"IC27#097","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.13","t":"MOVE","card":"IC27#097:2","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.14","t":"MOVE","card":"IC27#097:3","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.15","t":"MOVE","card":"IC27#097:4","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R0.S.16","t":"MOVE","card":"TWI#174","from":"deck","to":"hand","p":2}
+{"seq":"R0.S.17","t":"DRAW","p":2,"count":6,"cards":["TWI#077","IC27#097","IC27#097:2","IC27#097:3","IC27#097:4","TWI#174"]}
+{"seq":"R0.S.18","t":"KEEP_HAND","p":1}
+{"seq":"R0.S.19","t":"KEEP_HAND","p":2}
+{"seq":"R0.S.20","t":"MOVE","card":"LAW#253","from":"hand","to":"resource","p":1,"kind":"unit","for":"R0.S.21"}
+{"seq":"R0.S.21","t":"RESOURCE","p":1,"card":"LAW#253"}
+{"seq":"R0.S.22","t":"MOVE","card":"ASH#251","from":"hand","to":"resource","p":1,"kind":"unit","for":"R0.S.23"}
+{"seq":"R0.S.23","t":"RESOURCE","p":1,"card":"ASH#251"}
+{"seq":"R0.S.24","t":"MOVE","card":"IC27#097","from":"hand","to":"resource","p":2,"kind":"unit","for":"R0.S.25"}
+{"seq":"R0.S.25","t":"RESOURCE","p":2,"card":"IC27#097"}
+{"seq":"R0.S.26","t":"MOVE","card":"IC27#097:2","from":"hand","to":"resource","p":2,"kind":"unit","for":"R0.S.27"}
+{"seq":"R0.S.27","t":"RESOURCE","p":2,"card":"IC27#097:2"}
+{"seq":"R0.S.end","t":"PHASE_END","phase":"setup"}
+{"seq":"R1.start","t":"ROUND_START","round":1,"active":1,"keyframe":{"round":1,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["LOF#215","JTL#067","SHD#040","ASH#251:2"],"resourcesReady":2,"resourcesExhausted":0,"resources":["LAW#253","ASH#251"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":10,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":4,"hand":["TWI#077","IC27#097:3","IC27#097:4","TWI#174"],"resourcesReady":2,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[],"deckSize":10,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":7}
+{"seq":"R1.A.start","t":"PHASE_START","phase":"action","active":1,"ms":7}
+{"seq":"R1.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R1.A.1"}
+{"seq":"R1.A.0b","t":"MOVE","card":"ASH#251:2","from":"hand","to":"ground","p":1,"kind":"unit","for":"R1.A.1"}
+{"seq":"R1.A.0c","t":"STATS","card":"ASH#251:2","power":2,"hp":3,"keywords":[],"traits":["rebel","trooper"],"for":"R1.A.1"}
+{"seq":"R1.A.0d","t":"EXHAUST","card":"ASH#251:2","for":"R1.A.1"}
+{"seq":"R1.A.1","t":"PLAY","p":1,"card":"ASH#251:2","zone":"ground","cost":2,"ms":11}
+{"seq":"R1.A.1a","t":"ABILITY_ACTIVATE","p":1,"card":"ASH#251:2","ability":"zealous-soldier_triggered_0","kind":"triggered","title":"Give an Advantage token to this unit"}
+{"seq":"R1.A.1b","t":"MOVE","card":"TOKEN:advantage#5844562972","from":"outsideTheGame","to":"ground","p":1,"kind":"upgrade","attachedTo":"ASH#251:2"}
+{"seq":"R1.A.1c","t":"STATUS_TOKEN","card":"ASH#251:2","token":"advantage","count":1}
+{"seq":"R1.A.1d","t":"STATS","card":"ASH#251:2","power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]}
+{"seq":"R1.A.1e","t":"EXHAUST_RESOURCES","p":2,"amount":1,"for":"R1.A.2"}
+{"seq":"R1.A.1f","t":"MOVE","card":"IC27#097:3","from":"hand","to":"ground","p":2,"kind":"unit","for":"R1.A.2"}
+{"seq":"R1.A.1g","t":"STATS","card":"IC27#097:3","power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"],"for":"R1.A.2"}
+{"seq":"R1.A.1h","t":"EXHAUST","card":"IC27#097:3","for":"R1.A.2"}
+{"seq":"R1.A.2","t":"PLAY","p":2,"card":"IC27#097:3","zone":"ground","cost":1,"ms":14}
+{"seq":"R1.A.3","t":"PASS","p":1,"ms":15}
+{"seq":"R1.A.3a","t":"EXHAUST_RESOURCES","p":2,"amount":1,"for":"R1.A.4"}
+{"seq":"R1.A.3b","t":"MOVE","card":"IC27#097:4","from":"hand","to":"ground","p":2,"kind":"unit","for":"R1.A.4"}
+{"seq":"R1.A.3c","t":"STATS","card":"IC27#097:4","power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"],"for":"R1.A.4"}
+{"seq":"R1.A.3d","t":"EXHAUST","card":"IC27#097:4","for":"R1.A.4"}
+{"seq":"R1.A.4","t":"PLAY","p":2,"card":"IC27#097:4","zone":"ground","cost":1,"ms":16}
+{"seq":"R1.A.5","t":"PASS","p":1,"ms":17}
+{"seq":"R1.A.6","t":"PASS","p":2,"ms":17}
+{"seq":"R1.A.end","t":"PHASE_END","phase":"action"}
+{"seq":"R1.G.start","t":"PHASE_START","phase":"regroup","ms":17}
+{"seq":"R1.G.1","t":"MOVE","card":"SHD#040:2","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R1.G.2","t":"MOVE","card":"SOR#095","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R1.G.3","t":"DRAW","p":1,"count":2,"cards":["SHD#040:2","SOR#095"]}
+{"seq":"R1.G.4","t":"MOVE","card":"IC27#097:5","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R1.G.5","t":"MOVE","card":"IC27#097:6","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R1.G.6","t":"DRAW","p":2,"count":2,"cards":["IC27#097:5","IC27#097:6"]}
+{"seq":"R1.G.7","t":"MOVE","card":"SOR#095","from":"hand","to":"resource","p":1,"kind":"unit","exhausted":true,"for":"R1.G.8"}
+{"seq":"R1.G.8","t":"RESOURCE","p":1,"card":"SOR#095"}
+{"seq":"R1.G.9","t":"MOVE","card":"IC27#097:5","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R1.G.10"}
+{"seq":"R1.G.10","t":"RESOURCE","p":2,"card":"IC27#097:5"}
+{"seq":"R1.G.11","t":"READY","card":"ASH#251:2"}
+{"seq":"R1.G.12","t":"READY_RESOURCES","p":1,"amount":3}
+{"seq":"R1.G.15","t":"READY","card":"IC27#097:3"}
+{"seq":"R1.G.16","t":"READY","card":"IC27#097:4"}
+{"seq":"R1.G.17","t":"READY_RESOURCES","p":2,"amount":3}
+{"seq":"R1.G.end","t":"PHASE_END","phase":"regroup"}
+{"seq":"R1.end","t":"ROUND_END","round":1,"keyframe":{"round":1,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["LOF#215","JTL#067","SHD#040","SHD#040:2"],"resourcesReady":3,"resourcesExhausted":0,"resources":["LAW#253","ASH#251","SOR#095"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"ASH#251:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{"advantage":1},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]}],"deckSize":8,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":3,"hand":["TWI#077","TWI#174","IC27#097:6"],"resourcesReady":3,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:5"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]}],"deckSize":8,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[]}}
+{"seq":"R2.start","t":"ROUND_START","round":2,"active":1,"keyframe":{"round":2,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["LOF#215","JTL#067","SHD#040","SHD#040:2"],"resourcesReady":3,"resourcesExhausted":0,"resources":["LAW#253","ASH#251","SOR#095"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"ASH#251:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{"advantage":1},"captured":[],"power":3,"hp":3,"keywords":[],"traits":["rebel","trooper"]}],"deckSize":8,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":3,"hand":["TWI#077","TWI#174","IC27#097:6"],"resourcesReady":3,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:5"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]}],"deckSize":8,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":21}
+{"seq":"R2.A.start","t":"PHASE_START","phase":"action","active":1,"ms":21}
+{"seq":"R2.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":2,"for":"R2.A.1"}
+{"seq":"R2.A.0b","t":"MOVE","card":"SHD#040","from":"hand","to":"ground","p":1,"kind":"unit","for":"R2.A.1"}
+{"seq":"R2.A.0c","t":"STATS","card":"SHD#040","power":1,"hp":2,"keywords":[],"traits":["mandalorian","trooper"],"for":"R2.A.1"}
+{"seq":"R2.A.0d","t":"EXHAUST","card":"SHD#040","for":"R2.A.1"}
+{"seq":"R2.A.1","t":"PLAY","p":1,"card":"SHD#040","zone":"ground","cost":2,"ms":22}
+{"seq":"R2.A.1a","t":"CHOICE","p":1,"prompt":"Clan Wren Rescuer","offered":["ASH#251:2","SHD#040","IC27#097:3","IC27#097:4"],"chose":0}
+{"seq":"R2.A.1b","t":"ABILITY_ACTIVATE","p":1,"card":"SHD#040","ability":"clan-wren-rescuer_triggered_0","kind":"triggered","title":"Give an experience token to a unit"}
+{"seq":"R2.A.1c","t":"MOVE","card":"TOKEN:experience#2007868442","from":"outsideTheGame","to":"ground","p":1,"kind":"upgrade","attachedTo":"ASH#251:2"}
+{"seq":"R2.A.1d","t":"EXPERIENCE_GAIN","card":"ASH#251:2","count":1}
+{"seq":"R2.A.1e","t":"STATS","card":"ASH#251:2","power":4,"hp":4,"keywords":[],"traits":["rebel","trooper"]}
+{"seq":"R2.A.1f","t":"EXHAUST_RESOURCES","p":2,"amount":1,"for":"R2.A.2"}
+{"seq":"R2.A.1g","t":"MOVE","card":"IC27#097:6","from":"hand","to":"ground","p":2,"kind":"unit","for":"R2.A.2"}
+{"seq":"R2.A.1h","t":"STATS","card":"IC27#097:6","power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"],"for":"R2.A.2"}
+{"seq":"R2.A.1i","t":"EXHAUST","card":"IC27#097:6","for":"R2.A.2"}
+{"seq":"R2.A.2","t":"PLAY","p":2,"card":"IC27#097:6","zone":"ground","cost":1,"ms":25}
+{"seq":"R2.A.3","t":"PASS","p":1,"ms":26}
+{"seq":"R2.A.4","t":"PASS","p":2,"ms":27}
+{"seq":"R2.A.end","t":"PHASE_END","phase":"action"}
+{"seq":"R2.G.start","t":"PHASE_START","phase":"regroup","ms":27}
+{"seq":"R2.G.1","t":"MOVE","card":"LOF#215:2","from":"deck","to":"hand","p":1,"kind":"upgrade"}
+{"seq":"R2.G.2","t":"MOVE","card":"LOF#215:3","from":"deck","to":"hand","p":1,"kind":"upgrade"}
+{"seq":"R2.G.3","t":"DRAW","p":1,"count":2,"cards":["LOF#215:2","LOF#215:3"]}
+{"seq":"R2.G.4","t":"MOVE","card":"IC27#097:7","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R2.G.5","t":"MOVE","card":"IC27#097:8","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R2.G.6","t":"DRAW","p":2,"count":2,"cards":["IC27#097:7","IC27#097:8"]}
+{"seq":"R2.G.7","t":"MOVE","card":"LOF#215","from":"hand","to":"resource","p":1,"kind":"upgrade","exhausted":true,"for":"R2.G.8"}
+{"seq":"R2.G.8","t":"RESOURCE","p":1,"card":"LOF#215"}
+{"seq":"R2.G.9","t":"MOVE","card":"IC27#097:7","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R2.G.10"}
+{"seq":"R2.G.10","t":"RESOURCE","p":2,"card":"IC27#097:7"}
+{"seq":"R2.G.11","t":"READY","card":"SHD#040"}
+{"seq":"R2.G.12","t":"READY_RESOURCES","p":1,"amount":3}
+{"seq":"R2.G.15","t":"READY","card":"IC27#097:6"}
+{"seq":"R2.G.16","t":"READY_RESOURCES","p":2,"amount":2}
+{"seq":"R2.G.end","t":"PHASE_END","phase":"regroup"}
+{"seq":"R2.end","t":"ROUND_END","round":2,"keyframe":{"round":2,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["JTL#067","SHD#040:2","LOF#215:2","LOF#215:3"],"resourcesReady":4,"resourcesExhausted":0,"resources":["LAW#253","ASH#251","SOR#095","LOF#215"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"ASH#251:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":1,"statusTokens":{"advantage":1},"captured":[],"power":4,"hp":4,"keywords":[],"traits":["rebel","trooper"]},{"id":"SHD#040","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":2,"keywords":[],"traits":["mandalorian","trooper"]}],"deckSize":6,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":3,"hand":["TWI#077","TWI#174","IC27#097:8"],"resourcesReady":4,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:5","IC27#097:7"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:6","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]}],"deckSize":6,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[]}}
+{"seq":"R3.start","t":"ROUND_START","round":3,"active":1,"keyframe":{"round":3,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["JTL#067","SHD#040:2","LOF#215:2","LOF#215:3"],"resourcesReady":4,"resourcesExhausted":0,"resources":["LAW#253","ASH#251","SOR#095","LOF#215"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"ASH#251:2","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":1,"statusTokens":{"advantage":1},"captured":[],"power":4,"hp":4,"keywords":[],"traits":["rebel","trooper"]},{"id":"SHD#040","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":2,"keywords":[],"traits":["mandalorian","trooper"]}],"deckSize":6,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":25,"baseMaxHp":25,"handSize":3,"hand":["TWI#077","TWI#174","IC27#097:8"],"resourcesReady":4,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:5","IC27#097:7"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:6","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]}],"deckSize":6,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":34}
+{"seq":"R3.A.start","t":"PHASE_START","phase":"action","active":1,"ms":34}
+{"seq":"R3.A.0a","t":"CHOICE","p":1,"prompt":"Ascension Cable","offered":["ASH#251:2","SHD#040","IC27#097:3","IC27#097:4","IC27#097:6"],"chose":0,"for":"R3.A.1"}
+{"seq":"R3.A.0b","t":"EXHAUST_RESOURCES","p":1,"amount":4,"for":"R3.A.1"}
+{"seq":"R3.A.0c","t":"MOVE","card":"LOF#215:2","from":"hand","to":"ground","p":1,"kind":"upgrade","attachedTo":"ASH#251:2","for":"R3.A.1"}
+{"seq":"R3.A.0d","t":"STATS","card":"ASH#251:2","power":5,"hp":7,"keywords":[],"traits":["rebel","trooper"],"for":"R3.A.1"}
+{"seq":"R3.A.1","t":"PLAY_UPGRADE","p":1,"card":"LOF#215:2","zone":"ground","target":"ASH#251:2","cost":2,"ms":36}
+{"seq":"R3.A.1a","t":"STATS","card":"ASH#251:2","power":5,"hp":7,"keywords":["saboteur"],"traits":["rebel","trooper"]}
+{"seq":"R3.A.1b","t":"CHOICE","p":2,"prompt":"Open Fire","offered":["IC27#097:3","IC27#097:4","IC27#097:6","ASH#251:2","SHD#040"],"chose":3,"for":"R3.A.2"}
+{"seq":"R3.A.1c","t":"EXHAUST_RESOURCES","p":2,"amount":3,"for":"R3.A.2"}
+{"seq":"R3.A.1d","t":"MOVE","card":"TWI#174","from":"hand","to":"discard","p":2,"for":"R3.A.2"}
+{"seq":"R3.A.2","t":"PLAY_EVENT","p":2,"card":"TWI#174","zone":"discard","cost":3,"ms":39}
+{"seq":"R3.A.2a","t":"ABILITY_ACTIVATE","p":2,"card":"TWI#174","ability":"open-fire_anonymous","kind":"event","title":"Deal 4 damage to a unit."}
+{"seq":"R3.A.2b","t":"DAMAGE","src":"TWI#174","tgt":"ASH#251:2","amt":4,"damageType":"ability","hp":3}
+{"seq":"R3.A.2c","t":"CHOICE","p":1,"prompt":"Clan Wren Rescuer","offered":["IC27#097:3","IC27#097:4","IC27#097:6","base@2"],"chose":3,"for":"R3.A.3"}
+{"seq":"R3.A.2d","t":"EXHAUST","card":"SHD#040","for":"R3.A.3"}
+{"seq":"R3.A.3","t":"ATTACK","p":1,"atk":"SHD#040","def":"base@2","defenderType":"base","ms":42}
+{"seq":"R3.A.3a","t":"DAMAGE","src":"SHD#040","tgt":"base@2","amt":1,"damageType":"combat","hp":24}
+{"seq":"R3.A.3b","t":"EXHAUST_RESOURCES","p":2,"amount":1,"for":"R3.A.4"}
+{"seq":"R3.A.3c","t":"MOVE","card":"IC27#097:8","from":"hand","to":"ground","p":2,"kind":"unit","for":"R3.A.4"}
+{"seq":"R3.A.3d","t":"STATS","card":"IC27#097:8","power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"],"for":"R3.A.4"}
+{"seq":"R3.A.3e","t":"EXHAUST","card":"IC27#097:8","for":"R3.A.4"}
+{"seq":"R3.A.4","t":"PLAY","p":2,"card":"IC27#097:8","zone":"ground","cost":1,"ms":44}
+{"seq":"R3.A.5","t":"PASS","p":1,"ms":45}
+{"seq":"R3.A.6","t":"PASS","p":2,"ms":45}
+{"seq":"R3.A.end","t":"PHASE_END","phase":"action"}
+{"seq":"R3.G.start","t":"PHASE_START","phase":"regroup","ms":46}
+{"seq":"R3.G.1","t":"MOVE","card":"SOR#095:2","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R3.G.2","t":"MOVE","card":"ASH#251:3","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R3.G.3","t":"DRAW","p":1,"count":2,"cards":["SOR#095:2","ASH#251:3"]}
+{"seq":"R3.G.4","t":"MOVE","card":"TWI#174:2","from":"deck","to":"hand","p":2}
+{"seq":"R3.G.5","t":"MOVE","card":"IC27#097:9","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R3.G.6","t":"DRAW","p":2,"count":2,"cards":["TWI#174:2","IC27#097:9"]}
+{"seq":"R3.G.7","t":"MOVE","card":"SOR#095:2","from":"hand","to":"resource","p":1,"kind":"unit","exhausted":true,"for":"R3.G.8"}
+{"seq":"R3.G.8","t":"RESOURCE","p":1,"card":"SOR#095:2"}
+{"seq":"R3.G.9","t":"MOVE","card":"IC27#097:9","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R3.G.10"}
+{"seq":"R3.G.10","t":"RESOURCE","p":2,"card":"IC27#097:9"}
+{"seq":"R3.G.11","t":"READY","card":"SHD#040"}
+{"seq":"R3.G.12","t":"READY_RESOURCES","p":1,"amount":5}
+{"seq":"R3.G.17","t":"READY","card":"IC27#097:8"}
+{"seq":"R3.G.18","t":"READY_RESOURCES","p":2,"amount":5}
+{"seq":"R3.G.end","t":"PHASE_END","phase":"regroup"}
+{"seq":"R3.end","t":"ROUND_END","round":3,"keyframe":{"round":3,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["JTL#067","SHD#040:2","LOF#215:3","ASH#251:3"],"resourcesReady":5,"resourcesExhausted":0,"resources":["LAW#253","ASH#251","SOR#095","LOF#215","SOR#095:2"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"ASH#251:2","zone":"ground","damage":4,"exhausted":false,"upgrades":["LOF#215:2"],"shields":0,"experience":1,"statusTokens":{"advantage":1},"captured":[],"power":5,"hp":7,"keywords":["saboteur"],"traits":["rebel","trooper"]},{"id":"SHD#040","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":2,"keywords":[],"traits":["mandalorian","trooper"]}],"deckSize":4,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":24,"baseMaxHp":25,"handSize":2,"hand":["TWI#077","TWI#174:2"],"resourcesReady":5,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:5","IC27#097:7","IC27#097:9"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["TWI#174"],"cards":[{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:6","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:8","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]}],"deckSize":4,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[]}}
+{"seq":"R4.start","t":"ROUND_START","round":4,"active":1,"keyframe":{"round":4,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["JTL#067","SHD#040:2","LOF#215:3","ASH#251:3"],"resourcesReady":5,"resourcesExhausted":0,"resources":["LAW#253","ASH#251","SOR#095","LOF#215","SOR#095:2"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":[],"cards":[{"id":"ASH#251:2","zone":"ground","damage":4,"exhausted":false,"upgrades":["LOF#215:2"],"shields":0,"experience":1,"statusTokens":{"advantage":1},"captured":[],"power":5,"hp":7,"keywords":["saboteur"],"traits":["rebel","trooper"]},{"id":"SHD#040","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":2,"keywords":[],"traits":["mandalorian","trooper"]}],"deckSize":4,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":24,"baseMaxHp":25,"handSize":2,"hand":["TWI#077","TWI#174:2"],"resourcesReady":5,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:5","IC27#097:7","IC27#097:9"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["TWI#174"],"cards":[{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:6","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:8","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]}],"deckSize":4,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":48}
+{"seq":"R4.A.start","t":"PHASE_START","phase":"action","active":1,"ms":48}
+{"seq":"R4.A.0a","t":"EXHAUST_RESOURCES","p":1,"amount":4,"for":"R4.A.1"}
+{"seq":"R4.A.0b","t":"MOVE","card":"JTL#067","from":"hand","to":"space","p":1,"kind":"unit","for":"R4.A.1"}
+{"seq":"R4.A.0c","t":"STATS","card":"JTL#067","power":3,"hp":2,"keywords":[],"traits":["fighter","underworld","vehicle"],"for":"R4.A.1"}
+{"seq":"R4.A.0d","t":"EXHAUST","card":"JTL#067","for":"R4.A.1"}
+{"seq":"R4.A.1","t":"PLAY","p":1,"card":"JTL#067","zone":"space","cost":4,"ms":49}
+{"seq":"R4.A.1a","t":"ABILITY_ACTIVATE","p":1,"card":"JTL#067","ability":"cloaked-starviper_triggered_0","kind":"triggered","title":"Give 2 Shield tokens to this unit"}
+{"seq":"R4.A.1b","t":"MOVE","card":"TOKEN:shield#8752877738","from":"outsideTheGame","to":"space","p":1,"kind":"upgrade","attachedTo":"JTL#067"}
+{"seq":"R4.A.1c","t":"SHIELD_GAIN","card":"JTL#067"}
+{"seq":"R4.A.1d","t":"MOVE","card":"TOKEN:shield#8752877738:2","from":"outsideTheGame","to":"space","p":1,"kind":"upgrade","attachedTo":"JTL#067"}
+{"seq":"R4.A.1e","t":"SHIELD_GAIN","card":"JTL#067"}
+{"seq":"R4.A.1f","t":"CHOICE","p":2,"prompt":"Open Fire","offered":["IC27#097:3","IC27#097:4","IC27#097:6","IC27#097:8","ASH#251:2","SHD#040","JTL#067"],"chose":4,"for":"R4.A.2"}
+{"seq":"R4.A.1g","t":"EXHAUST_RESOURCES","p":2,"amount":3,"for":"R4.A.2"}
+{"seq":"R4.A.1h","t":"MOVE","card":"TWI#174:2","from":"hand","to":"discard","p":2,"for":"R4.A.2"}
+{"seq":"R4.A.2","t":"PLAY_EVENT","p":2,"card":"TWI#174:2","zone":"discard","cost":3,"ms":52}
+{"seq":"R4.A.2a","t":"ABILITY_ACTIVATE","p":2,"card":"TWI#174:2","ability":"open-fire_anonymous","kind":"event","title":"Deal 4 damage to a unit."}
+{"seq":"R4.A.2b","t":"DAMAGE","src":"TWI#174:2","tgt":"ASH#251:2","amt":3,"damageType":"ability","hp":0}
+{"seq":"R4.A.2c","t":"MOVE","card":"LOF#215:2","from":"ground","to":"discard","p":1,"kind":"upgrade"}
+{"seq":"R4.A.2d","t":"STATS","card":"ASH#251:2","power":4,"hp":4,"keywords":["saboteur"],"traits":["rebel","trooper"]}
+{"seq":"R4.A.2e","t":"DEFEAT","card":"LOF#215:2","reason":"frameworkEffect"}
+{"seq":"R4.A.2f","t":"MOVE","card":"TOKEN:experience#2007868442","from":"ground","to":"outsideTheGame","p":1,"kind":"upgrade"}
+{"seq":"R4.A.2g","t":"STATS","card":"ASH#251:2","power":3,"hp":3,"keywords":["saboteur"],"traits":["rebel","trooper"]}
+{"seq":"R4.A.2h","t":"EXPERIENCE_GAIN","card":"ASH#251:2","count":-1}
+{"seq":"R4.A.2i","t":"MOVE","card":"TOKEN:advantage#5844562972","from":"ground","to":"outsideTheGame","p":1,"kind":"upgrade"}
+{"seq":"R4.A.2j","t":"STATS","card":"ASH#251:2","power":2,"hp":3,"keywords":["saboteur"],"traits":["rebel","trooper"]}
+{"seq":"R4.A.2k","t":"STATUS_TOKEN","card":"ASH#251:2","token":"advantage","count":-1}
+{"seq":"R4.A.2l","t":"MOVE","card":"ASH#251:2","from":"ground","to":"discard","p":1,"kind":"unit"}
+{"seq":"R4.A.2m","t":"DEFEAT","card":"ASH#251:2","reason":"nonCombatDamage","defeatedBy":"TWI#174:2"}
+{"seq":"R4.A.2n","t":"CHOICE","p":1,"prompt":"Clan Wren Rescuer","offered":["IC27#097:3","IC27#097:4","IC27#097:6","IC27#097:8","base@2"],"chose":4,"for":"R4.A.3"}
+{"seq":"R4.A.2o","t":"EXHAUST","card":"SHD#040","for":"R4.A.3"}
+{"seq":"R4.A.3","t":"ATTACK","p":1,"atk":"SHD#040","def":"base@2","defenderType":"base","ms":56}
+{"seq":"R4.A.3a","t":"DAMAGE","src":"SHD#040","tgt":"base@2","amt":1,"damageType":"combat","hp":23}
+{"seq":"R4.A.4","t":"PASS","p":2,"ms":56}
+{"seq":"R4.A.5","t":"PASS","p":1,"ms":57}
+{"seq":"R4.A.end","t":"PHASE_END","phase":"action"}
+{"seq":"R4.G.start","t":"PHASE_START","phase":"regroup","ms":57}
+{"seq":"R4.G.1","t":"MOVE","card":"LAW#253:2","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R4.G.2","t":"MOVE","card":"LAW#253:3","from":"deck","to":"hand","p":1,"kind":"unit"}
+{"seq":"R4.G.3","t":"DRAW","p":1,"count":2,"cards":["LAW#253:2","LAW#253:3"]}
+{"seq":"R4.G.4","t":"MOVE","card":"IC27#097:10","from":"deck","to":"hand","p":2,"kind":"unit"}
+{"seq":"R4.G.5","t":"MOVE","card":"TWI#174:3","from":"deck","to":"hand","p":2}
+{"seq":"R4.G.6","t":"DRAW","p":2,"count":2,"cards":["IC27#097:10","TWI#174:3"]}
+{"seq":"R4.G.7","t":"MOVE","card":"LAW#253:2","from":"hand","to":"resource","p":1,"kind":"unit","exhausted":true,"for":"R4.G.8"}
+{"seq":"R4.G.8","t":"RESOURCE","p":1,"card":"LAW#253:2"}
+{"seq":"R4.G.9","t":"MOVE","card":"IC27#097:10","from":"hand","to":"resource","p":2,"kind":"unit","exhausted":true,"for":"R4.G.10"}
+{"seq":"R4.G.10","t":"RESOURCE","p":2,"card":"IC27#097:10"}
+{"seq":"R4.G.11","t":"READY","card":"SHD#040"}
+{"seq":"R4.G.12","t":"READY","card":"JTL#067"}
+{"seq":"R4.G.13","t":"READY_RESOURCES","p":1,"amount":5}
+{"seq":"R4.G.18","t":"READY_RESOURCES","p":2,"amount":4}
+{"seq":"R4.G.end","t":"PHASE_END","phase":"regroup"}
+{"seq":"R4.end","t":"ROUND_END","round":4,"keyframe":{"round":4,"phase":"regroup","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["SHD#040:2","LOF#215:3","ASH#251:3","LAW#253:3"],"resourcesReady":6,"resourcesExhausted":0,"resources":["LAW#253","ASH#251","SOR#095","LOF#215","SOR#095:2","LAW#253:2"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LOF#215:2","ASH#251:2"],"cards":[{"id":"SHD#040","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":2,"keywords":[],"traits":["mandalorian","trooper"]},{"id":"JTL#067","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":2,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":2,"keywords":[],"traits":["fighter","underworld","vehicle"]}],"deckSize":2,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":23,"baseMaxHp":25,"handSize":2,"hand":["TWI#077","TWI#174:3"],"resourcesReady":6,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:5","IC27#097:7","IC27#097:9","IC27#097:10"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["TWI#174","TWI#174:2"],"cards":[{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:6","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:8","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]}],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"effects":[]}}
+{"seq":"R5.start","t":"ROUND_START","round":5,"active":1,"keyframe":{"round":5,"phase":"action","initiative":1,"players":{"1":{"seat":1,"baseHp":30,"baseMaxHp":30,"handSize":4,"hand":["SHD#040:2","LOF#215:3","ASH#251:3","LAW#253:3"],"resourcesReady":6,"resourcesExhausted":0,"resources":["LAW#253","ASH#251","SOR#095","LOF#215","SOR#095:2","LAW#253:2"],"foreignResources":[],"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["LOF#215:2","ASH#251:2"],"cards":[{"id":"SHD#040","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":1,"hp":2,"keywords":[],"traits":["mandalorian","trooper"]},{"id":"JTL#067","zone":"space","damage":0,"exhausted":false,"upgrades":[],"shields":2,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":2,"keywords":[],"traits":["fighter","underworld","vehicle"]}],"deckSize":2,"leader":{"id":"SOR#005","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]},"2":{"seat":2,"baseHp":23,"baseMaxHp":25,"handSize":2,"hand":["TWI#077","TWI#174:3"],"resourcesReady":6,"resourcesExhausted":0,"resources":["IC27#097","IC27#097:2","IC27#097:5","IC27#097:7","IC27#097:9","IC27#097:10"],"foreignResources":[],"baseEpicActionUsed":false,"baseUpgrades":[],"baseCaptured":[],"credits":0,"hasForce":false,"discard":["TWI#174","TWI#174:2"],"cards":[{"id":"IC27#097:3","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:4","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:6","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]},{"id":"IC27#097:8","zone":"ground","damage":0,"exhausted":false,"upgrades":[],"shields":0,"experience":0,"statusTokens":{},"captured":[],"power":3,"hp":1,"keywords":[],"traits":["imperial","trooper"]}],"deckSize":2,"leader":{"id":"SOR#010","deployed":false,"exhausted":false,"epicActionUsed":false},"abilityUses":[]}},"initiativeTaken":false,"active":1,"effects":[]},"ms":59}
+{"seq":"R5.A.start","t":"PHASE_START","phase":"action","active":1,"ms":59}
+{"seq":"R5.A.game-end","t":"GAME_END","winner":1,"reason":"Concession"}
+
+%%% ANNOTATIONS

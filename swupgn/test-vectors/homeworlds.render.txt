@@ -1,0 +1,173 @@
+ ── setup ──
+       ↳ Player 1 draws 6: Beast Lair · Beast Lair #2 · Migrate · Battlefield Marine · Landing Pad · Battlefield Marine #2
+       ↳ Player 2 draws 6: Venomous Wyyyshokk · Carbonite Chamber · Occupation Officer · Torrent · Carbonite Chamber #2 · Occupation Officer #2
+       ↳ Player 1 keeps their hand
+       ↳ Player 2 keeps their hand
+       ↳ Player 1 resources Battlefield Marine
+       ↳ Player 1 resources Battlefield Marine #2
+       ↳ Player 2 resources Venomous Wyyyshokk
+       ↳ Player 2 resources Occupation Officer
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 1                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 2/2   deck 9   leader ready
+ P2  base 30/30   hand 4   resources 2/2   deck 8   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+  1. Player 1 plays Beast Lair on Player 1's base (cost 2)
+  2. Player 2 plays Carbonite Chamber on Player 2's base (cost 1)
+  3. Player 1 passes
+  4. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Alliance X-Wing · Alliance X-Wing #2
+       ↳ Player 2 draws 2: Torrent #2 · Torrent #3
+       ↳ Player 1 resources Alliance X-Wing
+       ↳ Player 2 resources Occupation Officer #2
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 2                                                 initiative: Player 1 
+ P1  base 30/30   hand 4   resources 3/3   deck 7   leader ready
+      base: Beast Lair
+ P2  base 30/30   hand 4   resources 3/3   deck 6   leader ready
+      base: Carbonite Chamber
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+       ↳ Player 1's base uses an ability (granted by Beast Lair)
+       ↳ Player 1 discards Alliance X-Wing #2
+       ↳ Player 1 creates Beast in ground
+  1. Player 1 plays Landing Pad on Player 1's base (cost 3)
+  2. Player 2 uses Carbonite Chamber
+       ↳ Carbonite Chamber is defeated by Carbonite Chamber
+       ↳ Player 2: Carbonite Chamber — Beast does not ready during this regroup phase on Beast (delayed)
+  3. Player 1 passes
+  4. Player 2 plays Torrent (cost 2)
+       ↳ Torrent uses an ability
+       ↳ Beast gains 1 weakness
+  5. Player 1 passes
+  6. Player 2 plays Carbonite Chamber #2 on Player 2's base (cost 1)
+  7. Player 1 passes
+  8. Player 2 uses Carbonite Chamber #2
+       ↳ Carbonite Chamber #2 is defeated by Carbonite Chamber #2
+       ↳ Player 2: Carbonite Chamber #2 — Beast does not ready during this regroup phase on Beast (delayed)
+  9. Player 1 passes
+ 10. Player 2 passes
+ ── regroup ──
+       ↳ Effect from Carbonite Chamber ends (it resolved)
+       ↳ Effect from Carbonite Chamber #2 ends (it resolved)
+       ↳ Player 2: Carbonite Chamber on Beast (for this phase)
+       ↳ Player 2: Carbonite Chamber #2 on Beast (for this phase)
+       ↳ Player 1 draws 2: Alliance X-Wing #3 · Landing Pad #2
+       ↳ Player 2 draws 2: Occupation Officer #3 · Torrent #4
+       ↳ Player 1 resources Alliance X-Wing #3
+       ↳ Player 2 resources Occupation Officer #3
+       ↳ Effect from Carbonite Chamber ends (expired)
+       ↳ Effect from Carbonite Chamber #2 ends (expired)
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 3                                                 initiative: Player 1 
+ P1  base 30/30   hand 3   resources 4/4   deck 5   leader ready
+      base: Beast Lair  ·  Landing Pad
+      ground: Beast 2/2 [exhausted, 1 weakness]
+ P2  base 30/30   hand 3   resources 4/4   deck 4   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+       ↳ Player 1's base uses an ability (granted by Beast Lair)
+       ↳ Player 1 discards Beast Lair #2
+       ↳ Player 1 creates Beast #2 in ground
+  1. Player 1 plays Migrate (cost 3)
+       ↳ Migrate uses an ability
+       ↳ Player 1 creates Beast #3 in ground
+  2. Player 2 plays Torrent #2 (cost 2)
+       ↳ Torrent #2 uses an ability
+       ↳ Beast gains 1 weakness
+  3. Player 1 passes
+  4. Player 2 plays Torrent #3 (cost 2)
+       ↳ Torrent #3 uses an ability
+       ↳ Beast gains 1 weakness
+       ↳ Beast loses 1 weakness
+       ↳ Beast loses 1 weakness
+       ↳ Beast loses 1 weakness
+       ↳ Beast is defeated
+  5. Player 1 passes
+  6. Player 2 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Migrate #2 · Verdant Fortress
+       ↳ Player 2 draws 2: Clone X Assassin · Venomous Wyyyshokk #2
+       ↳ Player 1 resources Landing Pad #2
+       ↳ Player 2 resources Clone X Assassin
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 4                                                 initiative: Player 1 
+ P1  base 30/30   hand 2   resources 5/5   deck 3   leader ready
+      base: Beast Lair  ·  Landing Pad
+      ground: Beast #2 3/3  ·  Beast #3 3/3
+ P2  base 30/30   hand 2   resources 5/5   deck 2   leader ready
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+       ↳ Player 1's base uses an ability (granted by Beast Lair)
+       ↳ Player 1 discards Migrate #2
+       ↳ Player 1 creates Beast #4 in ground
+  1. Player 1 plays Verdant Fortress on Player 1's base (cost 2)
+  2. Player 2 plays Torrent #4 (cost 2)
+       ↳ Torrent #4 uses an ability
+       ↳ Beast #2 gains 1 weakness
+  3. Player 1 attacks Player 2's base with Beast #2
+       ↳ 3 damage to Player 2's base — 27 HP left
+  4. Player 2 plays Venomous Wyyyshokk #2 to ground (cost 3)
+  5. Player 1 attacks Player 2's base with Beast #3
+       ↳ 4 damage to Player 2's base — 23 HP left
+  6. Player 2 passes
+  7. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 2: Verdant Fortress #2 · Alliance X-Wing #4
+       ↳ Player 2 draws 2: Clone X Assassin #2 · Occupation Officer #4
+       ↳ Player 1 resources Alliance X-Wing #4
+       ↳ Player 2 resources Clone X Assassin #2
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 5                                                 initiative: Player 1 
+ P1  base 30/30   hand 1   resources 6/6   deck 1   leader ready
+      base: Beast Lair  ·  Landing Pad  ·  Verdant Fortress
+      ground: Beast #2 2/2 [1 weakness]  ·  Beast #3 3/3  ·  Beast #4 3/3
+ P2  base 23/30   hand 1   resources 6/6   deck 0   leader ready
+      ground: Venomous Wyyyshokk #2 3/4
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+       ↳ Player 1's base uses an ability (granted by Beast Lair)
+       ↳ Player 1 discards Verdant Fortress #2
+       ↳ Player 1 creates Beast #5 in ground
+  1. Player 1 attacks Player 2's base with Beast #2
+       ↳ 3 damage to Player 2's base — 20 HP left
+  2. Player 2 plays Occupation Officer #4 to ground (cost 2)
+       ↳ Occupation Officer #4 uses an ability
+       ↳ Beast #2 gains 1 weakness
+  3. Player 1 attacks Player 2's base with Beast #3
+       ↳ 4 damage to Player 2's base — 16 HP left
+  4. Player 2 passes
+  5. Player 1 attacks Player 2's base with Beast #4
+       ↳ 4 damage to Player 2's base — 12 HP left
+  6. Player 2 passes
+  7. Player 1 passes
+ ── regroup ──
+       ↳ Player 1 draws 1: Battlefield Marine #3
+       ↳ Player 2 draws 0
+       ↳ 3 damage to Player 1's base — 27 HP left
+       ↳ 6 damage to Player 2's base — 6 HP left
+       ↳ Player 1 resources Battlefield Marine #3
+
+══════════════════════════════════════════════════════════════════════════════
+ ROUND 6                                                 initiative: Player 1 
+ P1  base 27/30   hand 0   resources 7/7   deck 0   leader ready
+      base: Beast Lair  ·  Landing Pad  ·  Verdant Fortress
+      ground: Beast #2 1/1 [2 weakness]  ·  Beast #3 3/3  ·  Beast #4 3/3  ·  Beast #5 3/3
+ P2  base 6/30   hand 0   resources 6/6   deck 0   leader ready
+      ground: Venomous Wyyyshokk #2 3/4  ·  Occupation Officer #4 3/2
+══════════════════════════════════════════════════════════════════════════════
+
+ ── action ──
+       ↳ *** Player 1 wins — Concession ***

@@ -177,6 +177,16 @@ export class Lobby {
     public matchmakingType: MatchmakingType;
     public gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
+
+    /**
+     * The decks a served game log revealed, by the player it was served to: each entry is a deck
+     * that game was played with, the player's own included (see `revealedDeckKey`). A file
+     * names both decklists and sideboards, which a best-of-three keeps hidden between its games,
+     * so while a seated player holds a log naming the current deck of another seated player,
+     * whoever that is, this lobby does not convert into one. Every serve adds; nothing is
+     * removed, since a downloaded file stays downloaded, and loading the same deck matches again.
+     */
+    private readonly decksRevealedTo = new Map<string, Set<string>>();
     private userLastActivity = new Map<string, Date>();
     private matchingCountdownText?: string;
     private matchingCountdownTask?: IScheduledTask;
@@ -824,6 +834,10 @@ export class Lobby {
 
         const user = this.getUser(socket.user.getId());
 
+        if (mode === RematchMode.Bo1ConvertToBo3 && this.refuseConversionAfterLogServed()) {
+            return;
+        }
+
         // Set the rematch request property (allow only one request at a time)
         if (!this.rematchRequest) {
             this.rematchRequest = {
@@ -859,8 +873,55 @@ export class Lobby {
         this.sendLobbyState();
     }
 
+    /**
+     * The cards a deck reveals: leaders, base, and main deck and sideboard counted
+     * together (moving a card between the two reveals nothing new), each card by its internal name
+     * so a reprint's set code is the same card. Order-independent, the two leaders of a
+     * two-leader deck included.
+     */
+    private static revealedDeckKey(deck: Deck): string {
+        const list = deck.getDecklist();
+        const counts = new Map<string, number>();
+        for (const card of [...list.deck, ...(list.sideboard ?? [])]) {
+            counts.set(card.internalName, (counts.get(card.internalName) ?? 0) + card.count);
+        }
+        const cards = [...counts.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([name, n]) => `${name}x${n}`);
+        const leaders = [list.leader?.internalName ?? '', list.secondLeader?.internalName ?? ''].sort();
+        return [...leaders, list.base?.internalName, ...cards].join(',');
+    }
+
+    /**
+     * True, after alerting the players, when a seated player holds a served game log that names
+     * another seated player's current deck (see `decksRevealedTo`). Only a pending conversion
+     * request is dropped; a pending rematch of another mode stays.
+     */
+    private refuseConversionAfterLogServed(): boolean {
+        const revealsASeatedDeck = this.users.some((viewer) => {
+            const revealed = this.decksRevealedTo.get(viewer.id);
+            return revealed != null && this.users.some((owner) =>
+                owner.id !== viewer.id && owner.deck != null && revealed.has(Lobby.revealedDeckKey(owner.deck)));
+        });
+        if (!revealsASeatedDeck) {
+            return false;
+        }
+        if (this.rematchRequest?.mode === RematchMode.Bo1ConvertToBo3) {
+            this.rematchRequest = null;
+        }
+        const alert = 'This match cannot become a best-of-three: a game log naming these decks has already been downloaded';
+        if (this.game) {
+            this.game.addAlert(AlertType.Warning, alert);
+        } else {
+            this.gameChat.addAlert(AlertType.Warning, alert);
+        }
+        this.sendLobbyState();
+        return true;
+    }
+
     private rematch() {
         const mode = this.rematchRequest?.mode;
+        if (mode === RematchMode.Bo1ConvertToBo3 && this.refuseConversionAfterLogServed()) {
+            return;
+        }
 
         // Clear the rematch request and reset the game.
         this.rematchRequest = null;
@@ -1621,6 +1682,7 @@ export class Lobby {
     /** Lobby methods a player's client may invoke by name. Everything else on Lobby is server-internal. */
     private static readonly allowedLobbyCommands = new Set([
         'concedeBo3',
+        'getGameLog',
         'muteChat',
         'proceedToNextBo3Game',
         'rematch',
@@ -2238,6 +2300,21 @@ export class Lobby {
     }
 
     /**
+     * True when no further game of this match can follow: always for a best-of-one, and for a
+     * best-of-three once a player has two wins or the set ended another way (concede, timeout).
+     * Read-only, unlike `isBo3SetComplete`.
+     */
+    private isMatchOver(): boolean {
+        if (this.winHistory.gamesToWinMode !== GamesToWinMode.BestOfThree) {
+            return true;
+        }
+        if (this.winHistory.setEndResult) {
+            return true;
+        }
+        return Object.values(this.countWinsPerPlayer(this.winHistory.winnerIdsInOrder)).some((wins) => wins >= 2);
+    }
+
+    /**
      * Checks if the Bo3 set is complete (a player has 2 wins).
      * If a player has won 2 games and setEndResult hasn't been set yet, it sets the WonTwoGames result.
      */
@@ -2695,5 +2772,93 @@ export class Lobby {
                 message: `An error occurred while processing your ${reportLabel}.`
             });
         }
+    }
+
+    public getGameLog(socket: any, callback: (data: { swuPgnFile?: string } | { error: string }) => void): void {
+        if (!this.game) {
+            if (typeof callback === 'function') {
+                callback({ error: 'No active game' });
+            }
+            return;
+        }
+
+        // Only the two people who played this game. A lobby outlives its game and its seats can
+        // change hands, so lobby membership alone is not enough.
+        if (!this.game.getPlayers().some((player) => player.id === socket.user.getId())) {
+            if (typeof callback === 'function') {
+                callback({ error: 'Only the players of this game can download its log' });
+            }
+            return;
+        }
+
+        // Only serve the game file after the game has ended: it carries both hands, deck
+        // order and the seed, none of which may reach a player mid-game.
+        // Gate on isEnded (state-backed via winnerNames), not finishedAt: finishedAt
+        // is set once and never reset, so after an undo-past-game-end the game is
+        // live again while finishedAt is still truthy — isEnded correctly flips back.
+        if (!this.game.isEnded) {
+            if (typeof callback === 'function') {
+                callback({ error: 'Game is still in progress' });
+            }
+            return;
+        }
+
+        // The file names both players' whole decklists and sideboards, which a best-of-three
+        // keeps hidden between games, so in a set it is served only once the set is over.
+        if (!this.isMatchOver()) {
+            if (typeof callback === 'function') {
+                callback({ error: 'The game log is available when the match ends' });
+            }
+            return;
+        }
+
+        if (this.game.isSwuPgnWithheld) {
+            if (typeof callback === 'function') {
+                callback({ error: 'The game log is no longer available for this game' });
+            }
+            return;
+        }
+
+        // The single-file `.swupgn` (header + decks + setup + events) is the sole
+        // served game-log format.
+        //
+        // TODO: only the game attached to the lobby is served. In a best-of-three that is the last
+        // game: games 1 and 2 are generated at their end and dropped when the next game replaces
+        // `this.game`, and a rematch drops the finished game's file the same way. Keeping each
+        // game's file and serving them by game number needs a matching client change.
+        let swuPgnFile: string;
+        try {
+            swuPgnFile = this.game.getCachedSwuPgn();
+        } catch (e) {
+            // Report the failure instead of calling back with an undefined file: a
+            // `{ swuPgnFile: undefined }` reply is success-shaped, so the client cannot
+            // tell "generation failed" from "nothing to serve".
+            logger.error(`Error generating SWU-PGN/1.0 file: ${e}`);
+            if (typeof callback === 'function') {
+                callback({ error: 'Failed to generate game log' });
+            }
+            return;
+        }
+
+        // Without an acknowledgement callback nothing reaches the player, so nothing is served
+        // and the game stays open to undo.
+        if (typeof callback !== 'function') {
+            return;
+        }
+
+        // Mark before replying: the file is on its way out, and the game may be reopened by
+        // an undo past game end (see Game.markSwuPgnServed).
+        this.game.markSwuPgnServed();
+        const requesterId = socket.user.getId();
+        const revealed = this.decksRevealedTo.get(requesterId) ?? new Set<string>();
+        // Every deck the file names, from the game's players, not the lobby's: one who left is
+        // still named in the file, and another player may load the requester's own deck later.
+        for (const player of this.game.getPlayers()) {
+            if (player.lobbyDeck) {
+                revealed.add(Lobby.revealedDeckKey(player.lobbyDeck));
+            }
+        }
+        this.decksRevealedTo.set(requesterId, revealed);
+        callback({ swuPgnFile });
     }
 }

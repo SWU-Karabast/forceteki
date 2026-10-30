@@ -13,12 +13,21 @@ export interface ITriggeredAbilityContextProperties extends IAbilityContextPrope
      * rather than being naturally triggered by a game event through the normal event handler flow.
      */
     retriggeredByAbility?: boolean;
+
+    /**
+     * The card whose ability made the player use this one (UseWhenDefeatedSystem and friends).
+     * Recorder-only (SWU-PGN `usedBy`); nothing in the game reads it.
+     */
+    retriggeredBy?: Card;
 }
 
 export class TriggeredAbilityContext<TSource extends Card = Card> extends AbilityContext<TSource> {
     public readonly event: any;
     public declare readonly ability: TriggeredAbilityBase;
     public readonly retriggeredByAbility: boolean;
+
+    /** See {@link ITriggeredAbilityContextProperties.retriggeredBy}. Recorder-only. */
+    public retriggeredBy?: Card;
 
     private _overrideTitle: string = null;
 
@@ -31,6 +40,7 @@ export class TriggeredAbilityContext<TSource extends Card = Card> extends Abilit
         this.event = properties.event;
         this._overrideTitle = properties.overrideTitle;
         this.retriggeredByAbility = properties.retriggeredByAbility || false;
+        this.retriggeredBy = properties.retriggeredBy;
     }
 
     public setOverrideTitle(title: string) {
@@ -47,7 +57,7 @@ export class TriggeredAbilityContext<TSource extends Card = Card> extends Abilit
     }
 
     public override getProps() {
-        return Object.assign(super.getProps(), { event: this.event, overrideTitle: this.overrideTitle, retriggeredByAbility: this.retriggeredByAbility });
+        return Object.assign(super.getProps(), { event: this.event, overrideTitle: this.overrideTitle, retriggeredByAbility: this.retriggeredByAbility, retriggeredBy: this.retriggeredBy });
     }
 
     public cancel() {

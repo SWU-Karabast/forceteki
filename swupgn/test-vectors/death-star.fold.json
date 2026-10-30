@@ -1,0 +1,290 @@
+{
+  "round": 8,
+  "phase": "regroup",
+  "initiative": 1,
+  "players": {
+    "1": {
+      "seat": 1,
+      "baseHp": 30,
+      "baseMaxHp": 30,
+      "handSize": 0,
+      "hand": [],
+      "resourcesReady": 7,
+      "resourcesExhausted": 2,
+      "resources": [
+        "HMW#059",
+        "IC27#097",
+        "HMW#087",
+        "IC27#097:2",
+        "IC27#097:3",
+        "IC27#097:4",
+        "IC27#097:5",
+        "HMW#059:3",
+        "HMW#059:4"
+      ],
+      "foreignResources": [],
+      "baseUpgrades": [],
+      "baseCaptured": [],
+      "credits": 0,
+      "hasForce": false,
+      "discard": [
+        "HMW#242"
+      ],
+      "cards": [
+        {
+          "id": "HMW#087:2",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 4,
+          "keywords": [],
+          "traits": [
+            "creature"
+          ]
+        },
+        {
+          "id": "HMW#242:2",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 2,
+          "keywords": [],
+          "traits": [
+            "imperial"
+          ]
+        },
+        {
+          "id": "HMW#242:3",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 2,
+          "keywords": [],
+          "traits": [
+            "imperial"
+          ]
+        },
+        {
+          "id": "HMW#087:3",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 4,
+          "keywords": [],
+          "traits": [
+            "creature"
+          ]
+        },
+        {
+          "id": "HMW#242:4",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 2,
+          "keywords": [],
+          "traits": [
+            "imperial"
+          ]
+        },
+        {
+          "id": "HMW#059:2",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 1,
+          "hp": 3,
+          "keywords": [],
+          "traits": [
+            "clone",
+            "imperial",
+            "trooper"
+          ]
+        },
+        {
+          "id": "IC27#097:6",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 1,
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
+        },
+        {
+          "id": "IC27#097:7",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 1,
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
+        },
+        {
+          "id": "IC27#097:8",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 1,
+          "keywords": [],
+          "traits": [
+            "imperial",
+            "trooper"
+          ]
+        },
+        {
+          "id": "HMW#004",
+          "zone": "space",
+          "damage": 0,
+          "exhausted": false,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 2,
+          "hp": 12,
+          "keywords": [],
+          "traits": [
+            "capital ship",
+            "imperial",
+            "vehicle"
+          ]
+        },
+        {
+          "id": "HMW#242:5",
+          "zone": "ground",
+          "damage": 0,
+          "exhausted": true,
+          "upgrades": [],
+          "shields": 0,
+          "experience": 0,
+          "statusTokens": {},
+          "captured": [],
+          "power": 3,
+          "hp": 2,
+          "keywords": [],
+          "traits": [
+            "imperial"
+          ]
+        }
+      ],
+      "deckSize": 2,
+      "leader": {
+        "id": "HMW#004",
+        "deployed": true,
+        "exhausted": false,
+        "epicActionUsed": true
+      },
+      "abilityUses": []
+    },
+    "2": {
+      "seat": 2,
+      "baseHp": 9,
+      "baseMaxHp": 30,
+      "handSize": 11,
+      "hand": [
+        "LAW#253:9",
+        "LAW#253:10",
+        "LAW#253:11",
+        "LAW#253:12",
+        "LAW#253:13",
+        "LAW#253:14",
+        "LAW#253:15",
+        "LAW#253:16",
+        "LAW#253:17",
+        "SOR#095:2",
+        "LAW#253:18"
+      ],
+      "resourcesReady": 9,
+      "resourcesExhausted": 0,
+      "resources": [
+        "SOR#095",
+        "LAW#253",
+        "LAW#253:2",
+        "LAW#253:3",
+        "LAW#253:4",
+        "LAW#253:5",
+        "LAW#253:6",
+        "LAW#253:7",
+        "LAW#253:8"
+      ],
+      "foreignResources": [],
+      "baseUpgrades": [],
+      "baseCaptured": [],
+      "credits": 0,
+      "hasForce": false,
+      "discard": [],
+      "cards": [],
+      "deckSize": 2,
+      "leader": {
+        "id": "SOR#005",
+        "deployed": false,
+        "exhausted": false,
+        "epicActionUsed": false
+      },
+      "abilityUses": [],
+      "baseDefeated": true
+    }
+  },
+  "initiativeTaken": false,
+  "active": 1,
+  "effects": []
+}
