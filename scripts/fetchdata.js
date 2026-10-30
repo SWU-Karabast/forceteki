@@ -3,7 +3,6 @@ const { default: axios } = require('axios');
 const { default: axiosRetry } = require('axios-retry');
 const { Agent } = require('https');
 const fs = require('fs/promises');
-const mkdirp = require('mkdirp');
 const path = require('path');
 const cliProgress = require('cli-progress');
 const { addMockCards } = require('./mockdata');
@@ -19,6 +18,10 @@ const { populateBaseTraits } = require('./baseTraits');
 // update card-data-version.txt to force a cache bust if needed.
 
 const pathToJSON = path.join(__dirname, '../test/json/');
+const cacheVersion = 1;
+const fullRefreshInterval = 7 * 24 * 60 * 60 * 1000;
+// The CDN caches responses for an hour. Overlap syncs to include updates hidden by an older response.
+const syncOverlap = 2 * 60 * 60 * 1000;
 
 axiosRetry(axios, {
     retries: 3,
@@ -419,28 +422,113 @@ function filterValues(card) {
 
         return filteredObj;
     } catch (error) {
-        console.error('WARNING: error parsing card data, card omitted');
-        console.error(error);
-        console.error('\n\n');
+        throw new Error(`Error parsing card data for API record ${card.id}`, { cause: error });
+    }
+}
+
+function isUsableCache(cache, now) {
+    return cache?.version === cacheVersion &&
+      Number.isFinite(cache.syncedAt) && cache.syncedAt <= now &&
+      Number.isFinite(cache.fullRefreshAt) && cache.fullRefreshAt <= cache.syncedAt &&
+      Array.isArray(cache.cards) && cache.cards.length > 0 &&
+      cache.cards.every((card) => Number.isInteger(card?.id) &&
+        Number.isFinite(Date.parse(card.attributes?.updatedAt)) &&
+        card.attributes.variantOf?.data === null &&
+        typeof card.attributes.expansion?.data?.attributes?.code === 'string');
+}
+
+async function readCardCache(cachePath) {
+    try {
+        return JSON.parse(await fs.readFile(cachePath, 'utf8'));
+    } catch (error) {
+        if (error.code !== 'ENOENT' && !(error instanceof SyntaxError)) {
+            throw error;
+        }
         return null;
     }
 }
 
-function getCardData(page, progressBar) {
-    return axios.get('https://admin.starwarsunlimited.com/api/cards?pagination[page]=' + page)
-        .then((res) => res.data.data)
-        .then((cards) => {
-            mkdirp.sync(pathToJSON);
-            mkdirp.sync(path.join(pathToJSON, 'Card'));
-            progressBar.increment();
-            return Promise.all(
-                cards.map((card) => filterValues(card))
-            );
-        })
-        .catch((error) => {
-            console.error(error);
-            throw new Error(`Request error retrieving data: ${error}`);
-        });
+function requestCardPage(params) {
+    return axios.get(`https://admin.starwarsunlimited.com/api/cards?${new URLSearchParams(params)}`, {
+        timeout: 60000,
+    });
+}
+
+async function syncCardData({ cache = null, force = false, now = Date.now(), request = requestCardPage, onProgress = () => {} } = {}) {
+    const fullRefresh = force || !isUsableCache(cache, now) || now - cache.fullRefreshAt >= fullRefreshInterval;
+    const params = { 'pagination[pageSize]': '100', 'sort[0]': 'id:asc' };
+    if (fullRefresh) {
+        params['filters[variantOf][id][$null]'] = 'true';
+    } else {
+        // Do not filter variants here: a previously cached card may have become a variant.
+        params['filters[updatedAt][$gte]'] = new Date(cache.syncedAt - syncOverlap).toISOString();
+    }
+
+    const first = await request({ ...params, 'pagination[page]': '1' });
+    const pagination = first.data?.meta?.pagination;
+    if (!pagination || !Number.isInteger(pagination.pageCount) || pagination.pageCount < 0 ||
+      !Number.isInteger(pagination.total) || pagination.total < 0 || !Array.isArray(first.data.data)) {
+        throw new Error('Invalid card API pagination response');
+    }
+    const fetched = [...first.data.data];
+    let completed = 1;
+    onProgress(completed, Math.max(1, pagination.pageCount));
+    for (let page = 2; page <= pagination.pageCount; page += 8) {
+        const pages = Array.from({ length: Math.min(8, pagination.pageCount - page + 1) }, (_, index) => page + index);
+        const results = await Promise.all(pages.map(async (pageNumber) => {
+            const response = await request({ ...params, 'pagination[page]': String(pageNumber) });
+            if (response.data?.meta?.pagination?.total !== pagination.total ||
+              response.data.meta.pagination.pageCount !== pagination.pageCount || !Array.isArray(response.data.data)) {
+                throw new Error('Card catalog changed during download; rerun get-cards');
+            }
+            onProgress(++completed, pagination.pageCount);
+            return response.data.data;
+        }));
+        fetched.push(...results.flat());
+    }
+    if (fetched.length !== pagination.total || new Set(fetched.map((card) => card.id)).size !== fetched.length) {
+        throw new Error('Incomplete or duplicate card API results; rerun get-cards');
+    }
+    if (fullRefresh && fetched.length === 0) {
+        throw new Error('Card API returned an empty catalog; keeping existing card data');
+    }
+
+    const cardsById = new Map((fullRefresh ? [] : cache.cards).map((card) => [card.id, card]));
+    for (const card of fetched) {
+        if (!Number.isInteger(card.id) || !Number.isFinite(Date.parse(card.attributes?.updatedAt)) ||
+          !card.attributes.variantOf || !card.attributes.expansion?.data?.attributes?.code) {
+            throw new Error('Invalid card API record');
+        }
+        const existing = cardsById.get(card.id);
+        if (existing && Date.parse(existing.attributes.updatedAt) > Date.parse(card.attributes.updatedAt)) {
+            // A stale CDN response must not overwrite a newer record already in the cache.
+            continue;
+        }
+        if (card.attributes.variantOf.data !== null || isPromoSetCode(card.attributes.expansion.data.attributes.code)) {
+            cardsById.delete(card.id);
+            continue;
+        }
+        const attributes = { ...card.attributes };
+        // Keep source game data, not the large image/variant payloads that the API always populates.
+        for (const key of ['artFront', 'artBack', 'artThumbnail', 'variants', 'localizations']) {
+            delete attributes[key];
+        }
+        cardsById.set(card.id, { id: card.id, attributes });
+    }
+
+    // Use the response's age as well as the local start time, so cached responses cannot advance the cursor too far.
+    const responseTime = Date.parse(first.headers?.date);
+    const syncedAt = Number.isFinite(responseTime) ? Math.min(now, responseTime) : now;
+    return {
+        cache: {
+            version: cacheVersion,
+            syncedAt,
+            fullRefreshAt: fullRefresh ? syncedAt : cache.fullRefreshAt,
+            cards: [...cardsById.values()].sort((a, b) => a.id - b.id),
+        },
+        fullRefresh,
+        fetchedCount: fetched.length,
+    };
 }
 
 function buildCardLists(cards) {
@@ -539,25 +627,34 @@ function buildCardLists(cards) {
     return { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames };
 }
 
-async function main() {
-    axios.defaults.httpAgent = new Agent({
-        maxSockets: 8,
-    });
+async function main({ outputDir = pathToJSON, force = false, request = requestCardPage } = {}) {
+    const startedAt = Date.now();
     axios.defaults.httpsAgent = new Agent({
         maxSockets: 8,
     });
 
-    let pageData = await axios.get('https://admin.starwarsunlimited.com/api/cards');
-    let totalPageCount = pageData.data.meta.pagination.pageCount;
-
-    console.log('downloading card definitions');
+    const cachePath = path.join(outputDir, '_sourceCardCache.json');
+    const cache = await readCardCache(cachePath);
+    console.log('checking for card updates (full refresh on first run, weekly, or with --force)');
     const downloadProgressBar = new cliProgress.SingleBar({ format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}' });
-    downloadProgressBar.start(totalPageCount, 0);
+    downloadProgressBar.start(1, 0);
+    let result;
+    try {
+        result = await syncCardData({ cache, force, request, onProgress: (value, total) => {
+            downloadProgressBar.setTotal(total);
+            downloadProgressBar.update(value);
+            if (!process.stdout.isTTY && (value === 1 || value % 8 === 0 || value === total)) {
+                console.log(`Downloaded ${value}/${total} API pages`);
+            }
+        } });
+    } finally {
+        downloadProgressBar.stop();
+    }
+    console.log(`${result.fullRefresh ? 'Full refresh' : 'Incremental refresh'}: fetched ${result.fetchedCount} records; ${result.cache.cards.length} cards in source cache`);
 
-    let downloadedCards = (await Promise.all([...Array(totalPageCount).keys()]
-        .map((pageNumber) => getCardData(pageNumber + 1, downloadProgressBar))))
-        .flat()
-        .filter((n) => n); // remove nulls
+    // Transform a copy: fixes and mock data must never mutate the cached API source records.
+    const downloadedCards = structuredClone(result.cache.cards).map(filterValues)
+        .filter((card) => card);
 
     const tokenCards = [];
     const downloadedNonTokenCards = [];
@@ -572,8 +669,6 @@ async function main() {
     // cards = cards.concat([cunningForceBase, aggressionForceBase]);
     let { mockCardNames, cards } = addMockCards(downloadedNonTokenCards);
     cards = cards.concat(tokenCards);
-
-    downloadProgressBar.stop();
 
     const { uniqueCards, cardMap, allNonLeaderCardTitles, playableCardTitles, setCodeMap, leaderNames } = buildCardLists(cards);
 
@@ -593,22 +688,44 @@ async function main() {
     const fileWriteProgressBar = new cliProgress.SingleBar({ format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}' });
     fileWriteProgressBar.start(uniqueCards.length, 0);
 
-    await Promise.all(uniqueCards.map((card) => {
-        fs.writeFile(path.join(pathToJSON, `Card/${card.internalName}.json`), JSON.stringify(card, null, 2));
+    const cardDir = path.join(outputDir, 'Card');
+    await fs.mkdir(cardDir, { recursive: true });
+    // A failed write must not leave a hash claiming that the generated data is complete.
+    await fs.rm(path.join(outputDir, 'card-data-hash.txt'), { force: true });
+    await Promise.all(uniqueCards.map(async (card) => {
+        await fs.writeFile(path.join(cardDir, `${card.internalName}.json`), JSON.stringify(card, null, 2));
         fileWriteProgressBar.increment();
     }));
 
     fileWriteProgressBar.stop();
 
-    fs.writeFile(path.join(pathToJSON, '_cardMap.json'), JSON.stringify(cardMap, null, 2));
-    fs.writeFile(path.join(pathToJSON, '_allNonLeaderCardTitles.json'), JSON.stringify(allNonLeaderCardTitles, null, 2));
-    fs.writeFile(path.join(pathToJSON, '_playableCardTitles.json'), JSON.stringify(playableCardTitles, null, 2));
-    fs.writeFile(path.join(pathToJSON, '_setCodeMap.json'), JSON.stringify(setCodeMap, null, 2));
-    fs.writeFile(path.join(pathToJSON, '_mockCardNames.json'), JSON.stringify(mockCardNames, null, 2));
-    fs.writeFile(path.join(pathToJSON, '_leaderNames.json'), JSON.stringify(leaderNames, null, 2));
-    fs.writeFile(path.join(pathToJSON, 'card-data-hash.txt'), computeCardDataHash());
+    const filenames = new Set(uniqueCards.map((card) => `${card.internalName}.json`));
+    for (const filename of await fs.readdir(cardDir)) {
+        if (filename.endsWith('.json') && !filenames.has(filename)) {
+            await fs.unlink(path.join(cardDir, filename));
+        }
+    }
+    const lists = { _cardMap: cardMap, _allNonLeaderCardTitles: allNonLeaderCardTitles, _playableCardTitles: playableCardTitles,
+        _setCodeMap: setCodeMap, _mockCardNames: mockCardNames, _leaderNames: leaderNames };
+    await Promise.all(Object.entries(lists).map(([name, value]) => fs.writeFile(path.join(outputDir, `${name}.json`), JSON.stringify(value, null, 2))));
+    await fs.writeFile(`${cachePath}.tmp`, JSON.stringify(result.cache));
+    await fs.rename(`${cachePath}.tmp`, cachePath);
+    await fs.writeFile(path.join(outputDir, 'card-data-hash.txt'), computeCardDataHash());
 
-    console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
+    console.log(`\n${uniqueCards.length} card definition files generated in ${outputDir} in ${((Date.now() - startedAt) / 1000).toFixed(1)}s`);
 }
 
-main();
+if (require.main === module) {
+    const args = process.argv.slice(2);
+    if (args.some((arg) => arg !== '--force')) {
+        console.error('Usage: npm run get-cards -- [--force]');
+        process.exitCode = 1;
+    } else {
+        main({ force: args.includes('--force') }).catch((error) => {
+            console.error(error);
+            process.exitCode = 1;
+        });
+    }
+}
+
+module.exports = { syncCardData, main };
