@@ -4,47 +4,185 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-Forceteki is the fan-made rules engine for the card game Star Wars Unlimited (SWU), ported from the Ringteki (L5R) engine.
-It is a Node 22 / TypeScript server (Express + Socket.IO); the web client lives in a separate repo.
-The canonical contributor docs are the [GitHub wiki](https://github.com/SWU-Karabast/forceteki/wiki).
-The files under `docs/*.md` are marked deprecated and still show the older `this.addXxx(...)` and `this.setupTest(...)` APIs; when they disagree with the code, the code wins, so model new work on a recently added card and its spec rather than on those docs.
+Forceteki is the **server-side** implementation of the Star Wars Unlimited rules engine plus the node server (lobbies, matchmaking, decks, accounts) that hosts games. The web client lives in a separate repo (forceteki-client). The architecture is inherited from Ringteki/Throneteki (L5R), so some terminology and patterns come from there.
+
+Node 22.x. TypeScript, CommonJS, compiled with `tsc` into `build/` and run from there — nothing runs from source.
 
 ## Commands
 
 ```bash
 npm install
-npm run get-cards        # downloads card JSON into gitignored test/json/; required before any test run
-npm run build            # tsc -> build/server
-npm run dev              # build-dev + start the game node (auto-creates .env with local defaults)
-npm run lint             # eslint --quiet; lint-fix / lint-verbose also exist
-npm run validate-cards   # card file naming + spec coverage check (runs in CI)
-npm test                 # full build then jasmine, serial
-npm run test-parallel    # 4 workers, random order
-npm run test-parallel-undo   # same, with ENABLE_UNDO_ALL_TESTS=true
-npm run test-fast        # skips the server tsc; inner-loop only
+npm run get-cards          # downloads card data into test/json/ (gitignored); required before build/test
+npm run build              # tsc -> build/server
+npm run dev                # builds (server + tests) and starts the game node on port 9500
+npm run lint               # eslint --quiet   (lint-fix / lint-verbose also available)
+npm run validate-cards     # structural checks on card impls + their test files (CI gate)
+npm run validate-specs     # every spec sits in the jasmine group (game / non-game) its harness belongs to (CI gate)
+npm test                   # full build + whole jasmine suite
+npm run test-fast          # skips the full rebuild path; still recompiles server+test via test/tsconfig.json
+npm run test-nongame       # fast build + only the connection-layer / services / utils specs, serial (seconds)
+npm run test-parallel      # 4 workers; on failure it may only name the suite — re-run with `npm test` for details
+npm run test-undo          # runs every test twice with a snapshot rollback in between (see Undo below)
 ```
 
-Running one spec: jasmine executes the compiled JS under `build/test`, so pass a glob on the `.js` name from the repo root.
+### Running a single test
+
+Jasmine's positional file argument is resolved **relative to cwd against the compiled output**, so it must be a `build/test/...` path ending in `.spec.js`, not the `test/...` source path:
 
 ```bash
-npm test -- "**/FettsFirespraySettlingTheScore.spec.js"
+npm run test-fast build/test/server/cards/01_SOR/bases/Tarkintown.spec.js
 ```
+
+(The README's `npm test test/server/.../X.spec.js` form is stale — all specs are `.ts` now and that glob matches nothing, silently reporting "No specs found".)
+
+To filter by describe/it name instead, re-run jasmine alone against the existing build: `npm run jasmine -- --filter="Tarkintown"`. (A `--filter=` passed to `npm test`/`npm run test-fast` is swallowed by npm as a config flag and silently runs the whole suite; only positional paths get forwarded.)
+
+If you hit `Importing card class with repeated id!`, delete `build/` and rebuild — stale card output.
+
+### Other environment failures
+
+- A spec that fails on a change you just made under `test/` when the source looks correct: `npm run build` is server-only and never writes `build/test/`, so pairing it with a direct jasmine invocation runs the previous compile of your test-side edit. The `npm test` / `test-parallel` / `test-parallel-undo` / `test-fast` scripts compile the test tree too. When driving jasmine directly, rebuild with `npx tsc -p ./test/tsconfig.json` first.
+- `Card data hash file test\json\card-data-hash.txt not found` or a hash mismatch means `test/json` is stale; run `npm run get-cards`. It downloads from FFG's API and hangs with no output when outbound network is blocked, so run it outside a sandbox.
+- `TypeError: Class extends value undefined is not a constructor` from a bare `npx jasmine build/test/<file>.spec.js` is a module-registration-order failure: loading a spec by path skips the configured helpers. Go through the npm scripts instead.
+- `node scripts/build-test.js` invoked directly fails when `concurrently` is not resolvable outside an `npm run` context; go through the npm scripts.
+- Never run two test or build commands at once: they share `build/` and corrupt each other silently.
+
+### CI gates (`.github/workflows/pullrequest.yml`)
+
+`npx eslint --quiet`, `npm run validate-cards`, `npm run validate-specs`, `npm run test-parallel`, `npm run test-parallel-undo`.
+
+## Architecture
+
+### Layers
+
+- `server/gamenode/` — express + socket.io entrypoint. `GameServer.ts` owns the HTTP API (`/api/*`), auth middleware, and the socket layer; `Lobby.ts` owns one lobby/game and routes player input into the engine. `QueueHandler`/`MatchmakingRules` handle matchmaking.
+- `server/game/core/` — the rules engine. `Game.ts` is the root object; `GamePipeline.ts` runs a stack of nested windows/steps (`gameSteps/`, `AbilityResolver`, `ActionWindow`, phase steps, prompts). When user input is needed the pipeline unwinds to the caller and resumes on the next click.
+- `server/game/cards/` — ~2000 card implementations, one class per card, grouped by set (`01_SOR`, `02_SHD`, …) then card type.
+- `server/services/`, `server/utils/` — DynamoDB, deck fetching/validation, stats, cosmetics, profanity filter, moderation.
+
+### Action & trigger flow
+
+Action phase: `ActionWindow` alternates players → a player selects an ability → an `AbilityResolver` is queued in `GamePipeline` → costs checked → targets chosen → costs paid → `GameSystem.resolve()` executes → `GameEvent`s fire. Events are collected into an `EventWindow`; after every event in a window resolves, a `TriggeredAbilityWindow` checks each registered `when` condition and queues the matching triggered abilities. Abilities triggered while resolving another trigger are nested and resolve before earlier-queued ones.
+
+### Card implementations
+
+`server/game/cards/Index.ts` recursively `require`s every built card file and registers it by implementation id. Consequences:
+
+- Every card file must `export default class <Name>` where `<Name>` matches the filename (PascalCase), and must override `getImplementationId()` returning the `id`/`internalName` from `server/utils/cardData/_cardMap.json` (generated by `get-cards`).
+- Directories named `common/` are skipped by the loader and hold abstract/shared base classes.
+- Base class per type: `NonLeaderUnitCard`, `EventCard`, `UpgradeCard`, `BaseCard`, `LeaderUnitCard` (leaders must extend `LeaderUnitCard`, never `LeaderCard`).
+
+Abilities are declared in `setupCardAbilities(registrar, AbilityHelper)` — both are **injected parameters**, not `this.*` methods or a module import:
+
+```ts
+public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
+    registrar.addActionAbility({ title: '…', cost: AbilityHelper.costs.exhaustSelf(), targetResolver: { … } });
+}
+```
+
+Leaders instead implement `setupLeaderSideAbilities` and `setupLeaderUnitSideAbilities` (both required). If both sides share an ability, build the props from a **method call**, never a shared field — the props object is mutated during setup. Cards needing "X this phase" queries declare watchers in `setupStateWatchers(registrar, AbilityHelper)` (see `server/game/stateWatchers/`). Keywords are parsed from card data automatically; only implement them when conditionally granted.
+
+The building blocks reachable from `AbilityHelper`:
+
+- `immediateEffects.*` → `GameSystem` subclasses in `server/game/gameSystems/` (registry: `GameSystemLibrary.ts`). Each has `canAffect()` (called repeatedly; must return true *every* time for the target to be legal) and `eventHandler()` (mutates state). This is the first place to debug an ability that triggers but does nothing.
+- `ongoingEffects.*` → `server/game/ongoingEffects/OngoingEffectLibrary.ts`, used by constant abilities; application/removal as cards enter and leave play is automatic.
+- `costs.*` → `server/game/costs/CostLibrary.ts`.
+
+### State tracking, snapshots, and undo
+
+Every engine object extends `GameObjectBase` and must carry `@registerState()` / `@registerStateBase()` — the constructor throws otherwise. Card implementation classes are the exception: the loader wraps them via `buildAutoInitializingCardClass`, and adding the decorator to one throws. Helper game objects declared next to a card (a custom ability or play action class) still need it. Mutable state lives behind accessor decorators from `core/GameObjectUtils.ts` (`@statePrimitive`, `@stateRef`, `@stateRefArray`, `@stateRefMap`, `@stateRefSet`, `@stateRefRecord`, `@stateValue`) so the snapshot system in `core/snapshot/` can copy and roll back the whole game. Plain fields are invisible to undo. `@stateRefArray(false)` accessors must be typed `IStateArray<T>` (enforced by a custom lint rule).
+
+`npm run test-undo` exercises this: each test runs, rolls back to its starting snapshot, and runs again. Files under `test/scenarios/undo/` are skipped in that mode since they already cover it.
+
+### Card data pipeline
+
+`npm run get-cards` (`scripts/fetchdata.js`) downloads FFG card JSON into `test/json/` (gitignored) and generates `_cardMap.json` and friends. Cards FFG hasn't published yet are hand-defined in `scripts/mockdata.js`. `card-data-version.txt` + `fetchdata.js` + `mockdata.js` hash into `card-data-hash.txt`, which busts the CI cache and is checked at server startup — bump `card-data-version.txt` to force a refresh.
+
+## Testing
+
+Specs live at `test/server/cards/<set>/<type>/<CardName>.spec.ts`, mirroring the impl path. `npm run validate-cards` enforces that mirror: every card impl needs a matching `.spec.ts` unless it is under `tokens/`, extends a class from a `common/` module, or carries a `// @no-test-required: <reason>` marker (a reason is mandatory, and a stale marker alongside an existing test is also a violation).
+
+Tests use the custom integration harness (`test/helpers/`), not bare jasmine:
+
+```ts
+describe('Tarkintown', function() {
+    integration(function(contextRef) {
+        it('should deal 3 damage…', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { base: 'tarkintown' },
+                player2: { groundArena: [{ card: 'frontier-atrt', damage: 1 }, 'wampa'] },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.tarkintown);
+            expect(context.player1).toBeAbleToSelectExactly([context.frontierAtrt]);
+        });
+    });
+});
+```
+
+- Cards are named by **internal name** (`'luke-skywalker#faithful-friend'`) in setup and reached as camelCase props on `context` (`context.lukeSkywalker`, `context.lukeSkywalkerFaithfulFriend`). `p1Base`/`p2Base`/`p1Leader`/`p2Leader` are always generated. Duplicate identical names generate no prop — use `player.findCardByName()` / `findCardsByName()`.
+- Only one `setupTestAsync` per test case (harness throws if a `beforeEach` and the body both call it).
+- Custom matchers in `test/helpers/CustomMatchers.js`: `toBeAbleToSelectExactly`, `toHaveExactPromptButtons`, `toBeInZone`, `toHaveExactUpgradeNames`, `toHaveAvailableActionWhenClickedBy`, `toBeActivePlayer`, `toHavePassAbilityButton`, etc. Prefer these over raw property assertions — several also validate game-state consistency.
+- Engine-level scenarios (costs, timing windows, search, undo, …) live under `test/scenarios/`.
+
+### Writing a server spec (the HTTP / socket connection layer)
+
+Specs for `server/gamenode/`, `server/services/`, `server/utils/` and `server/scripts/` are the **non-game** group (`jasmine-nongame.json`); everything else is the **game** group (`jasmine-game.json`). `npm run validate-specs` fails CI if a spec's harness does not match its group, so an `integration()` spec cannot sit in a non-game directory or the reverse. `npm run test-nongame` runs the non-game group in seconds. The plan, the backlog and the list of known findings are in `long-term-project-docs/game-node-test-suite.md`.
+
+Pick the harness by what the spec drives: `integration()` for the rules engine; `serverIntegration()` (`test/helpers/server/`) for the connection layer — it builds a real `GameServer` in-process on a virtual clock, and `harness.createClient()` makes the same HTTP calls and socket handshake `forceteki-client` does; plain jasmine with spies only for a pure unit (as `UserFactory.spec.ts` does).
+
+Server specs live in `test/server/gamenode/<area>/`, grouped by what they are about rather than by the production file they cover; put a new spec in its area, never directly under `gamenode/`:
+
+- `auth/authentication/` — who the caller is: tokens and cookies, sign-in and account creation, anonymous identity, service secrets.
+- `auth/authorization/` — what a known caller may do: the route manifest, roles, anonymous-versus-logged-in limits, chat permissions.
+- `lobby/` — creating and joining lobbies, connection management, reports, the socket command allowlist, test game setups.
+- `matchmaking/` — queues and matchmaking.
+- `account/` — a logged-in user's own data routes (preferences now; decks, settings and cosmetics as they get specs).
+- `harness/` — specs of the test tooling itself (the harness, the fake DB, the socket.io drift guard, the scheduler), not of the server.
+
+Use the seams the harness provides rather than reaching into the server:
+
+- **Time:** `harness.clock.advanceAsync(ms)`. Never sleep in real time. JWT expiry is the exception: `jsonwebtoken` reads the *wall* clock, so to test an expired token mint one that is already expired (`AuthTokens.badSessionTokens`).
+- **DynamoDB:** `serverIntegration(defs, { database: true })` (or a seeding function, which runs before the server starts - roles, settings and mod actions are read at startup and then hourly). Seed and read through `harness.db` (`FakeDynamoDbService`); the real role, settings, cosmetics and mod-action services run over it. Extend the fake rather than writing an inline one. A production-like server (`env: { ENVIRONMENT: 'production' }`) needs a database.
+- **Logged-in users:** `harness.createAccountClient(account)` signs in the way the FE's first request of a session does, so the server derives the profile from storage; use it for anything the server owns (mutes, preferences, roles). `createClient({ authenticated: true })` is the FE after its first sync, which presents its own copy of the profile rather than the stored one, so do not use it to seed server-owned state.
+- **Stats sites:** `harness.statsHttpClient` (`FakeHttpClient`). **Env:** `{ env: { ... } }`, restored on shutdown. **Raw requests:** `harness.requestAsync(method, path, { cookie, headers, body })`.
+- **Routes:** every HTTP route has a row in `test/server/gamenode/auth/authorization/RouteAuthManifest.ts`; adding a route fails `RouteAuthManifest.spec.ts` until you say who may call it.
+
+Do not cast to `any` to reach into `GameServer` or `Lobby` (ESLint errors on `as any` in `test/server/gamenode` and `test/helpers/server`, but it does not catch bracket access or `as unknown as`, which are the same smell, so keep them out in review) — add a seam to the server or the harness instead, and if a reach cannot be avoided yet, disable the rule on that line and say what removes the need. When a spec exposes behaviour that looks wrong, do not write a spec that asserts it (that makes the bug a requirement) and do not fix it inside a test change. If it could be exploited, do not describe it anywhere in the repository (specs, comments, the plan document): report it to the maintainers privately. Otherwise leave a `TODO` where the spec belongs saying what to add, and record it in the plan document's open findings.
+
+## Manual testing against the client
+
+`npm run dev` creates a default `.env` if missing and starts the node on 9500. With `ENVIRONMENT=development` the server loads the test harness, so you can boot a scripted board:
 
 ```bash
-npm run test-fast -- "**/FettsFirespraySettlingTheScore.spec.js"
+curl -s -X POST http://localhost:9500/api/start-test-game -H "Content-Type: application/json" -d '{"filename":"myScenario.json"}'
 ```
 
-`--filter=<pattern>` narrows by spec name. The README form `npm test test/server/cards/.../X.spec.js` is stale because no `.js` exists under `test/`.
+which reads `test/gameSetups/<filename>` using the same setup schema as `setupTestAsync`. Those files are gitignored apart from `testGameTemplate.json`.
 
-Five environment failures to recognise:
+## Conventions and gotchas
 
-- A spec that fails on a change you just made under `test/` — a helper, a fixture, the harness — when the source looks correct. `npm run build` is server-only (`scripts/build-server.js` runs bare `tsc`) and never writes `build/test/`, so pairing it with a direct jasmine invocation (`npm run jasmine`, `npx jasmine`) runs the *previous* compile of your test-side edit. The `npm test` / `test-parallel` / `test-parallel-undo` / `test-fast` scripts are not affected — they build through `scripts/build-test.js`, which compiles the test tree too. When driving jasmine directly, rebuild it yourself with `npx tsc -p ./test/tsconfig.json` (that config sets `allowJs`, so plain `.js` helpers compile as well). A stale test build fails identically to a real defect, so suspect it first whenever a test-side edit appears not to take effect.
-- `Importing card class with repeated id!` means `build/` holds compiled output for a card file that was since renamed or deleted. Run `rm -r build/` and rebuild.
-- `Card data hash file test\json\card-data-hash.txt not found` or a hash mismatch means `test/json` is stale relative to `card-data-version.txt`, `scripts/fetchdata.js`, or `scripts/mockdata.js`. Run `npm run get-cards`. Bump `card-data-version.txt` when upstream data changed but no script did, so CI's cache busts. `get-cards` downloads from FFG's API and hangs with no output when outbound network is blocked, so run it outside a sandbox.
-- `TypeError: Class extends value undefined is not a constructor` from a bare `npx jasmine build/test/<file>.spec.js`, even against a tree you just rebuilt. This is a module-registration-order failure, not the stale build above: loading a spec file by path skips the helpers `jasmine.json` configures, so the card/class registry is not populated when the spec's imports evaluate. To target one file, use `npm run jasmine -- --filter="<Name>"`, which loads through the configured `helpers`/`spec_files`.
-- `node scripts/build-test.js` invoked directly fails when `concurrently` is not resolvable outside an `npm run` context, which is the usual case in a sandboxed shell. Go through the npm scripts rather than calling the build script by hand.
+- **`docs/` is deprecated and partially stale** — it still shows the old `this.addActionAbility(...)` / `AbilityHelper` import style and the old `this.setupTest` test harness. The current source is the truth; the maintained prose is the [wiki](https://github.com/SWU-Karabast/forceteki/wiki). `docs/debugging-guide.md` is still useful for pipeline/breakpoint technique.
+- Custom lint rules in `eslint-rules/` apply to `server/game/**`:
+  - `no-raw-token-text` — never put aspect/trait/keyword names or resource costs in raw strings in ability text; use `TextHelper` constants/helpers so the client can render icons.
+  - `state-ref-array-requires-istatearray` — see State tracking above.
+  - `no-event-generated-tokens` — read `resolvedEvents[...]?.generatedTokens`, not `events[...].generatedTokens`, so replaced token-creation events resolve correctly.
+- Style is enforced, not advisory: 4-space indent, single quotes, `curly: all`, `eqeqeq`, explicit member accessibility on every TS member, `import type` for type-only imports, `override` required.
+- `legacy_jigoku/` (ported L5R reference code) is referenced by `docs/`, tsconfig and eslint ignores but no longer exists in the repo — ignore those pointers.
 
-CI on pull requests to `main` runs lint, `validate-cards`, `test-parallel`, and `test-parallel-undo`.
+## Claude tooling (`.claude/`)
+
+This repo carries a depth layer for card-development work with Claude Code. It is committed (so it reaches everyone on a plain `git pull`, no install) and versions with the engine it describes:
+
+- `.claude/reference/swu-rules/` — the SWU Comprehensive Rules v7.0 + official clarifications, indexed in `INDEX.md`. Grep it by topic/card name; never read a file in full. Backing store for the `swu-rules-expert` agent.
+- `.claude/reference/forceteki-dev-guide.md` — deep card/test authoring templates and the AbilityHelper/registrar surface (the fuller companion to this file).
+- `.claude/reference/test-conventions/` — baseline spec-file conventions (read-only seed for `test-auditor`).
+- `.claude/agents/` — `card-implementer`, `card-test-writer`, `card-librarian`, `swu-rules-expert`, `test-auditor`.
+- `.claude/skills/implement-card/` — end-to-end "implement a new card" workflow that orchestrates the agents above.
+- `.claude/agent-memory/` — per-agent local learnings; **gitignored** (never committed), so it never shows up in feature diffs.
+
 
 ## Verification
 
@@ -56,92 +194,15 @@ npm run test-parallel
 npm run test-parallel-undo
 ```
 
-`test-parallel-undo` replays every spec through a snapshot rollback (`ENABLE_UNDO_ALL_TESTS=true`) and is the real gate for anything touching `server/game/core/snapshot/`, `GameObjectUtils.ts`, `GameObjectBase.ts`, or the ongoing-effect engine.
-`npm run test-fast` skips part of the build and is for inner-loop iteration only; never use it as gating evidence.
+`test-parallel-undo` replays every game spec through a snapshot rollback (`ENABLE_UNDO_ALL_TESTS=true`) and is the real gate for anything touching `server/game/core/snapshot/`, `GameObjectUtils.ts`, `GameObjectBase.ts`, the generated state serializers, or the ongoing-effect engine.
+`npm run test-fast` is for inner-loop iteration only; never use it as gating evidence.
 Do not run `npm run benchmark` unless the task explicitly owns a performance capture (see `docs/plans/IMPLEMENTATION-ORDER.md`).
-Known issue: a failure under `test-parallel` sometimes reports only the suite, not the spec; rerun with `npm test` to get specifics.
-
-## Architecture
-
-### Layers
-
-- `server/gamenode/` is the network layer: `GameServer.ts` (Express, Socket.IO, auth) and `Lobby.ts` (one lobby, constructs the `Game`, relays messages). `server/utils/` holds card data fetching, deck building/validation, and stats. `server/services/` is DynamoDB.
-- `server/game/core/` is the engine. `server/game/cards/<set>/<type>/` holds one class per card. `gameSystems/`, `ongoingEffects/`, `costs/`, `stateWatchers/`, and `abilities/` are the libraries card code composes.
-- `server/game/core/Constants.ts` holds the enums nearly every card imports: `CardType`/`WildcardCardType`, `ZoneName`/`WildcardZoneName`, `RelativePlayer`, `Trait`, `Aspect`, `KeywordName`, `EventName`, `TargetMode`, `AbilityRestriction`, and more.
-
-### Input flow and the pipeline
-
-`Lobby.onGameMessage` dispatches client commands by method name (`this.game[command](userId, ...args)`) and then calls `game.continue()`, so every public method on `Game` is reachable from the client and renaming one silently breaks the UI.
-The engine is a stack of steps in `core/GamePipeline.ts`. Each step's `continue()` runs; returning `false` pauses the pipeline to wait on a prompt, and the next click walks back down the step stack. Phases (`core/gameSteps/phases/`) and ability resolution (`AbilityResolver.ts`, `ActionWindow.ts`, `abilityWindow/`) are steps that own nested pipelines. Prompts (`core/gameSteps/prompts/`) write into `PlayerPromptState`, which `Game.getState(playerId)` serialises for the client.
-Events flow through `core/event/` (`GameEvent`, `EventWindow`) and triggered abilities queue into `TriggeredAbilityWindow`. `docs/debugging-guide.md` describes where to breakpoint in this stack and is still accurate.
-
-### Card model and loading
-
-`core/card/Card.ts` is the root. Leaf classes are `NonLeaderUnitCard`, `LeaderUnitCard`, `DoubleSidedLeaderCard`, `EventCard`, `UpgradeCard`, `BaseCard`, and the token classes, built from `core/card/baseClasses/` and the mixins in `core/card/propertyMixins/` (damage, printed stats, ability registration, and so on).
-`server/game/cards/Index.ts` discovers cards at require time by scanning the compiled `.js` files under `build/`, skipping `_`-prefixed files and `common/` directories, and throws on a duplicate id or class name. A card with no implementation falls back to a generic class via `CardHelpers.createUnimplementedCard`, which is why unimplemented cards still load in decks.
-
-### Ability system
-
-A card overrides `getImplementationId()` and `setupCardAbilities(registrar, AbilityHelper)`. The registrar type per card class is in `core/card/AbilityRegistrationInterfaces.ts` (`addActionAbility`, `addTriggeredAbility`, `addConstantAbility`, `addWhenPlayedAbility`, `addOnAttackAbility`, `addWhenDefeatedAbility`, `setEventAbility`, `setEpicActionAbility`, `addReplacementEffectAbility`, `addGainKeywordTargetingAttached`, and friends).
-`AbilityHelper` (`server/game/AbilityHelper.ts`) is created per game and bundles `immediateEffects` (`gameSystems/GameSystemLibrary.ts`), `ongoingEffects` (`ongoingEffects/OngoingEffectLibrary.ts`), `costs` (`costs/CostLibrary.ts`), `limit`, and `stateWatchers` (`stateWatchers/StateWatcherLibrary.ts`).
-Effects are `GameSystem` subclasses (`core/gameSystem/`): `canAffect()` filters candidates and must return true on every call, `generateEvent()` creates the event, `eventHandler()` mutates state. Targets are chosen by resolvers in `core/ability/abilityTargets/` from `targetResolver` / `targetResolvers` props, and the ability property shapes are typed in `server/game/Interfaces.ts` and `TargetInterfaces.ts`.
-Constant abilities apply ongoing effects through `core/ongoingEffect/OngoingEffectEngine.ts`, which re-evaluates `condition` and `matchTarget` as state changes.
-Assertions use the `Contract` namespace in `core/utils/Contract.ts`; failures route through `Game.reportError` instead of crashing the process.
-
-### Snapshot and undo
-
-Every engine object extends `core/GameObjectBase.ts`, registers with `game.gameObjectManager`, and keeps rollback-relevant data in a `state` object declared with the accessor decorators from `core/GameObjectUtils.ts` (`@statePrimitive`, `@stateValue`, `@stateRef`, `@stateRefArray`, `@stateRefMap/Set/Record`). The class must carry `@registerState()` or `@registerStateBase()` or construction throws, and a `@registerState` class may not extend another `@registerState` class.
-References between objects are stored as ids and rehydrated on rollback; snapshots serialize `state` with `v8.serialize` (`GameStateManager.buildGameStateForSnapshot`, reading through `getStateUnsafe()`), so anything not structured-clone-compatible placed in `state` throws. Rollback (`core/snapshot/GameStateManager.rollbackToSnapshot`) mutates live instances in place, and `SnapshotManager.ts` is the facade the `Game` owns.
-The engine is deterministic (seeded `seedrandom`, no `Math.random` under `server/`).
-
-## Implementing a card
-
-- Path is `server/game/cards/<set>/<units|events|upgrades|leaders|bases|tokens>/<PascalName>.ts` with `export default class <PascalName>`; `validate-cards` enforces that the class name matches the file name and that a spec exists at the mirrored path under `test/server/cards/`. Exemptions are `tokens/`, classes extending something in a `common/` dir, or a `// @no-test-required: <reason>` line.
-- `getImplementationId()` returns the `id` and `internalName` from `test/json/_cardMap.json`. A card not yet in FFG's data is added to `scripts/mockdata.js` and gets the id `<internalName>-id`.
-- Leaders extend `LeaderUnitCard` (never `LeaderCard`) and implement both `setupLeaderSideAbilities` and `setupLeaderUnitSideAbilities`. Share ability props between sides via a method that builds a fresh object each call; a shared field object gets mutated during setup and misbehaves.
-- Printed keywords (Sentinel, Raid, Ambush, etc.) are parsed from card text automatically; only conditional or granted keywords need code.
-- Inside ability callbacks use `context.source` and `context.player`, not `this`; for upgrade abilities that grant an ability to the attached unit, `context.source` is the attached unit.
-- Chain effects with `immediateEffects.simultaneous([...])`, `sequential([...])`, `conditional({...})`, and the `then` prop; use `selectCard({ innerSystem })` to target inside a chain. Phase-long effects use `forThisPhaseCardEffect`; attack-long ones go on `initiateAttack.attackerLastingEffects`.
-- State watchers (`setupStateWatchers(registrar)`) record past events; read the recorded fields such as `playedBy` rather than a card's current `controller`, which may have changed since.
-- Custom lint rules under `eslint-rules/` apply to `server/game/**`: aspect and trait names in ability text go through `TextHelper` (`TextHelper.Aggression`, `TextHelper.trait(Trait.X)`) so the client can render icons; a `@stateRefArray` field must be typed `IStateArray<T>`; read `resolvedEvents[i]?.generatedTokens`, never `events[i].generatedTokens`.
-- ESLint also requires explicit member accessibility on every class member, `import type` for type-only imports, `as` assertions, 4-space indent, single quotes, and braces on every block.
-- Game messages start with the acting player, use present tense, and have no trailing punctuation. Targeting prompts read "Choose a unit", not "Choose a unit to damage".
-
-## Writing a spec
-
-Specs are `.spec.ts` files under `test/server/cards/<set>/<type>/` and follow this shape:
-
-```typescript
-describe('Card Title', function() {
-    integration(function(contextRef) {
-        it('does the thing', async function() {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: { hand: ['some-card'], groundArena: ['wampa'] },
-                player2: { spaceArena: ['cartel-spacer'] }
-            });
-            const { context } = contextRef;
-
-            context.player1.clickCard(context.someCard);
-            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer]);
-            context.player1.clickCard(context.wampa);
-            expect(context.wampa).toBeInZone('discard');
-        });
-    });
-});
-```
-
-- Cards are named by internal name (`luke-skywalker#faithful-friend`) in setup and become camelCase properties on `context` (`context.lukeSkywalker` and `context.lukeSkywalkerFaithfulFriend`; a leading digit gets a `_` prefix). `context.p1Base`, `p2Base`, `p1Leader`, `p2Leader`, `player1`, `player2`, and `game` are always present.
-- Avoid two copies of one card in a scenario; when unavoidable, no property is generated and you fetch with `player.findCardByName()` / `findCardsByName()`.
-- The harness globals (`integration`, `undoIntegration`, `undoIt`, `rollback`) and the roughly sixty custom matchers are declared in `test/helpers/IntegrationHelper.d.ts`; matcher implementations are in `test/helpers/CustomMatchers.js`. Prefer `toBeInZone`, `toBeAbleToSelectExactly`, `toHaveExactPromptButtons`, `toHavePassAbilityButton`, and `toHaveExactUpgradeNames` over raw property checks.
-- `autoSingleTarget: true` in setup is legacy; do not use it in new tests.
-- Under `ENABLE_UNDO_ALL_TESTS=true` every `it` becomes `undoIt` and the dedicated undo specs in `test/scenarios/undo/` are skipped, since the whole suite already runs through rollback.
-- `docs/test-cheat-sheet.md` lists the player actions and matchers with example specs; its matcher names are mostly current apart from `toBeInLocation`, which is now `toBeInZone`.
+Adding, removing, or renaming a state-decorated field or a `@registerState` class requires `npm run generate-serializers`; the coverage/staleness cross-check fails otherwise.
 
 ## Snapshot / save-load roadmap (`docs/plans/`)
 
 Implementation units for the roadmap are defined in `docs/plans/IMPLEMENTATION-ORDER.md`; use its invocation blocks verbatim, including the `--fast` / `--tier N` routing and the `task_id`.
 Anvil proof level for roadmap units marked 🔴 is `hardened`; `standard` otherwise.
 Do not edit an existing benchmark scenario in `test/scenarios/undo/benchmark/BenchmarkScenarios.ts`, and do not redefine a headline benchmark (`manager/*`, `payload/*`, `sustained/*`) without saying so in the owning plan doc.
-Roadmap commits go on `experimental/rollback-saves-optimizations`; the Anvil project log lives at `docs/plans/ANVIL-LOG.md` (created by the first roadmap run).
+Roadmap commits go on `experimental/rollback-saves-optimizations`; the Anvil project log lives at `docs/plans/ANVIL-LOG.md`.
 `docs/plans/README.md` states the standing invariants for all snapshot work: every piece of game state must be JSON-representable, persistent identity uses `internalName` and `abilityIdentifier` rather than uuids, rollback re-enters the pipeline only at declared safe points, and nothing degrades silently.

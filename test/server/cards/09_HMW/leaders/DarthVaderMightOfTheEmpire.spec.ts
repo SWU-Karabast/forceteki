@@ -5,7 +5,7 @@ describe('Darth Vader, Might of the Empire', function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        leader: 'darth-vader#mightof-the-empire',
+                        leader: 'darth-vader#might-of-the-empire',
                         groundArena: ['yoda#old-master', 'wampa'],
                         spaceArena: ['awing']
                     },
@@ -63,7 +63,7 @@ describe('Darth Vader, Might of the Empire', function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        leader: { card: 'darth-vader#mightof-the-empire', deployed: true },
+                        leader: { card: 'darth-vader#might-of-the-empire', deployed: true },
                         groundArena: ['yoda#old-master', 'wampa'],
                         spaceArena: ['awing']
                     },

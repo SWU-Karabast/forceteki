@@ -87,6 +87,34 @@ describe('ISB Shuttle', function () {
                 expect(spies[0].getPower()).toBe(0);
                 expect(spies[0].getHp()).toBe(2);
             });
+
+            it('should create a Spy because an enemy unit was taken and defeated with No Glory, Only Results', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['isb-shuttle', 'no-glory-only-results']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Wampa is defeated while player1 controls it, so it counts as a friendly unit
+                context.player1.clickCard(context.noGloryOnlyResults);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.isbShuttle);
+
+                expect(context.player2).toBeActivePlayer();
+                const spies = context.player1.findCardsByName('spy');
+                expect(spies.length).toBe(1);
+                expect(context.player2.findCardsByName('spy').length).toBe(0);
+            });
         });
     });
 });

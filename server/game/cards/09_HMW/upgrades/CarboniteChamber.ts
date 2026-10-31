@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class CarboniteChamber extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'carbonite-chamber-id',
+            id: '2657420918',
             internalName: 'carbonite-chamber',
         };
     }

@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class BosskCruelHunter extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'bossk#cruel-hunter-id',
+            id: '9900684268',
             internalName: 'bossk#cruel-hunter',
         };
     }

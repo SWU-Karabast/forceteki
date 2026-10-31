@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class KeeperOfSkaraNalAwoken extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'keeper-of-skara-nal#awoken-id',
+            id: '4533738134',
             internalName: 'keeper-of-skara-nal#awoken',
         };
     }

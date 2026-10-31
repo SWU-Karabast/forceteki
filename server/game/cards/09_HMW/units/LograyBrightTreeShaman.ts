@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class LograyBrightTreeShaman extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'logray#bright-tree-shaman-id',
+            id: '3470983758',
             internalName: 'logray#bright-tree-shaman',
         };
     }

@@ -1,6 +1,7 @@
 import { TriggeredAbilityBase } from '../../../core/ability/TriggeredAbility';
 import { TokenUpgradeCard } from '../../../core/card/TokenCards';
 import type { Game } from '../../../core/Game';
+import { TokenUpgradeName } from '../../../core/Constants';
 import { registerState } from '../../../core/GameObjectUtils';
 import { Contract } from '../../../core/utils/Contract';
 import type { ITriggeredAbilityProps } from '../../../Interfaces';
@@ -15,6 +16,10 @@ export default class Advantage extends TokenUpgradeCard {
 
     public override isAdvantage(): this is Advantage {
         return true;
+    }
+
+    public override get tokenName(): TokenUpgradeName {
+        return TokenUpgradeName.Advantage;
     }
 
     protected override buildWhenAttackOrDefenseEndsAbilities(): TriggeredAbilityBase[] {

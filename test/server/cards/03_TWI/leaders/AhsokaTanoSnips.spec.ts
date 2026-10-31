@@ -37,6 +37,9 @@ describe('Ahsoka Tano, Snips', function () {
                 // Player 1 plays the ISB Agent and the unit side Coordinate ability is now active
                 context.player1.clickCard(context.isbAgent);
 
+                // ISB Agent has no event to reveal, so skip its masking pause
+                context.player1.clickPrompt('Skip');
+
                 // Player 2 passes
                 context.player2.passAction();
 
@@ -125,6 +128,9 @@ describe('Ahsoka Tano, Snips', function () {
 
                 // Player 1 plays the ISB Agent
                 context.player1.clickCard(context.isbAgent);
+
+                // ISB Agent has no event to reveal, so skip its masking pause
+                context.player1.clickPrompt('Skip');
 
                 // The unit side Coordinate ability is now active
                 expect(context.ahsokaTano.getPower()).toBe(5);

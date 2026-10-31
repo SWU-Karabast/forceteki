@@ -11,21 +11,32 @@ import type { FormatMessage } from '../core/chat/GameChat.js';
 import { ChatHelpers } from '../core/chat/ChatHelpers.js';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { Player } from '../core/Player.js';
+import type { GameSystem } from '../core/gameSystem/GameSystem.js';
 import { registerState, registerStateBase } from '../core/GameObjectUtils';
 
 export type IPlayUnitActionProperties = IPlayCardActionProperties & {
     entersReady?: boolean;
+
+    /** Effect(s) resolved as the unit enters play. See {@link IPutIntoPlayProperties.enterPlayEffect}. */
+    enterPlayEffect?: GameSystem | GameSystem[];
+
+    /** Card credited as the source of `enterPlayEffect` in the chat log. See {@link IPutIntoPlayProperties.enterPlayEffectSource}. */
+    enterPlayEffectSource?: Card;
 };
 
 @registerStateBase()
 export abstract class PlayUnitActionBase extends PlayCardAction {
     private entersReady: boolean;
+    private enterPlayEffect?: GameSystem | GameSystem[];
+    private enterPlayEffectSource?: Card;
 
     public constructor(game: Game, card: Card, properties: IPlayUnitActionProperties) {
         super(game, card, properties);
 
         // default to false
         this.entersReady = !!properties.entersReady;
+        this.enterPlayEffect = properties.enterPlayEffect;
+        this.enterPlayEffectSource = properties.enterPlayEffectSource;
     }
 
     public override executeHandler(context: PlayCardContext): void {
@@ -39,6 +50,8 @@ export abstract class PlayUnitActionBase extends PlayCardAction {
                 controller: context.player,
                 entersReady: this.entersReady,
                 entryType: EntryType.Played,
+                enterPlayEffect: this.enterPlayEffect,
+                enterPlayEffectSource: this.enterPlayEffectSource,
             }).generateEvent(context),
             this.generateOnPlayEvent(context)
         ];

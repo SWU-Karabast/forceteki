@@ -7,7 +7,7 @@ import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 export default class L337WereProgrammedToLearn extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'l337#were-programmed-to-learn-id',
+            id: '2929437656',
             internalName: 'l337#were-programmed-to-learn',
         };
     }
@@ -25,7 +25,7 @@ export default class L337WereProgrammedToLearn extends NonLeaderUnitCard {
                     event.card.printedCost <= 3
             },
             immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay((context) => ({
-                target: context.event.card,
+                target: context.event.card.zone === context.player.discardZone ? context.event.card : [],
                 playAsType: CardType.Event,
                 adjustCost: { costAdjustType: CostAdjustType.Free }
             }))

@@ -7,7 +7,7 @@ import { DamageSourceType } from '../../../IDamageOrDefeatSource';
 export default class DarthSidiousThereIsNoMercy extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'darth-sidious#there-is-no-mercy-id',
+            id: '9117601313',
             internalName: 'darth-sidious#there-is-no-mercy',
         };
     }

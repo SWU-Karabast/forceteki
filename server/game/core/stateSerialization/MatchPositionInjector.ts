@@ -210,7 +210,7 @@ export function injectPositions(saved: ISavedMatch, playerBySeat: ReadonlyMap<st
         // leader
         for (const savedPlayer of saved.players) {
             const player = playerBySeat.get(savedPlayer.seat);
-            const leader = player.deckLeader;
+            const leader = player.getSingleLeader();
             index.recordTopLevel(savedPlayer.seat, 'leader', 0, leader as unknown as Card);
 
             setLeaderStatus(player, {

@@ -1,6 +1,7 @@
 import type { CardDataGetter } from '../../../utils/cardData/CardDataGetter';
 import { ByoyomiTimer } from '../actionTimer/ByoyomiTimer';
-import { PhaseName } from '../Constants';
+import { PhaseName, SwuGameFormat } from '../Constants';
+import { EnumHelpers } from '../utils/EnumHelpers';
 import { isTokenCardName, isTokenUnitName, isTokenUpgradeName } from './GameStateInjector';
 import { MatchLoadError } from './MatchLoadError';
 import { SAVED_MATCH_FORMAT_VERSION } from './SavedMatchInterfaces';
@@ -77,6 +78,15 @@ export function validate(saved: ISavedMatch, options: IValidateOptions): void {
     // --- formatVersion ---
     if (saved.formatVersion !== SAVED_MATCH_FORMAT_VERSION) {
         fail(`formatVersion ${saved.formatVersion} does not match the loader's supported version ${SAVED_MATCH_FORMAT_VERSION}.`);
+    }
+
+    // --- settings ---
+    // The writer refuses Faux Suns (see MatchSerializer's assertFormatRepresentable), so a document naming it
+    // was not produced by this format version's writer.
+    if (!isPlainObject(saved.settings)) {
+        fail(`settings is required and must be an object; found ${JSON.stringify(saved.settings)}.`);
+    } else if (!EnumHelpers.isEnumValue(saved.settings.format, SwuGameFormat) || saved.settings.format === SwuGameFormat.FauxSuns) {
+        fail(`settings.format must be a game format the v1 save format can represent; found ${JSON.stringify(saved.settings.format)}.`);
     }
 
     // --- structural ---

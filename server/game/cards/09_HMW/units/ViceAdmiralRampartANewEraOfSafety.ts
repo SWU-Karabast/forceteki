@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class ViceAdmiralRampartANewEraOfSafety extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'vice-admiral-rampart#a-new-era-of-safety-id',
+            id: '9604498190',
             internalName: 'vice-admiral-rampart#a-new-era-of-safety',
         };
     }

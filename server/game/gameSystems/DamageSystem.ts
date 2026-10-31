@@ -15,7 +15,7 @@ import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/game
 import { addLastKnownInformationToEvent } from '../core/event/LastKnownInformation';
 import { Contract } from '../core/utils/Contract';
 import type { Attack } from '../core/attack/Attack';
-import type { IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
+import type { IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack, IDamageSource } from '../IDamageOrDefeatSource';
 import { DamageSourceType } from '../IDamageOrDefeatSource';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 
@@ -46,6 +46,13 @@ export interface IAbilityDamageProperties extends IDamagePropertiesBase {
     isIndirect?: boolean;
 
     isUnpreventable?: boolean;
+
+    /**
+     * If true, this damage event does not consume {@link AbilityContext.pendingAbilityDamageIncrease}.
+     * Used for damage events generated as portions of a distribution, where the increase has already
+     * been applied to the total amount being distributed.
+     */
+    ignoreAbilityDamageIncrease?: boolean;
 }
 
 /** Used for abilities that use the excess damage from another instance of damage (currently just Blizzard Assault AT-AT) */
@@ -95,6 +102,23 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         isIndirect: false,
         isUnpreventable: false
     };
+
+    /**
+     * Returns the cards that dealt the damage in an `onDamageDealt` event: the dealing units for
+     * combat and overwhelm damage, or the source card for ability and excess damage. Empty if none.
+     */
+    public static getDamageSourceCards(event): Card[] {
+        Contract.assertTrue(event.name === EventName.OnDamageDealt);
+
+        const damageSource: IDamageSource = event.damageSource;
+
+        // Narrowed by field rather than by `type`: the attack variant's `type` spans two enums.
+        if ('damageDealtBy' in damageSource) {
+            return damageSource.damageDealtBy;
+        }
+
+        return damageSource.card ? [damageSource.card] : [];
+    }
 
     public eventHandler(event): void {
         const eventDamageAmount = this.getDamageAmountFromEvent(event);
@@ -291,6 +315,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
         Contract.assertNotNullLike(properties.amount);
         event.amount = typeof properties.amount === 'function' ? (properties.amount as (Event) => number)(card) : properties.amount;
+
+        if (context.pendingAbilityDamageIncrease > 0 && !properties.ignoreAbilityDamageIncrease) {
+            event.amount += context.pendingAbilityDamageIncrease;
+        }
     }
 
     private sourcesMakeDamageUnpreventable(event: any): boolean {

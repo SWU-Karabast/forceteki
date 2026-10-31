@@ -6,7 +6,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class QueenAmidalaRetakingTheed extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'queen-amidala#retaking-theed-id',
+            id: '8690895626',
             internalName: 'queen-amidala#retaking-theed',
         };
     }

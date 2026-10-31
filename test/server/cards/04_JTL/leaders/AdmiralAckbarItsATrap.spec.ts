@@ -21,6 +21,7 @@ describe('Admiral Ackbar, It\'s a Trap !', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.admiralAckbar);
+                expect(context.player1).toHavePrompt('Exhaust a non-leader unit. If you do, its controller creates an X-Wing token');
                 expect(context.player1).toBeAbleToSelectExactly([context.poeDameron, context.dqarCargoFrigate, context.atst]);
 
                 context.player1.clickCard(context.dqarCargoFrigate);
@@ -75,6 +76,7 @@ describe('Admiral Ackbar, It\'s a Trap !', function () {
 
                 context.player1.clickCard(context.admiralAckbar);
                 context.player1.clickCard(context.p2Base);
+                expect(context.player1).toHavePrompt('Exhaust a unit. If you do, its controller creates an X-Wing token');
                 expect(context.player1).toBeAbleToSelectExactly([context.poeDameron, context.dqarCargoFrigate, context.atst, context.sabineWren, context.admiralAckbar]);
 
                 context.player1.clickCard(context.dqarCargoFrigate);

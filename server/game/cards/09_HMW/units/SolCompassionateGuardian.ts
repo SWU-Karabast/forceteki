@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class SolCompassionateGuardian extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'sol#compassionate-guardian-id',
+            id: '1274733676',
             internalName: 'sol#compassionate-guardian',
         };
     }

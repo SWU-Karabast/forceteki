@@ -17,7 +17,7 @@ describe('GameStateInjector', function() {
             });
             const { context } = contextRef;
             const player = context.player1Object;
-            const leader = player.deckLeader as any;
+            const leader = player.getSingleLeader() as any;
 
             GameStateInjector.setLeaderStatus(player, { deployed: true });
             expect(leader.deployEpicActionLimit.isAtMax(player)).toBeFalse();

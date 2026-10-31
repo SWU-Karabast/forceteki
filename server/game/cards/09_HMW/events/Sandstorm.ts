@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class Sandstorm extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'sandstorm-id',
+            id: '8078114304',
             internalName: 'sandstorm',
         };
     }

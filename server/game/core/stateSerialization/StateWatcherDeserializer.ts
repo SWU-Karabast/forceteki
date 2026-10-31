@@ -56,8 +56,8 @@ import type { HealedUnitEntry } from '../../stateWatchers/UnitsHealedThisPhaseWa
 type WatcherDecoder<TSaved, TEntry> = (saved: TSaved, context: IWatcherDecodeContext) => TEntry;
 
 /** A saved `lastKnownInformation` is documented as `null` meaning "absent, never degraded", but every reachable producer of these five entry shapes populates it; treat a genuinely null one as a document integrity problem rather than guessing a value. */
-function requireLki(saved: Parameters<typeof decodeLastKnownInformation>[0], fieldOwner: string) {
-    const decoded = decodeLastKnownInformation(saved);
+function requireLki(context: IWatcherDecodeContext, saved: Parameters<typeof decodeLastKnownInformation>[1], fieldOwner: string) {
+    const decoded = decodeLastKnownInformation(context, saved);
     if (decoded == null) {
         throw new MatchLoadError(`${fieldOwner}'s lastKnownInformation was saved as null, but the live entry shape requires it.`);
     }
@@ -111,7 +111,7 @@ function decodeDefeatedCard(saved: ISavedDefeatedCardEntry, context: IWatcherDec
         controlledBy: decodeSeat(context, saved.controlledBy).getObjectId(),
         defeatedBy: decodeOptionalSeat(context, saved.defeatedBy)?.getObjectId(),
         wasDefeatedWhileAttacking: saved.wasDefeatedWhileAttacking,
-        lastKnownInformation: requireLki(saved.lastKnownInformation, 'CardsDefeatedThisPhase entry'),
+        lastKnownInformation: requireLki(context, saved.lastKnownInformation, 'CardsDefeatedThisPhase entry'),
     };
 }
 
@@ -150,7 +150,7 @@ function decodeCardLeftPlay(saved: ISavedCardLeftPlayEntry, context: IWatcherDec
     return {
         card: card.getObjectId() as any,
         controlledBy: decodeSeat(context, saved.controlledBy).getObjectId(),
-        lastKnownInformation: requireLki(saved.lastKnownInformation, 'CardsLeftPlayThisPhase entry'),
+        lastKnownInformation: requireLki(context, saved.lastKnownInformation, 'CardsLeftPlayThisPhase entry'),
         inPlayId: decodeStint(saved.inPlayId, card) ?? undefined,
     };
 }

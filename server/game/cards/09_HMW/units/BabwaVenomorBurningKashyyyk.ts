@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class BabwaVenomorBurningKashyyyk extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'babwa-venomor#burning-kashyyyk-id',
+            id: '8185409655',
             internalName: 'babwa-venomor#burning-kashyyyk',
         };
     }

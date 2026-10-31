@@ -51,5 +51,34 @@ describe('Unnatural Life', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
+        it('should play a unit that was taken and defeated with No Glory, Only Results from its owner\'s discard pile', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['unnatural-life'],
+                    groundArena: ['wampa']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            // player2 takes control of Wampa and defeats it, it goes to its owner's discard pile
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.wampa);
+            expect(context.wampa).toBeInZone('discard', context.player1);
+
+            context.player1.clickCard(context.unnaturalLife);
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+            context.player1.clickCard(context.wampa);
+
+            expect(context.wampa).toBeInZone('groundArena', context.player1);
+            expect(context.wampa.exhausted).toBeFalse();
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

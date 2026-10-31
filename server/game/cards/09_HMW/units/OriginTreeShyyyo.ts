@@ -12,7 +12,7 @@ export default class OriginTreeShyyyo extends NonLeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'origin-tree-shyyyo-id',
+            id: '1467748247',
             internalName: 'origin-tree-shyyyo',
         };
     }

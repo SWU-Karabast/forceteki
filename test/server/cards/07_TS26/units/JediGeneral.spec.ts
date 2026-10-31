@@ -12,7 +12,7 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
 
             expect(context.player2).toBeActivePlayer();
 
@@ -22,7 +22,7 @@ describe('Jedi General', function() {
             expect(troopers[0]).toHaveExactUpgradeNames(['experience']);
         });
 
-        xit('Jedi General\'s ability should create a Clone Token and give an Experience token to it if we control a Republic leader (undeployed)', async function () {
+        it('Jedi General\'s Clone Trooper survives Supreme Leader Snoke because the Experience token is given as it enters play', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -37,13 +37,17 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('Ambush');
-            context.player1.clickPrompt('Pass');
+
+            // Snoke is an enemy unit, so Jedi General's Ambush is a real trigger sharing this window with the
+            // create-Clone-Trooper trigger; decline the attack inline in the simultaneous-trigger prompt.
+            context.player1.clickPass('Ambush');
 
             expect(context.player2).toBeActivePlayer();
 
+            // Clone Trooper (2/2) + Experience is 3/3; with Snoke's -2/-2 it survives at 1/1.
             const troopers = context.player1.findCardsByName('clone-trooper');
             expect(troopers.length).toBe(1);
+            expect(troopers[0]).toBeInZone('groundArena');
             expect(troopers[0].exhausted).toBeTrue();
             expect(troopers[0]).toHaveExactUpgradeNames(['experience']);
         });
@@ -60,7 +64,7 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
 
             expect(context.player2).toBeActivePlayer();
 
@@ -111,7 +115,7 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
 
             // Because Mace is a leader unit, Jedi General's ability triggers to create a Clone Trooper and give it an Experience token
             const troopers = context.player1.findCardsByName('clone-trooper');
@@ -134,13 +138,102 @@ describe('Jedi General', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.jediGeneral);
-            context.player1.clickPrompt('(No effect) Ambush');
+            context.player1.clickPrompt('Ambush');
             expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 2 Clone Trooper tokens instead');
             context.player1.clickPrompt('Trigger');
 
             const troopers = context.player1.findCardsByName('clone-trooper', 'groundArena');
             expect(context.moffJerjerrod).toBeInZone('discard');
             expect(troopers.length).toBe(2);
+            expect(troopers.every((trooper) => trooper.exhausted)).toBeTrue();
+            troopers.forEach((trooper) => {
+                expect(trooper).toHaveExactUpgradeNames(['experience']);
+            });
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should create a Clone Trooper for each of two Republic leaders in TwinSuns', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                format: 'fauxSuns',
+                player1: {
+                    hand: ['jedi-general'],
+                    leader: 'captain-rex#fighting-for-his-brothers', // Republic
+                    secondLeader: 'padme-amidala#serving-the-republic' // Republic
+                },
+                player2: {
+                    leader: 'chewbacca#walking-carpet'
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.jediGeneral);
+            context.player1.clickPrompt('Ambush');
+
+            const troopers = context.player1.findCardsByName('clone-trooper');
+            expect(troopers.length).toBe(2);
+            expect(troopers.every((trooper) => trooper.exhausted)).toBeTrue();
+            troopers.forEach((trooper) => {
+                expect(trooper).toHaveExactUpgradeNames(['experience']);
+            });
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should only count Republic leaders when the two leaders differ in trait in TwinSuns', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                format: 'fauxSuns',
+                player1: {
+                    hand: ['jedi-general'],
+                    leader: 'captain-rex#fighting-for-his-brothers', // Republic
+                    secondLeader: 'chewbacca#walking-carpet' // Underworld, not Republic
+                },
+                player2: {
+                    leader: 'chewbacca#walking-carpet'
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.jediGeneral);
+            context.player1.clickPrompt('Ambush');
+
+            const troopers = context.player1.findCardsByName('clone-trooper');
+            expect(troopers.length).toBe(1);
+            expect(troopers[0].exhausted).toBeTrue();
+            expect(troopers[0]).toHaveExactUpgradeNames(['experience']);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should count both Republic leaders and a Darksaber-bearing Republic unit in TwinSuns', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                format: 'fauxSuns',
+                player1: {
+                    hand: ['jedi-general'],
+                    groundArena: [
+                        {
+                            card: 'mace-windu#party-crasher', // Republic
+                            upgrades: ['the-darksaber#icon-of-leadership'] // Makes attached unit a leader unit
+                        }
+                    ],
+                    leader: 'captain-rex#fighting-for-his-brothers', // Republic
+                    secondLeader: 'padme-amidala#serving-the-republic' // Republic
+                },
+                player2: {
+                    leader: 'chewbacca#walking-carpet'
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.jediGeneral);
+            context.player1.clickPrompt('Ambush');
+
+            // Two Republic deck leaders + the Darksaber-borne Republic unit = 3 leaders
+            const troopers = context.player1.findCardsByName('clone-trooper');
+            expect(troopers.length).toBe(3);
             expect(troopers.every((trooper) => trooper.exhausted)).toBeTrue();
             troopers.forEach((trooper) => {
                 expect(trooper).toHaveExactUpgradeNames(['experience']);

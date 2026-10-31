@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class HanSoloMyTeamsReady extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'han-solo#my-teams-ready-id',
+            id: '2192872798',
             internalName: 'han-solo#my-teams-ready',
         };
     }

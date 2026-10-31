@@ -9,7 +9,7 @@ import { Contract } from '../../../core/utils/Contract';
 export default class TwilekKalikori extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'twilek-kalikori-id',
+            id: '2824985366',
             internalName: 'twilek-kalikori',
         };
     }

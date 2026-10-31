@@ -182,7 +182,7 @@ export function getPristineAbilityIdentifiers(card: Card): ReadonlySet<string> {
             try {
                 if (pristineCard) {
                     for (const ability of getLimitBearingAbilitySurface(pristineCard)) {
-                        ability.limit?.unregisterEvents();
+                        ability.captureLimit()?.unregisterEvents();
                     }
                 }
             } catch (err) {

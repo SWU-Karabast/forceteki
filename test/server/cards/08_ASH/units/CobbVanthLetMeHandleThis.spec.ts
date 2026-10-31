@@ -169,5 +169,39 @@ describe('Cobb Vanth, Let Me Handle This', function() {
                 expect(context.cobbVanth.damage).toBe(0);
             });
         });
+
+        describe('Triggered ability when a unit owned by the opponent is played', function() {
+            it('should trigger when the player plays an opponent-owned unit from the opponent\'s discard pile', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['takedown'],
+                        groundArena: ['cobb-vanth#let-me-handle-this']
+                    },
+                    player2: {
+                        spaceArena: ['stolen-athauler']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Defeat player2's Stolen AT-Hauler so player1 may play it from player2's discard pile
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+
+                expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to Cobb Vanth to give a Shield token to Stolen AT-Hauler');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.cobbVanth.damage).toBe(2);
+                expect(context.stolenAthauler).toHaveExactUpgradeNames(['shield']);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });

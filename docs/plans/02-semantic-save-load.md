@@ -87,7 +87,7 @@ A versioned top-level document, `ISavedMatch`:
     "requestedAtPhase": "action"
   },
   "gameId": "...",
-  "settings": { "gameMode": ..., "undoMode": ..., "useActionTimer": ... },
+  "settings": { "format": "premier", "undoMode": ..., "useActionTimer": ... },   // Faux Suns and two-leader games are refused, not saved
   "rng": { "seed": "...", "state": { /* seedrandom state */ } },
   "game": {
     "roundNumber": 3,
@@ -452,15 +452,8 @@ would degrade essentially every save past the first action of a phase for
 most decks (any play/attack/action populates a registered watcher); whereas
 the encoding work is mechanical — the ~15 watchers in
 `server/game/stateWatchers/` have near-flat entry structs of GameObjectIds +
-primitives. Three exceptions carry a `Set<Trait>` captured at event time
-(`AttacksThisPhaseWatcher`'s `attackerAttributes: ICardAttributes`,
-`AttacksThisPhaseWatcher.ts:17` / `Interfaces.ts:639-642`, and the shared
-`IStateWatcherLKIEntry` (`StateWatcher.ts:21-27`: `traits`, `type`, `power`,
-`arena`) stored as `lastKnownInformation` by both
-`CardsDefeatedThisPhaseWatcher` and `CardsLeftPlayThisPhaseWatcher`) —
-captured-at-event-time semantic data that cannot be re-derived post-load, so
-it is serialized with the same tagged-Set JSON encoding that B names for
-`Set` state, not dropped.
+primitives.
+Three exceptions carry a `Set<Trait>` captured at event time (`AttacksThisPhaseWatcher`'s `attackerAttributes: ICardAttributes`, `AttacksThisPhaseWatcher.ts:17` / `Interfaces.ts:639-642`, and the shared `IStateWatcherLKIEntry` (`StateWatcher.ts:21-27`: `traits`, `type`, `power`, `arena`, and since the 2026-10-31 merge of `main` an optional `upgrades` list, saved as mandatory card references) stored as `lastKnownInformation` by both `CardsDefeatedThisPhaseWatcher` and `CardsLeftPlayThisPhaseWatcher`) — captured-at-event-time semantic data that cannot be re-derived post-load, so it is serialized with the same tagged-Set JSON encoding that B names for `Set` state, not dropped.
 
 - Define one shared reference encoding used by all watcher serializers:
   `ISavedCardRef = { card: internalName, controllerSeat, zone, ordinal }`

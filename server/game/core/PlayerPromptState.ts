@@ -8,6 +8,9 @@ export interface IPlayerPromptStateProperties {
     promptUuid: string;
     playerIsNewlyActive?: boolean;
     promptTitle?: string;
+
+    /** Secondary text shown beneath {@link menuTitle} by prompt UIs that support it. */
+    promptDescription?: string;
     promptType?: PromptType;
 
     selectCardMode?: SelectCardMode;
@@ -39,6 +42,7 @@ export class PlayerPromptState {
     public batchTriggerResolution?: IBatchTriggerResolutionPromptData = null;
     public menuTitle = '';
     public promptTitle = '';
+    public promptDescription?: string = null;
     public promptUuid = '';
     public promptType: PromptType | '' | null = '';
     public buttons = [];
@@ -82,6 +86,7 @@ export class PlayerPromptState {
 
     public setPrompt(prompt: IPlayerPromptStateProperties) {
         this.promptTitle = prompt.promptTitle;
+        this.promptDescription = prompt.promptDescription;
         this.promptType = prompt.promptType;
         this.selectCardMode = prompt.selectCardMode;
         this.selectOrder = prompt.selectOrder ?? false;
@@ -141,6 +146,7 @@ export class PlayerPromptState {
             dropdownListOptions: this.dropdownListOptions,
             menuTitle: this.menuTitle,
             promptTitle: this.promptTitle,
+            promptDescription: this.promptDescription,
             buttons: this.buttons,
             promptUuid: this.promptUuid,
             promptType: this.promptType,

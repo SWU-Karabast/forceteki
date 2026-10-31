@@ -1,4 +1,5 @@
 import type { IStateListenerResetProperties, IStateListenerProperties } from '../../Interfaces';
+import type { IUpgradeCard } from '../card/CardInterfaces';
 import type { CardType, StateWatcherName, Trait, ZoneName } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
 import type { Game } from '../Game';
@@ -9,7 +10,7 @@ import { Helpers } from '../utils/Helpers';
 import { is } from '../utils/TypeHelpers';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
 
-import { registerStateBase, stateArray } from '../GameObjectUtils';
+import { type GameObjectId, registerStateBase, stateArray } from '../GameObjectUtils';
 import type { SerializedStateRecord } from '../StateEncoding';
 
 /**
@@ -20,6 +21,7 @@ export interface IStateWatcherLKIEntry {
     type: CardType;
     power?: number;
     arena?: ZoneName;
+    upgrades?: GameObjectId<IUpgradeCard>[];
     // TODO: Add more fields if needed
 }
 

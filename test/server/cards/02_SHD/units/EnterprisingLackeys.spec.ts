@@ -94,5 +94,45 @@ describe('Enterprising Lackeys', function() {
             expect(context.superlaserTechnician).toBeInZone('discard');
             expect(context.enterprisingLackeys).toBeInZone('resource', context.player1);
         });
+
+        it('Enterprising Lackeys\' ability should defeat a resource of the player who controlled it and put it into that player\'s resources when defeated by No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['enterprising-lackeys'],
+                    resources: ['atst', 'cartel-spacer', 'pyke-sentinel', 'wampa']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    resources: ['superlaser-technician', 'battlefield-marine', 'wild-rancor', 'protector', 'devotion', 'restored-arc170', 'consular-security-force', 'alliance-xwing'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.enterprisingLackeys);
+
+            // player2 controlled Lackeys when they were defeated, so only player2's resources can be chosen
+            expect(context.player2).toBeAbleToSelectExactly([
+                context.superlaserTechnician,
+                context.battlefieldMarine,
+                context.wildRancor,
+                context.protector,
+                context.devotion,
+                context.restoredArc170,
+                context.consularSecurityForce,
+                context.allianceXwing
+            ]);
+            expect(context.player2).toHavePassAbilityButton();
+            context.player2.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
+            expect(context.enterprisingLackeys).toBeInZone('resource', context.player2);
+            expect(context.player2.resources.length).toBe(8);
+            expect(context.player1.resources.length).toBe(4);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

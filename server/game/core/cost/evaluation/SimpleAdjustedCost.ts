@@ -14,6 +14,7 @@ interface IPenaltyAspect {
  */
 export class SimpleAdjustedCost {
     private _penaltyAspects: IPenaltyAspect[] = [];
+    private _reservedResources = 0;
     private _totalResourceCost: number;
     private _value: number;
 
@@ -34,6 +35,19 @@ export class SimpleAdjustedCost {
 
     public get value(): number {
         return this.computeLowestPossibleCost();
+    }
+
+    /**
+     * Number of ready resources that will be consumed by cost adjustments themselves (e.g. defeated to reduce the cost),
+     * and therefore will not be available to pay the remaining cost
+     */
+    public get reservedResources(): number {
+        return this._reservedResources;
+    }
+
+    /** Total number of ready resources required to pay: the remaining cost plus any resources reserved by adjustments */
+    public get requiredReadyResources(): number {
+        return this.value + this._reservedResources;
     }
 
     public constructor(initialCost: number, penaltyAspects?: Aspect[]) {
@@ -60,6 +74,12 @@ export class SimpleAdjustedCost {
         if (this._value < 0) {
             this._value = 0;
         }
+    }
+
+    /** Marks ready resources as consumed by a cost adjustment, so they cannot also be exhausted to pay the remaining cost */
+    public reserveResources(amount: number) {
+        Contract.assertNonNegative(amount, `Reserved resource amount must be non-negative, instead got ${amount}`);
+        this._reservedResources += amount;
     }
 
     public setRemainingToDiscountedValue(value: number) {
@@ -109,6 +129,7 @@ export class SimpleAdjustedCost {
     protected createCopy(): SimpleAdjustedCost {
         const copy = new SimpleAdjustedCost(this._value);
         copy._penaltyAspects = this._penaltyAspects.map((entry) => ({ ...entry }));
+        copy._reservedResources = this._reservedResources;
         return copy;
     }
 

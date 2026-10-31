@@ -16,7 +16,7 @@ export default class OshaHauntedByHerPast extends LeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'osha#haunted-by-her-past-id',
+            id: '9853778959',
             internalName: 'osha#haunted-by-her-past'
         };
     }
@@ -39,7 +39,6 @@ export default class OshaHauntedByHerPast extends LeaderUnitCard {
                     condition: (context) => this.friendlyHeroismUnitDefeatedThisPhase(context),
                     onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                         playAsType: WildcardCardType.Unit,
-                        canPlayFromAnyZone: true,
                         adjustCost: {
                             costAdjustType: CostAdjustType.IgnoreSpecificAspects,
                             ignoredAspect: Aspect.Villainy
@@ -62,7 +61,6 @@ export default class OshaHauntedByHerPast extends LeaderUnitCard {
                 cardCondition: (card, _) => card.hasSomeAspect(Aspect.Villainy),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     playAsType: WildcardCardType.Unit,
-                    canPlayFromAnyZone: true,
                     adjustCost: {
                         costAdjustType: CostAdjustType.IgnoreSpecificAspects,
                         ignoredAspect: Aspect.Villainy

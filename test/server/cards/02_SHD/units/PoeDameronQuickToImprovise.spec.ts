@@ -44,6 +44,7 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
                 'An opponent discards a card from their hand.',
             ]);
             context.player1.clickPrompt('Deal 2 damage to a unit or base.');
+            expect(context.player1).toHavePrompt('Deal 2 damage to a unit or base');
             expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.tieAdvanced, context.p2Base, context.poeDameron, context.p1Base]);
             context.player1.clickCard(context.deathStarStormtrooper);
             expect(context.deathStarStormtrooper.damage).toBe(2);
@@ -53,6 +54,7 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
                 'An opponent discards a card from their hand.',
             ]);
             context.player1.clickPrompt('Defeat an upgrade.');
+            expect(context.player1).toHavePrompt('Defeat an upgrade');
             expect(context.player1).toBeAbleToSelectExactly([context.academyTraining, context.resilient]);
 
             context.player1.clickCard(context.resilient);

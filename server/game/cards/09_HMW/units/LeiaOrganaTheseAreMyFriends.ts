@@ -6,7 +6,7 @@ import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 export default class LeiaOrganaTheseAreMyFriends extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'leia-organa#these-are-my-friends-id',
+            id: '6907771214',
             internalName: 'leia-organa#these-are-my-friends',
         };
     }

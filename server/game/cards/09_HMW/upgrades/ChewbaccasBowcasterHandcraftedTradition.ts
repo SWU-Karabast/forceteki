@@ -6,7 +6,7 @@ import { Trait } from '../../../core/Constants';
 export default class ChewbaccasBowcasterHandcraftedTradition extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'chewbaccas-bowcaster#handcrafted-tradition-id',
+            id: '5609025703',
             internalName: 'chewbaccas-bowcaster#handcrafted-tradition',
         };
     }

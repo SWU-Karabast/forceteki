@@ -210,6 +210,33 @@ describe('Maul, Collective Ambition', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should not defeat a unit at 1 remaining HP since the Experience token and damage are simultaneous', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'maul#collective-ambition',
+                        resources: 6,
+                        groundArena: [{ card: 'wampa', damage: 4 }],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Wampa is a 4/5 with Overwhelm, at 4 damage it has 1 HP remaining
+                context.player1.clickCard(context.maul);
+
+                expect(context.player1).toHavePrompt(abilityPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                context.player1.clickCard(context.wampa);
+
+                // Wampa gets +1/+1 from Experience and 1 damage simultaneously, ending at 6 HP with 5 damage (1 HP remaining)
+                expect(context.maul.exhausted).toBeTrue();
+                expect(context.wampa).toBeInZone('groundArena');
+                expect(context.wampa.damage).toBe(5);
+                expect(context.wampa).toHaveExactUpgradeNames(['experience']);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should exhaust Maul with no effect when there are no units in play', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

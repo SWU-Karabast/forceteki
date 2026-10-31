@@ -1,4 +1,4 @@
-import { AbilityRestriction, EventName, PhaseName, ZoneName } from '../../Constants';
+import { AbilityRestriction, EffectName, EventName, PhaseName, ZoneName } from '../../Constants';
 import type { Game } from '../../Game';
 import { Phase, PhaseInitializeMode } from './Phase';
 import { SimpleStep } from '../SimpleStep';
@@ -53,7 +53,16 @@ export class RegroupPhase extends Phase {
         const drawEvents: GameEvent[] = [];
 
         for (const player of players) {
-            const drawSystem = new DrawSystem({ amount: 2 });
+            const standardDrawCount = 2;
+
+            // Check if the player has any effects that allow them to draw additional cards in the regroup phase
+            const additionalDrawCount = player.getOngoingEffectValues<number>(EffectName.DrawAdditionalCardsInRegroup)
+                .reduce((total, value) => total + value, 0);
+
+            const drawSystem = new DrawSystem({
+                amount: standardDrawCount + additionalDrawCount
+            });
+
             drawSystem.queueGenerateEventGameSteps(
                 drawEvents,
                 this.game.getFrameworkContext(player)
@@ -81,8 +90,10 @@ export class RegroupPhase extends Phase {
             cardsToReady.push(...player.getArenaUnits({ condition: (card) => !card.hasRestriction(AbilityRestriction.DoesNotReadyDuringRegroup) }));
             cardsToReady.push(...player.resources);
 
-            if (player.deckLeader.zoneName === ZoneName.Base) {
-                cardsToReady.push(player.deckLeader);
+            for (const leader of player.getAllDeckLeaders()) {
+                if (leader.zoneName === ZoneName.Base) {
+                    cardsToReady.push(leader);
+                }
             }
         }
 

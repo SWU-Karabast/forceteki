@@ -14,6 +14,7 @@ import type { AbilityContext } from './AbilityContext';
 import { registerState, registerStateBase, statePrimitive } from '../GameObjectUtils';
 import type { ISerializedTriggeredAbilityBase } from '../generated/GeneratedStateSerializers';
 import * as AttackHelpers from '../attack/AttackHelpers';
+import { UnlimitedAbilityLimit } from './AbilityLimit';
 
 /**
  * Represents a reaction ability provided by card text.
@@ -112,17 +113,37 @@ export abstract class TriggeredAbilityBase extends CardAbility {
         Contract.assertNotNullLike(window);
         Contract.assertTrue(this.card.canRegisterTriggeredAbilities());
 
+        if (!this.isActiveForEvents([event], window)) {
+            return;
+        }
+
         // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.
         for (const player of this.game.getPlayers()) {
             const context = this.createContext(player, event);
             if (
-                this.card.getTriggeredAbilities().includes(this) &&
                 this.isTriggeredByEvent(event, context) &&
                 this.meetsRequirements(context) === ''
             ) {
                 window.addTriggeredAbilityToWindow(context);
             }
         }
+    }
+
+    /**
+     * Whether this ability is currently on its card and eligible to trigger off `event`. An ability that is
+     * registered but inactive (e.g. blanked) when the event is emitted misses its window: the event is emitted
+     * again after resolution, and coming back online because of it must not let the ability trigger then.
+     */
+    private isActiveForEvents(events: GameEvent[], window: TriggeredAbilityWindow): boolean {
+        Contract.assertTrue(this.card.canRegisterTriggeredAbilities());
+
+        if (!this.card.getTriggeredAbilities().includes(this)) {
+            for (const event of events) {
+                window.markTriggerMissed(this, event);
+            }
+            return false;
+        }
+        return !events.some((event) => window.hasMissedTrigger(this, event));
     }
 
     public override getTitle(context?: AbilityContext): string {
@@ -243,6 +264,24 @@ export abstract class TriggeredAbilityBase extends CardAbility {
         this.isRegistered = true;
     }
 
+    public resetLimitForNewZone() {
+        if (!this.limit || this.limit.isEpicActionLimit()) {
+            return;
+        }
+
+        if (this.limit instanceof UnlimitedAbilityLimit) {
+            this.limit.reset();
+            return;
+        }
+
+        // Pending triggers must retain their original shared limit even if the
+        // source leaves play and returns before those triggers resolve.
+        this.limit.unregisterEvents();
+        this.limit = this.limit.clone();
+        this.limit.ability = this;
+        this.limit.registerEvents();
+    }
+
     public unregisterEvents() {
         if (!this.eventRegistrations) {
             return;
@@ -295,11 +334,13 @@ export abstract class TriggeredAbilityBase extends CardAbility {
 
     // STATE TODO: When does this trigger get removed? Do we need to handle it here?
     private checkAggregateWhen(events, window) {
+        if (!this.card.canRegisterTriggeredAbilities() || !this.isActiveForEvents(events, window)) {
+            return;
+        }
+
         for (const player of this.game.getPlayers()) {
             const context = this.createContext(player, events);
             if (
-                this.card.canRegisterTriggeredAbilities() &&
-                this.card.getTriggeredAbilities().includes(this) &&
                 this.aggregateWhen(events, context) &&
                 this.meetsRequirements(context) === ''
             ) {
@@ -330,4 +371,3 @@ export abstract class TriggeredAbilityBase extends CardAbility {
 // a concrete, instantiable type for TriggeredAbilityBase.
 @registerState()
 export class TriggeredAbility extends TriggeredAbilityBase { }
-

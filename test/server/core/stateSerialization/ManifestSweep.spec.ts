@@ -154,7 +154,7 @@ function assertInvariant(game: Game, boardLabel: string, excluded: string[]): vo
             assertLimitBearingAbilitiesAreReachable(card, offenders);
         }
         assertLimitBearingAbilitiesAreReachable(player.base, offenders);
-        assertLimitBearingAbilitiesAreReachable(player.deckLeader, offenders);
+        assertLimitBearingAbilitiesAreReachable(player.getSingleLeader(), offenders);
     }
     if (offenders.length > 0) {
         throw new Error(`${boardLabel}: ${excluded.length ? `(excluded so far: ${excluded.join(', ')}) ` : ''}reachability violations: ${offenders.join('; ')}`);

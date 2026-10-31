@@ -172,6 +172,46 @@ describe('Chimaera, A Frightening Reality', function() {
                 expect(context.p1Base.damage).toBe(3);
             });
 
+            it('should not heal when the defeated enemy unit is the one that was blanking it', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['chimaera#a-frightening-reality'],
+                        groundArena: ['atst'],
+                        base: { card: 'echo-base', damage: 5 }
+                    },
+                    player2: {
+                        hand: ['galen-erso#youll-never-win'],
+                        spaceArena: ['awing']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Chimaera passes, Galen names Chimaera: it loses all abilities while Galen is in play
+                context.player1.passAction();
+                context.player2.clickCard(context.galenErso);
+                context.player2.chooseListOption('Chimaera');
+                expect(context.chimaera.isBlank()).toBeTrue();
+
+                // AT-ST defeats Galen. The blank ends because Galen left play, but Chimaera had no
+                // "when an enemy unit is defeated" ability at the moment Galen was defeated
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.galenErso);
+
+                expect(context.galenErso).toBeInZone('discard', context.player2);
+                expect(context.chimaera.isBlank()).toBeFalse();
+                expect(context.p1Base.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
+
+                // Abilities are back: a later defeat heals as normal
+                context.player2.passAction();
+                context.player1.clickCard(context.chimaera);
+                context.player1.clickCard(context.awing);
+                expect(context.awing).toBeInZone('discard', context.player2);
+                expect(context.p1Base.damage).toBe(3);
+            });
+
             it('should trigger for each enemy unit defeated', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

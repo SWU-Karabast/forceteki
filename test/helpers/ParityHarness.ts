@@ -772,8 +772,8 @@ function runZoneMembershipCheck(manager: GameStateManager, baselineForwardViolat
                 }
             }
         } else if (obj instanceof BaseZone) {
-            const backing = obj as unknown as { _leader: Card | null; _forceToken: Card | null; _credits: readonly Card[]; _upgrades: readonly Card[] };
-            const cards = [backing._leader, backing._forceToken, ...backing._credits, ...backing._upgrades].filter((card): card is Card => card !== null);
+            const backing = obj as unknown as { _leaders: readonly Card[]; _forceToken: Card | null; _credits: readonly Card[]; _upgrades: readonly Card[] };
+            const cards = [...backing._leaders, backing._forceToken, ...backing._credits, ...backing._upgrades].filter((card): card is Card => card !== null);
             for (const card of cards) {
                 if (card.zone !== obj) {
                     reverse++;

@@ -72,6 +72,7 @@ describe('Vigilance', function() {
                     'Give a Shield token to a unit.'
                 ]);
                 context.player1.clickPrompt('Defeat a unit with 3 or less remaining HP.');
+                expect(context.player1).toHavePrompt('Defeat a unit with 3 or less remaining HP');
                 expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, context.battlefieldMarine, context.wampa]);
                 context.player1.clickCard(context.viperProbeDroid);
 
@@ -87,6 +88,7 @@ describe('Vigilance', function() {
                 ]);
 
                 context.player1.clickPrompt('Heal 5 damage from a base.');
+                expect(context.player1).toHavePrompt('Heal 5 damage from a base');
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
                 context.player1.clickCard(context.p1Base);
 
@@ -160,6 +162,68 @@ describe('Vigilance', function() {
                     context.player1.clickPrompt('(No effect) Give a Shield token to a unit.');
                     expect(context.player2).toBeActivePlayer();
                 });
+        });
+
+        describe('Vigilance\'s modal prompt', function() {
+            it('shows each option as a card button for Vigilance', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['vigilance'],
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.vigilance);
+
+                expect(context.player1).toHavePrompt('Choose 2 effects for Vigilance');
+
+                const prompt = context.player1.currentPrompt();
+                expect(prompt.promptType).toBe('modalEffectSelection');
+                expect(prompt.promptDescription).toBe('Each option can only be chosen once.');
+                expect(prompt.buttons.map((button) => button.sourceCard?.uuid)).toEqual(Array(4).fill(context.vigilance.uuid));
+                expect(prompt.buttons.map((button) => button.hasLegalEffects)).toEqual([true, true, false, false]);
+
+                context.player1.clickPrompt('(No effect) Defeat a unit with 3 or less remaining HP.');
+                context.player1.clickPrompt('(No effect) Give a Shield token to a unit.');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('re-evaluates whether each option has an effect after the first option resolves', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['vigilance'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'],
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.vigilance);
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Discard 6 cards from an opponent\'s deck.',
+                    'Heal 5 damage from a base.',
+                    'Defeat a unit with 3 or less remaining HP.',
+                    'Give a Shield token to a unit.'
+                ]);
+
+                context.player1.clickPrompt('Defeat a unit with 3 or less remaining HP.');
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeInZone('discard');
+
+                // the only unit in play was defeated, so there is no longer a unit to give a Shield token to
+                expect(context.player1).toHavePrompt('Choose 1 effect for Vigilance');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Discard 6 cards from an opponent\'s deck.',
+                    'Heal 5 damage from a base.',
+                    '(No effect) Give a Shield token to a unit.'
+                ]);
+
+                context.player1.clickPrompt('(No effect) Give a Shield token to a unit.');
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

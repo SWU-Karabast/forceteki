@@ -6,7 +6,7 @@ import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectB
 export default class VictorSquadronInAttackFormation extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'victor-squadron#in-attack-formation-id',
+            id: '8195968327',
             internalName: 'victor-squadron#in-attack-formation',
         };
     }

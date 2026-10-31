@@ -1,6 +1,7 @@
 import { Game } from '../../../../server/game/core/Game';
 import type { GameConfiguration } from '../../../../server/game/core/GameInterfaces';
-import { GameMode } from '../../../../server/GameMode';
+import { SwuGameFormat } from '../../../../server/game/core/Constants';
+import { NoopScheduler } from '../../../helpers/NoopScheduler';
 import { UnitTestCardDataGetter } from '../../../../server/utils/cardData/UnitTestCardDataGetter';
 import * as Settings from '../../../../server/Settings';
 import DynamicOngoingEffectImpl from '../../../../server/game/core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
@@ -21,7 +22,7 @@ describe('OngoingEffect context caching', function() {
         return {
             id: 'test-game-id',
             owner: 'player1',
-            gameMode: GameMode.Premier,
+            format: SwuGameFormat.Premier,
             players: [
                 Settings.getUserWithDefaultsSet({ id: 'player1', username: 'player1' }),
                 Settings.getUserWithDefaultsSet({ id: 'player2', username: 'player2' }),
@@ -29,7 +30,7 @@ describe('OngoingEffect context caching', function() {
             allowSpectators: false,
             cardDataGetter,
             pushUpdate: () => true,
-            buildSafeTimeout: () => undefined,
+            scheduler: new NoopScheduler(),
             userTimeoutDisconnect: () => undefined,
             ...overrides,
         };

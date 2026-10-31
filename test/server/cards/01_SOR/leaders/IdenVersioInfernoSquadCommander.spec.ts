@@ -145,9 +145,98 @@ describe('Iden Version, Inferno Squad Commander', function() {
 
                 expect(context.p1Base.damage).toBe(5);
             });
+        });
 
-            // TODO QIRA: once leader shields and defeat timing is fixed, add a test for Iden's ability to heal base when she is defeated
-            // TODO: once defeat timing is fixed, add a test checking that Iden's ability functions correctly with parallel defeats (e.g. superlaser)
+        describe('Iden\'s deployed ability with simultaneous defeats', function() {
+            it('should heal 1 from base when she is defeated at the same time as the enemy unit she attacks', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'iden-versio#inferno-squad-commander', deployed: true, damage: 3 },
+                        base: { card: 'dagobah-swamp', damage: 5 }
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.idenVersio);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.idenVersio).toBeInZone('base');
+                expect(context.p1Base.damage).toBe(4);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should heal 1 from base when she is defeated at the same time as the enemy unit attacking her', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'iden-versio#inferno-squad-commander', deployed: true, damage: 3 },
+                        base: { card: 'dagobah-swamp', damage: 5 }
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.idenVersio);
+
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.idenVersio).toBeInZone('base');
+                expect(context.p1Base.damage).toBe(4);
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should heal 1 from base for each enemy unit defeated at the same time as her (Superlaser Blast)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['superlaser-blast'],
+                        groundArena: ['atst'],
+                        leader: 'iden-versio#inferno-squad-commander',
+                        base: { card: 'dagobah-swamp', damage: 5 }
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        spaceArena: ['alliance-xwing'],
+                        leader: { card: 'luke-skywalker#faithful-friend', deployed: true }
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // deploy Iden with her epic action so that she gets her Shield token
+                context.player1.clickCard(context.idenVersio);
+                context.player1.clickPrompt('Deploy Iden Versio');
+                expect(context.idenVersio).toBeInZone('groundArena');
+                expect(context.idenVersio).toHaveExactUpgradeNames(['shield']);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.superlaserBlast);
+
+                // Iden's ability triggers once for each defeated enemy unit
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (3)']);
+                context.player1.clickPrompt('Resolve all (3)');
+
+                expect(context.atst).toBeInZone('discard');
+                expect(context.wampa).toBeInZone('discard');
+                expect(context.allianceXwing).toBeInZone('discard');
+                expect(context.lukeSkywalker).toBeInZone('base');
+                expect(context.idenVersio).toBeInZone('base');
+
+                // 3 enemy units defeated (Wampa, Alliance X-Wing, Luke), the friendly AT-ST doesn't count
+                expect(context.p1Base.damage).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

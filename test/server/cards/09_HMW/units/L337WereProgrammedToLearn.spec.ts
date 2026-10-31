@@ -118,6 +118,90 @@ describe('L3-37: We\'re Programmed To Learn', function() {
                 });
             });
 
+            it('should repeatedly replay One Must Destroy to Create when it defeats and replays L3-37', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['one-must-destroy-to-create', 'daring-raid'],
+                        groundArena: ['l337#were-programmed-to-learn']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.oneMustDestroyToCreate);
+
+                // Each return to play gives L3-37 a fresh once-per-phase ability,
+                // allowing the same event to be replayed indefinitely.
+                const repetitions = 60;
+                for (let i = 0; i < repetitions; i++) {
+                    expect(context.player1).toHavePrompt('Defeat a friendly non-leader unit');
+                    context.player1.clickCard(context.l337);
+                    expect(context.l337).toBeInZone('discard', context.player1);
+                    expect(context.player1).toHavePassAbilityPrompt('Play L3-37 from your discard pile for free');
+                    context.player1.clickPrompt('Trigger');
+
+                    expect(context.l337).toBeInZone('groundArena', context.player1);
+                    expect(context.oneMustDestroyToCreate).toBeInZone('discard', context.player1);
+                    expect(context.player1.exhaustedResourceCount).toBe(3);
+                    expect(context.player1).toHavePassAbilityPrompt(replayPrompt(context.oneMustDestroyToCreate.title));
+                    context.player1.clickPrompt(i < repetitions - 1 ? 'Trigger' : 'Pass');
+                }
+
+                expect(context.player2).toBeActivePlayer();
+                context.player2.passAction();
+
+                // Declining the loop leaves the returned L3-37's use available.
+                context.player1.clickCard(context.daringRaid);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toHavePassAbilityPrompt(replayPrompt(context.daringRaid.title));
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should share the original limit between pending triggers after L3-37 is replayed', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['youre-my-only-hope', 'daring-raid'],
+                        deck: ['one-must-destroy-to-create', 'wampa'],
+                        groundArena: ['l337#were-programmed-to-learn']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Both events trigger the original L3-37 before she leaves play.
+                context.player1.clickCard(context.youreMyOnlyHope);
+                context.player1.clickDisplayCardPromptButton(context.oneMustDestroyToCreate.uuid, 'play-discount');
+                context.player1.clickCard(context.l337);
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve next');
+                expect(context.player1).toHavePassAbilityPrompt(replayPrompt(context.youreMyOnlyHope.title));
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickDisplayCardPromptButton(context.wampa.uuid, 'leave');
+
+                // Replaying You're My Only Hope triggers the returned L3-37.
+                // Decline that fresh trigger; the original L3-37's other pending
+                // trigger must not resolve because her shared limit is now spent.
+                expect(context.player1).toHavePassAbilityPrompt(replayPrompt(context.youreMyOnlyHope.title));
+                context.player1.clickPrompt('Pass');
+                expect(context.player2).toBeActivePlayer();
+                context.player2.passAction();
+
+                context.player1.clickCard(context.daringRaid);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toHavePassAbilityPrompt(replayPrompt(context.daringRaid.title));
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should not trigger for an event that costs more than 3', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

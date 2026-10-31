@@ -543,6 +543,83 @@ var customMatchers = {
             }
         };
     },
+    toHavePassableTriggerPrompt: function () {
+        return {
+            compare: function (player, abilityText, sourceCard) {
+                var result = {};
+
+                // Card props on the test context are untyped, so a card passed as the first parameter is only caught here.
+                if (typeof abilityText !== 'string') {
+                    throw new TestSetupError(
+                        'toHavePassableTriggerPrompt expects the ability text as its first parameter; ' +
+                        'to disambiguate by card, pass the source card second: toHavePassableTriggerPrompt(\'<ability text>\', card)'
+                    );
+                }
+
+                // An optional (declinable) trigger, whether presented on its own via the standalone
+                // "You may trigger this ability" prompt or as one option among simultaneous triggers.
+                const prompt = player.currentPrompt();
+                const buttons = prompt.buttons ?? [];
+
+                let passable = false;
+                if (prompt.promptType === 'optionalTrigger') {
+                    passable = triggerButtonMatches(buttons.find((button) => button.arg === 'trigger'), abilityText, sourceCard);
+                } else if (prompt.promptType === 'triggerWindow') {
+                    passable = buttons.some((button) => button.passArg != null && triggerButtonMatches(button, abilityText, sourceCard));
+                }
+                result.pass = passable;
+
+                const described = describeTrigger(abilityText, sourceCard);
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have a passable trigger for ${described} but it did.`;
+                } else {
+                    result.message = `Expected ${player.name} to have a passable (optional) trigger for ${described} ` +
+                    `but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                }
+
+                return result;
+            }
+        };
+    },
+    toHaveExactTriggerResolutionPrompt: function () {
+        return {
+            compare: function (player, expectedEntries) {
+                var result = {};
+
+                if (!Array.isArray(expectedEntries)) {
+                    throw new TestSetupError(`Parameter 'expectedEntries' is not an array: ${expectedEntries}`);
+                }
+
+                const prompt = player.currentPrompt();
+                if (prompt.promptType !== 'triggerWindow') {
+                    result.pass = false;
+                    result.message = `Expected ${player.name} to have a simultaneous-trigger resolution prompt ` +
+                    `but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                    return result;
+                }
+
+                const expected = expectedEntries.map(normalizeTriggerDescriptor);
+                const actual = (prompt.buttons ?? []).map((button) => ({
+                    title: button.text,
+                    optional: !!button.optional,
+                    hasEffect: !!button.hasLegalEffects,
+                    count: button.count ?? 1,
+                    source: button.sourceCard,
+                }));
+
+                result.pass = triggerDescriptorArraysEqual(expected, actual);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have this exact trigger resolution prompt but it did.`;
+                } else {
+                    result.message = `Expected ${player.name} to have trigger resolution prompt:\n${formatTriggerDescriptors(expected)}\n` +
+                    `but the actual prompt was:\n${formatTriggerDescriptors(actual)}\n\n${generatePromptHelpMessage(player.testContext)}`;
+                }
+
+                return result;
+            }
+        };
+    },
     toHaveNoEffectAbilityPrompt: function () {
         return {
             compare: function (player, abilityText) {
@@ -1414,6 +1491,91 @@ var customMatchers = {
 
 function generatePromptHelpMessage(testContext) {
     return `Current prompts for players:\n${Util.formatBothPlayerPrompts(testContext)}`;
+}
+
+/** Human-readable label for a trigger reference: its ability text, plus its source card when given. */
+function describeTrigger(abilityText, sourceCard) {
+    return sourceCard == null ? `'${abilityText}'` : `'${abilityText}' from ${sourceCard.name}`;
+}
+
+/** Whether a trigger button matches the ability text (button text/label) and, when given, the source card. */
+function triggerButtonMatches(button, abilityText, sourceCard) {
+    if (button == null) {
+        return false;
+    }
+    const wanted = abilityText.toLowerCase();
+    const textMatches = [button.text, button.label]
+        .filter((value) => value != null)
+        .map((value) => String(value).toLowerCase())
+        .includes(wanted);
+    return textMatches && (sourceCard == null || button.sourceCard?.uuid === sourceCard.uuid);
+}
+
+/**
+ * Expands a full-state trigger descriptor into its canonical form. A bare string is shorthand for a
+ * single, mandatory, has-effect trigger from any source card; an object overrides those defaults per field.
+ */
+function normalizeTriggerDescriptor(entry) {
+    const defaults = { optional: false, hasEffect: true, count: 1 };
+    if (typeof entry === 'string') {
+        return { ...defaults, title: entry };
+    }
+    if (entry == null || typeof entry.title !== 'string') {
+        throw new TestSetupError(`Invalid trigger descriptor (expected a string or an object with a 'title'): ${JSON.stringify(entry)}`);
+    }
+    if (entry.source != null && entry.source.uuid == null) {
+        throw new TestSetupError(`Invalid trigger descriptor for '${entry.title}': 'source' must be a card`);
+    }
+    return { ...defaults, ...entry };
+}
+
+function triggerDescriptorKey(descriptor) {
+    return [descriptor.title, descriptor.optional, descriptor.hasEffect, descriptor.count].join('\u0000');
+}
+
+/**
+ * Compares expected descriptors against the actual ones as multisets — order-insensitive, matching
+ * `toHaveExactPromptButtons` (which sorts before comparing). The trigger-resolution prompt's ordering is an
+ * engine sort detail that specs shouldn't be coupled to. An expected descriptor without a `source` matches
+ * an actual trigger from any source card, so descriptors that name their source are paired up first.
+ */
+function triggerDescriptorArraysEqual(expected, actual) {
+    if (expected.length !== actual.length) {
+        return false;
+    }
+    const remaining = [...actual];
+    const sourcedFirst = [...expected].sort((a, b) => (a.source == null ? 1 : 0) - (b.source == null ? 1 : 0));
+    return sourcedFirst.every((descriptor) => {
+        const index = remaining.findIndex((candidate) =>
+            triggerDescriptorKey(candidate) === triggerDescriptorKey(descriptor) &&
+            (descriptor.source == null || candidate.source?.uuid === descriptor.source.uuid)
+        );
+        if (index === -1) {
+            return false;
+        }
+        remaining.splice(index, 1);
+        return true;
+    });
+}
+
+function formatTriggerDescriptors(descriptors) {
+    if (descriptors.length === 0) {
+        return '  (no triggers)';
+    }
+    return descriptors.map((descriptor) => {
+        const tags = [];
+        if (descriptor.optional) {
+            tags.push('optional');
+        }
+        if (!descriptor.hasEffect) {
+            tags.push('no effect');
+        }
+        if (descriptor.count > 1) {
+            tags.push(`x${descriptor.count}`);
+        }
+        const tagText = tags.length > 0 ? ` [${tags.join(', ')}]` : '';
+        return `  - ${descriptor.title}${tagText}${Util.formatTriggerSource(descriptor.source)}`;
+    }).join('\n');
 }
 
 function checkConsistentZoneState(card, result) {

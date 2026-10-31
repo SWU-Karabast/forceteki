@@ -98,7 +98,6 @@ describe('Barrel Roll', function () {
             context.player1.clickCard(context.blueLeader);
 
             context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
-            context.player1.clickPrompt('Trigger');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.blueLeader).toBeInZone('groundArena');

@@ -211,7 +211,7 @@ describe('Save -> load -> continue', function() {
             // No implemented card reads this watcher today, so the watcher's own API is the only available
             // direct consumer.
             const watcher = (result.loadedGame.abilityHelper.stateWatchers as any).leadersDeployedThisPhase();
-            const loadedLeader = result.playersBySeat.get('p1').deckLeader;
+            const loadedLeader = result.playersBySeat.get('p1').getSingleLeader();
             expect(watcher.someLeaderDeployed((entry: any) => entry.card === loadedLeader)).toBeTrue();
         });
 
@@ -283,8 +283,8 @@ describe('Save -> load -> continue', function() {
             const { context } = contextRef;
             // Both players share the same leader name, so no `context.emperorPalpatine`-style property is
             // generated; resolved structurally off each `Player` instead.
-            const p1Leader = context.player1Object.deckLeader as any;
-            const p2Leader = context.player2Object.deckLeader as any;
+            const p1Leader = context.player1Object.getSingleLeader() as any;
+            const p2Leader = context.player2Object.getSingleLeader() as any;
 
             context.player1.clickCard(p1Leader);
             context.player1.clickPrompt('Deploy Emperor Palpatine');
@@ -300,8 +300,8 @@ describe('Save -> load -> continue', function() {
             const { before, loadedGame, playersBySeat, saveAgain } = await saveLoadSaveAsync(context);
             expect(before.engineOnlyFacts).toEqual([]);
 
-            const loadedP1Leader = playersBySeat.get('p1').deckLeader as any;
-            const loadedP2Leader = playersBySeat.get('p2').deckLeader as any;
+            const loadedP1Leader = playersBySeat.get('p1').getSingleLeader() as any;
+            const loadedP2Leader = playersBySeat.get('p2').getSingleLeader() as any;
             expect(loadedP1Leader.deployed).toBeTrue();
             expect(loadedP1Leader.deployEpicActionLimit.isAtMax(playersBySeat.get('p1'))).toBeTrue();
             expect(loadedP2Leader.deployed).toBeFalse();

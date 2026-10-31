@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class EravanaHaulingRathtars extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'eravana#hauling-rathtars-id',
+            id: '4371076477',
             internalName: 'eravana#hauling-rathtars',
         };
     }

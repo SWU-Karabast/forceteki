@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class GeneralGrievousSeparatistWarlord extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'general-grievous#separatist-warlord-id',
+            id: '8755852999',
             internalName: 'general-grievous#separatist-warlord',
         };
     }

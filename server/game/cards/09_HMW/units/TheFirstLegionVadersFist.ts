@@ -9,7 +9,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class TheFirstLegionVadersFist extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-first-legion#vaders-fist-id',
+            id: '8227671129',
             internalName: 'the-first-legion#vaders-fist',
         };
     }

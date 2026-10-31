@@ -75,9 +75,76 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
 
                 expect(context.player1).toBeActivePlayer();
                 expect(context.player1).toHavePrompt('Choose an action');
+            });
 
-                // TODO: Add test with TWI Maul unit dealing damage to multiple friendly wookiee at the same time
-                // TODO: Add test where Tarfful is defeated and another friendly wookiee unit is damaged at the same time (for example, using TWI Maul unit)
+            it('triggers once for each friendly wookiee unit when Darth Maul deals combat damage to multiple of them at the same time', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['tarfful#kashyyyk-chieftain', 'chewbacca#faithful-first-mate'],
+                    },
+                    player2: {
+                        groundArena: ['darth-maul#revenge-at-last', 'wampa', 'atst'],
+                        hasInitiative: true,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.darthMaul);
+                context.player2.clickCard(context.tarfful);
+                context.player2.clickCard(context.chewbacca);
+                context.player2.clickDone();
+
+                expect(context.tarfful.damage).toBe(5);
+                expect(context.chewbacca.damage).toBe(5);
+                expect(context.darthMaul).toBeInZone('discard');
+
+                // Tarfful's ability triggers once for each wookiee
+                expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+                context.player1.clickPrompt('Resolve all (2)');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst]);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('discard');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.atst]);
+                context.player1.clickCard(context.atst);
+                expect(context.atst.damage).toBe(5);
+
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('still triggers for another friendly wookiee unit that is dealt combat damage at the same time as Tarfful is defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'tarfful#kashyyyk-chieftain', damage: 5 }, 'chewbacca#faithful-first-mate'],
+                    },
+                    player2: {
+                        groundArena: ['darth-maul#revenge-at-last', 'wampa', 'atst'],
+                        hasInitiative: true,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.darthMaul);
+                context.player2.clickCard(context.tarfful);
+                context.player2.clickCard(context.chewbacca);
+                context.player2.clickDone();
+
+                expect(context.tarfful).toBeInZone('discard');
+                expect(context.chewbacca.damage).toBe(5);
+                expect(context.darthMaul).toBeInZone('discard');
+
+                // Tarfful was in play when the combat damage was dealt, so its ability still triggers for Chewbacca (but not for itself)
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst]);
+                context.player1.clickCard(context.atst);
+                expect(context.atst.damage).toBe(5);
+                expect(context.wampa.damage).toBe(0);
+
+                expect(context.player1).toBeActivePlayer();
             });
 
             it('deals no damage if a friendly wookiee unit is dealt no damage because of a shield', async function () {

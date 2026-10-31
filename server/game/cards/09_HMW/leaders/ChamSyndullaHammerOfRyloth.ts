@@ -9,7 +9,7 @@ import { CardType, DamageType, RelativePlayer, WildcardCardType } from '../../..
 export default class ChamSyndullaHammerOfRyloth extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'cham-syndulla#hammer-of-ryloth-id',
+            id: '2026544379',
             internalName: 'cham-syndulla#hammer-of-ryloth'
         };
     }

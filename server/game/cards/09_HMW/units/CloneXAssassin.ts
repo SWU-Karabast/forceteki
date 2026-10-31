@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class CloneXAssassin extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'clone-x-assassin-id',
+            id: '9805871839',
             internalName: 'clone-x-assassin',
         };
     }

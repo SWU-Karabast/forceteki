@@ -6,7 +6,7 @@ import { PhaseName } from '../../../core/Constants';
 export default class BeastLair extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'beast-lair-id',
+            id: '1444437999',
             internalName: 'beast-lair',
         };
     }

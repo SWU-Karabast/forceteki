@@ -104,7 +104,7 @@ describe('Generated state serializers', function() {
             expect(byName.get('NonLeaderUnitCard')).toEqual(jasmine.objectContaining({ decorator: 'registerStateBase', isAbstract: false }));
             expect(byName.has('FirstLightSmuggleAction')).toBe(true);
             expect(byName.has('AdvantageAbility')).toBe(true);
-            expect(byName.has('CustomDurationEvent')).toBe(true);
+            expect(byName.has('EffectEventListener')).toBe(true);
         });
 
         it('is side-effect-free: serializing every live object with GameObjectBase.prototype.getObjectId replaced by a throwing stub succeeds', async function() {

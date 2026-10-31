@@ -100,7 +100,9 @@ describe('R2-D2, Getting His Chance', function() {
             context.player1.clickCard(context.p2Base);
 
             expect(context.p2Base.damage).toBe(2);
-            expect(context.player2.hand.length).toBe(0);
+            // the damage was prevented, but the "if you do" condition is still met (SWU CR 8.9.2)
+            expect(context.player2.hand.length).toBe(1);
+            expect(context.battlefieldMarine).toBeInZone('hand', context.player2);
             expect(context.player2).toBeActivePlayer();
         });
     });

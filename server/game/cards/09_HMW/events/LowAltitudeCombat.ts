@@ -6,7 +6,7 @@ import { WildcardCardType, ZoneName } from '../../../core/Constants';
 export default class LowAltitudeCombat extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'low-altitude-combat-id',
+            id: '9783991030',
             internalName: 'low-altitude-combat',
         };
     }

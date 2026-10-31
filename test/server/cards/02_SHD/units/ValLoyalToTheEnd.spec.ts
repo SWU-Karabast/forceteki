@@ -68,5 +68,44 @@ describe('Val, Loyal To The End', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
+        it('Val\'s When Defeated ability should give Experience tokens to a unit friendly to the player who controlled her and her Bounty should be collected by the other player when defeated by No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['val#loyal-to-the-end', 'battlefield-marine']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['wampa'],
+                    spaceArena: ['green-squadron-awing'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.val);
+
+            // player2 is the active player and chooses the order of the triggers
+            expect(context.player2).toHaveExactPromptButtons(['You', 'Opponent']);
+            context.player2.clickPrompt('You');
+
+            // When Defeated: player2 controlled Val, so player2's units are friendly
+            expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.greenSquadronAwing]);
+            context.player2.clickCard(context.wampa);
+            expect(context.wampa).toHaveExactUpgradeNames(['experience', 'experience']);
+
+            // Bounty: collected by player1, the opponent of Val's controller
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa, context.greenSquadronAwing]);
+            expect(context.player1).toHavePassAbilityButton();
+            context.player1.clickCard(context.greenSquadronAwing);
+
+            expect(context.greenSquadronAwing).toBeInZone('discard', context.player2);
+            expect(context.battlefieldMarine.isUpgraded()).toBeFalse();
+            expect(context.val).toBeInZone('discard', context.player1);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

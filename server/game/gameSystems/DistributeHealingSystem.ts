@@ -32,7 +32,7 @@ export class DistributeHealingSystem<TContext extends AbilityContext = AbilityCo
         return event.damageHealed;
     }
 
-    protected override getDistributionType(): string {
-        return 'healing';
+    protected override getDistributionNouns(): { singular: string } {
+        return { singular: 'healing' };
     }
 }

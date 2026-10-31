@@ -53,6 +53,12 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
 
         context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
         context.game.queueSimpleStep(() => {
+            // If the attack was passed or cancelled, no AttackFlow ran to clean up the early "for this attack" effects
+            if (newContext.activeAttackId === undefined && context.game.currentAttack == null) {
+                context.game.ongoingEffectEngine.unregisterOnAttackEffects();
+            }
+        }, 'clean up early attacker lasting effects if no attack was declared');
+        context.game.queueSimpleStep(() => {
             if (context.activeAttackId !== undefined) {
                 return;
             }

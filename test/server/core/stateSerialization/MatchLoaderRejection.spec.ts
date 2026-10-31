@@ -148,8 +148,8 @@ describe('MatchLoader.loadAsync — rejection', function() {
             // (AbilityLimitRestorer's `limit === deployEpicActionLimit` check) with zero coverage. Resolve
             // the leader's own real deploy-action identifier via the same ability-surface function the
             // restorer uses, so this document actually reaches that guard.
-            const leaderCard = contextRef.context.player1Object.deckLeader;
-            const deployAbility = getLimitBearingAbilitySurface(leaderCard).find((ability) => ability.limit === leaderCard.deployEpicActionLimit);
+            const leaderCard = contextRef.context.player1Object.getSingleLeader();
+            const deployAbility = getLimitBearingAbilitySurface(leaderCard).find((ability) => ability.captureLimit() === leaderCard.deployEpicActionLimit);
             expect(deployAbility).withContext('the seated leader must have a limit-bearing deploy ability to exercise this')
                 .toBeDefined();
 

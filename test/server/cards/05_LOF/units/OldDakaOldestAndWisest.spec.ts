@@ -121,7 +121,6 @@ describe('Old Daka, Oldest and Wisest', function() {
             ]);
 
             context.player1.clickPrompt('Use the Force to give a unit -3/-3 for this phase');
-            context.player1.clickPrompt('Trigger');
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.talzinsAssassin, context.oldDaka]);
             context.player1.clickCard(context.wampa);
             expect(context.wampa.getPower()).toBe(1);

@@ -21,7 +21,7 @@ declare global {
     }
 }
 
-export const authMiddleware = (gameServer: GameServer, routeName?: string, serverRoleRequired?: ServerRole) => {
+export const authMiddleware = (gameServer: GameServer, routeName?: string, serverRoleRequired?: ServerRole, loadStoredProfile: boolean = false) => {
     const userFactory = new UserFactory();
 
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -30,11 +30,9 @@ export const authMiddleware = (gameServer: GameServer, routeName?: string, serve
             const cookies = parse(req.headers.cookie || '');
             const token = cookies['__Secure-next-auth.session-token'] || cookies['next-auth.session-token'];
             if (!token) {
-                // A route that names a required role has no anonymous form of itself. Refuse here
-                // rather than continuing as an anonymous user: the role check below sits on the
-                // authenticated path, so falling through would skip it altogether.
-                if (serverRoleRequired) {
-                    logger.warn(`Auth ${routeName ?? req.path}: unauthenticated request to a route requiring ${serverRoleRequired}`);
+                // Role-protected routes and routes requiring a stored identity have no anonymous form.
+                if (serverRoleRequired || loadStoredProfile) {
+                    logger.warn(`Auth ${routeName ?? req.path}: authentication required${serverRoleRequired ? ` for role ${serverRoleRequired}` : ''}`);
                     return res.status(401).json({ success: false, message: 'Authentication required' });
                 }
 
@@ -55,7 +53,7 @@ export const authMiddleware = (gameServer: GameServer, routeName?: string, serve
             if (routeName) {
                 logger.info(`Auth ${routeName}: token found in cookies. Authenticating user.`);
             }
-            if (req.body.user?.authenticated) {
+            if (req.body.user?.authenticated && !loadStoredProfile) {
                 req.user = userFactory.verifyTokenAndCreateAuthenticatedUser(token, req.body.user);
             } else {
                 req.user = await userFactory.createUserFromTokenAsync(token);

@@ -67,8 +67,10 @@ interface SwuTestContext {
     player2: PlayerInteractionWrapper;
     p1Base: IBaseCard;
     p1Leader: ILeaderCard;
+    p1SecondLeader: ILeaderCard | null;
     p2Base: IBaseCard;
     p2Leader: ILeaderCard;
+    p2SecondLeader: ILeaderCard | null;
 
     ignoreUnresolvedActionPhasePrompts: boolean;
     requireResolvedRegroupPhasePrompts: boolean;
@@ -80,6 +82,7 @@ interface SwuTestContext {
     getTraitNames(): string[];
     getChatLog(numbBack = 0);
     getChatLogs(numbBack = 1, inOrder = false);
+    getAnimationRecords(from?: number): any[];
     getPromptedPlayer(title: string);
     keepStartingHand();
     moveToNextActionPhase();
@@ -120,7 +123,23 @@ interface SwuSetupTestOptions extends Omit<ISerializedGameState, 'player1' | 'pl
     testUndo?: boolean;
     enableConfirmationToUndo?: boolean;
 
+    /** Deck/rules format being played. Defaults to Premier. Use 'fauxSuns' for 1v1 Twin Suns. Accepts SwuGameFormat enum values or their string equivalents. */
+    format?: import('../../server/game/core/Constants').SwuGameFormat | string;
+
     [field: string]: any;
+}
+
+/**
+ * One trigger in a simultaneous-trigger resolution prompt, as asserted by `toHaveExactTriggerResolutionPrompt`.
+ * Defaults: `optional: false`, `hasEffect: true`, `count: 1` (the number of grouped instances), and no
+ * `source`, which matches a trigger from any source card.
+ */
+interface ITriggerResolutionEntry {
+    title: string;
+    optional?: boolean;
+    hasEffect?: boolean;
+    count?: number;
+    source?: Card;
 }
 
 interface ICardDisplaySelectionState {
@@ -150,6 +169,8 @@ declare namespace jasmine {
         toBeActivePlayer<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHaveInitiative<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHavePassAbilityPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any): boolean;
+        toHavePassableTriggerPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: string, sourceCard?: Card): boolean;
+        toHaveExactTriggerResolutionPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedEntries: (string | ITriggerResolutionEntry)[]): boolean;
         toHaveNoEffectAbilityPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any): boolean;
         toHavePassSingleTargetPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, abilityText: any, target: any): boolean;
         toHaveConfirmUndoPrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, blockButtonEnabled?: boolean): boolean;

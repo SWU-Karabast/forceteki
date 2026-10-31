@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class SunFacPogglesSecond extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'sun-fac#poggles-second-id',
+            id: '5305208112',
             internalName: 'sun-fac#poggles-second',
         };
     }

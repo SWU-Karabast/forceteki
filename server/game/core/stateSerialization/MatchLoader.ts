@@ -2,8 +2,11 @@ import type { Lobby } from '../../../gamenode/Lobby';
 import type { IUser } from '../../../Settings';
 import type { CardDataGetter } from '../../../utils/cardData/CardDataGetter';
 import { Deck } from '../../../utils/deck/Deck';
+import type { IScheduler } from '../../../utils/IScheduler';
+import { RealScheduler } from '../../../utils/RealScheduler';
 import { Game } from '../Game';
 import { EventName, PhaseName, RollbackRoundEntryPoint } from '../Constants';
+import type { SwuGameFormat } from '../Constants';
 import { EventWindow, TriggerHandlingMode } from '../event/EventWindow';
 import { GameEvent } from '../event/GameEvent';
 import type { Player } from '../Player';
@@ -40,9 +43,16 @@ export interface IMatchLoadConfig {
     owner?: string;
     allowSpectators?: boolean;
 
-    /** Real callers (`P2-D`) pass real ones; these default to no-ops so a headless load needs no lobby. */
+    /**
+     * Card titles legal in the loaded game's format and card pool, asked for once the document's `settings.format`
+     * has been validated. The document records the format but not the card pool, so the caller resolves it;
+     * omitted, every title is offered.
+     */
+    getLegalCardTitles?: (format: SwuGameFormat) => ReadonlySet<string>;
+
+    /** Real callers (`P2-D`) pass real ones; these default so a headless load needs no lobby. */
     pushUpdate?: () => void;
-    buildSafeTimeout?: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
+    scheduler?: IScheduler;
     userTimeoutDisconnect?: (userId: string) => void;
 
     /**
@@ -213,13 +223,14 @@ export async function loadAsync(saved: ISavedMatch, config: IMatchLoadConfig): P
                     owner: config.owner ?? seatToUser.get(orderedSeats[0]).username,
                     players: orderedSeats.map((seat) => seatToUser.get(seat)),
                     allowSpectators: config.allowSpectators ?? false,
-                    gameMode: saved.settings.gameMode,
+                    format: saved.settings.format,
+                    legalCardTitles: config.getLegalCardTitles?.(saved.settings.format),
                     cardDataGetter: config.cardDataGetter,
                     useActionTimer: saved.settings.useActionTimer,
                     undoMode: saved.settings.undoMode,
                     seed: saved.rng.seed,
                     pushUpdate: config.pushUpdate ?? (() => { /* no-op */ }),
-                    buildSafeTimeout: config.buildSafeTimeout ?? ((callback: () => void, delayMs: number) => setTimeout(callback, delayMs)),
+                    scheduler: config.scheduler ?? new RealScheduler(),
                     userTimeoutDisconnect: config.userTimeoutDisconnect ?? (() => { /* no-op */ }),
                 },
                 { router: routerProxy }
@@ -263,7 +274,7 @@ export async function loadAsync(saved: ISavedMatch, config: IMatchLoadConfig): P
 
         // Steps 4-6 run against a live Game whose setup phase already armed a real per-player action timer
         // (UiPrompt.setPrompt, reached by runSetupPhase's driven ActionWindow prompt, calls a genuine
-        // startPlayerActionTimer with the caller's real buildSafeTimeout). Any failure below this point must
+        // startPlayerActionTimer with the caller's real scheduler). Any failure below this point must
         // stop both timers before propagating, or the abandoned setTimeout fires 20-140s later into
         // Game.onGameTimerExpired -> endGame() -> the caller's real router.handleGameEnd()/sendGameState() for
         // a Game the caller never received (it already got a rejected loadAsync). The success path does not

@@ -69,12 +69,7 @@ export class NumberPrompt extends UiPrompt {
         Contract.assertTrue(Number.isInteger(value), `Number prompt value must be an integer, instead received ${arg}`);
         Contract.assertTrue(value >= this.properties.min && value <= this.properties.max, `Number prompt value ${value} is outside range ${this.properties.min}-${this.properties.max}`);
 
-        // Normalises a numeric arg to match what every choiceHandler consumer already expects (a string it
-        // re-parses) and what the engine's own auto-resolve path already emits (NumberTargetResolver.ts
-        // calls `min.toString()`). Not a `typeof` guard: unlike DropdownListPrompt, a number prompt carries
-        // no button holding its value, so there is no in-repo evidence the client ever sends a string here,
-        // and a guard could reject input that works in production today.
-        this.properties.choiceHandler(String(arg));
+        this.properties.choiceHandler(value.toString());
         this.complete();
 
         return true;

@@ -53,7 +53,7 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
                         card: upgrade,
                         destination: event.destination,
                     },
-                    (event) => (event as any).card.moveTo((event as any).destination)
+                    (event) => (event as any).card.moveTo((event as any).destination, InitializeCardStateOption.DoNotInitialize)
                 );
 
                 moveEvent.order = event.order + 1;

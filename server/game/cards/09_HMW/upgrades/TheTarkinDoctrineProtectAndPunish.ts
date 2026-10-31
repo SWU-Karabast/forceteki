@@ -6,7 +6,7 @@ import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants
 export default class TheTarkinDoctrineProtectAndPunish extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'the-tarkin-doctrine#protect-and-punish-id',
+            id: '3583020989',
             internalName: 'the-tarkin-doctrine#protect-and-punish',
         };
     }

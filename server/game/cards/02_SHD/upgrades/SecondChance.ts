@@ -1,6 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { IUpgradeAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
+import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class SecondChance extends UpgradeCard {
     protected override getImplementationId () {
@@ -14,15 +15,12 @@ export default class SecondChance extends UpgradeCard {
         registrar.setAttachCondition((context) => context.attachTarget.isNonLeaderUnit());
         registrar.addGainWhenDefeatedAbilityTargetingAttached({
             title: 'For this phase, this unit\'s owner may play it from their discard pile for free.',
-            immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                    effect: AbilityHelper.ongoingEffects.canPlayFromDiscard(),
-                }),
-                AbilityHelper.immediateEffects.forThisPhasePlayerEffect((context) => ({
-                    target: context.source.owner,
-                    effect: AbilityHelper.ongoingEffects.forFree({ match: (card) => card === context.source }),
-                }))
-            ])
+            immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
+                effect: AbilityHelper.ongoingEffects.canPlayFromDiscard({
+                    player: context.source.owner,
+                    adjustCost: { costAdjustType: CostAdjustType.Free }
+                })
+            }))
         });
     }
 }

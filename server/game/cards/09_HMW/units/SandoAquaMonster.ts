@@ -4,13 +4,22 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { EventName, TargetMode, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { EventResolutionStatus } from '../../../core/event/GameEvent';
 import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
+import type { AbilityContext } from '../../../core/ability/AbilityContext';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
 
 export default class SandoAquaMonster extends NonLeaderUnitCard {
+    private cardsLeftPlayThisPhase: CardsLeftPlayThisPhaseWatcher;
+
     protected override getImplementationId() {
         return {
-            id: 'sando-aqua-monster-id',
+            id: '8902247163',
             internalName: 'sando-aqua-monster',
         };
+    }
+
+    protected override setupStateWatchers(registrar: StateWatcherRegistrar, abilityHelper: IAbilityHelper): void {
+        this.cardsLeftPlayThisPhase = abilityHelper.stateWatchers.cardsLeftPlayThisPhase();
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
@@ -18,19 +27,20 @@ export default class SandoAquaMonster extends NonLeaderUnitCard {
             title: 'Defeat any number of ground units with combined power equal to or less than this unit\'s power. Deal damage to this unit equal to the combined power of the defeated units',
             optional: true,
             targetResolver: {
-                activePromptTitle: (context) => `Choose any number of ground units with combined power equal to or less than ${context.source.getPower()}`,
+                activePromptTitle: (context) => `Choose any number of ground units with combined power equal to or less than ${this.sourcePower(context)}`,
                 zoneFilter: ZoneName.GroundArena,
                 cardTypeFilter: WildcardCardType.Unit,
                 mode: TargetMode.Unlimited,
                 canChooseNoCards: true,
+                // Gate on the Naboo base here rather than wrapping the defeat in a conditional:
+                // an aggregate system handed an empty selection falls back to the inner system's
+                // default target, which for defeat() is this unit itself.
+                cardCondition: (card, context) => context.player.base.hasSomeTrait(Trait.Naboo),
                 multiSelectCardCondition: (card, selectedCards, context) => {
                     const selectedPower = selectedCards.reduce((total, selectedCard) => total + (selectedCard as IUnitCard).getPower(), 0);
-                    return selectedPower + (card as IUnitCard).getPower() <= context.source.getPower();
+                    return selectedPower + (card as IUnitCard).getPower() <= this.sourcePower(context);
                 },
-                immediateEffect: abilityHelper.immediateEffects.conditional({
-                    condition: (c) => c.player.base.hasSomeTrait(Trait.Naboo),
-                    onTrue: abilityHelper.immediateEffects.defeat(),
-                })
+                immediateEffect: abilityHelper.immediateEffects.defeat()
             },
             ifYouDo: (ifYouDoContext) => {
                 const defeatedPower = ifYouDoContext.events
@@ -45,5 +55,11 @@ export default class SandoAquaMonster extends NonLeaderUnitCard {
                 };
             }
         });
+    }
+
+    private sourcePower(context: AbilityContext<NonLeaderUnitCard>): number {
+        return context.source.isInPlay()
+            ? context.source.getPower()
+            : this.cardsLeftPlayThisPhase.getLeftPlayEntry(context.source)?.lastKnownInformation.power ?? context.source.getPrintedPower();
     }
 }

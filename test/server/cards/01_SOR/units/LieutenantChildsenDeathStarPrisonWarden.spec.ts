@@ -106,10 +106,15 @@ describe('Lieutenant Childsen', function() {
                     });
                 });
 
-                it('gains no experience', function () {
+                it('shows a skippable pause instead of resolving and gains no experience', function () {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.lieutenantChildsen);
+
+                    // Player 1 has no Vigilance card to reveal, so a skippable masking pause is shown instead of resolving instantly
+                    expect(context.player1).toHavePrompt('Pausing for Reveal');
+                    expect(context.player1).toHaveEnabledPromptButton('Skip');
+                    context.player1.clickPrompt('Skip');
 
                     expect(context.lieutenantChildsen.isUpgraded()).toBeFalse();
                     expect(context.player2).toBeActivePlayer();

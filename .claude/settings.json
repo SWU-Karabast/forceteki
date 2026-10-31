@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint)",
+      "Bash(npm run lint-fix)",
+      "Bash(npm run lint-verbose)",
+      "Bash(npx eslint:*)",
+      "Bash(npm run validate-cards)",
+      "Bash(npm run build)",
+      "Bash(npm run build-dev)",
+      "Bash(npm run build-test)",
+      "Bash(npm run get-cards)",
+      "Bash(npm test:*)",
+      "Bash(npm run test-fast:*)",
+      "Bash(npm run test-fail-fast:*)",
+      "Bash(npm run test-parallel:*)",
+      "Bash(npm run test-undo:*)",
+      "Bash(npm run test-parallel-undo:*)",
+      "Bash(npm run jasmine:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)"
+    ]
+  }
+}

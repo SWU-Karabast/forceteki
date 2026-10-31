@@ -22,13 +22,12 @@ export default class LuxBonteriRenegadeSeparatist extends NonLeaderUnitCard {
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects((context) => ({
-                    amountOfChoices: 1,
-                    choices: () => ({
-                        ['Ready']: AbilityHelper.immediateEffects.ready({ target: context.target }),
-                        ['Exhaust']: AbilityHelper.immediateEffects.exhaust({ target: context.target })
-                    })
-                })),
+                immediateEffect: AbilityHelper.immediateEffects.selectChoice({
+                    choices: {
+                        ['Ready']: AbilityHelper.immediateEffects.ready(),
+                        ['Exhaust']: AbilityHelper.immediateEffects.exhaust()
+                    }
+                }),
             }
         });
     }

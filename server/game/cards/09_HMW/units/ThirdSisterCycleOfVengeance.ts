@@ -7,7 +7,7 @@ import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 export default class ThirdSisterCycleOfVengeance extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'third-sister#cycle-of-vengeance-id',
+            id: '6355999082',
             internalName: 'third-sister#cycle-of-vengeance',
         };
     }

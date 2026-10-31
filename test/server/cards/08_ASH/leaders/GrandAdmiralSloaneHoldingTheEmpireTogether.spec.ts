@@ -18,11 +18,17 @@ describe('Grand Admiral Sloane, Holding the Empire Together', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grandAdmiralSloane);
-                context.player1.clickPrompt('Choose an arena. Give each unit in that arena Sentinel and Overwhelm for this phase');
+                context.player1.clickPrompt('Give each unit in an arena Sentinel and Overwhelm for this phase');
 
-                expect(context.player1).toHavePrompt('Choose an arena');
-                expect(context.player1).toHaveExactPromptButtons(['Ground', 'Space']);
-                context.player1.clickPrompt('Ground');
+                expect(context.player1).toHavePrompt('Choose an effect for Grand Admiral Sloane');
+                expect(context.player1).toHaveExactPromptButtons(['Give each space unit Sentinel and Overwhelm for this phase', 'Give each ground unit Sentinel and Overwhelm for this phase']);
+
+                // Space is listed first to match the client's arena layout
+                expect(context.player1.currentPrompt().buttons.map((button) => button.text)).toEqual([
+                    'Give each space unit Sentinel and Overwhelm for this phase',
+                    'Give each ground unit Sentinel and Overwhelm for this phase'
+                ]);
+                context.player1.clickPrompt('Give each ground unit Sentinel and Overwhelm for this phase');
 
                 expect(context.grandAdmiralSloane.exhausted).toBeTrue();
                 expect(context.battlefieldMarine.hasSomeKeyword('sentinel')).toBeTrue();
@@ -67,8 +73,8 @@ describe('Grand Admiral Sloane, Holding the Empire Together', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grandAdmiralSloane);
-                context.player1.clickPrompt('Choose an arena. Give each unit in that arena Sentinel and Overwhelm for this phase');
-                context.player1.clickPrompt('Space');
+                context.player1.clickPrompt('Give each unit in an arena Sentinel and Overwhelm for this phase');
+                context.player1.clickPrompt('Give each space unit Sentinel and Overwhelm for this phase');
 
                 expect(context.awing.hasSomeKeyword('sentinel')).toBeTrue();
                 expect(context.awing.hasSomeKeyword('overwhelm')).toBeTrue();
@@ -78,6 +84,32 @@ describe('Grand Admiral Sloane, Holding the Empire Together', function() {
                 expect(context.battlefieldMarine.hasSomeKeyword('overwhelm')).toBeFalse();
                 expect(context.battleDroid.hasSomeKeyword('sentinel')).toBeFalse();
                 expect(context.battleDroid.hasSomeKeyword('overwhelm')).toBeFalse();
+            });
+
+            it('should allow choosing an arena with no units', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grand-admiral-sloane#holding-the-empire-together',
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.grandAdmiralSloane);
+                context.player1.clickPrompt('Give each unit in an arena Sentinel and Overwhelm for this phase');
+
+                expect(context.player1).toHaveExactPromptButtons(['(No effect) Give each space unit Sentinel and Overwhelm for this phase', 'Give each ground unit Sentinel and Overwhelm for this phase']);
+                context.player1.clickPrompt('(No effect) Give each space unit Sentinel and Overwhelm for this phase');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.grandAdmiralSloane.exhausted).toBeTrue();
+                expect(context.battlefieldMarine.hasSomeKeyword('sentinel')).toBeFalse();
+                expect(context.wampa.hasSomeKeyword('sentinel')).toBeFalse();
             });
         });
 

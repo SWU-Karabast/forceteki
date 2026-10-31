@@ -18,7 +18,12 @@
  */
 
 import { PerformanceObserver, performance, constants as perfConstants } from 'node:perf_hooks';
-import type { NodeGCPerformanceDetail } from 'node:perf_hooks';
+import type { PerformanceNodeEntry } from 'node:perf_hooks';
+
+/** The `detail` payload of a `gc` performance entry; `@types/node` 26 types it only as `any`. */
+interface IGcPerformanceDetail {
+    kind?: number;
+}
 
 export interface IMemorySample {
     arrayBuffers: number;
@@ -120,7 +125,7 @@ export function startGcRecording(): void {
             gcEvents.push({
                 startTime: entry.startTime,
                 duration: entry.duration,
-                kind: (entry.detail as NodeGCPerformanceDetail | undefined)?.kind ?? 0
+                kind: ((entry as PerformanceNodeEntry).detail as IGcPerformanceDetail | undefined)?.kind ?? 0
             });
         }
     });

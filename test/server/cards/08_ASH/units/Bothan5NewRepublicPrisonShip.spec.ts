@@ -159,7 +159,6 @@ describe('Bothan-5, New Republic Prison Ship', function() {
             ]);
 
             context.player1.clickPrompt('Put Superlaser Technician into play as a resource and ready it');
-            context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeActivePlayer();
             expect(context.superlaserTechnician).toBeInZone('resource');
@@ -191,7 +190,6 @@ describe('Bothan-5, New Republic Prison Ship', function() {
             ]);
 
             context.player1.clickPrompt('Bothan-5 captures Superlaser Technician from your discard pile');
-            context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeActivePlayer();
             expect(context.superlaserTechnician).not.toBeInZone('resource');

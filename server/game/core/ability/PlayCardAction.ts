@@ -18,6 +18,8 @@ import type { Game } from '../Game';
 import type { Player } from '../Player';
 import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 import { registerStateBase } from '../GameObjectUtils';
+import type { IPlayPermission } from '../ongoingEffect/effectImpl/PlayPermission';
+import { PlayPermissionHelpers } from '../ongoingEffect/effectImpl/PlayPermission';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -27,8 +29,10 @@ export interface IPlayCardActionPropertiesBase {
     targetResolver?: IActionTargetResolver;
     additionalCosts?: ICost[];
     exploitValue?: number;
-    canPlayFromAnyZone?: boolean;
     attachTargetCondition?: (attachTarget: Card, context: AbilityContext) => boolean;
+
+    /** The lasting play permission this action uses, if any */
+    playPermission?: IPlayPermission;
 }
 
 interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
@@ -58,9 +62,12 @@ export abstract class PlayCardAction extends PlayerAction {
     public readonly costAdjusters: CostAdjuster[];
     public readonly exploitValue?: number;
     public readonly playType: PlayType;
-    public readonly canPlayFromAnyZone: boolean;
+    public readonly playPermission?: IPlayPermission;
 
     protected readonly playCost: PlayCardResourceCost;
+
+    /** The action's title without the description of its play permission */
+    private readonly titleWithoutPermission: string;
 
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
@@ -102,11 +109,14 @@ export abstract class PlayCardAction extends PlayerAction {
         }
 
         const playCost = new PlayCardResourceCost(propertiesWithDefaults.playType, cost, aspects);
+        const titleWithoutPermission = PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, appendToTitle);
 
         super(
             game,
             card,
-            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, appendToTitle),
+            properties.playPermission
+                ? titleWithoutPermission + PlayPermissionHelpers.describe(properties.playPermission)
+                : titleWithoutPermission,
             propertiesWithDefaults.additionalCosts.concat(playCost),
             propertiesWithDefaults.targetResolver,
             propertiesWithDefaults.triggerHandlingMode
@@ -117,7 +127,17 @@ export abstract class PlayCardAction extends PlayerAction {
         this.costAdjusters = Helpers.asArray(propertiesWithDefaults.costAdjusters);
         this.exploitValue = properties.exploitValue;
         this.createdWithProperties = { ...properties };
-        this.canPlayFromAnyZone = !!properties.canPlayFromAnyZone;
+        this.playPermission = properties.playPermission;
+        this.titleWithoutPermission = titleWithoutPermission;
+    }
+
+    public override getTitle<T extends AbilityContext>(context?: T): string {
+        // the permission's cost amount may depend on the game state when the card is played
+        if (this.playPermission && context) {
+            return this.titleWithoutPermission + PlayPermissionHelpers.describe(this.playPermission, context);
+        }
+
+        return super.getTitle(context);
     }
 
     protected usesExploit(context: AbilityContext<ICardWithCostProperty>) {
@@ -156,10 +176,7 @@ export abstract class PlayCardAction extends PlayerAction {
         ) {
             return 'phase';
         }
-        if (
-            !ignoredRequirements.includes('zone') && !this.canPlayFromAnyZone &&
-            !context.player.isCardInPlayableZone(context.source, this.playType)
-        ) {
+        if (!ignoredRequirements.includes('zone') && !this.isInPlayableZone(context)) {
             return 'zone';
         }
         if (
@@ -178,6 +195,14 @@ export abstract class PlayCardAction extends PlayerAction {
             return 'smuggleKeyword';
         }
         return super.meetsRequirements(context, ignoredRequirements);
+    }
+
+    private isInPlayableZone(context: AbilityContext): boolean {
+        if (this.playPermission) {
+            return context.source.zoneName === this.playPermission.zone && this.playPermission.permittedPlayers.includes(context.player);
+        }
+
+        return context.player.isCardInPlayableZone(context.source, this.playType);
     }
 
     public override getContextProperties(player: Player, event: any) {

@@ -24,6 +24,32 @@ describe('Kelnacca, Solitary Master', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
+        it('should log the chosen number correctly when the client sends a numeric 0', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'the-armorer#steel-shapes-us',
+                    hand: ['kelnacca#solitary-master'],
+                    resources: 8
+                },
+                player2: {
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.kelnacca);
+            expect(context.player1).toHaveNumericPromptRange(0, 4);
+
+            // the client sends the choice as a number, which must not be dropped from the chat log
+            context.player1.chooseListOption(0);
+
+            expect(context.getChatLogs(2)).toContain('player1 chooses 0 using Kelnacca');
+            expect(context.player1.exhaustedResourceCount).toBe(4);
+            expect(context.player2).toBeActivePlayer();
+        });
+
         it('should still pay resources but deal no damage when fewer than 3 are paid', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

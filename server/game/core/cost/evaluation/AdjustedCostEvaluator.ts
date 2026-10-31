@@ -22,7 +22,8 @@ export class AdjustedCostEvaluator extends SimpleAdjustedCost {
     protected override computeLowestPossibleCost(): number {
         let currentRemainingCost = super.computeLowestPossibleCost();
 
-        for (const dynamicOffset of this.dynamicOffsets.reverse()) {
+        // copy before reversing, since this is evaluated every time `value` is read and reverse() mutates in place
+        for (const dynamicOffset of [...this.dynamicOffsets].reverse()) {
             currentRemainingCost = dynamicOffset.getLowestPossibleRemainingCost(currentRemainingCost);
         }
 

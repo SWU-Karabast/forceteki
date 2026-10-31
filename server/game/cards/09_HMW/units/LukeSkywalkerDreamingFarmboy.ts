@@ -10,8 +10,8 @@ import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectB
 export default class LukeSkywalkerDreamingFarmboy extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'luke-skywalker#dreaming-boy-id',
-            internalName: 'luke-skywalker#dreaming-boy',
+            id: '3854292375',
+            internalName: 'luke-skywalker#dreaming-farmboy',
         };
     }
 

@@ -4,6 +4,7 @@ import type { IBaseCard } from '../card/BaseCard';
 import { InPlayCard } from '../card/baseClasses/InPlayCard';
 import type { ICardWithExhaustProperty } from '../card/baseClasses/PlayableOrDeployableCard';
 import { LeaderUnitCard } from '../card/LeaderUnitCard';
+import { SwuGameFormat } from '../Constants';
 import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { CaptureZone } from '../zone/CaptureZone';
@@ -239,7 +240,7 @@ function indexSimpleZoneCards(
 
 /**
  * The cards the arena walk must skip because {@link buildLeaderEntry} emits them at the `leader` singleton
- * instead. Deliberately identity against the seated players' `deckLeader`s rather than `card.isLeaderUnit()`,
+ * instead. Deliberately identity against the seated players' deck leaders rather than `card.isLeaderUnit()`,
  * which is not a statement about the card's identity at all: `UnitProperties.isLeaderUnit` returns
  * `isLeaderAttachedToThis()`, so *any* ordinary unit currently piloted by a deployed leader answers `true`
  * to it. Filtering on that predicate silently dropped every such host unit from the document (and, with it,
@@ -249,14 +250,14 @@ function indexSimpleZoneCards(
  * indexing it in both places would trip `SavedCardRefResolver`'s duplicate guard.
  */
 function collectDeckLeaders(players: readonly Player[]): Set<Card> {
-    return new Set<Card>(players.map((player) => player.deckLeader).filter((leader) => leader != null));
+    return new Set<Card>(players.flatMap((player) => player.getAllDeckLeaders()));
 }
 
 /** `deployed === true && isAttached()`, per `LeaderUnitCard.addPilotDeploy`. */
 function findPilotDeployedLeaders(players: readonly Player[]): LeaderUnitCard[] {
     const leaders: LeaderUnitCard[] = [];
     for (const player of players) {
-        const leader = player.deckLeader;
+        const leader = player.getSingleLeader();
         if (leader instanceof LeaderUnitCard && leader.deployed && leader.isAttached()) {
             leaders.push(leader);
         }
@@ -369,6 +370,25 @@ function buildUnrepresentedCardFacts(
 }
 
 /**
+ * Refuses, loudly, a game the `v1` format cannot hold at all rather than writing a document that silently
+ * drops part of it. `v1` has one `leader` position per player and records only the Initiative claim, so a
+ * second deck leader (Twin Suns) or the Plan/Blast claim counters (Faux Suns) have nowhere to go, and
+ * neither fits the per-card `unrepresentedCard` degrade path. Lifting this is a format change, not a fix here.
+ */
+function assertFormatRepresentable(game: Game, players: readonly Player[]): void {
+    if (game.format === SwuGameFormat.FauxSuns) {
+        throw new SaveIntegrityError(`The v1 save format cannot represent the ${game.format} format: its Plan and Blast claim counters have no saved position.`);
+    }
+
+    for (const player of players) {
+        const leaderCount = player.getAllDeckLeaders().length;
+        if (leaderCount !== 1) {
+            throw new SaveIntegrityError(`Player "${player.name}" has ${leaderCount} deck leaders, but the v1 save format has exactly one leader position per player.`);
+        }
+    }
+}
+
+/**
  * Produces the lossless `v1` save-format document for `game`. Does not call, wrap, or model itself on
  * `Game.captureGameState`, which truncates the deck to five cards and drops all limits and effects. The
  * writer's public surface is read-only: it returns a document and leaves the game as it found it (the one
@@ -377,6 +397,7 @@ function buildUnrepresentedCardFacts(
  */
 export function save(game: Game, options: ISaveOptions = {}): ISavedMatch {
     const players = game.getPlayers();
+    assertFormatRepresentable(game, players);
     const seatedPlayers: ISeatedPlayer[] = players.map((player, index) => ({ seat: `p${index + 1}`, player }));
     const seatByPlayer = new Map<Player, string>(seatedPlayers.map(({ seat, player }) => [player, seat]));
     // Keyed by uuid rather than by object because a watcher entry stores a `GameObjectId`, which is a
@@ -410,7 +431,7 @@ export function save(game: Game, options: ISaveOptions = {}): ISavedMatch {
         const base = buildBaseEntry(player.base, seat, seatByPlayer, seatedPlayers, refResolver);
         indexBaseZoneTokens(player, seat, refResolver);
         const leader = buildLeaderEntry(
-            player.deckLeader, seat, seatByPlayer, seatedPlayers, refResolver, pilotDeployedLeaderSet.has(player.deckLeader)
+            player.getSingleLeader(), seat, seatByPlayer, seatedPlayers, refResolver, pilotDeployedLeaderSet.has(player.getSingleLeader())
         );
 
         return {
@@ -468,7 +489,7 @@ export function save(game: Game, options: ISaveOptions = {}): ISavedMatch {
         saveTrigger,
         gameId: game.id,
         settings: {
-            gameMode: game.gameMode,
+            format: game.format,
             undoMode: game.snapshotManager.undoMode,
             useActionTimer: game.useActionTimer,
         },

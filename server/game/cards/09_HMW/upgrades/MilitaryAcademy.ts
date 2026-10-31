@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class MilitaryAcademy extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'military-academy-id',
+            id: '1230090573',
             internalName: 'military-academy',
         };
     }

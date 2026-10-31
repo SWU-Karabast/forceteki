@@ -1,6 +1,5 @@
-import type { GameMode } from '../../../GameMode';
 import type { ISwuDbFormatDecklist } from '../../../utils/deck/DeckInterfaces';
-import type { CardType, DamageType, StateWatcherName, Trait, ZoneName } from '../Constants';
+import type { CardType, DamageType, StateWatcherName, SwuGameFormat, Trait, ZoneName } from '../Constants';
 import type { UndoMode } from '../snapshot/SnapshotManager';
 
 /**
@@ -325,6 +324,9 @@ export interface ISavedLastKnownInformation {
     type: CardType;
     power: number | null;
     arena: ZoneName | null;
+
+    /** The upgrades attached when the card left play; `null` when the live entry recorded none. Each is a mandatory referent. */
+    upgrades: ISavedCardRef[] | null;
 }
 
 export interface ISavedActionEntry {
@@ -579,7 +581,7 @@ export interface ISavedMatch {
     saveTrigger: ISaveTrigger;
     gameId: string;
     settings: {
-        gameMode: GameMode;
+        format: SwuGameFormat;
         undoMode: UndoMode;
         useActionTimer: boolean;
     };

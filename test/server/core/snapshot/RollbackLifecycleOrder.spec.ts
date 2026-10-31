@@ -14,7 +14,7 @@ import { SnapshotTimepoint } from '../../../../server/game/core/snapshot/Snapsho
  * **pre-rollback** value, not the restored one. That is the assertion that fails if the pre-pass is ever
  * moved back inside the update loop *after* `deserialize`, which would hand the hooks the restored value
  * and silently disable every `isRegistered` transition in `AbilityLimit`/`TriggeredAbility`/
- * `CustomDurationEvent`.
+ * `EffectEventListener`.
  */
 
 interface ISnapshotFactoryInternals {

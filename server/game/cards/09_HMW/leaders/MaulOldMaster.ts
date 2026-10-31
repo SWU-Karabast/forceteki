@@ -15,7 +15,7 @@ export default class MaulOldMaster extends LeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'maul#old-master-id',
+            id: '1565669348',
             internalName: 'maul#old-master',
         };
     }

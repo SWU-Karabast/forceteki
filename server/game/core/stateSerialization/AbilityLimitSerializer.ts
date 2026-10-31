@@ -38,7 +38,7 @@ export function serializeAbilityLimitsForCard(card: Card, seatedPlayers: readonl
     const deployEpicActionLimit = card instanceof LeaderUnitCard ? card.deployEpicActionLimit : null;
 
     for (const ability of getLimitBearingAbilitySurface(card)) {
-        const limit = ability.limit;
+        const limit = ability.captureLimit();
 
         if (limit == null || limit instanceof UnlimitedAbilityLimit) {
             continue;

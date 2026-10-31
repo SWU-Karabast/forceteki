@@ -1,4 +1,5 @@
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
+import type { IScheduler } from '../IScheduler';
 import { type IActiveCosmetics, type ICosmeticEntity, RegisteredCosmeticType } from './CosmeticsInterfaces';
 import { CosmeticsCache } from './CosmeticsCache';
 import { randomUUID } from 'crypto';
@@ -33,16 +34,24 @@ export class CosmeticsService {
 
     /**
      * Creates and initializes a new CosmeticsService instance.
+     * @param scheduler Drives the cosmetics cache's periodic refresh; defaults to real timers
      * @throws Error if in development mode without local DynamoDB
      */
-    public static async createAsync(): Promise<CosmeticsService> {
+    public static async createAsync(scheduler?: IScheduler): Promise<CosmeticsService> {
         if (process.env.ENVIRONMENT === 'development' && process.env.USE_LOCAL_DYNAMODB !== 'true') {
             throw new Error('CosmeticsService requires USE_LOCAL_DYNAMODB=true in development mode');
         }
 
-        const cache = new CosmeticsCache(60);
+        const cache = new CosmeticsCache(60, scheduler);
         await cache.initializeAsync();
         return new CosmeticsService(cache);
+    }
+
+    /**
+     * Stops the cosmetics cache's periodic refresh. Reads keep answering from the last fetched cosmetics.
+     */
+    public stop(): void {
+        this.cosmeticsCache.stop();
     }
 
     /**

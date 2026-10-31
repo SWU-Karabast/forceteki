@@ -290,6 +290,40 @@ describe('Brain Invaders', () => {
         });
 
         describe('When Brain Invaders is removed', function() {
+            it('does not let a blanked leader unit trigger off the defeat of Brain Invaders itself', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'iden-versio#inferno-squad-commander', deployed: true },
+                        groundArena: ['atst'],
+                        base: { card: 'echo-base', damage: 5 }
+                    },
+                    player2: {
+                        groundArena: ['brain-invaders', 'wampa']
+                    },
+                });
+
+                const { context } = contextRef;
+                expect(context.idenVersio.isBlank()).toBeTrue();
+
+                // Iden defeats Brain Invaders. Her abilities come back because Brain Invaders left play,
+                // but she had no "when an opponent's unit is defeated" ability at the moment it was defeated
+                context.player1.clickCard(context.idenVersio);
+                context.player1.clickCard(context.brainInvaders);
+
+                expect(context.brainInvaders).toBeInZone('discard', context.player2);
+                expect(context.idenVersio.isBlank()).toBeFalse();
+                expect(context.p1Base.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
+
+                // Abilities are back for later events
+                context.player2.passAction();
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('discard', context.player2);
+                expect(context.p1Base.damage).toBe(4);
+            });
+
             it('undeployed leaders regain their action abilities', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -385,9 +419,8 @@ describe('Brain Invaders', () => {
                 // Player 1 plays an underworld card, Cad Bane's ability triggers
                 context.player1.clickCard(context.craftySmuggler);
                 expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:'); // Choose resolution order
-                context.player1.clickPrompt('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
-                context.player1.clickPrompt('Pass');
+                expect(context.player1).toHavePassableTriggerPrompt('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
+                context.player1.clickPass('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
 
                 // Player 2 plays an upgrade, The Mandalorian's ability triggers
                 context.player2.clickCard(context.theDarksaber);
@@ -631,6 +664,19 @@ describe('Brain Invaders', () => {
                     context.player1.clickPrompt('Trigger');
                     expect(context.player1.hand.length).toBe(cardsInHand + 2);
                 });
+            });
+        });
+
+        describe('When Brain Invaders is played via a leader ability that is still resolving', function() {
+            // Ruling 2025-05-19: Brain Invaders cannot blank a currently-resolving ability. If JTL
+            // Lando (Buying Time) uses his leader-side ability to play Brain Invaders, his ability has
+            // already begun resolving, so it finishes in full and still gives the Shield token.
+            xit('does not prevent JTL Lando\'s leader ability from finishing (the Shield is still placed)', function () {
+                pending('Not yet implemented');
+                // JTL Lando (Buying Time) is undeployed (the Shield ability is on his leader side; the
+                // deployed side is a pilot upgrade), controlling both a ground and a space unit. He uses
+                // his leader-side action to play Brain Invaders from hand. Even though Brain Invaders
+                // blanks leaders on entry, Lando's already-resolving ability still gives a Shield token.
             });
         });
     });

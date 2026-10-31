@@ -201,6 +201,47 @@ describe('Third Sister, Seething With Ambition', function () {
                 context.player1.clickCard(context.kylosTieSilencer);
                 expect(context.kylosTieSilencer.hasSomeKeyword('hidden')).toBeTrue();
             });
+
+            it('should give hidden to an opponent-owned unit played from their discard pile', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'third-sister#seething-with-ambition', deployed: true },
+                        hand: ['takedown'],
+                    },
+                    player2: {
+                        spaceArena: ['stolen-athauler'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.thirdSister);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Defeat the opponent's Stolen AT-Hauler so player1 may play it from player2's discard pile
+                context.player1.clickCard(context.takedown);
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('discard', context.player2);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.stolenAthauler);
+                expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
+                expect(context.stolenAthauler.hasSomeKeyword('hidden')).toBeTrue();
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            // Ruling 2025-09-29 (erratum): Third Sister does not grant Hidden permanently — the keyword
+            // is gone after the phase, including for abilities that check for the existence of keywords.
+            xit('the granted Hidden keyword no longer exists in the following phase', function () {
+                pending('Not yet implemented');
+                // Use Third Sister's On Attack to give the next unit played Hidden this phase. In the
+                // next phase, that unit should no longer have the Hidden keyword (hasSomeKeyword('hidden')
+                // is false), so abilities that check for the existence of Hidden do not see it.
+            });
         });
     });
 });

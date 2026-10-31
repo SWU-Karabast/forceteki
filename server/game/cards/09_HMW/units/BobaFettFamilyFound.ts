@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class BobaFettFamilyFound extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'boba-fett#family-found-id',
+            id: '9784392862',
             internalName: 'boba-fett#family-found',
         };
     }

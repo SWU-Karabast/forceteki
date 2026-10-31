@@ -364,5 +364,37 @@ describe('Grogu: Charming Companion', function() {
                 expect(context.grogu.exhausted).toBeTrue();
             });
         });
+
+        describe('when a unique unit owned by the opponent is played', function() {
+            it('should allow the player who played it with Unrefusable Offer\'s Bounty to deploy Grogu', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grogu#charming-companion',
+                        hand: ['vanquish']
+                    },
+                    player2: {
+                        groundArena: [{ card: 'sabine-wren#you-can-count-on-me', upgrades: ['unrefusable-offer'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Defeat player2's Sabine Wren (unique, cost 4) and collect the Bounty to play her under player1's control
+                context.player1.clickCard(context.vanquish);
+                context.player1.clickCard(context.sabineWren);
+
+                expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it');
+                context.player1.clickPrompt('Trigger');
+                expect(context.sabineWren).toBeInZone('groundArena', context.player1);
+
+                // Grogu's deploy ability triggers for player1, who played the unit
+                expect(context.player1).toHavePassAbilityPrompt('Deploy Grogu');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.grogu).toBeInZone('groundArena', context.player1);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });

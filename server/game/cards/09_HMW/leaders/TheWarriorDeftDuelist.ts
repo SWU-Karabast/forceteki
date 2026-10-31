@@ -10,7 +10,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class TheWarriorDeftDuelist extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-warrior#deft-duelist-id',
+            id: '2327086062',
             internalName: 'the-warrior#deft-duelist',
         };
     }

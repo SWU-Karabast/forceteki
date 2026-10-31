@@ -114,11 +114,11 @@ function buildDroppedCountFacts(
             ability.printedAbility === false &&
             (expectedIdentifier ? ability.abilityIdentifier === expectedIdentifier : ability.gainAbilitySource === effect.source));
 
-        if (!grantedAbility || grantedAbility.limit == null || grantedAbility.limit instanceof UnlimitedAbilityLimit) {
+        if (!grantedAbility || grantedAbility.captureLimit() == null || grantedAbility.captureLimit() instanceof UnlimitedAbilityLimit) {
             continue;
         }
 
-        if (currentCountForEitherPlayer(grantedAbility.limit, seatedPlayers) > 0) {
+        if (currentCountForEitherPlayer(grantedAbility.captureLimit(), seatedPlayers) > 0) {
             facts.push({
                 category: 'gainedAbility',
                 source: resolveCardRef(effect.source),

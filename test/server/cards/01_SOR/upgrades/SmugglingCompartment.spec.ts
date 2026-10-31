@@ -10,9 +10,6 @@ describe('Smuggling Compartment', function() {
                     player2: {
                         groundArena: ['snowspeeder']
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
             });
 
@@ -24,7 +21,26 @@ describe('Smuggling Compartment', function() {
                 context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.snowspeeder);
 
+                expect(context.player1).toHavePrompt('Choose a player to ready a resource');
+                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+                context.player1.clickPrompt('You');
+
                 expect(context.player1.exhaustedResourceCount).toBe(1);
+            });
+
+            it('should ready an enemy resource on attack', function () {
+                const { context } = contextRef;
+
+                context.player2.exhaustResources(2);
+
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.snowspeeder);
+
+                expect(context.player1).toHavePrompt('Choose a player to ready a resource');
+                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+                context.player1.clickPrompt('Opponent');
+
+                expect(context.player2.exhaustedResourceCount).toBe(1);
             });
         });
 

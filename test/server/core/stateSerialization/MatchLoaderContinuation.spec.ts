@@ -111,7 +111,7 @@ describe('MatchLoader.loadAsync — continuation', function() {
                 const document = save(context.game);
                 const { game: loadedGame, playersBySeat } = await loadAsync(document, buildLoadConfig(context));
                 const p1 = playersBySeat.get('p1');
-                const loadedLeader = p1.deckLeader as any;
+                const loadedLeader = p1.getSingleLeader() as any;
 
                 expect(loadedLeader.deployed).toBeTrue();
                 expect(loadedLeader.deployEpicActionLimit.isAtMax(p1)).toBeTrue();

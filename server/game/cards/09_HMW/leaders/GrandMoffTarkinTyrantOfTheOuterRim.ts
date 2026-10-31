@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class GrandMoffTarkinTyrantOfTheOuterRim extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'grand-moff-tarkin#tyrant-of-the-outer-rim-id',
+            id: '1535458352',
             internalName: 'grand-moff-tarkin#tyrant-of-the-outer-rim',
         };
     }

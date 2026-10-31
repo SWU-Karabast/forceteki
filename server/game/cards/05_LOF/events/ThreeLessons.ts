@@ -20,14 +20,16 @@ export default class ThreeLessons extends EventCard {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.playCardFromHand({ playAsType: WildcardCardType.Unit }),
+                    AbilityHelper.immediateEffects.playCardFromHand({
+                        playAsType: WildcardCardType.Unit,
+                        enterPlayEffect: [
+                            AbilityHelper.immediateEffects.giveExperience(),
+                            AbilityHelper.immediateEffects.giveShield(),
+                        ],
+                    }),
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Hidden)
                     }),
-                    AbilityHelper.immediateEffects.simultaneous([
-                        AbilityHelper.immediateEffects.giveExperience(),
-                        AbilityHelper.immediateEffects.giveShield(),
-                    ]),
                 ])
             }
         });

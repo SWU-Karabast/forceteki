@@ -42,6 +42,7 @@ describe('Cunning', function () {
                 expect(context.player1).toHaveEnabledPromptButtons([returnPrompt, buffPrompt, exhaustPrompt]);
 
                 context.player1.clickPrompt(buffPrompt);
+                expect(context.player1).toHavePrompt(buffPrompt);
 
                 // buff a unit
                 expect(context.player1).toBeAbleToSelectExactly([context.theMandalorian, context.wampa, context.battlefieldMarine, context.restoredArc170, context.atst, context.greenSquadronAwing]);
@@ -59,6 +60,7 @@ describe('Cunning', function () {
 
                 // return
                 context.player1.clickPrompt(returnPrompt);
+                expect(context.player1).toHavePrompt(returnPrompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.restoredArc170, context.greenSquadronAwing]);
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine).toBeInZone('hand', context.player1);
@@ -67,6 +69,7 @@ describe('Cunning', function () {
 
                 // exhaust
                 context.player1.clickPrompt(exhaustPrompt);
+                expect(context.player1).toHavePrompt(exhaustPrompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.theMandalorian, context.wampa, context.restoredArc170, context.atst, context.greenSquadronAwing]);
                 context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.greenSquadronAwing);

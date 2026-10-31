@@ -1,4 +1,6 @@
 import type { Card } from '../card/Card';
+import type { IUpgradeCard } from '../card/CardInterfaces';
+import type { GameObjectId } from '../GameObjectUtils';
 import type { Player } from '../Player';
 import { MatchLoadError } from './MatchLoadError';
 import type { LoadedPositionIndex } from './LoadedPositionIndex';
@@ -53,7 +55,7 @@ export function decodeTaggedSet<T extends string>(saved: ISavedTaggedSet<T>): Se
     return new Set(saved.$set);
 }
 
-export function decodeLastKnownInformation(saved: ISavedLastKnownInformation | null): IStateWatcherLKIEntry | undefined {
+export function decodeLastKnownInformation(context: IWatcherDecodeContext, saved: ISavedLastKnownInformation | null): IStateWatcherLKIEntry | undefined {
     if (saved == null) {
         return undefined;
     }
@@ -62,6 +64,9 @@ export function decodeLastKnownInformation(saved: ISavedLastKnownInformation | n
         type: saved.type,
         power: saved.power ?? undefined,
         arena: saved.arena ?? undefined,
+        // Stored as the live watcher stores them. Not narrowed with `isUpgrade()`: that reads the card's current
+        // zone, and a pilot that was attached when its host left play is not an upgrade in the discard pile.
+        upgrades: saved.upgrades == null ? undefined : decodeRequiredReferents(context, saved.upgrades).map((card) => card.getObjectId() as GameObjectId<IUpgradeCard>),
     };
 }
 

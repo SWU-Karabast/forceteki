@@ -5,7 +5,7 @@ import { UpgradeCard } from '../../../core/card/UpgradeCard';
 export default class IntelligenceAgency extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'intelligence-agency-id',
+            id: '5810314397',
             internalName: 'intelligence-agency',
         };
     }

@@ -63,8 +63,7 @@ describe('Defeat timing', function() {
                 expect(context.player1).toHavePrompt('Waiting for opponent');
                 expect(context.vanguardInfantry).toBeInZone('discard');
 
-                context.player2.clickPrompt('Give an Experience token to a unit');
-                context.player2.clickPrompt('Pass');
+                context.player2.clickPass('Give an Experience token to a unit');
 
                 // maz kanata on-play trigger happens next automatically
                 expect(context.mazKanata).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
@@ -151,12 +150,11 @@ describe('Defeat timing', function() {
                 expect(context.player1).toHavePrompt('Resolve "When an opponent\'s unit is defeated, heal 1 from base"');
                 expect(context.player1).toHaveExactPromptButtons(['Resolve next', 'Resolve all (3)']);
                 context.player1.clickPrompt('Resolve all (3)');
-                // after the grouped heals resolve, the two draw triggers remain
+                // after the grouped heals resolve, the two draw triggers remain (a multi-trigger window),
+                // so selecting one draws it inline without an interstitial
+                expect(context.player1).toHavePassableTriggerPrompt('Draw a card');
                 context.player1.clickPrompt('Draw a card');
-                // may ability prompts the player whether or not to actually use it before it fully resolves
-                expect(context.player1).toHavePassAbilityPrompt('Draw a card');
-                context.player1.clickPrompt('Trigger');
-                // last trigger is chosen automatically
+                // the last draw is now the lone remaining trigger, resolved via its interstitial — decline it
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card');
                 context.player1.clickPrompt('Pass');
 
@@ -208,6 +206,23 @@ describe('Defeat timing', function() {
                 expect(context.wampa).toHaveExactUpgradeNames(['experience']);
 
                 expect(context.player1).toBeActivePlayer();
+            });
+        });
+
+        describe('When a unit enters play while a game-state check is pending,', function() {
+            // Full clarification (social-media ruling):
+            //   "Constant abilities are 'on' immediately when a unit enters play, even if game state
+            //    checks (such as uniqueness) are currently preventing effects from resolving such as a
+            //    unit being defeated due to remaining HP."
+            // NOTE: no concrete card scenario is given in the ruling — a real test needs a constant
+            // ability whose effect matters at the exact moment a uniqueness / 0-remaining-HP check is
+            // pending (e.g. a unit whose constant ability grants +HP or an aura that changes the outcome
+            // of that check).
+            xit('its constant abilities are active immediately, even while a uniqueness or 0-HP defeat check is pending', function () {
+                pending('Not yet implemented');
+                // A unit enters play with a constant ability. At that instant a game-state check is
+                // pending (e.g. the uniqueness rule, or a "0 remaining HP → defeat" check). The unit's
+                // constant ability is already active and can affect the outcome of that pending check.
             });
         });
     });

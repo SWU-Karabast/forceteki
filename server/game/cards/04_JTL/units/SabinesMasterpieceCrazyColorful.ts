@@ -42,9 +42,8 @@ export default class SabinesMasterpieceCrazyColorful extends NonLeaderUnitCard {
                 }),
                 AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.controller.isAspectInPlay(Aspect.Cunning),
-                    onTrue: AbilityHelper.immediateEffects.chooseModalEffects({
-                        amountOfChoices: 1,
-                        choices: () => ({
+                    onTrue: AbilityHelper.immediateEffects.selectChoice({
+                        choices: {
                             ['Exhaust a resource']: AbilityHelper.immediateEffects.selectPlayer({
                                 activePromptTitle: 'Choose a player to exhaust a resource',
                                 immediateEffect: AbilityHelper.immediateEffects.exhaustResources({ amount: 1 }),
@@ -53,7 +52,7 @@ export default class SabinesMasterpieceCrazyColorful extends NonLeaderUnitCard {
                                 activePromptTitle: 'Choose a player to ready a resource',
                                 immediateEffect: AbilityHelper.immediateEffects.readyResources({ amount: 1 }),
                             }),
-                        })
+                        }
                     }),
                 }),
             ])

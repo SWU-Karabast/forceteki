@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Consta
 export default class BlockadeShip extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'blockade-ship-id',
+            id: '8431210052',
             internalName: 'blockade-ship',
         };
     }

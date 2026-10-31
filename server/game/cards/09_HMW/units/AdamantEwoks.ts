@@ -6,7 +6,7 @@ import { CardType, RelativePlayer, Trait, WildcardCardType } from '../../../core
 export default class AdamantEwoks extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'adamant-ewoks-id',
+            id: '2238339364',
             internalName: 'adamant-ewoks',
         };
     }

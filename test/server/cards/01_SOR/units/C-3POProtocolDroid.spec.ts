@@ -23,7 +23,7 @@ describe('C-3PO, Protocol Droid', function() {
                 // should have prompt options from 0 to 20
                 expect(context.player1).toHaveNumericPromptRange(0, 20);
                 context.player1.chooseListOption('4');
-                expect(context.getChatLogs(3)).toContain('player1 names 4 using C-3PO');
+                expect(context.getChatLogs(3)).toContain('player1 chooses 4 using C-3PO');
 
                 // P1 sees the top card of their deck
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.wampa]);
@@ -75,6 +75,25 @@ describe('C-3PO, Protocol Droid', function() {
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.battlefieldMarine).toBeInZone('deck');
+            });
+
+            it('should log the chosen number correctly when the client sends a numeric 0', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.c3po);
+                expect(context.player1).toHaveNumericPromptRange(0, 20);
+
+                // the client sends the choice as a number, which must not be dropped from the chat log
+                context.player1.chooseListOption(0);
+
+                expect(context.getChatLogs(3)).toContain('player1 chooses 0 using C-3PO');
+
+                // 0 doesn't match Wampa's cost, so P1 only sees the top card
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.wampa]);
+                context.player1.clickDone();
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.wampa).toBeInZone('deck');
             });
         });
 

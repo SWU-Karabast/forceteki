@@ -261,6 +261,20 @@ export default tseslint.config(
         }
     },
     {
+        // The connection-layer specs drive the server through its two entry points, HTTP and sockets. Casting to
+        // `any` to reach into it (a private field, a method replaced on the instance) is how earlier specs got
+        // around missing seams, and such specs keep passing after the thing they replaced has changed. Add the
+        // seam instead - a protected member, a harness accessor, an injected collaborator. Not
+        // `no-explicit-any`: that is a warning repo-wide and CI runs `--quiet`, and the harmful form is the cast.
+        files: ["test/server/gamenode/**/*.ts", "test/helpers/server/**/*.ts"],
+        rules: {
+            "no-restricted-syntax": ["error", {
+                selector: "TSAsExpression[typeAnnotation.type='TSAnyKeyword']",
+                message: "Do not cast to `any` to reach into the server or the harness. Add a seam instead (a protected member, a harness accessor, an injected collaborator). If the reach cannot be avoided yet, disable this rule on that line and say what removes the need."
+            }],
+        }
+    },
+    {
         // P3-PB1-fix2 (PB1-D2): `require-allow-generic-value-justification` guards the `@stateValue`
         // decorator exported by `server/game/core/GameObjectUtils.ts`, not anything specific to
         // `server/game/**`. The rule was originally registered only on the narrower `server/game/**/*.ts`

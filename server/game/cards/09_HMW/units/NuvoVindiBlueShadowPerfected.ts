@@ -7,7 +7,7 @@ import { EnumHelpers } from '../../../core/utils/EnumHelpers';
 export default class NuvoVindiBlueShadowPerfected extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'nuvo-vindi#blue-shadow-perfected-id',
+            id: '9689400738',
             internalName: 'nuvo-vindi#blue-shadow-perfected',
         };
     }

@@ -6,7 +6,7 @@ import { Trait } from '../../../core/Constants';
 export default class BestialBond extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'bestial-bond-id',
+            id: '3533153742',
             internalName: 'bestial-bond',
         };
     }

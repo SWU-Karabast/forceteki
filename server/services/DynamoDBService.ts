@@ -1,3 +1,4 @@
+import { mergeUserPreferences } from '../utils/user/UserPreferences';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import {
     DeleteCommand,
@@ -21,13 +22,13 @@ import {
     type IUserProfileDataEntity,
     type IUserPreferences,
     type IServerRoleUsersListsEntity,
-    type IServerSettingsEntity
+    type IServerSettingsEntity,
+    isTrackedModAction
 } from './DynamoDBInterfaces';
 import { z } from 'zod';
 import { IDeckDataEntitySchema, IDeckStatsEntitySchema, ModActionEntitySchema, UsernameChangeEntitySchema } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
 import { type ICosmeticEntity, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
-import { isTimedModAction } from '../game/core/utils/EnumHelpers';
 
 // global variable
 let dynamoDbService: DynamoDBService;
@@ -64,7 +65,7 @@ export async function getDynamoDbServiceAsync() {
     return dynamoDbService;
 }
 
-class DynamoDBService {
+export class DynamoDBService {
     private client: DynamoDBDocumentClient;
     private tableName: string;
     public isLocalMode: boolean;
@@ -367,6 +368,18 @@ class DynamoDBService {
         }, 'Error updating user profile');
     }
 
+    public removeUserProfileAttributeAsync(userId: string, attributeName: keyof IUserProfileDataEntity) {
+        return this.executeDbOperationAsync(() => {
+            const command = new UpdateCommand({
+                TableName: this.tableName,
+                Key: { pk: `USER#${userId}`, sk: 'PROFILE' },
+                UpdateExpression: 'REMOVE #attribute',
+                ExpressionAttributeNames: { '#attribute': attributeName }
+            });
+            return this.client.send(command);
+        }, 'Error removing user profile attribute');
+    }
+
     /**
      * Put an item with a condition expression
      */
@@ -598,28 +611,6 @@ class DynamoDBService {
     }
 
     /**
-     * Deep-merge plain-object preferences. Values from `source` win; nested objects are merged
-     * recursively so partial updates don't clobber unrelated saved settings. `undefined` values
-     * in `source` are skipped.
-     */
-    private deepMergePreferences(target: Record<string, any>, source: Record<string, any>): Record<string, any> {
-        const result: Record<string, any> = { ...target };
-        for (const key in source) {
-            const sourceValue = source[key];
-            if (sourceValue === undefined) {
-                continue;
-            }
-            const targetValue = result[key];
-            const bothPlainObjects =
-              typeof sourceValue === 'object' && sourceValue !== null && !Array.isArray(sourceValue) &&
-              typeof targetValue === 'object' && targetValue !== null && !Array.isArray(targetValue);
-            result[key] = bothPlainObjects ? this.deepMergePreferences(targetValue, sourceValue) : sourceValue;
-        }
-        return result;
-    }
-
-
-    /**
      * Update user preferences, merging the given partial update into what's already stored.
      *
      * Uses a read-merge-replace strategy: load the stored preferences, layer the current defaults
@@ -637,8 +628,8 @@ class DynamoDBService {
     public updateUserPreferencesAsync(userId: string, preferences: Partial<IUserPreferences>): Promise<void> {
         return this.executeDbOperationAsync(async () => {
             const currentPrefs = await this.getStoredPreferencesAsync(userId);
-            const merged = this.deepMergePreferences(
-                this.deepMergePreferences(getDefaultPreferences(), currentPrefs ?? {}),
+            const merged = mergeUserPreferences(
+                mergeUserPreferences(getDefaultPreferences(), currentPrefs ?? {}),
                 preferences
             );
 
@@ -867,8 +858,7 @@ class DynamoDBService {
                 ...modAction,
             };
 
-            // Active action types (Mute, Rename) get indexed via the sparse GSI
-            if (isTimedModAction(modAction.actionType) && !modAction.cancelledAt) {
+            if (isTrackedModAction(modAction.actionType) && !modAction.cancelledAt) {
                 item.GSI_PK = 'ACTIVE_MODACTION';
             }
 

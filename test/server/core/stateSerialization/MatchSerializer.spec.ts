@@ -530,7 +530,7 @@ describe('MatchSerializer.save', function() {
                 resolver.indexTopLevel(context.lomPyke, 'p1', 'groundArena', 0);
                 resolver.indexNested(context.academyTraining, 'p1', 'p1', 'groundArena', 0, 'upgrades');
                 resolver.indexNested(context.battlefieldMarine, 'p1', 'p1', 'groundArena', 0, 'capturedCards');
-                resolver.indexTopLevel(context.player1Object.deckLeader, 'p1', 'leader', 0);
+                resolver.indexTopLevel(context.player1Object.getSingleLeader(), 'p1', 'leader', 0);
 
                 const upgradeRef = resolver.resolve(context.academyTraining, 'p1');
                 expect(upgradeRef.zone).toBeNull();
@@ -542,13 +542,13 @@ describe('MatchSerializer.save', function() {
                 expect(capturedRef.ordinal).toBeNull();
                 expect(capturedRef.parent).toEqual({ seat: 'p1', zone: 'groundArena', ordinal: 0, list: 'capturedCards' });
 
-                const leaderRef = resolver.resolve(context.player1Object.deckLeader, 'p1');
+                const leaderRef = resolver.resolve(context.player1Object.getSingleLeader(), 'p1');
                 expect(leaderRef.zone).toBe('leader');
                 expect(leaderRef.ordinal).toBe(0);
                 expect(leaderRef.parent).toBeUndefined();
 
                 // A card that was never indexed resolves to the "not in any emitted position" form.
-                const unindexedRef = resolver.resolve(context.wampa ?? context.player2Object.deckLeader, 'p2');
+                const unindexedRef = resolver.resolve(context.wampa ?? context.player2Object.getSingleLeader(), 'p2');
                 expect(unindexedRef.zone).toBeNull();
                 expect(unindexedRef.ordinal).toBeNull();
                 expect(unindexedRef.parent).toBeUndefined();

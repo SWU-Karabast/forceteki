@@ -119,6 +119,9 @@ export function encodeLastKnownInformation(
         type: lki.type,
         power: lki.power ?? null,
         arena: lki.arena ?? null,
+        // Cards read these back (e.g. The Great Progenitor), so an upgrade with no saved position drops the
+        // whole entry through the ordinary unrepresentable path rather than leaving a shortened list behind.
+        upgrades: lki.upgrades == null ? null : refs.requiredReferents(lki.upgrades, `${field}.upgrades`).map(refOf),
     };
 }
 

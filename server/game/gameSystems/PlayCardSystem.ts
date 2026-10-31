@@ -2,6 +2,7 @@ import type { Card } from '../core/card/Card';
 import { AbilityResolver } from '../core/gameSteps/AbilityResolver';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Contract } from '../core/utils/Contract';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
@@ -26,7 +27,6 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
     playAsType: WildcardCardType.Any | WildcardCardType.NonUnit | WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event;
     adjustCost?: ICostAdjusterProperties;
     nested?: boolean;
-    canPlayFromAnyZone?: boolean;
     exploitValue?: number;
     // TODO: implement a "nested" property that controls whether triggered abilities triggered by playing the card resolve after that card play or after the whole ability
 
@@ -35,6 +35,12 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
      * as part of a card ability. If not specified, the default behavior is to allow any valid attach target.
      */
     attachTargetCondition?: (attachTarget: Card, context: AbilityContext) => boolean;
+
+    /**
+     * Effect(s) resolved as the played unit enters play; only applies when playing a card as a unit.
+     * See {@link IPutIntoPlayProperties.enterPlayEffect}.
+     */
+    enterPlayEffect?: GameSystem | GameSystem[];
 }
 
 // TODO: implement playing with smuggle and from non-standard zones(discard(e.g. Palpatine's Return), top of deck(e.g. Ezra Bridger), etc.) as part of abilities with another function(s)
@@ -53,7 +59,6 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         playType: PlayType.PlayFromHand,
         playAsType: WildcardCardType.Any,
         nested: false,
-        canPlayFromAnyZone: false,
     };
 
     public eventHandler(event): void {
@@ -96,7 +101,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         event.playCardAbilities = this.generateLegalPlayCardAbilities(target, properties, context);
         event.optional = properties.optional ?? context.ability.optional;
-        event.ignoredRequirements = properties.ignoredRequirements ?? [];
+        event.ignoredRequirements = this.getIgnoredRequirements(properties);
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IPlayCardProperties> = {}): boolean {
@@ -164,8 +169,19 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             const newContext = action.createContext(context.player);
             return this.checkActionPlayType(properties.playType, action.playType) &&
               this.checkActionPlayAsType(card, action.playType, properties.playAsType, action) &&
-              action.meetsRequirements(newContext, properties.ignoredRequirements) === '';
+              action.meetsRequirements(newContext, this.getIgnoredRequirements(properties)) === '';
         });
+    }
+
+    /**
+     * An ability that plays a card from out of play is itself the permission to play it from that zone; its
+     * target resolver has already established which zone and cards are legal, so the zone check is skipped.
+     */
+    private getIgnoredRequirements(properties: IPlayCardProperties): string[] {
+        const ignoredRequirements = properties.ignoredRequirements ?? [];
+        return properties.playType === PlayType.PlayFromOutOfPlay
+            ? ignoredRequirements.concat('zone')
+            : ignoredRequirements;
     }
 
     private checkActionPlayType(playType: PlayType, actionPlayType: PlayType): boolean {
@@ -200,9 +216,11 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             triggerHandlingMode: properties.nested ? TriggerHandlingMode.ResolvesTriggers : TriggerHandlingMode.PassesTriggersToParentWindow,
             costAdjusters,
             entersReady: properties.entersReady,
-            canPlayFromAnyZone: properties.canPlayFromAnyZone,
             exploitValue: properties.exploitValue,
-            attachTargetCondition: properties.attachTargetCondition
+            attachTargetCondition: properties.attachTargetCondition,
+            enterPlayEffect: properties.enterPlayEffect,
+            // credit the ability that played the card (e.g. Three Lessons), not the card being played, in enter-play effect logs
+            enterPlayEffectSource: context.source
         };
     }
 }

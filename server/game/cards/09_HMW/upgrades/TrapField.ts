@@ -6,7 +6,7 @@ import { ZoneName } from '../../../core/Constants';
 export default class TrapField extends UpgradeCard {
     protected override getImplementationId () {
         return {
-            id: 'trap-field-id',
+            id: '2964276290',
             internalName: 'trap-field',
         };
     }

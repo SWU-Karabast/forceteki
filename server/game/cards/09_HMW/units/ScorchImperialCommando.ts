@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class ScorchImperialCommando extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'scorch#imperial-commando-id',
+            id: '6775288707',
             internalName: 'scorch#imperial-commando',
         };
     }

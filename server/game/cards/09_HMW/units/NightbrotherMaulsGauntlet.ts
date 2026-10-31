@@ -8,7 +8,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class NightbrotherMaulsGauntlet extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'nightbrother#mauls-gauntlet-id',
+            id: '3863446149',
             internalName: 'nightbrother#mauls-gauntlet',
         };
     }

@@ -33,6 +33,13 @@ export abstract class TriggerWindowBase extends BaseStep {
     /** Map tracking which events have triggered which abilities (for duplicate prevention) */
     protected triggeredAbilityEvents = new Map<TriggeredAbilityBase, GameEvent[]>();
 
+    /**
+     * Abilities that were registered but inactive (e.g. blanked) when an event was first emitted. Events are emitted
+     * again after resolution so that cards which entered play or gained keywords mid-resolution can trigger; an ability
+     * that merely came back online because of the event (e.g. the card blanking it was defeated) has missed its window.
+     */
+    private missedTriggers = new Map<TriggeredAbilityBase, GameEvent[]>();
+
     /** Chosen order of players to resolve in (SWU 7.6.10), null if not yet chosen */
     private resolvePlayerOrder?: Player[] = null;
 
@@ -141,6 +148,19 @@ export abstract class TriggerWindowBase extends BaseStep {
         return false;
     }
 
+    /** Record that `ability` was inactive when `event` was emitted, so it cannot trigger on a later emit of the same event */
+    public markTriggerMissed(ability: TriggeredAbilityBase, event: GameEvent) {
+        const events = this.missedTriggers.get(ability) ?? [];
+        if (!events.includes(event)) {
+            events.push(event);
+            this.missedTriggers.set(ability, events);
+        }
+    }
+
+    public hasMissedTrigger(ability: TriggeredAbilityBase, event: GameEvent): boolean {
+        return this.missedTriggers.get(ability)?.includes(event) ?? false;
+    }
+
     public addTriggeredAbilityToWindow(context: TriggeredAbilityContext) {
         if ((context.event.canResolve || context.event.isResolved) && context.ability) {
             // Check if this ability has already been triggered by this event (duplicate prevention)
@@ -200,10 +220,22 @@ export abstract class TriggerWindowBase extends BaseStep {
 
         for (const repeatedAbility of repeatedAbilities) {
             // if an ability is triggered multiple times and uses a collective trigger, filter down to one instance of it
+            // per simultaneous batch of triggering events. Events resolved in different event windows (e.g. a discard
+            // caused by a "then" step resolving after an initial discard) are sequential occurrences and each trigger
+            // the ability separately.
             if (repeatedAbility.collectiveTrigger) {
+                const seenTriggeringBatches = new Set<EventWindow | GameEvent>();
                 const abilityTriggers = abilitiesToResolve.filter((context) => context.ability === repeatedAbility);
                 abilitiesToResolve = abilitiesToResolve.filter((context) => context.ability !== repeatedAbility);
-                abilitiesToResolve.push(abilityTriggers[0]);
+
+                for (const context of abilityTriggers) {
+                    const batchKey = context.event.window ?? context.event;
+                    if (!seenTriggeringBatches.has(batchKey)) {
+                        seenTriggeringBatches.add(batchKey);
+                        abilitiesToResolve.push(context);
+                    }
+                }
+
                 this.unresolved.set(this.currentlyResolvingPlayer, abilitiesToResolve);
                 continue;
             }
@@ -495,7 +527,12 @@ export abstract class TriggerWindowBase extends BaseStep {
     }
 
     private canAnyAbilitiesResolve(triggeredAbilities: TriggeredAbilityContext[]) {
-        return triggeredAbilities?.some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext, SubStepCheck.All));
+        // A triggered reveal-from-hidden-zone ability with no card to reveal has no legal effect, but must still be
+        // resolved so it can present a masking pause (see AbilityResolver.checkAbility) instead of being silently
+        // dropped, which would leak that the player's hidden cards can't satisfy the reveal.
+        return triggeredAbilities?.some((triggeredAbilityContext) =>
+            triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext, SubStepCheck.All) ||
+            triggeredAbilityContext.ability.getRevealMaskingPlayer(triggeredAbilityContext) != null);
     }
 
     public abstract override toString(): string;

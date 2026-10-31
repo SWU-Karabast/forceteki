@@ -124,5 +124,45 @@ describe('Han Solo Has His Moments', function () {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('when the attached unit leaves play before the trigger resolves', function () {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['han-solo#has-his-moments'],
+                        groundArena: [{ card: 'atst', damage: 6 }],
+                    },
+                    player2: {
+                        groundArena: ['krayt-dragon'],
+                    }
+                });
+            });
+
+            // Regression test for https://github.com/SWU-Karabast/forceteki/issues/2838:
+            // the trigger must not be evaluated (and crash on parentCard) once Han Solo is no longer attached
+            it('should not trigger if the attached unit is defeated by an enemy trigger first', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.hanSolo);
+                context.player1.clickPrompt('Play Han Solo with Piloting');
+                context.player1.clickCard(context.atst);
+
+                // both players have pending triggers (Han Solo's When Played and Krayt Dragon's),
+                // so the active player chooses who resolves first
+                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+                context.player1.clickPrompt('Opponent');
+
+                // Krayt Dragon deals 5 damage (Han Solo's cost) to the damaged AT-ST, defeating it
+                expect(context.player2).toBeAbleToSelectExactly([context.atst, context.p1Base]);
+                context.player2.clickCard(context.atst);
+
+                expect(context.atst).toBeInZone('discard', context.player1);
+                expect(context.hanSolo).toBeInZone('discard', context.player1);
+
+                // Han Solo's trigger has no legal target anymore, so it is skipped without a prompt
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });

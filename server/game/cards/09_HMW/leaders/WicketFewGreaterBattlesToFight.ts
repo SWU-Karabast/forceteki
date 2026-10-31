@@ -8,7 +8,7 @@ import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 export default class WicketFewGreaterBattlesToFight extends LeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: 'wicket#few-greater-battles-to-fight-id',
+            id: '8333035317',
             internalName: 'wicket#few-greater-battles-to-fight',
         };
     }

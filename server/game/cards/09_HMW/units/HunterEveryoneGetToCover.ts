@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class HunterEveryoneGetToCover extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'hunter#everyone-get-to-cover-id',
+            id: '7017880281',
             internalName: 'hunter#everyone-get-to-cover'
         };
     }
@@ -19,10 +19,12 @@ export default class HunterEveryoneGetToCover extends NonLeaderUnitCard {
                 canChooseSameOptionMoreThanOnce: true,
                 choices: {
                     ['Give a Shield token to a unit.']: AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Give a Shield token to a unit',
                         cardTypeFilter: WildcardCardType.Unit,
                         immediateEffect: AbilityHelper.immediateEffects.giveShield()
                     }),
                     ['Attack with a unit, even if it\'s exhausted. It can\'t attack bases for this attack.']: AbilityHelper.immediateEffects.selectCard({
+                        activePromptTitle: 'Attack with a unit, even if it\'s exhausted',
                         controller: RelativePlayer.Self,
                         cardTypeFilter: WildcardCardType.Unit,
                         immediateEffect: AbilityHelper.immediateEffects.attack({

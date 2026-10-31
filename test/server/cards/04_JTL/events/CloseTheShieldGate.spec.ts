@@ -172,5 +172,40 @@ describe('Close the Shield Gate', function () {
                 expect(context.p1Base.damage).toBe(9);
             });
         });
+
+        it('should prevent Blast counter damage to a base in FauxSuns format', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                format: 'fauxSuns',
+                player1: {
+                    // Luke provides the Vigilance aspect needed to play Close the Shield Gate
+                    leader: 'luke-skywalker#faithful-friend',
+                    secondLeader: 'saw-gerrera#bring-down-the-empire',
+                    base: 'kestro-city',
+                    hand: ['close-the-shield-gate'],
+                    resources: ['wampa'],
+                },
+                player2: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    base: 'administrators-tower',
+                    hand: [],
+                    deck: ['battlefield-marine'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Player1 plays Close the Shield Gate on their own base as a card action.
+            // Claiming a token would be a permanent exit, so player1 uses a card action to set up
+            // the shield before player2 claims Blast (which deals 1 damage to player1's base).
+            context.player1.clickCard(context.closeTheShieldGate);
+            context.player1.clickCard(context.p1Base);
+
+            // Player2 is now active — claims Blast, which would deal 1 damage to player1's base
+            context.player2.clickPrompt('Claim Blast');
+
+            // Close the Shield Gate prevented the Blast damage
+            expect(context.p1Base.damage).toBe(0);
+        });
     });
 });

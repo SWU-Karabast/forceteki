@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { EventName, Trait } from '../../../core/Constants';
+import { EventName, TargetMode, Trait } from '../../../core/Constants';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
 export default class SecondSisterSeekingTheHolocron extends NonLeaderUnitCard {
@@ -16,18 +16,21 @@ export default class SecondSisterSeekingTheHolocron extends NonLeaderUnitCard {
         registrar.addOnAttackAbility({
             title: `Discard 2 cards from your deck. For each ${TextHelper.Trait.Force} card discarded this way, ready a resource`,
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.sequential([
-                AbilityHelper.immediateEffects.discardFromDeck((context) => ({
-                    amount: 2,
-                    target: context.player
-                })),
-                AbilityHelper.immediateEffects.readyResources((context) => ({
-                    amount: context.events
-                        .filter((event) => event.name === EventName.OnCardDiscarded)
-                        .filter((event) => event.card.hasSomeTrait(Trait.Force)).length,
-                    target: context.player
-                }))
-            ])
+            immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
+                amount: Math.min(2, context.player.drawDeck.length),
+                target: context.player
+            })),
+            ifYouDo: (ifYouDoContext) => ({
+                title: 'Ready a resource',
+                targetResolver: {
+                    mode: TargetMode.Player,
+                    immediateEffect: AbilityHelper.immediateEffects.readyResources({
+                        amount: ifYouDoContext.events
+                            .filter((event) => event.name === EventName.OnCardDiscarded)
+                            .filter((event) => event.card.hasSomeTrait(Trait.Force)).length
+                    })
+                }
+            })
         });
     }
 }

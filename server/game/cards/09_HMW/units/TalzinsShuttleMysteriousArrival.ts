@@ -10,7 +10,7 @@ export default class TalzinsShuttleMysteriousArrival extends NonLeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: 'talzins-shuttle#mysterious-arrival-id',
+            id: '7755474526',
             internalName: 'talzins-shuttle#mysterious-arrival',
         };
     }

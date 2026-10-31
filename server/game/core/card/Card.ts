@@ -130,6 +130,19 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     protected disableWhenPlayedCheck = false;
     protected disableWhenPlayedUsingSmuggleCheck = false;
 
+    /**
+     * Whether this card's abilities read cards through the last known information registry.
+     *
+     * `false`, the default, gives the card a live-only getter (see `ICardStateInternal.forCard`), so
+     * everything it reads is exactly what reading the card directly would give. A card sets this to
+     * `true` once it has been migrated and its tests cover the new semantics.
+     *
+     * Transitional: introduced by the LKI migration so that every card's reads can be rewritten to go
+     * through the getter without changing behavior (phase 3), and removed once every card has opted
+     * in (phase 4). See long-term-project-docs/lki-redesign-decisions-and-insights.md (D-35).
+     */
+    public readonly usesLkiRegistry: boolean = false;
+
     @statePrimitive()
     private accessor _facedown = true;
 
@@ -293,6 +306,28 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
     public get trackingId(): string {
         return this.id;
+    }
+
+    /**
+     * Distinguishes successive identities of this physical card (`SWU 8.5.4`).
+     *
+     * A card that leaves play and returns is a different card as far as the game is concerned, and
+     * this counter is what tells the two apart. It also changes when a card moves somewhere hidden,
+     * because tracking information is lost at that point.
+     *
+     * Unlike {@link IInPlayCard.inPlayId} and {@link IInPlayCard.mostRecentInPlayId}, this is safe to
+     * read in any zone and never throws, so it can be used to compare two references to the same
+     * physical card and determine whether they refer to the same identity.
+     *
+     * Cards that can never be in play have only one identity, and report a constant.
+     *
+     * TODO (LKI migration phase 4): give event cards and bases a real counter so that an event card
+     * bouncing between a visible zone and a hidden one is correctly treated as a new identity.
+     * See long-term-project-docs/lki-redesign-decisions-and-insights.md (D-8) and §3.18.
+     */
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style -- must be a getter so InPlayCard can override it with the real counter
+    public get identityId(): number {
+        return 0;
     }
 
     public get traits(): Set<Trait> {
@@ -732,6 +767,8 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
         keywordInstances = keywordInstances.filter((instance) => !instance.isBlank);
 
+        keywordInstances = KeywordHelpers.applyKeywordReplacements(keywordInstances, this.getOngoingEffectValues(EffectName.ReplaceKeyword), this);
+
         return KeywordHelpers.dedupeKeywords(keywordInstances, this);
     }
 
@@ -755,6 +792,11 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
 
     /** Optimized check for a single keyword - avoids array allocation from getKeywords() */
     private hasSingleKeyword(keyword: KeywordName): boolean {
+        // the fast path below can't account for keywords being replaced by other keywords, so fall back to the full calculation
+        if (this.hasOngoingEffect(EffectName.ReplaceKeyword)) {
+            return this.getKeywords().some((instance) => instance.name === keyword);
+        }
+
         // Check printed keywords first (fast path)
         const printedKeywords = this.printedKeywords;
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
@@ -822,7 +864,14 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         const traits = this.getPrintedTraits();
 
         for (const gainedTrait of this.getOngoingEffectValues(EffectName.GainTrait)) {
-            traits.add(gainedTrait);
+            // gainTrait provides a single Trait; gainTraits (dynamic) provides an array of Traits
+            if (Array.isArray(gainedTrait)) {
+                for (const trait of gainedTrait) {
+                    traits.add(trait);
+                }
+            } else {
+                traits.add(gainedTrait);
+            }
         }
         for (const lostTrait of this.getOngoingEffectValues(EffectName.LoseTrait)) {
             traits.delete(lostTrait);
@@ -1026,7 +1075,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     protected removeFromCurrentZone() {
         if (this.zone.name === ZoneName.Base) {
             if (this.isLeader()) {
-                this.zone.removeLeader();
+                this.zone.removeLeader(this);
             } else if (this.isForceToken()) {
                 this.zone.removeForceToken();
             } else if (this.isCreditToken()) {
@@ -1075,7 +1124,9 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     private addSelfToZone(zoneName: MoveZoneDestination) {
         switch (zoneName) {
             case ZoneName.Base:
-                this.zone = this.owner.baseZone;
+                // like resources, the base zone is in play, so the card goes to its controller's base
+                // (e.g. an opponent's Fortify upgrade played with A Fine Addition)
+                this.zone = this.controller.baseZone;
 
                 if (this.isLeader()) {
                     this.zone.setLeader(this);
@@ -1162,9 +1213,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     protected updateActionAbilitiesForZoneInternal(actionAbilities: ActionAbilityBase[], from: ZoneName, to: ZoneName) {
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const action of actionAbilities) {
-                if (action.limit) {
-                    action.limit.reset();
-                }
+                action.resetLimit();
             }
         }
     }
@@ -1174,12 +1223,9 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     }
 
     protected updateTriggeredAbilityEventsInternal(triggeredAbilities: TriggeredAbilityBase[], from: ZoneName, to: ZoneName) {
-        // STATE TODO: Gonna be a little hard to track, but also not a big blocker.
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const triggeredAbility of triggeredAbilities) {
-                if (triggeredAbility.limit) {
-                    triggeredAbility.limit.reset();
-                }
+                triggeredAbility.resetLimitForNewZone();
             }
         }
 
@@ -1381,7 +1427,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
                 return false;
             }
         }
-        return false;
+        return true;
     }
 
     private asSetOrArray<T>(valueOrValuesToCheck: T | Set<T> | T[]): Set<T> | T[] {

@@ -3,6 +3,7 @@ import type { IAttackableCard, ICardCanChangeControllers, ICardWithUpgrades } fr
 import type { InPlayCard } from '../card/baseClasses/InPlayCard';
 import type { ICardWithExhaustProperty } from '../card/baseClasses/PlayableOrDeployableCard';
 import { LeaderUnitCard } from '../card/LeaderUnitCard';
+import type { ILeaderCard } from '../card/propertyMixins/LeaderProperties';
 import type { Arena, TokenName } from '../Constants';
 import { DeployType, DeckZoneDestination, KeywordName, TokenCardName, TokenUnitName, TokenUpgradeName, ZoneName } from '../Constants';
 import type { Player } from '../Player';
@@ -333,14 +334,13 @@ export interface ISetLeaderStatusOptions {
 }
 
 /**
- * Sets deploy/damage/exhaust state on `player.deckLeader`. Touches **no** ability limit — advancing the
+ * Sets deploy/damage/exhaust state on `leader`, which defaults to the player's only deck leader; a Twin Suns
+ * caller names which of the two it means. Touches **no** ability limit — advancing the
  * deploy-action limit is a separate, explicit operation ({@link markLeaderDeployUsed}), never implicit
  * bookkeeping here. `onStartingSide` is declarative (unlike the ported helper's toggle-style `flipped`)
  * and applies only to a `DoubleSidedLeaderCard`.
  */
-export function setLeaderStatus(player: Player, state: ISetLeaderStatusOptions): void {
-    const leader = player.deckLeader;
-
+export function setLeaderStatus(player: Player, state: ISetLeaderStatusOptions, leader: ILeaderCard = player.getSingleLeader()): void {
     if (state.deployed) {
         if (!(leader instanceof LeaderUnitCard)) {
             throw new StateInjectionError(`Attempting to deploy '${leader.internalName}' but it is not a deployable leader`);
@@ -379,11 +379,10 @@ export function setLeaderStatus(player: Player, state: ISetLeaderStatusOptions):
  * (`LeaderUnitCard.deployEpicActionLimit`) rather than by walking action abilities — both of a
  * pilot-capable leader's deploy actions share one limit instance, so a per-ability walk would double-count.
  * Used by the test wrapper to restore the old net behavior of the ported helper (which implicitly spent
- * this limit on deploy); **not** used by `P2-C2`, whose restore pass owns all limit counts.
+ * this limit on deploy); **not** used by `P2-C2`, whose restore pass owns all limit counts. `leader` defaults
+ * as in {@link setLeaderStatus}.
  */
-export function markLeaderDeployUsed(player: Player): void {
-    const leader = player.deckLeader;
-
+export function markLeaderDeployUsed(player: Player, leader: ILeaderCard = player.getSingleLeader()): void {
     if (!(leader instanceof LeaderUnitCard)) {
         throw new StateInjectionError(`Attempting to mark the deploy action used for '${leader.internalName}' but it is not a deployable leader`);
     }

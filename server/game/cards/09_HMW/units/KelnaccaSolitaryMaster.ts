@@ -6,7 +6,7 @@ import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Cons
 export default class KelnaccaSolitaryMaster extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'kelnacca#solitary-master-id',
+            id: '7621020577',
             internalName: 'kelnacca#solitary-master',
         };
     }

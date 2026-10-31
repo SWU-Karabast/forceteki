@@ -34,7 +34,7 @@ export function restoreCardAbilityLimits(card: Card, saved: readonly ISavedAbili
             throw new MatchLoadError(`Card "${card.internalName}" has no ability with identifier "${entry.abilityIdentifier}" (unknown ability identifier).`);
         }
 
-        const limit = ability.limit;
+        const limit = ability.captureLimit();
         if (limit == null || limit instanceof UnlimitedAbilityLimit) {
             throw new MatchLoadError(`Ability "${entry.abilityIdentifier}" on "${card.internalName}" has no serializable limit target (null or unlimited).`);
         }

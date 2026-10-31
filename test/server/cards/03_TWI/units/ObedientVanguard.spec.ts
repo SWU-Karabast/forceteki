@@ -37,5 +37,38 @@ describe('Obedient Vanguard', function () {
                 expect(context.battlefieldMarine.getHp()).toBe(3);
             });
         });
+
+        it('should let the new controller choose the Trooper unit when defeated with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['obedient-vanguard', 'battlefield-marine', 'wampa']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['atst', 'wilderness-fighter'],
+                    hasInitiative: true
+                }
+            });
+            const { context } = contextRef;
+
+            const wildernessFighterPower = context.wildernessFighter.getPower();
+            const wildernessFighterHp = context.wildernessFighter.getHp();
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.obedientVanguard);
+
+            // Player 2 controlled the Vanguard when it was defeated, so they resolve the When Defeated ability
+            expect(context.obedientVanguard).toBeInZone('discard', context.player1);
+            expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.wildernessFighter]);
+            expect(context.player2).toHavePassAbilityButton();
+
+            context.player2.clickCard(context.wildernessFighter);
+            expect(context.wildernessFighter.getPower()).toBe(wildernessFighterPower + 2);
+            expect(context.wildernessFighter.getHp()).toBe(wildernessFighterHp + 2);
+            expect(context.battlefieldMarine.getPower()).toBe(3);
+            expect(context.battlefieldMarine.getHp()).toBe(3);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

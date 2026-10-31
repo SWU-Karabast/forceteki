@@ -102,5 +102,62 @@ describe('Numa, Still Fighting', function() {
                 expect(context.regionalGovernor.damage).toBe(3);
             });
         });
+
+        describe('interaction with Asajj Ventress, I Work Alone', function() {
+            it('should prevent the first ping but the second ping still resolves', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'asajj-ventress#i-work-alone',
+                        groundArena: ['numa#still-fighting'],
+                        resources: 4
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.asajjVentress);
+                expect(context.player1).toBeAbleToSelectExactly([context.numa]);
+                context.player1.clickCard(context.numa);
+
+                // Numa prevents the 1 damage, but the "if you do" condition is still met (SWU CR 8.9.2)
+                expect(context.numa.damage).toBe(0);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(1);
+
+                expect(context.asajjVentress.exhausted).toBe(true);
+            });
+        });
+
+        describe('interaction with Sith Holocron', function() {
+            it('should prevent 1 of the damage and the "if you do" still resolves', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [
+                            { card: 'karis#we-dont-like-strangers', upgrades: ['sith-holocron'] },
+                            'numa#still-fighting'
+                        ],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.karis);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.karis, context.numa]);
+                context.player1.clickCard(context.numa);
+
+                // Numa prevents 1 of the 2 damage, and the "if you do" condition is still met
+                expect(context.numa.damage).toBe(1);
+                expect(context.p2Base.damage).toBe(5); // 2 (Karis) + 1 (Sith Holocron) + 2 (Sith Holocron ability)
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });

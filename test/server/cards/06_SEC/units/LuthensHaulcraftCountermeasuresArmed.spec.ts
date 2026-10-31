@@ -87,5 +87,51 @@ describe('Luthen\'s Haulcraft, Countermeasures Armed', function () {
 
             expect(context.pillage).toBeInZone('discard', context.player2);
         });
+
+        it('Luthen\'s Haulcraft\'s when defeated ability should let the player who controlled it disclose and make the other player discard when defeated by No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['luthens-haulcraft#countermeasures-armed'],
+                    hand: ['pillage', 'force-throw', 'resupply']
+                },
+                player2: {
+                    hand: ['no-glory-only-results', 'karabast', 'bravado'], // Aggression|Heroism and Aggression
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.luthensHaulcraftCountermeasuresArmed);
+            expect(context.luthensHaulcraftCountermeasuresArmed).toBeInZone('discard', context.player1);
+
+            // player2 controlled the Haulcraft when it was defeated, so player2 discloses from their own hand
+            expect(context.player2).toHavePrompt(disclosePrompt);
+            expect(context.player2).toHaveChooseNothingButton();
+            expect(context.player2).toBeAbleToSelectExactly([context.karabast, context.bravado]);
+            context.player2.clickCard(context.karabast);
+            context.player2.clickCard(context.bravado);
+            context.player2.clickDone();
+
+            // player1 views the disclosed cards
+            expect(context.player1).toHaveExactViewableDisplayPromptCards([context.karabast, context.bravado]);
+            context.player1.clickDone();
+
+            // player1 is the opponent and discards 2 cards
+            expect(context.player1).toBeAbleToSelectExactly([context.pillage, context.forceThrow, context.resupply]);
+            context.player1.clickCard(context.pillage);
+            context.player1.clickCard(context.resupply);
+            context.player1.clickCardNonChecking(context.forceThrow);
+            context.player1.clickDone();
+
+            expect(context.pillage).toBeInZone('discard', context.player1);
+            expect(context.resupply).toBeInZone('discard', context.player1);
+            expect(context.forceThrow).toBeInZone('hand', context.player1);
+            expect(context.karabast).toBeInZone('hand', context.player2);
+            expect(context.bravado).toBeInZone('hand', context.player2);
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

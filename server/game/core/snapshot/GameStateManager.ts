@@ -341,6 +341,11 @@ export class GameStateManager implements IGameObjectRegistrar {
                 update.go.afterSetAllState(update.oldState);
             }
 
+            // The LKI registry is transient, so rollback does not restore it. Clear the parts that
+            // are timeline-dependent, otherwise a footprint minted in the abandoned timeline would
+            // be served for a re-created card identity.
+            this.#game.lkiRegistry.clearForRollback();
+
             // Must run after afterSetAllState: restoring the counter any earlier would let a transient
             // created during that pass consume an id a replayed object is owed.
             this.restoreLastGameObjectId(snapshot);

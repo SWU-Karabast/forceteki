@@ -71,7 +71,6 @@ describe('Oppo Rancisis, Ancient Councilor', function() {
             context.player1.clickCard(context.oppoRancisis);
             expect(context.player1).toHaveExactPromptButtons(['Ambush', 'Shielded']);
             context.player1.clickPrompt('Ambush');
-            context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
             context.player1.clickCard(context.battlefieldMarine);
