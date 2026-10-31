@@ -350,7 +350,7 @@ export class GameServer {
     public readonly serverRoleUsersCache?: ServerRoleUsersCache;
     public readonly serverSettingsCache?: ServerSettingsCache;
     public readonly modActionService?: ModActionService;
-    public readonly playerReportService = new PlayerReportService(this.userFactory, () => this.modActionService);
+    public readonly playerReportService: PlayerReportService;
     private readonly modActionRetentionService = new ModActionRetentionService();
     private readonly modActionSubmissionHandler?: ModActionSubmissionHandler;
 
@@ -414,6 +414,7 @@ export class GameServer {
         this.modActionService = modActionCache;
         this.userFactory = userFactory ?? new UserFactory();
         this.modActionSubmissionHandler = modActionCache ? new ModActionSubmissionHandler(modActionCache, this.userFactory) : undefined;
+        this.playerReportService = new PlayerReportService(this.userFactory, () => this.modActionService);
 
         const corsOptions = {
             origin: env.corsOrigins,
