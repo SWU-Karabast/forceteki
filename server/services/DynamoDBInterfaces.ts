@@ -97,6 +97,11 @@ export enum TimerVisibility {
     HideAll = 'hideAll',
 }
 
+export enum DateFormat {
+    MonthFirst = 'monthFirst', // MM/DD/YYYY
+    DayFirst = 'dayFirst', // DD/MM/YYYY
+}
+
 export interface IUserPreferences {
     sound?: {
         muteAllSound?: boolean;
@@ -113,6 +118,10 @@ export interface IUserPreferences {
         muteChat?: boolean;
         cardLanguage?: CardImageLocale;
         timerVisibility?: TimerVisibility;
+
+        // Currently only relevant for moderators: it is used by the mod tools (user management,
+        // server controls). Outside of those, it only affects the username-change cooldown message.
+        dateFormat?: DateFormat;
 
         // Prompt-reduction settings: auto-resolve prompts that have only one sensible outcome.
         // Grouped so future automations (e.g. auto-select opponent for indirect damage,
@@ -294,6 +303,14 @@ export interface IModActionEntity {
     cancelledAt?: string;
     cancelledById?: string;
     cancelledByUsername?: string;
+    relatedReportId?: string; // set when the action was issued from a player report ticket
+
+    /**
+     * When the action stopped having an effect: creation for one-off actions (Warning, ChangeUsername),
+     * otherwise when it was cancelled, expired or resolved. Unset while the action is active. The action
+     * is deleted ModActionRetentionService.RetentionMonths after this.
+     */
+    endedAt?: string;
 }
 
 export interface IActiveModActionCacheEntry {
@@ -321,4 +338,117 @@ export interface IUsernameChangeEntity {
     source: UsernameChangeSource;
     relatedModActionId?: string; // set when source is ForcedRename or UsernameChangedByModerator
     createdAt: string;
+}
+
+export enum PlayerReportStatus {
+    Open = 'Open',
+    Closed = 'Closed',
+}
+
+/** How a moderator resolved a player report when closing it. */
+export enum PlayerReportOutcome {
+    Punished = 'Punished',
+    NoAction = 'NoAction',
+    FalseReport = 'FalseReport',
+
+    /** The player let their timer run out on purpose; only tracked, no penalty is applied */
+    TimerAbuse = 'TimerAbuse',
+}
+
+/** Which side of a report a player is on, used by the per-player report index. */
+export enum PlayerReportRole {
+    Reporter = 'Reporter',
+    Reported = 'Reported',
+}
+
+export enum PlayerReportLogKind {
+    Chat = 'Chat',
+    Game = 'Game',
+}
+
+export interface IPlayerReportEntity {
+    id: string;
+    createdAt: string;
+    status: PlayerReportStatus;
+
+    reporterId: string;
+    reporterUsername: string;
+    reportedPlayerId: string;
+    reportedPlayerUsername: string;
+
+    /** PlayerReportType chosen by the reporter */
+    offense: string;
+    description: string;
+
+    lobbyId: string;
+    gameId?: string;
+    gameFormat: string;
+    matchType: string;
+    gameStepsSinceLastUndo?: number;
+    screenResolution?: { width: number; height: number };
+    viewport?: { width: number; height: number };
+
+    /** Snapshot at creation time, shown in the report list without extra lookups */
+    reportedPlayerPriorReportCount: number;
+    reporterPriorFalseReportCount: number;
+
+    claimedById?: string;
+    claimedByUsername?: string;
+    claimedAt?: string;
+
+    closedAt?: string;
+    closedById?: string;
+    closedByUsername?: string;
+    outcome?: PlayerReportOutcome;
+    closingNote?: string;
+
+    reopenedAt?: string;
+    reopenedByUsername?: string;
+
+    /** Set when the retention cleanup removed the chat and game logs */
+    logsDeletedAt?: string;
+}
+
+/** Progress of the player report retention cleanup, so each run only looks at new expiry buckets */
+export interface IPlayerReportCleanupCursor {
+
+    /** Last YYYY-MM-DD log expiry bucket that has been processed */
+    lastLogDay: string;
+
+    /** Last YYYY-MM closed-report bucket whose reports have been deleted */
+    lastMetadataMonth: string;
+}
+
+export interface IModActionCleanupCursor {
+
+    /** Last YYYY-MM ended-action bucket whose mod actions have been deleted */
+    lastMonth: string;
+}
+
+export interface IPlayerReportLogLine {
+    at: string;
+
+    /** Players referenced by the line (the speaker for chat lines), used to highlight a selected player */
+    playerIds: string[];
+    text: string;
+}
+
+export interface IPlayerReportLogEntity {
+    reportId: string;
+    kind: PlayerReportLogKind;
+    lines: IPlayerReportLogLine[];
+
+    /** True when the oldest lines were dropped to stay within the storage limit */
+    truncated: boolean;
+}
+
+/** Lightweight pointer stored under the player's partition so reports by/against a player can be listed. */
+export interface IPlayerReportIndexEntity {
+    reportId: string;
+    playerId: string;
+    role: PlayerReportRole;
+    createdAt: string;
+    offense: string;
+    status: PlayerReportStatus;
+    outcome?: PlayerReportOutcome;
 }

@@ -8,15 +8,23 @@ import {
     QueryCommand,
     ScanCommand,
     UpdateCommand,
-    BatchWriteCommand
+    BatchWriteCommand,
+    TransactWriteCommand
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
 import { Contract } from '../game/core/utils/Contract';
 import type {
+    IModActionCleanupCursor,
     IModActionEntity,
+    IPlayerReportEntity,
+    IPlayerReportIndexEntity,
+    IPlayerReportCleanupCursor,
+    IPlayerReportLogEntity,
     IUsernameChangeEntity
 } from './DynamoDBInterfaces';
 import {
+    PlayerReportRole,
+    PlayerReportStatus,
     type IDeckDataEntity,
     type IDeckStatsEntity,
     type IUserProfileDataEntity,
@@ -26,8 +34,17 @@ import {
     isTrackedModAction
 } from './DynamoDBInterfaces';
 import { z } from 'zod';
-import { IDeckDataEntitySchema, IDeckStatsEntitySchema, ModActionEntitySchema, UsernameChangeEntitySchema } from './DynamoDBInterfaceSchemas';
+import {
+    IDeckDataEntitySchema,
+    IDeckStatsEntitySchema,
+    ModActionEntitySchema,
+    PlayerReportEntitySchema,
+    PlayerReportIndexEntitySchema,
+    PlayerReportLogEntitySchema,
+    UsernameChangeEntitySchema
+} from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
+import { monthOf } from '../utils/RetentionBuckets';
 import { type ICosmeticEntity, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 
 // global variable
@@ -64,6 +81,31 @@ export async function getDynamoDbServiceAsync() {
 
     return dynamoDbService;
 }
+
+/**
+ * The document client is not configured with removeUndefinedValues, so optional fields that are
+ * undefined have to be dropped before writing.
+ */
+const withoutUndefined = <T extends Record<string, any>>(item: T): T =>
+    Object.fromEntries(Object.entries(item).filter(([, value]) => value !== undefined)) as T;
+
+/** GSI bucket holding every open player report */
+export const OPEN_PLAYER_REPORT_GSI_KEY = 'OPEN_PLAYER_REPORT';
+
+/** GSI bucket for player reports closed in the given YYYY-MM month */
+export const closedPlayerReportGsiKey = (month: string): string => `CLOSED_PLAYER_REPORT#${month}`;
+
+/** GSI bucket for player report logs that expire on the given YYYY-MM-DD day */
+export const playerReportLogExpiryGsiKey = (day: string): string => `REPORT_LOG_EXPIRY#${day}`;
+
+export type PlayerReportTransitionResult =
+  | { success: true; report: IPlayerReportEntity }
+  | { success: false; reason: 'condition' | 'conflict' };
+
+/** GSI bucket for mod actions that ended in the given YYYY-MM month; drives their retention cleanup */
+export const endedModActionGsiKey = (month: string): string => `ENDED_MODACTION#${month}`;
+
+const PLAYER_REPORT_LOG_KINDS = ['Chat', 'Game'] as const;
 
 export class DynamoDBService {
     private client: DynamoDBDocumentClient;
@@ -102,6 +144,22 @@ export class DynamoDBService {
 
         const dbClient = new DynamoDBClient(dbClientConfig);
         this.client = DynamoDBDocumentClient.from(dbClient);
+    }
+
+    /**
+     * Validate a list of items, skipping (and logging) invalid ones so a single bad record
+     * cannot make a whole listing fail.
+     */
+    private async validateEachAsync<T>(schema: z.ZodType<T>, items: unknown[], context: (item: any) => string): Promise<T[]> {
+        const results = await Promise.all(items.map(async (item) => {
+            try {
+                return await this.validateAndHandleAsync<T>(schema, item, context(item));
+            } catch {
+                // validateAndHandleAsync has already logged the validation error
+                return undefined;
+            }
+        }));
+        return results.filter(Boolean);
     }
 
     private async validateAndHandleAsync<T>(
@@ -237,10 +295,12 @@ export class DynamoDBService {
 
     /**
      * Batch write multiple items to DynamoDB.
-     * Handles chunking into batches of 25 (DynamoDB limit) and retries unprocessed items.
+     * Handles chunking into batches of 25 (DynamoDB limit) and retries unprocessed items with
+     * exponential backoff. Throws if items remain unprocessed after MAX_BATCH_RETRIES.
      */
     public batchWriteItemsAsync(items: Record<string, any>[]) {
         return this.executeDbOperationAsync(async () => {
+            const MAX_BATCH_RETRIES = 8;
             const chunks = [];
             for (let i = 0; i < items.length; i += 25) {
                 chunks.push(items.slice(i, i + 25));
@@ -248,6 +308,7 @@ export class DynamoDBService {
 
             for (const chunk of chunks) {
                 let unprocessed = chunk;
+                let attempt = 0;
 
                 while (unprocessed.length > 0) {
                     const result = await this.client.send(new BatchWriteCommand({
@@ -259,14 +320,18 @@ export class DynamoDBService {
                     }));
 
                     const retryItems = result.UnprocessedItems?.[this.tableName];
-                    if (retryItems && retryItems.length > 0) {
-                        logger.info(`Retrying ${retryItems.length} unprocessed items...`);
-                        unprocessed = retryItems.map((r: any) => r.PutRequest.Item);
-                        // Back off before retry
-                        await new Promise((resolve) => setTimeout(resolve, 500));
-                    } else {
+                    if (!retryItems || retryItems.length === 0) {
                         break;
                     }
+
+                    attempt++;
+                    if (attempt > MAX_BATCH_RETRIES) {
+                        throw new Error(`Batch write gave up after ${MAX_BATCH_RETRIES} retries with ${retryItems.length} item(s) still unprocessed`);
+                    }
+
+                    logger.info(`Retrying ${retryItems.length} unprocessed items (attempt ${attempt}/${MAX_BATCH_RETRIES})...`);
+                    unprocessed = retryItems.map((r: any) => r.PutRequest.Item);
+                    await new Promise((resolve) => setTimeout(resolve, 100 * Math.pow(2, attempt)));
                 }
             }
         }, 'Error in batch write');
@@ -275,6 +340,9 @@ export class DynamoDBService {
     public queryItemsAsync(pk: string, options: {
         beginsWith?: string;
         filters?: Record<string, any>;
+
+        /** Read the latest committed data instead of a possibly lagging replica (costs twice the read capacity) */
+        consistentRead?: boolean;
     } = {}) {
         return this.executeDbOperationAsync(() => {
             let keyConditionExpression = 'pk = :pk';
@@ -289,7 +357,8 @@ export class DynamoDBService {
             const command = new QueryCommand({
                 TableName: this.tableName,
                 KeyConditionExpression: keyConditionExpression,
-                ExpressionAttributeValues: expressionAttributeValues
+                ExpressionAttributeValues: expressionAttributeValues,
+                ...(options.consistentRead ? { ConsistentRead: true } : {}),
             });
 
             return this.client.send(command);
@@ -766,19 +835,30 @@ export class DynamoDBService {
 
     // Mod Actions
     /**
-     * Query items using the GSI_PK_INDEX
+     * Query items using the GSI_PK_INDEX, paging through all results.
      * @param gsiPkValue The value for the GSI_PK partition key
      */
     public queryByGSIAsync(gsiPkValue: string) {
-        return this.executeDbOperationAsync(() => {
-            const command = new QueryCommand({
-                TableName: this.tableName,
-                IndexName: 'GSI_PK_INDEX',
-                KeyConditionExpression: 'GSI_PK = :gsiPk',
-                ExpressionAttributeValues: { ':gsiPk': gsiPkValue }
-            });
+        return this.executeDbOperationAsync(async () => {
+            const items: Record<string, any>[] = [];
+            let lastEvaluatedKey: Record<string, any> | undefined;
 
-            return this.client.send(command);
+            do {
+                const result = await this.client.send(new QueryCommand({
+                    TableName: this.tableName,
+                    IndexName: 'GSI_PK_INDEX',
+                    KeyConditionExpression: 'GSI_PK = :gsiPk',
+                    ExpressionAttributeValues: { ':gsiPk': gsiPkValue },
+                    ExclusiveStartKey: lastEvaluatedKey
+                }));
+
+                if (result.Items) {
+                    items.push(...result.Items);
+                }
+                lastEvaluatedKey = result.LastEvaluatedKey;
+            } while (lastEvaluatedKey);
+
+            return { Items: items };
         }, 'DynamoDB queryByGSI error');
     }
 
@@ -848,19 +928,21 @@ export class DynamoDBService {
 
     /**
      * Save a new mod action item.
-     * For Mute actions, GSI_PK is set to 'ACTIVE_MODACTION' so it appears in the sparse index.
+     * Tracked actions (Mute, Rename, ...) are indexed under 'ACTIVE_MODACTION' until they end. One-off actions
+     * end when they are created, so they go straight into the ended bucket for the retention cleanup.
      */
     public saveModActionAsync(modAction: IModActionEntity) {
         return this.executeDbOperationAsync(() => {
-            const item: Record<string, any> = {
+            const isActive = isTrackedModAction(modAction.actionType) && !modAction.cancelledAt;
+            const endedAt = isActive ? undefined : (modAction.endedAt ?? modAction.cancelledAt ?? modAction.createdAt);
+            const item: Record<string, any> = withoutUndefined({
                 pk: `USER#${modAction.playerId}`,
                 sk: `MODACTION#${modAction.id}`,
                 ...modAction,
-            };
+                endedAt,
+            });
 
-            if (isTrackedModAction(modAction.actionType) && !modAction.cancelledAt) {
-                item.GSI_PK = 'ACTIVE_MODACTION';
-            }
+            item.GSI_PK = isActive ? 'ACTIVE_MODACTION' : endedModActionGsiKey(monthOf(new Date(endedAt)));
 
             return this.putItemAsync(item);
         }, 'Error saving mod action');
@@ -885,49 +967,452 @@ export class DynamoDBService {
     }
 
     /**
-     * Cancel a mod action: set cancelledAt and cancelledBy, remove GSI_PK to drop it from the active index.
+     * Cancel a mod action: set cancelledAt and cancelledBy, and move it from the active index to the ended bucket.
+     * An action that had already ended (e.g. an expired mute cancelled afterwards) keeps its endedAt and bucket,
+     * so the two always agree.
      */
     public cancelModActionAsync(playerId: string, modActionId: string, cancelledById: string, cancelledByUsername: string) {
-        return this.executeDbOperationAsync(() => {
-            const command = new UpdateCommand({
-                TableName: this.tableName,
-                Key: {
-                    pk: `USER#${playerId}`,
-                    sk: `MODACTION#${modActionId}`,
-                },
-                UpdateExpression: 'SET cancelledAt = :cancelledAt, cancelledById = :cancelledById, cancelledByUsername = :cancelledByUsername ' +
-                  'REMOVE GSI_PK',
-                ConditionExpression: 'attribute_exists(pk) AND attribute_not_exists(cancelledAt)',
-                ExpressionAttributeValues: {
-                    ':cancelledAt': new Date().toISOString(),
-                    ':cancelledById': cancelledById,
-                    ':cancelledByUsername': cancelledByUsername
-                },
-                ReturnValues: 'ALL_NEW'
-            });
+        return this.executeDbOperationAsync(async () => {
+            const cancelledAt = new Date().toISOString();
+            const key = { pk: `USER#${playerId}`, sk: `MODACTION#${modActionId}` };
+            const cancelFields = 'cancelledAt = :cancelledAt, cancelledById = :cancelledById, cancelledByUsername = :cancelledByUsername';
+            const cancelValues = { ':cancelledAt': cancelledAt, ':cancelledById': cancelledById, ':cancelledByUsername': cancelledByUsername };
 
-            return this.client.send(command);
+            try {
+                return await this.client.send(new UpdateCommand({
+                    TableName: this.tableName,
+                    Key: key,
+                    UpdateExpression: `SET ${cancelFields}, endedAt = :cancelledAt, GSI_PK = :endedBucket`,
+                    ConditionExpression: 'attribute_exists(pk) AND attribute_not_exists(cancelledAt) AND attribute_not_exists(endedAt)',
+                    ExpressionAttributeValues: { ...cancelValues, ':endedBucket': endedModActionGsiKey(monthOf(new Date(cancelledAt))) },
+                    ReturnValues: 'ALL_NEW',
+                }));
+            } catch (error) {
+                if (error?.name !== 'ConditionalCheckFailedException') {
+                    throw error;
+                }
+            }
+
+            // Already ended (or already cancelled / missing, which this condition rejects as before)
+            return this.client.send(new UpdateCommand({
+                TableName: this.tableName,
+                Key: key,
+                UpdateExpression: `SET ${cancelFields}`,
+                ConditionExpression: 'attribute_exists(pk) AND attribute_not_exists(cancelledAt)',
+                ExpressionAttributeValues: cancelValues,
+                ReturnValues: 'ALL_NEW',
+            }));
         }, 'Error cancelling mod action');
     }
 
     /**
-     * Remove GSI_PK from an expired mod action (cleanup only, doesn't set cancelledAt/cancelledBy).
-     * This drops the item from the ACTIVE_MODACTION sparse index.
+     * Mark a mod action as ended without cancelling it (an expired mute, a resolved rename): drops it from the
+     * ACTIVE_MODACTION sparse index and files it under the ended bucket of `endedAt` for the retention cleanup.
+     * An action that already ended (e.g. cancelled concurrently) keeps its endedAt and bucket.
+     *
+     * @param options.onlyIfInactive only end it if it is not in the ACTIVE_MODACTION index (for backfills that
+     * must never end a running action)
+     * @returns false if the action does not exist, has already ended, or is active while `onlyIfInactive` is set
      */
-    public removeModActionFromActiveIndexAsync(playerId: string, modActionId: string) {
-        return this.executeDbOperationAsync(() => {
-            const command = new UpdateCommand({
-                TableName: this.tableName,
-                Key: {
-                    pk: `USER#${playerId}`,
-                    sk: `MODACTION#${modActionId}`,
-                },
-                UpdateExpression: 'REMOVE GSI_PK',
-                ReturnValues: 'ALL_NEW'
-            });
+    public endModActionAsync(playerId: string, modActionId: string, endedAt: string, options: { onlyIfInactive?: boolean } = {}): Promise<boolean> {
+        return this.executeDbOperationAsync(async () => {
+            const condition = 'attribute_exists(pk) AND attribute_not_exists(endedAt)' +
+              (options.onlyIfInactive ? ' AND (attribute_not_exists(GSI_PK) OR GSI_PK <> :active)' : '');
+            try {
+                await this.client.send(new UpdateCommand({
+                    TableName: this.tableName,
+                    Key: {
+                        pk: `USER#${playerId}`,
+                        sk: `MODACTION#${modActionId}`,
+                    },
+                    UpdateExpression: 'SET endedAt = :endedAt, GSI_PK = :endedBucket',
+                    ConditionExpression: condition,
+                    ExpressionAttributeValues: {
+                        ':endedAt': endedAt,
+                        ':endedBucket': endedModActionGsiKey(monthOf(new Date(endedAt))),
+                        ...(options.onlyIfInactive ? { ':active': 'ACTIVE_MODACTION' } : {}),
+                    },
+                }));
+                return true;
+            } catch (error) {
+                if (error?.name === 'ConditionalCheckFailedException') {
+                    return false;
+                }
+                throw error;
+            }
+        }, 'Error ending mod action');
+    }
 
-            return this.client.send(command);
-        }, 'Error removing mod action from active index');
+    public deleteModActionAsync(playerId: string, modActionId: string) {
+        return this.executeDbOperationAsync(
+            () => this.deleteItemAsync(`USER#${playerId}`, `MODACTION#${modActionId}`),
+            'Error deleting mod action'
+        );
+    }
+
+    public getModActionCleanupCursorAsync(): Promise<IModActionCleanupCursor | null> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.getItemAsync('SYSTEM', 'MODACTION_CLEANUP');
+            return result.Item ? { lastMonth: result.Item.lastMonth } : null;
+        }, 'Error getting mod action cleanup cursor');
+    }
+
+    public saveModActionCleanupCursorAsync(cursor: IModActionCleanupCursor) {
+        return this.executeDbOperationAsync(
+            () => this.putItemAsync({ pk: 'SYSTEM', sk: 'MODACTION_CLEANUP', ...cursor }),
+            'Error saving mod action cleanup cursor'
+        );
+    }
+
+    // Player Reports
+    // Layout:
+    //   REPORT#<id> / META                    the report (GSI_PK = open or closed-per-month bucket)
+    //   REPORT#<id> / LOG#<kind>              chat and game log captured when the report was submitted
+    //   USER#<playerId> / PLAYERREPORT#<role>#<id>   pointer so reports by/against a player can be listed
+
+    private static playerReportIndexSortKey(role: PlayerReportRole, reportId: string): string {
+        return `PLAYERREPORT#${role}#${reportId}`;
+    }
+
+    /**
+     * Save a new player report together with its logs and the per-player index entries.
+     */
+    public savePlayerReportAsync(report: IPlayerReportEntity, logs: IPlayerReportLogEntity[], indexEntries: IPlayerReportIndexEntity[]) {
+        return this.executeDbOperationAsync(() => {
+            const items: Record<string, any>[] = [
+                { pk: `REPORT#${report.id}`, sk: 'META', ...report, GSI_PK: OPEN_PLAYER_REPORT_GSI_KEY },
+                ...logs.map((log) => ({ pk: `REPORT#${report.id}`, sk: `LOG#${log.kind}`, ...log })),
+                ...indexEntries.map((entry) => ({
+                    pk: `USER#${entry.playerId}`,
+                    sk: DynamoDBService.playerReportIndexSortKey(entry.role, entry.reportId),
+                    ...entry,
+                })),
+            ].map(withoutUndefined);
+
+            // All or nothing: a report missing its index entries or logs could never be closed
+            // (transitionPlayerReportAsync requires every item to exist)
+            return this.client.send(new TransactWriteCommand({
+                TransactItems: items.map((item) => ({
+                    Put: { TableName: this.tableName, Item: item, ConditionExpression: 'attribute_not_exists(pk)' },
+                })),
+            }));
+        }, 'Error saving player report');
+    }
+
+    /**
+     * Get a player report and its logs. Returns null if the report does not exist.
+     */
+    public getPlayerReportAsync(
+        reportId: string,
+        options: { consistentRead?: boolean } = {}
+    ): Promise<{ report: IPlayerReportEntity; logs: IPlayerReportLogEntity[] } | null> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryItemsAsync(`REPORT#${reportId}`, { consistentRead: options.consistentRead });
+            const items = result.Items || [];
+
+            const metaItem = items.find((item: any) => item.sk === 'META');
+            if (!metaItem) {
+                return null;
+            }
+
+            const report = await this.validateAndHandleAsync<IPlayerReportEntity>(PlayerReportEntitySchema, metaItem, `getPlayerReportAsync (report ${reportId})`);
+            if (!report) {
+                return null;
+            }
+
+            const logs = await this.validateEachAsync<IPlayerReportLogEntity>(
+                PlayerReportLogEntitySchema,
+                items.filter((item: any) => typeof item.sk === 'string' && item.sk.startsWith('LOG#')),
+                (item) => `getPlayerReportAsync (log ${item.sk})`
+            );
+
+            return { report, logs };
+        }, 'Error getting player report');
+    }
+
+    /**
+     * Get all player reports in a GSI bucket (open reports, or reports closed in one month).
+     */
+    public getPlayerReportsByGsiKeyAsync(gsiKey: string): Promise<IPlayerReportEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryByGSIAsync(gsiKey);
+
+            return this.validateEachAsync<IPlayerReportEntity>(
+                PlayerReportEntitySchema,
+                result.Items || [],
+                (item) => `getPlayerReportsByGsiKeyAsync (report ${item.id})`
+            );
+        }, 'Error getting player reports');
+    }
+
+    /**
+     * Get the report index entries (reports filed by and against) for a player.
+     */
+    public getPlayerReportIndexAsync(playerId: string): Promise<IPlayerReportIndexEntity[]> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.queryItemsAsync(`USER#${playerId}`, { beginsWith: 'PLAYERREPORT#' });
+
+            return this.validateEachAsync<IPlayerReportIndexEntity>(
+                PlayerReportIndexEntitySchema,
+                result.Items || [],
+                (item) => `getPlayerReportIndexAsync (${item.sk})`
+            );
+        }, 'Error getting player report index');
+    }
+
+    /**
+     * Update fields of a report that is still in `expectedStatus` (used for claiming; close/reopen use transitions).
+     * Otherwise DynamoDB throws a ConditionalCheckFailedException, which protects against two moderators racing on one ticket.
+     * @returns the updated report
+     */
+    public updatePlayerReportAsync(
+        reportId: string,
+        expectedStatus: PlayerReportStatus,
+        set: Partial<IPlayerReportEntity>,
+    ): Promise<IPlayerReportEntity> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.client.send(new UpdateCommand({
+                ...this.buildPlayerReportStatusUpdate(reportId, expectedStatus, set, [], undefined),
+                ReturnValues: 'ALL_NEW',
+            }));
+
+            return this.validateAndHandleAsync<IPlayerReportEntity>(PlayerReportEntitySchema, result.Attributes, `updatePlayerReportAsync (report ${reportId})`);
+        }, 'Error updating player report');
+    }
+
+    /**
+     * Moves a report between Open and Closed in one transaction: the report itself (only if it is still in
+     * `expectedStatus`), both players' index entries, and the logs' expiry bucket (`null` removes it). Either
+     * all of it is written or nothing is, so a ticket can never end up closed with logs that never expire, or
+     * open with logs still scheduled for deletion.
+     *
+     * Expected races are returned, not thrown: 'condition' when the report, an index entry or a log changed in
+     * the meantime, 'conflict' when another transaction touched the same items concurrently.
+     * @returns the report as written by the transition
+     */
+    public transitionPlayerReportAsync(
+        report: IPlayerReportEntity,
+        expectedStatus: PlayerReportStatus,
+        set: Partial<IPlayerReportEntity>,
+        remove: (keyof IPlayerReportEntity)[],
+        gsiKey: string,
+        logExpiryGsiKey: string | null,
+    ): Promise<PlayerReportTransitionResult> {
+        return this.executeDbOperationAsync(async (): Promise<PlayerReportTransitionResult> => {
+            const next = { ...report, ...set };
+            const indexUpdate = (playerId: string, role: PlayerReportRole) => ({
+                Update: {
+                    TableName: this.tableName,
+                    Key: { pk: `USER#${playerId}`, sk: DynamoDBService.playerReportIndexSortKey(role, report.id) },
+                    UpdateExpression: next.outcome && !remove.includes('outcome') ? 'SET #status = :status, outcome = :outcome' : 'SET #status = :status REMOVE outcome',
+                    ConditionExpression: 'attribute_exists(pk)',
+                    ExpressionAttributeNames: { '#status': 'status' },
+                    ExpressionAttributeValues: withoutUndefined({
+                        ':status': next.status,
+                        ':outcome': next.outcome && !remove.includes('outcome') ? next.outcome : undefined,
+                    }),
+                },
+            });
+            // Logs deleted by the retention cleanup are gone for good; there is no expiry left to change
+            const logUpdates = report.logsDeletedAt ? [] : PLAYER_REPORT_LOG_KINDS.map((kind) => ({
+                Update: {
+                    TableName: this.tableName,
+                    Key: { pk: `REPORT#${report.id}`, sk: `LOG#${kind}` },
+                    UpdateExpression: logExpiryGsiKey ? 'SET GSI_PK = :gsiPk' : 'REMOVE GSI_PK',
+                    ConditionExpression: 'attribute_exists(pk)',
+                    ...(logExpiryGsiKey ? { ExpressionAttributeValues: { ':gsiPk': logExpiryGsiKey } } : {}),
+                },
+            }));
+
+            try {
+                await this.client.send(new TransactWriteCommand({
+                    TransactItems: [
+                        { Update: this.buildPlayerReportStatusUpdate(report.id, expectedStatus, set, remove, gsiKey) },
+                        indexUpdate(report.reporterId, PlayerReportRole.Reporter),
+                        indexUpdate(report.reportedPlayerId, PlayerReportRole.Reported),
+                        ...logUpdates,
+                    ],
+                }));
+            } catch (error) {
+                const failure = DynamoDBService.transactionFailureReason(error);
+                if (failure) {
+                    return { success: false, reason: failure };
+                }
+                throw error;
+            }
+
+            // Built from what was written rather than read back, which could hit a replica that lags behind
+            const written = Object.fromEntries(
+                Object.entries(next).filter(([key]) => !remove.includes(key as keyof IPlayerReportEntity))
+            ) as unknown as IPlayerReportEntity;
+            return { success: true, report: written };
+        }, 'Error updating player report status');
+    }
+
+    /** Update of a report's META item that only applies while the report is in `expectedStatus` */
+    private buildPlayerReportStatusUpdate(
+        reportId: string,
+        expectedStatus: PlayerReportStatus,
+        set: Partial<IPlayerReportEntity>,
+        remove: (keyof IPlayerReportEntity)[],
+        gsiKey: string | undefined,
+    ) {
+        const names: Record<string, string> = { '#status': 'status' };
+        const values: Record<string, any> = { ':expectedStatus': expectedStatus };
+        const setClauses: string[] = [];
+
+        const setFields: Record<string, any> = withoutUndefined({ ...set });
+        if (gsiKey) {
+            setFields.GSI_PK = gsiKey;
+        }
+        Object.entries(setFields).forEach(([key, value], index) => {
+            names[`#s${index}`] = key;
+            values[`:s${index}`] = value;
+            setClauses.push(`#s${index} = :s${index}`);
+        });
+        const removeClauses = remove.map((key, index) => {
+            names[`#r${index}`] = key;
+            return `#r${index}`;
+        });
+
+        let updateExpression = '';
+        if (setClauses.length > 0) {
+            updateExpression += `SET ${setClauses.join(', ')}`;
+        }
+        if (removeClauses.length > 0) {
+            updateExpression += ` REMOVE ${removeClauses.join(', ')}`;
+        }
+
+        return {
+            TableName: this.tableName,
+            Key: { pk: `REPORT#${reportId}`, sk: 'META' },
+            UpdateExpression: updateExpression.trim(),
+            ConditionExpression: 'attribute_exists(pk) AND #status = :expectedStatus',
+            ExpressionAttributeNames: names,
+            ExpressionAttributeValues: values,
+        };
+    }
+
+    /**
+     * Why a transaction was cancelled, if it was one of the expected races: 'condition' when one of its conditions
+     * failed, 'conflict' when another transaction was writing the same items. Anything else returns null.
+     */
+    private static transactionFailureReason(error: any): 'condition' | 'conflict' | null {
+        if (error?.name !== 'TransactionCanceledException') {
+            return null;
+        }
+        const codes: string[] = (error.CancellationReasons ?? []).map((reason: { Code?: string }) => reason?.Code);
+        if (codes.includes('ConditionalCheckFailed')) {
+            return 'condition';
+        }
+        return codes.includes('TransactionConflict') ? 'conflict' : null;
+    }
+
+    /**
+     * Get only the requested attributes of every item in a GSI bucket, following pagination.
+     * Used by cleanup, which must not load full log contents just to find their keys.
+     */
+    public queryAttributesByGsiAsync(gsiKey: string, attributes: string[]): Promise<Record<string, any>[]> {
+        return this.executeDbOperationAsync(async () => {
+            const names = Object.fromEntries(attributes.map((attribute, index) => [`#a${index}`, attribute]));
+            const items: Record<string, any>[] = [];
+            let exclusiveStartKey: Record<string, any> | undefined;
+            do {
+                const result = await this.client.send(new QueryCommand({
+                    TableName: this.tableName,
+                    IndexName: 'GSI_PK_INDEX',
+                    KeyConditionExpression: 'GSI_PK = :gsiPk',
+                    ExpressionAttributeValues: { ':gsiPk': gsiKey },
+                    ExpressionAttributeNames: names,
+                    ProjectionExpression: Object.keys(names).join(', '),
+                    ExclusiveStartKey: exclusiveStartKey,
+                }));
+                items.push(...(result.Items || []));
+                exclusiveStartKey = result.LastEvaluatedKey;
+            } while (exclusiveStartKey);
+            return items;
+        }, 'Error querying GSI attributes');
+    }
+
+    /**
+     * Delete a report's chat and game logs and note on the report when that happened. Only applies while the
+     * report is still Closed and was closed before `closedBefore`, so a ticket reopened (or reopened and closed
+     * again) after the cleanup read its expiry bucket keeps its logs.
+     * @returns false if the report is no longer Closed (or gone) and nothing was deleted
+     */
+    public deletePlayerReportLogsAsync(reportId: string, deletedAt: string, closedBefore: string): Promise<boolean> {
+        return this.executeDbOperationAsync(() => this.runClosedReportTransactionAsync(reportId, [
+            {
+                Update: {
+                    TableName: this.tableName,
+                    Key: { pk: `REPORT#${reportId}`, sk: 'META' },
+                    UpdateExpression: 'SET logsDeletedAt = :deletedAt',
+                    ConditionExpression: '#status = :closed AND closedAt < :closedBefore',
+                    ExpressionAttributeNames: { '#status': 'status' },
+                    ExpressionAttributeValues: { ':deletedAt': deletedAt, ':closed': PlayerReportStatus.Closed, ':closedBefore': closedBefore },
+                },
+            },
+            ...PLAYER_REPORT_LOG_KINDS.map((kind) => ({
+                Delete: { TableName: this.tableName, Key: { pk: `REPORT#${reportId}`, sk: `LOG#${kind}` } },
+            })),
+        ]), 'Error deleting player report logs');
+    }
+
+    /**
+     * Delete a report with its logs and both players' index entries. Only applies while the report is still
+     * Closed and was closed before `closedBefore`, so a ticket reopened after the cleanup read its month bucket
+     * is kept.
+     * @returns false if the report is no longer Closed (or gone) and nothing was deleted
+     */
+    public deletePlayerReportAsync(reportId: string, reporterId: string, reportedPlayerId: string, closedBefore: string): Promise<boolean> {
+        return this.executeDbOperationAsync(() => this.runClosedReportTransactionAsync(reportId, [
+            {
+                Delete: {
+                    TableName: this.tableName,
+                    Key: { pk: `REPORT#${reportId}`, sk: 'META' },
+                    ConditionExpression: '#status = :closed AND closedAt < :closedBefore',
+                    ExpressionAttributeNames: { '#status': 'status' },
+                    ExpressionAttributeValues: { ':closed': PlayerReportStatus.Closed, ':closedBefore': closedBefore },
+                },
+            },
+            ...PLAYER_REPORT_LOG_KINDS.map((kind) => ({
+                Delete: { TableName: this.tableName, Key: { pk: `REPORT#${reportId}`, sk: `LOG#${kind}` } },
+            })),
+            { Delete: { TableName: this.tableName, Key: { pk: `USER#${reporterId}`, sk: DynamoDBService.playerReportIndexSortKey(PlayerReportRole.Reporter, reportId) } } },
+            { Delete: { TableName: this.tableName, Key: { pk: `USER#${reportedPlayerId}`, sk: DynamoDBService.playerReportIndexSortKey(PlayerReportRole.Reported, reportId) } } },
+        ]), 'Error deleting player report');
+    }
+
+    /** Runs a cleanup transaction whose first item is conditional on the report still being due for cleanup */
+    private async runClosedReportTransactionAsync(reportId: string, transactItems: Record<string, any>[]): Promise<boolean> {
+        try {
+            await this.client.send(new TransactWriteCommand({ TransactItems: transactItems }));
+            return true;
+        } catch (error) {
+            const failure = DynamoDBService.transactionFailureReason(error);
+            if (failure === 'condition') {
+                logger.info(`DynamoDBService: Skipped retention cleanup of report ${reportId}, it was reopened or closed again`, { reportId });
+                return false;
+            }
+            throw error;
+        }
+    }
+
+    public getPlayerReportCleanupCursorAsync(): Promise<IPlayerReportCleanupCursor | null> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.getItemAsync('SYSTEM', 'PLAYER_REPORT_CLEANUP');
+            if (!result.Item) {
+                return null;
+            }
+            return { lastLogDay: result.Item.lastLogDay, lastMetadataMonth: result.Item.lastMetadataMonth };
+        }, 'Error getting player report cleanup cursor');
+    }
+
+    public savePlayerReportCleanupCursorAsync(cursor: IPlayerReportCleanupCursor) {
+        return this.executeDbOperationAsync(
+            () => this.putItemAsync({ pk: 'SYSTEM', sk: 'PLAYER_REPORT_CLEANUP', ...cursor }),
+            'Error saving player report cleanup cursor'
+        );
     }
 
     // Username

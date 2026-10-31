@@ -7,7 +7,7 @@ import { getUserStoreAsync } from './UserStore';
 import { Contract } from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
 import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModActionEntity, IUsernameChangeEntity } from '../../services/DynamoDBInterfaces';
-import { CardImageLocale, ModerationType, TimerVisibility, UsernameChangeSource } from '../../services/DynamoDBInterfaces';
+import { CardImageLocale, DateFormat, ModerationType, TimerVisibility, UsernameChangeSource } from '../../services/DynamoDBInterfaces';
 import { evaluateUsernameChangeEligibility } from './UsernameRules';
 import { RefreshTokenSource } from '../statHandlers/StatHandlerTypes';
 
@@ -29,6 +29,7 @@ const getDefaultGameOptionsPreferences = () => ({
     muteChat: false,
     cardLanguage: CardImageLocale.English,
     timerVisibility: TimerVisibility.Standard,
+    dateFormat: DateFormat.MonthFirst,
     autoResolve: {
         singleTarget: false,
     },
