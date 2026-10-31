@@ -265,6 +265,13 @@ export class GameServer {
         // increase stack trace limit for better error logging
         Error.stackTraceLimit = 50;
 
+        const userFactory = new UserFactory();
+        if (process.env.ENVIRONMENT === 'development') {
+            console.log('SETUP: Initializing development test users.');
+            await userFactory.ensureDevelopmentTestUsersAsync();
+            console.log('SETUP: Development test users initialized.');
+        }
+
         return new GameServer(
             cardDataGetter,
             deckValidator,
@@ -272,7 +279,9 @@ export class GameServer {
             serverSettingsCache,
             cosmeticsService,
             modActionCache,
-            testGameBuilder
+            testGameBuilder,
+            {},
+            userFactory
         );
     }
 
@@ -329,7 +338,7 @@ export class GameServer {
         intervalStartTime: 0
     };
 
-    private readonly userFactory: UserFactory = new UserFactory();
+    private readonly userFactory: UserFactory;
     public readonly deckService: DeckService = new DeckService();
     public readonly cosmeticsService?: CosmeticsService;
     public readonly swuStatsHandler: SwuStatsHandler;
@@ -353,12 +362,14 @@ export class GameServer {
 
     /**
      * Moderation state lives in the mod action cache; if it is missing we cannot evaluate restrictions
-     * at all. Callers degrade to "unrestricted", so log loudly to make a misconfiguration visible
-     * rather than silently permissive.
+     * at all. Only local development without DynamoDB may run without this service.
      */
     private getModActionService(context: string): ModActionService | null {
         if (!this.modActionService) {
-            logger.error(`GameServer (${context}): mod action service unavailable, moderation state cannot be evaluated`);
+            Contract.assertTrue(
+                process.env.ENVIRONMENT === 'development' && process.env.USE_LOCAL_DYNAMODB !== 'true',
+                `GameServer (${context}): mod action service unavailable`
+            );
             return null;
         }
         return this.modActionService;
@@ -372,7 +383,8 @@ export class GameServer {
         cosmeticsService?: CosmeticsService,
         modActionCache?: ModActionService,
         testGameBuilder?: any,
-        options: IGameServerOptions = {}
+        options: IGameServerOptions = {},
+        userFactory?: UserFactory
     ) {
         const {
             listen = true,
@@ -400,6 +412,7 @@ export class GameServer {
         this.serverSettingsCache = serverSettingsCache;
         this.cosmeticsService = cosmeticsService;
         this.modActionService = modActionCache;
+        this.userFactory = userFactory ?? new UserFactory();
         this.modActionSubmissionHandler = modActionCache ? new ModActionSubmissionHandler(modActionCache, this.userFactory) : undefined;
 
         const corsOptions = {
@@ -1116,19 +1129,17 @@ export class GameServer {
             }
         });
 
-        app.put('/api/user/:userId/preferences', this.buildAuthMiddleware('PUT-preferences'), async (req, res, next) => {
+        app.put('/api/user/preferences', this.buildAuthMiddleware('PUT-preferences'), async (req, res, next) => {
             try {
                 const { preferences } = req.body;
-                const { userId } = req.params;
                 const user = req.user as User;
-                if (user.isAnonymousUser() || userId !== user.getId()) {
-                    logger.error(`GameServer (PUT-preferences): User ${user.getId()} attempted to save preferences for user ${userId}`);
-                    return res.status(user.isAnonymousUser() ? 401 : 403).json({
+                if (user.isAnonymousUser()) {
+                    return res.status(401).json({
                         success: false,
                         message: 'Error attempting to save preferences'
                     });
                 }
-                await this.userFactory.updateUserPreferencesAsync(userId, preferences);
+                await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences);
                 return res.status(200).json({
                     success: true,
                     message: 'Preferences saved successfully',
@@ -2259,14 +2270,14 @@ export class GameServer {
             }
         });
 
-        app.post('/api/start-test-game', async (req, res, next) => {
+        app.post('/api/start-test-game', authMiddleware(this, 'start-test-game', undefined, true), async (req, res, next) => {
             const { filename } = req.body;
             try {
                 if (!this.areGamesEnabled()) {
                     return this.sendGamesDisabledResponse(res);
                 }
 
-                await this.startTestGame(filename);
+                await this.startTestGame(filename, req.user as User);
                 return res.status(200).json({ success: true });
             } catch (err) {
                 logger.error('GameServer: Error in start-test=game:', err);
@@ -2626,7 +2637,18 @@ export class GameServer {
         this.setUserLobbyMapping(user, lobby.id, UserRole.Player);
     }
 
-    private async startTestGame(filename: string) {
+    private async startTestGame(filename: string, requestingUser: User) {
+        Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Test games are only available in development');
+        Contract.assertTrue(requestingUser.isAuthenticatedUser(), 'Test games require authentication');
+        const order66 = await this.userFactory.createDevelopmentTestUserAsync('order66');
+        const theWay = await this.userFactory.createDevelopmentTestUserAsync('this-is-the-way');
+        Contract.assertNotNullLike(order66, 'Development test account Order66 is unavailable');
+        Contract.assertNotNullLike(theWay, 'Development test account ThisIsTheWay is unavailable');
+        Contract.assertTrue(
+            requestingUser.getId() === order66.getId() || requestingUser.getId() === theWay.getId(),
+            `User ${requestingUser.getId()} is not a development test account`
+        );
+        Contract.assertTrue(typeof filename === 'string' && filename.length > 0, 'A test setup filename is required');
         // only files directly in test/gameSetups may be loaded
         const testJSONPath = path.resolve(__dirname, '../../../test/gameSetups', path.basename(filename));
         Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
@@ -2655,14 +2677,21 @@ export class GameServer {
             this.config,
             this.testGameBuilder
         );
+        try {
+            lobby.createLobbyUser(order66);
+            lobby.createLobbyUser(theWay);
+            await lobby.startTestGameAsync(
+                setupData,
+                { id: order66.getId(), username: order66.getUsername() },
+                { id: theWay.getId(), username: theWay.getUsername() }
+            );
+        } catch (error) {
+            lobby.cleanLobby();
+            throw error;
+        }
         this.lobbies.set(lobby.id, lobby);
-        const order66 = this.userFactory.createAnonymousUser('exe66', 'Order66');
-        const theWay = this.userFactory.createAnonymousUser('th3w4y', 'ThisIsTheWay');
-        lobby.createLobbyUser(order66);
-        lobby.createLobbyUser(theWay);
         this.setUserLobbyMapping(order66, lobby.id, UserRole.Player);
         this.setUserLobbyMapping(theWay, lobby.id, UserRole.Player);
-        await lobby.startTestGameAsync(setupData);
     }
 
     private getTestSetupGames() {

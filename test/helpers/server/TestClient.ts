@@ -255,15 +255,15 @@ export class TestClient {
     }
 
     /**
-     * Saves preferences for `userId`; the real client always passes its own id. Like the real client, a
+     * Saves preferences for the authenticated caller. Like the real client, a
      * `token-only` client sends just the preferences and its session, so the server looks the account up.
      * Any other logged-in client also sends its user payload, which is how it authenticates when the
      * server has no database to look it up in.
      */
-    public async savePreferencesAsync(userId: string, preferences: Record<string, unknown>): Promise<SupertestResponse> {
+    public async savePreferencesAsync(preferences: Record<string, unknown>): Promise<SupertestResponse> {
         const isTokenOnly = this.authToken !== null && this.userData === null;
 
-        return await this.withAuthCookie(this.harness.api.put(`/api/user/${userId}/preferences`)).send(
+        return await this.withAuthCookie(this.harness.api.put('/api/user/preferences')).send(
             isTokenOnly ? { preferences } : { preferences, user: this.userPayload() }
         );
     }

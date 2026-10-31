@@ -3,7 +3,7 @@ import { AnonymousUser, AuthenticatedUser } from './User';
 import { logger } from '../../logger';
 import { v4 as uuid, validate as isUuid } from 'uuid';
 import jwt from 'jsonwebtoken';
-import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
+import { getUserStoreAsync } from './UserStore';
 import { Contract } from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
 import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModActionEntity, IUsernameChangeEntity } from '../../services/DynamoDBInterfaces';
@@ -49,13 +49,20 @@ const refreshTokenFieldMap: Record<RefreshTokenSource, {
     [RefreshTokenSource.SWUBase]: 'swubaseRefreshToken',
 };
 
+type DevelopmentTestProviderId = 'order66' | 'this-is-the-way';
+
+const developmentTestUsers: Record<DevelopmentTestProviderId, { id: string; username: string }> = {
+    order66: { id: 'exe66', username: 'Order66' },
+    'this-is-the-way': { id: 'th3w4y', username: 'ThisIsTheWay' },
+};
+
 
 /**
  * Factory class responsible for creating the appropriate User instance
  * based on authentication status and data
  */
 export class UserFactory {
-    private dbServicePromise = getDynamoDbServiceAsync();
+    private dbServicePromise = getUserStoreAsync();
     private MS_PER_DAY = 24 * 60 * 60 * 1000;
 
     /**
@@ -81,6 +88,76 @@ export class UserFactory {
         }
     }
 
+    /** Loads one of the two test accounts for local development test games. */
+    public async createDevelopmentTestUserAsync(providerId: DevelopmentTestProviderId): Promise<AuthenticatedUser | null> {
+        Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Development test users can only be loaded in development');
+
+        const dbService = await this.dbServicePromise;
+        await this.ensureDevelopmentTestUsersAsync();
+
+        const userId = await dbService.getUserIdByOAuthAsync('dev-user', providerId);
+        if (!userId) {
+            return null;
+        }
+
+        let userData = await dbService.getUserProfileAsync(userId);
+        if (!userData) {
+            return null;
+        }
+
+        userData = await this.processModerationAsync(userData);
+        return new AuthenticatedUser(userData);
+    }
+
+    /** Ensures the two persistent local-development test accounts exist without requiring an initial browser login. */
+    public async ensureDevelopmentTestUsersAsync(): Promise<void> {
+        Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Development test users can only be initialized in development');
+
+        const dbService = await this.dbServicePromise;
+        for (const providerId of Object.keys(developmentTestUsers) as DevelopmentTestProviderId[]) {
+            const testUser = developmentTestUsers[providerId];
+            let userId = await dbService.getUserIdByOAuthAsync('dev-user', providerId);
+
+            if (!userId) {
+                userId = testUser.id;
+                try {
+                    await dbService.saveOAuthLinkAsync('dev-user', providerId, userId);
+                } catch (error) {
+                    if (error.name !== 'ConditionalCheckFailedException') {
+                        throw error;
+                    }
+
+                    // Another initializer won the race. Use the ID it registered.
+                    userId = await dbService.getUserIdByOAuthAsync('dev-user', providerId);
+                    Contract.assertNotNullLike(userId, `Development test user ${testUser.username} OAuth link could not be initialized`);
+                }
+            }
+
+            const existingProfile = await dbService.getUserProfileAsync(userId);
+            if (!existingProfile) {
+                const now = new Date().toISOString();
+                await dbService.saveUserProfileAsync({
+                    id: userId,
+                    username: testUser.username,
+                    lastLogin: now,
+                    createdAt: now,
+                    usernameLastUpdatedAt: now,
+                    showWelcomeMessage: false,
+                    preferences: getDefaultPreferences(),
+                    needsUsernameChange: false,
+                });
+            }
+
+            // Username links are keyed by both name and user ID; repair this profile's current name
+            // without restoring a stale link after a rename or touching another account's link.
+            const username = existingProfile?.username ?? testUser.username;
+            const linkedUserIds = await dbService.getUserIdsByUsernameAsync(username);
+            if (!linkedUserIds.includes(userId)) {
+                await dbService.saveUsernameLinkAsync(username, userId);
+            }
+        }
+    }
+
     /**
      * Creates an anonymous user with a generated ID or provided ID
      * @param id Optional ID for the anonymous user
@@ -94,7 +171,7 @@ export class UserFactory {
     /**
      * Creates an anonymous user from the `user` field of a socket handshake query or request body.
      *
-     * Only the id is taken from the client, and it must be a UUID (the dev test users excepted). The
+     * Only the id is taken from the client, and it must be a UUID. The
      * username is always derived from the id, so a client cannot choose its own anonymous name.
      */
     public createAnonymousUserFromQuery(query?: ParsedUrlQuery): AnonymousUser {
@@ -105,10 +182,6 @@ export class UserFactory {
         const id = queryUser?.id;
         if (id == null) {
             return new AnonymousUser(uuid(), 'AnonymousPlayer', false);
-        }
-
-        if (AnonymousUser.isDevTestUserId(id)) {
-            return new AnonymousUser(id, queryUser.username, true);
         }
 
         if (typeof id !== 'string' || !isUuid(id)) {
@@ -429,6 +502,12 @@ export class UserFactory {
             const email = decoded.email;
             const provider = decoded.provider;
             const providerId = decoded.providerId;
+
+            if (provider === 'dev-user') {
+                Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Development test users can only authenticate in development');
+                Contract.assertTrue(providerId === 'order66' || providerId === 'this-is-the-way', 'Unknown development test user');
+                await this.ensureDevelopmentTestUsersAsync();
+            }
 
             // First try to find user by OAuth provider ID
             let dbUserId = await dbService.getUserIdByOAuthAsync(provider, providerId);

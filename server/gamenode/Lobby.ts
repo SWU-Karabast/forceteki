@@ -398,10 +398,10 @@ export class Lobby {
         return user.socket?.user ?? user.user;
     }
 
-    /** Matches the `authenticated` flag the client receives: dev test users count as logged in. */
+    /** Matches the `authenticated` flag the client receives. */
     private isLobbyUserAnonymous(user: LobbyUserWrapper): boolean {
         const account = this.getLobbyUserAccount(user);
-        return !!account && !account.isAuthenticatedUser() && !account.isDevTestUser();
+        return !!account && !account.isAuthenticatedUser();
     }
 
     /**
@@ -454,7 +454,7 @@ export class Lobby {
     }
 
     private buildLobbyUserData(user: LobbyUserWrapper, fullData = false) {
-        const authenticatedStatus = user.socket?.user.isDevTestUser() || user.socket?.user.isAuthenticatedUser();
+        const authenticatedStatus = user.socket?.user.isAuthenticatedUser();
 
         const previousAuthenticatedStatus = this.previousAuthenticatedStatusByUser.get(user.id);
         if (previousAuthenticatedStatus != null && previousAuthenticatedStatus !== authenticatedStatus) {
@@ -1319,7 +1319,11 @@ export class Lobby {
         logger.info('Lobby: cleaning lobby', { lobbyId: this.id });
     }
 
-    public async startTestGameAsync(testSetupData: any) {
+    public async startTestGameAsync(
+        testSetupData: any,
+        player1Info: Pick<IUser, 'id' | 'username'>,
+        player2Info: Pick<IUser, 'id' | 'username'>
+    ) {
         // cardPool is a lobby setting, not a board-setup option, so it is not passed on to the test harness
         const { cardPool, ...setupData } = testSetupData;
         if (setupData.autoSingleTarget == null) {
@@ -1341,8 +1345,8 @@ export class Lobby {
             setupData,
             this.cardDataGetter,
             router,
-            { id: 'exe66', username: 'Order66' },
-            { id: 'th3w4y', username: 'ThisIsTheWay' },
+            player1Info,
+            player2Info,
             UndoMode.Free,
             legalCardTitles
         );
