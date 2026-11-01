@@ -1637,3 +1637,41 @@ Counts are identical across all three subjects the run produced (initial impleme
 - **Cite this function by named code fragment, not line number.** Three citations in the plan doc and one range citation in the roadmap went stale *inside the commit that introduced them*, invalidated by that commit's own edits. The convention now used in both the doc and the new specs is to name the guard condition or the terminal return.
 - **`IMPLEMENTATION-ORDER.md`'s Drift section citations for Plans 4–6 are pinned to `56e2579ab` by explicit policy** and are not kept current. A staleness sweep should skip them rather than "fix" them.
 - **An experiment that walks only the success path of a two-branch prompt is not evidence about the other branch.** The Deny-path defect survived a full-suite green run because every experiment took Allow, where the rollback's replay wipes the evidence before it can be observed.
+
+## `P4-0b` — Phase-boundary prompt quick-rollback policy, remainder (`7941cb879`)
+
+Shipped the behavior fix `P4-0` deferred: at a Regroup/Setup `StartOfPhase` window, a requester who has already decided part of that window's trigger resolution (chosen the order, answered or declined a trigger) quick-undoes to the boundary checkpoint; a requester who decided nothing keeps `Previous`.
+The rule, mechanism, failure direction and rejected mechanisms are recorded in `04-delta-snapshots.md`'s "Known limitations (deferred)" section, which now holds no open limitation.
+
+### Decisions made at the gates
+
+1. **Mechanism: declared-decision prompts, recorded at the player-input boundary, enumerated by a CI spec.** Every concrete `UiPrompt` subclass states `isPlayerDecisionPrompt()` (default `false`), `Game.dispatchPlayerInput` records the decider in `cardClicked`, `menuButton`, `perCardMenuButton` and `statefulPromptResults`, and `PromptDecisionDeclaration.spec.ts` fails when a class inherits instead of declaring. Deriving the answer from button state was rejected because `UndoConfirmationPrompt` offers two enabled buttons, which reproduces the Deny trap.
+2. **Failure direction chosen deliberately.** An undeclared or wrongly-`false` prompt falls back to the pre-existing overshoot; the opposite error would produce a do-nothing undo, so the default is `false` and CI turns an omission into a failing test.
+3. **Request mode keeps the opponent's approval when the requester was shown hidden information in the window** (maintainer's decision at plan review). Implemented as a window-scoped record fed by the existing reveal funnel and read in `getQuickRollbackInformation` for the boundary target only.
+
+### Verification
+
+Run by the stage agents against the committed tree and checked by a cold implementation review.
+
+| Check | Result |
+|---|---|
+| `npm run lint`, `validate-specs`, `validate-cards` | clean |
+| `npm run test-parallel` | 10200 specs, 0 failures, 85 pending (baseline 10177) |
+| `npm run test-parallel-undo` | 9293 specs, 0 failures, 89 pending (baseline 9289) |
+| targeted `CostPaymentRecovery.spec` | 11 of 11 |
+| negative control | 15 boundary-expecting specs fail on the unmodified product |
+| six mutation controls | each failed its target specs; product restored byte-identical |
+
+No benchmark — that is `P4-G`'s.
+
+### Residuals, disclosed and accepted at the gate
+
+1. **`test-parallel-undo` evidences no-regression only**, as in `P4-0`: the edited `undoIntegration` files run no assertions in that mode; "both undo modes" means Free and Request undo mode.
+2. **Unexercised but covered by shared code:** the Setup `StartOfPhase` window (holds only the engine's initiative prompt, after which the timepoint moves to `Mulligan`), additional regroup phases, and the search, discard and random-selection reveal sources.
+3. **One random-order parallel run failed `SaveLoadContinuation` scenario 7** in an action-phase chain unrelated to undo; it passed in every rerun and the change adds no state that save/load reads.
+
+### Notes for the next agent
+
+- **Read the open prompt before dispatching input, and require it to have been incomplete.** `UiPrompt.complete()` restores the previous open prompt, and `SelectCardPrompt`, `ResourcePrompt` and `MulliganPrompt` can remain the open prompt after completing themselves before `super.continue()`.
+- **A hook on `UiPrompt.complete()` cannot stand in for "the player decided"**: `SelectCardPrompt.continue()` completes with no input when `hideIfNoLegalTargets` applies.
+- **Harness fixtures run the real Setup phase, whose starting draws reach the reveal funnel.** A spec about window-scoped reveal state therefore sees pre-window records even without an explicit action-phase draw; the plan's "exactly one spec fails" prediction for removing the window clear missed this, and three more specs correctly failed.

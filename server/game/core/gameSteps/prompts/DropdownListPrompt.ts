@@ -57,11 +57,11 @@ export class DropdownListPrompt extends UiPrompt {
         return { menuTitle: this.properties.waitingPromptTitle, promptUuid: this.uuid };
     }
 
-    /** Selected list option is returned via this call */
     public override isPlayerDecisionPrompt(): boolean {
         return true;
     }
 
+    /** Selected list option is returned via this call */
     public override menuCommand(player: Player, arg: PromptButtonArg, uuid: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
         Contract.assertTrue(typeof arg === 'string', `Expected a string dropdown selection but got '${arg}' (${typeof arg})`);
