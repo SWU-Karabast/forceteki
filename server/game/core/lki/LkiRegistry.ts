@@ -99,11 +99,11 @@ export class LkiRegistry {
     /**
      * Whether a record for this identity exists, either committed or still staged.
      *
-     * Exists for the departure assertion that lands with D-22's universal minting: a card leaving
-     * play with no record means some system removed it without going through
-     * `addDepartureRecordToEvent`, and anything that later asks about that identity would
-     * silently read the wrong state. Not asserted yet — today's capture points do not cover every
-     * departure, which is the gap D-22 closes (see lki-migration-register.md §G.1).
+     * Exists for a departure assertion: a card leaving play with no record means some system removed
+     * it without going through `addDepartureRecordToEvent`, and anything that later asks about that
+     * identity would silently read the wrong state. Not asserted yet — enabling it fails 27 specs, all
+     * of which move cards through test-harness helpers rather than the engine, so the harness has to
+     * declare those moves first (see lki-migration-register.md §G.1).
      */
     public hasRecordFor(card: Card, identityId: number): boolean {
         const key = CardRef.buildKey(card, identityId);

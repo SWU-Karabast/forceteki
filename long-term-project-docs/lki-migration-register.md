@@ -1,16 +1,25 @@
 # LKI Migration Register
 
-Sites that must **not** be migrated mechanically by the phase-3 codemod. Each needs individual
-review, and most need a behavior decision rather than a syntax change.
+The per-site work list for the LKI migration. Each entry is a site that needs individual review before
+its card opts in to the registry (phase 4), and most need a behavior decision rather than a syntax change.
+
+**The phase-3 sweep may rewrite reads in these sites.** Under D-35 a card that has not opted in reads live
+state exactly as before. What must not happen without individual review is setting `usesLkiRegistry` on
+one of these cards. The exception is delayed effects, which the sweep skips (SC-20).
 
 See [lki-redesign-decisions-and-insights.md](./lki-redesign-decisions-and-insights.md) §7 for the
 migration plan, and [lki-redesign-special-cases.md](./lki-redesign-special-cases.md) for the
-underlying analysis.
+underlying analysis. Two changes have merged so far:
+[#2931](https://github.com/SWU-Karabast/forceteki/pull/2931)
+([`49405da2d`](https://github.com/SWU-Karabast/forceteki/commit/49405da2d2bbcef67a4180e4f8ed081cbd33e4cd),
+phases 0 and 1) and [#3030](https://github.com/SWU-Karabast/forceteki/pull/3030)
+([`19421b9f3`](https://github.com/SWU-Karabast/forceteki/commit/19421b9f3fb6f8dc6250ea814d63fb57c5367b84),
+the opt-in flag and a correction pass).
 
 Status values: `pending` · `in-progress` · `done` · `deferred`.
 
-Every file and line anchor in this document was re-checked by content against `main` at `fa963ecc3`
-on 2026-10-23, then adjusted for the two lines the opt-in flag adds to six card files (§I).
+Every file and line anchor in this document was checked by reading the line it points at, against `main`
+at `445792e61` on 2026-11-01 (§I). They drift: the linked file and the quoted content are the authority.
 
 ---
 
@@ -45,6 +54,7 @@ by `test/scenarios/lki/LastKnownInformation.spec.ts`.
 | [UseWhenDefeatedSystem.ts:75](../server/game/gameSystems/UseWhenDefeatedSystem.ts) | `generateEvent(event.context, whenDefeatedSource, true)` passes a `Card` in the `additionalProperties` slot. Line 102 passes `{}` correctly. Harmless today because `this.properties` is assigned last and wins. | pending |
 | [IStateWatcherLKIEntry](../server/game/core/stateWatcher/StateWatcher.ts) | `upgrades` is stored as `GameObjectId<IUpgradeCard>[]` with **no identity component**, so rehydration yields whatever identity the upgrade is at now rather than the captured one. `CardLeftPlayEntry` gets this right by storing `card` and `inPlayId` separately (D-23). | pending |
 | [CardsDefeatedThisPhaseWatcher.ts:134](../server/game/stateWatchers/CardsDefeatedThisPhaseWatcher.ts), [CardsLeftPlayThisPhaseWatcher.ts:112](../server/game/stateWatchers/CardsLeftPlayThisPhaseWatcher.ts) | Store the event's `traits` `Set` **instance** directly into tracked state, so multiple readers share a mutable collection (D-17). | pending |
+| [LkiRegistry.buildRecord](../server/game/core/lki/LkiRegistry.ts) | Records for upgrades hold only the base fields: no `parentCard` and no `parentCardController`. Five cards read both off the legacy struct and cannot opt in until the record carries them: [FinnThisIsARescue](../server/game/cards/02_SHD/leaders/FinnThisIsARescue.ts), [RoseTicoDedicatedToTheCause](../server/game/cards/02_SHD/units/RoseTicoDedicatedToTheCause.ts), [SystemShock](../server/game/cards/04_JTL/events/SystemShock.ts), [Reforge](../server/game/cards/08_ASH/events/Reforge.ts) and [BladeOfTalzinAGiftOfShadows](../server/game/cards/08_ASH/upgrades/BladeOfTalzinAGiftOfShadows.ts) (SC-2). Part of the surface work in plan D-36 and phase 4. | pending |
 
 ### B.2 Event-relative reads still using the transitional live-`Card` overload
 
@@ -79,7 +89,7 @@ check was not built (D-34).
 | `server/game/gameSystems/` (all) | No identity check of any kind (`inPlayId`, `identityId`, `getIdentity`). That is not by itself a defect: a check on events would fizzle 23 follow-through events that are correct today (D-34, SC-21). No change planned. | done |
 | [Attack.ts:171](../server/game/core/attack/Attack.ts) | The only identity guard in the engine: captures `attackerInPlayId` and a `targetInPlayMap`, then re-checks before applying damage. **It stays.** The plan was to delete it once a generic check landed, and that check is not being built. | done |
 | [Commandeer.ts](../server/game/cards/04_JTL/events/Commandeer.ts) | **Correct today.** The engine removes a default-duration delayed effect when its target leaves play (`removeLastingEffects`, #689), so a unit bounced and replayed before regroup is not returned a second time. Pinned by the "leaves play and returns before the regroup phase" spec in [Commandeer.spec.ts](../test/server/cards/04_JTL/events/Commandeer.spec.ts). Mutation-checked: disabling the target-based removal fails it. | done |
-| [MaulMasterOfTheShadowCollective.ts:39](../server/game/cards/07_LAW/units/MaulMasterOfTheShadowCollective.ts) | **Confirmed bug.** The "return control" effect is a `WhileSourceInPlay` delayed effect, and `removeLastingEffects` ([OngoingEffectEngine.ts:428](../server/game/core/ongoingEffect/OngoingEffectEngine.ts)) exempts those from the cleanup above. If the stolen unit is bounced and replayed and a different effect then takes control of the new copy, Maul leaving play acts on that new copy. Reproduced by a pending spec in [MaulMasterOfTheShadowCollective.spec.ts](../test/server/cards/07_LAW/units/MaulMasterOfTheShadowCollective.spec.ts) that asserts the correct behavior. **Pre-existing:** that spec fails identically on `20f9e3ebe`, the commit before the LKI merge (#2931) — the exemption itself dates to #689 (Feb 2025), and Maul's card and the `WhenSourceLeavesPlayDelayedEffectSystem` it uses arrived in #2237 (Feb 2026). **Candidate fix, not applied:** drop the exemption. In a trial run without it the spec passed and the full suite stayed green. DJ shares the exemption, so it needs a spec of its own first. | pending |
+| [MaulMasterOfTheShadowCollective.ts:39](../server/game/cards/07_LAW/units/MaulMasterOfTheShadowCollective.ts) | **Confirmed bug.** The "return control" effect is a `WhileSourceInPlay` delayed effect, and `removeLastingEffects` ([OngoingEffectEngine.ts:428](../server/game/core/ongoingEffect/OngoingEffectEngine.ts)) exempts those from the cleanup above. If the stolen unit is bounced and replayed and a different effect then takes control of the new copy, Maul leaving play acts on that new copy. Reproduced by a pending spec in [MaulMasterOfTheShadowCollective.spec.ts](../test/server/cards/07_LAW/units/MaulMasterOfTheShadowCollective.spec.ts) that asserts the correct behavior. **Pre-existing:** that spec fails identically on `20f9e3ebe`, the commit before the LKI merge (#2931) — the exemption itself dates to #689 (Feb 2025), and Maul's card and the `WhenSourceLeavesPlayDelayedEffectSystem` it uses arrived in #2237 (Feb 2026). **Candidate fix, not applied:** drop the exemption. In a trial run without it the spec passed and the full suite stayed green. DJ shares the exemption, so it needs a spec of its own first. | **deferred** — decision 2026-10-23: "We'll do the fix later" |
 | [DjBlatantThief.ts:22](../server/game/cards/02_SHD/units/DjBlatantThief.ts) | Same exemption, with a closure-captured `target` for a resource. #2955 guards the crash case — the stolen card is no longer a resource — with an `isResource()` check, which is a zone check rather than an identity check. Whether a replacement copy that is a resource again slips through is **unverified**, and #689's commit message already says DJ "will probably need some additional tests". **Migrate by hand:** the inline comment shows it deliberately wants *live* `exhausted` state at fire time, so a blanket rewrite to recorded reads would break it. | pending |
 
 The regression coverage that already exists for this family is
@@ -211,39 +221,57 @@ cards around them must not start serving last known information here.
 
 ---
 
-### G.1 Departures that capture no last known information — D-22's scope, measured
+### G.1 The departure audit — D-22's scope, measured
 
-Phase 1 replicates today's LKI capture points exactly, and those points do **not** cover every
-departure. Measured by temporarily asserting, at the leave-play branch of
-[InPlayCard.initializeForCurrentZone](../server/game/core/card/baseClasses/InPlayCard.ts), that a
-record exists for the departing identity:
+D-22 says every departure that loses information writes a record. Phase 1 wired records at the seven
+capture points the engine already used. To check whether any engine path departs a card without one,
+temporarily assert, at the leave-play branch of
+[InPlayCard.initializeForCurrentZone](../server/game/core/card/baseClasses/InPlayCard.ts), that a record
+exists for the departing identity (the recipe is at the end of this section).
 
-| Transition | Failing specs |
-|---|---|
+**Result: 27 of 9,690 specs trip it, and all 27 start in test code, not in the engine.** The stack in
+each failure names the caller:
+
+| Where the departure comes from | Specs |
+|---|---:|
+| `PlayerInteractionWrapper.moveCard`, the harness helper that teleports a card | 20 |
+| `PlayerInteractionWrapper.setupMoveCard`, the same helper during test setup | 6 |
+| A spec calling `card.moveTo('hand')` itself (the `reset()` in `IG2000AssassinsAggressor.spec.ts`) | 1 |
+
+| Transition | Specs |
+|---|---:|
 | `groundArena -> hand` | 11 |
 | `spaceArena -> hand` | 6 |
 | `groundArena -> deck` | 5 |
 | `groundArena -> discard` | 2 |
 | `spaceArena -> discard` | 2 |
 | `spaceArena -> deck` | 1 |
-| **Total** | **27 of 9,633** |
 
-Phase 0 measured 27 of 8,506. Re-measured on `main` at `fa963ecc3` (2026-10-23) with the same
-assertion: still 27, with the same breakdown by transition.
+The count has been 27 each time it was measured: 27 of 8,506 in phase 0, of 9,633 on `main` at `fa963ecc3`
+(2026-10-23), and of 9,690 at `445792e61` (2026-11-01), with the same transitions. Earlier versions of this
+section called the arena → hand and deck group an engine coverage gap, and the arena → discard group the
+likeliest real bug. Neither was true: every one of them is a harness move.
 
-Two groups. **Neither has been attributed to a code path.** An earlier version of this section
-explained the first group by saying `MoveCardSystem` records only visible → hidden moves. That does
-not hold: `MoveCardSystem` takes its leave-play branch for an arena → hand or deck move and records
-it, so these departures reach the zone change some other way. The first step of D-22's work is to
-attribute each of the 27 specs to the path that moved the card, and the counts above are the checklist.
+**What this shows, and what it does not.** No spec in the suite drives an engine path that departs a card
+without a record. It does not show that no such path exists, because it only sees paths a spec
+exercises. A static audit of the callers of `Card.moveTo` under `server/` has not been done.
 
-- **Arena → hand / deck (23).**
-- **Arena → discard (4).** Observed on `cartel-spacer`, `fallen-lightsaber` and
-  `millennium-falcon#piece-of-junk`. Worth identifying individually.
-
-**Do not enable the assertion until D-22 lands.** It is a deliberate behavior change with its own
-tests, and phase 1's rule is that engine changes stay behavior-preserving.
+**Enabling the assertion.** It cannot be turned on as written, because the harness moves cards without
+going through an event window. Either the harness declares its moves as out of the pipeline and the
+assertion honors that, or the assertion applies only while an event window is resolving. Neither depends
+on the migration phases. Afterwards a failure means a real engine gap, and the count of 27 becomes 0.
 [LkiRegistry.hasRecordFor](../server/game/core/lki/LkiRegistry.ts) exists as the hook for it.
+
+**Re-measuring.** After `this.setPendingDefeatEnabled(false);` in the `else` branch of
+`initializeForCurrentZone`, add the following, run the normal suite, and count the failures that say
+`TEMP-LKI-AUDIT`. The failure list names the specs. Revert it afterwards and rebuild, so `build/` does not
+keep the assertion.
+
+```ts
+if (wasInPlay && !this.game.lkiRegistry.hasRecordFor(this, this._mostRecentInPlayId)) {
+    throw new Error(`TEMP-LKI-AUDIT ${prevZone} -> ${this.zoneName}`);
+}
+```
 
 ---
 
@@ -292,7 +320,8 @@ with 22 commits landed since.
 - A clean build and a full run: 9,633 specs normal (79 pending) and 8,788 undo (85 pending), 0
   failures. `validate-cards`, `validate-specs` and `eslint --quiet` pass.
 - Temporary log-only audits, all reverted: the identity check on events would have fired 23 times
-  across the suite (D-34, SC-21); departures that write no record still number 27 (§G.1); a probe in
+  across the suite (D-34, SC-21); departures that write no record still number 27 (§G.1, later traced
+  to test-harness moves — see the 2026-11-01 entry); a probe in
   a Darth Vader sub-window showed the record lifecycle intact.
 
 **2026-10-23 — branch `ammayberry1/lki-part2`, after the opt-in flag (D-35) and the corrections to
@@ -322,3 +351,21 @@ this document.**
   and is correct; Maul was listed as unspecced and is a confirmed bug; DJ is unverified rather than
   broken), §D (`bindCardRef` does not exist; the real mechanism is `GameEvent.setLastKnownInformation`),
   and §G.1 (the attribution of the arena → hand departures was wrong and has been removed).
+
+**2026-11-01 — `main` at `445792e61`, after #3030 merged: the handoff review.** 19 commits had landed
+since #3030.
+
+- Nothing in the last-known-information machinery moved. The only change under the paths that matter was
+  six lines in `InitiateAttackSystem.ts` (#3029, clean-up of early "for this attack" effects). Fifteen
+  card files were added or changed, and none reads the legacy struct or the getter.
+- A full run on `445792e61`, serial: 9,690 specs normal (80 pending) and 8,824 undo (86 pending), 0
+  failures. The extra specs over the 2026-10-23 figures come from new cards.
+- The departure audit (§G.1) was re-run: still 27 of 9,690 specs, and this time each one was traced by its
+  call stack. **All 27 come from test code**, so the earlier reading of the count as an engine coverage
+  gap was wrong. The temporary assertion was reverted and `build/` rebuilt, and the 16 LKI specs pass.
+- The plan was reviewed against the code. The findings are in the plan document: the properties surface
+  covers 19 of about 76 members (D-36); several *Decided* rows are not built (*Decided but not built*);
+  and §1.1, the decision log and the terminology table now match the code.
+- Figures re-measured: 654 card files with selector callbacks (743 occurrences, unchanged from the plan),
+  49 card files mentioning `lastKnownInformation`, 25 direct `new GameEvent(` sites in 19 files, and 7
+  call sites that bind `event.cardRef` (the plan said 6).
