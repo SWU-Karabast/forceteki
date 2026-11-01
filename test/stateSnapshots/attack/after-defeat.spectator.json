@@ -1,0 +1,641 @@
+{
+  "playerUpdate": "Anonymous",
+  "id": 12345,
+  "manualMode": false,
+  "owner": "player1",
+  "players": {
+    "111": {
+      "cardPiles": {
+        "hand": [],
+        "outsideTheGame": [
+          {
+            "id": "4571900905",
+            "setId": {
+              "set": "LOF"
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "outsideTheGame",
+            "name": "The Force",
+            "type": "tokenCard",
+            "uuid": "Card_164",
+            "printedType": "tokenCard",
+            "isBlanked": false
+          }
+        ],
+        "capturedZone": [],
+        "resources": [
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "resource",
+            "exhausted": false
+          }
+        ],
+        "groundArena": [
+          {
+            "id": "6577517407",
+            "setId": {
+              "set": "LOF",
+              "number": 164
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [
+              "aggression"
+            ],
+            "zone": "groundArena",
+            "name": "Wampa",
+            "power": 4,
+            "hp": 5,
+            "type": "basicUnit",
+            "uuid": "Card_134",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "exhausted": true,
+            "damage": 3,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": false,
+            "isDefender": false
+          },
+          {
+            "id": "4317911650",
+            "setId": {
+              "set": "SOR",
+              "number": 95
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [
+              "command",
+              "heroism"
+            ],
+            "zone": "groundArena",
+            "name": "Battlefield Marine",
+            "power": 3,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_138",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "exhausted": true,
+            "damage": 0,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": false,
+            "isDefender": false
+          }
+        ],
+        "spaceArena": [],
+        "discard": [],
+        "credits": []
+      },
+      "disconnected": false,
+      "hasInitiative": true,
+      "availableResources": 20,
+      "leaders": [
+        {
+          "id": "6088773439",
+          "setId": {
+            "set": "SOR",
+            "number": 10
+          },
+          "controllerId": "111",
+          "ownerId": "111",
+          "aspects": [
+            "aggression",
+            "villainy"
+          ],
+          "zone": "base",
+          "name": "Darth Vader",
+          "power": 5,
+          "hp": 8,
+          "type": "leader",
+          "uuid": "Card_144",
+          "printedType": "leader",
+          "isBlanked": false,
+          "exhausted": false,
+          "epicDeployActionSpent": false
+        }
+      ],
+      "base": {
+        "id": "0461841375",
+        "setId": {
+          "set": "SOR",
+          "number": 27
+        },
+        "controllerId": "111",
+        "ownerId": "111",
+        "aspects": [
+          "aggression"
+        ],
+        "zone": "base",
+        "name": "Kestro City",
+        "hp": 30,
+        "type": "base",
+        "uuid": "Card_142",
+        "printedType": "base",
+        "isBlanked": false,
+        "damage": 0,
+        "epicActionSpent": false,
+        "isDefender": false,
+        "upgrades": []
+      },
+      "id": "111",
+      "left": false,
+      "name": "player1",
+      "phase": "action",
+      "promptedActionWindows": {
+        "setup": true,
+        "action": true,
+        "regroup": true
+      },
+      "user": {
+        "blockList": [],
+        "settings": {
+          "optionSettings": {
+            "autoSingleTarget": false
+          }
+        },
+        "promptedActionWindows": {
+          "setup": true,
+          "action": true,
+          "regroup": true
+        },
+        "id": "111",
+        "username": "player1"
+      },
+      "promptState": {},
+      "isActionPhaseActivePlayer": false,
+      "aspects": [
+        "aggression",
+        "villainy",
+        "aggression"
+      ],
+      "forceToken": {
+        "active": false
+      },
+      "credits": [],
+      "mainTimeRemainingSeconds": 120,
+      "timeRemainingStatus": "NoAlert",
+      "timerIsRunning": false,
+      "numCardsInDeck": 8
+    },
+    "222": {
+      "cardPiles": {
+        "hand": [],
+        "outsideTheGame": [
+          {
+            "id": "4571900905",
+            "setId": {
+              "set": "LOF"
+            },
+            "controllerId": "222",
+            "ownerId": "222",
+            "aspects": [],
+            "zone": "outsideTheGame",
+            "name": "The Force",
+            "type": "tokenCard",
+            "uuid": "Card_165",
+            "printedType": "tokenCard",
+            "isBlanked": false
+          }
+        ],
+        "capturedZone": [],
+        "resources": [
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "exhausted": false
+          }
+        ],
+        "groundArena": [
+          {
+            "id": "8184790799",
+            "setId": {
+              "set": "SOR",
+              "number": 46
+            },
+            "controllerId": "222",
+            "ownerId": "222",
+            "aspects": [
+              "vigilance",
+              "heroism"
+            ],
+            "zone": "groundArena",
+            "name": "Consular Security Force",
+            "power": 3,
+            "hp": 7,
+            "type": "basicUnit",
+            "uuid": "Card_140",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "exhausted": false,
+            "damage": 0,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": false,
+            "isDefender": false
+          }
+        ],
+        "spaceArena": [],
+        "discard": [
+          {
+            "id": "4317911650",
+            "setId": {
+              "set": "SOR",
+              "number": 95
+            },
+            "controllerId": "222",
+            "ownerId": "222",
+            "aspects": [
+              "command",
+              "heroism"
+            ],
+            "zone": "discard",
+            "name": "Battlefield Marine",
+            "power": 3,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_136",
+            "printedType": "basicUnit",
+            "isBlanked": false
+          }
+        ],
+        "credits": []
+      },
+      "disconnected": false,
+      "hasInitiative": false,
+      "availableResources": 20,
+      "leaders": [
+        {
+          "id": "2579145458",
+          "setId": {
+            "set": "SOR",
+            "number": 5
+          },
+          "controllerId": "222",
+          "ownerId": "222",
+          "aspects": [
+            "vigilance",
+            "heroism"
+          ],
+          "zone": "base",
+          "name": "Luke Skywalker",
+          "power": 4,
+          "hp": 7,
+          "type": "leader",
+          "uuid": "Card_152",
+          "printedType": "leader",
+          "isBlanked": false,
+          "exhausted": false,
+          "epicDeployActionSpent": false
+        }
+      ],
+      "base": {
+        "id": "8129465864",
+        "setId": {
+          "set": "SOR",
+          "number": 29
+        },
+        "controllerId": "222",
+        "ownerId": "222",
+        "aspects": [
+          "cunning"
+        ],
+        "zone": "base",
+        "name": "Administrator's Tower",
+        "hp": 30,
+        "type": "base",
+        "uuid": "Card_143",
+        "printedType": "base",
+        "isBlanked": false,
+        "damage": 1,
+        "epicActionSpent": false,
+        "isDefender": false,
+        "upgrades": []
+      },
+      "id": "222",
+      "left": false,
+      "name": "player2",
+      "phase": "action",
+      "promptedActionWindows": {
+        "setup": true,
+        "action": true,
+        "regroup": true
+      },
+      "user": {
+        "blockList": [],
+        "settings": {
+          "optionSettings": {
+            "autoSingleTarget": false
+          }
+        },
+        "promptedActionWindows": {
+          "setup": true,
+          "action": true,
+          "regroup": true
+        },
+        "id": "222",
+        "username": "player2"
+      },
+      "promptState": {},
+      "isActionPhaseActivePlayer": true,
+      "aspects": [
+        "vigilance",
+        "heroism",
+        "cunning"
+      ],
+      "forceToken": {
+        "active": false
+      },
+      "credits": [],
+      "mainTimeRemainingSeconds": 120,
+      "timeRemainingStatus": "NoAlert",
+      "timerIsRunning": false,
+      "numCardsInDeck": 8
+    }
+  },
+  "phase": "action",
+  "initiativeClaimed": false,
+  "clientUIProperties": {},
+  "spectators": [],
+  "started": true,
+  "format": "premier",
+  "winners": [],
+  "undoEnabled": false,
+  "ongoingEffects": [],
+  "newAnimations": [
+    {
+      "kind": "damage",
+      "cardId": "Card_136",
+      "sourceCardIds": [
+        "Card_134"
+      ],
+      "amount": 3,
+      "batch": 1,
+      "seq": 0
+    },
+    {
+      "kind": "damage",
+      "cardId": "Card_134",
+      "sourceCardIds": [
+        "Card_136"
+      ],
+      "amount": 3,
+      "batch": 1,
+      "seq": 1
+    },
+    {
+      "kind": "damage",
+      "cardId": "Card_143",
+      "sourceCardIds": [
+        "Card_134"
+      ],
+      "amount": 1,
+      "batch": 1,
+      "seq": 2
+    },
+    {
+      "kind": "defeat",
+      "cardId": "Card_136",
+      "batch": 2,
+      "seq": 3
+    }
+  ],
+  "animationOffset": 0,
+  "totalAnimations": 4,
+  "animationEpoch": 0,
+  "animationsTruncated": false
+}

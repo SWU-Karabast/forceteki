@@ -1,0 +1,13 @@
+{
+    "spec_dir": "build/test",
+    "spec_files": [
+        "stateSnapshots/**/*.capture.js"
+    ],
+    "helpers": [
+        "helpers/server/ServerTestEnv.js",
+        "helpers/**/*.js",
+        "stateSnapshots/CaptureReport.js",
+        "jasmine-typescript-helper.js"
+    ],
+    "stopSpecOnExpectationFailure": false
+}

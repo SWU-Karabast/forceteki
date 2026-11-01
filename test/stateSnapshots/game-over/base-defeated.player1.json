@@ -1,0 +1,853 @@
+{
+  "playerUpdate": "player1",
+  "id": 12345,
+  "manualMode": false,
+  "owner": "player1",
+  "players": {
+    "111": {
+      "cardPiles": {
+        "hand": [],
+        "outsideTheGame": [
+          {
+            "id": "4571900905",
+            "setId": {
+              "set": "LOF"
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "outsideTheGame",
+            "name": "The Force",
+            "type": "tokenCard",
+            "uuid": "Card_159",
+            "printedType": "tokenCard",
+            "isBlanked": false,
+            "selectable": false
+          }
+        ],
+        "capturedZone": [],
+        "resources": [
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_18",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_24",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_26",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_28",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_30",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_32",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_34",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_36",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_38",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_40",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_42",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_44",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_46",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_48",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_50",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_52",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_54",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_56",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_58",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "id": "1598425314",
+            "setId": {
+              "set": "SHD",
+              "number": 257
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "resource",
+            "name": "Underworld Thug",
+            "power": 2,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_60",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": false
+          }
+        ],
+        "groundArena": [
+          {
+            "id": "6577517407",
+            "setId": {
+              "set": "LOF",
+              "number": 164
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [
+              "aggression"
+            ],
+            "zone": "groundArena",
+            "name": "Wampa",
+            "power": 4,
+            "hp": 5,
+            "type": "basicUnit",
+            "uuid": "Card_134",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "selectable": false,
+            "exhausted": true,
+            "damage": 0,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": true,
+            "isDefender": false
+          }
+        ],
+        "spaceArena": [],
+        "discard": [],
+        "credits": []
+      },
+      "disconnected": false,
+      "hasInitiative": true,
+      "availableResources": 20,
+      "leaders": [
+        {
+          "id": "6088773439",
+          "setId": {
+            "set": "SOR",
+            "number": 10
+          },
+          "controllerId": "111",
+          "ownerId": "111",
+          "aspects": [
+            "aggression",
+            "villainy"
+          ],
+          "zone": "base",
+          "name": "Darth Vader",
+          "power": 5,
+          "hp": 8,
+          "type": "leader",
+          "uuid": "Card_146",
+          "printedType": "leader",
+          "isBlanked": false,
+          "selectable": false,
+          "exhausted": false,
+          "epicDeployActionSpent": false
+        }
+      ],
+      "base": {
+        "id": "0461841375",
+        "setId": {
+          "set": "SOR",
+          "number": 27
+        },
+        "controllerId": "111",
+        "ownerId": "111",
+        "aspects": [
+          "aggression"
+        ],
+        "zone": "base",
+        "name": "Kestro City",
+        "hp": 30,
+        "type": "base",
+        "uuid": "Card_137",
+        "printedType": "base",
+        "isBlanked": false,
+        "selectable": false,
+        "damage": 0,
+        "epicActionSpent": false,
+        "isDefender": false,
+        "upgrades": []
+      },
+      "id": "111",
+      "left": false,
+      "name": "player1",
+      "phase": "action",
+      "promptedActionWindows": {
+        "setup": true,
+        "action": true,
+        "regroup": true
+      },
+      "user": {
+        "blockList": [],
+        "settings": {
+          "optionSettings": {
+            "autoSingleTarget": false
+          }
+        },
+        "promptedActionWindows": {
+          "setup": true,
+          "action": true,
+          "regroup": true
+        },
+        "id": "111",
+        "username": "player1"
+      },
+      "promptState": {
+        "selectOrder": false,
+        "dropdownListOptions": [],
+        "menuTitle": "player1 has won the game!",
+        "promptTitle": "Game Won",
+        "buttons": [
+          {
+            "text": "Continue Playing",
+            "arg": "continue",
+            "command": "menuButton",
+            "uuid": "uuid-1"
+          }
+        ],
+        "promptUuid": "uuid-1",
+        "displayCards": [],
+        "perCardButtons": [],
+        "playerIsNewlyActive": false
+      },
+      "isActionPhaseActivePlayer": true,
+      "aspects": [
+        "aggression",
+        "villainy",
+        "aggression"
+      ],
+      "forceToken": {
+        "active": false
+      },
+      "credits": [],
+      "mainTimeRemainingSeconds": 120,
+      "timeRemainingStatus": "NoAlert",
+      "timerIsRunning": false,
+      "numCardsInDeck": 8
+    },
+    "222": {
+      "cardPiles": {
+        "hand": [],
+        "outsideTheGame": [
+          {
+            "id": "4571900905",
+            "setId": {
+              "set": "LOF"
+            },
+            "controllerId": "222",
+            "ownerId": "222",
+            "aspects": [],
+            "zone": "outsideTheGame",
+            "name": "The Force",
+            "type": "tokenCard",
+            "uuid": "Card_156",
+            "printedType": "tokenCard",
+            "isBlanked": false,
+            "selectable": false
+          }
+        ],
+        "capturedZone": [],
+        "resources": [
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "resource",
+            "selectable": false,
+            "exhausted": false
+          }
+        ],
+        "groundArena": [],
+        "spaceArena": [],
+        "discard": [],
+        "credits": []
+      },
+      "disconnected": false,
+      "hasInitiative": false,
+      "availableResources": 20,
+      "leaders": [
+        {
+          "id": "2579145458",
+          "setId": {
+            "set": "SOR",
+            "number": 5
+          },
+          "controllerId": "222",
+          "ownerId": "222",
+          "aspects": [
+            "vigilance",
+            "heroism"
+          ],
+          "zone": "base",
+          "name": "Luke Skywalker",
+          "power": 4,
+          "hp": 7,
+          "type": "leader",
+          "uuid": "Card_138",
+          "printedType": "leader",
+          "isBlanked": false,
+          "selectable": false,
+          "exhausted": false,
+          "epicDeployActionSpent": false
+        }
+      ],
+      "base": {
+        "id": "2055904747",
+        "setId": {
+          "set": "IC27",
+          "number": 10
+        },
+        "controllerId": "222",
+        "ownerId": "222",
+        "aspects": [
+          "command"
+        ],
+        "zone": "base",
+        "name": "Echo Base",
+        "hp": 30,
+        "type": "base",
+        "uuid": "Card_136",
+        "printedType": "base",
+        "isBlanked": false,
+        "selectable": false,
+        "damage": 30,
+        "epicActionSpent": false,
+        "isDefender": true,
+        "upgrades": []
+      },
+      "id": "222",
+      "left": false,
+      "name": "player2",
+      "phase": "action",
+      "promptedActionWindows": {
+        "setup": true,
+        "action": true,
+        "regroup": true
+      },
+      "user": {
+        "blockList": [],
+        "settings": {
+          "optionSettings": {
+            "autoSingleTarget": false
+          }
+        },
+        "promptedActionWindows": {
+          "setup": true,
+          "action": true,
+          "regroup": true
+        },
+        "id": "222",
+        "username": "player2"
+      },
+      "promptState": {},
+      "isActionPhaseActivePlayer": false,
+      "aspects": [
+        "vigilance",
+        "heroism",
+        "command"
+      ],
+      "forceToken": {
+        "active": false
+      },
+      "credits": [],
+      "mainTimeRemainingSeconds": 120,
+      "timeRemainingStatus": "NoAlert",
+      "timerIsRunning": false,
+      "numCardsInDeck": 8
+    }
+  },
+  "phase": "action",
+  "initiativeClaimed": false,
+  "clientUIProperties": {},
+  "spectators": [],
+  "started": true,
+  "format": "premier",
+  "winners": [
+    "player1"
+  ],
+  "undoEnabled": false,
+  "ongoingEffects": [],
+  "newAnimations": [],
+  "animationOffset": 1,
+  "totalAnimations": 1,
+  "animationEpoch": 0,
+  "animationsTruncated": false
+}

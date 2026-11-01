@@ -80,3 +80,35 @@ jobs:
         run: npm run get-cards
 
       - run: npm run test-parallel-undo
+
+  state-snapshots:
+    if: github.event_name == 'merge_group' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .tool-versions
+          cache: "npm"
+      - run: npm install
+
+      - name: cache card data json files
+        id: cache-card-data
+        uses: actions/cache@v5
+        with:
+          path: ./test/json
+          key: card-data-${{ hashFiles('card-data-version.txt', 'scripts/fetchdata.js', 'scripts/mockdata.js') }}
+      - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
+        run: npm run get-cards
+
+      - run: npm run capture-states -- --check
+
+      # Non-blocking: a client that copies these snapshots will need to sync once this merges
+      - name: note changed state snapshots
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          changed=$(git diff --name-only FETCH_HEAD HEAD -- test/stateSnapshots | grep '\.json$' || true)
+          if [ -n "$changed" ]; then
+            echo "::warning title=State snapshots changed::This PR changes what the server sends ($(echo "$changed" | wc -l | tr -d ' ') snapshot files). Projects that copy test/stateSnapshots will need to sync after it merges."
+          fi

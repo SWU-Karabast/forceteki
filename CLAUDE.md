@@ -44,7 +44,7 @@ If you hit `Importing card class with repeated id!`, delete `build/` and rebuild
 
 ### CI gates (`.github/workflows/pullrequest.yml`)
 
-`npx eslint --quiet`, `npm run validate-cards`, `npm run validate-specs`, `npm run test-parallel`, `npm run test-parallel-undo`.
+`npx eslint --quiet`, `npm run validate-cards`, `npm run validate-specs`, `npm run test-parallel`, `npm run test-parallel-undo`, `npm run capture-states -- --check`.
 
 ## Architecture
 
@@ -147,6 +147,15 @@ Use the seams the harness provides rather than reaching into the server:
 - **Routes:** every HTTP route has a row in `test/server/gamenode/auth/authorization/RouteAuthManifest.ts`; adding a route fails `RouteAuthManifest.spec.ts` until you say who may call it.
 
 Do not cast to `any` to reach into `GameServer` or `Lobby` (ESLint errors on `as any` in `test/server/gamenode` and `test/helpers/server`, but it does not catch bracket access or `as unknown as`, which are the same smell, so keep them out in review) — add a seam to the server or the harness instead, and if a reach cannot be avoided yet, disable the rule on that line and say what removes the need. When a spec exposes behaviour that looks wrong, do not write a spec that asserts it (that makes the bug a requirement) and do not fix it inside a test change. If it could be exploited, do not describe it anywhere in the repository (specs, comments, the plan document): report it to the maintainers privately (security fixes are made separately, in dedicated commits). Otherwise leave a `TODO` where the spec belongs saying what to add, and record it in the plan document's open findings; the fix comes in that topic area's step d (see the plan's roadmap), as its own commit together with the spec.
+
+### State snapshots (what the server sends)
+
+`test/stateSnapshots/` holds the engine's committed record of the game states it sends: `<scenario>/<step>.<player1|player2|spectator>.json`, each exactly what `game.getState(id)` returns at that moment, with generated uuids made stable and chat left out. They are written by **capture specs** (`*.capture.ts` in the same directory), which set up a board with the `integration()` harness like a card spec and call `captureState(context.game, '<scenario>/<step>')` at each moment a client would receive a state. Clients copy these files to test their board against, so treat them as the server's output contract.
+
+- `npm run capture-states -- --check` (CI) fails when the engine no longer produces exactly the committed files, or when a committed file has no capture producing it. `--update` rewrites them; add `--fast-build` to skip the full rebuild.
+- A change to what `getState` returns must commit the regenerated snapshots in the same PR. Never edit them by hand; re-run `--update`, including to resolve a merge conflict in them.
+- A board situation no capture covers (a new prompt, a new zone, an error state) gets a new capture spec in the PR that introduces it.
+- Capture specs are not run by `npm test` and are not part of either jasmine group; `jasmine-capture.json` runs them.
 
 ## Manual testing against the client
 
