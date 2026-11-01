@@ -1,21 +1,153 @@
 # Game Node Test Suite
 
-Status: **in progress** — Phases 0–2.5 are merged to `main` (PRs #2934 and #2950). Subsequent PRs
-(#2994, #3001, #3011, #3014) added substantial scenario coverage on the harness, which covers parts of
-Phases 3–5. The plan below was re-evaluated against `main` @ `7e2e57541` on 2026-10-15; see
-[Merged since Phase 2.5](#merged-since-phase-25--evaluation-of-2026-10-15) for what moved, and
-[Test infrastructure backlog](#test-infrastructure-backlog) for the infrastructure work this
-evaluation recommends. The account-auth guards and suite guardrails planned that day are **implemented and
-awaiting review**: see
-[Account-auth guards and suite guardrails](#account-auth-guards-and-suite-guardrails-implemented-2026-10-15),
-whose *As built* section records what the implementation found and where it differs from the plan.
+Status: **handed off.** Phases 0–2.5 and the account-auth guards are merged to `main` (PRs #2934, #2961, #2950 and #3021)
+and CI-gated; what is left is scenario coverage, a few infrastructure seams and some cleanup. Read
+[Handoff](#handoff-2026-11-01) first: it has the current numbers, the core merge commits, the decisions taken, what to do
+next and how to work with the suite. Everything after it is the working record: why the suite exists, the design goals,
+what each phase built and what the reviews found, and the plan for what remains. The plan was last re-evaluated against
+`main` @ `445792e61` on 2026-11-01; [Merged since the account-auth PR](#merged-since-the-account-auth-pr--evaluation-of-2026-11-01)
+covers what others merged since.
 
-**Suite size (measured 2026-10-16, with that PR and its review fixes):** 657 non-game specs (`jasmine-nongame.json`), 1 of them
-pending (a marked `TODO`); ~3.2 s under `--parallel=4 --random=true`,
-five consecutive runs, 0 failures. 8,943 game specs; 9,600 total, which the two configs partition exactly
-(counted by loading each config with every spec filtered out). Before the PR the figures were 404 / 8,971 / 9,375:
-the game group is 28 specs smaller because the widened non-game globs now claim `DiscordDispatcher`,
-`usernameBlockMigration` and `DynamoDBInterfaceSchemas`.
+## Handoff (2026-11-01)
+
+**Map of this document.** *Why this exists*, *Design goals* and *Approach* · *Progress* (Phases 0–2.5, the review rounds, and
+the evaluations of what others merged) · *Remaining work* (the account-auth PR's record, then Phases 3–6) · *Test
+infrastructure backlog* (I-1 … I-12) · *Refactor-fragility register* · *CI structure* · *Open findings* · *Future test suites*.
+
+### State
+
+The connection layer (`GameServer`, `Lobby`, `QueueHandler`) has a working integration harness and a CI-gated suite. A spec
+starts a real `GameServer` in-process on a virtual clock, drives it through the same HTTP calls and socket handshake as
+`forceteki-client` (`TestClient`), and asserts on what the client receives and on what the fakes for the outside world
+(stats-site HTTP, DynamoDB) were called with. Measured on `main` @ `445792e61` (2026-11-01, Node 26.13):
+
+- **677 non-game specs** (`jasmine-nongame.json`): 0 failures, 1 pending (a marked `TODO`); about 2.3 s under
+  `--parallel=4 --random=true`.
+- 9,012 game specs, so **9,689 in total**. The two configs partition the suite exactly (counted by loading each config with
+  every spec filtered out, so no spec body runs and the card suites are not executed). For reference, before #3021 the
+  figures were 404 / 8,971 / 9,375: widening the non-game globs moved 28 specs (`DiscordDispatcher`,
+  `usernameBlockMigration`, `DynamoDBInterfaceSchemas`) out of the game group, and card work has grown it since.
+- CI gates: `npx eslint --quiet`, `npm run validate-cards`, `npm run validate-specs`, `npm run test-parallel` and
+  `npm run test-parallel-undo`.
+
+*Covered:* the connection lifecycle over HTTP and socket (lobbies, queue and matchmaking, reconnect and grace-window removal,
+multi-tab), the anonymous-versus-logged-in rules (chat, reports, best-of-three and spectator gating at the HTTP gate), the
+command allowlist, stats-site token flows at handler level, and authentication and authorisation for logged-in accounts
+(credential verification, account creation and login, roles, service secrets, and a manifest that forces every HTTP route
+to declare who may call it). *Not covered:* the game-mode legal/illegal matrix (production does not validate it yet), stats
+payloads, timers and the inactivity kick, best-of-three flow, spectator flows, decks, and most moderation and account routes
+beyond who may call them. [What is left](#what-is-left-in-suggested-order) says where to begin.
+
+### Core merges
+
+The work landed on `main` as four squash merges, so the branch commits named in the phase sections below no longer exist as
+separate commits.
+
+| PR | Commit | Merged | What it landed |
+|---|---|---|---|
+| #2934 | `63853b15be4d5c9f05328e28c03fcb76f946ba29` | 2026-10-02 | **Part 1.** Phase 0 (headless `GameServer`, `ServerTestHarness`, decklist fixtures) and Phase 1 (`IScheduler` / `RealScheduler`, `IGameNodeConfig`, `shutdownAsync()`, the two timer-leak fixes), with the pre-PR scheduler review fixes. The first 37 specs, and this document. |
+| #2961 | `9a8730d12fc0e531e094081cdef651f21b80420f` | 2026-10-06 | **CI follow-up to part 1.** Deterministic lobby names (random text could trip the real profanity filter), application logging silenced during specs, and `RealScheduler` specs moved onto Jasmine's controlled timers instead of wall-clock waits. |
+| #2950 | `b90d3958b92ea56b5b6f6744f5e552cff07212d0` | 2026-10-09 | **Part 2.** Phase 2 (the `IRawGameSocket` seam, `FakeIoSocket`, `TestClient`, `serverIntegration()`, `LobbyConnectionManagement`, `SocketIoDriftGuard`; the dead ack callback removed) and Phase 2.5 (`IHttpClient` / `FakeHttpClient` and the stats-handler specs), with the round-2 review fixes. |
+| #3021 | `8ffb6130f0b126e681bfa40b08ff271ecb93c462` | 2026-10-17 | **Part 3.** The account-auth guards and suite guardrails: the fake DynamoDB and the scheduler seam on the DB-backed caches, harness options (`database`, `env`, `recordRoutes`), the auth specs and route-auth manifest, the spec-partition guard (`validate-specs`), helper hygiene, the `test/server/gamenode/` regrouping, the `as any` lint rule, "Writing a server spec" in `CLAUDE.md`, and the independent-review fixes. 58 files. |
+
+**Also on `main`, from other contributors.** Before #3021: #2994 (disable reporting), #3001 (matchmaking preference and
+`SchedulerTaskScope`), #3011 (username moderation) and #3014 (command allowlists, anonymous-identity hardening, chat and report
+rules), evaluated under [Merged since Phase 2.5](#merged-since-phase-25--evaluation-of-2026-10-15). Since #3021: #2655 (dev
+test accounts and an in-memory user store), #3031 (matchmaking logging) and #3038 (the Node pin), evaluated under
+[Merged since the account-auth PR](#merged-since-the-account-auth-pr--evaluation-of-2026-11-01).
+
+### Decisions taken
+
+| Topic | Decision | Where |
+|---|---|---|
+| Transport | Hybrid: an in-process fake transport that runs the *real* `io.use` middleware and `onConnectionAsync`, guarded by a few real `socket.io-client` specs that catch drift | *Approach*, Phase 2 |
+| Production seams | Injected collaborators with production defaults (`IScheduler`, `IGameNodeConfig`, `IHttpClient`, an optional scheduler on the DB-backed caches). No test-only API on production classes: test construction lives in the `TestGameServer` subclass over `protected` members | *Design goals* 4 |
+| Lobby ids | `create-lobby` keeps not returning one (a deliberate anti-automation measure); the harness browses `available-lobbies` or joins by `connectionLink`, as the FE does | *Approach* |
+| Command dispatch | Explicit allowlists (landed in #3014 by another contributor); the residual guards are Phase 3 | Phase 3 |
+| Game-mode configurations | Wanted as Tier 1 (for example, Open is lobby-only and cannot be queued). Production does not validate them yet, so `validateMatchConfiguration` (Phase 3b) comes first | Phase 3b, Open finding #3 |
+| Dead ack callback | Removed from production, with the drift spec that watched it, rather than characterised | Phase 2 |
+| Stats sites | An `IHttpClient` seam and handler-level specs now; game-result payloads wait for Phase 4 | Phase 2.5 |
+| Test-only interfaces | Migrate to production only once Phase 3 starts. `IMatchConfiguration` was replaced by the production `IQueueFormatKey` in #3021; `ITestUserPayload` is still test-only | Phase 3 |
+| Moving socket handling out of `GameServer` | **Not now.** Only the auth slice (`IRawGameSocket`, `SocketData`, `ISocketAuthResult`, `authenticateSocketAsync`, `runSocketAuthMiddlewareAsync`; about 90 lines) is isolated. `onConnectionAsync` (about 180 lines when assessed), `handleSocketConnectionAsync` and the disconnect paths are entangled with `lobbies`, `userLobbyMap`, `queue` and the matchmaking-penalty map, so a real extraction is the lobby / queue / connection refactor this suite exists to make safe | this table |
+| CI | No path-based filtering. A game / non-game job split is wanted eventually (undo mode is meaningless for the non-game group) but is not urgent; `validate-specs` keeps the two groups honest | *CI structure* |
+| Account-auth PR shape | One PR, a vertical slice of the auth suite, the scheduler seam included. Findings were to be characterised rather than fixed; the next two rows replaced that | the account-auth section |
+| Specs never assert wrong behaviour | A spec that exposes wrong behaviour is not written: leave a `TODO` (and a pending spec when the intended behaviour is clear) and record the finding | `CLAUDE.md`, *Open findings* |
+| Nothing exploitable is written down | Report it privately to the maintainers; describe it nowhere in this repository (specs, comments, `CLAUDE.md`, this document). Gaps in the *Open findings* numbering are deliberate | `CLAUDE.md` |
+| Spec layout | Area folders under `test/server/gamenode/` (`auth/authentication`, `auth/authorization`, `lobby`, `matchmaking`, `account`, `harness`), grouped by subject rather than mirroring `server/`; no automated check against a spec landing directly under `gamenode/` | the account-auth section |
+| Quick-lobby countdown | Imported from production (`Lobby.QuickLobbyCountdownMs`), not copied; the 20 s grace, 60 s stale-lobby and 20 s matchmaking-penalty values stay literal in specs so that changing one fails a test | I-7 |
+
+### What is left, in suggested order
+
+1. **The gaps no infrastructure blocks** (Phase 4): reconnect inside the grace window and grace expiry mid-game, the
+   inactivity kick and `resetActionTimer`, ownership and empty-lobby cleanup, the full-lobby race and join-while-in-a-lobby,
+   the matchmaking-disconnect penalty, the quick-lobby countdown as the subject, and the two cheap shutdown regression
+   locks. These are the paths the socket refactor will move.
+2. **I-4's remainder and I-6, first or alongside:** `createLobbyWithGuestAsync` and typed client commands
+   (`sendChatMessageAsync`, `concedeAsync`, …) remove the boilerplate before it multiplies.
+3. **Phase 3b and the game-mode matrix**, the one original goal with no coverage at all. It needs a small production change
+   (`validateMatchConfiguration`, mirroring the FE's `LobbyFormatConfigs` / `QueueFormatConfigs`) and a decision on the
+   response for each illegal combination (Open finding #3); then the Phase 3a residual guards (export the allowlists, a
+   consistency guard, an FE-contract manifest, positive coverage per command).
+4. **Stats.** A harness helper that plays a game to completion, plus deck tables in the fake DB for `DeckService`; then
+   external payloads (SWUStats / SWUBase through `FakeHttpClient`) and internal `statsSubmitNotification` payloads.
+5. **I-2 (Discord seam)**, which unblocks the report scenarios and retires the last `as any`; **I-3 (deck-fetcher seam)**
+   with the fake's deck tables, which unblocks the deck suite.
+6. **Phase 5 leftovers:** spectator flows, handshake failures, multi-tab beyond lobbies, deck gates, discovery filtering,
+   lobby-name validation, HTTP smoke coverage.
+7. **Housekeeping:** I-12 and flipping the harness default to "database on" (the trial now shows 3 failures of 678), the
+   I-7 time helpers, the formal parallel-safety review, and splitting the CI jobs when it is worth it.
+8. **Future suites** (moderation and account routes beyond who may call them, linked stat-site accounts, best-of-three
+   flow, game-timer behaviour, cosmetics, resilience): the last section.
+
+Open findings that still need a production fix are #1, #3, #6, #8 and #9. Anything exploitable is tracked privately with the
+maintainers, not here.
+
+### Working agreements
+
+- **Production changes are behaviour-neutral seams.** Read every production hunk and show that each default reproduces the old
+  behaviour (break it, watch a spec fail, restore it). No test-only API on production classes.
+- **Write specs the way `CLAUDE.md` says** ("Writing a server spec": which harness, the sanctioned seams, no `as any` into the
+  server). A spec that exposes wrong behaviour does not assert it: leave a `TODO` where it belongs and record the finding.
+- **Server-only work does not need the card suites.** `npm run test-nongame` is the loop; CI runs everything.
+- **The owner reviews, stages and commits.** An assistant working on this does not run `git commit`.
+
+### Running and verifying
+
+```bash
+npm run test-nongame               # fast build, then the non-game group, serial: the everyday loop
+npm run test-fast build/test/server/gamenode/lobby/LobbyReports.spec.js    # one spec file: a build/ path ending in .spec.js
+npm run jasmine-parallel-nongame   # CI's flags (4 workers, random order) over the existing build
+npm run validate-specs; npm run validate-cards; npx eslint --quiet
+npx tsc -p ./test/tsconfig.json --noEmit
+```
+
+- **Stale build output.** `build/` is never cleaned, so a `.spec.js` left behind by another branch still runs and fails. On
+  2026-11-01, right after a branch switch, three compiled specs from an unmerged branch produced 19 failures. If a failing
+  spec has no `.ts` source, delete its compiled file (or `build/`) and rebuild.
+- **Counting specs without running them.** Load a config through Jasmine's API with `specFilter: () => false` and read
+  `totalSpecsDefined` from the `jasmineStarted` event; nothing executes, so the card suites cost seconds.
+
+### What the harness depends on in production
+
+The refactor has to keep these working or re-wire `TestGameServer` / `TestClient` to their replacements. The behaviour specs
+should not need to change.
+
+| Production member | Used by | For |
+|---|---|---|
+| `GameServer`'s `protected` constructor, with `IGameServerOptions` (`listen`, `scheduler`, `config`, `httpClient`); `lobbies`, `httpServer`, `config` and `httpClient`; `getUserLobbyId()` and `shutdownAsync()` | `TestGameServer` | building the server headless on injected collaborators, the inspection surface, teardown |
+| `authenticateSocketAsync()`, `handleSocketConnectionAsync()`, `isSuccessfulSocketAuth()`, `IRawGameSocket`, `SocketData` | `TestClient`, `FakeIoSocket` | the fake transport running the real auth middleware and connection handler |
+| `getDynamoDbServiceAsync()` (spied before the server is built); `createAsync(…, scheduler)` on `ServerRoleUsersCache`, `ServerSettingsCache`, `CosmeticsService` and `ModActionService` | `TestDatabase` | the fake DynamoDB and the real DB-backed services on the virtual clock |
+| Express `application.get/post/put/delete/patch` | `RouteRecorder` | the route census behind the route-auth manifest; `assertComplete()` fails if a route is registered any other way |
+| `Lobby.QuickLobbyCountdownMs`, `GameServer.ServerCacheRefreshMinutes` | the harness, `TestDatabase`, specs | production values imported, not copied |
+| `Lobby.prototype` (`addLobbyUserAsync`, `startTestGameAsync` and `cleanLobby` are spied) and `Lobby`'s private `discordDispatcher` (overwritten in `LobbyReports`, the one `eslint-disable`) | specs | listed in the fragility register |
+
+### Hazards to know about
+
+- **Stale build output** (above).
+- **The no-database server shares one in-memory account store per worker** (since #2655; I-12). Accounts and preferences a spec
+  creates there are visible to later specs in the same worker. Use `database: true` for a spec that needs a clean slate.
+- **The default harness is not production-like:** `ENVIRONMENT=development`, no database, four extra routes. Use
+  `database: true` and `env: { ENVIRONMENT: 'production' }` for a production-like server.
 
 ## Why this exists
 
@@ -27,7 +159,7 @@ sparsely documented, and it is the part we most want to restructure.
 When this project started we could not safely restructure it, because **there was no test coverage of
 any of it**: the card suite (~8,700 specs at the time) constructs a `Game` directly with a stub
 router and never touches `Lobby` or `GameServer`. That is no longer true — the connection layer now
-has its own 657-spec suite — but coverage is uneven (deep on matchmaking, chat, identity and authentication;
+has its own 677-spec suite — but coverage is uneven (deep on matchmaking, chat, identity and authentication;
 absent on stats, spectating, timers and decks), which the plan below tracks.
 
 This project builds the test suite first, so the refactor that follows has a safety net. The suite is
@@ -79,7 +211,7 @@ anti-automation measure — so the harness discovers lobbies the way a user does
 
 ### Phase 0 — headless server and HTTP coverage ✅
 
-Commit: `Initial tests and basic testability changes`
+Landed in #2934 (`63853b15b`), with CI follow-ups in #2961 (`9a8730d12`). Branch commit: `Initial tests and basic testability changes`
 
 | Change | Detail |
 |---|---|
@@ -100,15 +232,17 @@ specs can still assert logger calls with spies. Scheduled errors remain checked 
 
 ### Phase 1 — scheduler and config injection ✅
 
-Commit: `Add timer injection`
+Landed in #2934 (`63853b15b`). Branch commit: `Add timer injection`
 
 **1a — scheduler.** `IScheduler` / `IScheduledTask` / `ISchedulerErrorContext` with `RealScheduler`
 as the production default, threaded through `GameServer`, `Lobby`, `QueueHandler`,
 `MatchmakingRules` and the engine timer types. Every timer and clock read in the game node now goes
 through it. *(Re-audited 2026-10-15: still true of `server/gamenode/**`, apart from two diagnostic
-profiling-dump timeouts in `GameServer`. It is no longer true of the wider server — `TimedCache` and
+profiling-dump timeouts in `GameServer`. It was not true of the wider server — `TimedCache` and
 the four services built on it, `ModActionService`, both deck fetchers' abort timeouts and
-`DynamoDBService`'s retry delay all use raw timers. See infrastructure backlog item I-1/I-3.)*
+`DynamoDBService`'s retry delay all used raw timers. Since #3021 `TimedCache` and the services built on it, including
+`ModActionService`, take the scheduler; the deck fetchers and `DynamoDBService`'s retry delay still use raw timers.
+See infrastructure backlog item I-1/I-3.)*
 
 Error guarding was folded into the scheduler implementations. The codebase previously had two
 parallel mechanisms for the same hazard — `buildSafeTimeout` for the Lobby/Game sites, and
@@ -171,7 +305,7 @@ call it out in the PR description.
 
 ### Phase 2 — fake transport and test client ✅
 
-Commit: `Add fake transport and TestClient for socket connection testing`
+Landed in #2950 (`b90d3958b`). Branch commit: `Add fake transport and TestClient for socket connection testing`
 
 **Production seam.** `GameServer`'s inline `io.use(...)` / `io.on('connection', ...)` closures are
 now named methods — `authenticateSocketAsync()`, `runSocketAuthMiddlewareAsync()`,
@@ -251,6 +385,8 @@ footprint is `GameServer.ts` alone, +145 / −61 (net +84, almost entirely extra
 logic into named methods).
 
 ### Phase 2.5 — external stats HTTP mocking seam ✅
+
+Landed in #2950 (`b90d3958b`).
 
 Raised while scoping Phase 4: `SwuStatsHandler` / `SwuBaseHandler` called the global `fetch` directly
 and were constructed inline in `GameServer`'s constructor (`new SwuStatsHandler(this.userFactory)`),
@@ -414,20 +550,46 @@ cancels it (→ 0); a live game with action timers enabled drains to 0 on shutdo
 **Stability.** The non-game suite was run 7 times under CI's `--parallel=4 --random=true` (2,828 spec
 executions): 0 failures, 6.2–6.9 s each.
 
+### Merged since the account-auth PR — evaluation of 2026-11-01
+
+Three merges after #3021 touched this area. Everything below was verified against `main` @ `445792e61`: the diffs were read, the
+non-game suite was run on a clean build, the route and spec counts were re-measured, and the open findings' code paths were
+re-read (the pending spec for #8 was enabled once and still fails for the stated reason).
+
+| PR | What changed | Effect on the suite |
+|---|---|---|
+| #2655 *authenticated test users with and without local DynamoDB* | Local dev test users (`Order66`, `ThisIsTheWay`) are now accounts (provider `dev-user`) signed in with ordinary NextAuth sessions and seeded at start-up; the legacy fixed anonymous ids `exe66` / `th3w4y` and `isDevTestUser` are gone. `UserFactory` reads and writes accounts through a new `IUserStore` (`getUserStoreAsync()`): DynamoDB when a service exists, otherwise a process-wide `InMemoryUserStore` (development only). `PUT /api/user/:userId/preferences` is now `PUT /api/user/preferences` and acts on the authenticated caller. `POST /api/start-test-game` needs a signed-in dev test account, honours the maintenance switch and discards the lobby if its set-up fails. A missing role cache answers 403 "Server role service unavailable", and a missing mod-action service now throws unless the server is development without local DynamoDB. | +21 non-game specs: the new `DevelopmentUsers` suites (13), `GameServerTestGameSetups` 2 → 8, `GameServerUserApi` 5 → 6, and one manifest spec (`start-test-game` is now a signed-in route). `TestClient.savePreferencesAsync(preferences)` lost its id parameter, and the manifest, `CredentialVerification`, `AnonymousIdentity` and `ServerTestHarness` specs were updated to match. Adds hidden shared state, below. |
+| #3031 *matchmaking preference logging* | `QueueHandler` logs the preference at queue join and when a match forms (new `LoggingConstants`); `findMatchInQueue` receives the format. No change to scheduling or matching. | None. Open finding #6's callbacks are unchanged. |
+| #3038 *pin Node* | Node 26.12.1 is the single pinned version: `.tool-versions` (read by CI's `setup-node`), `engines` with `engine-strict` in `.npmrc`, `@types/node` ^26 and the `Dockerfile`. `GameServer.ts` imports `ELDHistogram` instead of the removed `IntervalHistogram`. | None functionally. The non-game suite runs in about 2.3 s in parallel on 26.13 (about 3.2 s on 22). |
+
+(#3030, also merged, is LKI design documents in this folder; nothing else merged since touches the suite.)
+
+**What this changes for the plan.**
+
+- **Hidden shared state.** `getUserStoreAsync()` keeps the development store in a module-level variable that nothing resets, so
+  every harness built without `database` in one worker shares one account store: accounts and preference changes made by one
+  spec are visible to later ones. The current specs tolerate it (`Development preferences without DynamoDB` flips a preference
+  relative to its starting value), but a spec that needs a clean slate does not have one. Established by reading the code, not
+  by a failing spec. Tracked as I-12.
+- **The default-flip follow-up is cheaper** than it was sized; see the re-run under *Trial run* in the account-auth section.
+- **Statements about the 2026-10-15 state** are annotated where they appear: the HTTP-surface table and *What the harness can
+  reach today* (the DB path now runs without a database too), *Authorisation facts* (no route compares a path `:userId` with
+  the caller any more), the dev test-user ids in `CredentialVerification`, and the maintenance-mode items in Phase 5.
+
 ## Remaining work
 
-### Account-auth guards and suite guardrails (implemented 2026-10-15)
+### Account-auth guards and suite guardrails (merged in #3021, 2026-10-17)
 
-*Implemented as one PR of six ordered commits, awaiting review. **As built**, immediately below, records what the
-implementation found and where it differs from the plan. Everything after it is the plan as it was approved (without
-the parts that were dropped), still in the future tense it was written in and kept for the reasoning behind each
-decision.*
+*Merged as #3021 (`8ffb6130f0b126e681bfa40b08ff271ecb93c462`, 2026-10-17): one squash commit, built in six ordered stages.
+**As built**, immediately below, records what the implementation found and where it differs from the plan. Everything after it
+is the plan as it was approved (without the parts that were dropped), still in the future tense it was written in and kept for
+the reasoning behind each decision. Where `main` has moved on since, the text is annotated in place; see
+[Merged since the account-auth PR](#merged-since-the-account-auth-pr--evaluation-of-2026-11-01).*
 
-**As built.** The work was done and verified in this order, each stage green before the next began; the table gives the
-intended commit boundaries. Several helper files were touched by more than one stage, so committing exactly along these
-lines means splitting their hunks (`git add -p`); squashing neighbouring commits is the alternative.
+**As built.** The work was done and verified in this order, each stage green before the next began. It merged as one
+commit, so the stage boundaries below record how it was built, not the git history.
 
-| # | Commit | Non-game specs after | What it contains |
+| # | Stage | Non-game specs after | What it contains |
 |---|---|---:|---|
 | 1 | Partition repair and guard | 432 | Globs widened to `server/{utils,gamenode,services,scripts}/**`; `DiscordDispatcher` and its spec moved to `server/gamenode/` and `test/server/gamenode/`; undo jobs point at `jasmine-game.json`; `scripts/validateSpecs.ts` (`npm run validate-specs`, an extra step in the `validate-cards` job) with four checks — the partition (no gap, overlap or extra file), a game-harness spec in a non-game directory, a non-game spec in the game group that is not exempt, and an exemption that no longer applies — each verified to fail when deliberately broken |
 | 2 | Helper hygiene, fast loop | 432 | `buildTestConfig` exported; dead acknowledgement API deleted; `IMatchConfiguration` replaced by `MatchConfigs.ts`; `TestClient.lobbyId`, `harness.startQuickGameAsync` (waits `Lobby.QuickLobbyCountdownMs`, newly named in production); `GameServerAnonymousRestrictions` on `serverIntegration`; `npm run test-nongame` |
@@ -477,8 +639,9 @@ marked with a `TODO` where its spec belongs:
 - The route manifest asserts an exact refusal code only where the FE reads it: `loadDecks` treats a 403 from `get-decks`
   as "not signed in", and `deleteDecks` and the three link-status routes treat a 401 that way. Every other refusal is
   checked only as a 401 or 403 that does not say `success: true`, because the routes disagree and a spec requiring
-  today's choice everywhere would stand in the way of making them agree. An empty body to `create-lobby` or
-  `start-test-game` is likewise checked only as "not turned away".
+  today's choice everywhere would stand in the way of making them agree. An empty body to `create-lobby` is likewise
+  checked only as "not turned away" (`start-test-game` was too, until #2655 made it a signed-in route that is refused
+  without a session).
 - `PROFILE_CAPTURE_SECRET` is parsed once, at import, so only its *set* branch is testable; the branch for an unset key
   is not covered (the plan allowed for this). `INTRASERVICE_SECRET` is read per request, so a spec can set or unset it
   for one harness.
@@ -486,7 +649,8 @@ marked with a `TODO` where its spec belongs:
   account, after the lobby is up, rather than by seeding a mod action: the real service refuses to mute a player who has
   no account, which the old stub never noticed.
 - `TestClient.savePreferencesAsync` now sends what the FE sends (`{ preferences }` and the session cookie) for a
-  `token-only` client; it used to add a user payload, which only existed to dodge the missing database.
+  `token-only` client; it used to add a user payload, which only existed to dodge the missing database. (Since #2655 it
+  no longer takes a user id.)
 - The harness imports the quick-lobby countdown from production instead of keeping a test-side copy, which the plan
   (I-7) had asked for. The maintainers judged it pacing rather than policy, so not worth gating changes on. In
   `Lobby.quickLobbyCountdownAsync` the literals `5` and `1000` became two private constants, and `QuickLobbyCountdownMs`
@@ -524,7 +688,7 @@ deliberately broken:
   starts in 2025), so a muted user's `get-user` reported `daysRemaining: 0`. It now reads the scheduler's clock, and a
   `GameServerUserApi` spec holds it (reverting the line fails it with `Expected 0 to be 3`).
 
-**Trial run: flipping the harness default to "database on".** Run on the tree after commit 4: 469 specs, 4 failures.
+**Trial run: flipping the harness default to "database on".** Run on the tree after stage 4: 469 specs, 4 failures.
 Three are `ServerTestHarness` specs whose subject is the no-database state. The fourth is `GameServerMatchmaking`'s
 *waits for active matchmaking before cleanup and prevents timers from surviving shutdown*, which asserts the whole
 clock's `pendingTaskCount` is 0 while shutdown is still waiting; with a database the four DB-backed services' refresh
@@ -533,21 +697,30 @@ therefore a small follow-up: make that one assertion relative to the harness's b
 explicit no-database option, then make the database the default and the no-database server the opt-in (it is the
 local-dev configuration, not production's).
 
+**Re-run on 2026-11-01** (`main` @ `445792e61`, 678 specs at the time): 3 failures, down from 4 of 469. Two are again the
+`ServerTestHarness` specs whose subject is the no-database state, and one is the same `GameServerMatchmaking`
+`pendingTaskCount` assertion. Everything #2655 added still passes with a database, but the specs that exist to exercise
+development *without* DynamoDB (`Development preferences without DynamoDB`, and the default-harness describe in
+`GameServerTestGameSetups`) would then run against the fake DB and stop covering the in-memory path, so they need an
+explicit `database: false` when the default flips. The flip also removes most of the shared in-memory account store's reach
+(I-12).
+
 **Pending spec (1):** `AccountLogin` — signing an owner in to a freshly created profile when its account has no profile
-(#8). It is the one to enable when that is fixed.
+(#8). It is the one to enable when that is fixed. Re-verified on 2026-11-01: enabled, it still fails with a 401 and no
+profile created.
 
 **Carried forward, not covered here.** Decks (the fake has no deck tables, so the deck routes' signed-in path answers
 500 "not implemented", which the manifest tolerates by design); the `/api/mod/*` flows beyond their role gates and the
 moderation state `get-user` derives (beyond the time left on a mod-action mute); the three `set-*-seen` routes; cross-user requests to the `/api/user/:userId/…`
 routes; first-login *races* (two simultaneous first requests for one identity — the fake
-resolves in microtasks, so a spec cannot interleave them; it needs injectable latency); `requeueUser`, `start-test-game`
-and `spectate-game` under maintenance mode.
+resolves in microtasks, so a spec cannot interleave them; it needs injectable latency); `requeueUser` and
+`spectate-game` under maintenance mode (`start-test-game`'s gate has been covered since #2655).
 
 Two priorities set the scope: (1) everything needed to write tests that guard **authentication and authorisation
 for logged-in accounts**, which requires DynamoDB to be mocked; and (2) cleanup, so that the workarounds the last
 three PRs had to invent (inline DB fakes, `as any` into private state, fixtures that seed account state through the client,
-a game/non-game partition that drifts) are not built on further. Decisions taken: **one PR with ordered commits**
-(each builds and passes the non-game suite on its own, so commits 1–2 can be split out if review stalls); a
+a game/non-game partition that drifts) are not built on further. Decisions taken: **one PR built in ordered stages**
+(each stage built and passed the non-game suite before the next began; it merged as one commit); a
 **vertical slice** of the auth suite rather than the full matrix; and the scheduler seam for the DB-backed caches is
 **included**. This section supersedes the Phase 6 partition and fast-loop items, and the backlog's "Suggested order", for
 the items it schedules.
@@ -576,7 +749,9 @@ looked up — runs once per session sync and has no coverage today.
 `authenticated: true`. `ENVIRONMENT=development` makes `getDynamoDbServiceAsync()` return null, and the harness
 passes no role, settings, cosmetics or mod-action services. So the DB path cannot run, and **every role-gated route
 answers 403 "Error checking user privileges" to every authenticated caller** (the role cache is undefined): the
-success path of a moderator or admin route is unreachable.
+success path of a moderator or admin route is unreachable. *(The state on 2026-10-15. Since #2655 a harness without a database
+can run the DB path too, against a process-wide in-memory account store, and a missing role cache answers 403 "Server role
+service unavailable". `database: true` is unchanged.)*
 
 *The HTTP surface: 50 routes, 46 in production.* Counts and statuses were **measured**: a probe recorded every route
 registration and sent each one an unauthenticated request (no cookie, body `{}`) against the default harness.
@@ -586,10 +761,10 @@ registration and sent each one an unauthenticated request (no cookie, body `{}`)
 | No middleware — public read | 6 | 200: `get-unimplemented`, `ongoing-games`, `available-lobbies`, `health`, `all-leaders`, `server-settings` |
 | No middleware — shared secret | 2 | `link-swustats`, `link-swubase`: 403 "Forbidden" without the right key |
 | No middleware — API key | 1 | `run-profile`: 401 without a valid `Authorization: api-key` header |
-| No middleware — dev-only | 2 | `test-game-setups` 200; `start-test-game` 500 (no `filename`) |
+| No middleware — dev-only | 2 | `test-game-setups` 200; `start-test-game` 500 (no `filename`). Since #2655 `start-test-game` goes through `authMiddleware` and is refused without a session |
 | Role-gated by the middleware | 8 | 401 "Authentication required". Moderator (5): `POST` and `DELETE` cosmetics, `mod/find-user`, `mod/submit-action`, `mod/cancel-action`. Admin (3): `mod/server-settings`, plus the dev-only `DELETE /api/cosmetics` and `cosmetics-reset` |
 | `authMiddleware`, anonymous rejected by the handler | 20 | **401** ×13 (`swustatsLink`, `swustats/decks`, `swubaseLink`, `toggle-welcome-message`, both `*-popup-seen`, `get-change-username-info`, `change-username`, `PUT preferences`, `get-deck/:id`, `save-deck`, deck `favorite`, `delete-decks`); **403** ×7 (the three `set-*-seen`, both `unlink-*`, `get-decks`, `rename-deck`) |
-| `authMiddleware`, anonymous accepted | 10 | reaches the handler: `get-user` 200, `GET cosmetics` 200, three `user-is-*` 200 (message "Error checking user privileges" while there is no role cache), `resolve-deck-link` 400, `join-lobby` 404, `enter-queue` 400, `change-deck` 403 (not a lobby member), `create-lobby` **500** on an empty body |
+| `authMiddleware`, anonymous accepted | 10 | reaches the handler: `get-user` 200, `GET cosmetics` 200, three `user-is-*` 200 (message "Error checking user privileges" while there is no role cache; since #2655, "Server role service unavailable"), `resolve-deck-link` 400, `join-lobby` 404, `enter-queue` 400, `change-deck` 403 (not a lobby member), `create-lobby` **500** on an empty body |
 | `authMiddleware`, anonymous conditional | 1 | `spectate-game`: 401 while `allowAnonymousSpectators` is false |
 
 The four dev-only routes are registered only when `process.env.ENVIRONMENT === 'development'`, which is what the
@@ -597,9 +772,10 @@ default harness runs as, so its route table has four routes production does not.
 same condition (an anonymous caller) is inconsistent across the 20 rejecting routes; the FE reads the exact code for five of them, and the manifest asserts only those exactly.
 
 *Authorisation facts.* Admin satisfies every role check; Moderator and Developer do not imply each other; no route
-requires Developer or Contributor. Only `PUT /api/user/:userId/preferences` reads `:userId` and compares it with the
-caller (403); the other five `/api/user/:userId/…` routes (`swustatsLink`, `swustats/decks`, `swubaseLink`,
-`undo-popup-seen`, `timer-popup-seen`) act on the caller. `ModActionType` is Mute, Warning, Rename, ReportingDisabled,
+requires Developer or Contributor. On 2026-10-15 only `PUT /api/user/:userId/preferences` read `:userId` and compared it
+with the caller (403). Since #2655 that route is `PUT /api/user/preferences` and acts on the authenticated caller, so no
+route compares a path `:userId` with the caller; the five `/api/user/:userId/…` routes (`swustatsLink`, `swustats/decks`,
+`swubaseLink`, `undo-popup-seen`, `timer-popup-seen`) act on the caller. `ModActionType` is Mute, Warning, Rename, ReportingDisabled,
 UsernameChangesBlocked and ChangeUsername.
 
 *Verified by the probes.*
@@ -616,12 +792,13 @@ UsernameChangesBlocked and ChangeUsername.
 - **Production-like construction** (`ENVIRONMENT=production`) removes all four dev-only routes (404).
 - **A local `.env` leaks into specs.** `ServerTestEnv` pins other variables so a developer's `.env` cannot change a
   spec, but not `INTRASERVICE_SECRET` or `PROFILE_CAPTURE_SECRET`. On this machine `.env` sets the first, so the link
-  routes answered 403 where CI (no `.env`) would throw a 500.
+  routes answered 403 where CI (no `.env`) would throw a 500. (Both are now pinned in `ServerTestEnv`, as are
+  `USE_LOCAL_DYNAMODB` and the stat-site credentials.)
 
-**Commit plan.** Sizes use the backlog's scale (XS ≈ an hour, S ≈ a day, M ≈ a few days); by that scale the PR is
+**Stage plan.** Sizes use the backlog's scale (XS ≈ an hour, S ≈ a day, M ≈ a few days); by that scale the PR is
 large, roughly two weeks.
 
-| # | Commit | Category | Size | Production change |
+| # | Stage | Category | Size | Production change |
 |---|---|---|---|---|
 | 1 | Partition repair and guard | cleanup | S | move `DiscordDispatcher` (two import paths) |
 | 2 | Helper hygiene, de-duplication, fast loop (I-8, I-9, I-11, part of I-4) | cleanup | S | name the quick-lobby countdown's start and tick as constants in `Lobby` |
@@ -630,7 +807,7 @@ large, roughly two weeks.
 | 5 | Auth guard specs (vertical slice) | auth guards | M | none |
 | 6 | Retire workarounds, enforce, document (I-5, I-10) | cleanup | S | `lobbies` `private` → `protected` |
 
-**Commit 1 — partition repair and guard.**
+**Stage 1 — partition repair and guard.**
 
 - Widen `jasmine-nongame.json` to `server/{utils,gamenode,services,scripts}/**` and mirror the negations in
   `jasmine-game.json`. This moves `usernameBlockMigration` and `DynamoDBInterfaceSchemas` (about 24 specs) into the
@@ -650,7 +827,7 @@ large, roughly two weeks.
 - Acceptance: game + non-game = 9,375 by the load-only count; the guard fails when each rule is deliberately broken
   once locally.
 
-**Commit 2 — helper hygiene.**
+**Stage 2 — helper hygiene.**
 
 - Export `buildTestConfig`; `QueueHandler.spec.ts` uses it instead of its hand-copied `IGameNodeConfig` literal (I-8).
 - Delete the dead acknowledgement API — `FakeIoSocket.ackEvent`, `IFakeEmittedEvent.ack`, the trailing-function
@@ -667,7 +844,7 @@ large, roughly two weeks.
 - Add `npm run test-nongame`: fast build, then `jasmine-nongame.json`, serial (I-11).
 - Acceptance: spec count unchanged; the diff is setup moving, not assertions changing.
 
-**Commit 3 — DB seam.**
+**Stage 3 — DB seam.**
 
 - Production, all behaviour-neutral (the defaults reproduce today's behaviour, and `GameServer.createAsync` passes
   nothing, so production keeps real timers):
@@ -696,7 +873,7 @@ large, roughly two weeks.
 - Acceptance: the existing service-level specs (`UsernameModerationFlow`, `ModActionSubmissionHandler`,
   `UserFactory`, `SchedulerTaskScope`) pass unchanged, plus a small fidelity spec for the rules above.
 
-**Commit 4 — harness wiring.**
+**Stage 4 — harness wiring.**
 
 - `ServerTestHarness.createAsync({ config, database, env })` and `serverIntegration(definitions, options)`, replacing
   the positional config argument (three callers pass one: `ChatPermissions` and two in `GameServerMatchmaking`).
@@ -709,14 +886,14 @@ large, roughly two weeks.
   `CosmeticsService.createAsync` throws in development unless `USE_LOCAL_DYNAMODB=true`, so the harness sets that
   variable while it builds the services (it has no other effect once `getDynamoDbServiceAsync` is spied).
 - The default stays **no database**, so every existing spec is unchanged. (Production always has a DB and "no DB"
-  is the local-dev configuration, so the default should eventually flip. As part of this commit, do a one-off trial
+  is the local-dev configuration, so the default should eventually flip. As part of this stage, do a one-off trial
   run with it flipped and record which specs break, so that follow-up is sized.)
 - Env hygiene: pin `INTRASERVICE_SECRET` and `PROFILE_CAPTURE_SECRET` in `ServerTestEnv`. `options.env` overrides
   `process.env` entries for the life of one harness and restores them in `afterEach` — process-global, but jasmine
   workers are separate processes and specs within one run serially. It is what builds a production-like server
   (`ENVIRONMENT=production`). Caveat: `PROFILE_CAPTURE_SECRET` is read from
   `server/env.ts`'s import-time parse rather than `process.env`, so only its pinned (set) branch is testable unless
-  that module export can be overridden; confirm in the commit, and otherwise leave the unset branch unpinned.
+  that module export can be overridden; confirm in this stage, and otherwise leave the unset branch unpinned.
 - `test/helpers/server/AuthTokens.ts`: `mintSessionToken(claims)` with FE-faithful claims (documented against the FE
   `auth.ts`), named bad tokens (wrong secret, already expired, `alg: none`, malformed, missing claim) and the two
   cookie names. JWT expiry is checked against the **real wall clock**, so expired-token specs mint an already-expired
@@ -731,7 +908,7 @@ large, roughly two weeks.
   change.** If routes later move into `express.Router` modules, the recorder now fails loudly rather than miss them
   (see *After an independent review of the branch*); extend it to wrap `express.Router` the same way.
 
-**Commit 5 — auth guard specs (the vertical slice).** New folder `test/server/gamenode/auth/` (the non-game glob
+**Stage 5 — auth guard specs (the vertical slice).** New folder `test/server/gamenode/auth/` (the non-game glob
 already covers it). Roughly 130–180 specs, most of them parameterised rows.
 
 1. `RouteAuthManifest.spec.ts` + `RouteAuthManifest.ts` — one row per route (`public`, `anonymous-ok`,
@@ -745,7 +922,8 @@ already covers it). Roughly 130–180 specs, most of them parameterised rows.
    expired, `alg: none`, malformed, synced request without `userId`, DB path without `id`, DB path without `name` (and no
    partial account written). Also: both cookie names accepted; the JWT's `userId` wins over a different `id` in the
    payload; a socket with a token and non-authenticated user data takes the DB path; the dev test-user ids (`exe66`,
-   `th3w4y`, honoured only when `ENVIRONMENT=development`) are rejected under a production-like harness.
+   `th3w4y`, honoured only when `ENVIRONMENT=development`) are rejected under a production-like harness. *(Since #2655
+   those fixed ids are rejected as anonymous ids everywhere, and the dev test users sign in as accounts.)*
 3. `AccountLogin.spec.ts` — first login creates the profile and links (cleaned username, welcome flag, a
    username-change record); a returning login finds the account by OAuth and records the login; an email-only match
    (case-insensitive) adds the OAuth link; link present but profile missing recreates it; `get-user` response shape.
@@ -758,7 +936,7 @@ already covers it). Roughly 130–180 specs, most of them parameterised rows.
    refresh token and the token mapping is set (through `FakeHttpClient`), unset secret in development → 500;
    `run-profile` header and secret matrix.
 
-**Commit 6 — retire workarounds, enforce, document.**
+**Stage 6 — retire workarounds, enforce, document.**
 
 - `ChatPermissions`: the legacy-mute and chat-disabled fixtures are seeded through the fake DB using `token-only`
   clients instead of the client's own profile data; the
@@ -803,14 +981,14 @@ already covers it). Roughly 130–180 specs, most of them parameterised rows.
 `/api/mod/*` action flows and moderation state reaching the client (`get-user`'s derived mute and reporting-disabled
 fields, the three `set-*-seen` routes); ownership-scoping specs beyond what the manifest pins; the Discord seam (I-2)
 and deck-fetcher seam (I-3); spectator, timer and stats scenarios (Phases 4–5); flipping the harness default to
-"database on". **If the PR needs to shrink**, cut in this order: commit 6's `ChatPermissions` migration, then
+"database on". **If the PR needs to shrink**, cut in this order: stage 6's `ChatPermissions` migration, then
 `ServiceCredentials` and `RoleAuthorization` (independent of the manifest, credential and login specs).
 
 **Verification** (the card suites are not run): `npm run test-parallel-nongame` five times in random order; the
-load-only count showing the two groups partition `jasmine.json` exactly (still 9,375 after commit 1; plus the new
-specs after commit 5); `npm run validate-cards`, `validate-specs`, `npx eslint --quiet` and `tsc` clean; the probes'
-scenarios that assert intended behaviour present as permanent specs; each commit building and passing the non-game suite
-on its own.
+load-only count showing the two groups partition `jasmine.json` exactly (still 9,375 after stage 1; plus the new
+specs after stage 5); `npm run validate-cards`, `validate-specs`, `npx eslint --quiet` and `tsc` clean; the probes'
+scenarios that assert intended behaviour present as permanent specs; each stage building and passing the non-game suite
+before the next began.
 
 **Risks and mitigations.**
 
@@ -822,10 +1000,11 @@ on its own.
 - *Process-global state* (the DB spy, the Express recorder, `process.env`): restored by jasmine or `afterEach`;
   jasmine workers are separate processes.
 - *The default harness is not production-like* (no DB, `ENVIRONMENT=development`, four extra routes). Opt-in
-  production-like mode now; the trial run sizes the default flip.
+  production-like mode now; the trial run sizes the default flip. Since #2655 the no-database server also shares one
+  in-memory account store per worker (I-12).
 - *Wall-clock dependence.* JWT expiry always uses the real clock. `ModActionService` uses the virtual clock once the
   seam lands; anything else in the DB path that reads `Date.now()` directly would not.
-- *A large PR.* Commits 1–2 are independently mergeable, and commit 3's production changes can be reviewed alone.
+- *A large PR.* Stages 1–2 were independently mergeable, and stage 3's production changes could be reviewed alone.
 
 ### Phase 3 — protocol surface (3a done; residual guards + 3b remain)
 
@@ -921,8 +1100,8 @@ Struck as covered or obsolete: matchmaking cooldown (covered), ack-less client (
 enforcement (moved to Phase 3), and the fidelity suite (landed in Phase 2 as `SocketIoDriftGuard.spec.ts`).
 
 - **HTTP smoke coverage — no dependencies.** `GET /api/health`, `/api/ongoing-games`, `/api/all-leaders`,
-  `/api/get-unimplemented` and `/api/test-game-setups` need no database and no spec references them.
-  `/api/ongoing-games` is the substantive one (private games must be hidden).
+  `/api/get-unimplemented` and `/api/test-game-setups` need no database. Only the route manifest requests them (to check who
+  is let in); no spec asserts what they return. `/api/ongoing-games` is the substantive one (private games must be hidden).
 - **Spectator flows.** Join mid-game, `allowSpectators: false`, the anonymous-spectator gate on the *socket*
   path (the HTTP gate is covered) and state retransmission. Needs I-4 for the live-game setup.
 - **Socket handshake failures** beyond an invalid JWT: missing or non-JSON `query.lobby` (`JSON.parse` /
@@ -936,24 +1115,27 @@ enforcement (moved to Phase 3), and the fidelity suite (landed in Phase 2 as `So
   after an opponent drops); dev-only `start-test-game` is gated too; `spectate-game` is **not**. **Blocked on
   I-1:** `areGamesEnabled()` reads `serverSettingsCache`, which the harness leaves `undefined`, so maintenance
   mode can never be switched on. `RoleAuthorization` (landed with the account-auth PR) now covers the Admin-toggle → 503 round trip for
-  `create-lobby`, `join-lobby` and `enter-queue`; `requeueUser`, `start-test-game` and `spectate-game` remain.
-- **Discovery filtering.** The remaining `lobbiesWithOpenSeat` filters (quick lobbies, in-game lobbies) and the
-  `hasConnectedPlayer` ghost-lobby behaviour (Open finding #1).
+  `create-lobby`, `join-lobby` and `enter-queue`, and `GameServerTestGameSetups` covers `start-test-game` since #2655;
+  `requeueUser` and `spectate-game` remain.
+- **Discovery filtering.** The remaining `lobbiesWithOpenSeat` filters (quick lobbies, in-game lobbies) and the listing of a
+  lobby whose owner has not connected (Open finding #1; a `TODO` in `GameServerLobbyApi` marks the spec).
 - **Lobby name validation.** Profanity and length rejections in `create-lobby`. No spec currently asserts that a
   name is *rejected* — the one profanity-related spec only checks that harness-generated names are accepted.
 
 ### Phase 6 — CI wiring and parallel-safety review
 
 - ~~Repair the game / non-game partition and add a guard against it drifting again~~ — ✅ done in the
-  [account-auth PR](#account-auth-guards-and-suite-guardrails-implemented-2026-10-15), commit 1 (`validate-specs`; details
+  [account-auth PR](#account-auth-guards-and-suite-guardrails-merged-in-3021-2026-10-17), stage 1 (`validate-specs`; details
   under *CI structure*).
 - ~~Add a one-command fast loop for server specs (I-11).~~ — ✅ done: `npm run test-nongame`.
-- Decide whether to split the CI jobs. Not urgent: the non-game group is 7% of specs and ~3 s.
-- Formal parallel-safety review. Informally sound (7 clean runs on `main`, 5 more with the account-auth PR; each harness
-  binds its own ephemeral port with `exclusive: true`; card data is built once per worker). The module-level state I-1
-  was expected to add is now there — the `getDynamoDbServiceAsync` spy (`routeDatabaseThrough`), the Express route
-  recorder and `process.env` overrides — and is torn down per spec: jasmine removes the spies, `overrideEnv` restores
-  the environment on harness shutdown, and the harness fails if scheduled tasks outlive it.
+- Decide whether to split the CI jobs. Not urgent: the non-game group is 7% of specs and ~2 s.
+- Formal parallel-safety review. Informally sound (7 clean runs on `main`, 5 more with the account-auth PR, 3 more on `main` @
+  `445792e61`; each harness binds its own ephemeral port with `exclusive: true`; card data is built once per worker). The
+  module-level state I-1 was expected to add is now there — the `getDynamoDbServiceAsync` spy (`routeDatabaseThrough`), the
+  Express route recorder and `process.env` overrides — and is torn down per spec: jasmine removes the spies, `overrideEnv`
+  restores the environment on harness shutdown, and the harness fails if scheduled tasks outlive it. **The exception** is the
+  development `InMemoryUserStore` that #2655 keeps in a module-level variable (`UserStore.ts`): nothing resets it, so the
+  no-database server shares it across specs in a worker (I-12).
 
 ## Test infrastructure backlog
 
@@ -975,10 +1157,11 @@ day, M ≈ a few days.
 | I-9 | Helper hygiene | none | XS | dead code; one inconsistent spec | ✅ done |
 | I-10 | Contributor guide | none | S | stops the reinvention seen below | ✅ done (`CLAUDE.md`) |
 | I-11 | Fast loop script | `package.json` only | XS | server spec iteration without the card build | ✅ done (`test-nongame`) |
+| I-12 | Per-harness user store for the no-database server | none (a test-side spy) | XS | order-independent specs for development without DynamoDB | open (new, from #2655) |
 
-**Done in the [account-auth PR](#account-auth-guards-and-suite-guardrails-implemented-2026-10-15):** I-1 (the
+**Done in the [account-auth PR](#account-auth-guards-and-suite-guardrails-merged-in-3021-2026-10-17):** I-1 (the
 slice: fake DB without decks, harness wiring, scheduler seam), I-5, I-8, I-9, I-10, I-11, and the `lobbyId`,
-quick-game and match-config parts of I-4. **Still in the backlog:** I-2, I-3, I-6, I-7 and the rest of I-4, plus what that
+quick-game and match-config parts of I-4. **Still in the backlog:** I-2, I-3, I-6, I-7, I-12 and the rest of I-4, plus what that
 PR's *Carried forward* list names (chiefly the fake's deck tables). The paragraphs below are the original write-ups,
 kept for their evidence; the status column above is current.
 
@@ -1070,6 +1253,17 @@ server; drive time with the virtual clock; use the scenario builders; how to run
 full rebuild. Add `test-nongame` (fast build, then `jasmine-nongame.json`) so server work has a loop that is
 seconds, not minutes.
 
+**I-12 — Isolate the no-database account store (new, from #2655).** *Evidence:* `server/utils/user/UserStore.ts` holds the
+development `InMemoryUserStore` in a module-level variable that nothing resets, and every `UserFactory` asks
+`getUserStoreAsync()` for it, so all harnesses built without `database` in one jasmine worker share one account store. It is
+not a problem today, but any spec that signs in, saves preferences or renames an account leaves that behind for the next spec
+in the worker, and with the parallel runner and random order the next spec is arbitrary. This was established by reading the
+code, not by a failing spec. *Shape:* spy `getUserStoreAsync` in `TestGameServer.startAsync` when no database is given,
+resolving to a fresh `InMemoryUserStore` per harness, the way `routeDatabaseThrough` does for `getDynamoDbServiceAsync` and
+`DevelopmentUsers.spec.ts` already does for its own store. No production change. The alternative, flipping the harness
+default to "database on" (see the trial under *As built*), removes the problem for every spec that does not opt out; the two
+are complementary.
+
 **Suggested order** *(historical: the account-auth PR took I-1's slice, I-5, I-8, I-9, I-10, I-11 and part of I-4; what is left
 is I-2, I-3, I-6, I-7 and the rest of I-4)*. The items that need no behavioural production change (I-8, I-9, I-4, I-6, I-5, I-11 — I-5's
 only production edit is one visibility keyword, and I-11 touches `package.json` alone) are independent, low-risk,
@@ -1095,6 +1289,9 @@ list exists so none is mistaken for a stable contract when the refactor starts.
 | `RoleAuthorization`: the role refresh window | Asserts that a change in the database takes effect at the next refresh of the role lists; the interval is `GameServer.ServerCacheRefreshMinutes`, so changing it needs no spec change | change deliberately, if the refresh mechanism or invalidation changes |
 | `GameServerMatchmaking`: `recordExpiringMatchmakingEntry` seeding | Uses a public production method as a test hook | acceptable; replace if the cooldown store moves |
 | `GameServerScheduling`: `harness.server.swuStatsTokenMapping` | Reads a public mutable field | acceptable; the hourly cleanup is the behaviour |
+| `GameServerTestGameSetups`: `spyOn(Lobby.prototype, 'startTestGameAsync')` and `'cleanLobby'` | Forces a set-up failure and asserts the half-built lobby is discarded; depends on `Lobby`'s prototype and on `start-test-game` building the lobby before registering it | rewrite against whatever replaces `Lobby` set-up |
+| `DevelopmentUsers`: `spyOn(UserStoreModule, 'getUserStoreAsync')` and direct `InMemoryUserStore` use | Couples to the user-store module layout and to `UserFactory` looking its store up once, at construction | moves with the user-store module |
+| `TestGameServer`, `TestClient` and `FakeIoSocket`: `GameServer`'s `protected` constructor, `lobbies`, `httpServer`, `authenticateSocketAsync` and `handleSocketConnectionAsync` | The harness itself is the main consumer of these members (see *What the harness depends on in production* in the Handoff) | re-wire the three helpers to whatever replaces them; the behaviour specs should not change |
 
 *Retired by the account-auth PR:* `ChatPermissions`'s legacy-mute and chat-disabled fixtures no longer seed their state
 through the client (they seed accounts in the fake DB), and the `as any` touches in `GameServerUserApi`, `GameServerTestGameSetups`
@@ -1105,13 +1302,13 @@ and `ChatPermissions` are gone; the ESLint rule keeps them from coming back.
 The suite is partitioned by a single property: **does the spec drive a `Game` through the
 `integration()` harness?** That is what determines whether the undo suite is meaningful for it.
 
-| Group | Config | Contents | Specs (2026-10-16) |
+| Group | Config | Contents | Specs (2026-11-01) |
 |---|---|---|---|
-| Game | `jasmine-game.json` | cards, core, actions, gameSystems, scenarios | 8,943 |
-| Non-game | `jasmine-nongame.json` | `server/{utils,gamenode,services,scripts}/**` | 657 |
-| Everything | `jasmine.json` (what CI runs) | | 9,600 |
+| Game | `jasmine-game.json` | cards, core, actions, gameSystems, scenarios | 9,012 |
+| Non-game | `jasmine-nongame.json` | `server/{utils,gamenode,services,scripts}/**` | 677 |
+| Everything | `jasmine.json` (what CI runs) | | 9,689 |
 
-The two configs partition the suite exactly: 8,943 + 657 = 9,600, no spec lost or double-run. (Counted
+The two configs partition the suite exactly: 9,012 + 677 = 9,689, no spec lost or double-run. (Counted
 by loading each config's specs through Jasmine's API with every spec filtered out, so no spec body executed and
 the card suite was not run.)
 
@@ -1133,8 +1330,9 @@ PR fixed both halves:
 CI otherwise runs as before: `test` runs `test-parallel` against `jasmine.json` (everything, once), and `test-undo` runs
 `test-parallel-undo`, now against `jasmine-game.json`, so the non-game specs no longer run a second time under the undo
 harness, where they proved nothing. Splitting the jobs further is still **not urgent** (the non-game group is 7% of specs
-and ~3 s). The intended split, when it becomes worthwhile: `test-parallel-game` and `test-parallel-nongame` as separate
-jobs.
+and ~2 s). The intended split, when it becomes worthwhile: `test-parallel-game` and `test-parallel-nongame` as separate
+jobs (both scripts already exist in `package.json`; no job uses them yet). Since #3038 CI takes its Node version from
+`.tool-versions`.
 
 **Path-based filtering was considered and rejected.** GitHub Actions supports it, but workflow-level
 `paths` never reports its checks, which would block a repo using merge queues; and job-level gating
@@ -1147,16 +1345,14 @@ splitting by *what changed* is not.
 
 ## Open findings
 
-Behaviours found while building the suite. Statuses were re-verified against `main` on 2026-10-15. Open items are
-**not fixed**; where a spec would belong, a `TODO` marks it. Numbers are never reused or renumbered, so gaps in the
-numbering are expected.
+Behaviours found while building the suite. Statuses were re-verified against `main` on 2026-11-01 (by re-reading the code
+paths; #8 also by enabling its pending spec). Open items are **not fixed**; where a spec would belong, a `TODO` marks it.
+Numbers are never reused or renumbered, so gaps in the numbering are expected.
 
-1. **Ghost lobbies — open, unchanged.** `createLobbyUser` sets `state: null` then immediately calls
-   `updateUserLastActivity`, which sets `state = 'connected'` while `socket` is still null. Since
-   `lobbiesWithOpenSeat()` filters on `hasConnectedPlayer()`, a lobby created over HTTP is advertised
-   as joinable before any socket exists, and stays advertised indefinitely if the owner never
-   connects (cleanup needs 5 users to have left *and* 5 minutes). Covering the client's navigation
-   gap looks intentional; the never-connects case does not. Characterised by `GameServerLobbyApi`.
+1. **Lobby listing and cleanup around an owner who has not connected — open, needs a fix.** What `lobbiesWithOpenSeat()`
+   and `hasConnectedPlayer()` treat as a connected player needs correcting for a lobby whose owner has not connected a
+   socket. **Not fixed**, and no spec asserts the current behaviour: a `TODO` in `GameServerLobbyApi` marks the spec to add
+   once it is.
 
 3. **Game-mode configuration is barely validated — open, partly improved.** `format` and `cardPool` are
    enum-checked with a `400` on both `create-lobby` and `enter-queue`, and #3001's new matchmaking
@@ -1168,7 +1364,8 @@ numbering are expected.
    assertion, and a bogus `gamesToWinMode` on `enter-queue` returns **`200 OK`** and then fails silently at
    socket-connect time, leaving the user on a "searching" screen forever. Queue keys are still
    `JSON.stringify`-based (`JSON.parse(queueKey)` in `QueueHandler`); they are built in a fixed order in
-   production, so the property-order sensitivity is latent rather than live.
+   production, so the property-order sensitivity is latent rather than live. Re-verified on 2026-11-01: `gamesToWinMode` is
+   still not enum-checked on either route.
 
 4. **`this[command]` dispatch — ✅ resolved by #3014.** All three dispatch sites (lobby, game, spectator) now
    check an allowlist before invoking a method. Residual guards are tracked under Phase 3.
@@ -1183,7 +1380,8 @@ numbering are expected.
 
 6. **Three scheduled callbacks still swallow their own errors — open, unchanged** (`cleanupInvalidTokens`,
    `QueueHandler.cleanupPreviousMatchEntries`, `QueueHandler.sendHeartbeat`; re-read after #3001's heavy
-   `QueueHandler` changes), so the scheduler's guard — and therefore `assertNoScheduledErrors()` — cannot see
+   `QueueHandler` changes, and again on 2026-11-01 after #3031, which only added logging), so the scheduler's guard — and
+   therefore `assertNoScheduledErrors()` — cannot see
    them. These are defensive at the method level and reachable from non-timer callers, so removing the inner
    catches is a behaviour change rather than a simplification; revisit when those paths get direct coverage.
    Related observation: the hourly cleanup only prunes `swuStatsTokenMapping`; `swuBaseTokenMapping` is never
@@ -1232,9 +1430,10 @@ is left. Dependencies refer to the infrastructure backlog.
   with the site and stores it on the account (`ServiceCredentials`, over `FakeHttpClient` and the fake DB); the anonymous
   refusal of every route (`RouteAuthManifest`). *Left:* `unlink-*` and the `swustatsLink` / `swubaseLink` status routes for
   a signed-in caller, `swustats/decks`, and failure responses from the site. Handler-level coverage exists (Phase 2.5).
-- **User settings and preferences.** *Done:* `PUT preferences` ownership, anonymous rejection and persistence, through the
-  fake DB (`GameServerUserApi`); `muteChat` as it affects chat. *Left:* the other per-account game options (card image
-  locale, timer visibility) and welcome / undo / timer popup acknowledgement.
+- **User settings and preferences.** *Done:* `PUT /api/user/preferences` (it acts on the authenticated caller, and a supplied
+  target is ignored, since #2655), anonymous rejection and persistence, through the fake DB and, for development without
+  DynamoDB, the in-memory store (`GameServerUserApi`, `DevelopmentUsers`); `muteChat` as it affects chat. *Left:* the other
+  per-account game options (card image locale, timer visibility) and welcome / undo / timer popup acknowledgement.
 - **Best-of-three flow.** *Done:* only that `concedeBo3` and `proceedToNextBo3Game` are allowlisted and take
   effect. *Left:* set progression, the sideboarding window, ready timer, timeout paths, and `winHistory` as
   sent to the client. Needs I-4 for game setup.
