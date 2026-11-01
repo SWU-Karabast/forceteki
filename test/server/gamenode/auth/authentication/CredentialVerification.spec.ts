@@ -259,7 +259,7 @@ describe('Credential verification', function () {
             it('is refused by routes other than get-user, and nothing is created', async function () {
                 const { harness } = contextRef;
 
-                const response = await harness.requestAsync('put', '/api/user/someone/preferences', {
+                const response = await harness.requestAsync('put', '/api/user/preferences', {
                     cookie: sessionCookie(token),
                     body: { preferences: {} },
                 });
@@ -393,20 +393,54 @@ describe('Credential verification', function () {
 
     describe('the local dev test users', function () {
         const devUser = { id: 'exe66', username: 'Dev One' };
+        const devIdentity: ISignInIdentity = { username: 'Order66', provider: 'dev-user', providerId: 'order66', email: 'order66@local.karabast' };
+        const devToken = mintSessionToken(signInClaims(devIdentity));
+        const unknownDevToken = mintSessionToken(signInClaims({ ...devIdentity, providerId: 'unknown' }));
 
+        // The harness builds the server directly, so the startup seeding in GameServer.create has not run:
+        // these show a dev session finds its account on the request path alone.
         describe('on a development server', function () {
             serverIntegration(function (contextRef) {
-                it('can use their fixed ids over the API', async function () {
+                it('rejects their fixed ids without authentication over the API', async function () {
                     const response = await contextRef.harness.requestAsync('post', '/api/get-user', { body: { user: devUser } });
 
-                    expect(response.status).toBe(200);
-                    expect(response.body.user.id).toBe('exe66');
+                    expect(response.status).toBe(401);
+                    expect(response.body).toEqual(authenticationFailed);
                 });
 
-                it('can use their fixed ids on a socket', async function () {
+                it('rejects their fixed ids without authentication on a socket', async function () {
                     const result = await contextRef.harness.createClient().attemptConnectAsync({ user: devUser });
 
-                    expect(result).toEqual({ connected: true });
+                    expect(result).toEqual({ connected: false, errorMessage: 'Authentication error' });
+                });
+
+                it('signs a dev-user session in to its test account over the API', async function () {
+                    const response = await getUserAsync(contextRef.harness, devToken);
+
+                    expect(response.status).toBe(200);
+                    expect(response.body.user).toEqual(jasmine.objectContaining({ id: 'exe66', username: 'Order66' }));
+                });
+
+                it('signs a dev-user session in to its test account on a socket', async function () {
+                    const client = contextRef.harness.createClient();
+
+                    await client.connectAsync({ token: devToken });
+
+                    expect(client.socket.data.user.getId()).toBe('exe66');
+                    expect(client.socket.data.user.isAuthenticatedUser()).toBeTrue();
+                });
+
+                it('refuses a session for an unknown dev identity, and creates nothing for it', async function () {
+                    const { harness } = contextRef;
+
+                    const synced = await getUserAsync(harness, unknownDevToken);
+                    const created = await createUserAsync(harness, unknownDevToken);
+
+                    expect(synced.status).toBe(401);
+                    expect(synced.body).toEqual(authenticationFailed);
+                    expect(created.status).toBe(401);
+                    expect(created.body).toEqual(authenticationFailed);
+                    expectNothingStored(harness);
                 });
             }, { database: true });
         });
@@ -424,6 +458,28 @@ describe('Credential verification', function () {
                     const result = await contextRef.harness.createClient().attemptConnectAsync({ user: devUser });
 
                     expect(result).toEqual({ connected: false, errorMessage: 'Authentication error' });
+                });
+
+                it('refuses a validly signed dev-user session over the API, and creates nothing for it', async function () {
+                    const { harness } = contextRef;
+
+                    const synced = await getUserAsync(harness, devToken);
+                    const created = await createUserAsync(harness, devToken);
+
+                    expect(synced.status).toBe(401);
+                    expect(synced.body).toEqual(authenticationFailed);
+                    expect(created.status).toBe(401);
+                    expect(created.body).toEqual(authenticationFailed);
+                    expectNothingStored(harness);
+                });
+
+                it('refuses a validly signed dev-user session on a socket', async function () {
+                    const { harness } = contextRef;
+
+                    const result = await harness.createClient().attemptConnectAsync({ token: devToken });
+
+                    expect(result).toEqual({ connected: false, errorMessage: 'Authentication error' });
+                    expectNothingStored(harness);
                 });
             }, { database: true, env: { ENVIRONMENT: 'production' } });
         });

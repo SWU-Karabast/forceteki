@@ -134,6 +134,8 @@ import type { ISelectPlayerProperties } from './SelectPlayerSystem';
 import { SelectPlayerSystem } from './SelectPlayerSystem';
 import type { IChooseNumberProperties } from './ChooseNumberSystem';
 import { ChooseNumberSystem } from './ChooseNumberSystem';
+import type { ISelectChoiceProperties } from './SelectChoiceSystem';
+import { SelectChoiceSystem } from './SelectChoiceSystem';
 import type { ICardRoundLastingEffectProperties } from './CardRoundLastingEffectSystem';
 import { CardRoundLastingEffectSystem } from './CardRoundLastingEffectSystem';
 import type { IFlipAndAttachLeaderPilotProperties } from './FlipAndAttachPilotLeaderSystem';
@@ -779,6 +781,9 @@ export function selectPlayer<TContext extends AbilityContext = AbilityContext>(p
 }
 export function chooseNumber<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IChooseNumberProperties<TContext>, TContext>) {
     return new ChooseNumberSystem<TContext>(propertyFactory);
+}
+export function selectChoice<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISelectChoiceProperties<TContext>, TContext>) {
+    return new SelectChoiceSystem<TContext>(propertyFactory);
 }
 // export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>) {
 //     return new SelectTokenAction(propertyFactory);

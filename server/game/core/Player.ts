@@ -305,6 +305,10 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this.getInPlayCards(filter).length > 0;
     }
 
+    public hasSomeInPlayUpgrade(filter: Omit<IInPlayZoneCardFilterProperties, 'type'> = {}) {
+        return this.getInPlayCards({ ...filter, type: WildcardCardType.Upgrade }).length > 0;
+    }
+
     public getLeaderCards(filter: Omit<IInPlayZoneCardFilterProperties, 'type'> = {}) {
         const leaderFilter = [WildcardCardType.LeaderUnit, CardType.Leader, CardType.LeaderUpgrade];
         return this.getInPlayCards({ ...filter, type: leaderFilter });
@@ -321,20 +325,12 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
         return this.game.allArenas.getUnitCards({ ...filter, controller: this });
     }
 
-    public getArenaUpgrades(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties = {}) {
-        return this.game.allArenas.getUpgradeCards({ ...filter, controller: this });
-    }
-
     public hasSomeArenaCard(filter: IAllArenasForPlayerCardFilterProperties) {
         return this.game.allArenas.hasSomeCard({ ...filter, controller: this });
     }
 
     public hasSomeArenaUnit(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties = {}) {
         return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Unit, controller: this });
-    }
-
-    public hasSomeArenaUpgrade(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties = {}) {
-        return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Upgrade, controller: this });
     }
 
     public get hasTheForce(): boolean {

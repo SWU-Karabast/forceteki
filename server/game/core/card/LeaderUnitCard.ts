@@ -128,7 +128,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
     protected override onInitialize(): void {
         super.onInitialize();
         this.setupLeaderUnitSide = true;
-        this.setupLeaderUnitSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates);
+        this.setupLeaderUnitSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates.forCard(this));
         this.validateCardAbilities(this.triggeredAbilities, this.deployBox);
     }
 
@@ -204,7 +204,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
     }
 
     protected override callSetupLeaderWithRegistrar() {
-        this.setupLeaderSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates);
+        this.setupLeaderSideAbilities(this.getAbilityRegistrar(), this.game.abilityHelper, this.game.cardStates.forCard(this));
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

@@ -55,6 +55,44 @@ describe('Luminara Unduli, Besieged General', function() {
                 expect(context.cartelSpacer.getPower()).toBe(2);
             });
 
+            it('should not keep the +2/+0 if the attack is passed after selecting the attacker', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['luminara-unduli#besieged-general'],
+                        groundArena: ['battlefield-marine'],
+                    },
+                    player2: {
+                        groundArena: ['rebel-pathfinder']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.luminaraUnduli);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.rebelPathfinder]);
+                expect(context.battlefieldMarine.getPower()).toBe(5);
+                context.player1.clickPrompt('Pass attack');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine.exhausted).toBeFalse();
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+
+                context.player2.passAction();
+
+                // The buff must not carry over to Battlefield Marine's next attack
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.battlefieldMarine.getPower()).toBe(3);
+            });
+
             it('should attack with a unit and give it +2/+0 for the attack when another unit gets played', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

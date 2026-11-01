@@ -221,11 +221,11 @@ export class TestClient {
     }
 
     /**
-     * Saves preferences for `userId`; the real client always passes its own id. Like the real client, a
+     * Saves preferences for the authenticated caller. Like the real client, a
      * logged-in client sends just the preferences and its session, so the server looks the account up.
      */
-    public async savePreferencesAsync(userId: string, preferences: Record<string, unknown>): Promise<SupertestResponse> {
-        return await this.withAuthCookie(this.harness.api.put(`/api/user/${userId}/preferences`)).send({
+    public async savePreferencesAsync(preferences: Record<string, unknown>): Promise<SupertestResponse> {
+        return await this.withAuthCookie(this.harness.api.put('/api/user/preferences')).send({
             preferences,
             ...this.identityFields(),
         });

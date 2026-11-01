@@ -71,7 +71,7 @@ describe('Account resolution', function () {
                 const client = harness.createAccountClient();
                 await client.requestAsync('post', '/api/get-user');
 
-                const saved = await client.savePreferencesAsync(client.id, { gameOptions: { muteChat: true } });
+                const saved = await client.savePreferencesAsync({ gameOptions: { muteChat: true } });
                 const response = await client.requestAsync('post', '/api/get-user');
 
                 expect(saved.status).toBe(200);
@@ -114,7 +114,7 @@ describe('Account resolution', function () {
                 await client.requestAsync('post', '/api/get-user');
                 const profileReads = spyOn(harness.db, 'getUserProfileAsync').and.callThrough();
 
-                await client.savePreferencesAsync(client.id, { gameOptions: { muteChat: true } });
+                await client.savePreferencesAsync({ gameOptions: { muteChat: true } });
                 await client.requestAsync('post', '/api/get-user');
                 await client.requestAsync('post', '/api/get-user');
 
@@ -127,7 +127,7 @@ describe('Account resolution', function () {
                 await client.requestAsync('post', '/api/get-user');
                 spyOn(harness.db, 'updateUserPreferencesAsync').and.rejectWith(new Error('write failed'));
 
-                const saved = await client.savePreferencesAsync(client.id, { gameOptions: { muteChat: true } });
+                const saved = await client.savePreferencesAsync({ gameOptions: { muteChat: true } });
                 const response = await client.requestAsync('post', '/api/get-user');
 
                 expect(saved.status).toBe(500);

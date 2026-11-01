@@ -1,5 +1,5 @@
 const mockCards = [
-    // Add mock cards here
+    // -------- Begin Mock Cards --------
     buildMockCard({
         title: 'Moff Gideon',
         subtitle: 'Cold Calling',
@@ -306,8 +306,635 @@ const mockCards = [
         arena: 'ground',
         internalName: 'poggle-the-lesser#secret-designs'
     }),
+    buildMockCard({
+        title: 'C-3PO',
+        subtitle: 'Impulse Buy',
+        cost: 1,
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['rebel', 'droid'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 70
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'c3po#impulse-buy'
+    }),
+    buildMockCard({
+        title: 'Darth Maul',
+        subtitle: 'Mindful Apprentice',
+        cost: 6,
+        power: 4,
+        hp: 7,
+        hasNonKeywordAbility: false,
+        aspects: ['command', 'villainy'],
+        keywords: ['sentinel', 'overwhelm', 'raid 3'],
+        traits: ['force', 'sith'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 65
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'darth-maul#mindful-apprentice'
+    }),
+    buildMockCard({
+        title: 'Greef Karga',
+        subtitle: 'I Celebrate Your Success',
+        cost: 2,
+        power: 0,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['raid 3'],
+        traits: ['official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 153
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'greef-karga#i-celebrate-your-success'
+    }),
+    buildMockCard({
+        title: 'Wat Tambor',
+        subtitle: 'Warped Warbling',
+        cost: 3,
+        power: 4,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        keywords: ['sentinel'],
+        traits: ['separatist', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 143
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'wat-tambor#warped-warbling'
+    }),
+    buildMockCard({
+        title: 'Rey',
+        subtitle: 'In Balance',
+        cost: 5,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['force', 'resistance'],
+        types: ['leader'],
+        setId: {
+            set: 'IC27',
+            number: 2
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'rey#in-balance'
+    }),
+    buildMockCard({
+        title: 'BB-8',
+        subtitle: 'Frazzled Friend',
+        cost: 1,
+        power: 0,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['resistance', 'droid'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 31
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'bb8#frazzled-friend'
+    }),
+    buildMockCard({
+        title: 'Kaydel Connix',
+        subtitle: 'Keep Going!',
+        cost: 2,
+        power: 1,
+        hp: 5,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['sentinel'],
+        traits: ['resistance'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 32
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'kaydel-connix#keep-going'
+    }),
+    buildMockCard({
+        title: 'Finn',
+        subtitle: 'Stand and Fight',
+        cost: 4,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['sentinel'],
+        traits: ['resistance'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 37
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'finn#stand-and-fight'
+    }),
+    buildMockCard({
+        title: 'Rose Tico',
+        subtitle: 'In The Fight',
+        cost: 6,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['shielded'],
+        traits: ['resistance'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 40
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'rose-tico#in-the-fight'
+    }),
+    buildMockCard({
+        title: 'General Veers',
+        subtitle: 'Prepared',
+        cost: 2,
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['command', 'villainy'],
+        keywords: ['overwhelm'],
+        traits: ['imperial', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 58
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'general-veers#prepared'
+    }),
+    buildMockCard({
+        title: 'Admiral Motti',
+        subtitle: 'Conan in Command',
+        cost: 4,
+        power: 2,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        keywords: ['hidden'],
+        traits: ['imperial', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 62
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'admiral-motti#conan-in-command'
+    }),
+    buildMockCard({
+        title: 'Dryden Vos',
+        subtitle: 'Thumb-Spiking the Scale',
+        cost: 2,
+        power: 1,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['underworld'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 14
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'dryden-vos#thumbspiking-the-scale'
+    }),
+    buildMockCard({
+        title: 'General Grievous',
+        subtitle: 'Four-Armed Menace',
+        cost: 4,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['separatist', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 21
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'general-grievous#fourarmed-menace'
+    }),
+    buildMockCard({
+        title: 'Qi\'ra',
+        subtitle: 'Survivor',
+        cost: 3,
+        power: 1,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'vigilance'],
+        traits: ['underworld'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 45
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'qira#survivor'
+    }),
+    buildMockCard({
+        title: 'Dexter Jettster',
+        subtitle: 'Obi-Wannnn!!!',
+        cost: 3,
+        power: 2,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        traits: ['fringe'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 49
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'dexter-jettster#obiwannnn'
+    }),
+    buildMockCard({
+        title: 'Vigilant Defense',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'vigilance'],
+        traits: ['tactic'],
+        types: ['event'],
+        setId: {
+            set: 'IC27',
+            number: 46
+        },
+        unique: false,
+        internalName: 'vigilant-defense'
+    }),
+    buildMockCard({
+        title: 'The Mandalorian',
+        subtitle: 'From the Shadows',
+        cost: 4,
+        power: 5,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['shielded'],
+        traits: ['mandalorian', 'bounty hunter'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 157
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'the-mandalorian#from-the-shadows'
+    }),
+    buildMockCard({
+        title: 'Bo-Katan Kryze',
+        subtitle: 'Right Place, Right Time',
+        cost: 7,
+        power: 7,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        keywords: ['shielded'],
+        traits: ['mandalorian'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 163
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'bokatan-kryze#right-place-right-time'
+    }),
+    buildMockCard({
+        title: 'Kylo Ren',
+        subtitle: 'Supreme Leader',
+        cost: 5,
+        power: 5,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['force', 'first order', 'official'],
+        types: ['leader'],
+        setId: {
+            set: 'IC27',
+            number: 3
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'kylo-ren#supreme-leader'
+    }),
+    buildMockCard({
+        title: 'Kylo\'s TIE Silencer',
+        subtitle: 'Follow My Lead',
+        cost: 4,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        keywords: ['restore 1'],
+        traits: ['first order', 'vehicle', 'fighter'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 63
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'kylos-tie-silencer#follow-my-lead'
+    }),
+    buildMockCard({
+        title: 'Mother Talzin',
+        subtitle: 'The Time Has Come',
+        cost: 7,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['force', 'night'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 66
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'mother-talzin#the-time-has-come'
+    }),
+    buildMockCard({
+        title: 'Allegiant General Pryde',
+        subtitle: 'Heartless Efficiency',
+        cost: 1,
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['first order', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 56
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'allegiant-general-pryde#heartless-efficiency'
+    }),
+    buildMockCard({
+        title: 'Devastator',
+        subtitle: 'Lord Vader\'s Flagship',
+        cost: 10,
+        power: 9,
+        hp: 9,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        keywords: ['overwhelm'],
+        traits: ['imperial', 'vehicle', 'capital ship'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 68
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'devastator#lord-vaders-flagship'
+    }),
+    buildMockCard({
+        title: 'General Hux',
+        subtitle: 'Fire Ventral Cannons!',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        keywords: ['overwhelm'],
+        traits: ['first order', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 101
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'general-hux#fire-ventral-cannons'
+    }),
+    buildMockCard({
+        title: 'Aurra Sing',
+        subtitle: 'Getting Even',
+        cost: 6,
+        power: 1,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        keywords: ['hidden'],
+        traits: ['underworld', 'bounty hunter'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 107
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'aurra-sing#getting-even'
+    }),
+    buildMockCard({
+        title: 'Supremacy',
+        subtitle: 'Destroy the Resistance',
+        cost: 10,
+        power: 10,
+        hp: 10,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        traits: ['first order', 'vehicle', 'capital ship'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 110
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'supremacy#destroy-the-resistance'
+    }),
+    buildMockCard({
+        title: 'Poe Dameron',
+        subtitle: 'Hero of the Resistance',
+        cost: 2,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['resistance'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 115
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'poe-dameron#hero-of-the-resistance'
+    }),
+    buildMockCard({
+        title: 'Black One',
+        subtitle: 'Draw Fire, Twice',
+        cost: 3,
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['resistance', 'vehicle', 'fighter'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 116
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'black-one#draw-fire-twice'
+    }),
+    buildMockCard({
+        title: 'Act of Aggression',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'aggression'],
+        traits: ['innate'],
+        types: ['event'],
+        setId: {
+            set: 'IC27',
+            number: 127
+        },
+        unique: false,
+        internalName: 'act-of-aggression'
+    }),
+    buildMockCard({
+        title: 'Saw Gerrera',
+        subtitle: 'For the Cause',
+        cost: 5,
+        power: 6,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'aggression'],
+        traits: ['rebel'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 126
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'saw-gerrera#for-the-cause'
+    }),
+    buildMockCard({
+        title: 'Greedo',
+        subtitle: 'Big-Timer',
+        cost: 3,
+        power: 5,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        keywords: ['ambush'],
+        traits: ['underworld', 'bounty hunter'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 142
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'greedo#bigtimer'
+    }),
+    buildMockCard({
+        title: 'Jango Fett',
+        subtitle: 'Straight Shooter',
+        cost: 4,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        keywords: ['ambush'],
+        traits: ['separatist', 'bounty hunter'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 144
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'jango-fett#straight-shooter'
+    }),
+    buildMockCard({
+        title: 'Princess Leia',
+        subtitle: 'Calculated Distraction',
+        cost: 5,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        traits: ['rebel', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 159
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'princess-leia#calculated-distraction'
+    }),
     // -------- End Mock Cards --------
 ];
+
+// -------- Begin Mock Reprints --------
+// For cards already in the official data that are reprinted in an upcoming (mocked) set.
+// Instead of a buildMockCard entry - which would shadow the official card data and drop
+// the real card's other printings - the new set code is grafted onto the official card's
+// setCodes, so the real stats and the existing card implementation are reused as-is.
+// Note: `set` must exist in the `setNumber` map in fetchdata.js to be picked up.
+const mockReprints = [
+    { internalName: 'magistrates-scout', setId: { set: 'IC27', number: 18 } },
+    { internalName: 'concord-dawn-interceptors', setId: { set: 'IC27', number: 36 } },
+    { internalName: 'disciples-devotion', setId: { set: 'IC27', number: 53 } },
+    { internalName: 'betrayed-trust', setId: { set: 'IC27', number: 55 } },
+    { internalName: 'exegol-patroller', setId: { set: 'IC27', number: 59 } },
+    { internalName: 'knight-of-ren', setId: { set: 'IC27', number: 61 } },
+    { internalName: 'captain-phasma#on-my-command', setId: { set: 'IC27', number: 64 } },
+    { internalName: 'apology-accepted', setId: { set: 'IC27', number: 69 } },
+    { internalName: 'homestead-militia', setId: { set: 'IC27', number: 90 } },
+    { internalName: 'dogfight', setId: { set: 'IC27', number: 94 } },
+    { internalName: 'special-forces-tie-fighter', setId: { set: 'IC27', number: 100 } },
+    { internalName: 'battle-fury', setId: { set: 'IC27', number: 111 } },
+    { internalName: 'cham-syndulla#rallying-ryloth', setId: { set: 'IC27', number: 131 } },
+    { internalName: 'infiltrators-skill', setId: { set: 'IC27', number: 133 } },
+    { internalName: 'frozen-in-carbonite', setId: { set: 'IC27', number: 150 } }
+];
+// -------- End Mock Reprints --------
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string, text: string?, deployBox: string?, epicAction: string?, backSideTitle: string?, backSideSubtitle: string?, backSideTraits: string[]?, backSideAspects: string[]? }} cardData */
 function buildMockCard(cardData) {
@@ -414,7 +1041,39 @@ function addMockCards(cards) {
         allCards.push(card);
     }
 
+    applyMockReprints(allCards);
+
     return { mockCardNames, cards: allCards };
+}
+
+/** @param {Array<{ internalName: string, setCodes?: { set: string, number: number }[], setId: { set: string, number: number } }>} allCards */
+function applyMockReprints(allCards) {
+    for (const reprint of mockReprints) {
+        const matches = allCards.filter((card) => card.internalName === reprint.internalName);
+
+        if (matches.length === 0) {
+            console.log(`\nWARNING: mock reprint target '${reprint.internalName}' not found in card data. Check the internalName.`);
+            continue;
+        }
+
+        let patchedCount = 0;
+        for (const card of matches) {
+            if (!card.setCodes) {
+                card.setCodes = [card.setId];
+            }
+
+            if (card.setCodes.some((setCode) => setCode.set === reprint.setId.set && setCode.number === reprint.setId.number)) {
+                continue;
+            }
+
+            card.setCodes.push(reprint.setId);
+            patchedCount++;
+        }
+
+        if (patchedCount === 0) {
+            console.log(`\nMock reprint '${reprint.internalName}' (${buildSetStr(reprint)}) found in official data. The mock reprint can now be safely removed from mockdata.js`);
+        }
+    }
 }
 
 module.exports = { addMockCards };

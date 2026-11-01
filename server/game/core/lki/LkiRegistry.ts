@@ -74,13 +74,25 @@ export class LkiRegistry {
             'is no longer available. Long-lived holders must store recorded values rather than holding a reference.'
         );
 
-        const card = ref.getCardForEngine();
         Contract.assertTrue(
             ref.isCurrent,
             `${ref} names an identity that no longer exists and has no record, so nothing can be ` +
             'read from it.'
         );
 
+        return this.getLiveProperties(ref);
+    }
+
+    /**
+     * Returns a live pass-through view of the card the reference names, as it is right now.
+     *
+     * Deliberately ignores records, tombstones and identity, so it can never fail the way
+     * {@link getProperties} does and reads exactly what reading the card directly would. This is
+     * what a card that has not opted in to last known information receives
+     * (see `Card.usesLkiRegistry`).
+     */
+    public getLiveProperties(ref: CardRef): ICardProperties {
+        const card = ref.getCardForEngine();
         return card.isUnit() ? new LiveUnitProperties(ref, card) : new LiveCardProperties(ref, card);
     }
 

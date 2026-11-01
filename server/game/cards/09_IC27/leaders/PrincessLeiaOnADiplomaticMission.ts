@@ -25,13 +25,12 @@ export default class PrincessLeiaOnADiplomaticMission extends LeaderUnitCard {
                     activePromptTitle: 'Select a card to put on the top or bottom of your deck',
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
-                    immediateEffect: abilityHelper.immediateEffects.chooseModalEffects((context) => ({
-                        amountOfChoices: 1,
-                        choices: () => ({
-                            ['Top']: abilityHelper.immediateEffects.moveToTopOfDeck({ target: context.target }),
-                            ['Bottom']: abilityHelper.immediateEffects.moveToBottomOfDeck({ target: context.target }),
-                        })
-                    }))
+                    immediateEffect: abilityHelper.immediateEffects.selectChoice({
+                        choices: {
+                            ['Top']: abilityHelper.immediateEffects.moveToTopOfDeck(),
+                            ['Bottom']: abilityHelper.immediateEffects.moveToBottomOfDeck(),
+                        }
+                    })
                 }
             }
         });
@@ -47,13 +46,12 @@ export default class PrincessLeiaOnADiplomaticMission extends LeaderUnitCard {
                     activePromptTitle: 'Select a card to put on the top or bottom of your deck',
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
-                    immediateEffect: abilityHelper.immediateEffects.chooseModalEffects((context) => ({
-                        amountOfChoices: 1,
-                        choices: () => ({
-                            ['Top']: abilityHelper.immediateEffects.moveToTopOfDeck({ target: context.target }),
-                            ['Bottom']: abilityHelper.immediateEffects.moveToBottomOfDeck({ target: context.target }),
-                        })
-                    }))
+                    immediateEffect: abilityHelper.immediateEffects.selectChoice({
+                        choices: {
+                            ['Top']: abilityHelper.immediateEffects.moveToTopOfDeck(),
+                            ['Bottom']: abilityHelper.immediateEffects.moveToBottomOfDeck(),
+                        }
+                    })
                 }
             }
         });

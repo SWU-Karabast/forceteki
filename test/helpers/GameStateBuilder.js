@@ -23,6 +23,7 @@ class GameStateBuilder {
             'getTraitNames',
             'getChatLog',
             'getChatLogs',
+            'getAnimationRecords',
             'getPromptedPlayer',
             'keepStartingHand',
             'moveToNextActionPhase',

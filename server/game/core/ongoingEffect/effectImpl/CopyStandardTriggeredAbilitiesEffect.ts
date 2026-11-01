@@ -69,7 +69,8 @@ export class CopyStandardTriggeredAbilitiesEffect extends OngoingEffectValueWrap
         // triggered abilities get registered on the target. A single snapshot above covers all sources, so
         // unapply cleanly removes every copied ability regardless of how many sources were copied.
         for (const sourceUnit of this.getValue()) {
-            sourceUnit.setupCardAbilities(filteredRegistrar, this.game.abilityHelper, this.game.cardStates);
+            // the abilities' code belongs to the source unit, so the getter follows that card's opt-in
+            sourceUnit.setupCardAbilities(filteredRegistrar, this.game.abilityHelper, this.game.cardStates.forCard(sourceUnit));
         }
     }
 

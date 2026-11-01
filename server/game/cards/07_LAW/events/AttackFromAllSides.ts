@@ -19,12 +19,11 @@ export default class AttackFromAllSides extends EventCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => Helpers.countUniqueAspects(context.source.controller.getArenaUnits()) >= 4,
-                    onTrue: AbilityHelper.immediateEffects.chooseModalEffects({
-                        amountOfChoices: 1,
-                        choices: (context) => ({
-                            ['Deal 5 damage']: AbilityHelper.immediateEffects.damage({ amount: 5, target: context.target }),
-                            ['Deal 3 damage']: AbilityHelper.immediateEffects.damage({ amount: 3, target: context.target }),
-                        }),
+                    onTrue: AbilityHelper.immediateEffects.selectChoice({
+                        choices: {
+                            ['Deal 5 damage']: AbilityHelper.immediateEffects.damage({ amount: 5 }),
+                            ['Deal 3 damage']: AbilityHelper.immediateEffects.damage({ amount: 3 }),
+                        },
                     }),
                     onFalse: AbilityHelper.immediateEffects.damage({ amount: 3 })
                 })

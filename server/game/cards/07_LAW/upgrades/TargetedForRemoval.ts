@@ -4,6 +4,8 @@ import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import type { ICardStateGetter } from '../../../core/lki/CardStateGetter';
 
 export default class TargetedForRemoval extends UpgradeCard {
+    public override readonly usesLkiRegistry = true;
+
     protected override getImplementationId () {
         return {
             id: '6727831575',

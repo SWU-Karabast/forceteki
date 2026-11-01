@@ -28,18 +28,16 @@ export const getSessionToken = (req: Request): string | undefined => {
     return cookies['__Secure-next-auth.session-token'] || cookies['next-auth.session-token'];
 };
 
-export const authMiddleware = (gameServer: GameServer, routeName?: string, serverRoleRequired?: ServerRole) => {
+export const authMiddleware = (gameServer: GameServer, routeName?: string, serverRoleRequired?: ServerRole, requireSignIn: boolean = false) => {
     const userFactory = gameServer.getUserFactory();
 
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
             const token = getSessionToken(req);
             if (!token) {
-                // A route that names a required role has no anonymous form of itself. Refuse here
-                // rather than continuing as an anonymous user: the role check below sits on the
-                // authenticated path, so falling through would skip it altogether.
-                if (serverRoleRequired) {
-                    logger.warn(`Auth ${routeName ?? req.path}: unauthenticated request to a route requiring ${serverRoleRequired}`);
+                // Role-protected routes and routes requiring a signed-in caller have no anonymous form.
+                if (serverRoleRequired || requireSignIn) {
+                    logger.warn(`Auth ${routeName ?? req.path}: authentication required${serverRoleRequired ? ` for role ${serverRoleRequired}` : ''}`);
                     return res.status(401).json({ success: false, message: 'Authentication required' });
                 }
 

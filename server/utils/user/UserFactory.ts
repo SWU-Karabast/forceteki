@@ -2,7 +2,7 @@ import { AnonymousUser, AuthenticatedUser } from './User';
 import { logger } from '../../logger';
 import { v4 as uuid, validate as isUuid } from 'uuid';
 import jwt from 'jsonwebtoken';
-import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
+import { getUserStoreAsync } from './UserStore';
 import { Contract } from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
 import type { IUserDataEntity, IUserPreferences, IUserProfileDataEntity, IModActionEntity, IUsernameChangeEntity } from '../../services/DynamoDBInterfaces';
@@ -48,6 +48,13 @@ const refreshTokenFieldMap: Record<RefreshTokenSource, {
     [RefreshTokenSource.SWUBase]: 'swubaseRefreshToken',
 };
 
+type DevelopmentTestProviderId = 'order66' | 'this-is-the-way';
+
+const developmentTestUsers: Record<DevelopmentTestProviderId, { id: string; username: string }> = {
+    order66: { id: 'exe66', username: 'Order66' },
+    'this-is-the-way': { id: 'th3w4y', username: 'ThisIsTheWay' },
+};
+
 
 /** The signed-in identity a session token vouches for. */
 interface ITokenIdentity {
@@ -70,9 +77,10 @@ export class AccountNotFoundError extends Error {
  * based on authentication status and data
  */
 export class UserFactory {
-    private dbServicePromise = getDynamoDbServiceAsync();
+    private dbServicePromise = getUserStoreAsync();
     private MS_PER_DAY = 24 * 60 * 60 * 1000;
     private readonly accountCreations = new Map<string, Promise<AuthenticatedUser>>();
+    private developmentTestUsersReady?: Promise<void>;
 
     public constructor(public readonly cache: UserProfileCache = new UserProfileCache()) {}
 
@@ -143,7 +151,8 @@ export class UserFactory {
     /**
      * Checks a session token's signature and expiry against `NEXTAUTH_SECRET` and returns the sign-in
      * identity it carries. Only the signed claims are read, so this is the one place a token is trusted.
-     * `email` and `name` are optional because they are only needed to create an account.
+     * `email` and `name` are optional because they are only needed to create an account. A `dev-user`
+     * identity is only accepted in development, and only for one of the two test accounts.
      * @throws if the token is invalid or expired, or has no `provider` and `providerId` claims
      */
     private verifyTokenIdentity(token: string): ITokenIdentity {
@@ -154,6 +163,11 @@ export class UserFactory {
         const { provider, providerId, email, name } = decoded ?? {};
         if (typeof provider !== 'string' || !provider || typeof providerId !== 'string' || !providerId) {
             throw new Error('Session token does not identify a sign-in provider account');
+        }
+
+        if (provider === 'dev-user') {
+            Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Development test users can only authenticate in development');
+            Contract.assertTrue(Object.keys(developmentTestUsers).includes(providerId), 'Unknown development test user');
         }
 
         return {
@@ -172,6 +186,12 @@ export class UserFactory {
 
     private async resolveUserFromIdentityAsync(identity: ITokenIdentity): Promise<AuthenticatedUser> {
         const dbService = await this.requireDbServiceAsync();
+
+        // the test accounts are seeded at startup, but a server that was not started through GameServer.create
+        // has not done so, and resolving never creates an account
+        if (identity.provider === 'dev-user') {
+            await this.ensureDevelopmentTestUsersOnceAsync();
+        }
 
         const userId = await this.cache.getUserIdAsync(
             identity.provider,
@@ -200,6 +220,88 @@ export class UserFactory {
         return new AuthenticatedUser(profile);
     }
 
+    /** Loads one of the two test accounts for local development test games. */
+    public async createDevelopmentTestUserAsync(providerId: DevelopmentTestProviderId): Promise<AuthenticatedUser | null> {
+        Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Development test users can only be loaded in development');
+
+        const dbService = await this.dbServicePromise;
+        await this.ensureDevelopmentTestUsersAsync();
+
+        const userId = await dbService.getUserIdByOAuthAsync('dev-user', providerId);
+        if (!userId) {
+            return null;
+        }
+
+        let userData = await dbService.getUserProfileAsync(userId);
+        if (!userData) {
+            return null;
+        }
+
+        userData = await this.processModerationAsync(userData);
+        return new AuthenticatedUser(userData);
+    }
+
+    /**
+     * {@link ensureDevelopmentTestUsersAsync} at most once per factory, for the request path, where every
+     * dev-user request resolves its account. A failed attempt is not remembered, so the next request retries.
+     */
+    private ensureDevelopmentTestUsersOnceAsync(): Promise<void> {
+        this.developmentTestUsersReady ??= this.ensureDevelopmentTestUsersAsync().catch((error) => {
+            this.developmentTestUsersReady = undefined;
+            throw error;
+        });
+        return this.developmentTestUsersReady;
+    }
+
+    /** Ensures the two persistent local-development test accounts exist without requiring an initial browser login. */
+    public async ensureDevelopmentTestUsersAsync(): Promise<void> {
+        Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Development test users can only be initialized in development');
+
+        const dbService = await this.dbServicePromise;
+        for (const providerId of Object.keys(developmentTestUsers) as DevelopmentTestProviderId[]) {
+            const testUser = developmentTestUsers[providerId];
+            let userId = await dbService.getUserIdByOAuthAsync('dev-user', providerId);
+
+            if (!userId) {
+                userId = testUser.id;
+                try {
+                    await dbService.saveOAuthLinkAsync('dev-user', providerId, userId);
+                } catch (error) {
+                    if (error.name !== 'ConditionalCheckFailedException') {
+                        throw error;
+                    }
+
+                    // Another initializer won the race. Use the ID it registered.
+                    userId = await dbService.getUserIdByOAuthAsync('dev-user', providerId);
+                    Contract.assertNotNullLike(userId, `Development test user ${testUser.username} OAuth link could not be initialized`);
+                }
+            }
+
+            const existingProfile = await dbService.getUserProfileAsync(userId);
+            if (!existingProfile) {
+                const now = new Date().toISOString();
+                await dbService.saveUserProfileAsync({
+                    id: userId,
+                    username: testUser.username,
+                    lastLogin: now,
+                    createdAt: now,
+                    usernameLastUpdatedAt: now,
+                    showWelcomeMessage: false,
+                    preferences: getDefaultPreferences(),
+                    needsUsernameChange: false,
+                });
+            }
+
+            // Username links are keyed by both name and user ID; repair this profile's current name
+            // without restoring a stale link after a rename or touching another account's link.
+            const username = existingProfile?.username ?? testUser.username;
+            const linkedUserIds = await dbService.getUserIdsByUsernameAsync(username);
+            if (!linkedUserIds.includes(userId)) {
+                await dbService.saveUsernameLinkAsync(username, userId);
+            }
+        }
+    }
+
     /**
      * Creates an anonymous user with a generated ID or provided ID
      * @param id Optional ID for the anonymous user
@@ -213,7 +315,7 @@ export class UserFactory {
     /**
      * Creates an anonymous user from the `user` field of a socket handshake query or request body.
      *
-     * Only the id is taken from the client, and it must be a UUID (the dev test users excepted). The
+     * Only the id is taken from the client, and it must be a UUID. The
      * username is always derived from the id, so a client cannot choose its own anonymous name.
      */
     public createAnonymousUserFromQuery(query?: ParsedUrlQuery): AnonymousUser {
@@ -224,10 +326,6 @@ export class UserFactory {
         const id = queryUser?.id;
         if (id == null) {
             return new AnonymousUser(uuid(), 'AnonymousPlayer', false);
-        }
-
-        if (AnonymousUser.isDevTestUserId(id)) {
-            return new AnonymousUser(id, queryUser.username, true);
         }
 
         if (typeof id !== 'string' || !isUuid(id)) {
