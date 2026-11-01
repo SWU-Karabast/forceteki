@@ -66,6 +66,11 @@ export class DisplayCardsBasicPrompt extends DisplayCardPrompt<IDisplayCardsBasi
         }));
     }
 
+    // Looking at the revealed cards and pressing Done chooses nothing.
+    public override isPlayerDecisionPrompt(): boolean {
+        return false;
+    }
+
     public override menuCommand(player: Player, arg: PromptButtonArg, uuid: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
 

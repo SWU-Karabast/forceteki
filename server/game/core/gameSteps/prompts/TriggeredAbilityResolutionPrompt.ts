@@ -70,6 +70,10 @@ export class TriggeredAbilityResolutionPrompt extends UiPrompt {
         };
     }
 
+    public override isPlayerDecisionPrompt(): boolean {
+        return true;
+    }
+
     public override menuCommand(_player: Player, arg: PromptButtonArg): boolean {
         if (arg === 'cancel') {
             this.complete();

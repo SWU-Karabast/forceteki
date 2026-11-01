@@ -427,6 +427,8 @@ export class Game extends EventEmitter {
     private _serializationFailure: boolean;
     private _lastAttackId: number;
     public playerHasBeenPrompted: Map<string, boolean>;
+    public playerHasDecided: Map<string, boolean>;
+    public playerHasBeenShownHiddenInformation: Map<string, boolean>;
 
     /** Supplies timers and the clock. Callbacks scheduled through it are error-guarded. */
     public readonly scheduler: IScheduler;
@@ -516,6 +518,8 @@ export class Game extends EventEmitter {
         this._serializationFailure = false;
         this._lastAttackId = -1;
         this.playerHasBeenPrompted = new Map();
+        this.playerHasDecided = new Map();
+        this.playerHasBeenShownHiddenInformation = new Map();
 
         this.scheduler = details.scheduler;
         this.userTimeoutDisconnect = details.userTimeoutDisconnect;
@@ -1022,7 +1026,7 @@ export class Game extends EventEmitter {
         }
 
         // Check to see if the current step in the pipeline is waiting for input
-        this.pipeline.handleCardClicked(player, card);
+        this.dispatchPlayerInput(player, () => this.pipeline.handleCardClicked(player, card));
     }
 
     /**
@@ -1187,10 +1191,46 @@ export class Game extends EventEmitter {
 
     public resetPromptedPlayersTracking(): void {
         this.playerHasBeenPrompted.clear();
+        this.playerHasDecided.clear();
+        this.playerHasBeenShownHiddenInformation.clear();
     }
 
     public hasBeenPrompted(player: Player): boolean {
         return !!this.playerHasBeenPrompted.get(player.id);
+    }
+
+    /** Whether the player has completed a decision-declaring prompt (UiPrompt.isPlayerDecisionPrompt) since the window tracking was last reset. */
+    public hasMadeDecision(player: Player): boolean {
+        return !!this.playerHasDecided.get(player.id);
+    }
+
+    public recordHiddenInformationShown(playerId: string): void {
+        this.playerHasBeenShownHiddenInformation.set(playerId, true);
+    }
+
+    /** Whether the player has been shown hidden information since the window tracking was last reset. */
+    public hasBeenShownHiddenInformation(player: Player): boolean {
+        return !!this.playerHasBeenShownHiddenInformation.get(player.id);
+    }
+
+    /**
+     * Runs a player's input and records, per player, that they completed a prompt that declares itself a decision.
+     * The awaiting prompt is read before dispatch because completing it restores the previously open prompt.
+     * Hooked here rather than in UiPrompt.complete() because some prompts complete with no player input (SelectCardPrompt.continue).
+     * AllPlayerPrompt.isComplete() needs every player, so only the finishing input records for those; none can open in a Regroup/Setup StartOfPhase window.
+     * SelectCardPrompt, ResourcePrompt and MulliganPrompt complete before super.continue() and so can stay the open prompt after completing; requiring the prompt to be incomplete before dispatch means they are never recorded.
+     * A handler that rolls back replays the target window inside dispatch, so this write lands in the replayed timeline; the only decision-declaring handler that rolls back (cost-payment recovery) targets the action phase only (getCostPaymentRecoveryRollbackSettings), and none may target a Regroup/Setup start-of-phase checkpoint without revisiting this.
+     */
+    private dispatchPlayerInput(player: Player, dispatch: () => boolean): boolean {
+        const awaitingPrompt = this.getCurrentOpenPrompt();
+        const awaitingWasComplete = awaitingPrompt?.isComplete() ?? true;
+        const handled = dispatch();
+
+        if (handled && player != null && !awaitingWasComplete && awaitingPrompt.isComplete() && awaitingPrompt.isPlayerDecisionPrompt()) {
+            this.playerHasDecided.set(player.id, true);
+        }
+
+        return handled;
     }
 
     /**
@@ -1316,7 +1356,7 @@ export class Game extends EventEmitter {
         const player = this.getPlayerById(playerId);
 
         // check to see if the current step in the pipeline is waiting for input
-        return this.pipeline.handleMenuCommand(player, arg, uuid, method);
+        return this.dispatchPlayerInput(player, () => this.pipeline.handleMenuCommand(player, arg, uuid, method));
     }
 
     /**
@@ -1327,7 +1367,7 @@ export class Game extends EventEmitter {
         const player = this.getPlayerById(playerId);
 
         // check to see if the current step in the pipeline is waiting for input
-        return this.pipeline.handlePerCardMenuCommand(player, arg, cardUuid, uuid, method);
+        return this.dispatchPlayerInput(player, () => this.pipeline.handlePerCardMenuCommand(player, arg, cardUuid, uuid, method));
     }
 
     /**
@@ -1339,7 +1379,7 @@ export class Game extends EventEmitter {
         const player = this.getPlayerById(playerId);
 
         // check to see if the current step in the pipeline is waiting for input
-        return this.pipeline.handleStatefulPromptResults(player, result, uuid);
+        return this.dispatchPlayerInput(player, () => this.pipeline.handleStatefulPromptResults(player, result, uuid));
     }
 
     /**

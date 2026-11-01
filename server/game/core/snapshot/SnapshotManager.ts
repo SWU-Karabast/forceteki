@@ -330,14 +330,8 @@ export class SnapshotManager {
             return QuickRollbackPoint.Current;
         }
 
-        // Phase-boundary triggers (Sneak Attack's single-trigger "defeat at start of regroup phase",
-        // Thrawn1-style start-of-phase reveals) already resolve correctly through the existing cases
-        // below -- confirmed by instrumenting this function and running the two named specs, not by
-        // inspection alone. A separate, real defect -- when this player has already decided something
-        // in a Regroup/Setup boundary window (e.g. two simultaneous Sneak Attacks) before requesting a
-        // quick-undo -- remains open and deferred; see docs/plans/04-delta-snapshots.md's "Known
-        // limitations (deferred)" section (roadmap unit P4-0b) for the exact moment, the mechanism, and
-        // why three fix attempts failed at plan review.
+        // Phase-boundary triggers: Thrawn's start-of-action reveal and a single Sneak Attack trigger already resolve through the cases below
+        // (docs/plans/04-delta-snapshots.md, "Known limitations (deferred)"). The decided-part-of-the-window case is handled by the rule just before the final return.
 
         // if we're in the middle of an action, revert to start of action
         if (this.currentSnapshottedTimepointType === SnapshotTimepoint.Action && playerPromptType !== PromptType.ActionWindow) {
@@ -353,7 +347,22 @@ export class SnapshotManager {
             return QuickRollbackPoint.Current;
         }
 
+        // Regroup/Setup record their StartOfPhase checkpoint eagerly (addQuickStartOfPhaseSnapshots), so while that window is open it is already this
+        // player's latest entry and Previous would step over it into the previous action phase. If the player has completed a decision in this window,
+        // landing on the checkpoint undoes real progress; if they have not, it would be a state-identical no-op, so Previous stays correct.
+        // The phase test mirrors takeSnapshot's condition for the eager push, which is why Action's StartOfPhase (lazy entry) is excluded.
+        if (this.isOpenPhaseBoundaryWindow(playerId) && this.#game.hasMadeDecision(player)) {
+            return QuickRollbackPoint.Current;
+        }
+
         return QuickRollbackPoint.Previous;
+    }
+
+    /** True while a Regroup/Setup StartOfPhase window is open and its eagerly recorded checkpoint is this player's latest quick entry. */
+    private isOpenPhaseBoundaryWindow(playerId: string): boolean {
+        return this.currentSnapshottedTimepointType === SnapshotTimepoint.StartOfPhase &&
+          (this.#game.currentPhase === PhaseName.Regroup || this.#game.currentPhase === PhaseName.Setup) &&
+          this.quickSnapshots.get(playerId)?.getMostRecentSnapshotId() === this.currentSnapshotId;
     }
 
     private rollbackManualSnapshot(settings: IGetManualSnapshotSettings): number {
@@ -459,6 +468,15 @@ export class SnapshotManager {
             return { requiresConfirmation: true, isSameTimepoint };
         }
 
+        // A requester shown hidden information in the open Regroup/Setup window still needs the opponent's approval to land on the eagerly recorded checkpoint.
+        if (
+            rollbackPoint === QuickRollbackPoint.Current &&
+            this.isOpenPhaseBoundaryWindow(playerId) &&
+            this.#game.hasBeenShownHiddenInformation(this.#game.getPlayerById(playerId))
+        ) {
+            return { requiresConfirmation: true, isSameTimepoint };
+        }
+
         if (this.opponentActedSinceLastSnapshot(rollbackPoint, quickSnapshotProperties)) {
             return { requiresConfirmation: true, isSameTimepoint };
         }
@@ -487,6 +505,7 @@ export class SnapshotManager {
 
     public setRequiresConfirmationToRollbackCurrentSnapshot(playerId: string) {
         this.actionSnapshots.setRequiresConfirmationToRollbackCurrentSnapshot(playerId);
+        this.#game.recordHiddenInformationShown(playerId);
     }
 
     public clearAllSnapshots(): void {

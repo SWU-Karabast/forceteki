@@ -55,6 +55,11 @@ export class PassDelayPrompt extends UiPrompt {
         return false;
     }
 
+    // Skipping the masking pause chooses nothing about the game.
+    public override isPlayerDecisionPrompt(): boolean {
+        return false;
+    }
+
     public override menuCommand(player: Player, arg: PromptButtonArg, uuid: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
         this.complete();

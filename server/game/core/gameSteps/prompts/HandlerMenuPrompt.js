@@ -140,6 +140,11 @@ class HandlerMenuPrompt extends UiPrompt {
     }
 
     /** @override */
+    isPlayerDecisionPrompt() {
+        return true;
+    }
+
+    /** @override */
     menuCommand(player, arg) {
         if (typeof arg === 'string') {
             if (arg === 'cancel') {

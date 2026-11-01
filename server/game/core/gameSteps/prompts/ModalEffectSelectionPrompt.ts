@@ -83,6 +83,10 @@ export class ModalEffectSelectionPrompt extends UiPrompt {
         };
     }
 
+    public override isPlayerDecisionPrompt(): boolean {
+        return true;
+    }
+
     public override menuCommand(_player: Player, arg: string): boolean {
         const choice = this.properties.choices[Number(arg)];
         if (!choice) {

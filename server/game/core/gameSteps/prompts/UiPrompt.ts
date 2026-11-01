@@ -147,6 +147,17 @@ export abstract class UiPrompt extends BaseStep {
         return true;
     }
 
+    /**
+     * Whether completing this prompt means the player made a choice that a quick-undo past it would take back.
+     * Game records it per player (Game.hasMadeDecision) and SnapshotManager.getQuickRollbackPoint reads it at Regroup/Setup phase boundaries.
+     * Answer false for prompts that complete without choosing anything about the game: view-only popups, the undo confirmation, masking pauses.
+     * The default is false, which keeps the pre-existing quick-undo target.
+     * Every concrete subclass must restate its own answer; PromptDecisionDeclaration.spec.ts fails otherwise.
+     */
+    public isPlayerDecisionPrompt(): boolean {
+        return false;
+    }
+
     protected highlightSelectableCards() {
         for (const player of this.game.getPlayers()) {
             player.setSelectableCards([]);

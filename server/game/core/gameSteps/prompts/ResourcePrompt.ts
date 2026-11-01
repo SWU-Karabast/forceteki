@@ -113,6 +113,10 @@ export class ResourcePrompt extends AllPlayerPrompt {
         };
     }
 
+    public override isPlayerDecisionPrompt(): boolean {
+        return true;
+    }
+
     public override menuCommand(player: Player, arg: PromptButtonArg): boolean {
         if (arg === 'done') {
             if (this.completionCondition(player)) {

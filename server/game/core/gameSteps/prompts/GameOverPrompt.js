@@ -38,6 +38,11 @@ class GameOverPrompt extends AllPlayerPrompt {
     }
 
     /** @override */
+    isPlayerDecisionPrompt() {
+        return false; // the game is over, so there is no game choice to take back
+    }
+
+    /** @override */
     menuCommand(player) {
         this.game.addMessage('{0} wants to continue', player);
 

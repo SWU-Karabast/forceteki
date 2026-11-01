@@ -76,6 +76,10 @@ export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCar
         this.onComplete();
     }
 
+    public override isPlayerDecisionPrompt(): boolean {
+        return true;
+    }
+
     public override menuCommand(_player: Player, arg: PromptButtonArg, _uuid: string): boolean {
         Contract.fail(`Unexpected menu command: '${arg}'`);
     }

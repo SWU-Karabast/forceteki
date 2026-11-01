@@ -398,11 +398,8 @@ describe('Start / end of phase snapshots', function() {
                 assertRegroupPhaseRaiderDefeatedState(context);
             });
 
-            // Known, documented limitation (deferred, roadmap unit P4-0b): see
-            // docs/plans/04-delta-snapshots.md's "Known limitations (deferred)" section for the root
-            // cause, why three separate fix attempts failed, and the structural alternative left for
-            // whoever picks this up. This assertion pins today's correct-for-now behavior; do not
-            // change it without also resolving that documented item.
+            // Nothing has been decided in the window yet, so landing on the boundary checkpoint would be a state-identical no-op: undo overshoots into the action phase by design.
+            // The decided cases are covered by the specs below (docs/plans/04-delta-snapshots.md, "Known limitations (deferred)").
             it('should revert back to the last action of the action phase on undo', function () {
                 const { context } = contextRef;
 
@@ -423,6 +420,270 @@ describe('Start / end of phase snapshots', function() {
                 assertRegroupPhaseStartState(context);
                 completeRuthlessRaiderActions(context);
                 assertRegroupPhaseRaiderDefeatedState(context);
+            });
+
+            const assertLandedOnBoundary = (context) => {
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfRegroupPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfRegroupPhaseActionId);
+                assertRegroupPhaseStartState(context);
+                expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
+            };
+
+            it('lands on the boundary when the requester has chosen the resolution order', function () {
+                const { context } = contextRef;
+
+                context.player1.clickPrompt('You');
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult).toBeTrue();
+
+                assertLandedOnBoundary(context);
+                completeRuthlessRaiderActions(context);
+                assertRegroupPhaseRaiderDefeatedState(context);
+            });
+
+            it('lands on the boundary when the requester answered its own trigger and the opponent\'s is pending', function () {
+                const { context } = contextRef;
+
+                context.player1.clickPrompt('You');
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player1.id
+                });
+                expect(rollbackResult).toBeTrue();
+
+                assertLandedOnBoundary(context);
+                completeRuthlessRaiderActions(context);
+                assertRegroupPhaseRaiderDefeatedState(context);
+            });
+
+            it('reverts into the action phase on a second undo after that replay', function () {
+                const { context } = contextRef;
+
+                context.player1.clickPrompt('You');
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                expect(contextRef.snapshot.rollbackToSnapshot({ type: 'quick', playerId: context.player1.id })).toBeTrue();
+                assertLandedOnBoundary(context);
+
+                expect(contextRef.snapshot.rollbackToSnapshot({ type: 'quick', playerId: context.player1.id })).toBeTrue();
+
+                assertActionPhaseEndState(context);
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.endOfActionPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.endOfActionPhaseActionId);
+            });
+
+            it('still reverts the opponent who has decided nothing to the last action of the action phase', function () {
+                const { context } = contextRef;
+
+                context.player1.clickPrompt('You');
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                const rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'quick',
+                    playerId: context.player2.id
+                });
+                expect(rollbackResult).toBeTrue();
+
+                assertActionPhaseEndState(context);
+                expect(contextRef.snapshot.getCurrentSnapshotId()).not.toEqual(context.startOfRegroupPhaseSnapshotId);
+            });
+        });
+
+        describe('Effects at the start of the regroup phase for a player with two simultaneous triggers', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'wampa', upgrades: ['foresight'] }],
+                        spaceArena: ['system-patrol-craft'],
+                        hand: ['sneak-attack', 'ruthless-raider'],
+                        deck: ['millennium-falcon#piece-of-junk', 'battlefield-marine', 'atst', 'resupply']
+                    },
+                    player2: {
+                        spaceArena: ['green-squadron-awing'],
+                        groundArena: ['atst']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sneakAttack);
+                context.player1.clickCard(context.ruthlessRaider);
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                context.moveToRegroupPhase();
+
+                context.startOfRegroupPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.startOfRegroupPhaseActionId = contextRef.snapshot.getCurrentSnapshottedAction();
+            });
+
+            const assertLandedOnBoundary = (context) => {
+                expect(context.game.currentPhase).toBe('regroup');
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfRegroupPhaseSnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.startOfRegroupPhaseActionId);
+                expect(context.ruthlessRaider).toBeInZone('discard');
+                expect(context.greenSquadronAwing).toBeInZone('spaceArena');
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                expect(context.player1).toHaveEnabledPromptButtons(['Deal 2 damage to an enemy base and 2 damage to an enemy unit', 'Name a card']);
+            };
+
+            it('lands on the boundary after the requester chose which of its own triggers resolves first', function () {
+                const { context } = contextRef;
+
+                expect(context.player1).toHavePrompt('You have multiple triggers to resolve. Choose which to resolve first:');
+                context.player1.clickPrompt('Deal 2 damage to an enemy base and 2 damage to an enemy unit');
+
+                expect(contextRef.snapshot.rollbackToSnapshot({ type: 'quick', playerId: context.player1.id })).toBeTrue();
+                assertLandedOnBoundary(context);
+
+                // the same decision again, then also answer the target and undo with Foresight still pending
+                context.player1.clickPrompt('Deal 2 damage to an enemy base and 2 damage to an enemy unit');
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                expect(contextRef.snapshot.rollbackToSnapshot({ type: 'quick', playerId: context.player1.id })).toBeTrue();
+                assertLandedOnBoundary(context);
+            });
+
+            it('reverts into the action phase when nothing has been decided', function () {
+                const { context } = contextRef;
+
+                expect(contextRef.snapshot.rollbackToSnapshot({ type: 'quick', playerId: context.player1.id })).toBeTrue();
+
+                expect(context.game.currentPhase).toBe('action');
+                expect(contextRef.snapshot.getCurrentSnapshotId()).not.toEqual(context.startOfRegroupPhaseSnapshotId);
+                expect(context.ruthlessRaider).toBeInZone('spaceArena');
+            });
+
+            it('lands on the boundary without asking the opponent in Free undo mode after a trigger revealed a card', function () {
+                const { context } = contextRef;
+
+                context.player1.clickPrompt('Name a card');
+                context.player1.chooseListOption('Millennium Falcon');
+                context.player1.clickDone();
+
+                expect(contextRef.snapshot.quickRollbackRequiresConfirmation(context.player1.id)).toBeFalse();
+                expect(contextRef.snapshot.rollbackToSnapshot({ type: 'quick', playerId: context.player1.id })).toBeTrue();
+
+                assertLandedOnBoundary(context);
+                expect(context.player2).not.toHaveConfirmUndoPrompt();
+            });
+        });
+
+        describe('Effects at the start of the regroup phase when a trigger is declined', function () {
+            it('lands on the boundary after declining an optional trigger from the order prompt', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['patient-hunter'],
+                        spaceArena: ['system-patrol-craft'],
+                        hand: ['sneak-attack', 'ruthless-raider']
+                    },
+                    player2: {
+                        spaceArena: ['green-squadron-awing'],
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sneakAttack);
+                context.player1.clickCard(context.ruthlessRaider);
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                context.moveToRegroupPhase();
+
+                const startSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                context.player1.clickPass('Give an Experience token to a unit. If you do, that unit can\'t ready during this regroup phase');
+
+                expect(contextRef.snapshot.rollbackToSnapshot({ type: 'quick', playerId: context.player1.id })).toBeTrue();
+
+                expect(context.game.currentPhase).toBe('regroup');
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(startSnapshotId);
+                expect(context.greenSquadronAwing).toBeInZone('spaceArena');
+            });
+
+            it('lands on the boundary after pressing Pass on a trigger\'s target prompt', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: { groundArena: ['patient-hunter'] },
+                    player2: { groundArena: ['patient-hunter'] }
+                });
+
+                const { context } = contextRef;
+
+                context.moveToRegroupPhase();
+
+                const startSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                context.player1.clickPrompt('You');
+                context.player1.clickPrompt('Pass');
+
+                expect(contextRef.snapshot.rollbackToSnapshot({ type: 'quick', playerId: context.player1.id })).toBeTrue();
+
+                expect(context.game.currentPhase).toBe('regroup');
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(startSnapshotId);
+                expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
+            });
+        });
+
+        describe('Foresight reveal to the opponent at the start of the regroup phase', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'wampa', upgrades: ['foresight'] }],
+                        deck: ['millennium-falcon#piece-of-junk', 'battlefield-marine', 'atst', 'resupply']
+                    },
+                    player2: {
+                        spaceArena: ['green-squadron-awing'],
+                        groundArena: ['atst'],
+                        hand: ['sneak-attack', 'ruthless-raider']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.sneakAttack);
+                context.player2.clickCard(context.ruthlessRaider);
+                context.player2.clickCard(context.wampa);
+
+                context.moveToRegroupPhase();
+
+                context.startOfRegroupPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+
+                context.player1.clickPrompt('You');
+                context.player1.chooseListOption('Millennium Falcon');
+                context.player1.clickDone();
+                context.player1.clickPrompt('Trigger');
+
+                // the opponent only looks at the revealed card while its own trigger is still pending
+                context.player2.clickDone();
+            });
+
+            it('reverts the viewing opponent into the action phase, since looking at a card is not a decision', function () {
+                const { context } = contextRef;
+
+                expect(contextRef.snapshot.rollbackToSnapshot({ type: 'quick', playerId: context.player2.id })).toBeTrue();
+
+                expect(context.game.currentPhase).toBe('action');
+                expect(contextRef.snapshot.getCurrentSnapshotId()).not.toEqual(context.startOfRegroupPhaseSnapshotId);
+            });
+
+            it('lands the revealing player on the boundary, since they made a decision', function () {
+                const { context } = contextRef;
+
+                expect(contextRef.snapshot.rollbackToSnapshot({ type: 'quick', playerId: context.player1.id })).toBeTrue();
+
+                expect(context.game.currentPhase).toBe('regroup');
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.startOfRegroupPhaseSnapshotId);
             });
         });
 

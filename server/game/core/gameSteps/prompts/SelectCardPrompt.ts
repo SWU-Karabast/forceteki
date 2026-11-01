@@ -268,6 +268,10 @@ export class SelectCardPrompt extends UiPrompt {
         return false;
     }
 
+    public override isPlayerDecisionPrompt(): boolean {
+        return true;
+    }
+
     public override menuCommand(player, arg) {
         if (arg === 'cancel') {
             this.properties.onCancel(player);

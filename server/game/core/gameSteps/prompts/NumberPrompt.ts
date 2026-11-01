@@ -62,6 +62,10 @@ export class NumberPrompt extends UiPrompt {
         return { menuTitle: this.properties.waitingPromptTitle, promptUuid: this.uuid };
     }
 
+    public override isPlayerDecisionPrompt(): boolean {
+        return true;
+    }
+
     public override menuCommand(player: Player, arg: PromptButtonArg, uuid: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
 

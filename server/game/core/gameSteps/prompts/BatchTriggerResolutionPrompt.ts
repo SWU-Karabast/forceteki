@@ -61,6 +61,10 @@ export class BatchTriggerResolutionPrompt extends UiPrompt {
         };
     }
 
+    public override isPlayerDecisionPrompt(): boolean {
+        return true;
+    }
+
     public override menuCommand(_player: Player, arg: PromptButtonArg): boolean {
         switch (arg) {
             case 'next':

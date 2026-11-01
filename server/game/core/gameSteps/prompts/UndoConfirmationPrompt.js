@@ -43,6 +43,11 @@ class UndoConfirmationPrompt extends HandlerMenuPrompt {
     }
 
     /** @override */
+    isPlayerDecisionPrompt() {
+        return false; // Allow / Deny answers the undo request, not a game choice
+    }
+
+    /** @override */
     continue() {
         return super.continue();
     }

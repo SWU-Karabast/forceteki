@@ -95,6 +95,10 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
         }));
     }
 
+    public override isPlayerDecisionPrompt(): boolean {
+        return true;
+    }
+
     public override menuCommand(_player: Player, arg: PromptButtonArg, _uuid: string): boolean {
         if (arg === 'done') {
             this.selectedCardsHandler(this.selectedCards);

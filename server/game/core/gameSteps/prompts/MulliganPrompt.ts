@@ -50,6 +50,10 @@ export class MulliganPrompt extends AllPlayerPrompt {
         return super.continue();
     }
 
+    public override isPlayerDecisionPrompt(): boolean {
+        return true;
+    }
+
     public override menuCommand(player, arg): boolean {
         if (arg === 'mulligan') {
             if (this.completionCondition(player)) {

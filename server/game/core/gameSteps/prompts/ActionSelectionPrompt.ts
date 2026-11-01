@@ -88,6 +88,10 @@ export class ActionSelectionPrompt extends UiPrompt {
         };
     }
 
+    public override isPlayerDecisionPrompt(): boolean {
+        return true;
+    }
+
     public override menuCommand(_player: Player, arg: string): boolean {
         if (arg === 'cancel') {
             this.complete();

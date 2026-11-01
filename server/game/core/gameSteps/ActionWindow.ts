@@ -193,6 +193,10 @@ export class ActionWindow extends UiPrompt {
         return { menuTitle: 'Waiting for opponent to take an action or pass' };
     }
 
+    public override isPlayerDecisionPrompt(): boolean {
+        return true;
+    }
+
     public override menuCommand(player: Player, choice: PromptButtonArg, uuid: string) {
         switch (choice) {
             // case 'manual':

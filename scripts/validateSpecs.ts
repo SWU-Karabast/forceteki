@@ -70,6 +70,7 @@ const gameGroupExemptions: IGameGroupExemption[] = [
     { pattern: 'server/core/event/EventWindow.spec.ts', reason: 'engine unit test of event windows' },
     { pattern: 'scenarios/undo/GameObjectIdRestore.spec.ts', reason: 'engine unit test of game object id restoration on rollback' },
     { pattern: 'server/core/GameObjectUtils.spec.ts', reason: 'engine unit test of the state accessor decorators' },
+    { pattern: 'server/core/gameSteps/PromptDecisionDeclaration.spec.ts', reason: 'engine unit test enumerating UiPrompt decision declarations' },
     { pattern: 'server/core/ParityHarnessZoneTally.spec.ts', reason: 'unit test of the snapshot parity harness itself' },
     { pattern: 'server/core/StateEncoding.spec.ts', reason: 'engine unit test of state encoding' },
     { pattern: 'server/core/StateEncodingConstantsParity.spec.ts', reason: 'engine unit test of state encoding constants' },
