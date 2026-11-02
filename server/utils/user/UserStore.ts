@@ -5,11 +5,11 @@ import { InMemoryUserStore } from './InMemoryUserStore';
 
 /** The account operations UserFactory needs, independent of the storage backend. */
 type UserStoreMethods = Pick<DynamoDBService,
-'getUserProfileAsync' | 'saveUserProfileAsync' | 'updateUserProfileAsync' |
-'updateUserPreferencesAsync' | 'getUserIdByOAuthAsync' | 'saveOAuthLinkAsync' |
-'getUserIdByEmailAsync' | 'saveEmailLinkAsync' | 'getUserIdsByUsernameAsync' |
-'saveUsernameLinkAsync' | 'deleteUsernameLinkAsync' | 'recordNewLoginAsync' |
-'getModActionsAsync' | 'saveUsernameChangeAsync' | 'getUsernameChangesAsync'
+  'getUserProfileAsync' | 'saveUserProfileAsync' | 'updateUserProfileAsync' |
+  'updateUserPreferencesAsync' | 'getUserIdByOAuthAsync' | 'saveOAuthLinkAsync' |
+  'getUserIdByEmailAsync' | 'saveEmailLinkAsync' | 'getUserIdsByUsernameAsync' |
+  'saveUsernameLinkAsync' | 'deleteUsernameLinkAsync' | 'recordNewLoginAsync' |
+  'getModActionsAsync' | 'saveUsernameChangeAsync' | 'getUsernameChangesAsync'
 >;
 
 // Writes have no result used by the factory; do not expose AWS response types to other stores.

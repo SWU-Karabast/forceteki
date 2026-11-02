@@ -15,9 +15,9 @@ import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
  */
 @registerState()
 export class GainNonKeywordAbilitiesFromUnitEffect extends OngoingEffectValueWrapperBase<IUnitCard> {
-    @stateValue() private accessor _triggeredAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
-    @stateValue() private accessor _actionAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
-    @stateValue() private accessor _constantAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+    @stateValue() private accessor _triggeredAbilityUuidsByTargetCard = new Map<string, string[]>();
+    @stateValue() private accessor _actionAbilityUuidsByTargetCard = new Map<string, string[]>();
+    @stateValue() private accessor _constantAbilityUuidsByTargetCard = new Map<string, string[]>();
 
     private get sourceUnit(): IUnitCard {
         return this.getValue();
