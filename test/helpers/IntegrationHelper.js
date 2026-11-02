@@ -234,6 +234,22 @@ global.undoIntegration = function (definitions) {
     originalIntegration(definitions, true);
 };
 
+/**
+ * Rolls the game back to the start-of-test manual snapshot and throws if the rollback is refused.
+ * Callers have already handled the legal skip (a null snapshotId, i.e. a snapshot taken outside the action phase).
+ */
+function assertManualRollbackSucceeded(context, snapshotUtils) {
+    const { snapshotId, player } = snapshotUtils.startOfTestSnapshot;
+    const rolledBack = context.game.rollbackToSnapshotInternal({
+        type: SnapshotType.Manual,
+        playerId: player.id,
+        snapshotId
+    });
+    if (!rolledBack) {
+        throw new Error(`Undo test rollback failed: rollbackToSnapshotInternal returned false for manual snapshot ${snapshotId} (player ${player.id})`);
+    }
+}
+
 const jit = it;
 global.undoIt = function(expectation, assertion, timeout) {
     jit(expectation + ' (with Undo)', async function() {
@@ -266,15 +282,7 @@ global.undoIt = function(expectation, assertion, timeout) {
             // Snapshot was taken outside of the Action Phase. Not worth testing en-masse, just let the test end assuming no issues on the first run.
             return;
         }
-        const rolledBack = context.game.rollbackToSnapshotInternal({
-            type: SnapshotType.Manual,
-            playerId: snapshotUtils.startOfTestSnapshot.player.id,
-            snapshotId: snapshotUtils.startOfTestSnapshot.snapshotId
-        });
-        if (!rolledBack) {
-            // Probably want this to throw an error later, but for now this will let us filter out tests outside the scope vs tests that are actually breaking rollback.
-            return;
-        }
+        assertManualRollbackSucceeded(context, snapshotUtils);
 
         // Chat isn't part of the rollback snapshot, so restore it to the start-of-test state captured
         // alongside the snapshot (see the buildStartOfTestSnapshot call sites).
@@ -307,15 +315,7 @@ global.undoFit = function(expectation, assertion, timeout) {
             // Snapshot was taken outside of the Action Phase. Not worth testing en-masse, just let the test end assuming no issues on the first run.
             return;
         }
-        const rolledBack = context.game.rollbackToSnapshotInternal({
-            type: SnapshotType.Manual,
-            playerId: snapshotUtils.startOfTestSnapshot.player.id,
-            snapshotId: snapshotUtils.startOfTestSnapshot.snapshotId
-        });
-        if (!rolledBack) {
-            // Probably want this to throw an error later, but for now this will let us filter out tests outside the scope vs tests that are actually breaking rollback.
-            return;
-        }
+        assertManualRollbackSucceeded(context, snapshotUtils);
 
         context.game.gameChat.messages = (snapshotUtils.startOfTestChatMessages ?? []).slice();
 
