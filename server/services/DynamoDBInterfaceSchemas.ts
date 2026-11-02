@@ -16,7 +16,7 @@ import { validateUsernameFormat } from '../utils/user/UsernameRules';
 export const IUserDataEntitySchema = z.object({
     id: z.string(),
     username: z.string(),
-    preferences: z.record(z.any()).optional(),
+    preferences: z.record(z.string(), z.any()).optional(),
 });
 
 export const IMatchupStatEntitySchema = z.object({
@@ -62,9 +62,9 @@ export const ServerRoleUsersListsSchema = z.object({
     moderators: z.array(z.string().uuid()),
 });
 
-export const ModActionSubmitSchema = z.object({
+const ModActionSubmitBodySchema = z.object({
     playerId: z.string().min(1, 'playerId is required'),
-    actionType: z.nativeEnum(ModActionType),
+    actionType: z.enum(ModActionType),
     durationDays: z.number().positive()
         .nullable()
         .optional(),
@@ -72,18 +72,27 @@ export const ModActionSubmitSchema = z.object({
     newUsername: z.string().optional(),
     reportId: z.string().min(1)
         .optional(),
-}).refine(
+});
+
+type ModActionSubmitBody = z.infer<typeof ModActionSubmitBodySchema>;
+
+// zod 4 dropped refine's `(data) => params` overload; a message built from the data has to read it off the issue's input instead
+function messageFromBody(getMessage: (data: ModActionSubmitBody) => string) {
+    return (issue: { readonly input?: unknown }) => getMessage(issue.input as ModActionSubmitBody);
+}
+
+export const ModActionSubmitSchema = ModActionSubmitBodySchema.refine(
     (data) => {
         const requiresDuration = ModActionDefinitions[data.actionType].requiresDuration;
         const hasDuration = typeof data.durationDays === 'number' && data.durationDays > 0;
         return requiresDuration === hasDuration;
     },
-    (data) => ({
-        message: ModActionDefinitions[data.actionType].requiresDuration
-            ? `durationDays is required and must be positive for ${data.actionType} actions`
-            : `durationDays is not valid for ${data.actionType} actions`,
+    {
         path: ['durationDays'],
-    })
+        error: messageFromBody((data) => (ModActionDefinitions[data.actionType].requiresDuration
+            ? `durationDays is required and must be positive for ${data.actionType} actions`
+            : `durationDays is not valid for ${data.actionType} actions`)),
+    }
 )
     .refine(
         (data) => {
@@ -92,7 +101,7 @@ export const ModActionSubmitSchema = z.object({
             }
             return typeof data.note === 'string' && data.note.trim().length > 0;
         },
-        (data) => ({ message: `note is required for ${data.actionType} actions`, path: ['note'] })
+        { path: ['note'], error: messageFromBody((data) => `note is required for ${data.actionType} actions`) }
     )
     .refine(
         (data) => {
@@ -100,16 +109,16 @@ export const ModActionSubmitSchema = z.object({
             const hasNewUsername = typeof data.newUsername === 'string' && data.newUsername.length > 0;
             return requiresNewUsername === hasNewUsername;
         },
-        (data) => ({
-            message: ModActionDefinitions[data.actionType].requiresNewUsername
-                ? `newUsername is required for ${data.actionType} actions`
-                : `newUsername is not valid for ${data.actionType} actions`,
+        {
             path: ['newUsername'],
-        })
+            error: messageFromBody((data) => (ModActionDefinitions[data.actionType].requiresNewUsername
+                ? `newUsername is required for ${data.actionType} actions`
+                : `newUsername is not valid for ${data.actionType} actions`)),
+        }
     )
     .refine(
         (data) => !data.newUsername || validateUsernameFormat(data.newUsername) === null,
-        (data) => ({ message: validateUsernameFormat(data.newUsername) ?? 'Invalid username.', path: ['newUsername'] })
+        { path: ['newUsername'], error: messageFromBody((data) => validateUsernameFormat(data.newUsername) ?? 'Invalid username.') }
     );
 
 export const ModActionCancelSchema = z.object({
@@ -133,7 +142,7 @@ export const ServerSettingsUpdateSchema = z.object({
 export const ModActionEntitySchema = z.object({
     id: z.string(),
     playerId: z.string(),
-    actionType: z.nativeEnum(ModActionType),
+    actionType: z.enum(ModActionType),
     durationDays: z.number().positive()
         .optional(),
     note: z.string().optional(),
@@ -153,7 +162,7 @@ export const UsernameChangeEntitySchema = z.object({
     playerId: z.string(),
     previousUsername: z.string().nullable(),
     newUsername: z.string(),
-    source: z.nativeEnum(UsernameChangeSource),
+    source: z.enum(UsernameChangeSource),
     relatedModActionId: z.string().optional(),
     createdAt: z.string(),
 }) as z.ZodType<IUsernameChangeEntity>;
@@ -171,7 +180,7 @@ export const ReportDimensionsSchema = z.object({
 export const PlayerReportEntitySchema = z.object({
     id: z.string(),
     createdAt: z.string(),
-    status: z.nativeEnum(PlayerReportStatus),
+    status: z.enum(PlayerReportStatus),
     reporterId: z.string(),
     reporterUsername: z.string(),
     reportedPlayerId: z.string(),
@@ -190,7 +199,7 @@ export const PlayerReportEntitySchema = z.object({
     closedAt: z.string().optional(),
     closedById: z.string().optional(),
     closedByUsername: z.string().optional(),
-    outcome: z.nativeEnum(PlayerReportOutcome).optional(),
+    outcome: z.enum(PlayerReportOutcome).optional(),
     closingNote: z.string().optional(),
     reopenedAt: z.string().optional(),
     reopenedByUsername: z.string().optional(),
@@ -199,7 +208,7 @@ export const PlayerReportEntitySchema = z.object({
 
 export const PlayerReportLogEntitySchema = z.object({
     reportId: z.string(),
-    kind: z.nativeEnum(PlayerReportLogKind),
+    kind: z.enum(PlayerReportLogKind),
     lines: z.array(z.object({
         at: z.string(),
         playerIds: z.array(z.string()),
@@ -211,11 +220,11 @@ export const PlayerReportLogEntitySchema = z.object({
 export const PlayerReportIndexEntitySchema = z.object({
     reportId: z.string(),
     playerId: z.string(),
-    role: z.nativeEnum(PlayerReportRole),
+    role: z.enum(PlayerReportRole),
     createdAt: z.string(),
     offense: z.string(),
-    status: z.nativeEnum(PlayerReportStatus),
-    outcome: z.nativeEnum(PlayerReportOutcome).optional(),
+    status: z.enum(PlayerReportStatus),
+    outcome: z.enum(PlayerReportOutcome).optional(),
 }) as z.ZodType<IPlayerReportIndexEntity>;
 
 // Mod tools: player report requests
@@ -223,7 +232,7 @@ export const PlayerReportIndexEntitySchema = z.object({
 export const PlayerReportListQuerySchema = z.object({
 
     /** Omitted for open and closed reports together */
-    status: z.nativeEnum(PlayerReportStatus).optional(),
+    status: z.enum(PlayerReportStatus).optional(),
 
     /** Case-insensitive part of the reporter's, the reported player's or the closing moderator's username */
     search: z.string().trim()
@@ -253,7 +262,7 @@ const ClosingNoteSchema = z.string().max(2000, 'closingNote must be 2000 charact
 export const PlayerReportUpdateSchema = z.discriminatedUnion('status', [
     z.object({
         status: z.literal(PlayerReportStatus.Closed),
-        outcome: z.nativeEnum(PlayerReportOutcome),
+        outcome: z.enum(PlayerReportOutcome),
         closingNote: ClosingNoteSchema.optional(),
     }),
     z.object({

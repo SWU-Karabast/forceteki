@@ -199,7 +199,7 @@ class EffectEventListener extends GameObjectBase {
     public readonly handler: (...args: any[]) => void;
     public readonly effect: OngoingEffect<any>;
 
-    @statePrimitive() private accessor isRegistered: boolean = false;
+    @statePrimitive() private accessor isRegistered = false;
 
     public constructor(game: Game, name: string, handler: (...args: any[]) => void, effect: OngoingEffect<any>) {
         super(game);

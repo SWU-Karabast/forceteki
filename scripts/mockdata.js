@@ -908,6 +908,263 @@ const mockCards = [
         arena: 'ground',
         internalName: 'princess-leia#calculated-distraction'
     }),
+    buildMockCard({
+        title: 'Luke Skywalker',
+        subtitle: 'I Have to Face Him',
+        cost: 6,
+        power: 4,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: ['overwhelm'],
+        traits: ['force', 'jedi', 'rebel'],
+        types: ['leader'],
+        setId: {
+            set: 'IC27',
+            number: 6
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'luke-skywalker#i-have-to-face-him'
+    }),
+    buildMockCard({
+        title: 'Yoda',
+        subtitle: 'A Disturbing Puzzle',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['force', 'jedi', 'republic'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 35
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'yoda#a-disturbing-puzzle'
+    }),
+    buildMockCard({
+        title: 'Ahsoka Tano',
+        subtitle: 'Not On My Death Watch',
+        cost: 5,
+        power: 4,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        traits: ['force', 'jedi', 'republic'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 39
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'ahsoka-tano#not-on-my-death-watch'
+    }),
+    buildMockCard({
+        title: 'Ezra Bridger',
+        subtitle: 'Down With the Freedom',
+        cost: 2,
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: ['raid 2'],
+        traits: ['force', 'jedi', 'rebel', 'spectre'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 113
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'ezra-bridger#down-with-the-freedom'
+    }),
+    buildMockCard({
+        title: 'Sabine Wren',
+        subtitle: 'Liberator of Krownest',
+        cost: 4,
+        power: 5,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: ['saboteur'],
+        traits: ['mandalorian', 'rebel', 'spectre'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 119
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'sabine-wren#liberator-of-krownest'
+    }),
+    buildMockCard({
+        title: 'Rey',
+        subtitle: 'Embracing Destiny',
+        cost: 5,
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['force'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 120
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'rey#embracing-destiny'
+    }),
+    buildMockCard({
+        title: 'The Ghost',
+        subtitle: 'Whale Watching',
+        cost: 7,
+        power: 7,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: ['overwhelm'],
+        traits: ['rebel', 'vehicle', 'transport', 'spectre'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 122
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'the-ghost#whale-watching'
+    }),
+    buildMockCard({
+        title: 'Asajj Ventress',
+        subtitle: 'Bald and Beautiful',
+        cost: 6,
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        keywords: ['saboteur'],
+        traits: ['force', 'separatist', 'sith'],
+        types: ['leader'],
+        setId: {
+            set: 'IC27',
+            number: 7
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'asajj-ventress#bald-and-beautiful'
+    }),
+    buildMockCard({
+        title: 'Nute Gunray',
+        subtitle: 'Ring Ring, Space Calling',
+        cost: 1,
+        power: 1,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['separatist', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 13
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'nute-gunray#ring-ring-space-calling'
+    }),
+    buildMockCard({
+        title: 'Soulless One',
+        subtitle: 'Soulless Fun',
+        cost: 4,
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['separatist', 'vehicle', 'fighter'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 19
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'soulless-one#soulless-fun'
+    }),
+    buildMockCard({
+        title: 'Banshee',
+        subtitle: 'Scream Machine',
+        cost: 2,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['separatist', 'vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 138
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'banshee#scream-machine'
+    }),
+    buildMockCard({
+        title: 'Asajj Ventress',
+        subtitle: 'Death From Above',
+        cost: 6,
+        power: 5,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['force', 'separatist', 'sith'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 147
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'asajj-ventress#death-from-above'
+    }),
+    buildMockCard({
+        title: 'Count Dooku',
+        subtitle: 'Silver-Tongued',
+        cost: 7,
+        power: 8,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['force', 'separatist', 'sith', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 148
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'count-dooku#silvertongued'
+    }),
+    buildMockCard({
+        title: 'The Invisible Hand',
+        subtitle: 'Confederate Might',
+        cost: 10,
+        power: 9,
+        hp: 9,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['separatist', 'vehicle', 'capital ship'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 149
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'the-invisible-hand#confederate-might'
+    }),
     // -------- End Mock Cards --------
 ];
 
@@ -919,7 +1176,9 @@ const mockCards = [
 // Note: `set` must exist in the `setNumber` map in fetchdata.js to be picked up.
 const mockReprints = [
     { internalName: 'magistrates-scout', setId: { set: 'IC27', number: 18 } },
+    { internalName: 'clan-wren-rescuer', setId: { set: 'IC27', number: 33 } },
     { internalName: 'concord-dawn-interceptors', setId: { set: 'IC27', number: 36 } },
+    { internalName: 'moisture-farmer', setId: { set: 'IC27', number: 47 } },
     { internalName: 'disciples-devotion', setId: { set: 'IC27', number: 53 } },
     { internalName: 'betrayed-trust', setId: { set: 'IC27', number: 55 } },
     { internalName: 'exegol-patroller', setId: { set: 'IC27', number: 59 } },
