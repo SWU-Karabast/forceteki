@@ -22,7 +22,6 @@ export default class DrydenVosThumbSpikingTheScale extends NonLeaderUnitCard {
             },
             ifYouDo: (ifYouDoContext) => ({
                 title: 'If it survives, give an Experience token to it',
-                ifYouDoCondition: () => !ifYouDoContext.resolvedEvents[0].willDefeat,
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience({
                     amount: 1,
                     target: ifYouDoContext.target
