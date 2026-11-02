@@ -39,7 +39,7 @@ describe('Black One, Draw Fire Twice', function () {
             context.player2.clickCard(context.tielnFighter);
             context.player2.clickCard(context.blackOne);
 
-            expect(context.player2).toBeActivePlayer();
+            expect(context.player1).toBeActivePlayer();
             expect(context.blackOne).toBeInZone('discard');
             expect(context.player1.handSize).toBe(initialHandSize + 1);
             expect(context.player1).toBeActivePlayer();
