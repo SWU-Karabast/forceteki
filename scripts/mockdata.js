@@ -1038,6 +1038,133 @@ const mockCards = [
         arena: 'space',
         internalName: 'the-ghost#whale-watching'
     }),
+    buildMockCard({
+        title: 'Asajj Ventress',
+        subtitle: 'Bald and Beautiful',
+        cost: 6,
+        power: 5,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        keywords: ['saboteur'],
+        traits: ['force', 'separatist', 'sith'],
+        types: ['leader'],
+        setId: {
+            set: 'IC27',
+            number: 7
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'asajj-ventress#bald-and-beautiful'
+    }),
+    buildMockCard({
+        title: 'Nute Gunray',
+        subtitle: 'Ring Ring, Space Calling',
+        cost: 1,
+        power: 1,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['separatist', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 13
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'nute-gunray#ring-ring-space-calling'
+    }),
+    buildMockCard({
+        title: 'Soulless One',
+        subtitle: 'Soulless Fun',
+        cost: 4,
+        power: 3,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['separatist', 'vehicle', 'fighter'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 19
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'soulless-one#soulless-fun'
+    }),
+    buildMockCard({
+        title: 'Banshee',
+        subtitle: 'Scream Machine',
+        cost: 2,
+        power: 2,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['separatist', 'vehicle', 'transport'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 138
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'banshee#scream-machine'
+    }),
+    buildMockCard({
+        title: 'Asajj Ventress',
+        subtitle: 'Death From Above',
+        cost: 6,
+        power: 5,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['force', 'separatist', 'sith'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 147
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'asajj-ventress#death-from-above'
+    }),
+    buildMockCard({
+        title: 'Count Dooku',
+        subtitle: 'Silver-Tongued',
+        cost: 7,
+        power: 8,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['force', 'separatist', 'sith', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 148
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'count-dooku#silvertongued'
+    }),
+    buildMockCard({
+        title: 'The Invisible Hand',
+        subtitle: 'Confederate Might',
+        cost: 10,
+        power: 9,
+        hp: 9,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        traits: ['separatist', 'vehicle', 'capital ship'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 149
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'the-invisible-hand#confederate-might'
+    }),
     // -------- End Mock Cards --------
 ];
 
@@ -1051,6 +1178,7 @@ const mockReprints = [
     { internalName: 'magistrates-scout', setId: { set: 'IC27', number: 18 } },
     { internalName: 'clan-wren-rescuer', setId: { set: 'IC27', number: 33 } },
     { internalName: 'concord-dawn-interceptors', setId: { set: 'IC27', number: 36 } },
+    { internalName: 'moisture-farmer', setId: { set: 'IC27', number: 47 } },
     { internalName: 'disciples-devotion', setId: { set: 'IC27', number: 53 } },
     { internalName: 'betrayed-trust', setId: { set: 'IC27', number: 55 } },
     { internalName: 'exegol-patroller', setId: { set: 'IC27', number: 59 } },
