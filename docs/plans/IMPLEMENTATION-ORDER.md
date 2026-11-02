@@ -765,7 +765,7 @@ Specs cover Free and Request undo mode; the confirmation behavior at the boundar
 
 **Actually delivered (landed in `98b7b256e`):** `undoIt` and `undoFit` fail the spec on any refused manual rollback; the null-`snapshotId` skip is the only one left.
 It exposed one spec, the Kylo's TIE Silencer discard spec in `Undo.spec.ts`, whose nested plain `integration()` turned undo off and hid a rollback that never ran; it was un-nested with no assertion changes.
-Follow-up, not scheduled: the `rollback(contextRef, …)` shortcut in `IntegrationHelper.js` still ignores a refused rollback.
+Follow-up, fixed in the commit after `52bd97aa8`: the `rollback(contextRef, …)` shortcut in `IntegrationHelper.js` now throws on a refused rollback at both of its rollback sites.
 
 ### `P4-A` — Delta tracker + recording hooks
 

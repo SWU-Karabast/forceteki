@@ -340,20 +340,23 @@ global.rollback = function(contextRef, assertion, altAssertion) {
 
     assertion();
 
-    contextRef.snapshot.rollbackToSnapshot({
-        type: 'manual',
-        playerId: context.player1Object.id,
-        snapshotId
-    });
-
-    assertion();
-
-    if (altAssertion) {
-        contextRef.snapshot.rollbackToSnapshot({
+    const rollbackOrThrow = () => {
+        const rolledBack = contextRef.snapshot.rollbackToSnapshot({
             type: 'manual',
             playerId: context.player1Object.id,
             snapshotId
         });
+        if (!rolledBack) {
+            throw new Error(`Undo test rollback failed: rollbackToSnapshot returned false for manual snapshot ${snapshotId} (player ${context.player1Object.id})`);
+        }
+    };
+
+    rollbackOrThrow();
+
+    assertion();
+
+    if (altAssertion) {
+        rollbackOrThrow();
         altAssertion();
     }
 };
