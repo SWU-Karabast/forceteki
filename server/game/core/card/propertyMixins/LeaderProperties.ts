@@ -28,10 +28,10 @@ export function WithLeaderProperties<TBaseClass extends PlayableOrDeployableCard
         // STATE TODO: I am uncertain if this needs to be undefined or false to start. LeaderUnitCard sets the default, which is odd.
         // NAMING NOTE: Normally only TS private fields would start with underscore, but there's a unusual split of logic and accessors between here and LeaderUnitCard, so this is a exception to the rule.
         @statePrimitive()
-        protected accessor _deployed: boolean = false;
+        protected accessor _deployed = false;
 
         @statePrimitive()
-        protected accessor _onStartingSide: boolean = true;
+        protected accessor _onStartingSide = true;
 
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {

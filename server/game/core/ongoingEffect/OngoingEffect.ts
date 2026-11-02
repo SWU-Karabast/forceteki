@@ -61,7 +61,7 @@ export abstract class OngoingEffect<TTarget extends GameObject = GameObject> ext
 
     /** Set when a delayed effect has matched a resolved event and is waiting for that event's window to fire it */
     @statePrimitive()
-    public accessor delayedTriggerPending: boolean = false;
+    public accessor delayedTriggerPending = false;
 
     public get type() {
         return this.impl.type;

@@ -89,7 +89,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     }
 
     @statePrimitive()
-    private accessor _mostRecentInPlayId: number = -1
+    private accessor _mostRecentInPlayId = -1
 
     /**
      * The identity counter for this card, readable in any zone. See {@link Card.identityId}.
