@@ -21,6 +21,10 @@ import { DiscordDispatcher } from '../gamenode/DiscordDispatcher';
 import type { UserFactory } from './user/UserFactory';
 import type { ModActionService } from './ModActionService';
 import { addDays, dayOf, lastExpiredMonth, monthOf, nextMonth, previousMonth } from './RetentionBuckets';
+import type { IScheduler } from './IScheduler';
+import { RealScheduler } from './RealScheduler';
+import type { IPlayerReportListQuery, IPlayerReportPage } from './PlayerReportListCache';
+import { PlayerReportListCache } from './PlayerReportListCache';
 
 export interface IReportParticipant {
     id: string;
@@ -77,13 +81,6 @@ export interface IPlayerReportDetail {
     ticketActions: IModActionEntity[];
 }
 
-export interface IClosedPlayerReportPage {
-    reports: IPlayerReportEntity[];
-
-    /** Pass as `beforeMonth` to load older reports; null when there is nothing older */
-    nextBeforeMonth: string | null;
-}
-
 export type PlayerReportUpdateResult =
   | { success: true; report: IPlayerReportEntity }
   | { success: false; reason: 'notFound' | 'conflict'; message: string };
@@ -98,28 +95,47 @@ export interface IModerator {
     username: string;
 }
 
+/** The state a moderator puts a report into */
+export type PlayerReportStatusUpdate =
+  | { status: PlayerReportStatus.Closed; outcome: PlayerReportOutcome; closingNote?: string }
+  | { status: PlayerReportStatus.Open };
+
+/** Why a mod action may not be issued from a report ticket */
+export type ReportActionTargetError = 'notFound' | 'notParticipant' | 'closed';
+
 /**
  * Stores player reports in DynamoDB and serves them to the mod tools, replacing the
  * Discord channel the reports used to be posted to.
  */
 export class PlayerReportService {
-    /** Player reports were first stored in this month, so closed-report paging stops here */
+    /** Player reports were first stored in this month, so no report bucket is older */
     public static readonly FirstReportMonth = '2026-10';
 
-    /** Chat and game logs are deleted this many days after a ticket is closed */
+    /**
+     * Chat and game logs are deleted this many days after a ticket is closed, by the first weekly cleanup after
+     * that, so 30 to 37 days after closing. Stated in the Terms (Privacy & Data Use); change both together.
+     */
     public static readonly LogRetentionDays = 30;
 
     /** Closed reports (without logs) are kept at least this many months for repeat-offender history */
     public static readonly MetadataRetentionMonths = 12;
 
-    /** How often the backend runs the retention cleanup */
-    public static readonly CleanupIntervalMs = 6 * 60 * 60 * 1000;
+    /** The retention cleanup runs once a week, on this UTC weekday (0 = Sunday) and hour */
+    public static readonly CleanupWeekdayUtc = 0;
+    public static readonly CleanupHourUtc = 3;
+    private static readonly WeekMs = 7 * 24 * 60 * 60 * 1000;
+
+    /** After a start, a cleanup that is overdue (e.g. the node was down at the weekly time) runs after this delay */
+    public static readonly OverdueCleanupDelayMs = 10 * 60 * 1000;
+
+    /** False reports filed within this many days are counted on a new report from the same player */
+    public static readonly RecentFalseReportDays = 30;
+
+    /** How long the report list is served from memory before it is read from DynamoDB again */
+    public static readonly ListCacheMaxAgeMs = 10 * 60 * 1000;
 
     /** Close/reopen tries before giving up when the report keeps changing underneath */
     private static readonly TransitionAttempts = 3;
-
-    /** Months scanned per closed-report page */
-    private static readonly ClosedMonthsPerPage = 3;
 
     /**
      * DynamoDB items are capped at 400 KB; keep each log well below that. Both logs together must also stay below
@@ -130,6 +146,7 @@ export class PlayerReportService {
     private static readonly MaxDescriptionLength = 2000;
 
     private readonly dbServicePromise = getDynamoDbServiceAsync();
+    private readonly listCache: PlayerReportListCache;
 
     /** For the moderator endpoints: without DynamoDB there are no reports, which is an error, not an empty list */
     private async requireDbServiceAsync() {
@@ -143,7 +160,18 @@ export class PlayerReportService {
     public constructor(
         private readonly userFactory: UserFactory,
         private readonly getModActionService: () => ModActionService | undefined,
-    ) {}
+        private readonly scheduler: IScheduler = new RealScheduler(),
+    ) {
+        this.listCache = new PlayerReportListCache(
+            () => this.loadAllReportsAsync(),
+            () => this.scheduler.currentDate(),
+            PlayerReportService.ListCacheMaxAgeMs
+        );
+    }
+
+    private now(): Date {
+        return this.scheduler.currentDate();
+    }
 
     // ==================== Creating ====================
 
@@ -158,9 +186,11 @@ export class PlayerReportService {
             dbService.getPlayerReportIndexAsync(input.reporter.id),
         ]);
 
+        const createdAt = this.now();
+        const recentSince = new Date(createdAt.getTime() - PlayerReportService.RecentFalseReportDays * 24 * 60 * 60 * 1000).toISOString();
         const report: IPlayerReportEntity = {
             id: uuid(),
-            createdAt: new Date().toISOString(),
+            createdAt: createdAt.toISOString(),
             status: PlayerReportStatus.Open,
             reporterId: input.reporter.id,
             reporterUsername: input.reporter.username,
@@ -176,9 +206,11 @@ export class PlayerReportService {
             gameStepsSinceLastUndo: input.gameStepsSinceLastUndo,
             screenResolution: input.screenResolution ?? undefined,
             viewport: input.viewport ?? undefined,
-            reportedPlayerPriorReportCount: reportedIndex.filter((entry) => entry.role === PlayerReportRole.Reported).length,
-            reporterPriorFalseReportCount: reporterIndex.filter(
-                (entry) => entry.role === PlayerReportRole.Reporter && entry.outcome === PlayerReportOutcome.FalseReport
+            reportedPlayerPriorReportCount: reportedIndex.filter((entry) => entry.role === PlayerReportRole.ReportedPlayer).length,
+            reporterRecentFalseReportCount: reporterIndex.filter((entry) =>
+                entry.role === PlayerReportRole.ReportSubmitter &&
+                entry.outcome === PlayerReportOutcome.FalseReport &&
+                entry.createdAt >= recentSince
             ).length,
         };
 
@@ -188,11 +220,12 @@ export class PlayerReportService {
         ];
 
         const indexEntries: IPlayerReportIndexEntity[] = [
-            { reportId: report.id, playerId: report.reporterId, role: PlayerReportRole.Reporter, createdAt: report.createdAt, offense: report.offense, status: report.status },
-            { reportId: report.id, playerId: report.reportedPlayerId, role: PlayerReportRole.Reported, createdAt: report.createdAt, offense: report.offense, status: report.status },
+            { reportId: report.id, playerId: report.reporterId, role: PlayerReportRole.ReportSubmitter, createdAt: report.createdAt, offense: report.offense, status: report.status },
+            { reportId: report.id, playerId: report.reportedPlayerId, role: PlayerReportRole.ReportedPlayer, createdAt: report.createdAt, offense: report.offense, status: report.status },
         ];
 
         await dbService.savePlayerReportAsync(report, logs, indexEntries);
+        this.listCache.upsert(report);
 
         logger.info(`PlayerReportService: Stored player report ${report.id}`, {
             reportId: report.id,
@@ -206,41 +239,32 @@ export class PlayerReportService {
 
     // ==================== Reading ====================
 
-    /** All open reports, oldest first */
-    public async getOpenReportsAsync(): Promise<IPlayerReportEntity[]> {
-        const dbService = await this.requireDbServiceAsync();
-        const reports = await dbService.getPlayerReportsByGsiKeyAsync(OPEN_PLAYER_REPORT_GSI_KEY);
-        return reports.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    /**
+     * One page of the report list, newest first, served from memory.
+     * @throws InvalidReportCursorError for a cursor this service did not hand out
+     */
+    public listReportsAsync(query: IPlayerReportListQuery): Promise<IPlayerReportPage> {
+        return this.listCache.queryAsync(query);
     }
 
-    /**
-     * Closed reports, newest first, a few months at a time.
-     * @param beforeMonth YYYY-MM month to continue from (exclusive); omitted for the current month
-     */
-    public async getClosedReportsAsync(beforeMonth?: string): Promise<IClosedPlayerReportPage> {
+    public getOpenReportCountAsync(): Promise<number> {
+        return this.listCache.countOpenAsync();
+    }
+
+    /** Every stored report record: the open ones and those of every closed-month bucket the cleanup has not deleted */
+    private async loadAllReportsAsync(): Promise<IPlayerReportEntity[]> {
         const dbService = await this.requireDbServiceAsync();
+        const now = this.now();
 
-        let month = beforeMonth
-            ? previousMonth(beforeMonth)
-            : monthOf(new Date());
-        const reports: IPlayerReportEntity[] = [];
-        let scanned = 0;
-
-        while (month >= PlayerReportService.FirstReportMonth && scanned < PlayerReportService.ClosedMonthsPerPage) {
-            reports.push(...await dbService.getPlayerReportsByGsiKeyAsync(closedPlayerReportGsiKey(month)));
-            scanned++;
-            month = previousMonth(month);
+        // Older buckets are gone once the cleanup has run; the newest deletable one may still be waiting for it
+        const oldestKeptMonth = lastExpiredMonth(now, PlayerReportService.MetadataRetentionMonths);
+        const keys = [OPEN_PLAYER_REPORT_GSI_KEY];
+        for (let month = monthOf(now); month >= PlayerReportService.FirstReportMonth && month >= oldestKeptMonth; month = previousMonth(month)) {
+            keys.push(closedPlayerReportGsiKey(month));
         }
 
-        reports.sort((a, b) => (b.closedAt ?? '').localeCompare(a.closedAt ?? ''));
-
-        // `month` is now the next unscanned month; the cursor is exclusive, so hand back the month after it
-        const hasOlder = month >= PlayerReportService.FirstReportMonth;
-        return { reports, nextBeforeMonth: hasOlder ? nextMonth(month) : null };
-    }
-
-    public async getOpenReportCountAsync(): Promise<number> {
-        return (await this.getOpenReportsAsync()).length;
+        const buckets = await Promise.all(keys.map((key) => dbService.getPlayerReportsByGsiKeyAsync(key)));
+        return buckets.flat();
     }
 
     public async getReportDetailAsync(reportId: string): Promise<IPlayerReportDetail | null> {
@@ -251,6 +275,7 @@ export class PlayerReportService {
         }
 
         const { report, logs } = stored;
+        this.listCache.upsert(report);
         const [reporter, reportedPlayer] = await Promise.all([
             this.getPlayerContextAsync(report.reporterId, report.reporterUsername),
             this.getPlayerContextAsync(report.reportedPlayerId, report.reportedPlayerUsername),
@@ -270,26 +295,34 @@ export class PlayerReportService {
         };
     }
 
-    /** True if the player is the reporter or the reported player of the given report */
-    public async isParticipantAsync(reportId: string, playerId: string): Promise<boolean> {
+    /**
+     * Whether a mod action against `playerId` may be issued from the given ticket: only against one of its two
+     * players, and only while it is open. Reads just the report record, not its logs.
+     * @returns null if the action is allowed
+     */
+    public async getActionTargetErrorAsync(reportId: string, playerId: string): Promise<ReportActionTargetError | null> {
         const dbService = await this.requireDbServiceAsync();
-        const stored = await dbService.getPlayerReportAsync(reportId);
-        return !!stored && (stored.report.reporterId === playerId || stored.report.reportedPlayerId === playerId);
+        const report = await dbService.getPlayerReportMetaAsync(reportId);
+        if (!report) {
+            return 'notFound';
+        }
+        if (report.reporterId !== playerId && report.reportedPlayerId !== playerId) {
+            return 'notParticipant';
+        }
+        return report.status === PlayerReportStatus.Open ? null : 'closed';
     }
 
     // ==================== Ticket workflow ====================
 
-    /** Take over an open report. Another moderator's claim is replaced. */
-    public claimReportAsync(reportId: string, moderator: IModerator): Promise<PlayerReportUpdateResult> {
-        return this.updateAsync(reportId, PlayerReportStatus.Open, {
-            claimedById: moderator.id,
-            claimedByUsername: moderator.username,
-            claimedAt: new Date().toISOString(),
-        });
+    /** Closes the report with an outcome, or opens it again */
+    public updateStatusAsync(reportId: string, update: PlayerReportStatusUpdate, moderator: IModerator): Promise<PlayerReportUpdateResult> {
+        return update.status === PlayerReportStatus.Closed
+            ? this.closeReportAsync(reportId, update.outcome, update.closingNote, moderator)
+            : this.reopenReportAsync(reportId, moderator);
     }
 
     public async closeReportAsync(reportId: string, outcome: PlayerReportOutcome, closingNote: string | undefined, moderator: IModerator): Promise<PlayerReportUpdateResult> {
-        const closedAt = new Date().toISOString();
+        const closedAt = this.now().toISOString();
         const set: Partial<IPlayerReportEntity> = {
             status: PlayerReportStatus.Closed,
             closedAt,
@@ -317,17 +350,13 @@ export class PlayerReportService {
     }
 
     public async reopenReportAsync(reportId: string, moderator: IModerator): Promise<PlayerReportUpdateResult> {
-        const now = new Date().toISOString();
         const result = await this.transitionAsync(
             reportId,
             PlayerReportStatus.Closed,
             {
                 status: PlayerReportStatus.Open,
-                reopenedAt: now,
+                reopenedAt: this.now().toISOString(),
                 reopenedByUsername: moderator.username,
-                claimedById: moderator.id,
-                claimedByUsername: moderator.username,
-                claimedAt: now,
             },
             ['closedAt', 'closedById', 'closedByUsername', 'outcome', 'closingNote'],
             OPEN_PLAYER_REPORT_GSI_KEY,
@@ -346,9 +375,9 @@ export class PlayerReportService {
      * MetadataRetentionMonths ago. Expired items are found through their day/month GSI buckets.
      *
      * A failure on one report is logged and the cleanup carries on with the others; the cursor then stops
-     * before the first bucket that had a failure, so the next run (every CleanupIntervalMs) retries it.
+     * before the first bucket that had a failure, so the next weekly run retries it.
      */
-    public async runRetentionCleanupAsync(now: Date = new Date()): Promise<IRetentionCleanupResult> {
+    public async runRetentionCleanupAsync(now: Date = this.now()): Promise<IRetentionCleanupResult> {
         const dbService = await this.dbServicePromise;
         if (!dbService) {
             return { logsDeleted: 0, reportsDeleted: 0 };
@@ -377,7 +406,10 @@ export class PlayerReportService {
             for (const reportId of new Set(logs.map((log) => log.reportId as string))) {
                 const outcome = await this.cleanUpOneAsync(`logs of report ${reportId}`, () =>
                     dbService.deletePlayerReportLogsAsync(reportId, deletedAt, logsClosedBefore));
-                logsDeleted += outcome === 'deleted' ? 1 : 0;
+                if (outcome === 'deleted') {
+                    logsDeleted++;
+                    this.listCache.patch(reportId, { logsDeletedAt: deletedAt });
+                }
                 logFailure ||= outcome === 'failed';
             }
             if (!logFailure) {
@@ -401,7 +433,10 @@ export class PlayerReportService {
             for (const report of reports) {
                 const outcome = await this.cleanUpOneAsync(`report ${report.id}`, () =>
                     dbService.deletePlayerReportAsync(report.id, report.reporterId, report.reportedPlayerId, reportsClosedBefore));
-                reportsDeleted += outcome === 'deleted' ? 1 : 0;
+                if (outcome === 'deleted') {
+                    reportsDeleted++;
+                    this.listCache.remove(report.id);
+                }
                 metadataFailure ||= outcome === 'failed';
             }
             if (!metadataFailure) {
@@ -409,14 +444,49 @@ export class PlayerReportService {
             }
         }
 
-        if (logCursor !== cursor.lastLogDay || metadataCursor !== cursor.lastMetadataMonth) {
-            await dbService.savePlayerReportCleanupCursorAsync({ lastLogDay: logCursor, lastMetadataMonth: metadataCursor });
-        }
+        await dbService.savePlayerReportCleanupCursorAsync({ lastLogDay: logCursor, lastMetadataMonth: metadataCursor, lastRunAt: deletedAt });
 
         if (logsDeleted > 0 || reportsDeleted > 0) {
             logger.info(`PlayerReportService: Retention cleanup deleted logs of ${logsDeleted} reports and ${reportsDeleted} reports`);
         }
         return { logsDeleted, reportsDeleted };
+    }
+
+    /**
+     * Runs the retention cleanup every week at the fixed time (CleanupWeekdayUtc, CleanupHourUtc). Shortly after
+     * the start it also runs once if the last run is more than a week ago, so restarts cannot keep skipping it.
+     * Call once, when the server starts.
+     */
+    public scheduleRetentionCleanup(): void {
+        const errorContext = { message: 'PlayerReportService: error during the retention cleanup' };
+
+        this.scheduler.setTimeout(async () => {
+            const dbService = await this.dbServicePromise;
+            const cursor = await dbService?.getPlayerReportCleanupCursorAsync();
+            const lastRunAt = cursor?.lastRunAt ? new Date(cursor.lastRunAt).getTime() : 0;
+            if (dbService && this.now().getTime() - lastRunAt >= PlayerReportService.WeekMs) {
+                await this.runRetentionCleanupAsync();
+            }
+        }, PlayerReportService.OverdueCleanupDelayMs, errorContext);
+
+        const scheduleNextWeeklyRun = () => {
+            const delayMs = PlayerReportService.nextWeeklyCleanup(this.now()).getTime() - this.now().getTime();
+            this.scheduler.setTimeout(async () => {
+                scheduleNextWeeklyRun();
+                await this.runRetentionCleanupAsync();
+            }, delayMs, errorContext);
+        };
+        scheduleNextWeeklyRun();
+    }
+
+    /** The first weekly cleanup time strictly after `now` */
+    public static nextWeeklyCleanup(now: Date): Date {
+        const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), PlayerReportService.CleanupHourUtc));
+        next.setUTCDate(next.getUTCDate() + ((PlayerReportService.CleanupWeekdayUtc - next.getUTCDay() + 7) % 7));
+        if (next <= now) {
+            next.setUTCDate(next.getUTCDate() + 7);
+        }
+        return next;
     }
 
     /** @returns null if the bucket could not be read; the cleanup then retries it on the next run */
@@ -449,27 +519,6 @@ export class PlayerReportService {
 
     // ==================== Helpers ====================
 
-    private async updateAsync(
-        reportId: string,
-        expectedStatus: PlayerReportStatus,
-        set: Partial<IPlayerReportEntity>,
-    ): Promise<PlayerReportUpdateResult> {
-        const dbService = await this.requireDbServiceAsync();
-        try {
-            const report = await dbService.updatePlayerReportAsync(reportId, expectedStatus, set);
-            return { success: true, report };
-        } catch (error) {
-            if (error?.name !== 'ConditionalCheckFailedException') {
-                throw error;
-            }
-
-            const existing = await dbService.getPlayerReportAsync(reportId, { consistentRead: true });
-            return existing
-                ? { success: false, reason: 'conflict', message: `Report is already ${existing.report.status.toLowerCase()}` }
-                : { success: false, reason: 'notFound', message: 'Report not found' };
-        }
-    }
-
     /**
      * Close or reopen: the report, both players' index entries and the logs' expiry change together (see
      * DynamoDBService.transitionPlayerReportAsync). If anything changed between reading the report and writing
@@ -496,6 +545,7 @@ export class PlayerReportService {
 
             const result = await dbService.transitionPlayerReportAsync(stored.report, expectedStatus, set, remove, gsiKey, logExpiryGsiKey);
             if ('report' in result) {
+                this.listCache.upsert(result.report);
                 return { success: true, report: result.report };
             }
             logger.info(`PlayerReportService: Report ${reportId} changed during its status update (${result.reason}), attempt ${attempt}`, { reportId });
@@ -527,8 +577,8 @@ export class PlayerReportService {
             activeUsernameChangesBlockedId: modActionService?.getActiveUsernameChangesBlockedActionId(playerId) ?? null,
             modActions,
             usernameChanges,
-            reportsAgainst: reportIndex.filter((entry) => entry.role === PlayerReportRole.Reported).sort(newestFirst),
-            reportsFiled: reportIndex.filter((entry) => entry.role === PlayerReportRole.Reporter).sort(newestFirst),
+            reportsAgainst: reportIndex.filter((entry) => entry.role === PlayerReportRole.ReportedPlayer).sort(newestFirst),
+            reportsFiled: reportIndex.filter((entry) => entry.role === PlayerReportRole.ReportSubmitter).sort(newestFirst),
         };
     }
 
@@ -540,7 +590,7 @@ export class PlayerReportService {
         reportedPlayer: IReportParticipant,
     ): IPlayerReportLogEntity {
         const lines: IPlayerReportLogLine[] = (messages ?? []).map((entry) => ({
-            at: PlayerReportService.toIsoDate(entry.date),
+            at: this.toIsoDate(entry.date),
             playerIds: PlayerReportService.collectPlayerIds(entry),
             text: PlayerReportService.cleanText(
                 DiscordDispatcher.formatMessageToText(entry, reporter.id, reportedPlayer.id, reporter.username, reportedPlayer.username),
@@ -582,8 +632,8 @@ export class PlayerReportService {
         return cleaned.length > maxLength ? `${cleaned.substring(0, maxLength - 3)}...` : cleaned;
     }
 
-    private static toIsoDate(value: Date | string): string {
+    private toIsoDate(value: Date | string): string {
         const date = new Date(value);
-        return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+        return Number.isNaN(date.getTime()) ? this.now().toISOString() : date.toISOString();
     }
 }

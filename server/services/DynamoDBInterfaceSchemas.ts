@@ -146,7 +146,6 @@ export const ModActionEntitySchema = z.object({
     cancelledById: z.string().optional(),
     cancelledByUsername: z.string().optional(),
     relatedReportId: z.string().optional(),
-    endedAt: z.string().optional(),
 }) as z.ZodType<IModActionEntity>;
 
 export const UsernameChangeEntitySchema = z.object({
@@ -159,10 +158,15 @@ export const UsernameChangeEntitySchema = z.object({
     createdAt: z.string(),
 }) as z.ZodType<IUsernameChangeEntity>;
 
-const ReportDimensionsSchema = z.object({
-    width: z.number(),
-    height: z.number(),
-});
+/** Screen or viewport size reported by the client; bounded so nonsense values are dropped rather than stored */
+export const ReportDimensionsSchema = z.object({
+    width: z.number().int()
+        .min(0)
+        .max(100_000),
+    height: z.number().int()
+        .min(0)
+        .max(100_000),
+}).strict();
 
 export const PlayerReportEntitySchema = z.object({
     id: z.string(),
@@ -182,10 +186,7 @@ export const PlayerReportEntitySchema = z.object({
     screenResolution: ReportDimensionsSchema.optional(),
     viewport: ReportDimensionsSchema.optional(),
     reportedPlayerPriorReportCount: z.number(),
-    reporterPriorFalseReportCount: z.number(),
-    claimedById: z.string().optional(),
-    claimedByUsername: z.string().optional(),
-    claimedAt: z.string().optional(),
+    reporterRecentFalseReportCount: z.number(),
     closedAt: z.string().optional(),
     closedById: z.string().optional(),
     closedByUsername: z.string().optional(),
@@ -219,21 +220,43 @@ export const PlayerReportIndexEntitySchema = z.object({
 
 // Mod tools: player report requests
 
-export const PlayerReportListSchema = z.object({
-    status: z.nativeEnum(PlayerReportStatus),
+export const PlayerReportListQuerySchema = z.object({
 
-    /** For closed reports: the YYYY-MM month to continue listing from (exclusive), newest first */
-    beforeMonth: z.string().regex(/^\d{4}-\d{2}$/)
+    /** Omitted for open and closed reports together */
+    status: z.nativeEnum(PlayerReportStatus).optional(),
+
+    /** Case-insensitive part of the reporter's, the reported player's or the closing moderator's username */
+    search: z.string().trim()
+        .max(100)
+        .optional(),
+
+    /** PlayerReportType chosen by the reporter */
+    offense: z.string().max(100)
+        .optional(),
+    limit: z.coerce.number().int()
+        .min(1)
+        .max(100)
+        .default(25),
+
+    /** `nextCursor` of the previous page */
+    cursor: z.string().max(500)
         .optional(),
 });
 
-export const PlayerReportIdSchema = z.object({
-    reportId: z.string().min(1, 'reportId is required'),
+export const PlayerReportIdParamsSchema = z.object({
+    reportId: z.string().uuid('reportId must be a report id'),
 });
 
-export const PlayerReportCloseSchema = z.object({
-    reportId: z.string().min(1, 'reportId is required'),
-    outcome: z.nativeEnum(PlayerReportOutcome),
-    closingNote: z.string().max(2000, 'closingNote must be 2000 characters or fewer')
-        .optional(),
-});
+const ClosingNoteSchema = z.string().max(2000, 'closingNote must be 2000 characters or fewer');
+
+/** The state a moderator puts a report into: closed with an outcome, or open again */
+export const PlayerReportUpdateSchema = z.discriminatedUnion('status', [
+    z.object({
+        status: z.literal(PlayerReportStatus.Closed),
+        outcome: z.nativeEnum(PlayerReportOutcome),
+        closingNote: ClosingNoteSchema.optional(),
+    }),
+    z.object({
+        status: z.literal(PlayerReportStatus.Open),
+    }),
+]);

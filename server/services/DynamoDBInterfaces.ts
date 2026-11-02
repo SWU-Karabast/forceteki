@@ -98,8 +98,8 @@ export enum TimerVisibility {
 }
 
 export enum DateFormat {
-    MonthFirst = 'monthFirst', // MM/DD/YYYY
-    DayFirst = 'dayFirst', // DD/MM/YYYY
+    MMDDYYYY = 'MMDDYYYY',
+    DDMMYYYY = 'DDMMYYYY',
 }
 
 export interface IUserPreferences {
@@ -304,13 +304,6 @@ export interface IModActionEntity {
     cancelledById?: string;
     cancelledByUsername?: string;
     relatedReportId?: string; // set when the action was issued from a player report ticket
-
-    /**
-     * When the action stopped having an effect: creation for one-off actions (Warning, ChangeUsername),
-     * otherwise when it was cancelled, expired or resolved. Unset while the action is active. The action
-     * is deleted ModActionRetentionService.RetentionMonths after this.
-     */
-    endedAt?: string;
 }
 
 export interface IActiveModActionCacheEntry {
@@ -347,7 +340,7 @@ export enum PlayerReportStatus {
 
 /** How a moderator resolved a player report when closing it. */
 export enum PlayerReportOutcome {
-    Punished = 'Punished',
+    ActionTaken = 'ActionTaken',
     NoAction = 'NoAction',
     FalseReport = 'FalseReport',
 
@@ -357,8 +350,8 @@ export enum PlayerReportOutcome {
 
 /** Which side of a report a player is on, used by the per-player report index. */
 export enum PlayerReportRole {
-    Reporter = 'Reporter',
-    Reported = 'Reported',
+    ReportSubmitter = 'ReportSubmitter',
+    ReportedPlayer = 'ReportedPlayer',
 }
 
 export enum PlayerReportLogKind {
@@ -388,13 +381,11 @@ export interface IPlayerReportEntity {
     screenResolution?: { width: number; height: number };
     viewport?: { width: number; height: number };
 
-    /** Snapshot at creation time, shown in the report list without extra lookups */
+    /** Snapshots at creation time, so the ticket shows them without extra lookups */
     reportedPlayerPriorReportCount: number;
-    reporterPriorFalseReportCount: number;
 
-    claimedById?: string;
-    claimedByUsername?: string;
-    claimedAt?: string;
+    /** False reports the reporter filed in the PlayerReportService.RecentFalseReportDays before this one */
+    reporterRecentFalseReportCount: number;
 
     closedAt?: string;
     closedById?: string;
@@ -417,12 +408,9 @@ export interface IPlayerReportCleanupCursor {
 
     /** Last YYYY-MM closed-report bucket whose reports have been deleted */
     lastMetadataMonth: string;
-}
 
-export interface IModActionCleanupCursor {
-
-    /** Last YYYY-MM ended-action bucket whose mod actions have been deleted */
-    lastMonth: string;
+    /** When the cleanup last ran, so a restart can tell whether a weekly run was missed */
+    lastRunAt?: string;
 }
 
 export interface IPlayerReportLogLine {

@@ -14,7 +14,6 @@ import {
 import { logger } from '../logger';
 import { Contract } from '../game/core/utils/Contract';
 import type {
-    IModActionCleanupCursor,
     IModActionEntity,
     IPlayerReportEntity,
     IPlayerReportIndexEntity,
@@ -44,7 +43,6 @@ import {
     UsernameChangeEntitySchema
 } from './DynamoDBInterfaceSchemas';
 import { getDefaultPreferences } from '../utils/user/UserFactory';
-import { monthOf } from '../utils/RetentionBuckets';
 import { type ICosmeticEntity, type RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
 
 // global variable
@@ -101,9 +99,6 @@ export const playerReportLogExpiryGsiKey = (day: string): string => `REPORT_LOG_
 export type PlayerReportTransitionResult =
   | { success: true; report: IPlayerReportEntity }
   | { success: false; reason: 'condition' | 'conflict' };
-
-/** GSI bucket for mod actions that ended in the given YYYY-MM month; drives their retention cleanup */
-export const endedModActionGsiKey = (month: string): string => `ENDED_MODACTION#${month}`;
 
 const PLAYER_REPORT_LOG_KINDS = ['Chat', 'Game'] as const;
 
@@ -928,21 +923,19 @@ export class DynamoDBService {
 
     /**
      * Save a new mod action item.
-     * Tracked actions (Mute, Rename, ...) are indexed under 'ACTIVE_MODACTION' until they end. One-off actions
-     * end when they are created, so they go straight into the ended bucket for the retention cleanup.
+     * For Mute actions, GSI_PK is set to 'ACTIVE_MODACTION' so it appears in the sparse index.
      */
     public saveModActionAsync(modAction: IModActionEntity) {
         return this.executeDbOperationAsync(() => {
-            const isActive = isTrackedModAction(modAction.actionType) && !modAction.cancelledAt;
-            const endedAt = isActive ? undefined : (modAction.endedAt ?? modAction.cancelledAt ?? modAction.createdAt);
             const item: Record<string, any> = withoutUndefined({
                 pk: `USER#${modAction.playerId}`,
                 sk: `MODACTION#${modAction.id}`,
                 ...modAction,
-                endedAt,
             });
 
-            item.GSI_PK = isActive ? 'ACTIVE_MODACTION' : endedModActionGsiKey(monthOf(new Date(endedAt)));
+            if (isTrackedModAction(modAction.actionType) && !modAction.cancelledAt) {
+                item.GSI_PK = 'ACTIVE_MODACTION';
+            }
 
             return this.putItemAsync(item);
         }, 'Error saving mod action');
@@ -967,101 +960,49 @@ export class DynamoDBService {
     }
 
     /**
-     * Cancel a mod action: set cancelledAt and cancelledBy, and move it from the active index to the ended bucket.
-     * An action that had already ended (e.g. an expired mute cancelled afterwards) keeps its endedAt and bucket,
-     * so the two always agree.
+     * Cancel a mod action: set cancelledAt and cancelledBy, remove GSI_PK to drop it from the active index.
      */
     public cancelModActionAsync(playerId: string, modActionId: string, cancelledById: string, cancelledByUsername: string) {
-        return this.executeDbOperationAsync(async () => {
-            const cancelledAt = new Date().toISOString();
-            const key = { pk: `USER#${playerId}`, sk: `MODACTION#${modActionId}` };
-            const cancelFields = 'cancelledAt = :cancelledAt, cancelledById = :cancelledById, cancelledByUsername = :cancelledByUsername';
-            const cancelValues = { ':cancelledAt': cancelledAt, ':cancelledById': cancelledById, ':cancelledByUsername': cancelledByUsername };
-
-            try {
-                return await this.client.send(new UpdateCommand({
-                    TableName: this.tableName,
-                    Key: key,
-                    UpdateExpression: `SET ${cancelFields}, endedAt = :cancelledAt, GSI_PK = :endedBucket`,
-                    ConditionExpression: 'attribute_exists(pk) AND attribute_not_exists(cancelledAt) AND attribute_not_exists(endedAt)',
-                    ExpressionAttributeValues: { ...cancelValues, ':endedBucket': endedModActionGsiKey(monthOf(new Date(cancelledAt))) },
-                    ReturnValues: 'ALL_NEW',
-                }));
-            } catch (error) {
-                if (error?.name !== 'ConditionalCheckFailedException') {
-                    throw error;
-                }
-            }
-
-            // Already ended (or already cancelled / missing, which this condition rejects as before)
-            return this.client.send(new UpdateCommand({
+        return this.executeDbOperationAsync(() => {
+            const command = new UpdateCommand({
                 TableName: this.tableName,
-                Key: key,
-                UpdateExpression: `SET ${cancelFields}`,
+                Key: {
+                    pk: `USER#${playerId}`,
+                    sk: `MODACTION#${modActionId}`,
+                },
+                UpdateExpression: 'SET cancelledAt = :cancelledAt, cancelledById = :cancelledById, cancelledByUsername = :cancelledByUsername ' +
+                  'REMOVE GSI_PK',
                 ConditionExpression: 'attribute_exists(pk) AND attribute_not_exists(cancelledAt)',
-                ExpressionAttributeValues: cancelValues,
-                ReturnValues: 'ALL_NEW',
-            }));
+                ExpressionAttributeValues: {
+                    ':cancelledAt': new Date().toISOString(),
+                    ':cancelledById': cancelledById,
+                    ':cancelledByUsername': cancelledByUsername
+                },
+                ReturnValues: 'ALL_NEW'
+            });
+
+            return this.client.send(command);
         }, 'Error cancelling mod action');
     }
 
     /**
-     * Mark a mod action as ended without cancelling it (an expired mute, a resolved rename): drops it from the
-     * ACTIVE_MODACTION sparse index and files it under the ended bucket of `endedAt` for the retention cleanup.
-     * An action that already ended (e.g. cancelled concurrently) keeps its endedAt and bucket.
-     *
-     * @param options.onlyIfInactive only end it if it is not in the ACTIVE_MODACTION index (for backfills that
-     * must never end a running action)
-     * @returns false if the action does not exist, has already ended, or is active while `onlyIfInactive` is set
+     * Remove GSI_PK from an expired mod action (cleanup only, doesn't set cancelledAt/cancelledBy).
+     * This drops the item from the ACTIVE_MODACTION sparse index.
      */
-    public endModActionAsync(playerId: string, modActionId: string, endedAt: string, options: { onlyIfInactive?: boolean } = {}): Promise<boolean> {
-        return this.executeDbOperationAsync(async () => {
-            const condition = 'attribute_exists(pk) AND attribute_not_exists(endedAt)' +
-              (options.onlyIfInactive ? ' AND (attribute_not_exists(GSI_PK) OR GSI_PK <> :active)' : '');
-            try {
-                await this.client.send(new UpdateCommand({
-                    TableName: this.tableName,
-                    Key: {
-                        pk: `USER#${playerId}`,
-                        sk: `MODACTION#${modActionId}`,
-                    },
-                    UpdateExpression: 'SET endedAt = :endedAt, GSI_PK = :endedBucket',
-                    ConditionExpression: condition,
-                    ExpressionAttributeValues: {
-                        ':endedAt': endedAt,
-                        ':endedBucket': endedModActionGsiKey(monthOf(new Date(endedAt))),
-                        ...(options.onlyIfInactive ? { ':active': 'ACTIVE_MODACTION' } : {}),
-                    },
-                }));
-                return true;
-            } catch (error) {
-                if (error?.name === 'ConditionalCheckFailedException') {
-                    return false;
-                }
-                throw error;
-            }
-        }, 'Error ending mod action');
-    }
+    public removeModActionFromActiveIndexAsync(playerId: string, modActionId: string) {
+        return this.executeDbOperationAsync(() => {
+            const command = new UpdateCommand({
+                TableName: this.tableName,
+                Key: {
+                    pk: `USER#${playerId}`,
+                    sk: `MODACTION#${modActionId}`,
+                },
+                UpdateExpression: 'REMOVE GSI_PK',
+                ReturnValues: 'ALL_NEW'
+            });
 
-    public deleteModActionAsync(playerId: string, modActionId: string) {
-        return this.executeDbOperationAsync(
-            () => this.deleteItemAsync(`USER#${playerId}`, `MODACTION#${modActionId}`),
-            'Error deleting mod action'
-        );
-    }
-
-    public getModActionCleanupCursorAsync(): Promise<IModActionCleanupCursor | null> {
-        return this.executeDbOperationAsync(async () => {
-            const result = await this.getItemAsync('SYSTEM', 'MODACTION_CLEANUP');
-            return result.Item ? { lastMonth: result.Item.lastMonth } : null;
-        }, 'Error getting mod action cleanup cursor');
-    }
-
-    public saveModActionCleanupCursorAsync(cursor: IModActionCleanupCursor) {
-        return this.executeDbOperationAsync(
-            () => this.putItemAsync({ pk: 'SYSTEM', sk: 'MODACTION_CLEANUP', ...cursor }),
-            'Error saving mod action cleanup cursor'
-        );
+            return this.client.send(command);
+        }, 'Error removing mod action from active index');
     }
 
     // Player Reports
@@ -1100,29 +1041,42 @@ export class DynamoDBService {
     }
 
     /**
+     * Get only a player report's own record, without its logs. Returns null if the report does not exist.
+     */
+    public getPlayerReportMetaAsync(reportId: string, options: { consistentRead?: boolean } = {}): Promise<IPlayerReportEntity | null> {
+        return this.executeDbOperationAsync(async () => {
+            const result = await this.client.send(new GetCommand({
+                TableName: this.tableName,
+                Key: { pk: `REPORT#${reportId}`, sk: 'META' },
+                ...(options.consistentRead ? { ConsistentRead: true } : {}),
+            }));
+            if (!result.Item) {
+                return null;
+            }
+            return await this.validateAndHandleAsync<IPlayerReportEntity>(PlayerReportEntitySchema, result.Item, `getPlayerReportMetaAsync (report ${reportId})`) ?? null;
+        }, 'Error getting player report');
+    }
+
+    /**
      * Get a player report and its logs. Returns null if the report does not exist.
+     * The record and the logs are read separately, so large logs can never push the record out of a query page.
      */
     public getPlayerReportAsync(
         reportId: string,
         options: { consistentRead?: boolean } = {}
     ): Promise<{ report: IPlayerReportEntity; logs: IPlayerReportLogEntity[] } | null> {
         return this.executeDbOperationAsync(async () => {
-            const result = await this.queryItemsAsync(`REPORT#${reportId}`, { consistentRead: options.consistentRead });
-            const items = result.Items || [];
-
-            const metaItem = items.find((item: any) => item.sk === 'META');
-            if (!metaItem) {
-                return null;
-            }
-
-            const report = await this.validateAndHandleAsync<IPlayerReportEntity>(PlayerReportEntitySchema, metaItem, `getPlayerReportAsync (report ${reportId})`);
+            const [report, logResult] = await Promise.all([
+                this.getPlayerReportMetaAsync(reportId, options),
+                this.queryItemsAsync(`REPORT#${reportId}`, { beginsWith: 'LOG#', consistentRead: options.consistentRead }),
+            ]);
             if (!report) {
                 return null;
             }
 
             const logs = await this.validateEachAsync<IPlayerReportLogEntity>(
                 PlayerReportLogEntitySchema,
-                items.filter((item: any) => typeof item.sk === 'string' && item.sk.startsWith('LOG#')),
+                logResult.Items || [],
                 (item) => `getPlayerReportAsync (log ${item.sk})`
             );
 
@@ -1158,26 +1112,6 @@ export class DynamoDBService {
                 (item) => `getPlayerReportIndexAsync (${item.sk})`
             );
         }, 'Error getting player report index');
-    }
-
-    /**
-     * Update fields of a report that is still in `expectedStatus` (used for claiming; close/reopen use transitions).
-     * Otherwise DynamoDB throws a ConditionalCheckFailedException, which protects against two moderators racing on one ticket.
-     * @returns the updated report
-     */
-    public updatePlayerReportAsync(
-        reportId: string,
-        expectedStatus: PlayerReportStatus,
-        set: Partial<IPlayerReportEntity>,
-    ): Promise<IPlayerReportEntity> {
-        return this.executeDbOperationAsync(async () => {
-            const result = await this.client.send(new UpdateCommand({
-                ...this.buildPlayerReportStatusUpdate(reportId, expectedStatus, set, [], undefined),
-                ReturnValues: 'ALL_NEW',
-            }));
-
-            return this.validateAndHandleAsync<IPlayerReportEntity>(PlayerReportEntitySchema, result.Attributes, `updatePlayerReportAsync (report ${reportId})`);
-        }, 'Error updating player report');
     }
 
     /**
@@ -1228,8 +1162,8 @@ export class DynamoDBService {
                 await this.client.send(new TransactWriteCommand({
                     TransactItems: [
                         { Update: this.buildPlayerReportStatusUpdate(report.id, expectedStatus, set, remove, gsiKey) },
-                        indexUpdate(report.reporterId, PlayerReportRole.Reporter),
-                        indexUpdate(report.reportedPlayerId, PlayerReportRole.Reported),
+                        indexUpdate(report.reporterId, PlayerReportRole.ReportSubmitter),
+                        indexUpdate(report.reportedPlayerId, PlayerReportRole.ReportedPlayer),
                         ...logUpdates,
                     ],
                 }));
@@ -1378,8 +1312,8 @@ export class DynamoDBService {
             ...PLAYER_REPORT_LOG_KINDS.map((kind) => ({
                 Delete: { TableName: this.tableName, Key: { pk: `REPORT#${reportId}`, sk: `LOG#${kind}` } },
             })),
-            { Delete: { TableName: this.tableName, Key: { pk: `USER#${reporterId}`, sk: DynamoDBService.playerReportIndexSortKey(PlayerReportRole.Reporter, reportId) } } },
-            { Delete: { TableName: this.tableName, Key: { pk: `USER#${reportedPlayerId}`, sk: DynamoDBService.playerReportIndexSortKey(PlayerReportRole.Reported, reportId) } } },
+            { Delete: { TableName: this.tableName, Key: { pk: `USER#${reporterId}`, sk: DynamoDBService.playerReportIndexSortKey(PlayerReportRole.ReportSubmitter, reportId) } } },
+            { Delete: { TableName: this.tableName, Key: { pk: `USER#${reportedPlayerId}`, sk: DynamoDBService.playerReportIndexSortKey(PlayerReportRole.ReportedPlayer, reportId) } } },
         ]), 'Error deleting player report');
     }
 

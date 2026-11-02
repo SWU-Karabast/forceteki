@@ -38,6 +38,7 @@ import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import type { IGameNodeConfig } from './GameNodeConfig';
 import { PlayerReportType, ReportType } from '../game/Interfaces';
 import type { IStatsMessageFormat } from '../utils/stats/statsMessages';
+import { ReportDimensionsSchema } from '../services/DynamoDBInterfaceSchemas';
 import {
     createStatsMessage,
     StatsMessageKey,
@@ -2611,11 +2612,12 @@ export class Lobby {
             let viewport = null;
 
             if (reportMessage && typeof reportMessage === 'object') {
-                parsedDescription = reportMessage.description || '';
-                screenResolution = reportMessage.screenResolution || null;
-                viewport = reportMessage.viewport || null;
+                parsedDescription = typeof reportMessage.description === 'string' ? reportMessage.description : '';
+                // Sent by the client as-is; anything that is not a plain size is dropped rather than stored
+                screenResolution = ReportDimensionsSchema.safeParse(reportMessage.screenResolution).data ?? null;
+                viewport = ReportDimensionsSchema.safeParse(reportMessage.viewport).data ?? null;
             } else {
-                parsedDescription = reportMessage;
+                parsedDescription = typeof reportMessage === 'string' ? reportMessage : '';
             }
 
             const gameState = this.game
@@ -2628,7 +2630,8 @@ export class Lobby {
             if (this.game) {
                 const opponentObject = this.game.getPlayers().find((u) => u.id !== socket.user.getId());
                 opponent = { id: opponentObject.id, username: opponentObject.user.username };
-                gameMessages = reportType === ReportType.BugReport ? this.game.getLogMessages() : this.game.gameChat.messages;
+                // A player report keeps chat in its own log, so its game log leaves the chat out
+                gameMessages = reportType === ReportType.BugReport ? this.game.getLogMessages() : this.game.gameChat.getGameLogMessages();
                 if (reportType === ReportType.PlayerReport) {
                     chatMessages = this.game.gameChat.getPlayerChatMessages();
                 }
@@ -2640,7 +2643,7 @@ export class Lobby {
                 } else {
                     throw new Error(`${reportLabel} failed since opponent wasn't found`);
                 }
-                gameMessages = this.gameChat.messages;
+                gameMessages = reportType === ReportType.BugReport ? this.gameChat.messages : this.gameChat.getGameLogMessages();
                 chatMessages = this.gameChat.getPlayerChatMessages();
             }
 

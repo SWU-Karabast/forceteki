@@ -100,7 +100,7 @@ export class ModActionService {
      * Fetch function passed to TimedCache.
      * Runs on init and on every periodic refresh.
      * 1. Queries all active mod actions from the GSI
-     * 2. Ends expired entries in DB (moves them from the active index to the ended bucket)
+     * 2. Cleans up expired entries in DB (removes GSI_PK)
      * 3. Builds and returns the cache map, re-applying any write-through mutations that landed
      *    while the query was in flight (those are newer than anything the query could have seen)
      */
@@ -121,7 +121,7 @@ export class ModActionService {
                 // Clean up expired entries in DB (only those that have been activated)
                 if (action.expiresAt && new Date(action.expiresAt) <= now) {
                     try {
-                        await db.endModActionAsync(action.playerId, action.id, action.expiresAt);
+                        await db.removeModActionFromActiveIndexAsync(action.playerId, action.id);
                         cleanedCount++;
                     } catch (error) {
                         logger.error(`ModActionService: Failed to clean up expired action ${action.id}`, {
@@ -605,12 +605,12 @@ export class ModActionService {
     }
 
     /**
-     * Mark a mod action as ended now in DynamoDB, deactivating it from the sparse index.
+     * Remove GSI_PK from a mod action in DynamoDB, deactivating it from the sparse index.
      */
     private async deactivateModActionInDb(playerId: string, modActionId: string): Promise<void> {
         const db = await this.dbServicePromise;
         try {
-            await db.endModActionAsync(playerId, modActionId, this.scheduler.currentDate().toISOString());
+            await db.removeModActionFromActiveIndexAsync(playerId, modActionId);
         } catch (error) {
             logger.error(`ModActionCache: Failed to deactivate mod action ${modActionId} in DB`, {
                 error: { message: error.message, stack: error.stack }

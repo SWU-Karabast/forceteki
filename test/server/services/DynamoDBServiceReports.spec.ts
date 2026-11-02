@@ -1,13 +1,13 @@
 import { DynamoDBService } from '../../../server/services/DynamoDBService';
 import type { IPlayerReportEntity } from '../../../server/services/DynamoDBInterfaces';
-import { ModActionType, PlayerReportOutcome, PlayerReportStatus } from '../../../server/services/DynamoDBInterfaces';
+import { PlayerReportOutcome, PlayerReportStatus } from '../../../server/services/DynamoDBInterfaces';
 
 /**
  * The service specs use an in-memory fake of DynamoDBService, so these check the commands the real service
- * builds for the report and mod action retention paths: the shapes DynamoDB accepts, and how cancelled
+ * builds for the player report paths: the shapes DynamoDB accepts, and how cancelled
  * transactions are reported.
  */
-describe('DynamoDBService player report and mod action commands', function() {
+describe('DynamoDBService player report commands', function() {
     let service: DynamoDBService;
     let send: jasmine.Spy;
 
@@ -25,7 +25,7 @@ describe('DynamoDBService player report and mod action commands', function() {
         gameFormat: 'premier',
         matchType: 'quick',
         reportedPlayerPriorReportCount: 0,
-        reporterPriorFalseReportCount: 0,
+        reporterRecentFalseReportCount: 0,
     };
 
     const cancelled = (...codes: string[]) => Object.assign(new Error('Transaction cancelled'), {
@@ -78,7 +78,7 @@ describe('DynamoDBService player report and mod action commands', function() {
         const close = () => service.transitionPlayerReportAsync(
             report,
             PlayerReportStatus.Open,
-            { status: PlayerReportStatus.Closed, closedAt: '2026-10-05T00:00:00.000Z', outcome: PlayerReportOutcome.Punished },
+            { status: PlayerReportStatus.Closed, closedAt: '2026-10-05T00:00:00.000Z', outcome: PlayerReportOutcome.ActionTaken },
             ['closingNote'],
             'CLOSED_PLAYER_REPORT#2026-10',
             'REPORT_LOG_EXPIRY#2026-11-04'
@@ -97,17 +97,17 @@ describe('DynamoDBService player report and mod action commands', function() {
             expect(meta.Key).toEqual({ pk: 'REPORT#report-1', sk: 'META' });
             expect(meta.ConditionExpression).toContain('#status = :expectedStatus');
             expect(meta.ExpressionAttributeValues[':expectedStatus']).toBe(PlayerReportStatus.Open);
-            expect(reporterIndex.Key).toEqual({ pk: 'USER#reporter-1', sk: 'PLAYERREPORT#Reporter#report-1' });
-            expect(reportedIndex.ExpressionAttributeValues).toEqual({ ':status': PlayerReportStatus.Closed, ':outcome': PlayerReportOutcome.Punished });
+            expect(reporterIndex.Key).toEqual({ pk: 'USER#reporter-1', sk: 'PLAYERREPORT#ReportSubmitter#report-1' });
+            expect(reportedIndex.ExpressionAttributeValues).toEqual({ ':status': PlayerReportStatus.Closed, ':outcome': PlayerReportOutcome.ActionTaken });
             expect(chatLog.Key.sk).toBe('LOG#Chat');
             expect(gameLog.ExpressionAttributeValues[':gsiPk']).toBe('REPORT_LOG_EXPIRY#2026-11-04');
             expect(items.every((item) => item.Update.ConditionExpression)).toBeTrue();
 
-            expect(result).toEqual({ success: true, report: jasmine.objectContaining({ status: PlayerReportStatus.Closed, outcome: PlayerReportOutcome.Punished }) });
+            expect(result).toEqual({ success: true, report: jasmine.objectContaining({ status: PlayerReportStatus.Closed, outcome: PlayerReportOutcome.ActionTaken }) });
         });
 
         it('removes the outcome and the log expiry on reopen', async function() {
-            const closedReport = { ...report, status: PlayerReportStatus.Closed, outcome: PlayerReportOutcome.Punished, closedAt: '2026-10-05T00:00:00.000Z' };
+            const closedReport = { ...report, status: PlayerReportStatus.Closed, outcome: PlayerReportOutcome.ActionTaken, closedAt: '2026-10-05T00:00:00.000Z' };
 
             const result = await service.transitionPlayerReportAsync(
                 closedReport,
@@ -168,7 +168,7 @@ describe('DynamoDBService player report and mod action commands', function() {
             expectPlaceholdersMatch(items[0].Delete);
             expect(items[0].Delete.ConditionExpression).toBe('#status = :closed AND closedAt < :closedBefore');
             expect(items.map((item) => item.Delete.Key.sk)).toEqual([
-                'META', 'LOG#Chat', 'LOG#Game', 'PLAYERREPORT#Reporter#report-1', 'PLAYERREPORT#Reported#report-1',
+                'META', 'LOG#Chat', 'LOG#Game', 'PLAYERREPORT#ReportSubmitter#report-1', 'PLAYERREPORT#ReportedPlayer#report-1',
             ]);
         });
 
@@ -181,6 +181,29 @@ describe('DynamoDBService player report and mod action commands', function() {
         });
     });
 
+    describe('reading a report', function() {
+        it('reads the record with a get, separately from the logs, so large logs cannot hide it', async function() {
+            send.and.callFake((command: { input: Record<string, any> }) => Promise.resolve(
+                command.input.Key ? { Item: { pk: 'REPORT#report-1', sk: 'META', ...report } } : { Items: [] }
+            ));
+
+            const stored = await service.getPlayerReportAsync('report-1', { consistentRead: true });
+
+            expect(stored.report).toEqual(report);
+            expect(stored.logs).toEqual([]);
+            const inputs = send.calls.allArgs().map(([command]) => command.input);
+            expect(inputs.find((input) => input.Key)).toEqual(jasmine.objectContaining({ Key: { pk: 'REPORT#report-1', sk: 'META' }, ConsistentRead: true }));
+            expect(inputs.find((input) => input.KeyConditionExpression)?.ExpressionAttributeValues).toEqual({ ':pk': 'REPORT#report-1', ':skPrefix': 'LOG#' });
+        });
+
+        it('returns null for a missing report', async function() {
+            send.and.resolveTo({});
+
+            expect(await service.getPlayerReportMetaAsync('missing')).toBeNull();
+            expect(await service.getPlayerReportAsync('missing')).toBeNull();
+        });
+    });
+
     it('creates a report and all its items atomically', async function() {
         await service.savePlayerReportAsync(report, [{ reportId: 'report-1', kind: 'Chat' as any, lines: [], truncated: false }], []);
 
@@ -188,50 +211,5 @@ describe('DynamoDBService player report and mod action commands', function() {
         expect(items.length).toBe(2);
         expect(items.every((item) => item.Put.ConditionExpression === 'attribute_not_exists(pk)')).toBeTrue();
         expect(items[0].Put.Item.GSI_PK).toBe('OPEN_PLAYER_REPORT');
-    });
-
-    describe('mod action retention', function() {
-        it('ends an action only once and files it under the bucket of its end', async function() {
-            expect(await service.endModActionAsync('p', 'a', '2026-06-17T10:00:00.000Z')).toBeTrue();
-
-            const input = sentInput();
-            expectPlaceholdersMatch(input);
-            expect(input.ConditionExpression).toBe('attribute_exists(pk) AND attribute_not_exists(endedAt)');
-            expect(input.ExpressionAttributeValues[':endedBucket']).toBe('ENDED_MODACTION#2026-06');
-        });
-
-        it('can refuse to end an action that is still active, for backfills', async function() {
-            await service.endModActionAsync('p', 'a', '2026-06-17T10:00:00.000Z', { onlyIfInactive: true });
-
-            const input = sentInput();
-            expectPlaceholdersMatch(input);
-            expect(input.ConditionExpression).toContain('GSI_PK <> :active');
-
-            send.and.rejectWith(Object.assign(new Error('failed'), { name: 'ConditionalCheckFailedException' }));
-            expect(await service.endModActionAsync('p', 'a', '2026-06-17T10:00:00.000Z', { onlyIfInactive: true })).toBeFalse();
-        });
-
-        it('cancels an already ended action without moving its end or bucket', async function() {
-            send.and.returnValues(
-                Promise.reject(Object.assign(new Error('failed'), { name: 'ConditionalCheckFailedException' })),
-                Promise.resolve({ Attributes: { id: 'a' } })
-            );
-
-            const result = await service.cancelModActionAsync('p', 'a', 'mod', 'Mod');
-
-            expect(result.Attributes).toEqual({ id: 'a' });
-            const [first, second] = [sentInput(0), sentInput(1)];
-            expectPlaceholdersMatch(first);
-            expectPlaceholdersMatch(second);
-            expect(first.UpdateExpression).toContain('GSI_PK = :endedBucket');
-            expect(second.UpdateExpression).not.toContain('GSI_PK');
-            expect(second.UpdateExpression).not.toContain('endedAt');
-        });
-
-        it('puts one-off actions straight into their ended bucket when saving', async function() {
-            await service.saveModActionAsync({ id: 'w', playerId: 'p', actionType: ModActionType.Warning, moderatorId: 'm', moderatorUsername: 'M', createdAt: '2026-06-10T10:00:00.000Z' });
-
-            expect(sentInput().Item).toEqual(jasmine.objectContaining({ GSI_PK: 'ENDED_MODACTION#2026-06', endedAt: '2026-06-10T10:00:00.000Z' }));
-        });
     });
 });
