@@ -195,7 +195,7 @@ export = {
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBasePoliticalSkillMultiplier, value),
     modifyIndirectDamage: (modifier: IndirectDamageModifier) => OngoingEffectBuilder.player.static(EffectName.ModifyIndirectDamage, modifier),
     modifyPilotingLimit: (modifier: PilotLimitModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyPilotLimit, modifier),
-    modifyStartingHandSize: (modifier: StartingHandSizeModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyStartingHandSize, modifier),
+    modifyStartingHandSize: (modifier: StartingHandSizeModifier) => OngoingEffectBuilder.player.static(EffectName.ModifyStartingHandSize, modifier),
     modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) => {
         switch (typeof modifier) {
             case 'function':
