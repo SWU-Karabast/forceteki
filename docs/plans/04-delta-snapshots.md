@@ -278,7 +278,7 @@ is open mid-action, roll back, assert action-start state).
 **The harness moves, not the policy.** The whole-suite undo harness replays
 every spec via a *manual* snapshot rollback (`undoIt`:
 `game.takeManualSnapshot(activePlayer)` at `test/helpers/IntegrationHelper.js:50`,
-rollback with `SnapshotType.Manual` at `:249-253`). With always-full manuals
+rollback with `SnapshotType.Manual` in `assertManualRollbackSucceeded`, which `undoIt` calls). With always-full manuals
 and no harness change, every replayed spec would exercise only the
 full-snapshot path and the delta restore machinery — the entire novel surface
 of this plan — would be gated by half a dozen dedicated specs. Unacceptable.
@@ -293,8 +293,8 @@ Under `ENABLE_UNDO_ALL_TESTS`:
   per-spec **delta-vs-full parity check** (invariant 4). Under delta-parity
   mode the only legal skip is the existing null-`snapshotId`
   (non-action-phase) case; any other rollback failure fails the spec —
-  today's `undoIt` treats every failed rollback as a silent skip
-  (`IntegrationHelper.js:254-257`), and that leniency does not survive.
+  unit P4-1 already removed the silent skip `undoIt` used to apply to every
+  failed rollback, so any other rollback failure already fails the spec.
 
 Resulting gate coverage: every spec whose start-of-test snapshot is taken
 during the action phase — the large majority of the integration suite (the

@@ -763,6 +763,10 @@ Specs cover Free and Request undo mode; the confirmation behavior at the boundar
 /orchestrate --fast Implement the harness-leniency removal docs/plans/04-delta-snapshots.md names under "Manual snapshots and the whole-suite gate": test/helpers/IntegrationHelper.js's undoIt (and undoFit) currently treat every failed manual rollback as a silent skip (the `if (!rolledBack) return;` at roughly :274-277), and the plan says that leniency does not survive. Make a failed rollback fail the spec. The only legal skip is the existing null-snapshotId case (start-of-test snapshot taken outside the action phase). Scope fence: the harness only; do NOT build any delta-parity mode (that arrives with unit P4-F), do NOT touch production code except to fix a genuine engine defect this exposes, and if it exposes failing specs, fix or report them rather than re-adding leniency. Gate on `npm run test-parallel-undo` as the primary evidence. Do NOT run the performance capture; that belongs to unit P4-G. task_id: p4-1
 ```
 
+**Actually delivered (landed in `98b7b256e`):** `undoIt` and `undoFit` fail the spec on any refused manual rollback; the null-`snapshotId` skip is the only one left.
+It exposed one spec, the Kylo's TIE Silencer discard spec in `Undo.spec.ts`, whose nested plain `integration()` turned undo off and hid a rollback that never ran; it was un-nested with no assertion changes.
+Follow-up, not scheduled: the `rollback(contextRef, …)` shortcut in `IntegrationHelper.js` still ignores a refused rollback.
+
 ### `P4-A` — Delta tracker + recording hooks
 
 ```bash
