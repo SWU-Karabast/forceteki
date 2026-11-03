@@ -53,6 +53,36 @@ Cheap, but the benchmark must record delta *size* distribution, not just time.
   `@stateValue`; after the split those become decorator-hooked fields — do
   not fossilize the manual hooks.)
 
+**As landed in P4-A.**
+The tracker is `server/game/core/snapshot/DeltaTracker.ts`, one per `Game` (`game.deltaTracker`), a plain class that is not a `GameObjectBase` and is not snapshotted.
+Its API is `isTracking`, `mode`, `pendingWindow`, `setMode`, `startTracking(anchor)`, `checkpoint(nextAnchor)` (returns the closed window), `stopTracking`, `resumeTracking`, `discardWindow`, `recordFieldChange(go, fieldName)` and `recordObjectCreation(uuid)`.
+A window is `{ anchor: { snapshotId, rngState, lastGameObjectId }, mode, changedFields, createdObjectUuids }`; nothing consumes it yet and snapshots stay full.
+The only window boundary is `SnapshotFactory.createSnapshotForCurrentTimepoint`: the first call starts tracking and every later call checkpoints, so a window runs from one full snapshot to the next.
+`recordFieldChange` returns on `fieldName in entry` before any serializer lookup, and the per-object record is `Object.create(null)`.
+The creation hook is in `GameStateManager.register` inside the `!_disableRegistration` guard, and `GameStateManager.isRegistered(go)` lets the tracker ignore objects that are not game state.
+Capture mode is fixed per window (user decision D1): `DeltaTrackerMode.CaptureOldValues` is the default and stores the field's window-start value through the `StateEncoding` encoder for its registry kind (never `getObjectId()`), `DeltaTrackerMode.DirtyOnly` stores a marker with no registry or encoder call, and `setMode` applies from the next window.
+P4-C needs only the dirty set, so it selects `DirtyOnly`; P4-E selects capture if P4-D picks deltas.
+Rollback (`SnapshotManager.rollbackToInternal`) stops the tracker on entry, so the restore's field writes are never recorded.
+When a container restored a snapshot, a `finally` starts a fresh window at the restored snapshot.
+When nothing was restored (a missing target, a throw, the pre-pass abort) or the restore failed and recovered to the current snapshot, the same `finally` resumes the existing window rather than replacing it with an empty one (user decision D2a), because an empty window would claim that objects changed earlier in the same action are untouched.
+`clearAllSnapshots` discards the window and stops the tracker; the next snapshot starts a new one.
+Writes to objects registered during the window and to objects built under `createWithoutRefsUnsafe` are not recorded (user decision D2b): the former have no window-start state and the latter are not game state.
+The hook surface is every retained decorator setter, both `UndoSafeRecord` proxy traps, and every mutator of `UndoMap`, `UndoSet`, `UndoArray` (including a new `copyWithin`), `ValueMap`, `ValueSet` and `ValueArray`; each calls the tracker before its write (as its first statement, except `UndoArray.splice`, which first rejects unsupported arguments).
+`ValueMap` and `ValueSet` now construct empty and populate through `Map.prototype.set`/`Set.prototype.add`, so no overridden mutator runs before `#go` exists.
+Writes no hook can see are never recorded: index assignment and `length =` on a `ValueArray` (on an `UndoArray` both are compile errors through `IStateArray`), a write cast past `readonly` into a readonly `@stateRefArray()` array, in-place mutation inside a `@stateValue` payload or inside a value held by a `ValueMap`/`ValueArray`, `Object.defineProperty` on a `@stateRefRecord` proxy (a `defineProperty` trap would also fire inside the `set` trap's `Reflect.set` and record twice), and `Game.state` until P4-B.
+The benchmark harness (`test/scenarios/undo/Performance.spec.ts`) runs its two timed raw restores (`full/rollbackToSnapshot` and `sustained/snapshotAndUndoCycle`) with the tracker stopped, through a spec-local helper that restarts it at the restored snapshot, because production rollbacks never pay capture for the restore's writes; its untimed `restoreAnchor` restore is left tracked.
+No benchmark scenario, row name or iteration count changed, so the rows stay comparable, but what they include moved.
+Every field write now runs the tracker hook, which on a stopped tracker is two property loads, two calls and a boolean test, so the three restore legs (`full/rollbackToSnapshot`, `manager/rollbackTo(Manual)` and the restore inside `sustained/snapshotAndUndoCycle`) gain that cost per restored field.
+Populated `@stateMap` and `@stateSet` values now rebuild through a JavaScript loop rather than the native `Map` and `Set` constructors, which also shifts those restore legs.
+The write-path rows (`manager/moveToNextTimepoint(Action)`, `full/createSnapshotForCurrentTimepoint`) gain the O(1) `startTracking` or `checkpoint` call, which allocates one window with its `Map` and `Set` plus one anchor object.
+Each rollback-timed row (`manager/rollbackTo(Manual)`, and `full/rollbackToSnapshot` and `sustained/snapshotAndUndoCycle` through the spec-local helper inside their timed restore) gains the stop and restart pair, which allocates the same window, `Map`, `Set` and anchor.
+The mutations timed inside `sustained/snapshotAndUndoCycle` gain their hook and capture cost.
+These are what production now pays for the same operations, so a change in any of these rows against `pre-roadmap-baseline` has these causes available before a later unit is blamed.
+P4-C note: the tracker stays stopped through the post-restore hooks (`afterSetState`, `afterSetAllState`), so a field they wrote would be missing from the fresh window.
+Reading their sources, every such write either sets a non-state field (`Damage._activeAttack`, `OngoingEffect.context`) or rewrites the value the restore just wrote (the `isRegistered` re-registration in `AbilityLimit`, `TriggeredAbility` and the effect listener, and the re-resolution of ongoing effects against the restored targets), and `DeltaTracker.spec.ts` asserts on a board whose ongoing effects the rolled-back actions changed that every object serializes equal to the restored snapshot after a manual rollback.
+P4-C's parity spec should keep that assertion in view, and treat any object where it fails as dirty.
+A registration that happened while the tracker was stopped with a window held would likewise be unrecorded (AC5 says a registration while stopped is not recorded); no rollback path does that today, because the registration guard forbids allocation during the restore and the guard-suspended error-reporting paths only read state or build transient objects under `createWithoutRefsUnsafe`, which never enter the registry.
+
 ### Chain selection, contiguity, and eviction
 
 Delta windows are **global time slices** — there is one tracker per game — but

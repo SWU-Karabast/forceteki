@@ -242,43 +242,63 @@ export class SnapshotManager {
     }
 
     private rollbackToInternal(settings: IGetSnapshotSettings, overrideQuickRollbackPoint?: QuickRollbackPoint): IRollbackResult {
-        Contract.assertFalse(settings.type !== SnapshotType.Quick && overrideQuickRollbackPoint != null, 'overrideQuickRollbackPoint can only be set when rolling back a Quick snapshot');
+        // The restore rewrites every field through the hooked setters, so the delta tracker is stopped for all of it.
+        // Every exit, including a throw, restores the tracker: a fresh window at the restored snapshot when a
+        // container restored one, otherwise the tracking state and window held on entry (docs/plans/04-delta-snapshots.md).
+        const deltaTracker = this.#game.deltaTracker;
+        const wasTracking = deltaTracker.isTracking;
+        deltaTracker.stopTracking();
 
-        const gameWonBeforeRollback = this.#game.isEnded;
+        // Set as soon as a container reports a restored snapshot, before anything after it can throw, so a later
+        // failure still starts a fresh window rather than resuming one from the discarded timeline.
+        let restored = false;
+        try {
+            Contract.assertFalse(settings.type !== SnapshotType.Quick && overrideQuickRollbackPoint != null, 'overrideQuickRollbackPoint can only be set when rolling back a Quick snapshot');
 
-        let rolledBackSnapshotIdx: number = null;
-        switch (settings.type) {
-            case SnapshotType.Action:
-                rolledBackSnapshotIdx = this.actionSnapshots.rollbackToSnapshot(settings.playerId, this.checkGetOffset(settings.actionOffset));
-                break;
-            case SnapshotType.Manual:
-                rolledBackSnapshotIdx = this.rollbackManualSnapshot(settings);
-                break;
-            case SnapshotType.Phase:
-                rolledBackSnapshotIdx = this.phaseSnapshots.rollbackToSnapshot(settings.phaseName, this.checkGetOffset(settings.phaseOffset));
-                break;
-            case SnapshotType.Quick:
-                const rollbackPoint = overrideQuickRollbackPoint ?? this.getQuickRollbackPoint(settings.playerId);
-                rolledBackSnapshotIdx = this.quickRollback(settings.playerId, rollbackPoint);
-                break;
-            default:
-                throw new Error(`Unimplemented snapshot type in rollbackTo: ${JSON.stringify(settings)}`);
+            const gameWonBeforeRollback = this.#game.isEnded;
+
+            let rolledBackSnapshotIdx: number = null;
+            switch (settings.type) {
+                case SnapshotType.Action:
+                    rolledBackSnapshotIdx = this.actionSnapshots.rollbackToSnapshot(settings.playerId, this.checkGetOffset(settings.actionOffset));
+                    break;
+                case SnapshotType.Manual:
+                    rolledBackSnapshotIdx = this.rollbackManualSnapshot(settings);
+                    break;
+                case SnapshotType.Phase:
+                    rolledBackSnapshotIdx = this.phaseSnapshots.rollbackToSnapshot(settings.phaseName, this.checkGetOffset(settings.phaseOffset));
+                    break;
+                case SnapshotType.Quick:
+                    const rollbackPoint = overrideQuickRollbackPoint ?? this.getQuickRollbackPoint(settings.playerId);
+                    rolledBackSnapshotIdx = this.quickRollback(settings.playerId, rollbackPoint);
+                    break;
+                default:
+                    throw new Error(`Unimplemented snapshot type in rollbackTo: ${JSON.stringify(settings)}`);
+            }
+
+            if (rolledBackSnapshotIdx != null) {
+                restored = true;
+
+                const gameWonAfterRollback = this.#game.isEnded;
+
+                // Throw out all snapshots after the rollback snapshot.
+                this.snapshotFactory.clearNewerSnapshots(rolledBackSnapshotIdx);
+                this._gameStepsSinceLastUndo = 0;
+                return {
+                    success: true,
+                    entryPoint: this.getEntryPointAfterRollback(settings),
+                    rolledPastGameEnd: gameWonBeforeRollback && !gameWonAfterRollback
+                };
+            }
+
+            return { success: false };
+        } finally {
+            if (restored) {
+                deltaTracker.startTracking(this.snapshotFactory.currentSnapshotAnchor);
+            } else if (wasTracking) {
+                deltaTracker.resumeTracking();
+            }
         }
-
-        if (rolledBackSnapshotIdx != null) {
-            const gameWonAfterRollback = this.#game.isEnded;
-
-            // Throw out all snapshots after the rollback snapshot.
-            this.snapshotFactory.clearNewerSnapshots(rolledBackSnapshotIdx);
-            this._gameStepsSinceLastUndo = 0;
-            return {
-                success: true,
-                entryPoint: this.getEntryPointAfterRollback(settings),
-                rolledPastGameEnd: gameWonBeforeRollback && !gameWonAfterRollback
-            };
-        }
-
-        return { success: false };
     }
 
     public getRollbackInformation(settings: IGetSnapshotSettings): ICanRollBackResult {
@@ -509,6 +529,9 @@ export class SnapshotManager {
     }
 
     public clearAllSnapshots(): void {
+        // The window's anchor is about to be cleared; the next snapshot starts a new window.
+        this.#game.deltaTracker.discardWindow();
+
         this.actionSnapshots.clearAllSnapshots();
         this.phaseSnapshots.clearAllSnapshots();
         this.snapshotFactory.clearCurrentSnapshot();

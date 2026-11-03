@@ -1,5 +1,6 @@
 import type { Game } from '../Game';
 import type { GameStateManager } from './GameStateManager';
+import type { IDeltaTrackerAnchor } from './DeltaTracker';
 import type { IGameSnapshot, SnapshotTimepoint } from './SnapshotInterfaces';
 import { Contract } from '../utils/Contract.js';
 import type { IClearNewerSnapshotsBinding, IClearNewerSnapshotsHandler } from './container/SnapshotContainerBase';
@@ -36,6 +37,16 @@ export class SnapshotFactory {
 
     public get currentSnapshotId(): number | null {
         return this.currentActionSnapshot?.id;
+    }
+
+    /** The current snapshot as a delta-tracker window anchor, or null when no snapshot is current. */
+    public get currentSnapshotAnchor(): IDeltaTrackerAnchor | null {
+        const snapshot = this.currentActionSnapshot;
+        if (snapshot == null) {
+            return null;
+        }
+
+        return { snapshotId: snapshot.id, rngState: snapshot.rngState, lastGameObjectId: snapshot.lastGameObjectId };
     }
 
     public get currentSnapshottedAction(): number | null {
@@ -149,6 +160,15 @@ export class SnapshotFactory {
         this.lastAssignedTimepointNumber = nextTimepointNumber;
 
         this.currentActionSnapshot = snapshot;
+
+        // The only window boundary: the tracker's window runs from one full snapshot to the next.
+        const deltaTracker = this.game.deltaTracker;
+        const anchor = this.currentSnapshotAnchor;
+        if (deltaTracker.isTracking) {
+            deltaTracker.checkpoint(anchor);
+        } else {
+            deltaTracker.startTracking(anchor);
+        }
     }
 
     public setNextSnapshotIsSamePlayer(value: boolean) {

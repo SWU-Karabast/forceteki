@@ -91,6 +91,22 @@ function getStateManager(context): IBenchmarkStateManager {
 }
 
 /**
+ * A raw restore with the delta tracker stopped, as `SnapshotManager.rollbackToInternal` runs every production
+ * restore: the generated deserializers write every field through the hooked setters, and recording each one's
+ * old value is a cost production rollbacks never pay. The tracker restarts at the restored snapshot, as it does
+ * after a production rollback. Used by the two timed raw restores so their rows keep measuring the restore.
+ */
+function restoreUntracked(context, snapshot: IGameSnapshot): boolean {
+    const deltaTracker = context.game.deltaTracker;
+    deltaTracker.stopTracking();
+    try {
+        return getStateManager(context).rollbackToSnapshot(snapshot);
+    } finally {
+        deltaTracker.startTracking({ snapshotId: snapshot.id, rngState: snapshot.rngState, lastGameObjectId: snapshot.lastGameObjectId });
+    }
+}
+
+/**
  * Rebuilds the current-timepoint snapshot and hands back the object the factory
  * actually produced, so payload sizes and rollback costs reflect real snapshots
  * rather than a benchmark-local reimplementation of the factory.
@@ -207,7 +223,7 @@ async function runScenarioBenchmarkAsync(contextRef, scenario: IBenchmarkScenari
 
     // Raw restore: deserialize a full snapshot back over every live GameObject.
     results.push(await measureBenchmarkAsync('full', 'rollbackToSnapshot', scenario.rollbackIterations, () => {
-        expect(stateManager.rollbackToSnapshot(anchorSnapshot)).toBe(true);
+        expect(restoreUntracked(context, anchorSnapshot)).toBe(true);
         context.game.randomGenerator.restore(anchorSnapshot.rngState);
     }, {
         beforeEachIteration: () => {
@@ -251,7 +267,7 @@ async function runScenarioBenchmarkAsync(contextRef, scenario: IBenchmarkScenari
     results.push(await measureBenchmarkAsync('sustained', 'snapshotAndUndoCycle', SUSTAINED_LOAD_ITERATIONS, () => {
         snapshotFactory.createSnapshotForCurrentTimepoint(SnapshotTimepoint.Action);
         applyBenchmarkMutations(context, scenario);
-        stateManager.rollbackToSnapshot(anchorSnapshot);
+        restoreUntracked(context, anchorSnapshot);
         context.game.randomGenerator.restore(anchorSnapshot.rngState);
     }));
 

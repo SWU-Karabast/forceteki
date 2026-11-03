@@ -870,3 +870,152 @@ describe('P3-PB2 @statePrimitive non-finite and signed-zero accessor storage', f
         });
     }
 });
+
+/**
+ * P4-A: every state setter and wrapper mutator tells the game's delta tracker which field is about to change,
+ * exactly once and before the write (`docs/plans/04-delta-snapshots.md`, "Mechanism"). The tracker here is a
+ * spy on a mock game that copies the field's value at call time, so a hook placed after the write, called twice,
+ * or called with the wrapper instead of its owner fails the row.
+ */
+describe('delta tracker hook sites', function() {
+    type Referent = InstanceType<typeof gameObjectHelper.TestGameObject>;
+
+    function copyOf(value: unknown): unknown {
+        if (Array.isArray(value)) {
+            return Array.from(value);
+        }
+        if (value instanceof Map) {
+            return new Map(value);
+        }
+        if (value instanceof Set) {
+            return new Set(value);
+        }
+        if (value != null && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
+            return { ...value };
+        }
+        return value;
+    }
+
+    /** A plain assignment, so a table row can stay an expression-bodied arrow. */
+    function assign(target: object, key: string, value: unknown): void {
+        (target as Record<string, unknown>)[key] = value;
+    }
+
+    interface IHookRow<TFixture extends GameObjectBase> {
+        site: string;
+        build(game: ReturnType<typeof gameObjectHelper.createMockGame>['game']): TFixture;
+        field: string;
+
+        /** Establishes the pre-write contents, before the spy is installed. */
+        seed?(fixture: TFixture, refs: Referent[]): unknown;
+        write(fixture: TFixture, refs: Referent[]): unknown;
+    }
+
+    function row<TFixture extends GameObjectBase>(hookRow: IHookRow<TFixture>): IHookRow<GameObjectBase> {
+        return hookRow as unknown as IHookRow<GameObjectBase>;
+    }
+
+    const allKinds = (game) => new AllFieldKindsFixture(game);
+    const cutover = (game) => new CutoverMarkingFixture(game);
+    const values = (game) => new ValueCollectionFieldsFixture(game);
+    const asStateArray = (refs: Referent[]) => refs as unknown as IStateArray<GameObjectBase>;
+
+    const rows: IHookRow<GameObjectBase>[] = [
+        row<AllFieldKindsFixture>({ site: '@statePrimitive set', build: allKinds, field: 'primitiveField', write: (f) => assign(f, 'primitiveField', 'b') }),
+        row<AllFieldKindsFixture>({ site: '@stateValue set', build: allKinds, field: 'valueField', write: (f) => assign(f, 'valueField', { a: 1 }) }),
+        row<AllFieldKindsFixture>({ site: '@stateRef set', build: allKinds, field: 'refField', seed: (f, [a]) => assign(f, 'refField', a), write: (f, [, b]) => assign(f, 'refField', b) }),
+        row<AllFieldKindsFixture>({ site: 'readonly @stateRefArray set', build: allKinds, field: 'refArrayField', seed: (f, [a]) => assign(f, 'refArrayField', [a]), write: (f, [, b]) => assign(f, 'refArrayField', [b]) }),
+        row<CutoverMarkingFixture>({ site: 'mutable @stateRefArray set', build: cutover, field: 'mutableRefArrayField', seed: (f, [a]) => assign(f, 'mutableRefArrayField', asStateArray([a])), write: (f, [, b]) => assign(f, 'mutableRefArrayField', asStateArray([b])) }),
+        row<AllFieldKindsFixture>({ site: '@stateRefMap set', build: allKinds, field: 'refMapField', seed: (f, [a]) => assign(f, 'refMapField', new Map([['k', a]])), write: (f, [, b]) => assign(f, 'refMapField', new Map([['k', b]])) }),
+        row<AllFieldKindsFixture>({ site: '@stateRefSet set', build: allKinds, field: 'refSetField', seed: (f, [a]) => assign(f, 'refSetField', new Set([a])), write: (f, [, b]) => assign(f, 'refSetField', new Set([b])) }),
+        row<AllFieldKindsFixture>({ site: '@stateRefRecord set', build: allKinds, field: 'refRecordField', seed: (f, [a]) => assign(f, 'refRecordField', { k: a }), write: (f, [, b]) => assign(f, 'refRecordField', { k: b }) }),
+        row<ValueCollectionFieldsFixture>({ site: '@stateMap set', build: values, field: 'mapField', seed: (f) => assign(f, 'mapField', new Map([['a', 1]])), write: (f) => assign(f, 'mapField', new Map([['b', 2]])) }),
+        row<ValueCollectionFieldsFixture>({ site: '@stateSet set', build: values, field: 'setField', seed: (f) => assign(f, 'setField', new Set([1])), write: (f) => assign(f, 'setField', new Set([2])) }),
+        row<ValueCollectionFieldsFixture>({ site: '@stateArray set', build: values, field: 'arrayField', seed: (f) => assign(f, 'arrayField', ['a']), write: (f) => assign(f, 'arrayField', ['b']) }),
+
+        row<AllFieldKindsFixture>({ site: 'UndoSafeRecord set trap', build: allKinds, field: 'refRecordField', seed: (f, [a]) => assign(f, 'refRecordField', { k: a }), write: (f, [, b]) => assign(f.refRecordField, 'j', b) }),
+        row<AllFieldKindsFixture>({ site: 'UndoSafeRecord deleteProperty trap', build: allKinds, field: 'refRecordField', seed: (f, [a]) => assign(f, 'refRecordField', { k: a }), write: (f) => Reflect.deleteProperty(f.refRecordField, 'k') }),
+
+        row<AllFieldKindsFixture>({ site: 'UndoMap.set', build: allKinds, field: 'refMapField', seed: (f, [a]) => f.refMapField.set('k', a), write: (f, [, b]) => f.refMapField.set('j', b) }),
+        row<AllFieldKindsFixture>({ site: 'UndoMap.delete', build: allKinds, field: 'refMapField', seed: (f, [a]) => f.refMapField.set('k', a), write: (f) => f.refMapField.delete('k') }),
+        row<AllFieldKindsFixture>({ site: 'UndoMap.clear', build: allKinds, field: 'refMapField', seed: (f, [a]) => f.refMapField.set('k', a), write: (f) => f.refMapField.clear() }),
+        row<AllFieldKindsFixture>({ site: 'UndoSet.add', build: allKinds, field: 'refSetField', seed: (f, [a]) => f.refSetField.add(a), write: (f, [, b]) => f.refSetField.add(b) }),
+        row<AllFieldKindsFixture>({ site: 'UndoSet.delete', build: allKinds, field: 'refSetField', seed: (f, [a]) => f.refSetField.add(a), write: (f, [a]) => f.refSetField.delete(a) }),
+        row<AllFieldKindsFixture>({ site: 'UndoSet.clear', build: allKinds, field: 'refSetField', seed: (f, [a]) => f.refSetField.add(a), write: (f) => f.refSetField.clear() }),
+
+        row<CutoverMarkingFixture>({ site: 'UndoArray.push', build: cutover, field: 'mutableRefArrayField', seed: (f, [a]) => f.mutableRefArrayField.push(a), write: (f, [, b]) => f.mutableRefArrayField.push(b) }),
+        row<CutoverMarkingFixture>({ site: 'UndoArray.unshift', build: cutover, field: 'mutableRefArrayField', seed: (f, [a]) => f.mutableRefArrayField.push(a), write: (f, [, b]) => f.mutableRefArrayField.unshift(b) }),
+        row<CutoverMarkingFixture>({ site: 'UndoArray.pop', build: cutover, field: 'mutableRefArrayField', seed: (f, [a, b]) => f.mutableRefArrayField.push(a, b), write: (f) => f.mutableRefArrayField.pop() }),
+        row<CutoverMarkingFixture>({ site: 'UndoArray.shift', build: cutover, field: 'mutableRefArrayField', seed: (f, [a, b]) => f.mutableRefArrayField.push(a, b), write: (f) => f.mutableRefArrayField.shift() }),
+        row<CutoverMarkingFixture>({ site: 'UndoArray.reverse', build: cutover, field: 'mutableRefArrayField', seed: (f, [a, b]) => f.mutableRefArrayField.push(a, b), write: (f) => f.mutableRefArrayField.reverse() }),
+        row<CutoverMarkingFixture>({ site: 'UndoArray.splice', build: cutover, field: 'mutableRefArrayField', seed: (f, [a, b]) => f.mutableRefArrayField.push(a, b), write: (f) => f.mutableRefArrayField.splice(0, 1) }),
+        row<CutoverMarkingFixture>({ site: 'UndoArray.copyWithin', build: cutover, field: 'mutableRefArrayField', seed: (f, [a, b]) => f.mutableRefArrayField.push(a, b), write: (f) => f.mutableRefArrayField.copyWithin(0, 1) }),
+
+        row<ValueCollectionFieldsFixture>({ site: 'ValueMap.set', build: values, field: 'mapField', seed: (f) => f.mapField.set('a', 1), write: (f) => f.mapField.set('b', 2) }),
+        row<ValueCollectionFieldsFixture>({ site: 'ValueMap.delete', build: values, field: 'mapField', seed: (f) => f.mapField.set('a', 1), write: (f) => f.mapField.delete('a') }),
+        row<ValueCollectionFieldsFixture>({ site: 'ValueMap.clear', build: values, field: 'mapField', seed: (f) => f.mapField.set('a', 1), write: (f) => f.mapField.clear() }),
+        row<ValueCollectionFieldsFixture>({ site: 'ValueSet.add', build: values, field: 'setField', seed: (f) => f.setField.add(1), write: (f) => f.setField.add(2) }),
+        row<ValueCollectionFieldsFixture>({ site: 'ValueSet.delete', build: values, field: 'setField', seed: (f) => f.setField.add(1), write: (f) => f.setField.delete(1) }),
+        row<ValueCollectionFieldsFixture>({ site: 'ValueSet.clear', build: values, field: 'setField', seed: (f) => f.setField.add(1), write: (f) => f.setField.clear() }),
+
+        row<ValueCollectionFieldsFixture>({ site: 'ValueArray.push', build: values, field: 'arrayField', seed: (f) => f.arrayField.push('a'), write: (f) => f.arrayField.push('b') }),
+        row<ValueCollectionFieldsFixture>({ site: 'ValueArray.unshift', build: values, field: 'arrayField', seed: (f) => f.arrayField.push('a'), write: (f) => f.arrayField.unshift('b') }),
+        row<ValueCollectionFieldsFixture>({ site: 'ValueArray.pop', build: values, field: 'arrayField', seed: (f) => f.arrayField.push('a', 'b'), write: (f) => f.arrayField.pop() }),
+        row<ValueCollectionFieldsFixture>({ site: 'ValueArray.shift', build: values, field: 'arrayField', seed: (f) => f.arrayField.push('a', 'b'), write: (f) => f.arrayField.shift() }),
+        row<ValueCollectionFieldsFixture>({ site: 'ValueArray.reverse', build: values, field: 'arrayField', seed: (f) => f.arrayField.push('a', 'b'), write: (f) => f.arrayField.reverse() }),
+        row<ValueCollectionFieldsFixture>({ site: 'ValueArray.sort', build: values, field: 'arrayField', seed: (f) => f.arrayField.push('b', 'a'), write: (f) => f.arrayField.sort() }),
+        row<ValueCollectionFieldsFixture>({ site: 'ValueArray.splice', build: values, field: 'arrayField', seed: (f) => f.arrayField.push('a', 'b'), write: (f) => f.arrayField.splice(0, 1, 'c') }),
+        row<ValueCollectionFieldsFixture>({ site: 'ValueArray.fill', build: values, field: 'arrayField', seed: (f) => f.arrayField.push('a', 'b'), write: (f) => f.arrayField.fill('z') }),
+        row<ValueCollectionFieldsFixture>({ site: 'ValueArray.copyWithin', build: values, field: 'arrayField', seed: (f) => f.arrayField.push('a', 'b'), write: (f) => f.arrayField.copyWithin(0, 1) }),
+    ];
+
+    for (const hookRow of rows) {
+        it(`${hookRow.site} calls the tracker once with the owning object and field, while the field holds its pre-write value`, function() {
+            const { game } = gameObjectHelper.createMockGame();
+            const refs = [new gameObjectHelper.TestGameObject(game, 'a'), new gameObjectHelper.TestGameObject(game, 'b')];
+            const fixture = hookRow.build(game);
+            hookRow.seed?.(fixture, refs);
+
+            const calls: { owner: unknown; field: string; valueAtCall: unknown }[] = [];
+            (game as unknown as { deltaTracker: unknown }).deltaTracker = {
+                recordFieldChange: (owner: unknown, field: string) => {
+                    calls.push({ owner, field, valueAtCall: copyOf((owner as Record<string, unknown>)[field]) });
+                }
+            };
+            const preWrite = copyOf((fixture as unknown as Record<string, unknown>)[hookRow.field]);
+
+            hookRow.write(fixture, refs);
+
+            expect(calls.length).toBe(1);
+            expect(calls[0].owner).toBe(fixture);
+            expect(calls[0].field).toBe(hookRow.field);
+            expect(calls[0].valueAtCall).toEqual(preWrite);
+        });
+    }
+
+    it('does not call a tracker that the mock game does not have', function() {
+        const { game } = gameObjectHelper.createMockGame();
+        const fixture = new ValueCollectionFieldsFixture(game);
+
+        expect(() => {
+            fixture.mapField.set('a', 1);
+            fixture.arrayField.push('a');
+        }).not.toThrow();
+    });
+
+    it('types UndoArray index assignment and length assignment as compile errors', function() {
+        const { game } = gameObjectHelper.createMockGame();
+        const fixture = new CutoverMarkingFixture(game);
+
+        // Compile-time pin only: an unused directive is itself a compile error, so a clean build proves each line
+        // really is rejected. The function is never called.
+        const compileOnly = () => {
+            // @ts-expect-error IStateArray types the indexer readonly.
+            fixture.mutableRefArrayField[0] = null;
+            // @ts-expect-error IStateArray types length readonly.
+            fixture.mutableRefArrayField.length = 0;
+        };
+
+        expect(typeof compileOnly).toBe('function');
+    });
+});

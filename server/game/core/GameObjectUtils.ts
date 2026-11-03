@@ -54,6 +54,17 @@ export interface RegisterStateOptions {
 }
 
 /**
+ * Tells the game's delta tracker that `go`'s field `name` is about to change (`docs/plans/04-delta-snapshots.md`,
+ * "Mechanism"). Every state setter and wrapper mutator calls this strictly before its write, so the field still
+ * holds its window-start value; the tracker records it only on the first write per window. The tracker is
+ * reached through `go.game` because this file may not import state classes (see `isGameObjectBaseInstance`);
+ * it is optional because unit specs build objects against mock games that have none.
+ */
+function recordStateFieldChange(go: GameObjectBase, name: string): void {
+    go.game.deltaTracker?.recordFieldChange(go, name);
+}
+
+/**
  * P3-PB2: eager ref *marking*. Before the state-bag cutover these latches were a side effect of building the
  * id mirror (`createIdArray`/`createIdMap`/... and `newValue?.getObjectId()`); with the mirror gone they have
  * to be explicit, because nothing else calls `getObjectId()` on a referent that is only ever reachable through
@@ -387,12 +398,14 @@ export function statePrimitive<T extends GameObjectBase, TValue extends string |
         (metaState[stateSimpleMetadata] as string[]).push(context.name);
         // P3-PA4: additive kind write disambiguating this field from a @stateValue field at the metadata level.
         (metaState[stateSimpleKindMetadata] ??= {})[context.name as string] = 'primitive' satisfies FieldKind;
+        const name = context.name as string;
         // P3-PB2: the native backing field is the sole storage; the decorator only records metadata.
         return {
             get(this: T) {
                 return target.get.call(this);
             },
             set(this: T, newValue: TValue) {
+                recordStateFieldChange(this, name);
                 target.set.call(this, newValue);
             },
             init(this: T, value: TValue) {
@@ -434,6 +447,7 @@ export function stateRefArray<T extends GameObjectBase, TValue extends GameObjec
                     return target.get.call(this);
                 },
                 set(this: T, newValue: TValue[]) {
+                    recordStateFieldChange(this, name);
                     markStateRefArray(newValue);
                     target.set.call(this, newValue);
                 },
@@ -455,6 +469,7 @@ export function stateRefArray<T extends GameObjectBase, TValue extends GameObjec
                 }
             },
             set(this: T, newValue: TValue[]) {
+                recordStateFieldChange(this, name);
                 markStateRefArray(newValue);
                 target.set.call(this, newValue ? CreateUndoArrayInternal(this, name, newValue) : newValue);
             },
@@ -496,6 +511,7 @@ export function stateRefMap<T extends GameObjectBase, TValue extends GameObjectB
                 return target.get.call(this);
             },
             set(this: GameObjectBase, newValue) {
+                recordStateFieldChange(this, name);
                 // The caller marks the incoming entries here; CreateUndoMapInternal then populates via
                 // Map.prototype.set, bypassing the override (see its doc comment). Keep the two paired.
                 markStateRefMap(newValue);
@@ -535,6 +551,7 @@ export function stateRefSet<T extends GameObjectBase, TValue extends GameObjectB
                 return target.get.call(this);
             },
             set(this: GameObjectBase, newValue) {
+                recordStateFieldChange(this, name);
                 // Marked here for the same reason as stateRefMap's set: CreateUndoSetInternal populates via
                 // Set.prototype.add and bypasses the override.
                 markStateRefSet(newValue);
@@ -577,6 +594,7 @@ export function stateRefRecord<T extends GameObjectBase, TValue extends GameObje
             // `UndoSafeRecord(this, newValue, name)` unconditionally, so assigning null reached
             // `new Proxy(null, ...)` and threw. `init` already guarded; `set` did not.
             set(this: GameObjectBase, newValue) {
+                recordStateFieldChange(this, name);
                 markStateRefRecord(newValue);
                 target.set.call(this, newValue == null ? newValue : UndoSafeRecord(this, newValue, name));
             },
@@ -605,6 +623,7 @@ export function stateRef<T extends GameObjectBase, TValue extends GameObjectBase
         const metaState = (context.metadata[stateMetadata] ??= {}) as Record<string | symbol, any>;
         metaState[stateObjectMetadata] ??= [];
         (metaState[stateObjectMetadata] as string[]).push(context.name);
+        const name = context.name as string;
 
         // P3-PB2: the native backing field is the sole storage.
         return {
@@ -612,6 +631,7 @@ export function stateRef<T extends GameObjectBase, TValue extends GameObjectBase
                 return target.get.call(this);
             },
             set(this, newValue) {
+                recordStateFieldChange(this, name);
                 markStateRef(newValue);
                 target.set.call(this, newValue);
             },
@@ -717,6 +737,7 @@ export function stateValue<T extends GameObjectBase, TValue>(_options?: { allowG
                 return target.get.call(this);
             },
             set(this: T, newValue: TValue) {
+                recordStateFieldChange(this, name);
                 if (Helpers.isDevelopment()) {
                     assertJsonSafeStateValue(name, newValue);
                 }
@@ -764,6 +785,7 @@ export function stateMap<T extends GameObjectBase, TValue>() {
                 return target.get.call(this);
             },
             set(this: T, newValue: Map<string, TValue>) {
+                recordStateFieldChange(this, name);
                 if (Helpers.isDevelopment()) {
                     assertJsonSafeStateValue(name, newValue);
                 }
@@ -806,6 +828,7 @@ export function stateSet<T extends GameObjectBase, TValue>() {
                 return target.get.call(this);
             },
             set(this: T, newValue: Set<TValue>) {
+                recordStateFieldChange(this, name);
                 if (Helpers.isDevelopment()) {
                     assertJsonSafeStateValue(name, newValue);
                 }
@@ -851,6 +874,7 @@ export function stateArray<T extends GameObjectBase, TValue>() {
                 return target.get.call(this);
             },
             set(this: T, newValue: TValue[]) {
+                recordStateFieldChange(this, name);
                 if (Helpers.isDevelopment()) {
                     assertJsonSafeStateValue(name, newValue);
                 }
@@ -1049,18 +1073,19 @@ export function assertJsonSafeStateValue(propertyName: string, value: unknown, a
  * P3-PB2: the dual-write into the state bag is gone; the trap's remaining job is to latch `_hasRef` on a
  * newly stored referent, exactly as `UndoMap.set`/`UndoSet.add` do.
  *
- * `go`/`name` are retained unused for the same reason `ValueMap` retains `#go`/`#prop`: they are Plan 4's
- * (`docs/plans/04-delta-snapshots.md`) `recordFieldChange` hook point, and re-threading them later would
- * touch every call site again.
+ * Both traps tell the delta tracker about the owning field before they write (see {@link recordStateFieldChange}).
+ * `Object.defineProperty` is deliberately not trapped: a `defineProperty` trap would also fire inside the `set`
+ * trap's `Reflect.set` (the proxy is the receiver) and record twice, so a write made that way goes unrecorded.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
 function UndoSafeRecord<T extends GameObjectBase, TValue extends GameObjectBase>(go: T, record: Record<string, TValue>, name: string) {
     const proxiedRecord = new Proxy(record, {
         set(target, prop, newValue, receiver) {
+            recordStateFieldChange(go, name);
             markStateRef(newValue);
             return Reflect.set(target, prop, newValue, receiver);
         },
         deleteProperty(target, prop: string) {
+            recordStateFieldChange(go, name);
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             delete target[prop];
             return true;
@@ -1206,11 +1231,7 @@ export function getRuntimeStateFieldModelByClassName(className: string): IRuntim
  */
 class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
     // Properties are JS private to ensure they aren't enumerable. Otherwise this would break equality checks in tests.
-    // P3-PB2 fix (PB2I1-AC-09): after the state-bag cutover these two are write-only - `init()` sets them and
-    // nothing reads them. They are retained for the same reason `UndoSafeRecord`/`ValueMap` retain theirs:
-    // they are Plan 4's (`docs/plans/04-delta-snapshots.md`) `recordFieldChange` hook point. A dead-code sweep,
-    // or enabling `no-unused-private-class-members`, would delete them and make Plan 4 re-thread `init(go, prop)`
-    // through four construction paths and every decorator call site.
+    // The owning field, read by every mutator to tell the delta tracker which field is about to change.
     #go: GameObjectBase;
     #prop: string;
 
@@ -1222,15 +1243,18 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
     }
 
     public override set(key: string, value: TValue): this {
+        recordStateFieldChange(this.#go, this.#prop);
         markStateRef(value);
         return super.set(key, value);
     }
 
     public override delete(key: string): boolean {
+        recordStateFieldChange(this.#go, this.#prop);
         return super.delete(key);
     }
 
     public override clear(): void {
+        recordStateFieldChange(this.#go, this.#prop);
         super.clear();
     }
 }
@@ -1242,11 +1266,7 @@ class UndoMap<TValue extends GameObjectBase> extends Map<string, TValue> {
  */
 class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
     // Properties are JS private to ensure they aren't enumerable. Otherwise this would break equality checks in tests.
-    // P3-PB2 fix (PB2I1-AC-09): after the state-bag cutover these two are write-only - `init()` sets them and
-    // nothing reads them. They are retained for the same reason `UndoSafeRecord`/`ValueMap` retain theirs:
-    // they are Plan 4's (`docs/plans/04-delta-snapshots.md`) `recordFieldChange` hook point. A dead-code sweep,
-    // or enabling `no-unused-private-class-members`, would delete them and make Plan 4 re-thread `init(go, prop)`
-    // through four construction paths and every decorator call site.
+    // The owning field, read by every mutator to tell the delta tracker which field is about to change.
     #go: GameObjectBase;
     #prop: string;
 
@@ -1258,15 +1278,18 @@ class UndoSet<TValue extends GameObjectBase> extends Set<TValue> {
     }
 
     public override add(value: TValue): this {
+        recordStateFieldChange(this.#go, this.#prop);
         markStateRef(value);
         return super.add(value);
     }
 
     public override delete(value: TValue): boolean {
+        recordStateFieldChange(this.#go, this.#prop);
         return super.delete(value);
     }
 
     public override clear(): void {
+        recordStateFieldChange(this.#go, this.#prop);
         super.clear();
     }
 }
@@ -1278,13 +1301,14 @@ export interface IStateArray<T> extends Array<T> {
     readonly length: number;
 }
 
+/**
+ * Not interceptable by any hook: index assignment and `length =`. `IStateArray` types both as compile errors
+ * on the public field; a cast past `readonly` (including a write into a readonly `@stateRefArray()` array,
+ * which is a plain array) goes unrecorded by the delta tracker.
+ */
 class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
     // Properties are JS private to ensure they aren't enumerable. Otherwise this would break equality checks in tests.
-    // P3-PB2 fix (PB2I1-AC-09): after the state-bag cutover these two are write-only - `init()` sets them and
-    // nothing reads them. They are retained for the same reason `UndoSafeRecord`/`ValueMap` retain theirs:
-    // they are Plan 4's (`docs/plans/04-delta-snapshots.md`) `recordFieldChange` hook point. A dead-code sweep,
-    // or enabling `no-unused-private-class-members`, would delete them and make Plan 4 re-thread `init(go, prop)`
-    // through four construction paths and every decorator call site.
+    // The owning field, read by every mutator to tell the delta tracker which field is about to change.
     #go: GameObjectBase;
     #prop: string;
 
@@ -1299,24 +1323,29 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
     }
 
     public override push(...items: TValue[]): number {
+        recordStateFieldChange(this.#go, this.#prop);
         markStateRefArray(items);
         return super.push(...items);
     }
 
     public override unshift(...items: TValue[]): number {
+        recordStateFieldChange(this.#go, this.#prop);
         markStateRefArray(items);
         return super.unshift(...items);
     }
 
     public override pop(): TValue {
+        recordStateFieldChange(this.#go, this.#prop);
         return super.pop();
     }
 
     public override shift(): TValue {
+        recordStateFieldChange(this.#go, this.#prop);
         return super.shift();
     }
 
     public override reverse(): TValue[] {
+        recordStateFieldChange(this.#go, this.#prop);
         return super.reverse();
     }
 
@@ -1336,7 +1365,15 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
             throw new Error('UndoArray.splice only supports up to two arguments.');
         }
 
+        recordStateFieldChange(this.#go, this.#prop);
         return super.splice(start, deleteCount);
+    }
+
+    // Overridden only so the write is recorded: it moves elements between slots already holding refs, so it
+    // needs no marking.
+    public override copyWithin(target: number, start: number, end?: number): this {
+        recordStateFieldChange(this.#go, this.#prop);
+        return super.copyWithin(target, start, end);
     }
 
     // See sort() above for why this throws here but not in ValueArray.
@@ -1350,9 +1387,10 @@ class UndoArray<TValue extends GameObjectBase> extends Array<TValue> {
  * addressable call site - mirroring `UndoMap`'s ref-collection pattern, but with **no dual-write mirror**: a
  * `@stateMap` field holds one live collection and the generated deserializer restores it by reassigning
  * the whole field through the public accessor, so in-place-mutated contents are restored correctly with or
- * without this wrapper (P3-PB1 §1.1). This wrapper's only job is to give Plan 4
- * (`docs/plans/04-delta-snapshots.md`) one call-site hook for its future
- * `this.game.deltaTracker?.recordFieldChange(...)` line; every mutator below is currently a pure pass-through.
+ * without this wrapper (P3-PB1 §1.1). Its job is to give the delta tracker
+ * (`docs/plans/04-delta-snapshots.md`) one call site per mutator, which tells it the owning field is about to
+ * change before the write. Mutations of a value already stored in the map (an object held under a key) are
+ * not seen.
  *
  * `#go`/`#prop` are JS-private (not merely TypeScript-private), so they are invisible to `Object.keys` and
  * to test equality checks - matching `UndoMap`'s exact shape (verified lint-clean under this repo's actual
@@ -1365,104 +1403,91 @@ export class ValueMap<TValue> extends Map<string, TValue> {
     #prop: string;
 
     public constructor(go: GameObjectBase, prop: string, entries?: Iterable<readonly [string, TValue]> | null) {
-        super(entries);
+        // Constructed empty and populated below: `Map`'s own constructor would call the overridden `set()` per
+        // entry inside `super(entries)`, before `#go`/`#prop` exist, and a private read there throws
+        // `TypeError: Cannot read private member ...` (P3-PB1-fix PB1-R2). Population bypasses the hook on
+        // purpose; the accessor's setter has already recorded the field.
+        super();
         Contract.assertNotNullLike(go, 'Game Object cannot be null');
         this.#go = go;
         this.#prop = prop;
+
+        if (entries) {
+            for (const [key, value] of entries) {
+                Map.prototype.set.call(this, key, value);
+            }
+        }
     }
 
     public override set(key: string, value: TValue): this {
-        // Plan 4 hook point: this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
-        //
-        // P3-PB1-fix (PB1-R2): this class previously carried a `#init` field, assigned `true` at the end of
-        // the constructor and never read, whose doc comment claimed it "guards against Map's own constructor
-        // invoking this override before #go/#prop exist". That claim was false and would have crashed, not
-        // guarded, the first time it was acted on: `Map`'s constructor invokes this overridden `set()` once
-        // per entry of `entries` *during* `super(entries)`, i.e. before this class's own field initializers
-        // (`#go`, `#prop`, and the removed `#init`) run - private fields are only installed on `this` after
-        // `super()` returns. Reading any of those fields from inside `set()` at that point throws
-        // `TypeError: Cannot read private member ... from an object whose class did not declare it`, it does
-        // not read as `false`/`undefined` (reproduced: see review_implreview1.md PB1-R2). `#init` itself was
-        // simply never wired up to skip that read, so it did nothing either way - it has been removed as dead
-        // weight rather than left as a guard that doesn't guard.
-        //
-        // Plan 4 must NOT add a private-field read (`this.#go`/`this.#prop`, or a reintroduced init flag) to
-        // this method's body as written, precisely because it constructs the map from a possibly-non-empty
-        // `entries` iterable (a rollback restore, or any whole-field reassignment of a populated collection) -
-        // not just the empty-default path this unit's own fields exercise. Options that survive the
-        // pre-initialization window: (1) wrap the private-field read in try/catch and no-op on throw,
-        // (2) key a module-level `WeakSet`/`WeakMap` by `this` instead of a private field (a `WeakSet` entry
-        // can't be read before it's writable the way a private field can, since `has()` on an absent key just
-        // returns `false`), or (3) do not populate via the constructor's `entries` parameter at all - route
-        // construction through `.init(go, prop)` after an empty `super()`, the same recipe `ValueArray` uses
-        // via `.from(arr).init(...)` - and have Plan 4's hook fire only from a call made after `.init()`.
-        //
-        // Option (3) is what `UndoMap`/`UndoSet` were moved to, since their mirror-writing guard really was
-        // load-bearing and could not simply be deleted: see `CreateUndoMapInternal` and the `UndoMap` class
-        // doc comment.
+        recordStateFieldChange(this.#go, this.#prop);
         return super.set(key, value);
     }
 
     public override delete(key: string): boolean {
-        // Plan 4 hook point (see set()).
+        recordStateFieldChange(this.#go, this.#prop);
         return super.delete(key);
     }
 
     public override clear(): void {
-        // Plan 4 hook point (see set()).
+        recordStateFieldChange(this.#go, this.#prop);
         super.clear();
     }
 }
 
 /**
  * `Set<TValue>` counterpart to {@link ValueMap} - same no-dual-write-mirror rationale, same `#go`/`#prop`
- * cycle note.
+ * cycle note, same construct-empty-then-populate constructor.
  */
 export class ValueSet<TValue> extends Set<TValue> {
     #go: GameObjectBase;
     #prop: string;
 
     public constructor(go: GameObjectBase, prop: string, values?: Iterable<TValue> | null) {
-        super(values);
+        // See ValueMap's constructor: `Set`'s own constructor would call the overridden `add()` before `#go` exists.
+        super();
         Contract.assertNotNullLike(go, 'Game Object cannot be null');
         this.#go = go;
         this.#prop = prop;
+
+        if (values) {
+            for (const value of values) {
+                Set.prototype.add.call(this, value);
+            }
+        }
     }
 
     public override add(value: TValue): this {
-        // Plan 4 hook point: this.#go.game.deltaTracker?.recordFieldChange(this.#go, this.#prop);
-        // See ValueMap.set()'s comment (PB1-R2): the same pre-initialization-window hazard applies here -
-        // `Set`'s constructor invokes this overridden `add()` once per element of `values` during
-        // `super(values)`, before `#go`/`#prop` are installed. Do not add a private-field read to this method
-        // without one of the three mitigations documented there.
+        recordStateFieldChange(this.#go, this.#prop);
         return super.add(value);
     }
 
     public override delete(value: TValue): boolean {
-        // Plan 4 hook point (see add()).
+        recordStateFieldChange(this.#go, this.#prop);
         return super.delete(value);
     }
 
     public override clear(): void {
-        // Plan 4 hook point (see add()).
+        recordStateFieldChange(this.#go, this.#prop);
         super.clear();
     }
 }
 
 /**
  * `TValue[]` counterpart to {@link ValueMap}/{@link ValueSet}, on `UndoArray`'s `[Symbol.species]` shape.
- * Unlike `UndoArray`, every mutator here is an unconditional pass-through - including `sort`/`fill`, which
- * `UndoArray` throws on (see `UndoArray.sort`'s comment for why that divergence is legitimate: `ValueArray`
- * has no position-indexed id mirror to desync).
+ * Unlike `UndoArray`, every mutator here only records the write and then passes through - including
+ * `sort`/`fill`, which `UndoArray` throws on (see `UndoArray.sort`'s comment for why that divergence is
+ * legitimate: `ValueArray` has no position-indexed id mirror to desync).
  *
- * **Disclosed, not fixed:** `copyWithin` is overridden below for consistency, but direct index assignment
- * (`arr[3] = x`) and the `length` setter (including `arr.length = 0`) mutate elements without invoking any
- * overridden method, and JS provides no way to intercept them on a subclassed exotic `Array` without a
- * `Proxy`, which this class does not introduce (the identical, already-accepted gap `UndoArray` has for ref
- * arrays - mitigated there only by typing the *ref* case's public field `IStateArray<T>`, not applicable here
- * since these fields' declared types are plain mutable arrays that real call sites already index/reassign
- * directly). None of the fields using `stateArray` today exercises any of these three operations
- * (P3-PB1 plan_v2.md §1.3); Plan 4 must not assume they are covered.
+ * **Disclosed, not fixed:** direct index assignment (`arr[3] = x`) and the `length` setter (including
+ * `arr.length = 0`) mutate elements without invoking any overridden method, and JS provides no way to
+ * intercept them on a subclassed exotic `Array` without a `Proxy`, which this class does not introduce (the
+ * identical, already-accepted gap `UndoArray` has for ref arrays - mitigated there only by typing the *ref*
+ * case's public field `IStateArray<T>`, not applicable here since these fields' declared types are plain
+ * mutable arrays that real call sites already index/reassign directly). The delta tracker
+ * (`docs/plans/04-delta-snapshots.md`) therefore never records those writes, nor a mutation of an object held
+ * inside the array. None of the fields using `stateArray` today exercises any of them (P3-PB1 plan_v2.md
+ * §1.3); do not assume they are covered.
  *
  * Construction must go through {@link CreateValueArrayInternal} (`ValueArray.from(arr).init(go, prop)`), never
  * `new ValueArray().init(...)` followed by `.length =`/index-assignment - that recipe produces a
@@ -1485,51 +1510,49 @@ export class ValueArray<TValue> extends Array<TValue> {
     }
 
     public override push(...items: TValue[]): number {
-        // Plan 4 hook point (see ValueMap.set()).
+        recordStateFieldChange(this.#go, this.#prop);
         return super.push(...items);
     }
 
     public override unshift(...items: TValue[]): number {
-        // Plan 4 hook point (see ValueMap.set()).
+        recordStateFieldChange(this.#go, this.#prop);
         return super.unshift(...items);
     }
 
     public override pop(): TValue {
-        // Plan 4 hook point (see ValueMap.set()).
+        recordStateFieldChange(this.#go, this.#prop);
         return super.pop();
     }
 
     public override shift(): TValue {
-        // Plan 4 hook point (see ValueMap.set()).
+        recordStateFieldChange(this.#go, this.#prop);
         return super.shift();
     }
 
     public override reverse(): TValue[] {
-        // Plan 4 hook point (see ValueMap.set()).
+        recordStateFieldChange(this.#go, this.#prop);
         return super.reverse();
     }
 
     public override sort(compareFn?: (a: TValue, b: TValue) => number): this {
-        // Plan 4 hook point (see ValueMap.set()). Unlike UndoArray.sort, this is a pass-through - see this
-        // class's doc comment for why.
+        // Unlike UndoArray.sort, this is a pass-through - see this class's doc comment for why.
+        recordStateFieldChange(this.#go, this.#prop);
         return super.sort(compareFn);
     }
 
     public override splice(start: number, deleteCount?: number, ...items: TValue[]): TValue[] {
-        // Plan 4 hook point (see ValueMap.set()).
+        recordStateFieldChange(this.#go, this.#prop);
         return items.length > 0 ? super.splice(start, deleteCount, ...items) : super.splice(start, deleteCount);
     }
 
     public override fill(value: TValue, start?: number, end?: number): this {
-        // Plan 4 hook point (see ValueMap.set()). Unlike UndoArray.fill, this is a pass-through - see this
-        // class's doc comment for why.
+        // Unlike UndoArray.fill, this is a pass-through - see this class's doc comment for why.
+        recordStateFieldChange(this.#go, this.#prop);
         return super.fill(value, start, end);
     }
 
     public override copyWithin(target: number, start: number, end?: number): this {
-        // Plan 4 hook point (see ValueMap.set()). Overridden for consistency with the other mutators, but see
-        // this class's doc comment: copyWithin, index assignment, and the length setter are not fully
-        // interceptable on a subclassed exotic Array without a Proxy.
+        recordStateFieldChange(this.#go, this.#prop);
         return super.copyWithin(target, start, end);
     }
 }

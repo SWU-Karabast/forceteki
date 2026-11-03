@@ -25,6 +25,9 @@ export interface IGameObjectRegistrar {
     /** @deprecated Avoid using this outside of advanced scenarios. This cannot enforce type safety unlike `get` and may result in runtime errors if used incorrectly. */
     getUnsafe<T extends GameObjectBase>(uuid: GameObjectId): T;
 
+    /** True when `gameObject` is the live registered occupant of its uuid, i.e. it is game state rather than a transient or culled object. */
+    isRegistered(gameObject: GameObjectBase): boolean;
+
     /**
      * Creates a {@link GameObjectBase} object that is not allowed to have references.
      * This is useful for reducing GC overhead if it is known in advance that a GameObject is transient and will not be saved.
@@ -103,6 +106,10 @@ export class GameStateManager implements IGameObjectRegistrar {
         return ref as T;
     }
 
+    public isRegistered(gameObject: GameObjectBase): boolean {
+        return this.gameObjectMapping.get(gameObject.uuid) === gameObject;
+    }
+
     public register(gameObject: GameObjectBase | GameObjectBase[]) {
         gameObject = Helpers.asArray(gameObject);
 
@@ -133,6 +140,7 @@ export class GameStateManager implements IGameObjectRegistrar {
 
                 this.allGameObjects.push(go);
                 this.gameObjectMapping.set(uuid, go);
+                this.#game.deltaTracker.recordObjectCreation(uuid);
             }
         }
     }

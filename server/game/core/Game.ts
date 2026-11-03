@@ -80,6 +80,7 @@ import { defaultCostPaymentRecoveryPolicy } from './cost/CostPaymentRecovery';
 import type { ICostPaymentRecoveryPolicy, ICostPaymentRecoveryRequest } from './cost/CostPaymentRecovery';
 import { logger } from '../../logger';
 import { SnapshotManager, UndoMode } from './snapshot/SnapshotManager';
+import { DeltaTracker } from './snapshot/DeltaTracker';
 import { LkiRegistry } from './lki/LkiRegistry';
 import type { ICardStateInternal } from './lki/CardStateGetter';
 import { CardStateGetter } from './lki/CardStateGetter';
@@ -456,6 +457,9 @@ export class Game extends EventEmitter {
     public readonly useActionTimer: boolean;
     public currentlyResolving: ICurrentlyResolving;
     public state: IGameState;
+
+    /** Records which game-object fields change between two consecutive full snapshots; see {@link DeltaTracker}. */
+    public readonly deltaTracker: DeltaTracker;
     public tokenFactories: Record<string, (player: Player, additionalProperties?: any) => ITokenCard> | null;
     public stateWatcherRegistrar: StateWatcherRegistrar;
     public cardDataGetter: CardDataGetter;
@@ -486,6 +490,7 @@ export class Game extends EventEmitter {
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
 
+        this.deltaTracker = new DeltaTracker(this);
         this._snapshotManager = new SnapshotManager(this, details.undoMode);
         this._randomSeed = details.seed || randomBytes(16).toString('hex');
         this._randomGenerator = new Randomness(this._randomSeed);

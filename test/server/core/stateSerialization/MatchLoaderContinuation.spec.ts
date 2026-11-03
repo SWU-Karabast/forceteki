@@ -1,6 +1,7 @@
 import { save } from '../../../../server/game/core/stateSerialization/MatchSerializer';
 import { loadAsync } from '../../../../server/game/core/stateSerialization/MatchLoader';
 import { buildLoadConfig } from '../../../helpers/MatchLoaderHarness';
+import { DeltaTracker } from '../../../../server/game/core/snapshot/DeltaTracker';
 
 /**
  * Establishes `P2-C2`'s continuation acceptance criteria: a loaded game must be playable, and must recover
@@ -167,4 +168,61 @@ describe('MatchLoader.loadAsync — continuation', function() {
             void playersBySeat;
         });
     });
+});
+
+// Cast through `unknown` to reach `integration`'s own 2-arg form (enableUndo=true): the loaded game takes the
+// undo mode of the saved settings, and the delta tracker only runs in a game with undo enabled.
+const integrationWithUndo = integration as unknown as (
+    definitions: (contextRef: SwuTestContextRef) => void,
+    enableUndo: boolean
+) => void;
+
+/**
+ * `P4-A`: `loadAsync` ends with `clearAllSnapshots()` and then re-enters the action window, whose first
+ * snapshot must start a new delta-tracker window rather than checkpoint the one the clear dropped.
+ */
+describe('MatchLoader.loadAsync — delta tracker window', function() {
+    integrationWithUndo(function(contextRef) {
+        it('P4-A — the loaded game\'s tracker restarts after the final clear and is anchored at its current snapshot', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { hand: ['vanquish'], groundArena: ['atat-suppressor'], resources: 3 },
+                player2: { groundArena: ['wampa'] },
+            });
+            const { context } = contextRef;
+
+            const document = save(context.game);
+
+            // Prototype patches, restored in a finally (not spyOn: the undo replay runs this body twice in one spec).
+            // They see every game's tracker for the duration of the load, so the loaded game's calls are filtered by identity.
+            const calls: { method: string; tracker: unknown }[] = [];
+            const prototype = DeltaTracker.prototype as unknown as Record<string, (...args: unknown[]) => unknown>;
+            const originals = new Map<string, (...args: unknown[]) => unknown>();
+            for (const method of ['discardWindow', 'startTracking', 'checkpoint']) {
+                originals.set(method, prototype[method]);
+                prototype[method] = function(this: unknown, ...args: unknown[]) {
+                    calls.push({ method, tracker: this });
+                    return originals.get(method).apply(this, args);
+                };
+            }
+
+            let loadedGame: Awaited<ReturnType<typeof loadAsync>>['game'];
+            try {
+                ({ game: loadedGame } = await loadAsync(document, buildLoadConfig(context)));
+            } finally {
+                for (const [method, original] of originals) {
+                    prototype[method] = original;
+                }
+            }
+
+            const loadedTrackerCalls = calls.filter((call) => call.tracker === loadedGame.deltaTracker).map((call) => call.method);
+            const lastDiscardIndex = loadedTrackerCalls.lastIndexOf('discardWindow');
+            expect(lastDiscardIndex).toBeGreaterThanOrEqual(0);
+            // The loaded game tracks during its own setup, before the clear; what matters is what follows the last clear.
+            expect(loadedTrackerCalls[lastDiscardIndex + 1]).toBe('startTracking');
+
+            expect(loadedGame.deltaTracker.isTracking).toBeTrue();
+            expect(loadedGame.deltaTracker.pendingWindow.anchor.snapshotId).toBe(loadedGame.snapshotManager.currentSnapshotId);
+        });
+    }, true);
 });

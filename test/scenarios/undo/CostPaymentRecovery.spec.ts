@@ -64,6 +64,24 @@ describe('Cost payment recovery', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
+        it('leaves the delta tracker live with a fresh window at the restored snapshot after the recovery Undo', async function() {
+            await setupQueenAmidalaAndStarhawkAsync();
+            const { context } = contextRef;
+            const deltaTracker = context.game.deltaTracker;
+
+            playMarauderAndDefeatStarhawkWithQueenAmidala();
+            expect(context.theStarhawk).toBeInZone('discard');
+            const windowBeforeUndo = deltaTracker.pendingWindow;
+
+            context.player1.clickPrompt('Undo');
+            expectStateAtStartOfAction();
+
+            expect(deltaTracker.isTracking).toBeTrue();
+            const window = deltaTracker.pendingWindow;
+            expect(window).not.toBe(windowBeforeUndo);
+            expect(window.anchor.snapshotId).toBe(context.game.snapshotManager.currentSnapshotId);
+        });
+
         it('lets the player undo if the damage defeats a chosen unit that was providing a cost adjustment', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
