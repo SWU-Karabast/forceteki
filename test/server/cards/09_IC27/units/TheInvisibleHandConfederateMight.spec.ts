@@ -382,6 +382,80 @@ describe('The Invisible Hand, Confederate Might', function () {
                 expect(context.wampa).toBeInZone('groundArena', context.player1);
                 expect(context.player1.exhaustedResourceCount).toBe(14);
             });
+
+            it('should give the discount to the opponent when they take control of it and defeat it with No Glory, Only Results', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'boba-fett#collecting-the-bounty',
+                        base: 'kestro-city',
+                        hand: ['wampa'],
+                        spaceArena: ['the-invisible-hand#confederate-might'],
+                        resources: 4
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results', 'atst'],
+                        resources: 20,
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Player 2 takes control of The Invisible Hand and defeats it
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.theInvisibleHandConfederateMight);
+                expect(context.theInvisibleHandConfederateMight).toBeInZone('discard', context.player1);
+
+                // Player 2's When Defeated trigger resolves first, then player 1 passes Boba Fett's leaves-play trigger
+                context.player2.clickPrompt('You');
+                context.player1.clickPrompt('Pass');
+
+                // Player 1 gets no discount: Wampa costs full 4
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('groundArena', context.player1);
+                expect(context.player1.exhaustedResourceCount).toBe(4);
+
+                // Player 2 controlled it when it was defeated, so their next card is discounted: AT-ST 6 -> 0
+                const player2Exhausted = context.player2.exhaustedResourceCount;
+                context.player2.clickCard(context.atst);
+                expect(context.atst).toBeInZone('groundArena', context.player2);
+                expect(context.player2.exhaustedResourceCount).toBe(player2Exhausted);
+            });
+
+            it('should still put the replacement resource into play exhausted when a card is played with Smuggle for 0', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'boba-fett#collecting-the-bounty',
+                        base: 'kestro-city',
+                        spaceArena: ['the-invisible-hand#confederate-might'],
+                        resources: ['reckless-gunslinger', 'atst', 'atst'],
+                        deck: ['wampa']
+                    },
+                    player2: {
+                        hand: ['vanquish'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Player 2 defeats The Invisible Hand with Vanquish
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.theInvisibleHandConfederateMight);
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+
+                // Reckless Gunslinger with Smuggle: 3 -> 0, and it is replaced by the top card of the deck
+                context.player1.clickCard(context.recklessGunslinger);
+                expect(context.recklessGunslinger).toBeInZone('groundArena', context.player1);
+                expect(context.wampa).toBeInZone('resource', context.player1);
+
+                // No resources were paid, but the replacement resource enters exhausted
+                expect(context.player1.resources.length).toBe(3);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+                expect(context.wampa.exhausted).toBeTrue();
+            });
         });
     });
 });
