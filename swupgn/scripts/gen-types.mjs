@@ -12,11 +12,23 @@ const schema = JSON.parse(readFileSync(schemaPath, 'utf8'));
 // Types, in the order of Shared interfaces. Everything in $defs is emitted under its title.
 const roots = ['seat', 'entityId', 'audience', 'attrValue', 'attrs', 'create', 'set', 'remove', 'reveal', 'step', 'block', 'record', 'deckLine', 'cardLine', 'annotation', 'entity', 'board', 'header', 'file'];
 
+// TS-only overrides live beside the generator so the published schema stays plain JSON Schema.
+// Keys are slash-separated paths into the schema; each value becomes that node's tsType.
+const overrides = JSON.parse(readFileSync(join(packageDir, 'scripts', 'type-overrides.json'), 'utf8'));
+const typed = structuredClone(schema);
+for (const [pointer, tsType] of Object.entries(overrides)) {
+    let node = typed;
+    for (const key of pointer.split('/')) {
+        node = node[key];
+    }
+    node.tsType = tsType;
+}
+
 const wrapper = {
     title: 'GeneratedRoot',
     type: 'object',
     properties: Object.fromEntries(roots.map((name) => [name, { $ref: `#/$defs/${name}` }])),
-    $defs: schema.$defs,
+    $defs: typed.$defs,
 };
 
 const compiled = await compile(wrapper, 'GeneratedRoot', {

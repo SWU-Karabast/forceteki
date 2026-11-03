@@ -48,8 +48,7 @@
                     "maxItems": 2,
                     "uniqueItems": true
                 }
-            ],
-            "tsType": "'all' | Seat[]"
+            ]
         },
         "attrValue": {
             "title": "AttrValue",
@@ -182,8 +181,7 @@
             ],
             "additionalProperties": {
                 "type": "string"
-            },
-            "tsType": "{ [tag: string]: string }"
+            }
         },
         "deckLine": {
             "title": "DeckLine",
@@ -199,8 +197,7 @@
                         "type": "string",
                         "minLength": 1
                     },
-                    "minItems": 1,
-                    "tsType": "string[]"
+                    "minItems": 1
                 },
                 "base": {
                     "type": "string",
@@ -240,8 +237,7 @@
                                 "minItems": 1
                             }
                         ]
-                    },
-                    "tsType": "Array<[string, number] | [string]>"
+                    }
                 },
                 "sideboard": {
                     "type": "array",
@@ -259,8 +255,7 @@
                         ],
                         "items": false,
                         "minItems": 2
-                    },
-                    "tsType": "Array<[string, number]>"
+                    }
                 },
                 "order": {
                     "type": "array",

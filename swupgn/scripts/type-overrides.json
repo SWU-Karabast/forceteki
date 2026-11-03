@@ -1,0 +1,7 @@
+{
+    "$defs/audience": "'all' | Seat[]",
+    "$defs/header": "{ [tag: string]: string }",
+    "$defs/deckLine/properties/leaders": "string[]",
+    "$defs/deckLine/properties/main": "Array<[string, number] | [string]>",
+    "$defs/deckLine/properties/sideboard": "Array<[string, number]>"
+}

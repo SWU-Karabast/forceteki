@@ -50,8 +50,7 @@ export const schema = {
                     "maxItems": 2,
                     "uniqueItems": true
                 }
-            ],
-            "tsType": "'all' | Seat[]"
+            ]
         },
         "attrValue": {
             "title": "AttrValue",
@@ -184,8 +183,7 @@ export const schema = {
             ],
             "additionalProperties": {
                 "type": "string"
-            },
-            "tsType": "{ [tag: string]: string }"
+            }
         },
         "deckLine": {
             "title": "DeckLine",
@@ -201,8 +199,7 @@ export const schema = {
                         "type": "string",
                         "minLength": 1
                     },
-                    "minItems": 1,
-                    "tsType": "string[]"
+                    "minItems": 1
                 },
                 "base": {
                     "type": "string",
@@ -242,8 +239,7 @@ export const schema = {
                                 "minItems": 1
                             }
                         ]
-                    },
-                    "tsType": "Array<[string, number] | [string]>"
+                    }
                 },
                 "sideboard": {
                     "type": "array",
@@ -261,8 +257,7 @@ export const schema = {
                         ],
                         "items": false,
                         "minItems": 2
-                    },
-                    "tsType": "Array<[string, number]>"
+                    }
                 },
                 "order": {
                     "type": "array",

@@ -8,7 +8,6 @@ const schema = JSON.parse(fs.readFileSync(path.join(packageDir, 'schema', 'swupg
 
 function buildAjv() {
     const ajv = new Ajv2020({ strict: true, allErrors: true });
-    ajv.addKeyword('tsType');
     ajv.addSchema(schema);
     return ajv;
 }
@@ -28,6 +27,11 @@ describe('swupgn.schema.json', function () {
             expect(ajv.getSchema(`urn:swupgn:0.1#/$defs/${def}`)).toBeDefined(def);
         }
         expect(schema.$id).toBe('urn:swupgn:0.1');
+    });
+
+    it('published schema compiles under ajv strict mode with no custom keywords', function () {
+        const ajv = new Ajv2020({ strict: true });
+        expect(() => ajv.compile(JSON.parse(fs.readFileSync(path.join(packageDir, 'schema', 'swupgn.schema.json'), 'utf8')))).not.toThrow();
     });
 
     it('accepts every record line of design 7.1', function () {
