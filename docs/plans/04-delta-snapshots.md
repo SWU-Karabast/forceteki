@@ -557,7 +557,7 @@ Per-run values (ms, capture then replicates 1 to 5) for the two rows that decide
 | forty-cards-per-player | 0.239, 0.272, 0.248, 0.229, 0.268, 0.249 | 0.138, 0.106, 0.134, 0.145, 0.101, 0.128 |
 | forty-cards-four-mutated | 0.151, 0.165, 0.171, 0.161, 0.159, 0.190 | 0.064, 0.054, 0.043, 0.041, 0.063, 0.055 |
 
-Retention, `payload/retainedChainWithWrites(13 snapshots)` `notes.bytesPerSnapshot` (six-run medians; the bands are within 0.5% of the median except forty-cards-sparse-mutations, whose reference band is 83,379 to 84,526 (1.3% below the median) and whose head band is 26,874 to 29,945 (10.3% below the median)):
+Retention, `payload/retainedChainWithWrites(13 snapshots)` `notes.bytesPerSnapshot` (six-run medians; the bands are within 0.5% of the median except forty-cards-sparse-mutations, whose reference band is 83,379 to 84,526 (1.3% below the median) and whose head band is 26,874 to 29,949 (10.3% below the median)):
 
 | Scenario | Mutated cards | Live objects | Reference B/snapshot | Head B/snapshot | d | R1 (>= 30%) |
 |---|---|---|---|---|---|---|
@@ -567,7 +567,7 @@ Retention, `payload/retainedChainWithWrites(13 snapshots)` `notes.bytesPerSnapsh
 | forty-cards-sparse-mutations | 12 | 250 | 84,472 | 29,945 | 64.6% | pass |
 | forty-cards-four-mutated | 4 | 234 | 79,201 | 22,015 | 72.2% | pass |
 
-R1 passes in every scenario (the smallest drop, 51.5%, clears T3 by 21.5 points, against the 0.3% typical and 7.3% worst memory spread of [the capture index](performance/README.md) rule 5).
+R1 passes in every scenario (the smallest drop, 51.5%, clears T3 by 21.5 points, against the payload spread of 0.0% typical and 0.3% worst (memory/op 0.3% typical and 7.3% worst) in [the capture index](performance/README.md) rule 5; the one wider band, forty-cards-sparse-mutations head at 10.3%, still leaves R1 passing).
 R2 (`d[forty-cards-four-mutated] - d[forty-cards-per-player]` >= 10 points): 72.2 - 51.5 = 20.7 points, pass.
 Scaling reading, not a clause: head bytes per snapshot fall from 42,638 (40 mutated, 276 live) to 22,015 (4 mutated, 234 live), so retained bytes track the mutated set, but a per-snapshot floor that follows the live object count remains (forty-cards-four-mutated still retains 22 KB per snapshot with 4 mutated cards).
 That floor is the per-snapshot record-map overhead this section already warned about when it said memoization "does not shrink retained-memory as much" as deltas would.
