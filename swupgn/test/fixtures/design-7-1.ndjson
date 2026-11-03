@@ -27,10 +27,10 @@
 {"t":"block","id":3,"kind":"search","p":2,"parent":2,"targets":[11,12,13]}
 {"t":"reveal","e":12,"card":"SOR#201","to":"all"}
 {"t":"block","id":4,"kind":"play","p":2,"parent":2,"src":12}
+{"t":"set","e":12,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":2,"hp":4}}
 {"t":"create","e":14,"zone":"ground","owner":2,"parent":12,"rel":"attached","card":"TOKEN:shield#8752877738","a":{"kind":"token"}}
 {"t":"set","e":7,"zone":"discard","a":{"kind":"event"}}
 {"t":"set","e":10,"a":{"exhausted":true}}
-{"t":"set","e":12,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":2,"hp":4}}
 {"t":"remove","e":11}
 {"t":"remove","e":13}
 {"t":"set","e":"p2","a":{"deckCount":44,"handCount":1}}

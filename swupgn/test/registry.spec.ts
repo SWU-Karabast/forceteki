@@ -74,9 +74,14 @@ describe('registry', function () {
         expect(new Set(ERROR_CODES.map((c) => c.code)).size).toBe(ERROR_CODES.length);
     });
 
+    it('parent-rel covers a parent outside ground, space and base', function () {
+        expect(ERROR_CODES.find((c) => c.code === 'parent-rel')?.condition).toMatch(/ground, space or base/);
+    });
+
     it('attributeClass: unregistered is identity, registered is its class', function () {
         expect(attributeClass('x_foo_bar')).toBe('identity');
         expect(attributeClass('damage')).toBe('public');
         expect(attributeClass('aspects')).toBe('identity');
+        expect(attributeClass('abilityUses')).toBe('identity');
     });
 });

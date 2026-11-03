@@ -117,7 +117,7 @@
     {
         "code": "parent-rel",
         "severity": "error",
-        "condition": "parent and rel are not present together."
+        "condition": "parent and rel are not present together, or, after a record applies, an entity's parent is not in ground, space or base, or the entity's zone does not match its parent's."
     },
     {
         "code": "seq-order",

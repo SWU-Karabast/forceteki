@@ -279,7 +279,7 @@ export const attributes = [
     {
         "name": "abilityUses",
         "type": "object[]",
-        "class": "public",
+        "class": "identity",
         "on": [
             "card"
         ],

@@ -311,11 +311,13 @@ produce the same bytes for the same game.
     - `reveal`: `e`, `card`, `to`
     - `step`: `seq`, `ms`
     - `block`: `id`, `kind`, `p`, `src`, `targets`, `options`, `amount`, `parent`, `via`, `group`, `text`
+  - every `a` object (in a `create`, a `set`, or a board) with its keys in the order of the attribute registry (`registry/attributes.json`), then every unregistered name in ascending order of code points;
   - `DECKS` lines with keys `p`, `leaders`, `base`, `complete`, `main`, `sideboard`, `order`, one line per seat, seat 1 first; `CARDS` lines with keys `id`, `name`, `backSideName`; annotation lines with keys `seq`, `text`, `nag`, `by`, `id`, `parent`.
 - **[P-13]** A reader MUST NOT depend on the order of header tags, of sections, or of keys within a JSON object. The one exception is that the `Game` tag is the first line ([W-05]).
 
-The order of keys inside `a` (attributes) is not fixed by the canonical form; a writer writes
-them in the order it chooses.
+The order of keys inside `a` follows the registry so that two programs that build the same
+attributes write the same bytes; a redactor builds `a` objects of its own in steps 3 and 5
+([R-03], [R-05]).
 
 ---
 
@@ -516,7 +518,7 @@ An entity's identity is a separate field, `card`, set only by `create` and `reve
 ([§8](#8-records)).
 
 - **[W-27]** An entity MUST have `rel` if and only if it has `parent`.
-- **[W-28]** A writer MUST give an entity a `parent` only when the parent is in `ground`, `space` or `base`, and MUST give an entity with a parent the same `zone` as its parent, or `captured` when its `rel` is `captured`.
+- **[W-28]** After each record applies, every entity that has a `parent` MUST have a parent that is in `ground`, `space` or `base`, and MUST have the same `zone` as its parent, or `captured` when its `rel` is `captured`. A writer that moves a unit into play and attaches something to it in one action writes the unit's `set` (or `create`) first.
 - **[W-29]** A writer SHOULD leave `controller` absent when the controller is the owner.
 - **[W-30]** Before a writer removes an entity, it MUST remove or detach every entity whose `parent` it is.
 
@@ -551,15 +553,16 @@ Its `src` names the card whose ability created it, and its `targets` name what i
 seats included (`"p1"`). Its `ability` attribute is the writer's id for the ability: for display,
 never for branching.
 
-- **[W-31]** A writer MUST create an entity for every lasting or delayed effect while it lasts, with `kind` `effect`, no `zone`, and a `to` ([§10.2](#102-audience-and-knowledge)), and MUST remove it when the effect ends.
+- **[W-31]** A writer MUST create an entity for every lasting or delayed effect while it lasts, with `kind` `effect`, no `zone`, and a `to`, and MUST remove it when the effect ends. The effect's `to` MUST be the audience of its `src` card's identity when the effect is created ([§10.2](#102-audience-and-knowledge)): `"all"` when the source is public.
 
 **Keeping attributes current.**
 
-- **[W-32]** At every step, the board that applying the file gives ([§9](#9-applying)) MUST equal the writer's game state for every fixed field and every attribute the writer writes. A writer MUST write each registered attribute that applies to an entity and that its game state holds.
+- **[W-32]** A writer MUST keep current every attribute it writes: once an attribute is written on an entity, the writer updates it whenever its value changes and deletes it when it no longer has one, so that at every step the board ([§9](#9-applying)) equals the writer's game state for every fixed field and every attribute the file holds. It never leaves one stale.
+- **[W-62]** A writer SHOULD write `kind` for every card and token entity whose identity the file holds, and SHOULD write each other registered attribute that applies to an entity and that its game state holds.
 - **[W-33]** Attributes whose value comes from effects (`power`, `hp`, `keywords`, `traits`, `blank` and the like) MUST hold the current value after every effect, not the printed one.
 
-An attribute is absent when it has no value (`g.active` outside the action phase), or when the
-writer does not record it.
+An absent attribute has no value in the file: either it has none in the game (`g.active` outside
+the action phase), or the writer does not record it ([W-62] is a SHOULD).
 
 ### 7.4 What the board covers
 
@@ -723,6 +726,8 @@ Every step is reached by applying the file from the start. There are no snapshot
 - **[V-11]** A validator MUST report `result-mismatch` when the `Result` tag disagrees with `g.result` at the last step ([§5.2](#52-optional-tags)).
 - **[V-12]** A validator MUST report these warnings: `writer-errors` when `WriterErrors` is above zero; `newer-minor` when the file's minor version is above its own; `unknown-type` for a record whose `t` it does not know and that does not begin with `x_`; `unknown-section` for a section it does not know whose name does not begin with `X_`; `dangling-annotation` for an annotation whose `seq` names no step in the file.
 - **[V-13]** A validator MAY stop listing issues after a cap of at least 1000. It then reports `too-many-issues` once. The level still counts every issue, listed or not.
+- **[V-14]** A validator MUST report `parent-rel` on a record after which an entity breaks [W-28]: its parent is not in `ground`, `space` or `base`, or its `zone` does not match its parent's.
+- **[V-15]** When an issue code other than `schema` covers the condition a line breaks (a `CARDS` line without a `name` is `card-index`; a `create` with `parent` and no `rel` is `parent-rel`), a validator MUST report that code and MUST NOT also report `schema` for the same line and condition.
 
 > **Note (informative):** The registries are additive ([§17](#17-versioning-and-extensibility)): a
 > zone or relation added after a validator was built is reported as `bad-zone` or `bad-relation`
@@ -842,9 +847,15 @@ The redactor reads `RECORDS` in order. While it reads, it keeps:
 of 1, 2, 3, … in the order the output first uses them.
 
 **Mapping.** Wherever an emitted record holds an entity id (`e`, `parent`, a `ref` or `ref[]`
-attribute), the redactor writes the mapped output id. In a `ref` attribute that names an
-unmaterialized entity, it drops the attribute. In a `ref[]` attribute, it drops each element
-that names an unmaterialized entity, and keeps the array, even when it ends up empty.
+attribute), the redactor writes the mapped output id. A `ref` or `ref[]` attribute keeps only
+references to `"g"`, `"p1"`, `"p2"` and entities known to V, the same rule as step 9 for blocks:
+a `ref` attribute that names any other entity is dropped, and a `ref[]` attribute drops each such
+element and keeps the array, even when it ends up empty. A reference to an anonymous entity is
+dropped too, because an attribute that followed it would link the entity across re-ids.
+
+**Free text goes with a dropped reference.** When the redactor drops any reference from a record
+it emits, it also drops that record's `text`, `untilText` and `ability` attributes, because words
+can name what the reference pointed at.
 
 **Public attributes** of an entity are its attributes whose class is `public`. Unregistered
 attributes, including every `x_` extension, are not public ([§7.3](#73-attributes)).
@@ -856,9 +867,9 @@ what the first matching step below says.
 
 - **[R-01]** Step 1, a `create` whose audience holds V: emit it with a fresh id, its `card` included. The entity is known.
 - **[R-02]** Step 2, a `create` whose audience does not hold V: if the entity would be anonymous for V ([§10.3](#103-what-a-viewer-can-track)), emit it with a fresh id, without `card`, with its `to`, and with only its public attributes; the entity is anonymous. Otherwise emit nothing; the entity is unmaterialized.
-- **[R-03]** Step 3, a `reveal` whose `to` holds V: if the entity is known, emit the `reveal` with the mapped id. If it is anonymous, emit a `remove` of its output id, then a `create` with a fresh id. If it is unmaterialized, emit only that `create` with a fresh id. That `create` carries the entity's current `zone`, `owner`, `controller`, `parent` and `rel`, its `card`, its current audience as `to`, and all its current attributes. From then on the entity is known.
+- **[R-03]** Step 3, a `reveal` whose `to` holds V: if the entity is known, emit the `reveal` with the mapped id. If it is anonymous, emit a `remove` of its output id, then a `create` with a fresh id. If it is unmaterialized, emit only that `create` with a fresh id. That `create` carries the entity's current `zone`, `owner`, `controller`, `parent` and `rel`, its `card`, its current audience as `to`, and all its current attributes, in canonical key order ([W-07]). From then on the entity is known.
 - **[R-04]** Step 4, a `reveal` whose `to` does not hold V: emit nothing.
-- **[R-05]** Step 5, a `set` of an unmaterialized entity: if the entity, after the `set`, would be anonymous for V, emit a `create` with a fresh id, without `card`, with its current `zone`, `owner`, `controller`, `parent` and `rel`, its current audience as `to`, and only its public attributes; the entity is anonymous. Otherwise emit nothing.
+- **[R-05]** Step 5, a `set` of an unmaterialized entity: if the entity, after the `set`, would be anonymous for V, emit a `create` with a fresh id, without `card`, with its current `zone`, `owner`, `controller`, `parent` and `rel`, its current audience as `to`, and only its public attributes, in canonical key order ([W-07]); the entity is anonymous. Otherwise emit nothing.
 - **[R-06]** Step 6, a `set` that changes the `zone` of an anonymous entity: emit a `remove` of its output id. The entity is then unmaterialized, and step 5 applies to the same `set`.
 - **[R-07]** Step 7, any other `set`: emit it with mapped ids. For an anonymous entity, drop from `a` every attribute that is not public. If nothing is left but `t` and `e`, emit nothing.
 - **[R-08]** Step 8, a `remove`: for an unmaterialized entity, emit nothing. Otherwise emit it with the mapped id.
@@ -873,6 +884,7 @@ what the first matching step below says.
 - **[R-13]** A redactor MUST NOT copy into its output a record whose `t` it does not know, the `STORY` section, the `ANNOTATIONS` section, or a section it does not know.
 - **[R-14]** Every entity id in the output MUST be a fresh id as [§11.1](#111-state) defines it, so the output's ids are 1, 2, 3, … in order of first use, and no output id is used for two entities.
 - **[R-15]** A redactor given a valid `full` file MUST write a valid file of the asked profile when the asked profile is `public`, and when it is `perspective:V` and V's `DECKS` line in the `full` file is complete.
+- **[R-16]** A redactor MUST refuse an input in which a `parent` names an entity it cannot map to an output entity (`parent-rel`). It MUST NOT emit the record without its `parent`.
 - **[W-46]** A writer MAY produce `perspective` and `public` files some other way, but each MUST equal, byte for byte in canonical form ([§4.5](#45-canonical-form)), what this section yields from the writer's `full` file.
 
 > **Note (informative):** Step 9 keeps every block, because that something happened is public;
@@ -1094,8 +1106,9 @@ Each way a game record could leak is closed by a rule of this document:
 - **Which card was resourced.** A card moved from a hand the viewer cannot see into the resource row appears as a fresh anonymous entity ([R-05]). The viewer sees that a resource arrived, not which card it was.
 - **Moves between hidden zones.** An anonymous entity that changes zone is removed and, if still trackable, created afresh ([R-06]). An anonymous card can never be linked across a move.
 - **Searches and looks.** The cards a seat looks at are temporary deck entities whose `to` is the looking seat, so they are unmaterialized for the opponent ([R-02]); a private `reveal` is not emitted ([R-04]); and the narrative of the search keeps no reference to them ([R-09]).
-- **Blind choices.** A block's `options` that name cards the viewer cannot see are dropped ([R-09]).
-- **Effects that name hidden cards.** A reference attribute that names an unmaterialized entity is dropped ([§11.1](#111-state)).
+- **Blind choices.** A block's `options` that name cards the viewer does not know are dropped, and its `text` with them ([R-09]).
+- **Effects that name hidden cards.** An effect is materialized for V only when V knows its source ([W-31], [R-02]). A reference attribute (`src`, `targets`) keeps only references to entities V knows, so it cannot name a hidden card or follow an anonymous one across re-ids ([§11.1](#111-state)).
+- **Words that name hidden cards.** When a reference is dropped, the record's `text`, `untilText` and `ability` attributes go with it ([§11.1](#111-state)), as a block's `text` does ([R-09]). `abilityUses` is `identity`-class, so its ability ids are dropped from every entity V does not know ([R-02], [R-05], [R-07]).
 - **How long a card sat in hand.** The opponent's hand is a count, not a list of entities ([§10.3](#103-what-a-viewer-can-track)). A viewer cannot follow one hidden card through the rounds. Only a card the viewer already knows stays an entity in the opponent's hand.
 - **Ids that carry history.** Entity ids carry no information and are renumbered by order of first use ([R-14]); a card that comes back from the deck is a new entity ([W-22]).
 - **The seed, the deck order, the opponent's deck list and sideboard, and names of unseen cards.** `Seed` is dropped, `order` is dropped, the opponent's `DECKS` line lists only cards the file reveals, and `CARDS` keeps only ids the file uses ([R-11]).
@@ -1271,6 +1284,9 @@ Each code has a severity:
 - **error**: the file parses but is not valid. A reader MAY still apply and show it, and SHOULD say it is not valid.
 - **warning**: the file is as valid as its level says, and something is worth telling the user.
 
+One line can break a schema and a more specific rule at once. A validator then reports only the
+specific code ([V-15]): a `CARDS` line with no `name` is `card-index`, not also `schema`.
+
 A code that "applies to an SDK call" is not a property of a file: it is what a call returns when
 it is given the wrong kind of file, such as `not-full` from a redactor ([R-12]).
 
@@ -1303,7 +1319,7 @@ code registry.
 | `unknown-entity` | error | a file | A record refers to an entity that does not exist. |
 | `duplicate-entity` | error | a file | A create uses an id that already exists. |
 | `reused-id` | error | a file | A create uses an id that was retired. |
-| `parent-rel` | error | a file | parent and rel are not present together. |
+| `parent-rel` | error | a file | parent and rel are not present together, or, after a record applies, an entity's parent is not in ground, space or base, or the entity's zone does not match its parent's. |
 | `seq-order` | error | a file | Step seq values do not count 0, 1, 2, … in file order with no gap. |
 | `bad-zone` | error | a file | A zone name is not in the registry. |
 | `bad-relation` | error | a file | A relation name is not in the registry. |
@@ -1377,7 +1393,7 @@ row is a change to the registry file, made by a pull request to the package's so
 | `onStartingSide` | `bool` | public | leader | Which side of a double-sided leader is up. | 3.4 |
 | `epicActionUsed` | `bool` | public | leader, base | Epic Action spent. | 1.16.1 |
 | `defeated` | `bool` | public | base | Defeated (also without damage: the Death Star). | 5.6 |
-| `abilityUses` | `object[]` | public | card | One entry per limited ability used at least once: {ability: string, seat, count, per: "phase"\|"round"\|"game", max}. | 7.2.5, 1.16.3 |
+| `abilityUses` | `object[]` | identity | card | One entry per limited ability used at least once: {ability: string, seat, count, per: "phase"\|"round"\|"game", max}. | 7.2.5, 1.16.3 |
 | `src` | `ref` | public | effect | The card (or base) whose ability created it. | — |
 | `targets` | `ref[]` | public | effect | The entities it applies to (seats allowed: "p1"). | — |
 | `duration` | `string` | public | effect | attack, phase, round, whileSourceInPlay, until, delayed or game. | — |
@@ -1514,7 +1530,9 @@ In release order.
 This appendix will reproduce the `RECORDS` of the conformance vector `tiny`
 (`vectors/tiny.full.swupgn` and `vectors/tiny.p1.swupgn`): one short game in which a card is
 searched out of a deck, shuffled back and drawn again, written in full and as Player 1 saw it.
-Until the vectors are frozen, the vectors are the authority.
+Until the vectors are frozen, the vectors are the authority. In that game a Shield token is
+created on a unit that has just been played out of the deck; the unit's `set` into `ground` comes
+before the token's `create`, as [W-28] requires.
 
 ---
 
