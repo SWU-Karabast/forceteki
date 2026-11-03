@@ -179,13 +179,13 @@ describe('Poe Dameron, Hero of the Resistance', function () {
                         groundArena: ['poe-dameron#hero-of-the-resistance']
                     },
                     player2: {
-                        hand: ['determined-recruit']
+                        hand: ['determined-recruit'],
+                        hasInitiative: true
                     }
                 });
                 const { context } = contextRef;
 
                 // Player 2 plays Determined Recruit
-                context.player1.passAction();
                 context.player2.clickCard(context.determinedRecruit);
                 expect(context.determinedRecruit).toBeInZone('groundArena', context.player2);
 
