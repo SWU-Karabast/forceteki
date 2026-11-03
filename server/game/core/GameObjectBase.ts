@@ -117,7 +117,11 @@ export abstract class GameObjectBase implements IGameObjectBase {
      * enforces this, and the symptom is remote from the cause: the other object's hook would be handed a
      * stale `oldState`, skip an `isRegistered` transition branch, and leave a Game listener registered or
      * unregistered - surfacing much later as a duplicated or missing triggered ability, with no compile
-     * error and no failing test. All six current overrides were audited and mutate only `this`.
+     * error and no failing test. An override must also not read a `Game.state` field: `game.state` is the
+     * registered `GameState` object at registry index 1 and is deserialized after every later-registered
+     * object's `afterSetState` has run, so such a read sees the pre-rollback value; do that work in
+     * `afterSetAllState`. All four current overrides were audited: they mutate only `this` and read no
+     * `Game.state` field.
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public afterSetState(oldState: SerializedStateRecord) { }
