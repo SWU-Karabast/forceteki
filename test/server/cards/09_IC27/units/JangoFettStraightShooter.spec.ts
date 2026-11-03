@@ -154,46 +154,41 @@ describe('Jango Fett, Straight Shooter', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should use the hand and discard pile of the player who controlled him when he was defeated', async function() {
+            it('should use the hand and discard pile of the player who controlled him when he was defeated by No Glory, Only Results', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['disarm'],
-                        groundArena: ['jango-fett#straight-shooter', 'wampa'],
+                        groundArena: ['jango-fett#straight-shooter'],
                         discard: ['surprise-strike']
                     },
                     player2: {
-                        hand: ['change-of-heart', 'battlefield-marine'],
-                        discard: ['vanquish']
+                        hand: ['no-glory-only-results', 'battlefield-marine'],
+                        discard: ['vanquish'],
+                        hasInitiative: true
                     }
                 });
 
                 const { context } = contextRef;
 
-                // P2 steals Jango with Change of Heart
-                context.player1.passAction();
-                context.player2.clickCard(context.changeOfHeart);
+                // P2 takes control of Jango with No Glory, Only Results and defeats him
+                context.player2.clickCard(context.noGloryOnlyResults);
                 context.player2.clickCard(context.jangoFettStraightShooter);
-                expect(context.jangoFettStraightShooter).toBeInZone('groundArena', context.player2);
 
-                // P2 attacks Wampa with Jango and he is defeated
-                context.player1.passAction();
-                context.player2.clickCard(context.jangoFettStraightShooter);
-                context.player2.clickCard(context.wampa);
-
-                // P2 chooses from their own hand
+                // Jango goes to his owner's discard pile, and P2 chooses from their own hand
                 expect(context.jangoFettStraightShooter).toBeInZone('discard', context.player1);
                 expect(context.player2).toHavePassAbilityButton();
                 expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine]);
 
-                // P2 discards Battlefield Marine, then can return events from their own discard pile
+                // P2 discards Battlefield Marine, then can return events from their own discard pile, including No Glory, Only Results
                 context.player2.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
-                expect(context.player2).toBeAbleToSelectExactly([context.vanquish, context.changeOfHeart]);
+                expect(context.player2).toBeAbleToSelectExactly([context.vanquish, context.noGloryOnlyResults]);
 
-                // P2 returns Vanquish, P1's hand and discard pile are unaffected
-                context.player2.clickCard(context.vanquish);
-                expect(context.vanquish).toBeInZone('hand', context.player2);
+                // P2 returns No Glory, Only Results, P1's hand and discard pile are unaffected
+                context.player2.clickCard(context.noGloryOnlyResults);
+                expect(context.noGloryOnlyResults).toBeInZone('hand', context.player2);
+                expect(context.vanquish).toBeInZone('discard', context.player2);
                 expect(context.surpriseStrike).toBeInZone('discard', context.player1);
                 expect(context.disarm).toBeInZone('hand', context.player1);
                 expect(context.player1).toBeActivePlayer();
