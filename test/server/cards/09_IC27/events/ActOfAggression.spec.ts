@@ -27,6 +27,7 @@ describe('Act of Aggression', function() {
                 expect(context.player1.handSize).toBe(1);
 
                 // Optional damage can target any unit, including deployed leaders
+                expect(context.player1).toHavePrompt('Deal 3 damage to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.battlefieldMarine,
                     context.cartelSpacer,
@@ -40,6 +41,7 @@ describe('Act of Aggression', function() {
                 expect(context.wampa.damage).toBe(3);
 
                 // Mandatory buff can only target friendly units, including the deployed leader
+                expect(context.player1).toHavePrompt('Give a friendly unit +3/+0 and Overwhelm for this phase');
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.battlefieldMarine,
                     context.cartelSpacer,
