@@ -522,6 +522,72 @@ of the whole-suite harness plus the serialize-time benchmark — the
 delta-parity harness mode does not exist in the intermediate state and only
 arrives with the delta stage.
 
+### Decision checkpoint verdict (P4-D)
+
+**DELTAS: per-object memoization delivered the retention target and the write-side drop in every scenario, but missed the write-side sparsity clause W2 on the replicated medians (19.3 points against the bound 20), so by the rule fixed for P4-D `P4-E` and `P4-F` run.**
+The miss is 0.7 points wide and sits well inside the roughly 18-point single-run timing noise ceiling of [the capture index](performance/README.md); it is a miss on the bound estimator (head median against reference median over six runs) and not a miss clearly outside the noise floor: a ratio of six-run means gives a margin of 17.9 points and the median of the six per-run-pair drops gives 21.9, so the 0.7-point miss is not measurable at this sample size.
+The owner accepted the mechanical outcome: the verdict follows the bound rule and DELTAS is kept by the owner's decision, not because the sparsity effect was shown absent, and the sparsity direction held on the medians (a 66.6% drop in forty-cards-four-mutated against 47.3% in forty-cards-per-player); `P4-G` re-measures sparsity with deltas in place.
+The three flags `ENABLE_PARITY_HARNESS`, `ENABLE_UNDO_ALL_TESTS` and `MEASURE_SAVE_DEGRADATION` were unset in the capture environment.
+Everything else the rule asks passed, so the margin is the whole of the decision.
+
+Method.
+The two captures are `p4-d-reference-pre-memo` (scratch worktree at `d30824a12` with P4-Cb's spec patch from `2e7beb110`, Node v26.13.0, 2516 cards) and `after-plan-04-memo` (this branch at `a2fd76e3a`, same machine, Node and card count), taken back to back with `ENABLE_PARITY_HARNESS` unset.
+Because the single-run W2 margin (15.6 points) and three control rows moved outside the noise band, each arm was extended to six runs: the capture plus five replicates alternating reference and head with `--skip-build --skip-card-memory` and no rebuild or spec edit.
+The replicate files are not committed; every figure in the clause tables is a six-run median over the capture and its five uncommitted replicates (the per-run values of the two rows that decide W2 are inlined below; the other medians cannot be re-derived from the committed single runs alone), and `d` is the relative drop of the head median against the reference median.
+The thresholds were chosen by the user and fixed before the captures: T1 = 20 percent (W1), T2 = 20 points (W2), T3 = 30 percent (R1), T4 = 10 points (R2).
+
+Gate 1 (the P4-Cb rows measure what they claim) passed in all ten cells of every run of both arms: the reference reads 0 reused records, head reads 144, 203, 236, 238 and 230 reused records per build in compact-board, large-board, forty-cards-per-player, forty-cards-sparse-mutations and forty-cards-four-mutated, and head's fresh records per build equal each scenario's mutated-card count (11, 28, 40, 12, 4) on both the memoized row and the chain-with-writes row.
+
+Write side, `full/moveToNextTimepoint(Action, memoized)` avg (ms, six-run medians; single-run capture values in brackets for the first run):
+
+| Scenario | Reference | Head | d | W1 (>= 20%) |
+|---|---|---|---|---|
+| compact-board | 0.110 [0.124] | 0.045 [0.038] | 59.5% | pass |
+| large-board | 0.176 [0.229] | 0.072 [0.072] | 59.2% | pass |
+| forty-cards-per-player | 0.249 [0.239] | 0.131 [0.138] | 47.3% | pass |
+| forty-cards-sparse-mutations | 0.240 [0.263] | 0.064 [0.063] | 73.4% | pass |
+| forty-cards-four-mutated | 0.163 [0.151] | 0.054 [0.064] | 66.6% | pass |
+
+W1 passes in every scenario; the smallest drop (47.3% in forty-cards-per-player) clears T1 by 27.3 points, beyond the 18-point noise ceiling.
+W2 (`d[forty-cards-four-mutated] - d[forty-cards-per-player]` >= 20 points): 66.6 - 47.3 = 19.3 points on the medians (15.6 points on the single run), a miss of 0.7 points.
+Per-run values (ms, capture then replicates 1 to 5) for the two rows that decide W2:
+
+| Row | Reference | Head |
+|---|---|---|
+| forty-cards-per-player | 0.239, 0.272, 0.248, 0.229, 0.268, 0.249 | 0.138, 0.106, 0.134, 0.145, 0.101, 0.128 |
+| forty-cards-four-mutated | 0.151, 0.165, 0.171, 0.161, 0.159, 0.190 | 0.064, 0.054, 0.043, 0.041, 0.063, 0.055 |
+
+Retention, `payload/retainedChainWithWrites(13 snapshots)` `notes.bytesPerSnapshot` (six-run medians; the bands are within 0.5% of the median except forty-cards-sparse-mutations, whose reference band is 83,379 to 84,526 (1.3% below the median) and whose head band is 26,874 to 29,945 (10.3% below the median)):
+
+| Scenario | Mutated cards | Live objects | Reference B/snapshot | Head B/snapshot | d | R1 (>= 30%) |
+|---|---|---|---|---|---|---|
+| compact-board | 11 | 155 | 49,012 | 17,992 | 63.3% | pass |
+| large-board | 28 | 231 | 76,941 | 35,255 | 54.2% | pass |
+| forty-cards-per-player | 40 | 276 | 87,911 | 42,638 | 51.5% | pass |
+| forty-cards-sparse-mutations | 12 | 250 | 84,472 | 29,945 | 64.6% | pass |
+| forty-cards-four-mutated | 4 | 234 | 79,201 | 22,015 | 72.2% | pass |
+
+R1 passes in every scenario (the smallest drop, 51.5%, clears T3 by 21.5 points, against the 0.3% typical and 7.3% worst memory spread of [the capture index](performance/README.md) rule 5).
+R2 (`d[forty-cards-four-mutated] - d[forty-cards-per-player]` >= 10 points): 72.2 - 51.5 = 20.7 points, pass.
+Scaling reading, not a clause: head bytes per snapshot fall from 42,638 (40 mutated, 276 live) to 22,015 (4 mutated, 234 live), so retained bytes track the mutated set, but a per-snapshot floor that follows the live object count remains (forty-cards-four-mutated still retains 22 KB per snapshot with 4 mutated cards).
+That floor is the per-snapshot record-map overhead this section already warned about when it said memoization "does not shrink retained-memory as much" as deltas would.
+
+Rows that are not verdict inputs, each read for its reason.
+`manager/moveToNextTimepoint(Action)` never has a memo and is the control, expected flat; its six-run median moved +5.4%, +1.0%, +13.4%, +27.1% and -17.9% across the five scenarios (single run: +10.1%, +42.6%, +36.1%, +22.6%, +9.8%).
+Three of the single-run moves and one replicated median (+27.1%) sit outside the 20 percent band, so the control is explained rather than ignored: the runtime, card data and benchmark spec are identical between the arms by construction, and the per-run values overlap heavily (forty-cards-sparse-mutations head ran 0.190 to 0.397 ms against 0.196 to 0.280 for the reference), so run-to-run noise is the leading candidate, with the tracker default switch from `CaptureOldValues` to `DirtyOnly` that P4-C made as the other candidate; the six-run medians do not separate the two, and neither feeds a clause.
+`full/createSnapshotForCurrentTimepoint` (-71.0% to -83.1%) and `payload/retainedChain(13 snapshots)` (-81.6% to -84.3%) have no writes between snapshots, so they are upper bounds on what memoization can save and not evidence of the realistic saving.
+`payload/gameStateBuffer`, `payload/gameObjectStatesBuffer` and `payload/fullSnapshotTotal` were redefined at P3-PB2 and carry `notes.measurement` in every scenario of both arms, so they are not comparable with captures before that redefinition and none is used here.
+
+Rollback reading for `P4-G`.
+The plan's red flag is a rise in `manager/rollbackTo(Manual)` p95.
+Against the reference it did not rise: avg moved -15.7% to -23.7% and p95 -13.9% to -24.1% across the five scenarios on the six-run medians (head p95 medians: compact-board 0.699, large-board 1.122, forty-cards-per-player 0.986, forty-cards-sparse-mutations 0.884, forty-cards-four-mutated 0.749 ms), while the raw-restore control `full/rollbackToSnapshot` stayed flat to slightly better (avg +4.4% to -12.2%, p95 -12.7% to +15.7%, whose largest rises, in compact-board and large-board, are inside noise and the control's meaning is unchanged).
+Memoization therefore did not cost rollback time, and the improvement on the manual-rollback path sits beside an unchanged raw restore, which is consistent with P4-C reusing records in its pre-pass; `P4-G` should read the delta path's rollback p95 against these memoized numbers, not against `after-plan-03`.
+
+Cross-runtime context only, never an input to this verdict: against `after-plan-03` (Node v24.13.0, 2386 cards) the head capture reads `manager/rollbackTo(Manual)` avg -11.8% to -41.4% and `payload/retainedChain(13 snapshots)` -81.5% to -84.3%, but its control row moved +43.5%, +7.7%, +38.1%, +4.3% and -18.9%, which is what a runtime and card-count change looks like and is why the same-runtime reference replaced it.
+
+Consequence.
+Per the P4-D rule `P4-E` and `P4-F` run, with this memoized state as the measured baseline for them: the delta stage must beat the head figures above (not the pre-memo reference), and the near-miss on W2 means the sparsity test is the first thing `P4-G` should re-measure with deltas in place.
+
 ## Verification
 
 - Full suite + `ENABLE_UNDO_ALL_TESTS=true` in its delta-parity form (see
