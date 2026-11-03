@@ -134,6 +134,7 @@ Notes for P4-D on the benchmark rows (no row was edited and none was run here):
 `payload/retainedChain(13 snapshots)` shares nearly every record across a chain with no game writes, so it drops sharply for a reason a realistic game would not reproduce.
 `manager/rollbackTo(Manual)` drops under P1 because the pre-pass no longer serializes clean objects.
 P4-D's fixed verdict rule reads the first and fourth of those rows, so as written it cannot observe memoization's write-side benefit and over-reads its retention benefit; the roadmap owner should decide before P4-D runs whether the rule needs a new diagnostic row.
+That open question is resolved by two rows added in the test-only unit P4-Cb and by P4-D's rule in `docs/plans/IMPLEMENTATION-ORDER.md`: `full/moveToNextTimepoint(Action, memoized)` and `payload/retainedChainWithWrites(13 snapshots)` build each snapshot after a real write sized by the scenario's mutated set, and both report how many records each build reused by reference and how many it serialized fresh, as notes that are never asserted so the pre-memo reference capture reads zero.
 
 ### Chain selection, contiguity, and eviction
 

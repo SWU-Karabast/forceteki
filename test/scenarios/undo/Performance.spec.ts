@@ -164,6 +164,49 @@ function applyBenchmarkMutations(context, scenario: IBenchmarkScenario): void {
     }
 }
 
+/**
+ * Flips the exhausted flag of exactly the cards `getBenchmarkCards` selects, so every call is a real write sized by the
+ * scenario's `mutatedCardLimit`, never a same-value write. Used by the two memoization rows, which need a write between
+ * consecutive snapshots that a realistic game would also have.
+ */
+function toggleBenchmarkMutations(context, scenario: IBenchmarkScenario): void {
+    for (const card of getBenchmarkCards(context, scenario)) {
+        card.exhausted = !card.exhausted;
+    }
+}
+
+interface IRecordReuse {
+    fresh: number;
+    reused: number;
+}
+
+/**
+ * How many of `next`'s records are the very same object as `previous`'s record for that uuid (reused by reference) and how
+ * many are not (serialized fresh). Pure reference comparison on the two `states` maps, so it needs no hook into the engine and
+ * reads zero reuse, rather than throwing, on a commit that has no memoization. Never assert on it: P4-D runs this spec at the
+ * pre-memo commit as its same-runtime reference, where zero is the correct reading.
+ */
+function countRecordReuse(previous: IGameSnapshot | null, next: IGameSnapshot): IRecordReuse {
+    let reused = 0;
+    let total = 0;
+    for (const uuid of Object.keys(next.states)) {
+        total++;
+        if (previous != null && previous !== next && previous.states[uuid] === next.states[uuid]) {
+            reused++;
+        }
+    }
+
+    return { reused, fresh: total - reused };
+}
+
+function averageRecordReuse(samples: IRecordReuse[]): { avgFresh: number; avgReused: number } {
+    const count = Math.max(samples.length, 1);
+    return {
+        avgReused: Math.round(samples.reduce((sum, sample) => sum + sample.reused, 0) / count),
+        avgFresh: Math.round(samples.reduce((sum, sample) => sum + sample.fresh, 0) / count)
+    };
+}
+
 function expectBenchmarkStateReset(context, scenario: IBenchmarkScenario): void {
     for (const card of getBenchmarkCards(context, scenario)) {
         expect(card.exhausted).toBe(false);
@@ -275,6 +318,42 @@ async function runScenarioBenchmarkAsync(contextRef, scenario: IBenchmarkScenari
     expectBenchmarkStateReset(context, scenario);
     snapshotManager.clearAllSnapshots();
 
+    // --- Memoized write path ----------------------------------------------
+
+    // Diagnostic row for P4-D (docs/plans/IMPLEMENTATION-ORDER.md, "P4-Cb"): the per-action build with a previous snapshot to
+    // memoize against and a real write between builds. `manager/moveToNextTimepoint(Action)` above clears every snapshot after each
+    // iteration so it never has a memo; this row does not, so each build's memo is the previous iteration's snapshot. One Action
+    // snapshot is taken untimed first so the first timed build already has a memo. Reuse is counted outside the timer and reported
+    // as notes, never asserted: at the pre-memo commit it reads zero.
+    snapshotManager.moveToNextTimepoint(SnapshotTimepoint.Action);
+    const memoizedBuildReuse: IRecordReuse[] = [];
+    let memoizedPreviousSnapshot: IGameSnapshot | null = null;
+    const memoizedResult: IBenchmarkResult & { notes?: Record<string, number | string> } = await measureBenchmarkAsync(
+        'full', 'moveToNextTimepoint(Action, memoized)', scenario.snapshotIterations, () => {
+            snapshotManager.moveToNextTimepoint(SnapshotTimepoint.Action);
+        }, {
+            beforeEachIteration: () => {
+                toggleBenchmarkMutations(context, scenario);
+                memoizedPreviousSnapshot = snapshotFactory.currentActionSnapshot;
+            },
+            afterEachIteration: () => {
+                memoizedBuildReuse.push(countRecordReuse(memoizedPreviousSnapshot, snapshotFactory.currentActionSnapshot));
+            }
+        }
+    );
+    // The warm-up iterations also ran the hooks above; only the timed iterations are the row's builds.
+    const memoizedReuse = averageRecordReuse(memoizedBuildReuse.slice(-scenario.snapshotIterations));
+    memoizedResult.notes = {
+        avgReusedRecordsPerBuild: memoizedReuse.avgReused,
+        avgFreshRecordsPerBuild: memoizedReuse.avgFresh,
+        measurement: 'record counts per build, not bytes: reused = same object as the previous snapshot\'s record for that uuid, fresh = serialized by this build'
+    };
+    results.push(memoizedResult);
+
+    restoreAnchor();
+    expectBenchmarkStateReset(context, scenario);
+    snapshotManager.clearAllSnapshots();
+
     // --- Payload size -----------------------------------------------------
 
     const payloadSnapshot = captureAnchorSnapshot(snapshotFactory);
@@ -360,12 +439,53 @@ async function runScenarioBenchmarkAsync(contextRef, scenario: IBenchmarkScenari
     snapshotManager.clearAllSnapshots();
     restoreAnchor();
 
+    // Same retention measurement with a real write before every build, so consecutive snapshots share only the records the write
+    // left untouched (what a game produces) instead of nearly all of them (what the row above produces). The first build after the
+    // clear has no memo, so reuse is averaged over builds 2..N. The counts are strings because the markdown renderer prints numeric
+    // notes as byte sizes.
+    forceGcIfAvailable();
+    const beforeWriteChain = sampleMemory();
+    const chainBuildReuse: IRecordReuse[] = [];
+
+    for (let index = 0; index < RETAINED_SNAPSHOT_CHAIN_LENGTH; index++) {
+        toggleBenchmarkMutations(context, scenario);
+        const previousChainSnapshot: IGameSnapshot | null = snapshotFactory.currentActionSnapshot;
+        snapshotManager.moveToNextTimepoint(SnapshotTimepoint.Action);
+        if (index > 0) {
+            chainBuildReuse.push(countRecordReuse(previousChainSnapshot, snapshotFactory.currentActionSnapshot));
+        }
+        snapshotManager.takeSnapshot({ type: SnapshotType.Manual, playerId });
+    }
+
+    forceGcIfAvailable();
+    const writeChainRetention = memoryDelta(beforeWriteChain, sampleMemory());
+    const chainReuse = averageRecordReuse(chainBuildReuse);
+
+    payloads.push({
+        scenario: scenario.name,
+        category: 'payload',
+        benchmark: `retainedChainWithWrites(${RETAINED_SNAPSHOT_CHAIN_LENGTH} snapshots)`,
+        serializedBytes: writeChainRetention.totalBytes,
+        notes: {
+            heapUsedBytes: writeChainRetention.heapUsedBytes,
+            externalBytes: writeChainRetention.externalBytes,
+            bytesPerSnapshot: Math.round(writeChainRetention.totalBytes / RETAINED_SNAPSHOT_CHAIN_LENGTH),
+            avgReusedRecordsPerBuild: String(chainReuse.avgReused),
+            avgFreshRecordsPerBuild: String(chainReuse.avgFresh),
+            reuseMeasurement: 'record counts per build over builds 2..N (the first build has no memo), not bytes'
+        }
+    });
+
+    snapshotManager.clearAllSnapshots();
+    restoreAnchor();
+
     reportWriter.addScenario({ scenario: scenario.name, mutatedCards, liveGameObjects, results, payloads });
 
     console.log(' ');
     console.log(`Scenario ${scenario.name}: ${liveGameObjects} live GameObjects, ${mutatedCards} mutated cards per iteration`);
     console.table(results.map((result) => toConsoleRow(scenario.name, result)));
     console.table(payloads);
+    console.log(`Record reuse per build (${scenario.name}): memoized row ${JSON.stringify(memoizedResult.notes)}; chain-with-writes row ${JSON.stringify(payloads[payloads.length - 1].notes)}`);
 
     return results;
 }
@@ -402,7 +522,7 @@ describe('Undo', function() {
                     it('captures snapshot and rollback speed, memory, and GC pressure', async function() {
                         const results = await runScenarioBenchmarkAsync(contextRef, scenario, reportWriter);
 
-                        expect(results.length).toBe(6);
+                        expect(results.length).toBe(7);
                     });
                 });
             }
