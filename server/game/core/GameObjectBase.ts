@@ -98,7 +98,11 @@ export abstract class GameObjectBase implements IGameObjectBase {
         this._cannotHaveRefs = true;
     }
 
-    /** A function for game to call on all objects after all state has been rolled back. Intended to be used when a class has state changes that have external changes, for example, updating OngoingEffectEngine. */
+    /**
+     * A function for game to call on all objects after all state has been rolled back. Intended to be used when a class has state changes that have external changes, for example, updating OngoingEffectEngine.
+     *
+     * `oldState` may be a record retained by snapshots (P4-C); read it, never write into it; see `afterSetState`.
+     */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public afterSetAllState(oldState: SerializedStateRecord) { }
 
@@ -122,6 +126,13 @@ export abstract class GameObjectBase implements IGameObjectBase {
      * object's `afterSetState` has run, so such a read sees the pre-rollback value; do that work in
      * `afterSetAllState`. All four current overrides were audited: they mutate only `this` and read no
      * `Game.state` field.
+     *
+     * P4-C: `oldState` may be a record retained by the current snapshot and shared with other retained snapshots
+     * (the outermost rollback pre-pass reuses it for an object untouched since that snapshot), so an override must
+     * read it only, never write into it. The same holds for `afterSetAllState` and `cleanupOnRemove`. Snapshot
+     * memoization also trusts that after the restore and these hooks every state field of the object equals the
+     * restored record, because the delta tracker is stopped while they run; a hook that leaves a field different
+     * would let the next snapshot reuse a stale record (the test-mode verifier fails the spec that does so).
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public afterSetState(oldState: SerializedStateRecord) { }
@@ -131,6 +142,8 @@ export abstract class GameObjectBase implements IGameObjectBase {
      * This is intended to be used for cleanup of any state that the object has that is not part of the state object.
      *
      * The most common example is removing event handlers that have been registered on Game.
+     *
+     * `oldState` may be a record retained by snapshots (P4-C); read it, never write into it; see `afterSetState`.
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public cleanupOnRemove(oldState: SerializedStateRecord) { }

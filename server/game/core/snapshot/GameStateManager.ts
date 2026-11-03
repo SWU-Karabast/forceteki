@@ -8,6 +8,7 @@ import { AlertType, GameErrorSeverity } from '../Constants';
 import type { GameObjectId } from '../GameObjectUtils';
 import { getStateSerializerFor } from '../StateSerializers';
 import type { SerializedStateRecord } from '../StateEncoding';
+import type { IDeltaTrackerWindow } from './DeltaTracker';
 
 export interface IGameObjectRegistrar {
     register(gameObject: GameObjectBase | GameObjectBase[]): void;
@@ -182,18 +183,58 @@ export class GameStateManager implements IGameObjectRegistrar {
         }
     }
 
-    public buildGameStateForSnapshot(): Record<string, SerializedStateRecord> {
+    /**
+     * Builds the `states` map of a new snapshot: one record for every live object, so snapshots stay full.
+     *
+     * P4-C memoization: when `previous` is the snapshot the delta tracker's tracking window is anchored at, an
+     * object the window shows untouched (see {@link memoizedRecordFor}) gets `previous`'s record object itself
+     * instead of a fresh `serialize`. The returned map is always a new object (copy-on-write at the map level), and
+     * no record is written after it is placed, so retained snapshots share unchanged records by reference. A call
+     * without `previous`, with the tracker stopped, or with a window anchored elsewhere serializes every object.
+     */
+    public buildGameStateForSnapshot(previous: IGameSnapshot | null = null): Record<string, SerializedStateRecord> {
         // MUST stay first: the hasRef latch contract. Serialization reads `.uuid` and never calls
         // `getObjectId()`, so every latch has to be settled by the cull before any record is built.
+        // A culled object is no longer in `allGameObjects`, so no record of it can be reused below.
         this.removeUnusedGameObjects();
+
+        // Reuse needs a live window: a stopped tracker has missed writes, so its window proves nothing.
+        const window = previous !== null && this.#game.deltaTracker.isTracking ? this.memoWindowFor(previous) : null;
+        const anchorStates = window !== null ? previous.states : null;
 
         // Return the state of all game objects that are still in the game.
         const states: Record<string, SerializedStateRecord> = {};
         for (const go of this.allGameObjects) {
-            states[go.uuid] = getStateSerializerFor(go).serializer.serialize(go);
+            const reused = window !== null ? this.memoizedRecordFor(go, anchorStates, window) : undefined;
+            states[go.uuid] = reused ?? getStateSerializerFor(go).serializer.serialize(go);
         }
 
         return states;
+    }
+
+    /**
+     * The one reuse decision shared by the snapshot build and the outermost rollback pre-pass: returns the anchor
+     * snapshot's record for `go` when the window shows it untouched since the anchor, otherwise `undefined` (the
+     * caller serializes). A uuid in `window.createdObjectUuids` is never reused even when the anchor holds a record
+     * under that uuid: after a raw restore to an older snapshot while the tracker runs (tests only) the uuid counter
+     * rewinds, so a new object can carry the uuid of an instance the anchor still records.
+     *
+     * Public so the test-mode verifier (`test/helpers/SnapshotMemoVerifier.ts`) can wrap it; it is not part of
+     * {@link IGameObjectRegistrar}.
+     */
+    public memoizedRecordFor(go: GameObjectBase, anchorStates: Record<string, SerializedStateRecord>, window: IDeltaTrackerWindow): SerializedStateRecord | undefined {
+        const uuid = go.uuid;
+        if (window.changedFields.has(uuid) || window.createdObjectUuids.has(uuid)) {
+            return undefined;
+        }
+
+        return anchorStates[uuid];
+    }
+
+    /** The held window if it is anchored at `anchor`, else null: any other pairing means the window says nothing about `anchor`. */
+    private memoWindowFor(anchor: IGameSnapshot): IDeltaTrackerWindow | null {
+        const window = this.#game.deltaTracker.pendingWindow;
+        return window !== null && window.anchor.snapshotId === anchor.id ? window : null;
     }
 
     public rollbackToSnapshot(snapshot: IGameSnapshot, beforeRollbackSnapshot?: IGameSnapshot): boolean {
@@ -227,8 +268,23 @@ export class GameStateManager implements IGameObjectRegistrar {
             //  - Do NOT add a per-object try/catch: swallowing an encoder defect behind a successful-looking
             //    undo is exactly what this structure exists to forbid.
             //
-            // A useful consequence: once this completes, every live object is proven encodable, so the
-            // recovery leg guarding the restore loop below cannot itself fail for an *encode* reason.
+            // A useful consequence: once this completes, every live object is proven encodable (a reused
+            // record was produced by the encoder and the object is unchanged since, so only the rest are
+            // serialized here), so the recovery leg guarding the restore loop below cannot itself fail for an
+            // *encode* reason.
+            //
+            // P4-C memoization: in the outermost frame, an object the held tracking window shows untouched
+            // since `beforeRollbackSnapshot` (the current snapshot, the window's anchor) takes that snapshot's
+            // record as `oldState` instead of a fresh `serialize`, so the hooks receive a record shared with
+            // retained snapshots and must not write into it. The nested recovery frame never reuses: the
+            // outer frame has already deserialized part of the graph untracked, so an object "clean since
+            // the anchor" may no longer equal the anchor's record, and reuse would hand a restore hook the
+            // anchor's `isRegistered` in place of the torn value (a skipped listener transition, a triggered
+            // ability left unregistered). Today's recovery call passes no `beforeRollbackSnapshot`; the
+            // depth test is the guard that keeps it so. Reuse is sound only when the held window was tracking
+            // until `SnapshotManager.rollbackToInternal` stopped the tracker on entry; a caller that stops the
+            // tracker earlier with a window held must pass no `beforeRollbackSnapshot`.
+            const memoWindow = this._rollbackDepth === 1 && beforeRollbackSnapshot ? this.memoWindowFor(beforeRollbackSnapshot) : null;
             const oldStates = new Array<SerializedStateRecord>(this.allGameObjects.length);
             try {
                 for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
@@ -237,7 +293,8 @@ export class GameStateManager implements IGameObjectRegistrar {
                         throw new Error(`GameObject ${go.getGameObjectName()} (UUID: ${go.uuid}, Type: ${go.constructor.name}) is not initialized during rollback. This should not be possible.`);
                     }
 
-                    oldStates[i] = getStateSerializerFor(go).serializer.serialize(go);
+                    const reused = memoWindow !== null ? this.memoizedRecordFor(go, beforeRollbackSnapshot.states, memoWindow) : undefined;
+                    oldStates[i] = reused ?? getStateSerializerFor(go).serializer.serialize(go);
                 }
             } catch (error) {
                 logger.error('Error building pre-rollback state; rollback aborted before any state was modified.', { error: { message: error.message, stack: error.stack }, lobbyId: this.#game.lobbyId });

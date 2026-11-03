@@ -1888,8 +1888,8 @@ export class Game extends EventEmitter {
         const token: ITokenCard = this.tokenFactories[tokenName](player, additionalProperties);
 
         this.state.allCards.push(token.getObjectId());
-        player.decklist.tokens.push(token.getObjectId());
-        player.decklist.allCards.push(token.getObjectId());
+        // Through the `_decklist` setter, not an in-place push: the delta tracker (and so snapshot memoization) sees only setter writes.
+        player.addGeneratedTokenToDecklist(token.getObjectId());
         player.outsideTheGameZone.addCard(token);
         token.initializeZone(player.outsideTheGameZone);
 

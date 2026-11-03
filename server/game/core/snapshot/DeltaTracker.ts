@@ -12,10 +12,10 @@ import { Contract } from '../utils/Contract.js';
  */
 export enum DeltaTrackerMode {
 
-    /** Records only that a field changed (a marker, no value). Enough for memoization (P4-C), which re-serializes touched objects itself. */
+    /** Records only that a field changed (a marker, no value). The default since P4-C: memoization re-serializes touched objects itself. */
     DirtyOnly = 'dirtyOnly',
 
-    /** Also records the field's window-start value, encoded the way the snapshot serializers encode it. The default; needed by delta snapshots (P4-E). */
+    /** Also records the field's window-start value, encoded the way the snapshot serializers encode it. Not the default; P4-E (delta snapshots) selects it. */
     CaptureOldValues = 'captureOldValues'
 }
 
@@ -63,7 +63,9 @@ function getFieldKinds(entry: IGeneratedSerializerEntry): Map<string, FieldKind>
 /**
  * Records, between two consecutive full snapshots (one "window"), which (object, field) pairs were written and
  * which objects were registered, so memoization (P4-C) and delta snapshots (P4-E/P4-F) can consume it
- * (`docs/plans/04-delta-snapshots.md`, "Mechanism"). Nothing consumes it yet; snapshots stay full.
+ * (`docs/plans/04-delta-snapshots.md`, "Mechanism"). Memoization consumes it: `GameStateManager.buildGameStateForSnapshot`
+ * and the outermost rollback pre-pass reuse the anchor snapshot's record for every object the window shows untouched, so a
+ * write that no hook sees (listed below) leaves a stale record in the next snapshot. Every snapshot still holds a record for every object.
  *
  * One tracker per {@link Game}. It is plain bookkeeping, not a `GameObjectBase`, and is not snapshotted.
  *
@@ -78,21 +80,22 @@ function getFieldKinds(entry: IGeneratedSerializerEntry): Map<string, FieldKind>
  *   includes the post-restore hooks (`afterSetState`, `afterSetAllState`). Their writes are expected to leave every
  *   field equal to the restored snapshot (non-state fields, or the value the restore just wrote), so the fresh window
  *   claims untouched objects equal the anchor; `DeltaTracker.spec.ts` asserts this after a manual rollback on a board
- *   with ongoing effects. P4-C's parity spec must keep that assertion in view.
+ *   with ongoing effects, and memoization trusts it (the test-mode verifier checks it at the first build after every rollback).
  * - A registration while stopped is not recorded (`recordObjectCreation`). Nothing registers during a rollback today:
  *   the registration guard forbids it, and the guard-suspended error-reporting paths only read state or build
  *   `createWithoutRefsUnsafe` objects, which never enter the registry.
  * - Writes to objects registered during the window, to objects built with registration disabled
  *   (`createWithoutRefsUnsafe`) and to objects not in the registry are not recorded.
  *
- * Writes no hook can see, so they are never recorded: index assignment and `length =` on a `ValueArray`; a
+ * Writes no hook can see, so they are never recorded (since P4-C each is a correctness hazard, guarded only by the
+ * test-mode verifier): index assignment and `length =` on a `ValueArray`; a
  * write cast past `readonly` into a `@stateRefArray()` array; in-place mutation inside a `@stateValue` payload
  * or inside a value held by a `ValueMap`/`ValueArray`; `Object.defineProperty` on a `@stateRefRecord` proxy.
  * (`Game.state` is the registered `GameState` object since P4-B, so its writes are recorded like any other's.)
  */
 export class DeltaTracker {
     private readonly game: Game;
-    private _mode: DeltaTrackerMode = DeltaTrackerMode.CaptureOldValues;
+    private _mode: DeltaTrackerMode = DeltaTrackerMode.DirtyOnly;
     private _tracking = false;
     private _window: IMutableWindow | null = null;
 

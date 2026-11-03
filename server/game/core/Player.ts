@@ -144,8 +144,23 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
     @stateValue() public accessor passedActionPhase: boolean | null = null;
 
     @stateValue() private accessor _decklist: IDeckListForLoading | null = null;
+
+    /**
+     * Read-only: the payload is replaced through the `_decklist` setter, never mutated in place. An in-place
+     * write (`decklist.tokens.push(...)`) is invisible to the delta tracker, so snapshot memoization would reuse a
+     * stale Player record; add a token with {@link addGeneratedTokenToDecklist}.
+     */
     public get decklist(): IDeckListForLoading {
         return this._decklist;
+    }
+
+    /** Lists a newly generated token in the decklist's `tokens` and `allCards` through the `_decklist` setter, so the delta tracker records the change. */
+    public addGeneratedTokenToDecklist(tokenId: IDeckListForLoading['tokens'][number]): void {
+        this._decklist = {
+            ...this._decklist,
+            tokens: [...this._decklist.tokens, tokenId],
+            allCards: [...this._decklist.allCards, tokenId]
+        };
     }
 
     public get allCards() {

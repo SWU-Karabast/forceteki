@@ -127,7 +127,9 @@ export interface IGameSnapshot {
      * P3-PB2: plain JSON-safe records, not `v8` buffers. `states` maps each live GameObject's uuid to its
      * generated `serialize<Class>` record; `Game.state` is one of those entries, keyed by `game.state.uuid`.
      * The map is retained as-is and never mutated by a restore, so a snapshot can be rolled back to
-     * repeatedly.
+     * repeatedly. P4-C: a value may be shared by reference with other retained snapshots (the snapshot build
+     * reuses the previous snapshot's record for an object untouched since), so a record is never written after
+     * it is placed in a map.
      */
     states: Record<string, SerializedStateRecord>;
     rngState: IRandomness['rngState'];

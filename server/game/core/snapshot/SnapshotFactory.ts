@@ -147,7 +147,8 @@ export class SnapshotFactory {
             timepoint,
             timepointNumber: nextTimepointNumber,
             phase: this.game.currentPhase,
-            states: this.gameStateManager.buildGameStateForSnapshot(),
+            // The current snapshot is both the memo and the delta tracker window's anchor: the build reuses its records for objects the window shows untouched.
+            states: this.gameStateManager.buildGameStateForSnapshot(this.currentActionSnapshot ?? null),
             rngState: this.game.randomGenerator.rngState,
             requiresConfirmationToRollback: false,
             activePlayerId: this.game.actionPhaseActivePlayer?.id

@@ -761,6 +761,9 @@ describe('P4-B Game.state as a registered GameObject', function() {
                 const game = context.game;
                 const tracker = game.deltaTracker as DeltaTracker;
 
+                // Windows open in DirtyOnly since P4-C; this case reads window-start values, so it selects CaptureOldValues before the window opens.
+                tracker.setMode(DeltaTrackerMode.CaptureOldValues);
+
                 // A fresh snapshot opens the window these writes land in.
                 forceFreshCurrentSnapshot(game);
                 expect(tracker.isTracking).toBe(true);
