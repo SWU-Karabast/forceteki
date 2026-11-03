@@ -368,7 +368,6 @@
             "required": [
                 "t",
                 "e",
-                "zone",
                 "owner"
             ],
             "dependentRequired": {
@@ -377,6 +376,40 @@
                 ],
                 "rel": [
                     "parent"
+                ]
+            },
+            "if": {
+                "type": "object",
+                "properties": {
+                    "a": {
+                        "type": "object",
+                        "properties": {
+                            "kind": {
+                                "const": "effect"
+                            }
+                        },
+                        "required": [
+                            "kind"
+                        ]
+                    }
+                },
+                "required": [
+                    "a"
+                ]
+            },
+            "then": {
+                "type": "object",
+                "properties": {
+                    "zone": false
+                }
+            },
+            "else": {
+                "type": "object",
+                "properties": {
+                    "zone": true
+                },
+                "required": [
+                    "zone"
                 ]
             },
             "additionalProperties": false
@@ -458,6 +491,35 @@
                 "required": [
                     "rel"
                 ]
+            },
+            "dependentSchemas": {
+                "parent": {
+                    "type": "object",
+                    "properties": {
+                        "rel": true
+                    },
+                    "required": [
+                        "rel"
+                    ],
+                    "if": {
+                        "type": "object",
+                        "properties": {
+                            "parent": {
+                                "not": {
+                                    "type": "null"
+                                }
+                            }
+                        }
+                    },
+                    "then": {
+                        "type": "object",
+                        "properties": {
+                            "rel": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             },
             "additionalProperties": false
         },

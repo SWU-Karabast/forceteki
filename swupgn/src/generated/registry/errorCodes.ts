@@ -24,7 +24,7 @@ export const errorCodes = [
     {
         "code": "too-many-records",
         "severity": "fatal",
-        "condition": "The record count exceeds the limit."
+        "condition": "The record count, or the number of entities that exist at once, exceeds the limit."
     },
     {
         "code": "too-deep",
@@ -54,7 +54,7 @@ export const errorCodes = [
     {
         "code": "bad-count",
         "severity": "fatal",
-        "condition": "A section's declared count does not match its lines."
+        "condition": "A count header tag (Rounds, or a present Undos, GameNumber, WriterRevision or WriterErrors) is not base-10 digits within the integer range."
     },
     {
         "code": "duplicate-section",
@@ -99,7 +99,7 @@ export const errorCodes = [
     {
         "code": "card-index",
         "severity": "error",
-        "condition": "A card id is not in the CARDS index."
+        "condition": "A CARDS line lacks a string id or a string name."
     },
     {
         "code": "unknown-entity",
@@ -124,7 +124,7 @@ export const errorCodes = [
     {
         "code": "seq-order",
         "severity": "error",
-        "condition": "Step seq values are not increasing."
+        "condition": "Step seq values do not count 0, 1, 2, … in file order with no gap."
     },
     {
         "code": "bad-zone",

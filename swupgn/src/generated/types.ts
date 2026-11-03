@@ -42,7 +42,7 @@ export interface Attrs {
 export interface CreateRecord {
     t: 'create';
     e: number;
-    zone: string;
+    zone?: string;
     owner: Seat;
     controller?: Seat;
     parent?: EntityId;

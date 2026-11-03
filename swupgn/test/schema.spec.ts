@@ -63,6 +63,21 @@ describe('swupgn.schema.json', function () {
         expect(set({ t: 'set', e: 2, parent: null, rel: 'attached' })).toBe(false);
     });
 
+    it('rejects a set that re-parents without rel', function () {
+        const set = validator('set');
+        expect(set({ t: 'set', e: 2, parent: 1 })).toBe(false);
+        expect(set({ t: 'set', e: 2, parent: 1, rel: null })).toBe(false);
+        expect(set({ t: 'set', e: 2, parent: 1, rel: 'pilot' })).toBe(true);
+        expect(set({ t: 'set', e: 2, zone: 'discard' })).toBe(true);
+    });
+
+    it('requires zone on a create unless it is an effect', function () {
+        const create = validator('create');
+        expect(create({ t: 'create', e: 5, owner: 1, a: { kind: 'effect', duration: 'phase' } })).toBe(true);
+        expect(create({ t: 'create', e: 5, owner: 1, a: { kind: 'unit' } })).toBe(false);
+        expect(create({ t: 'create', e: 5, owner: 1 })).toBe(false);
+    });
+
     it('rejects a step with a non-integer seq', function () {
         const step = validator('step');
         expect(step({ t: 'step', seq: 1.5 })).toBe(false);
