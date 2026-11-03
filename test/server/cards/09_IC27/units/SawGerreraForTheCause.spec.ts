@@ -230,6 +230,75 @@ describe('Saw Gerrera, For the Cause', function() {
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.battlefieldMarine.getPower()).toBe(3);
             });
+
+            it('should not double Raid when the doubled unit attacks', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['saw-gerrera#for-the-cause', 'dune-sea-nomads']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Saw Gerrera attacks the base and doubles Dune Sea Nomads' power
+                context.player1.clickCard(context.sawGerreraForTheCause);
+                context.player1.clickCard(context.p2Base);
+                context.player1.clickCard(context.duneSeaNomads);
+                expect(context.duneSeaNomads.getPower()).toBe(6);
+                expect(context.p2Base.damage).toBe(6);
+
+                // Dune Sea Nomads attacks the base
+                context.player2.passAction();
+                context.player1.clickCard(context.duneSeaNomads);
+                context.player1.clickCard(context.p2Base);
+
+                // 6 from Saw Gerrera + 6 (doubled) + 3 (Raid) from the nomads, not (3 + 3) * 2
+                expect(context.p2Base.damage).toBe(15);
+            });
+
+            it('should double power from a constant ability and keep the bonus after that ability ends', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [
+                            'saw-gerrera#for-the-cause',
+                            'battlefield-marine',
+                            'general-dodonna#massassi-group-commander'
+                        ]
+                    },
+                    player2: {
+                        hand: ['vanquish']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // General Dodonna gives other friendly Rebel units +1/+1
+                expect(context.battlefieldMarine.getPower()).toBe(4);
+
+                // Saw Gerrera attacks the base and doubles Battlefield Marine's power
+                context.player1.clickCard(context.sawGerreraForTheCause);
+                context.player1.clickCard(context.p2Base);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine.getPower()).toBe(8);
+                expect(context.p2Base.damage).toBe(7);
+
+                // Player 2 defeats General Dodonna
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.generalDodonna);
+                expect(context.generalDodonna).toBeInZone('discard');
+
+                // The marine loses Dodonna's +1 but keeps the fixed +4 from Saw Gerrera
+                expect(context.battlefieldMarine.getPower()).toBe(7);
+
+                // Battlefield Marine attacks the base
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                // 7 from Saw Gerrera + 7 from the marine
+                expect(context.p2Base.damage).toBe(14);
+            });
         });
     });
 });
