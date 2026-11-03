@@ -1,0 +1,96 @@
+// GENERATED from schema/ and registry/ — do not edit
+
+export const blockKinds = [
+    {
+        "name": "play",
+        "meaning": "A card is played."
+    },
+    {
+        "name": "deploy",
+        "meaning": "A leader is deployed."
+    },
+    {
+        "name": "attack",
+        "meaning": "A unit attacks."
+    },
+    {
+        "name": "ability",
+        "meaning": "An ability is used."
+    },
+    {
+        "name": "trigger",
+        "meaning": "A triggered ability fires."
+    },
+    {
+        "name": "damage",
+        "meaning": "Damage is dealt."
+    },
+    {
+        "name": "heal",
+        "meaning": "Damage is healed."
+    },
+    {
+        "name": "defeat",
+        "meaning": "Entities are defeated."
+    },
+    {
+        "name": "capture",
+        "meaning": "A card is captured."
+    },
+    {
+        "name": "rescue",
+        "meaning": "A captured card is rescued."
+    },
+    {
+        "name": "draw",
+        "meaning": "Cards are drawn."
+    },
+    {
+        "name": "discard",
+        "meaning": "Cards are discarded."
+    },
+    {
+        "name": "resource",
+        "meaning": "A card is resourced."
+    },
+    {
+        "name": "search",
+        "meaning": "A deck is searched."
+    },
+    {
+        "name": "look",
+        "meaning": "Cards are looked at."
+    },
+    {
+        "name": "choice",
+        "meaning": "A choice is made."
+    },
+    {
+        "name": "name",
+        "meaning": "A name is chosen."
+    },
+    {
+        "name": "shuffle",
+        "meaning": "Entities are shuffled into a deck."
+    },
+    {
+        "name": "pass",
+        "meaning": "A seat passes."
+    },
+    {
+        "name": "initiative",
+        "meaning": "The initiative is taken."
+    },
+    {
+        "name": "mulligan",
+        "meaning": "A mulligan decision."
+    },
+    {
+        "name": "regroup",
+        "meaning": "The regroup phase happens."
+    },
+    {
+        "name": "gameEnd",
+        "meaning": "The game ends."
+    }
+];

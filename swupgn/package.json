@@ -41,11 +41,15 @@
     ],
     "sideEffects": false,
     "scripts": {
+        "generate": "node scripts/gen-types.mjs",
         "build": "node scripts/build.mjs",
         "test": "npm run build && tsc -p tsconfig.test.json && jasmine --config=jasmine.json",
-        "check": "node -e \"process.exit(0)\""
+        "check": "node scripts/gen-types.mjs --check"
     },
     "dependencies": {
         "ajv": "^8.17.1"
+    },
+    "devDependencies": {
+        "json-schema-to-typescript": "^16.0.0"
     }
 }

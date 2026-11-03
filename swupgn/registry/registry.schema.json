@@ -1,0 +1,93 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "urn:swupgn:0.1:registry",
+    "title": "SWU-PGN 0.1 registry files",
+    "description": "One schema per registry file, as $defs.",
+    "$defs": {
+        "attributes": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string", "minLength": 1 },
+                    "type": { "type": "string", "enum": ["bool", "int", "count", "string", "string[]", "seat", "seat|null", "ref", "ref[]", "object", "object[]"] },
+                    "class": { "type": "string", "enum": ["public", "identity"] },
+                    "on": {
+                        "type": "array",
+                        "items": { "type": "string", "enum": ["game", "seat", "card", "unit", "upgrade", "leader", "base", "resource", "effect"] },
+                        "minItems": 1
+                    },
+                    "meaning": { "type": "string", "minLength": 1 },
+                    "cr": { "type": "string" }
+                },
+                "required": ["name", "type", "class", "on", "meaning"],
+                "additionalProperties": false
+            }
+        },
+        "zones": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string", "minLength": 1 },
+                    "meaning": { "type": "string", "minLength": 1 },
+                    "ownerSees": { "type": "string", "enum": ["known", "count"] },
+                    "opponentSees": { "type": "string", "enum": ["count", "anonymous", "public"] }
+                },
+                "required": ["name", "meaning", "ownerSees", "opponentSees"],
+                "additionalProperties": false
+            }
+        },
+        "relations": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string", "minLength": 1 },
+                    "parent": { "type": "string", "minLength": 1 },
+                    "meaning": { "type": "string", "minLength": 1 }
+                },
+                "required": ["name", "parent", "meaning"],
+                "additionalProperties": false
+            }
+        },
+        "blockKinds": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string", "minLength": 1 },
+                    "meaning": { "type": "string", "minLength": 1 }
+                },
+                "required": ["name", "meaning"],
+                "additionalProperties": false
+            }
+        },
+        "setCodes": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "code": { "type": "string", "pattern": "^[A-Z0-9]+$" },
+                    "release": { "type": "integer", "minimum": 1 }
+                },
+                "required": ["code", "release"],
+                "additionalProperties": false
+            }
+        },
+        "errorCodes": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "code": { "type": "string", "pattern": "^[a-z]+(-[a-z]+)*$" },
+                    "severity": { "type": "string", "enum": ["fatal", "error", "warning"] },
+                    "scope": { "type": "string", "const": "api" },
+                    "condition": { "type": "string", "minLength": 1 }
+                },
+                "required": ["code", "severity", "condition"],
+                "additionalProperties": false
+            }
+        }
+    }
+}
