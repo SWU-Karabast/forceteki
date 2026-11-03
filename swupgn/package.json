@@ -41,10 +41,10 @@
     ],
     "sideEffects": false,
     "scripts": {
-        "generate": "node scripts/gen-types.mjs",
+        "generate": "node scripts/gen-types.mjs && node scripts/gen-spec-tables.mjs",
         "build": "node scripts/build.mjs",
         "test": "npm run build && tsc -p tsconfig.test.json && jasmine --config=jasmine.json",
-        "check": "node scripts/gen-types.mjs --check"
+        "check": "node scripts/gen-types.mjs --check && node scripts/gen-spec-tables.mjs --check"
     },
     "dependencies": {
         "ajv": "^8.17.1"
