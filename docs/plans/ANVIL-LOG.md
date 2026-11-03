@@ -1684,6 +1684,7 @@ What landed and the window rules are in `IMPLEMENTATION-ORDER.md`'s `P4-A` "Actu
 ### Decisions made at the gates
 
 1. **Capture is a per-window mode, `CaptureOldValues` by default** (maintainer's choice). Always-on capture would have biased `P4-D`'s memoization measurement with a cost memoization does not need, and a note-only default would have left capture without whole-suite evidence until `P4-E`.
+   `P4-C` later made `DirtyOnly` the default, as its request selected.
 2. **A rollback that restored nothing resumes the window, and window-created or unregistered objects are not recorded** (maintainer's choice). Emptying the window on a failed rollback, as `-morph` does, would let memoization reuse stale records for objects changed earlier in the same action.
 3. **The benchmark harness's two timed raw restores run untracked** (planner's decision, shown at the gate), so no headline row times tracker work production does not do.
 
