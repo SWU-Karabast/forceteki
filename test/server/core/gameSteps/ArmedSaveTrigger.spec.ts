@@ -260,8 +260,9 @@ describe('Game.armedSave', function() {
         });
     });
 
-    // P2D-R0-02's direct regression test: rollback replaces `game.state` wholesale, bypassing the
-    // `currentPhase` setter above, so the clear here must come from `postRollbackOperations` instead.
+    // P2D-R0-02's direct regression test: rollback restores `game.state`'s fields through its decorated
+    // accessors, bypassing `Game`'s `currentPhase` setter above, so the clear here must come from
+    // `postRollbackOperations` instead.
     // `undoIntegration` (not `integration`): only this mode gives a real, working `rollbackToSnapshot`
     // (`Game.isUndoEnabled` gates on `undoMode`). Per implementation review finding `P2D-R1-06`, this case
     // therefore runs under `npm run test-parallel` (where `undoIntegration` runs for real, at

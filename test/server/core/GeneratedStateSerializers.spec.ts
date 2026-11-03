@@ -2,7 +2,8 @@
 import { GameObjectBase } from '../../../server/game/core/GameObjectBase';
 import type { GameObjectId } from '../../../server/game/core/GameObjectUtils';
 import { registerState, stateRefSet } from '../../../server/game/core/GameObjectUtils';
-import { generatedStateSerializerEntries } from '../../../server/game/core/generated/GeneratedStateSerializers';
+import { GENERATED_SCHEMA_SURFACE_HASH, generatedStateSerializerEntries } from '../../../server/game/core/generated/GeneratedStateSerializers';
+import * as model from '../../../scripts/stateSerializerModel';
 import { getStateSerializerFor } from '../../../server/game/core/StateSerializers';
 import { decodeRefSet, encodeRefMap, encodeRefSet } from '../../../server/game/core/StateEncoding';
 import type { SerializedStateRecord } from '../../../server/game/core/StateEncoding';
@@ -263,5 +264,82 @@ describe('Generated state serializers', function() {
             expect(reEncoded).not.toBeNull();
             expect(reEncoded.$set).toEqual([wampa.uuid, cartelSpacer.uuid]);
         });
+    });
+});
+
+/**
+ * P4-B (AC8). Before this unit `Game.state` was a plain object the registry did not cover, so adding or renaming one of its
+ * fields changed every snapshot payload while `GENERATED_SCHEMA_SURFACE_HASH` stayed put. `GameState` is a
+ * registered class now, so its fields are hash inputs. Plan 6 gates save compatibility on that hash.
+ * Pure over the generated entries, so no game is built.
+ */
+describe('GameState as a schema-surface hash input', function() {
+    const expectedKinds: Record<string, string> = {
+        _uuid: 'primitive',
+        initialFirstPlayer: 'ref',
+        initiativePlayer: 'ref',
+        actionPhaseActivePlayer: 'ref',
+        roundNumber: 'primitive',
+        isInitiativeClaimed: 'primitive',
+        isPlanCounterClaimed: 'primitive',
+        isBlastCounterClaimed: 'primitive',
+        planCounterClaimedByPlayer: 'ref',
+        blastCounterClaimedByPlayer: 'ref',
+        allCards: 'value',
+        actionNumber: 'primitive',
+        winnerNames: 'value',
+        lastGameEventId: 'primitive',
+        currentPhase: 'primitive',
+        prevActionPhasePlayerPassed: 'primitive',
+        movedCards: 'value'
+    };
+
+    interface IModelTarget {
+        name: string;
+        fields: readonly { name: string; kind: string }[];
+    }
+
+    function entriesAsModel(): IModelTarget[] {
+        return generatedStateSerializerEntries.map((entry) => ({ name: entry.className, fields: entry.fields }));
+    }
+
+    function hashOf(targets: IModelTarget[]): string {
+        return model.computeSchemaSurfaceHash(targets, model.STATE_ENCODING_TAGS, model.STATE_RECORD_FORMAT_VERSION);
+    }
+
+    it('the registry has a concrete GameState entry carrying exactly the sixteen game-state fields plus the inherited uuid, with their kinds', function() {
+        const entry = generatedStateSerializerEntries.find((candidate) => candidate.className === 'GameState');
+        expect(entry).toBeDefined();
+        expect(entry.isAbstract).toBe(false);
+        expect(entry.decorator).toBe('registerState');
+
+        const kinds: Record<string, string> = {};
+        for (const field of entry.fields) {
+            kinds[field.name] = field.kind;
+        }
+        expect(kinds).toEqual(expectedKinds);
+        expect(entry.fields.length).toBe(Object.keys(expectedKinds).length);
+    });
+
+    it('the hash recomputed from the registry entries equals the emitted GENERATED_SCHEMA_SURFACE_HASH', function() {
+        expect(hashOf(entriesAsModel())).toBe(GENERATED_SCHEMA_SURFACE_HASH);
+    });
+
+    it('renaming a GameState claim-counter field, or removing the GameState entry, changes the hash', function() {
+        const baseline = hashOf(entriesAsModel());
+
+        const renamed = entriesAsModel().map((target) => (target.name !== 'GameState'
+            ? target
+            : {
+                name: target.name,
+                fields: target.fields.map((field) => (field.name === 'planCounterClaimedByPlayer'
+                    ? { name: `${field.name}Renamed`, kind: field.kind }
+                    : field))
+            }));
+        expect(hashOf(renamed)).not.toBe(baseline);
+
+        const removed = entriesAsModel().filter((target) => target.name !== 'GameState');
+        expect(removed.length).toBe(generatedStateSerializerEntries.length - 1);
+        expect(hashOf(removed)).not.toBe(baseline);
     });
 });

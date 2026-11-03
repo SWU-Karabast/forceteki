@@ -1,7 +1,4 @@
-import type { Card } from '../card/Card';
 import type { PhaseName, RollbackRoundEntryPoint, RollbackSetupEntryPoint, SnapshotType } from '../Constants';
-import type { GameObjectId } from '../GameObjectUtils';
-import type { Player } from '../Player';
 import type { IRandomness } from '../Randomness';
 import type { SerializedStateRecord } from '../StateEncoding';
 
@@ -127,36 +124,16 @@ export interface IGameSnapshot {
     activePlayerId?: string;
 
     /**
-     * P3-PB2: plain JSON-safe records, not `v8` buffers. `gameState` is `encodeStateValue`'s output for
-     * `Game.state`; `states` maps each live GameObject's uuid to its generated `serialize<Class>` record.
-     * Both are retained as-is and are never mutated by a restore, so a snapshot can be rolled back to
+     * P3-PB2: plain JSON-safe records, not `v8` buffers. `states` maps each live GameObject's uuid to its
+     * generated `serialize<Class>` record; `Game.state` is one of those entries, keyed by `game.state.uuid`.
+     * The map is retained as-is and never mutated by a restore, so a snapshot can be rolled back to
      * repeatedly.
      */
-    gameState: unknown;
     states: Record<string, SerializedStateRecord>;
     rngState: IRandomness['rngState'];
 
     requiresConfirmationToRollback: boolean;
     nextSnapshotIsSamePlayer?: boolean;
-}
-
-export interface IGameState {
-    roundNumber: number;
-    initialFirstPlayer: GameObjectId<Player> | null;
-    initiativePlayer: GameObjectId<Player> | null;
-    actionPhaseActivePlayer: GameObjectId<Player> | null;
-    isInitiativeClaimed: boolean;
-    isPlanCounterClaimed?: boolean;
-    isBlastCounterClaimed?: boolean;
-    planCounterClaimedByPlayer?: GameObjectId<Player> | null;
-    blastCounterClaimedByPlayer?: GameObjectId<Player> | null;
-    allCards: GameObjectId<Card>[];
-    actionNumber: number;
-    lastGameEventId: number;
-    readonly winnerNames: string[];
-    currentPhase: PhaseName | null;
-    prevActionPhasePlayerPassed: boolean | null;
-    movedCards: GameObjectId<Card>[];
 }
 
 export enum QuickUndoAvailableState {

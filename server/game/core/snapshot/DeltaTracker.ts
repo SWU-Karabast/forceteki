@@ -87,8 +87,8 @@ function getFieldKinds(entry: IGeneratedSerializerEntry): Map<string, FieldKind>
  *
  * Writes no hook can see, so they are never recorded: index assignment and `length =` on a `ValueArray`; a
  * write cast past `readonly` into a `@stateRefArray()` array; in-place mutation inside a `@stateValue` payload
- * or inside a value held by a `ValueMap`/`ValueArray`; `Object.defineProperty` on a `@stateRefRecord` proxy;
- * `Game.state` (a plain object until P4-B).
+ * or inside a value held by a `ValueMap`/`ValueArray`; `Object.defineProperty` on a `@stateRefRecord` proxy.
+ * (`Game.state` is the registered `GameState` object since P4-B, so its writes are recorded like any other's.)
  */
 export class DeltaTracker {
     private readonly game: Game;

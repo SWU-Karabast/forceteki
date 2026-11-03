@@ -111,8 +111,10 @@ describe('P3-PB2 cutover restore', function() {
 
                 forceFreshCurrentSnapshot(context.game);
                 const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
-                const retainedStates = getManualSnapshotContainer(context.game, context.player1Object.id).snapshots.get(snapshotId).states;
-                const retainedGameState = getManualSnapshotContainer(context.game, context.player1Object.id).snapshots.get(snapshotId).gameState;
+                const retainedSnapshot = getManualSnapshotContainer(context.game, context.player1Object.id).snapshots.get(snapshotId);
+                const retainedStates = retainedSnapshot.states;
+                const retainedGameState = retainedStates[context.game.state.uuid];
+                expect(retainedGameState).toBeDefined();
                 const statesAtSnapshotTime = JSON.stringify(retainedStates);
                 const gameStateAtSnapshotTime = JSON.stringify(retainedGameState);
 
@@ -120,33 +122,39 @@ describe('P3-PB2 cutover restore', function() {
                 expect(contextRef.snapshot.rollbackToSnapshot({ type: 'manual', playerId: context.player1Object.id, snapshotId })).toBe(true);
                 const firstDamage = context.wampa.damage;
                 const firstDeckLength = context.player1Object.deckZone.deck.length;
-                const firstWinnerNames = [...(context.game as unknown as { state: { winnerNames: string[] } }).state.winnerNames];
+                const firstWinnerNames = [...context.game.state.winnerNames];
+                const firstMovedCards = [...context.game.state.movedCards];
+                const firstAllCards = [...context.game.state.allCards];
 
                 // The mutation kind matters. A primitive reassignment cannot reach a retained record under
                 // *any* implementation, so it would make this case vacuous. Both mutations below are
                 // in-place container mutations on objects the snapshot holds records for:
                 //   - `deck.pop()` with no matching push, on a per-object @stateRefArray field;
-                //   - `winnerNames.push` / `movedCards.push` on game.state, which is the one genuinely new
-                //     aliasing surface this cutover introduces (Game.state is stored as a record now, and
-                //     restore must decode it rather than assign it).
+                //   - `winnerNames.push` / `movedCards.push` / `allCards.push` on game.state, which is the one
+                //     genuinely new aliasing surface this cutover introduces (Game.state is stored as a record
+                //     now, and restore must copy it rather than assign it). The card arrays hold ids, never
+                //     card objects: a GameObjectBase inside a value array makes the next encode throw.
                 context.setDamage(context.wampa, 4);
                 (context.player1Object.deckZone.deck as unknown as unknown[]).pop();
-                const liveGameState = (context.game as unknown as { state: { winnerNames: string[]; movedCards: unknown[] } }).state;
+                const liveGameState = context.game.state;
                 liveGameState.winnerNames.push('pb2-c6-probe');
-                liveGameState.movedCards.push(context.wampa as never);
+                liveGameState.movedCards.push(context.wampa.getObjectId());
+                liveGameState.allCards.push(context.wampa.getObjectId());
 
                 expect(contextRef.snapshot.rollbackToSnapshot({ type: 'manual', playerId: context.player1Object.id, snapshotId })).toBe(true);
 
                 expect(context.wampa.damage).toBe(firstDamage);
                 expect(context.player1Object.deckZone.deck.length).toBe(firstDeckLength);
-                expect([...(context.game as unknown as { state: { winnerNames: string[] } }).state.winnerNames]).toEqual(firstWinnerNames);
+                expect([...context.game.state.winnerNames]).toEqual(firstWinnerNames);
+                expect([...context.game.state.movedCards]).toEqual(firstMovedCards);
+                expect([...context.game.state.allCards]).toEqual(firstAllCards);
 
                 // The retained snapshot itself was never touched by either restore.
                 expect(JSON.stringify(retainedStates)).toBe(statesAtSnapshotTime);
                 expect(JSON.stringify(retainedGameState)).toBe(gameStateAtSnapshotTime);
             });
 
-            it('Game.state is decoded, not assigned: after a rollback it is a distinct object and mutating it leaves the snapshot untouched', async function() {
+            it('Game.state is restored in place and copied, not aliased: after a rollback it is the same object and mutating it leaves the snapshot untouched', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: { groundArena: ['wampa'], resources: 3 },
@@ -155,22 +163,28 @@ describe('P3-PB2 cutover restore', function() {
                 const { context } = contextRef;
 
                 forceFreshCurrentSnapshot(context.game);
+                const stateBefore = context.game.state;
+                const uuidBefore = stateBefore.uuid;
                 const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
                 const snapshot = getManualSnapshotContainer(context.game, context.player1Object.id).snapshots.get(snapshotId);
 
-                // The stored payload is a plain JSON-safe record, not a Buffer and not the live object.
-                expect(Buffer.isBuffer(snapshot.gameState)).toBe(false);
-                expect(snapshot.gameState).not.toBe((context.game as unknown as { state: unknown }).state);
+                // Game.state travels as one ordinary record in `states`: there is no separate gameState payload.
+                expect('gameState' in snapshot).toBe(false);
+                const record = snapshot.states[uuidBefore] as unknown as { winnerNames: string[] };
+                expect(record).toBeDefined();
+                expect(record as unknown).not.toBe(stateBefore);
 
                 context.setDamage(context.wampa, 2);
                 expect(contextRef.snapshot.rollbackToSnapshot({ type: 'manual', playerId: context.player1Object.id, snapshotId })).toBe(true);
 
-                const restored = (context.game as unknown as { state: { winnerNames: string[] } }).state;
-                expect(restored as unknown).not.toBe(snapshot.gameState);
+                const restored = context.game.state;
+                expect(restored).toBe(stateBefore);
+                expect(restored.uuid).toBe(uuidBefore);
+                expect(restored.winnerNames as unknown).not.toBe(record.winnerNames);
 
-                const snapshotWinnerNamesBefore = JSON.stringify((snapshot.gameState as { winnerNames: string[] }).winnerNames);
+                const snapshotWinnerNamesBefore = JSON.stringify(record.winnerNames);
                 restored.winnerNames.push('pb2-c7-probe');
-                expect(JSON.stringify((snapshot.gameState as { winnerNames: string[] }).winnerNames)).toBe(snapshotWinnerNamesBefore);
+                expect(JSON.stringify(record.winnerNames)).toBe(snapshotWinnerNamesBefore);
             });
         }, true);
     });

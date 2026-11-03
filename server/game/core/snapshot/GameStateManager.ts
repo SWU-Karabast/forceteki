@@ -1,13 +1,12 @@
 import type { Game } from '../Game';
 import type { GameObjectBase } from '../GameObjectBase';
-import type { IGameSnapshot, IGameState } from './SnapshotInterfaces';
+import type { IGameSnapshot } from './SnapshotInterfaces';
 import { Contract } from '../utils/Contract.js';
 import { Helpers } from '../utils/Helpers.js';
 import { logger } from '../../../logger';
 import { AlertType, GameErrorSeverity } from '../Constants';
 import type { GameObjectId } from '../GameObjectUtils';
 import { getStateSerializerFor } from '../StateSerializers';
-import { decodeStateValue } from '../StateEncoding';
 import type { SerializedStateRecord } from '../StateEncoding';
 
 export interface IGameObjectRegistrar {
@@ -199,6 +198,13 @@ export class GameStateManager implements IGameObjectRegistrar {
 
     public rollbackToSnapshot(snapshot: IGameSnapshot, beforeRollbackSnapshot?: IGameSnapshot): boolean {
         Contract.assertNotNullLike(snapshot, 'Empty snapshot provided for rollback');
+        // Game.state is an ordinary registered object restored by the update loop below. A snapshot without its
+        // record would look like an object created after the snapshot and be removed from the game, so refuse it
+        // before anything is touched.
+        Contract.assertNotNullLike(
+            snapshot.states[this.#game.state.uuid],
+            () => `Snapshot ${snapshot.id} has no record for Game.state (uuid ${this.#game.state.uuid}); refusing to roll back to it.`
+        );
         this._rollbackDepth++;
         try {
             // P3-PB2 pre-pass. `oldState` used to be a free read of the live state bag; it is now a real
@@ -213,7 +219,8 @@ export class GameStateManager implements IGameObjectRegistrar {
             //    encode and fail identically - an abort that cannot terminate.
             //  - Being outside the restore `try` is what keeps its failure off `rollbackError`, so no
             //    recovery is attempted for a failure that has nothing to recover from.
-            //  - It runs before `this.#game.state` is replaced, so an abort leaves `game.state` untouched too.
+            //  - It covers `game.state` as an ordinary object and runs before any object is deserialized, so an
+            //    abort leaves `game.state` untouched too.
             //  - `oldStates` is index-aligned with `allGameObjects`, which is safe because the registration
             //    guard above already forbids creating a GameObject while `_rollbackDepth > 0`, and nothing is
             //    removed from `allGameObjects` until after the update loop.
@@ -260,15 +267,14 @@ export class GameStateManager implements IGameObjectRegistrar {
 
             let rollbackError: Error | null = null;
             try {
-                // Decoded, never assigned: decodeStateValue builds a fresh object at every level, so later
-                // in-place mutations (winnerNames.push, allCards.push, movedCards.push) cannot reach the
-                // retained snapshot record and a second rollback to the same snapshot behaves identically.
-                this.#game.state = decodeStateValue(snapshot.gameState) as IGameState;
-
-                // Retained as-is and never mutated, for the same repeat-rollback reason.
+                // Retained as-is and never mutated, so a second rollback to the same snapshot behaves
+                // identically. The generated deserializers copy every collection into a fresh one, so later
+                // in-place mutations (winnerNames.push, allCards.push, movedCards.push) cannot reach it.
                 const snapshotStatesByUuid = snapshot.states;
 
-                // Indexes in last to first for the purpose of removal.
+                // Indexes in last to first for the purpose of removal. `Game.state` restores here at its own
+                // (low) index, after every later-registered object's `afterSetState` has run, so no
+                // `afterSetState` override may read a `Game.state` field: it would still hold its pre-rollback value.
                 for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
                     const go = this.allGameObjects[i];
                     const oldState = oldStates[i];
@@ -306,7 +312,7 @@ export class GameStateManager implements IGameObjectRegistrar {
                     // P3-PB2 fix (PB2I1-OPR-01). At HEAD this nested call could only return true or throw,
                     // so discarding its result was safe by construction. The pre-pass above added a third
                     // outcome - `return false` after an abort that mutated nothing *in that frame* - and
-                    // this frame has already replaced `this.#game.state` and deserialized part of the graph,
+                    // this frame has already deserialized part of the graph (`Game.state` included),
                     // so accepting that false would hand the player the benign "the undo didn't happen"
                     // alert over a torn graph. Reachable without an encoder defect: the pre-pass also throws
                     // for `!go.initialized`, and the outer frame's own error reporting can register pristine

@@ -11,8 +11,8 @@ import type { GameObjectId } from './GameObjectUtils';
  * `encodeTaggedSet` sorts for document diff-stability. Do not "fix" one to match the other.
  *
  * P3-PB2: this module is now on the live snapshot path. `GameStateManager` and `SnapshotFactory` reach it
- * through the generated serializers, and `encodeStateValue`/`decodeStateValue` are also `Game.state`'s own
- * codec. It stays a leaf (it imports only types) so the generated artifact can import from it without the
+ * through the generated serializers, which cover `Game.state` (the registered `GameState` object) like every
+ * other game object. It stays a leaf (it imports only types) so the generated artifact can import from it without the
  * CommonJS load-order cycle described in the plan's §3.1.
  *
  * `STATE_RECORD_FORMAT_VERSION` must be bumped in the same commit as any change to encoder/decoder

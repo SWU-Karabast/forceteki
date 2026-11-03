@@ -6,6 +6,7 @@ import { GameChat } from './chat/GameChat';
 import type { MsgArg } from './chat/GameChat';
 import { OngoingEffectEngine } from './ongoingEffect/OngoingEffectEngine';
 import { Player } from './Player';
+import { GameState } from './GameState';
 import { Spectator } from '../../Spectator';
 import { AnonymousSpectator } from '../../AnonymousSpectator';
 import { GamePipeline } from './GamePipeline';
@@ -91,7 +92,6 @@ import { Randomness } from './Randomness';
 import type { IRandomness } from './Randomness';
 import { RollbackEntryPointType, QuickUndoAvailableState } from './snapshot/SnapshotInterfaces';
 import type {
-    IGameState,
     IGetSnapshotSettings,
     ICanRollBackResult,
     IRollbackSetupEntryPoint,
@@ -134,11 +134,11 @@ export class Game extends EventEmitter {
     // #region ──── State-backed Properties ────────────────────────────────────
 
     public get actionPhaseActivePlayer(): Player | null {
-        return this.gameObjectManager.get(this.state.actionPhaseActivePlayer);
+        return this.state.actionPhaseActivePlayer;
     }
 
     public set actionPhaseActivePlayer(value: Player | null) {
-        this.state.actionPhaseActivePlayer = value?.getObjectId();
+        this.state.actionPhaseActivePlayer = value ?? null;
     }
 
     public get allCards() {
@@ -146,19 +146,19 @@ export class Game extends EventEmitter {
     }
 
     public get initialFirstPlayer(): Player | null {
-        return this.gameObjectManager.get(this.state.initialFirstPlayer);
+        return this.state.initialFirstPlayer;
     }
 
     public set initialFirstPlayer(value: Player | null) {
-        this.state.initialFirstPlayer = value?.getObjectId();
+        this.state.initialFirstPlayer = value ?? null;
     }
 
     public get initiativePlayer(): Player | null {
-        return this.gameObjectManager.get(this.state.initiativePlayer);
+        return this.state.initiativePlayer;
     }
 
     public set initiativePlayer(value: Player | null) {
-        this.state.initiativePlayer = value?.getObjectId();
+        this.state.initiativePlayer = value ?? null;
     }
 
     public get isInitiativeClaimed() {
@@ -191,22 +191,22 @@ export class Game extends EventEmitter {
 
     public get planCounterClaimedByPlayer(): Player | null {
         this.assertFauxSuns('planCounterClaimedByPlayer');
-        return this.gameObjectManager.get(this.state.planCounterClaimedByPlayer);
+        return this.state.planCounterClaimedByPlayer;
     }
 
     public set planCounterClaimedByPlayer(value: Player | null) {
         this.assertFauxSuns('planCounterClaimedByPlayer');
-        this.state.planCounterClaimedByPlayer = value?.getObjectId();
+        this.state.planCounterClaimedByPlayer = value ?? null;
     }
 
     public get blastCounterClaimedByPlayer(): Player | null {
         this.assertFauxSuns('blastCounterClaimedByPlayer');
-        return this.gameObjectManager.get(this.state.blastCounterClaimedByPlayer);
+        return this.state.blastCounterClaimedByPlayer;
     }
 
     public set blastCounterClaimedByPlayer(value: Player | null) {
         this.assertFauxSuns('blastCounterClaimedByPlayer');
-        this.state.blastCounterClaimedByPlayer = value?.getObjectId();
+        this.state.blastCounterClaimedByPlayer = value ?? null;
     }
 
     /** Throws if this game isn't running the Faux Suns format. Guards state that's only meaningful there. */
@@ -450,13 +450,14 @@ export class Game extends EventEmitter {
 
     /**
      * Whether this game was configured to use the per-player action timer. `Game` extends `EventEmitter`
-     * rather than `GameObjectBase` (and rollback swaps `game.state` wholesale rather than the instance),
-     * so this needs no state decorator: it is fixed at construction and never changes. Read by the
-     * save-format writer for `ISavedMatch.settings.useActionTimer`.
+     * rather than `GameObjectBase`, so this needs no state decorator: it is fixed at construction and never
+     * changes. Read by the save-format writer for `ISavedMatch.settings.useActionTimer`.
      */
     public readonly useActionTimer: boolean;
     public currentlyResolving: ICurrentlyResolving;
-    public state: IGameState;
+
+    /** Constructed once and never replaced; rollback restores its fields in place through the registry like any other game object. */
+    public readonly state: GameState;
 
     /** Records which game-object fields change between two consecutive full snapshots; see {@link DeltaTracker}. */
     public readonly deltaTracker: DeltaTracker;
@@ -577,24 +578,7 @@ export class Game extends EventEmitter {
 
         this.initializeCurrentlyResolving();
 
-        this.state = {
-            initialFirstPlayer: null,
-            initiativePlayer: null,
-            actionPhaseActivePlayer: null,
-            roundNumber: 0,
-            isInitiativeClaimed: false,
-            isPlanCounterClaimed: false,
-            isBlastCounterClaimed: false,
-            planCounterClaimedByPlayer: null,
-            blastCounterClaimedByPlayer: null,
-            allCards: [],
-            actionNumber: 0,
-            winnerNames: [],
-            lastGameEventId: 0,
-            currentPhase: null,
-            prevActionPhasePlayerPassed: null,
-            movedCards: []
-        };
+        this.state = new GameState(this);
 
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
@@ -1842,7 +1826,9 @@ export class Game extends EventEmitter {
         for (const movedCard of this.state.movedCards.map((id) => this.getFromId(id))) {
             movedCard.resolveAbilitiesForNewZone();
         }
-        this.state.movedCards = [];
+        if (this.state.movedCards.length > 0) {
+            this.state.movedCards = [];
+        }
 
         if (events.length > 0) {
             // check for any delayed effects which need to fire
@@ -2364,9 +2350,9 @@ export class Game extends EventEmitter {
     }
 
     public postRollbackOperations(entryPoint: IRollbackSetupEntryPoint | IRollbackRoundEntryPoint): void {
-        // Clear condition 4/4 for an armed save request: `game.state` is replaced wholesale during
-        // rollback (never through the `currentPhase` setter above), so a plain instance field like
-        // `_armedSaveRequest` survives that replacement untouched. An armed request is never "replayed"
+        // Clear condition 4/4 for an armed save request: rollback restores `game.state`'s fields through
+        // its decorated accessors (never through the `currentPhase` setter above), so a plain instance field like
+        // `_armedSaveRequest` survives the restore untouched. An armed request is never "replayed"
         // across a rollback -- it is unconditionally cancelled here, since resuming a save request across
         // a rollback would let a later boundary silently stamp a now-wrong `requestedAtActionNumber` onto
         // a document from a timeline the reporter never saw. Placed first, before any step is rebuilt, so

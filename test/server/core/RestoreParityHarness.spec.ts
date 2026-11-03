@@ -434,7 +434,9 @@ describe('Restore parity harness', function() {
                     const originalSerialize = entry.serializer.serialize;
 
                     const container = getManualSnapshotContainer(context.game, context.player1Object.id);
-                    const gameStateBefore = (context.game as unknown as { state: unknown }).state;
+                    // `game.state` is one registered instance that is never replaced, so identity can no longer
+                    // show it untouched; its serialized record can.
+                    const gameStateRecordBefore = JSON.stringify(getStateSerializerFor(context.game.state).serializer.serialize(context.game.state));
                     const before = getParityHarnessStats();
 
                     // `reportError` must be stubbed, and the stub is what models *production*, not a
@@ -492,7 +494,7 @@ describe('Restore parity harness', function() {
                     expect(context.wampa.damage).toBe(2);
                     expect(context.wampa).toBeInZone('groundArena');
                     expect(context.player1Object.handZone.cards).not.toContain(context.wampa);
-                    expect((context.game as unknown as { state: unknown }).state).toBe(gameStateBefore);
+                    expect(JSON.stringify(getStateSerializerFor(context.game.state).serializer.serialize(context.game.state))).toBe(gameStateRecordBefore);
                 });
             });
         }, true);
@@ -506,8 +508,8 @@ describe('Restore parity harness', function() {
      * At HEAD this combination could not exist. The nested recovery call could only return `true` or throw,
      * so `GameStateManager.rollbackToSnapshot` discarding its result was safe by construction. The pre-pass
      * added a third outcome - `return false` - and a discarded `false` there means the caller is handed the
-     * benign "the undo just didn't happen" alert over a graph that has already had `game.state` replaced
-     * and part of its objects deserialized.
+     * benign "the undo just didn't happen" alert over a graph that has already had part of its objects
+     * (`game.state` among them) deserialized.
      *
      * Falsifier: with the `if (!this.rollbackToSnapshot(...)) throw` removed, `severeReports` is empty, the
      * call returns `null` instead of throwing, and the benign alert is emitted twice instead of once.
@@ -570,7 +572,7 @@ describe('Restore parity harness', function() {
 
                     // Two injections, in sequence:
                     //   1. a one-shot `deserialize` throw puts the OUTER frame into its recovery leg, after
-                    //      `game.state` has already been replaced and objects have been deserialized;
+                    //      objects (`game.state` among them) have already been deserialized;
                     //   2. from that instant, `serialize(wampa)` throws, so the RECOVERY frame's own
                     //      pre-pass aborts and returns false - the outcome HEAD could not produce.
                     let deserializeFired = false;

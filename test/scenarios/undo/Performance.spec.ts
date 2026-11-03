@@ -284,8 +284,16 @@ async function runScenarioBenchmarkAsync(contextRef, scenario: IBenchmarkScenari
     // `pre-roadmap-baseline`; `payload/retainedChain` below is unchanged and remains the load-bearing row
     // for the JSON-vs-v8-at-rest fallback decision. See docs/plans/03-codegen-serializers.md, "Benchmark
     // maintenance".
-    const gameStateBytes = v8.serialize(payloadSnapshot.gameState).byteLength;
-    const gameObjectStateBytes = v8.serialize(payloadSnapshot.states).byteLength;
+    //
+    // P4-B: `Game.state` is the registered `GameState` object, so its record now lives inside `states`
+    // rather than in a separate `gameState` payload. The two rows keep their names and still split the
+    // payload the same way: `gameStateBuffer` is the `GameState` record alone, `gameObjectStatesBuffer` is
+    // every other record. Their sum approximates the serialized size of the whole `states` map, which now also holds the `GameState` record.
+    const gameStateUuid = context.game.state.uuid;
+    expect(payloadSnapshot.states[gameStateUuid]).toBeDefined();
+    const { [gameStateUuid]: gameStateRecord, ...otherObjectRecords } = payloadSnapshot.states;
+    const gameStateBytes = v8.serialize(gameStateRecord).byteLength;
+    const gameObjectStateBytes = v8.serialize(otherObjectRecords).byteLength;
     const totalPayloadBytes = gameStateBytes + gameObjectStateBytes;
 
     const payloads: IPayloadMeasurement[] = [
@@ -296,7 +304,7 @@ async function runScenarioBenchmarkAsync(contextRef, scenario: IBenchmarkScenari
             serializedBytes: totalPayloadBytes,
             notes: {
                 bytesPerGameObject: Math.round(totalPayloadBytes / liveGameObjects),
-                measurement: 'v8-equivalent-of-json-record (not stored bytes); sum of the two rows below'
+                measurement: 'v8-equivalent-of-json-record (not stored bytes); sum of the two rows below; P4-B: bytesPerGameObject and the reported liveGameObjects now include the GameState record'
             }
         },
         // P3-PB2 fix (PB2I1-OPR-03): the row names and the schema version deliberately do not move, so the
@@ -310,14 +318,14 @@ async function runScenarioBenchmarkAsync(contextRef, scenario: IBenchmarkScenari
             category: 'payload',
             benchmark: 'gameStateBuffer',
             serializedBytes: gameStateBytes,
-            notes: { measurement: 'v8-equivalent-of-json-record (not stored bytes); P3-PB2 changed this row from Buffer.byteLength of the stored payload' }
+            notes: { measurement: 'v8-equivalent-of-json-record (not stored bytes); P3-PB2 changed this row from Buffer.byteLength of the stored payload; P4-B moved Game.state into states, so this row is the GameState record alone' }
         },
         {
             scenario: scenario.name,
             category: 'payload',
             benchmark: 'gameObjectStatesBuffer',
             serializedBytes: gameObjectStateBytes,
-            notes: { measurement: 'v8-equivalent-of-json-record (not stored bytes); P3-PB2 changed this row from Buffer.byteLength of the stored payload' }
+            notes: { measurement: 'v8-equivalent-of-json-record (not stored bytes); P3-PB2 changed this row from Buffer.byteLength of the stored payload; P4-B moved Game.state into states, so this row is every record except GameState' }
         }
     ];
 

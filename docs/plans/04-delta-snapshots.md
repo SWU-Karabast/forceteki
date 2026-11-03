@@ -83,6 +83,24 @@ Reading their sources, every such write either sets a non-state field (`Damage._
 P4-C's parity spec should keep that assertion in view, and treat any object where it fails as dirty.
 A registration that happened while the tracker was stopped with a window held would likewise be unrecorded (AC5 says a registration while stopped is not recorded); no rollback path does that today, because the registration guard forbids allocation during the restore and the guard-suspended error-reporting paths only read state or build transient objects under `createWithoutRefsUnsafe`, which never enter the registry.
 
+**As landed in P4-B.**
+`Game.state` is the registered class `GameState` (`server/game/core/GameState.ts`), constructed once by the `Game` constructor as `public readonly state` and never replaced, with `alwaysTrackState = true` because nothing holds a ref to it and the snapshot cull would otherwise drop it.
+It is storage only: sixteen public decorated accessors named as the old `IGameState` keys, with no guard, no rule and no manual `recordFieldChange` (the `-morph` hooks in `addWinnerName`, `incrementLastGameEventId` and `clearMovedCards` are not ported, because the decorated setters and the `ValueArray` mutators already record).
+`initialFirstPlayer`, `initiativePlayer`, `actionPhaseActivePlayer` and the Faux Suns `planCounterClaimedByPlayer` and `blastCounterClaimedByPlayer` are `@stateRef`; `allCards` and `movedCards` (card ids) and `winnerNames` are `@stateArray`; the rest are `@statePrimitive`.
+`Game`'s accessors keep their names and their checks, including `assertFauxSuns` on the four claim-counter pairs and `assertNonNegative`; the guard lives on `Game` and never on `GameState`, because the generated deserializer writes every field of every game on each restore and a guarded setter would throw in every non-Faux-Suns rollback.
+`Game`'s five ref setters store `value ?? null`, so a cleared ref is `null` in the record rather than `undefined`.
+`IGameSnapshot.gameState` and `IGameState` are deleted rather than replaced by a uuid: the record is `snapshot.states[game.state.uuid]`, produced and restored by the generated `serializeGameState` and `deserializeGameState` like every other object, and the `encodeStateValue`/`decodeStateValue` calls on `Game.state` are gone.
+The uuid is `GameState_1` (the engine keeps `OngoingEffectEngine_0`), stable across rollbacks because `GameState` registers before the first snapshot, and every object registered after it has a uuid one higher than before this unit; no persisted format carries a uuid.
+Restore now happens inside the ordinary update loop: `GameState` sits at index 1, so it deserializes after every later-registered object, and the pre-pass still serializes every live object, `GameState` included, before anything is written, so an encode failure on `game.state` aborts the rollback with `game.state` untouched.
+Because `Game.state` restores late in that loop, no `afterSetState` override may read a `Game.state` field (the four overrides today, in `AbilityLimit`, `TriggeredAbility`, `Damage` and the effect listener in `OngoingEffectEngine`, do not); `afterSetAllState` and `cleanupOnRemove` run after the loop and may.
+`rollbackToSnapshot` refuses a snapshot whose `states` lacks the `GameState` record, with a `Contract` failure before `_rollbackDepth` is raised, because without the check that snapshot would look like one taken before `GameState` existed and the loop would remove it from the game.
+Restore still copies and never aliases: the generated deserializer assigns a fresh array through each `@stateArray` setter, and the double-rollback spec (`CutoverRestore.spec.ts` PB2-C6) mutates the arrays between two rollbacks and compares the retained record.
+The tracker records `Game.state` writes under `game.state.uuid`, so the "until P4-B" exclusion in the P4-A list above no longer holds.
+`GameState` is now a schema-surface hash input, which closes the gap recorded in `03-codegen-serializers.md` (Phase B step 2): renaming `GameState.planCounterClaimedByPlayer` moved the regenerated `GENERATED_SCHEMA_SURFACE_HASH`, and renaming the old `IGameState` field before this unit had not.
+The hash is `95ebd3141d807f70e15164d3397eb92f589454c7958927cdc8625dd77a7fe037` and the generator now emits 130 targets.
+The payload benchmark rows in `Performance.spec.ts` keep their names with a redefined quantity (the `P3-PB2` precedent): `payload/gameStateBuffer` is the measurement-only `v8.serialize` size of the `GameState` record, `payload/gameObjectStatesBuffer` is that of every other record, `payload/fullSnapshotTotal` is their sum, and `bytesPerGameObject` divides by a live count that now includes `GameState`.
+No benchmark was run in this unit.
+
 ### Chain selection, contiguity, and eviction
 
 Delta windows are **global time slices** — there is one tracker per game — but
