@@ -16,6 +16,7 @@ export default class VigilantDefense extends EventCard {
         registrar.setEventAbility({
             title: `Give a friendly unit +0/+3 and ${TextHelper.Sentinel} for this phase. Heal 3 damage from a friendly unit or base. Defeat an enemy unit with 3 or less remaining HP.`,
             targetResolver: {
+                activePromptTitle: `Give a friendly unit +0/+3 and ${TextHelper.Sentinel} for this phase`,
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({

@@ -25,6 +25,7 @@ describe('Vigilant Defense', function() {
 
                 // Buff: any friendly unit, including the deployed leader, and it is mandatory
                 context.player1.clickCard(context.vigilantDefense);
+                expect(context.player1).toHavePrompt('Give a friendly unit +0/+3 and Sentinel for this phase');
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.battlefieldMarine,
                     context.cartelSpacer,
@@ -37,6 +38,7 @@ describe('Vigilant Defense', function() {
                 expect(context.battlefieldMarine.hasSomeKeyword('sentinel')).toBeTrue();
 
                 // Heal: friendly units and the friendly base only, and it is mandatory
+                expect(context.player1).toHavePrompt('Heal 3 damage from a friendly unit or base');
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.battlefieldMarine,
                     context.cartelSpacer,
@@ -49,6 +51,7 @@ describe('Vigilant Defense', function() {
 
                 // Defeat: only enemy units with 3 or less remaining HP
                 // (Wampa has 3, TIE/ln has 1, Consular Security Force has 4, the undamaged Grand Inquisitor has more)
+                expect(context.player1).toHavePrompt('Defeat an enemy unit with 3 or less remaining HP');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.tielnFighter]);
                 expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.wampa);
