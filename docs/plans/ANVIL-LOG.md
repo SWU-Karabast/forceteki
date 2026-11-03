@@ -1675,3 +1675,39 @@ No benchmark — that is `P4-G`'s.
 - **Read the open prompt before dispatching input, and require it to have been incomplete.** `UiPrompt.complete()` restores the previous open prompt, and `SelectCardPrompt`, `ResourcePrompt` and `MulliganPrompt` can remain the open prompt after completing themselves before `super.continue()`.
 - **A hook on `UiPrompt.complete()` cannot stand in for "the player decided"**: `SelectCardPrompt.continue()` completes with no input when `hideIfNoLegalTargets` applies.
 - **Harness fixtures run the real Setup phase, whose starting draws reach the reveal funnel.** A spec about window-scoped reveal state therefore sees pre-window records even without an explicit action-phase draw; the plan's "exactly one spec fails" prediction for removing the window clear missed this, and three more specs correctly failed.
+
+## `P4-A` — Delta tracker + recording hooks (`e2284f003`)
+
+Shipped the tracker and every recording hook that `P4-B` through `P4-F` build on; nothing consumes it yet, snapshots stay full and the restore path is unchanged.
+What landed and the window rules are in `IMPLEMENTATION-ORDER.md`'s `P4-A` "Actually delivered" paragraph and `04-delta-snapshots.md`'s "As landed in P4-A" paragraph.
+
+### Decisions made at the gates
+
+1. **Capture is a per-window mode, `CaptureOldValues` by default** (maintainer's choice). Always-on capture would have biased `P4-D`'s memoization measurement with a cost memoization does not need, and a note-only default would have left capture without whole-suite evidence until `P4-E`.
+2. **A rollback that restored nothing resumes the window, and window-created or unregistered objects are not recorded** (maintainer's choice). Emptying the window on a failed rollback, as `-morph` does, would let memoization reuse stale records for objects changed earlier in the same action.
+3. **The benchmark harness's two timed raw restores run untracked** (planner's decision, shown at the gate), so no headline row times tracker work production does not do.
+
+### Verification
+
+| Check | Result |
+|---|---|
+| `npm run lint` | clean |
+| `npm run validate-specs` | only the pre-existing `Undo.spec.ts` violation (baseline identical) |
+| `npm run test-parallel` | 10188 executed, 0 failures, 85 pending |
+| `npm run test-parallel-undo` | 9274 executed, 0 failures, 91 pending |
+| generated serializer body and `GENERATED_SCHEMA_SURFACE_HASH` | unchanged from baseline |
+| seven mutation controls | each failed its target spec; product restored byte-identical |
+
+No benchmark — that is `P4-G`'s.
+
+### Residuals, disclosed at the gate
+
+1. **Hot-path cost is estimated, not measured**; writes to window-created or unregistered objects repeat the lookup on every write because there is no negative cache. `P4-G` measures it.
+2. **Post-restore hooks (`afterSetState`, `afterSetAllState`) run untracked** and were shown to be a net no-op on one board through a Manual rollback; `P4-C`'s parity spec owns the wider check.
+3. **The `CostPaymentRecovery.spec.ts` tracker case runs only in `test-parallel`**, because that file's `undoIntegration` skips it in undo-replay mode.
+
+### Notes for the next agent
+
+- **`buildGameStateForSnapshot()` right after a rollback, compared with the restored snapshot's `states`, is a cheap parity oracle** that `P4-C` can reuse.
+- **A spec that runs under `ENABLE_UNDO_ALL_TESTS` executes its body twice in one Jasmine spec**, so a second `spyOn` of the same method throws; patch shared methods by hand and restore them in a `finally`.
+- **The generator's header hash covers every server file containing a decorator token**, so a whole-file hash of `GeneratedStateSerializers.ts` is not a valid "no serializer change" check; compare the body after `generation-cache-end */` and the schema-surface hash instead.

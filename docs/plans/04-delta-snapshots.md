@@ -74,7 +74,7 @@ The benchmark harness (`test/scenarios/undo/Performance.spec.ts`) runs its two t
 No benchmark scenario, row name or iteration count changed, so the rows stay comparable, but what they include moved.
 Every field write now runs the tracker hook, which on a stopped tracker is two property loads, two calls and a boolean test, so the three restore legs (`full/rollbackToSnapshot`, `manager/rollbackTo(Manual)` and the restore inside `sustained/snapshotAndUndoCycle`) gain that cost per restored field.
 Populated `@stateMap` and `@stateSet` values now rebuild through a JavaScript loop rather than the native `Map` and `Set` constructors, which also shifts those restore legs.
-The write-path rows (`manager/moveToNextTimepoint(Action)`, `full/createSnapshotForCurrentTimepoint`) gain the O(1) `startTracking` or `checkpoint` call, which allocates one window with its `Map` and `Set` plus one anchor object.
+The write-path rows (`manager/moveToNextTimepoint(Action)`, `full/createSnapshotForCurrentTimepoint`, and the snapshot step inside `sustained/snapshotAndUndoCycle`) gain the O(1) `startTracking` or `checkpoint` call, which allocates one window with its `Map` and `Set` plus one anchor object.
 Each rollback-timed row (`manager/rollbackTo(Manual)`, and `full/rollbackToSnapshot` and `sustained/snapshotAndUndoCycle` through the spec-local helper inside their timed restore) gains the stop and restart pair, which allocates the same window, `Map`, `Set` and anchor.
 The mutations timed inside `sustained/snapshotAndUndoCycle` gain their hook and capture cost.
 These are what production now pays for the same operations, so a change in any of these rows against `pre-roadmap-baseline` has these causes available before a later unit is blamed.
