@@ -1,0 +1,51 @@
+{
+    "name": "@swupgn/format",
+    "version": "0.1.0",
+    "description": "Platform-neutral SDK and specification for the SWU-PGN game-record format",
+    "license": "MIT",
+    "main": "dist/cjs/index.js",
+    "types": "dist/cjs/index.d.ts",
+    "typesVersions": {
+        "*": {
+            "writer": ["dist/cjs/writer.d.ts"],
+            "validate": ["dist/cjs/validate.d.ts"]
+        }
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/cjs/index.d.ts",
+            "import": "./dist/esm/index.js",
+            "require": "./dist/cjs/index.js"
+        },
+        "./writer": {
+            "types": "./dist/cjs/writer.d.ts",
+            "import": "./dist/esm/writer.js",
+            "require": "./dist/cjs/writer.js"
+        },
+        "./validate": {
+            "types": "./dist/cjs/validate.d.ts",
+            "import": "./dist/esm/validate.js",
+            "require": "./dist/cjs/validate.js"
+        },
+        "./package.json": "./package.json"
+    },
+    "files": [
+        "dist",
+        "schema",
+        "registry",
+        "vectors",
+        "SPEC.md",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE"
+    ],
+    "sideEffects": false,
+    "scripts": {
+        "build": "node scripts/build.mjs",
+        "test": "npm run build && tsc -p tsconfig.test.json && jasmine --config=jasmine.json",
+        "check": "node -e \"process.exit(0)\""
+    },
+    "dependencies": {
+        "ajv": "^8.17.1"
+    }
+}

@@ -12,7 +12,7 @@ import noEventGeneratedTokens from './eslint-rules/no-event-generated-tokens.mjs
 
 export default tseslint.config(
     {
-        ignores: ["build/**", "legacy_jigoku/**", "node_modules/**"],
+        ignores: ["build/**", "legacy_jigoku/**", "node_modules/**", "swupgn/dist/**", "swupgn/build-test/**"],
     },
     {
         files: ["**/*.js", "**/*.ts"],
