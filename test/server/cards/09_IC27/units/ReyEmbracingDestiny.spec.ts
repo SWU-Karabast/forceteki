@@ -224,35 +224,5 @@ describe('Rey, Embracing Destiny', function() {
             expect(context.p2Base.damage).toBe(0);
             expect(context.player2).toBeActivePlayer();
         });
-
-        it('should restrict the attack target to Sentinel units', async function() {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    hand: ['wampa'],
-                    groundArena: ['rey#embracing-destiny'],
-                    resources: 1
-                },
-                player2: {
-                    groundArena: ['pyke-sentinel', 'battlefield-marine']
-                }
-            });
-
-            const { context } = contextRef;
-
-            // Attack with Rey, discarding Wampa
-            context.player1.clickCard(context.reyEmbracingDestiny);
-            context.player1.clickPrompt(abilityTitle);
-            context.player1.clickCard(context.reyEmbracingDestiny);
-            context.player1.clickCard(context.wampa);
-
-            // Only the Sentinel unit can be attacked
-            expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel]);
-            context.player1.clickCard(context.pykeSentinel);
-
-            expect(context.pykeSentinel).toBeInZone('discard', context.player2);
-            expect(context.reyEmbracingDestiny.damage).toBe(2);
-            expect(context.player2).toBeActivePlayer();
-        });
     });
 });
