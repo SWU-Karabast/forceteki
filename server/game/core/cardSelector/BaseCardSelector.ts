@@ -276,7 +276,7 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
         return false;
     }
 
-    public wouldExceedLimit(selectedCards: Card[], card: Card) {
+    public wouldExceedLimit(selectedCards: Card[], card: Card, context: TContext) {
         return false;
     }
 
