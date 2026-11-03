@@ -23,7 +23,7 @@ export default class BansheeScreamMachine extends NonLeaderUnitCard {
                         useDisplayPrompt: true,
                         promptedPlayer: RelativePlayer.Opponent
                     }),
-                    AbilityHelper.immediateEffects.moveToTopOfDeck({})
+                    AbilityHelper.immediateEffects.moveToTopOfDeck()
                 ])
             })
         });
