@@ -71,8 +71,7 @@ function seatOrFail(seatOf: SeatOf, player: Player): Seat {
 }
 
 function projectEffect(effect: OngoingEffect, source: Card, key: string, seatOf: SeatOf, state: SwuPgnWriterState, cardEntityId: CardEntityId): Entity {
-    const frozen = state.audienceOf(key);
-    const to: Audience = frozen.length === 2 ? 'all' : frozen;
+    const to: Audience = state.isKnownToAll(key) ? 'all' : state.audienceOf(key);
 
     const a: Attrs = { kind: 'effect' };
     const src = cardEntityId(source);

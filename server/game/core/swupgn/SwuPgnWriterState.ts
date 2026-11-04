@@ -18,12 +18,18 @@ export interface ISwuPgnLook {
     readonly seenAtSeq: number;
 }
 
+/** The audience bit for `'all'`; the seat bits are the seat numbers. */
+const ALL_BIT = 4;
+
 @registerState()
 export class SwuPgnWriterState extends GameObjectBase {
     @stateValue() private accessor entityIds = new Map<string, number>();
     @stateValue() private accessor generations = new Map<string, number>();
 
-    /** Each key's seats as bits (1: seat 1, 2: seat 2): a number, not an array, so a snapshot serializes less. */
+    /**
+     * Each key's audience as bits (1: seat 1, 2: seat 2, 4: everyone): a number, not an array, so a snapshot
+     * serializes less. Both seat bits without the `all` bit is the list `[1,2]`, which a public file does not hold (SPEC §10.2).
+     */
     @stateValue() private accessor audiences = new Map<string, number>();
     @stateValue() private accessor looks = new Map<string, ISwuPgnLook>();
     @statePrimitive() private accessor nextId = 1;
@@ -144,11 +150,20 @@ export class SwuPgnWriterState extends GameObjectBase {
         return seats;
     }
 
+    /** Whether the key's audience is `'all'`: shown to everyone, not only to both seats. */
+    public isKnownToAll(key: string): boolean {
+        return ((this.audiences.get(key) ?? 0) & ALL_BIT) !== 0;
+    }
+
     /** Union only: an audience never narrows. */
     public widen(key: string, seats: Seat[] | 'all'): void {
         let bits = this.audiences.get(key) ?? 0;
-        for (const seat of seats === 'all' ? [1, 2] as Seat[] : seats) {
-            bits |= seat;
+        if (seats === 'all') {
+            bits |= 1 | 2 | ALL_BIT;
+        } else {
+            for (const seat of seats) {
+                bits |= seat;
+            }
         }
         this.audiences.set(key, bits);
     }

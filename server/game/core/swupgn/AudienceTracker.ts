@@ -60,24 +60,29 @@ export class AudienceTracker {
      * The `to` of the card's entity in `zone`:
      * - a public zone gives `'all'`, and the card stays known to all wherever it goes next (SPEC §10.2),
      * - a deck gives the seats that saw it,
-     * - a hand or the resource row gives the owner and every seat it was shown to.
+     * - a hand or the resource row gives the owner and every seat it was shown to,
+     * - a card ever shown to everyone (a reveal, or a public zone) stays `'all'`.
      *
-     * A list holding both seats is `'all'`. `owner` is the owner's seat when the caller has it.
+     * A list holding both seats stays the list `[1,2]`: the two players know the card, a spectator does not, so a
+     * public file does not hold it (SPEC §10.2). `owner` is the owner's seat when the caller has it.
      */
     public audienceFor(card: Card, zone: string, owner: Seat | null = null): Audience {
         const key = this.state.cardKey(card);
         if (publicZones.has(zone)) {
-            if (this.state.audienceOf(key).length < 2) {
+            if (!this.state.isKnownToAll(key)) {
                 this.state.widen(key, 'all');
             }
             return 'all';
         }
 
+        if (this.state.isKnownToAll(key)) {
+            return 'all';
+        }
         const seats = new Set<Seat>(this.state.audienceOf(key));
         if (zone !== 'deck') {
             seats.add(owner ?? this.seatOf(card.owner));
         }
-        return seats.size === 2 ? 'all' : [...seats];
+        return [...seats].sort((a, b) => a - b);
     }
 
     /**
@@ -88,7 +93,7 @@ export class AudienceTracker {
         const zone = swuPgnZoneOf(zoneName);
         if (zone !== null && publicZones.has(zone)) {
             const key = this.state.cardKey(card);
-            if (this.state.audienceOf(key).length < 2) {
+            if (!this.state.isKnownToAll(key)) {
                 this.state.widen(key, 'all');
             }
         }

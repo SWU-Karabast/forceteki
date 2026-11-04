@@ -93,7 +93,7 @@ describe('AudienceTracker', function() {
                 });
             });
 
-            it('widens only the looker, and an audience holding both seats is all', function () {
+            it('widens only the looker: the owner and the looker know the cards, which a public file does not hold (SPEC 10.2)', function () {
                 const { context } = contextRef;
                 startTracking();
 
@@ -104,12 +104,26 @@ describe('AudienceTracker', function() {
                     expect(state.audienceOf(state.cardKey(card))).withContext(card.internalName)
                         .toEqual([1]);
                     expect(entityOf(card).to).withContext(card.internalName)
-                        .toBe('all');
+                        .toEqual([1, 2]);
                 }
 
                 // the looker's own hand is not shown to the opponent
                 expect(state.audienceOf(state.cardKey(context.battlefieldMarine))).toEqual([]);
                 expect(entityOf(context.battlefieldMarine).to).toEqual([1]);
+            });
+
+            it('makes a looked-at card known to all once it passes through a public zone', function () {
+                const { context } = contextRef;
+                startTracking();
+
+                context.player1.clickCard(context.viperProbeDroid);
+                context.player1.clickDone();
+                context.player2.moveCard(context.wampa, 'discard');
+                expect(entityOf(context.wampa).to).toBe('all');
+                context.player2.moveCard(context.wampa, 'hand');
+
+                expect(entityOf(context.wampa).to).toBe('all');
+                expect(entityOf(context.atst).to).toEqual([1, 2]);
             });
         });
 
