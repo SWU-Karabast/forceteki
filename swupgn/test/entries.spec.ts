@@ -1,4 +1,5 @@
 import { spawnSync } from 'child_process';
+import * as fs from 'fs';
 import * as path from 'path';
 
 const packageDir = path.resolve(__dirname, '..', '..');
@@ -38,5 +39,32 @@ describe('@swupgn/format entries', function () {
         const script = 'require(\'@swupgn/format/writer\'); require(\'@swupgn/format/validate\');';
         const result = runNode(['-e', script]);
         expect(result.status).toBe(0, result.stderr);
+    });
+
+    it('the schema, registries and vectors resolve as package files', function () {
+        const script = [
+            'require.resolve(\'@swupgn/format/schema/swupgn.schema.json\');',
+            'require.resolve(\'@swupgn/format/registry/attributes.json\');',
+            'require.resolve(\'@swupgn/format/vectors/manifest.json\');',
+            'require(\'@swupgn/format/vectors/manifest.json\');',
+        ].join(' ');
+        const result = runNode(['-e', script]);
+        expect(result.status).toBe(0, result.stderr);
+    });
+
+    it('ships no source maps', function () {
+        const maps: string[] = [];
+        const walk = (dir: string): void => {
+            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+                const p = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                    walk(p);
+                } else if (entry.name.endsWith('.map')) {
+                    maps.push(p);
+                }
+            }
+        };
+        walk(path.join(packageDir, 'dist'));
+        expect(maps).toEqual([]);
     });
 });

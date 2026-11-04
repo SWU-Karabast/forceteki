@@ -27,6 +27,9 @@
             "import": "./dist/esm/validate.js",
             "require": "./dist/cjs/validate.js"
         },
+        "./schema/*": "./schema/*",
+        "./registry/*": "./registry/*",
+        "./vectors/*": "./vectors/*",
         "./package.json": "./package.json"
     },
     "files": [
