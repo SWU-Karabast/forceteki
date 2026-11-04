@@ -22,6 +22,7 @@ export default class GeneralGrievousFourArmedMenace extends NonLeaderUnitCard {
             },
             immediateEffect: abilityHelper.immediateEffects.chooseModalEffects((context) => ({
                 amountOfChoices: 1,
+                choiceLimit: abilityHelper.limit.perChoicePerPhase(1),
                 choices: {
                     [`Give an Experience token to ${context.source.title}`]: abilityHelper.immediateEffects.giveExperience(),
                     ['Heal 3 damage from your base']: abilityHelper.immediateEffects.heal({
