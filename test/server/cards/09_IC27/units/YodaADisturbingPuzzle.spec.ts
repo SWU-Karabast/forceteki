@@ -1,5 +1,15 @@
 describe('Yoda, A Disturbing Puzzle', function() {
     integration(function(contextRef) {
+        const preventionTitle = 'Prevent all combat damage that would be dealt to and dealt by this unit';
+
+        // The damage dealt to and the damage dealt by the chosen unit are two simultaneous replacements of the
+        // same gained ability, so its controller is asked to resolve the grouped triggers
+        function resolveBothPreventions(player) {
+            expect(player).toHavePrompt(`Resolve "${preventionTitle}"`);
+            expect(player).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
+            player.clickPrompt('Resolve all (2)');
+        }
+
         describe('Yoda\'s On Attack ability', function() {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({
@@ -15,16 +25,6 @@ describe('Yoda, A Disturbing Puzzle', function() {
                     }
                 });
             });
-
-            const preventionTitle = 'Prevent all combat damage that would be dealt to and dealt by this unit';
-
-            // The damage dealt to and the damage dealt by the chosen unit are two simultaneous replacements of the
-            // same gained ability, so its controller is asked to resolve the grouped triggers
-            function resolveBothPreventions(player) {
-                expect(player).toHavePrompt(`Resolve "${preventionTitle}"`);
-                expect(player).toHaveExactPromptButtons(['Resolve next', 'Resolve all (2)']);
-                player.clickPrompt('Resolve all (2)');
-            }
 
             it('should prevent all combat damage dealt to and by the defender when it is the chosen unit', function () {
                 const { context } = contextRef;
@@ -158,6 +158,68 @@ describe('Yoda, A Disturbing Puzzle', function() {
                 expect(context.battlefieldMarine).toBeInZone('discard');
                 expect(context.wampa.damage).toBe(3);
                 expect(context.p2Base.damage).toBe(4);
+            });
+        });
+
+        describe('Yoda\'s prevention and ability damage during an attack', function() {
+            it('should not prevent the chosen unit\'s own On Attack ability damage', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['yoda#a-disturbing-puzzle']
+                    },
+                    player2: {
+                        groundArena: ['benthic-two-tubes#the-war-has-just-begun']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.yoda);
+                context.player1.clickCard(context.p2Base);
+                context.player1.clickCard(context.benthicTwoTubes);
+
+                // The chosen unit attacks Yoda and its On Attack ping targets him
+                context.player2.clickCard(context.benthicTwoTubes);
+                context.player2.clickCard(context.yoda);
+                expect(context.player2).toBeAbleToSelectExactly([context.yoda]);
+                context.player2.clickCard(context.yoda);
+                resolveBothPreventions(context.player2);
+
+                // Only the ability damage lands, the combat damage is prevented both ways
+                expect(context.yoda.damage).toBe(1);
+                expect(context.benthicTwoTubes.damage).toBe(0);
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should not prevent another unit\'s On Attack ability damage dealt to the chosen unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['yoda#a-disturbing-puzzle', 'benthic-two-tubes#the-war-has-just-begun']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.yoda);
+                context.player1.clickCard(context.p2Base);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                context.player2.passAction();
+
+                // A different unit attacks the base and its On Attack ping targets the chosen unit
+                context.player1.clickCard(context.benthicTwoTubes);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine.damage).toBe(1);
+                expect(context.p2Base.damage).toBe(6);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });
