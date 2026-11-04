@@ -150,6 +150,11 @@
         "condition": "The Result tag disagrees with the game result."
     },
     {
+        "code": "block-fields",
+        "severity": "error",
+        "condition": "A block of a registered kind lacks a field its contract requires, or carries a field its contract does not list. In a file whose Visibility is not full, a missing src, via, targets or options is not reported."
+    },
+    {
         "code": "writer-errors",
         "severity": "warning",
         "condition": "The writer reported errors while recording."

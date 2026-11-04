@@ -26,9 +26,23 @@ export interface RelationDef {
     meaning: string;
 }
 
+/** The block fields a kind's contract governs. `id` and `kind` are always required; `text` and `parent` always optional. */
+export type BlockField = 'p' | 'src' | 'targets' | 'options' | 'amount' | 'via' | 'group';
+
+/** The fields that hold entity references, which a redactor may drop ([R-09]). */
+export const BLOCK_REFERENCE_FIELDS: readonly BlockField[] = ['src', 'targets', 'options', 'via'];
+
+export interface BlockFieldRule {
+    use: 'required' | 'optional';
+    meaning?: string;
+}
+
 export interface BlockKindDef {
     name: string;
     meaning: string;
+
+    /** The field contract. A field not listed must not appear on a block of this kind. */
+    fields: Partial<Record<BlockField, BlockFieldRule>>;
 }
 
 export interface ErrorCodeDef {
@@ -41,7 +55,7 @@ export interface ErrorCodeDef {
 export const ATTRIBUTES: readonly AttributeDef[] = attributes as readonly AttributeDef[];
 export const ZONES: readonly ZoneDef[] = zones as readonly ZoneDef[];
 export const RELATIONS: readonly RelationDef[] = relations;
-export const BLOCK_KINDS: readonly BlockKindDef[] = blockKinds;
+export const BLOCK_KINDS: readonly BlockKindDef[] = blockKinds as readonly BlockKindDef[];
 export const ERROR_CODES: readonly ErrorCodeDef[] = errorCodes as readonly ErrorCodeDef[];
 
 const ATTRIBUTE_CLASSES: ReadonlyMap<string, 'public' | 'identity'> = new Map(ATTRIBUTES.map((a) => [a.name, a.class]));

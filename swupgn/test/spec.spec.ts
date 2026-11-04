@@ -211,6 +211,24 @@ describe('SPEC.md', function () {
         expect(missing).toEqual([]);
     });
 
+    it('§22.4 renders each block kind\'s field contract', function () {
+        const text = section('22.');
+        expect(text).toContain('| Kind | Meaning | Required | Optional | Fields mean |');
+        expect(text).toMatch(/\| `attack` \| [^|]+ \| `p`, `src`, `targets` \| `via` \|/);
+    });
+
+    it('§11.2 runs step 0 (losing track in a hidden hand) before step 1', function () {
+        const text = section('11.');
+        const stepZero = text.indexOf('- **[R-17]** Step 0,');
+        const stepOne = text.indexOf('- **[R-01]** Step 1,');
+        expect(stepZero).toBeGreaterThan(0);
+        expect(stepZero).toBeLessThan(stepOne);
+    });
+
+    it('§16.2 lists the hidden-hand knowledge loss', function () {
+        expect(section('16.')).toMatch(/Which known card left a hidden hand\.\*\*[^\n]*\[R-17\]/);
+    });
+
     it('the §Example appendix equals vectors/tiny.*', function () {
         pending('Task 4');
     });

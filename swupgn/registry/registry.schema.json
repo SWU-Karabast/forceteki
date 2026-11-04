@@ -57,9 +57,23 @@
                 "type": "object",
                 "properties": {
                     "name": { "type": "string", "minLength": 1 },
-                    "meaning": { "type": "string", "minLength": 1 }
+                    "meaning": { "type": "string", "minLength": 1 },
+                    "fields": {
+                        "description": "The field contract: each block field the kind may carry, and whether it must. A field not listed must not appear. id and kind are always required; text and parent are always optional.",
+                        "type": "object",
+                        "propertyNames": { "enum": ["p", "src", "targets", "options", "amount", "via", "group"] },
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "use": { "type": "string", "enum": ["required", "optional"] },
+                                "meaning": { "type": "string", "minLength": 1 }
+                            },
+                            "required": ["use"],
+                            "additionalProperties": false
+                        }
+                    }
                 },
-                "required": ["name", "meaning"],
+                "required": ["name", "meaning", "fields"],
                 "additionalProperties": false
             }
         },

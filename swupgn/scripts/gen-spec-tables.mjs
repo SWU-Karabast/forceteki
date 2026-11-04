@@ -44,8 +44,13 @@ const generators = {
         load('relations').map((r) => [code(r.name), r.parent, r.meaning])
     ),
     blockKinds: () => table(
-        ['Kind', 'Meaning'],
-        load('blockKinds').map((k) => [code(k.name), k.meaning])
+        ['Kind', 'Meaning', 'Required', 'Optional', 'Fields mean'],
+        load('blockKinds').map((k) => {
+            const fields = Object.entries(k.fields);
+            const named = (use) => fields.filter(([, f]) => f.use === use).map(([name]) => code(name)).join(', ') || '—';
+            const meanings = fields.filter(([, f]) => f.meaning).map(([name, f]) => `${code(name)}: ${f.meaning}`).join(' ') || '—';
+            return [code(k.name), k.meaning, named('required'), named('optional'), meanings];
+        })
     ),
     setCodes: () => table(
         ['Release', 'Code'],
