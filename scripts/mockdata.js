@@ -1202,7 +1202,7 @@ const mockCards = [
         internalName: 'jabba-the-hutt#bounties-left-and-right'
     }),
     buildMockCard({
-        title: 'Enfy\'s Nest',
+        title: 'Enfys Nest',
         subtitle: 'No More!',
         cost: 5,
         power: 4,
