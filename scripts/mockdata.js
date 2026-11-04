@@ -1165,6 +1165,130 @@ const mockCards = [
         arena: 'space',
         internalName: 'the-invisible-hand#confederate-might'
     }),
+    buildMockCard({
+        title: 'Director Krennic',
+        subtitle: 'Architect of Annihilation',
+        cost: 2,
+        power: 0,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['imperial', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 57
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'director-krennic#architect-of-annihilation'
+    }),
+    buildMockCard({
+        title: 'Jabba the Hutt',
+        subtitle: 'Bounties Left and Right',
+        cost: 3,
+        power: 0,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        traits: ['underworld', 'hutt'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 60
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'jabba-the-hutt#bounties-left-and-right'
+    }),
+    buildMockCard({
+        title: 'Enfy\'s Nest',
+        subtitle: 'No More!',
+        cost: 5,
+        power: 4,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'command'],
+        keywords: ['ambush'],
+        traits: ['underworld'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 86
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'enfys-nest#no-more'
+    }),
+    buildMockCard({
+        title: 'Maz Kanata',
+        subtitle: 'It Calls to You',
+        cost: 2,
+        power: 2,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        keywords: ['hidden'],
+        traits: ['underworld'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 89
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'maz-kanata#it-calls-to-you'
+    }),
+    buildMockCard({
+        title: 'Grand Moff Tarkin',
+        subtitle: 'Cracking Down on Lothal',
+        cost: 5,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['imperial', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 23
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'grand-moff-tarkin#cracking-down-on-lothal'
+    }),
+    buildMockCard({
+        title: 'Chimaera',
+        subtitle: 'Grand Admiral\'s Might',
+        cost: 10,
+        power: 8,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        traits: ['imperial', 'vehicle', 'capital ship'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 29
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'chimaera#grand-admirals-might'
+    }),
+    buildMockCard({
+        title: 'Issue a Command',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'command'],
+        traits: ['plan'],
+        types: ['event'],
+        setId: {
+            set: 'IC27',
+            number: 87
+        },
+        unique: false,
+        internalName: 'issue-a-command'
+    }),
     // -------- End Mock Cards --------
 ];
 
@@ -1179,6 +1303,7 @@ const mockReprints = [
     { internalName: 'clan-wren-rescuer', setId: { set: 'IC27', number: 33 } },
     { internalName: 'concord-dawn-interceptors', setId: { set: 'IC27', number: 36 } },
     { internalName: 'moisture-farmer', setId: { set: 'IC27', number: 47 } },
+    { internalName: 'desperate-commando', setId: { set: 'IC27', number: 48 } },
     { internalName: 'disciples-devotion', setId: { set: 'IC27', number: 53 } },
     { internalName: 'betrayed-trust', setId: { set: 'IC27', number: 55 } },
     { internalName: 'exegol-patroller', setId: { set: 'IC27', number: 59 } },
