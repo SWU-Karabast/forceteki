@@ -184,9 +184,9 @@ export class AttackFlow extends BaseStepWithPipeline {
         const choosingPlayer = this.game.getActivePlayer();
 
         this.game.promptWithHandlerMenu(choosingPlayer, {
-            activePromptTitle: `Choose whether the attacker (${this.attack.attacker.title}) or the defender (${target.title}) deals combat damage first`,
+            activePromptTitle: 'Multiple abilities conflict over combat damage timing. Choose which unit deals combat damage first:',
             waitingPromptTitle: 'Waiting for opponent to choose which unit deals combat damage first',
-            choices: ['Attacker deals damage first', 'Defender deals damage first'],
+            choices: [`${this.attack.attacker.title} (attacker)`, `${target.title} (defender)`],
             handlers: [
                 () => onChosen(DefenderDamageTiming.AfterAttacker, choosingPlayer),
                 () => onChosen(DefenderDamageTiming.BeforeAttacker, choosingPlayer)

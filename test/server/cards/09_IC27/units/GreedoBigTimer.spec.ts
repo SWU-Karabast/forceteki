@@ -1,10 +1,9 @@
 describe('Greedo, Big-Timer', function() {
     integration(function(contextRef) {
-        const damageOrderPrompt = (attackerTitle: string, defenderTitle: string) =>
-            `Choose whether the attacker (${attackerTitle}) or the defender (${defenderTitle}) deals combat damage first`;
-        const attackerFirstButton = 'Attacker deals damage first';
-        const defenderFirstButton = 'Defender deals damage first';
-        const damageOrderButtons = [attackerFirstButton, defenderFirstButton];
+        const damageOrderPrompt = 'Multiple abilities conflict over combat damage timing. Choose which unit deals combat damage first:';
+        const attackerButton = (title: string) => `${title} (attacker)`;
+        const defenderButton = (title: string) => `${title} (defender)`;
+        const damageOrderButtons = (attackerTitle: string, defenderTitle: string) => [attackerButton(attackerTitle), defenderButton(defenderTitle)];
         const waitingForDamageOrderPrompt = 'Waiting for opponent to choose which unit deals combat damage first';
 
         describe('Greedo\'s constant ability', function() {
@@ -104,10 +103,10 @@ describe('Greedo, Big-Timer', function() {
                 context.player1.clickCard(context.wampa);
 
                 // Player 1 is prompted to choose the damage order
-                expect(context.player1).toHavePrompt(damageOrderPrompt('Greedo', 'Wampa'));
-                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons);
+                expect(context.player1).toHavePrompt(damageOrderPrompt);
+                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons('Greedo', 'Wampa'));
 
-                context.player1.clickPrompt(attackerFirstButton);
+                context.player1.clickPrompt(attackerButton('Greedo'));
 
                 // Greedo deals 6 damage first (+1/+0 from Shoot First), defeating Wampa
                 expect(context.wampa).toBeInZone('discard');
@@ -125,10 +124,10 @@ describe('Greedo, Big-Timer', function() {
                 context.player1.clickCard(context.wampa);
 
                 // Player 1 is prompted to choose the damage order
-                expect(context.player1).toHavePrompt(damageOrderPrompt('Greedo', 'Wampa'));
-                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons);
+                expect(context.player1).toHavePrompt(damageOrderPrompt);
+                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons('Greedo', 'Wampa'));
 
-                context.player1.clickPrompt(defenderFirstButton);
+                context.player1.clickPrompt(defenderButton('Wampa'));
 
                 // Wampa deals 4 damage first, defeating Greedo before he can deal damage
                 expect(context.p1Greedo).toBeInZone('discard');
@@ -163,11 +162,11 @@ describe('Greedo, Big-Timer', function() {
                 context.player1.clickCard(context.p2Greedo);
 
                 // Player 1 is prompted to choose the damage order
-                expect(context.player1).toHavePrompt(damageOrderPrompt('Greedo', 'Greedo'));
-                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons);
+                expect(context.player1).toHavePrompt(damageOrderPrompt);
+                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons('Greedo', 'Greedo'));
                 expect(context.player2).toHavePrompt(waitingForDamageOrderPrompt);
 
-                context.player1.clickPrompt(attackerFirstButton);
+                context.player1.clickPrompt(attackerButton('Greedo'));
 
                 // Assert the attacking Greedo deals damage first
                 expect(context.p2Greedo).toBeInZone('discard');
@@ -184,10 +183,10 @@ describe('Greedo, Big-Timer', function() {
                 context.player1.clickCard(context.p2Greedo);
 
                 // Player 1 is prompted to choose the damage order
-                expect(context.player1).toHavePrompt(damageOrderPrompt('Greedo', 'Greedo'));
-                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons);
+                expect(context.player1).toHavePrompt(damageOrderPrompt);
+                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons('Greedo', 'Greedo'));
 
-                context.player1.clickPrompt(defenderFirstButton);
+                context.player1.clickPrompt(defenderButton('Greedo'));
 
                 // Assert the defending Greedo deals damage first
                 expect(context.p1Greedo).toBeInZone('discard');
@@ -205,11 +204,11 @@ describe('Greedo, Big-Timer', function() {
                 context.player2.clickCard(context.p1Greedo);
 
                 // Player 2 is prompted to choose the damage order
-                expect(context.player2).toHavePrompt(damageOrderPrompt('Greedo', 'Greedo'));
-                expect(context.player2).toHaveExactPromptButtons(damageOrderButtons);
+                expect(context.player2).toHavePrompt(damageOrderPrompt);
+                expect(context.player2).toHaveExactPromptButtons(damageOrderButtons('Greedo', 'Greedo'));
                 expect(context.player1).toHavePrompt(waitingForDamageOrderPrompt);
 
-                context.player2.clickPrompt(attackerFirstButton);
+                context.player2.clickPrompt(attackerButton('Greedo'));
 
                 // Assert player 2's attacking Greedo deals damage first
                 expect(context.p1Greedo).toBeInZone('discard');
@@ -221,6 +220,7 @@ describe('Greedo, Big-Timer', function() {
 
         describe('When The Stranger ambushes Greedo', function() {
             const strangerPrompt = 'Choose how damage is dealt for this attack';
+            const strangerDefenderFirstButton = 'Defender deals damage first';
             const dealDamageNormallyButton = 'Deal damage normally';
 
             beforeEach(async function() {
@@ -246,14 +246,14 @@ describe('Greedo, Big-Timer', function() {
 
                 // Player 1 chooses how The Stranger's damage is dealt
                 expect(context.player1).toHavePrompt(strangerPrompt);
-                context.player1.clickPrompt(defenderFirstButton);
+                context.player1.clickPrompt(strangerDefenderFirstButton);
 
                 // Conflicting effects prompt player 1 to choose the damage order
-                expect(context.player1).toHavePrompt(damageOrderPrompt('The Stranger', 'Greedo'));
-                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons);
+                expect(context.player1).toHavePrompt(damageOrderPrompt);
+                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons('The Stranger', 'Greedo'));
                 expect(context.player2).toHavePrompt(waitingForDamageOrderPrompt);
 
-                context.player1.clickPrompt(defenderFirstButton);
+                context.player1.clickPrompt(defenderButton('Greedo'));
 
                 // Greedo deals 5 damage first, giving The Stranger 6 power from Grit to defeat Greedo
                 expect(context.theStranger.damage).toBe(5);
@@ -273,13 +273,13 @@ describe('Greedo, Big-Timer', function() {
 
                 // Player 1 chooses how The Stranger's damage is dealt
                 expect(context.player1).toHavePrompt(strangerPrompt);
-                context.player1.clickPrompt(defenderFirstButton);
+                context.player1.clickPrompt(strangerDefenderFirstButton);
 
                 // Conflicting effects prompt player 1 to choose the damage order
-                expect(context.player1).toHavePrompt(damageOrderPrompt('The Stranger', 'Greedo'));
-                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons);
+                expect(context.player1).toHavePrompt(damageOrderPrompt);
+                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons('The Stranger', 'Greedo'));
 
-                context.player1.clickPrompt(attackerFirstButton);
+                context.player1.clickPrompt(attackerButton('The Stranger'));
 
                 // The Stranger deals 1 damage first, then Greedo deals 5 damage back
                 expect(context.greedo.damage).toBe(1);
@@ -364,10 +364,10 @@ describe('Greedo, Big-Timer', function() {
                 context.player1.clickDone();
 
                 // Player 1 is prompted to choose the damage order for the enemy Greedo only
-                expect(context.player1).toHavePrompt(damageOrderPrompt('Greedo', 'Greedo'));
-                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons);
+                expect(context.player1).toHavePrompt(damageOrderPrompt);
+                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons('Greedo', 'Greedo'));
 
-                context.player1.clickPrompt(attackerFirstButton);
+                context.player1.clickPrompt(attackerButton('Greedo'));
 
                 // Battlefield Marine deals 3 damage first, then Greedo defeats both defenders before the enemy Greedo deals damage
                 expect(context.p2Greedo).toBeInZone('discard');
@@ -390,10 +390,10 @@ describe('Greedo, Big-Timer', function() {
                 context.player1.clickDone();
 
                 // Player 1 is prompted to choose the damage order for the enemy Greedo only
-                expect(context.player1).toHavePrompt(damageOrderPrompt('Greedo', 'Greedo'));
-                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons);
+                expect(context.player1).toHavePrompt(damageOrderPrompt);
+                expect(context.player1).toHaveExactPromptButtons(damageOrderButtons('Greedo', 'Greedo'));
 
-                context.player1.clickPrompt(defenderFirstButton);
+                context.player1.clickPrompt(defenderButton('Greedo'));
 
                 // Both defenders deal 8 damage together first, defeating Greedo before he can deal damage
                 expect(context.p1Greedo).toBeInZone('discard');
