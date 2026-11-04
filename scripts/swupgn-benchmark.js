@@ -1,19 +1,28 @@
 /**
- * CPU benchmark of the SWU-PGN writer modes (gate G2: `flush` must cost <= 3% over `off` on workload A).
+ * CPU benchmark of the SWU-PGN writer modes (gate G2: `flush` must cost <= 3% over `off` on workload A-record).
  *
  * Runs each workload in each writer mode as its own jasmine process (`SWUPGN_WRITER=<mode>`), alternating the modes
  * so drift in the machine spreads across all of them, and prints mean +/- standard deviation (and min..max) per mode,
  * with the overhead against `off`, for two clocks: the process wall time and jasmine's own "Finished in" time, which
  * leaves out the fixed cost of loading the card library. It then runs each recording mode once more with
- * `SWUPGN_WRITER_STATS=1` to print the writer's steps, flushes and projections (that run is not timed).
+ * `SWUPGN_WRITER_STATS=1` to print the writer's steps, flushes and projections (that run is not timed), and the
+ * per-decision cost: the mode's mean spec time over `off`, divided by its steps and by its projections.
  *
- *   workload A  build/test/server/swupgn-writer/ScriptedGames.spec.js: eight whole scripted games (long boards)
- *   workload B  build/test/server/cards/{01_SOR,07_LAW,08_ASH}/** /*.spec.js: card specs (short boards)
+ *   workload A      A-record: build/test/server/swupgn-writer/ScriptedGames.spec.js, eight whole scripted games (long
+ *                   boards), recording only: no file is written (`SWUPGN_BENCHMARK=record`)
+ *   workload Afile  A-file: the same games, each finished game's four views written (`SWUPGN_BENCHMARK=file`); the spec
+ *                   times `fileFor` itself, reported as the end-of-game file cost per game
+ *   workload B      build/test/server/cards/{01_SOR,07_LAW,08_ASH}/** /*.spec.js: card specs (short boards; they
+ *                   write no file)
+ * Every run warms the engine version first (as the server does at startup), and `@swupgn/format` and its validator
+ * are loaded by static imports in every mode, `off` included, so module loading costs the same in each.
  *
- * Usage: npm run benchmark-swupgn [-- --alternations=5 --workloads=A,B --profile]
- *   --alternations=N  timed runs of each mode per workload (default 5)
- *   --workloads=A,B   which workloads to time (default both; `none` with --profile only profiles)
- *   --profile         also take one `node --cpu-prof` profile of `flush` on workload A and print its top self-time frames
+ * Usage: npm run benchmark-swupgn [-- --alternations=5 --workloads=A,Afile,B --profile]
+ *   --alternations=N      timed runs of each mode per workload (default 5)
+ *   --workloads=A,Afile,B which workloads to time (default all three; `none` with --profile only profiles)
+ *   --profile             also take one `node --cpu-prof` profile of `flush` on A-record and print its top frames
+ *
+ * A run with failures, or whose "Finished in" time cannot be read, stops the benchmark (non-zero exit).
  *
  * Needs a build: `rm -rf build && npm run build`; the test build is made here when it is missing.
  */
@@ -31,7 +40,7 @@ function argValue(name, fallback) {
 }
 
 const alternations = Number(argValue('alternations', '5'));
-const workloadNames = argValue('workloads', 'A,B').split(',')
+const workloadNames = argValue('workloads', 'A,Afile,B').split(',')
     .filter((name) => name !== '' && name !== 'none');
 const profile = process.argv.includes('--profile');
 
@@ -47,9 +56,11 @@ function specsUnder(dir) {
         .sort();
 }
 
+const scriptedGames = () => ['build/test/server/swupgn-writer/ScriptedGames.spec.js'];
 const workloads = {
-    A: { label: 'A: scripted games', files: () => ['build/test/server/swupgn-writer/ScriptedGames.spec.js'] },
-    B: { label: 'B: card specs 01_SOR, 07_LAW, 08_ASH', files: () => ['01_SOR', '07_LAW', '08_ASH'].flatMap((set) => specsUnder(`build/test/server/cards/${set}`)) }
+    A: { label: 'A-record: scripted games, recording only', benchmark: 'record', files: scriptedGames },
+    Afile: { label: 'A-file: scripted games, four views written per game', benchmark: 'file', files: scriptedGames },
+    B: { label: 'B: card specs 01_SOR, 07_LAW, 08_ASH', benchmark: 'record', files: () => ['01_SOR', '07_LAW', '08_ASH'].flatMap((set) => specsUnder(`build/test/server/cards/${set}`)) }
 };
 
 function ensureTestBuild() {
@@ -59,9 +70,13 @@ function ensureTestBuild() {
     }
 }
 
-/** One jasmine process over `files` in `mode`. Returns its wall and spec times (ms), its failures, and its stdout. */
-function runJasmine(mode, files, { stats = false, nodeArgs = [] } = {}) {
-    const env = { ...process.env, NODE_ENV: 'test', SWUPGN_WRITER: mode, SWUPGN_BENCHMARK: '1' };
+/**
+ * One jasmine process over the workload's files in `mode`. Returns its wall and spec times (ms) and its stdout.
+ * Throws when the run failed or its spec time cannot be read, so no mean is ever taken over a broken run.
+ */
+function runJasmine(mode, workload, { stats = false, nodeArgs = [] } = {}) {
+    const files = workload.files();
+    const env = { ...process.env, NODE_ENV: 'test', SWUPGN_WRITER: mode, SWUPGN_BENCHMARK: workload.benchmark };
     if (stats) {
         env.SWUPGN_WRITER_STATS = '1';
     } else {
@@ -77,14 +92,12 @@ function runJasmine(mode, files, { stats = false, nodeArgs = [] } = {}) {
     const out = result.stdout ?? '';
     const finished = out.match(/Finished in ([\d.]+) seconds?/);
     const summary = out.match(/(\d+) specs?, (\d+) failures?/);
-    return {
-        wallMs,
-        specMs: finished ? Number(finished[1]) * 1000 : NaN,
-        specs: summary ? Number(summary[1]) : NaN,
-        failures: summary ? Number(summary[2]) : NaN,
-        status: result.status,
-        out
-    };
+    if (!finished || !summary || Number(summary[2]) > 0 || result.status !== 0) {
+        console.error(out.slice(-4000));
+        console.error(result.stderr?.slice(-2000));
+        throw new Error(`${workload.label} in mode ${mode}: ${summary ? summary[0] : 'no spec summary'}, exit ${result.status}`);
+    }
+    return { wallMs, specMs: Number(finished[1]) * 1000, out };
 }
 
 function summarize(values) {
@@ -101,6 +114,12 @@ function fmtMs(ms) {
 function pct(value, base) {
     const p = (value / base - 1) * 100;
     return `${p >= 0 ? '+' : ''}${p.toFixed(1)}%`;
+}
+
+/** The JSON of the `<tag> {json}` line a run printed, or null. */
+function taggedLine(out, tag) {
+    const line = out.split('\n').find((l) => l.startsWith(`${tag} `));
+    return line ? JSON.parse(line.slice(tag.length + 1)) : null;
 }
 
 function printTable(label, timings, clock) {
@@ -120,34 +139,49 @@ function benchmark(name) {
     console.log(`\n=== Workload ${workload.label} (${files.length} spec file${files.length === 1 ? '' : 's'}, ${alternations} alternations) ===`);
 
     // one untimed warm-up, so the first timed run does not pay for a cold file cache
-    runJasmine('off', files);
+    runJasmine('off', workload);
 
     const timings = Object.fromEntries(modes.map((mode) => [mode, []]));
     for (let i = 0; i < alternations; i++) {
         // rotate the starting mode each alternation, so no mode always runs first
         const order = modes.map((_, j) => modes[(i + j) % modes.length]);
         for (const mode of order) {
-            const run = runJasmine(mode, files);
+            const run = runJasmine(mode, workload);
             timings[mode].push(run);
-            const flag = run.failures > 0 || run.status !== 0 ? `  (${run.failures} failures, exit ${run.status})` : '';
-            console.log(`  run ${i + 1} ${mode.padEnd(9)} wall ${fmtMs(run.wallMs).padStart(8)}  specs ${fmtMs(run.specMs).padStart(8)}${flag}`);
+            console.log(`  run ${i + 1} ${mode.padEnd(9)} wall ${fmtMs(run.wallMs).padStart(8)}  specs ${fmtMs(run.specMs).padStart(8)}`);
         }
     }
     printTable(`Workload ${workload.label}`, timings, 'wallMs');
     printTable(`Workload ${workload.label}`, timings, 'specMs');
 
-    console.log(`\nWorkload ${workload.label} -- writer work (one untimed run per mode, SWUPGN_WRITER_STATS=1)`);
-    console.log('  mode       games   steps  projections  flushes   per game: steps  projections  flushes');
-    for (const mode of modes.filter((m) => m !== 'off')) {
-        const run = runJasmine(mode, files, { stats: true });
-        const line = run.out.split('\n').find((l) => l.startsWith('SWUPGN_WRITER_STATS '));
-        if (!line) {
-            console.log(`  ${mode.padEnd(9)}  (no stats line: is test/helpers/SwuPgnWriterStatsReporter built?)`);
-            continue;
+    if (workload.benchmark === 'file') {
+        console.log(`\nWorkload ${workload.label} -- end-of-game file cost (fileFor x4 views, timed by the spec, mean of the timed runs)`);
+        for (const mode of modes.filter((m) => m !== 'off')) {
+            const perGame = timings[mode].map((run) => {
+                const file = taggedLine(run.out, 'SWUPGN_FILE_MS');
+                if (!file || file.games === 0) {
+                    throw new Error(`${workload.label} in mode ${mode}: no SWUPGN_FILE_MS line`);
+                }
+                return file.ms / file.games;
+            });
+            const s = summarize(perGame);
+            console.log(`  ${mode.padEnd(9)}  ${s.mean.toFixed(2)}ms +/- ${s.sd.toFixed(2)}ms per game (${s.min.toFixed(2)}..${s.max.toFixed(2)})`);
         }
-        const s = JSON.parse(line.slice('SWUPGN_WRITER_STATS '.length));
+    }
+
+    console.log(`\nWorkload ${workload.label} -- writer work (one untimed run per mode, SWUPGN_WRITER_STATS=1)`);
+    console.log('  mode       games   steps  projections  flushes   per game: steps  projections  flushes   writer us/step  us/projection');
+    const offMean = summarize(timings.off.map((t) => t.specMs)).mean;
+    for (const mode of modes.filter((m) => m !== 'off')) {
+        const s = taggedLine(runJasmine(mode, workload, { stats: true }).out, 'SWUPGN_WRITER_STATS');
+        if (!s) {
+            throw new Error(`${workload.label} in mode ${mode}: no SWUPGN_WRITER_STATS line (is test/helpers/SwuPgnWriterStatsReporter built?)`);
+        }
         const per = (v) => (s.writers > 0 ? (v / s.writers).toFixed(1) : '-');
-        console.log(`  ${mode.padEnd(9)}  ${String(s.writers).padStart(5)}  ${String(s.steps).padStart(6)}  ${String(s.projections).padStart(11)}  ${String(s.flushes).padStart(7)}   ${per(s.steps).padStart(15)}  ${per(s.projections).padStart(11)}  ${per(s.flushes).padStart(7)}`);
+        // the writer's time: this mode's mean spec time over off's, in microseconds
+        const writerUs = (summarize(timings[mode].map((t) => t.specMs)).mean - offMean) * 1000;
+        const perDecision = (n) => (n > 0 ? (writerUs / n).toFixed(1) : '-');
+        console.log(`  ${mode.padEnd(9)}  ${String(s.writers).padStart(5)}  ${String(s.steps).padStart(6)}  ${String(s.projections).padStart(11)}  ${String(s.flushes).padStart(7)}   ${per(s.steps).padStart(15)}  ${per(s.projections).padStart(11)}  ${per(s.flushes).padStart(7)}   ${perDecision(s.steps).padStart(14)}  ${perDecision(s.projections).padStart(13)}`);
     }
 }
 
@@ -208,8 +242,8 @@ function analyzeProfile(profileFile, count) {
 
 function profileFlush() {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'swupgn-cpuprof-'));
-    console.log(`\n=== CPU profile: flush on workload A (node --cpu-prof, 100us interval, ${dir}) ===`);
-    runJasmine('flush', workloads.A.files(), { nodeArgs: ['--cpu-prof', '--cpu-prof-interval=100', `--cpu-prof-dir=${dir}`] });
+    console.log(`\n=== CPU profile: flush on workload A-record (node --cpu-prof, 100us interval, ${dir}) ===`);
+    runJasmine('flush', workloads.A, { nodeArgs: ['--cpu-prof', '--cpu-prof-interval=100', `--cpu-prof-dir=${dir}`] });
     const file = fs.readdirSync(dir).find((f) => f.endsWith('.cpuprofile'));
     if (!file) {
         console.log('  no profile written');
@@ -232,7 +266,7 @@ ensureTestBuild();
 console.log(`Node ${process.version}, ${os.cpus()[0]?.model ?? 'unknown CPU'} x${os.cpus().length}`);
 for (const name of workloadNames) {
     if (!workloads[name]) {
-        throw new Error(`unknown workload ${name}: use A or B`);
+        throw new Error(`unknown workload ${name}: use A, Afile or B`);
     }
     benchmark(name);
 }
