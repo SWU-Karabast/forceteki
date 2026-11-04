@@ -42,10 +42,63 @@ export interface IScriptedGameLog {
 
     /** The number of chat log messages at the end: a replay that made the same game ends with as many. */
     messages: number;
+
+    /** The final board in counts, from the first seat's game state: a replay that made the same game ends on the same one. */
+    fingerprint?: IScriptedGameFingerprint;
 }
 
-/** The `Game` methods the scripted games' harness calls, each one a `game` socket command a client sends. */
-const recordedCommands = ['cardClicked', 'menuButton', 'perCardMenuButton', 'statefulPromptResults', 'concede', 'menuItemClick', 'drop'];
+/** Per seat: base damage and the size of each zone; with the phase and the winners. */
+export interface IScriptedGameFingerprint {
+    phase: string;
+    winners: string[];
+    seats: { baseDamage: number; deck: number; hand: number; discard: number; resources: number; ground: number; space: number }[];
+}
+
+interface IFingerprintedPlayerState {
+    base?: { damage?: number };
+    numCardsInDeck?: number;
+    cardPiles?: Record<string, unknown[] | undefined>;
+}
+
+/**
+ * The fingerprint of a game state as `Game.getState` builds it for a client (or as the client received it), with the
+ * seats' player ids in seat order. Winners are given by seat, since the two runs name their players differently.
+ */
+export function fingerprintOf(
+    state: { phase?: string; winners?: readonly string[]; players?: Record<string, IFingerprintedPlayerState> },
+    playerIds: readonly string[],
+    playerNames: readonly string[]
+): IScriptedGameFingerprint {
+    const count = (player: IFingerprintedPlayerState, pile: string) => player.cardPiles?.[pile]?.length ?? 0;
+    return {
+        phase: state.phase ?? '',
+        winners: (state.winners ?? []).map((name) => `seat ${playerNames.indexOf(name) + 1}`),
+        seats: playerIds.map((id) => {
+            const player = state.players?.[id] ?? {};
+            return {
+                baseDamage: player.base?.damage ?? 0,
+                deck: player.numCardsInDeck ?? 0,
+                hand: count(player, 'hand'),
+                discard: count(player, 'discard'),
+                resources: count(player, 'resources'),
+                ground: count(player, 'groundArena'),
+                space: count(player, 'spaceArena')
+            };
+        })
+    };
+}
+
+/** The fingerprint of a finished scripted game, read through the first seat's game state. */
+export function fingerprintOfGame(game: Game): IScriptedGameFingerprint {
+    const players = game.getPlayers();
+    return fingerprintOf(game.getState(players[0].id), players.map((player) => player.id), players.map((player) => player.name));
+}
+
+/**
+ * The `Game` methods the scripted games' harness calls, each one a `game` socket command a client sends (and the Lobby
+ * allows: `Lobby.allowedGameCommands`).
+ */
+const recordedCommands = ['cardClicked', 'menuButton', 'perCardMenuButton', 'statefulPromptResults', 'concede'];
 
 type GameCommand = (playerId: string, ...args: unknown[]) => unknown;
 

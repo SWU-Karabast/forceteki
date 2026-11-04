@@ -67,6 +67,32 @@ describe('SWU-PGN dirty-entity projection', function() {
         return writerOf(contextRef).boardProjector.lastReread;
     }
 
+    /**
+     * Runs `act` and returns every card the projections made meanwhile re-read or visited, and how many of them read
+     * every card (`lastChanged` null): a phase or round change must re-read what it changed, not every card.
+     */
+    function projectionsDuring(contextRef: SwuTestContextRef, act: () => void): { reread: Set<Card>; visited: Set<Card>; fullReads: number } {
+        const projector = writerOf(contextRef).boardProjector;
+        const result = { reread: new Set<Card>(), visited: new Set<Card>(), fullReads: 0 };
+        const project = projector.project;
+        // wrapped by hand, not with spyOn, and unwrapped afterwards: an undo run calls this twice in one spec
+        projector.project = (ending) => {
+            const board = project.call(projector, ending);
+            projector.lastReread.forEach((card) => result.reread.add(card));
+            projector.lastVisited.forEach((card) => result.visited.add(card));
+            if (projector.lastChanged === null) {
+                result.fullReads++;
+            }
+            return board;
+        };
+        try {
+            act();
+        } finally {
+            Reflect.deleteProperty(projector, 'project');
+        }
+        return result;
+    }
+
     /** The entity id of the card's entity on the written board. */
     function writtenIdOf(contextRef: SwuTestContextRef, card: Card): string {
         const entities = writerOf(contextRef).currentBoard().entities;
@@ -92,7 +118,8 @@ describe('SWU-PGN dirty-entity projection', function() {
                     phase: 'action',
                     player1: {
                         hand: ['daring-raid', 'academy-training', 'moment-of-peace'],
-                        groundArena: ['wampa', 'pyke-sentinel']
+                        groundArena: ['wampa', 'pyke-sentinel'],
+                        discard: ['battlefield-marine']
                     },
                     player2: {
                         groundArena: ['atst'],
@@ -106,27 +133,39 @@ describe('SWU-PGN dirty-entity projection', function() {
                 // a projection with nothing marked since the writer's last flush reads no card
                 writerOf(contextRef).boardProjector.project();
                 expect(reread(contextRef).size).toBe(0);
-                // and changes only the always-projected game and seat entities
-                expect([...writerOf(contextRef).boardProjector.lastChanged].sort()).toEqual(['g', 'p1', 'p2']);
+                // and changes no entity: the game and seat entities, projected every time, are the objects already written
+                expect([...writerOf(contextRef).boardProjector.lastChanged]).toEqual([]);
                 expectSameProjection(contextRef, 'unchanged');
 
                 // the writer flushes once more so the afterEach sees a dirty diff
                 writerOf(contextRef).flush();
             });
 
-            it('visits no deck card that has no entity', function () {
+            it('agrees after the regroup phase readies every exhausted unit, re-reading each and no untouched card', function () {
                 const { context } = contextRef;
-                context.player1.clickCard(context.daringRaid);
-                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.p2Base);
+                context.player2.clickCard(context.cartelSpacer);
+                context.player2.clickCard(context.p1Base);
+                context.player1.clickCard(context.pykeSentinel);
+                context.player1.clickCard(context.p2Base);
+                expectSameProjection(contextRef, 'after the attacks');
 
-                const projector = writerOf(contextRef).boardProjector;
-                const withEntities = context.game.allCards.filter((card) => card.zoneName !== 'deck').length;
-                const deckCards = context.game.allCards.length - withEntities;
-                expect(deckCards).withContext('the board has deck cards')
-                    .toBeGreaterThan(0);
-                expect(projector.lastVisitedCount).withContext('cards the last projection visited')
-                    .toBeLessThanOrEqual(withEntities);
-                expectSameProjection(contextRef, 'after the damage');
+                const during = projectionsDuring(contextRef, () => context.moveToNextActionPhase());
+                for (const unit of [context.wampa, context.cartelSpacer, context.pykeSentinel]) {
+                    expect(unit.exhausted).withContext(`${unit.internalName} readied`)
+                        .toBeFalse();
+                    expect(during.reread.has(unit)).withContext(`${unit.internalName} re-read`)
+                        .toBeTrue();
+                }
+                // the phase and round changes are marked where they change the board, not by reading every card
+                expect(during.fullReads).withContext('projections that read every card')
+                    .toBe(0);
+                expect(during.reread.has(context.battlefieldMarine)).withContext('the untouched discard card')
+                    .toBeFalse();
+                expect(during.reread.has(context.atst)).withContext('the unit that stayed ready')
+                    .toBeFalse();
+                expectSameProjection(contextRef, 'after the regroup phase');
             });
 
             it('agrees after damage from an ability, re-reading the damaged unit but not an untouched one', function () {
@@ -174,20 +213,6 @@ describe('SWU-PGN dirty-entity projection', function() {
                 // the token's flush point (OnTokensCreated) already re-read the unit, checked against the oracle
                 expectSameProjection(contextRef, 'after the shield');
             });
-
-            it('agrees after the regroup phase readies everything', function () {
-                const { context } = contextRef;
-                context.player1.clickCard(context.wampa);
-                context.player1.clickCard(context.p2Base);
-                context.player2.clickCard(context.cartelSpacer);
-                context.player2.clickCard(context.p1Base);
-                expectSameProjection(contextRef, 'after the attacks');
-
-                context.moveToNextActionPhase();
-                expect(context.wampa.exhausted).toBeFalse();
-                expect(context.cartelSpacer.exhausted).toBeFalse();
-                expectSameProjection(contextRef, 'after the regroup phase');
-            });
         });
 
         describe('with ongoing effects', function () {
@@ -217,8 +242,15 @@ describe('SWU-PGN dirty-entity projection', function() {
                 expect(changedCards(contextRef, before, board, [context.wampa, context.battlefieldMarine, context.atst, context.p1Base, context.p2Base]))
                     .toEqual(['wampa']);
 
-                context.moveToNextActionPhase();
+                // the effect lasts for this phase: it ends as the action phase does, and its target is re-read then
+                const during = projectionsDuring(contextRef, () => context.moveToRegroupPhase());
                 expect(context.wampa.getPower()).toBe(4);
+                expect(during.reread.has(context.wampa)).withContext('the effect\'s target re-read')
+                    .toBeTrue();
+                expect(during.fullReads).withContext('projections that read every card')
+                    .toBe(0);
+                expect(during.reread.has(context.boldResistance)).withContext('the event in the discard pile')
+                    .toBeFalse();
                 expectSameProjection(contextRef, 'after the effect ended');
             });
 
@@ -332,7 +364,51 @@ describe('SWU-PGN dirty-entity projection', function() {
             });
         });
 
+        describe('in the resource row', function () {
+            it('re-reads only the resources a cost exhausts', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['wampa'],
+                        resources: ['atst', 'cartel-spacer', 'pyke-sentinel', 'alliance-xwing', 'daring-raid']
+                    }
+                });
+                const { context } = contextRef;
+                writerOf(contextRef);
+                const resources = context.player1.resources.slice();
+
+                const paid = projectionsDuring(contextRef, () => context.player1.clickCard(context.wampa));
+                const exhausted = resources.filter((card) => card.exhausted);
+                expect(exhausted.length).withContext('resources paid')
+                    .toBe(4);
+                expect(resources.filter((card) => paid.reread.has(card))).withContext('resources re-read')
+                    .toEqual(exhausted);
+                expectSameProjection(contextRef, 'after the cost');
+            });
+        });
+
         describe('when entities move, leave and come back', function () {
+            it('visits, of the deck cards, exactly the ones that left the deck', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['patrolling-vwing'],
+                        deck: ['wampa', 'battlefield-marine', 'atst', 'pyke-sentinel']
+                    }
+                });
+                const { context } = contextRef;
+                writerOf(contextRef);
+                const deckBefore = context.player1.deck.slice();
+
+                const during = projectionsDuring(contextRef, () => context.player1.clickCard(context.patrollingVwing));
+                const drawn = deckBefore.filter((card) => card.zoneName === 'hand');
+                expect(drawn.length).withContext('the V-wing drew a card')
+                    .toBe(1);
+                expect(deckBefore.filter((card) => during.visited.has(card))).withContext('deck cards visited')
+                    .toEqual(drawn);
+                expectSameProjection(contextRef, 'after the draw');
+            });
+
             it('agrees after a unit changes arena with an upgrade attached (a moved parent, W-28)', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -452,11 +528,18 @@ describe('SWU-PGN dirty-entity projection', function() {
             expect(context.atst.damage).toBe(0);
             expectSameProjection(contextRef, 'after the rollback');
 
-            raid();
+            // the flushes after the rollback diff only what changed: counted from here, not from setup
+            const checkedBefore = writerOf(contextRef).dirtyDiffsChecked;
+            const during = projectionsDuring(contextRef, raid);
             expect(expectSameProjection(contextRef, 'second run')).toEqual(firstRun);
-            expect(contextRef.context.game.swuPgnWriter.errors).toBe(0);
-            expect(contextRef.context.game.swuPgnWriter.dirtyDiffsChecked).withContext('dirty diffs checked after the rollback')
-                .toBeGreaterThan(0);
+            expect(writerOf(contextRef).dirtyDiffsChecked).withContext('dirty diffs checked after the rollback')
+                .toBeGreaterThan(checkedBefore);
+            expect(during.fullReads).withContext('projections that read every card after the rollback\'s own')
+                .toBe(0);
+            expect(during.reread.has(context.atst)).withContext('the damaged unit re-read')
+                .toBeTrue();
+            expect(during.reread.has(context.wampa)).withContext('the untouched unit')
+                .toBeFalse();
         });
     });
 });

@@ -141,7 +141,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
     public set exhausted(val: boolean) {
         this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        this._exhausted = val;
+        this.setExhaustedState(val);
     }
 
     // see Card constructor for list of expected args
@@ -418,12 +418,24 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
     public exhaust() {
         this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        this._exhausted = true;
+        this.setExhaustedState(true);
     }
 
     public ready() {
         this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        this._exhausted = false;
+        this.setExhaustedState(false);
+    }
+
+    /**
+     * Exhausts or readies the card, telling the SWU-PGN writer when that changes it: paying a cost, readying N resources
+     * and the resource row handing a ready state from a card that leaves it to another name no card in their events.
+     */
+    private setExhaustedState(exhausted: boolean) {
+        if (this._exhausted === exhausted) {
+            return;
+        }
+        this._exhausted = exhausted;
+        this.game.swuPgnWriter?.onCardExhaustedChanged(this);
     }
 
     public override canBeExhausted(): this is IPlayableOrDeployableCard {

@@ -6,7 +6,7 @@ import { FakeIoSocket } from '../../../helpers/server/FakeIoSocket';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 import { TestClient } from '../../../helpers/server/TestClient';
 import type { IScriptedGameDecision, IScriptedGameLog } from '../../swupgn-writer/scriptedGameDecisions';
-import { coinFlipPromptTitle } from '../../swupgn-writer/scriptedGameDecisions';
+import { coinFlipPromptTitle, fingerprintOf } from '../../swupgn-writer/scriptedGameDecisions';
 
 /**
  * Workload L of the SWU-PGN writer benchmark (`scripts/swupgn-benchmark.js`), the gate G2 is judged on: the scripted
@@ -136,9 +136,15 @@ function replayOf(decision: IScriptedGameDecision, clients: TestClient[]): { cli
                     .toBe(log.decisions.length);
                 expect(state.winners.length).withContext(`${name}: the game ended`)
                     .toBeGreaterThan(0);
-                // the replay made the same game: as many chat log messages as the scripted run
+                // the replay made the same game: as many chat log messages as the scripted run, and the same final board
+                // (every game ends in a concession, so that it ended proves nothing, and a mis-targeted click is a no-op)
                 expect(state.totalMessages).withContext(`${name}: chat log messages`)
                     .toBe(log.messages);
+                expect(log.fingerprint).withContext(`${name}: the decision log holds the scripted run's final board`)
+                    .toBeDefined();
+                expect(fingerprintOf(state, seats.map((seat) => seat.id), seats.map((seat) => seat.username)))
+                    .withContext(`${name}: final board`)
+                    .toEqual(log.fingerprint);
 
                 if (timed) {
                     time.decisions += decisions;

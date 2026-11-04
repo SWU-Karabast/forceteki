@@ -29,8 +29,9 @@
  * Every run warms the engine version first (as the server does at startup), and `@swupgn/format` and its validator
  * are loaded by static imports in every mode, `off` included, so module loading costs the same in each.
  *
- * Usage: npm run benchmark-swupgn [-- --alternations=5 --workloads=L,A,Arecord,Afile,B,Blobby --profile]
+ * Usage: npm run benchmark-swupgn [-- --alternations=5 --workloads=L,A,Arecord,Afile,B,Blobby --modes=... --profile]
  *   --alternations=N      timed runs of each mode per workload (default 5)
+ *   --modes=...           which writer modes to time (default all four; `off` is always timed)
  *   --workloads=...       which workloads to time (default all six; `none` with --profile only profiles)
  *   --profile             also take one `node --cpu-prof` profile of `flush` on workload L and print its top frames
  *
@@ -44,7 +45,7 @@ const os = require('os');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const modes = ['off', 'decision', 'flush', 'event'];
+const allModes = ['off', 'decision', 'flush', 'event'];
 
 function argValue(name, fallback) {
     const arg = process.argv.find((a) => a.startsWith(`--${name}=`));
@@ -55,6 +56,14 @@ const alternations = Number(argValue('alternations', '5'));
 const workloadNames = argValue('workloads', 'L,A,Arecord,Afile,B,Blobby').split(',')
     .filter((name) => name !== '' && name !== 'none');
 const profile = process.argv.includes('--profile');
+// `off` is always timed: every overhead is measured against it
+const modes = ['off', ...argValue('modes', allModes.join(',')).split(',')
+    .filter((mode) => mode !== 'off')];
+for (const mode of modes) {
+    if (!allModes.includes(mode)) {
+        throw new Error(`unknown mode ${mode}: use ${allModes.join(', ')}`);
+    }
+}
 
 /** Every `*.spec.js` under `dir`, relative to the repo root, sorted. */
 function specsUnder(dir) {
@@ -220,9 +229,11 @@ function benchmark(name) {
             const range = `${(s.min * 1000).toFixed(1)}..${(s.max * 1000).toFixed(1)}`;
             console.log(`  ${mode.padEnd(9)}  ${(s.mean * 1000).toFixed(1).padStart(8)}  ${(s.sd * 1000).toFixed(1).padStart(8)}   ${range.padEnd(18)}  ${mode === 'off' ? '--' : pct(s.mean, off.mean)}`);
         }
-        const flush = summarize(timings.flush.map((t) => t.lobbyMs));
-        const overhead = (flush.mean / off.mean - 1) * 100;
-        console.log(`\n  G2 (flush <= 3% over off on L): ${overhead <= 3 ? 'PASS' : 'FAIL'} (${pct(flush.mean, off.mean)})`);
+        if (timings.flush) {
+            const flush = summarize(timings.flush.map((t) => t.lobbyMs));
+            const overhead = (flush.mean / off.mean - 1) * 100;
+            console.log(`\n  G2 (flush <= 3% over off on L): ${overhead <= 3 ? 'PASS' : 'FAIL'} (${pct(flush.mean, off.mean)})`);
+        }
     }
 
     if (workload.benchmark === 'file') {
@@ -241,8 +252,9 @@ function benchmark(name) {
     }
 
     console.log(`\nWorkload ${workload.label} -- writer work (one untimed run per mode, SWUPGN_WRITER_STATS=1)`);
-    console.log('  mode       games   steps  projections  flushes   per game: steps  projections  flushes   writer us/step  us/projection  cards read/reused  visited  full diffs  entities diffed');
-    // on workload L the clock is onGameMessage time per decision, so the writer columns are per decision (us/step)
+    // on workload L the clock is onGameMessage time per decision, so the writer column is per decision, not per step
+    const writerColumn = workload.decisionLogs ? 'writer us/decision' : '    writer us/step';
+    console.log(`  mode       games   steps  projections  flushes   per game: steps  projections  flushes   ${writerColumn}  us/projection  cards read/reused  visited  full diffs  entities diffed`);
     const clock = workload.decisionLogs ? 'lobbyMs' : 'specMs';
     const offMean = summarize(timings.off.map((t) => t[clock])).mean;
     for (const mode of modes.filter((m) => m !== 'off')) {
@@ -254,7 +266,7 @@ function benchmark(name) {
         // the writer's time: this mode's mean spec time over off's, in microseconds (on L: per decision already)
         const writerUs = (summarize(timings[mode].map((t) => t[clock])).mean - offMean) * 1000;
         const perDecision = (n) => (n > 0 ? (writerUs / n).toFixed(1) : '-');
-        console.log(`  ${mode.padEnd(9)}  ${String(s.writers).padStart(5)}  ${String(s.steps).padStart(6)}  ${String(s.projections).padStart(11)}  ${String(s.flushes).padStart(7)}   ${per(s.steps).padStart(15)}  ${per(s.projections).padStart(11)}  ${per(s.flushes).padStart(7)}   ${(workload.decisionLogs ? writerUs.toFixed(1) : perDecision(s.steps)).padStart(14)}  ${(workload.decisionLogs ? '-' : perDecision(s.projections)).padStart(13)}  ${s.cardsRead}/${s.cardsReused}  ${s.cardsVisited}  ${s.fullDiffs}  ${s.entitiesDiffed}`);
+        console.log(`  ${mode.padEnd(9)}  ${String(s.writers).padStart(5)}  ${String(s.steps).padStart(6)}  ${String(s.projections).padStart(11)}  ${String(s.flushes).padStart(7)}   ${per(s.steps).padStart(15)}  ${per(s.projections).padStart(11)}  ${per(s.flushes).padStart(7)}   ${(workload.decisionLogs ? writerUs.toFixed(1) : perDecision(s.steps)).padStart(18)}  ${(workload.decisionLogs ? '-' : perDecision(s.projections)).padStart(13)}  ${s.cardsRead}/${s.cardsReused}  ${s.cardsVisited}  ${s.fullDiffs}  ${s.entitiesDiffed}`);
     }
 }
 

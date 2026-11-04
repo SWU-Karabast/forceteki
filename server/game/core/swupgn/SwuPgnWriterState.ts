@@ -22,7 +22,9 @@ export interface ISwuPgnLook {
 export class SwuPgnWriterState extends GameObjectBase {
     @stateValue() private accessor entityIds = new Map<string, number>();
     @stateValue() private accessor generations = new Map<string, number>();
-    @stateValue() private accessor audiences = new Map<string, Seat[]>();
+
+    /** Each key's seats as bits (1: seat 1, 2: seat 2): a number, not an array, so a snapshot serializes less. */
+    @stateValue() private accessor audiences = new Map<string, number>();
     @stateValue() private accessor looks = new Map<string, ISwuPgnLook>();
     @statePrimitive() private accessor nextId = 1;
 
@@ -63,7 +65,7 @@ export class SwuPgnWriterState extends GameObjectBase {
     public reset(): void {
         this.entityIds = new Map<string, number>();
         this.generations = new Map<string, number>();
-        this.audiences = new Map<string, Seat[]>();
+        this.audiences = new Map<string, number>();
         this.looks = new Map<string, ISwuPgnLook>();
         this.nextId = 1;
         this.recordsLength = 0;
@@ -131,15 +133,23 @@ export class SwuPgnWriterState extends GameObjectBase {
     }
 
     public audienceOf(key: string): Seat[] {
-        return [...(this.audiences.get(key) ?? [])];
+        const bits = this.audiences.get(key) ?? 0;
+        const seats: Seat[] = [];
+        if (bits & 1) {
+            seats.push(1);
+        }
+        if (bits & 2) {
+            seats.push(2);
+        }
+        return seats;
     }
 
     /** Union only: an audience never narrows. */
     public widen(key: string, seats: Seat[] | 'all'): void {
-        const widened = new Set<Seat>(this.audiences.get(key) ?? []);
+        let bits = this.audiences.get(key) ?? 0;
         for (const seat of seats === 'all' ? [1, 2] as Seat[] : seats) {
-            widened.add(seat);
+            bits |= seat;
         }
-        this.audiences.set(key, [...widened].sort((a, b) => a - b));
+        this.audiences.set(key, bits);
     }
 }

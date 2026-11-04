@@ -2,7 +2,7 @@ import { validate } from '@swupgn/format/validate';
 import { warmEngineVersion } from '../../../server/game/core/swupgn/FileAssembler';
 import type { SwuPgnFileView } from '../../../server/game/core/swupgn/SwuPgnWriter';
 import type { IScriptedGameLog } from './scriptedGameDecisions';
-import { recordDecisions, writeDecisionLogs } from './scriptedGameDecisions';
+import { fingerprintOfGame, recordDecisions, writeDecisionLogs } from './scriptedGameDecisions';
 import { playScriptedGame, scriptedGameNames } from './scriptedGames';
 
 /**
@@ -52,6 +52,7 @@ describe('SWU-PGN scripted games', function() {
                 } : undefined);
                 if (decisionLogs[name] !== undefined) {
                     decisionLogs[name].messages = contextRef.context.game.gameChat.messages.length;
+                    decisionLogs[name].fingerprint = fingerprintOfGame(contextRef.context.game);
                 }
 
                 const writer = contextRef.context.game.swuPgnWriter;

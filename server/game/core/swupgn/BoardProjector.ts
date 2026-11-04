@@ -11,6 +11,7 @@ import type { ICardAudiences, SeatOf } from './projectCards';
 import { cardAudience, parentOf, projectCardEntity, projectCards, projectedCardId, seatAmong, zoneOfEntity } from './projectCards';
 import { abilityUsesOf, projectEffects } from './projectEffects';
 import { countSwuPgnWriterStats, swuPgnWriterStats } from './SwuPgnWriterStats';
+import { sameValue } from './diffBoards';
 
 /** A card's entity as the last projection that read the card wrote it, with what decides whether it can be reused. */
 interface ICachedCard {
@@ -32,15 +33,17 @@ interface ICachedCard {
  * memory, not rollback state: `invalidate()` drops it after a rollback or a baseline restart.
  *
  * A card is re-read when:
- * - it was marked dirty (it changed zone, it was shown, or a resolved event named it), or it holds or is held by
- *   such a card, now or at its last projection,
- * - its zone changed, or it is a deck card someone is looking at (its key and entity id change only when it enters a
- *   deck, which marks it, or on a rollback or baseline restart, which invalidate the cache),
+ * - it was marked dirty (it changed zone, it was shown, it was exhausted or readied, its ability limit changed, or a
+ *   resolved event named it), or it holds or is held by such a card, now or at its last projection,
+ * - it is a deck card someone is looking at (its key and entity id change only when it enters a deck, which marks it,
+ *   or on a rollback or baseline restart, which invalidate the cache),
  * - it is in play and the ongoing-effect engine changed what it applies since the last projection,
- * - it is a resource and resources were exhausted or readied in bulk,
- * - the phase or round changed, or the cache was invalidated: then every card is.
+ * - the cache was invalidated: then every card is.
+ * A phase or round change reads no card by itself: what it changes is marked where it changes (readying, limit resets,
+ * effects ending). A clean cached card's zone is not read again: a zone change passes the zone hook, which marks it.
  *
- * `g`, `p1`, `p2` and the effect entities are always re-projected: they are cheap.
+ * `g`, `p1`, `p2` and the effect entities are re-projected every time (they are cheap); one equal to its last
+ * projection keeps that object, so the diff skips it.
  *
  * Only the cards that have entities, and the marked ones, are visited (`cardsToVisit`): a deck card nobody sees is
  * never touched. A projection that reads every card walks `game.allCards` and rebuilds the cache. `lastChanged` names
@@ -49,18 +52,17 @@ interface ICachedCard {
 export class BoardProjector {
     private readonly cache = new Map<Card, ICachedCard>();
     private readonly dirty = new Set<Card>();
-    private resourcesDirty = false;
     private rereadAll = true;
-    private lastPhase: PhaseName | null = null;
-    private lastRound = -1;
     private lastEffectChange = -1;
     private lastAttack: Attack | null = null;
     private lastAttackCards: readonly Card[] = [];
     private readonly reread = new Set<Card>();
     private changed: Set<string> | null = null;
     private committed = false;
-    private visitedCount = 0;
-    private lastEffectIds: string[] = [];
+    private visitedCards: Iterable<Card> = [];
+
+    /** `g`, the seats and the effects as the last projection wrote them, by entity id. */
+    private lastAlwaysProjected = new Map<string, Entity>();
 
     /** Each card's index in `game.allCards`, the order a projection reads new cards in (so ids are assigned as in `projectFull`). */
     private readonly cardOrder = new Map<Card, number>();
@@ -94,19 +96,17 @@ export class BoardProjector {
         this.committed = true;
     }
 
-    /** The cards the last `project()` visited: the cards with entities and the ones marked, never a deck card nobody sees. */
-    public get lastVisitedCount(): number {
-        return this.visitedCount;
+    /**
+     * The cards the last `project()` visited (for specs): the cards with entities and the ones marked, never a deck card
+     * nobody sees; every card when it read every card.
+     */
+    public get lastVisited(): ReadonlySet<Card> {
+        return new Set(this.visitedCards);
     }
 
     /** The card's entity may have changed: read it at the next projection. */
     public markDirty(card: Card): void {
         this.dirty.add(card);
-    }
-
-    /** Resources were exhausted or readied in bulk (paying a cost, readying N): read every resource at the next projection. */
-    public markResourcesDirty(): void {
-        this.resourcesDirty = true;
     }
 
     /** Forgets every cached entity: the next projection reads every card. */
@@ -115,8 +115,8 @@ export class BoardProjector {
         this.changed = null;
         this.committed = false;
         this.dirty.clear();
-        this.resourcesDirty = false;
         this.rereadAll = true;
+        this.lastAlwaysProjected.clear();
     }
 
     /** `ending` selects the looks that end with this board: their deck cards are left out. */
@@ -125,10 +125,8 @@ export class BoardProjector {
         const seatOf: SeatOf = (player) => seatAmong(players, player);
         const audiences = this.cardAudiences(ending);
 
-        const phase = this.game.currentPhase ?? null;
-        const round = this.game.roundNumber;
         const effectChange = this.game.ongoingEffectEngine.changeCount;
-        const all = this.rereadAll || phase !== this.lastPhase || round !== this.lastRound;
+        const all = this.rereadAll;
         const effectsChanged = effectChange !== this.lastEffectChange;
         this.markAttackChange();
 
@@ -141,9 +139,6 @@ export class BoardProjector {
             this.changed = null;
         }
         const changed = this.changed;
-        for (const fixed of ['g', 'p1', 'p2']) {
-            changed?.add(fixed);
-        }
         this.reread.clear();
         let cards: Iterable<Card>;
         if (all) {
@@ -155,7 +150,6 @@ export class BoardProjector {
         } else {
             const visit = this.cardsToVisit(audiences);
             this.spreadDirtyToParentsAndChildren(visit);
-            this.markResourceRowChange();
             cards = this.inProjectionOrder(visit);
         }
 
@@ -163,23 +157,23 @@ export class BoardProjector {
         for (const card of cards) {
             visited++;
             const cached = this.cache.get(card);
+            // a clean cached card keeps its zone, key and id: a zone change passes the zone hook, a deck entry the deck
+            // hook (both mark it), and a rollback or baseline restart invalidates the cache; so its zone is not read again
+            if (
+                !all && cached !== undefined && cached.zone !== 'deck' && !this.dirty.has(card) &&
+                !(effectsChanged && inPlayZones.has(cached.zone))
+            ) {
+                entities[String(cached.id)] = cached.entity;
+                if (countSwuPgnWriterStats) {
+                    swuPgnWriterStats.cardsReused++;
+                }
+                continue;
+            }
             const zone = zoneOfEntity(card, audiences);
             if (zone === null) {
                 if (cached !== undefined) {
                     this.cache.delete(card);
                     changed?.add(String(cached.id));
-                }
-                continue;
-            }
-            // a clean cached card keeps its key and id: only a deck entry (which marks it) or a rollback or baseline
-            // restart (which invalidate the cache) changes them
-            if (
-                !all && cached !== undefined && cached.zone === zone && zone !== 'deck' && !this.dirty.has(card) &&
-                !(effectsChanged && isInPlay(card)) && !(this.resourcesDirty && zone === 'resource')
-            ) {
-                entities[String(cached.id)] = cached.entity;
-                if (countSwuPgnWriterStats) {
-                    swuPgnWriterStats.cardsReused++;
                 }
                 continue;
             }
@@ -202,27 +196,39 @@ export class BoardProjector {
         }
 
         this.dirty.clear();
-        this.resourcesDirty = false;
         this.rereadAll = false;
-        this.lastPhase = phase;
-        this.lastRound = round;
         this.lastEffectChange = effectChange;
-        this.visitedCount = visited;
+        this.visitedCards = cards;
         if (countSwuPgnWriterStats && !all) {
             swuPgnWriterStats.cardsVisited += visited;
         }
 
         const effectIds = this.addEffects(entities, seatOf, audiences);
-        if (changed !== null) {
-            for (const id of this.lastEffectIds) {
-                changed.add(id);
+        this.keepUnchangedAlwaysProjected(entities, ['g', 'p1', 'p2', ...effectIds], changed);
+        return { seq: null, entities };
+    }
+
+    /**
+     * `g`, the seats and the effect entities are projected every time. One equal to its entity at the last projection
+     * is replaced by that object, so the diff skips it; one that differs, appeared or went is added to `changed`.
+     */
+    private keepUnchangedAlwaysProjected(entities: Board['entities'], ids: readonly string[], changed: Set<string> | null): void {
+        const now = new Map<string, Entity>();
+        for (const id of ids) {
+            const last = this.lastAlwaysProjected.get(id);
+            if (last !== undefined && sameValue(last, entities[id])) {
+                entities[id] = last;
+            } else {
+                changed?.add(id);
             }
-            for (const id of effectIds) {
-                changed.add(id);
+            now.set(id, entities[id]);
+        }
+        for (const id of this.lastAlwaysProjected.keys()) {
+            if (!now.has(id)) {
+                changed?.add(id);
             }
         }
-        this.lastEffectIds = effectIds;
-        return { seq: null, entities };
+        this.lastAlwaysProjected = now;
     }
 
     /** `project()` reading every card, with no cache: the oracle. It neither reads nor changes the cache. */
@@ -336,22 +342,6 @@ export class BoardProjector {
     }
 
     /**
-     * A card entered or left the resource row: the engine moves the exhausted state between the resources (a ready
-     * resource that leaves hands its state to another), so every resource is read again.
-     */
-    private markResourceRowChange(): void {
-        if (this.resourcesDirty) {
-            return;
-        }
-        for (const card of this.dirty) {
-            if (card.zoneName === ZoneName.Resource || this.cache.get(card)?.zone === 'resource') {
-                this.resourcesDirty = true;
-                return;
-            }
-        }
-    }
-
-    /**
      * Marks dirty every card that holds or is held by a dirty card, now or at its last projection, until no more change:
      * an upgrade changes its unit's stats, and a unit that moves takes its upgrades and captives with it.
      */
@@ -430,15 +420,13 @@ export class BoardProjector {
 }
 
 /**
- * In an arena or the base zone: the cards an ongoing-effect change makes the projection read again. This assumes that
- * what `attributesOf` writes for a card in hand, discard, the resource row, a capture zone or set aside (identity only:
- * kind, aspects, cost, name, exhausted for a resource) does not change with ongoing effects while the card stays
- * there (an effect such as Clone's printed-attribute override takes hold as the card enters play, which marks it).
- * The full-suite oracle found no exception. Should one appear, widen this, or the cache keeps the old value.
+ * The SWU-PGN zones of the arenas and the base zone: the cards an ongoing-effect change makes the projection read again.
+ * This assumes that what `attributesOf` writes for a card in hand, discard, the resource row, a capture zone or set
+ * aside (identity only: kind, aspects, cost, name, exhausted for a resource) does not change with ongoing effects while
+ * the card stays there (an effect such as Clone's printed-attribute override takes hold as the card enters play, which
+ * marks it). The full-suite oracle found no exception. Should one appear, widen this, or the cache keeps the old value.
  */
-function isInPlay(card: Card): boolean {
-    return EnumHelpers.isArena(card.zoneName) || card.zoneName === ZoneName.Base;
-}
+const inPlayZones: ReadonlySet<string> = new Set(['ground', 'space', 'base']);
 
 /** In an arena (an upgrade, a pilot, a token on a unit) or a capture zone: a card another card can hold. */
 function canHaveParent(card: Card): boolean {

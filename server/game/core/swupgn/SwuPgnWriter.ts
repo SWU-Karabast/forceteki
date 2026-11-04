@@ -14,7 +14,7 @@ import type { Player } from '../Player';
 import type { LookFilter } from './AudienceTracker';
 import { AudienceTracker } from './AudienceTracker';
 import { BoardProjector } from './BoardProjector';
-import { diffBoards } from './diffBoards';
+import { diffBoards, sameValue } from './diffBoards';
 import { buildFullFile } from './FileAssembler';
 import type { ISwuPgnWriterHooks } from './ISwuPgnWriterHooks';
 import { SwuPgnEvents } from './SwuPgnEvents';
@@ -49,9 +49,6 @@ const flushEvents: ReadonlyMap<EventName, LookFilter | null> = new Map([
 ]);
 
 const maxLoggedErrors = 5;
-
-/** Events that exhaust or ready resources by count, naming no card: every resource is read again. */
-const bulkResourceEvents: ReadonlySet<string> = new Set([EventName.OnExhaustResources, EventName.OnReadyResources]);
 
 function isCardValue(value: unknown): value is Card {
     return typeof value === 'object' && value !== null && typeof (value as { isCard?: unknown }).isCard === 'function' && (value as Card).isCard();
@@ -222,6 +219,10 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
 
     public onAbilityLimitChanged(card: Card): void {
         this.guard('ability limit', () => this.projector.markDirty(card));
+    }
+
+    public onCardExhaustedChanged(card: Card): void {
+        this.guard('exhausted state', () => this.projector.markDirty(card));
     }
 
     /**
@@ -399,14 +400,12 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
     }
 
     private markEventCards(event: GameEvent): void {
-        if (bulkResourceEvents.has(event.name)) {
-            this.projector.markResourcesDirty();
-        }
         const source: unknown = event.context?.source;
         if (isCardValue(source)) {
             this.projector.markDirty(source);
         }
-        // own enumerable values, as Object.values gives them, without building the array
+        // enumerable values without building the array; unlike Object.values this also walks inherited enumerable
+        // properties, which can only mark more cards
         for (const key in event) {
             const value: unknown = Reflect.get(event, key);
             if (typeof value !== 'object' || value === null) {
@@ -463,21 +462,4 @@ function firstDifference(dirty: Board, full: Board): { entity: string; dirty: un
         }
     }
     return null;
-}
-
-/** Deep equality of JSON-shaped values; key order does not matter. */
-function sameValue(a: unknown, b: unknown): boolean {
-    if (a === b) {
-        return true;
-    }
-    if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null || Array.isArray(a) !== Array.isArray(b)) {
-        return false;
-    }
-    if (Array.isArray(a) && Array.isArray(b)) {
-        return a.length === b.length && a.every((item, i) => sameValue(item, b[i]));
-    }
-    const left = a as Record<string, unknown>;
-    const right = b as Record<string, unknown>;
-    const keys = Object.keys(left);
-    return keys.length === Object.keys(right).length && keys.every((key) => key in right && sameValue(left[key], right[key]));
 }

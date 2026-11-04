@@ -18,6 +18,12 @@ export interface ISwuPgnWriterHooks {
     onAbilityLimitChanged(card: Card): void;
 
     /**
+     * The card was exhausted or readied (`PlayableOrDeployableCard`), whatever did it: a cost paid with resources, or the
+     * resource row moving a ready state between its cards, names no card in its event.
+     */
+    onCardExhaustedChanged(card: Card): void;
+
+    /**
      * An event's handler has just run (`EventWindow.resolveEvents`), before the event's own emit: the one point every
      * resolved event passes, so the writer marks the cards it names without a listener per event name.
      */

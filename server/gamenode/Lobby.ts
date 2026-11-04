@@ -1640,7 +1640,6 @@ export class Lobby {
         'updateSetting',
     ]);
 
-    /** Game methods a player's client may invoke by name, including the commands the engine puts on prompt buttons. */
     /**
      * Told how long each game command took to process (the command, `game.continue()` and sending the game state), as
      * `onGameMessage` measures it. Null in production; the SWU-PGN writer benchmark sets it to read the server's cost
@@ -1648,6 +1647,7 @@ export class Lobby {
      */
     public static gameCommandTimingObserver: ((command: string, durationMs: number) => void) | null = null;
 
+    /** Game methods a player's client may invoke by name, including the commands the engine puts on prompt buttons. */
     private static readonly allowedGameCommands = new Set([
         'cardClicked',
         'chat',

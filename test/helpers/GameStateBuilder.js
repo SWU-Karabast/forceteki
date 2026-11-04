@@ -78,7 +78,9 @@ class GameStateBuilder {
 
         const testContext = {};
         this.attachTestInfoToObj(testContext, gameFlowWrapper, player1Info.username, player2Info.username);
-        await this.setupGameStateAsync(testContext, setupTestOptions);
+        // the SWU-PGN writer benchmark (workload L) times this game as a production game: only the state watchers the
+        // game's own cards and the engine register, as a real Lobby game has, not every watcher in the library
+        await this.setupGameStateAsync(testContext, setupTestOptions, { registerAllStateWatchers: !process.env.SWUPGN_BENCHMARK });
 
         return gameFlowWrapper.game;
     }
@@ -110,8 +112,10 @@ class GameStateBuilder {
     /**
      * @param {SwuTestContext} context
      * @param {SwuSetupTestOptions} options
+     * @param {{ registerAllStateWatchers?: boolean }} [builderOptions] `registerAllStateWatchers` (default true) registers
+     * every watcher in the library, to stress test them; false leaves only those the cards and the engine register
      */
-    async setupGameStateAsync(context, options = {}) {
+    async setupGameStateAsync(context, options = {}, { registerAllStateWatchers = true } = {}) {
         // Set defaults
         if (!options.player1) {
             options.player1 = {};
@@ -251,7 +255,9 @@ class GameStateBuilder {
             context.cardPropertyNames.push(card.propertyName);
         });
 
-        this.registerAllStateWatchers(context.game);
+        if (registerAllStateWatchers) {
+            this.registerAllStateWatchers(context.game);
+        }
 
         Util.refreshGameState(context.game);
 
