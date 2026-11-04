@@ -73,12 +73,20 @@ export function reportSchema(out: Collector, line: number | undefined, errors: E
 }
 
 /** Whether a schema error is about `parent` or `rel` being absent, null or unpaired. */
-function isParentRelError(e: ErrorObject): boolean {
-    if (e.keyword === 'dependentRequired' || e.keyword === 'if' || e.keyword === 'then' || e.keyword === 'dependentSchemas') {
-        return true;
-    }
+function namesParentRel(e: ErrorObject): boolean {
     const missing = (e.params as { missingProperty?: string }).missingProperty;
-    return e.keyword === 'required' && (missing === 'parent' || missing === 'rel');
+    return missing === 'parent' || missing === 'rel' || (/^\/(parent|rel)(\/|$)/).test(e.instancePath);
+}
+
+/** Whether `parent` and `rel` are not paired on the record itself ([V-05]); a `set` carries both or neither. */
+function unpaired(rec: Record<string, unknown>): boolean {
+    if (rec.t === 'create') {
+        return (rec.parent !== undefined) !== (rec.rel !== undefined);
+    }
+    if (rec.t === 'set') {
+        return (rec.parent !== undefined && rec.parent !== null && rec.rel === undefined) || (rec.parent === null && rec.rel !== null);
+    }
+    return false;
 }
 
 /** The block-fields rule ([V-16]); returns whether it reported. */
@@ -230,10 +238,14 @@ export function checkRecords(file: SwuPgnFile, lines: FileLines, out: Collector,
         }
         const blockReported = t === 'block' && checkBlockFields(rec, visibility, line, out);
 
+        if (unpaired(rec)) {
+            out.add('parent-rel', line, 'parent and rel must be written together');
+        }
+        let parentRelAt = out.has('parent-rel', line);
+
         // Apply, and see what applying shows.
         let applied = false;
         let touched: string | undefined;
-        let parentRelAt = false;
         if (safeToApply(rec)) {
             const key = rec.e === undefined ? undefined : String(rec.e);
             try {
@@ -273,8 +285,9 @@ export function checkRecords(file: SwuPgnFile, lines: FileLines, out: Collector,
         const errors = schemaCheck(def, rec);
         if (errors.length > 0) {
             const fixedId = (t === 'remove' || t === 'reveal') && FIXED_IDS.has(rec.e);
+            const paired = errors.filter((e) => namesParentRel(e));
             reportSchema(out, line, errors, rec, (e) =>
-                (parentRelAt && isParentRelError(e)) ||
+                (parentRelAt && (paired.includes(e) || (e.keyword === 'if' && paired.length > 0))) ||
                 (blockReported && e.keyword === 'additionalProperties') ||
                 (fixedId && e.instancePath === '/e'));
         }

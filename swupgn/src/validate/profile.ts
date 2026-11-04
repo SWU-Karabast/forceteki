@@ -1,5 +1,6 @@
-import type { Audience, DeckLine, SwuPgnFile } from '../generated/types.js';
+import type { SwuPgnFile } from '../generated/types.js';
 import type { FileLines } from '../parse.js';
+import { isFaceDownAttribute } from '../registry.js';
 import type { Collector } from './issues.js';
 
 function isObject(v: unknown): v is Record<string, unknown> {
@@ -13,43 +14,17 @@ function holds(to: unknown, seat: number | null): boolean {
     return seat !== null && Array.isArray(to) && (to as unknown[]).includes(seat);
 }
 
-/** Every card id the file mentions outside `CARDS`: header, `DECKS`, and `RECORDS` ([W-51]). */
-function mentionedIds(file: SwuPgnFile): Set<string> {
-    const ids = new Set<string>();
-    for (const tag of ['P1Leader', 'P2Leader']) {
-        for (const id of (file.header[tag] ?? '').split(',')) {
-            ids.add(id);
-        }
-    }
-    ids.add(file.header.P1Base);
-    ids.add(file.header.P2Base);
-    for (const deck of file.decks as unknown[]) {
-        if (!isObject(deck)) {
-            continue;
-        }
-        const strings = (v: unknown) => (Array.isArray(v) ? v : []);
-        for (const id of strings(deck.leaders)) {
-            ids.add(String(id));
-        }
-        ids.add(String(deck.base));
+function strings(v: unknown): unknown[] {
+    return Array.isArray(v) ? v : [];
+}
+
+function deckIds(deck: Record<string, unknown>, withMain: boolean): string[] {
+    const ids = [String(deck.base), ...strings(deck.leaders).map(String)];
+    if (withMain) {
         for (const list of [deck.main, deck.sideboard]) {
             for (const entry of strings(list)) {
-                ids.add(String(Array.isArray(entry) ? entry[0] : entry));
+                ids.push(String(Array.isArray(entry) ? entry[0] : entry));
             }
-        }
-        for (const id of strings(deck.order)) {
-            ids.add(String(id));
-        }
-    }
-    for (const rec of file.records as unknown[]) {
-        if (!isObject(rec)) {
-            continue;
-        }
-        if (typeof rec.card === 'string') {
-            ids.add(rec.card);
-        }
-        if (isObject(rec.a) && typeof rec.a.copyOf === 'string') {
-            ids.add(rec.a.copyOf);
         }
     }
     return ids;
@@ -66,7 +41,32 @@ export function checkProfile(file: SwuPgnFile, lines: FileLines, out: Collector)
     if (file.header.Seed !== undefined) {
         out.add('profile', lines.tags.get('Seed'), `a ${what} file has no Seed tag`);
     }
-    file.decks.forEach((d: DeckLine, i) => {
+
+    // The cards the viewer may see: those a create or reveal gives with an audience that holds it.
+    const shown = new Set<string>();
+    file.records.forEach((r, i) => {
+        const rec = r as unknown;
+        if (!isObject(rec) || (rec.t !== 'create' && rec.t !== 'reveal') || typeof rec.card !== 'string') {
+            return;
+        }
+        const to: unknown = rec.to === undefined && rec.t === 'create' ? 'all' : rec.to;
+        if (holds(to, seat)) {
+            shown.add(rec.card);
+        } else {
+            out.add('profile', lines.records[i], `a ${rec.t} of a card that ${seat === null ? 'is not shown to everyone' : `seat ${seat} does not know`} has no place in a ${what} file`);
+        }
+    });
+
+    // DECKS: who is complete, no order, and the partial line lists only shown cards.
+    const justified = new Set<string>();
+    for (const tag of ['P1Leader', 'P2Leader']) {
+        for (const id of (file.header[tag] ?? '').split(',')) {
+            justified.add(id);
+        }
+    }
+    justified.add(file.header.P1Base);
+    justified.add(file.header.P2Base);
+    file.decks.forEach((d, i) => {
         const deck = d as unknown;
         if (!isObject(deck)) {
             return;
@@ -75,35 +75,53 @@ export function checkProfile(file: SwuPgnFile, lines: FileLines, out: Collector)
         if (deck.order !== undefined) {
             out.add('profile', line, `a ${what} file has no DECKS line with order`);
         }
-        if (typeof deck.p === 'number') {
-            const wantComplete = seat !== null && deck.p === seat;
-            if (typeof deck.complete === 'boolean' && deck.complete !== wantComplete) {
-                out.add('profile', line, `in a ${what} file the DECKS line of seat ${String(deck.p)} must have complete ${String(wantComplete)}`);
+        const own = seat !== null && deck.p === seat;
+        if (typeof deck.p === 'number' && typeof deck.complete === 'boolean' && deck.complete !== own) {
+            out.add('profile', line, `in a ${what} file the DECKS line of seat ${String(deck.p)} must have complete ${String(own)}`);
+        }
+        if (!own) {
+            for (const id of deckIds(deck, true).slice(1 + strings(deck.leaders).length)) {
+                if (!shown.has(id)) {
+                    out.add('profile', line, `DECKS lists ${id}, which the ${what} file does not reveal`);
+                }
             }
         }
+        for (const id of deckIds(deck, own)) {
+            justified.add(id);
+        }
     });
-    if (lines.banners.has('DECKS') === false) {
-        out.add('profile', lines.tags.get('Visibility'), `a ${what} file needs a DECKS line for each seat`);
-    }
+
+    // CARDS: only ids the header, DECKS or a shown create or reveal justify.
+    file.cards.forEach((c, i) => {
+        const card = c as unknown;
+        if (isObject(card) && typeof card.id === 'string' && !justified.has(card.id) && !shown.has(card.id)) {
+            out.add('profile', lines.cards[i], `CARDS line ${card.id} names a card the ${what} file does not reveal`);
+        }
+    });
+
+    // Entities with no card in the file carry only face-down attributes (effects excepted, [W-31]).
+    const anonymous = new Set<string>();
+    const faceDownOnly = (a: unknown): boolean => !isObject(a) || Object.keys(a).every((k) => isFaceDownAttribute(k));
     file.records.forEach((r, i) => {
         const rec = r as unknown;
-        if (!isObject(rec) || (rec.t !== 'create' && rec.t !== 'reveal') || typeof rec.card !== 'string') {
+        if (!isObject(rec)) {
             return;
         }
-        const to: Audience | unknown = rec.to === undefined && rec.t === 'create' ? 'all' : rec.to;
-        if (!holds(to, seat)) {
-            out.add('profile', lines.records[i], `a ${rec.t} of a card that ${seat === null ? 'is not shown to everyone' : `seat ${seat} does not know`} has no place in a ${what} file`);
+        const key = String(rec.e);
+        const attrs = rec.a;
+        if (rec.t === 'create' && rec.card === undefined && !(isObject(attrs) && attrs.kind === 'effect')) {
+            anonymous.add(key);
+            if (!faceDownOnly(attrs)) {
+                out.add('profile', lines.records[i], `an entity with no card in a ${what} file carries only face-down attributes`);
+            }
+        } else if (rec.t === 'reveal') {
+            anonymous.delete(key);
+        } else if (rec.t === 'set' && anonymous.has(key) && !faceDownOnly(attrs)) {
+            out.add('profile', lines.records[i], `an entity with no card in a ${what} file carries only face-down attributes`);
+        } else if (rec.t === 'remove') {
+            anonymous.delete(key);
         }
     });
-    if (file.cards.length > 0 || lines.banners.has('CARDS')) {
-        const ids = mentionedIds(file);
-        file.cards.forEach((c, i) => {
-            const card = c as unknown;
-            if (isObject(card) && typeof card.id === 'string' && !ids.has(card.id)) {
-                out.add('profile', lines.cards[i], `CARDS line ${card.id} names a card the ${what} file does not mention`);
-            }
-        });
-    }
 }
 
 /** `card-not-indexed` ([V-09]): when the file has a `CARDS` section, every created or revealed card needs a line. */

@@ -33,6 +33,12 @@ export const schema = {
                 }
             ]
         },
+        "cardId": {
+            "title": "CardId",
+            "description": "A card id (SPEC 6.1, Appendix B.3): SET#NUM, TOKEN:name#id or TOKEN:name.",
+            "type": "string",
+            "pattern": "^(?:[A-Z0-9]+#[0-9]{3,}|TOKEN:[a-z0-9]+(?:-[a-z0-9]+)*(?:#[0-9]+)?)$"
+        },
         "audience": {
             "title": "Audience",
             "description": "Who knows an identity: everyone, or the listed seats.",
@@ -116,22 +122,29 @@ export const schema = {
                     ]
                 },
                 "GameId": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
                 },
                 "Date": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,9})?(?:Z|[+-][0-9]{2}:[0-9]{2})$"
                 },
                 "CardPool": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[A-Z0-9]+(?:,[A-Z0-9]+)*$"
                 },
                 "Engine": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9._-]+@[!-~]+$"
                 },
                 "P1Id": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
                 },
                 "P2Id": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
                 },
                 "P1": {
                     "type": "string"
@@ -140,25 +153,60 @@ export const schema = {
                     "type": "string"
                 },
                 "P1Leader": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^(?:[A-Z0-9]+#[0-9]{3,}|TOKEN:[a-z0-9]+(?:-[a-z0-9]+)*(?:#[0-9]+)?)(?:,(?:[A-Z0-9]+#[0-9]{3,}|TOKEN:[a-z0-9]+(?:-[a-z0-9]+)*(?:#[0-9]+)?))?$"
                 },
                 "P1Base": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^(?:[A-Z0-9]+#[0-9]{3,}|TOKEN:[a-z0-9]+(?:-[a-z0-9]+)*(?:#[0-9]+)?)$"
                 },
                 "P2Leader": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^(?:[A-Z0-9]+#[0-9]{3,}|TOKEN:[a-z0-9]+(?:-[a-z0-9]+)*(?:#[0-9]+)?)(?:,(?:[A-Z0-9]+#[0-9]{3,}|TOKEN:[a-z0-9]+(?:-[a-z0-9]+)*(?:#[0-9]+)?))?$"
                 },
                 "P2Base": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^(?:[A-Z0-9]+#[0-9]{3,}|TOKEN:[a-z0-9]+(?:-[a-z0-9]+)*(?:#[0-9]+)?)$"
                 },
                 "Result": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "P1",
+                        "P2",
+                        "Draw",
+                        "Incomplete"
+                    ]
                 },
                 "Reason": {
                     "type": "string"
                 },
                 "Rounds": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                },
+                "EndDate": {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,9})?(?:Z|[+-][0-9]{2}:[0-9]{2})$"
+                },
+                "Match": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "Undos": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                },
+                "WriterErrors": {
+                    "type": "string",
+                    "pattern": "^[0-9]+$"
+                },
+                "GameNumber": {
+                    "type": "string",
+                    "pattern": "^[0-9]*[1-9][0-9]*$"
+                },
+                "WriterRevision": {
+                    "type": "string",
+                    "pattern": "^[0-9]*[1-9][0-9]*$"
                 }
             },
             "required": [
@@ -196,14 +244,12 @@ export const schema = {
                 "leaders": {
                     "type": "array",
                     "items": {
-                        "type": "string",
-                        "minLength": 1
+                        "$ref": "#/$defs/cardId"
                     },
                     "minItems": 1
                 },
                 "base": {
-                    "type": "string",
-                    "minLength": 1
+                    "$ref": "#/$defs/cardId"
                 },
                 "complete": {
                     "type": "boolean"
@@ -216,8 +262,7 @@ export const schema = {
                                 "type": "array",
                                 "prefixItems": [
                                     {
-                                        "type": "string",
-                                        "minLength": 1
+                                        "$ref": "#/$defs/cardId"
                                     },
                                     {
                                         "type": "integer",
@@ -231,8 +276,7 @@ export const schema = {
                                 "type": "array",
                                 "prefixItems": [
                                     {
-                                        "type": "string",
-                                        "minLength": 1
+                                        "$ref": "#/$defs/cardId"
                                     }
                                 ],
                                 "items": false,
@@ -247,8 +291,7 @@ export const schema = {
                         "type": "array",
                         "prefixItems": [
                             {
-                                "type": "string",
-                                "minLength": 1
+                                "$ref": "#/$defs/cardId"
                             },
                             {
                                 "type": "integer",
@@ -262,8 +305,7 @@ export const schema = {
                 "order": {
                     "type": "array",
                     "items": {
-                        "type": "string",
-                        "minLength": 1
+                        "$ref": "#/$defs/cardId"
                     }
                 }
             },
@@ -282,8 +324,7 @@ export const schema = {
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "string",
-                    "minLength": 1
+                    "$ref": "#/$defs/cardId"
                 },
                 "name": {
                     "type": "string"
@@ -357,8 +398,7 @@ export const schema = {
                     "minLength": 1
                 },
                 "card": {
-                    "type": "string",
-                    "minLength": 1
+                    "$ref": "#/$defs/cardId"
                 },
                 "to": {
                     "$ref": "#/$defs/audience"
@@ -555,8 +595,7 @@ export const schema = {
                     "minimum": 1
                 },
                 "card": {
-                    "type": "string",
-                    "minLength": 1
+                    "$ref": "#/$defs/cardId"
                 },
                 "to": {
                     "$ref": "#/$defs/audience"

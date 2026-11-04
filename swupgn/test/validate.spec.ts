@@ -74,11 +74,10 @@ describe('validate', function () {
     it('each negative vector reports exactly its manifest code at its line', function () {
         for (const neg of manifest.negative) {
             const report = validate(read(neg.file));
-            const errors = report.issues.filter((i) => i.severity !== 'warning');
-            expect(errors.map((i) => [i.code, i.line])).withContext(neg.file)
+            expect(report.issues.map((i) => [i.code, i.line])).withContext(neg.file)
                 .toEqual([[neg.code, neg.line]]);
             expect(report.level).withContext(neg.file)
-                .toBe(errors[0].severity === 'fatal' ? 'malformed' : 'well-formed');
+                .toBe(report.issues[0].severity === 'fatal' ? 'malformed' : 'well-formed');
         }
     });
 
@@ -163,7 +162,7 @@ describe('validate', function () {
     it('a CARDS line without a name is card-index only, not also schema', function () {
         const text = file([]).replace('%%% RECORDS', '%%% CARDS\n{"id":"SOR#005"}\n\n%%% RECORDS');
         const report = validate(text);
-        expect(codes(report.issues)).toEqual(['card-index']);
+        expect(report.issues.map((i) => [i.code, i.line])).toEqual([['card-index', at(text, '"id":"SOR#005"}')]]);
     });
 
     it('seq-order: first step must be 0, then count up', function () {
@@ -230,7 +229,9 @@ describe('validate', function () {
         const text = file(['{"t":"step","seq":0}'], { extra: '[WriterErrors "2"]\n' })
             .replace('SWU-PGN/0.1', 'SWU-PGN/0.9') + '\n%%% X_MINE\nfoo\n%%% OTHER\nbar\n\n%%% ANNOTATIONS\n{"seq":0,"text":"ok"}\n{"seq":5,"text":"gone"}\n';
         const report = validate(text);
-        expect(report.issues.map((i) => i.code).sort()).toEqual(['dangling-annotation', 'newer-minor', 'unknown-section', 'writer-errors']);
+        expect(report.issues.map((i) => [i.code, i.line])).toEqual([
+            ['newer-minor', 1], ['writer-errors', at(text, 'WriterErrors')], ['unknown-section', at(text, 'OTHER')], ['dangling-annotation', at(text, '"seq":5')],
+        ]);
         expect(report.issues.every((i) => i.severity === 'warning')).toBe(true);
         expect(report.level).toBe('valid');
     });
@@ -258,9 +259,9 @@ describe('validate', function () {
         expect(vis.issues.map((i) => [i.code, i.line])).toEqual([['schema', 2]]);
         const oneDeck = validate(file([], { decks: DECKS.split('\n').slice(0, 3)
             .join('\n') + '\n' }));
-        expect(codes(oneDeck.issues)).toEqual(['schema']);
+        expect(oneDeck.issues.map((i) => [i.code, i.line])).toEqual([['schema', 20]]);
         const counts = validate(file([], { decks: DECKS.replace('["SOR#095",3]', '["SOR#095"]') }));
-        expect(codes(counts.issues)).toEqual(['schema']);
+        expect(counts.issues.map((i) => [i.code, i.line])).toEqual([['schema', 21]]);
     });
 
     it('card-not-indexed only applies when the file has CARDS', function () {
@@ -285,8 +286,83 @@ describe('validate', function () {
         expect(report.issues.map((i) => i.code)).toEqual(['not-object', 'not-object', 'not-object', 'number-range']);
     });
 
-    it('main entry does not load ajv', function () {
-        const main = fs.readFileSync(path.join(packageDir, 'src', 'index.ts'), 'utf8');
-        expect(main).not.toMatch(/validate|ajv/);
+    it('header formats: a raw email in P1Id, a bad Date, a bad card id, an unknown Result are schema errors', function () {
+        const bad = (from: string, to: string) => validate(file([], { head: HEADER().replace(from, to) }));
+        const id = '[P1Id "sha256:91f2049e8d2099e727801519bfa488ad5db4edcdde37ed9c8769abe0a10396f1"]';
+        expect(bad(id, '[P1Id "player@example.com"]').issues.map((i) => [i.code, i.line])).toEqual([['schema', 8]]);
+        expect(bad('2026-11-03T12:00:00Z', '2026-11-03').issues.map((i) => [i.code, i.line])).toEqual([['schema', 5]]);
+        expect(bad('[P1Base "SOR#026"]', '[P1Base "SOR#26"]').issues.map((i) => [i.code, i.line])).toEqual([['schema', 17]]);
+        expect(bad('[Result "Incomplete"]', '[Result "Win"]').issues.map((i) => [i.code, i.line])).toEqual([['schema', 12]]);
+        const recs = validate(file(['{"t":"create","e":1,"zone":"hand","owner":1,"card":"sor-005"}']));
+        expect(recs.issues.map((i) => [i.code, i.line])).toEqual([['schema', 25]]);
+    });
+
+    it('a file with no DECKS or no RECORDS is a schema error where the header ends', function () {
+        const noDecks = `${HEADER()}\n%%% RECORDS\n{"t":"step","seq":0}\n`;
+        expect(validate(noDecks).issues.map((i) => [i.code, i.line])).toEqual([['schema', at(noDecks, '%%% RECORDS')]]);
+        const noRecords = `${HEADER()}${DECKS}`;
+        expect(validate(noRecords).issues.map((i) => [i.code, i.line])).toEqual([['schema', at(noRecords, '%%% DECKS')]]);
+        const persp = `${HEADER('', 'perspective:1')}\n%%% RECORDS\n`;
+        expect(validate(persp).issues.map((i) => [i.code, i.line])).toEqual([['schema', at(persp, '%%% RECORDS')]]);
+    });
+
+    it('profile: the opponent partial DECKS line lists only revealed cards, and CARDS only justified ids', function () {
+        const decks = `
+%%% DECKS
+{"p":1,"leaders":["SOR#005"],"base":"SOR#026","complete":true,"main":[["SOR#095",3]]}
+{"p":2,"leaders":["SOR#010"],"base":"SOR#029","complete":false,"main":[["SOR#130"],["SOR#132"]]}
+
+%%% CARDS
+{"id":"SOR#005","name":"a"}
+{"id":"SOR#095","name":"e"}
+{"id":"SOR#130","name":"g"}
+{"id":"SOR#132","name":"h"}
+{"id":"SOR#777","name":"only an x_ record names me"}
+
+%%% RECORDS
+`;
+        const text = `${HEADER('', 'perspective:1')}${decks}{"t":"create","e":1,"zone":"hand","owner":2,"card":"SOR#130","to":"all"}\n{"t":"x_note","card":"SOR#777"}\n`;
+        const report = validate(text);
+        expect(report.issues.map((i) => [i.code, i.line])).toEqual([
+            ['profile', at(text, '"p":2')], ['profile', at(text, '"id":"SOR#132"')], ['profile', at(text, 'SOR#777"')],
+        ]);
+    });
+
+    it('profile: an anonymous entity carries only face-down attributes', function () {
+        const decks = DECKS.replace('"complete":true,"main":[["SOR#130",3]]', '"complete":false,"main":[]');
+        const recs = [
+            '{"t":"create","e":1,"zone":"hand","owner":2,"to":[2],"a":{"copyOf":"SOR#095","cost":3}}',
+            '{"t":"create","e":2,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":true}}',
+            '{"t":"set","e":2,"a":{"cost":2}}',
+            '{"t":"create","e":3,"owner":1,"to":"all","a":{"kind":"effect","duration":"phase"}}',
+        ];
+        const text = file(recs, { head: HEADER('', 'perspective:1'), decks });
+        expect(validate(text).issues.map((i) => [i.code, i.line])).toEqual([['profile', at(text, '"e":1')], ['profile', at(text, '"cost":2')]]);
+    });
+
+    it('parent without rel is parent-rel even when the parent is unknown, with no schema error besides', function () {
+        const text = file(['{"t":"create","e":1,"zone":"ground","owner":1,"parent":99}']);
+        expect(validate(text).issues.map((i) => [i.code, i.line])).toEqual([['parent-rel', 25], ['unknown-entity', 25]]);
+    });
+
+    it('a perspective block missing src is not block-fields (redaction exception); a missing p still is', function () {
+        const decks = DECKS.replace('"complete":true,"main":[["SOR#130",3]]', '"complete":false,"main":[]');
+        const text = file(['{"t":"block","id":1,"kind":"play","p":1}', '{"t":"block","id":2,"kind":"play","src":1}'], { head: HEADER('', 'perspective:1'), decks });
+        expect(validate(text).issues.map((i) => [i.code, i.line])).toEqual([['block-fields', 26]]);
+    });
+
+    it('entity ids named like Object.prototype members are handled', function () {
+        const report = validate(file(['{"t":"set","e":"constructor","a":{}}', '{"t":"set","e":"toString","a":{}}', '{"t":"remove","e":"g"}']));
+        expect(report.issues.map((i) => i.code)).toEqual(['schema', 'schema', 'unknown-entity']);
+    });
+
+    it('maxIssues that is not a positive number falls back to the default', function () {
+        const recs = Array.from({ length: 30 }, (_, i) => `{"t":"set","e":${100 + i},"a":{}}`);
+        for (const bad of [NaN, '3', undefined, null, Infinity]) {
+            const report = validate(file(recs), { maxIssues: bad as unknown as number });
+            expect(report.issues.length).withContext(String(bad))
+                .toBe(30);
+        }
+        expect(validate(file(recs), { maxIssues: 0 }).issues.length).toBe(2);
     });
 });

@@ -87,9 +87,9 @@ describe('swupgn.schema.json', function () {
 
     describe('header', function () {
         const valid: Record<string, string> = {
-            Game: 'SWU-PGN/0.1', Visibility: 'full', Steps: 'decision', GameId: 'g1', Date: '2026.11.03',
-            CardPool: 'ic27', Engine: 'x', P1Id: 'a', P2Id: 'b', P1: 'A', P2: 'B', P1Leader: 'SOR#005',
-            P1Base: 'SOR#026', P2Leader: 'SOR#010', P2Base: 'SOR#029', Result: 'p1', Reason: 'base', Rounds: '3',
+            Game: 'SWU-PGN/0.1', Visibility: 'full', Steps: 'decision', GameId: 'g1', Date: '2026-11-03T12:00:00Z',
+            CardPool: 'SOR', Engine: 'x@1', P1Id: `sha256:${'a'.repeat(64)}`, P2Id: `sha256:${'b'.repeat(64)}`, P1: 'A', P2: 'B', P1Leader: 'SOR#005',
+            P1Base: 'SOR#026', P2Leader: 'SOR#010', P2Base: 'SOR#029', Result: 'P1', Reason: 'base', Rounds: '3',
         };
 
         it('accepts the required tags and unknown tags', function () {

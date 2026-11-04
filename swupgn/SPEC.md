@@ -758,7 +758,7 @@ Every step is reached by applying the file from the start. There are no snapshot
 - **[V-07]** A validator MUST report a `zone` that is not in its zone registry (`bad-zone`) and a `rel` that is not in its relation registry (`bad-relation`).
 - **[V-08]** A validator MUST report every breach of the profile rules of [§10.4](#104-profile-rules) (`profile`).
 - **[V-09]** When the file has a `CARDS` section, a validator MUST report a `create` or `reveal` whose `card` has no `CARDS` line (`card-not-indexed`), and a `CARDS` line without a string `id` and a string `name` (`card-index`).
-- **[V-10]** A validator MUST report as `schema` a `DECKS` section that does not hold exactly one line for each seat, and a `DECKS` line that breaks [§12.1](#121-decks).
+- **[V-10]** A validator MUST report as `schema` a file with no `DECKS` section or no `RECORDS` section ([W-04]), at the line where the header ends (the first banner, or the last line of a file with none), a `DECKS` section that does not hold exactly one line for each seat, and a `DECKS` line that breaks [§12.1](#121-decks).
 - **[V-11]** A validator MUST report `result-mismatch` when the `Result` tag disagrees with `g.result` at the last step ([§5.2](#52-optional-tags)).
 - **[V-12]** A validator MUST report these warnings: `writer-errors` when `WriterErrors` is above zero; `newer-minor` when the file's minor version is above its own; `unknown-type` for a record whose `t` it does not know and that does not begin with `x_`; `unknown-section` for a section it does not know whose name does not begin with `X_`; `dangling-annotation` for an annotation whose `seq` names no step in the file.
 - **[V-13]** A validator MAY stop listing issues after a cap of at least 1000. It then reports `too-many-issues` once. The level still counts every issue, listed or not.
@@ -879,6 +879,14 @@ A file whose `Visibility` is `public`:
 - has no `DECKS` line with `order`;
 - has no `create` or `reveal` with a `card` whose `to` is not `"all"` (a `create` with `card` and no `to` is `"all"`);
 - has no `CARDS` line whose `id` does not appear in the file's header, `DECKS` or `RECORDS`.
+
+In both profiles, three further rules close leaks that the rules above leave open. Let a card id be
+**shown** when a `create` or `reveal` with that `card` has a `to` that holds N (for `public`: a `to`
+of `"all"`):
+
+- a `DECKS` line that is not complete lists in `main` only shown card ids (its `leaders` and `base` are public from setup and are not restricted);
+- a `CARDS` line's `id` is the id of a header leader or base, a card id of a `DECKS` line of the profile's own complete deck, a `leaders` or `base` of any `DECKS` line, or a shown card id. It is not justified by an `x_` record, a record of an unknown type, a `set`, or the text of an annotation;
+- a `create` with no `card`, unless it is an effect (`a.kind` is `effect`, [W-31]), carries only attributes marked face-down in the attribute registry ([§22.1](#221-attributes)); and a `set` of such an entity, until a `reveal` gives it a `card`, writes only those attributes.
 
 A file whose `Visibility` is `full` has no profile rules beyond the rest of this document.
 
@@ -1224,7 +1232,7 @@ Each way a game record could leak is closed by a rule of this document:
 - **How long a card sat in hand.** The opponent's hand is a count, not a list of entities ([§10.3](#103-what-a-viewer-can-track)). A viewer cannot follow one hidden card through the rounds. Only a card the viewer already knows stays an entity in the opponent's hand, and only until a card leaves that hand face down.
 - **Which known card left a hidden hand.** When any card leaves a hand the viewer cannot see face down (into the resource row or a deck), the viewer loses track of every card it knew in that hand, and each is removed from the file ([R-17], [W-63]). Removing only the card that left would name it. It applies even when the card was revealed to the viewer a moment before. No block or `ref` attribute names a card in a hidden hand ([R-09], [§11.1](#111-state)), so a block written before the move cannot name the card either ([W-66]). A forgotten card comes back, as a fresh entity, only once the viewer sees it again ([W-43], [W-44]).
 - **Ids that carry history.** Entity ids carry no information and are renumbered by order of first use ([R-14]); a card that comes back from the deck is a new entity ([W-22]). Ids are per file: an id in one profile's file says nothing about the same id in another's ([§6.2](#62-entity-ids)), so two players' files cannot be joined to rebuild both hands.
-- **The seed, the deck order, the opponent's deck list and sideboard, and names of unseen cards.** `Seed` is dropped, `order` is dropped, the opponent's `DECKS` line lists only cards the file reveals, and `CARDS` keeps only ids the file uses ([R-11]).
+- **The seed, the deck order, the opponent's deck list and sideboard, and names of unseen cards.** `Seed` is dropped, `order` is dropped, the opponent's `DECKS` line lists only cards the file reveals, and `CARDS` keeps only ids the file uses ([R-11]). A validator checks each of these against the file itself ([§10.4](#104-profile-rules)): a deck list that names an unrevealed card, a `CARDS` line justified only by a record the viewer cannot apply, and an attribute such as `copyOf` or `cost` on an entity the viewer knows only as a face-down card are `profile` errors.
 - **Notes and prose.** `STORY` and `ANNOTATIONS` of a `full` file are not copied ([R-13]).
 
 A block of an unseen action is kept, without its references: that the opponent drew, searched or

@@ -25,6 +25,10 @@ export type AttrValue =
           [k: string]: AttrValue;
       };
 /**
+ * A card id (SPEC 6.1, Appendix B.3): SET#NUM, TOKEN:name#id or TOKEN:name.
+ */
+export type CardId = string;
+/**
  * Any RECORDS line of a known type.
  */
 export type SwuRecord = CreateRecord | SetRecord | RemoveRecord | RevealRecord | StepRecord | BlockRecord;
@@ -47,7 +51,7 @@ export interface CreateRecord {
     controller?: Seat;
     parent?: EntityId;
     rel?: string;
-    card?: string;
+    card?: CardId;
     to?: Audience;
     a?: Attrs;
 }
@@ -68,7 +72,7 @@ export interface RemoveRecord {
 export interface RevealRecord {
     t: 'reveal';
     e: number;
-    card: string;
+    card: CardId;
     to: Audience;
 }
 export interface StepRecord {
@@ -99,17 +103,17 @@ export interface DeckLine {
      * @minItems 1
      */
     leaders: string[];
-    base: string;
+    base: CardId;
     complete: boolean;
     main: Array<[string, number] | [string]>;
     sideboard?: Array<[string, number]>;
-    order?: string[];
+    order?: CardId[];
 }
 /**
  * One CARDS line: the display name of a card id.
  */
 export interface CardLine {
-    id: string;
+    id: CardId;
     name: string;
     backSideName?: string;
 }

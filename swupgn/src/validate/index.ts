@@ -6,7 +6,7 @@ import type { ParseLimits } from '../parse.js';
 import { schema } from '../generated/schema.js';
 import { ERROR_CODES } from '../registry.js';
 import { Collector } from './issues.js';
-import type { Issue, ValidationReport } from './issues.js';
+import type { ValidationReport } from './issues.js';
 import { checkCardIndex, checkProfile } from './profile.js';
 import { checkRecords, isObject, reportSchema, unsafeNumberPaths } from './structural.js';
 
@@ -42,21 +42,17 @@ function schemaCheck(def: string, value: unknown): ErrorObject[] {
     return fn(value) ? [] : [...(fn.errors ?? [])];
 }
 
-function fatal(e: unknown): Issue {
-    if (e instanceof SwuPgnError && FATAL_CODES.has(e.code)) {
-        return { code: e.code, severity: 'fatal', ...(e.line !== undefined ? { line: e.line } : {}), message: e.message };
-    }
-    // Not a parse error: report the nearest fatal code rather than fail ([V-02]).
-    const stack = e instanceof RangeError;
-    return { code: stack ? 'too-deep' : 'bad-json', severity: 'fatal', message: e instanceof Error ? e.message : String(e) };
-}
-
 /**
  * Validate a `.swupgn` text (SPEC 9.5). Never throws. A file `parse` rejects is `malformed` with
  * that one issue; otherwise every rule is checked and checking continues past each issue.
  */
 export function validate(text: string, options: ValidateOptions = {}): ValidationReport {
-    const out = new Collector(options.maxIssues ?? DEFAULT_MAX_ISSUES);
+    const cap = typeof options.maxIssues === 'number' && Number.isFinite(options.maxIssues) ? Math.max(1, Math.floor(options.maxIssues)) : DEFAULT_MAX_ISSUES;
+    const out = new Collector(cap);
+    if (typeof text !== 'string') {
+        out.add('not-swupgn', undefined, 'the input is not text');
+        return out.report();
+    }
     try {
         const file = parse(text, options.limits);
         const lines = fileLinesOf(file);
@@ -109,8 +105,13 @@ export function validate(text: string, options: ValidateOptions = {}): Validatio
             }
             seats.set(deck.p, i);
         });
-        if (lines.banners.has('DECKS') && !(seats.has(1) && seats.has(2))) {
+        if (!lines.banners.has('DECKS')) {
+            out.add('schema', lines.headerEnd, 'the file has no DECKS section');
+        } else if (!(seats.has(1) && seats.has(2))) {
             out.add('schema', lines.banners.get('DECKS'), 'DECKS needs one line for each seat');
+        }
+        if (!lines.banners.has('RECORDS')) {
+            out.add('schema', lines.headerEnd, 'the file has no RECORDS section');
         }
         file.cards.forEach((c, i) => {
             const line = lines.cards[i];
@@ -141,7 +142,7 @@ export function validate(text: string, options: ValidateOptions = {}): Validatio
         // Result ([V-11]).
         const expected: Record<string, unknown> = { P1: 'p1', P2: 'p2', Draw: 'draw', Incomplete: undefined };
         const tag = file.header.Result;
-        if (!Object.prototype.hasOwnProperty.call(expected, tag) || expected[tag] !== result) {
+        if (Object.prototype.hasOwnProperty.call(expected, tag) && expected[tag] !== result) {
             out.add('result-mismatch', lines.tags.get('Result'), `Result ${tag} disagrees with the game result ${result === undefined ? '(none)' : JSON.stringify(result)}`);
         }
 
@@ -169,8 +170,10 @@ export function validate(text: string, options: ValidateOptions = {}): Validatio
             }
         });
     } catch (e) {
-        const f = fatal(e);
-        out.add(f.code, f.line, f.message);
+        if (!(e instanceof SwuPgnError) || !FATAL_CODES.has(e.code)) {
+            throw e;   // not a finding about the file: a bug, and hiding it as one would be wrong
+        }
+        out.add(e.code, e.line, e.message);
     }
     return out.report();
 }
