@@ -2,10 +2,12 @@ import type { Board, SwuPgnFile, SwuRecord } from '@swupgn/format';
 import { apply, cloneBoard, emptyBoard, serialize } from '@swupgn/format';
 import type { View } from '@swupgn/format/writer';
 import { redact } from '@swupgn/format/writer';
+import { SWUPGN_PROJECTION_CHECK } from '../../../env';
 import { logger } from '../../../logger';
 import type { Card } from '../card/Card';
 import type { GameEndReason, ZoneName } from '../Constants';
 import { EventName, PhaseName } from '../Constants';
+import type { GameEvent } from '../event/GameEvent';
 import type { Game } from '../Game';
 import type { UiPrompt } from '../gameSteps/prompts/UiPrompt';
 import type { Player } from '../Player';
@@ -48,6 +50,13 @@ const flushEvents: ReadonlyMap<EventName, LookFilter | null> = new Map([
 
 const maxLoggedErrors = 5;
 
+/** Events that exhaust or ready resources by count, naming no card: every resource is read again. */
+const bulkResourceEvents: ReadonlySet<string> = new Set([EventName.OnExhaustResources, EventName.OnReadyResources]);
+
+function isCardValue(value: unknown): value is Card {
+    return typeof value === 'object' && value !== null && typeof (value as { isCard?: unknown }).isCard === 'function' && (value as Card).isCard();
+}
+
 /**
  * Writes the SWU-PGN records of a game: at each decision point (each pause of `Game.continue()`) and at the flush
  * points it projects the board, appends `diff(previous, next)`, and at a decision point writes a `step`.
@@ -70,15 +79,25 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
     private lastPrompt: UiPrompt | null | undefined = undefined;
     private lastPromptPlayers: readonly Player[] = [];
 
+    /**
+     * Checks every flush's dirty projection against the full one (`SWUPGN_PROJECTION_CHECK=1`; specs may set it). A
+     * mismatch counts as a writer error, is logged once with the first differing entity, and the full board is written.
+     */
+    public checkProjections: boolean = SWUPGN_PROJECTION_CHECK;
+    private mismatchLogged = false;
+
     public constructor(
         private readonly game: Game,
         mode: Exclude<SwuPgnWriterMode, 'off'>
     ) {
         this.state = new SwuPgnWriterState(game);
-        this.audiences = new AudienceTracker(game, this.state);
+        this.audiences = new AudienceTracker(game, this.state, (card) => this.projector.markDirty(card));
         // the tracker listens first, so a flush on the same event sees the cards it widened
         this.audiences.register();
         this.projector = new BoardProjector(game, this.state, this.audiences);
+        this.state.onRestored = () => this.projector.invalidate();
+        // and the dirty marks come before the flush on the same event
+        this.registerDirtySources();
         this.registerFlushPoints(mode);
         if (countSwuPgnWriterStats) {
             swuPgnWriterStats.writers++;
@@ -97,6 +116,19 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
     /** Failures caught so far, the writer's and its audience tracker's (the `WriterErrors` header tag). */
     public get errors(): number {
         return this._errors + this.audiences.errors;
+    }
+
+    /**
+     * The board was changed outside the engine's events (the test harness sets damage, moves cards, exhausts): the
+     * next projection reads every card.
+     */
+    public onBoardChangedOutsideEngine(): void {
+        this.projector.invalidate();
+    }
+
+    /** The projector the writer flushes with (for specs: its cached and full projections). */
+    public get boardProjector(): BoardProjector {
+        return this.projector;
     }
 
     /** The board the records describe: `apply(records)` gives it. */
@@ -158,6 +190,7 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
      */
     public onRolledBack(): void {
         this.guard('rollback', () => {
+            this.projector.invalidate();
             this.resyncAfterRestore();
             this._undos++;
             this.lastPrompt = undefined;
@@ -168,11 +201,17 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
 
     /** A card was put into a deck: it becomes a new entity if it comes back (W-22). */
     public onCardEnteredDeck(card: Card): void {
-        this.guard('deck entry', () => this.state.bumpGeneration(card));
+        this.guard('deck entry', () => {
+            this.projector.markDirty(card);
+            this.state.bumpGeneration(card);
+        });
     }
 
     public onCardEnteredZone(card: Card, zoneName: ZoneName): void {
-        this.guard('zone entry', () => this.audiences.onCardEnteredZone(card, zoneName));
+        this.guard('zone entry', () => {
+            this.projector.markDirty(card);
+            this.audiences.onCardEnteredZone(card, zoneName);
+        });
     }
 
     /**
@@ -183,6 +222,8 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         this._records.length = 0;
         this.state.reset();
         this.audiences.reset();
+        this.projector.invalidate();
+        this.mismatchLogged = false;
         this.prev = emptyBoard();
         this._undos = 0;
         this._errors = 0;
@@ -199,7 +240,10 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         let flushed = false;
         try {
             this.resyncAfterRestore();
-            const next = this.projector.project(ending);
+            let next = this.projector.project(ending);
+            if (this.checkProjections) {
+                next = this.checkedAgainstFull(next, ending);
+            }
             const records = diffBoards(this.prev, next);
             if (countSwuPgnWriterStats) {
                 swuPgnWriterStats.projections++;
@@ -282,6 +326,64 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         return null;
     }
 
+    /**
+     * The dirty projection checked against the full one: the full board when they differ, after counting the error and
+     * dropping the cache, so one missed dirty source is not counted again at every later flush.
+     */
+    private checkedAgainstFull(dirty: Board, ending: LookFilter | null): Board {
+        const full = this.projector.projectFull(ending);
+        const difference = firstDifference(dirty, full);
+        if (difference === null) {
+            return dirty;
+        }
+        this._errors++;
+        if (!this.mismatchLogged) {
+            this.mismatchLogged = true;
+            logger.error('SWU-PGN: writer dirty projection differs from the full projection', { ...difference, lobbyId: this.game.lobbyId });
+        }
+        this.projector.invalidate();
+        return full;
+    }
+
+    /**
+     * Marks dirty every card a resolved event names, and the card whose ability raised it. It listens on the emit
+     * right after each event's handler, not on `:postResolve`: between the two the window checks the unique rule (a
+     * prompt, so a decision point) and resolves the game state (which can end the game, so a flush).
+     */
+    private registerDirtySources(): void {
+        const mark = (event: GameEvent) => {
+            try {
+                this.markEventCards(event);
+            } catch (error) {
+                this.reportError('dirty marking', error);
+            }
+        };
+        for (const name of Object.values(EventName)) {
+            this.game.on(name, mark);
+        }
+    }
+
+    private markEventCards(event: GameEvent): void {
+        if (bulkResourceEvents.has(event.name)) {
+            this.projector.markResourcesDirty();
+        }
+        const source: unknown = event.context?.source;
+        if (isCardValue(source)) {
+            this.projector.markDirty(source);
+        }
+        for (const value of Object.values(event) as unknown[]) {
+            if (isCardValue(value)) {
+                this.projector.markDirty(value);
+            } else if (Array.isArray(value)) {
+                for (const item of value as unknown[]) {
+                    if (isCardValue(item)) {
+                        this.projector.markDirty(item);
+                    }
+                }
+            }
+        }
+    }
+
     private registerFlushPoints(mode: Exclude<SwuPgnWriterMode, 'off'>): void {
         if (mode === 'decision') {
             return;
@@ -310,4 +412,32 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
             logger.error(`SWU-PGN: writer ${what} failed`, { error, lobbyId: this.game.lobbyId });
         }
     }
+}
+
+/** The first entity two boards disagree on, both sides of it; null when the boards are the same. */
+function firstDifference(dirty: Board, full: Board): { entity: string; dirty: unknown; full: unknown } | null {
+    const ids = new Set([...Object.keys(dirty.entities), ...Object.keys(full.entities)]);
+    for (const id of ids) {
+        if (!sameValue(dirty.entities[id], full.entities[id])) {
+            return { entity: id, dirty: dirty.entities[id], full: full.entities[id] };
+        }
+    }
+    return null;
+}
+
+/** Deep equality of JSON-shaped values; key order does not matter. */
+function sameValue(a: unknown, b: unknown): boolean {
+    if (a === b) {
+        return true;
+    }
+    if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null || Array.isArray(a) !== Array.isArray(b)) {
+        return false;
+    }
+    if (Array.isArray(a) && Array.isArray(b)) {
+        return a.length === b.length && a.every((item, i) => sameValue(item, b[i]));
+    }
+    const left = a as Record<string, unknown>;
+    const right = b as Record<string, unknown>;
+    const keys = Object.keys(left);
+    return keys.length === Object.keys(right).length && keys.every((key) => key in right && sameValue(left[key], right[key]));
 }

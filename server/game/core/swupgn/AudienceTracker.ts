@@ -29,9 +29,14 @@ const publicZones: ReadonlySet<string> = new Set(ZONES.filter((zone) => zone.opp
 export class AudienceTracker {
     private _errors = 0;
 
+    /**
+     * `onShown` is told of each card a reveal, look or search widens: its entity's `to` may change with no other event
+     * touching the card, so a cached projection must read it again.
+     */
     public constructor(
         private readonly game: Game,
-        private readonly state: SwuPgnWriterState
+        private readonly state: SwuPgnWriterState,
+        private readonly onShown: ((card: Card) => void) | null = null
     ) {}
 
     /** Handler failures caught so far. A failure here never reaches the game. */
@@ -57,9 +62,9 @@ export class AudienceTracker {
      * - a deck gives the seats that saw it,
      * - a hand or the resource row gives the owner and every seat it was shown to.
      *
-     * A list holding both seats is `'all'`.
+     * A list holding both seats is `'all'`. `owner` is the owner's seat when the caller has it.
      */
-    public audienceFor(card: Card, zone: string): Audience {
+    public audienceFor(card: Card, zone: string, owner: Seat | null = null): Audience {
         const key = this.state.cardKey(card);
         if (publicZones.has(zone)) {
             if (this.state.audienceOf(key).length < 2) {
@@ -70,7 +75,7 @@ export class AudienceTracker {
 
         const seats = new Set<Seat>(this.state.audienceOf(key));
         if (zone !== 'deck') {
-            seats.add(this.seatOf(card.owner));
+            seats.add(owner ?? this.seatOf(card.owner));
         }
         return seats.size === 2 ? 'all' : [...seats];
     }
@@ -164,6 +169,7 @@ export class AudienceTracker {
 
     private show(cards: readonly Card[], seats: Seat[] | 'all'): void {
         for (const card of cards) {
+            this.onShown?.(card);
             const key = this.state.cardKey(card);
             this.state.widen(key, seats);
             if (card.zoneName === ZoneName.Deck) {

@@ -43,6 +43,16 @@ export class SwuPgnWriterState extends GameObjectBase {
      */
     @statePrimitive() public accessor atStep = false;
 
+    /**
+     * Not state: told when a snapshot restore sets this object's state. The pipeline can run (and the writer flush)
+     * inside a rollback before `Game` reports it, so the writer's projection cache is dropped here.
+     */
+    public onRestored: (() => void) | null = null;
+
+    protected override afterSetState(): void {
+        this.onRestored?.();
+    }
+
     // Nothing references this object, so the snapshot system must be told to keep it.
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public override get alwaysTrackState(): boolean {

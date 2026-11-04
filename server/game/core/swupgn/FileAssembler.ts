@@ -82,8 +82,19 @@ function gameEndReasonString(reason: GameEndReason | undefined): string {
     }
 }
 
+/**
+ * The `CardPool` from each card data source's set-code index, computed once per source: the server holds one for the
+ * life of the process, and the index has thousands of entries.
+ */
+const cardPoolBySource = new WeakMap<object, string>();
+
 /** Which sets the card pool holds, from the card data's set-code index; failing that, the sets of the cards in the game. */
 function cardPool(game: Game): string {
+    const source = game.cardDataGetter;
+    const known = source ? cardPoolBySource.get(source) : undefined;
+    if (known !== undefined) {
+        return known;
+    }
     const sets = new Set<string>();
     const add = (set: string) => {
         const code = set.toUpperCase();
@@ -91,14 +102,21 @@ function cardPool(game: Game): string {
             sets.add(code);
         }
     };
-    for (const setCode of game.cardDataGetter?.setCodeMap?.keys() ?? []) {
+    for (const setCode of source?.setCodeMap?.keys() ?? []) {
         add(setCode.split('_')[0]);
     }
-    if (sets.size === 0) {
-        for (const card of game.allCards) {
-            if (!card.isToken()) {
-                add(card.setId.set);
-            }
+    if (sets.size > 0) {
+        const pool = [...sets].sort()
+            .join(',');
+        if (source) {
+            cardPoolBySource.set(source, pool);
+        }
+        return pool;
+    }
+    // no index: the game's own cards, which differ per game, so not cached
+    for (const card of game.allCards) {
+        if (!card.isToken()) {
+            add(card.setId.set);
         }
     }
     return [...sets].sort()

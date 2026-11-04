@@ -7,7 +7,8 @@ import type { Game } from '../Game';
 import type { OngoingEffect } from '../ongoingEffect/OngoingEffect';
 import type { Player } from '../Player';
 import { Contract } from '../utils/Contract';
-import { seatIn } from './projectCards';
+import type { SeatOf } from './projectCards';
+import { seatAmong } from './projectCards';
 import type { SwuPgnWriterState } from './SwuPgnWriterState';
 
 /** The registry's `duration` for each engine duration; `Persistent` reaches here only for a lasting effect. */
@@ -30,7 +31,13 @@ export type CardAudienceOf = (card: Card) => Audience;
  * One entity per lasting or delayed effect while it lasts (W-31), keyed `effect:${uuid}`.
  * Constant abilities' effects are card state, not entities. A target with no entity is left out of `targets`.
  */
-export function projectEffects(game: Game, state: SwuPgnWriterState, cardEntityId: CardEntityId, cardAudienceOf: CardAudienceOf): Record<string, Entity> {
+export function projectEffects(
+    game: Game,
+    state: SwuPgnWriterState,
+    seatOf: SeatOf,
+    cardEntityId: CardEntityId,
+    cardAudienceOf: CardAudienceOf
+): Record<string, Entity> {
     const entities: Record<string, Entity> = {};
     for (const effect of game.ongoingEffectEngine.effects) {
         if (isRecorded(effect) && effect.source.isCard()) {
@@ -40,7 +47,7 @@ export function projectEffects(game: Game, state: SwuPgnWriterState, cardEntityI
                 state.widen(key, cardAudienceOf(effect.source));
             }
             const id = state.entityIdFor(key);
-            entities[String(id)] = projectEffect(effect, effect.source, key, game, state, cardEntityId);
+            entities[String(id)] = projectEffect(effect, effect.source, key, seatOf, state, cardEntityId);
         }
     }
     return entities;
@@ -57,13 +64,13 @@ function isDelayed(effect: OngoingEffect): boolean {
     return effect.impl.type === EffectName.DelayedEffect;
 }
 
-function seatOrFail(game: Game, player: Player): Seat {
-    const seat = seatIn(game, player);
+function seatOrFail(seatOf: SeatOf, player: Player): Seat {
+    const seat = seatOf(player);
     Contract.assertNotNullLike(seat, `SWU-PGN: player ${player.name} has no seat`);
     return seat;
 }
 
-function projectEffect(effect: OngoingEffect, source: Card, key: string, game: Game, state: SwuPgnWriterState, cardEntityId: CardEntityId): Entity {
+function projectEffect(effect: OngoingEffect, source: Card, key: string, seatOf: SeatOf, state: SwuPgnWriterState, cardEntityId: CardEntityId): Entity {
     const frozen = state.audienceOf(key);
     const to: Audience = frozen.length === 2 ? 'all' : frozen;
 
@@ -72,12 +79,12 @@ function projectEffect(effect: OngoingEffect, source: Card, key: string, game: G
     if (src !== undefined) {
         a.src = src;
     }
-    a.targets = targetsOf(effect, game, cardEntityId);
+    a.targets = targetsOf(effect, seatOf, cardEntityId);
     a.duration = durationOf(effect);
-    return { owner: seatOrFail(game, source.controller), to, a };
+    return { owner: seatOrFail(seatOf, source.controller), to, a };
 }
 
-function targetsOf(effect: OngoingEffect, game: Game, cardEntityId: CardEntityId): AttrValue[] {
+function targetsOf(effect: OngoingEffect, seatOf: SeatOf, cardEntityId: CardEntityId): AttrValue[] {
     const targets: AttrValue[] = [];
     for (const target of effect.targets) {
         if (target.isCard()) {
@@ -86,7 +93,7 @@ function targetsOf(effect: OngoingEffect, game: Game, cardEntityId: CardEntityId
                 targets.push(id);
             }
         } else if (target.isPlayer()) {
-            targets.push(`p${seatOrFail(game, target)}`);
+            targets.push(`p${seatOrFail(seatOf, target)}`);
         }
     }
     return targets;
@@ -109,11 +116,11 @@ function durationOf(effect: OngoingEffect): string {
  * its uses. A `PerGameAbilityLimit` counts for the card whoever used it, so its count goes to the card's controller.
  * A gained ability whose grant has ended is no longer on the card, so its held uses are not listed.
  */
-export function abilityUsesOf(card: Card, game: Game): AttrValue[] | undefined {
+export function abilityUsesOf(card: Card, players: readonly Player[]): AttrValue[] | undefined {
     const uses: AttrValue[] = [];
     const abilities = new Set(card.getAllAbilitiesForRecording());
-    for (const player of game.getPlayers()) {
-        const seat = seatIn(game, player);
+    for (const player of players) {
+        const seat = seatAmong(players, player);
         if (seat === null) {
             continue;
         }

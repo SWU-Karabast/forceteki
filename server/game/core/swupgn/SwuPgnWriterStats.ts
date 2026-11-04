@@ -17,8 +17,14 @@ export interface ISwuPgnWriterStats {
 
     /** Flushes whose projection differed from the previous board, so records were appended. */
     flushes: number;
+
+    /** Card entities a dirty projection read from the game. */
+    cardsRead: number;
+
+    /** Card entities a dirty projection reused from its cache. */
+    cardsReused: number;
 }
 
 export const countSwuPgnWriterStats: boolean = SWUPGN_WRITER_STATS;
 
-export const swuPgnWriterStats: ISwuPgnWriterStats = { writers: 0, steps: 0, projections: 0, flushes: 0 };
+export const swuPgnWriterStats: ISwuPgnWriterStats = { writers: 0, steps: 0, projections: 0, flushes: 0, cardsRead: 0, cardsReused: 0 };

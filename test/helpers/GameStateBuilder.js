@@ -8,6 +8,21 @@ const { UnitTestCardDataGetter } = require('../../server/utils/cardData/UnitTest
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager');
 const { StateWatcherLibrary } = require('../../server/game/stateWatchers/StateWatcherLibrary');
 
+/**
+ * The SWU-PGN writer benchmark's Lobby baseline (`SWUPGN_BENCHMARK=lobby`): after each `Game.continue()`, which every
+ * player action ends in, build each seat's game state, as `Lobby.onGameMessage` does through `sendGameState`.
+ * @param {import('../../server/game/core/Game').Game} game
+ */
+function sendStateAfterEachDecision(game) {
+    const proceed = game.continue.bind(game);
+    game.continue = () => {
+        proceed();
+        for (const player of game.getPlayers()) {
+            game.getState(player.id);
+        }
+    };
+}
+
 class GameStateBuilder {
     constructor() {
         const directory = 'test/json';
@@ -243,6 +258,10 @@ class GameStateBuilder {
         // the board above was built with no decision point between its changes: record it as the starting board
         // (step 0, or no step during setup), before the snapshots below so that a rollback to them keeps it
         context.game.swuPgnWriter?.restartBaseline();
+
+        if (process.env.SWUPGN_BENCHMARK === 'lobby') {
+            sendStateAfterEachDecision(context.game);
+        }
 
         if (options.phase !== 'setup') {
             // reset snapshot history after setup so that the history doesn't hold any snapshots of the game state before setup

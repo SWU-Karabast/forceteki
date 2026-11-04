@@ -1156,7 +1156,8 @@ var customMatchers = {
                 if (card.printedCost !== targetCard.printedCost) {
                     failures.push(`printedCost: expected ${card.printedCost} but got ${targetCard.printedCost}`);
                 }
-                if (!Util.stringArraysEqual(card.aspects, targetCard.aspects)) {
+                // copies: stringArraysEqual sorts its arguments in place, which would reorder the cards' own aspects
+                if (!Util.stringArraysEqual([...card.aspects], [...targetCard.aspects])) {
                     failures.push(`aspects: expected ${card.aspects.join(', ')} but got ${targetCard.aspects.join(', ')}`);
                 }
                 if (card.defaultArena !== targetCard.defaultArena) {
@@ -1250,7 +1251,7 @@ var customMatchers = {
                 if (card.printedCost !== 7) {
                     failures.push(`printedCost: expected 7 but got ${card.printedCost}`);
                 }
-                if (!Util.stringArraysEqual(card.aspects, ['command'])) {
+                if (!Util.stringArraysEqual([...card.aspects], ['command'])) {
                     failures.push(`aspects: expected command but got ${card.aspects.join(', ')}`);
                 }
                 if (card.defaultArena !== 'groundArena') {

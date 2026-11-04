@@ -36,14 +36,23 @@ export type AbilityUsesOf = (card: Card) => AttrValue[] | undefined;
 
 /** Who knows each card on this board, and which deck cards are temporary entities (from the AudienceTracker). */
 export interface ICardAudiences {
-    audienceFor(card: Card, zone: string): Audience;
+
+    /** `owner` is the card owner's seat, which the caller has already resolved. */
+    audienceFor(card: Card, zone: string, owner: Seat): Audience;
     readonly viewedDeckCards: ReadonlySet<Card>;
 }
 
 /** The player's seat: the first player is seat 1, the second seat 2; null for anyone else. */
 export function seatIn(game: Game, player: Player | null): Seat | null {
-    const index = player ? game.getPlayers().indexOf(player) : -1;
-    return index === 0 ? 1 : index === 1 ? 2 : null;
+    return seatAmong(game.getPlayers(), player);
+}
+
+/** `seatIn` over a player list read once: a projection resolves the seats once, not once per card. */
+export function seatAmong(players: readonly Player[], player: Player | null): Seat | null {
+    if (player == null) {
+        return null;
+    }
+    return player === players[0] ? 1 : player === players[1] ? 2 : null;
 }
 
 /** Adds one entity per tracked card and token to `entities`, keyed by entity id. */
@@ -58,14 +67,26 @@ export function projectCards(
     for (const card of cards) {
         const zone = zoneOfEntity(card, audiences);
         if (zone !== null) {
-            const entity = projectCard(card, zone, state, seatOf, audiences);
-            const uses = abilityUsesOf(card);
-            if (uses !== undefined) {
-                entity.a.abilityUses = uses;
-            }
-            entities[String(idOf(card, state))] = entity;
+            entities[String(idOf(card, state))] = projectCardEntity(card, zone, state, seatOf, abilityUsesOf, audiences);
         }
     }
+}
+
+/** One card's entity in `zone` (what `zoneOfEntity` gave), its `abilityUses` included. */
+export function projectCardEntity(
+    card: Card,
+    zone: string,
+    state: SwuPgnWriterState,
+    seatOf: SeatOf,
+    abilityUsesOf: AbilityUsesOf,
+    audiences: ICardAudiences
+): Entity {
+    const entity = projectCard(card, zone, state, seatOf, audiences);
+    const uses = abilityUsesOf(card);
+    if (uses !== undefined) {
+        entity.a.abilityUses = uses;
+    }
+    return entity;
 }
 
 /** The card's entity id when `entities` (a board `projectCards` filled) holds it; undefined otherwise, and no id is assigned. */
@@ -81,7 +102,8 @@ export function projectedCardId(card: Card, state: SwuPgnWriterState, entities: 
 /** The audience of the card's identity: its entity's `to`, or its owner alone for a card with no entity (in a deck). */
 export function cardAudience(card: Card, seatOf: SeatOf, audiences: ICardAudiences): Audience {
     const zone = zoneOfEntity(card, audiences);
-    return zone === null ? [seat(card.owner, seatOf)] : audiences.audienceFor(card, zone);
+    const owner = seat(card.owner, seatOf);
+    return zone === null ? [owner] : audiences.audienceFor(card, zone, owner);
 }
 
 function idOf(card: Card, state: SwuPgnWriterState): number {
@@ -89,7 +111,7 @@ function idOf(card: Card, state: SwuPgnWriterState): number {
 }
 
 /** The entity's zone, or null when the card has no entity. */
-function zoneOfEntity(card: Card, audiences: ICardAudiences): string | null {
+export function zoneOfEntity(card: Card, audiences: ICardAudiences): string | null {
     if (card.zone == null) {
         return null; // a token removed from the game
     }
@@ -128,12 +150,13 @@ function projectCard(card: Card, zone: string, state: SwuPgnWriterState, seatOf:
     }
 
     entity.card = cardIdOf(card);
-    entity.to = audiences.audienceFor(card, zone);
+    entity.to = audiences.audienceFor(card, zone, owner);
     entity.a = attributesOf(card);
     return entity;
 }
 
-function parentOf(card: Card): { card: Card; rel: 'attached' | 'pilot' | 'captured' } | null {
+/** The card that holds this one on the board (W-28), and how; null for a card that no card holds. */
+export function parentOf(card: Card): { card: Card; rel: 'attached' | 'pilot' | 'captured' } | null {
     const zone = card.zone;
     if (zone.name === ZoneName.Capture) {
         // a captor that has left play rescues its captives (CR: immediately), but the engine does so in a later event
