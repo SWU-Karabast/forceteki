@@ -183,7 +183,7 @@ Benchmark note for P4-G: capture is the default again.
 A row carries the encode of each first-written field, the index record and the container bookkeeping only when it checkpoints a live window (`full/moveToNextTimepoint(Action, memoized)`, `sustained/snapshotAndUndoCycle`, `full/createSnapshotForCurrentTimepoint`); `manager/moveToNextTimepoint(Action)` clears all snapshots after each iteration, so every timed call is a bridge-less first snapshot and adds only the redundant cull scan.
 Every row that takes snapshots repeatedly without a prune or clear retains one index delta per snapshot, because the benchmarks never push a quick-container entry and so age eviction never runs: `full/createSnapshotForCurrentTimepoint`, `sustained/snapshotAndUndoCycle` (whose raw restores also bypass `clearNewerSnapshots`), `full/moveToNextTimepoint(Action, memoized)`, and the retention rows `payload/retainedChain(13 snapshots)` and `payload/retainedChainWithWrites(13 snapshots)`, whose retained bytes now include the shadow deltas and are not comparable with the P4-D captures.
 P4-G should also measure index size over a one-player action streak, because the passed player's entries pin the horizon and the index retains the whole streak.
-The `Contract` assertions in `DeltaSnapshotIndex.record` and the container's `addDeltaEntry` now run in production on every snapshot.
+The `Contract` assertions in `DeltaSnapshotIndex.record` now run in production on every snapshot after a tracking run's first, and those in the container's `addDeltaEntry` on every claimed action delta.
 No benchmark was run in this unit, and `Performance.spec.ts` was compile-checked only.
 
 ### Chain selection, contiguity, and eviction

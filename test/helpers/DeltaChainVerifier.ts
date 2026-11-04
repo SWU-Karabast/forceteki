@@ -158,7 +158,7 @@ function isInactiveFor(factory: SnapshotFactory): boolean {
     return suspendedDepth > 0 || exemptIndexes.has(factory.deltaSnapshotIndex);
 }
 
-/** The oldest delta id any quick container of the factory's game still holds a live payload for, or null (none live, or the containers cannot say). */
+/** The oldest delta id any quick container of the factory's game still holds a live payload for, or null when none does. */
 function getOldestLiveDeltaId(factory: SnapshotFactory): number | null {
     const manager = (factory as unknown as IFactoryInternals).game.snapshotManager as unknown as IManagerInternals;
     let oldest: number | null = null;
