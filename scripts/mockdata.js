@@ -1265,6 +1265,7 @@ const mockCards = [
         hp: 8,
         hasNonKeywordAbility: true,
         aspects: ['vigilance', 'villainy'],
+        keywords: ['shielded'],
         traits: ['imperial', 'vehicle', 'capital ship'],
         types: ['unit'],
         setId: {
