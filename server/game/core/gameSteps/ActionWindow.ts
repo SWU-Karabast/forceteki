@@ -145,6 +145,16 @@ export class ActionWindow extends UiPrompt {
 
     public override activePromptInternal(player: Player): IPlayerPromptStateProperties {
         const { mustTakeCardAction, overrideActionPromptTitle } = this.getSelectableCards();
+        return {
+            menuTitle: overrideActionPromptTitle ?? 'Choose an action',
+            buttons: this.getActionButtons(mustTakeCardAction),
+            promptTitle: ActionWindow.title,
+            promptUuid: this.uuid,
+            promptType: PromptType.ActionWindow
+        };
+    }
+
+    private getActionButtons(mustTakeCardAction: boolean): IButton[] {
         const isFauxSuns = this.game.format === SwuGameFormat.FauxSuns;
         const mustClaimToken = this.game.hasUnclaimedClaimableCounter();
 
@@ -164,13 +174,13 @@ export class ActionWindow extends UiPrompt {
         if (this.game.manualMode) {
             buttons.unshift({ text: 'Manual Action', arg: 'manual', disabled: mustTakeCardAction });
         }
-        return {
-            menuTitle: overrideActionPromptTitle ?? 'Choose an action',
-            buttons: buttons,
-            promptTitle: ActionWindow.title,
-            promptUuid: this.uuid,
-            promptType: PromptType.ActionWindow
-        };
+        return buttons;
+    }
+
+    /** A menu command is only accepted if the matching button is currently offered to the player and enabled */
+    private isMenuCommandAvailable(choice: string): boolean {
+        const { mustTakeCardAction } = this.getSelectableCards();
+        return this.getActionButtons(mustTakeCardAction).some((button) => button.arg === choice && !button.disabled);
     }
 
     public override waitingPrompt() {
@@ -178,6 +188,10 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override menuCommand(player: Player, choice: string, uuid: string) {
+        if (!this.isMenuCommandAvailable(choice)) {
+            return false;
+        }
+
         switch (choice) {
             // case 'manual':
             //     this.game.promptForSelect(this.activePlayer, {
