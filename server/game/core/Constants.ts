@@ -73,7 +73,8 @@ export enum EntryType {
     Played = 'played',
     Created = 'created',
     Rescued = 'rescued',
-    Deployed = 'deployed'
+    Deployed = 'deployed',
+    PutIntoPlay = 'putIntoPlay'
 }
 
 export enum StatType {
@@ -293,6 +294,7 @@ export enum EventName {
     OnAttackDamageResolved = 'onAttackDamageResolved',
     OnAttackDeclared = 'onAttackDeclared',
     OnAttackEnd = 'onAttackEnd',
+    OnAttackerReplaced = 'onAttackerReplaced',
     OnBeginRound = 'onBeginRound',
     OnBlastCounterClaimed = 'onBlastCounterClaimed',
     OnBountyCollected = 'onBountyCollected',

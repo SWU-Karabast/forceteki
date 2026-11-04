@@ -6,11 +6,11 @@ import { SimpleStep } from '../gameSteps/SimpleStep';
 import { EnumHelpers } from '../utils/EnumHelpers';
 import { GameEvent } from '../event/GameEvent';
 import { addAttackLastKnownInformationToEvent, buildAttackLastKnownInformationHandler } from '../event/LastKnownInformation';
-import type { Card } from '../card/Card';
 import { TriggerHandlingMode } from '../event/EventWindow';
 import { DamageSystem } from '../../gameSystems/DamageSystem';
 import type { IAttackableCard } from '../card/CardInterfaces';
 import { Contract } from '../utils/Contract';
+import { createAttackerCombatDamageEvent } from './AttackHelpers';
 
 export class AttackFlow extends BaseStepWithPipeline {
     private context: AbilityContext;
@@ -222,39 +222,7 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private createAttackerDamageEvent(target: IAttackableCard): GameEvent | null {
-        const combatDamage = this.attack.getAttackerCombatDamage(this.context);
-
-        if (combatDamage === null) {
-            return null;
-        }
-
-        const attackerDamageEvent = new DamageSystem({
-            type: DamageType.Combat,
-            amount: combatDamage,
-            sourceAttack: this.attack,
-            target: target
-        }).generateEvent(this.context);
-
-        if (this.attack.hasOverwhelm()) {
-            attackerDamageEvent.setContingentEventsGenerator((event) => {
-                const attackTarget: Card = event.card;
-
-                if (!attackTarget.isUnit() || event.damage <= attackTarget.remainingHp) {
-                    return [];
-                }
-
-                const overwhelmSystem = new DamageSystem({
-                    type: DamageType.Overwhelm,
-                    contingentSourceEvent: attackerDamageEvent,
-                    sourceAttack: this.attack,
-                    target: event.card.controller.base
-                });
-
-                return [overwhelmSystem.generateEvent(this.context)];
-            });
-        }
-
-        return attackerDamageEvent;
+        return createAttackerCombatDamageEvent(this.attack, target, this.context);
     }
 
     /**

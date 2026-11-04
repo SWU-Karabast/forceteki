@@ -4,6 +4,8 @@ import { ZoneName, DeckZoneDestination, PlayType, RelativePlayer, DamageType, To
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import type { IAttachUpgradeProperties } from './AttachUpgradeSystem';
 import { AttachUpgradeSystem } from './AttachUpgradeSystem';
+import type { IAttackerCombatDamageProperties } from './AttackerCombatDamageSystem';
+import { AttackerCombatDamageSystem } from './AttackerCombatDamageSystem';
 import type { ICaptureProperties } from './CaptureSystem';
 import { CaptureSystem } from './CaptureSystem';
 import type { ICardAttackLastingEffectProperties } from './CardAttackLastingEffectSystem';
@@ -99,6 +101,8 @@ import type { IReadySystemProperties } from './ReadySystem';
 import { ReadySystem } from './ReadySystem';
 import type { IReplacementEffectSystemProperties } from './ReplacementEffectSystem';
 import { ReplacementEffectSystem } from './ReplacementEffectSystem';
+import type { IReplaceAttackerProperties } from './ReplaceAttackerSystem';
+import { ReplaceAttackerSystem } from './ReplaceAttackerSystem';
 import type { IRescueProperties } from './RescueSystem';
 import { RescueSystem } from './RescueSystem';
 import type { IResourceCardProperties } from './ResourceCardSystem';
@@ -182,6 +186,12 @@ export function attachUpgrade<TContext extends AbilityContext = AbilityContext>(
 }
 export function attack<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IInitiateAttackProperties, TContext> = {}) {
     return new InitiateAttackSystem<TContext>(propertyFactory);
+}
+/**
+ * The current attacker deals its combat damage to the target, which must be a target of the attack
+ */
+export function attackerCombatDamage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IAttackerCombatDamageProperties, TContext> = {}) {
+    return new AttackerCombatDamageSystem<TContext>(propertyFactory);
 }
 export function capture<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICaptureProperties, TContext> = {}) {
     return new CaptureSystem<TContext>(propertyFactory);
@@ -536,6 +546,12 @@ export function disclose<TContext extends AbilityContext = AbilityContext>(prope
     return new DiscloseAspectsSystem<TContext>(propertyFactory);
 }
 
+/**
+ * Makes the target unit the attacker of the attack in progress
+ */
+export function replaceAttacker<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReplaceAttackerProperties, TContext> = {}) {
+    return new ReplaceAttackerSystem<TContext>(propertyFactory);
+}
 export function reveal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IRevealProperties, 'interactMode'>, TContext> = {}) {
     return new RevealSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IRevealProperties, 'interactMode'>(

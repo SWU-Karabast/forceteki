@@ -9,14 +9,14 @@ import type { AbilityContext } from '../ability/AbilityContext';
 
 export class Attack {
     private readonly game: Game;
-    public readonly attacker: IUnitCard;
     public readonly attackingPlayer: Player;
-    public readonly attackerInPlayId: number;
     public readonly id: number;
     public readonly isAmbush: boolean;
     public readonly targetInPlayMap = new Map<IAttackableCard, number>();
 
-    private readonly attackerCombatDamageOverride?: (attack: Attack, context: AbilityContext) => number;
+    private _attacker: IUnitCard;
+    private _attackerInPlayId: number;
+    private attackerCombatDamageOverride?: (attack: Attack, context: AbilityContext) => number;
     private unitControllersChanged = new Set<IAttackableCard>();
     private targets: IAttackableCard[];
     private defendingPlayer: Player;
@@ -38,7 +38,7 @@ export class Attack {
         this.id = game.getNextAttackId();
 
         this.game = game;
-        this.attacker = attacker;
+        this._attacker = attacker;
         this.attackingPlayer = attacker.controller;
         this.targets = targets;
         this.defendingPlayer = targets[0].controller;
@@ -47,9 +47,44 @@ export class Attack {
 
         // we grab the in-play IDs of the attacker and defender cards in case other abilities need to refer back to them later.
         // e.g., to check if the defender was defeated
-        this.attackerInPlayId = attacker.inPlayId;
+        this._attackerInPlayId = attacker.inPlayId;
 
         this.isAmbush = isAmbush;
+    }
+
+    public get attacker(): IUnitCard {
+        return this._attacker;
+    }
+
+    public get attackerInPlayId(): number {
+        return this._attackerInPlayId;
+    }
+
+    /**
+     * Makes `newAttacker` the attacker for the rest of this attack. The previous attacker stops being part of
+     * the attack; if it is still in play it stays where it is. Anything tied to the previous attacker's
+     * declaration (such as a combat damage override from the ability that initiated the attack) is dropped.
+     */
+    public replaceAttacker(newAttacker: IUnitCard): void {
+        Contract.assertTrue(newAttacker.isInPlay(), `Attempting to replace the attacker with ${newAttacker.internalName} but it is not in play`);
+        Contract.assertFalse(newAttacker === this._attacker, `${newAttacker.internalName} is already the attacker`);
+        Contract.assertFalse(this.targets.includes(newAttacker), `Attempting to replace the attacker with ${newAttacker.internalName} but it is a target of the attack`);
+        Contract.assertTrue(
+            newAttacker.controller === this.attackingPlayer,
+            `Attempting to replace the attacker with ${newAttacker.internalName} but it is not controlled by the attacking player`
+        );
+
+        const previousAttacker = this._attacker;
+        if (previousAttacker.isInPlay() && previousAttacker.activeAttack === this) {
+            previousAttacker.unsetActiveAttack();
+        }
+        this.unitControllersChanged.delete(previousAttacker);
+
+        this._attacker = newAttacker;
+        this._attackerInPlayId = newAttacker.inPlayId;
+        this.attackerCombatDamageOverride = undefined;
+
+        newAttacker.setActiveAttack(this);
     }
 
     public getAttackerCombatDamage(context: AbilityContext): number | null {
