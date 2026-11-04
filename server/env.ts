@@ -29,6 +29,8 @@ const parsedEnv = z
         DEBUG_MOD_ACTION_CACHE: z.string().optional(),
         // SWU-PGN writer: 'flush' records every game; 'off', 'decision' and 'event' exist for the CPU benchmark
         SWUPGN_WRITER: z.enum(['off', 'decision', 'flush', 'event']).default('flush'),
+        // SWU-PGN writer work counters for the CPU benchmark ('1' counts them); test-only, never read in production
+        SWUPGN_WRITER_STATS: z.string().optional(),
     })
     .safeParse(process.env);
 
@@ -106,6 +108,7 @@ export const INTRASERVICE_SECRET = parsedEnv.data.INTRASERVICE_SECRET;
 export const PROFILE_CAPTURE_SECRET = parsedEnv.data.PROFILE_CAPTURE_SECRET;
 export const DEBUG_MOD_ACTION_CACHE = parsedEnv.data.DEBUG_MOD_ACTION_CACHE === 'true';
 export const SWUPGN_WRITER = parsedEnv.data.SWUPGN_WRITER;
+export const SWUPGN_WRITER_STATS = parsedEnv.data.SWUPGN_WRITER_STATS === '1';
 
 type ParsedEnvData = typeof parsedEnv.data;
 

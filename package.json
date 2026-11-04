@@ -12,6 +12,7 @@
     "build": "node scripts/build-server.js",
     "build-dev": "node scripts/build-dev.js",
     "build-test": "node scripts/build-test.js",
+    "benchmark-swupgn": "node scripts/swupgn-benchmark.js",
     "test": "cross-env NODE_ENV=test node scripts/build-test.js && npm run jasmine",
     "test-fail-fast": "cross-env NODE_ENV=test node scripts/build-test.js && npm run jasmine-fail-fast",
     "test-fast": "cross-env NODE_ENV=test node scripts/build-test.js --fast-build && npm run jasmine",

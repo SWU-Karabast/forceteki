@@ -17,6 +17,7 @@ import { buildFullFile } from './FileAssembler';
 import type { ISwuPgnWriterHooks } from './ISwuPgnWriterHooks';
 import { SwuPgnEvents } from './SwuPgnEvents';
 import { SwuPgnWriterState } from './SwuPgnWriterState';
+import { countSwuPgnWriterStats, swuPgnWriterStats } from './SwuPgnWriterStats';
 
 /**
  * When the writer projects between decision points (W-37). `'flush'` is the default; `'decision'` (decision points
@@ -79,6 +80,9 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         this.audiences.register();
         this.projector = new BoardProjector(game, this.state, this.audiences);
         this.registerFlushPoints(mode);
+        if (countSwuPgnWriterStats) {
+            swuPgnWriterStats.writers++;
+        }
     }
 
     public get records(): readonly SwuRecord[] {
@@ -197,6 +201,12 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
             this.resyncAfterRestore();
             const next = this.projector.project(ending);
             const records = diffBoards(this.prev, next);
+            if (countSwuPgnWriterStats) {
+                swuPgnWriterStats.projections++;
+                if (records.length > 0) {
+                    swuPgnWriterStats.flushes++;
+                }
+            }
             for (const record of records) {
                 this._records.push(record);
             }
@@ -236,6 +246,9 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
                 const seq = this.state.stepSeq;
                 this._records.push({ t: 'step', seq });
                 this.state.stepSeq = seq + 1;
+                if (countSwuPgnWriterStats) {
+                    swuPgnWriterStats.steps++;
+                }
                 this.state.recordsLength = this._records.length;
             }
 
