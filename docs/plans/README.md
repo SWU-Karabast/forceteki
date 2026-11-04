@@ -30,6 +30,8 @@ PR-sized units and is the entry point for actually building any of this.
 | 4 | [Delta snapshots](04-delta-snapshots.md) | Plan 3 | Medium-Large | Quick snapshots as reverse deltas; full snapshots only at phase boundaries |
 | 5 | [GameObject release & recreation](05-gameobject-recreation.md) | Plan 3; Plan 1 item B | Very Large (three stages: 5a infrastructure + leaf recreation, 5b composite recreation + closure recipes — cards/tokens live here, not 5a — 5c release policy) | GameObjects can be GC'd and recreated from state |
 | 6 | [Full-fidelity save/load](06-full-fidelity-save.md) | Plans 2, 3, 5 | Large | Two-tier save: semantic tier + full engine-state records; inherits Plan 2's `engineOnlyFacts` manifest (repurposed to declare engine-tier-only facts) and drives the non-capturable residue to empty |
+| 7 | [Match replay recording](07-replay-recording.md) | Plan 1 items B, C (landed); coordinates with Plan 4 and SWU-PGN | Large (server side) | Proposed, not scheduled: the recording backend for SWU-PGN — a seed + input log that undo truncates, and an on-request runner with undo off that writes per-viewer SWU-PGN files |
+| 8 | [Performance regressions after Plan 4](08-performance-regressions.md) | Plans 0-4 (landed) | Small-Medium (measurement-first; fixes only if a located regression is worth it) | Proposed: sync with `main`, confirm against `main` whether the P4-G "what got worse" rows are real costs to a game, locate any real one, and fix it |
 
 Dependency chains: `0 → (everything)`, `1 → (everything)`, `2` is independent, `3 → 4`, `3 → 5 → 6`,
 `2 → 6` (schema continuity); Plan 5 additionally hard-depends on Plan 1 item B
