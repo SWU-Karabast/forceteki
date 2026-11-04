@@ -199,3 +199,118 @@ describe('P3-PB2 rollback lifecycle ordering (PB2-C8)', function() {
         });
     }, true);
 });
+
+describe('P4-F delta restore lifecycle ordering', function() {
+    integrationWithUndo(function(contextRef) {
+        it('delta-hook-order: every field write precedes the first afterSetState; created objects are cleaned up and unregistered before afterSetAllState on every survivor, last to first; then the LKI clear and the counter', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { groundArena: ['wampa'] },
+                player2: { groundArena: ['atst'], spaceArena: ['cartel-spacer'] }
+            });
+            const { context } = contextRef;
+            const game = context.game;
+            const stateManager = game.gameObjectManager as unknown as { allGameObjects: GameObjectBase[]; restoreLastGameObjectId(snapshot: unknown): void };
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.p2Base);
+            const token = game.generateToken(context.player2Object, 'battleDroid') as unknown as GameObjectBase;
+            context.player2.clickCard(context.atst);
+            context.player2.clickCard(context.p1Base);
+
+            // The chain this rollback applies: the pending window plus the stored deltas back to player 2's action snapshot.
+            const target = (game.snapshotManager as unknown as { actionSnapshots: { getSnapshotProperties(key: string): { snapshotId: number; timepointNumber: number } } })
+                .actionSnapshots.getSnapshotProperties(context.player2.id);
+            const links = [game.deltaTracker.pendingWindow, ...game.snapshotManager.deltaSnapshotIndex.buildChain(target.snapshotId, target.timepointNumber)];
+            const touched = new Set<string>(links.flatMap((link) => [...link.changedFields.keys()]));
+            const createdAndRegistered = new Set<string>(links.flatMap((link) => [...link.createdObjectUuids])
+                .filter((uuid) => stateManager.allGameObjects.some((go) => go.uuid === uuid)));
+            const untouched = stateManager.allGameObjects.find((go) => !touched.has(go.uuid) && !createdAndRegistered.has(go.uuid));
+            expect(createdAndRegistered.has(token.uuid)).toBeTrue();
+            expect(untouched).toBeDefined();
+
+            const events: { kind: string; uuid?: string; tokenRegistered?: boolean; inHook?: boolean }[] = [];
+            let hookDepth = 0;
+            const shadowed: { target: object; name: string }[] = [];
+            const shadow = (target: object, name: string, wrap: (original: (...args: unknown[]) => unknown) => (...args: unknown[]) => unknown) => {
+                const record = target as Record<string, (...args: unknown[]) => unknown>;
+                record[name] = wrap(record[name].bind(target));
+                shadowed.push({ target, name });
+            };
+
+            // Setters call recordFieldChange strictly before every write, even while the tracker is stopped.
+            shadow(game.deltaTracker, 'recordFieldChange', (original) => (go: GameObjectBase, field) => {
+                events.push({ kind: 'write', uuid: go.uuid, inHook: hookDepth > 0 });
+                return original(go, field);
+            });
+            for (const go of [...stateManager.allGameObjects]) {
+                for (const hook of ['afterSetState', 'cleanupOnRemove', 'afterSetAllState']) {
+                    shadow(go, hook, (original) => (...args) => {
+                        events.push({ kind: hook, uuid: go.uuid, tokenRegistered: game.gameObjectManager.isRegistered(token) });
+                        hookDepth++;
+                        try {
+                            return original(...args);
+                        } finally {
+                            hookDepth--;
+                        }
+                    });
+                }
+            }
+            shadow(game.lkiRegistry, 'clearForRollback', (original) => (...args) => {
+                events.push({ kind: 'lki' });
+                return original(...args);
+            });
+            shadow(stateManager, 'restoreLastGameObjectId', (original) => (...args) => {
+                events.push({ kind: 'counter' });
+                return original(...args);
+            });
+
+            let deltaRestores = 0;
+            const originalDelta = (stateManager as unknown as { rollbackToDeltaChain(...args: unknown[]): boolean }).rollbackToDeltaChain;
+            shadow(stateManager, 'rollbackToDeltaChain', (original) => (...args) => {
+                deltaRestores++;
+                return original(...args);
+            });
+            expect(originalDelta).toBeDefined();
+
+            let result;
+            try {
+                result = game.snapshotManager.rollbackTo({ type: 'action', playerId: context.player2.id });
+            } finally {
+                for (const { target, name } of shadowed) {
+                    Reflect.deleteProperty(target as Record<string, unknown>, name);
+                }
+            }
+            expect(result.success).toBeTrue();
+            expect(deltaRestores).toBe(1);
+
+            // Restore writes are the ones made outside any hook; a hook's own writes are part of that hook.
+            const firstAfterSetState = events.findIndex((event) => event.kind === 'afterSetState');
+            const lastRestoreWrite = events.map((event) => (event.kind === 'write' && !event.inHook ? 'restore-write' : event.kind)).lastIndexOf('restore-write');
+            expect(lastRestoreWrite).toBeGreaterThanOrEqual(0);
+            expect(lastRestoreWrite).toBeLessThan(firstAfterSetState);
+
+            // afterSetState for an object no link recorded, too (G3: every surviving object, not only written ones).
+            expect(events.some((event) => event.kind === 'afterSetState' && event.uuid === untouched.uuid)).toBeTrue();
+            expect(events.some((event) => event.kind === 'write' && !event.inHook && event.uuid === untouched.uuid)).toBeFalse();
+
+            // cleanupOnRemove exactly for the objects created inside the chain that were still registered (the token among them);
+            // registry removal before the first afterSetAllState.
+            const cleanups = events.filter((event) => event.kind === 'cleanupOnRemove');
+            expect(new Set(cleanups.map((event) => event.uuid))).toEqual(createdAndRegistered);
+            expect(cleanups.length).toBe(createdAndRegistered.size);
+            const afterAll = events.filter((event) => event.kind === 'afterSetAllState');
+            expect(afterAll.length).toBe(stateManager.allGameObjects.length);
+            expect(afterAll.every((event) => event.tokenRegistered === false)).toBeTrue();
+            expect(afterAll.map((event) => event.uuid)).toEqual(stateManager.allGameObjects.map((go) => go.uuid).reverse());
+            expect(events.findIndex((event) => event.kind === 'cleanupOnRemove')).toBeLessThan(events.findIndex((event) => event.kind === 'afterSetAllState'));
+
+            // Then the LKI clear, then the counter, last.
+            const kinds = events.map((event) => event.kind);
+            expect(kinds.indexOf('lki')).toBeGreaterThan(kinds.lastIndexOf('afterSetAllState'));
+            expect(kinds[kinds.length - 1]).toBe('counter');
+
+            game.postRollbackOperations(result.entryPoint);
+        });
+    }, true);
+});

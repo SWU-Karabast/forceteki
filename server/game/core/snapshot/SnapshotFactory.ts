@@ -1,6 +1,7 @@
 import type { Game } from '../Game';
-import type { GameStateManager } from './GameStateManager';
+import type { GameStateManager, IDeltaRestoreLink } from './GameStateManager';
 import type { IDeltaTrackerAnchor } from './DeltaTracker';
+import { DeltaTrackerMode } from './DeltaTracker';
 import type { IDeltaSnapshot, IGameSnapshot, SnapshotTimepoint } from './SnapshotInterfaces';
 import { DeltaSnapshotKind } from './SnapshotInterfaces';
 import { Contract } from '../utils/Contract.js';
@@ -13,6 +14,7 @@ import { DeltaSnapshotIndex, noRemovedObjectRecords, shouldUseDelta } from './co
 
 export type IGetCurrentSnapshotHandler = () => IGameSnapshot;
 export type IUpdateCurrentSnapshotHandler = (snapshot: IGameSnapshot) => void;
+export type IRestoreThroughDeltaChainHandler = (target: IGameSnapshot) => boolean;
 
 /**
  * This class is the point of coordination for all snapshot creation and storage.
@@ -41,7 +43,7 @@ export class SnapshotFactory {
     /** The delta that shares the current snapshot's id. Set only by a checkpoint; null for a bridge-less snapshot and after a rollback or clear. */
     private _currentSnapshotDelta: IDeltaSnapshot | null = null;
 
-    /** The global index of the reverse deltas recorded beside the full snapshots. */
+    /** The global index of the reverse deltas recorded beside the snapshots; a hollow snapshot restores through its chain (P4-F). */
     public get deltaSnapshotIndex(): DeltaSnapshotIndex {
         return this._deltaSnapshotIndex;
     }
@@ -107,6 +109,8 @@ export class SnapshotFactory {
                 this.gameStateManager,
                 () => this.getCurrentActionSnapshot(),
                 (snapshot: IGameSnapshot) => this.updateCurrentActionSnapshot(snapshot),
+                (target: IGameSnapshot) => this.restoreThroughDeltaChain(target),
+                () => this.materializeCurrentSnapshot(),
                 clearNewerSnapshotsBinding
             )
         );
@@ -120,9 +124,48 @@ export class SnapshotFactory {
                 this.gameStateManager,
                 () => this.getCurrentActionSnapshot(),
                 (snapshot: IGameSnapshot) => this.updateCurrentActionSnapshot(snapshot),
+                (target: IGameSnapshot) => this.restoreThroughDeltaChain(target),
                 clearNewerSnapshotsBinding
             )
         );
+    }
+
+    /**
+     * Restores live state to `target` through the delta chain (P4-F): the held tracker window anchored at the index head (the pending
+     * delta), then the stored deltas from the head back to `target`, newest first. Throws without writing anything when the chain
+     * cannot be built (`DeltaSnapshotIndex.buildChain`) or no valid window is held: a held window is the only record of the writes
+     * since the head, so restoring without it would silently keep them (C2). Returns the restore's result (false after a recovery).
+     */
+    private restoreThroughDeltaChain(target: IGameSnapshot): boolean {
+        const index = this._deltaSnapshotIndex;
+        const chain = index.buildChain(target.id, target.timepointNumber);
+
+        const headId = index.headSnapshotId;
+        Contract.assertTrue(headId === this.currentSnapshotId, () => `Delta restore to snapshot ${target.id}: the index head ${headId} is not the current snapshot ${this.currentSnapshotId}`);
+
+        const window = this.game.deltaTracker.liveWindowAnchoredAt(headId);
+        Contract.assertNotNullLike(window, () => `Delta restore to snapshot ${target.id}: no valid delta tracker window is anchored at the index head ${headId}, so the writes since it cannot be reverted (P4-F C2: a consumed or discarded window is never applied)`);
+
+        const links: IDeltaRestoreLink[] = [window];
+        for (const delta of chain) {
+            links.push({
+                anchor: { snapshotId: delta.anchorSnapshotId, rngState: delta.rngState, lastGameObjectId: delta.lastGameObjectId },
+                mode: delta.mode,
+                changedFields: delta.changedFields,
+                createdObjectUuids: delta.createdObjectUuids
+            });
+        }
+
+        for (const link of links) {
+            Contract.assertTrue(link.mode === DeltaTrackerMode.CaptureOldValues, () => `Delta restore to snapshot ${target.id}: the link anchored at ${link.anchor.snapshotId} recorded ${link.mode}, which cannot be restored`);
+        }
+
+        // Checked here, before any write, so a violation leaves live state and the held window untouched; the restore checks the folded
+        // counter again after its writes.
+        const oldestAnchor = links[links.length - 1].anchor;
+        Contract.assertTrue(oldestAnchor.lastGameObjectId === target.lastGameObjectId, () => `Delta restore to snapshot ${target.id}: the oldest link anchors at object id counter ${oldestAnchor.lastGameObjectId}, but the target records ${target.lastGameObjectId}`);
+
+        return this.gameStateManager.rollbackToDeltaChain(links, target, this.currentActionSnapshot ?? null);
     }
 
     public createDeltaSnapshotContainer(): DeltaSnapshotContainer {
@@ -164,6 +207,15 @@ export class SnapshotFactory {
         const nextSnapshotId = this.lastAssignedSnapshotId + 1;
         const nextTimepointNumber = this.lastAssignedTimepointNumber + 1;
 
+        // P4-F hollow rule: an action-phase Action checkpoint that closes a capture window and opens another builds no records; its
+        // delta (recorded below) is the restore authority, and both windows being capture-mode means its own action can always be
+        // reverted. Every other snapshot (StartOfPhase anchor, bridges, the first of a tracking run, the close of a DirtyOnly window) stays full.
+        const deltaTracker = this.game.deltaTracker;
+        const hollow = deltaTracker.isTracking &&
+          shouldUseDelta(timepoint, this.game.currentPhase) &&
+          deltaTracker.pendingWindow?.mode === DeltaTrackerMode.CaptureOldValues &&
+          deltaTracker.mode === DeltaTrackerMode.CaptureOldValues;
+
         const snapshot: IGameSnapshot = {
             id: nextSnapshotId,
             lastGameObjectId: this.gameStateManager.lastGameObjectId,
@@ -172,12 +224,16 @@ export class SnapshotFactory {
             timepoint,
             timepointNumber: nextTimepointNumber,
             phase: this.game.currentPhase,
-            // The current snapshot is both the memo and the delta tracker window's anchor: the build reuses its records for objects the window shows untouched.
-            states: this.gameStateManager.buildGameStateForSnapshot(this.currentActionSnapshot ?? null),
+            // The current snapshot is both the memo and the delta tracker window's anchor: the build reuses its records for objects the
+            // window shows untouched (none when the anchor is hollow, since it holds no records).
+            states: hollow ? {} : this.gameStateManager.buildGameStateForSnapshot(this.currentActionSnapshot ?? null),
             rngState: this.game.randomGenerator.rngState,
             requiresConfirmationToRollback: false,
             activePlayerId: this.game.actionPhaseActivePlayer?.id
         };
+        if (hollow) {
+            snapshot.hollow = true;
+        }
 
         this.lastAssignedSnapshotId = nextSnapshotId;
         this.lastAssignedTimepointNumber = nextTimepointNumber;
@@ -185,10 +241,57 @@ export class SnapshotFactory {
         this.currentActionSnapshot = snapshot;
 
         this.checkpointDelta(snapshot);
+
+        const delta = this._currentSnapshotDelta;
+        const restorableByDelta = delta !== null &&
+          delta.kind === DeltaSnapshotKind.Action &&
+          delta.mode === DeltaTrackerMode.CaptureOldValues &&
+          deltaTracker.pendingWindow?.mode === DeltaTrackerMode.CaptureOldValues;
+        Contract.assertTrue(hollow === restorableByDelta, () => `Snapshot ${snapshot.id} is ${hollow ? 'hollow' : 'full'}, but its checkpoint ${restorableByDelta ? 'recorded' : 'did not record'} a capture-mode action delta opening a capture-mode window`);
     }
 
     /**
-     * The only window boundary: the tracker's window runs from one full snapshot to the next, and the window just closed becomes
+     * The current snapshot as a full snapshot, without changing anything (P4-F). A full current snapshot is returned as itself. A hollow
+     * one (an action-phase Action timepoint) is materialized at its true window-start state: every live object not created in the
+     * held window is serialized, the window's recorded window-start value is laid over each (uuid, field) it changed, and the rng state
+     * and object-id counter come from the window anchor. It consumes no snapshot id or timepoint number and writes nothing to the game,
+     * the tracker window or the delta index.
+     *
+     * This is the documented entry point for every reader that needs the current snapshot's records: manual snapshots (bookmarks) and
+     * the Plan 6 B snapshot-read save path. Cost: O(live objects) serializes plus O(pending window). The returned copy's `source` is the
+     * hollow snapshot it was materialized from: an in-memory alias for the live flag bookkeeping (B2a: confirmation flags and the
+     * current-snapshot identity after a rollback to it), never part of a written form. Fails with a `Contract` error when the current
+     * snapshot is hollow and no valid capture-mode window is anchored at it, which the managed snapshot path never produces.
+     */
+    public materializeCurrentSnapshot(): IGameSnapshot {
+        const current = this.getCurrentActionSnapshot();
+        if (current.hollow !== true) {
+            return current;
+        }
+
+        const window = this.game.deltaTracker.liveWindowAnchoredAt(current.id);
+        Contract.assertNotNullLike(window, () => `Cannot materialize hollow snapshot ${current.id}: no valid delta tracker window is anchored at it`);
+        Contract.assertTrue(window.mode === DeltaTrackerMode.CaptureOldValues, () => `Cannot materialize hollow snapshot ${current.id}: its window records ${window.mode}, not window-start values`);
+
+        return {
+            id: current.id,
+            lastGameObjectId: window.anchor.lastGameObjectId,
+            actionNumber: current.actionNumber,
+            roundNumber: current.roundNumber,
+            phase: current.phase,
+            timepoint: current.timepoint,
+            timepointNumber: current.timepointNumber,
+            activePlayerId: current.activePlayerId,
+            states: this.gameStateManager.buildWindowStartStates(window),
+            rngState: window.anchor.rngState,
+            requiresConfirmationToRollback: current.requiresConfirmationToRollback,
+            nextSnapshotIsSamePlayer: current.nextSnapshotIsSamePlayer,
+            source: current
+        };
+    }
+
+    /**
+     * The only window boundary: the tracker's window runs from one snapshot to the next, hollow or full, and the window just closed becomes
      * the delta that shares `snapshot`'s id and timepoint number (so no bridge consumes an id of its own), recorded even when empty.
      * The first snapshot of a tracking run (a game's first, or the first after `clearAllSnapshots`) has no window to close and no delta.
      */

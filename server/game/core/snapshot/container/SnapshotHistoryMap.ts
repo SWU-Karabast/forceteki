@@ -1,6 +1,6 @@
 import type { Game } from '../../Game';
 import type { GameStateManager } from '../GameStateManager';
-import type { IGetCurrentSnapshotHandler, IUpdateCurrentSnapshotHandler } from '../SnapshotFactory';
+import type { IGetCurrentSnapshotHandler, IRestoreThroughDeltaChainHandler, IUpdateCurrentSnapshotHandler } from '../SnapshotFactory';
 import type { IGameSnapshot, ISnapshotProperties } from '../SnapshotInterfaces';
 import type { IClearNewerSnapshotsBinding } from './SnapshotContainerBase';
 import { SnapshotContainerBase } from './SnapshotContainerBase';
@@ -24,9 +24,10 @@ export class SnapshotHistoryMap<T> extends SnapshotContainerBase {
         gameStateManager: GameStateManager,
         getCurrentSnapshotFn: IGetCurrentSnapshotHandler,
         updateCurrentSnapshotFn: IUpdateCurrentSnapshotHandler,
+        restoreThroughDeltaChainFn: IRestoreThroughDeltaChainHandler,
         clearNewerSnapshotsBinding: IClearNewerSnapshotsBinding
     ) {
-        super(game, gameStateManager, getCurrentSnapshotFn, updateCurrentSnapshotFn, clearNewerSnapshotsBinding);
+        super(game, gameStateManager, getCurrentSnapshotFn, updateCurrentSnapshotFn, restoreThroughDeltaChainFn, clearNewerSnapshotsBinding);
 
         this.maxHistoryLength = maxHistoryLength;
     }

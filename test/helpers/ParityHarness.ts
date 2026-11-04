@@ -16,6 +16,7 @@ import { SimpleZone } from '../../server/game/core/zone/SimpleZone';
 import { DeckZone } from '../../server/game/core/zone/DeckZone';
 import { BaseZone } from '../../server/game/core/zone/BaseZone';
 import { AllArenasZone } from '../../server/game/core/zone/AllArenasZone';
+import { isRollbackFailureExpected } from './DeltaParityGate';
 
 /**
  * Parity harness. Through Plan 3 Phase A this compared two legs - the state bag + `v8` snapshot path
@@ -119,7 +120,9 @@ let harnessRestoreErrors = 0;
 /** `P3PA3-I1-03` structural fix: errors/failures raised inside a deliberate-suppression scope
  * (`rethrowSuppressed` for AC7, `harnessErrorExpected` for AC2) are this unit's own negative-testing
  * traffic, counted here instead of in `harnessRestoreErrors`/`rollbacksFailed` so those two stay true
- * absolutes (§4.7: "`harnessRestoreErrors === 0` stays absolute in every case") for every other run. */
+ * absolutes (§4.7: "`harnessRestoreErrors === 0` stays absolute in every case") for every other run.
+ * P4-F: a restore that returns `false` inside `DeltaParityGate.withExpectedRollbackFailure` (an engine spec's injected,
+ * recovered failure) also counts as `deliberateRollbackFailures`; its harness errors, if any, still count as real. */
 let deliberateHarnessErrors = 0;
 let deliberateRollbackFailures = 0;
 let zoneChecks = 0;
@@ -128,6 +131,16 @@ let zoneViolationsReverse = 0;
 let preRollbackViolationsForward = 0;
 let preRollbackViolationsReverse = 0;
 let zonesNotCovered = 0;
+
+/** P4-F: the same zone-membership check run around each outermost delta restore (`rollbackToDeltaChain`), counted apart from the
+ * full path's so the delta path's restore-attributed violations decide whether it needs `reconcileUpdatedCardZoneMemberships`. */
+let originalRollbackToDeltaChain: typeof GameStateManager.prototype.rollbackToDeltaChain | null = null;
+let deltaRollbacksObserved = 0;
+let deltaZoneChecks = 0;
+let deltaZoneViolationsForward = 0;
+let deltaZoneViolationsReverse = 0;
+let deltaPreRollbackViolationsForward = 0;
+let deltaPreRollbackViolationsReverse = 0;
 
 let injectionFired = false;
 
@@ -185,6 +198,12 @@ export interface IParityHarnessStats {
     preRollbackViolationsForward: number;
     preRollbackViolationsReverse: number;
     zonesNotCovered: number;
+    deltaRollbacksObserved: number;
+    deltaZoneChecks: number;
+    deltaZoneViolationsForward: number;
+    deltaZoneViolationsReverse: number;
+    deltaPreRollbackViolationsForward: number;
+    deltaPreRollbackViolationsReverse: number;
     installedAtExit: boolean;
 }
 
@@ -206,6 +225,12 @@ export function getParityHarnessStats(): IParityHarnessStats {
         preRollbackViolationsForward,
         preRollbackViolationsReverse,
         zonesNotCovered,
+        deltaRollbacksObserved,
+        deltaZoneChecks,
+        deltaZoneViolationsForward,
+        deltaZoneViolationsReverse,
+        deltaPreRollbackViolationsForward,
+        deltaPreRollbackViolationsReverse,
         installedAtExit: installed,
     };
 }
@@ -869,7 +894,7 @@ function rollbackToSnapshotImpl(manager: GameStateManager, snapshot: IGameSnapsh
         zoneChecks++;
         zoneViolationsForward += post.forward;
         zoneViolationsReverse += post.reverse;
-    } else if (rethrowSuppressed || harnessErrorExpected) {
+    } else if (rethrowSuppressed || harnessErrorExpected || isRollbackFailureExpected()) {
         deliberateRollbackFailures++;
     } else {
         rollbacksFailed++;
@@ -884,6 +909,65 @@ function rollbackToSnapshotImpl(manager: GameStateManager, snapshot: IGameSnapsh
         // hard failure carrying the original mismatch text, even though production's own recovery has
         // already completed and returned `false` for `result` above (§4.4 R13). Note `harnessErrorExpected`
         // (AC2) deliberately does *not* suppress this — AC2 asserts the rollback call itself throws.
+        const error = firstHarnessError;
+        firstHarnessError = null;
+        throw error;
+    }
+
+    return result;
+}
+
+/**
+ * P4-F: the zone-membership check around a delta restore, mirroring `rollbackToSnapshotImpl`'s pre/post passes and depth accounting so
+ * a nested recovery frame (a full `rollbackToSnapshot` to the pre-pass records) is attributed as nested and reads this frame's baseline.
+ * The per-object deserialize check does not apply: the delta path writes fields through the setters, not through `deserialize`.
+ */
+function rollbackToDeltaChainImpl(manager: GameStateManager, args: Parameters<typeof GameStateManager.prototype.rollbackToDeltaChain>): boolean {
+    harnessRollbackDepth++;
+
+    if (harnessRollbackDepth === 1) {
+        try {
+            const pre = runZoneMembershipCheck(manager, null);
+            deltaPreRollbackViolationsForward += pre.forward;
+            deltaPreRollbackViolationsReverse += pre.reverse;
+            currentPreForwardViolationIds = pre.forwardViolationIds;
+        } catch (error) {
+            harnessRollbackDepth--;
+            currentPreForwardViolationIds = null;
+            throw error;
+        }
+    }
+
+    let result: boolean;
+    try {
+        result = originalRollbackToDeltaChain.apply(manager, args);
+    } catch (error) {
+        harnessRollbackDepth--;
+        if (harnessRollbackDepth === 0) {
+            firstHarnessError = null;
+            currentPreForwardViolationIds = null;
+        }
+        throw error;
+    }
+    harnessRollbackDepth--;
+
+    if (result) {
+        deltaRollbacksObserved++;
+        const post = runZoneMembershipCheck(manager, currentPreForwardViolationIds);
+        deltaZoneChecks++;
+        deltaZoneViolationsForward += post.forward;
+        deltaZoneViolationsReverse += post.reverse;
+    } else if (rethrowSuppressed || harnessErrorExpected || isRollbackFailureExpected()) {
+        deliberateRollbackFailures++;
+    } else {
+        rollbacksFailed++;
+    }
+
+    if (harnessRollbackDepth === 0) {
+        currentPreForwardViolationIds = null;
+    }
+
+    if (harnessRollbackDepth === 0 && firstHarnessError !== null && !rethrowSuppressed) {
         const error = firstHarnessError;
         firstHarnessError = null;
         throw error;
@@ -932,6 +1016,11 @@ export function installParityHarness(): void {
         return rollbackToSnapshotImpl(this, snapshot, beforeRollbackSnapshot);
     };
 
+    originalRollbackToDeltaChain = GameStateManager.prototype.rollbackToDeltaChain;
+    GameStateManager.prototype.rollbackToDeltaChain = function(this: GameStateManager, ...args: Parameters<typeof GameStateManager.prototype.rollbackToDeltaChain>) {
+        return rollbackToDeltaChainImpl(this, args);
+    };
+
     installed = true;
 
     // A full re-serialize and deep compare of every restored object on every rollback is slower than the
@@ -950,6 +1039,7 @@ export function uninstallParityHarness(): void {
     }
     wrappedEntries.length = 0;
     GameStateManager.prototype.rollbackToSnapshot = originalRollbackToSnapshot;
+    GameStateManager.prototype.rollbackToDeltaChain = originalRollbackToDeltaChain;
     installed = false;
 
     // Restore the timeout too, so uninstall is a full reversion — this harness is meant to be reused by
@@ -1156,7 +1246,11 @@ if (process.env.ENABLE_PARITY_HARNESS === 'true') {
             `deliberateHarnessErrors=${stats.deliberateHarnessErrors} deliberateRollbackFailures=${stats.deliberateRollbackFailures} ` +
             `zoneChecks=${stats.zoneChecks} zoneViolationsForward=${stats.zoneViolationsForward} zoneViolationsReverse=${stats.zoneViolationsReverse} ` +
             `preRollbackViolationsForward=${stats.preRollbackViolationsForward} preRollbackViolationsReverse=${stats.preRollbackViolationsReverse} ` +
-            `zonesNotCovered=${stats.zonesNotCovered} installedAtExit=${stats.installedAtExit}`;
+            `zonesNotCovered=${stats.zonesNotCovered} ` +
+            `deltaRollbacksObserved=${stats.deltaRollbacksObserved} deltaZoneChecks=${stats.deltaZoneChecks} ` +
+            `deltaZoneViolationsForward=${stats.deltaZoneViolationsForward} deltaZoneViolationsReverse=${stats.deltaZoneViolationsReverse} ` +
+            `deltaPreRollbackViolationsForward=${stats.deltaPreRollbackViolationsForward} deltaPreRollbackViolationsReverse=${stats.deltaPreRollbackViolationsReverse} ` +
+            `installedAtExit=${stats.installedAtExit}`;
         console.log(line);
         // The first few retained violations (plan.md §4.6) - printed whenever either counter is nonzero, so
         // a calibration exclusion decision (§4.6's "excludes the most specific class/field that actually
@@ -1180,4 +1274,33 @@ if (process.env.ENABLE_PARITY_HARNESS === 'true') {
             console.error(`[ParityHarness] pid=${process.pid} failed to write reporter file: ${(error as Error).message}`);
         }
     });
+
+    // P4-F: the delta-path zone counters decide whether the delta restore needs a zone reconcile, so they must survive a lost 'exit'
+    // handler (above). Like the other verifiers, a per-worker counts file is rewritten after every spec and on 'disconnect'.
+    let specsRun = 0;
+    let lastDeltaLine = '';
+    const writeDeltaCounts = (state: 'running' | 'exit') => {
+        const stats = getParityHarnessStats();
+        const line =
+            `[ParityHarnessDelta] pid=${process.pid} specs=${specsRun} rollbacksObserved=${stats.rollbacksObserved} zoneChecks=${stats.zoneChecks} ` +
+            `zoneViolationsForward=${stats.zoneViolationsForward} zoneViolationsReverse=${stats.zoneViolationsReverse} ` +
+            `deltaRollbacksObserved=${stats.deltaRollbacksObserved} deltaZoneChecks=${stats.deltaZoneChecks} ` +
+            `deltaZoneViolationsForward=${stats.deltaZoneViolationsForward} deltaZoneViolationsReverse=${stats.deltaZoneViolationsReverse} ` +
+            `deltaPreRollbackViolationsForward=${stats.deltaPreRollbackViolationsForward} deltaPreRollbackViolationsReverse=${stats.deltaPreRollbackViolationsReverse} ` +
+            `rollbacksFailed=${stats.rollbacksFailed} harnessRestoreErrors=${stats.harnessRestoreErrors} state=${state}`;
+        if (line === lastDeltaLine) {
+            return;
+        }
+        lastDeltaLine = line;
+        try {
+            fs.writeFileSync(path.join(getReporterRunDir(), `pid-${process.pid}.delta.log`), `${line}\n`, 'utf8');
+        } catch (error) {
+            console.error(`[ParityHarness] pid=${process.pid} failed to write delta counts file: ${(error as Error).message}`);
+        }
+    };
+    afterEach(function() {
+        specsRun++;
+        writeDeltaCounts('running');
+    });
+    process.on('disconnect', () => writeDeltaCounts('exit'));
 }

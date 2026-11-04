@@ -199,10 +199,10 @@ describe('GameObject id counter restore on rollback', function() {
             const { context } = contextRef;
             const game = context.game;
 
-            // Held directly rather than through a container, so beforeRollbackSnapshot can be omitted,
-            // exactly as Performance.spec.ts captures its anchor: the factory replaces this field on the
-            // next timepoint, so the held reference stays pinned to the pre-action state.
-            const snapshot = getSnapshotFactory(game).currentActionSnapshot;
+            // Held directly rather than through a container, so the memo anchor can be omitted, exactly as
+            // Performance.spec.ts captures its anchor; it stays pinned to the pre-action state. The current action
+            // snapshot is hollow since P4-F, so the held full snapshot is its materialization.
+            const snapshot = game.snapshotManager.materializeCurrentSnapshot();
             const stateManager = getStateManager(game);
 
             context.player1.clickCard(context.momentOfPeace);

@@ -1,4 +1,8 @@
+import type { Game } from '../../Game';
+import type { GameStateManager } from '../GameStateManager';
+import type { IGetCurrentSnapshotHandler, IRestoreThroughDeltaChainHandler, IUpdateCurrentSnapshotHandler } from '../SnapshotFactory';
 import type { IGameSnapshot, ISnapshotProperties } from '../SnapshotInterfaces';
+import type { IClearNewerSnapshotsBinding } from './SnapshotContainerBase';
 import { SnapshotContainerBase } from './SnapshotContainerBase';
 
 /**
@@ -8,10 +12,25 @@ import { SnapshotContainerBase } from './SnapshotContainerBase';
 export class SnapshotMap<T> extends SnapshotContainerBase {
     private snapshots = new Map<T, IGameSnapshot>();
 
-    public takeSnapshot(key: T): void {
-        const currentSnapshot = this.getCurrentSnapshotFn();
+    /** What {@link takeSnapshot} stores: the factory passes its materialization, so every stored snapshot is full (P4-F). Only `takeSnapshot` uses it; the memo anchor stays the raw current snapshot. */
+    private readonly takeSnapshotSourceFn: IGetCurrentSnapshotHandler;
 
-        this.snapshots.set(key, currentSnapshot);
+    public constructor(
+        game: Game,
+        gameStateManager: GameStateManager,
+        getCurrentSnapshotFn: IGetCurrentSnapshotHandler,
+        updateCurrentSnapshotFn: IUpdateCurrentSnapshotHandler,
+        restoreThroughDeltaChainFn: IRestoreThroughDeltaChainHandler,
+        takeSnapshotSourceFn: IGetCurrentSnapshotHandler,
+        clearNewerSnapshotsBinding: IClearNewerSnapshotsBinding
+    ) {
+        super(game, gameStateManager, getCurrentSnapshotFn, updateCurrentSnapshotFn, restoreThroughDeltaChainFn, clearNewerSnapshotsBinding);
+
+        this.takeSnapshotSourceFn = takeSnapshotSourceFn;
+    }
+
+    public takeSnapshot(key: T): void {
+        this.snapshots.set(key, this.takeSnapshotSourceFn());
     }
 
     public removeSnapshot(key: T): void {

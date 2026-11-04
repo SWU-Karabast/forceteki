@@ -228,13 +228,19 @@ describe('Delta snapshot container', function() {
                 const phaseRestores: number[] = [];
                 const actionRestores: number[] = [];
                 let stateRestores = 0;
+                let deltaRestores = 0;
                 const originalPhaseRestore = manager.phaseSnapshots.rollbackById.bind(manager.phaseSnapshots);
                 const originalActionRestore = manager.actionSnapshots.rollbackById.bind(manager.actionSnapshots);
                 const originalStateRestore = GameStateManager.prototype.rollbackToSnapshot;
+                const originalDeltaRestore = GameStateManager.prototype.rollbackToDeltaChain;
                 const patchedState = {
-                    rollbackToSnapshot(this: GameStateManager, snapshot: IGameSnapshot, beforeRollbackSnapshot?: IGameSnapshot) {
+                    rollbackToSnapshot(this: GameStateManager, snapshot: IGameSnapshot, memoAnchorSnapshot?: IGameSnapshot) {
                         stateRestores++;
-                        return originalStateRestore.call(this, snapshot, beforeRollbackSnapshot);
+                        return originalStateRestore.call(this, snapshot, memoAnchorSnapshot);
+                    },
+                    rollbackToDeltaChain(this: GameStateManager, ...args: Parameters<typeof GameStateManager.prototype.rollbackToDeltaChain>) {
+                        deltaRestores++;
+                        return originalDeltaRestore.apply(this, args);
                     }
                 };
 
@@ -248,29 +254,34 @@ describe('Delta snapshot container', function() {
                         return originalActionRestore(id);
                     };
                     GameStateManager.prototype.rollbackToSnapshot = patchedState.rollbackToSnapshot;
+                    GameStateManager.prototype.rollbackToDeltaChain = patchedState.rollbackToDeltaChain;
 
                     // Each restore goes through the manager's Quick rollback (the path `-morph` double-restored on), with the quick point
                     // forced so the case does not depend on the prompt state. The delta entry (Current) goes first because it prunes nothing
-                    // below it; the start-of-phase entry (Previous) then prunes it.
+                    // below it; the start-of-phase entry (Previous) then prunes it. P4-F: the delta entry's snapshot is hollow, so its one
+                    // restore is a delta chain restore; the start-of-phase snapshot is full, so its one restore is a full restore.
                     const current = quickRollbackOf(game, p1, QuickRollbackPoint.Current);
                     expect(current.success).toBeTrue();
                     expect(currentId(game)).toBe(actionId);
                     expect(phaseRestores).toEqual([]);
                     expect(actionRestores).toEqual([actionId]);
-                    expect(stateRestores).toBe(1);
+                    expect(deltaRestores).toBe(1);
+                    expect(stateRestores).toBe(0);
 
                     const previous = quickRollbackOf(game, p1, QuickRollbackPoint.Previous);
                     expect(previous.success).toBeTrue();
                     expect(currentId(game)).toBe(boundaryId);
                     expect(phaseRestores).toEqual([boundaryId]);
                     expect(actionRestores).toEqual([actionId]);
-                    expect(stateRestores).toBe(2);
+                    expect(deltaRestores).toBe(1);
+                    expect(stateRestores).toBe(1);
                     expect(index.headSnapshotId).toBe(boundaryId);
                     expect(container.getMostRecentSnapshotId()).toBe(boundaryId);
                 } finally {
                     Reflect.deleteProperty(manager.phaseSnapshots, 'rollbackById');
                     Reflect.deleteProperty(manager.actionSnapshots, 'rollbackById');
                     GameStateManager.prototype.rollbackToSnapshot = originalStateRestore;
+                    GameStateManager.prototype.rollbackToDeltaChain = originalDeltaRestore;
                 }
             });
         });

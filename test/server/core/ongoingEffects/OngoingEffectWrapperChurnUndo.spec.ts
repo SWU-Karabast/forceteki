@@ -115,8 +115,8 @@ describe('DynamicOngoingEffectImpl wrapper churn under undo', function() {
             expect(getRaidAmount(context.avarKriss)).toBe(3);
 
             const snapshotId = game.takeManualSnapshot(context.player1Object);
-            // takeManualSnapshot stores (aliases) the existing currentActionSnapshot, so this is the
-            // counter value p1-b's restore will write back.
+            // takeManualSnapshot stores the current snapshot (its materialization when it is hollow, P4-F, which carries the
+            // same window-start counter), so this is the counter value p1-b's restore will write back.
             const snapshotLastGameObjectId = getSnapshotFactory(game).currentActionSnapshot.lastGameObjectId;
 
             // Change both a raw-value dynamic effect (97th Legion's stats) and a GainKeyword dynamic

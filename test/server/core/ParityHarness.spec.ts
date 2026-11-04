@@ -2,6 +2,7 @@ import { GameObjectBase } from '../../../server/game/core/GameObjectBase';
 import { getStateSerializerFor } from '../../../server/game/core/StateSerializers';
 import type { SerializedStateRecord } from '../../../server/game/core/StateEncoding';
 import { compareRoundTrip, getParityHarnessStats } from '../../helpers/ParityHarness';
+import { withDeltaParitySuspended } from '../../helpers/DeltaParityGate';
 
 /**
  * Committed regression coverage for the parity harness's comparator. Through Plan 3 Phase A this file
@@ -45,7 +46,8 @@ describe('Parity harness', function() {
                 const before = getParityHarnessStats();
                 const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
                 context.setDamage(context.wampa, 2);
-                const rolledBack = contextRef.snapshot.rollbackToSnapshot({ type: 'manual', playerId: context.player1Object.id, snapshotId });
+                // The comparator wraps the full path's deserializers, so the spec's own rollback stays full under the delta-parity gate.
+                const rolledBack = withDeltaParitySuspended(context.game, 'the spec asserts the full restore path drives the deserializer comparator', () => contextRef.snapshot.rollbackToSnapshot({ type: 'manual', playerId: context.player1Object.id, snapshotId }));
                 expect(rolledBack).toBe(true);
 
                 const parityOn = process.env.ENABLE_PARITY_HARNESS === 'true';

@@ -280,7 +280,8 @@ describe('Delta cadence', function() {
                 const factory = factoryOf(game);
                 const index = indexOf(game);
 
-                const anchor = factory.currentActionSnapshot;
+                // The anchor is a hollow action snapshot since P4-F; its records are read through the materialization.
+                const anchor = context.game.snapshotManager.materializeCurrentSnapshot();
                 attack(context.player1, context.wampa, context.p2Base);
 
                 const delta = index.get(factory.currentActionSnapshot.id);
@@ -365,10 +366,22 @@ describe('Delta cadence', function() {
                         segment = [];
                     }
                 }
+                // P4-F: a hollow action checkpoint builds no records, so its segment is the explicit cull then the checkpoint; a full
+                // (bridge) checkpoint still culls, builds, culls again and checkpoints. Both kinds must occur here.
+                let fullSegments = 0;
+                let hollowSegments = 0;
                 for (const checkpointCalls of segments) {
-                    expect(checkpointCalls.slice(-3)).toEqual(['build', 'cull', 'checkpoint']);
-                    expect(checkpointCalls.indexOf('cull')).toBeLessThan(checkpointCalls.indexOf('build'));
+                    if (checkpointCalls.includes('build')) {
+                        fullSegments++;
+                        expect(checkpointCalls.slice(-3)).toEqual(['build', 'cull', 'checkpoint']);
+                        expect(checkpointCalls.indexOf('cull')).toBeLessThan(checkpointCalls.indexOf('build'));
+                    } else {
+                        hollowSegments++;
+                        expect(checkpointCalls.slice(-2)).toEqual(['cull', 'checkpoint']);
+                    }
                 }
+                expect(fullSegments).toBeGreaterThan(0);
+                expect(hollowSegments).toBeGreaterThan(0);
 
                 expect(stateManager.isRegistered(orphan)).toBeFalse();
             });

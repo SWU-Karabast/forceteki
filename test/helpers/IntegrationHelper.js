@@ -17,6 +17,7 @@ const { SnapshotType, PhaseName } = require('../../server/game/core/Constants.js
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager.js');
 const { QuickUndoAvailableState } = require('../../server/game/core/snapshot/SnapshotInterfaces.js');
 const saveDegradationProbe = require('./SaveDegradationProbe.js');
+const deltaParityGate = require('./DeltaParityGate.js');
 
 // enabled via the `ENABLE_UNDO_ALL_TESTS` env var (see the `test-undo` npm scripts) to run the
 // whole suite in undo mode (each test runs, rolls back, then runs again)
@@ -240,6 +241,7 @@ global.undoIntegration = function (definitions) {
  */
 function assertManualRollbackSucceeded(context, snapshotUtils) {
     const { snapshotId, player } = snapshotUtils.startOfTestSnapshot;
+    const parityMark = deltaParityGate.markParityChecks();
     const rolledBack = context.game.rollbackToSnapshotInternal({
         type: SnapshotType.Manual,
         playerId: player.id,
@@ -248,6 +250,10 @@ function assertManualRollbackSucceeded(context, snapshotUtils) {
     if (!rolledBack) {
         throw new Error(`Undo test rollback failed: rollbackToSnapshotInternal returned false for manual snapshot ${snapshotId} (player ${player.id})`);
     }
+
+    // Under ENABLE_UNDO_ALL_TESTS the rollback must have been restored through the delta chain and compared with the stored full
+    // snapshot (test/helpers/DeltaParityGate.ts); a no-op otherwise or for a game a spec exempted at a deliberate raw restore.
+    deltaParityGate.expectParityCheckSince(parityMark, context.game);
 }
 
 const jit = it;

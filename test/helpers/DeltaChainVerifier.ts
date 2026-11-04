@@ -320,22 +320,6 @@ function installDeltaChainVerifier(): void {
         return result;
     };
 
-    if (process.env.ENABLE_UNDO_ALL_TESTS === 'true') {
-        // The whole-suite undo replay needs the chain to every start-of-test snapshot to exist (docs/plans/04-delta-snapshots.md,
-        // "Manual snapshots and the whole-suite gate"), and manual snapshots never pin the index, so eviction is switched off here, in a
-        // helper, rather than in the harness. Eviction can only happen at a container push, which always follows a snapshot, so
-        // disabling it before a manager's first timepoint precedes every eviction. P4-F's harness gate takes this over.
-        const managersWithEvictionDisabled = new WeakSet<SnapshotManager>();
-        const originalMoveToNextTimepoint = SnapshotManager.prototype.moveToNextTimepoint;
-        SnapshotManager.prototype.moveToNextTimepoint = function(this: SnapshotManager, timepoint) {
-            if (!managersWithEvictionDisabled.has(this)) {
-                managersWithEvictionDisabled.add(this);
-                this.setDeltaIndexEvictionEnabled(false);
-            }
-            originalMoveToNextTimepoint.call(this, timepoint);
-        };
-    }
-
     // Top-level afterEach: allowed in a helper under --parallel (a top-level beforeAll/afterAll is not).
     afterEach(function() {
         specsRun++;

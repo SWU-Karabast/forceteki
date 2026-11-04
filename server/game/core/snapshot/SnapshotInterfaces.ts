@@ -137,6 +137,21 @@ export interface IGameSnapshot {
 
     requiresConfirmationToRollback: boolean;
     nextSnapshotIsSamePlayer?: boolean;
+
+    /**
+     * P4-F: set on an action-phase Action snapshot whose records were never built. Its `states` is empty, it restores only through the
+     * delta chain (`SnapshotContainerBase.rollbackToSnapshotInternal`), and its metadata (id, timepoints, rng state, object-id counter,
+     * confirmation flags) is authoritative. Absent on every full snapshot.
+     */
+    hollow?: true;
+
+    /**
+     * P4-F: the hollow snapshot this full copy was materialized from (`SnapshotFactory.materializeCurrentSnapshot`); flags and
+     * current-snapshot identity alias through it. A rollback to the copy makes `source` the current snapshot, and the copy's confirmation
+     * flags are read from `source`, so the one object per id that the flag writers and the quick-undo policy use stays the same. An
+     * in-memory alias only, never part of a written form. Absent on every snapshot that was not materialized.
+     */
+    readonly source?: IGameSnapshot;
 }
 
 /** `action` deltas are the ones quick containers hold entries for; every other snapshot with a window records a `bridge`. */
@@ -146,9 +161,9 @@ export enum DeltaSnapshotKind {
 }
 
 /**
- * The reverse delta recorded alongside a full snapshot (shadow mode, P4-E): the closed delta-tracker window that ran from
- * `anchorSnapshotId` to this snapshot. It shares the full snapshot's id and timepoint number, so a bridge consumes neither of its own.
- * Nothing applies a delta to live state yet; the full snapshot is the only restore authority.
+ * The reverse delta recorded beside every snapshot after the first of a tracking run (P4-E): the closed delta-tracker window that ran
+ * from `anchorSnapshotId` to this snapshot. It shares the snapshot's id and timepoint number, so a bridge consumes neither of its own.
+ * Since P4-F it is the restore authority for a hollow snapshot: `GameStateManager.rollbackToDeltaChain` applies it, newest first.
  */
 export interface IDeltaSnapshot {
 

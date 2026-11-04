@@ -5,6 +5,7 @@ import { DeltaChainBeyondHorizonError } from '../../../../server/game/core/snaps
 import type { IDeltaSnapshot, IGameSnapshot, IGetSnapshotSettings } from '../../../../server/game/core/snapshot/SnapshotInterfaces';
 import { DeltaSnapshotKind, SnapshotTimepoint } from '../../../../server/game/core/snapshot/SnapshotInterfaces';
 import { getDeltaChainVerifierStats, withExpectedDeltaChainFailure } from '../../../helpers/DeltaChainVerifier';
+import { withDeltaParitySuspended } from '../../../helpers/DeltaParityGate';
 
 /**
  * P4-E: the delta chain in a real game (`docs/plans/04-delta-snapshots.md`, "As landed in P4-E"): chains across players and phase boundaries,
@@ -540,7 +541,9 @@ describe('Delta chain', function() {
                 const expectedBefore = getDeltaChainVerifierStats().expectedFailures;
                 let rolledBack = false;
                 const failures = withExpectedDeltaChainFailure(() => {
-                    rolledBack = game.snapshotManager.rollbackTo({ type: SnapshotType.Manual, playerId: context.player1Object.id, snapshotId: targetId }).success;
+                    // The subject is the chain verifier on a full restore across a hole, so the spec's own rollback stays full under the parity gate.
+                    rolledBack = withDeltaParitySuspended(game, 'the spec asserts the chain verifier on a full restore across a deleted delta', () =>
+                        game.snapshotManager.rollbackTo({ type: SnapshotType.Manual, playerId: context.player1Object.id, snapshotId: targetId }).success);
                 });
 
                 expect(rolledBack).toBeTrue();

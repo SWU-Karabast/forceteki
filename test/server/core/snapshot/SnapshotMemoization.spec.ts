@@ -8,6 +8,7 @@ import { DeltaTrackerMode } from '../../../../server/game/core/snapshot/DeltaTra
 import type { IGameSnapshot, IRollbackResult } from '../../../../server/game/core/snapshot/SnapshotInterfaces';
 import { SnapshotTimepoint } from '../../../../server/game/core/snapshot/SnapshotInterfaces';
 import { exemptGameFromDeltaChainVerification } from '../../../helpers/DeltaChainVerifier';
+import { exemptGameFromDeltaParity, withDeltaParitySuspended } from '../../../helpers/DeltaParityGate';
 import {
     getSnapshotMemoVerifierStats,
     isSnapshotMemoVerifierInstalled,
@@ -121,8 +122,14 @@ function freshRecord(go: unknown): SerializedStateRecord {
     return StateSerializers.getStateSerializerFor(instance).serializer.serialize(instance);
 }
 
+/**
+ * The spec's own manual rollback. It always takes the full restore, even under the whole-suite delta-parity gate: the subject is
+ * memoization around full snapshots and the full restore's pre-pass, and this spec's boards run in DirtyOnly mode, whose windows the
+ * delta chain cannot restore by design (P4-F B1).
+ */
 function rollbackManual(context, snapshotId: number): IRollbackResult {
-    return context.game.snapshotManager.rollbackTo({ type: SnapshotType.Manual, playerId: context.player1Object.id, snapshotId });
+    return withDeltaParitySuspended(context.game, 'memoization spec: DirtyOnly boards and the full restore path are the subject', () =>
+        context.game.snapshotManager.rollbackTo({ type: SnapshotType.Manual, playerId: context.player1Object.id, snapshotId }));
 }
 
 /** `rollbackTo` alone leaves the pipeline stale; the engine's own caller finishes with this. */
@@ -130,6 +137,16 @@ function settle(context, result: IRollbackResult): void {
     if (result.success) {
         context.game.postRollbackOperations(result.entryPoint);
     }
+}
+
+/**
+ * Repairs a deliberate delta-lineage break (a write or registration the tracker never saw, or a DirtyOnly window) with a full managed
+ * rollback to a snapshot taken before it, so the undo replay's delta-restored rollback to the start-of-test snapshot still applies.
+ */
+function rollbackPastLineageBreak(context, snapshotId: number): void {
+    const result = rollbackManual(context, snapshotId);
+    expect(result.success).toBeTrue();
+    settle(context, result);
 }
 
 /** Patches `target[name]` for the duration of `body`, restoring in a finally. Not `spyOn`: the undo replay runs a case body twice. */
@@ -221,12 +238,41 @@ function expectNextBuildReusesRestored(game, restored: IGameSnapshot, discarded:
 
 describe('Snapshot memoization', function() {
     integrationWithUndo(function(contextRef) {
+        /**
+         * P4-F: an action snapshot is hollow (no records) when the windows on both sides of it capture old values, and this spec's
+         * subject is memoization of consecutive full snapshots, so every board runs with the tracker in DirtyOnly mode, where every
+         * snapshot stays full (plan B7). A DirtyOnly window cannot be restored through the delta chain, so under whole-suite undo
+         * each case ends with {@link memoIt}'s repair: a full rollback to the board's setup snapshot before the harness's
+         * delta-restored replay rollback.
+         */
+        let fullSnapshotBoard: { context: SwuTestContext; setupSnapshotId: number } | null = null;
+
+        function enterFullSnapshotMode(context: SwuTestContext): void {
+            fullSnapshotBoard = { context, setupSnapshotId: contextRef.snapshot.takeManualSnapshot(context.player1Object) };
+            tracker(context.game).setMode(DeltaTrackerMode.DirtyOnly);
+        }
+
+        function memoIt(expectation: string, body: () => Promise<void>): void {
+            it(expectation, async function() {
+                fullSnapshotBoard = null;
+                await body();
+
+                const board = fullSnapshotBoard;
+                fullSnapshotBoard = null;
+                if (board !== null && board.context.isUndoTest) {
+                    tracker(board.context.game).setMode(DeltaTrackerMode.CaptureOldValues);
+                    rollbackPastLineageBreak(board.context, board.setupSnapshotId);
+                }
+            });
+        }
+
         async function setupBoard() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: { groundArena: ['wampa'], hand: ['battlefield-marine'], resources: 6 },
                 player2: { spaceArena: ['cartel-spacer'] }
             });
+            enterFullSnapshotMode(contextRef.context);
             return contextRef.context;
         }
 
@@ -240,10 +286,12 @@ describe('Snapshot memoization', function() {
 
         describe('build', function() {
             for (const mode of [DeltaTrackerMode.DirtyOnly, DeltaTrackerMode.CaptureOldValues]) {
-                it(`AC1 and AC8 share the record of an untouched object and re-serialize a written or created one (${mode} window)`, async function() {
+                memoIt(`AC1 and AC8 share the record of an untouched object and re-serialize a written or created one (${mode} window)`, async function() {
                     const context = await setupBoard();
                     const game = context.game;
                     const wampa = context.wampa as unknown as IDamageUnit;
+                    // Close the setup's capture window first, so `first` closes a DirtyOnly window and is full in either mode (P4-F).
+                    takeSnapshot(game);
                     tracker(game).setMode(mode);
 
                     try {
@@ -252,6 +300,8 @@ describe('Snapshot memoization', function() {
                         wampa.setDamageForStateInjection(2);
                         const token = game.generateToken(context.player1Object, TokenUnitName.BattleDroid);
                         const window = tracker(game).pendingWindow;
+                        // The window after `second` is DirtyOnly, so `second` is full and memoizes over the `mode` window (P4-F).
+                        tracker(game).setMode(DeltaTrackerMode.DirtyOnly);
                         const second = takeSnapshot(game);
 
                         expect(second.states).not.toBe(first.states);
@@ -262,12 +312,12 @@ describe('Snapshot memoization', function() {
                         expect(second.states[token.uuid]).toEqual(freshRecord(token));
                         expectSharingMatchesWindow(window, first, second);
                     } finally {
-                        tracker(game).setMode(DeltaTrackerMode.CaptureOldValues);
+                        tracker(game).setMode(DeltaTrackerMode.DirtyOnly);
                     }
                 });
             }
 
-            it('AC1 places a fresh record for a uuid reissued after a raw restore, not the removed instance\'s record', async function() {
+            memoIt('AC1 places a fresh record for a uuid reissued after a raw restore, not the removed instance\'s record', async function() {
                 const context = await setupBoard();
                 const game = context.game;
                 const manager = stateManagerOf(game);
@@ -278,14 +328,18 @@ describe('Snapshot memoization', function() {
                 const current = takeSnapshot(game);
                 expect(current.states[reissuedUuid]).toEqual(freshRecord(removed));
 
-                // A raw restore with the tracker running rewinds the uuid counter but leaves the current snapshot and its window alone.
+                // A raw restore with the tracker running rewinds the uuid counter and leaves the current snapshot alone; since P4-F it
+                // drops the window its writes bypassed, so the next snapshot starts a new tracking run and nothing is reused.
                 expect(tracker(game).isTracking).toBeTrue();
+                exemptGameFromDeltaChainVerification(game, 'a raw restore drops the tracker window, so the next snapshot starts a new tracking run the undo replay\'s chain cannot cross');
+                exemptGameFromDeltaParity(game, 'a raw GameStateManager restore outside SnapshotManager drops the tracker window and starts a new tracking run');
                 expect(manager.rollbackToSnapshot(older)).toBeTrue();
                 expect(manager.isRegistered(removed)).toBeFalse();
+                expect(tracker(game).pendingWindow).toBeNull();
+                expect(tracker(game).isTracking).toBeFalse();
 
                 const reissued = newFixture(context, 2);
                 expect(reissued.uuid).toBe(reissuedUuid);
-                expect(tracker(game).pendingWindow.createdObjectUuids.has(reissuedUuid)).toBeTrue();
 
                 const next = takeSnapshot(game);
                 expect(next.states[reissuedUuid]).not.toBe(current.states[reissuedUuid]);
@@ -293,12 +347,13 @@ describe('Snapshot memoization', function() {
                 expect(next.states[reissuedUuid]).toEqual(freshRecord(reissued));
             });
 
-            it('AC2 serializes every object for a build with the tracker stopped, a window anchored elsewhere, no window, and no previous snapshot', async function() {
+            memoIt('AC2 serializes every object for a build with the tracker stopped, a window anchored elsewhere, no window, and no previous snapshot', async function() {
                 const context = await setupBoard();
                 const game = context.game;
                 const manager = stateManagerOf(game);
                 const trackerInstance = tracker(game);
                 exemptGameFromDeltaChainVerification(game, 'a raw restore restarts the tracker window at an older snapshot while the factory\'s current snapshot stays newer, so the next delta anchors off the index head');
+                exemptGameFromDeltaParity(game, 'a raw GameStateManager restore outside SnapshotManager restarts the tracker window at an older snapshot off the index head');
 
                 // The tracker stopped: the factory restarts the window afterwards.
                 const stopped = takeSnapshot(game);
@@ -327,7 +382,7 @@ describe('Snapshot memoization', function() {
                 expectNoSharedRecords(manager.buildGameStateForSnapshot(null), reference);
             });
 
-            it('AC2 serializes every object for the first snapshot after clearAllSnapshots', async function() {
+            memoIt('AC2 serializes every object for the first snapshot after clearAllSnapshots', async function() {
                 const context = await setupBoard();
                 if (undoReplayEnabled) {
                     pending('clearAllSnapshots removes the start-of-test snapshot the undo replay rolls back to');
@@ -345,7 +400,7 @@ describe('Snapshot memoization', function() {
                 expect(second.states[context.cartelSpacer.uuid]).toBe(first.states[context.cartelSpacer.uuid]);
             });
 
-            it('AC3 culls an unreferenced object registered in the window before any record is chosen, and the key count equals the live count', async function() {
+            memoIt('AC3 culls an unreferenced object registered in the window before any record is chosen, and the key count equals the live count', async function() {
                 const context = await setupBoard();
                 const game = context.game;
                 const manager = stateManagerOf(game);
@@ -376,7 +431,7 @@ describe('Snapshot memoization', function() {
                 return { wampa, spacer, second, third };
             }
 
-            it('AC4 resets the memo to the restored snapshot after a manual rollback', async function() {
+            memoIt('AC4 resets the memo to the restored snapshot after a manual rollback', async function() {
                 const context = await setupBoard();
                 const game = context.game;
 
@@ -392,7 +447,7 @@ describe('Snapshot memoization', function() {
                 settle(context, result);
             });
 
-            it('AC4 resets the memo to the restored snapshot after an action rollback', async function() {
+            memoIt('AC4 resets the memo to the restored snapshot after an action rollback', async function() {
                 const context = await setupBoard();
                 const game = context.game;
                 const playerId = context.player1Object.id;
@@ -413,11 +468,16 @@ describe('Snapshot memoization', function() {
                 settle(context, result);
             });
 
-            it('AC4 resets the memo to the restored snapshot after a quick rollback', async function() {
+            memoIt('AC4 resets the memo to the restored snapshot after a quick rollback', async function() {
                 const context = await setupBoard();
                 const game = context.game;
                 const playerId = context.player1Object.id;
                 const wampa = context.wampa as unknown as IDamageUnit;
+
+                // P4-F: the setup's action snapshot is hollow and its chain would cross this board's DirtyOnly window, so the quick
+                // target is a full action snapshot taken first.
+                game.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.Action);
+                game.snapshotManager.takeSnapshot({ type: SnapshotType.Action, playerId });
 
                 wampa.setDamageForStateInjection(1);
                 game.snapshotManager.moveToNextTimepoint(SnapshotTimepoint.Action);
@@ -433,7 +493,7 @@ describe('Snapshot memoization', function() {
                 settle(context, result);
             });
 
-            it('AC4 keeps the held window, and re-serializes an object written before it, when a rollback enters rollbackToInternal and restores nothing', async function() {
+            memoIt('AC4 keeps the held window, and re-serializes an object written before it, when a rollback enters rollbackToInternal and restores nothing', async function() {
                 const context = await setupBoard();
                 const game = context.game;
                 const wampa = context.wampa as unknown as IDamageUnit;
@@ -459,7 +519,7 @@ describe('Snapshot memoization', function() {
         });
 
         describe('verifier', function() {
-            it('AC5 is installed and its counts grow across a scripted action and a manual rollback', async function() {
+            memoIt('AC5 is installed and its counts grow across a scripted action and a manual rollback', async function() {
                 const context = await setupBoard();
                 if (!isSnapshotMemoVerifierInstalled()) {
                     pending('the verifier is not installed when RUN_PERF_BENCHMARKS is set');
@@ -484,7 +544,7 @@ describe('Snapshot memoization', function() {
                 expect(after.failures).toBe(before.failures);
             });
 
-            it('AC6 reports a field write made while the tracker was stopped, naming the object and field, at the next build', async function() {
+            memoIt('AC6 reports a field write made while the tracker was stopped, naming the object and field, at the next build', async function() {
                 const context = await setupBoard();
                 const game = context.game;
                 const wampa = context.wampa as unknown as IDamageUnit;
@@ -509,7 +569,7 @@ describe('Snapshot memoization', function() {
                 takeSnapshot(game);
             });
 
-            it('AC6 reports an in-place push onto a Player decklist list, naming the Player and its _decklist, at the next build', async function() {
+            memoIt('AC6 reports an in-place push onto a Player decklist list, naming the Player and its _decklist, at the next build', async function() {
                 const context = await setupBoard();
                 const game = context.game;
                 const player = context.player1Object;
@@ -536,7 +596,7 @@ describe('Snapshot memoization', function() {
                 takeSnapshot(game);
             });
 
-            it('AC7 leaves every retained record and every shared identity unchanged across rollbacks and in-place mutation of live collections', async function() {
+            memoIt('AC7 leaves every retained record and every shared identity unchanged across rollbacks and in-place mutation of live collections', async function() {
                 const context = await setupBoard();
                 const game = context.game;
                 const deckZone = context.player1Object.deckZone;
@@ -586,7 +646,7 @@ describe('Snapshot memoization', function() {
         });
 
         describe('token decklist', function() {
-            it('AC9 lists a generated token in the next Player record and restores the decklist around it', async function() {
+            memoIt('AC9 lists a generated token in the next Player record and restores the decklist around it', async function() {
                 const context = await setupBoard();
                 const game = context.game;
                 const player = context.player1Object;
@@ -623,7 +683,7 @@ describe('Snapshot memoization', function() {
         });
 
         describe('pre-pass', function() {
-            it('AC10 hands the outermost pre-pass the current snapshot\'s record for a clean object and a fresh record for a written one', async function() {
+            memoIt('AC10 hands the outermost pre-pass the current snapshot\'s record for a clean object and a fresh record for a written one', async function() {
                 const context = await setupBoard();
                 const game = context.game;
                 const wampa = context.wampa as unknown as IDamageUnit;
@@ -657,7 +717,7 @@ describe('Snapshot memoization', function() {
                 settle(context, result);
             });
 
-            it('AC10 serializes only the written, created and unrecorded objects in the outermost pre-pass', async function() {
+            memoIt('AC10 serializes only the written, created and unrecorded objects in the outermost pre-pass', async function() {
                 const context = await setupBoard();
                 const game = context.game;
                 const manager = stateManagerOf(game);
@@ -696,13 +756,14 @@ describe('Snapshot memoization', function() {
                 settle(context, result);
             });
 
-            it('AC10 serializes every object in the nested recovery frame, so a clean triggered ability whose registration differed is registered again', async function() {
+            memoIt('AC10 serializes every object in the nested recovery frame, so a clean triggered ability whose registration differed is registered again', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: { hand: ['cartel-spacer'], groundArena: ['wampa'], resources: 6 },
                     player2: { groundArena: ['battlefield-marine'] }
                 });
                 const { context } = contextRef;
+                enterFullSnapshotMode(context);
                 const game = context.game;
                 const spacer = context.cartelSpacer;
                 const abilities = [...spacer.triggeredAbilities] as ITriggeredAbilityInternals[];
@@ -758,7 +819,7 @@ describe('Snapshot memoization', function() {
                 expect(spacer).toBeInZone('spaceArena');
             });
 
-            it('AC10 does not reach a pre-pass encode failure injected on a clean object, and still aborts, writing nothing, for one on a written object', async function() {
+            memoIt('AC10 does not reach a pre-pass encode failure injected on a clean object, and still aborts, writing nothing, for one on a written object', async function() {
                 const context = await setupBoard();
                 const game = context.game;
                 const wampa = context.wampa as unknown as IDamageUnit;

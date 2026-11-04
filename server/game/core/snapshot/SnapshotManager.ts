@@ -4,7 +4,7 @@ import { SnapshotType } from '../Constants';
 import type { Game } from '../Game';
 import type { IGameObjectRegistrar } from './GameStateManager';
 import { GameStateManager } from './GameStateManager';
-import type { ICanRollBackResult, IRollbackRoundEntryPoint, IRollbackSetupEntryPoint, ISnapshotProperties } from './SnapshotInterfaces';
+import type { ICanRollBackResult, IGameSnapshot, IRollbackRoundEntryPoint, IRollbackSetupEntryPoint, ISnapshotProperties } from './SnapshotInterfaces';
 import { DeltaSnapshotKind, SnapshotTimepoint } from './SnapshotInterfaces';
 import { RollbackEntryPointType, type IGetManualSnapshotSettings, type IGetSnapshotSettings, type IManualSnapshotSettings, type IRollbackResult, type ISnapshotSettings } from './SnapshotInterfaces';
 import { Contract } from '../utils/Contract.js';
@@ -52,6 +52,10 @@ export class SnapshotManager {
     protected readonly manualSnapshots: Map<string, SnapshotMap<number>>;
 
     private deltaIndexEvictionEnabled = true;
+    private deltaParityMode = false;
+
+    /** Test-mode only: player id to the manual snapshot ids taken while {@link deltaParityMode} was on (the delta anchors). */
+    private readonly deltaAnchoredManualSnapshotIds = new Map<string, Set<number>>();
     private lastClaimedActionDeltaId: number | null = null;
     private _gameStepsSinceLastUndo?: number;
     private _undoMode: UndoMode;
@@ -97,9 +101,19 @@ export class SnapshotManager {
         return this._undoMode;
     }
 
-    /** The global index of the reverse deltas recorded beside the full snapshots (shadow mode: nothing restores from it yet). */
+    /** The global index of the reverse deltas recorded beside the snapshots; a hollow snapshot restores through its chain (P4-F). */
     public get deltaSnapshotIndex(): DeltaSnapshotIndex {
         return this.snapshotFactory.deltaSnapshotIndex;
+    }
+
+    /**
+     * The current snapshot as a full snapshot, changing nothing: the documented materialization entry point for readers of the current
+     * snapshot's records, including the Plan 6 B snapshot-read save path. A pass-through to `SnapshotFactory.materializeCurrentSnapshot`,
+     * whose comment states the window-start rule, cost and failure, and that the result's `source` is an in-memory alias for the live
+     * flag bookkeeping (B2a), never part of a written form.
+     */
+    public materializeCurrentSnapshot(): IGameSnapshot {
+        return this.snapshotFactory.materializeCurrentSnapshot();
     }
 
     public constructor(game: Game, undoMode: UndoMode = UndoMode.Disabled) {
@@ -220,7 +234,7 @@ export class SnapshotManager {
 
     /**
      * Test-mode switch: with eviction off the index keeps every delta, so a chain to any snapshot of the game can be built.
-     * In P4-E the test verifier helper turns it off on every game under `ENABLE_UNDO_ALL_TESTS`; P4-F's harness gate takes that over.
+     * The delta-parity gate (`test/helpers/DeltaParityGate.ts`) turns it off on every game under `ENABLE_UNDO_ALL_TESTS`.
      */
     public setDeltaIndexEvictionEnabled(enabled: boolean): void {
         this.deltaIndexEvictionEnabled = enabled;
@@ -228,6 +242,20 @@ export class SnapshotManager {
 
     public get isDeltaIndexEvictionEnabled(): boolean {
         return this.deltaIndexEvictionEnabled;
+    }
+
+    /**
+     * Test-mode only (`docs/plans/04-delta-snapshots.md`, "Manual snapshots and the whole-suite gate"): while on, every manual snapshot
+     * taken is also recorded as a delta anchor, and a rollback to one restores through the delta chain instead of its full records,
+     * which the delta-parity gate then compares with live state. Turning it off keeps the recorded anchors, so a suspension can
+     * resume it. Never set in production.
+     */
+    public setDeltaParityMode(enabled: boolean): void {
+        this.deltaParityMode = enabled;
+    }
+
+    public get isDeltaParityMode(): boolean {
+        return this.deltaParityMode;
     }
 
     private addQuickStartOfPhaseSnapshots(phase: PhaseName.Regroup | PhaseName.Setup) {
@@ -276,6 +304,15 @@ export class SnapshotManager {
         const snapshotId = this.snapshotFactory.currentSnapshotId;
 
         playerSnapshots.takeSnapshot(snapshotId);
+
+        if (this.deltaParityMode) {
+            let anchoredIds = this.deltaAnchoredManualSnapshotIds.get(settings.playerId);
+            if (!anchoredIds) {
+                anchoredIds = new Set<number>();
+                this.deltaAnchoredManualSnapshotIds.set(settings.playerId, anchoredIds);
+            }
+            anchoredIds.add(snapshotId);
+        }
 
         return snapshotId;
     }
@@ -338,6 +375,13 @@ export class SnapshotManager {
 
                 // Throw out all snapshots after the rollback snapshot.
                 this.snapshotFactory.clearNewerSnapshots(rolledBackSnapshotIdx);
+                for (const anchoredIds of this.deltaAnchoredManualSnapshotIds.values()) {
+                    for (const id of anchoredIds) {
+                        if (id > rolledBackSnapshotIdx) {
+                            anchoredIds.delete(id);
+                        }
+                    }
+                }
                 this._gameStepsSinceLastUndo = 0;
                 return {
                     success: true,
@@ -405,8 +449,11 @@ export class SnapshotManager {
             return QuickRollbackPoint.Current;
         }
 
-        // Phase-boundary triggers: Thrawn's start-of-action reveal and a single Sneak Attack trigger already resolve through the cases below
-        // (docs/plans/04-delta-snapshots.md, "Known limitations (deferred)"). The decided-part-of-the-window case is handled by the rule just before the final return.
+        // P4-F: Current and Previous are array positions in the player's quick container, unchanged by the delta cutover. Restoring a delta
+        // entry builds the chain from the index head, so a quick undo from a boundary-prompt window (the end-of-action-phase prompted
+        // player, a Regroup Sneak Attack or Thrawn trigger) crosses whatever bridges lie between that window and the target; every entry
+        // hasAvailableQuickSnapshot offers is restorable. PhaseBoundaryDeltaUndo.spec.ts (boundary-prompt-chain,
+        // availability-implies-restorable) pins both. The decided-part-of-the-window case is handled by the rule just before the final return.
 
         // if we're in the middle of an action, revert to start of action
         if (this.currentSnapshottedTimepointType === SnapshotTimepoint.Action && playerPromptType !== PromptType.ActionWindow) {
@@ -441,7 +488,11 @@ export class SnapshotManager {
     }
 
     private rollbackManualSnapshot(settings: IGetManualSnapshotSettings): number {
-        const rolledBackSnapshotIdx = this.manualSnapshots.get(settings.playerId)?.rollbackToSnapshot(settings.snapshotId);
+        const restoreThroughDeltaChain = this.deltaParityMode && this.deltaAnchoredManualSnapshotIds.get(settings.playerId)?.has(settings.snapshotId) === true;
+        const playerSnapshots = this.manualSnapshots.get(settings.playerId);
+        const rolledBackSnapshotIdx = restoreThroughDeltaChain
+            ? playerSnapshots?.rollbackByIdThroughDeltaChain(settings.snapshotId)
+            : playerSnapshots?.rollbackToSnapshot(settings.snapshotId);
 
         Contract.assertNotNullLike(rolledBackSnapshotIdx, `Manual snapshot with ID ${settings.snapshotId} does not exist for player ${settings.playerId}.`);
 
@@ -598,6 +649,7 @@ export class SnapshotManager {
         for (const playerSnapshots of this.manualSnapshots.values()) {
             playerSnapshots.clearAllSnapshots();
         }
+        this.deltaAnchoredManualSnapshotIds.clear();
 
         // The quick containers' entries were never cleared (their snapshots are gone, so they report unavailable); positions stay, payloads go.
         for (const quickContainer of this.quickSnapshots.values()) {

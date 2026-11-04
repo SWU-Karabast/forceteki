@@ -4,6 +4,7 @@ import type { IGameSnapshot } from '../../../server/game/core/snapshot/SnapshotI
 import { SnapshotTimepoint } from '../../../server/game/core/snapshot/SnapshotInterfaces';
 import { getStateSerializerFor } from '../../../server/game/core/StateSerializers';
 import type { SerializedStateRecord } from '../../../server/game/core/StateEncoding';
+import { exemptGameFromDeltaParity, withDeltaParitySuspended } from '../../helpers/DeltaParityGate';
 import {
     getFirstHarnessError,
     getParityHarnessStats,
@@ -110,7 +111,7 @@ describe('Restore parity harness', function() {
                 const before = getParityHarnessStats();
                 const snapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
                 context.setDamage(context.wampa, 2);
-                const rolledBack = contextRef.snapshot.rollbackToSnapshot({ type: 'manual', playerId: context.player1Object.id, snapshotId });
+                const rolledBack = withDeltaParitySuspended(context.game, 'the spec asserts the full restore path (generated deserializers)', () => contextRef.snapshot.rollbackToSnapshot({ type: 'manual', playerId: context.player1Object.id, snapshotId }));
                 expect(rolledBack).toBe(true);
 
                 const parityOn = process.env.ENABLE_PARITY_HARNESS === 'true';
@@ -180,7 +181,7 @@ describe('Restore parity harness', function() {
                                 // `_damage` of 0, while the deliberately-broken deserializer leaves the live
                                 // instance at the dirty pre-rollback value of 3, so the round-trip compare
                                 // sees old=0 new=3.
-                                expect(() => contextRef.snapshot.rollbackToSnapshot({ type: 'manual', playerId: context.player1Object.id, snapshotId }))
+                                expect(() => withDeltaParitySuspended(context.game, 'the spec asserts the full restore path (generated deserializers)', () => contextRef.snapshot.rollbackToSnapshot({ type: 'manual', playerId: context.player1Object.id, snapshotId })))
                                     .toThrowError(new RegExp(`class=${className} uuid=${wampa.uuid} field="_damage".* old=0 new=3`));
                             });
                         });
@@ -208,7 +209,7 @@ describe('Restore parity harness', function() {
                     context.player1.clickCard(context.wampa);
                     expect(context.wampa).toBeInZone('groundArena');
 
-                    const rolledBack = contextRef.snapshot.rollbackToSnapshot({ type: 'manual', playerId: context.player1Object.id, snapshotId });
+                    const rolledBack = withDeltaParitySuspended(context.game, 'the spec asserts the full restore path (generated deserializers)', () => contextRef.snapshot.rollbackToSnapshot({ type: 'manual', playerId: context.player1Object.id, snapshotId }));
                     expect(rolledBack).toBe(true);
                     // P3PA3-I1-08 non-vacuousness guard: without it, a harness that silently failed to wrap
                     // would degrade this spec to a plain production rollback while it still passed.
@@ -252,7 +253,7 @@ describe('Restore parity harness', function() {
                         const snapshotTimeCopy = JSON.stringify(retainedStates);
 
                         context.setDamage(context.wampa, 2);
-                        const firstRollback = contextRef.snapshot.rollbackToSnapshot({ type: 'manual', playerId: context.player1Object.id, snapshotId });
+                        const firstRollback = withDeltaParitySuspended(context.game, 'the spec asserts the full restore path (generated deserializers)', () => contextRef.snapshot.rollbackToSnapshot({ type: 'manual', playerId: context.player1Object.id, snapshotId }));
                         expect(firstRollback).toBe(true);
                         const firstDamage = context.wampa.damage;
                         const firstDeckLength = context.player1Object.deckZone.deck.length;
@@ -276,7 +277,7 @@ describe('Restore parity harness', function() {
                         const deck = context.player1Object.deckZone.deck as unknown as unknown[];
                         deck.pop();
 
-                        const secondRollback = contextRef.snapshot.rollbackToSnapshot({ type: 'manual', playerId: context.player1Object.id, snapshotId });
+                        const secondRollback = withDeltaParitySuspended(context.game, 'the spec asserts the full restore path (generated deserializers)', () => contextRef.snapshot.rollbackToSnapshot({ type: 'manual', playerId: context.player1Object.id, snapshotId }));
                         expect(secondRollback).toBe(true);
                         expect(context.wampa.damage).toBe(firstDamage);
                         expect(context.player1Object.deckZone.deck.length).toBe(firstDeckLength);
@@ -338,6 +339,7 @@ describe('Restore parity harness', function() {
                         const before = getParityHarnessStats();
                         let result: number | null | undefined;
                         let recordedError: Error | null = null;
+                        exemptGameFromDeltaParity(context.game, 'raw manual-container restores (container.rollbackToSnapshot) outside SnapshotManager consume the tracker window without pruning the delta index');
                         withHarnessRethrowSuppressed(() => {
                             withDeserializePatchedBeneathHarness(entry, makePatch, () => {
                                 result = container.rollbackToSnapshot(snapshotId);
@@ -596,6 +598,7 @@ describe('Restore parity harness', function() {
                             return originalSerialize(instance);
                         };
 
+                        exemptGameFromDeltaParity(context.game, 'raw manual-container restores (container.rollbackToSnapshot) outside SnapshotManager consume the tracker window without pruning the delta index');
                         withHarnessRethrowSuppressed(() => {
                             withDeserializePatchedBeneathHarness(entry, makePatch, () => {
                                 try {

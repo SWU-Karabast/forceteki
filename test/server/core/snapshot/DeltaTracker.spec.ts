@@ -1,4 +1,5 @@
 import { SnapshotType, TokenUnitName } from '../../../../server/game/core/Constants';
+import { withDeltaParitySuspended, withExpectedRollbackFailure } from '../../../helpers/DeltaParityGate';
 import { GameObjectBase } from '../../../../server/game/core/GameObjectBase';
 import type { IStateArray } from '../../../../server/game/core/GameObjectUtils';
 import {
@@ -183,8 +184,9 @@ function forceFreshWindow(game): void {
     snapshotInternals(game).snapshotFactory.createSnapshotForCurrentTimepoint(SnapshotTimepoint.Action);
 }
 
+/** The current snapshot's records: an action-phase Action snapshot is hollow since P4-F, so it is read through the materialization. */
 function currentSnapshot(game): IGameSnapshot {
-    return snapshotInternals(game).snapshotFactory.currentActionSnapshot;
+    return game.snapshotManager.materializeCurrentSnapshot();
 }
 
 function manualSnapshot(game, playerId: string, snapshotId: number): IGameSnapshot {
@@ -208,6 +210,21 @@ function settle(context, result: IRollbackResult): void {
     if (result.success) {
         context.game.postRollbackOperations(result.entryPoint);
     }
+}
+
+/** The spec's own manual rollback through the full restore, which is its subject, even under the whole-suite delta-parity gate. */
+function rollbackManualFull(context, snapshotId: number): IRollbackResult {
+    return withDeltaParitySuspended(context.game, 'the spec asserts the full restore path', () => rollbackManual(context, snapshotId));
+}
+
+/**
+ * Repairs a deliberate delta-lineage break (a write the tracker never saw, or a DirtyOnly window) with a full managed rollback to a
+ * snapshot taken before it, so the undo replay's delta-restored rollback to the start-of-test snapshot still applies.
+ */
+function rollbackPastLineageBreak(context, snapshotId: number): void {
+    const result = withDeltaParitySuspended(context.game, 'repairs a deliberate delta-lineage break before the undo replay', () => rollbackManual(context, snapshotId));
+    expect(result.success).toBeTrue();
+    settle(context, result);
 }
 
 /** Patches `target[name]` for the duration of `body`, restoring in a finally. Not `spyOn`: the undo replay runs a case body twice in one spec. */
@@ -626,6 +643,7 @@ describe('DeltaTracker', function() {
                 const trackerInstance = tracker(context.game);
                 forceFreshWindow(context.game);
                 const window = trackerInstance.pendingWindow;
+                const beforeBreakId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
 
                 trackerInstance.stopTracking();
                 try {
@@ -639,6 +657,8 @@ describe('DeltaTracker', function() {
                 wampa.setDamageForStateInjection(5);
                 expect(trackerInstance.pendingWindow).toBe(window);
                 expect(window.changedFields.get(wampa.uuid)._damage).toBe(4);
+
+                rollbackPastLineageBreak(context, beforeBreakId);
             });
 
             it('records objects registered during the window as created and ignores their writes', async function() {
@@ -702,6 +722,7 @@ describe('DeltaTracker', function() {
 
                 const lookups: GameObjectBase[] = [];
                 const originalLookup = StateSerializers.getStateSerializerFor;
+                const beforeBreakId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
 
                 try {
                     forceFreshWindow(game);
@@ -735,6 +756,8 @@ describe('DeltaTracker', function() {
                 } finally {
                     trackerInstance.setMode(DeltaTrackerMode.CaptureOldValues);
                 }
+
+                rollbackPastLineageBreak(context, beforeBreakId);
             });
         });
 
@@ -760,7 +783,7 @@ describe('DeltaTracker', function() {
                     observed.push({ uuid: (instance as unknown as GameObjectBase).uuid, tracking: trackerInstance.isTracking });
                     originalDeserialize(gameArg, instance, record);
                 }, () => {
-                    result = rollbackManual(context, snapshotId);
+                    result = rollbackManualFull(context, snapshotId);
                 });
 
                 expect(result.success).toBeTrue();
@@ -883,7 +906,7 @@ describe('DeltaTracker', function() {
                 expect(window.changedFields.get(wampa.uuid)._damage).toBe(0);
             });
 
-            it('keeps the open window when a restore fails and recovers to the current snapshot', async function() {
+            it('keeps the open window when a restore fails and recovers to the pre-rollback state', async function() {
                 const context = await setupBoard();
                 const game = context.game;
                 const wampa = context.wampa as unknown as IDamageUnit;
@@ -901,35 +924,37 @@ describe('DeltaTracker', function() {
                 const before = JSON.stringify([...window.changedFields]);
                 expect(window.changedFields.get(wampa.uuid)._damage).toBe(2);
 
-                const serializer = StateSerializers.getStateSerializerFor(wampa as unknown as GameObjectBase).serializer;
-                const originalDeserialize = serializer.deserialize;
+                // afterSetState runs on both restore paths (the action snapshot is hollow and restores through the delta chain, the
+                // manual one is full), so the first call failing makes either restore throw part-way and recover.
+                const originalAfterSetState = (wampa as unknown as GameObjectBase).afterSetState;
                 let calls = 0;
-                const failFirstRestore = (gameArg, instance, record) => {
+                const failFirstRestore = (oldState) => {
                     calls++;
                     if (calls === 1) {
                         throw new Error('injected restore failure');
                     }
-                    originalDeserialize(gameArg, instance, record);
+                    return originalAfterSetState.call(wampa, oldState);
                 };
 
                 // The action container reports a recovered failure as an unsuccessful result ...
                 let result: IRollbackResult;
-                withPatch(serializer, 'deserialize', failFirstRestore, () => {
-                    result = game.snapshotManager.rollbackTo({ type: SnapshotType.Action, playerId });
+                withPatch(wampa, 'afterSetState', failFirstRestore, () => {
+                    result = withExpectedRollbackFailure(() => game.snapshotManager.rollbackTo({ type: SnapshotType.Action, playerId }));
                 });
                 expect(result.success).toBeFalse();
                 expect(calls).toBeGreaterThan(1);
                 expect(trackerInstance.isTracking).toBeTrue();
                 expect(trackerInstance.pendingWindow).toBe(window);
                 expect(JSON.stringify([...window.changedFields])).toBe(before);
-                // The recovery restored the window's own anchor, so the recorded window-start value is still right.
-                expect(wampa.damage).toBe(2);
+                // G2 (P4-F): the recovery restored the pre-rollback live state, which the held window still describes.
+                expect(wampa.damage).toBe(4);
 
                 // ... and the manual container, which asserts a restored id, as a throw. Either way the window survives.
                 calls = 0;
-                withPatch(serializer, 'deserialize', failFirstRestore, () => {
-                    expect(() => rollbackManual(context, manualId)).toThrowError(/does not exist/);
+                withPatch(wampa, 'afterSetState', failFirstRestore, () => {
+                    expect(() => withExpectedRollbackFailure(() => rollbackManual(context, manualId))).toThrowError(/does not exist/);
                 });
+                expect(wampa.damage).toBe(4);
                 expect(trackerInstance.isTracking).toBeTrue();
                 expect(trackerInstance.pendingWindow).toBe(window);
                 expect(JSON.stringify([...window.changedFields])).toBe(before);

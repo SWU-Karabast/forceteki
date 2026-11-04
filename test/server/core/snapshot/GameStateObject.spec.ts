@@ -7,6 +7,7 @@ import { DeltaTrackerMode } from '../../../../server/game/core/snapshot/DeltaTra
 import type { DeltaTracker } from '../../../../server/game/core/snapshot/DeltaTracker';
 import type { SerializedStateRecord } from '../../../../server/game/core/StateEncoding';
 import { getStateSerializerFor } from '../../../../server/game/core/StateSerializers';
+import { exemptGameFromDeltaParity } from '../../../helpers/DeltaParityGate';
 import {
     getFirstHarnessError,
     withDeserializePatchedBeneathHarness,
@@ -111,7 +112,8 @@ describe('P4-B Game.state as a registered GameObject', function() {
                 // Nothing holds a ref to it, so only alwaysTrackState keeps the cull from dropping it.
                 forceFreshCurrentSnapshot(game);
                 expect(game.gameObjectManager.isRegistered(game.state)).toBe(true);
-                const snapshot = snapshotManagerOf(game).snapshotFactory.currentActionSnapshot;
+                // An action snapshot is hollow since P4-F; the materialization holds every live record, as the full snapshot did.
+                const snapshot = game.snapshotManager.materializeCurrentSnapshot();
                 expect(snapshot.states[game.state.uuid]).toBeDefined();
             });
 
@@ -468,13 +470,14 @@ describe('P4-B Game.state as a registered GameObject', function() {
             /**
              * `GameState` restores at registry index 1, second to last in the last-to-first update loop; only
              * `OngoingEffectEngine` (index 0) follows it. So a restore failure can leave the outer frame with
-             * `Game.state` already at the rollback target's values, or half-written, and the recovery rollback to
-             * `beforeRollbackSnapshot` (the current snapshot) has to put it back.
+             * `Game.state` already at the rollback target's values, or half-written, and the recovery to
+             * the pre-attempt live state (P4-F G2, from the pre-pass records) has to put it back.
              *
-             * Three distinct `Game.state` values keep the outcomes apart: the rollback target (A), the recovery
-             * target (C, the current snapshot, taken after changing the fields) and the live values at the time of
-             * the attempt. A recovery that skipped `GameState` leaves A's values (injection after the restore) or
-             * a mix of A's and the live values (torn restore), and neither equals C.
+             * Three distinct `Game.state` values keep the outcomes apart: the rollback target (A), the current
+             * snapshot (C, taken after changing the fields, the recovery target before P4-F) and the live values at the
+             * time of the attempt, the recovery target since G2. A recovery that skipped `GameState` leaves A's values
+             * (injection after the restore) or a mix of A's and the live values (torn restore), and one to C would land
+             * on C's values; none equals the live record.
              *
              *  - 'after-game-state-restored': a one-shot `deserialize` throw on the `OngoingEffectEngine` entry.
              *  - 'inside-game-state-restore': a one-shot throw inside `GameState`'s own `deserialize`, produced by a
@@ -496,7 +499,8 @@ describe('P4-B Game.state as a registered GameObject', function() {
                 const player1 = context.player1Object;
                 const player2 = context.player2Object;
                 const otherPlayer = (player: typeof player1) => (player === player1 ? player2 : player1);
-                const currentSnapshot = () => snapshotManagerOf(game).snapshotFactory.currentActionSnapshot;
+                // Action snapshots are hollow since P4-F; records are read through the materialization.
+                const currentSnapshot = () => game.snapshotManager.materializeCurrentSnapshot();
 
                 withParityHarnessInstalled(() => {
                     // The rollback target (A): a fresh snapshot, retained as a manual snapshot.
@@ -590,6 +594,7 @@ describe('P4-B Game.state as a registered GameObject', function() {
                             alerts.push(message);
                         };
 
+                        exemptGameFromDeltaParity(game, 'raw manual-container restores (container.rollbackToSnapshot) outside SnapshotManager: the clean retry consumes the tracker window without pruning the delta index');
                         withHarnessRethrowSuppressed(() => {
                             withDeserializePatchedBeneathHarness(entry, makePatch, () => {
                                 result = container.rollbackToSnapshot(targetSnapshotId);
@@ -623,12 +628,13 @@ describe('P4-B Game.state as a registered GameObject', function() {
                     expect(recordedHarnessError).not.toBeNull();
                     expect(recordedHarnessError.message).toContain(injectedMarker);
 
-                    // Recovery put Game.state back to the recovery target's record, not the rollback target's and not a mix.
-                    expect(serializedGameState(game)).toBe(recoveryRecord);
-                    expect(game.roundNumber).toBe(target.roundNumber + 1);
-                    expect(game.state.lastGameEventId).toBe(target.lastGameEventId + 3);
-                    expect(game.initiativePlayer).toBe(otherPlayer(target.initiativePlayer));
-                    expect([...game.state.winnerNames]).toEqual(['p4b-recovery-target']);
+                    // G2 (P4-F): recovery put Game.state back to its pre-attempt live record, not the rollback target's, not the
+                    // current snapshot's (C) and not a mix.
+                    expect(serializedGameState(game)).toBe(liveRecord);
+                    expect(game.roundNumber).toBe(target.roundNumber + 2);
+                    expect(game.state.lastGameEventId).toBe(target.lastGameEventId + 9);
+                    expect(game.initiativePlayer).toBe(target.initiativePlayer);
+                    expect([...game.state.winnerNames]).toEqual(['p4b-recovery-target', 'p4b-live-only']);
 
                     // The engine is still usable: a clean retry (the patch and stubs are gone) reaches the rollback target.
                     expect(container.rollbackToSnapshot(targetSnapshotId)).not.toBeNull();
@@ -640,11 +646,11 @@ describe('P4-B Game.state as a registered GameObject', function() {
                 });
             }
 
-            it('AC5 recovery a restore failure after GameState was restored is recovered to the current snapshot\'s Game.state', async function() {
+            it('AC5 recovery a restore failure after GameState was restored is recovered to the pre-attempt Game.state', async function() {
                 await expectFailedRestoreRecoversGameState('after-game-state-restored');
             });
 
-            it('AC5 recovery a restore failure inside GameState\'s own restore (a torn Game.state) is recovered to the current snapshot\'s Game.state', async function() {
+            it('AC5 recovery a restore failure inside GameState\'s own restore (a torn Game.state) is recovered to the pre-attempt Game.state', async function() {
                 await expectFailedRestoreRecoversGameState('inside-game-state-restore');
             });
         }, true);

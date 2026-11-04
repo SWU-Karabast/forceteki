@@ -29,7 +29,7 @@ export class DeltaChainBeyondHorizonError extends Error {
 }
 
 /**
- * The global, id-ordered index of the reverse deltas recorded beside the full snapshots (shadow mode, P4-E).
+ * The global, id-ordered index of the reverse deltas recorded beside the snapshots (P4-E); since P4-F a hollow snapshot restores through its chain.
  * Per-player quick containers hold entry points into it. It is plain bookkeeping owned by the `SnapshotFactory`:
  * not a `GameObjectBase`, no state decorators, and invisible to snapshots.
  *
