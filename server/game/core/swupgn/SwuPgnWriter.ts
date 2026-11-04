@@ -214,6 +214,10 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         });
     }
 
+    public onAbilityLimitChanged(card: Card): void {
+        this.guard('ability limit', () => this.projector.markDirty(card));
+    }
+
     /**
      * Starts the records again from the current board, as if the game began here: used by the test harness, which
      * builds its board with no decision point between the changes. Writes step 0 unless the game is still in setup.

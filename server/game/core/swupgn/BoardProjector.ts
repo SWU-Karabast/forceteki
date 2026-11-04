@@ -285,7 +285,13 @@ export class BoardProjector {
     }
 }
 
-/** In an arena or the base zone: what ongoing effects change. */
+/**
+ * In an arena or the base zone: the cards an ongoing-effect change makes the projection read again. This assumes that
+ * what `attributesOf` writes for a card in hand, discard, the resource row, a capture zone or set aside (identity only:
+ * kind, aspects, cost, name, exhausted for a resource) does not change with ongoing effects while the card stays
+ * there (an effect such as Clone's printed-attribute override takes hold as the card enters play, which marks it).
+ * The full-suite oracle found no exception. Should one appear, widen this, or the cache keeps the old value.
+ */
 function isInPlay(card: Card): boolean {
     return EnumHelpers.isArena(card.zoneName) || card.zoneName === ZoneName.Base;
 }

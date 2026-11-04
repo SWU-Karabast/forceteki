@@ -59,6 +59,14 @@ export abstract class AbilityLimit extends GameObjectBase implements IAbilityLim
         this.isRegistered = false;
     }
 
+    /** Tells the SWU-PGN writer that this limit's count changed, so its card's `abilityUses` is read again. */
+    protected reportChange(): void {
+        const card = this.ability?.card;
+        if (card) {
+            this.game.swuPgnWriter?.onAbilityLimitChanged(card);
+        }
+    }
+
     public isEpicActionLimit(): this is EpicActionLimit {
         return false;
     }
@@ -89,10 +97,12 @@ export class UnlimitedAbilityLimit extends AbilityLimit {
     public increment(player: Player): void {
         const key = this.getKey(player.name);
         this.useCount.set(key, this.currentForPlayer(player) + 1);
+        this.reportChange();
     }
 
     public reset(): void {
         this.useCount.clear();
+        this.reportChange();
     }
 
     public currentForPlayer(player: Player) {
@@ -130,10 +140,12 @@ export class PerGameAbilityLimit extends AbilityLimit {
 
     public increment(player: Player): void {
         this.useCount++;
+        this.reportChange();
     }
 
     public reset(): void {
         this.useCount = 0;
+        this.reportChange();
     }
 
     public currentForPlayer(): number {
@@ -172,10 +184,12 @@ export abstract class PerPlayerPerGameAbilityLimitBase extends AbilityLimit {
     public increment(player: Player): void {
         const key = this.getKey(player.name);
         this.useCount.set(key, this.currentForPlayer(player) + 1);
+        this.reportChange();
     }
 
     public reset(): void {
         this.useCount.clear();
+        this.reportChange();
     }
 
     public currentForPlayer(player: Player) {

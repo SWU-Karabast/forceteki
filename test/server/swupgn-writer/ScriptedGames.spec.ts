@@ -14,9 +14,8 @@ import { playScriptedGame, scriptedGameNames } from './scriptedGames';
  *   `record`  A-record: the games only, no file is written, so the timing is the per-decision recording cost
  *   `file`    A-file: each finished game's four views are written (not validated), and the time `fileFor` takes is
  *             printed once at the end as `SWUPGN_FILE_MS {json}`
- * Either way nothing is validated, and the engine version is warmed first, as the server does at startup.
+ * In every case nothing is validated, and the engine version is warmed first, as the server does at startup.
  */
-
 describe('SWU-PGN scripted games', function() {
     integration(function(contextRef) {
         const views: SwuPgnFileView[] = ['full', 1, 2, 'public'];

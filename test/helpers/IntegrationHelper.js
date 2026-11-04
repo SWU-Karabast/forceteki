@@ -160,6 +160,17 @@ global.integration = function (definitions, enableUndo = false) {
             });
         });
 
+        if (process.env.SWUPGN_PROJECTION_CHECK === '1') {
+            // the SWU-PGN writer checks every flush's dirty projection against the full one: any mismatch (or other
+            // writer failure) it counted fails the test, so a suite run with the check is the oracle over every spec
+            afterEach(function() {
+                const errors = contextRef.context?.game?.swuPgnWriter?.errors ?? 0;
+                if (errors > 0) {
+                    throw new TestSetupError(`The SWU-PGN writer counted ${errors} error(s) under SWUPGN_PROJECTION_CHECK=1 (a dirty projection that differs from the full one, or another writer failure). See the logged 'SWU-PGN: writer' error.`);
+                }
+            });
+        }
+
         afterEach(function() {
             const { context } = contextRef;
 

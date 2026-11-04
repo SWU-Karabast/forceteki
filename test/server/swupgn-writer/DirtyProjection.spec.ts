@@ -1,5 +1,7 @@
 import type { Board } from '@swupgn/format';
+import { RepeatableAbilityLimit } from '../../../server/game/core/ability/AbilityLimit';
 import type { Card } from '../../../server/game/core/card/Card';
+import { cardIdOf } from '../../../server/game/core/swupgn/SwuPgnCardIds';
 import type { SwuPgnWriter } from '../../../server/game/core/swupgn/SwuPgnWriter';
 
 /**
@@ -17,16 +19,41 @@ describe('SWU-PGN dirty-entity projection', function() {
         return writer;
     }
 
-    /** The dirty projection and the full one agree, and the writer's own checked flushes found no mismatch. */
+    /**
+     * The board the writer last wrote (from its own dirty, checked flush) agrees with the full projection, and those
+     * checked flushes found no mismatch. It reads the written board and `projectFull()`, which leave the projection
+     * cache alone, so `reread()` afterwards still describes the writer's last flush.
+     */
     function expectSameProjection(contextRef: SwuTestContextRef, what: string): Board {
         const writer = writerOf(contextRef);
-        const dirty = writer.boardProjector.project();
+        const written: Board = { seq: null, entities: writer.currentBoard().entities };
         const full = writer.boardProjector.projectFull();
-        expect(dirty).withContext(`${what}: project() vs projectFull()`)
+        expect(written).withContext(`${what}: the written board vs projectFull()`)
             .toEqual(full);
         expect(writer.errors).withContext(`${what}: writer errors`)
             .toBe(0);
-        return dirty;
+        return written;
+    }
+
+    /** The card entities that differ between two boards, by internal name; `g`, the seats and effects left out. */
+    function changedCards(contextRef: SwuTestContextRef, before: Board, after: Board, cards: readonly Card[]): string[] {
+        const changed: string[] = [];
+        for (const card of cards) {
+            const id = String(writerIdOf(contextRef, card));
+            if (JSON.stringify(before.entities[id]) !== JSON.stringify(after.entities[id])) {
+                changed.push(card.internalName);
+            }
+        }
+        return changed;
+    }
+
+    function writerIdOf(contextRef: SwuTestContextRef, card: Card): number {
+        const board = writerOf(contextRef).boardProjector.projectFull();
+        const ids = Object.entries(board.entities).filter(([, entity]) => entity.card === cardIdOf(card))
+            .map(([id]) => Number(id));
+        expect(ids.length).withContext(`entities for ${card.internalName}`)
+            .toBe(1);
+        return ids[0];
     }
 
     /** The cards the last `project()` re-read rather than reused. */
@@ -57,9 +84,10 @@ describe('SWU-PGN dirty-entity projection', function() {
             });
 
             it('reuses every entity when nothing changed', function () {
-                expectSameProjection(contextRef, 'first');
-                expectSameProjection(contextRef, 'again');
+                // a projection with nothing marked since the writer's last flush reads no card
+                writerOf(contextRef).boardProjector.project();
                 expect(reread(contextRef).size).toBe(0);
+                expectSameProjection(contextRef, 'unchanged');
             });
 
             it('agrees after damage from an ability, re-reading the damaged unit but not an untouched one', function () {
@@ -121,12 +149,12 @@ describe('SWU-PGN dirty-entity projection', function() {
         });
 
         describe('with ongoing effects', function () {
-            it('agrees after a lasting +2/+0 effect on one unit', async function () {
+            it('agrees after a lasting +2/+0 effect on one unit, which changes only that unit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['bold-resistance'],
-                        groundArena: ['wampa']
+                        groundArena: ['wampa', 'battlefield-marine']
                     },
                     player2: {
                         groundArena: ['atst']
@@ -134,6 +162,7 @@ describe('SWU-PGN dirty-entity projection', function() {
                 });
                 const { context } = contextRef;
                 writerOf(contextRef);
+                const before = expectSameProjection(contextRef, 'before the effect');
 
                 context.player1.clickCard(context.boldResistance);
                 context.player1.clickCard(context.wampa);
@@ -142,6 +171,9 @@ describe('SWU-PGN dirty-entity projection', function() {
 
                 const board = expectSameProjection(contextRef, 'after the effect');
                 expect(Object.values(board.entities).filter((entity) => entity.a.kind === 'effect').length).toBe(1);
+                // of the units in play (the event moved to discard and the resources paid for it change too), only Wampa's entity changed
+                expect(changedCards(contextRef, before, board, [context.wampa, context.battlefieldMarine, context.atst, context.p1Base, context.p2Base]))
+                    .toEqual(['wampa']);
 
                 context.moveToNextActionPhase();
                 expect(context.wampa.getPower()).toBe(4);
@@ -172,6 +204,66 @@ describe('SWU-PGN dirty-entity projection', function() {
                         .toBeTrue();
                 }
                 expectSameProjection(contextRef, 'after the aura');
+            });
+
+            it('writes a limited ability\'s use when its target prompt is answered and it changes nothing', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['awing'],
+                        leader: { card: 'shin-hati#eager-adversary', deployed: true }
+                    },
+                    player2: {
+                        groundArena: ['porg']
+                    }
+                });
+                const { context } = contextRef;
+                const writer = writerOf(contextRef);
+
+                // the once-per-round trigger prompts for its target (a decision point), and exhausting the already
+                // exhausted attacker raises no event naming Shin Hati: only the limit's increment changes her entity
+                context.player1.clickCard(context.awing);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toBeAbleToSelectExactly([context.porg, context.awing]);
+                context.player1.clickCard(context.awing);
+                expect(context.player2).toBeActivePlayer();
+
+                const id = String(writerIdOf(contextRef, context.shinHati));
+                const written = writer.currentBoard().entities[id];
+                const full = writer.boardProjector.projectFull().entities[id];
+                expect(full.a.abilityUses).withContext('the use is counted')
+                    .toBeDefined();
+                expect(written).withContext('the written board holds the use')
+                    .toEqual(full);
+            });
+
+            it('re-reads a card whose ability limit is used with no event naming it', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'chewbacca#relentless-rebel', deployed: true },
+                        groundArena: ['wampa']
+                    }
+                });
+                const { context } = contextRef;
+                const writer = writerOf(contextRef);
+                const limit = context.chewbacca.getAllAbilitiesForRecording()
+                    .map((ability) => ability.captureLimit())
+                    .find((found) => found instanceof RepeatableAbilityLimit);
+                expect(limit).withContext('Chewbacca\'s once-per-round limit')
+                    .toBeDefined();
+
+                // the AbilityResolver can increment a limit after a decision point (a late target prompt, or a cancel
+                // after costs) with no later event naming the source: the limit itself must mark the card
+                limit.increment(context.player1.player);
+                writer.flush();
+
+                const id = String(writerIdOf(contextRef, context.chewbacca));
+                const written = writer.currentBoard().entities[id];
+                expect(writer.errors).withContext('the dirty flush agreed with the full projection')
+                    .toBe(0);
+                expect(written.a.abilityUses).withContext('the written board holds the use')
+                    .toBeDefined();
             });
 
             it('agrees after a capture', async function () {

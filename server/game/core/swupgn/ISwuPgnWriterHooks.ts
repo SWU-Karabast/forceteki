@@ -9,4 +9,10 @@ export interface ISwuPgnWriterHooks {
 
     /** A card finished a move into `zoneName` (every `Card.moveTo` and capture goes through `Card.postMoveSteps`). */
     onCardEnteredZone(card: Card, zoneName: ZoneName): void;
+
+    /**
+     * An ability limit of `card` was used or reset. The AbilityResolver can increment a limit after a decision point
+     * (a late target prompt, or a cancel after costs) with no later event naming the card, so the limit reports it.
+     */
+    onAbilityLimitChanged(card: Card): void;
 }
