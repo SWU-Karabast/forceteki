@@ -32,8 +32,8 @@ function table(headings, rows) {
 
 const generators = {
     attributes: () => table(
-        ['Name', 'Type', 'Class', 'On', 'Meaning', 'CR'],
-        load('attributes').map((a) => [code(a.name), code(a.type), a.class, a.on.join(', '), a.meaning, a.cr ?? '—'])
+        ['Name', 'Type', 'Class', 'Face down', 'On', 'Meaning', 'CR'],
+        load('attributes').map((a) => [code(a.name), code(a.type), a.class, a.faceDown ? 'yes' : 'no', a.on.join(', '), a.meaning, a.cr ?? '—'])
     ),
     zones: () => table(
         ['Zone', 'Meaning', 'Owner sees', 'Opponent sees'],

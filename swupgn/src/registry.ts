@@ -11,6 +11,9 @@ export interface AttributeDef {
     on: string[];
     meaning: string;
     cr?: string;
+
+    /** Whether a redactor keeps it on an anonymous entity ([R-02], [R-05], [R-07]). Absent means false. */
+    faceDown?: boolean;
 }
 
 export interface ZoneDef {
@@ -59,6 +62,13 @@ export const BLOCK_KINDS: readonly BlockKindDef[] = blockKinds as readonly Block
 export const ERROR_CODES: readonly ErrorCodeDef[] = errorCodes as readonly ErrorCodeDef[];
 
 const ATTRIBUTE_CLASSES: ReadonlyMap<string, 'public' | 'identity'> = new Map(ATTRIBUTES.map((a) => [a.name, a.class]));
+
+const FACE_DOWN: ReadonlySet<string> = new Set(ATTRIBUTES.filter((a) => a.faceDown === true).map((a) => a.name));
+
+/** Whether an attribute is kept on an anonymous entity. Only registered attributes marked faceDown are. */
+export function isFaceDownAttribute(name: string): boolean {
+    return FACE_DOWN.has(name);
+}
 
 /** The visibility class of an attribute. Unregistered names (including every x_ extension) are identity. */
 export function attributeClass(name: string): 'public' | 'identity' {

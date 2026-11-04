@@ -2,7 +2,7 @@ import Ajv2020 from 'ajv/dist/2020';
 import type { ValidateFunction } from 'ajv';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ATTRIBUTES, BLOCK_KINDS, BLOCK_REFERENCE_FIELDS, ERROR_CODES } from '../src/registry';
+import { ATTRIBUTES, BLOCK_KINDS, BLOCK_REFERENCE_FIELDS, ERROR_CODES, isFaceDownAttribute } from '../src/registry';
 
 /**
  * The conformance vectors are hand-written and frozen; the SDK is tested against them, never the
@@ -183,6 +183,32 @@ describe('conformance vectors', function () {
                         expect(parsed.header[0]).toEqual({ name: 'Game', value: 'SWU-PGN/0.1', line: 1 });
                     });
 
+                    it('has the canonical layout of W-07 and Appendix B.4', function () {
+                        const lines = parsed.text.split('\n');
+                        expect(lines.pop()).toBe('', 'the file ends with one LF');
+                        expect(lines[lines.length - 1]).not.toBe('', 'no blank line at the end');
+                        for (const [i, line] of lines.entries()) {
+                            expect(line).not.toMatch(/[ \t]$/, `${file}:${i + 1}: trailing space`);
+                        }
+                        const firstBanner = lines.findIndex((l) => l.startsWith('%%%'));
+                        for (const line of lines.slice(0, firstBanner - 1)) {
+                            expect(line).toMatch(/^\[[A-Za-z0-9]+ "(?:[^"\\]|\\["\\])*"\]$/, `${file}: one tag per header line`);
+                        }
+                        for (const section of parsed.sections) {
+                            expect(lines[section.line - 1]).toBe(`%%% ${section.name}`);
+                            expect(lines[section.line - 2]).toBe('', `${file}:${section.line}: one blank line before a banner`);
+                            expect(section.line < 3 || lines[section.line - 3] !== '').toBe(true, `${file}:${section.line}: only one blank line`);
+                            const body = section.lines.map((l) => l.raw);
+                            const own = section === parsed.sections[parsed.sections.length - 1] ? body : body.slice(0, -1);
+                            expect(own.length).toBeGreaterThan(0, `${file}:${section.line}: no empty section`);
+                            expect(own[0]).not.toBe('');
+                            expect(own[own.length - 1]).not.toBe('');
+                            if (section.name !== 'STORY') {
+                                expect(own.filter((l) => l === '')).toEqual([], `${file}:${section.line}: no blank line in a JSON section`);
+                            }
+                        }
+                    });
+
                     it('has a header, DECKS, CARDS, annotations and records that match the schema', function () {
                         const header = validator('header');
                         expect(header(headerOf(parsed))).toBe(true, JSON.stringify(header.errors));
@@ -250,10 +276,10 @@ describe('conformance vectors', function () {
                                 expect(holds(r.to ?? 'all', viewer)).toBe(true, `${file}:${l.line}: an identity the viewer may not know`);
                             }
                             if (r.t === 'create' && r.card === undefined && r.to !== undefined && (r.a as Json | undefined)?.kind !== 'effect') {
-                                // An anonymous entity: its to is its own seat, and it carries only public attributes.
+                                // An anonymous entity: its to is its own seat, and it carries only face-down attributes (R-02, R-05).
                                 expect(r.to).toEqual([r.controller ?? r.owner]);
                                 const names = Object.keys((r.a as Json | undefined) ?? {});
-                                expect(names.filter((n) => ATTRIBUTES.find((a) => a.name === n)?.class !== 'public')).toEqual([], `${file}:${l.line}`);
+                                expect(names.filter((n) => !isFaceDownAttribute(n))).toEqual([], `${file}:${l.line}`);
                             }
                         }
                         expect(parsed.sections.map((s) => s.name).filter((s) => !['DECKS', 'CARDS', 'RECORDS'].includes(s))).toEqual([], 'R-13');

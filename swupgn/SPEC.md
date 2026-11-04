@@ -291,7 +291,7 @@ number that is not an integer within ±(2^53−1) (`number-range`).
 
 ### 4.4 When to reject a file
 
-- **[P-12]** A parser that finds a fatal issue MUST reject the whole file, MUST NOT return part of it, and MUST report the issue's code and the 1-based line number where it was found.
+- **[P-12]** A parser that finds a fatal issue MUST reject the whole file, MUST NOT return part of it, and MUST report the issue's code and the 1-based line number where it was found, as [§21](#21-error-model) defines it for an issue that no one line holds (`missing-tag`).
 
 Messages that go with a code are free text. They are not part of this specification, and a
 program MUST NOT match them.
@@ -311,8 +311,15 @@ produce the same bytes for the same game.
     - `reveal`: `e`, `card`, `to`
     - `step`: `seq`, `ms`
     - `block`: `id`, `kind`, `p`, `src`, `targets`, `options`, `amount`, `parent`, `via`, `group`, `text`
-  - every `a` object (in a `create`, a `set`, or a board) with its keys in the order of the attribute registry (`registry/attributes.json`), then every unregistered name in ascending order of code points;
-  - `DECKS` lines with keys `p`, `leaders`, `base`, `complete`, `main`, `sideboard`, `order`, one line per seat, seat 1 first; `CARDS` lines with keys `id`, `name`, `backSideName`; annotation lines with keys `seq`, `text`, `nag`, `by`, `id`, `parent`.
+  - every `a` object (in a `create`, a `set`, or a board) with its keys in the order of the attribute registry (`registry/attributes.json`), then every unregistered name in ascending order of code points; a `create` with no attributes has no `a` key, never `"a":{}`;
+  - `DECKS` lines with keys `p`, `leaders`, `base`, `complete`, `main`, `sideboard`, `order`, one line per seat, seat 1 first; `CARDS` lines with keys `id`, `name`, `backSideName`; annotation lines with keys `seq`, `text`, `nag`, `by`, `id`, `parent`;
+  - this layout, line by line ([Appendix B.4](#b4-canonical-layout)):
+    - UTF-8 with no byte order mark, every line ended by `\n` (LF) and none by `\r\n`, and no line ending in a space or tab;
+    - the header first: one tag per line, written `[Tag "Value"]` with one space between the name and the opening quote and nothing else on the line, a value escaping only `"` and `\` ([P-05]), and no blank line among the header lines;
+    - then each section: one blank line, the banner `%%% NAME` (three `%`, one space, the section name in upper case, nothing after it), then the section's lines;
+    - in `DECKS`, `CARDS`, `RECORDS`, `ANNOTATIONS` and an unknown section, no blank line; in `STORY`, its lines as kept ([P-11]), with no blank line first or last;
+    - no section that has no lines, except `DECKS` and `RECORDS`, which are always written ([W-04]);
+    - the file ends with the `\n` of its last line: no blank line after it.
 - **[P-13]** A reader MUST NOT depend on the order of header tags, of sections, or of keys within a JSON object. The one exception is that the `Game` tag is the first line ([W-05]).
 
 The order of keys inside `a` follows the registry so that two programs that build the same
@@ -541,17 +548,30 @@ registry row). A type written `seat|null` may also be `null` in a `set`, which d
 
 **Visibility classes**, used by the redactor ([§11](#11-redaction)):
 
-- `public`: may be shown for any entity the viewer can see.
+- `public`: may be shown for any entity whose identity the viewer knows, and is public game state
+  while that identity is public.
 - `identity`: shown only for an entity whose identity the viewer knows.
 - An attribute name that is not in the registry, including every `x_` extension
   ([§17.2](#172-extensions)), is `identity`.
+
+**Face-down attributes.** Of an anonymous entity ([§10.3](#103-what-a-viewer-can-track)) a viewer
+sees only what a face-down card shows: the attributes whose registry row has `faceDown` `true`
+(the "Face down" column of [§22.1](#221-attributes)). Only `exhausted` is face-down in this
+version. An attribute that is not in the registry is never face-down.
 
 > **Note (informative):** Treating an unregistered name as `identity` is an allow-list. An
 > attribute nobody classified fails safe: it is dropped from every entity the viewer does not
 > know.
 
+> **Note (informative):** `power`, `hp`, `traits`, `keywords` and the like are `public` only while
+> the card's identity is: they describe a card the viewer can read. On a face-down card they would
+> name it (a resource with `power` 3 and `hp` 3 is not the one with `power` 2), so a redactor keeps
+> only face-down attributes on an anonymous entity, whatever a writer left on the card.
+
 **Kinds.** A card or token entity's `kind` attribute says what it is now: `unit`, `upgrade`,
-`event`, `leader`, `base` or `token`. An effect entity has `kind` `effect`.
+`event`, `leader`, `base` or `token`. An effect entity has `kind` `effect`. A leader's `kind` stays
+`leader` on either side, deployed or not, and while it is attached as a pilot: `deployed` and its
+`parent` and `rel` say the rest.
 
 **Effects.** A lasting or delayed effect is an entity with `kind` `effect` and no `zone`. Its
 `controller` (or its `owner`, when `controller` is absent) is the seat that controls the effect.
@@ -675,6 +695,10 @@ A private look is a `reveal` with `to` set to the looking seat. The narrative of
 `block` of kind `look`. There is no separate look record: who knows what is carried entirely by
 the `to` of `create` and `reveal`.
 
+A hand, or cards from it, revealed to every seat (an effect that makes a seat reveal its hand) is
+a look too: it is recorded with a block of kind `look` by the seat that saw the cards, `p` that
+seat, `targets` the cards revealed.
+
 ### 8.4 Unknown record types
 
 - **[A-03]** An applier MUST ignore a record whose `t` it does not know, and MUST NOT fail on it.
@@ -724,11 +748,11 @@ Every step is reached by applying the file from the start. There are no snapshot
 
 ### 9.5 What a validator checks
 
-- **[V-01]** A validator MUST report every issue it finds as a code from [§21](#21-error-model), the code's severity, and the 1-based line number where it applies (none for an issue of the whole file), and MUST report the file's level ([§2.1](#21-document-conformance-levels)).
+- **[V-01]** A validator MUST report every issue it finds as a code from [§21](#21-error-model), the code's severity, and the 1-based line number where it applies, as [§21](#21-error-model) defines it for an issue that no one line holds, and MUST report the file's level ([§2.1](#21-document-conformance-levels)).
 - **[V-02]** A validator MUST NOT fail on any input. After a non-fatal issue it MUST keep checking the rest of the file. A record that breaks a rule of [§9.3](#93-errors-while-applying) is reported and not applied, and checking continues with the next record.
 - **[V-03]** A validator MUST check the header, each `DECKS` line, each `CARDS` line, each annotation and each record whose `t` it knows against its schema definition (`schema`), and MUST report a line that is not an object (`not-object`) and a number that is not an integer within ±(2^53−1) (`number-range`).
 - **[V-04]** A validator MUST apply the records ([§9.2](#92-applying-each-record)) and report `unknown-entity`, `duplicate-entity` and `reused-id` where [§9.3](#93-errors-while-applying) says. It MUST report `unknown-entity` on a `remove` of an entity that is the `parent` of another existing entity.
-- **[V-05]** A validator MUST report `parent-rel` on a record after which an entity has `parent` without `rel`, or `rel` without `parent`.
+- **[V-05]** A validator MUST report `parent-rel` on the record that causes an entity to have `parent` without `rel`, or `rel` without `parent`. A condition that lasts is reported once, on that record, not again on the records after it.
 - **[V-06]** A validator MUST report `seq-order` on a `step` whose `seq` is not the previous step's plus one, or not 0 for the first step.
 - **[V-07]** A validator MUST report a `zone` that is not in its zone registry (`bad-zone`) and a `rel` that is not in its relation registry (`bad-relation`).
 - **[V-08]** A validator MUST report every breach of the profile rules of [§10.4](#104-profile-rules) (`profile`).
@@ -737,7 +761,7 @@ Every step is reached by applying the file from the start. There are no snapshot
 - **[V-11]** A validator MUST report `result-mismatch` when the `Result` tag disagrees with `g.result` at the last step ([§5.2](#52-optional-tags)).
 - **[V-12]** A validator MUST report these warnings: `writer-errors` when `WriterErrors` is above zero; `newer-minor` when the file's minor version is above its own; `unknown-type` for a record whose `t` it does not know and that does not begin with `x_`; `unknown-section` for a section it does not know whose name does not begin with `X_`; `dangling-annotation` for an annotation whose `seq` names no step in the file.
 - **[V-13]** A validator MAY stop listing issues after a cap of at least 1000. It then reports `too-many-issues` once. The level still counts every issue, listed or not.
-- **[V-14]** A validator MUST report `parent-rel` on a record after which an entity breaks [W-28]: its parent is not in `ground`, `space` or `base`, or its `zone` does not match its parent's.
+- **[V-14]** A validator MUST report `parent-rel` on the record that causes an entity to break [W-28]: after it, the entity's parent is not in `ground`, `space` or `base`, or its `zone` does not match its parent's. A condition that lasts is reported once, on that record.
 - **[V-15]** When an issue code other than `schema` covers the condition a line breaks (a `CARDS` line without a `name` is `card-index`; a `create` with `parent` and no `rel` is `parent-rel`), a validator MUST report that code and MUST NOT also report `schema` for the same line and condition.
 
 > **Note (informative):** The registries are additive ([§17](#17-versioning-and-extensibility)): a
@@ -903,8 +927,9 @@ down, and a reference written just before it left would name it ([R-17]).
 it emits, it also drops that record's `text`, `untilText` and `ability` attributes, because words
 can name what the reference pointed at.
 
-**Public attributes** of an entity are its attributes whose class is `public`. Unregistered
-attributes, including every `x_` extension, are not public ([§7.3](#73-attributes)).
+**Face-down attributes** of an entity are its attributes whose registry row has `faceDown` `true`
+([§7.3](#73-attributes)). They are the only attributes an anonymous entity carries. Unregistered
+attributes, including every `x_` extension, are not face-down.
 
 ### 11.2 The steps
 
@@ -915,12 +940,12 @@ leaves.
 
 - **[R-17]** Step 0, losing track in a hidden hand ([§10.3](#103-what-a-viewer-can-track)). Step 0 applies to a `set` that moves an entity out of zone `hand` into a zone whose opponent visibility is not `public` (or that is not in the zone registry), and to a `remove` of an entity that was in zone `hand` (it went into a deck, [W-24]), when that hand is not V's: the entity's seat (its `controller`, or its `owner` when it has none) before the record was not V. In a `public` file every hand is not V's. It applies even when the moving entity was revealed to V earlier in the same step group. When it applies, before anything else for this record, the redactor takes every entity in that hand that is known to V, the moving one included, in ascending order of output id; emits a `remove` of each one's output id; and marks each one forgotten and unmaterialized. Then the record goes on to steps 1 to 10 with the moving entity unmaterialized: step 5 makes a fresh anonymous entity of it when it lands in the resource row, and step 8 emits nothing for its `remove`.
 - **[R-01]** Step 1, a `create` whose audience holds V: emit it with a fresh id, its `card` included. The entity is known.
-- **[R-02]** Step 2, a `create` whose audience does not hold V: if the entity would be anonymous for V ([§10.3](#103-what-a-viewer-can-track)), emit it with a fresh id, without `card`, with `to` set to the entity's own seat (its `controller`, or its `owner` when it has none) as a one-seat list, and with only its public attributes; the entity is anonymous. Otherwise emit nothing; the entity is unmaterialized.
-- **[R-03]** Step 3, a `reveal` whose `to` holds V: if the entity is known, emit the `reveal` with the mapped id. If it is anonymous, emit a `remove` of its output id, then a `create` with a fresh id. If it is unmaterialized, emit only that `create` with a fresh id. That `create` carries the entity's current `zone`, `owner`, `controller`, `parent` and `rel`, its `card`, its current audience as `to`, and all its current attributes, in canonical key order ([W-07]). From then on the entity is known, and no longer forgotten.
+- **[R-02]** Step 2, a `create` whose audience does not hold V: if the entity would be anonymous for V ([§10.3](#103-what-a-viewer-can-track)), emit it with a fresh id, without `card`, with `to` set to the entity's own seat (its `controller`, or its `owner` when it has none) as a one-seat list, and with only its face-down attributes (no `a` when it has none); the entity is anonymous. Otherwise emit nothing; the entity is unmaterialized.
+- **[R-03]** Step 3, a `reveal` whose `to` holds V: if the entity is known, emit the `reveal` with the mapped id. If it is anonymous, emit a `remove` of its output id, then a `create` with a fresh id. If it is unmaterialized, emit only that `create` with a fresh id. That `create` carries the entity's current `zone`, `owner`, `controller`, `parent` and `rel`, its `card`, its current audience as `to`, and all its current attributes, in canonical key order ([W-07]), with no `a` when it has none. From then on the entity is known, and no longer forgotten.
 - **[R-04]** Step 4, a `reveal` whose `to` does not hold V: emit nothing.
-- **[R-05]** Step 5, a `set` of an unmaterialized entity: if the entity is forgotten and, after the `set`, its audience holds V and it is in a zone whose opponent visibility is `public`, emit the `create` that step 3 emits for an unmaterialized entity; the entity is known, and no longer forgotten. Otherwise, if the entity, after the `set`, would be anonymous for V, emit a `create` with a fresh id, without `card`, with its current `zone`, `owner`, `controller`, `parent` and `rel`, `to` set to the entity's own seat as a one-seat list (as in step 2), and only its public attributes, in canonical key order ([W-07]); the entity is anonymous. Otherwise emit nothing.
+- **[R-05]** Step 5, a `set` of an unmaterialized entity: if the entity is forgotten and, after the `set`, its audience holds V and it is in a zone whose opponent visibility is `public`, emit the `create` that step 3 emits for an unmaterialized entity; the entity is known, and no longer forgotten. Otherwise, if the entity, after the `set`, would be anonymous for V, emit a `create` with a fresh id, without `card`, with its current `zone`, `owner`, `controller`, `parent` and `rel`, `to` set to the entity's own seat as a one-seat list (as in step 2), and only its face-down attributes, in canonical key order ([W-07]); the entity is anonymous. Otherwise emit nothing.
 - **[R-06]** Step 6, a `set` that changes the `zone` of an anonymous entity: emit a `remove` of its output id. The entity is then unmaterialized, and step 5 applies to the same `set`.
-- **[R-07]** Step 7, any other `set`: emit it with mapped ids. For an anonymous entity, drop from `a` every attribute that is not public. If nothing is left but `t` and `e`, emit nothing.
+- **[R-07]** Step 7, any other `set`: emit it with mapped ids. For an anonymous entity, drop from `a` every attribute that is not face-down. If nothing is left but `t` and `e`, emit nothing.
 - **[R-08]** Step 8, a `remove`: for an unmaterialized entity, emit nothing. Otherwise emit it with the mapped id.
 - **[R-09]** Step 9, a `block`: keep a reference (`src`, `via`, and each element of `targets` and `options`) only when it names `"g"`, `"p1"`, `"p2"` or an entity known to V that is not, when the block applies, in a `hand` whose seat is not V, mapped. Remove `src` or `via` when it is dropped. Remove `targets` or `options` when no element is left. If any reference was dropped, also remove `text`, except the `text` of a `name` block, which is the chosen name ([W-54]). Emit the block, with its `id`, `kind`, `p`, `amount`, `parent` and `group` unchanged.
 - **[R-10]** Step 10, a `step`: emit it unchanged.
@@ -1070,7 +1095,8 @@ generic kind:
 - a search is a `search` block, never also a `look`;
 - deploying a leader is a `deploy`, never also an `ability`;
 - a choice that another block records in its `targets` or `options` (the target of an attack, an ability, a play, a search) is not also a `choice`: `choice` is only for a choice no other block records, such as a mode, a yes or no, a number, a player or an order;
-- every triggered ability that resolves is a `trigger`, keyword triggers (Restore, Ambush, Shielded, Bounty and the like) included.
+- every triggered ability that resolves is a `trigger`, keyword triggers (Restore, Ambush, Shielded, Bounty and the like) included;
+- cards of a hand revealed to the other seat are a `look` by that seat ([§8.3](#83-looks)), not a `choice`.
 
 Events of different kinds that happen together are each an occurrence: an attack is an `attack`,
 and its combat damage is a `damage` block under it.
@@ -1188,7 +1214,7 @@ A `perspective` file is built so that it holds nothing its viewer did not see du
 Each way a game record could leak is closed by a rule of this document:
 
 - **The opponent's draws.** A draw is a `create` whose `to` is the drawing seat. For the opponent it is unmaterialized ([R-02]): the file holds no entity for it, only the new `handCount`.
-- **Which card was resourced.** A card moved from a hand the viewer cannot see into the resource row appears as a fresh anonymous entity ([R-05]) whose `to` is always the owner's seat alone, whoever had seen the card ([R-02], [R-05]). The viewer sees that a resource arrived, not which card it was: resourcing a card the viewer knew and resourcing one it never saw give the same records.
+- **Which card was resourced.** A card moved from a hand the viewer cannot see into the resource row appears as a fresh anonymous entity ([R-05]) whose `to` is always the owner's seat alone, whoever had seen the card, and which carries only face-down attributes such as `exhausted`, whatever the writer left on the card ([R-02], [R-05], [§7.3](#73-attributes)). The viewer sees that a resource arrived, not which card it was: resourcing a card the viewer knew and resourcing one it never saw give the same records.
 - **Moves between hidden zones.** An anonymous entity that changes zone is removed and, if still trackable, created afresh ([R-06]). An anonymous card can never be linked across a move.
 - **Searches and looks.** The cards a seat looks at are temporary deck entities whose `to` is the looking seat, so they are unmaterialized for the opponent ([R-02]); a private `reveal` is not emitted ([R-04]); and the narrative of the search keeps no reference to them ([R-09]).
 - **Blind choices.** A block's `options` that name cards the viewer does not know are dropped, and its `text` with them ([R-09]).
@@ -1377,6 +1403,19 @@ specific code ([V-15]): a `CARDS` line with no `name` is `card-index`, not also 
 A code that "applies to an SDK call" is not a property of a file: it is what a call returns when
 it is given the wrong kind of file, such as `not-full` from a redactor ([R-12]).
 
+**The line of an issue.** Every issue a parser or a validator reports carries the 1-based line
+number of the line that holds it ([P-12], [V-01]): the header line, banner, `DECKS`, `CARDS` or
+annotation line, or record. Three codes describe something no one line holds, and are reported at
+a fixed line:
+
+- `missing-tag`: the line of the first banner, where the header ended; the last line of the file
+  when it has no banner.
+- `result-mismatch`: the line of the `Result` tag.
+- `profile`: the line that breaks the profile rule: the `Seed` tag, the `DECKS` line, the `CARDS`
+  line, or the `create` or `reveal`.
+
+`too-many-issues` is the only issue reported with no line.
+
 A reader that meets a code it does not know treats it by its severity. The table is the error
 code registry.
 
@@ -1411,7 +1450,7 @@ code registry.
 | `bad-zone` | error | a file | A zone name is not in the registry. |
 | `bad-relation` | error | a file | A relation name is not in the registry. |
 | `profile` | error | a file | The file breaks the rules of its Visibility profile. |
-| `card-not-indexed` | error | a file | A card id used in the file is missing from CARDS. |
+| `card-not-indexed` | error | a file | The file has a CARDS section, and a create or reveal names a card id that has no CARDS line. |
 | `result-mismatch` | error | a file | The Result tag disagrees with the game result. |
 | `block-fields` | error | a file | A block of a registered kind lacks a field its contract requires, or carries a field its contract does not list. In a file whose Visibility is not full, a missing src, via, targets or options is not reported. |
 | `writer-errors` | warning | a file | The writer reported errors while recording. |
@@ -1449,45 +1488,47 @@ row is a change to the registry file, made by a pull request to the package's so
 
 "On" says which entities an attribute applies to: `game` is `"g"`, `seat` is `"p1"` and `"p2"`,
 `card` is every card and token entity, `effect` is every effect entity, and `unit`, `leader`,
-`base`, `resource` and `upgrade` are card entities of that kind or in that zone.
+`base`, `resource` and `upgrade` are card entities of that kind or in that zone. "Face down" says
+whether a redactor keeps the attribute on an anonymous entity ([§7.3](#73-attributes)): the
+registry field `faceDown`, absent meaning no.
 
 <!-- registry:attributes -->
-| Name | Type | Class | On | Meaning | CR |
-|---|---|---|---|---|---|
-| `round` | `count` | public | game | The current round number (0 during setup). | 5.1 |
-| `phase` | `string` | public | game | setup, action or regroup. | 5.1 |
-| `active` | `seat\|null` | public | game | Whose turn it is in the action phase; null otherwise. | 5.3 |
-| `initiative` | `seat` | public | game | Who holds the initiative counter. | 1.16.1, 5.4.1.b |
-| `initiativeTaken` | `bool` | public | game | Whether initiative was taken this round. | 1.16.1 |
-| `result` | `string` | public | game | p1, p2 or draw, once the game is over. | 5.6 |
-| `deckCount` | `count` | public | seat | Cards in the deck. | 4.6 |
-| `handCount` | `count` | public | seat | Cards in hand, known or not. | 4.7 |
-| `credits` | `count` | public | seat | Credit tokens. | 7.5.x (Credits) |
-| `force` | `bool` | public | seat | Whether the seat has the Force. | 8.x (the Force) |
-| `kind` | `string` | identity | card | unit, upgrade, event, leader, base or token; effect on effect entities. | 3 |
-| `exhausted` | `bool` | public | unit, leader, resource, upgrade | Ready or exhausted (upgrades that can exhaust). | 1.16.1 |
-| `damage` | `count` | public | unit, base | Damage on it. | 1.9 |
-| `power` | `int` | public | unit | Current power, after every effect. | 3.x |
-| `hp` | `int` | public | unit, base | Current max HP, after every effect (remaining = hp - damage). | 3.x |
-| `keywords` | `string[]` | public | unit | Current keywords; numbered ones once with their sum (raid 2); cost and dash ones once per instance. | 7.5.4 |
-| `traits` | `string[]` | public | unit, upgrade | Current traits, lower case. | 1.16.1 |
-| `aspects` | `string[]` | identity | card | Aspect icons, one entry per icon. | 2.x |
-| `cost` | `int` | identity | card | Printed cost (copy effects: copied cost). | — |
-| `name` | `string` | identity | card | The name to show, only when it differs from the CARDS name (copy effects, a leader's other side). | — |
-| `blank` | `bool` | public | unit | Has lost all abilities. | 8.14.2 |
-| `leaderUnit` | `bool` | public | unit | An ability made it a leader unit. | 3.4.7 |
-| `copyOf` | `string` | public | unit | The card id whose printed attributes it now has. | 8.5 |
-| `deployed` | `bool` | public | leader | Leader Unit side up. | 3.4 |
-| `onStartingSide` | `bool` | public | leader | Which side of a double-sided leader is up. | 3.4 |
-| `epicActionUsed` | `bool` | public | leader, base | Epic Action spent. | 1.16.1 |
-| `defeated` | `bool` | public | base | Defeated (also without damage: the Death Star). | 5.6 |
-| `abilityUses` | `object[]` | identity | card | One entry per limited ability used at least once: {ability: string, seat, count, per: "phase"\|"round"\|"game", max}. | 7.2.5, 1.16.3 |
-| `src` | `ref` | public | effect | The card (or base) whose ability created it. | — |
-| `targets` | `ref[]` | public | effect | The entities it applies to (seats allowed: "p1"). | — |
-| `duration` | `string` | public | effect | attack, phase, round, whileSourceInPlay, until, delayed or game. | — |
-| `untilText` | `string` | public | effect | Words for an until condition. | — |
-| `ability` | `string` | public | effect | The writer's ability id (display only, never branched on). | — |
-| `text` | `string` | public | effect | The effect in words. | — |
+| Name | Type | Class | Face down | On | Meaning | CR |
+|---|---|---|---|---|---|---|
+| `round` | `count` | public | no | game | The current round number (0 during setup). | 5.1 |
+| `phase` | `string` | public | no | game | setup, action or regroup. | 5.1 |
+| `active` | `seat\|null` | public | no | game | Whose turn it is in the action phase; null otherwise. | 5.3 |
+| `initiative` | `seat` | public | no | game | Who holds the initiative counter. | 1.16.1, 5.4.1.b |
+| `initiativeTaken` | `bool` | public | no | game | Whether initiative was taken this round. | 1.16.1 |
+| `result` | `string` | public | no | game | p1, p2 or draw, once the game is over. | 5.6 |
+| `deckCount` | `count` | public | no | seat | Cards in the deck. | 4.6 |
+| `handCount` | `count` | public | no | seat | Cards in hand, known or not. | 4.7 |
+| `credits` | `count` | public | no | seat | Credit tokens. | 7.5.x (Credits) |
+| `force` | `bool` | public | no | seat | Whether the seat has the Force. | 8.x (the Force) |
+| `kind` | `string` | identity | no | card | unit, upgrade, event, leader, base or token; effect on effect entities. | 3 |
+| `exhausted` | `bool` | public | yes | unit, leader, resource, upgrade | Ready or exhausted (upgrades that can exhaust). | 1.16.1 |
+| `damage` | `count` | public | no | unit, base | Damage on it. | 1.9 |
+| `power` | `int` | public | no | unit | Current power, after every effect. | 3.x |
+| `hp` | `int` | public | no | unit, base | Current max HP, after every effect (remaining = hp - damage). | 3.x |
+| `keywords` | `string[]` | public | no | unit | Current keywords; numbered ones once with their sum (raid 2); cost and dash ones once per instance. | 7.5.4 |
+| `traits` | `string[]` | public | no | unit, upgrade | Current traits, lower case. | 1.16.1 |
+| `aspects` | `string[]` | identity | no | card | Aspect icons, one entry per icon. | 2.x |
+| `cost` | `int` | identity | no | card | Printed cost (copy effects: copied cost). | — |
+| `name` | `string` | identity | no | card | The name to show, only when it differs from the CARDS name (copy effects, a leader's other side). | — |
+| `blank` | `bool` | public | no | unit | Has lost all abilities. | 8.14.2 |
+| `leaderUnit` | `bool` | public | no | unit | An ability made it a leader unit. | 3.4.7 |
+| `copyOf` | `string` | public | no | unit | The card id whose printed attributes it now has. | 8.5 |
+| `deployed` | `bool` | public | no | leader | Leader Unit side up. | 3.4 |
+| `onStartingSide` | `bool` | public | no | leader | Which side of a double-sided leader is up. | 3.4 |
+| `epicActionUsed` | `bool` | public | no | leader, base | Epic Action spent. | 1.16.1 |
+| `defeated` | `bool` | public | no | base | Defeated (also without damage: the Death Star). | 5.6 |
+| `abilityUses` | `object[]` | identity | no | card | One entry per limited ability used at least once: {ability: string, seat, count, per: "phase"\|"round"\|"game", max}. | 7.2.5, 1.16.3 |
+| `src` | `ref` | public | no | effect | The card (or base) whose ability created it. | — |
+| `targets` | `ref[]` | public | no | effect | The entities it applies to (seats allowed: "p1"). | — |
+| `duration` | `string` | public | no | effect | attack, phase, round, whileSourceInPlay, until, delayed or game. | — |
+| `untilText` | `string` | public | no | effect | Words for an until condition. | — |
+| `ability` | `string` | public | no | effect | The writer's ability id (display only, never branched on). | — |
+| `text` | `string` | public | no | effect | The effect in words. | — |
 <!-- /registry:attributes -->
 
 The `abilityUses` attribute holds one object per limited ability that has been used at least once,
@@ -1623,152 +1664,187 @@ In release order.
 ## Appendix A: Example (informative)
 
 This appendix reproduces the `RECORDS` of the conformance vector `tiny`: one short game in which
-a card is searched out of a deck, shuffled back and drawn again. The vector's other sections, and
-its `perspective:2` and `public` files, are in `vectors/` with notes that say which step of
-[§11.2](#112-the-steps) made each line. If this appendix and the vector disagree, the vector is
-right.
+a card is searched out of a deck, put back on top of it and drawn again. The vector's other
+sections, and its `perspective:2` and `public` files, are in `vectors/` with notes that say which
+step of [§11.2](#112-the-steps) made each line. If this appendix and the vector disagree, the
+vector is right.
 
-In that game a Shield token is created on a unit that has just been played out of the deck; the
-unit's `set` into `ground` comes before the token's `create`, as [W-28] requires. Each card played
-from a hand is revealed, then moved, then named by its `play` block ([W-44], [W-66]).
+In that game Player 2 plays Bodhi Rook, whose When Played looks at Player 1's hand and discards
+an event from it. Player 2's Trust Yourself then gives Bodhi a Shield token and searches the top
+three cards of Player 2's deck. Player 1's New Tactics puts Bodhi on top of Player 2's deck, and
+Player 2 draws him again at regroup. Each card played from a hand is revealed, then moved, then
+named by its `play` block ([W-44], [W-66]). The Shield token is created after the unit it is
+attached to is in play, as [W-28] requires.
 
 `RECORDS` of `vectors/tiny.full.swupgn`, the game as it was:
 
 ```ndjson
 {"t":"set","e":"g","a":{"round":1,"phase":"action","active":1,"initiative":1,"initiativeTaken":false}}
-{"t":"set","e":"p1","a":{"deckCount":45,"handCount":2,"credits":0,"force":false}}
+{"t":"set","e":"p1","a":{"deckCount":44,"handCount":3,"credits":0,"force":false}}
 {"t":"set","e":"p2","a":{"deckCount":45,"handCount":2,"credits":0,"force":false}}
 {"t":"create","e":1,"zone":"base","owner":1,"card":"SOR#026","a":{"kind":"base","damage":0,"hp":30}}
 {"t":"create","e":2,"zone":"base","owner":1,"card":"SOR#005","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
 {"t":"create","e":3,"zone":"base","owner":2,"card":"SOR#029","a":{"kind":"base","damage":0,"hp":28}}
 {"t":"create","e":4,"zone":"base","owner":2,"card":"SOR#010","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
 {"t":"create","e":5,"zone":"hand","owner":1,"card":"SOR#095","to":[1]}
-{"t":"create","e":6,"zone":"hand","owner":1,"card":"SOR#160","to":[1]}
-{"t":"create","e":7,"zone":"hand","owner":2,"card":"SOR#130","to":[2]}
-{"t":"create","e":8,"zone":"hand","owner":2,"card":"SOR#170","to":[2]}
-{"t":"create","e":9,"zone":"resource","owner":1,"card":"SOR#060","to":[1],"a":{"exhausted":false}}
-{"t":"create","e":10,"zone":"resource","owner":2,"card":"SOR#061","to":[2],"a":{"exhausted":false}}
+{"t":"create","e":6,"zone":"hand","owner":1,"card":"HMW#218","to":[1]}
+{"t":"create","e":7,"zone":"hand","owner":1,"card":"SOR#103","to":[1]}
+{"t":"create","e":8,"zone":"hand","owner":2,"card":"SOR#201","to":[2]}
+{"t":"create","e":9,"zone":"hand","owner":2,"card":"HMW#101","to":[2]}
+{"t":"create","e":10,"zone":"resource","owner":1,"card":"SOR#060","to":[1],"a":{"exhausted":false}}
+{"t":"create","e":11,"zone":"resource","owner":2,"card":"SOR#061","to":[2],"a":{"exhausted":false}}
 {"t":"step","seq":0}
 {"t":"reveal","e":5,"card":"SOR#095","to":"all"}
 {"t":"set","e":5,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":3,"hp":3}}
 {"t":"block","id":1,"kind":"play","p":1,"src":5}
-{"t":"set","e":9,"a":{"exhausted":true}}
-{"t":"set","e":"p1","a":{"handCount":1}}
+{"t":"set","e":10,"a":{"exhausted":true}}
+{"t":"set","e":"p1","a":{"handCount":2}}
 {"t":"set","e":"g","a":{"active":2}}
 {"t":"step","seq":1}
-{"t":"reveal","e":7,"card":"SOR#130","to":"all"}
+{"t":"reveal","e":8,"card":"SOR#201","to":"all"}
+{"t":"set","e":8,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":3,"hp":3}}
+{"t":"block","id":2,"kind":"play","p":2,"src":8}
+{"t":"set","e":11,"a":{"exhausted":true}}
+{"t":"block","id":3,"kind":"trigger","p":2,"src":8,"parent":2}
+{"t":"reveal","e":6,"card":"HMW#218","to":[2]}
+{"t":"reveal","e":7,"card":"SOR#103","to":[2]}
+{"t":"block","id":4,"kind":"look","p":2,"src":8,"targets":[6,7],"amount":2,"parent":3}
+{"t":"reveal","e":7,"card":"SOR#103","to":"all"}
 {"t":"set","e":7,"zone":"discard","a":{"kind":"event"}}
-{"t":"block","id":2,"kind":"play","p":2,"src":7}
-{"t":"create","e":11,"zone":"deck","owner":2,"card":"SOR#200","to":[2]}
-{"t":"create","e":12,"zone":"deck","owner":2,"card":"SOR#201","to":[2]}
-{"t":"create","e":13,"zone":"deck","owner":2,"card":"SOR#202","to":[2]}
-{"t":"block","id":3,"kind":"search","p":2,"src":7,"targets":[12],"options":[11,12,13],"amount":3,"parent":2}
-{"t":"reveal","e":12,"card":"SOR#201","to":"all"}
-{"t":"set","e":12,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":2,"hp":4}}
-{"t":"block","id":4,"kind":"play","p":2,"src":12,"parent":2}
-{"t":"create","e":14,"zone":"ground","owner":2,"parent":12,"rel":"attached","card":"TOKEN:shield#8752877738","a":{"kind":"token"}}
-{"t":"set","e":10,"a":{"exhausted":true}}
-{"t":"remove","e":11}
-{"t":"remove","e":13}
-{"t":"set","e":"p2","a":{"deckCount":44,"handCount":1}}
+{"t":"block","id":5,"kind":"discard","p":1,"src":8,"targets":[7],"amount":1,"parent":3}
+{"t":"set","e":"p1","a":{"handCount":1}}
+{"t":"set","e":"p2","a":{"handCount":1}}
 {"t":"set","e":"g","a":{"active":1}}
 {"t":"step","seq":2}
-{"t":"reveal","e":6,"card":"SOR#160","to":"all"}
-{"t":"set","e":6,"zone":"discard","a":{"kind":"event"}}
-{"t":"block","id":5,"kind":"play","p":1,"src":6}
-{"t":"block","id":6,"kind":"defeat","p":1,"src":6,"targets":[14],"parent":5}
-{"t":"block","id":7,"kind":"shuffle","p":2,"src":6,"targets":[12],"amount":1,"parent":5}
+{"t":"block","id":6,"kind":"pass","p":1}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":3}
+{"t":"reveal","e":9,"card":"HMW#101","to":"all"}
+{"t":"set","e":9,"zone":"discard","a":{"kind":"event"}}
+{"t":"block","id":7,"kind":"play","p":2,"src":9,"targets":[8]}
+{"t":"create","e":12,"zone":"ground","owner":2,"parent":8,"rel":"attached","card":"TOKEN:shield#8752877738","a":{"kind":"token"}}
+{"t":"create","e":13,"zone":"deck","owner":2,"card":"SOR#200","to":[2]}
+{"t":"create","e":14,"zone":"deck","owner":2,"card":"SOR#202","to":[2]}
+{"t":"create","e":15,"zone":"deck","owner":2,"card":"SOR#212","to":[2]}
+{"t":"block","id":8,"kind":"search","p":2,"src":9,"targets":[15],"options":[13,14,15],"amount":3,"parent":7}
+{"t":"set","e":15,"zone":"hand"}
+{"t":"block","id":9,"kind":"draw","p":2,"src":9,"targets":[15],"amount":1,"parent":7}
+{"t":"remove","e":13}
 {"t":"remove","e":14}
+{"t":"set","e":"p2","a":{"deckCount":44}}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":4}
+{"t":"reveal","e":6,"card":"HMW#218","to":"all"}
+{"t":"set","e":6,"zone":"discard","a":{"kind":"event"}}
+{"t":"block","id":10,"kind":"play","p":1,"src":6,"targets":[8]}
+{"t":"block","id":11,"kind":"choice","p":2,"src":6,"parent":10,"text":"Top of the deck"}
+{"t":"block","id":12,"kind":"defeat","p":1,"src":6,"targets":[12],"parent":10}
 {"t":"remove","e":12}
+{"t":"remove","e":8}
 {"t":"set","e":"p1","a":{"handCount":0}}
 {"t":"set","e":"p2","a":{"deckCount":45}}
 {"t":"set","e":"g","a":{"active":2}}
-{"t":"step","seq":3}
-{"t":"block","id":8,"kind":"pass","p":2}
+{"t":"step","seq":5}
+{"t":"block","id":13,"kind":"pass","p":2}
 {"t":"set","e":"g","a":{"active":1}}
-{"t":"step","seq":4}
-{"t":"block","id":9,"kind":"pass","p":1}
-{"t":"block","id":10,"kind":"regroup"}
-{"t":"create","e":15,"zone":"hand","owner":1,"card":"SOR#210","to":[1]}
-{"t":"create","e":16,"zone":"hand","owner":1,"card":"SOR#211","to":[1]}
-{"t":"create","e":17,"zone":"hand","owner":2,"card":"SOR#201","to":[2]}
-{"t":"create","e":18,"zone":"hand","owner":2,"card":"SOR#212","to":[2]}
-{"t":"block","id":11,"kind":"draw","p":1,"targets":[15,16],"amount":2,"parent":10,"group":1}
-{"t":"block","id":12,"kind":"draw","p":2,"targets":[17,18],"amount":2,"parent":10,"group":1}
-{"t":"set","e":"p1","a":{"deckCount":43,"handCount":2}}
+{"t":"step","seq":6}
+{"t":"block","id":14,"kind":"pass","p":1}
+{"t":"block","id":15,"kind":"regroup"}
+{"t":"create","e":16,"zone":"hand","owner":1,"card":"SOR#210","to":[1]}
+{"t":"create","e":17,"zone":"hand","owner":1,"card":"SOR#211","to":[1]}
+{"t":"create","e":18,"zone":"hand","owner":2,"card":"SOR#201","to":[2]}
+{"t":"create","e":19,"zone":"hand","owner":2,"card":"SOR#214","to":[2]}
+{"t":"block","id":16,"kind":"draw","p":1,"targets":[16,17],"amount":2,"parent":15,"group":1}
+{"t":"block","id":17,"kind":"draw","p":2,"targets":[18,19],"amount":2,"parent":15,"group":1}
+{"t":"set","e":"p1","a":{"deckCount":42,"handCount":2}}
 {"t":"set","e":"p2","a":{"deckCount":43,"handCount":3}}
 {"t":"set","e":"g","a":{"phase":"regroup","active":null}}
-{"t":"step","seq":5}
-{"t":"block","id":13,"kind":"resource","p":1,"targets":[15],"amount":1,"parent":10}
-{"t":"set","e":15,"zone":"resource","a":{"exhausted":true}}
+{"t":"step","seq":7}
+{"t":"block","id":18,"kind":"resource","p":1,"targets":[16],"amount":1,"parent":15}
+{"t":"set","e":16,"zone":"resource","a":{"exhausted":true}}
 {"t":"set","e":"p1","a":{"handCount":1}}
-{"t":"step","seq":6}
+{"t":"step","seq":8}
 ```
 
 `RECORDS` of `vectors/tiny.p1.swupgn`, the same game as Player 1 saw it. Player 2's hand is a
-count, Player 2's resource is anonymous, and the cards Player 2 searched are not there; each of
-Player 2's cards appears when it is revealed:
+count, Player 2's resource is anonymous, and the cards Player 2 searched are not there. Bodhi
+Rook's look at Player 1's own hand emits no `reveal`, and each of Player 2's cards appears when
+it is revealed:
 
 ```ndjson
 {"t":"set","e":"g","a":{"round":1,"phase":"action","active":1,"initiative":1,"initiativeTaken":false}}
-{"t":"set","e":"p1","a":{"deckCount":45,"handCount":2,"credits":0,"force":false}}
+{"t":"set","e":"p1","a":{"deckCount":44,"handCount":3,"credits":0,"force":false}}
 {"t":"set","e":"p2","a":{"deckCount":45,"handCount":2,"credits":0,"force":false}}
 {"t":"create","e":1,"zone":"base","owner":1,"card":"SOR#026","a":{"kind":"base","damage":0,"hp":30}}
 {"t":"create","e":2,"zone":"base","owner":1,"card":"SOR#005","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
 {"t":"create","e":3,"zone":"base","owner":2,"card":"SOR#029","a":{"kind":"base","damage":0,"hp":28}}
 {"t":"create","e":4,"zone":"base","owner":2,"card":"SOR#010","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
 {"t":"create","e":5,"zone":"hand","owner":1,"card":"SOR#095","to":[1]}
-{"t":"create","e":6,"zone":"hand","owner":1,"card":"SOR#160","to":[1]}
-{"t":"create","e":7,"zone":"resource","owner":1,"card":"SOR#060","to":[1],"a":{"exhausted":false}}
-{"t":"create","e":8,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}}
+{"t":"create","e":6,"zone":"hand","owner":1,"card":"HMW#218","to":[1]}
+{"t":"create","e":7,"zone":"hand","owner":1,"card":"SOR#103","to":[1]}
+{"t":"create","e":8,"zone":"resource","owner":1,"card":"SOR#060","to":[1],"a":{"exhausted":false}}
+{"t":"create","e":9,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}}
 {"t":"step","seq":0}
 {"t":"reveal","e":5,"card":"SOR#095","to":"all"}
 {"t":"set","e":5,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":3,"hp":3}}
 {"t":"block","id":1,"kind":"play","p":1,"src":5}
-{"t":"set","e":7,"a":{"exhausted":true}}
-{"t":"set","e":"p1","a":{"handCount":1}}
+{"t":"set","e":8,"a":{"exhausted":true}}
+{"t":"set","e":"p1","a":{"handCount":2}}
 {"t":"set","e":"g","a":{"active":2}}
 {"t":"step","seq":1}
-{"t":"create","e":9,"zone":"hand","owner":2,"card":"SOR#130","to":"all"}
-{"t":"set","e":9,"zone":"discard","a":{"kind":"event"}}
-{"t":"block","id":2,"kind":"play","p":2,"src":9}
-{"t":"block","id":3,"kind":"search","p":2,"src":9,"amount":3,"parent":2}
-{"t":"create","e":10,"zone":"deck","owner":2,"card":"SOR#201","to":"all"}
-{"t":"set","e":10,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":2,"hp":4}}
-{"t":"block","id":4,"kind":"play","p":2,"src":10,"parent":2}
-{"t":"create","e":11,"zone":"ground","owner":2,"parent":10,"rel":"attached","card":"TOKEN:shield#8752877738","a":{"kind":"token"}}
-{"t":"set","e":8,"a":{"exhausted":true}}
-{"t":"set","e":"p2","a":{"deckCount":44,"handCount":1}}
+{"t":"create","e":10,"zone":"hand","owner":2,"card":"SOR#201","to":"all"}
+{"t":"set","e":10,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":3,"hp":3}}
+{"t":"block","id":2,"kind":"play","p":2,"src":10}
+{"t":"set","e":9,"a":{"exhausted":true}}
+{"t":"block","id":3,"kind":"trigger","p":2,"src":10,"parent":2}
+{"t":"block","id":4,"kind":"look","p":2,"src":10,"targets":[6,7],"amount":2,"parent":3}
+{"t":"reveal","e":7,"card":"SOR#103","to":"all"}
+{"t":"set","e":7,"zone":"discard","a":{"kind":"event"}}
+{"t":"block","id":5,"kind":"discard","p":1,"src":10,"targets":[7],"amount":1,"parent":3}
+{"t":"set","e":"p1","a":{"handCount":1}}
+{"t":"set","e":"p2","a":{"handCount":1}}
 {"t":"set","e":"g","a":{"active":1}}
 {"t":"step","seq":2}
-{"t":"reveal","e":6,"card":"SOR#160","to":"all"}
+{"t":"block","id":6,"kind":"pass","p":1}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":3}
+{"t":"create","e":11,"zone":"hand","owner":2,"card":"HMW#101","to":"all"}
+{"t":"set","e":11,"zone":"discard","a":{"kind":"event"}}
+{"t":"block","id":7,"kind":"play","p":2,"src":11,"targets":[10]}
+{"t":"create","e":12,"zone":"ground","owner":2,"parent":10,"rel":"attached","card":"TOKEN:shield#8752877738","a":{"kind":"token"}}
+{"t":"block","id":8,"kind":"search","p":2,"src":11,"amount":3,"parent":7}
+{"t":"block","id":9,"kind":"draw","p":2,"src":11,"amount":1,"parent":7}
+{"t":"set","e":"p2","a":{"deckCount":44}}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":4}
+{"t":"reveal","e":6,"card":"HMW#218","to":"all"}
 {"t":"set","e":6,"zone":"discard","a":{"kind":"event"}}
-{"t":"block","id":5,"kind":"play","p":1,"src":6}
-{"t":"block","id":6,"kind":"defeat","p":1,"src":6,"targets":[11],"parent":5}
-{"t":"block","id":7,"kind":"shuffle","p":2,"src":6,"targets":[10],"amount":1,"parent":5}
-{"t":"remove","e":11}
+{"t":"block","id":10,"kind":"play","p":1,"src":6,"targets":[10]}
+{"t":"block","id":11,"kind":"choice","p":2,"src":6,"parent":10,"text":"Top of the deck"}
+{"t":"block","id":12,"kind":"defeat","p":1,"src":6,"targets":[12],"parent":10}
+{"t":"remove","e":12}
 {"t":"remove","e":10}
 {"t":"set","e":"p1","a":{"handCount":0}}
 {"t":"set","e":"p2","a":{"deckCount":45}}
 {"t":"set","e":"g","a":{"active":2}}
-{"t":"step","seq":3}
-{"t":"block","id":8,"kind":"pass","p":2}
+{"t":"step","seq":5}
+{"t":"block","id":13,"kind":"pass","p":2}
 {"t":"set","e":"g","a":{"active":1}}
-{"t":"step","seq":4}
-{"t":"block","id":9,"kind":"pass","p":1}
-{"t":"block","id":10,"kind":"regroup"}
-{"t":"create","e":12,"zone":"hand","owner":1,"card":"SOR#210","to":[1]}
-{"t":"create","e":13,"zone":"hand","owner":1,"card":"SOR#211","to":[1]}
-{"t":"block","id":11,"kind":"draw","p":1,"targets":[12,13],"amount":2,"parent":10,"group":1}
-{"t":"block","id":12,"kind":"draw","p":2,"amount":2,"parent":10,"group":1}
-{"t":"set","e":"p1","a":{"deckCount":43,"handCount":2}}
+{"t":"step","seq":6}
+{"t":"block","id":14,"kind":"pass","p":1}
+{"t":"block","id":15,"kind":"regroup"}
+{"t":"create","e":13,"zone":"hand","owner":1,"card":"SOR#210","to":[1]}
+{"t":"create","e":14,"zone":"hand","owner":1,"card":"SOR#211","to":[1]}
+{"t":"block","id":16,"kind":"draw","p":1,"targets":[13,14],"amount":2,"parent":15,"group":1}
+{"t":"block","id":17,"kind":"draw","p":2,"amount":2,"parent":15,"group":1}
+{"t":"set","e":"p1","a":{"deckCount":42,"handCount":2}}
 {"t":"set","e":"p2","a":{"deckCount":43,"handCount":3}}
 {"t":"set","e":"g","a":{"phase":"regroup","active":null}}
-{"t":"step","seq":5}
-{"t":"block","id":13,"kind":"resource","p":1,"targets":[12],"amount":1,"parent":10}
-{"t":"set","e":12,"zone":"resource","a":{"exhausted":true}}
+{"t":"step","seq":7}
+{"t":"block","id":18,"kind":"resource","p":1,"targets":[13],"amount":1,"parent":15}
+{"t":"set","e":13,"zone":"resource","a":{"exhausted":true}}
 {"t":"set","e":"p1","a":{"handCount":1}}
-{"t":"step","seq":6}
+{"t":"step","seq":8}
 ```
 
 ---
@@ -1840,6 +1916,33 @@ collector       = 3*DIGIT                    ; zero-padded to at least 3
 token-card      = %s"TOKEN:" token-name [ "#" 1*DIGIT ]
 token-name      = 1*( %x61-7A / DIGIT ) *( "-" 1*( %x61-7A / DIGIT ) )
 ```
+
+### B.4 Canonical layout
+
+The layout of a file in canonical form ([W-07]). Every canonical file is also a `swupgn-file`; the
+grammar adds no reading rule, it only pins the bytes a writer writes. Key orders inside each JSON
+line are given by [W-07], not here.
+
+```abnf
+canonical-file  = canon-header 1*canon-section
+canon-header    = canon-game *canon-tag  ; no blank line among the tags
+canon-game      = "[Game" SP DQUOTE "SWU-PGN/" major "." minor DQUOTE "]" LF
+canon-tag       = "[" tag-name SP DQUOTE tag-value DQUOTE "]" LF
+                                         ; one tag per line, nothing else on it
+canon-section   = LF canon-banner *canon-line
+                                         ; one blank line before every banner
+canon-banner    = "%%%" SP canon-name LF ; no space or tab after the name
+canon-name      = 1*( %x41-5A / DIGIT / "_" )
+                                         ; the section name in upper case
+canon-line      = canon-text LF          ; in STORY, canon-text may be empty
+                                         ; (a blank line inside the prose), but
+                                         ; never on the first or last line of it;
+                                         ; in every other section it is never empty
+canon-text      = [ *( %x09 / %x20-10FFFF ) ( %x21-10FFFF ) ]
+                                         ; does not end in a space or tab
+```
+
+A canonical file has no byte order mark, no `CR`, and ends with the `LF` of its last line.
 
 ---
 

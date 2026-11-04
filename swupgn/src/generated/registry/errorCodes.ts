@@ -144,7 +144,7 @@ export const errorCodes = [
     {
         "code": "card-not-indexed",
         "severity": "error",
-        "condition": "A card id used in the file is missing from CARDS."
+        "condition": "The file has a CARDS section, and a create or reveal names a card id that has no CARDS line."
     },
     {
         "code": "result-mismatch",

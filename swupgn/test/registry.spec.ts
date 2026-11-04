@@ -1,7 +1,7 @@
 import Ajv2020 from 'ajv/dist/2020';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ATTRIBUTES, BLOCK_KINDS, BLOCK_REFERENCE_FIELDS, ERROR_CODES, RELATIONS, ZONES, attributeClass } from '../src/registry';
+import { ATTRIBUTES, BLOCK_KINDS, BLOCK_REFERENCE_FIELDS, ERROR_CODES, RELATIONS, ZONES, attributeClass, isFaceDownAttribute } from '../src/registry';
 import type { BlockField } from '../src/registry';
 
 const packageDir = path.resolve(__dirname, '..', '..');
@@ -150,6 +150,13 @@ describe('registry', function () {
 
     it('parent-rel covers a parent outside ground, space and base', function () {
         expect(ERROR_CODES.find((c) => c.code === 'parent-rel')?.condition).toMatch(/ground, space or base/);
+    });
+
+    it('only exhausted is face-down: the one attribute an anonymous entity keeps (R-02, R-05, R-07)', function () {
+        expect(ATTRIBUTES.filter((a) => a.faceDown === true).map((a) => a.name)).toEqual(['exhausted']);
+        expect(isFaceDownAttribute('exhausted')).toBe(true);
+        expect(isFaceDownAttribute('power')).toBe(false);
+        expect(isFaceDownAttribute('x_examplewriter_foil')).toBe(false);
     });
 
     it('attributeClass: unregistered is identity, registered is its class', function () {

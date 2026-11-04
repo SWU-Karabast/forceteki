@@ -18,7 +18,8 @@
                         "minItems": 1
                     },
                     "meaning": { "type": "string", "minLength": 1 },
-                    "cr": { "type": "string" }
+                    "cr": { "type": "string" },
+                    "faceDown": { "description": "Whether a redactor keeps this attribute on an anonymous entity (R-02, R-05, R-07). Absent means false.", "type": "boolean" }
                 },
                 "required": ["name", "type", "class", "on", "meaning"],
                 "additionalProperties": false

@@ -122,7 +122,8 @@ export const attributes = [
             "upgrade"
         ],
         "meaning": "Ready or exhausted (upgrades that can exhaust).",
-        "cr": "1.16.1"
+        "cr": "1.16.1",
+        "faceDown": true
     },
     {
         "name": "damage",

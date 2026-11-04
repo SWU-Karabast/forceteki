@@ -3,7 +3,7 @@
 [Steps "decision"]
 [GameId "vector-tiny"]
 [Date "2026-11-03T12:00:00Z"]
-[CardPool "SOR"]
+[CardPool "SOR,HMW"]
 [Engine "examplewriter@0.1.0"]
 [P1Id "sha256:91f2049e8d2099e727801519bfa488ad5db4edcdde37ed9c8769abe0a10396f1"]
 [P2Id "sha256:23c0c1f42e0c03a276c7a337804026b4f5e2314cf50971e2747dd24100673030"]
@@ -18,10 +18,12 @@
 [P2Base "SOR#029"]
 
 %%% DECKS
-{"p":1,"leaders":["SOR#005"],"base":"SOR#026","complete":true,"main":[["SOR#046",3],["SOR#048",3],["SOR#050",3],["SOR#052",3],["SOR#054",3],["SOR#056",3],["SOR#060",3],["SOR#095",3],["SOR#097",3],["SOR#099",3],["SOR#101",3],["SOR#103",3],["SOR#160",3],["SOR#205",3],["SOR#210",3],["SOR#211",3]],"sideboard":[["SOR#108",1]]}
-{"p":2,"leaders":["SOR#010"],"base":"SOR#029","complete":false,"main":[["SOR#130"],["SOR#201"]]}
+{"p":1,"leaders":["SOR#005"],"base":"SOR#026","complete":true,"main":[["HMW#218",3],["SOR#046",3],["SOR#048",3],["SOR#050",3],["SOR#052",3],["SOR#054",3],["SOR#056",3],["SOR#060",3],["SOR#095",3],["SOR#097",3],["SOR#099",3],["SOR#101",3],["SOR#103",3],["SOR#205",3],["SOR#210",3],["SOR#211",3]],"sideboard":[["SOR#108",1]]}
+{"p":2,"leaders":["SOR#010"],"base":"SOR#029","complete":false,"main":[["SOR#201"],["HMW#101"]]}
 
 %%% CARDS
+{"id":"HMW#101","name":"Trust Yourself"}
+{"id":"HMW#218","name":"New Tactics"}
 {"id":"SOR#005","name":"Luke Skywalker, Faithful Friend"}
 {"id":"SOR#010","name":"Darth Vader, Dark Lord of the Sith"}
 {"id":"SOR#026","name":"Catacombs of Cadera"}
@@ -39,8 +41,6 @@
 {"id":"SOR#101","name":"Rogue Squadron Skirmisher"}
 {"id":"SOR#103","name":"Rebel Assault"}
 {"id":"SOR#108","name":"Vanguard Infantry"}
-{"id":"SOR#130","name":"First Legion Snowtrooper"}
-{"id":"SOR#160","name":"Wolffe, Suspicious Veteran"}
 {"id":"SOR#201","name":"Bodhi Rook, Imperial Defector"}
 {"id":"SOR#205","name":"Jawa Scavenger"}
 {"id":"SOR#210","name":"Swoop Racer"}
@@ -49,61 +49,75 @@
 
 %%% RECORDS
 {"t":"set","e":"g","a":{"round":1,"phase":"action","active":1,"initiative":1,"initiativeTaken":false}}
-{"t":"set","e":"p1","a":{"deckCount":45,"handCount":2,"credits":0,"force":false}}
+{"t":"set","e":"p1","a":{"deckCount":44,"handCount":3,"credits":0,"force":false}}
 {"t":"set","e":"p2","a":{"deckCount":45,"handCount":2,"credits":0,"force":false}}
 {"t":"create","e":1,"zone":"base","owner":1,"card":"SOR#026","a":{"kind":"base","damage":0,"hp":30}}
 {"t":"create","e":2,"zone":"base","owner":1,"card":"SOR#005","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
 {"t":"create","e":3,"zone":"base","owner":2,"card":"SOR#029","a":{"kind":"base","damage":0,"hp":28}}
 {"t":"create","e":4,"zone":"base","owner":2,"card":"SOR#010","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
 {"t":"create","e":5,"zone":"hand","owner":1,"card":"SOR#095","to":[1]}
-{"t":"create","e":6,"zone":"hand","owner":1,"card":"SOR#160","to":[1]}
-{"t":"create","e":7,"zone":"resource","owner":1,"card":"SOR#060","to":[1],"a":{"exhausted":false}}
-{"t":"create","e":8,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}}
+{"t":"create","e":6,"zone":"hand","owner":1,"card":"HMW#218","to":[1]}
+{"t":"create","e":7,"zone":"hand","owner":1,"card":"SOR#103","to":[1]}
+{"t":"create","e":8,"zone":"resource","owner":1,"card":"SOR#060","to":[1],"a":{"exhausted":false}}
+{"t":"create","e":9,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}}
 {"t":"step","seq":0}
 {"t":"reveal","e":5,"card":"SOR#095","to":"all"}
 {"t":"set","e":5,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":3,"hp":3}}
 {"t":"block","id":1,"kind":"play","p":1,"src":5}
-{"t":"set","e":7,"a":{"exhausted":true}}
-{"t":"set","e":"p1","a":{"handCount":1}}
+{"t":"set","e":8,"a":{"exhausted":true}}
+{"t":"set","e":"p1","a":{"handCount":2}}
 {"t":"set","e":"g","a":{"active":2}}
 {"t":"step","seq":1}
-{"t":"create","e":9,"zone":"hand","owner":2,"card":"SOR#130","to":"all"}
-{"t":"set","e":9,"zone":"discard","a":{"kind":"event"}}
-{"t":"block","id":2,"kind":"play","p":2,"src":9}
-{"t":"block","id":3,"kind":"search","p":2,"src":9,"amount":3,"parent":2}
-{"t":"create","e":10,"zone":"deck","owner":2,"card":"SOR#201","to":"all"}
-{"t":"set","e":10,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":2,"hp":4}}
-{"t":"block","id":4,"kind":"play","p":2,"src":10,"parent":2}
-{"t":"create","e":11,"zone":"ground","owner":2,"parent":10,"rel":"attached","card":"TOKEN:shield#8752877738","a":{"kind":"token"}}
-{"t":"set","e":8,"a":{"exhausted":true}}
-{"t":"set","e":"p2","a":{"deckCount":44,"handCount":1}}
+{"t":"create","e":10,"zone":"hand","owner":2,"card":"SOR#201","to":"all"}
+{"t":"set","e":10,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":3,"hp":3}}
+{"t":"block","id":2,"kind":"play","p":2,"src":10}
+{"t":"set","e":9,"a":{"exhausted":true}}
+{"t":"block","id":3,"kind":"trigger","p":2,"src":10,"parent":2}
+{"t":"block","id":4,"kind":"look","p":2,"src":10,"targets":[6,7],"amount":2,"parent":3}
+{"t":"reveal","e":7,"card":"SOR#103","to":"all"}
+{"t":"set","e":7,"zone":"discard","a":{"kind":"event"}}
+{"t":"block","id":5,"kind":"discard","p":1,"src":10,"targets":[7],"amount":1,"parent":3}
+{"t":"set","e":"p1","a":{"handCount":1}}
+{"t":"set","e":"p2","a":{"handCount":1}}
 {"t":"set","e":"g","a":{"active":1}}
 {"t":"step","seq":2}
-{"t":"reveal","e":6,"card":"SOR#160","to":"all"}
+{"t":"block","id":6,"kind":"pass","p":1}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":3}
+{"t":"create","e":11,"zone":"hand","owner":2,"card":"HMW#101","to":"all"}
+{"t":"set","e":11,"zone":"discard","a":{"kind":"event"}}
+{"t":"block","id":7,"kind":"play","p":2,"src":11,"targets":[10]}
+{"t":"create","e":12,"zone":"ground","owner":2,"parent":10,"rel":"attached","card":"TOKEN:shield#8752877738","a":{"kind":"token"}}
+{"t":"block","id":8,"kind":"search","p":2,"src":11,"amount":3,"parent":7}
+{"t":"block","id":9,"kind":"draw","p":2,"src":11,"amount":1,"parent":7}
+{"t":"set","e":"p2","a":{"deckCount":44}}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":4}
+{"t":"reveal","e":6,"card":"HMW#218","to":"all"}
 {"t":"set","e":6,"zone":"discard","a":{"kind":"event"}}
-{"t":"block","id":5,"kind":"play","p":1,"src":6}
-{"t":"block","id":6,"kind":"defeat","p":1,"src":6,"targets":[11],"parent":5}
-{"t":"block","id":7,"kind":"shuffle","p":2,"src":6,"targets":[10],"amount":1,"parent":5}
-{"t":"remove","e":11}
+{"t":"block","id":10,"kind":"play","p":1,"src":6,"targets":[10]}
+{"t":"block","id":11,"kind":"choice","p":2,"src":6,"parent":10,"text":"Top of the deck"}
+{"t":"block","id":12,"kind":"defeat","p":1,"src":6,"targets":[12],"parent":10}
+{"t":"remove","e":12}
 {"t":"remove","e":10}
 {"t":"set","e":"p1","a":{"handCount":0}}
 {"t":"set","e":"p2","a":{"deckCount":45}}
 {"t":"set","e":"g","a":{"active":2}}
-{"t":"step","seq":3}
-{"t":"block","id":8,"kind":"pass","p":2}
+{"t":"step","seq":5}
+{"t":"block","id":13,"kind":"pass","p":2}
 {"t":"set","e":"g","a":{"active":1}}
-{"t":"step","seq":4}
-{"t":"block","id":9,"kind":"pass","p":1}
-{"t":"block","id":10,"kind":"regroup"}
-{"t":"create","e":12,"zone":"hand","owner":1,"card":"SOR#210","to":[1]}
-{"t":"create","e":13,"zone":"hand","owner":1,"card":"SOR#211","to":[1]}
-{"t":"block","id":11,"kind":"draw","p":1,"targets":[12,13],"amount":2,"parent":10,"group":1}
-{"t":"block","id":12,"kind":"draw","p":2,"amount":2,"parent":10,"group":1}
-{"t":"set","e":"p1","a":{"deckCount":43,"handCount":2}}
+{"t":"step","seq":6}
+{"t":"block","id":14,"kind":"pass","p":1}
+{"t":"block","id":15,"kind":"regroup"}
+{"t":"create","e":13,"zone":"hand","owner":1,"card":"SOR#210","to":[1]}
+{"t":"create","e":14,"zone":"hand","owner":1,"card":"SOR#211","to":[1]}
+{"t":"block","id":16,"kind":"draw","p":1,"targets":[13,14],"amount":2,"parent":15,"group":1}
+{"t":"block","id":17,"kind":"draw","p":2,"amount":2,"parent":15,"group":1}
+{"t":"set","e":"p1","a":{"deckCount":42,"handCount":2}}
 {"t":"set","e":"p2","a":{"deckCount":43,"handCount":3}}
 {"t":"set","e":"g","a":{"phase":"regroup","active":null}}
-{"t":"step","seq":5}
-{"t":"block","id":13,"kind":"resource","p":1,"targets":[12],"amount":1,"parent":10}
-{"t":"set","e":12,"zone":"resource","a":{"exhausted":true}}
+{"t":"step","seq":7}
+{"t":"block","id":18,"kind":"resource","p":1,"targets":[13],"amount":1,"parent":15}
+{"t":"set","e":13,"zone":"resource","a":{"exhausted":true}}
 {"t":"set","e":"p1","a":{"handCount":1}}
-{"t":"step","seq":6}
+{"t":"step","seq":8}
