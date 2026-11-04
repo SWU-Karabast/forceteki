@@ -4,6 +4,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { parse } from '../src/parse';
 import { apply } from '../src/apply';
+import { serialize } from '../src/serialize';
+import { redact } from '../src/writer/redact';
 import { ATTRIBUTES, BLOCK_KINDS, BLOCK_REFERENCE_FIELDS, ERROR_CODES, isFaceDownAttribute } from '../src/registry';
 
 /**
@@ -356,7 +358,9 @@ describe('conformance vectors', function () {
 
                     if (profile !== 'full') {
                         it(`is what redacting ${vector.name}.full gives`, function () {
-                            pending('Task 8: the SDK redactor');
+                            const full = parse(fs.readFileSync(path.join(vectorsDir, `${vector.name}.full.swupgn`), 'utf8'));
+                            const view = profile === 'p1' ? 1 : profile === 'p2' ? 2 : 'public';
+                            expect(serialize(redact(full, view))).toBe(parsed.text);
                         });
                     }
                 });
