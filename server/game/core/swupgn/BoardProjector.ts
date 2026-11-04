@@ -4,7 +4,8 @@ import type { Player } from '../Player';
 import { PhaseName } from '../Constants';
 import type { AudienceTracker } from './AudienceTracker';
 import type { SwuPgnWriterState } from './SwuPgnWriterState';
-import { projectCards } from './projectCards';
+import { projectCards, projectedCardId, seatIn } from './projectCards';
+import { abilityUsesOf, projectEffects } from './projectEffects';
 
 /**
  * Projects the live game into an SWU-PGN board: the full state after one decision.
@@ -23,13 +24,13 @@ export class BoardProjector {
             p1: this.projectSeat(1),
             p2: this.projectSeat(2)
         };
-        projectCards(this.game.allCards, this.state, (player) => this.seatOf(player), entities);
+        projectCards(this.game.allCards, this.state, (player) => this.seatOf(player), (card) => abilityUsesOf(card, this.game), entities);
+        Object.assign(entities, projectEffects(this.game, this.state, (card) => projectedCardId(card, this.state, entities)));
         return { seq: null, entities };
     }
 
     private seatOf(player: Player | null): Seat | null {
-        const index = player ? this.game.getPlayers().indexOf(player) : -1;
-        return index === 0 ? 1 : index === 1 ? 2 : null;
+        return seatIn(this.game, player);
     }
 
     private projectGame(): Entity {

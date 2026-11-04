@@ -1,6 +1,7 @@
-import type { Attrs, Audience, Entity, Seat } from '@swupgn/format';
+import type { Attrs, AttrValue, Audience, Entity, Seat } from '@swupgn/format';
 import { ZONES } from '@swupgn/format';
 import type { Card } from '../card/Card';
+import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { EffectName, ZoneName } from '../Constants';
 import { Contract } from '../utils/Contract';
@@ -28,14 +29,45 @@ const publicZones: ReadonlySet<string> = new Set(ZONES.filter((zone) => zone.opp
 
 export type SeatOf = (player: Player) => Seat | null;
 
+/** A card's `abilityUses`, or undefined when it has none. */
+export type AbilityUsesOf = (card: Card) => AttrValue[] | undefined;
+
+/** The player's seat: the first player is seat 1, the second seat 2; null for anyone else. */
+export function seatIn(game: Game, player: Player | null): Seat | null {
+    const index = player ? game.getPlayers().indexOf(player) : -1;
+    return index === 0 ? 1 : index === 1 ? 2 : null;
+}
+
 /** Adds one entity per tracked card and token to `entities`, keyed by entity id. */
-export function projectCards(cards: readonly Card[], state: SwuPgnWriterState, seatOf: SeatOf, entities: Record<string, Entity>): void {
+export function projectCards(cards: readonly Card[], state: SwuPgnWriterState, seatOf: SeatOf, abilityUsesOf: AbilityUsesOf, entities: Record<string, Entity>): void {
     for (const card of cards) {
         const zone = zoneOfEntity(card);
         if (zone !== null) {
-            entities[String(idOf(card, state))] = projectCard(card, zone, state, seatOf);
+            const entity = projectCard(card, zone, state, seatOf);
+            const uses = abilityUsesOf(card);
+            if (uses !== undefined) {
+                entity.a.abilityUses = uses;
+            }
+            entities[String(idOf(card, state))] = entity;
         }
     }
+}
+
+/** The card's entity id when `entities` (a board `projectCards` filled) holds it; undefined otherwise, and no id is assigned. */
+export function projectedCardId(card: Card, state: SwuPgnWriterState, entities: Record<string, Entity>): number | undefined {
+    const key = state.cardKey(card);
+    if (!state.hasEntity(key)) {
+        return undefined;
+    }
+    const id = state.entityIdFor(key);
+    return String(id) in entities ? id : undefined;
+}
+
+/** The audience of the card's identity: its entity's `to`, or its owner alone for a card with no entity (in a deck). */
+export function cardAudience(card: Card, seatOf: SeatOf): Audience {
+    const zone = zoneOfEntity(card);
+    const owner = seat(card.owner, seatOf);
+    return zone === null ? [owner] : audienceOf(zone, owner);
 }
 
 function idOf(card: Card, state: SwuPgnWriterState): number {

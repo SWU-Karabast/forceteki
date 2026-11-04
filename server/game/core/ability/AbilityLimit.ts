@@ -139,6 +139,11 @@ export class PerGameAbilityLimit extends AbilityLimit {
     public currentForPlayer(): number {
         return this.useCount;
     }
+
+    /** The most uses allowed. Read-only, for the SWU-PGN writer's `abilityUses.max`. */
+    public maxForPlayer(): number {
+        return this.max;
+    }
 }
 
 @registerStateBase()
@@ -177,6 +182,11 @@ export abstract class PerPlayerPerGameAbilityLimitBase extends AbilityLimit {
         return this.useCount.get(this.getKey(player.name)) ?? 0;
     }
 
+    /** The most uses allowed for `player`, after modifiers. Read-only, for the SWU-PGN writer's `abilityUses.max`. */
+    public maxForPlayer(player: Player): number {
+        return this.getModifiedMax(player);
+    }
+
     private getKey(player: string): string {
         return player;
     }
@@ -213,6 +223,23 @@ export class RepeatableAbilityLimit extends PerPlayerPerGameAbilityLimitBase {
 
     public override isRepeatable(): boolean {
         return true;
+    }
+
+    /**
+     * The boundary whose end resets the uses: `phase` or `round`, undefined for any other event set.
+     * Read-only, for the SWU-PGN writer's `abilityUses.per`; it changes nothing.
+     */
+    public get resetsOn(): 'phase' | 'round' | undefined {
+        if (this.eventName.size !== 1) {
+            return undefined;
+        }
+        if (this.eventName.has(EventName.OnPhaseEnded)) {
+            return 'phase';
+        }
+        if (this.eventName.has(EventName.OnRoundEnded)) {
+            return 'round';
+        }
+        return undefined;
     }
 
     public override registerEvents(): void {
