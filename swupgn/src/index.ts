@@ -7,3 +7,4 @@ export { parse, DEFAULT_LIMITS } from './parse.js';
 export type { ParseLimits } from './parse.js';
 export { serialize } from './serialize.js';
 export { emptyBoard, cloneBoard, applyRecord, apply, boardAt } from './apply.js';
+export { render } from './render.js';
