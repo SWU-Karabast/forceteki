@@ -937,6 +937,17 @@ down, and a reference written just before it left would name it ([R-17]).
 it emits, it also drops that record's `text`, `untilText` and `ability` attributes, because words
 can name what the reference pointed at.
 
+**How a dropped attribute is written.** In a `create`, an attribute dropped by the Mapping rule
+(a `ref` attribute, or `text`, `untilText` or `ability` with it) is left out. In a `set`, it is
+written with the value `null`, so that applying the output deletes the value the viewer's board
+held before rather than leaving it stale. A `ref[]` attribute is never dropped whole: it keeps its
+remaining elements.
+
+**Effect attributes.** On an effect entity (`kind` `effect`, [W-31]), the redactor keeps only
+`kind` and the attributes the attribute registry lists for effects ([§22.1](#221-attributes)), in
+every `create` and `set` it emits, as the profile rules require ([§10.4](#104-profile-rules)).
+Any other attribute, every `x_` extension included, is left out.
+
 **Face-down attributes** of an entity are its attributes whose registry row has `faceDown` `true`
 ([§7.3](#73-attributes)). They are the only attributes an anonymous entity carries. Unregistered
 attributes, including every `x_` extension, are not face-down.
@@ -949,13 +960,13 @@ because what it emits comes before the record's own output. Steps 1 to 10 see th
 leaves.
 
 - **[R-17]** Step 0, losing track in a hidden hand ([§10.3](#103-what-a-viewer-can-track)). Step 0 applies to a `set` that moves an entity out of zone `hand` into a zone whose opponent visibility is not `public` (or that is not in the zone registry), and to a `remove` of an entity that was in zone `hand` (it went into a deck, [W-24]), when that hand is not V's: the entity's seat (its `controller`, or its `owner` when it has none) before the record was not V. In a `public` file every hand is not V's. It applies even when the moving entity was revealed to V earlier in the same step group. When it applies, before anything else for this record, the redactor takes every entity in that hand that is known to V, the moving one included, in ascending order of output id; emits a `remove` of each one's output id; and marks each one forgotten and unmaterialized. Then the record goes on to steps 1 to 10 with the moving entity unmaterialized: step 5 makes a fresh anonymous entity of it when it lands in the resource row, and step 8 emits nothing for its `remove`.
-- **[R-01]** Step 1, a `create` whose audience holds V: emit it with a fresh id, its `card` included. The entity is known.
+- **[R-01]** Step 1, a `create` whose audience holds V: emit it with a fresh id, its `card` included, its attributes mapped ([§11.1](#111-state): Mapping, effect attributes). The entity is known.
 - **[R-02]** Step 2, a `create` whose audience does not hold V: if the entity would be anonymous for V ([§10.3](#103-what-a-viewer-can-track)), emit it with a fresh id, without `card`, with `to` set to the entity's own seat (its `controller`, or its `owner` when it has none) as a one-seat list, and with only its face-down attributes (no `a` when it has none); the entity is anonymous. Otherwise emit nothing; the entity is unmaterialized.
-- **[R-03]** Step 3, a `reveal` whose `to` holds V: if the entity is known, emit the `reveal` with the mapped id. If it is anonymous, emit a `remove` of its output id, then a `create` with a fresh id. If it is unmaterialized, emit only that `create` with a fresh id. That `create` carries the entity's current `zone`, `owner`, `controller`, `parent` and `rel`, its `card`, its current audience as `to`, and all its current attributes, in canonical key order ([W-07]), with no `a` when it has none. From then on the entity is known, and no longer forgotten.
+- **[R-03]** Step 3, a `reveal` whose `to` holds V: if the entity is known, emit the `reveal` with the mapped id. If it is anonymous, emit a `remove` of its output id, then a `create` with a fresh id. If it is unmaterialized, emit only that `create` with a fresh id. That `create` carries the entity's current `zone`, `owner`, `controller`, `parent` and `rel`, its `card`, its current audience as `to`, and all its current attributes, mapped as [§11.1](#111-state) says (Mapping, effect attributes), in canonical key order ([W-07]), with no `a` when it has none. From then on the entity is known, and no longer forgotten.
 - **[R-04]** Step 4, a `reveal` whose `to` does not hold V: emit nothing.
 - **[R-05]** Step 5, a `set` of an unmaterialized entity: if the entity is forgotten and, after the `set`, its audience holds V and it is in a zone whose opponent visibility is `public`, emit the `create` that step 3 emits for an unmaterialized entity; the entity is known, and no longer forgotten. Otherwise, if the entity, after the `set`, would be anonymous for V, emit a `create` with a fresh id, without `card`, with its current `zone`, `owner`, `controller`, `parent` and `rel`, `to` set to the entity's own seat as a one-seat list (as in step 2), and only its face-down attributes, in canonical key order ([W-07]); the entity is anonymous. Otherwise emit nothing.
 - **[R-06]** Step 6, a `set` that changes the `zone` of an anonymous entity: emit a `remove` of its output id. The entity is then unmaterialized, and step 5 applies to the same `set`.
-- **[R-07]** Step 7, any other `set`: emit it with mapped ids. For an anonymous entity, drop from `a` every attribute that is not face-down. If nothing is left but `t` and `e`, emit nothing.
+- **[R-07]** Step 7, any other `set`: emit it with mapped ids and its attributes mapped as [§11.1](#111-state) says (a dropped reference and its words written `null`; on an effect, only effect attributes). For an anonymous entity, drop from `a` every attribute that is not face-down. If nothing is left but `t` and `e`, emit nothing.
 - **[R-08]** Step 8, a `remove`: for an unmaterialized entity, emit nothing. Otherwise emit it with the mapped id.
 - **[R-09]** Step 9, a `block`: keep a reference (`src`, `via`, and each element of `targets` and `options`) only when it names `"g"`, `"p1"`, `"p2"` or an entity known to V that is not, when the block applies, in a `hand` whose seat is not V, mapped. Remove `src` or `via` when it is dropped. Remove `targets` or `options` when no element is left. If any reference was dropped, also remove `text`, except the `text` of a `name` block, which is the chosen name ([W-54]). Emit the block, with its `id`, `kind`, `p`, `amount`, `parent` and `group` unchanged.
 - **[R-10]** Step 10, a `step`: emit it unchanged.
