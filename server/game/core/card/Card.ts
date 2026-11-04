@@ -1074,6 +1074,8 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
             this.initializeForCurrentZone(movedFromZone);
         }
 
+        this.game.swuPgnWriter?.onCardEnteredZone(this, this.zoneName);
+
         this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,
             originalZone: movedFromZone,

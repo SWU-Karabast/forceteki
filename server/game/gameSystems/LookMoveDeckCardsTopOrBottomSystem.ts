@@ -12,13 +12,14 @@ import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import { ViewCardInteractMode } from './ViewCardSystem';
 import type { FormatMessage } from '../core/chat/GameChat';
+import { SwuPgnEvents } from '../core/swupgn/SwuPgnEvents';
 
 export interface ILookMoveDeckCardsTopOrBottomProperties extends IPlayerTargetSystemProperties {
     amount: number;
 }
 
 /**
- * Emitted, as a plain payload rather than a GameEvent, when the top-or-bottom prompt shows more than one card:
+ * Emitted as the writer-only `SwuPgnEvents.DeckCardsViewed` when the top-or-bottom prompt shows more than one card:
  * that path shows the cards through a prompt, not a LookAtSystem event. Nothing in the game listens to it;
  * the SWU-PGN writer reads who saw which cards.
  */
@@ -55,7 +56,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
             const actualAmount = Math.min(amount, deckLength);
             const cards = player.drawDeck.slice(0, actualAmount);
             const viewed: ILookMoveDeckCardsViewed = { player: context.player, cards };
-            context.game.emit(EventName.OnLookMoveDeckCardsTopOrBottom, viewed);
+            context.game.emit(SwuPgnEvents.DeckCardsViewed, viewed);
 
             context.game.promptDisplayCardsWithButtons(context.player, {
                 activePromptTitle: 'Select card to move to the top or bottom of the deck',

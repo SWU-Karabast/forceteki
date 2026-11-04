@@ -53,6 +53,7 @@ const undoScenarioSpecsWithOwnHarness = [
     'Performance',
     'PhaseStartAndEnd',
     'SnapshotTypes',
+    'SwuPgnWriterUndo',
     'UndoConfirmation',
 ];
 

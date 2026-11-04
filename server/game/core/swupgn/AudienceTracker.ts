@@ -11,7 +11,8 @@ import type { LookAtEvent } from '../../gameSystems/LookAtSystem';
 import type { ILookMoveDeckCardsViewed } from '../../gameSystems/LookMoveDeckCardsTopOrBottomSystem';
 import type { SearchDeckEvent } from '../../gameSystems/SearchDeckSystem';
 import type { ViewCardEvent } from '../../gameSystems/ViewCardSystem';
-import { seatIn } from './projectCards';
+import { seatIn, swuPgnZoneOf } from './projectCards';
+import { SwuPgnEvents } from './SwuPgnEvents';
 import type { SwuPgnWriterState } from './SwuPgnWriterState';
 
 const publicZones: ReadonlySet<string> = new Set(ZONES.filter((zone) => zone.opponentSees === 'public').map((zone) => zone.name));
@@ -47,7 +48,7 @@ export class AudienceTracker {
         this.listen(EventName.OnDeckSearch, (event: SearchDeckEvent) =>
             this.show(event.viewedCards, [this.seatOf(event.searchProperties.choosingPlayer ?? event.player)])
         );
-        this.listen(EventName.OnLookMoveDeckCardsTopOrBottom, (event: ILookMoveDeckCardsViewed) => this.show(event.cards, [this.seatOf(event.player)]));
+        this.listen(SwuPgnEvents.DeckCardsViewed, (event: ILookMoveDeckCardsViewed) => this.show(event.cards, [this.seatOf(event.player)]));
         // the disclose event carries the cards revealed from hand; its RevealSystem also emits OnCardRevealed for them
         this.listen(EventName.OnAspectsDisclosed, (event: AspectsDisclosedEvent) => this.show(event.disclosedCards ?? [], 'all'));
     }
@@ -76,6 +77,26 @@ export class AudienceTracker {
         return seats.size === 2 ? 'all' : [...seats];
     }
 
+    /**
+     * A card entered an engine zone. Entering a public zone makes it known to all at that moment (SPEC §10.2),
+     * even when it leaves again before the next projection.
+     */
+    public onCardEnteredZone(card: Card, zoneName: ZoneName): void {
+        const zone = swuPgnZoneOf(zoneName);
+        if (zone !== null && publicZones.has(zone)) {
+            const key = this.state.cardKey(card);
+            if (this.state.audienceOf(key).length < 2) {
+                this.state.widen(key, 'all');
+            }
+        }
+    }
+
+    /** Forgets the looks in progress and the failures counted, for a writer that restarts its baseline. */
+    public reset(): void {
+        this.viewed.clear();
+        this._errors = 0;
+    }
+
     /** The deck cards someone saw since the last `endLooks()` that are still the same cards in a deck. */
     public viewedDeckCards(): readonly Card[] {
         const cards: Card[] = [];
@@ -100,7 +121,7 @@ export class AudienceTracker {
         this.viewed.clear();
     }
 
-    private listen<TEvent>(eventName: EventName, handler: (event: TEvent) => void): void {
+    private listen<TEvent>(eventName: string, handler: (event: TEvent) => void): void {
         this.game.on(eventName, (event: TEvent) => {
             try {
                 handler(event);
@@ -124,7 +145,8 @@ export class AudienceTracker {
     }
 
     private isStillViewed(card: Card, key: string): boolean {
-        return card.zoneName === ZoneName.Deck && this.state.cardKey(card) === key;
+        // a rollback can restore a state in which the key was never widened: such a card is no temporary entity
+        return card.zoneName === ZoneName.Deck && this.state.cardKey(card) === key && this.state.audienceOf(key).length > 0;
     }
 
     private seatOf(player: Player): Seat {

@@ -1,0 +1,241 @@
+import type { Board, SwuRecord } from '@swupgn/format';
+import { apply, cloneBoard, emptyBoard } from '@swupgn/format';
+import { logger } from '../../../logger';
+import type { Card } from '../card/Card';
+import type { ZoneName } from '../Constants';
+import { EventName, PhaseName } from '../Constants';
+import type { Game } from '../Game';
+import type { UiPrompt } from '../gameSteps/prompts/UiPrompt';
+import type { Player } from '../Player';
+import { AudienceTracker } from './AudienceTracker';
+import { BoardProjector } from './BoardProjector';
+import { diffBoards } from './diffBoards';
+import type { ISwuPgnWriterHooks } from './ISwuPgnWriterHooks';
+import { SwuPgnEvents } from './SwuPgnEvents';
+import { SwuPgnWriterState } from './SwuPgnWriterState';
+
+/**
+ * When the writer projects between decision points (W-37). `'flush'` is the default; `'decision'` (decision points
+ * only) and `'event'` (after every event window, the upper bound) exist for the CPU benchmark. `'off'` builds no writer.
+ */
+export type SwuPgnWriterMode = 'off' | 'decision' | 'flush' | 'event';
+
+/** Events after which a mid-resolution board must be written: something appeared, or a hidden card was seen (W-37). */
+const flushEvents: readonly EventName[] = [
+    EventName.OnCardsDrawn,
+    EventName.OnTokensCreated,
+    EventName.OnDeckShuffled,
+    EventName.OnDeckSearch,
+    EventName.OnLookAtCard,
+    EventName.OnCardRevealed
+];
+
+const maxLoggedErrors = 5;
+
+/**
+ * Writes the SWU-PGN records of a game: at each decision point (each pause of `Game.continue()`) and at the flush
+ * points it projects the board, appends `diff(previous, next)`, and at a decision point writes a `step`.
+ *
+ * Its undo-sensitive state lives in a `SwuPgnWriterState` game object, which a rollback restores; the records are then
+ * cut back to the length that state holds and the step being decided is written again (W-42).
+ */
+export class SwuPgnWriter implements ISwuPgnWriterHooks {
+    private readonly state: SwuPgnWriterState;
+    private readonly audiences: AudienceTracker;
+    private readonly projector: BoardProjector;
+    private readonly _records: SwuRecord[] = [];
+
+    /** The board the records describe, as of the last successful flush. */
+    private prev: Board = emptyBoard();
+    private _undos = 0;
+    private _errors = 0;
+
+    /** The prompt, and the players it was waiting for, at the last step: a decision point that finds both unchanged with nothing new is a no-op click. */
+    private lastPrompt: UiPrompt | null | undefined = undefined;
+    private lastPromptPlayers: readonly Player[] = [];
+
+    public constructor(
+        private readonly game: Game,
+        mode: Exclude<SwuPgnWriterMode, 'off'>
+    ) {
+        this.state = new SwuPgnWriterState(game);
+        this.audiences = new AudienceTracker(game, this.state);
+        // the tracker listens first, so a flush on the same event sees the cards it widened
+        this.audiences.register();
+        this.projector = new BoardProjector(game, this.state, this.audiences);
+        this.registerFlushPoints(mode);
+    }
+
+    public get records(): readonly SwuRecord[] {
+        return this._records;
+    }
+
+    /** Rollbacks taken so far (the `Undos` header tag). Not rollback state, on purpose. */
+    public get undos(): number {
+        return this._undos;
+    }
+
+    /** Failures caught so far, the writer's and its audience tracker's (the `WriterErrors` header tag). */
+    public get errors(): number {
+        return this._errors + this.audiences.errors;
+    }
+
+    /** The board the records describe: `apply(records)` gives it. */
+    public currentBoard(): Board {
+        const board = cloneBoard(this.prev);
+        board.seq = this.lastStepSeq();
+        return board;
+    }
+
+    /** Projects the board and appends the records that turn the previous board into it. Never throws. */
+    public flush(): void {
+        try {
+            this.resyncAfterRestore();
+            const next = this.projector.project();
+            const records = diffBoards(this.prev, next);
+            for (const record of records) {
+                this._records.push(record);
+            }
+            this.prev = next;
+            this.state.recordsLength = this._records.length;
+        } catch (error) {
+            // keep `prev`, so the next flush retries from the last board written
+            this.reportError('flush', error);
+        } finally {
+            this.endLooks();
+        }
+    }
+
+    /** The game paused for a decision (end of `Game.continue()`). */
+    public onDecisionPoint(): void {
+        this.decide(false);
+    }
+
+    /** `Game.continue()` is about to run the pipeline after input: the game is no longer at the last step. */
+    public onContinue(): void {
+        this.guard('continue', () => {
+            this.state.atStep = false;
+        });
+    }
+
+    /**
+     * The game was rolled back: the snapshot restored the writer state. Cut the records back to the length it holds,
+     * and decide the restored decision point again, which writes its step again when the snapshot was taken before it.
+     */
+    public onRolledBack(): void {
+        this.guard('rollback', () => {
+            this.resyncAfterRestore();
+            this._undos++;
+            this.lastPrompt = undefined;
+            this.lastPromptPlayers = [];
+        });
+        this.decide(true);
+    }
+
+    /** A card was put into a deck: it becomes a new entity if it comes back (W-22). */
+    public onCardEnteredDeck(card: Card): void {
+        this.guard('deck entry', () => this.state.bumpGeneration(card));
+    }
+
+    public onCardEnteredZone(card: Card, zoneName: ZoneName): void {
+        this.guard('zone entry', () => this.audiences.onCardEnteredZone(card, zoneName));
+    }
+
+    /**
+     * Starts the records again from the current board, as if the game began here: used by the test harness, which
+     * builds its board with no decision point between the changes. Writes step 0 unless the game is still in setup.
+     */
+    public restartBaseline(): void {
+        this._records.length = 0;
+        this.state.reset();
+        this.audiences.reset();
+        this.prev = emptyBoard();
+        this._undos = 0;
+        this._errors = 0;
+        this.lastPrompt = undefined;
+        this.lastPromptPlayers = [];
+        this.decide(false);
+    }
+
+    private decide(afterRollback: boolean): void {
+        this.flush();
+        this.guard('step', () => {
+            const phase = this.game.currentPhase;
+            if (this.state.inSetup && (phase === PhaseName.Setup || phase == null)) {
+                return; // W-39: step 0 comes after setup
+            }
+
+            const prompt = this.game.getCurrentOpenPrompt() ?? null;
+            const players = prompt ? this.game.getPlayers().filter((player) => prompt.activeCondition(player)) : [];
+            const last = this._records[this._records.length - 1];
+            const nothingNew = last !== undefined && last.t === 'step';
+            // after a rollback the prompt objects are new: the restored state says whether its snapshot was taken at a step
+            const samePrompt = afterRollback
+                ? this.state.atStep
+                : prompt === this.lastPrompt && players.length === this.lastPromptPlayers.length &&
+                  players.every((player, i) => player === this.lastPromptPlayers[i]);
+
+            if (!(nothingNew && samePrompt)) {
+                const seq = this.state.stepSeq;
+                this._records.push({ t: 'step', seq });
+                this.state.stepSeq = seq + 1;
+                this.state.recordsLength = this._records.length;
+            }
+
+            this.lastPrompt = prompt;
+            this.lastPromptPlayers = players;
+            this.state.atStep = true;
+            this.state.inSetup = false;
+        });
+    }
+
+    /** After a snapshot restore the state holds fewer records than were written: cut them back and rebuild the board. */
+    private resyncAfterRestore(): void {
+        if (this.state.recordsLength !== this._records.length) {
+            this._records.length = Math.min(this.state.recordsLength, this._records.length);
+            this.prev = apply(this._records);
+        }
+    }
+
+    private lastStepSeq(): number | null {
+        for (let i = this._records.length - 1; i >= 0; i--) {
+            const record = this._records[i];
+            if (record.t === 'step') {
+                return record.seq;
+            }
+        }
+        return null;
+    }
+
+    private endLooks(): void {
+        this.guard('end of looks', () => this.audiences.endLooks());
+    }
+
+    private registerFlushPoints(mode: Exclude<SwuPgnWriterMode, 'off'>): void {
+        if (mode === 'decision') {
+            return;
+        }
+        const names = mode === 'event' ? Object.values(EventName) : flushEvents;
+        for (const name of names) {
+            this.game.on(name + ':postResolve', () => this.flush());
+        }
+        // a plain writer-only emit, with no `:postResolve`
+        this.game.on(SwuPgnEvents.DeckCardsViewed, () => this.flush());
+    }
+
+    /** Runs `fn`, counting and logging (capped) any failure: the writer never breaks the game. */
+    private guard(what: string, fn: () => void): void {
+        try {
+            fn();
+        } catch (error) {
+            this.reportError(what, error);
+        }
+    }
+
+    private reportError(what: string, error: unknown): void {
+        this._errors++;
+        if (this._errors <= maxLoggedErrors) {
+            logger.error(`SWU-PGN: writer ${what} failed`, { error, lobbyId: this.game.lobbyId });
+        }
+    }
+}

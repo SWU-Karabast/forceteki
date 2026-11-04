@@ -82,7 +82,7 @@ describe('SwuPgnWriterState', function() {
             expect(state.hasEntity('b')).toBeFalse();
             expect(state.audienceOf('a')).toEqual([1]);
             expect(state.recordsLength).toBe(0);
-            expect(state.stepSeq).toBe(1);
+            expect(state.stepSeq).toBe(0);
             expect(state.entityIdFor('b')).toBe(2);
         });
     });

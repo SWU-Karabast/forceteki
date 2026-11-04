@@ -17,15 +17,33 @@ export class SwuPgnWriterState extends GameObjectBase {
     /** Number of records written so far. */
     @statePrimitive() public accessor recordsLength = 0;
 
-    /** The next seq to write. */
-    @statePrimitive() public accessor stepSeq = 1;
+    /** The next seq to write; the first step is 0 (W-38). */
+    @statePrimitive() public accessor stepSeq = 0;
 
     @statePrimitive() public accessor inSetup = true;
+
+    /**
+     * True from a written (or skipped no-op) step until the game next continues after input. A snapshot taken
+     * while it holds was taken at that step, so a rollback to it must not write the step again.
+     */
+    @statePrimitive() public accessor atStep = false;
 
     // Nothing references this object, so the snapshot system must be told to keep it.
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public override get alwaysTrackState(): boolean {
         return true;
+    }
+
+    /** Back to a new game's state: no ids, generations or audiences, nothing written. */
+    public reset(): void {
+        this.entityIds = new Map<string, number>();
+        this.generations = new Map<string, number>();
+        this.audiences = new Map<string, Seat[]>();
+        this.nextId = 1;
+        this.recordsLength = 0;
+        this.stepSeq = 0;
+        this.inSetup = true;
+        this.atStep = false;
     }
 
     /** Entity id for a key; assigned on first sight and never reused (W-21). */
@@ -68,6 +86,6 @@ export class SwuPgnWriterState extends GameObjectBase {
         for (const seat of seats === 'all' ? [1, 2] as Seat[] : seats) {
             widened.add(seat);
         }
-        this.audiences.set(key, [...widened].sort());
+        this.audiences.set(key, [...widened].sort((a, b) => a - b));
     }
 }

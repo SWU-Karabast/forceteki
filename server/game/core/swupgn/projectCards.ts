@@ -24,6 +24,11 @@ const zoneNameOf: Record<ZoneName, string | null> = {
     [ZoneName.SpaceArena]: 'space',
 };
 
+/** The SWU-PGN zone name of an engine zone, or null for a zone that holds no entities. */
+export function swuPgnZoneOf(zoneName: ZoneName): string | null {
+    return zoneNameOf[zoneName] ?? null;
+}
+
 export type SeatOf = (player: Player) => Seat | null;
 
 /** A card's `abilityUses`, or undefined when it has none. */

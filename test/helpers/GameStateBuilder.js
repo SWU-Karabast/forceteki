@@ -240,6 +240,10 @@ class GameStateBuilder {
 
         Util.refreshGameState(context.game);
 
+        // the board above was built with no decision point between its changes: record it as the starting board
+        // (step 0, or no step during setup), before the snapshots below so that a rollback to them keeps it
+        context.game.swuPgnWriter?.restartBaseline();
+
         if (options.phase !== 'setup') {
             // reset snapshot history after setup so that the history doesn't hold any snapshots of the game state before setup
             context.game.snapshotManager.clearAllSnapshots();

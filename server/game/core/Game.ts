@@ -29,7 +29,8 @@ import { AbilityResolver } from './gameSteps/AbilityResolver';
 import type { PreResolvedOptionalChoice } from './gameSteps/AbilityResolver';
 import { AbilityContext } from './ability/AbilityContext';
 import { Contract } from './utils/Contract';
-import type { ISwuPgnWriterHooks } from './swupgn/ISwuPgnWriterHooks';
+import { SwuPgnWriter } from './swupgn/SwuPgnWriter';
+import { SWUPGN_WRITER } from '../../env';
 import { cards } from '../cards/Index';
 
 import {
@@ -230,10 +231,9 @@ export class Game extends EventEmitter {
         return claimedCount < maxClaimableCounters;
     }
 
-    /** The SWU-PGN writer recording this game, or null when none is. */
-    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
-    public get swuPgnWriter(): ISwuPgnWriterHooks | null {
-        return null;
+    /** The SWU-PGN writer recording this game, or null when none is (`SWUPGN_WRITER=off`). */
+    public get swuPgnWriter(): SwuPgnWriter | null {
+        return this._swuPgnWriter;
     }
 
     public get roundNumber() {
@@ -377,6 +377,7 @@ export class Game extends EventEmitter {
     // #region ──── Instance Fields ────────────────────────────────────────────
 
     private readonly _snapshotManager: SnapshotManager;
+    private readonly _swuPgnWriter: SwuPgnWriter | null;
     private readonly _randomGenerator: IRandomness;
     private readonly _router: Lobby;
     private readonly _lkiRegistry: LkiRegistry;
@@ -465,6 +466,9 @@ export class Game extends EventEmitter {
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
         this.abilityHelper = getAbilityHelper(this);
+
+        // built before any snapshot is taken, so every rollback restores its state
+        this._swuPgnWriter = SWUPGN_WRITER === 'off' ? null : new SwuPgnWriter(this, SWUPGN_WRITER);
 
         this.playersAndSpectators = {};
         this.chatMessageOffsets = new Map();
@@ -1731,7 +1735,9 @@ export class Game extends EventEmitter {
     }
 
     public continue(): void {
+        this._swuPgnWriter?.onContinue();
         this.pipeline.continue(this);
+        this._swuPgnWriter?.onDecisionPoint();
     }
 
     /**
@@ -2184,6 +2190,8 @@ export class Game extends EventEmitter {
             if (rollbackResult.rolledPastGameEnd) {
                 this._router.handleUndoGameEnd();
             }
+
+            this._swuPgnWriter?.onRolledBack();
 
             const postUndoState = this.captureGameState('any');
 
