@@ -304,6 +304,7 @@ produce the same bytes for the same game.
 - **[W-07]** A writer SHOULD write the canonical form:
   - header tags in this order: `Game`, `Visibility`, `Steps`, then the remaining tags of [§5](#5-header-tags) in the order of [§5.4](#54-tag-order), then unknown tags in ascending order of their names (compared by code point);
   - sections in this order: `STORY`, `DECKS`, `CARDS`, `RECORDS`, `ANNOTATIONS`, then unknown sections in the order they were read;
+  - every JSON string written with every character as itself (non-ASCII included, `/` not escaped), except `"` as `\"`, `\` as `\\`, and U+0000 to U+001F as `\b`, `\t`, `\n`, `\f`, `\r` where JSON has a short escape and otherwise as `\u00XX` with lower-case hex digits; every number in its shortest form, with no exponent, sign `+` or fraction for an integer;
   - every JSON line with no whitespace outside strings, and with its keys in the order its schema lists its properties. For records, `t` comes first, and then:
     - `create`: `e`, `zone`, `owner`, `controller`, `parent`, `rel`, `card`, `to`, `a`
     - `set`: `e`, `zone`, `owner`, `controller`, `parent`, `rel`, `a`
