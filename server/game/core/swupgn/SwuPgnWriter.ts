@@ -1,5 +1,7 @@
-import type { Board, SwuRecord } from '@swupgn/format';
-import { apply, cloneBoard, emptyBoard } from '@swupgn/format';
+import type { Board, SwuPgnFile, SwuRecord } from '@swupgn/format';
+import { apply, cloneBoard, emptyBoard, serialize } from '@swupgn/format';
+import type { View } from '@swupgn/format/writer';
+import { redact } from '@swupgn/format/writer';
 import { logger } from '../../../logger';
 import type { Card } from '../card/Card';
 import type { ZoneName } from '../Constants';
@@ -11,6 +13,7 @@ import type { LookFilter } from './AudienceTracker';
 import { AudienceTracker } from './AudienceTracker';
 import { BoardProjector } from './BoardProjector';
 import { diffBoards } from './diffBoards';
+import { buildFullFile } from './FileAssembler';
 import type { ISwuPgnWriterHooks } from './ISwuPgnWriterHooks';
 import { SwuPgnEvents } from './SwuPgnEvents';
 import { SwuPgnWriterState } from './SwuPgnWriterState';
@@ -20,6 +23,9 @@ import { SwuPgnWriterState } from './SwuPgnWriterState';
  * only) and `'event'` (after every event window, the upper bound) exist for the CPU benchmark. `'off'` builds no writer.
  */
 export type SwuPgnWriterMode = 'off' | 'decision' | 'flush' | 'event';
+
+/** Which file `fileFor` writes: the `full` file, a seat's `perspective` file, or the `public` file. */
+export type SwuPgnFileView = 'full' | View;
 
 /** Every look ends: the look or search is over, or its deck was shuffled (W-24). */
 const allLooks: LookFilter = () => true;
@@ -106,6 +112,25 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         this.decide(false);
     }
 
+    /**
+     * The game ended (`Game.endGame`, after the winners are set): project `g.result` and write the step, even when the
+     * decision point looks unchanged, so the file ends on a step that holds the result (W-11, W-40).
+     */
+    public onGameEnded(): void {
+        this.decide(false, true);
+    }
+
+    /** The `full` file of the records written so far: header, DECKS, CARDS and RECORDS. */
+    public fullFile(): SwuPgnFile {
+        return buildFullFile(this.game, this);
+    }
+
+    /** One view of the file in canonical form: the `full` file, or what `redact` yields from it for a seat or the public (W-46). */
+    public fileFor(view: SwuPgnFileView): string {
+        const full = this.fullFile();
+        return serialize(view === 'full' ? full : redact(full, view));
+    }
+
     /** `Game.continue()` is about to run the pipeline after input: the game is no longer at the last step. */
     public onContinue(): void {
         this.guard('continue', () => {
@@ -176,7 +201,8 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         }
     }
 
-    private decide(afterRollback: boolean): void {
+    /** `force` writes the step even at an unchanged decision point (the game end). */
+    private decide(afterRollback: boolean, force = false): void {
         // a look shown at an earlier step ends now: it is visible at exactly the step of its prompt
         const seq = this.state.stepSeq;
         this.flushEnding((look) => look.seenAtSeq < seq);
@@ -196,7 +222,7 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
                 : prompt === this.lastPrompt && players.length === this.lastPromptPlayers.length &&
                   players.every((player, i) => player === this.lastPromptPlayers[i]);
 
-            if (!(nothingNew && samePrompt)) {
+            if (force || !(nothingNew && samePrompt)) {
                 const seq = this.state.stepSeq;
                 this._records.push({ t: 'step', seq });
                 this.state.stepSeq = seq + 1;
