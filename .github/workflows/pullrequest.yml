@@ -34,6 +34,7 @@ jobs:
           cache: "npm"
       - run: npm install
 
+      - run: npm run check -w @swupgn/format && npm test -w @swupgn/format
       - run: npm run validate-cards
       - run: npm run validate-specs
 

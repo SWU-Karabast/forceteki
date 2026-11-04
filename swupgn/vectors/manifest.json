@@ -1,0 +1,64 @@
+{
+    "vectors": [
+        {
+            "name": "tiny",
+            "profiles": ["full", "p1", "p2", "public"],
+            "covers": ["[R-01]", "[R-02]", "[R-03]", "[R-04]", "[R-05]", "[R-07]", "[R-08]", "[R-09]", "[R-10]", "[R-11]", "[R-14]", "[R-17]", "[A-04]", "[A-05]", "[A-06]", "[A-07]", "[A-08]", "[A-09]", "[A-10]", "[A-11]", "[W-22]", "[W-28]", "[W-43]", "[W-44]", "[W-66]"]
+        },
+        {
+            "name": "attachments",
+            "profiles": ["full", "p1", "p2", "public"],
+            "covers": ["[R-01]", "[R-02]", "[R-03]", "[R-05]", "[R-06]", "[R-07]", "[R-08]", "[R-09]", "[R-10]", "[R-11]", "[R-14]", "[A-07]", "[W-16]", "[W-25]", "[W-27]", "[W-28]", "[W-29]", "[W-30]", "[W-34]", "[W-35]"]
+        },
+        {
+            "name": "effects-and-uses",
+            "profiles": ["full", "p1", "p2", "public"],
+            "covers": ["[R-01]", "[R-02]", "[R-03]", "[R-07]", "[R-08]", "[R-09]", "[R-10]", "[R-11]", "[R-13]", "[R-14]", "[A-03]", "[A-12]", "[P-09]", "[P-11]", "[P-15]", "[W-31]", "[W-32]", "[W-33]", "[W-67]"]
+        },
+        {
+            "name": "known-in-hand",
+            "profiles": ["full", "p1", "p2", "public"],
+            "covers": ["[R-01]", "[R-02]", "[R-03]", "[R-04]", "[R-05]", "[R-07]", "[R-08]", "[R-09]", "[R-10]", "[R-11]", "[R-14]", "[R-17]", "[W-22]", "[W-24]", "[W-37]", "[W-43]", "[W-44]", "[W-63]"]
+        },
+        {
+            "name": "hand-loss-x",
+            "profiles": ["full", "p1", "p2", "public"],
+            "covers": ["[R-01]", "[R-02]", "[R-03]", "[R-05]", "[R-07]", "[R-08]", "[R-09]", "[R-10]", "[R-11]", "[R-14]", "[R-17]", "[W-43]", "[W-44]", "[W-63]", "[W-66]"]
+        },
+        {
+            "name": "hand-loss-u",
+            "profiles": ["full", "p1", "p2", "public"],
+            "covers": ["[R-01]", "[R-02]", "[R-03]", "[R-05]", "[R-07]", "[R-08]", "[R-09]", "[R-10]", "[R-11]", "[R-14]", "[R-17]", "[W-43]", "[W-44]", "[W-63]", "[W-66]"],
+            "identical": { "with": "hand-loss-x", "profiles": ["p2", "public"] }
+        }
+    ],
+    "negative": [
+        { "file": "negative/not-swupgn.swupgn", "code": "not-swupgn", "line": 1 },
+        { "file": "negative/unsupported-major.swupgn", "code": "unsupported-major", "line": 1 },
+        { "file": "negative/bad-header-line.swupgn", "code": "bad-header-line", "line": 4 },
+        { "file": "negative/bad-escape.swupgn", "code": "bad-escape", "line": 10 },
+        { "file": "negative/duplicate-tag.swupgn", "code": "duplicate-tag", "line": 19 },
+        { "file": "negative/missing-tag.swupgn", "code": "missing-tag", "line": 19 },
+        { "file": "negative/bad-count.swupgn", "code": "bad-count", "line": 14 },
+        { "file": "negative/duplicate-section.swupgn", "code": "duplicate-section", "line": 35 },
+        { "file": "negative/record-outside-section.swupgn", "code": "record-outside-section", "line": 19 },
+        { "file": "negative/bad-json.swupgn", "code": "bad-json", "line": 33 },
+        { "file": "negative/duplicate-key.swupgn", "code": "duplicate-key", "line": 33 },
+        { "file": "negative/reserved-key.swupgn", "code": "reserved-key", "line": 33 },
+        { "file": "negative/schema.swupgn", "code": "schema", "line": 33 },
+        { "file": "negative/not-object.swupgn", "code": "not-object", "line": 33 },
+        { "file": "negative/number-range.swupgn", "code": "number-range", "line": 33 },
+        { "file": "negative/card-index.swupgn", "code": "card-index", "line": 30 },
+        { "file": "negative/unknown-entity.swupgn", "code": "unknown-entity", "line": 32 },
+        { "file": "negative/duplicate-entity.swupgn", "code": "duplicate-entity", "line": 33 },
+        { "file": "negative/reused-id.swupgn", "code": "reused-id", "line": 34 },
+        { "file": "negative/parent-rel.swupgn", "code": "parent-rel", "line": 37 },
+        { "file": "negative/seq-order.swupgn", "code": "seq-order", "line": 35 },
+        { "file": "negative/bad-zone.swupgn", "code": "bad-zone", "line": 33 },
+        { "file": "negative/bad-relation.swupgn", "code": "bad-relation", "line": 37 },
+        { "file": "negative/profile.swupgn", "code": "profile", "line": 19 },
+        { "file": "negative/card-not-indexed.swupgn", "code": "card-not-indexed", "line": 43 },
+        { "file": "negative/result-mismatch.swupgn", "code": "result-mismatch", "line": 12 },
+        { "file": "negative/block-fields.swupgn", "code": "block-fields", "line": 35 }
+    ]
+}

@@ -29,3 +29,7 @@ CLAUDE.local.md
 
 # Git worktree checkouts
 .worktrees/
+
+# @swupgn/format build output
+swupgn/dist
+swupgn/build-test

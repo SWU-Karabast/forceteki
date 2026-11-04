@@ -1,0 +1,29 @@
+{
+  "seq": 18,
+  "entities": {
+    "g": {"a":{"round":1,"phase":"action","active":1,"initiative":1,"initiativeTaken":false}},
+    "p1": {"a":{"deckCount":19,"handCount":2,"credits":0,"force":false}},
+    "p2": {"a":{"deckCount":23,"handCount":2,"credits":0,"force":false}},
+    "1": {"zone":"base","owner":1,"card":"SOR#026","to":"all","a":{"kind":"base","damage":0,"hp":30}},
+    "2": {"zone":"ground","owner":1,"card":"JTL#001","to":"all","a":{"kind":"leader","exhausted":true,"damage":0,"power":4,"hp":6,"deployed":true,"epicActionUsed":true}},
+    "3": {"zone":"base","owner":2,"card":"SOR#029","to":"all","a":{"kind":"base","damage":0,"hp":28}},
+    "4": {"zone":"base","owner":2,"card":"SEC#008","to":"all","a":{"kind":"leader","exhausted":true,"deployed":false,"epicActionUsed":false}},
+    "5": {"zone":"ground","owner":2,"card":"SHD#142","to":"all","a":{"kind":"unit","exhausted":true,"damage":0,"power":10,"hp":9}},
+    "6": {"zone":"discard","owner":2,"card":"SOR#199","to":"all","a":{"kind":"event"}},
+    "7": {"zone":"discard","owner":2,"card":"SHD#120","to":"all","a":{"kind":"unit"}},
+    "8": {"zone":"hand","owner":2,"card":"SOR#130","to":[2],"a":{}},
+    "9": {"zone":"resource","owner":1,"to":[1],"a":{"exhausted":false}},
+    "10": {"zone":"resource","owner":1,"to":[1],"a":{"exhausted":false}},
+    "11": {"zone":"hand","owner":2,"card":"SOR#062","to":[2],"a":{}},
+    "12": {"zone":"resource","owner":2,"card":"SOR#064","to":[2],"a":{"exhausted":false}},
+    "13": {"zone":"ground","owner":1,"card":"SOR#095","to":"all","a":{"kind":"unit","exhausted":true,"damage":0,"power":3,"hp":3}},
+    "14": {"zone":"ground","owner":1,"controller":2,"parent":5,"rel":"attached","card":"SOR#120","to":"all","a":{"kind":"upgrade"}},
+    "15": {"zone":"ground","owner":1,"card":"SHD#040","to":"all","a":{"kind":"unit","exhausted":true,"damage":0,"power":1,"hp":2}},
+    "17": {"zone":"hand","owner":1,"card":"SOR#120","to":"all","a":{"kind":"upgrade"}},
+    "18": {"zone":"base","owner":1,"parent":1,"rel":"attached","card":"HMW#081","to":"all","a":{"kind":"upgrade"}},
+    "19": {"zone":"space","owner":1,"card":"JTL#212","to":"all","a":{"kind":"unit","exhausted":true,"damage":0,"power":1,"hp":3}},
+    "20": {"zone":"discard","owner":1,"card":"JTL#126","to":"all","a":{"kind":"event"}},
+    "21": {"zone":"discard","owner":1,"card":"HMW#102","to":"all","a":{"kind":"event"}},
+    "22": {"zone":"resource","owner":2,"card":"SOR#066","to":[2],"a":{"exhausted":true}}
+  }
+}

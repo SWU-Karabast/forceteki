@@ -1,0 +1,56 @@
+[
+    {
+        "name": "deck",
+        "meaning": "The draw pile (only temporary looked-at entities).",
+        "ownerSees": "count",
+        "opponentSees": "count"
+    },
+    {
+        "name": "hand",
+        "meaning": "A hand.",
+        "ownerSees": "known",
+        "opponentSees": "count"
+    },
+    {
+        "name": "resource",
+        "meaning": "The resource row.",
+        "ownerSees": "known",
+        "opponentSees": "anonymous"
+    },
+    {
+        "name": "ground",
+        "meaning": "The ground arena.",
+        "ownerSees": "known",
+        "opponentSees": "public"
+    },
+    {
+        "name": "space",
+        "meaning": "The space arena.",
+        "ownerSees": "known",
+        "opponentSees": "public"
+    },
+    {
+        "name": "discard",
+        "meaning": "The discard pile.",
+        "ownerSees": "known",
+        "opponentSees": "public"
+    },
+    {
+        "name": "base",
+        "meaning": "The base zone: base, undeployed leader, Fortify upgrades.",
+        "ownerSees": "known",
+        "opponentSees": "public"
+    },
+    {
+        "name": "captured",
+        "meaning": "Held under a unit or base (parent is the captor, rel is captured).",
+        "ownerSees": "known",
+        "opponentSees": "public"
+    },
+    {
+        "name": "setAside",
+        "meaning": "Outside the game.",
+        "ownerSees": "known",
+        "opponentSees": "public"
+    }
+]

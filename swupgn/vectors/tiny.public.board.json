@@ -1,0 +1,19 @@
+{
+  "seq": 8,
+  "entities": {
+    "g": {"a":{"round":1,"phase":"regroup","initiative":1,"initiativeTaken":false}},
+    "p1": {"a":{"deckCount":42,"handCount":1,"credits":0,"force":false}},
+    "p2": {"a":{"deckCount":43,"handCount":3,"credits":0,"force":false}},
+    "1": {"zone":"base","owner":1,"card":"SOR#026","to":"all","a":{"kind":"base","damage":0,"hp":30}},
+    "2": {"zone":"base","owner":1,"card":"SOR#005","to":"all","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}},
+    "3": {"zone":"base","owner":2,"card":"SOR#029","to":"all","a":{"kind":"base","damage":0,"hp":28}},
+    "4": {"zone":"base","owner":2,"card":"SOR#010","to":"all","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}},
+    "5": {"zone":"resource","owner":1,"to":[1],"a":{"exhausted":true}},
+    "6": {"zone":"resource","owner":2,"to":[2],"a":{"exhausted":true}},
+    "7": {"zone":"ground","owner":1,"card":"SOR#095","to":"all","a":{"kind":"unit","exhausted":true,"damage":0,"power":3,"hp":3}},
+    "9": {"zone":"discard","owner":1,"card":"SOR#103","to":"all","a":{"kind":"event"}},
+    "10": {"zone":"discard","owner":2,"card":"HMW#101","to":"all","a":{"kind":"event"}},
+    "12": {"zone":"discard","owner":1,"card":"HMW#218","to":"all","a":{"kind":"event"}},
+    "13": {"zone":"resource","owner":1,"to":[1],"a":{"exhausted":true}}
+  }
+}

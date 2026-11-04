@@ -1,0 +1,101 @@
+[Game "SWU-PGN/0.1"]
+[Visibility "public"]
+[Steps "decision"]
+[GameId "vector-known-in-hand"]
+[Date "2026-11-03T12:00:00Z"]
+[CardPool "SOR,TWI,HMW,TS26"]
+[Engine "examplewriter@0.1.0"]
+[P1Id "sha256:91f2049e8d2099e727801519bfa488ad5db4edcdde37ed9c8769abe0a10396f1"]
+[P2Id "sha256:23c0c1f42e0c03a276c7a337804026b4f5e2314cf50971e2747dd24100673030"]
+[P1 "Player 1"]
+[P2 "Player 2"]
+[Result "Incomplete"]
+[Reason "Game not finished"]
+[Rounds "1"]
+[P1Leader "SOR#005"]
+[P2Leader "SOR#010"]
+[P1Base "SOR#026"]
+[P2Base "SOR#029"]
+
+%%% DECKS
+{"p":1,"leaders":["SOR#005"],"base":"SOR#026","complete":false,"main":[["SOR#095"],["TS26#039"]]}
+{"p":2,"leaders":["SOR#010"],"base":"SOR#029","complete":false,"main":[["TWI#226"],["SOR#201"],["HMW#102"]]}
+
+%%% CARDS
+{"id":"HMW#102","name":"Dragon's Might"}
+{"id":"SOR#005","name":"Luke Skywalker, Faithful Friend"}
+{"id":"SOR#010","name":"Darth Vader, Dark Lord of the Sith"}
+{"id":"SOR#026","name":"Catacombs of Cadera"}
+{"id":"SOR#029","name":"Administrator's Tower"}
+{"id":"SOR#095","name":"Battlefield Marine"}
+{"id":"SOR#201","name":"Bodhi Rook, Imperial Defector"}
+{"id":"TS26#039","name":"Captain Vaughn, Search the Tunnels"}
+{"id":"TWI#226","name":"Waylay"}
+
+%%% RECORDS
+{"t":"set","e":"g","a":{"round":1,"phase":"action","active":1,"initiative":1,"initiativeTaken":false}}
+{"t":"set","e":"p1","a":{"deckCount":25,"handCount":3,"credits":0,"force":false}}
+{"t":"set","e":"p2","a":{"deckCount":24,"handCount":4,"credits":0,"force":false}}
+{"t":"create","e":1,"zone":"base","owner":1,"card":"SOR#026","a":{"kind":"base","damage":0,"hp":30}}
+{"t":"create","e":2,"zone":"base","owner":1,"card":"SOR#005","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
+{"t":"create","e":3,"zone":"base","owner":2,"card":"SOR#029","a":{"kind":"base","damage":0,"hp":28}}
+{"t":"create","e":4,"zone":"base","owner":2,"card":"SOR#010","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
+{"t":"create","e":5,"zone":"resource","owner":1,"to":[1],"a":{"exhausted":false}}
+{"t":"create","e":6,"zone":"resource","owner":1,"to":[1],"a":{"exhausted":false}}
+{"t":"create","e":7,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}}
+{"t":"create","e":8,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}}
+{"t":"step","seq":0}
+{"t":"create","e":9,"zone":"hand","owner":1,"card":"SOR#095","to":"all"}
+{"t":"set","e":9,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":3,"hp":3}}
+{"t":"block","id":1,"kind":"play","p":1,"src":9}
+{"t":"set","e":"p1","a":{"handCount":2}}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":1}
+{"t":"create","e":10,"zone":"hand","owner":2,"card":"TWI#226","to":"all"}
+{"t":"set","e":10,"zone":"discard","a":{"kind":"event"}}
+{"t":"block","id":2,"kind":"play","p":2,"src":10,"targets":[9]}
+{"t":"set","e":9,"zone":"hand","a":{"exhausted":null,"damage":null,"power":null,"hp":null}}
+{"t":"set","e":"p1","a":{"handCount":3}}
+{"t":"set","e":"p2","a":{"handCount":3}}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":2}
+{"t":"create","e":11,"zone":"hand","owner":1,"card":"TS26#039","to":"all"}
+{"t":"set","e":11,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":2,"hp":5}}
+{"t":"block","id":3,"kind":"play","p":1,"src":11}
+{"t":"set","e":"p1","a":{"handCount":2}}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":3}
+{"t":"create","e":12,"zone":"hand","owner":2,"card":"SOR#201","to":"all"}
+{"t":"set","e":12,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":3,"hp":3}}
+{"t":"block","id":4,"kind":"play","p":2,"src":12}
+{"t":"block","id":5,"kind":"trigger","p":2,"src":12,"parent":4}
+{"t":"block","id":6,"kind":"look","p":2,"src":12,"amount":2,"parent":5}
+{"t":"set","e":"p2","a":{"handCount":2}}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":4}
+{"t":"block","id":7,"kind":"pass","p":1}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":5}
+{"t":"create","e":13,"zone":"hand","owner":2,"card":"HMW#102","to":"all"}
+{"t":"set","e":13,"zone":"discard","a":{"kind":"event"}}
+{"t":"block","id":8,"kind":"play","p":2,"src":13,"targets":[11]}
+{"t":"block","id":9,"kind":"defeat","p":2,"src":13,"targets":[11],"parent":8}
+{"t":"set","e":11,"zone":"discard","a":{"exhausted":null,"damage":null,"power":null,"hp":null}}
+{"t":"block","id":10,"kind":"trigger","p":1,"src":11,"parent":8}
+{"t":"block","id":11,"kind":"search","p":1,"src":11,"amount":3,"parent":10}
+{"t":"block","id":12,"kind":"draw","p":1,"src":11,"amount":1,"parent":10}
+{"t":"remove","e":9}
+{"t":"set","e":"p2","a":{"handCount":1}}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":6}
+{"t":"block","id":13,"kind":"pass","p":1}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":7}
+{"t":"block","id":14,"kind":"pass","p":2}
+{"t":"block","id":15,"kind":"regroup"}
+{"t":"block","id":16,"kind":"draw","p":1,"amount":2,"parent":15,"group":1}
+{"t":"block","id":17,"kind":"draw","p":2,"amount":2,"parent":15,"group":1}
+{"t":"set","e":"p1","a":{"deckCount":23,"handCount":4}}
+{"t":"set","e":"p2","a":{"deckCount":22,"handCount":3}}
+{"t":"set","e":"g","a":{"phase":"regroup","active":null}}
+{"t":"step","seq":8}
