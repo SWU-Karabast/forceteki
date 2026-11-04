@@ -1,6 +1,6 @@
 import type { SwuPgnFile } from '../generated/types.js';
 import type { FileLines } from '../parse.js';
-import { isFaceDownAttribute } from '../registry.js';
+import { ATTRIBUTES, isFaceDownAttribute } from '../registry.js';
 import type { Collector } from './issues.js';
 
 function isObject(v: unknown): v is Record<string, unknown> {
@@ -44,6 +44,8 @@ export function checkProfile(file: SwuPgnFile, lines: FileLines, out: Collector)
 
     // The cards the viewer may see: those a create or reveal gives with an audience that holds it.
     const shown = new Set<string>();
+    const shownEntities = new Set<string>();
+    const copied: [string, string][] = [];   // [entity, copyOf] pairs, in file order
     file.records.forEach((r, i) => {
         const rec = r as unknown;
         if (!isObject(rec) || (rec.t !== 'create' && rec.t !== 'reveal') || typeof rec.card !== 'string') {
@@ -52,8 +54,17 @@ export function checkProfile(file: SwuPgnFile, lines: FileLines, out: Collector)
         const to: unknown = rec.to === undefined && rec.t === 'create' ? 'all' : rec.to;
         if (holds(to, seat)) {
             shown.add(rec.card);
+            shownEntities.add(String(rec.e));
         } else {
             out.add('profile', lines.records[i], `a ${rec.t} of a card that ${seat === null ? 'is not shown to everyone' : `seat ${seat} does not know`} has no place in a ${what} file`);
+        }
+    });
+
+    // A copyOf on an entity the viewer knows names a card the file already shows through that entity ([W-51]).
+    file.records.forEach((r) => {
+        const rec = r as unknown;
+        if (isObject(rec) && (rec.t === 'create' || rec.t === 'set') && isObject(rec.a) && typeof rec.a.copyOf === 'string' && shownEntities.has(String(rec.e))) {
+            copied.push([String(rec.e), rec.a.copyOf]);
         }
     });
 
@@ -92,15 +103,19 @@ export function checkProfile(file: SwuPgnFile, lines: FileLines, out: Collector)
     });
 
     // CARDS: only ids the header, DECKS or a shown create or reveal justify.
+    const viaCopy = new Set(copied.map(([, id]) => id));
     file.cards.forEach((c, i) => {
         const card = c as unknown;
-        if (isObject(card) && typeof card.id === 'string' && !justified.has(card.id) && !shown.has(card.id)) {
+        if (isObject(card) && typeof card.id === 'string' && !justified.has(card.id) && !shown.has(card.id) && !viaCopy.has(card.id)) {
             out.add('profile', lines.cards[i], `CARDS line ${card.id} names a card the ${what} file does not reveal`);
         }
     });
 
     // Entities with no card in the file carry only face-down attributes (effects excepted, [W-31]).
     const anonymous = new Set<string>();
+    const effects = new Set<string>();
+    const effectAttrs = new Set(ATTRIBUTES.filter((a) => a.on.includes('effect')).map((a) => a.name));
+    const effectOnly = (a: unknown): boolean => !isObject(a) || Object.keys(a).every((k) => k === 'kind' || effectAttrs.has(k));
     const faceDownOnly = (a: unknown): boolean => !isObject(a) || Object.keys(a).every((k) => isFaceDownAttribute(k));
     file.records.forEach((r, i) => {
         const rec = r as unknown;
@@ -109,7 +124,14 @@ export function checkProfile(file: SwuPgnFile, lines: FileLines, out: Collector)
         }
         const key = String(rec.e);
         const attrs = rec.a;
-        if (rec.t === 'create' && rec.card === undefined && !(isObject(attrs) && attrs.kind === 'effect')) {
+        if (rec.t === 'create' && rec.card === undefined && isObject(attrs) && attrs.kind === 'effect') {
+            effects.add(key);
+            if (!effectOnly(attrs)) {
+                out.add('profile', lines.records[i], `an effect in a ${what} file carries only attributes registered for effects`);
+            }
+        } else if (rec.t === 'set' && effects.has(key) && !effectOnly(attrs)) {
+            out.add('profile', lines.records[i], `an effect in a ${what} file carries only attributes registered for effects`);
+        } else if (rec.t === 'create' && rec.card === undefined) {
             anonymous.add(key);
             if (!faceDownOnly(attrs)) {
                 out.add('profile', lines.records[i], `an entity with no card in a ${what} file carries only face-down attributes`);
@@ -120,6 +142,7 @@ export function checkProfile(file: SwuPgnFile, lines: FileLines, out: Collector)
             out.add('profile', lines.records[i], `an entity with no card in a ${what} file carries only face-down attributes`);
         } else if (rec.t === 'remove') {
             anonymous.delete(key);
+            effects.delete(key);
         }
     });
 }

@@ -885,8 +885,9 @@ In both profiles, three further rules close leaks that the rules above leave ope
 of `"all"`):
 
 - a `DECKS` line that is not complete lists in `main` only shown card ids (its `leaders` and `base` are public from setup and are not restricted);
-- a `CARDS` line's `id` is the id of a header leader or base, a card id of a `DECKS` line of the profile's own complete deck, a `leaders` or `base` of any `DECKS` line, or a shown card id. It is not justified by an `x_` record, a record of an unknown type, a `set`, or the text of an annotation;
-- a `create` with no `card`, unless it is an effect (`a.kind` is `effect`, [W-31]), carries only attributes marked face-down in the attribute registry ([§22.1](#221-attributes)); and a `set` of such an entity, until a `reveal` gives it a `card`, writes only those attributes.
+- a `CARDS` line's `id` is the id of a header leader or base, a card id of a `DECKS` line of the profile's own complete deck, a `leaders` or `base` of any `DECKS` line, a shown card id, or the `copyOf` attribute of an entity whose card is shown ([W-51]). It is not justified by an `x_` record, a record of an unknown type, a `set`, or the text of an annotation;
+- a `create` or `set` of an effect (`a.kind` is `effect`, [W-31]) carries only `kind` and attributes the attribute registry ([§22.1](#221-attributes)) lists for effects;
+- a `create` with no `card` that is not an effect carries only attributes marked face-down in the attribute registry ([§22.1](#221-attributes)); and a `set` of such an entity, until a `reveal` gives it a `card`, writes only those attributes.
 
 A file whose `Visibility` is `full` has no profile rules beyond the rest of this document.
 

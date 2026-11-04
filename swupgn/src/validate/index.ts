@@ -105,13 +105,13 @@ export function validate(text: string, options: ValidateOptions = {}): Validatio
             }
             seats.set(deck.p, i);
         });
-        if (!lines.banners.has('DECKS')) {
-            out.add('schema', lines.headerEnd, 'the file has no DECKS section');
-        } else if (!(seats.has(1) && seats.has(2))) {
-            out.add('schema', lines.banners.get('DECKS'), 'DECKS needs one line for each seat');
+        const noDecks = !lines.banners.has('DECKS');
+        const noRecords = !lines.banners.has('RECORDS');
+        if (noDecks || noRecords) {
+            out.add('schema', lines.headerEnd, `the file has no ${[noDecks ? 'DECKS' : '', noRecords ? 'RECORDS' : ''].filter(Boolean).join(' section and no ')} section`);
         }
-        if (!lines.banners.has('RECORDS')) {
-            out.add('schema', lines.headerEnd, 'the file has no RECORDS section');
+        if (!noDecks && !(seats.has(1) && seats.has(2))) {
+            out.add('schema', lines.banners.get('DECKS'), 'DECKS needs one line for each seat');
         }
         file.cards.forEach((c, i) => {
             const line = lines.cards[i];

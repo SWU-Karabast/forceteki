@@ -365,4 +365,32 @@ describe('validate', function () {
         }
         expect(validate(file(recs), { maxIssues: 0 }).issues.length).toBe(2);
     });
+
+    it('profile: copyOf on a shown entity is justified by its CARDS line; on an effect it is a leak', function () {
+        const decks = `
+%%% DECKS
+{"p":1,"leaders":["SOR#005"],"base":"SOR#026","complete":true,"main":[["SOR#095",3]]}
+{"p":2,"leaders":["SOR#010"],"base":"SOR#029","complete":false,"main":[]}
+
+%%% CARDS
+{"id":"SOR#005","name":"a"}
+{"id":"SOR#095","name":"b"}
+{"id":"SOR#200","name":"c"}
+
+%%% RECORDS
+`;
+        const unit = '{"t":"create","e":1,"zone":"ground","owner":2,"card":"SOR#095","to":"all","a":{"copyOf":"SOR#200"}}\n';
+        const ok = `${HEADER('', 'perspective:1')}${decks}${unit}`;
+        expect(validate(ok.replace('"card":"SOR#095","to":"all"', '"card":"SOR#095","to":"all"')).issues).toEqual([]);
+        const effect = `${ok}{"t":"create","e":2,"owner":2,"to":"all","a":{"kind":"effect","duration":"phase","copyOf":"SOR#200","cost":2}}\n`;
+        expect(validate(effect).issues.map((i) => [i.code, i.line])).toEqual([['profile', at(effect, '"e":2')]]);
+        const later = `${effect.replace(',"copyOf":"SOR#200","cost":2', '')}{"t":"set","e":2,"a":{"cost":1}}\n`;
+        expect(validate(later).issues.map((i) => [i.code, i.line])).toEqual([['profile', at(later, '"cost":1')]]);
+    });
+
+    it('a file with neither DECKS nor RECORDS lists both', function () {
+        const report = validate(HEADER());
+        expect(report.issues.length).toBe(1);
+        expect(report.issues[0].message).toMatch(/DECKS.*RECORDS/);
+    });
 });
