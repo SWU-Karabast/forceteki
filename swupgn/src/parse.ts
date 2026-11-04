@@ -53,6 +53,9 @@ interface ScanResult {
     reservedKey?: string;
 }
 
+/** The 1-based line each parsed record came from, for `apply`'s error reports. Not part of the parsed value. */
+export const RECORD_LINES = new WeakMap<object, number>();
+
 /**
  * One pass over a JSON line before `JSON.parse` sees it. It stops at `maxDepth`, finds the first
  * key an object repeats ([P-10]), and finds the first reserved key ([P-24]).
@@ -301,7 +304,12 @@ export function parse(text: string, limits: ParseLimits = {}): SwuPgnFile {
         switch (section) {
             case 'DECKS': decks.push(rec as DeckLine); break;
             case 'CARDS': cards.push(rec as CardLine); break;
-            case 'RECORDS': records.push(rec as SwuRecord); break;
+            case 'RECORDS':
+                records.push(rec as SwuRecord);
+                if (typeof rec === 'object' && rec !== null) {
+                    RECORD_LINES.set(rec, i + 1);
+                }
+                break;
             default: annotations.push(rec as Annotation); break;
         }
     }

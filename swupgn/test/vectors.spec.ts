@@ -2,6 +2,8 @@ import Ajv2020 from 'ajv/dist/2020';
 import type { ValidateFunction } from 'ajv';
 import * as fs from 'fs';
 import * as path from 'path';
+import { parse } from '../src/parse';
+import { apply } from '../src/apply';
 import { ATTRIBUTES, BLOCK_KINDS, BLOCK_REFERENCE_FIELDS, ERROR_CODES, isFaceDownAttribute } from '../src/registry';
 
 /**
@@ -346,7 +348,10 @@ describe('conformance vectors', function () {
                     });
 
                     it('applies to its board.json', function () {
-                        pending('Task 6: the SDK applier');
+                        const file = parse(fs.readFileSync(path.join(vectorsDir, `${vector.name}.${profile}.swupgn`), 'utf8'));
+                        const want = fs.readFileSync(path.join(vectorsDir, `${vector.name}.${profile}.board.json`), 'utf8');
+                        const got = apply(file.records);
+                        expect(got).toEqual(JSON.parse(want));
                     });
 
                     if (profile !== 'full') {
