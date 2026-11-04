@@ -136,7 +136,10 @@ function projectCard(card: Card, zone: string, state: SwuPgnWriterState, seatOf:
 function parentOf(card: Card): { card: Card; rel: 'attached' | 'pilot' | 'captured' } | null {
     const zone = card.zone;
     if (zone.name === ZoneName.Capture) {
-        return { card: zone.captor, rel: 'captured' };
+        // a captor that has left play rescues its captives (CR: immediately), but the engine does so in a later event
+        // window: until then the captive is held by no card, since a parent must be in an arena or the base zone (W-28)
+        const captor = zone.captor;
+        return EnumHelpers.isArena(captor.zoneName) || captor.zoneName === ZoneName.Base ? { card: captor, rel: 'captured' } : null;
     }
     if (card.canBeInPlay() && card.isInPlay() && card.isAttached()) {
         // a pilot is a unit or leader attached to a vehicle (NonLeaderUnitUpgrade, LeaderUpgrade)

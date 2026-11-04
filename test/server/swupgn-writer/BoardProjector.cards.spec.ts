@@ -1,5 +1,7 @@
 import type { Board, Entity } from '@swupgn/format';
+import { validate } from '@swupgn/format/validate';
 import type { Card } from '../../../server/game/core/card/Card';
+import { EventName, ZoneName } from '../../../server/game/core/Constants';
 import { cardIdOf } from '../../../server/game/core/swupgn/SwuPgnCardIds';
 import { AudienceTracker } from '../../../server/game/core/swupgn/AudienceTracker';
 import { BoardProjector } from '../../../server/game/core/swupgn/BoardProjector';
@@ -300,6 +302,53 @@ describe('BoardProjector card and token entities', function() {
                 expect(captured.rel).toBe('captured');
                 expect(captured.owner).toBe(2);
                 expect('controller' in captured).toBeFalse();
+            });
+        });
+
+        describe('a captive whose captor has left play', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'wampa', capturedUnits: ['battlefield-marine'] }]
+                    },
+                    player2: {
+                        hand: ['vanquish']
+                    }
+                });
+            });
+
+            it('is held by no card until it is rescued, so no flush in between breaks W-28', function () {
+                const { context } = contextRef;
+                const writer = context.game.swuPgnWriter;
+                const pending: Entity[] = [];
+                // the engine rescues in a later event window than the captor's defeat: look at every board in between
+                for (const name of Object.values(EventName)) {
+                    context.game.on(name + ':postResolve', () => {
+                        if (context.wampa.zoneName === ZoneName.Discard && context.battlefieldMarine.zoneName === ZoneName.Capture) {
+                            pending.push(entityOf(context.battlefieldMarine));
+                            writer?.flush();
+                        }
+                    });
+                }
+
+                context.player1.passAction();
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.wampa);
+
+                expect(pending.length).withContext('a board between the defeat and the rescue')
+                    .toBeGreaterThan(0);
+                for (const captive of pending) {
+                    expect(captive.zone).toBe('captured');
+                    expect('parent' in captive).toBeFalse();
+                    expect('rel' in captive).toBeFalse();
+                }
+                expect(context.battlefieldMarine).toBeInZone('groundArena', context.player2);
+                if (writer) {
+                    const report = validate(writer.fileFor('full'));
+                    expect(report.level).withContext(JSON.stringify(report.issues))
+                        .toBe('valid');
+                }
             });
         });
     });
