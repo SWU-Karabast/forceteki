@@ -65,6 +65,9 @@ export interface IViewCardWithPerCardButtonsProperties extends IViewCardProperti
 
 export type IViewCardProperties = IViewCardOnlyProperties | IViewAndSelectCardsProperties | IViewCardWithPerCardButtonsProperties;
 
+/** The event of a look or a reveal: the cards shown. */
+export type ViewCardEvent = GameEvent & { cards: Card[] };
+
 export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IViewCardProperties = IViewCardProperties> extends CardTargetSystem<TContext, TProperties> {
     public override eventHandler(event): void {
         if (event.promptHandler) {

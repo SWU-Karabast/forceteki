@@ -4,7 +4,8 @@ import type { Player } from '../Player';
 import { PhaseName } from '../Constants';
 import type { AudienceTracker } from './AudienceTracker';
 import type { SwuPgnWriterState } from './SwuPgnWriterState';
-import { projectCards, projectedCardId, seatIn } from './projectCards';
+import type { ICardAudiences } from './projectCards';
+import { cardAudience, projectCards, projectedCardId, seatIn } from './projectCards';
 import { abilityUsesOf, projectEffects } from './projectEffects';
 
 /**
@@ -15,7 +16,7 @@ export class BoardProjector {
     public constructor(
         private readonly game: Game,
         private readonly state: SwuPgnWriterState,
-        private readonly audiences: AudienceTracker | null
+        private readonly audiences: AudienceTracker
     ) {}
 
     public project(): Board {
@@ -24,8 +25,18 @@ export class BoardProjector {
             p1: this.projectSeat(1),
             p2: this.projectSeat(2)
         };
-        projectCards(this.game.allCards, this.state, (player) => this.seatOf(player), (card) => abilityUsesOf(card, this.game), entities);
-        Object.assign(entities, projectEffects(this.game, this.state, (card) => projectedCardId(card, this.state, entities)));
+        const seatOf = (player: Player) => this.seatOf(player);
+        const audiences: ICardAudiences = {
+            audienceFor: (card, zone) => this.audiences.audienceFor(card, zone),
+            viewedDeckCards: new Set(this.audiences.viewedDeckCards())
+        };
+        projectCards(this.game.allCards, this.state, seatOf, (card) => abilityUsesOf(card, this.game), audiences, entities);
+        Object.assign(entities, projectEffects(
+            this.game,
+            this.state,
+            (card) => projectedCardId(card, this.state, entities),
+            (card) => cardAudience(card, seatOf, audiences)
+        ));
         return { seq: null, entities };
     }
 

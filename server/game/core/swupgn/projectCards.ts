@@ -1,5 +1,4 @@
 import type { Attrs, AttrValue, Audience, Entity, Seat } from '@swupgn/format';
-import { ZONES } from '@swupgn/format';
 import type { Card } from '../card/Card';
 import type { Game } from '../Game';
 import type { Player } from '../Player';
@@ -16,7 +15,7 @@ import type { SwuPgnWriterState } from './SwuPgnWriterState';
 const zoneNameOf: Record<ZoneName, string | null> = {
     [ZoneName.Base]: 'base',
     [ZoneName.Capture]: 'captured',
-    [ZoneName.Deck]: null, // Task 5 adds temporary deck entities
+    [ZoneName.Deck]: 'deck', // only a temporary entity: a deck card someone is looking at (W-24)
     [ZoneName.Discard]: 'discard',
     [ZoneName.GroundArena]: 'ground',
     [ZoneName.Hand]: 'hand',
@@ -25,12 +24,16 @@ const zoneNameOf: Record<ZoneName, string | null> = {
     [ZoneName.SpaceArena]: 'space',
 };
 
-const publicZones: ReadonlySet<string> = new Set(ZONES.filter((zone) => zone.opponentSees === 'public').map((zone) => zone.name));
-
 export type SeatOf = (player: Player) => Seat | null;
 
 /** A card's `abilityUses`, or undefined when it has none. */
 export type AbilityUsesOf = (card: Card) => AttrValue[] | undefined;
+
+/** Who knows each card on this board, and which deck cards are temporary entities (from the AudienceTracker). */
+export interface ICardAudiences {
+    audienceFor(card: Card, zone: string): Audience;
+    readonly viewedDeckCards: ReadonlySet<Card>;
+}
 
 /** The player's seat: the first player is seat 1, the second seat 2; null for anyone else. */
 export function seatIn(game: Game, player: Player | null): Seat | null {
@@ -39,11 +42,18 @@ export function seatIn(game: Game, player: Player | null): Seat | null {
 }
 
 /** Adds one entity per tracked card and token to `entities`, keyed by entity id. */
-export function projectCards(cards: readonly Card[], state: SwuPgnWriterState, seatOf: SeatOf, abilityUsesOf: AbilityUsesOf, entities: Record<string, Entity>): void {
+export function projectCards(
+    cards: readonly Card[],
+    state: SwuPgnWriterState,
+    seatOf: SeatOf,
+    abilityUsesOf: AbilityUsesOf,
+    audiences: ICardAudiences,
+    entities: Record<string, Entity>
+): void {
     for (const card of cards) {
-        const zone = zoneOfEntity(card);
+        const zone = zoneOfEntity(card, audiences);
         if (zone !== null) {
-            const entity = projectCard(card, zone, state, seatOf);
+            const entity = projectCard(card, zone, state, seatOf, audiences);
             const uses = abilityUsesOf(card);
             if (uses !== undefined) {
                 entity.a.abilityUses = uses;
@@ -64,10 +74,9 @@ export function projectedCardId(card: Card, state: SwuPgnWriterState, entities: 
 }
 
 /** The audience of the card's identity: its entity's `to`, or its owner alone for a card with no entity (in a deck). */
-export function cardAudience(card: Card, seatOf: SeatOf): Audience {
-    const zone = zoneOfEntity(card);
-    const owner = seat(card.owner, seatOf);
-    return zone === null ? [owner] : audienceOf(zone, owner);
+export function cardAudience(card: Card, seatOf: SeatOf, audiences: ICardAudiences): Audience {
+    const zone = zoneOfEntity(card, audiences);
+    return zone === null ? [seat(card.owner, seatOf)] : audiences.audienceFor(card, zone);
 }
 
 function idOf(card: Card, state: SwuPgnWriterState): number {
@@ -75,7 +84,7 @@ function idOf(card: Card, state: SwuPgnWriterState): number {
 }
 
 /** The entity's zone, or null when the card has no entity. */
-function zoneOfEntity(card: Card): string | null {
+function zoneOfEntity(card: Card, audiences: ICardAudiences): string | null {
     if (card.zone == null) {
         return null; // a token removed from the game
     }
@@ -84,6 +93,9 @@ function zoneOfEntity(card: Card): string | null {
     }
     if (card.isToken() && card.zoneName === ZoneName.OutsideTheGame) {
         return null; // a token that left play (W-25)
+    }
+    if (card.zoneName === ZoneName.Deck && !audiences.viewedDeckCards.has(card)) {
+        return null; // a deck card nobody is looking at is only the seat's deckCount
     }
     return zoneNameOf[card.zoneName];
 }
@@ -94,7 +106,7 @@ function seat(player: Player, seatOf: SeatOf): Seat {
     return result;
 }
 
-function projectCard(card: Card, zone: string, state: SwuPgnWriterState, seatOf: SeatOf): Entity {
+function projectCard(card: Card, zone: string, state: SwuPgnWriterState, seatOf: SeatOf, audiences: ICardAudiences): Entity {
     const owner = seat(card.owner, seatOf);
     const entity: Entity = { zone, owner, a: {} };
 
@@ -111,14 +123,9 @@ function projectCard(card: Card, zone: string, state: SwuPgnWriterState, seatOf:
     }
 
     entity.card = cardIdOf(card);
-    entity.to = audienceOf(zone, owner);
+    entity.to = audiences.audienceFor(card, zone);
     entity.a = attributesOf(card);
     return entity;
-}
-
-/** Until Task 5 tracks audiences: everyone in a public zone, the owner elsewhere. */
-function audienceOf(zone: string, owner: Seat): Audience {
-    return publicZones.has(zone) ? 'all' : [owner];
 }
 
 function parentOf(card: Card): { card: Card; rel: 'attached' | 'pilot' | 'captured' } | null {

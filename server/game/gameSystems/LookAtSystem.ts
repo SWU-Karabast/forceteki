@@ -1,13 +1,16 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, ZoneName } from '../core/Constants';
 import type { Player } from '../core/Player';
-import type { IViewCardProperties } from './ViewCardSystem';
+import type { IViewCardProperties, ViewCardEvent } from './ViewCardSystem';
 import { ViewCardInteractMode, ViewCardSystem } from './ViewCardSystem';
 import { Helpers } from '../core/utils/Helpers';
 import { ChatHelpers } from '../core/chat/ChatHelpers';
 import type { FormatMessage } from '../core/chat/GameChat';
 
 export type ILookAtProperties = IViewCardProperties;
+
+/** A look event names who looks, since the cards' controller and the context's player may both be someone else. */
+export type LookAtEvent = ViewCardEvent & { viewer: Player };
 
 export class LookAtSystem<TContext extends AbilityContext = AbilityContext> extends ViewCardSystem<TContext, ILookAtProperties> {
     public override readonly name = 'lookAt';
@@ -46,6 +49,12 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
 
     protected override getPromptedPlayer(properties: ILookAtProperties, context: TContext): Player {
         return properties.player || context.player;
+    }
+
+    public override addPropertiesToEvent(event, cards, context: TContext, additionalProperties): void {
+        super.addPropertiesToEvent(event, cards, context, additionalProperties);
+        const lookEvent: LookAtEvent = event;
+        lookEvent.viewer = this.getPromptedPlayer(this.generatePropertiesFromContext(context, additionalProperties), context);
     }
 
     public override checkEventCondition(): boolean {

@@ -7,7 +7,7 @@ import type { Game } from '../Game';
 import type { OngoingEffect } from '../ongoingEffect/OngoingEffect';
 import type { Player } from '../Player';
 import { Contract } from '../utils/Contract';
-import { cardAudience, seatIn } from './projectCards';
+import { seatIn } from './projectCards';
 import type { SwuPgnWriterState } from './SwuPgnWriterState';
 
 /** The registry's `duration` for each engine duration; `Persistent` reaches here only for a lasting effect. */
@@ -23,18 +23,21 @@ const durationNameOf: Record<Duration, string> = {
 /** The entity id of a card that has an entity on this board, undefined otherwise. */
 export type CardEntityId = (card: Card) => number | undefined;
 
+/** The tracked audience of a card's identity now. */
+export type CardAudienceOf = (card: Card) => Audience;
+
 /**
  * One entity per lasting or delayed effect while it lasts (W-31), keyed `effect:${uuid}`.
  * Constant abilities' effects are card state, not entities. A target with no entity is left out of `targets`.
  */
-export function projectEffects(game: Game, state: SwuPgnWriterState, cardEntityId: CardEntityId): Record<string, Entity> {
+export function projectEffects(game: Game, state: SwuPgnWriterState, cardEntityId: CardEntityId, cardAudienceOf: CardAudienceOf): Record<string, Entity> {
     const entities: Record<string, Entity> = {};
     for (const effect of game.ongoingEffectEngine.effects) {
         if (isRecorded(effect) && effect.source.isCard()) {
             const key = `effect:${effect.uuid}`;
             if (!state.hasEntity(key)) {
                 // the audience is the source's at creation (W-31), frozen in state on first sight
-                state.widen(key, cardAudience(effect.source, (player) => seatIn(game, player)));
+                state.widen(key, cardAudienceOf(effect.source));
             }
             const id = state.entityIdFor(key);
             entities[String(id)] = projectEffect(effect, effect.source, key, game, state, cardEntityId);

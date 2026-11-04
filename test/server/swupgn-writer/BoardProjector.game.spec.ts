@@ -1,3 +1,4 @@
+import { AudienceTracker } from '../../../server/game/core/swupgn/AudienceTracker';
 import { BoardProjector } from '../../../server/game/core/swupgn/BoardProjector';
 import { SwuPgnWriterState } from '../../../server/game/core/swupgn/SwuPgnWriterState';
 
@@ -5,7 +6,8 @@ describe('BoardProjector game and seat entities', function() {
     integration(function(contextRef) {
         function project() {
             const { game } = contextRef.context;
-            return new BoardProjector(game, new SwuPgnWriterState(game), null).project();
+            const state = new SwuPgnWriterState(game);
+            return new BoardProjector(game, state, new AudienceTracker(game, state)).project();
         }
 
         // AttrValue is recursive and makes jasmine's expect() generics too deep, so read attributes as unknown.

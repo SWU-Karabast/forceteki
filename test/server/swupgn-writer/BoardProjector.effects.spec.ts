@@ -1,5 +1,6 @@
 import type { Board, Entity } from '@swupgn/format';
 import type { Card } from '../../../server/game/core/card/Card';
+import { AudienceTracker } from '../../../server/game/core/swupgn/AudienceTracker';
 import { BoardProjector } from '../../../server/game/core/swupgn/BoardProjector';
 import { SwuPgnWriterState } from '../../../server/game/core/swupgn/SwuPgnWriterState';
 
@@ -14,7 +15,7 @@ describe('BoardProjector effects and ability uses', function() {
         }
 
         function project(): Board {
-            return new BoardProjector(contextRef.context.game, writerState(), null).project();
+            return new BoardProjector(contextRef.context.game, writerState(), new AudienceTracker(contextRef.context.game, writerState())).project();
         }
 
         function idOf(card: Card): number {

@@ -17,6 +17,16 @@ export interface ILookMoveDeckCardsTopOrBottomProperties extends IPlayerTargetSy
     amount: number;
 }
 
+/**
+ * Emitted, as a plain payload rather than a GameEvent, when the top-or-bottom prompt shows more than one card:
+ * that path shows the cards through a prompt, not a LookAtSystem event. Nothing in the game listens to it;
+ * the SWU-PGN writer reads who saw which cards.
+ */
+export interface ILookMoveDeckCardsViewed {
+    player: Player;
+    cards: readonly Card[];
+}
+
 export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ILookMoveDeckCardsTopOrBottomProperties> {
     public override readonly name = 'lookMoveDeckCardsTopOrBottomSystem';
     public override readonly eventName = EventName.OnLookMoveDeckCardsTopOrBottom;
@@ -44,6 +54,8 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         } else {
             const actualAmount = Math.min(amount, deckLength);
             const cards = player.drawDeck.slice(0, actualAmount);
+            const viewed: ILookMoveDeckCardsViewed = { player: context.player, cards };
+            context.game.emit(EventName.OnLookMoveDeckCardsTopOrBottom, viewed);
 
             context.game.promptDisplayCardsWithButtons(context.player, {
                 activePromptTitle: 'Select card to move to the top or bottom of the deck',
