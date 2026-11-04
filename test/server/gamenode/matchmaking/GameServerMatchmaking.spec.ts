@@ -252,14 +252,6 @@ describe('GameServer matchmaking preferences', function () {
                 expectMatched(competitive, noPreference);
             });
 
-            it('applies the same preference policy to anonymous and authenticated users', async function () {
-                const { harness } = contextRef;
-                const anonymous = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual);
-                const authenticated = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual, { authenticated: true });
-
-                expectMatched(anonymous, authenticated);
-            });
-
             it('matches simultaneous arrivals into distinct pairs without duplicating or stranding players', async function () {
                 const { harness } = contextRef;
                 const players = await Promise.all(Array.from({ length: 4 }, () =>
@@ -753,6 +745,18 @@ describe('GameServer matchmaking preferences', function () {
                 });
             }
         });
+    });
+
+    describe('with logged-in users', function () {
+        serverIntegration(function (contextRef) {
+            it('applies the same preference policy to anonymous and authenticated users', async function () {
+                const { harness } = contextRef;
+                const anonymous = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual);
+                const authenticated = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual, { authenticated: true });
+
+                expectMatched(anonymous, authenticated);
+            });
+        }, { database: true });
     });
 
     describe('a custom timing policy', function () {
