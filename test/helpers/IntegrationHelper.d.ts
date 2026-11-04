@@ -10,6 +10,7 @@ type Player = import('../../server/game/core/Player');
 type GameFlowWrapper = import('./GameFlowWrapper');
 type PlayerInteractionWrapper = import('./PlayerInteractionWrapper').PlayerInteractionWrapper;
 type SnapshotManager = import('../../server/game/core/snapshot/SnapshotManager').SnapshotManager;
+type RevealLog = import('./SwuPgnRoundTrip').RevealLog;
 type SnapshotType = import('../../server/game/core/Constants').SnapshotType;
 type QuickUndoAvailableState = import('../../server/game/core/snapshot/SnapshotInterfaces').QuickUndoAvailableState;
 
@@ -74,6 +75,9 @@ interface SwuTestContext {
 
     ignoreUnresolvedActionPhasePrompts: boolean;
     requireResolvedRegroupPhasePrompts: boolean;
+
+    /** The cards shown to each seat, for the SWU-PGN round-trip check (only with `SWUPGN_ROUNDTRIP=true`). */
+    swuPgnRevealLog?: RevealLog;
 
     advancePhases(endphase);
     allPlayersInInitiativeOrder(): PlayerInteractionWrapper[];

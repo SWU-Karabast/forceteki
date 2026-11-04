@@ -16,10 +16,16 @@ const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
 const { SnapshotType, PhaseName } = require('../../server/game/core/Constants.js');
 const { UndoMode } = require('../../server/game/core/snapshot/SnapshotManager.js');
 const { QuickUndoAvailableState } = require('../../server/game/core/snapshot/SnapshotInterfaces.js');
+const { RevealLog, checkSwuPgnRoundTrip } = require('./SwuPgnRoundTrip.js');
 
 // enabled via the `ENABLE_UNDO_ALL_TESTS` env var (see the `test-undo` npm scripts) to run the
 // whole suite in undo mode (each test runs, rolls back, then runs again)
 const ENABLE_UNDO_ALL_TESTS = process.env.ENABLE_UNDO_ALL_TESTS === 'true';
+
+// enabled via `SWUPGN_ROUNDTRIP=true` (see the `test-swupgn-roundtrip` npm script): after each test, the SWU-PGN
+// writer's records must replay to its board, every view must validate, every attribute must be registered for its
+// entity, no view may name a hidden card its seat was not shown, and the writer must have counted no error
+const SWUPGN_ROUNDTRIP = process.env.SWUPGN_ROUNDTRIP === 'true';
 
 // this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
 if (!jasmine.getEnv().configuration().random) {
@@ -118,6 +124,11 @@ global.integration = function (definitions, enableUndo = false) {
             gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');
             gameStateBuilder.attachTestInfoToObj(newContext, gameFlowWrapper, 'player1', 'player2');
 
+            if (SWUPGN_ROUNDTRIP && newContext.game.swuPgnWriter) {
+                newContext.swuPgnRevealLog = new RevealLog();
+                newContext.swuPgnRevealLog.install(newContext.game);
+            }
+
             /**
              * @param {SwuSetupTestOptions} options
              */
@@ -137,6 +148,8 @@ global.integration = function (definitions, enableUndo = false) {
                 if (!newContext.isUndoTest || !newContext.undoReplayInProgress) {
                     await gameStateBuilder.setupGameStateAsync(newContext, options);
                     gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
+                    // the writer restarted its records from this board, so the cards shown before it no longer count
+                    newContext.swuPgnRevealLog?.reset();
 
                     newContext.hasSetupGame = true;
 
@@ -188,37 +201,51 @@ global.integration = function (definitions, enableUndo = false) {
             }
 
             if (
-                context.game.currentPhase === 'action' && context.ignoreUnresolvedActionPhasePrompts ||
-                context.game.currentPhase === 'regroup' && !context.requireResolvedRegroupPhasePrompts ||
                 context.game.currentPhase === 'setup' || // Unresolved setup phase prompts are always ignored
                 context.game.currentPhase === null
             ) {
                 return;
             }
 
-            const playersWithUnresolvedPrompts = [context.player1, context.player2]
-                .filter((player) => player.currentPrompt().menuTitle !== 'Choose an action' && !player.currentPrompt().menuTitle.startsWith('Waiting for opponent'));
-
-            if (playersWithUnresolvedPrompts.length > 0) {
-                if (parallelMode) {
-                    throw new TestSetupError('The test ended with an unresolved prompt for one or both players. If the test had other errors / failures, disregard this error. Run the test in non-parallel mode for additional details.');
-                }
-
-                let activePromptsText = playersWithUnresolvedPrompts.map((player) =>
-                    `\n******* ${player.name.toUpperCase()} PROMPT *******\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}\n`
-                ).join('');
-                throw new TestSetupError(`The test ended with an unresolved prompt in ${context.game.currentPhase} phase for one or both players. Unresolved prompts:\n${activePromptsText}`);
+            if (
+                !(context.game.currentPhase === 'action' && context.ignoreUnresolvedActionPhasePrompts) &&
+                !(context.game.currentPhase === 'regroup' && !context.requireResolvedRegroupPhasePrompts)
+            ) {
+                checkPromptsResolvedAndStateSerializable(context, parallelMode);
             }
-            try {
-                context.game.captureGameState('any');
-            } catch (error) {
-                throw new TestSetupError('Failed to correctly serialize post-test game state', { error: { message: error.message, stack: error.stack } });
+
+            if (SWUPGN_ROUNDTRIP && context.swuPgnRevealLog) {
+                const problems = checkSwuPgnRoundTrip(context.game, context.swuPgnRevealLog);
+                if (problems.length > 0) {
+                    throw new TestSetupError(`SWU-PGN round-trip check (SWUPGN_ROUNDTRIP=true) found ${problems.length} problem(s):\n${problems.join('\n')}`);
+                }
             }
         });
 
         definitions(contextRef);
     });
 };
+
+function checkPromptsResolvedAndStateSerializable(context, parallelMode) {
+    const playersWithUnresolvedPrompts = [context.player1, context.player2]
+        .filter((player) => player.currentPrompt().menuTitle !== 'Choose an action' && !player.currentPrompt().menuTitle.startsWith('Waiting for opponent'));
+
+    if (playersWithUnresolvedPrompts.length > 0) {
+        if (parallelMode) {
+            throw new TestSetupError('The test ended with an unresolved prompt for one or both players. If the test had other errors / failures, disregard this error. Run the test in non-parallel mode for additional details.');
+        }
+
+        let activePromptsText = playersWithUnresolvedPrompts.map((player) =>
+            `\n******* ${player.name.toUpperCase()} PROMPT *******\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}\n`
+        ).join('');
+        throw new TestSetupError(`The test ended with an unresolved prompt in ${context.game.currentPhase} phase for one or both players. Unresolved prompts:\n${activePromptsText}`);
+    }
+    try {
+        context.game.captureGameState('any');
+    } catch (error) {
+        throw new TestSetupError('Failed to correctly serialize post-test game state', { error: { message: error.message, stack: error.stack } });
+    }
+}
 
 const originalIntegration = global.integration;
 global.undoIntegration = function (definitions) {

@@ -81,3 +81,28 @@ jobs:
         run: npm run get-cards
 
       - run: npm run test-parallel-undo
+
+  # the SWU-PGN writer over every spec: records replay to the writer's board, every view validates, attributes are
+  # registered for their entity, no view names a card its seat was not shown, and each flush's dirty projection
+  # matches the full one (SWUPGN_PROJECTION_CHECK=1)
+  test-swupgn-roundtrip:
+    if: github.event_name == 'merge_group' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .tool-versions
+          cache: "npm"
+      - run: npm install
+
+      - name: cache card data json files
+        id: cache-card-data
+        uses: actions/cache@v5
+        with:
+          path: ./test/json
+          key: card-data-${{ hashFiles('card-data-version.txt', 'scripts/fetchdata.js', 'scripts/mockdata.js') }}
+      - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
+        run: npm run get-cards
+
+      - run: npm run test-swupgn-roundtrip
