@@ -6,7 +6,7 @@ interface Item {
     parent?: number;
     line: string;
     round: unknown;
-    step: number;
+    step: number | null;
     children: Item[];
 }
 
@@ -154,7 +154,6 @@ export function render(file: SwuPgnFile): string {
     // The step a block belongs to is the next step record that closes it.
     const stepAfter: number[] = new Array<number>(file.records.length).fill(0);
     let upcoming: number | undefined;
-    let lastSeq = -1;
     for (let i = file.records.length - 1; i >= 0; i--) {
         const r = file.records[i];
         if (r.t === 'step') {
@@ -162,16 +161,15 @@ export function render(file: SwuPgnFile): string {
         }
         stepAfter[i] = upcoming ?? -1;
     }
-    for (const r of file.records) {
-        if (r.t === 'step') {
-            lastSeq = r.seq;
-        }
-    }
 
     const byId = new Map<number, Item>();
     const top: Item[] = [];
     file.records.forEach((r, i) => {
-        applyRecord(board, r);
+        try {
+            applyRecord(board, r);
+        } catch {
+            // A record the applier rejects must not stop the story; names fall back as usual.
+        }
         if (r.t !== 'block') {
             return;
         }
@@ -180,12 +178,15 @@ export function render(file: SwuPgnFile): string {
             parent: r.parent,
             line: describe(r),
             round: board.entities.g?.a.round,
-            step: stepAfter[i] === -1 ? lastSeq + 1 : stepAfter[i],
+            step: stepAfter[i] === -1 ? null : stepAfter[i],
             children: []
         };
         byId.set(r.id, item);
         const parent = r.parent === undefined ? undefined : byId.get(r.parent);
         if (parent) {
+            if (parent.step !== item.step) {
+                item.line = `${item.step === null ? '(after the last step)' : `(step ${item.step})`} ${item.line}`;
+            }
             parent.children.push(item);
         } else {
             top.push(item);
@@ -199,7 +200,7 @@ export function render(file: SwuPgnFile): string {
         item.children.forEach((c, k) => emit(c, depth + 1, k));
     };
     let round: unknown = null;
-    let step: number | undefined;
+    let step: number | null | undefined;
     let n = 0;
     for (const item of top) {
         if (item.round !== undefined && item.round !== null && item.round !== round) {
@@ -209,7 +210,7 @@ export function render(file: SwuPgnFile): string {
         if (item.step !== step) {
             step = item.step;
             n = 0;
-            out.push(`Step ${step}`);
+            out.push(step === null ? 'After the last step' : `Step ${step}`);
         }
         emit(item, 0, n++);
     }

@@ -32,8 +32,10 @@ describe('render', () => {
                         continue;
                     }
                     expect(text).not.toContain(c.id);
-                    if (!ownNames.some((n) => n.includes(c.name))) {
-                        expect(text).withContext(`${v.name}.${profile} names ${c.name}`).not.toContain(c.name);
+                    if (!ownNames.includes(c.name)) {
+                        const whole = new RegExp(`(^|[^A-Za-z0-9])${c.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^A-Za-z0-9])`);
+                        expect(whole.test(text)).withContext(`${v.name}.${profile} names ${c.name}`)
+                            .toBe(false);
                     }
                 }
                 checked++;
@@ -57,5 +59,34 @@ describe('render', () => {
         expect(render(file)).toContain('Player 1 plays SOR#095.');
         file.records.push({ t: 'block', id: 99, kind: 'look', p: 1, targets: [9999], amount: 1 });
         expect(render(file)).toContain('Player 1 looks at a card.');
+    });
+
+    it('does not throw when a record cannot be applied', () => {
+        const file = load('tiny.full');
+        file.records = [{ t: 'set', e: 55, a: { x: 1 } }, { t: 'block', id: 1, kind: 'play', p: 1, src: 55 }];
+        expect(render(file)).toContain('Player 1 plays a card.');
+    });
+
+    it('renders a block with an unknown parent at top level', () => {
+        const file = load('tiny.full');
+        file.records = [{ t: 'block', id: 5, kind: 'pass', p: 2, parent: 4 }];
+        expect(render(file)).toBe('After the last step\n1. Player 2 passes.\n');
+    });
+
+    it('renders an empty records file as empty text', () => {
+        const file = load('tiny.full');
+        file.records = [];
+        expect(render(file)).toBe('');
+    });
+
+    it('lists a block before any step under the step that closes it, and later ones after the last step', () => {
+        const file = load('tiny.full');
+        file.records = [
+            { t: 'block', id: 1, kind: 'pass', p: 1 },
+            { t: 'step', seq: 0 },
+            { t: 'block', id: 2, kind: 'pass', p: 2 },
+            { t: 'block', id: 3, kind: 'pass', p: 1, parent: 1 }
+        ];
+        expect(render(file)).toBe('Step 0\n1. Player 1 passes.\n   a. (after the last step) Player 1 passes.\nAfter the last step\n1. Player 2 passes.\n');
     });
 });

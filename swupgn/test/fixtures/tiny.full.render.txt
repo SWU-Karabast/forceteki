@@ -23,4 +23,4 @@ Step 7
 2. The regroup phase begins.
    a. Player 1 draws Swoop Racer and Gamorrean Guards.
    b. Player 2 draws Bodhi Rook, Imperial Defector and Smuggling Compartment.
-   c. Player 1 resources Swoop Racer.
+   c. (step 8) Player 1 resources Swoop Racer.
