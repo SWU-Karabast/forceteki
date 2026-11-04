@@ -1,6 +1,11 @@
 import type { IPlayerReportEntity } from '../services/DynamoDBInterfaces';
 import { PlayerReportStatus } from '../services/DynamoDBInterfaces';
 
+export enum PlayerReportListSort {
+    NewestFirst = 'newest',
+    OldestFirst = 'oldest',
+}
+
 export interface IPlayerReportListQuery {
 
     /** Omitted for open and closed reports together */
@@ -13,13 +18,16 @@ export interface IPlayerReportListQuery {
     offense?: string;
     limit: number;
 
-    /** `nextCursor` of the previous page */
+    /** Omitted: oldest first when only open reports are listed (the queue is worked through in order), newest first otherwise */
+    sort?: PlayerReportListSort;
+
+    /** `nextCursor` of the previous page, which must have used the same sort */
     cursor?: string;
 }
 
 export interface IPlayerReportPage {
 
-    /** Newest first */
+    /** In the requested sort order */
     reports: IPlayerReportEntity[];
 
     /** Pass as `cursor` to load the next page; null on the last page */
@@ -29,7 +37,7 @@ export interface IPlayerReportPage {
     total: number;
 }
 
-/** Thrown for a cursor that was not handed out by {@link PlayerReportListCache.queryAsync} */
+/** Thrown for a cursor that was not handed out by {@link PlayerReportListCache.queryAsync}, or for another sort order */
 export class InvalidReportCursorError extends Error {
     public constructor() {
         super('Invalid cursor');
@@ -38,6 +46,7 @@ export class InvalidReportCursorError extends Error {
 }
 
 type Mutation = (reports: Map<string, IPlayerReportEntity>) => void;
+type CursorPosition = Pick<IPlayerReportEntity, 'createdAt' | 'id'>;
 
 /**
  * Every stored player report record (without its logs), kept in memory so the mod tools can sort, search and page
@@ -61,25 +70,36 @@ export class PlayerReportListCache {
     ) {}
 
     public async queryAsync(query: IPlayerReportListQuery): Promise<IPlayerReportPage> {
-        const after = query.cursor != null ? PlayerReportListCache.decodeCursor(query.cursor) : null;
+        const sort = PlayerReportListCache.effectiveSort(query);
+        const after = query.cursor != null ? PlayerReportListCache.decodeCursor(query.cursor, sort) : null;
         const search = query.search?.trim().toLowerCase();
+        const compare = sort === PlayerReportListSort.OldestFirst
+            ? (a: CursorPosition, b: CursorPosition) => PlayerReportListCache.newestFirst(b, a)
+            : PlayerReportListCache.newestFirst;
 
         const matching = [...(await this.getReportsAsync()).values()]
             .filter((report) => !query.status || report.status === query.status)
             .filter((report) => !query.offense || report.offense === query.offense)
             .filter((report) => !search || PlayerReportListCache.matchesSearch(report, search))
-            .sort(PlayerReportListCache.newestFirst);
+            .sort(compare);
 
-        const start = after ? matching.findIndex((report) => PlayerReportListCache.newestFirst(report, after) > 0) : 0;
+        const start = after ? matching.findIndex((report) => compare(report, after) > 0) : 0;
         const remaining = start < 0 ? [] : matching.slice(start);
         const reports = remaining.slice(0, query.limit);
         const last = reports[reports.length - 1];
 
         return {
             reports,
-            nextCursor: remaining.length > query.limit ? PlayerReportListCache.encodeCursor(last) : null,
+            nextCursor: remaining.length > query.limit ? PlayerReportListCache.encodeCursor(last, sort) : null,
             total: matching.length,
         };
+    }
+
+    private static effectiveSort(query: IPlayerReportListQuery): PlayerReportListSort {
+        if (query.sort) {
+            return query.sort;
+        }
+        return query.status === PlayerReportStatus.Open ? PlayerReportListSort.OldestFirst : PlayerReportListSort.NewestFirst;
     }
 
     public async countOpenAsync(): Promise<number> {
@@ -93,6 +113,18 @@ export class PlayerReportListCache {
     /** Stores the report as it is now in DynamoDB */
     public upsert(report: IPlayerReportEntity): void {
         this.write((reports) => reports.set(report.id, { ...report }));
+    }
+
+    /**
+     * Stores the report only if it is not cached yet. For reads that may be stale (not strongly consistent): they
+     * must not overwrite a newer copy, e.g. one a close or reopen in this process just wrote.
+     */
+    public addIfMissing(report: IPlayerReportEntity): void {
+        this.write((reports) => {
+            if (!reports.has(report.id)) {
+                reports.set(report.id, { ...report });
+            }
+        });
     }
 
     /** Changes fields of a cached report; does nothing if the report is not cached */
@@ -152,19 +184,20 @@ export class PlayerReportListCache {
     }
 
     /** Newest report first; the id breaks ties so the order (and with it every cursor) is stable */
-    private static newestFirst(a: Pick<IPlayerReportEntity, 'createdAt' | 'id'>, b: Pick<IPlayerReportEntity, 'createdAt' | 'id'>): number {
+    private static newestFirst(a: CursorPosition, b: CursorPosition): number {
         return b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id);
     }
 
-    private static encodeCursor(report: IPlayerReportEntity): string {
-        return Buffer.from(JSON.stringify([report.createdAt, report.id])).toString('base64url');
+    private static encodeCursor(report: IPlayerReportEntity, sort: PlayerReportListSort): string {
+        return Buffer.from(JSON.stringify([sort, report.createdAt, report.id])).toString('base64url');
     }
 
-    private static decodeCursor(cursor: string): Pick<IPlayerReportEntity, 'createdAt' | 'id'> {
+    /** A cursor only continues the order it was handed out for; changing the sort starts again without one */
+    private static decodeCursor(cursor: string, sort: PlayerReportListSort): CursorPosition {
         try {
             const decoded: unknown = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
-            if (Array.isArray(decoded) && decoded.length === 2 && decoded.every((part) => typeof part === 'string')) {
-                return { createdAt: decoded[0], id: decoded[1] };
+            if (Array.isArray(decoded) && decoded.length === 3 && decoded.every((part) => typeof part === 'string') && decoded[0] === sort) {
+                return { createdAt: decoded[1], id: decoded[2] };
             }
         } catch {
             // handled below

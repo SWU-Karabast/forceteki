@@ -378,8 +378,6 @@ export interface IPlayerReportEntity {
     gameFormat: string;
     matchType: string;
     gameStepsSinceLastUndo?: number;
-    screenResolution?: { width: number; height: number };
-    viewport?: { width: number; height: number };
 
     /** Snapshots at creation time, so the ticket shows them without extra lookups */
     reportedPlayerPriorReportCount: number;

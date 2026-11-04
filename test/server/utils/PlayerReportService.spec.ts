@@ -12,7 +12,7 @@ import type { ISerializedMessage } from '../../../server/game/Interfaces';
 import { PlayerReportType } from '../../../server/game/Interfaces';
 import type { INewPlayerReport } from '../../../server/utils/PlayerReportService';
 import { PlayerReportService } from '../../../server/utils/PlayerReportService';
-import { InvalidReportCursorError } from '../../../server/utils/PlayerReportListCache';
+import { InvalidReportCursorError, PlayerReportListSort } from '../../../server/utils/PlayerReportListCache';
 import { monthOf } from '../../../server/utils/RetentionBuckets';
 import type { UserFactory } from '../../../server/utils/user/UserFactory';
 import type { ModActionService } from '../../../server/utils/ModActionService';
@@ -50,8 +50,6 @@ describe('PlayerReportService', function() {
         gameFormat: 'premier',
         matchType: 'publicLobby',
         gameStepsSinceLastUndo: 3,
-        screenResolution: null,
-        viewport: null,
         gameMessages: [gameLine('attacks with Wampa')],
         chatMessages: [chatLine(reportedPlayer, 'noob'), chatLine(reporter, 'gg')],
         ...overrides,
@@ -93,7 +91,6 @@ describe('PlayerReportService', function() {
 
             expect(report.status).toBe(PlayerReportStatus.Open);
             expect(report.reportedPlayerId).toBe(reportedPlayer.id);
-            expect(report.screenResolution).toBeUndefined();
 
             const logs = db.playerReportLogs.get(report.id);
             const chat = logs.find((log) => log.kind === PlayerReportLogKind.Chat);
@@ -376,6 +373,46 @@ describe('PlayerReportService', function() {
 
         it('rejects a cursor it did not hand out', async function() {
             await expectAsync(service.listReportsAsync({ limit: 10, cursor: 'not-a-cursor' })).toBeRejectedWithError(InvalidReportCursorError);
+        });
+
+        it('lists open reports oldest first unless another order is asked for', async function() {
+            const older = await createAt('2026-10-02T00:00:00.000Z');
+            const newer = await createAt('2026-10-03T00:00:00.000Z');
+            const newest = await createAt('2026-10-04T00:00:00.000Z');
+
+            const first = await service.listReportsAsync({ limit: 2, status: PlayerReportStatus.Open });
+            expect(first.reports.map((r) => r.id)).toEqual([older, newer]);
+            const second = await service.listReportsAsync({ limit: 2, status: PlayerReportStatus.Open, cursor: first.nextCursor });
+            expect(second.reports.map((r) => r.id)).toEqual([newest]);
+
+            expect((await service.listReportsAsync({ limit: 10, status: PlayerReportStatus.Open, sort: PlayerReportListSort.NewestFirst })).reports.map((r) => r.id))
+                .toEqual([newest, newer, older]);
+            expect((await service.listReportsAsync({ limit: 10, sort: PlayerReportListSort.OldestFirst })).reports.map((r) => r.id))
+                .toEqual([older, newer, newest]);
+        });
+
+        it('rejects a cursor handed out for another sort order', async function() {
+            await createAt('2026-10-02T00:00:00.000Z');
+            await createAt('2026-10-03T00:00:00.000Z');
+            const page = await service.listReportsAsync({ limit: 1, sort: PlayerReportListSort.NewestFirst });
+
+            await expectAsync(service.listReportsAsync({ limit: 1, sort: PlayerReportListSort.OldestFirst, cursor: page.nextCursor }))
+                .toBeRejectedWithError(InvalidReportCursorError);
+        });
+
+        it('keeps a closed report closed when opening the ticket reads a stale copy', async function() {
+            const id = await createAt('2026-10-02T00:00:00.000Z');
+            // The list is loaded, as it is while moderators work the queue
+            expect(await service.getOpenReportCountAsync()).toBe(1);
+            const staleCopy = await db.getPlayerReportAsync(id);
+            await service.closeReportAsync(id, PlayerReportOutcome.NoAction, undefined, moderator);
+
+            // A lagging replica still returns the report as it was before closing
+            spyOn(db, 'getPlayerReportAsync').and.resolveTo(staleCopy);
+            await service.getReportDetailAsync(id);
+
+            expect(await service.getOpenReportCountAsync()).toBe(0);
+            expect((await service.listReportsAsync({ limit: 10 })).reports[0].status).toBe(PlayerReportStatus.Closed);
         });
 
         it('drops reports deleted by the retention cleanup from the list', async function() {

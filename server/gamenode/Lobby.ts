@@ -2613,7 +2613,7 @@ export class Lobby {
 
             if (reportMessage && typeof reportMessage === 'object') {
                 parsedDescription = typeof reportMessage.description === 'string' ? reportMessage.description : '';
-                // Sent by the client as-is; anything that is not a plain size is dropped rather than stored
+                // Sent by the client as-is (bug reports only); anything that is not a plain size is dropped
                 screenResolution = ReportDimensionsSchema.safeParse(reportMessage.screenResolution).data ?? null;
                 viewport = ReportDimensionsSchema.safeParse(reportMessage.viewport).data ?? null;
             } else {
@@ -2659,8 +2659,7 @@ export class Lobby {
                     gameFormat: String(this.gameFormat),
                     matchType: String(this.matchmakingType),
                     gameStepsSinceLastUndo: this.game?.snapshotManager.gameStepsSinceLastUndo,
-                    screenResolution,
-                    viewport,
+                    // Screen and viewport size are only kept for bug reports; a player report does not need them
                     gameMessages,
                     chatMessages: chatMessages ?? [],
                 });

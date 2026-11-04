@@ -41,8 +41,6 @@ export interface INewPlayerReport {
     gameFormat: string;
     matchType: string;
     gameStepsSinceLastUndo?: number;
-    screenResolution?: { width: number; height: number } | null;
-    viewport?: { width: number; height: number } | null;
     gameMessages: ISerializedMessage[];
     chatMessages: ISerializedMessage[];
 }
@@ -139,7 +137,7 @@ export class PlayerReportService {
 
     /**
      * DynamoDB items are capped at 400 KB; keep each log well below that. Both logs together must also stay below
-     * 1 MB: getPlayerReportAsync reads a report's items in a single query page, and META sorts after the logs.
+     * 1 MB, the size of the single query page getPlayerReportAsync reads the logs with.
      */
     private static readonly MaxLogBytes = 300_000;
     private static readonly MaxLogLineLength = 2000;
@@ -204,8 +202,6 @@ export class PlayerReportService {
             gameFormat: input.gameFormat,
             matchType: input.matchType,
             gameStepsSinceLastUndo: input.gameStepsSinceLastUndo,
-            screenResolution: input.screenResolution ?? undefined,
-            viewport: input.viewport ?? undefined,
             reportedPlayerPriorReportCount: reportedIndex.filter((entry) => entry.role === PlayerReportRole.ReportedPlayer).length,
             reporterRecentFalseReportCount: reporterIndex.filter((entry) =>
                 entry.role === PlayerReportRole.ReportSubmitter &&
@@ -240,7 +236,7 @@ export class PlayerReportService {
     // ==================== Reading ====================
 
     /**
-     * One page of the report list, newest first, served from memory.
+     * One page of the report list in the requested order, served from memory.
      * @throws InvalidReportCursorError for a cursor this service did not hand out
      */
     public listReportsAsync(query: IPlayerReportListQuery): Promise<IPlayerReportPage> {
@@ -275,7 +271,9 @@ export class PlayerReportService {
         }
 
         const { report, logs } = stored;
-        this.listCache.upsert(report);
+        // Not a consistent read, so this copy may be older than the cached one (the FE reloads a ticket right after
+        // closing or reopening it); it only fills in a report this process has not seen yet
+        this.listCache.addIfMissing(report);
         const [reporter, reportedPlayer] = await Promise.all([
             this.getPlayerContextAsync(report.reporterId, report.reporterUsername),
             this.getPlayerContextAsync(report.reportedPlayerId, report.reportedPlayerUsername),

@@ -12,6 +12,7 @@ import {
     UsernameChangeSource
 } from './DynamoDBInterfaces';
 import { validateUsernameFormat } from '../utils/user/UsernameRules';
+import { PlayerReportListSort } from '../utils/PlayerReportListCache';
 
 export const IUserDataEntitySchema = z.object({
     id: z.string(),
@@ -192,8 +193,6 @@ export const PlayerReportEntitySchema = z.object({
     gameFormat: z.string(),
     matchType: z.string(),
     gameStepsSinceLastUndo: z.number().optional(),
-    screenResolution: ReportDimensionsSchema.optional(),
-    viewport: ReportDimensionsSchema.optional(),
     reportedPlayerPriorReportCount: z.number(),
     reporterRecentFalseReportCount: z.number(),
     closedAt: z.string().optional(),
@@ -247,7 +246,10 @@ export const PlayerReportListQuerySchema = z.object({
         .max(100)
         .default(25),
 
-    /** `nextCursor` of the previous page */
+    /** Omitted: oldest first for open reports only, newest first otherwise */
+    sort: z.enum(PlayerReportListSort).optional(),
+
+    /** `nextCursor` of the previous page, which must have used the same sort */
     cursor: z.string().max(500)
         .optional(),
 });

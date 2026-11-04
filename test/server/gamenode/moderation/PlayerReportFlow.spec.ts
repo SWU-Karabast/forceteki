@@ -54,9 +54,9 @@ describe('Player report flow', function () {
                 reportedPlayerUsername: 'RudePlayer',
                 description: 'insulted me',
                 offense: PlayerReportType.ChatHarrasment,
-                screenResolution: { width: 1920, height: 1080 },
             }));
-            // A viewport that is not a plain size is dropped at the boundary instead of stored
+            // Only bug reports keep the screen size; a player report stores neither, even if a client sends it
+            expect(summary.screenResolution).toBeUndefined();
             expect(summary.viewport).toBeUndefined();
 
             const detail = await moderator.requestAsync('get', `/api/mod/reports/${summary.id}`);
@@ -134,7 +134,8 @@ describe('Player report flow', function () {
             stored.report = { ...stored.report, status: PlayerReportStatus.Closed, closedAt: '2026-10-01T10:00:00.000Z', outcome: PlayerReportOutcome.NoAction };
             stored.gsiKey = closedPlayerReportGsiKey('2026-10');
             harness.db.playerReportLogExpiry.set(reportId, playerReportLogExpiryGsiKey(PlayerReportService.logExpiryDay(stored.report.closedAt)));
-            harness.db.playerReportCleanupCursor = { lastLogDay: '2026-10-30', lastMetadataMonth: '2025-09', lastRunAt: '2026-11-01T03:00:00.000Z' };
+            // The last run is less than a week ago, so the catch-up check after the start skips and only the weekly timer can run
+            harness.db.playerReportCleanupCursor = { lastLogDay: '2026-10-30', lastMetadataMonth: '2025-09', lastRunAt: '2026-11-02T03:00:00.000Z' };
 
             // The server started on Sunday 2026-11-08 at 02:50 UTC; the weekly run is due at 03:00
             await harness.clock.advanceAsync(5 * 60 * 1000);
