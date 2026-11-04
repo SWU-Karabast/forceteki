@@ -80,6 +80,28 @@ describe('Claiming initiative', function() {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player2).toHaveExactPromptButtons(['Pass', 'Claim Initiative']);
             });
+
+            it('should ignore a claim initiative command once initiative has already been claimed this round', function () {
+                const { context } = contextRef;
+
+                context.player1.claimInitiative();
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player2).toHaveExactPromptButtons(['Pass']);
+
+                // send the command directly, the way a client would, even though the button is not offered
+                const promptUuid = context.player2.player.currentPrompt().buttons[0].uuid;
+                try {
+                    context.game.menuButton(context.player2.player.id, 'claimInitiative', promptUuid, undefined);
+                } catch {
+                    // rejecting the command with an error is also acceptable
+                }
+                context.game.continue();
+
+                expect(context.game.initiativePlayer).toBe(context.player1.player);
+                expect(context.game.currentPhase).toBe('action');
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player2).toHaveExactPromptButtons(['Pass']);
+            });
         });
     });
 });
