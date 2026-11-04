@@ -2042,6 +2042,57 @@ describe('Undo', function() {
             });
         });
 
+        describe('General Grievous, Four-Armed Menace\'s per-choice limit', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['general-grievous#fourarmed-menace'],
+                        hand: ['entrenched', 'devotion'],
+                        base: { card: 'echo-base', damage: 5 }
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+            });
+
+            undoIt('offers an option again if the action that chose it is rolled back', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.entrenched);
+                context.player1.clickCard(context.generalGrievous);
+
+                expect(context.player1).toHavePrompt('Choose an effect for General Grievous');
+                context.player1.clickPrompt('Draw a card');
+                context.player2.passAction();
+
+                context.player1.clickCard(context.devotion);
+                context.player1.clickCard(context.generalGrievous);
+
+                expect(context.player1).toHavePrompt('Choose an effect for General Grievous');
+                context.player1.clickPrompt('Heal 3 damage from your base');
+                expect(context.p1Base.damage).toBe(2);
+
+                contextRef.snapshot.quickRollback(context.player1.id);
+
+                expect(context.p1Base.damage).toBe(5);
+                expect(context.devotion).toBeInZone('hand');
+                expect(context.player1).toBeActivePlayer();
+
+                // heal was chosen in the rolled back action, so it is offered again, but draw is still used up
+                context.player1.clickCard(context.devotion);
+                context.player1.clickCard(context.generalGrievous);
+
+                expect(context.player1).toHavePrompt('Choose an effect for General Grievous');
+                expect(context.player1).toHaveExactPromptButtons(['Give an Experience token to General Grievous', 'Heal 3 damage from your base']);
+                context.player1.clickPrompt('Heal 3 damage from your base');
+
+                expect(context.p1Base.damage).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
         describe('Card stats', function() {
             undoIt('should log card stats', async function() {
                 await contextRef.setupTestAsync({
