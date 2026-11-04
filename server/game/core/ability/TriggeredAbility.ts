@@ -62,7 +62,7 @@ export abstract class TriggeredAbilityBase extends CardAbility {
 
     private readonly effectCondition?: (context: TriggeredAbilityContext) => boolean;
 
-    @statePrimitive() private accessor isRegistered: boolean = false;
+    @statePrimitive() private accessor isRegistered = false;
 
     public get isOnAttackAbility() {
         return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.OnAttack);
