@@ -1,0 +1,73 @@
+import type { Seat } from '@swupgn/format';
+import type { Card } from '../card/Card';
+import { GameObjectBase } from '../GameObjectBase';
+import { registerState, statePrimitive, stateValue } from '../GameObjectUtils';
+
+/**
+ * Rollback-safe state for the SWU-PGN writer: entity ids, card generations, audiences and record counters.
+ * It is an engine game object so that undo restores it with the rest of the game.
+ */
+@registerState()
+export class SwuPgnWriterState extends GameObjectBase {
+    @stateValue() private accessor entityIds = new Map<string, number>();
+    @stateValue() private accessor generations = new Map<string, number>();
+    @stateValue() private accessor audiences = new Map<string, Seat[]>();
+    @statePrimitive() private accessor nextId = 1;
+
+    /** Number of records written so far. */
+    @statePrimitive() public accessor recordsLength = 0;
+
+    /** The next seq to write. */
+    @statePrimitive() public accessor stepSeq = 1;
+
+    @statePrimitive() public accessor inSetup = true;
+
+    // Nothing references this object, so the snapshot system must be told to keep it.
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public override get alwaysTrackState(): boolean {
+        return true;
+    }
+
+    /** Entity id for a key; assigned on first sight and never reused (W-21). */
+    public entityIdFor(key: string): number {
+        let id = this.entityIds.get(key);
+        if (id === undefined) {
+            id = this.nextId;
+            this.nextId = id + 1;
+            this.entityIds.set(key, id);
+        }
+        return id;
+    }
+
+    public hasEntity(key: string): boolean {
+        return this.entityIds.has(key);
+    }
+
+    /** Forget the key's entity; its id is retired, so the key gets a fresh one if it comes back. */
+    public retire(key: string): void {
+        this.entityIds.delete(key);
+        this.audiences.delete(key);
+    }
+
+    public cardKey(card: Card): string {
+        return `${card.uuid}#${this.generations.get(card.uuid) ?? 0}`;
+    }
+
+    /** Called each time the card enters a deck, so the card becomes a new entity. */
+    public bumpGeneration(card: Card): void {
+        this.generations.set(card.uuid, (this.generations.get(card.uuid) ?? 0) + 1);
+    }
+
+    public audienceOf(key: string): Seat[] {
+        return [...(this.audiences.get(key) ?? [])];
+    }
+
+    /** Union only: an audience never narrows. */
+    public widen(key: string, seats: Seat[] | 'all'): void {
+        const widened = new Set<Seat>(this.audiences.get(key) ?? []);
+        for (const seat of seats === 'all' ? [1, 2] as Seat[] : seats) {
+            widened.add(seat);
+        }
+        this.audiences.set(key, [...widened].sort());
+    }
+}
