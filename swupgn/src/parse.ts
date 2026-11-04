@@ -56,6 +56,33 @@ interface ScanResult {
 /** The 1-based line each parsed record came from, for `apply`'s error reports. Not part of the parsed value. */
 const RECORD_LINES = new WeakMap<object, number>();
 
+/** @internal The 1-based source lines of a parsed file, for the validator. Not re-exported from the entry. */
+export interface FileLines {
+
+    /** Line of each header tag. */
+    tags: Map<string, number>;
+    decks: number[];
+    cards: number[];
+    records: number[];
+    annotations: number[];
+
+    /** Line of each section banner, by upper-case name. */
+    banners: Map<string, number>;
+
+    /** Banner line of each entry of `unknownSections`, in order. */
+    unknownBanners: number[];
+
+    /** Line of the first banner, or of the last line when there is none. */
+    headerEnd: number;
+}
+
+const FILE_LINES = new WeakMap<object, FileLines>();
+
+/** @internal The source lines of a file `parse` returned. */
+export function fileLinesOf(file: SwuPgnFile): FileLines | undefined {
+    return FILE_LINES.get(file);
+}
+
 /** @internal The 1-based file line a parsed record came from, if it was parsed. Not re-exported from the entry. */
 export function lineOf(record: object): number | undefined {
     return RECORD_LINES.get(record);
@@ -220,6 +247,7 @@ export function parse(text: string, limits: ParseLimits = {}): SwuPgnFile {
     let headerChecked = false;
     let count = 0;
     let sawFirst = false;
+    const fl: FileLines = { tags: lineOf, decks: [], cards: [], records: [], annotations: [], banners: new Map(), unknownBanners: [], headerEnd: 0 };
 
     const lines = text.split('\n');
     // A final line end leaves an empty last element that is not a line.
@@ -269,6 +297,10 @@ export function parse(text: string, limits: ParseLimits = {}): SwuPgnFile {
                 throw new SwuPgnError('duplicate-section', `section %%% ${name} appears twice (line ${i + 1})`, i + 1);
             }
             seen.add(name);
+            fl.banners.set(name, i + 1);
+            if (fl.headerEnd === 0) {
+                fl.headerEnd = i + 1;
+            }
             switch (name) {
                 case 'STORY': case 'DECKS': case 'CARDS': case 'RECORDS': case 'ANNOTATIONS':
                     section = name;
@@ -276,6 +308,7 @@ export function parse(text: string, limits: ParseLimits = {}): SwuPgnFile {
                 default:
                     section = 'UNKNOWN';
                     unknownSections.push({ name, lines: [] });
+                    fl.unknownBanners.push(i + 1);
             }
             continue;
         }
@@ -307,15 +340,16 @@ export function parse(text: string, limits: ParseLimits = {}): SwuPgnFile {
             throw new SwuPgnError('reserved-key', `line ${i + 1} uses the reserved key "${scanned.reservedKey}"`, i + 1);
         }
         switch (section) {
-            case 'DECKS': decks.push(rec as DeckLine); break;
-            case 'CARDS': cards.push(rec as CardLine); break;
+            case 'DECKS': decks.push(rec as DeckLine); fl.decks.push(i + 1); break;
+            case 'CARDS': cards.push(rec as CardLine); fl.cards.push(i + 1); break;
             case 'RECORDS':
                 records.push(rec as SwuRecord);
+                fl.records.push(i + 1);
                 if (typeof rec === 'object' && rec !== null) {
                     RECORD_LINES.set(rec, i + 1);
                 }
                 break;
-            default: annotations.push(rec as Annotation); break;
+            default: annotations.push(rec as Annotation); fl.annotations.push(i + 1); break;
         }
     }
     if (!sawFirst) {
@@ -325,11 +359,16 @@ export function parse(text: string, limits: ParseLimits = {}): SwuPgnFile {
         checkHeader(raw, lineOf, lineCount);
     }
 
+    if (fl.headerEnd === 0) {
+        fl.headerEnd = lineCount;
+    }
     const storyLines = trimBlankEdges(story);
-    return {
+    const file: SwuPgnFile = {
         header: raw,
         ...(storyLines.length > 0 ? { story: storyLines.join('\n') } : {}),
         decks, cards, records, annotations,
         unknownSections,
     };
+    FILE_LINES.set(file, fl);
+    return file;
 }
