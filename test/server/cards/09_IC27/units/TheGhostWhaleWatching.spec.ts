@@ -27,6 +27,35 @@ describe('The Ghost, Whale Watching', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should trigger if a friendly unit attacks and overwhelms a sentinel', async () => {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        deck: ['wampa'],
+                        hand: ['atst'],
+                        groundArena: ['outer-rim-garrison'],
+                        spaceArena: ['the-ghost#whale-watching'],
+                    },
+                    player2: {
+                        groundArena: ['bith-brute'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const startingHandSize = context.player1.hand.length;
+
+                expect(context.outerRimGarrison).toBeInZone('groundArena');
+                context.player1.clickCard(context.outerRimGarrison);
+                context.player1.clickCard(context.bithBrute);
+                context.player1.clickPrompt('Trigger');
+
+                // Player 1 should draw a card since he has fewer than 7 cards in hand
+                expect(context.player1.hand.length).toBe(startingHandSize + 1);
+                expect(context.wampa).toBeInZone('hand', context.player1);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('shouldn\'t trigger if a friendly unit deals damage to an enemy unit', async () => {
                 await contextRef.setupTestAsync({
                     phase: 'action',

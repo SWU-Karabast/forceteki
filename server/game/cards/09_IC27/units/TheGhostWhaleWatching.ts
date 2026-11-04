@@ -26,8 +26,8 @@ export default class TheGhostWhaleWatching extends NonLeaderUnitCard {
     }
 
     private isEnemyBaseDamagedByFriendlyUnit(event, context): boolean {
-        // If an enemy base received the damage and If the damage was dealt by a friendly unit via combat
-        if (event.card.isBase() && event.card.controller !== context.player && event.damageSource.type === DamageSourceType.Attack) {
+        // If an enemy base received the damage and If the damage was dealt by a friendly unit
+        if (event.card.isBase() && event.card.controller !== context.player) {
             return event.damageSource.damageDealtBy.some((card) => card.isUnit()) &&
               event.damageSource.damageDealtBy.some((unit) => unit.controller === context.player);
         }
