@@ -188,9 +188,7 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override menuCommand(player: Player, choice: string, uuid: string) {
-        if (!this.isMenuCommandAvailable(choice)) {
-            return false;
-        }
+        Contract.assertTrue(this.isMenuCommandAvailable(choice), () => `Menu command '${choice}' is not available to player ${player.name} in the current action window`);
 
         switch (choice) {
             // case 'manual':
