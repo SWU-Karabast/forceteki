@@ -782,7 +782,7 @@ A seat V is **in** an audience when the audience is `"all"`, or is a list that h
 `public` file there is no viewer, and no seat is in an audience unless it is `"all"`.
 
 - **[W-43]** A writer MUST give each `create` with a `card` a `to` that holds exactly the seats that know the identity when the entity is created, and each `reveal` a `to` that holds every seat that sees the card at that moment, whether or not the seat already knows it.
-- **[W-44]** Before an entity is in `ground`, `space`, `discard`, `base`, `captured` or `setAside`, a writer MUST make its audience `"all"`: by its `create`, or by a `reveal` written before the `set` that moves it there. A card that moves there from a zone where a seat could not see it needs that `reveal` even when its audience is already `"all"`, because a seat that lost track of it ([§10.3](#103-what-a-viewer-can-track)) sees it again.
+- **[W-44]** Before an entity is in `ground`, `space`, `discard`, `base`, `captured` or `setAside`, a writer MUST make its audience `"all"`: by its `create`, or by a `reveal` written before the `set` that moves it there. A card that moves there from a zone whose opponent visibility is not `public` (`hand`, `deck`, `resource`, or a zone not in the registry) needs that `reveal` even when its audience is already `"all"`, because a seat that lost track of it ([§10.3](#103-what-a-viewer-can-track)) sees it again.
 
 For a viewer V, an entity is **known** once V is in its audience. A known entity stays known
 until it is removed, or until V loses track of it in a hidden hand
@@ -828,7 +828,9 @@ A block that names a card the viewer should see leave the hand comes after the m
 > **Note (informative):** Losing track is deliberately lossy. Even when V was shown the card a
 > moment before it left (a card revealed from the hand by an effect, then resourced in the same
 > decision), V loses track of every card it knew in that hand. Telling those cases apart would
-> need the redactor to judge what V saw and remembers; forgetting always is safe.
+> need the redactor to judge what V saw and remembers; forgetting always is safe. For the same reason, a block that names a card still in a hand that
+> is not V's loses that reference in V's file, even when the card was shown to everyone (a "reveal a
+> card from your hand" cost, a look at the opponent's hand).
 
 > **Note (informative):** A zone this registry does not list is treated as count-only for the
 > same reason an unregistered attribute is `identity`: what nobody classified fails safe.
@@ -1044,6 +1046,10 @@ A block is one point record. There are no open and close pairs: nesting is `pare
 - **[W-53]** A block's `src`, `targets`, `options` and `via` MUST name entities that exist when the block is applied ([W-37]).
 - **[W-54]** A block's `text` MUST NOT name or describe any card or entity other than the ones the block references, so that a reader who knows every entity the block references learns nothing hidden from it. A `name` block is exempt: its `text` is the chosen name, which was announced to both seats, and it MUST hold that name and nothing else.
 - **[W-66]** A block that names a card leaving a hand for a zone whose opponent visibility is `public` (a card played, or discarded from hand) MUST be written after the `set` that moves it, so that the reference survives redaction ([R-09]). A block that names a card leaving a hand face down (into the resource row or a deck) MUST be written before the record that moves it: a `full` file keeps the name, and a `perspective` or `public` file drops it.
+
+> **Note (informative):** A played event therefore moves to `discard` before its `play` block, and
+> resolves from there. Only the boards at step boundaries are states a viewer sees ([§9.4](#94-the-board-at-a-step));
+> where a card sits between two records of one step is not.
 
 Blocks are never state. The board is whatever `create`, `set`, `remove` and `reveal` say.
 
