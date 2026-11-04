@@ -5,14 +5,15 @@ import type { Game } from '../Game';
 import type { IGameObjectRegistrar } from './GameStateManager';
 import { GameStateManager } from './GameStateManager';
 import type { ICanRollBackResult, IRollbackRoundEntryPoint, IRollbackSetupEntryPoint, ISnapshotProperties } from './SnapshotInterfaces';
-import { SnapshotTimepoint } from './SnapshotInterfaces';
+import { DeltaSnapshotKind, SnapshotTimepoint } from './SnapshotInterfaces';
 import { RollbackEntryPointType, type IGetManualSnapshotSettings, type IGetSnapshotSettings, type IManualSnapshotSettings, type IRollbackResult, type ISnapshotSettings } from './SnapshotInterfaces';
 import { Contract } from '../utils/Contract.js';
 import { SnapshotFactory } from './SnapshotFactory';
 import type { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { SnapshotMap } from './container/SnapshotMap';
-import type { MetaSnapshotArray } from './container/MetaSnapshotArray';
-import { QuickRollbackPoint } from './container/MetaSnapshotArray';
+import type { DeltaSnapshotContainer } from './container/DeltaSnapshotContainer';
+import { QuickRollbackPoint } from './container/DeltaSnapshotContainer';
+import type { DeltaSnapshotIndex } from './container/DeltaSnapshotIndex';
 import { PromptType } from '../gameSteps/PromptInterfaces';
 
 export enum UndoMode {
@@ -45,11 +46,13 @@ export class SnapshotManager {
 
     protected readonly actionSnapshots: SnapshotHistoryMap<string>;
     protected readonly phaseSnapshots: SnapshotHistoryMap<PhaseName>;
-    protected readonly quickSnapshots: Map<string, MetaSnapshotArray>;
+    protected readonly quickSnapshots: Map<string, DeltaSnapshotContainer>;
 
     /** Maps each player id to a map of snapshots by snapshot id */
     protected readonly manualSnapshots: Map<string, SnapshotMap<number>>;
 
+    private deltaIndexEvictionEnabled = true;
+    private lastClaimedActionDeltaId: number | null = null;
     private _gameStepsSinceLastUndo?: number;
     private _undoMode: UndoMode;
 
@@ -94,6 +97,11 @@ export class SnapshotManager {
         return this._undoMode;
     }
 
+    /** The global index of the reverse deltas recorded beside the full snapshots (shadow mode: nothing restores from it yet). */
+    public get deltaSnapshotIndex(): DeltaSnapshotIndex {
+        return this.snapshotFactory.deltaSnapshotIndex;
+    }
+
     public constructor(game: Game, undoMode: UndoMode = UndoMode.Disabled) {
         this.#game = game;
         this._gameStateManager = new GameStateManager(game);
@@ -106,7 +114,7 @@ export class SnapshotManager {
         this.phaseSnapshots = this.snapshotFactory.createSnapshotHistoryMap<PhaseName>(limits.get(SnapshotType.Phase));
         this.manualSnapshots = new Map<string, SnapshotMap<number>>();
 
-        this.quickSnapshots = new Map<string, MetaSnapshotArray>();
+        this.quickSnapshots = new Map<string, DeltaSnapshotContainer>();
     }
 
     /** Indicates that we're on a new action and that a new action snapshot can be taken */
@@ -164,7 +172,7 @@ export class SnapshotManager {
 
         let quickSnapshots = this.quickSnapshots.get(playerId);
         if (!quickSnapshots) {
-            quickSnapshots = this.snapshotFactory.createMetaSnapshotArray();
+            quickSnapshots = this.snapshotFactory.createDeltaSnapshotContainer();
             this.quickSnapshots.set(playerId, quickSnapshots);
         }
 
@@ -172,7 +180,54 @@ export class SnapshotManager {
         const actionSnapshotId = this.actionSnapshots.getSnapshotProperties(playerId)?.snapshotId;
         Contract.assertTrue(actionSnapshotId === this.currentSnapshotId, `Attempting to make a quick snapshot from an action snapshot, but the latest action snapshot for ${playerId} (${actionSnapshotId}) does not match the active snapshot id (${this.currentSnapshotId}). Make sure that an action snapshot is taken before creating a quick snapshot from it.`);
 
-        quickSnapshots.addSnapshotFromMap(this.actionSnapshots, playerId);
+        // The entry type comes from the delta the checkpoint produced for this snapshot, never from index membership. Only the first
+        // claimant of an action-phase Action timepoint's delta gets a delta entry; a second claimant of the same timepoint (and every
+        // bridge-timepoint push, such as a prompted player's at the end of the phase) gets a full entry.
+        const delta = this.snapshotFactory.currentSnapshotDelta;
+        if (delta !== null && delta.kind === DeltaSnapshotKind.Action && delta.id === this.currentSnapshotId && delta.id !== this.lastClaimedActionDeltaId) {
+            this.lastClaimedActionDeltaId = delta.id;
+
+            if (quickSnapshots.addDeltaEntry(delta, this.actionSnapshots, playerId)) {
+                this.evictDeltaIndex();
+            }
+            return;
+        }
+
+        quickSnapshots.addFullEntry(this.actionSnapshots, playerId, 'action');
+    }
+
+    /**
+     * Age eviction of the delta index, run after a container released a delta payload: everything at or below the oldest id any
+     * container still holds a live payload for goes. Manual snapshots never pin the index, because they are full snapshots.
+     */
+    private evictDeltaIndex(): void {
+        if (!this.deltaIndexEvictionEnabled) {
+            return;
+        }
+
+        let horizon: number | null = null;
+        for (const container of this.quickSnapshots.values()) {
+            const oldest = container.getOldestLiveDeltaId();
+            if (oldest !== null && (horizon === null || oldest < horizon)) {
+                horizon = oldest;
+            }
+        }
+
+        if (horizon !== null) {
+            this.snapshotFactory.deltaSnapshotIndex.evictThrough(horizon);
+        }
+    }
+
+    /**
+     * Test-mode switch: with eviction off the index keeps every delta, so a chain to any snapshot of the game can be built.
+     * In P4-E the test verifier helper turns it off on every game under `ENABLE_UNDO_ALL_TESTS`; P4-F's harness gate takes that over.
+     */
+    public setDeltaIndexEvictionEnabled(enabled: boolean): void {
+        this.deltaIndexEvictionEnabled = enabled;
+    }
+
+    public get isDeltaIndexEvictionEnabled(): boolean {
+        return this.deltaIndexEvictionEnabled;
     }
 
     private addQuickStartOfPhaseSnapshots(phase: PhaseName.Regroup | PhaseName.Setup) {
@@ -183,11 +238,11 @@ export class SnapshotManager {
         for (const player of this.#game.getPlayers()) {
             let quickSnapshots = this.quickSnapshots.get(player.id);
             if (!quickSnapshots) {
-                quickSnapshots = this.snapshotFactory.createMetaSnapshotArray();
+                quickSnapshots = this.snapshotFactory.createDeltaSnapshotContainer();
                 this.quickSnapshots.set(player.id, quickSnapshots);
             }
 
-            quickSnapshots.addSnapshotFromMap(this.phaseSnapshots, phase);
+            quickSnapshots.addFullEntry(this.phaseSnapshots, phase, 'phase');
         }
     }
 
@@ -204,11 +259,11 @@ export class SnapshotManager {
 
         let quickSnapshots = this.quickSnapshots.get(playerId);
         if (!quickSnapshots) {
-            quickSnapshots = this.snapshotFactory.createMetaSnapshotArray();
+            quickSnapshots = this.snapshotFactory.createDeltaSnapshotContainer();
             this.quickSnapshots.set(playerId, quickSnapshots);
         }
 
-        quickSnapshots.addSnapshotFromMap(this.phaseSnapshots, PhaseName.Action);
+        quickSnapshots.addFullEntry(this.phaseSnapshots, PhaseName.Action, 'phase');
     }
 
     private takeManualSnapshot(settings: IManualSnapshotSettings): number {
@@ -532,12 +587,21 @@ export class SnapshotManager {
         // The window's anchor is about to be cleared; the next snapshot starts a new window.
         this.#game.deltaTracker.discardWindow();
 
+        // Load re-entry contract: the loader clears everything before the first snapshot of the loaded session, so the index must
+        // not outlive the snapshots its anchors point at. That first snapshot is bridge-less, like a game's first.
+        this.snapshotFactory.deltaSnapshotIndex.clear();
+
         this.actionSnapshots.clearAllSnapshots();
         this.phaseSnapshots.clearAllSnapshots();
         this.snapshotFactory.clearCurrentSnapshot();
 
         for (const playerSnapshots of this.manualSnapshots.values()) {
             playerSnapshots.clearAllSnapshots();
+        }
+
+        // The quick containers' entries were never cleared (their snapshots are gone, so they report unavailable); positions stay, payloads go.
+        for (const quickContainer of this.quickSnapshots.values()) {
+            quickContainer.releaseAllDeltas();
         }
     }
 }

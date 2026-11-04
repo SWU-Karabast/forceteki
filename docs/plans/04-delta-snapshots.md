@@ -33,11 +33,8 @@ Cheap, but the benchmark must record delta *size* distribution, not just time.
   *before* the serializer lookup: `-morph` does the lookup plus a
   `Contract.assertNotNullLike` first, paying per-write cost on the hot path
   for already-recorded fields. Don't port that ordering.
-- **Delta payload is bufferless:** `{ changedFields: Map<uuid,
-  Record<field, serializedOldValue>>, createdObjectUuids: string[], rngState,
-  lastGameObjectId }`. No `gameState` buffer, no `states` buffer. This is the
-  point of the plan — the plain `quick-undo-deltas` branch still ran a full
-  serialization per action to seed its tracker, making deltas additive cost.
+- **Delta payload is bufferless:** `IDeltaSnapshot` (landed in P4-E) holds `{ changedFields: Map<uuid, Record<field, StateEncoding-encoded window-start value>>, createdObjectUuids: Set<string>, rngState, lastGameObjectId, removedObjectRecords }`, and the delta carries no `gameState` buffer and no `states` buffer; snapshots themselves have been bufferless since P3-PB2.
+  This is the point of the plan — the plain `quick-undo-deltas` branch still ran a full serialization per action to seed its tracker, making deltas additive cost.
   Forward-compat (Plan 5, "Interaction with Plan 4 deltas"): once objects can
   be removed within a chain window, the payload must capture the object's
   **full serialized record at first-removal time** so it remains recreatable
@@ -136,6 +133,58 @@ Notes for P4-D on the benchmark rows (no row was edited and none was run here):
 P4-D's fixed verdict rule reads the first and fourth of those rows, so as written it cannot observe memoization's write-side benefit and over-reads its retention benefit; the roadmap owner should decide before P4-D runs whether the rule needs a new diagnostic row.
 That open question is resolved by two rows added in the test-only unit P4-Cb and by P4-D's rule in `docs/plans/IMPLEMENTATION-ORDER.md`: `full/moveToNextTimepoint(Action, memoized)` and `payload/retainedChainWithWrites(13 snapshots)` build each snapshot after a real write sized by the scenario's mutated set, and both report how many records each build reused by reference and how many it serialized fresh, as notes that are never asserted, so the pre-memo reference capture, where reuse correctly reads zero, does not fail.
 The memoized row's reuse counts are numbers on its result in the JSON report and the console line only, because the markdown renderer prints notes for payload rows alone, so P4-D reads that row's counts from the JSON.
+
+**As landed in P4-E.**
+The delta chain exists in shadow mode: every snapshot taken while the tracker is tracking also produces a reverse delta that shares its id, but no delta is applied to live state, no snapshot is hollow, and the full snapshot is still the only restore and property authority.
+Production never calls the chain builder; only the test-mode verifier and specs do, so a chain-build defect cannot halt a real game whose full restore would succeed.
+`DeltaSnapshotIndex` (`server/game/core/snapshot/container/DeltaSnapshotIndex.ts`) is the global id-ordered index.
+`SnapshotFactory` owns it (`deltaSnapshotIndex`, also reachable as `SnapshotManager.deltaSnapshotIndex`), and it is a plain class, not a `GameObjectBase`, with no state decorators.
+Its API is `get`, `getIds`, `size`, `headSnapshotId`, `trackingAnchorId`, `evictedThroughId`, `markTrackingAnchor`, `record`, `evictThrough`, `clear` and `buildChain`, and it is pruned through the factory's existing `clearNewerSnapshots` binding.
+It has no `has`: nothing chooses a restore path from index membership.
+`IDeltaSnapshot` (`SnapshotInterfaces.ts`) is `{ id, timepoint, timepointNumber, kind, anchorSnapshotId, rngState, lastGameObjectId, mode, changedFields, createdObjectUuids, removedObjectRecords }`.
+The `id` and `timepointNumber` are the full snapshot's own, `kind` is `DeltaSnapshotKind.Action` or `Bridge`, `anchorSnapshotId` is the window start the delta reverts to, and the tracker's closed window is transferred without a copy because a checkpoint never writes the closed window again.
+`changedFields` holds `StateEncoding`-encoded window-start values (never markers under the default mode), and `removedObjectRecords` is the Plan 5 first-removal slot, always the shared empty map until Plan 5.
+`createSnapshotForCurrentTimepoint` runs `removeUnusedGameObjects` as its first statement, then builds the full snapshot exactly as before, then `checkpointDelta`.
+The explicit cull must stay first at every checkpoint so no object without a ref survives to a snapshot boundary and the delta and the full snapshot agree on which objects exist; the full build's own first-statement cull is then a no-op scan that stays for its other callers.
+`checkpointDelta` starts tracking and marks the tracking anchor for the first snapshot of a game or of a loaded session, which therefore has no delta, and otherwise closes the window and records a delta even when the window is empty.
+The shared-id rule is implemented as stated under "Chain selection": a bridge consumes neither a snapshot id nor a timepoint number of its own, so the confirmation policy sees exactly the values it saw before; the `Boundary-adjacent confirmation policy (shared-id rule)` block in `UndoConfirmation.spec.ts` pins them and was recorded green on the unmodified tree before any product edit.
+`shouldUseDelta(timepoint, phase)` is true only for an Action timepoint during the action phase; every other snapshot with a window records a bridge.
+Capture is the tracker default again, which supersedes the P4-C statement above that `DeltaTracker`'s default is `DirtyOnly`; memoization reads only window keys and behaves the same in both modes.
+`DeltaSnapshotContainer` (`container/DeltaSnapshotContainer.ts`) replaces `MetaSnapshotArray` as each player's quick container, and `QuickRollbackPoint` moved with it.
+Its entries are `full` (every phase push, prompted-player push and bridge-timepoint action push) or `delta` (an action-phase Action timepoint's delta), chosen in `SnapshotManager.addQuickActionSnapshot` from the factory's `currentSnapshotDelta`.
+A delta entry goes to the first claimant of that timepoint only (`lastClaimedActionDeltaId`); a second claimant of the same timepoint gets a full entry.
+A delta entry goes to the container of the player who takes the snapshot, the active player of the new action window, whose window starts after the opponent's action the delta reverts.
+The container API is `addFullEntry`, `addDeltaEntry`, `getOldestLiveDeltaId`, `getLiveDeltaCount`, `releaseAllDeltas` and `getEntrySummaries`, plus the `MetaSnapshotArray` read paths (`getMostRecentSnapshotId`, `getSnapshotProperties`, `rollbackToSnapshot`, `hasQuickSnapshot`).
+The `delta` arm has no handle on the index or the restore machinery; P4-F injects one through `addDeltaEntry` or the constructor.
+At most `MaxDeltaEntries` (3) delta entries per container hold their payload: the fourth releases the oldest in place, keeping its position, its id and its full-snapshot handlers, and full entries are never released.
+The cap releases instead of removing, as `-morph`'s `enforceMaxDeltaCount` does by splicing, because `Current` and `Previous` are array positions and a removal would change which entry `Previous` resolves to after a rollback prunes the newer ones; the planning pilot's simulated splice measured 12 changed `Current` and `Previous` reads in the `test-parallel` suite, in `SnapshotTypes.spec.ts` cases that assert no quick undo is available after consecutive undos, but a real splice mutation left `SnapshotTypes.spec.ts` green, so `DeltaSnapshotContainer.spec.ts` is what pins positions.
+Nothing is deduplicated by snapshot id on a push, as `MetaSnapshotArray` never did; the pilot saw 0 duplicate pushes in 119,380 checkpoints across both suite modes.
+Dispatch is by entry type only (`switch (entry.type)`), so a boundary id that is both a full entry and a bridge in the index restores once through its own full snapshot, and a `delta` entry restores through the same-id full snapshot too: that arm is the one P4-F replaces.
+The dispatch audit of `-morph`'s `deltaSnapshotsById.has` sites found none to port: `quickRollback`, the Action case of `rollbackToInternal`, `takeManualSnapshot` and the manual delta set are not ported, `rollbackToDeltaSnapshotId`'s silent `null` is replaced by `buildChain`'s throws, and `pruneDeltaSnapshotIndex` is the index's `clearNewerSnapshots` binding.
+Contiguity is defined by anchor links, not integer ids, because snapshot ids are never reused after a rollback (`SnapshotFactory.updateCurrentActionSnapshot` rewinds only the timepoint number), so the ids in `(target, head]` legitimately skip the discarded timeline.
+`buildChain(target, targetTimepointNumber)` walks from the head along each delta's anchor to the target and returns the chain newest-first; every link must exist, the timepoint numbers along it must be strictly consecutive, its length must equal the timepoint distance, every index id in `(target, head]` must lie on it, and each anchor link must decrease so a corrupted delta cannot loop.
+A hole, a stray entry, a target above the head or off the timeline, a target before the tracking anchor, a timepoint gap or a length mismatch is a `Contract` failure (inside a rollback that is the `SevereHaltGame`-class path), and a target equal to the head returns an empty chain.
+A walk that reaches an id age eviction dropped throws `DeltaChainBeyondHorizonError` carrying the target, the id reached and `evictedThroughId`, so it is distinguishable from a hole.
+Age eviction runs in `SnapshotManager.evictDeltaIndex` whenever a container releases a delta payload: the horizon is the minimum oldest-live delta entry id across all containers, `DeltaSnapshotIndex.evictThrough(horizon)` drops every id at or below it, and `evictedThroughId` never decreases.
+The horizon is the older container's oldest live delta entry, so the index holds every delta back to the slower-acting player's third-newest action delta (not a fixed count); `index-bounded` pins only strictly alternating play.
+Manual snapshots never pin the index, because they are full snapshots, so a rollback to a manual snapshot below the horizon still restores; the index is then pruned to that target and the floor is unchanged.
+`SnapshotManager.setDeltaIndexEvictionEnabled` (read back through `isDeltaIndexEvictionEnabled`) is the test-mode switch: with eviction off the index keeps every delta, so a chain to any snapshot of the game exists.
+In P4-E that switch is turned off for every game under `ENABLE_UNDO_ALL_TESTS` by a wrapper on `SnapshotManager.prototype.moveToNextTimepoint` in `test/helpers/DeltaChainVerifier.ts`, not in the harness, and it moves into P4-F's harness gate; the cases that switch eviction on are pending in that mode.
+A restored rollback to T drops the index ids above T and makes T the head, and `clearAllSnapshots` empties the index, resets the head, the tracking anchor and the eviction floor, and releases every container delta payload in place (positions are kept, as the old entries never were cleared); the loader's re-entry snapshot is therefore bridge-less and is the head.
+The test-mode verifier `test/helpers/DeltaChainVerifier.ts` is installed at module load in every jasmine run except under `RUN_PERF_BENCHMARKS`, and it follows the memo verifier's pattern.
+After every snapshot it checks pairing: the head is the new snapshot and its delta carries the snapshot's timepoint, timepoint number and kind and anchors at the head read before the snapshot.
+At every restored rollback of every type it builds the chain to the target before the prune and checks that the prune left the target as the head with no id above it.
+It records failures instead of throwing, fails the spec from a top-level `afterEach`, and writes a boot marker and a counts file per worker under `os.tmpdir()/forceteki-delta-chain-verifier-runs/<ppid>`.
+The counts line is `specs= pairingChecked= chainsChecked= beyondHorizon= maxChain= failures= expectedFailures= restoredRollbacks= chainFailuresRecorded= checksSkippedForExemptOrSuspended= state=`, and it balances: `chainsChecked + beyondHorizon + chainFailuresRecorded + checksSkippedForExemptOrSuspended` equals `restoredRollbacks`, the number of `SnapshotManager.rollbackToInternal` calls that returned `success: true`.
+A beyond-horizon rejection counts as `beyondHorizon` only for a target below the oldest live delta entry of the game's containers (or when none is live) and is a `chain` failure otherwise; because the verifier turns eviction off in the undo-mode run, that run must show `beyondHorizon=0`.
+`exemptGameFromDeltaChainVerification(game, reason)` excludes a game that deliberately breaks the lineage; its only user is the `SnapshotMemoization.spec.ts` case that restarts the tracker window at an older snapshot after a raw restore.
+What P4-F inherits: replace the `delta` arm of `DeltaSnapshotContainer` so it restores through the chain; decide where delta metadata and the confirmation flags (`nextSnapshotIsSamePlayer`, `requiresConfirmationToRollback`) live once action snapshots go hollow, since P4-E reads them from the same-id full snapshot; move the undo-mode eviction disable into its harness gate; assert `CaptureOldValues` at apply, because a `DirtyOnly` delta is contiguous but not restorable; and discharge the `getQuickRollbackPoint` obligation for a delta chain whose window ends at a boundary prompt.
+Benchmark note for P4-G: capture is the default again.
+A row carries the encode of each first-written field, the index record and the container bookkeeping only when it checkpoints a live window (`full/moveToNextTimepoint(Action, memoized)`, `sustained/snapshotAndUndoCycle`, `full/createSnapshotForCurrentTimepoint`); `manager/moveToNextTimepoint(Action)` clears all snapshots after each iteration, so every timed call is a bridge-less first snapshot and adds only the redundant cull scan.
+Every row that takes snapshots repeatedly without a prune or clear retains one index delta per snapshot, because the benchmarks never push a quick-container entry and so age eviction never runs: `full/createSnapshotForCurrentTimepoint`, `sustained/snapshotAndUndoCycle` (whose raw restores also bypass `clearNewerSnapshots`), `full/moveToNextTimepoint(Action, memoized)`, and the retention rows `payload/retainedChain(13 snapshots)` and `payload/retainedChainWithWrites(13 snapshots)`, whose retained bytes now include the shadow deltas and are not comparable with the P4-D captures.
+P4-G should also measure index size over a one-player action streak, because the passed player's entries pin the horizon and the index retains the whole streak.
+The `Contract` assertions in `DeltaSnapshotIndex.record` and the container's `addDeltaEntry` now run in production on every snapshot.
+No benchmark was run in this unit, and `Performance.spec.ts` was compile-checked only.
 
 ### Chain selection, contiguity, and eviction
 
@@ -420,7 +469,7 @@ remains covered by the phase/setup specs and the dedicated specs.
   either: **the quick-rollback policy (`getQuickRollbackPoint`) must still
   handle a delta chain whose window ends at a boundary prompt** — this is
   Plan 4's own obligation, not discharged by `P4-0`/`P4-0b`, and belongs to
-  whichever of `P4-E`/`P4-F` builds the delta chain. (The other boundary
+  `P4-F`, the unit that applies a chain; `P4-E` builds chains only in shadow mode and leaves `getQuickRollbackPoint` untouched. (The other boundary
   defect — double-consumed ids/timepoint numbers perturbing the confirmation
   policy — is resolved by the shared-id rule in "Chain selection".)
 - **In-place mutation of `stateValue` Maps/Sets** is invisible to setter

@@ -1,13 +1,15 @@
 import type { Game } from '../Game';
 import type { GameStateManager } from './GameStateManager';
 import type { IDeltaTrackerAnchor } from './DeltaTracker';
-import type { IGameSnapshot, SnapshotTimepoint } from './SnapshotInterfaces';
+import type { IDeltaSnapshot, IGameSnapshot, SnapshotTimepoint } from './SnapshotInterfaces';
+import { DeltaSnapshotKind } from './SnapshotInterfaces';
 import { Contract } from '../utils/Contract.js';
 import type { IClearNewerSnapshotsBinding, IClearNewerSnapshotsHandler } from './container/SnapshotContainerBase';
 import { SnapshotMap } from './container/SnapshotMap';
 import { SnapshotHistoryMap } from './container/SnapshotHistoryMap';
 import type { PhaseName } from '../Constants';
-import { MetaSnapshotArray } from './container/MetaSnapshotArray';
+import { DeltaSnapshotContainer } from './container/DeltaSnapshotContainer';
+import { DeltaSnapshotIndex, noRemovedObjectRecords, shouldUseDelta } from './container/DeltaSnapshotIndex';
 
 export type IGetCurrentSnapshotHandler = () => IGameSnapshot;
 export type IUpdateCurrentSnapshotHandler = (snapshot: IGameSnapshot) => void;
@@ -33,6 +35,20 @@ export class SnapshotFactory {
 
     private lastAssignedSnapshotId = -1;
     private lastAssignedTimepointNumber = -1;
+
+    private readonly _deltaSnapshotIndex: DeltaSnapshotIndex;
+
+    /** The delta that shares the current snapshot's id. Set only by a checkpoint; null for a bridge-less snapshot and after a rollback or clear. */
+    private _currentSnapshotDelta: IDeltaSnapshot | null = null;
+
+    /** The global index of the reverse deltas recorded beside the full snapshots. */
+    public get deltaSnapshotIndex(): DeltaSnapshotIndex {
+        return this._deltaSnapshotIndex;
+    }
+
+    public get currentSnapshotDelta(): IDeltaSnapshot | null {
+        return this._currentSnapshotDelta;
+    }
 
     public get currentSnapshotId(): number | null {
         return this.currentActionSnapshot?.id;
@@ -79,6 +95,9 @@ export class SnapshotFactory {
     public constructor(game: Game, gameStateManager: GameStateManager) {
         this.game = game;
         this.gameStateManager = gameStateManager;
+        this._deltaSnapshotIndex = this.createSnapshotContainerWithClearSnapshotsBinding((clearNewerSnapshotsBinding) =>
+            new DeltaSnapshotIndex(clearNewerSnapshotsBinding)
+        );
     }
 
     public createSnapshotMap<T>(): SnapshotMap<T> {
@@ -106,14 +125,15 @@ export class SnapshotFactory {
         );
     }
 
-    public createMetaSnapshotArray(): MetaSnapshotArray {
+    public createDeltaSnapshotContainer(): DeltaSnapshotContainer {
         return this.createSnapshotContainerWithClearSnapshotsBinding((clearNewerSnapshotsBinding) =>
-            new MetaSnapshotArray(clearNewerSnapshotsBinding)
+            new DeltaSnapshotContainer(clearNewerSnapshotsBinding)
         );
     }
 
     public clearCurrentSnapshot(): void {
         this.currentActionSnapshot = null;
+        this._currentSnapshotDelta = null;
     }
 
     /**
@@ -135,6 +155,11 @@ export class SnapshotFactory {
     public createSnapshotForCurrentTimepoint(timepoint: SnapshotTimepoint): void {
         // TODO: add a guard here that will fail if the current action is already snapshotted,
         // this should be called exactly once per action
+
+        // Must stay first at every checkpoint, before the tracker checkpoint below: no object without a ref survives to a snapshot
+        // boundary, so the delta and the full snapshot agree on which objects exist (docs/plans/04-delta-snapshots.md, "Rollback protocol"
+        // step 5). The full build's own first-statement cull is then a no-op scan, kept for its other callers.
+        this.gameStateManager.removeUnusedGameObjects();
 
         const nextSnapshotId = this.lastAssignedSnapshotId + 1;
         const nextTimepointNumber = this.lastAssignedTimepointNumber + 1;
@@ -159,14 +184,42 @@ export class SnapshotFactory {
 
         this.currentActionSnapshot = snapshot;
 
-        // The only window boundary: the tracker's window runs from one full snapshot to the next.
+        this.checkpointDelta(snapshot);
+    }
+
+    /**
+     * The only window boundary: the tracker's window runs from one full snapshot to the next, and the window just closed becomes
+     * the delta that shares `snapshot`'s id and timepoint number (so no bridge consumes an id of its own), recorded even when empty.
+     * The first snapshot of a tracking run (a game's first, or the first after `clearAllSnapshots`) has no window to close and no delta.
+     */
+    private checkpointDelta(snapshot: IGameSnapshot): void {
         const deltaTracker = this.game.deltaTracker;
         const anchor = this.currentSnapshotAnchor;
-        if (deltaTracker.isTracking) {
-            deltaTracker.checkpoint(anchor);
-        } else {
+
+        if (!deltaTracker.isTracking) {
             deltaTracker.startTracking(anchor);
+            this._deltaSnapshotIndex.markTrackingAnchor(snapshot.id);
+            this._currentSnapshotDelta = null;
+            return;
         }
+
+        const closed = deltaTracker.checkpoint(anchor);
+        const delta: IDeltaSnapshot = {
+            id: snapshot.id,
+            timepoint: snapshot.timepoint,
+            timepointNumber: snapshot.timepointNumber,
+            kind: shouldUseDelta(snapshot.timepoint, snapshot.phase) ? DeltaSnapshotKind.Action : DeltaSnapshotKind.Bridge,
+            anchorSnapshotId: closed.anchor.snapshotId,
+            rngState: closed.anchor.rngState,
+            lastGameObjectId: closed.anchor.lastGameObjectId,
+            mode: closed.mode,
+            changedFields: closed.changedFields,
+            createdObjectUuids: closed.createdObjectUuids,
+            removedObjectRecords: noRemovedObjectRecords
+        };
+
+        this._deltaSnapshotIndex.record(delta);
+        this._currentSnapshotDelta = delta;
     }
 
     public setNextSnapshotIsSamePlayer(value: boolean) {
@@ -191,6 +244,7 @@ export class SnapshotFactory {
         Contract.assertNotNullLike(this.currentActionSnapshot, 'Attempting to read action snapshot before any is set, meaning the game is likely not initialized');
 
         this.currentActionSnapshot = snapshot;
+        this._currentSnapshotDelta = null;
         this.currentActionSnapshot.requiresConfirmationToRollback = false;
         this.lastAssignedTimepointNumber = snapshot.timepointNumber;
     }

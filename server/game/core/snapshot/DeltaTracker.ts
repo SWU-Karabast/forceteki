@@ -12,10 +12,10 @@ import { Contract } from '../utils/Contract.js';
  */
 export enum DeltaTrackerMode {
 
-    /** Records only that a field changed (a marker, no value). The default since P4-C: memoization re-serializes touched objects itself. */
+    /** Records only that a field changed (a marker, no value). Not the default since P4-E: memoization reads only window keys and works in this mode, but a delta recorded in it is not restorable. */
     DirtyOnly = 'dirtyOnly',
 
-    /** Also records the field's window-start value, encoded the way the snapshot serializers encode it. Not the default; P4-E (delta snapshots) selects it. */
+    /** Also records the field's window-start value, encoded the way the snapshot serializers encode it. The default since P4-E: the delta snapshot payload needs the values. */
     CaptureOldValues = 'captureOldValues'
 }
 
@@ -68,6 +68,7 @@ function getFieldKinds(entry: IGeneratedSerializerEntry): Map<string, FieldKind>
  * write that no hook sees (listed below) leaves a stale record in the next snapshot. Every snapshot still holds a record for every object.
  *
  * One tracker per {@link Game}. It is plain bookkeeping, not a `GameObjectBase`, and is not snapshotted.
+ * It defaults to {@link DeltaTrackerMode.CaptureOldValues} (since P4-E), so each closed window is a delta payload; memoization reads only the window's keys and behaves the same in either mode.
  *
  * Invariants:
  * - Every state setter and wrapper mutator calls {@link recordFieldChange} strictly before its write, so the
@@ -95,7 +96,7 @@ function getFieldKinds(entry: IGeneratedSerializerEntry): Map<string, FieldKind>
  */
 export class DeltaTracker {
     private readonly game: Game;
-    private _mode: DeltaTrackerMode = DeltaTrackerMode.DirtyOnly;
+    private _mode: DeltaTrackerMode = DeltaTrackerMode.CaptureOldValues;
     private _tracking = false;
     private _window: IMutableWindow | null = null;
 

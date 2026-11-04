@@ -7,6 +7,7 @@ import type { DeltaTracker, IDeltaTrackerWindow } from '../../../../server/game/
 import { DeltaTrackerMode } from '../../../../server/game/core/snapshot/DeltaTracker';
 import type { IGameSnapshot, IRollbackResult } from '../../../../server/game/core/snapshot/SnapshotInterfaces';
 import { SnapshotTimepoint } from '../../../../server/game/core/snapshot/SnapshotInterfaces';
+import { exemptGameFromDeltaChainVerification } from '../../../helpers/DeltaChainVerifier';
 import {
     getSnapshotMemoVerifierStats,
     isSnapshotMemoVerifierInstalled,
@@ -261,7 +262,7 @@ describe('Snapshot memoization', function() {
                         expect(second.states[token.uuid]).toEqual(freshRecord(token));
                         expectSharingMatchesWindow(window, first, second);
                     } finally {
-                        tracker(game).setMode(DeltaTrackerMode.DirtyOnly);
+                        tracker(game).setMode(DeltaTrackerMode.CaptureOldValues);
                     }
                 });
             }
@@ -297,6 +298,7 @@ describe('Snapshot memoization', function() {
                 const game = context.game;
                 const manager = stateManagerOf(game);
                 const trackerInstance = tracker(game);
+                exemptGameFromDeltaChainVerification(game, 'a raw restore restarts the tracker window at an older snapshot while the factory\'s current snapshot stays newer, so the next delta anchors off the index head');
 
                 // The tracker stopped: the factory restarts the window afterwards.
                 const stopped = takeSnapshot(game);

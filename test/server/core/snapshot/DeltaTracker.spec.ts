@@ -266,7 +266,7 @@ describe('DeltaTracker', function() {
                 player1: { groundArena: ['wampa'], hand: ['battlefield-marine'], resources: 6 },
                 player2: { spaceArena: ['cartel-spacer'] }
             });
-            // Windows open in DirtyOnly since P4-C; the cases below read the window-start values CaptureOldValues records.
+            // CaptureOldValues has been the default since P4-E; set explicitly so the cases below, which read window-start values, do not depend on it.
             (contextRef.context.game.deltaTracker as DeltaTracker).setMode(DeltaTrackerMode.CaptureOldValues);
             return contextRef.context;
         }
@@ -687,8 +687,8 @@ describe('DeltaTracker', function() {
         });
 
         describe('mode', function() {
-            // The board helper selects CaptureOldValues for the cases that read window-start values, so this case sets its own board to see the default.
-            it('opens windows in DirtyOnly by default, and a mode change applies from the next window', async function() {
+            // The board helper sets CaptureOldValues explicitly, which is also the default, so this case sets its own board to see the untouched default.
+            it('opens windows in CaptureOldValues by default, and a mode change applies from the next window', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: { groundArena: ['wampa'], hand: ['battlefield-marine'], resources: 6 },
@@ -698,18 +698,19 @@ describe('DeltaTracker', function() {
                 const wampa = context.wampa as unknown as IDamageUnit;
                 const game = context.game;
                 const trackerInstance = tracker(game);
-                expect(trackerInstance.mode).toBe(DeltaTrackerMode.DirtyOnly);
+                expect(trackerInstance.mode).toBe(DeltaTrackerMode.CaptureOldValues);
 
                 const lookups: GameObjectBase[] = [];
                 const originalLookup = StateSerializers.getStateSerializerFor;
 
                 try {
                     forceFreshWindow(game);
-                    const dirty = trackerInstance.pendingWindow;
-                    expect(dirty.mode).toBe(DeltaTrackerMode.DirtyOnly);
-                    trackerInstance.setMode(DeltaTrackerMode.CaptureOldValues);
+                    const captured = trackerInstance.pendingWindow;
+                    expect(captured.mode).toBe(DeltaTrackerMode.CaptureOldValues);
+                    const damageAtWindowStart = wampa.damage;
+                    trackerInstance.setMode(DeltaTrackerMode.DirtyOnly);
 
-                    // The open window keeps recording markers.
+                    // The open window keeps recording window-start values.
                     withPatch(StateSerializers, 'getStateSerializerFor', (instance: GameObjectBase) => {
                         lookups.push(instance);
                         return originalLookup(instance);
@@ -717,22 +718,22 @@ describe('DeltaTracker', function() {
                         wampa.setDamageForStateInjection(1);
                         wampa.setDamageForStateInjection(2);
                     });
+                    expect(captured.mode).toBe(DeltaTrackerMode.CaptureOldValues);
+                    expect(captured.changedFields.get(wampa.uuid)._damage).toBe(damageAtWindowStart);
+                    expect(lookups.length).toBeGreaterThan(0);
+
+                    forceFreshWindow(game);
+                    const dirty = trackerInstance.pendingWindow;
                     expect(dirty.mode).toBe(DeltaTrackerMode.DirtyOnly);
-                    expect(dirty.changedFields.get(wampa.uuid)._damage).toBe(dirtyFieldMarker);
-                    expect(lookups.length).toBe(0);
-
-                    forceFreshWindow(game);
-                    const captured = trackerInstance.pendingWindow;
-                    expect(captured.mode).toBe(DeltaTrackerMode.CaptureOldValues);
                     wampa.setDamageForStateInjection(3);
-                    expect(captured.changedFields.get(wampa.uuid)._damage).toBe(2);
+                    expect(dirty.changedFields.get(wampa.uuid)._damage).toBe(dirtyFieldMarker);
 
-                    trackerInstance.setMode(DeltaTrackerMode.DirtyOnly);
-                    expect(captured.mode).toBe(DeltaTrackerMode.CaptureOldValues);
+                    trackerInstance.setMode(DeltaTrackerMode.CaptureOldValues);
+                    expect(dirty.mode).toBe(DeltaTrackerMode.DirtyOnly);
                     forceFreshWindow(game);
-                    expect(trackerInstance.pendingWindow.mode).toBe(DeltaTrackerMode.DirtyOnly);
+                    expect(trackerInstance.pendingWindow.mode).toBe(DeltaTrackerMode.CaptureOldValues);
                 } finally {
-                    trackerInstance.setMode(DeltaTrackerMode.DirtyOnly);
+                    trackerInstance.setMode(DeltaTrackerMode.CaptureOldValues);
                 }
             });
         });

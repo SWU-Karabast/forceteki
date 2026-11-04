@@ -1763,5 +1763,79 @@ describe('Undo confirmation', function() {
                 });
             });
         });
+
+        // Pins the quick-undo confirmation values around phase boundaries so a change to how boundary timepoints consume snapshot ids
+        // and timepoint numbers (the shared-id rule: a boundary checkpoint consumes exactly one of each) cannot shift them unnoticed.
+        describe('Boundary-adjacent confirmation policy (shared-id rule)', function() {
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['tactical-advantage'],
+                        spaceArena: ['onyx-squadron-brute'],
+                        base: { card: 'chopper-base', damage: 5 }
+                    },
+                    player2: {
+                        hand: ['open-fire']
+                    },
+                    enableConfirmationToUndo: true
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.tacticalAdvantage);
+                context.player1.clickCard(context.onyxSquadronBrute);
+
+                context.player2.clickCard(context.openFire);
+                context.player2.clickCard(context.onyxSquadronBrute);
+
+                context.player1PassSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.player1PassTimepointNumber = context.game.snapshotManager.currentSnapshottedTimepointNumber;
+                context.player1.passAction();
+
+                context.player2PassSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                context.player2PassTimepointNumber = context.game.snapshotManager.currentSnapshottedTimepointNumber;
+                context.player2.passAction();
+            });
+
+            const getQuickInformation = (context, player) => context.game.snapshotManager.getRollbackInformation({ type: SnapshotType.Quick, playerId: player.id });
+
+            it('classifies the end-of-phase prompt by timepoint distance: the last passer needs no confirmation, the other does', function() {
+                const { context } = contextRef;
+
+                // the passes are consecutive action timepoints, and the end-of-phase checkpoint consumes exactly one id and one timepoint number
+                expect(context.player2PassSnapshotId).toBe(context.player1PassSnapshotId + 1);
+                expect(context.player2PassTimepointNumber).toBe(context.player1PassTimepointNumber + 1);
+                expect(context.game.currentPhase).toBeNull();
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toBe(context.player2PassSnapshotId + 1);
+                expect(context.game.snapshotManager.currentSnapshottedTimepointNumber).toBe(context.player2PassTimepointNumber + 1);
+
+                // P2 passed last: its quick point is one timepoint back and nothing was revealed
+                expect(getQuickInformation(context, context.player2)).toEqual({ requiresConfirmation: false, isSameTimepoint: false });
+
+                // P1's quick point is two timepoints back and the next snapshot after it was the other player's
+                expect(getQuickInformation(context, context.player1)).toEqual({ requiresConfirmation: true, isSameTimepoint: false });
+            });
+
+            it('consumes exactly one snapshot id and timepoint number at Regroup start of phase and at the resource prompt, and keeps the values pinned', function() {
+                const { context } = contextRef;
+
+                const endOfPhaseSnapshotId = contextRef.snapshot.getCurrentSnapshotId();
+                const endOfPhaseTimepointNumber = context.game.snapshotManager.currentSnapshottedTimepointNumber;
+
+                // resolve the Onyx Squadron Brute trigger
+                context.player1.clickCard(context.p1Base);
+
+                expect(context.game.currentPhase).toBe('regroup');
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toBe(endOfPhaseSnapshotId + 2);
+                expect(context.game.snapshotManager.currentSnapshottedTimepointNumber).toBe(endOfPhaseTimepointNumber + 2);
+
+                // Pinned from the run before the delta-chain change. At the resource prompt the quick point of both players is their
+                // Previous entry. P1's is its end-of-phase prompt snapshot, 2 timepoints back with the next snapshot not its own.
+                // P2's is its pass snapshot, 3 timepoints back. Both need confirmation and neither is the current timepoint.
+                expect(getQuickInformation(context, context.player1)).toEqual({ requiresConfirmation: true, isSameTimepoint: false });
+                expect(getQuickInformation(context, context.player2)).toEqual({ requiresConfirmation: true, isSameTimepoint: false });
+            });
+        });
     });
 });

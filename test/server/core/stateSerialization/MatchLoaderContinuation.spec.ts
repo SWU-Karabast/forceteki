@@ -224,5 +224,22 @@ describe('MatchLoader.loadAsync — delta tracker window', function() {
             expect(loadedGame.deltaTracker.isTracking).toBeTrue();
             expect(loadedGame.deltaTracker.pendingWindow.anchor.snapshotId).toBe(loadedGame.snapshotManager.currentSnapshotId);
         });
+
+        it('P4-E — the loaded game\'s re-entry snapshot has no delta and is the head of its delta index', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { hand: ['vanquish'], groundArena: ['atat-suppressor'], resources: 3 },
+                player2: { groundArena: ['wampa'] },
+            });
+            const { context } = contextRef;
+
+            const { game: loadedGame } = await loadAsync(save(context.game), buildLoadConfig(context));
+
+            const index = loadedGame.snapshotManager.deltaSnapshotIndex;
+            const currentSnapshotId = loadedGame.snapshotManager.currentSnapshotId;
+            expect(index.get(currentSnapshotId)).toBeUndefined();
+            expect(index.headSnapshotId).toBe(currentSnapshotId);
+            expect(index.trackingAnchorId).toBe(currentSnapshotId);
+        });
     }, true);
 });

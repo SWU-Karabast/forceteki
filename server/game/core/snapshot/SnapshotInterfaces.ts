@@ -1,6 +1,7 @@
 import type { PhaseName, RollbackRoundEntryPoint, RollbackSetupEntryPoint, SnapshotType } from '../Constants';
 import type { IRandomness } from '../Randomness';
 import type { SerializedStateRecord } from '../StateEncoding';
+import type { DeltaTrackerMode } from './DeltaTracker';
 
 export interface ISnapshotSettingsBase {
     type: SnapshotType;
@@ -136,6 +137,45 @@ export interface IGameSnapshot {
 
     requiresConfirmationToRollback: boolean;
     nextSnapshotIsSamePlayer?: boolean;
+}
+
+/** `action` deltas are the ones quick containers hold entries for; every other snapshot with a window records a `bridge`. */
+export enum DeltaSnapshotKind {
+    Action = 'action',
+    Bridge = 'bridge'
+}
+
+/**
+ * The reverse delta recorded alongside a full snapshot (shadow mode, P4-E): the closed delta-tracker window that ran from
+ * `anchorSnapshotId` to this snapshot. It shares the full snapshot's id and timepoint number, so a bridge consumes neither of its own.
+ * Nothing applies a delta to live state yet; the full snapshot is the only restore authority.
+ */
+export interface IDeltaSnapshot {
+
+    /** The full snapshot's id (shared-id rule). */
+    readonly id: number;
+    readonly timepoint: SnapshotTimepoint;
+
+    /** The full snapshot's timepoint number. */
+    readonly timepointNumber: number;
+    readonly kind: DeltaSnapshotKind;
+
+    /** Window start: the snapshot this delta reverts to. */
+    readonly anchorSnapshotId: number;
+
+    /** Window-start rng state. */
+    readonly rngState: IRandomness['rngState'];
+
+    /** Window-start object id counter. */
+    readonly lastGameObjectId: number;
+    readonly mode: DeltaTrackerMode;
+
+    /** uuid to field name to the field's window-start value encoded by its StateEncoding encoder (a dirty marker in {@link DeltaTrackerMode.DirtyOnly}). */
+    readonly changedFields: ReadonlyMap<string, Readonly<Record<string, unknown>>>;
+    readonly createdObjectUuids: ReadonlySet<string>;
+
+    /** Reserved for Plan 5's first-removal full records; always empty until then. */
+    readonly removedObjectRecords: ReadonlyMap<string, SerializedStateRecord>;
 }
 
 export enum QuickUndoAvailableState {
