@@ -1,5 +1,4 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { DamageSourceType } from '../../../IDamageOrDefeatSource';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 
