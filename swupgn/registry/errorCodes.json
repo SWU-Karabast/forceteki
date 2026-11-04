@@ -189,5 +189,11 @@
         "severity": "fatal",
         "scope": "api",
         "condition": "redact was given a file whose Visibility is not full."
+    },
+    {
+        "code": "unreachable-board",
+        "severity": "fatal",
+        "scope": "api",
+        "condition": "diff was given boards that no record sequence can connect: an audience narrows, a known card changes, an audience changes without a card, or a parent changes zone while keeping a child."
     }
 ]

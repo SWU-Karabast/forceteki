@@ -1,13 +1,24 @@
 import { SwuPgnError } from '../errors.js';
 import { canonicalAttrs } from '../attrOrder.js';
+import { ZONES } from '../registry.js';
 import type { Attrs, AttrValue, Audience, Board, CreateRecord, Entity, RemoveRecord, RevealRecord, Seat, SetRecord, SwuRecord } from '../generated/types.js';
 
 const FIXED = ['g', 'p1', 'p2'];
+const PUBLIC_DESTINATIONS = ['ground', 'space', 'discard', 'base', 'captured', 'setAside'];
+
+/** [W-44]: a card moves from a zone whose opponent visibility is not public into a public one. */
+function entersPublicZone(prev: Entity, next: Entity): boolean {
+    if (prev.zone === undefined || next.zone === undefined || prev.zone === next.zone || !PUBLIC_DESTINATIONS.includes(next.zone)) {
+        return false;
+    }
+    const from = ZONES.find((z) => z.name === prev.zone);
+    return from === undefined || from.opponentSees !== 'public';
+}
 
 function fail(message: string): never {
-    // `result-mismatch`: the records that would turn `prev` into `next` do not exist, so applying
+    // `unreachable-board`: the records that would turn `prev` into `next` do not exist, so applying
     // them cannot give `next` (SPEC [A-09]: a reveal only widens an audience).
-    throw new SwuPgnError('result-mismatch', message);
+    throw new SwuPgnError('unreachable-board', message);
 }
 
 function has(o: object, k: string): boolean {
@@ -83,6 +94,9 @@ function revealRecord(id: string, prev: Entity, next: Entity): RevealRecord | un
     }
     if (prev.to === 'all' && next.to !== 'all') {
         fail(`entity ${id} narrows its audience from "all"; applying records can only widen an audience`);
+    }
+    if (entersPublicZone(prev, next) && next.to !== undefined) {
+        return { t: 'reveal', e: Number(id), card: next.card, to: next.to === 'all' ? 'all' : [...next.to].sort((x, y) => x - y) };
     }
     if (next.to === undefined) {
         if (gained) {
@@ -178,22 +192,79 @@ function topological(ids: string[], before: (id: string) => string | undefined):
     return out;
 }
 
+function zoneChanges(prev: Board, next: Board, id: string): boolean {
+    return has(prev.entities, id) && has(next.entities, id) && prev.entities[id].zone !== next.entities[id].zone;
+}
+
+/** A parent that changes zone cannot keep a child: some record would break [W-28] ([§7]). */
+function checkParentZones(prev: Board, next: Board, created: string[]): void {
+    for (const [id, e] of Object.entries(next.entities)) {
+        if (e.parent === undefined || e.rel === 'captured') {
+            continue;
+        }
+        const p = String(e.parent);
+        const kept = has(prev.entities, id) ? prev.entities[id].parent === e.parent : created.includes(id);
+        if (kept && zoneChanges(prev, next, p)) {
+            fail(`entity ${p} changes zone while keeping its child ${id}; no record order keeps [W-28]`);
+        }
+    }
+}
+
+/**
+ * Order the sets: a set that changes or clears an entity's parent goes before the set that changes
+ * its previous parent's zone; a set that gives an entity a new parent goes after the set that
+ * changes the new parent's zone ([W-28]). Ties by ascending id.
+ */
+function orderSets(prev: Board, next: Board, ids: string[]): string[] {
+    const before = new Map<string, Set<string>>();   // id -> ids that must come first
+    const need = (id: string, first: string): void => {
+        if (id !== first && ids.includes(id) && ids.includes(first)) {
+            before.set(id, (before.get(id) ?? new Set()).add(first));
+        }
+    };
+    for (const id of ids) {
+        const p = prev.entities[id].parent;
+        const n = next.entities[id].parent;
+        if (p !== n && p !== undefined && zoneChanges(prev, next, String(p))) {
+            need(String(p), id);
+        }
+        if (p !== n && n !== undefined && zoneChanges(prev, next, String(n))) {
+            need(id, String(n));
+        }
+    }
+    const done = new Set<string>();
+    const out: string[] = [];
+    const visiting = new Set<string>();
+    const visit = (id: string): void => {
+        if (done.has(id) || visiting.has(id)) {
+            return;
+        }
+        visiting.add(id);
+        [...(before.get(id) ?? [])].sort((x, y) => ids.indexOf(x) - ids.indexOf(y)).forEach(visit);
+        visiting.delete(id);
+        done.add(id);
+        out.push(id);
+    };
+    ids.forEach(visit);
+    return out;
+}
+
 /**
  * The records that turn the board `prev` into the board `next` (SPEC §7, §9): applying them to
  * `prev` with `applyRecord` gives `next`. A writer snapshots its board at each player decision and
  * writes `diff(prev, next)`.
  *
  * Order: `create`s (a parent before its children, otherwise ascending id), `reveal`s, `set`s
- * (`g`, `p1`, `p2` first, then ascending id), then `remove`s (children before their parent, [W-30]).
- * A reveal is written before the `set` that moves the card into a public zone ([W-44]). Every `set`
+ * (`g`, `p1`, `p2` first, then ascending id, except that a child's parent change comes before the set that moves its old parent out of play and after the set that moves its new parent into play, [W-28]), then `remove`s (children before their parent, [W-30]).
+ * A reveal is written before the `set` that moves a card from a hand, deck or resource row into a public zone ([W-44]), even when its audience is already `"all"`. Every `set`
  * that carries `parent` carries `rel` ([W-34], [W-35]). Attribute keys are in canonical order.
  *
  * Limits: a diff of two decision-point boards cannot see an entity that is created and removed
  * inside one step ([W-37]): a card drawn and discarded, a token created and defeated. The writer
  * must write those records itself. The step's `seq` is not diffed: write `step` records yourself.
  *
- * Throws `SwuPgnError` `result-mismatch` when no records can give `next`: an audience narrows,
- * a known `card` changes or is dropped ([A-09]), or a fixed field would have to be removed.
+ * Throws `SwuPgnError` `unreachable-board` when no records can give `next`: an audience narrows,
+ * a known `card` changes or is dropped ([A-09]), a parent changes zone while keeping a child (no record order keeps [W-28]), or a fixed field would have to be removed. Code `unreachable-board`.
  */
 export function diff(prev: Board, next: Board): SwuRecord[] {
     const prevIds = new Set(Object.keys(prev.entities));
@@ -214,12 +285,7 @@ export function diff(prev: Board, next: Board): SwuRecord[] {
             }
         }
     }
-    for (const id of common) {
-        const r = setRecord(id, prev.entities[id], next.entities[id]);
-        if (r) {
-            records.push(r);
-        }
-    }
+    checkParentZones(prev, next, created);
     // a child leaves before its parent: visit the parent only after every removed child
     const kids = new Map<string, string[]>();
     for (const id of removed) {
@@ -238,6 +304,16 @@ export function diff(prev: Board, next: Board): SwuRecord[] {
         const r: RemoveRecord = { t: 'remove', e: Number(id) };
         records.push(r);
     };
+    for (const id of orderSets(prev, next, common)) {
+        if (zoneChanges(prev, next, id)) {
+            // a removed child goes before its parent leaves play ([W-28])
+            (kids.get(id) ?? []).forEach(removeWithChildren);
+        }
+        const r = setRecord(id, prev.entities[id], next.entities[id]);
+        if (r) {
+            records.push(r);
+        }
+    }
     removed.forEach(removeWithChildren);
     return records;
 }

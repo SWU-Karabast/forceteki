@@ -257,7 +257,48 @@ export function nextBoard(prev: Board, rng: Rng): Board {
     for (let i = rng.int(3); i > 0; i--) {
         ents[String(nextId++)] = randomEntity(rng);
     }
-    // an existing child gains an existing parent (re-parent onto a new entity is covered above)
+    // a parent leaves play: its children are detached, or move to another parent in play (the old parent leaves)
+    for (const pid of inPlay()) {
+        const kids = ids().filter((k) => ents[String(k)].parent === pid);
+        if (kids.length > 0 && rng.chance(0.4)) {
+            ents[String(pid)].zone = rng.pick(['hand', 'discard']);
+            const others = inPlay().filter((q) => q !== pid);
+            for (const k of kids) {
+                const child = ents[String(k)];
+                if (others.length > 0 && rng.chance(0.5)) {
+                    const q = rng.pick(others);
+                    attach(child, q, ents[String(q)], rng);
+                } else {
+                    delete child.parent;
+                    delete child.rel;
+                    child.zone = rng.pick(['hand', 'discard']);
+                }
+                ents[String(k)] = orderedEntity(child);
+            }
+            ents[String(pid)] = orderedEntity(ents[String(pid)]);
+            break;
+        }
+    }
+    // a hand card enters play (publicly, even when its audience was already "all"), and an existing loose entity attaches to it
+    const inHand = ids().filter((i) => ents[String(i)].zone === 'hand' && ents[String(i)].parent === undefined && !ids().some((k) => ents[String(k)].parent === i));
+    if (inHand.length > 0 && rng.chance(0.6)) {
+        const hid = rng.pick(inHand);
+        const entering = ents[String(hid)];
+        entering.zone = rng.pick(['ground', 'space']);
+        if (rng.chance(0.6)) {
+            entering.card = entering.card ?? rng.pick(CARDS);
+            entering.to = 'all';
+        }
+        const loose = ids().filter((i) => i !== hid && Object.prototype.hasOwnProperty.call(prev.entities, String(i)) && ents[String(i)].parent === undefined && ents[String(i)].zone !== 'ground' &&
+          !ids().some((k) => ents[String(k)].parent === i));
+        if (loose.length > 0 && rng.chance(0.6)) {
+            const cid = rng.pick(loose);
+            const child = ents[String(cid)];
+            attach(child, hid, entering, rng);
+            ents[String(cid)] = orderedEntity(child);
+        }
+        ents[String(hid)] = orderedEntity(entering);
+    }
     return next;
 }
 

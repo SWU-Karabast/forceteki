@@ -1481,6 +1481,7 @@ code registry.
 | `dangling-annotation` | warning | a file | An annotation refers to a missing step. |
 | `too-many-issues` | warning | a file | The issue limit was reached. |
 | `not-full` | fatal | an SDK call | redact was given a file whose Visibility is not full. |
+| `unreachable-board` | fatal | an SDK call | diff was given boards that no record sequence can connect: an audience narrows, a known card changes, an audience changes without a card, or a parent changes zone while keeping a child. |
 <!-- /registry:errorCodes -->
 
 ---
