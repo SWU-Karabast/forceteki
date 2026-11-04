@@ -18,8 +18,15 @@ export interface ISwuPgnLook {
     readonly seenAtSeq: number;
 }
 
-/** The audience bit for `'all'`; the seat bits are the seat numbers. */
+/** The audience bit for `'all'`, above the seat bits. */
 const ALL_BIT = 4;
+
+/** A seat's audience bit: 1 for seat 1, 2 for seat 2. */
+function seatBit(seat: Seat): number {
+    return 1 << (seat - 1);
+}
+
+const seatsInOrder: readonly Seat[] = [1, 2];
 
 @registerState()
 export class SwuPgnWriterState extends GameObjectBase {
@@ -140,14 +147,7 @@ export class SwuPgnWriterState extends GameObjectBase {
 
     public audienceOf(key: string): Seat[] {
         const bits = this.audiences.get(key) ?? 0;
-        const seats: Seat[] = [];
-        if (bits & 1) {
-            seats.push(1);
-        }
-        if (bits & 2) {
-            seats.push(2);
-        }
-        return seats;
+        return seatsInOrder.filter((seat) => (bits & seatBit(seat)) !== 0);
     }
 
     /** Whether the key's audience is `'all'`: shown to everyone, not only to both seats. */
@@ -159,10 +159,10 @@ export class SwuPgnWriterState extends GameObjectBase {
     public widen(key: string, seats: Seat[] | 'all'): void {
         let bits = this.audiences.get(key) ?? 0;
         if (seats === 'all') {
-            bits |= 1 | 2 | ALL_BIT;
+            bits |= seatBit(1) | seatBit(2) | ALL_BIT;
         } else {
             for (const seat of seats) {
-                bits |= seat;
+                bits |= seatBit(seat);
             }
         }
         this.audiences.set(key, bits);

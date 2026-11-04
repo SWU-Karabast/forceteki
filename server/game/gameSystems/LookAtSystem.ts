@@ -51,10 +51,10 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
         return properties.player || context.player;
     }
 
-    public override addPropertiesToEvent(event, cards, context: TContext, additionalProperties): void {
-        super.addPropertiesToEvent(event, cards, context, additionalProperties);
-        const lookEvent: LookAtEvent = event;
-        lookEvent.viewer = this.getPromptedPlayer(this.generatePropertiesFromContext(context, additionalProperties), context);
+    protected override addViewPropertiesToEvent(event: ViewCardEvent, properties: ILookAtProperties, context: TContext): void {
+        // from the properties the base already generated for the event: generating them again costs every look
+        const viewer: Pick<LookAtEvent, 'viewer'> = { viewer: this.getPromptedPlayer(properties, context) };
+        Object.assign(event, viewer);
     }
 
     public override checkEventCondition(): boolean {

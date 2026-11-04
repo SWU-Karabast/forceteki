@@ -114,6 +114,12 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         event.cards = cards;
         event.displayTextByCardUuid = properties.displayTextByCardUuid;
         event.promptHandler = useDisplayPrompt ? this.buildPromptHandler(cards, properties, context) : null;
+        this.addViewPropertiesToEvent(event, properties, context);
+    }
+
+    /** For a subclass to add its own fields to the event from the properties already generated for it. */
+    protected addViewPropertiesToEvent(_event: ViewCardEvent, _properties: TProperties, _context: TContext): void {
+        // nothing by default
     }
 
     private buildPromptHandler(cards: Card[], properties: IViewCardProperties, context: TContext): () => void {

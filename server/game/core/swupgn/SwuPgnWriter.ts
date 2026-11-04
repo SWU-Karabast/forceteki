@@ -71,6 +71,7 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
     private prev: Board = emptyBoard();
     private _undos = 0;
     private _errors = 0;
+    private readonly unparsedDeckEntryIds = new Set<string>();
 
     /** The prompt, and the players it was waiting for, at the last step: a decision point that finds both unchanged with nothing new is a no-op click. */
     private lastPrompt: UiPrompt | null | undefined = undefined;
@@ -85,6 +86,23 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
     private diffMismatchLogged = false;
     private _dirtyDiffsChecked = 0;
 
+    /** Writers that failed to build, process-wide: each such game ran unrecorded (`Game`'s constructor catches the failure). */
+    public static constructionFailures = 0;
+
+    /**
+     * The game's writer, or null when it cannot be built: a writer failure never breaks a game, so the game runs
+     * unrecorded, and the failure is logged and counted in {@link constructionFailures}.
+     */
+    public static tryCreate(game: Game, mode: Exclude<SwuPgnWriterMode, 'off'>): SwuPgnWriter | null {
+        try {
+            return new SwuPgnWriter(game, mode);
+        } catch (error) {
+            SwuPgnWriter.constructionFailures++;
+            logger.error('SWU-PGN: writer construction failed; the game is not recorded', { error, lobbyId: game.lobbyId });
+            return null;
+        }
+    }
+
     public constructor(
         private readonly game: Game,
         mode: Exclude<SwuPgnWriterMode, 'off'>
@@ -93,7 +111,7 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         this.audiences = new AudienceTracker(game, this.state, (card) => this.projector.markDirty(card));
         // the tracker listens first, so a flush on the same event sees the cards it widened
         this.audiences.register();
-        this.projector = new BoardProjector(game, this.state, this.audiences);
+        this.projector = new BoardProjector(game, this.state, this.audiences, (what, error) => this.reportError(what, error));
         this.state.onRestored = () => this.projector.invalidate();
         // the dirty marks come from `onEventResolved`, which the event window calls before any listener runs
         this.registerFlushPoints(mode);
@@ -215,6 +233,18 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
             this.projector.markDirty(card);
             this.audiences.onCardEnteredZone(card, zoneName);
         });
+    }
+
+    /**
+     * A decklist entry id the file's `DECKS` line keeps raw because it is not a `SET_NNN` id: a writer error, counted
+     * once per id however many files are built. Not rollback state: an undo does not change a decklist.
+     */
+    public onUnparsedDeckEntryId(setCode: string): void {
+        if (this.unparsedDeckEntryIds.has(setCode)) {
+            return;
+        }
+        this.unparsedDeckEntryIds.add(setCode);
+        this.reportError('DECKS entry', new Error(`decklist entry id '${setCode}' is not a SET_NNN id; written raw`));
     }
 
     public onAbilityLimitChanged(card: Card): void {

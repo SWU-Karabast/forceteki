@@ -178,23 +178,31 @@ function buildHeader(game: Game, writer: SwuPgnWriter): Header {
 // ---- DECKS ([W-47]..[W-49]) ----------------------------------------------------------------------
 
 /**
- * A decklist entry's id (`SOR_095`) as a card id (`SOR#095`). A suffix that is not a number is kept raw rather than
- * written as `SOR#NaN`.
+ * A decklist entry's id (`SOR_095`) as a card id (`SOR#095`). An id not of that form is kept raw rather than written as
+ * `SOR#NaN` (dropping the entry would make the line's `complete` a lie), and is passed to `onUnparsed` so the writer
+ * counts it as an error.
  */
-function deckEntryId(setCode: string): CardId {
+export function deckEntryId(setCode: string, onUnparsed: (setCode: string) => void): CardId {
     const parts = setCode.split('_');
     const num = Number(parts[1]);
-    return parts.length === 2 && Number.isInteger(num) ? `${parts[0].toUpperCase()}#${String(num).padStart(3, '0')}` : setCode;
+    if (parts.length === 2 && Number.isInteger(num)) {
+        return `${parts[0].toUpperCase()}#${String(num).padStart(3, '0')}`;
+    }
+    onUnparsed(setCode);
+    return setCode;
 }
 
-/** `deckNames` collects the display names of the decklist entries, which may never have been loaded into the game (a sideboard card). */
-function buildDecks(game: Game, deckNames: Map<CardId, string>): DeckLine[] {
+/**
+ * `deckNames` collects the display names of the decklist entries, which may never have been loaded into the game (a
+ * sideboard card); `onUnparsed` is told of an entry id `deckEntryId` cannot parse.
+ */
+function buildDecks(game: Game, deckNames: Map<CardId, string>, onUnparsed: (setCode: string) => void): DeckLine[] {
     return seats.map((seat) => {
         const player = playerOf(game, seat);
         const toEntries = (entries: IInternalCardEntry[]): [CardId, number][] => entries
             .filter((entry) => entry.count > 0)
             .map((entry) => {
-                const id = deckEntryId(entry.id);
+                const id = deckEntryId(entry.id, onUnparsed);
                 const mapped = game.cardDataGetter?.cardMap?.get(entry.internalName);
                 if (mapped?.title && !deckNames.has(id)) {
                     deckNames.set(id, displayName(mapped.title, mapped.subtitle));
@@ -290,9 +298,10 @@ function buildCards(game: Game, mentioned: ReadonlySet<CardId>, deckNames: Reado
 /** The writer's `full` file: header, DECKS, CARDS and the records written so far. */
 export function buildFullFile(game: Game, writer: SwuPgnWriter): SwuPgnFile {
     const records = [...writer.records];
-    const header = buildHeader(game, writer);
     const deckNames = new Map<CardId, string>();
-    const decks = buildDecks(game, deckNames);
+    // before the header, so an error counted while building the decks is in its `WriterErrors`
+    const decks = buildDecks(game, deckNames, (setCode) => writer.onUnparsedDeckEntryId(setCode));
+    const header = buildHeader(game, writer);
     const cards = buildCards(game, mentionedCardIds(header, decks, records), deckNames);
     return { header, decks, cards, records, annotations: [], unknownSections: [] };
 }

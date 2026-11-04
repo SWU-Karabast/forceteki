@@ -271,6 +271,8 @@ function attributesOf(card: Card): Attrs {
         a.deployed = card.deployed;
         a.epicActionUsed = card.epicActionSpent;
     }
+    // No double-sided leader in the engine has an Epic Action (`DoubleSidedLeaderCard` carries no epic action or
+    // deploy code), so it gets no `epicActionUsed`: add it here if a double-sided leader with an Epic Action ships.
     if (card.isDoubleSidedLeader()) {
         a.onStartingSide = card.onStartingSide;
     }

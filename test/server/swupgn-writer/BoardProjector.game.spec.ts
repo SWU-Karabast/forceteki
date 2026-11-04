@@ -60,6 +60,26 @@ describe('BoardProjector game and seat entities', function() {
             context.player2.clickPrompt('Continue Playing');
         });
 
+        it('writes no result, and reports an error once, for a winner no seat maps to', function () {
+            const { game } = contextRef.context;
+            // the undo suite runs this body a second time in the same spec, when the getters are spied on already
+            const isSpied = (name: string) => jasmine.isSpy(Object.getOwnPropertyDescriptor(game, name)?.get);
+            const isEnded = isSpied('isEnded') ? Object.getOwnPropertyDescriptor(game, 'isEnded').get as jasmine.Spy : spyOnProperty(game, 'isEnded', 'get');
+            const winnerNames = isSpied('winnerNames') ? Object.getOwnPropertyDescriptor(game, 'winnerNames').get as jasmine.Spy : spyOnProperty(game, 'winnerNames', 'get');
+            isEnded.and.returnValue(true);
+            winnerNames.and.returnValue(['nobody at this table']);
+            const errors: string[] = [];
+            const state = new SwuPgnWriterState(game);
+            const projector = new BoardProjector(game, state, new AudienceTracker(game, state), (what) => errors.push(what));
+
+            expect('result' in projector.project().entities.g.a).toBeFalse();
+            expect('result' in projector.projectFull().entities.g.a).toBeFalse();
+            expect(errors).toEqual(['game result']);
+            // the game's own writer projects again after the spec body (the suite-wide checks): the real game has not ended
+            isEnded.and.callThrough();
+            winnerNames.and.callThrough();
+        });
+
         it('projects the seat entities', function () {
             const [p1, p2] = contextRef.context.game.getPlayers();
 

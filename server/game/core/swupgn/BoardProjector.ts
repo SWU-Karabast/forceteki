@@ -67,10 +67,15 @@ export class BoardProjector {
     /** Each card's index in `game.allCards`, the order a projection reads new cards in (so ids are assigned as in `projectFull`). */
     private readonly cardOrder = new Map<Card, number>();
 
+    /** Whether a winner no seat maps to was reported: once per projector, though every projection meets it again. */
+    private unmappedWinnerReported = false;
+
+    /** `reportError` counts a writer error the projection works around rather than throws on (the writer's counter). */
     public constructor(
         private readonly game: Game,
         private readonly state: SwuPgnWriterState,
-        private readonly audiences: AudienceTracker
+        private readonly audiences: AudienceTracker,
+        private readonly reportError: (what: string, error: unknown) => void = () => undefined
     ) {}
 
     /** The cards the last `project()` read rather than reused (for specs). */
@@ -397,8 +402,16 @@ export class BoardProjector {
         a.initiativeTaken = game.isInitiativeClaimed;
 
         if (game.isEnded) {
-            const winners = game.winnerNames.map((name) => seatOf(game.getPlayerByName(name)));
-            a.result = winners.length === 1 && winners[0] !== null ? `p${winners[0]}` : 'draw';
+            const winners = game.winnerNames.map((name) => seatOf(game.getPlayers().find((player) => player.name === name) ?? null));
+            if (winners.some((seat) => seat === null)) {
+                // not a draw: the result is left out (the file says `Incomplete`) and the error is counted
+                if (!this.unmappedWinnerReported) {
+                    this.unmappedWinnerReported = true;
+                    this.reportError('game result', new Error(`a winner of [${game.winnerNames.join(', ')}] is no seat`));
+                }
+            } else {
+                a.result = winners.length === 1 ? `p${winners[0]}` : 'draw';
+            }
         }
         return { a };
     }

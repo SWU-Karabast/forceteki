@@ -2,7 +2,8 @@ import type { Board, CreateRecord, Entity, SwuRecord } from '@swupgn/format';
 import { apply } from '@swupgn/format';
 import type { Card } from '../../../server/game/core/card/Card';
 import { cardIdOf } from '../../../server/game/core/swupgn/SwuPgnCardIds';
-import type { SwuPgnWriter } from '../../../server/game/core/swupgn/SwuPgnWriter';
+import { AudienceTracker } from '../../../server/game/core/swupgn/AudienceTracker';
+import { SwuPgnWriter } from '../../../server/game/core/swupgn/SwuPgnWriter';
 
 describe('SwuPgnWriter', function() {
     integration(function(contextRef) {
@@ -424,6 +425,32 @@ describe('SwuPgnWriter', function() {
             expect(writer.records).toEqual(firstRun);
             expect(writer.undos).toBe(1);
             expect(writer.errors).toBe(0);
+        });
+    });
+});
+
+describe('SwuPgnWriter that cannot be built', function() {
+    let failuresBefore = 0;
+
+    // before the harness's own beforeEach, which builds the game
+    beforeEach(function () {
+        failuresBefore = SwuPgnWriter.constructionFailures;
+        spyOn(AudienceTracker.prototype, 'register').and.throwError('writer construction failed');
+    });
+
+    integration(function(contextRef) {
+        it('leaves the game running with no writer, and counts the failure', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { hand: ['battlefield-marine'] }
+            });
+            const { context } = contextRef;
+
+            expect(context.game.swuPgnWriter).toBeNull();
+            expect(SwuPgnWriter.constructionFailures).toBe(failuresBefore + 1);
+
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.battlefieldMarine).toBeInZone('groundArena');
         });
     });
 });

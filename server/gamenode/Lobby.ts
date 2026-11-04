@@ -17,6 +17,7 @@ import type { GameConfiguration } from '../game/core/GameInterfaces';
 import type { GameServer } from './GameServer';
 import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import type { CardPool } from '../game/core/Constants';
+import type { SwuPgnWriter } from '../game/core/swupgn/SwuPgnWriter';
 import {
     AlertType,
     GameEndReason,
@@ -253,6 +254,11 @@ export class Lobby {
 
     public get spectationAllowed(): boolean {
         return this.allowSpectators;
+    }
+
+    /** The SWU-PGN writer recording the lobby's current game, or null when there is no game or it records none. */
+    public get swuPgnWriter(): SwuPgnWriter | null {
+        return this.game?.swuPgnWriter ?? null;
     }
 
     public get gamesToWinMode(): GamesToWinMode {

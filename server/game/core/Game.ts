@@ -468,7 +468,7 @@ export class Game extends EventEmitter {
         this.abilityHelper = getAbilityHelper(this);
 
         // built before any snapshot is taken, so every rollback restores its state
-        this._swuPgnWriter = SWUPGN_WRITER === 'off' ? null : new SwuPgnWriter(this, SWUPGN_WRITER);
+        this._swuPgnWriter = SWUPGN_WRITER === 'off' ? null : SwuPgnWriter.tryCreate(this, SWUPGN_WRITER);
 
         this.playersAndSpectators = {};
         this.chatMessageOffsets = new Map();

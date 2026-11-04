@@ -2,6 +2,7 @@ import type { SwuPgnFile, SwuRecord } from '@swupgn/format';
 import { apply, parse } from '@swupgn/format';
 import { validate } from '@swupgn/format/validate';
 import { GameEndReason } from '../../../server/game/core/Constants';
+import { deckEntryId } from '../../../server/game/core/swupgn/FileAssembler';
 import { cardIdOf } from '../../../server/game/core/swupgn/SwuPgnCardIds';
 import type { SwuPgnFileView } from '../../../server/game/core/swupgn/SwuPgnWriter';
 import { SwuPgnWriter } from '../../../server/game/core/swupgn/SwuPgnWriter';
@@ -313,6 +314,40 @@ describe('SWU-PGN file assembly', function() {
                     .toBe('valid');
             }
             expect(writer.errors).toBe(0);
+        });
+    });
+});
+
+describe('SWU-PGN DECKS entry ids', function() {
+    integration(function(contextRef) {
+        it('writes a decklist id as a card id, padding the number', function () {
+            const unparsed: string[] = [];
+            expect(deckEntryId('SOR_95', (raw) => unparsed.push(raw))).toBe('SOR#095');
+            expect(deckEntryId('ibh_001', (raw) => unparsed.push(raw))).toBe('IBH#001');
+            expect(unparsed).toEqual([]);
+        });
+
+        it('keeps an id it cannot parse raw, and reports it', function () {
+            const unparsed: string[] = [];
+            expect(deckEntryId('SOR_095a', (raw) => unparsed.push(raw))).toBe('SOR_095a');
+            expect(deckEntryId('SOR', (raw) => unparsed.push(raw))).toBe('SOR');
+            expect(unparsed).toEqual(['SOR_095a', 'SOR']);
+        });
+
+        it('counts each unparsable decklist id once as a writer error', async function () {
+            await contextRef.setupTestAsync({ phase: 'action' });
+            const writer = contextRef.context.game.swuPgnWriter;
+            // the ids already reported are not rollback state (an undo does not change a decklist), and the undo
+            // suite runs this body twice on one writer: each run reports ids of its own
+            const run = writer.undos;
+
+            writer.onUnparsedDeckEntryId(`SOR_095a${run}`);
+            writer.onUnparsedDeckEntryId(`SOR_095a${run}`);
+            expect(writer.errors).toBe(1);
+            writer.onUnparsedDeckEntryId(`SOR${run}`);
+            expect(writer.errors).toBe(2);
+            // the errors were counted on purpose: clear them for the suite-wide checks that no writer counted any
+            writer.restartBaseline();
         });
     });
 });

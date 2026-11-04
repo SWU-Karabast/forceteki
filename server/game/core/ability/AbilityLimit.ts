@@ -96,13 +96,12 @@ export class UnlimitedAbilityLimit extends AbilityLimit {
 
     public increment(player: Player): void {
         const key = this.getKey(player.name);
+        // no `reportChange()`: an unlimited ability's uses are never projected (`limitRecordOf` in swupgn/projectEffects.ts)
         this.useCount.set(key, this.currentForPlayer(player) + 1);
-        this.reportChange();
     }
 
     public reset(): void {
         this.useCount.clear();
-        this.reportChange();
     }
 
     public currentForPlayer(player: Player) {
