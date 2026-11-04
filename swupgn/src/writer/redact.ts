@@ -16,6 +16,7 @@ type Status = 'known' | 'anonymous' | 'unmaterialized';
 const FIXED_IDS: ReadonlySet<string> = new Set(['g', 'p1', 'p2']);
 const OPPONENT_SEES: ReadonlyMap<string, string> = new Map(ZONES.map((z) => [z.name, z.opponentSees]));
 const REF_ATTRIBUTES: ReadonlySet<string> = new Set(ATTRIBUTES.filter((a) => a.type === 'ref').map((a) => a.name));
+const EFFECT_ATTRIBUTES: ReadonlySet<string> = new Set(ATTRIBUTES.filter((a) => a.on.includes('effect')).map((a) => a.name));
 const REF_ARRAY_ATTRIBUTES: ReadonlySet<string> = new Set(ATTRIBUTES.filter((a) => a.type === 'ref[]').map((a) => a.name));
 
 /** The words that go with a dropped reference (SPEC §11.1). */
@@ -120,17 +121,25 @@ class Redactor {
     /**
      * §11.1 Mapping: a `ref` attribute keeps only a reference V may follow, mapped; a `ref[]`
      * attribute keeps its referable elements, even when none is left. Any dropped reference takes
-     * `text`, `untilText` and `ability` with it.
+     * `text`, `untilText` and `ability` with it. In a `create` a dropped attribute is left out; in a
+     * `set` it is written `null`, so the viewer's board deletes the stale value. On an effect, only
+     * `kind` and the attributes registered for effects are kept (§10.4).
      */
-    private mapAttrs(a: Attrs): Attrs {
+    private mapAttrs(a: Attrs, entity: Entity, inSet: boolean): Attrs {
+        const effect = entity.a.kind === 'effect';
         const out: Attrs = {};
+        const gone: string[] = [];
         let dropped = false;
         for (const [k, v] of Object.entries(a)) {
+            if (effect && k !== 'kind' && !EFFECT_ATTRIBUTES.has(k)) {
+                continue;
+            }
             if (REF_ATTRIBUTES.has(k) && v !== null) {
                 if (isEntityId(v) && this.referable(v)) {
                     out[k] = this.mapped(v);
                 } else {
                     dropped = true;
+                    gone.push(k);
                 }
             } else if (REF_ARRAY_ATTRIBUTES.has(k) && Array.isArray(v)) {
                 const kept = v.filter((x) => isEntityId(x) && this.referable(x));
@@ -142,8 +151,16 @@ class Redactor {
         }
         if (dropped) {
             for (const k of FREE_TEXT_ATTRIBUTES) {
-                // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-                delete out[k];
+                if (Object.prototype.hasOwnProperty.call(out, k)) {
+                    gone.push(k);
+                    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+                    delete out[k];
+                }
+            }
+        }
+        if (inSet) {
+            for (const k of gone) {
+                out[k] = null;
             }
         }
         return canonicalAttrs(out);
@@ -179,7 +196,7 @@ class Redactor {
     private emitKnownCreate(key: string, line: number | undefined): void {
         const e = this.entity(key) as Entity;
         const parent = e.parent === undefined ? undefined : this.mappedParent(e.parent, line);
-        const a = this.mapAttrs(e.a);
+        const a = this.mapAttrs(e.a, e, false);
         const rec: CreateRecord = { t: 'create', e: this.fresh(key), owner: e.owner as Seat };
         Object.assign(rec, fields(e.zone, e.owner, e.controller, parent, e.rel));
         if (e.card !== undefined) {
@@ -283,7 +300,7 @@ class Redactor {
                 out.parent = parent;
             }
             if (r.a !== undefined) {
-                const a = this.mapAttrs(r.a);
+                const a = this.mapAttrs(r.a, e, false);
                 if (Object.keys(a).length > 0) {
                     out.a = a;
                 } else {
@@ -356,7 +373,7 @@ class Redactor {
             out.rel = r.rel;
         }
         if (r.a !== undefined) {
-            const a = anonymous ? this.faceDown(r.a) : this.mapAttrs(r.a);
+            const a = anonymous ? this.faceDown(r.a) : this.mapAttrs(r.a, e, true);
             if (Object.keys(a).length > 0) {
                 out.a = a;
             }

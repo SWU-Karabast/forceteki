@@ -52,6 +52,53 @@ const BOARD: SwuRecord[] = [
     { t: 'create', e: 2, zone: 'base', owner: 2, card: 'SOR#029', a: { kind: 'base', damage: 0, hp: 28 } },
 ];
 
+/**
+ * The small full files the unit tests below redact, by name. The last test redacts every one of
+ * them that validates as `valid` in all three views, and holds the output to `valid` too ([R-15]).
+ */
+const CASES: Record<string, { records: SwuRecord[]; extra?: string }> = {
+    anonymousAttrs: { records: [...BOARD,
+        { t: 'create', e: 3, zone: 'resource', owner: 1, card: 'SOR#046', to: [1], a: { exhausted: false, cost: 2, power: 3, x_note: 'n', zzz: 1 } },
+        { t: 'step', seq: 0 },
+        { t: 'set', e: 3, a: { exhausted: true, x_note: 'm', cost: 3 } },
+        { t: 'step', seq: 1 }] },
+    refs: { records: [...BOARD,
+        { t: 'create', e: 3, zone: 'hand', owner: 1, card: 'SOR#046', to: [1] },
+        { t: 'create', e: 4, zone: 'ground', owner: 1, card: 'SOR#095', a: { kind: 'unit', exhausted: false } },
+        { t: 'create', e: 5, owner: 1, to: 'all', a: { kind: 'effect', src: 4, targets: [3, 4, 'p2'], duration: 'phase', ability: 'x', text: 'buff' } },
+        { t: 'set', e: 5, a: { src: 3, text: 'now from hand', duration: 'round' } },
+        { t: 'set', e: 5, a: { src: 3 } },
+        { t: 'step', seq: 0 }] },
+    effectExtras: { records: [...BOARD,
+        { t: 'create', e: 3, zone: 'ground', owner: 1, card: 'SOR#095', a: { kind: 'unit', exhausted: false, copyOf: 'SOR#046' } },
+        { t: 'create', e: 4, owner: 1, to: 'all', a: { kind: 'effect', src: 3, targets: [3], duration: 'phase', x_writer: 'z', cost: 2 } },
+        { t: 'set', e: 4, a: { x_more: 1 } },
+        { t: 'set', e: 4, a: { duration: 'round', x_more: 2 } },
+        { t: 'step', seq: 0 }] },
+    forget: { records: [...BOARD,
+        { t: 'create', e: 3, zone: 'hand', owner: 1, card: 'SOR#046', to: [1] },
+        { t: 'create', e: 4, zone: 'hand', owner: 1, card: 'SOR#095', to: [1] },
+        { t: 'step', seq: 0 },
+        { t: 'reveal', e: 3, card: 'SOR#046', to: [2] },
+        { t: 'set', e: 4, zone: 'resource', a: { exhausted: false } },
+        { t: 'set', e: 3, zone: 'ground', a: { kind: 'unit' } },
+        { t: 'step', seq: 1 }] },
+    blockText: { records: [...BOARD,
+        { t: 'create', e: 3, zone: 'hand', owner: 1, card: 'SOR#046', to: [1] },
+        { t: 'block', id: 1, kind: 'look', p: 1, targets: [3, 'p1'], text: 'Consular Security Force' },
+        { t: 'block', id: 2, kind: 'name', p: 1, src: 3, text: 'Wampa' },
+        { t: 'block', id: 3, kind: 'look', p: 1, targets: [1], text: 'kept' },
+        { t: 'step', seq: 0 }] },
+    parentRel: { records: [...BOARD,
+        { t: 'create', e: 3, zone: 'hand', owner: 1, card: 'SOR#046', to: [1] },
+        { t: 'create', e: 4, zone: 'hand', owner: 1, parent: 3, rel: 'attached', card: 'SOR#095', to: 'all' },
+        { t: 'step', seq: 0 }] },
+    unknownSections: { records: [...BOARD, { t: 'x_thing', e: 1 } as unknown as SwuRecord, { t: 'step', seq: 0 }],
+        extra: '\n%%% STORY\nP1 holds Wampa\n\n%%% X_EXTRA\nsecret\n\n%%% ANNOTATIONS\n{"seq":0,"text":"hi"}\n' },
+};
+
+const fullCase = (name: string): SwuPgnFile => fullFile(CASES[name].records, CASES[name].extra);
+
 const created = (file: SwuPgnFile): CreateRecord[] => file.records.filter((r): r is CreateRecord => r.t === 'create');
 
 describe('redact', function () {
@@ -110,11 +157,7 @@ describe('redact', function () {
     });
 
     it('drops unknown and x_ attributes on anonymous entities, keeps them on known ones', function () {
-        const full = fullFile([...BOARD,
-            { t: 'create', e: 3, zone: 'resource', owner: 1, card: 'SOR#046', to: [1], a: { exhausted: false, cost: 2, power: 3, x_note: 'n', zzz: 1 } },
-            { t: 'step', seq: 0 },
-            { t: 'set', e: 3, a: { exhausted: true, x_note: 'm', cost: 3 } },
-            { t: 'step', seq: 1 }]);
+        const full = fullCase('anonymousAttrs');
         const p2 = redact(full, 2);
         expect(p2.records[2] as unknown).toEqual({ t: 'create', e: 3, zone: 'resource', owner: 1, to: [1], a: { exhausted: false } });
         expect(p2.records[4] as unknown).toEqual({ t: 'set', e: 3, a: { exhausted: true } });
@@ -135,34 +178,35 @@ describe('redact', function () {
         expect(created(p2).filter((r) => r.card === 'SOR#095').length).toBe(1, 'the card drawn again later is not known to p2');
     });
 
-    it('drops ref attribute values pointing at unmaterialized entities, and the words with them', function () {
-        const full = fullFile([...BOARD,
-            { t: 'create', e: 3, zone: 'hand', owner: 1, card: 'SOR#046', to: [1] },
-            { t: 'create', e: 4, zone: 'ground', owner: 1, card: 'SOR#095', a: { kind: 'unit', exhausted: false } },
-            { t: 'create', e: 5, owner: 1, to: 'all', a: { kind: 'effect', src: 4, targets: [3, 4, 'p2'], duration: 'phase', ability: 'x', text: 'buff' } },
-            { t: 'set', e: 5, a: { src: 3 } },
-            { t: 'step', seq: 0 }]);
+    it('drops ref attribute values pointing at unmaterialized entities, and the words with them: omitted in a create, null in a set', function () {
+        const full = fullCase('refs');
         const p2 = redact(full, 2);
-        const records = p2.records.slice(BOARD.length);
-        expect(records as unknown).toEqual([
+        expect(p2.records.slice(BOARD.length) as unknown).toEqual([
             { t: 'create', e: 3, zone: 'ground', owner: 1, card: 'SOR#095', a: { kind: 'unit', exhausted: false } },
             { t: 'create', e: 4, owner: 1, to: 'all', a: { kind: 'effect', src: 3, targets: [3, 'p2'], duration: 'phase' } },
+            { t: 'set', e: 4, a: { src: null, duration: 'round', text: null } },
+            { t: 'set', e: 4, a: { src: null } },
             { t: 'step', seq: 0 },
         ]);
+        expect(apply(p2.records).entities['4'].a as unknown).toEqual({ kind: 'effect', targets: [3, 'p2'], duration: 'round' });
         const p1 = redact(full, 1);
-        expect(p1.records[BOARD.length + 2] as unknown).toEqual({ t: 'create', e: 5, owner: 1, to: 'all', a: { kind: 'effect', src: 4, targets: [3, 4, 'p2'], duration: 'phase', ability: 'x', text: 'buff' } });
+        expect(p1.records.slice(BOARD.length + 2) as unknown).toEqual(full.records.slice(BOARD.length + 2));
+    });
+
+    it('keeps on an effect only kind and the attributes registered for effects', function () {
+        const full = fullCase('effectExtras');
+        for (const view of [1, 2, 'public'] as View[]) {
+            expect(redact(full, view).records.slice(BOARD.length) as unknown).toEqual([
+                { t: 'create', e: 3, zone: 'ground', owner: 1, card: 'SOR#095', a: { kind: 'unit', exhausted: false, copyOf: 'SOR#046' } },
+                { t: 'create', e: 4, owner: 1, to: 'all', a: { kind: 'effect', src: 3, targets: [3], duration: 'phase' } },
+                { t: 'set', e: 4, a: { duration: 'round' } },
+                { t: 'step', seq: 0 },
+            ], `view ${view}`);
+        }
     });
 
     it('forgets every known card of a hidden hand on a face-down departure, and knows a forgotten card again when it enters a public zone', function () {
-        const full = fullFile([...BOARD,
-            { t: 'create', e: 3, zone: 'hand', owner: 1, card: 'SOR#046', to: [1] },
-            { t: 'create', e: 4, zone: 'hand', owner: 1, card: 'SOR#095', to: [1] },
-            { t: 'step', seq: 0 },
-            { t: 'reveal', e: 3, card: 'SOR#046', to: [2] },
-            { t: 'set', e: 4, zone: 'resource', a: { exhausted: false } },
-            { t: 'set', e: 3, zone: 'ground', a: { kind: 'unit' } },
-            { t: 'step', seq: 1 }]);
-        expect(redact(full, 2).records.slice(BOARD.length) as unknown).toEqual([
+        expect(redact(fullCase('forget'), 2).records.slice(BOARD.length) as unknown).toEqual([
             { t: 'step', seq: 0 },
             { t: 'create', e: 3, zone: 'hand', owner: 1, card: 'SOR#046', to: [1, 2] },
             { t: 'remove', e: 3 },
@@ -173,12 +217,7 @@ describe('redact', function () {
     });
 
     it('drops a block\'s text with a dropped reference, except the chosen name of a name block', function () {
-        const full = fullFile([...BOARD,
-            { t: 'create', e: 3, zone: 'hand', owner: 1, card: 'SOR#046', to: [1] },
-            { t: 'block', id: 1, kind: 'look', p: 1, targets: [3, 'p1'], text: 'Consular Security Force' },
-            { t: 'block', id: 2, kind: 'name', p: 1, src: 3, text: 'Wampa' },
-            { t: 'block', id: 3, kind: 'look', p: 1, targets: [1], text: 'kept' },
-            { t: 'step', seq: 0 }]);
+        const full = fullCase('blockText');
         expect(redact(full, 2).records.slice(BOARD.length) as unknown).toEqual([
             { t: 'block', id: 1, kind: 'look', p: 1, targets: ['p1'] },
             { t: 'block', id: 2, kind: 'name', p: 1, text: 'Wampa' },
@@ -192,17 +231,13 @@ describe('redact', function () {
     });
 
     it('refuses a parent it cannot map (parent-rel), never emitting the record without it', function () {
-        const full = fullFile([...BOARD,
-            { t: 'create', e: 3, zone: 'hand', owner: 1, card: 'SOR#046', to: [1] },
-            { t: 'create', e: 4, zone: 'hand', owner: 1, parent: 3, rel: 'attached', card: 'SOR#095', to: 'all' },
-            { t: 'step', seq: 0 }]);
+        const full = fullCase('parentRel');
         expect(codeOf(() => redact(full, 2))).toBe('parent-rel');
         expect(codeOf(() => redact(full, 1))).toBeUndefined();
     });
 
     it('copies no unknown record type, STORY, ANNOTATIONS or unknown section, and drops Seed and order', function () {
-        const full = fullFile([...BOARD, { t: 'x_thing', e: 1 } as unknown as SwuRecord, { t: 'step', seq: 0 }],
-            '\n%%% STORY\nP1 holds Wampa\n\n%%% X_EXTRA\nsecret\n\n%%% ANNOTATIONS\n{"seq":0,"text":"hi"}\n');
+        const full = fullCase('unknownSections');
         expect(full.story).toBeDefined();
         expect(full.annotations.length).toBe(1);
         const p1 = redact(full, 1);
@@ -221,5 +256,17 @@ describe('redact', function () {
         const file = parse(text);
         redact(file, 2);
         expect(serialize(file)).toBe(text);
+    });
+
+    it('[R-15] redacts every unit-test input that validates as valid to valid output in all three views', function () {
+        const valid = Object.keys(CASES).filter((name) => validate(serialize(fullCase(name))).level === 'valid');
+        expect(valid).toEqual(jasmine.arrayContaining(['anonymousAttrs', 'refs', 'effectExtras', 'forget', 'unknownSections']));
+        for (const name of valid) {
+            for (const view of [1, 2, 'public'] as View[]) {
+                const report = validate(serialize(redact(fullCase(name), view)));
+                expect(report.issues.filter((i) => i.severity !== 'warning')).toEqual([], `${name} → ${view}`);
+                expect(report.level).toBe('valid', `${name} → ${view}`);
+            }
+        }
     });
 });
