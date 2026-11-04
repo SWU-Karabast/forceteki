@@ -290,6 +290,16 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
         return this._title;
     }
 
+    /** The title printed on the card's front, whatever side is up and whatever effects apply. */
+    public get printedTitle(): string {
+        return this._title;
+    }
+
+    /** The subtitle printed on the card's front (null when it has none), whatever side is up and whatever effects apply. */
+    public get printedSubtitle(): string | null {
+        return this._subtitle ?? null;
+    }
+
     public get unique(): boolean {
         return this._unique;
     }

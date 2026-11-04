@@ -1,0 +1,220 @@
+import type { Attrs, Audience, Entity, Seat } from '@swupgn/format';
+import { ZONES } from '@swupgn/format';
+import type { Card } from '../card/Card';
+import type { Player } from '../Player';
+import { EffectName, ZoneName } from '../Constants';
+import { Contract } from '../utils/Contract';
+import { EnumHelpers } from '../utils/EnumHelpers';
+import { cardIdOf } from './SwuPgnCardIds';
+import type { SwuPgnWriterState } from './SwuPgnWriterState';
+
+/**
+ * The SWU-PGN zone for each engine zone; null for a zone that holds no entities here.
+ * A Record, so a new engine zone fails to compile until it is mapped.
+ */
+const zoneNameOf: Record<ZoneName, string | null> = {
+    [ZoneName.Base]: 'base',
+    [ZoneName.Capture]: 'captured',
+    [ZoneName.Deck]: null, // Task 5 adds temporary deck entities
+    [ZoneName.Discard]: 'discard',
+    [ZoneName.GroundArena]: 'ground',
+    [ZoneName.Hand]: 'hand',
+    [ZoneName.OutsideTheGame]: 'setAside',
+    [ZoneName.Resource]: 'resource',
+    [ZoneName.SpaceArena]: 'space',
+};
+
+const publicZones: ReadonlySet<string> = new Set(ZONES.filter((zone) => zone.opponentSees === 'public').map((zone) => zone.name));
+
+export type SeatOf = (player: Player) => Seat | null;
+
+/** Adds one entity per tracked card and token to `entities`, keyed by entity id. */
+export function projectCards(cards: readonly Card[], state: SwuPgnWriterState, seatOf: SeatOf, entities: Record<string, Entity>): void {
+    for (const card of cards) {
+        const zone = zoneOfEntity(card);
+        if (zone !== null) {
+            entities[String(idOf(card, state))] = projectCard(card, zone, state, seatOf);
+        }
+    }
+}
+
+function idOf(card: Card, state: SwuPgnWriterState): number {
+    return state.entityIdFor(state.cardKey(card));
+}
+
+/** The entity's zone, or null when the card has no entity. */
+function zoneOfEntity(card: Card): string | null {
+    if (card.zone == null) {
+        return null; // a token removed from the game
+    }
+    if (card.isForceToken() || card.isCreditToken()) {
+        return null; // seat attributes, not entities
+    }
+    if (card.isToken() && card.zoneName === ZoneName.OutsideTheGame) {
+        return null; // a token that left play (W-25)
+    }
+    return zoneNameOf[card.zoneName];
+}
+
+function seat(player: Player, seatOf: SeatOf): Seat {
+    const result = seatOf(player);
+    Contract.assertNotNullLike(result, `SWU-PGN: player ${player.name} has no seat`);
+    return result;
+}
+
+function projectCard(card: Card, zone: string, state: SwuPgnWriterState, seatOf: SeatOf): Entity {
+    const owner = seat(card.owner, seatOf);
+    const entity: Entity = { zone, owner, a: {} };
+
+    // a captured card is held by the captor but stays its owner's (W-29: controller absent)
+    const controller = card.zoneName === ZoneName.Capture ? owner : seat(card.controller, seatOf);
+    if (controller !== owner) {
+        entity.controller = controller;
+    }
+
+    const parent = parentOf(card);
+    if (parent) {
+        entity.parent = idOf(parent.card, state);
+        entity.rel = parent.rel;
+    }
+
+    entity.card = cardIdOf(card);
+    entity.to = audienceOf(zone, owner);
+    entity.a = attributesOf(card);
+    return entity;
+}
+
+/** Until Task 5 tracks audiences: everyone in a public zone, the owner elsewhere. */
+function audienceOf(zone: string, owner: Seat): Audience {
+    return publicZones.has(zone) ? 'all' : [owner];
+}
+
+function parentOf(card: Card): { card: Card; rel: 'attached' | 'pilot' | 'captured' } | null {
+    const zone = card.zone;
+    if (zone.name === ZoneName.Capture) {
+        return { card: zone.captor, rel: 'captured' };
+    }
+    if (card.canBeInPlay() && card.isInPlay() && card.isAttached()) {
+        // a pilot is a unit or leader attached to a vehicle (NonLeaderUnitUpgrade, LeaderUpgrade)
+        return { card: card.parentCard, rel: EnumHelpers.isUnitUpgrade(card.type) ? 'pilot' : 'attached' };
+    }
+    return null;
+}
+
+function isLeaderCard(card: Card): boolean {
+    // not card.isLeader(): a vehicle piloted by a leader answers true to that
+    return card.isDeployableLeader() || card.isDoubleSidedLeader();
+}
+
+/** What the card is now (SPEC §7.3 Kinds). */
+function kindOf(card: Card): string {
+    if (card.isToken()) {
+        return 'token';
+    }
+    if (isLeaderCard(card)) {
+        return 'leader';
+    }
+    if (card.isBase()) {
+        return 'base';
+    }
+    if (card.isEvent()) {
+        return 'event';
+    }
+    if (card.isUpgrade()) {
+        return 'upgrade'; // also a unit attached as a pilot
+    }
+    if (card.isUnit()) {
+        return 'unit';
+    }
+    Contract.fail(`SWU-PGN: cannot classify card ${card.internalName} of type ${card.type}`);
+}
+
+/**
+ * The card's attributes, each only on the entities the registry's `on` names: `unit` is a unit in an arena
+ * (a deployed leader and a token unit included, an attached pilot not), `upgrade` an attached upgrade,
+ * `leader` a leader card in any zone, `base` a base, `resource` a card in the resource row.
+ * A card in hand, discard, a capture zone or set aside carries only its identity attributes (`kind`, `aspects`,
+ * `cost`, `name`): the engine holds no other state for it there. Zone checks guard the accessors that throw outside their zones.
+ */
+function attributesOf(card: Card): Attrs {
+    const a: Attrs = { kind: kindOf(card) };
+
+    const isResource = card.zoneName === ZoneName.Resource;
+    const isLeader = isLeaderCard(card);
+    const isUnit = EnumHelpers.isArena(card.zoneName) && card.isUnit();
+    const isUpgrade = card.canBeInPlay() && card.isInPlay() && card.isAttached() && !isLeader;
+
+    // an attached pilot, leader or not, has no ready state in the engine (UnitProperties.updateStateOnAttach)
+    if ((isResource || isUnit || (isLeader && card.zoneName === ZoneName.Base)) && card.canBeExhausted()) {
+        a.exhausted = card.exhausted;
+    }
+
+    if (isUnit && card.isUnit()) {
+        a.damage = card.damage;
+        a.power = card.getPower();
+        a.hp = card.getHp();
+        const keywords = card.keywords.map((keyword) => (keyword.hasNumericValue() ? `${keyword.name} ${keyword.value}` : keyword.name)).sort();
+        if (keywords.length > 0) {
+            a.keywords = keywords;
+        }
+    } else if (card.isBase()) {
+        a.damage = card.damage;
+        a.hp = card.getHp();
+    }
+
+    if (isUnit || isUpgrade) {
+        const traits = [...card.traits].sort();
+        if (traits.length > 0) {
+            a.traits = traits;
+        }
+    }
+
+    const aspects = card.aspects;
+    if (aspects.length > 0) {
+        a.aspects = [...aspects];
+    }
+    if (card.hasCost()) {
+        a.cost = card.printedCost;
+    }
+
+    const name = displayName(card.title, card.subtitle);
+    if (name !== displayName(card.printedTitle, card.printedSubtitle)) {
+        a.name = name;
+    }
+
+    if (isUnit && card.isUnit()) {
+        if (card.isFullyBlanked()) {
+            a.blank = true;
+        }
+        if (card.isLeaderUnit() && !isLeader) {
+            a.leaderUnit = true;
+        }
+        if (card.isClonedUnit) {
+            const copied = card.getOngoingEffectValues<Card>(EffectName.CloneUnit)[0];
+            if (copied) {
+                a.copyOf = cardIdOf(copied);
+            }
+        }
+    }
+
+    if (card.isDeployableLeader()) {
+        a.deployed = card.deployed;
+        a.epicActionUsed = card.epicActionSpent;
+    }
+    if (card.isDoubleSidedLeader()) {
+        a.onStartingSide = card.onStartingSide;
+    }
+
+    if (card.isBase()) {
+        if (card.hasEpicAction) {
+            a.epicActionUsed = card.epicActionSpent;
+        }
+        a.defeated = card.defeated || card.damage >= card.getHp();
+    }
+    return a;
+}
+
+/** The CARDS line form of a name: `Title, Subtitle`. */
+function displayName(title: string, subtitle: string | null | undefined): string {
+    return subtitle ? `${title}, ${subtitle}` : title;
+}

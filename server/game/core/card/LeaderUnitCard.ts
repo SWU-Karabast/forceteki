@@ -34,6 +34,7 @@ export interface ILeaderUnitCard extends ILeaderCard, IUnitCard {}
 /** Represents a deployable leader in an undeployed state */
 export interface IDeployableLeaderCard extends ILeaderUnitCard {
     get deployed(): boolean;
+    get epicActionSpent(): boolean;
     deploy(deployProps: { type: DeployType.LeaderUnit } | { type: DeployType.LeaderUpgrade; parentCard: IUnitCard }): void;
     undeploy(): void;
 }
@@ -55,6 +56,11 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
 
     public get deployed() {
         return this._deployed;
+    }
+
+    /** Whether the owner has used this leader's deploy Epic Action. */
+    public get epicActionSpent(): boolean {
+        return this.deployEpicActionLimit.isAtMax(this.owner);
     }
 
     /**

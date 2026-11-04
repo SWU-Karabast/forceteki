@@ -4,6 +4,7 @@ import type { Player } from '../Player';
 import { PhaseName } from '../Constants';
 import type { AudienceTracker } from './AudienceTracker';
 import type { SwuPgnWriterState } from './SwuPgnWriterState';
+import { projectCards } from './projectCards';
 
 /**
  * Projects the live game into an SWU-PGN board: the full state after one decision.
@@ -22,6 +23,7 @@ export class BoardProjector {
             p1: this.projectSeat(1),
             p2: this.projectSeat(2)
         };
+        projectCards(this.game.allCards, this.state, (player) => this.seatOf(player), entities);
         return { seq: null, entities };
     }
 

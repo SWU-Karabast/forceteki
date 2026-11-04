@@ -29,6 +29,7 @@ import { AbilityResolver } from './gameSteps/AbilityResolver';
 import type { PreResolvedOptionalChoice } from './gameSteps/AbilityResolver';
 import { AbilityContext } from './ability/AbilityContext';
 import { Contract } from './utils/Contract';
+import type { ISwuPgnWriterHooks } from './swupgn/ISwuPgnWriterHooks';
 import { cards } from '../cards/Index';
 
 import {
@@ -227,6 +228,12 @@ export class Game extends EventEmitter {
             .filter(Boolean).length;
         const maxClaimableCounters = Math.min(3, this.getPlayers().length);
         return claimedCount < maxClaimableCounters;
+    }
+
+    /** The SWU-PGN writer recording this game, or null when none is. */
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public get swuPgnWriter(): ISwuPgnWriterHooks | null {
+        return null;
     }
 
     public get roundNumber() {
