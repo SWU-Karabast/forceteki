@@ -1,6 +1,8 @@
 import { validate } from '@swupgn/format/validate';
 import { warmEngineVersion } from '../../../server/game/core/swupgn/FileAssembler';
 import type { SwuPgnFileView } from '../../../server/game/core/swupgn/SwuPgnWriter';
+import type { IScriptedGameLog } from './scriptedGameDecisions';
+import { recordDecisions, writeDecisionLogs } from './scriptedGameDecisions';
 import { playScriptedGame, scriptedGameNames } from './scriptedGames';
 
 /**
@@ -15,6 +17,9 @@ import { playScriptedGame, scriptedGameNames } from './scriptedGames';
  *   `file`    A-file: each finished game's four views are written (not validated), and the time `fileFor` takes is
  *             printed once at the end as `SWUPGN_FILE_MS {json}`
  * In every case nothing is validated, and the engine version is warmed first, as the server does at startup.
+ *
+ * With `SWUPGN_DECISION_LOG` set, each game's setup, seed and decisions are written to that file, for workload L, which
+ * replays them through a real `Lobby` (`scriptedGameDecisions.ts`).
  */
 describe('SWU-PGN scripted games', function() {
     integration(function(contextRef) {
@@ -32,9 +37,22 @@ describe('SWU-PGN scripted games', function() {
             });
         }
 
+        const decisionLogs: Record<string, IScriptedGameLog> = {};
+        if (process.env.SWUPGN_DECISION_LOG) {
+            afterAll(function () {
+                writeDecisionLogs(decisionLogs);
+            });
+        }
+
         for (const name of scriptedGameNames) {
             it(`${name}: every view of the file validates and the writer caught no failure`, async function () {
-                await playScriptedGame(contextRef, name);
+                await playScriptedGame(contextRef, name, process.env.SWUPGN_DECISION_LOG ? (game, setup, seed) => {
+                    decisionLogs[name] = { setup, seed, decisions: [], messages: 0 };
+                    recordDecisions(game, decisionLogs[name]);
+                } : undefined);
+                if (decisionLogs[name] !== undefined) {
+                    decisionLogs[name].messages = contextRef.context.game.gameChat.messages.length;
+                }
 
                 const writer = contextRef.context.game.swuPgnWriter;
                 if (writer === null) {

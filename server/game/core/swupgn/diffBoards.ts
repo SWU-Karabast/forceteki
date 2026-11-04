@@ -11,8 +11,21 @@ import { diff } from '@swupgn/format/writer';
  * Such boards are written in two passes through a middle board: first each kept child is detached (it keeps its old
  * zone) and each new child is left out, while the parents move; then the children are attached again, or created,
  * in their parents' new zone.
+ *
+ * `changed`, when given, names the entities that may differ between the boards: every other entity must be the same
+ * object in both (the projector reused it), and is skipped. The records are the same as without it: an entity that is
+ * the same object in both boards gives no record, and the only way it shapes the others is as a kept child of a parent
+ * that changes zone ([W-28]), so such children are diffed too. Null diffs every entity.
  */
-export function diffBoards(prev: Board, next: Board): SwuRecord[] {
+export function diffBoards(prev: Board, next: Board, changed: ReadonlySet<string> | null = null): SwuRecord[] {
+    if (changed === null) {
+        return diffWithMiddleBoard(prev, next);
+    }
+    const ids = changedIds(prev, next, changed);
+    return diffWithMiddleBoard(subBoard(prev, ids), subBoard(next, ids));
+}
+
+function diffWithMiddleBoard(prev: Board, next: Board): SwuRecord[] {
     try {
         return diff(prev, next);
     } catch (error) {
@@ -25,6 +38,49 @@ export function diffBoards(prev: Board, next: Board): SwuRecord[] {
         }
         return [...diff(prev, middle), ...diff(middle, next)];
     }
+}
+
+/** The ids of `changed` that are not the same object in both boards, with the children of any of them that changes zone. */
+function changedIds(prev: Board, next: Board, changed: ReadonlySet<string>): Set<string> {
+    const ids = new Set<string>();
+    let parentMayMove = false;
+    for (const id of changed) {
+        const before = prev.entities[id];
+        const after = next.entities[id];
+        if (before === after) {
+            continue;
+        }
+        ids.add(id);
+        if (before !== undefined && after !== undefined && before.zone !== after.zone) {
+            parentMayMove = true;
+        }
+    }
+    if (parentMayMove) {
+        for (const id in next.entities) {
+            const parent = next.entities[id].parent;
+            if (parent === undefined || ids.has(id)) {
+                continue;
+            }
+            const key = String(parent);
+            const before = prev.entities[key];
+            const after = next.entities[key];
+            if (ids.has(key) && before !== undefined && after !== undefined && before.zone !== after.zone) {
+                ids.add(id);
+            }
+        }
+    }
+    return ids;
+}
+
+function subBoard(board: Board, ids: ReadonlySet<string>): Board {
+    const entities: Record<string, Entity> = {};
+    for (const id of ids) {
+        const entity = board.entities[id];
+        if (entity !== undefined) {
+            entities[id] = entity;
+        }
+    }
+    return { seq: board.seq, entities };
 }
 
 /** `next` with the children of every parent that changes zone detached (when kept) or left out (when new); null when there is none. */

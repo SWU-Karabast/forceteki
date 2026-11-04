@@ -23,8 +23,19 @@ export interface ISwuPgnWriterStats {
 
     /** Card entities a dirty projection reused from its cache. */
     cardsReused: number;
+
+    /** Cards a dirty projection visited: those with entities and those marked, never a deck card nobody sees. */
+    cardsVisited: number;
+
+    /** Flushes diffed over every entity (after a full re-read: the first, a phase or round change, a rollback). */
+    fullDiffs: number;
+
+    /** Entities named changed in the flushes diffed over the changed entities only. */
+    entitiesDiffed: number;
 }
 
 export const countSwuPgnWriterStats: boolean = SWUPGN_WRITER_STATS;
 
-export const swuPgnWriterStats: ISwuPgnWriterStats = { writers: 0, steps: 0, projections: 0, flushes: 0, cardsRead: 0, cardsReused: 0 };
+export const swuPgnWriterStats: ISwuPgnWriterStats = {
+    writers: 0, steps: 0, projections: 0, flushes: 0, cardsRead: 0, cardsReused: 0, cardsVisited: 0, fullDiffs: 0, entitiesDiffed: 0
+};

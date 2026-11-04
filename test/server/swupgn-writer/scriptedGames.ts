@@ -1,4 +1,5 @@
 import { PhaseName } from '../../../server/game/core/Constants';
+import type { Game } from '../../../server/game/core/Game';
 import type { PlayerInteractionWrapper } from '../../helpers/PlayerInteractionWrapper';
 
 /**
@@ -902,14 +903,18 @@ const games: Record<ScriptedGameName, IScriptedGame> = {
  * Plays scripted game `name` from a natural setup to P2's concession: builds its board, seeds the game, plays the setup
  * phase and its rounds (resourcing one card each regroup), and fails if the situation it exists for never happened.
  */
-export async function playScriptedGame(contextRef: SwuTestContextRef, name: ScriptedGameName): Promise<void> {
+export async function playScriptedGame(contextRef: SwuTestContextRef, name: ScriptedGameName, onSeeded?: (game: Game, setup: SwuSetupTestOptions, seed: string) => void): Promise<void> {
     const script = games[name];
+    // as given: the harness fills in defaults on the options it is passed
+    const setup: SwuSetupTestOptions = JSON.parse(JSON.stringify(script.setup));
     await contextRef.setupTestAsync(script.setup);
     const { context } = contextRef;
     const game = context.game;
 
     // seeded before the first shuffle, so the game is the same every run
     game.setRandomSeed(script.seed);
+    // the benchmark's decision log starts here, with the setup and seed a replay needs (`scriptedGameDecisions.ts`)
+    onSeeded?.(game, setup, script.seed);
     (script.runSetup ?? defaultSetup(script.keep))(context);
     expect(game.currentPhase).withContext(`${name}: setup ended`)
         .toBe(PhaseName.Action);

@@ -282,6 +282,11 @@ class GameStateBuilder {
         }
 
         this.attachAbbreviatedContextInfo(context, context);
+
+        // a test game file (`/api/start-test-game`) has no spec to seed its game: seeded last, where a spec would
+        if (options.randomSeed != null) {
+            context.game.setRandomSeed(options.randomSeed);
+        }
     }
 
     /**
@@ -370,7 +375,8 @@ class GameStateBuilder {
             'autoSingleTarget',
             'testUndo',
             'enableConfirmationToUndo',
-            'format'
+            'format',
+            'randomSeed'
         ];
 
         // Check for unknown properties

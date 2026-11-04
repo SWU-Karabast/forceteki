@@ -85,6 +85,8 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
      */
     public checkProjections: boolean = SWUPGN_PROJECTION_CHECK;
     private mismatchLogged = false;
+    private diffMismatchLogged = false;
+    private _dirtyDiffsChecked = 0;
 
     public constructor(
         private readonly game: Game,
@@ -96,8 +98,7 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         this.audiences.register();
         this.projector = new BoardProjector(game, this.state, this.audiences);
         this.state.onRestored = () => this.projector.invalidate();
-        // and the dirty marks come before the flush on the same event
-        this.registerDirtySources();
+        // the dirty marks come from `onEventResolved`, which the event window calls before any listener runs
         this.registerFlushPoints(mode);
         if (countSwuPgnWriterStats) {
             swuPgnWriterStats.writers++;
@@ -124,6 +125,11 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
      */
     public onBoardChangedOutsideEngine(): void {
         this.projector.invalidate();
+    }
+
+    /** Flushes whose diff over the changed entities was checked against the full diff (`checkProjections`; for specs). */
+    public get dirtyDiffsChecked(): number {
+        return this._dirtyDiffsChecked;
     }
 
     /** The projector the writer flushes with (for specs: its cached and full projections). */
@@ -228,6 +234,7 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         this.audiences.reset();
         this.projector.invalidate();
         this.mismatchLogged = false;
+        this.diffMismatchLogged = false;
         this.prev = emptyBoard();
         this._undos = 0;
         this._errors = 0;
@@ -244,13 +251,20 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         let flushed = false;
         try {
             this.resyncAfterRestore();
-            let next = this.projector.project(ending);
-            if (this.checkProjections) {
-                next = this.checkedAgainstFull(next, ending);
-            }
-            const records = diffBoards(this.prev, next);
+            const dirty = this.projector.project(ending);
+            const next = this.checkProjections ? this.checkedAgainstFull(dirty, ending) : dirty;
+            // a board the check replaced with the full one shares no objects with the cache: diff all of it
+            const changed = next === dirty ? this.projector.lastChanged : null;
+            const records = this.checkProjections && changed !== null
+                ? this.checkedDiff(next, changed)
+                : diffBoards(this.prev, next, changed);
             if (countSwuPgnWriterStats) {
                 swuPgnWriterStats.projections++;
+                if (changed === null) {
+                    swuPgnWriterStats.fullDiffs++;
+                } else {
+                    swuPgnWriterStats.entitiesDiffed += changed.size;
+                }
                 if (records.length > 0) {
                     swuPgnWriterStats.flushes++;
                 }
@@ -259,6 +273,7 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
                 this._records.push(record);
             }
             this.prev = next;
+            this.projector.commit();
             this.state.recordsLength = this._records.length;
             flushed = true;
         } catch (error) {
@@ -317,6 +332,8 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         } else if (this.state.recordsLength < this._records.length) {
             this._records.length = this.state.recordsLength;
             this.prev = apply(this._records);
+            // the rebuilt board shares no objects with the projection cache
+            this.projector.invalidate();
         }
     }
 
@@ -350,20 +367,34 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
     }
 
     /**
-     * Marks dirty every card a resolved event names, and the card whose ability raised it. It listens on the emit
-     * right after each event's handler, not on `:postResolve`: between the two the window checks the unique rule (a
-     * prompt, so a decision point) and resolves the game state (which can end the game, so a flush).
+     * The diff over the changed entities checked against the full diff of the same boards: the full one's records when
+     * they differ, after counting the error (logged once).
      */
-    private registerDirtySources(): void {
-        const mark = (event: GameEvent) => {
-            try {
-                this.markEventCards(event);
-            } catch (error) {
-                this.reportError('dirty marking', error);
-            }
-        };
-        for (const name of Object.values(EventName)) {
-            this.game.on(name, mark);
+    private checkedDiff(next: Board, changed: ReadonlySet<string>): SwuRecord[] {
+        const full = diffBoards(this.prev, next);
+        const dirty = diffBoards(this.prev, next, changed);
+        this._dirtyDiffsChecked++;
+        if (sameValue(dirty, full)) {
+            return dirty;
+        }
+        this._errors++;
+        if (!this.diffMismatchLogged) {
+            this.diffMismatchLogged = true;
+            logger.error('SWU-PGN: writer diff over the changed entities differs from the full diff', { dirty, full, lobbyId: this.game.lobbyId });
+        }
+        return full;
+    }
+
+    /**
+     * An event's handler has run (`EventWindow.resolveEvents`, before the event's own emit): every card it names, and the
+     * card whose ability raised it, is marked dirty. This is the point every resolved event passes, ahead of the unique
+     * rule check (a prompt, so a decision point) and of resolving the game state (which can end the game, so a flush).
+     */
+    public onEventResolved(event: GameEvent): void {
+        try {
+            this.markEventCards(event);
+        } catch (error) {
+            this.reportError('dirty marking', error);
         }
     }
 
@@ -375,15 +406,20 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         if (isCardValue(source)) {
             this.projector.markDirty(source);
         }
-        for (const value of Object.values(event) as unknown[]) {
-            if (isCardValue(value)) {
-                this.projector.markDirty(value);
-            } else if (Array.isArray(value)) {
+        // own enumerable values, as Object.values gives them, without building the array
+        for (const key in event) {
+            const value: unknown = Reflect.get(event, key);
+            if (typeof value !== 'object' || value === null) {
+                continue;
+            }
+            if (Array.isArray(value)) {
                 for (const item of value as unknown[]) {
                     if (isCardValue(item)) {
                         this.projector.markDirty(item);
                     }
                 }
+            } else if (isCardValue(value)) {
+                this.projector.markDirty(value);
             }
         }
     }

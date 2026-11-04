@@ -1641,6 +1641,13 @@ export class Lobby {
     ]);
 
     /** Game methods a player's client may invoke by name, including the commands the engine puts on prompt buttons. */
+    /**
+     * Told how long each game command took to process (the command, `game.continue()` and sending the game state), as
+     * `onGameMessage` measures it. Null in production; the SWU-PGN writer benchmark sets it to read the server's cost
+     * per decision. Observing only: nothing here changes what the lobby does.
+     */
+    public static gameCommandTimingObserver: ((command: string, durationMs: number) => void) | null = null;
+
     private static readonly allowedGameCommands = new Set([
         'cardClicked',
         'chat',
@@ -1730,6 +1737,7 @@ export class Lobby {
 
             const end = process.hrtime.bigint();
             const durationMs = Number(end - start) / 1e6;
+            Lobby.gameCommandTimingObserver?.(command, durationMs);
 
             if (durationMs > 100) {
                 logger.info('[Lobby] GameCommand took longer than 100ms to process', {

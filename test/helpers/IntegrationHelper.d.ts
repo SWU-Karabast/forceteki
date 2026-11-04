@@ -126,6 +126,9 @@ interface SwuSetupTestOptions extends Omit<ISerializedGameState, 'player1' | 'pl
     /** Deck/rules format being played. Defaults to Premier. Use 'fauxSuns' for 1v1 Twin Suns. Accepts SwuGameFormat enum values or their string equivalents. */
     format?: import('../../server/game/core/Constants').SwuGameFormat | string;
 
+    /** Seeds the game's randomness once the board is set up. For a test game file (`/api/start-test-game`); a spec seeds with `game.setRandomSeed`. */
+    randomSeed?: string;
+
     [field: string]: any;
 }
 

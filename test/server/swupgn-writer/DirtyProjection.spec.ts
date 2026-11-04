@@ -1,6 +1,8 @@
-import type { Board } from '@swupgn/format';
+import type { Board, Entity } from '@swupgn/format';
+import { diff } from '@swupgn/format/writer';
 import { RepeatableAbilityLimit } from '../../../server/game/core/ability/AbilityLimit';
 import type { Card } from '../../../server/game/core/card/Card';
+import { diffBoards } from '../../../server/game/core/swupgn/diffBoards';
 import { cardIdOf } from '../../../server/game/core/swupgn/SwuPgnCardIds';
 import type { SwuPgnWriter } from '../../../server/game/core/swupgn/SwuPgnWriter';
 
@@ -9,6 +11,10 @@ import type { SwuPgnWriter } from '../../../server/game/core/swupgn/SwuPgnWriter
  * reuses the cached entities of the rest. `projectFull()` re-reads everything and is the oracle: after every action here
  * the two must give the same board. The writer also checks every one of its own flushes against the oracle
  * (`checkProjections`, what `SWUPGN_PROJECTION_CHECK=1` turns on), counting a mismatch as a writer error.
+ *
+ * The writer then diffs only the entities the projection changed (`diffBoards(prev, next, changed)`): every reused
+ * entity is the same object in both boards. Under the check each such diff is compared with the full diff of the two
+ * boards (the package `diff`, with the W-28 middle-board fallback), a mismatch again counting as a writer error.
  */
 describe('SWU-PGN dirty-entity projection', function() {
     function writerOf(contextRef: SwuTestContextRef): SwuPgnWriter {
@@ -61,10 +67,23 @@ describe('SWU-PGN dirty-entity projection', function() {
         return writerOf(contextRef).boardProjector.lastReread;
     }
 
+    /** The entity id of the card's entity on the written board. */
+    function writtenIdOf(contextRef: SwuTestContextRef, card: Card): string {
+        const entities = writerOf(contextRef).currentBoard().entities;
+        const ids = Object.keys(entities).filter((id) => entities[id].card === cardIdOf(card));
+        expect(ids.length).withContext(`written entities for ${card.internalName}`)
+            .toBe(1);
+        return ids[0];
+    }
+
     integration(function(contextRef) {
         afterEach(function () {
-            expect(contextRef.context.game.swuPgnWriter?.errors).withContext('writer errors')
+            const writer = contextRef.context.game.swuPgnWriter;
+            expect(writer?.errors).withContext('writer errors')
                 .toBe(0);
+            // the flushes after the first one diffed only what changed, each checked against the full diff
+            expect(writer?.dirtyDiffsChecked).withContext('dirty diffs checked against the full diff')
+                .toBeGreaterThan(0);
         });
 
         describe('on a board with no ongoing effects', function () {
@@ -87,7 +106,27 @@ describe('SWU-PGN dirty-entity projection', function() {
                 // a projection with nothing marked since the writer's last flush reads no card
                 writerOf(contextRef).boardProjector.project();
                 expect(reread(contextRef).size).toBe(0);
+                // and changes only the always-projected game and seat entities
+                expect([...writerOf(contextRef).boardProjector.lastChanged].sort()).toEqual(['g', 'p1', 'p2']);
                 expectSameProjection(contextRef, 'unchanged');
+
+                // the writer flushes once more so the afterEach sees a dirty diff
+                writerOf(contextRef).flush();
+            });
+
+            it('visits no deck card that has no entity', function () {
+                const { context } = contextRef;
+                context.player1.clickCard(context.daringRaid);
+                context.player1.clickCard(context.atst);
+
+                const projector = writerOf(contextRef).boardProjector;
+                const withEntities = context.game.allCards.filter((card) => card.zoneName !== 'deck').length;
+                const deckCards = context.game.allCards.length - withEntities;
+                expect(deckCards).withContext('the board has deck cards')
+                    .toBeGreaterThan(0);
+                expect(projector.lastVisitedCount).withContext('cards the last projection visited')
+                    .toBeLessThanOrEqual(withEntities);
+                expectSameProjection(contextRef, 'after the damage');
             });
 
             it('agrees after damage from an ability, re-reading the damaged unit but not an untouched one', function () {
@@ -99,6 +138,9 @@ describe('SWU-PGN dirty-entity projection', function() {
                 // the decision point's flush re-read what the action touched
                 expect(reread(contextRef).has(context.atst)).toBeTrue();
                 expect(reread(contextRef).has(context.cartelSpacer)).toBeFalse();
+                const changed = writerOf(contextRef).boardProjector.lastChanged;
+                expect(changed.has(writtenIdOf(contextRef, context.cartelSpacer))).withContext('the untouched unit is not diffed')
+                    .toBeFalse();
                 expectSameProjection(contextRef, 'after the damage');
             });
 
@@ -289,6 +331,98 @@ describe('SWU-PGN dirty-entity projection', function() {
                 expectSameProjection(contextRef, 'after the capture');
             });
         });
+
+        describe('when entities move, leave and come back', function () {
+            it('agrees after a unit changes arena with an upgrade attached (a moved parent, W-28)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['low-altitude-combat'],
+                        spaceArena: [{ card: 'awing', exhausted: true, upgrades: ['mastery'] }],
+                        groundArena: ['8d8#daimyos-majordomo']
+                    }
+                });
+                const { context } = contextRef;
+                writerOf(contextRef);
+
+                context.player1.clickCard(context.lowAltitudeCombat);
+                context.player1.clickCard(context.awing);
+                expect(context.awing).toBeInZone('groundArena');
+
+                const board = expectSameProjection(contextRef, 'after the move');
+                expect(board.entities[writtenIdOf(contextRef, context.mastery)])
+                    .toEqual(jasmine.objectContaining({ zone: 'ground', parent: Number(writtenIdOf(contextRef, context.awing)), rel: 'attached' }));
+                context.player1.clickPrompt('Pass');
+                expectSameProjection(contextRef, 'after the pass');
+            });
+
+            it('agrees after a card is put back into the deck (it leaves the tracked set) and drawn again (a new entity)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['restock'],
+                        discard: ['wampa'],
+                        deck: ['battlefield-marine']
+                    }
+                });
+                const { context } = contextRef;
+                writerOf(contextRef);
+                const before = writtenIdOf(contextRef, context.wampa);
+
+                context.player1.clickCard(context.restock);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickDone();
+                expect(context.wampa).toBeInZone('deck');
+
+                const inDeck = expectSameProjection(contextRef, 'after the restock');
+                expect(inDeck.entities[before]).withContext('the deck card has no entity')
+                    .toBeUndefined();
+                expect(Object.values(inDeck.entities).some((entity) => entity.card === cardIdOf(context.wampa)))
+                    .toBeFalse();
+
+                context.moveToNextActionPhase();
+                expect(context.wampa).toBeInZone('hand');
+                expect(writtenIdOf(contextRef, context.wampa)).withContext('drawn again, the card is a new entity')
+                    .not.toBe(before);
+                expectSameProjection(contextRef, 'after the draw');
+
+                // a flush inside the next action phase diffs what changed
+                context.player1.clickCard(context.wampa);
+                expectSameProjection(contextRef, 'after the wampa is played');
+            });
+        });
+    });
+
+    describe('diffBoards over the changed entities', function () {
+        const entity = (zone: string, extra: Partial<Entity> = {}): Entity => ({ zone, owner: 1, card: 'SOR_001', to: 'all', a: { kind: 'unit' }, ...extra });
+
+        it('writes what the package diff writes when a parent changes zone and its child is the same object (W-28)', function () {
+            const child: Entity = { ...entity('space', { parent: 1, rel: 'attached' }), a: { kind: 'upgrade' } };
+            const childAfter: Entity = { ...child, zone: 'ground' };
+            const bystander = entity('ground');
+            const prev: Board = { seq: null, entities: { g: { a: { round: 1 } }, 1: entity('space'), 2: child, 3: bystander } };
+            const next: Board = { seq: null, entities: { g: { a: { round: 1 } }, 1: entity('ground'), 2: childAfter, 3: bystander } };
+
+            expect(diffBoards(prev, next, new Set(['g', '1', '2']))).toEqual(diffBoards(prev, next));
+        });
+
+        it('includes a kept child whose moved parent alone is reported changed, so the W-28 fallback still applies', function () {
+            // the child keeps its zone (a captive held across zones is not this case): only the parent is reported
+            const child: Entity = { ...entity('space', { parent: 1, rel: 'attached' }), a: { kind: 'upgrade' } };
+            const prev: Board = { seq: null, entities: { 1: entity('space'), 2: child } };
+            const next: Board = { seq: null, entities: { 1: entity('ground'), 2: child } };
+
+            expect(() => diff(prev, next)).toThrow();
+            expect(diffBoards(prev, next, new Set(['1']))).toEqual(diffBoards(prev, next));
+        });
+
+        it('skips an entity that is the same object in both boards, and diffs a created and a removed one', function () {
+            const same = entity('ground');
+            const prev: Board = { seq: null, entities: { 1: same, 2: entity('hand') } };
+            const next: Board = { seq: null, entities: { 1: same, 3: entity('discard') } };
+
+            expect(diffBoards(prev, next, new Set(['2', '3']))).toEqual(diff(prev, next));
+        });
     });
 
     undoIntegration(function(contextRef) {
@@ -321,6 +455,8 @@ describe('SWU-PGN dirty-entity projection', function() {
             raid();
             expect(expectSameProjection(contextRef, 'second run')).toEqual(firstRun);
             expect(contextRef.context.game.swuPgnWriter.errors).toBe(0);
+            expect(contextRef.context.game.swuPgnWriter.dirtyDiffsChecked).withContext('dirty diffs checked after the rollback')
+                .toBeGreaterThan(0);
         });
     });
 });

@@ -1,5 +1,6 @@
 import type { Card } from '../card/Card';
 import type { ZoneName } from '../Constants';
+import type { GameEvent } from '../event/GameEvent';
 
 /** What the engine tells the SWU-PGN writer directly, outside the event stream. The writer implements it. */
 export interface ISwuPgnWriterHooks {
@@ -15,4 +16,10 @@ export interface ISwuPgnWriterHooks {
      * (a late target prompt, or a cancel after costs) with no later event naming the card, so the limit reports it.
      */
     onAbilityLimitChanged(card: Card): void;
+
+    /**
+     * An event's handler has just run (`EventWindow.resolveEvents`), before the event's own emit: the one point every
+     * resolved event passes, so the writer marks the cards it names without a listener per event name.
+     */
+    onEventResolved(event: GameEvent): void;
 }

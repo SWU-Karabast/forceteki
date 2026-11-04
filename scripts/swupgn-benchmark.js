@@ -1,5 +1,6 @@
 /**
- * CPU benchmark of the SWU-PGN writer modes (gate G2: `flush` must cost <= 3% over `off` on workload A, A-lobby).
+ * CPU benchmark of the SWU-PGN writer modes (gate G2: `flush` must cost <= 3% over `off` on workload L, the server's
+ * own time per decision in a real Lobby).
  *
  * Runs each workload in each writer mode as its own jasmine process (`SWUPGN_WRITER=<mode>`), alternating the modes
  * so drift in the machine spreads across all of them, and prints mean +/- standard deviation (and min..max) per mode,
@@ -8,7 +9,14 @@
  * `SWUPGN_WRITER_STATS=1` to print the writer's steps, flushes and projections (that run is not timed), and the
  * per-decision cost: the mode's mean spec time over `off`, divided by its steps and by its projections.
  *
- *   workload A      A-lobby (the headline): build/test/server/swupgn-writer/ScriptedGames.spec.js, eight whole
+ *   workload L      the gate: build/test/server/gamenode/lobby/SwuPgnLobbyBenchmark.spec.js, the eight scripted games
+ *                   played through a real GameServer and Lobby (the `serverIntegration` harness), each decision sent
+ *                   as the client's `game` socket command and every outbound emit encoded by socket.io-parser
+ *                   (`SWUPGN_BENCHMARK=L`). The measure is the mean time of `Lobby.onGameMessage` per decision (the
+ *                   command, `game.continue()` and the game state sent to both seats), which the spec prints. Its
+ *                   decisions are first recorded from the scripted games' integration run in each writer mode
+ *                   (`SWUPGN_DECISION_LOG`, build/swupgn-decisions-<mode>.json)
+ *   workload A      A-lobby: build/test/server/swupgn-writer/ScriptedGames.spec.js, eight whole
  *                   scripted games (long boards), recording only, with the Lobby baseline (`SWUPGN_BENCHMARK=lobby`):
  *                   after each decision the harness builds both seats' game state (`game.getState`), as `Lobby` does
  *                   for every player message, in every mode, `off` included
@@ -21,10 +29,10 @@
  * Every run warms the engine version first (as the server does at startup), and `@swupgn/format` and its validator
  * are loaded by static imports in every mode, `off` included, so module loading costs the same in each.
  *
- * Usage: npm run benchmark-swupgn [-- --alternations=5 --workloads=A,Arecord,Afile,B,Blobby --profile]
+ * Usage: npm run benchmark-swupgn [-- --alternations=5 --workloads=L,A,Arecord,Afile,B,Blobby --profile]
  *   --alternations=N      timed runs of each mode per workload (default 5)
- *   --workloads=...       which workloads to time (default all five; `none` with --profile only profiles)
- *   --profile             also take one `node --cpu-prof` profile of `flush` on A-lobby and print its top frames
+ *   --workloads=...       which workloads to time (default all six; `none` with --profile only profiles)
+ *   --profile             also take one `node --cpu-prof` profile of `flush` on workload L and print its top frames
  *
  * A run with failures, or whose "Finished in" time cannot be read, stops the benchmark (non-zero exit).
  *
@@ -44,7 +52,7 @@ function argValue(name, fallback) {
 }
 
 const alternations = Number(argValue('alternations', '5'));
-const workloadNames = argValue('workloads', 'A,Arecord,Afile,B,Blobby').split(',')
+const workloadNames = argValue('workloads', 'L,A,Arecord,Afile,B,Blobby').split(',')
     .filter((name) => name !== '' && name !== 'none');
 const profile = process.argv.includes('--profile');
 
@@ -62,7 +70,9 @@ function specsUnder(dir) {
 
 const scriptedGames = () => ['build/test/server/swupgn-writer/ScriptedGames.spec.js'];
 const cardSpecs = () => ['01_SOR', '07_LAW', '08_ASH'].flatMap((set) => specsUnder(`build/test/server/cards/${set}`));
+const lobbySpec = () => ['build/test/server/gamenode/lobby/SwuPgnLobbyBenchmark.spec.js'];
 const workloads = {
+    L: { label: 'L: scripted games through a real Lobby, onGameMessage time per decision', benchmark: 'L', files: lobbySpec, config: './jasmine-nongame.json', decisionLogs: true },
     A: { label: 'A-lobby: scripted games, recording only, game state built per decision', benchmark: 'lobby', files: scriptedGames },
     Arecord: { label: 'A-record: scripted games, recording only', benchmark: 'record', files: scriptedGames },
     Afile: { label: 'A-file: scripted games, four views written per game', benchmark: 'file', files: scriptedGames },
@@ -84,12 +94,17 @@ function ensureTestBuild() {
 function runJasmine(mode, workload, { stats = false, nodeArgs = [] } = {}) {
     const files = workload.files();
     const env = { ...process.env, NODE_ENV: 'test', SWUPGN_WRITER: mode, SWUPGN_BENCHMARK: workload.benchmark };
+    if (workload.decisionLogs || workload.recordDecisions) {
+        env.SWUPGN_DECISION_LOG = decisionLogFor(mode);
+    } else {
+        delete env.SWUPGN_DECISION_LOG;
+    }
     if (stats) {
         env.SWUPGN_WRITER_STATS = '1';
     } else {
         delete env.SWUPGN_WRITER_STATS;
     }
-    const args = [...nodeArgs, 'node_modules/jasmine/bin/jasmine', '--config=./jasmine-game.json', '--random=false', ...files];
+    const args = [...nodeArgs, 'node_modules/jasmine/bin/jasmine', `--config=${workload.config ?? './jasmine-game.json'}`, '--random=false', ...files];
     const start = process.hrtime.bigint();
     const result = spawnSync(process.execPath, args, { cwd: root, env, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
     const wallMs = Number(process.hrtime.bigint() - start) / 1e6;
@@ -140,10 +155,41 @@ function printTable(label, timings, clock) {
     }
 }
 
+/** Where workload L's decisions recorded in `mode` are kept. */
+function decisionLogFor(mode) {
+    return path.join(root, 'build', `swupgn-decisions-${mode}.json`);
+}
+
+/**
+ * Records the scripted games' decisions in each writer mode, for workload L to replay in the same mode: the writer's
+ * state object takes a game object id, so the card ids of a game differ by mode.
+ */
+function recordDecisionLogs() {
+    const recorder = { label: 'decision log: scripted games', benchmark: 'record', files: scriptedGames, recordDecisions: true };
+    for (const mode of modes) {
+        runJasmine(mode, recorder);
+        if (!fs.existsSync(decisionLogFor(mode))) {
+            throw new Error(`no decision log written for mode ${mode}`);
+        }
+    }
+}
+
+/** A workload L run's mean `Lobby.onGameMessage` time per decision, in ms. */
+function lobbyMsPerDecision(run, mode) {
+    const time = taggedLine(run.out, 'SWUPGN_LOBBY_MS');
+    if (!time || time.decisions === 0) {
+        throw new Error(`workload L in mode ${mode}: no SWUPGN_LOBBY_MS line`);
+    }
+    return time.ms / time.decisions;
+}
+
 function benchmark(name) {
     const workload = workloads[name];
     const files = workload.files();
     console.log(`\n=== Workload ${workload.label} (${files.length} spec file${files.length === 1 ? '' : 's'}, ${alternations} alternations) ===`);
+    if (workload.decisionLogs) {
+        recordDecisionLogs();
+    }
 
     // one untimed warm-up, so the first timed run does not pay for a cold file cache
     runJasmine('off', workload);
@@ -154,12 +200,30 @@ function benchmark(name) {
         const order = modes.map((_, j) => modes[(i + j) % modes.length]);
         for (const mode of order) {
             const run = runJasmine(mode, workload);
+            if (workload.decisionLogs) {
+                run.lobbyMs = lobbyMsPerDecision(run, mode);
+            }
             timings[mode].push(run);
-            console.log(`  run ${i + 1} ${mode.padEnd(9)} wall ${fmtMs(run.wallMs).padStart(8)}  specs ${fmtMs(run.specMs).padStart(8)}`);
+            const lobby = run.lobbyMs === undefined ? '' : `  onGameMessage ${(run.lobbyMs * 1000).toFixed(1).padStart(7)}us/decision`;
+            console.log(`  run ${i + 1} ${mode.padEnd(9)} wall ${fmtMs(run.wallMs).padStart(8)}  specs ${fmtMs(run.specMs).padStart(8)}${lobby}`);
         }
     }
     printTable(`Workload ${workload.label}`, timings, 'wallMs');
     printTable(`Workload ${workload.label}`, timings, 'specMs');
+
+    if (workload.decisionLogs) {
+        const off = summarize(timings.off.map((t) => t.lobbyMs));
+        console.log(`\nWorkload ${workload.label} -- Lobby.onGameMessage time per decision (mean of each run's mean)`);
+        console.log('  mode       mean us    +/- sd     min..max            overhead vs off');
+        for (const mode of modes) {
+            const s = summarize(timings[mode].map((t) => t.lobbyMs));
+            const range = `${(s.min * 1000).toFixed(1)}..${(s.max * 1000).toFixed(1)}`;
+            console.log(`  ${mode.padEnd(9)}  ${(s.mean * 1000).toFixed(1).padStart(8)}  ${(s.sd * 1000).toFixed(1).padStart(8)}   ${range.padEnd(18)}  ${mode === 'off' ? '--' : pct(s.mean, off.mean)}`);
+        }
+        const flush = summarize(timings.flush.map((t) => t.lobbyMs));
+        const overhead = (flush.mean / off.mean - 1) * 100;
+        console.log(`\n  G2 (flush <= 3% over off on L): ${overhead <= 3 ? 'PASS' : 'FAIL'} (${pct(flush.mean, off.mean)})`);
+    }
 
     if (workload.benchmark === 'file') {
         console.log(`\nWorkload ${workload.label} -- end-of-game file cost (fileFor x4 views, timed by the spec, mean of the timed runs)`);
@@ -177,18 +241,20 @@ function benchmark(name) {
     }
 
     console.log(`\nWorkload ${workload.label} -- writer work (one untimed run per mode, SWUPGN_WRITER_STATS=1)`);
-    console.log('  mode       games   steps  projections  flushes   per game: steps  projections  flushes   writer us/step  us/projection  cards read/reused');
-    const offMean = summarize(timings.off.map((t) => t.specMs)).mean;
+    console.log('  mode       games   steps  projections  flushes   per game: steps  projections  flushes   writer us/step  us/projection  cards read/reused  visited  full diffs  entities diffed');
+    // on workload L the clock is onGameMessage time per decision, so the writer columns are per decision (us/step)
+    const clock = workload.decisionLogs ? 'lobbyMs' : 'specMs';
+    const offMean = summarize(timings.off.map((t) => t[clock])).mean;
     for (const mode of modes.filter((m) => m !== 'off')) {
         const s = taggedLine(runJasmine(mode, workload, { stats: true }).out, 'SWUPGN_WRITER_STATS');
         if (!s) {
             throw new Error(`${workload.label} in mode ${mode}: no SWUPGN_WRITER_STATS line (is test/helpers/SwuPgnWriterStatsReporter built?)`);
         }
         const per = (v) => (s.writers > 0 ? (v / s.writers).toFixed(1) : '-');
-        // the writer's time: this mode's mean spec time over off's, in microseconds
-        const writerUs = (summarize(timings[mode].map((t) => t.specMs)).mean - offMean) * 1000;
+        // the writer's time: this mode's mean spec time over off's, in microseconds (on L: per decision already)
+        const writerUs = (summarize(timings[mode].map((t) => t[clock])).mean - offMean) * 1000;
         const perDecision = (n) => (n > 0 ? (writerUs / n).toFixed(1) : '-');
-        console.log(`  ${mode.padEnd(9)}  ${String(s.writers).padStart(5)}  ${String(s.steps).padStart(6)}  ${String(s.projections).padStart(11)}  ${String(s.flushes).padStart(7)}   ${per(s.steps).padStart(15)}  ${per(s.projections).padStart(11)}  ${per(s.flushes).padStart(7)}   ${perDecision(s.steps).padStart(14)}  ${perDecision(s.projections).padStart(13)}  ${s.cardsRead}/${s.cardsReused}`);
+        console.log(`  ${mode.padEnd(9)}  ${String(s.writers).padStart(5)}  ${String(s.steps).padStart(6)}  ${String(s.projections).padStart(11)}  ${String(s.flushes).padStart(7)}   ${per(s.steps).padStart(15)}  ${per(s.projections).padStart(11)}  ${per(s.flushes).padStart(7)}   ${(workload.decisionLogs ? writerUs.toFixed(1) : perDecision(s.steps)).padStart(14)}  ${(workload.decisionLogs ? '-' : perDecision(s.projections)).padStart(13)}  ${s.cardsRead}/${s.cardsReused}  ${s.cardsVisited}  ${s.fullDiffs}  ${s.entitiesDiffed}`);
     }
 }
 
@@ -249,8 +315,11 @@ function analyzeProfile(profileFile, count) {
 
 function profileFlush() {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'swupgn-cpuprof-'));
-    console.log(`\n=== CPU profile: flush on workload A-lobby (node --cpu-prof, 100us interval, ${dir}) ===`);
-    runJasmine('flush', workloads.A, { nodeArgs: ['--cpu-prof', '--cpu-prof-interval=100', `--cpu-prof-dir=${dir}`] });
+    console.log(`\n=== CPU profile: flush on workload L (node --cpu-prof, 100us interval, ${dir}) ===`);
+    if (!fs.existsSync(decisionLogFor('flush'))) {
+        recordDecisionLogs();
+    }
+    runJasmine('flush', workloads.L, { nodeArgs: ['--cpu-prof', '--cpu-prof-interval=100', `--cpu-prof-dir=${dir}`] });
     const file = fs.readdirSync(dir).find((f) => f.endsWith('.cpuprofile'));
     if (!file) {
         console.log('  no profile written');

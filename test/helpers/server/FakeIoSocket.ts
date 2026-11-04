@@ -1,4 +1,5 @@
 import type { ParsedUrlQuery } from 'node:querystring';
+import { Encoder, PacketType } from 'socket.io-parser';
 
 import type { IRawGameSocket, SocketData } from '../../../server/gamenode/GameServer';
 
@@ -30,6 +31,14 @@ let nextFakeSocketId = 1;
  *   a test (via `TestClient`'s inbox) to read back.
  */
 export class FakeIoSocket implements IRawGameSocket {
+    /**
+     * Encodes every outbound emit as socket.io does before it writes a packet (`socket.io-parser`'s `Encoder`), and
+     * drops the result. Off by default, since no spec needs it; the SWU-PGN writer benchmark turns it on so that the
+     * serialization a real socket pays for each game state is part of the time it measures.
+     */
+    public static encodeOutboundEmits = false;
+    private static readonly encoder = new Encoder();
+
     public readonly id: string;
     public data: SocketData = {};
     public handshake: { auth: { token?: string }; query: ParsedUrlQuery };
@@ -59,6 +68,9 @@ export class FakeIoSocket implements IRawGameSocket {
             return false;
         }
 
+        if (FakeIoSocket.encodeOutboundEmits) {
+            FakeIoSocket.encoder.encode({ type: PacketType.EVENT, data: [event, ...args], nsp: '/' });
+        }
         this._emittedEvents.push({ event, args });
         return true;
     }
