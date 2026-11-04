@@ -1,5 +1,6 @@
 import type { Seat } from '@swupgn/format';
 import type { Card } from '../card/Card';
+import type { GameEndReason } from '../Constants';
 import { GameObjectBase } from '../GameObjectBase';
 import { registerState, statePrimitive, stateValue } from '../GameObjectUtils';
 
@@ -33,6 +34,9 @@ export class SwuPgnWriterState extends GameObjectBase {
 
     @statePrimitive() public accessor inSetup = true;
 
+    /** How the game ended, as of the first `endGame` (the `Reason` tag); null while it has not. An undo past game end clears it. */
+    @statePrimitive() public accessor gameEndReason: GameEndReason | null = null;
+
     /**
      * True from a written (or skipped no-op) step until the game next continues after input. A snapshot taken
      * while it holds was taken at that step, so a rollback to it must not write the step again.
@@ -56,6 +60,7 @@ export class SwuPgnWriterState extends GameObjectBase {
         this.stepSeq = 0;
         this.inSetup = true;
         this.atStep = false;
+        this.gameEndReason = null;
     }
 
     /** Entity id for a key; assigned on first sight and never reused (W-21). */

@@ -1,8 +1,10 @@
 import type { SwuPgnFile, SwuRecord } from '@swupgn/format';
 import { apply, parse } from '@swupgn/format';
 import { validate } from '@swupgn/format/validate';
+import { GameEndReason } from '../../../server/game/core/Constants';
 import { cardIdOf } from '../../../server/game/core/swupgn/SwuPgnCardIds';
-import type { SwuPgnFileView, SwuPgnWriter } from '../../../server/game/core/swupgn/SwuPgnWriter';
+import type { SwuPgnFileView } from '../../../server/game/core/swupgn/SwuPgnWriter';
+import { SwuPgnWriter } from '../../../server/game/core/swupgn/SwuPgnWriter';
 
 /** `g.result` at the end of the file's records. */
 function resultOf(file: SwuPgnFile): string | undefined {
@@ -181,6 +183,14 @@ describe('SWU-PGN file assembly', function() {
             const { context } = contextRef;
             const writer = writerOf();
             context.setDamage(context.p2Base, context.p2Base.getHp() - 2);
+            const captured: { atGameEnd: SwuRecord[] | null } = { atGameEnd: null };
+            const captureAtGameEnd = () => {
+                SwuPgnWriter.prototype.onGameEnded.call(writer);
+                captured.atGameEnd = [...writer.records];
+            };
+            // a whole-suite undo run plays the test body again on the same writer, which is then already spied on
+            const spy = jasmine.isSpy(writer.onGameEnded) ? writer.onGameEnded as jasmine.Spy : spyOn(writer, 'onGameEnded');
+            spy.and.callFake(captureAtGameEnd);
 
             context.player1.clickCard(context.jedhaAgitator);
             context.player1.clickCard(context.wampa);
@@ -195,6 +205,71 @@ describe('SWU-PGN file assembly', function() {
             expect(resultOf(full)).toBe('p1');
             expect(full.header.Result).toBe('P1');
             expect(full.header.Reason).toBe('Base destroyed');
+
+            // the game ended mid-attack: the game-end hook writes the step that holds the result right then. The result's
+            // `set` shares its flush with the base's lethal damage, so the step closes that same group.
+            const atGameEnd = captured.atGameEnd ?? [];
+            expect(atGameEnd.length).withContext('records when the game-end hook returned')
+                .toBeGreaterThan(0);
+            const resultAt = atGameEnd.findIndex((record) => record.t === 'set' && record.e === 'g' && record.a?.result === 'p1');
+            expect(resultAt).withContext('the set that writes g.result')
+                .toBeGreaterThan(-1);
+            const between = atGameEnd.slice(resultAt + 1, atGameEnd.length - 1);
+            expect(between.every((record) => record.t === 'set')).withContext(`records between the result and the step: ${JSON.stringify(between)}`)
+                .toBeTrue();
+            expect(atGameEnd[atGameEnd.length - 1].t).withContext('the last record at game end')
+                .toBe('step');
+            expect(full.records.slice(0, atGameEnd.length)).toEqual(atGameEnd);
+        });
+
+        it('writes step 0 with the result for a game conceded during the mulligan prompt (W-11, W-39, W-40)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'setup',
+                player1: {
+                    deck: ['battlefield-marine', 'battlefield-marine', 'battlefield-marine', 'wampa', 'wampa', 'wampa', 'atst', 'atst', 'atst', 'pyke-sentinel']
+                },
+                player2: {
+                    deck: ['moisture-farmer', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'wampa', 'atst']
+                }
+            });
+            const { context } = contextRef;
+            const writer = writerOf();
+
+            context.selectInitiativePlayer(context.player1);
+            expect(context.player1).toHaveExactPromptButtons(['Mulligan', 'Keep']);
+            expect(writer.records.some((record) => record.t === 'step')).withContext('no step during setup')
+                .toBeFalse();
+
+            context.game.concede(context.player2Object.id);
+
+            expect(writer.records[writer.records.length - 1]).toEqual({ t: 'step', seq: 0 });
+            expect(writer.records.filter((record) => record.t === 'step').length).toBe(1);
+            expectEveryViewValid(writer);
+            const full = parse(writer.fileFor('full'));
+            expect(resultOf(full)).toBe('p1');
+            expect(full.header.Result).toBe('P1');
+            expect(full.header.Reason).toBe('Concession');
+        });
+
+        it('keeps the first game end\'s Reason when the game is ended again', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: { groundArena: ['wampa'] },
+                player2: { groundArena: ['atst'] }
+            });
+            const { context } = contextRef;
+            const writer = writerOf();
+
+            context.game.concede(context.player2Object.id);
+            context.ignoreUnresolvedActionPhasePrompts = true;
+            context.game.endGame(context.player1Object, GameEndReason.Timeout);
+            expect(context.game.gameEndReason).withContext('the engine took the later reason')
+                .toBe(GameEndReason.Timeout);
+
+            const full = parse(writer.fileFor('full'));
+            expect(full.header.Result).toBe('P1');
+            expect(full.header.Reason).toBe('Concession');
+            expectEveryViewValid(writer);
         });
     });
 
@@ -228,6 +303,8 @@ describe('SWU-PGN file assembly', function() {
             expect(resultOf(full)).toBeUndefined();
             expect(full.header.Result).toBe('Incomplete');
             expect(full.header.Reason).toBe('Not finished');
+            expect(writer.gameEndReason).withContext('the captured reason is rollback state')
+                .toBeNull();
             expect(full.header.EndDate).toBeUndefined();
             expect(full.header.Undos).toBe('1');
             for (const view of ['full', 1, 2, 'public'] as const) {

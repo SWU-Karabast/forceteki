@@ -141,7 +141,8 @@ function buildHeader(game: Game, writer: SwuPgnWriter): Header {
         header[`P${seat}Base`] = cardIdOf(playerOf(game, seat).base);
     }
     header.Result = resultTag ?? 'Incomplete';
-    header.Reason = resultTag ? gameEndReasonString(game.gameEndReason) : 'Not finished';
+    // the reason the writer captured at the first game end: a later `endGame` call changes `Game.gameEndReason`, not the result
+    header.Reason = resultTag ? gameEndReasonString(writer.gameEndReason ?? undefined) : 'Not finished';
     header.Rounds = String(game.roundNumber);
     if (resultTag && game.finishedAt) {
         header.EndDate = game.finishedAt.toISOString();

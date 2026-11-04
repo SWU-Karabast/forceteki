@@ -4,7 +4,7 @@ import type { View } from '@swupgn/format/writer';
 import { redact } from '@swupgn/format/writer';
 import { logger } from '../../../logger';
 import type { Card } from '../card/Card';
-import type { ZoneName } from '../Constants';
+import type { GameEndReason, ZoneName } from '../Constants';
 import { EventName, PhaseName } from '../Constants';
 import type { Game } from '../Game';
 import type { UiPrompt } from '../gameSteps/prompts/UiPrompt';
@@ -114,10 +114,20 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
 
     /**
      * The game ended (`Game.endGame`, after the winners are set): project `g.result` and write the step, even when the
-     * decision point looks unchanged, so the file ends on a step that holds the result (W-11, W-40).
+     * decision point looks unchanged or the game is still in setup, so the file ends on a step that holds the result
+     * (W-11, W-40). A game that ends in setup gets step 0 here, holding the final board.
+     * The reason is captured now: a later `endGame` call changes `Game.gameEndReason` but not the result.
      */
     public onGameEnded(): void {
+        this.guard('game end', () => {
+            this.state.gameEndReason = this.game.gameEndReason ?? null;
+        });
         this.decide(false, true);
+    }
+
+    /** How the game ended, as of its first end; null while it has not ended (or an undo took the end back). */
+    public get gameEndReason(): GameEndReason | null {
+        return this.state.gameEndReason;
     }
 
     /** The `full` file of the records written so far: header, DECKS, CARDS and RECORDS. */
@@ -201,14 +211,14 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         }
     }
 
-    /** `force` writes the step even at an unchanged decision point (the game end). */
+    /** `force` writes the step even at an unchanged decision point or in setup (the game end). */
     private decide(afterRollback: boolean, force = false): void {
         // a look shown at an earlier step ends now: it is visible at exactly the step of its prompt
         const seq = this.state.stepSeq;
         this.flushEnding((look) => look.seenAtSeq < seq);
         this.guard('step', () => {
             const phase = this.game.currentPhase;
-            if (this.state.inSetup && (phase === PhaseName.Setup || phase == null)) {
+            if (!force && this.state.inSetup && (phase === PhaseName.Setup || phase == null)) {
                 return; // W-39: step 0 comes after setup
             }
 
