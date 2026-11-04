@@ -229,6 +229,24 @@ describe('SPEC.md', function () {
         expect(section('16.')).toMatch(/Which known card left a hidden hand\.\*\*[^\n]*\[R-17\]/);
     });
 
+    it('R-17 has no reveal exception, and anonymous creates carry only the entity\'s own seat as to', function () {
+        const text = section('11.');
+        const stepZero = text.split('\n').find((l) => l.startsWith('- **[R-17]**')) ?? '';
+        expect(stepZero).toContain('applies even when the moving entity was revealed to V');
+        expect(stepZero).not.toMatch(/does not apply when a `reveal`/);
+        for (const id of ['R-02', 'R-05']) {
+            const line = text.split('\n').find((l) => l.startsWith(`- **[${id}]**`)) ?? '';
+            expect(line).toMatch(/`to` set to the entity's own seat/);
+            expect(line).not.toMatch(/current audience as `to`, and only its public attributes/);
+        }
+    });
+
+    it('R-09 drops references to cards in a hidden hand', function () {
+        const line = section('11.').split('\n')
+            .find((l) => l.startsWith('- **[R-09]**')) ?? '';
+        expect(line).toMatch(/not, when the block applies, in a `hand` whose seat is not V/);
+    });
+
     it('the §Example appendix equals vectors/tiny.*', function () {
         pending('Task 4');
     });

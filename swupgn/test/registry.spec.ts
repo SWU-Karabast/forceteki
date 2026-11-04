@@ -60,7 +60,7 @@ describe('registry', function () {
     });
 
     it('every block kind has a field contract over the governed fields only', function () {
-        const governed = ['p', 'src', 'targets', 'options', 'amount', 'via', 'group'];
+        const governed = ['p', 'src', 'targets', 'options', 'amount', 'via', 'group', 'text'];
         for (const kind of BLOCK_KINDS) {
             expect(kind.fields).toBeDefined(kind.name);
             for (const [field, rule] of Object.entries(kind.fields)) {
@@ -81,6 +81,10 @@ describe('registry', function () {
         expect(contract('draw')).toEqual({ p: 'required', src: 'optional', targets: 'required', amount: 'required', group: 'optional' });
         expect(contract('pass')).toEqual({ p: 'required' });
         expect(contract('regroup')).toEqual({});
+        expect(contract('name')).toEqual({ p: 'required', src: 'required', text: 'required' });
+        for (const counted of ['resource', 'discard', 'shuffle']) {
+            expect(contract(counted).amount).toBe('required', counted);
+        }
     });
 
     it('the design 7.1 fixture follows every block contract', function () {
@@ -104,6 +108,21 @@ describe('registry', function () {
             }
         }
         expect(issues).toEqual([]);
+    });
+
+    it('the design 7.1 fixture writes a play block after the move out of hand (W-66)', function () {
+        const lines = fs.readFileSync(path.join(packageDir, 'test', 'fixtures', 'design-7-1.ndjson'), 'utf8').split('\n')
+            .filter((l) => l.length > 0);
+        const zones = new Map<unknown, string>();
+        const inHand: number[] = [];
+        for (const record of lines.map((l) => JSON.parse(l))) {
+            if ((record.t === 'create' || record.t === 'set') && record.zone !== undefined) {
+                zones.set(record.e, record.zone);
+            } else if (record.t === 'block' && record.kind === 'play' && zones.get(record.src) === 'hand') {
+                inHand.push(record.id);
+            }
+        }
+        expect(inHand).toEqual([]);
     });
 
     it('block-fields is an error that exempts dropped references outside full files', function () {

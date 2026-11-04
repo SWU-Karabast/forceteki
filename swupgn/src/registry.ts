@@ -26,8 +26,8 @@ export interface RelationDef {
     meaning: string;
 }
 
-/** The block fields a kind's contract governs. `id` and `kind` are always required; `text` and `parent` always optional. */
-export type BlockField = 'p' | 'src' | 'targets' | 'options' | 'amount' | 'via' | 'group';
+/** The block fields a kind's contract governs. `id` and `kind` are always required; `text` and `parent` are always allowed, and `text` is required only where a contract says so. */
+export type BlockField = 'p' | 'src' | 'targets' | 'options' | 'amount' | 'via' | 'group' | 'text';
 
 /** The fields that hold entity references, which a redactor may drop ([R-09]). */
 export const BLOCK_REFERENCE_FIELDS: readonly BlockField[] = ['src', 'targets', 'options', 'via'];

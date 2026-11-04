@@ -644,7 +644,7 @@ every block still applies the board correctly.
 
 ### 8.2 Order and steps
 
-- **[W-37]** A record MAY refer only to entities that exist when it applies. A writer that needs to name an entity in the middle of an action (a drawn card in a `draw` block, a token created and used inside one action) MUST write its `create` first. Every entity that exists at any point during a step group MUST be created, even when it is removed in the same step group: a card drawn and discarded in one decision, a token created and defeated in one action. A drawn card MUST be created in its owner's `hand`, with a `to` that holds its owner.
+- **[W-37]** A record MAY refer only to entities that exist when it applies. A writer that needs to name an entity in the middle of an action (a drawn card in a `draw` block, a token created and used inside one action) MUST write its `create` first. Every entity that exists at any point during a step group MUST be created, even when it is removed in the same step group: a card drawn and discarded in one decision, a token created and defeated in one action. A drawn card MUST be created in, or moved to (when it is already a temporary deck entity), its owner's `hand`, with a `to` that holds its owner.
 - **[W-38]** The first `step` MUST have `seq` 0, and each later `step` MUST have the `seq` of the one before plus one.
 - **[W-39]** A writer MUST write `step` 0 after the starting board: setup done, mulligans taken, opening resources chosen, before the first action.
 - **[W-40]** A writer SHOULD end `RECORDS` with a `step`.
@@ -781,8 +781,8 @@ Each entity in a file has an **audience**: the seats that know its identity.
 A seat V is **in** an audience when the audience is `"all"`, or is a list that holds V. In a
 `public` file there is no viewer, and no seat is in an audience unless it is `"all"`.
 
-- **[W-43]** A writer MUST give each `create` with a `card` a `to` that holds exactly the seats that know the identity when the entity is created, and each `reveal` a `to` that holds every seat that learns the identity by it.
-- **[W-44]** Before an entity is in `ground`, `space`, `discard`, `base`, `captured` or `setAside`, a writer MUST make its audience `"all"`: by its `create`, or by a `reveal` written before the `set` that moves it there.
+- **[W-43]** A writer MUST give each `create` with a `card` a `to` that holds exactly the seats that know the identity when the entity is created, and each `reveal` a `to` that holds every seat that sees the card at that moment, whether or not the seat already knows it.
+- **[W-44]** Before an entity is in `ground`, `space`, `discard`, `base`, `captured` or `setAside`, a writer MUST make its audience `"all"`: by its `create`, or by a `reveal` written before the `set` that moves it there. A card that moves there from a zone where a seat could not see it needs that `reveal` even when its audience is already `"all"`, because a seat that lost track of it ([§10.3](#103-what-a-viewer-can-track)) sees it again.
 
 For a viewer V, an entity is **known** once V is in its audience. A known entity stays known
 until it is removed, or until V loses track of it in a hidden hand
@@ -812,15 +812,23 @@ When a card V cannot track becomes trackable, or an anonymous card moves, V sees
 So V can never link an anonymous card's past to its future.
 
 **Losing track in a hidden hand.** A hand that is not V's is hidden from V: V sees how many cards
-it holds, but cannot follow one face-down card within it. When a card leaves such a
-hand for a zone whose opponent visibility is not `public` (`resource`, `deck`, or a zone not in
-the registry), V cannot tell which card left, unless that card was revealed to V in the same step
-group. So V loses track of **every** card it knows in that hand, the one that left included: none
-of them is known to V any more, though each still counts in `handCount`. Forgetting only the card
-that left would name it. A forgotten card is known to V again once it is revealed to V, or once
+it holds, but cannot follow one face-down card within it. When a card leaves such a hand for a
+zone whose opponent visibility is not `public` (`resource`, `deck`, or a zone not in the
+registry), V cannot tell which card left. So V loses track of **every** card it knows in that
+hand, the one that left included: none of them is known to V any more, though each still counts
+in `handCount`. Forgetting only the card that left would name it. A forgotten card is known to V again once it is revealed to V, or once
 it enters a zone whose opponent visibility is `public`. The audience in the file is not changed:
 losing track is a property of V's view, which the redactor keeps ([R-17]). In a `public` file
 every hand is hidden, and the cards known in it are those whose audience is `"all"`.
+
+A card in a hidden hand is never named by a block or a `ref` attribute of a `perspective` or
+`public` file, even when V knows it: the redactor drops such references ([R-09], [§11.1](#111-state)).
+A block that names a card the viewer should see leave the hand comes after the move ([W-66]).
+
+> **Note (informative):** Losing track is deliberately lossy. Even when V was shown the card a
+> moment before it left (a card revealed from the hand by an effect, then resourced in the same
+> decision), V loses track of every card it knew in that hand. Telling those cases apart would
+> need the redactor to judge what V saw and remembers; forgetting always is safe.
 
 > **Note (informative):** A zone this registry does not list is treated as count-only for the
 > same reason an unregistered attribute is `identity`: what nobody classified fails safe.
@@ -863,6 +871,7 @@ function of the `full` file and the asked profile alone.
 The redactor reads `RECORDS` in order. While it reads, it keeps:
 
 - the board of the `full` file, applied record by record ([§9](#9-applying)), so it always knows each entity's current zone, fields, attributes and audience;
+- for the record being handled, the `zone`, `owner` and `controller` that the entity it names had before the record applied (step 0 needs them, and a `remove` deletes them from the board);
 - for each entity of the `full` file, its status for V: **known**, **anonymous** or **unmaterialized** ([§10](#10-visibility-and-profiles));
 - the set of **forgotten** entities: those V lost track of in a hidden hand (step 0, [R-17]);
 - a map from `full` ids to output ids, for every entity that is known or anonymous.
@@ -880,10 +889,13 @@ of 1, 2, 3, … in the order the output first uses them.
 
 **Mapping.** Wherever an emitted record holds an entity id (`e`, `parent`, a `ref` or `ref[]`
 attribute), the redactor writes the mapped output id. A `ref` or `ref[]` attribute keeps only
-references to `"g"`, `"p1"`, `"p2"` and entities known to V, the same rule as step 9 for blocks:
-a `ref` attribute that names any other entity is dropped, and a `ref[]` attribute drops each such
+references to `"g"`, `"p1"`, `"p2"` and entities known to V that are not in a `hand` whose seat
+is not V, the same rule as step 9 for blocks: a `ref` attribute that names any other entity is
+dropped, and a `ref[]` attribute drops each such
 element and keeps the array, even when it ends up empty. A reference to an anonymous entity is
-dropped too, because an attribute that followed it would link the entity across re-ids.
+dropped too, because an attribute that followed it would link the entity across re-ids. A
+reference to a known card in a hidden hand is dropped because the card may leave that hand face
+down, and a reference written just before it left would name it ([R-17]).
 
 **Free text goes with a dropped reference.** When the redactor drops any reference from a record
 it emits, it also drops that record's `text`, `untilText` and `ability` attributes, because words
@@ -899,16 +911,16 @@ then emits what the first matching step of steps 1 to 10 says. Step 0 runs befor
 because what it emits comes before the record's own output. Steps 1 to 10 see the statuses step 0
 leaves.
 
-- **[R-17]** Step 0, losing track in a hidden hand ([§10.3](#103-what-a-viewer-can-track)). Step 0 applies to a `set` that moves an entity out of zone `hand` into a zone whose opponent visibility is not `public` (or that is not in the zone registry), and to a `remove` of an entity that was in zone `hand` (it went into a deck, [W-24]), when that hand is not V's: the entity's seat (its `controller`, or its `owner` when it has none) before the record was not V. In a `public` file every hand is not V's. It does not apply when a `reveal` whose `to` holds V named that entity earlier in the same step group. When it applies, before anything else for this record, the redactor takes every entity in that hand that is known to V, the moving one included, in ascending order of output id; emits a `remove` of each one's output id; and marks each one forgotten and unmaterialized. Then the record goes on to steps 1 to 10 with the moving entity unmaterialized: step 5 makes a fresh anonymous entity of it when it lands in the resource row, and step 8 emits nothing for its `remove`.
+- **[R-17]** Step 0, losing track in a hidden hand ([§10.3](#103-what-a-viewer-can-track)). Step 0 applies to a `set` that moves an entity out of zone `hand` into a zone whose opponent visibility is not `public` (or that is not in the zone registry), and to a `remove` of an entity that was in zone `hand` (it went into a deck, [W-24]), when that hand is not V's: the entity's seat (its `controller`, or its `owner` when it has none) before the record was not V. In a `public` file every hand is not V's. It applies even when the moving entity was revealed to V earlier in the same step group. When it applies, before anything else for this record, the redactor takes every entity in that hand that is known to V, the moving one included, in ascending order of output id; emits a `remove` of each one's output id; and marks each one forgotten and unmaterialized. Then the record goes on to steps 1 to 10 with the moving entity unmaterialized: step 5 makes a fresh anonymous entity of it when it lands in the resource row, and step 8 emits nothing for its `remove`.
 - **[R-01]** Step 1, a `create` whose audience holds V: emit it with a fresh id, its `card` included. The entity is known.
-- **[R-02]** Step 2, a `create` whose audience does not hold V: if the entity would be anonymous for V ([§10.3](#103-what-a-viewer-can-track)), emit it with a fresh id, without `card`, with its `to`, and with only its public attributes; the entity is anonymous. Otherwise emit nothing; the entity is unmaterialized.
+- **[R-02]** Step 2, a `create` whose audience does not hold V: if the entity would be anonymous for V ([§10.3](#103-what-a-viewer-can-track)), emit it with a fresh id, without `card`, with `to` set to the entity's own seat (its `controller`, or its `owner` when it has none) as a one-seat list, and with only its public attributes; the entity is anonymous. Otherwise emit nothing; the entity is unmaterialized.
 - **[R-03]** Step 3, a `reveal` whose `to` holds V: if the entity is known, emit the `reveal` with the mapped id. If it is anonymous, emit a `remove` of its output id, then a `create` with a fresh id. If it is unmaterialized, emit only that `create` with a fresh id. That `create` carries the entity's current `zone`, `owner`, `controller`, `parent` and `rel`, its `card`, its current audience as `to`, and all its current attributes, in canonical key order ([W-07]). From then on the entity is known, and no longer forgotten.
 - **[R-04]** Step 4, a `reveal` whose `to` does not hold V: emit nothing.
-- **[R-05]** Step 5, a `set` of an unmaterialized entity: if the entity is forgotten and, after the `set`, its audience holds V and it is in a zone whose opponent visibility is `public`, emit the `create` that step 3 emits for an unmaterialized entity; the entity is known, and no longer forgotten. Otherwise, if the entity, after the `set`, would be anonymous for V, emit a `create` with a fresh id, without `card`, with its current `zone`, `owner`, `controller`, `parent` and `rel`, its current audience as `to`, and only its public attributes, in canonical key order ([W-07]); the entity is anonymous. Otherwise emit nothing.
+- **[R-05]** Step 5, a `set` of an unmaterialized entity: if the entity is forgotten and, after the `set`, its audience holds V and it is in a zone whose opponent visibility is `public`, emit the `create` that step 3 emits for an unmaterialized entity; the entity is known, and no longer forgotten. Otherwise, if the entity, after the `set`, would be anonymous for V, emit a `create` with a fresh id, without `card`, with its current `zone`, `owner`, `controller`, `parent` and `rel`, `to` set to the entity's own seat as a one-seat list (as in step 2), and only its public attributes, in canonical key order ([W-07]); the entity is anonymous. Otherwise emit nothing.
 - **[R-06]** Step 6, a `set` that changes the `zone` of an anonymous entity: emit a `remove` of its output id. The entity is then unmaterialized, and step 5 applies to the same `set`.
 - **[R-07]** Step 7, any other `set`: emit it with mapped ids. For an anonymous entity, drop from `a` every attribute that is not public. If nothing is left but `t` and `e`, emit nothing.
 - **[R-08]** Step 8, a `remove`: for an unmaterialized entity, emit nothing. Otherwise emit it with the mapped id.
-- **[R-09]** Step 9, a `block`: keep a reference (`src`, `via`, and each element of `targets` and `options`) only when it names `"g"`, `"p1"`, `"p2"` or an entity known to V, mapped. Remove `src` or `via` when it is dropped. Remove `targets` or `options` when no element is left. If any reference was dropped, also remove `text`. Emit the block, with its `id`, `kind`, `p`, `amount`, `parent` and `group` unchanged.
+- **[R-09]** Step 9, a `block`: keep a reference (`src`, `via`, and each element of `targets` and `options`) only when it names `"g"`, `"p1"`, `"p2"` or an entity known to V that is not, when the block applies, in a `hand` whose seat is not V, mapped. Remove `src` or `via` when it is dropped. Remove `targets` or `options` when no element is left. If any reference was dropped, also remove `text`, except the `text` of a `name` block, which is the chosen name ([W-54]). Emit the block, with its `id`, `kind`, `p`, `amount`, `parent` and `group` unchanged.
 - **[R-10]** Step 10, a `step`: emit it unchanged.
 - **[R-11]** Step 11, the rest of the file:
   - **Header:** keep every tag of the `full` file except `Seed`, with every value unchanged except `Visibility`, which becomes `perspective:V` or `public`.
@@ -1023,14 +1035,15 @@ and draws from them. Only its `text` is for a human.
 The table gives each field's general meaning. Which fields a block of a registered kind carries,
 and what each means for that kind, is the kind's **field contract** in the block kind registry
 ([§22.4](#224-block-kinds)): each field is **required** or **optional**, and a field the contract
-does not list MUST NOT appear. `id` and `kind` are always required; `text` and `parent` are always
-optional.
+does not list MUST NOT appear. `id` and `kind` are always required. `text` and `parent` are always
+allowed; `text` is required only where a contract says so (the chosen name of a `name` block).
 
 A block is one point record. There are no open and close pairs: nesting is `parent`.
 
 - **[W-52]** A block's `parent` MUST name a block earlier in the file.
 - **[W-53]** A block's `src`, `targets`, `options` and `via` MUST name entities that exist when the block is applied ([W-37]).
-- **[W-54]** A block's `text` MUST NOT name or describe any card or entity other than the ones the block references, so that a reader who knows every entity the block references learns nothing hidden from it.
+- **[W-54]** A block's `text` MUST NOT name or describe any card or entity other than the ones the block references, so that a reader who knows every entity the block references learns nothing hidden from it. A `name` block is exempt: its `text` is the chosen name, which was announced to both seats, and it MUST hold that name and nothing else.
+- **[W-66]** A block that names a card leaving a hand for a zone whose opponent visibility is `public` (a card played, or discarded from hand) MUST be written after the `set` that moves it, so that the reference survives redaction ([R-09]). A block that names a card leaving a hand face down (into the resource row or a deck) MUST be written before the record that moves it: a `full` file keeps the name, and a `perspective` or `public` file drops it.
 
 Blocks are never state. The board is whatever `create`, `set`, `remove` and `reveal` say.
 
@@ -1043,9 +1056,20 @@ The block kind registry ([§22](#22-registries)) is an open list.
 - **[P-19]** A reader MUST accept a block whose `kind` it does not know.
 
 Each kind's meaning in the registry says what one occurrence of it is: one card played, one
-attack, one instance of damage dealt to targets.
+attack, one amount of damage dealt at once, one triggered ability resolved.
 
-- **[W-64]** A writer MUST write every block of a registered kind by that kind's field contract ([§22.4](#224-block-kinds)): with every required field, with only the fields the contract lists (and `id`, `kind`, `text`, `parent`), and with each field meaning what the contract says. A required reference field (`src`, `via`, `targets`, `options`) is required in a `full` file; in a `perspective` or `public` file it is absent when the redactor dropped it ([R-09]). A required `p` or `amount` is required in every profile.
+**Precedence.** An event that a more specific kind records is not also an occurrence of a more
+generic kind:
+
+- a search is a `search` block, never also a `look`;
+- deploying a leader is a `deploy`, never also an `ability`;
+- a choice that another block records in its `targets` or `options` (the target of an attack, an ability, a play, a search) is not also a `choice`: `choice` is only for a choice no other block records, such as a mode, a yes or no, a number, a player or an order;
+- every triggered ability that resolves is a `trigger`, keyword triggers (Restore, Ambush, Shielded, Bounty and the like) included.
+
+Events of different kinds that happen together are each an occurrence: an attack is an `attack`,
+and its combat damage is a `damage` block under it.
+
+- **[W-64]** A writer MUST write every block of a registered kind by that kind's field contract ([§22.4](#224-block-kinds)): with every required field, with only the fields the contract lists (and `id`, `kind`, `text`, `parent`), and with each field meaning what the contract says. A required reference field (`src`, `via`, `targets`, `options`) is required in a `full` file; in a `perspective` or `public` file it is absent when the redactor dropped it ([R-09]). A required `p`, `amount` or `text` is required in every profile.
 - **[W-65]** A writer that writes any block in a file MUST write a block of the matching kind for every occurrence, in the recorded game, of every registered kind. A writer MAY write no block at all. Blocks of an unregistered kind ([§17.2](#172-extensions)) are free: a writer need not write one for every occurrence.
 - **[V-16]** A validator MUST report `block-fields` on a block of a registered kind that lacks a field its contract requires, or that carries a field the contract does not list. In a file whose `Visibility` is not `full`, it MUST NOT report a missing `src`, `via`, `targets` or `options`.
 
@@ -1056,7 +1080,7 @@ meets [W-65] meets it too.
 ### 13.3 `STORY`
 
 `STORY` is the game as prose. It is optional, derived from the records, and its wording is
-advisory: no rule depends on it. The same holds for the wording of a block's `text`.
+advisory: no rule depends on it. The same holds for the wording of a block's `text`, except the chosen name a `name` block holds ([W-54]).
 
 - **[W-55]** A `STORY` MUST NOT hold anything the file's profile hides ([§10](#10-visibility-and-profiles)).
 
@@ -1158,14 +1182,14 @@ A `perspective` file is built so that it holds nothing its viewer did not see du
 Each way a game record could leak is closed by a rule of this document:
 
 - **The opponent's draws.** A draw is a `create` whose `to` is the drawing seat. For the opponent it is unmaterialized ([R-02]): the file holds no entity for it, only the new `handCount`.
-- **Which card was resourced.** A card moved from a hand the viewer cannot see into the resource row appears as a fresh anonymous entity ([R-05]). The viewer sees that a resource arrived, not which card it was.
+- **Which card was resourced.** A card moved from a hand the viewer cannot see into the resource row appears as a fresh anonymous entity ([R-05]) whose `to` is always the owner's seat alone, whoever had seen the card ([R-02], [R-05]). The viewer sees that a resource arrived, not which card it was: resourcing a card the viewer knew and resourcing one it never saw give the same records.
 - **Moves between hidden zones.** An anonymous entity that changes zone is removed and, if still trackable, created afresh ([R-06]). An anonymous card can never be linked across a move.
 - **Searches and looks.** The cards a seat looks at are temporary deck entities whose `to` is the looking seat, so they are unmaterialized for the opponent ([R-02]); a private `reveal` is not emitted ([R-04]); and the narrative of the search keeps no reference to them ([R-09]).
 - **Blind choices.** A block's `options` that name cards the viewer does not know are dropped, and its `text` with them ([R-09]).
 - **Effects that name hidden cards.** An effect is materialized for V only when V knows its source ([W-31], [R-02]). A reference attribute (`src`, `targets`) keeps only references to entities V knows, so it cannot name a hidden card or follow an anonymous one across re-ids ([§11.1](#111-state)).
 - **Words that name hidden cards.** When a reference is dropped, the record's `text`, `untilText` and `ability` attributes go with it ([§11.1](#111-state)), as a block's `text` does ([R-09]). `abilityUses` is `identity`-class, so its ability ids are dropped from every entity V does not know ([R-02], [R-05], [R-07]).
 - **How long a card sat in hand.** The opponent's hand is a count, not a list of entities ([§10.3](#103-what-a-viewer-can-track)). A viewer cannot follow one hidden card through the rounds. Only a card the viewer already knows stays an entity in the opponent's hand, and only until a card leaves that hand face down.
-- **Which known card left a hidden hand.** When any card leaves a hand the viewer cannot see face down (into the resource row or a deck), the viewer loses track of every card it knew in that hand, and each is removed from the file ([R-17], [W-63]). Removing only the card that left would name it. A forgotten card comes back, as a fresh entity, only once the viewer sees it again.
+- **Which known card left a hidden hand.** When any card leaves a hand the viewer cannot see face down (into the resource row or a deck), the viewer loses track of every card it knew in that hand, and each is removed from the file ([R-17], [W-63]). Removing only the card that left would name it. It applies even when the card was revealed to the viewer a moment before. No block or `ref` attribute names a card in a hidden hand ([R-09], [§11.1](#111-state)), so a block written before the move cannot name the card either ([W-66]). A forgotten card comes back, as a fresh entity, only once the viewer sees it again ([W-43], [W-44]).
 - **Ids that carry history.** Entity ids carry no information and are renumbered by order of first use ([R-14]); a card that comes back from the deck is a new entity ([W-22]). Ids are per file: an id in one profile's file says nothing about the same id in another's ([§6.2](#62-entity-ids)), so two players' files cannot be joined to rebuild both hands.
 - **The seed, the deck order, the opponent's deck list and sideboard, and names of unseen cards.** `Seed` is dropped, `order` is dropped, the opponent's `DECKS` line lists only cards the file reveals, and `CARDS` keeps only ids the file uses ([R-11]).
 - **Notes and prose.** `STORY` and `ANNOTATIONS` of a `full` file are not copied ([R-13]).
@@ -1191,7 +1215,7 @@ What can change, and how:
 - **The envelope** (the syntax, the sections, the six record types, the header rules, the profiles and the redaction algorithm) changes only with the version. In 0.x a minor version MAY change it in a way that breaks older readers. From 2.0 on, only a major version may.
 - **The registries** (attributes, zones, relations, block kinds, set codes) grow by adding rows. A new row needs no new version.
 - **Blocks** are normative in their kind and their fields: the block kind registry gives each kind a field contract ([§13.1](#131-block-fields)), and it grows by adding kinds, like every registry. An existing kind's contract changes only with the version.
-- **The wording** of block `text` and of `STORY` is advisory and never normative.
+- **The wording** of block `text` and of `STORY` is advisory and never normative. The one exception is a `name` block's `text`, which is the chosen name ([W-54]).
 
 - **[P-22]** A reader MUST keep attributes it does not know, and MUST accept block kinds, zones, relations and set codes it does not know.
 
@@ -1500,9 +1524,10 @@ An attached upgrade's or a pilot's `zone` is its parent's zone ([W-28]).
 ### 22.4 Block kinds
 
 Each row is a kind and its field contract ([§13.1](#131-block-fields)). "Required" and "Optional"
-list the fields among `p`, `src`, `targets`, `options`, `amount`, `via` and `group` that a block of
+list the fields among `p`, `src`, `targets`, `options`, `amount`, `via`, `group` and `text` that a block of
 the kind must and may carry; a field in neither column MUST NOT appear ([W-64]). `id` and `kind`
-are always required, and `text` and `parent` always optional. "Fields mean" says what a field
+are always required. `text` and `parent` are always allowed, and `text` is required only where
+the "Required" column lists it. "Fields mean" says what a field
 means for the kind where the general meaning of [§13.1](#131-block-fields) is not enough.
 
 <!-- registry:blockKinds -->
@@ -1511,21 +1536,21 @@ means for the kind where the general meaning of [§13.1](#131-block-fields) is n
 | `play` | A card is played. | `p`, `src` | `targets`, `amount`, `via` | `p`: The seat that played it. `src`: The card played. `targets`: What was chosen while playing it, such as an upgrade's host. `amount`: The resources paid. `via`: The card whose ability let it be played. |
 | `deploy` | A leader is deployed. | `p`, `src` | `targets` | `p`: The seat that deployed it. `src`: The leader. `targets`: The unit it deploys onto, when it deploys as an upgrade. |
 | `attack` | A unit attacks. | `p`, `src`, `targets` | `via` | `p`: The attacking seat. `src`: The attacker. `targets`: The defender: the unit or base attacked. `via`: The card whose ability made the attack. |
-| `ability` | An action ability is used, or an Epic Action other than deploying a leader. | `p`, `src` | `targets`, `via` | `p`: The seat that used it. `src`: The card (or base) whose ability it is. `targets`: What it was used on. `via`: The card that granted the ability. |
-| `trigger` | A triggered ability resolves. | `p`, `src` | `targets`, `via` | `p`: The seat that controls the ability. `src`: The card (or base) whose ability it is. `targets`: What it was used on. `via`: The card that granted the ability. |
-| `damage` | Damage is dealt. | `targets`, `amount` | `p`, `src`, `group` | `p`: The seat whose card dealt it; absent with src. `src`: The card that dealt it; absent only when no card did (a draw from an empty deck). `targets`: What took the damage. `amount`: The damage each target took, after prevention. Damage of different amounts is separate blocks. `group`: Shared by damage dealt at the same time, such as combat damage. |
+| `ability` | An action ability is used, or an Epic Action other than deploying a leader. One use is one occurrence. | `p`, `src` | `targets`, `via` | `p`: The seat that used it. `src`: The card (or base) whose ability it is. `targets`: What it was used on. `via`: The card that granted the ability. |
+| `trigger` | A triggered ability resolves, keyword triggers (Restore, Ambush, Shielded, Bounty and the like) included. Each resolution is one occurrence. | `p`, `src` | `targets`, `via` | `p`: The seat that controls the ability. `src`: The card (or base) whose ability it is. `targets`: What it was used on. `via`: The card that granted the ability. |
+| `damage` | Damage is dealt. One occurrence is one amount of damage dealt at once to one or more targets. | `targets`, `amount` | `p`, `src`, `group` | `p`: The seat whose card dealt it; absent with src. `src`: The card that dealt it; absent only when no card did (a draw from an empty deck). `targets`: What took the damage. `amount`: The damage each target took, after prevention. Damage of different amounts is separate blocks. `group`: Shared by damage dealt at the same time, such as combat damage. |
 | `heal` | Damage is healed. | `p`, `src`, `targets`, `amount` | `group` | `p`: The seat whose card healed it. `src`: The card that healed it. `targets`: What was healed. `amount`: The damage removed from each target. Different amounts are separate blocks. `group`: Shared by healing done at the same time. |
-| `defeat` | Entities are defeated. | `targets` | `p`, `src`, `group` | `p`: The seat whose card defeated them. `src`: The card that defeated them, when one did. `targets`: What was defeated. `group`: Shared by defeats at the same time. |
+| `defeat` | Entities are defeated. Each event that defeats one or more entities at once is one occurrence. | `targets` | `p`, `src`, `group` | `p`: The seat whose card defeated them. `src`: The card whose damage or ability defeated them. `targets`: What was defeated. `group`: Shared by defeats at the same time. |
 | `capture` | A card is captured. | `p`, `src`, `targets` | `via` | `p`: The seat that controls the captor. `src`: The captor: the unit or base that holds the card. `targets`: The captured cards. `via`: The card whose ability made the capture. |
 | `rescue` | A captured card is rescued. | `p`, `targets` | `src` | `p`: The seat the rescued cards return to. `src`: The card whose ability rescued them. `targets`: The rescued cards. |
-| `draw` | Cards are drawn. A draw from an empty deck draws no card and is no draw block. | `p`, `targets`, `amount` | `src`, `group` | `p`: The drawing seat. `src`: The card whose ability made the draw; absent for the draws of setup and regroup. `targets`: The drawn card entities. `amount`: The cards drawn. `group`: Shared by draws at the same time, such as both seats' regroup draws. |
-| `discard` | Cards are discarded from a hand or a deck. | `p`, `targets` | `src`, `group` | `p`: The seat whose cards were discarded. `src`: The card whose ability discarded them. `targets`: The discarded cards. `group`: Shared by discards at the same time. |
-| `resource` | Cards are put into the resource row. | `p`, `targets` | `src`, `group` | `p`: The seat whose resources they become. `src`: The card whose ability resourced them; absent for the resources of setup and regroup. `targets`: The resourced cards. `group`: Shared by resources chosen at the same time, such as at setup. |
-| `search` | A deck is searched. | `p`, `src`, `amount` | `options`, `targets` | `p`: The searching seat. `src`: The card whose ability searched. `options`: The cards looked at. `targets`: The cards chosen. `amount`: How many cards were looked at. |
-| `look` | Cards are looked at. | `p`, `targets`, `amount` | `src` | `p`: The seat that looked. `src`: The card whose ability let it look. `targets`: The cards looked at. `amount`: How many cards were looked at. |
-| `choice` | A choice is made. | `p` | `src`, `options`, `targets`, `amount`, `group` | `p`: The choosing seat. `src`: The card whose ability asked for the choice. `options`: What could have been chosen. `targets`: What was chosen. `amount`: The number chosen, when the choice is a number. `group`: Shared by blind choices made without seeing each other. |
-| `name` | A name is chosen. The block's text is the chosen name. | `p`, `src` | — | `p`: The naming seat. `src`: The card whose ability asked for the name. |
-| `shuffle` | A deck is shuffled, with or without entities shuffled into it. | `p` | `src`, `targets` | `p`: The seat whose deck it is. `src`: The card whose ability shuffled it. `targets`: The entities shuffled into the deck. |
+| `draw` | Cards are drawn. Each draw instruction is one occurrence. A draw from an empty deck draws no card and is no draw block. | `p`, `targets`, `amount` | `src`, `group` | `p`: The drawing seat. `src`: The card whose ability made the draw; absent for the draws of setup and regroup. `targets`: The drawn card entities. `amount`: The cards drawn. `group`: Shared by draws at the same time, such as both seats' regroup draws. |
+| `discard` | Cards are discarded from a hand or a deck. | `p`, `targets`, `amount` | `src`, `group` | `p`: The seat whose cards were discarded. `src`: The card whose ability discarded them. `targets`: The discarded cards. `amount`: The cards discarded. `group`: Shared by discards at the same time. |
+| `resource` | Cards are put into the resource row. | `p`, `targets`, `amount` | `src`, `group` | `p`: The seat whose resources they become. `src`: The card whose ability resourced them; absent for the resources of setup and regroup. `targets`: The resourced cards. `amount`: The cards resourced. `group`: Shared by resources chosen at the same time, such as at setup. |
+| `search` | A deck is searched. A search is a search block only, never also a look block. | `p`, `src`, `amount` | `targets`, `options` | `p`: The searching seat. `src`: The card whose ability searched. `targets`: The cards chosen. `options`: The cards looked at. `amount`: How many cards were looked at. |
+| `look` | Cards are looked at, other than in a search. | `p`, `targets`, `amount` | `src` | `p`: The seat that looked. `src`: The card whose ability let it look. `targets`: The cards looked at. `amount`: How many cards were looked at. |
+| `choice` | A choice that no other block's targets or options records is made: a mode, a yes or no, a number, a player, an order. | `p` | `src`, `targets`, `options`, `amount`, `group` | `p`: The choosing seat. `src`: The card whose ability asked for the choice. `targets`: What was chosen. `options`: What could have been chosen. `amount`: The number chosen, when the choice is a number. `group`: Shared by blind choices made without seeing each other. |
+| `name` | A name is chosen. | `p`, `src`, `text` | — | `p`: The naming seat. `src`: The card whose ability asked for the name. `text`: The chosen name, and nothing else. |
+| `shuffle` | A deck is shuffled, with or without entities shuffled into it. | `p`, `amount` | `src`, `targets` | `p`: The seat whose deck it is. `src`: The card whose ability shuffled it. `targets`: The entities shuffled into the deck. `amount`: The entities shuffled into the deck: 0 when none were. |
 | `pass` | A seat passes. | `p` | — | `p`: The passing seat. |
 | `initiative` | The initiative is taken. | `p` | `src` | `p`: The seat that took it. `src`: The card whose ability gave it. |
 | `mulligan` | A mulligan decision. | `p`, `amount` | — | `p`: The deciding seat. `amount`: The cards shuffled back: 0 when the seat kept its hand. |

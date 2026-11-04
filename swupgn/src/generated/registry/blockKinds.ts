@@ -69,7 +69,7 @@ export const blockKinds = [
     },
     {
         "name": "ability",
-        "meaning": "An action ability is used, or an Epic Action other than deploying a leader.",
+        "meaning": "An action ability is used, or an Epic Action other than deploying a leader. One use is one occurrence.",
         "fields": {
             "p": {
                 "use": "required",
@@ -91,7 +91,7 @@ export const blockKinds = [
     },
     {
         "name": "trigger",
-        "meaning": "A triggered ability resolves.",
+        "meaning": "A triggered ability resolves, keyword triggers (Restore, Ambush, Shielded, Bounty and the like) included. Each resolution is one occurrence.",
         "fields": {
             "p": {
                 "use": "required",
@@ -113,7 +113,7 @@ export const blockKinds = [
     },
     {
         "name": "damage",
-        "meaning": "Damage is dealt.",
+        "meaning": "Damage is dealt. One occurrence is one amount of damage dealt at once to one or more targets.",
         "fields": {
             "p": {
                 "use": "optional",
@@ -165,7 +165,7 @@ export const blockKinds = [
     },
     {
         "name": "defeat",
-        "meaning": "Entities are defeated.",
+        "meaning": "Entities are defeated. Each event that defeats one or more entities at once is one occurrence.",
         "fields": {
             "p": {
                 "use": "optional",
@@ -173,7 +173,7 @@ export const blockKinds = [
             },
             "src": {
                 "use": "optional",
-                "meaning": "The card that defeated them, when one did."
+                "meaning": "The card whose damage or ability defeated them."
             },
             "targets": {
                 "use": "required",
@@ -227,7 +227,7 @@ export const blockKinds = [
     },
     {
         "name": "draw",
-        "meaning": "Cards are drawn. A draw from an empty deck draws no card and is no draw block.",
+        "meaning": "Cards are drawn. Each draw instruction is one occurrence. A draw from an empty deck draws no card and is no draw block.",
         "fields": {
             "p": {
                 "use": "required",
@@ -267,6 +267,10 @@ export const blockKinds = [
                 "use": "required",
                 "meaning": "The discarded cards."
             },
+            "amount": {
+                "use": "required",
+                "meaning": "The cards discarded."
+            },
             "group": {
                 "use": "optional",
                 "meaning": "Shared by discards at the same time."
@@ -289,6 +293,10 @@ export const blockKinds = [
                 "use": "required",
                 "meaning": "The resourced cards."
             },
+            "amount": {
+                "use": "required",
+                "meaning": "The cards resourced."
+            },
             "group": {
                 "use": "optional",
                 "meaning": "Shared by resources chosen at the same time, such as at setup."
@@ -297,7 +305,7 @@ export const blockKinds = [
     },
     {
         "name": "search",
-        "meaning": "A deck is searched.",
+        "meaning": "A deck is searched. A search is a search block only, never also a look block.",
         "fields": {
             "p": {
                 "use": "required",
@@ -307,13 +315,13 @@ export const blockKinds = [
                 "use": "required",
                 "meaning": "The card whose ability searched."
             },
-            "options": {
-                "use": "optional",
-                "meaning": "The cards looked at."
-            },
             "targets": {
                 "use": "optional",
                 "meaning": "The cards chosen."
+            },
+            "options": {
+                "use": "optional",
+                "meaning": "The cards looked at."
             },
             "amount": {
                 "use": "required",
@@ -323,7 +331,7 @@ export const blockKinds = [
     },
     {
         "name": "look",
-        "meaning": "Cards are looked at.",
+        "meaning": "Cards are looked at, other than in a search.",
         "fields": {
             "p": {
                 "use": "required",
@@ -345,7 +353,7 @@ export const blockKinds = [
     },
     {
         "name": "choice",
-        "meaning": "A choice is made.",
+        "meaning": "A choice that no other block's targets or options records is made: a mode, a yes or no, a number, a player, an order.",
         "fields": {
             "p": {
                 "use": "required",
@@ -355,13 +363,13 @@ export const blockKinds = [
                 "use": "optional",
                 "meaning": "The card whose ability asked for the choice."
             },
-            "options": {
-                "use": "optional",
-                "meaning": "What could have been chosen."
-            },
             "targets": {
                 "use": "optional",
                 "meaning": "What was chosen."
+            },
+            "options": {
+                "use": "optional",
+                "meaning": "What could have been chosen."
             },
             "amount": {
                 "use": "optional",
@@ -375,7 +383,7 @@ export const blockKinds = [
     },
     {
         "name": "name",
-        "meaning": "A name is chosen. The block's text is the chosen name.",
+        "meaning": "A name is chosen.",
         "fields": {
             "p": {
                 "use": "required",
@@ -384,6 +392,10 @@ export const blockKinds = [
             "src": {
                 "use": "required",
                 "meaning": "The card whose ability asked for the name."
+            },
+            "text": {
+                "use": "required",
+                "meaning": "The chosen name, and nothing else."
             }
         }
     },
@@ -402,6 +414,10 @@ export const blockKinds = [
             "targets": {
                 "use": "optional",
                 "meaning": "The entities shuffled into the deck."
+            },
+            "amount": {
+                "use": "required",
+                "meaning": "The entities shuffled into the deck: 0 when none were."
             }
         }
     },
