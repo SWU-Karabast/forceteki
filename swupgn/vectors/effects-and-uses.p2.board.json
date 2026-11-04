@@ -1,0 +1,24 @@
+{
+  "seq": 9,
+  "entities": {
+    "g": {"a":{"round":1,"phase":"regroup","initiative":1,"initiativeTaken":false}},
+    "p1": {"a":{"deckCount":23,"handCount":3,"credits":0,"force":true}},
+    "p2": {"a":{"deckCount":23,"handCount":4,"credits":0,"force":false}},
+    "1": {"zone":"base","owner":1,"card":"LOF#022","to":"all","a":{"kind":"base","damage":0,"hp":25,"abilityUses":[{"ability":"mystic-monastery/action","seat":1,"count":2,"per":"game","max":3}]}},
+    "2": {"zone":"base","owner":1,"card":"LOF#003","to":"all","a":{"kind":"leader","exhausted":true,"deployed":false,"epicActionUsed":false}},
+    "3": {"zone":"base","owner":1,"card":"SOR#017","to":"all","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}},
+    "4": {"zone":"base","owner":2,"card":"SOR#029","to":"all","a":{"kind":"base","damage":0,"hp":28,"x_examplewriter_art":"alternate"}},
+    "5": {"zone":"base","owner":2,"card":"SOR#010","to":"all","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}},
+    "6": {"zone":"ground","owner":2,"card":"SHD#257","to":"all","a":{"kind":"unit","exhausted":true,"damage":0,"power":2,"hp":3}},
+    "7": {"zone":"hand","owner":2,"card":"SOR#130","to":[2],"a":{}},
+    "8": {"zone":"hand","owner":2,"card":"SOR#132","to":[2],"a":{}},
+    "9": {"zone":"resource","owner":1,"to":[1],"a":{"exhausted":false}},
+    "10": {"zone":"resource","owner":1,"to":[1],"a":{"exhausted":false}},
+    "11": {"zone":"resource","owner":2,"card":"SOR#062","to":[2],"a":{"exhausted":false,"x_examplewriter_foil":true}},
+    "12": {"zone":"resource","owner":2,"card":"SOR#064","to":[2],"a":{"exhausted":false}},
+    "13": {"zone":"discard","owner":1,"card":"SOR#219","to":"all","a":{"kind":"event"}},
+    "14": {"zone":"discard","owner":1,"card":"SHD#200","to":"all","a":{"kind":"unit"}},
+    "17": {"zone":"hand","owner":2,"card":"SOR#134","to":[2],"a":{}},
+    "18": {"zone":"hand","owner":2,"card":"SOR#136","to":[2],"a":{}}
+  }
+}

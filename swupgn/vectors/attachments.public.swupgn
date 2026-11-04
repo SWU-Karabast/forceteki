@@ -1,0 +1,170 @@
+[Game "SWU-PGN/0.1"]
+[Visibility "public"]
+[Steps "decision"]
+[GameId "vector-attachments"]
+[Date "2026-11-03T12:00:00Z"]
+[CardPool "SOR,SHD,JTL,SEC,HMW"]
+[Engine "examplewriter@0.1.0"]
+[P1Id "sha256:91f2049e8d2099e727801519bfa488ad5db4edcdde37ed9c8769abe0a10396f1"]
+[P2Id "sha256:23c0c1f42e0c03a276c7a337804026b4f5e2314cf50971e2747dd24100673030"]
+[P1 "Player 1"]
+[P2 "Player 2"]
+[Result "Incomplete"]
+[Reason "Game not finished"]
+[Rounds "1"]
+[P1Leader "JTL#001"]
+[P2Leader "SEC#008"]
+[P1Base "SOR#026"]
+[P2Base "SOR#029"]
+
+%%% DECKS
+{"p":1,"leaders":["JTL#001"],"base":"SOR#026","complete":false,"main":[["SOR#095"],["SOR#120"],["SHD#040"],["HMW#081"],["JTL#212"],["JTL#126"],["HMW#102"]]}
+{"p":2,"leaders":["SEC#008"],"base":"SOR#029","complete":false,"main":[["SHD#142"],["SOR#199"],["SHD#120"]]}
+
+%%% CARDS
+{"id":"HMW#081","name":"Alliance Shield Generator"}
+{"id":"HMW#102","name":"Dragon's Might"}
+{"id":"JTL#001","name":"Asajj Ventress, I Work Alone"}
+{"id":"JTL#126","name":"Eject"}
+{"id":"JTL#212","name":"Republic Y-Wing"}
+{"id":"SEC#008","name":"Bail Organa, Doing Everything He Can"}
+{"id":"SHD#040","name":"Clan Wren Rescuer"}
+{"id":"SHD#120","name":"Discerning Veteran"}
+{"id":"SHD#142","name":"Pre Vizsla, Power Hungry"}
+{"id":"SOR#026","name":"Catacombs of Cadera"}
+{"id":"SOR#029","name":"Administrator's Tower"}
+{"id":"SOR#095","name":"Battlefield Marine"}
+{"id":"SOR#120","name":"Academy Training"}
+{"id":"SOR#199","name":"Bamboozle"}
+{"id":"TOKEN:experience#2007868442","name":"Experience"}
+
+%%% RECORDS
+{"t":"set","e":"g","a":{"round":1,"phase":"action","active":1,"initiative":1,"initiativeTaken":false}}
+{"t":"set","e":"p1","a":{"deckCount":20,"handCount":8,"credits":0,"force":false}}
+{"t":"set","e":"p2","a":{"deckCount":24,"handCount":4,"credits":0,"force":false}}
+{"t":"create","e":1,"zone":"base","owner":1,"card":"SOR#026","a":{"kind":"base","damage":0,"hp":30}}
+{"t":"create","e":2,"zone":"base","owner":1,"card":"JTL#001","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
+{"t":"create","e":3,"zone":"base","owner":2,"card":"SOR#029","a":{"kind":"base","damage":0,"hp":28}}
+{"t":"create","e":4,"zone":"base","owner":2,"card":"SEC#008","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
+{"t":"create","e":5,"zone":"resource","owner":1,"to":[1],"a":{"exhausted":false}}
+{"t":"create","e":6,"zone":"resource","owner":1,"to":[1],"a":{"exhausted":false}}
+{"t":"create","e":7,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}}
+{"t":"create","e":8,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}}
+{"t":"step","seq":0,"ms":0}
+{"t":"create","e":9,"zone":"hand","owner":1,"card":"SOR#095","to":"all"}
+{"t":"set","e":9,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":3,"hp":3}}
+{"t":"block","id":1,"kind":"play","p":1,"src":9}
+{"t":"set","e":"p1","a":{"handCount":7}}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":1,"ms":6100}
+{"t":"block","id":2,"kind":"pass","p":2}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":2,"ms":9400}
+{"t":"create","e":10,"zone":"hand","owner":1,"card":"SOR#120","to":"all"}
+{"t":"set","e":10,"zone":"ground","parent":9,"rel":"attached","a":{"kind":"upgrade"}}
+{"t":"block","id":3,"kind":"play","p":1,"src":10,"targets":[9]}
+{"t":"set","e":9,"a":{"power":5,"hp":5}}
+{"t":"set","e":"p1","a":{"handCount":6}}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":3,"ms":15800}
+{"t":"block","id":4,"kind":"pass","p":2}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":4,"ms":18000}
+{"t":"create","e":11,"zone":"hand","owner":1,"card":"SHD#040","to":"all"}
+{"t":"set","e":11,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":1,"hp":2}}
+{"t":"block","id":5,"kind":"play","p":1,"src":11}
+{"t":"block","id":6,"kind":"trigger","p":1,"src":11,"targets":[9],"parent":5}
+{"t":"create","e":12,"zone":"ground","owner":1,"parent":9,"rel":"attached","card":"TOKEN:experience#2007868442","a":{"kind":"token"}}
+{"t":"set","e":9,"a":{"power":6,"hp":6}}
+{"t":"set","e":"p1","a":{"handCount":5}}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":5,"ms":24500}
+{"t":"create","e":13,"zone":"hand","owner":2,"card":"SHD#142","to":"all"}
+{"t":"set","e":13,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":8,"hp":7}}
+{"t":"block","id":7,"kind":"play","p":2,"src":13}
+{"t":"block","id":8,"kind":"trigger","p":2,"src":13,"targets":[10],"parent":7}
+{"t":"set","e":10,"controller":2,"parent":13,"rel":"attached"}
+{"t":"set","e":9,"a":{"power":4,"hp":4}}
+{"t":"set","e":13,"a":{"power":10,"hp":9}}
+{"t":"set","e":"p2","a":{"handCount":3}}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":6,"ms":33900}
+{"t":"create","e":14,"zone":"hand","owner":1,"card":"SOR#120","to":"all"}
+{"t":"set","e":14,"zone":"ground","parent":9,"rel":"attached","a":{"kind":"upgrade"}}
+{"t":"block","id":9,"kind":"play","p":1,"src":14,"targets":[9]}
+{"t":"set","e":9,"a":{"power":6,"hp":6}}
+{"t":"set","e":"p1","a":{"handCount":4}}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":7,"ms":38200}
+{"t":"create","e":15,"zone":"hand","owner":2,"card":"SOR#199","to":"all"}
+{"t":"set","e":15,"zone":"discard","a":{"kind":"event"}}
+{"t":"block","id":10,"kind":"play","p":2,"src":15,"targets":[9]}
+{"t":"set","e":14,"zone":"hand","parent":null,"rel":null}
+{"t":"remove","e":12}
+{"t":"set","e":9,"a":{"power":3,"hp":3}}
+{"t":"set","e":"p1","a":{"handCount":5}}
+{"t":"set","e":"p2","a":{"handCount":2}}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":8,"ms":45000}
+{"t":"create","e":16,"zone":"hand","owner":1,"card":"HMW#081","to":"all"}
+{"t":"set","e":16,"zone":"base","parent":1,"rel":"attached","a":{"kind":"upgrade"}}
+{"t":"block","id":11,"kind":"play","p":1,"src":16,"targets":[1]}
+{"t":"set","e":"p1","a":{"handCount":4}}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":9,"ms":49700}
+{"t":"create","e":17,"zone":"hand","owner":2,"card":"SHD#120","to":"all"}
+{"t":"set","e":17,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":3,"hp":4}}
+{"t":"block","id":12,"kind":"play","p":2,"src":17}
+{"t":"block","id":13,"kind":"trigger","p":2,"src":17,"targets":[9],"parent":12}
+{"t":"block","id":14,"kind":"capture","p":2,"src":17,"targets":[9],"parent":13}
+{"t":"set","e":9,"zone":"captured","parent":17,"rel":"captured","a":{"exhausted":null,"damage":null,"power":null,"hp":null}}
+{"t":"set","e":"p2","a":{"handCount":1}}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":10,"ms":56300}
+{"t":"create","e":18,"zone":"hand","owner":1,"card":"JTL#212","to":"all"}
+{"t":"set","e":18,"zone":"space","a":{"kind":"unit","exhausted":true,"damage":0,"power":1,"hp":3}}
+{"t":"block","id":15,"kind":"play","p":1,"src":18}
+{"t":"set","e":"p1","a":{"handCount":3}}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":11,"ms":60100}
+{"t":"block","id":16,"kind":"pass","p":2}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":12,"ms":61900}
+{"t":"block","id":17,"kind":"deploy","p":1,"src":2,"targets":[18]}
+{"t":"set","e":2,"zone":"space","parent":18,"rel":"pilot","a":{"exhausted":null,"deployed":true,"epicActionUsed":true}}
+{"t":"set","e":18,"a":{"power":4,"hp":7,"keywords":["grit"],"leaderUnit":true}}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":13,"ms":68800}
+{"t":"block","id":18,"kind":"pass","p":2}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":14,"ms":70300}
+{"t":"create","e":19,"zone":"hand","owner":1,"card":"JTL#126","to":"all"}
+{"t":"set","e":19,"zone":"discard","a":{"kind":"event"}}
+{"t":"block","id":19,"kind":"play","p":1,"src":19,"targets":[2]}
+{"t":"set","e":2,"zone":"ground","parent":null,"rel":null,"a":{"exhausted":true,"damage":0,"power":4,"hp":6}}
+{"t":"set","e":18,"a":{"power":1,"hp":3,"keywords":null,"leaderUnit":null}}
+{"t":"block","id":20,"kind":"draw","p":1,"src":19,"amount":1,"parent":19}
+{"t":"set","e":"p1","a":{"deckCount":19}}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":15,"ms":77600}
+{"t":"block","id":21,"kind":"pass","p":2}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":16,"ms":79000}
+{"t":"create","e":20,"zone":"hand","owner":1,"card":"HMW#102","to":"all"}
+{"t":"set","e":20,"zone":"discard","a":{"kind":"event"}}
+{"t":"block","id":22,"kind":"play","p":1,"src":20,"targets":[17]}
+{"t":"block","id":23,"kind":"defeat","p":1,"src":20,"targets":[17],"parent":22}
+{"t":"block","id":24,"kind":"rescue","p":1,"targets":[9],"parent":22}
+{"t":"set","e":9,"zone":"ground","parent":null,"rel":null,"a":{"exhausted":true,"damage":0,"power":3,"hp":3}}
+{"t":"set","e":17,"zone":"discard","a":{"exhausted":null,"damage":null,"power":null,"hp":null}}
+{"t":"set","e":"p1","a":{"handCount":2}}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":17,"ms":86400}
+{"t":"block","id":25,"kind":"ability","p":2,"src":4}
+{"t":"set","e":4,"a":{"exhausted":true}}
+{"t":"remove","e":7}
+{"t":"create","e":21,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":true}}
+{"t":"block","id":26,"kind":"resource","p":2,"src":4,"amount":1,"parent":25}
+{"t":"set","e":"p2","a":{"deckCount":23,"handCount":2}}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":18,"ms":93100}

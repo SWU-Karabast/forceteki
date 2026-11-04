@@ -248,6 +248,17 @@ describe('SPEC.md', function () {
     });
 
     it('the §Example appendix equals vectors/tiny.*', function () {
-        pending('Task 4');
+        const appendix = specLines().join('\n')
+            .split('## Appendix A: Example (informative)')[1].split('\n## Appendix B')[0];
+        const blocks = [...appendix.matchAll(/^```ndjson\n([\s\S]*?)^```$/gm)].map((m) => m[1].split('\n').filter((l) => l !== ''));
+        const records = (profile: string) => {
+            const lines = fs.readFileSync(path.join(packageDir, 'vectors', `tiny.${profile}.swupgn`), 'utf8').split('\n');
+            const start = lines.indexOf('%%% RECORDS') + 1;
+            const end = lines.findIndex((l, i) => i >= start && l.startsWith('%%%'));
+            return lines.slice(start, end < 0 ? undefined : end).filter((l) => l !== '');
+        };
+        expect(blocks.length).toBe(2);
+        expect(blocks[0]).toEqual(records('full'));
+        expect(blocks[1]).toEqual(records('p1'));
     });
 });

@@ -1622,12 +1622,154 @@ In release order.
 
 ## Appendix A: Example (informative)
 
-This appendix will reproduce the `RECORDS` of the conformance vector `tiny`
-(`vectors/tiny.full.swupgn` and `vectors/tiny.p1.swupgn`): one short game in which a card is
-searched out of a deck, shuffled back and drawn again, written in full and as Player 1 saw it.
-Until the vectors are frozen, the vectors are the authority. In that game a Shield token is
-created on a unit that has just been played out of the deck; the unit's `set` into `ground` comes
-before the token's `create`, as [W-28] requires.
+This appendix reproduces the `RECORDS` of the conformance vector `tiny`: one short game in which
+a card is searched out of a deck, shuffled back and drawn again. The vector's other sections, and
+its `perspective:2` and `public` files, are in `vectors/` with notes that say which step of
+[§11.2](#112-the-steps) made each line. If this appendix and the vector disagree, the vector is
+right.
+
+In that game a Shield token is created on a unit that has just been played out of the deck; the
+unit's `set` into `ground` comes before the token's `create`, as [W-28] requires. Each card played
+from a hand is revealed, then moved, then named by its `play` block ([W-44], [W-66]).
+
+`RECORDS` of `vectors/tiny.full.swupgn`, the game as it was:
+
+```ndjson
+{"t":"set","e":"g","a":{"round":1,"phase":"action","active":1,"initiative":1,"initiativeTaken":false}}
+{"t":"set","e":"p1","a":{"deckCount":45,"handCount":2,"credits":0,"force":false}}
+{"t":"set","e":"p2","a":{"deckCount":45,"handCount":2,"credits":0,"force":false}}
+{"t":"create","e":1,"zone":"base","owner":1,"card":"SOR#026","a":{"kind":"base","damage":0,"hp":30}}
+{"t":"create","e":2,"zone":"base","owner":1,"card":"SOR#005","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
+{"t":"create","e":3,"zone":"base","owner":2,"card":"SOR#029","a":{"kind":"base","damage":0,"hp":28}}
+{"t":"create","e":4,"zone":"base","owner":2,"card":"SOR#010","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
+{"t":"create","e":5,"zone":"hand","owner":1,"card":"SOR#095","to":[1]}
+{"t":"create","e":6,"zone":"hand","owner":1,"card":"SOR#160","to":[1]}
+{"t":"create","e":7,"zone":"hand","owner":2,"card":"SOR#130","to":[2]}
+{"t":"create","e":8,"zone":"hand","owner":2,"card":"SOR#170","to":[2]}
+{"t":"create","e":9,"zone":"resource","owner":1,"card":"SOR#060","to":[1],"a":{"exhausted":false}}
+{"t":"create","e":10,"zone":"resource","owner":2,"card":"SOR#061","to":[2],"a":{"exhausted":false}}
+{"t":"step","seq":0}
+{"t":"reveal","e":5,"card":"SOR#095","to":"all"}
+{"t":"set","e":5,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":3,"hp":3}}
+{"t":"block","id":1,"kind":"play","p":1,"src":5}
+{"t":"set","e":9,"a":{"exhausted":true}}
+{"t":"set","e":"p1","a":{"handCount":1}}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":1}
+{"t":"reveal","e":7,"card":"SOR#130","to":"all"}
+{"t":"set","e":7,"zone":"discard","a":{"kind":"event"}}
+{"t":"block","id":2,"kind":"play","p":2,"src":7}
+{"t":"create","e":11,"zone":"deck","owner":2,"card":"SOR#200","to":[2]}
+{"t":"create","e":12,"zone":"deck","owner":2,"card":"SOR#201","to":[2]}
+{"t":"create","e":13,"zone":"deck","owner":2,"card":"SOR#202","to":[2]}
+{"t":"block","id":3,"kind":"search","p":2,"src":7,"targets":[12],"options":[11,12,13],"amount":3,"parent":2}
+{"t":"reveal","e":12,"card":"SOR#201","to":"all"}
+{"t":"set","e":12,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":2,"hp":4}}
+{"t":"block","id":4,"kind":"play","p":2,"src":12,"parent":2}
+{"t":"create","e":14,"zone":"ground","owner":2,"parent":12,"rel":"attached","card":"TOKEN:shield#8752877738","a":{"kind":"token"}}
+{"t":"set","e":10,"a":{"exhausted":true}}
+{"t":"remove","e":11}
+{"t":"remove","e":13}
+{"t":"set","e":"p2","a":{"deckCount":44,"handCount":1}}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":2}
+{"t":"reveal","e":6,"card":"SOR#160","to":"all"}
+{"t":"set","e":6,"zone":"discard","a":{"kind":"event"}}
+{"t":"block","id":5,"kind":"play","p":1,"src":6}
+{"t":"block","id":6,"kind":"defeat","p":1,"src":6,"targets":[14],"parent":5}
+{"t":"block","id":7,"kind":"shuffle","p":2,"src":6,"targets":[12],"amount":1,"parent":5}
+{"t":"remove","e":14}
+{"t":"remove","e":12}
+{"t":"set","e":"p1","a":{"handCount":0}}
+{"t":"set","e":"p2","a":{"deckCount":45}}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":3}
+{"t":"block","id":8,"kind":"pass","p":2}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":4}
+{"t":"block","id":9,"kind":"pass","p":1}
+{"t":"block","id":10,"kind":"regroup"}
+{"t":"create","e":15,"zone":"hand","owner":1,"card":"SOR#210","to":[1]}
+{"t":"create","e":16,"zone":"hand","owner":1,"card":"SOR#211","to":[1]}
+{"t":"create","e":17,"zone":"hand","owner":2,"card":"SOR#201","to":[2]}
+{"t":"create","e":18,"zone":"hand","owner":2,"card":"SOR#212","to":[2]}
+{"t":"block","id":11,"kind":"draw","p":1,"targets":[15,16],"amount":2,"parent":10,"group":1}
+{"t":"block","id":12,"kind":"draw","p":2,"targets":[17,18],"amount":2,"parent":10,"group":1}
+{"t":"set","e":"p1","a":{"deckCount":43,"handCount":2}}
+{"t":"set","e":"p2","a":{"deckCount":43,"handCount":3}}
+{"t":"set","e":"g","a":{"phase":"regroup","active":null}}
+{"t":"step","seq":5}
+{"t":"block","id":13,"kind":"resource","p":1,"targets":[15],"amount":1,"parent":10}
+{"t":"set","e":15,"zone":"resource","a":{"exhausted":true}}
+{"t":"set","e":"p1","a":{"handCount":1}}
+{"t":"step","seq":6}
+```
+
+`RECORDS` of `vectors/tiny.p1.swupgn`, the same game as Player 1 saw it. Player 2's hand is a
+count, Player 2's resource is anonymous, and the cards Player 2 searched are not there; each of
+Player 2's cards appears when it is revealed:
+
+```ndjson
+{"t":"set","e":"g","a":{"round":1,"phase":"action","active":1,"initiative":1,"initiativeTaken":false}}
+{"t":"set","e":"p1","a":{"deckCount":45,"handCount":2,"credits":0,"force":false}}
+{"t":"set","e":"p2","a":{"deckCount":45,"handCount":2,"credits":0,"force":false}}
+{"t":"create","e":1,"zone":"base","owner":1,"card":"SOR#026","a":{"kind":"base","damage":0,"hp":30}}
+{"t":"create","e":2,"zone":"base","owner":1,"card":"SOR#005","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
+{"t":"create","e":3,"zone":"base","owner":2,"card":"SOR#029","a":{"kind":"base","damage":0,"hp":28}}
+{"t":"create","e":4,"zone":"base","owner":2,"card":"SOR#010","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
+{"t":"create","e":5,"zone":"hand","owner":1,"card":"SOR#095","to":[1]}
+{"t":"create","e":6,"zone":"hand","owner":1,"card":"SOR#160","to":[1]}
+{"t":"create","e":7,"zone":"resource","owner":1,"card":"SOR#060","to":[1],"a":{"exhausted":false}}
+{"t":"create","e":8,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}}
+{"t":"step","seq":0}
+{"t":"reveal","e":5,"card":"SOR#095","to":"all"}
+{"t":"set","e":5,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":3,"hp":3}}
+{"t":"block","id":1,"kind":"play","p":1,"src":5}
+{"t":"set","e":7,"a":{"exhausted":true}}
+{"t":"set","e":"p1","a":{"handCount":1}}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":1}
+{"t":"create","e":9,"zone":"hand","owner":2,"card":"SOR#130","to":"all"}
+{"t":"set","e":9,"zone":"discard","a":{"kind":"event"}}
+{"t":"block","id":2,"kind":"play","p":2,"src":9}
+{"t":"block","id":3,"kind":"search","p":2,"src":9,"amount":3,"parent":2}
+{"t":"create","e":10,"zone":"deck","owner":2,"card":"SOR#201","to":"all"}
+{"t":"set","e":10,"zone":"ground","a":{"kind":"unit","exhausted":true,"damage":0,"power":2,"hp":4}}
+{"t":"block","id":4,"kind":"play","p":2,"src":10,"parent":2}
+{"t":"create","e":11,"zone":"ground","owner":2,"parent":10,"rel":"attached","card":"TOKEN:shield#8752877738","a":{"kind":"token"}}
+{"t":"set","e":8,"a":{"exhausted":true}}
+{"t":"set","e":"p2","a":{"deckCount":44,"handCount":1}}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":2}
+{"t":"reveal","e":6,"card":"SOR#160","to":"all"}
+{"t":"set","e":6,"zone":"discard","a":{"kind":"event"}}
+{"t":"block","id":5,"kind":"play","p":1,"src":6}
+{"t":"block","id":6,"kind":"defeat","p":1,"src":6,"targets":[11],"parent":5}
+{"t":"block","id":7,"kind":"shuffle","p":2,"src":6,"targets":[10],"amount":1,"parent":5}
+{"t":"remove","e":11}
+{"t":"remove","e":10}
+{"t":"set","e":"p1","a":{"handCount":0}}
+{"t":"set","e":"p2","a":{"deckCount":45}}
+{"t":"set","e":"g","a":{"active":2}}
+{"t":"step","seq":3}
+{"t":"block","id":8,"kind":"pass","p":2}
+{"t":"set","e":"g","a":{"active":1}}
+{"t":"step","seq":4}
+{"t":"block","id":9,"kind":"pass","p":1}
+{"t":"block","id":10,"kind":"regroup"}
+{"t":"create","e":12,"zone":"hand","owner":1,"card":"SOR#210","to":[1]}
+{"t":"create","e":13,"zone":"hand","owner":1,"card":"SOR#211","to":[1]}
+{"t":"block","id":11,"kind":"draw","p":1,"targets":[12,13],"amount":2,"parent":10,"group":1}
+{"t":"block","id":12,"kind":"draw","p":2,"amount":2,"parent":10,"group":1}
+{"t":"set","e":"p1","a":{"deckCount":43,"handCount":2}}
+{"t":"set","e":"p2","a":{"deckCount":43,"handCount":3}}
+{"t":"set","e":"g","a":{"phase":"regroup","active":null}}
+{"t":"step","seq":5}
+{"t":"block","id":13,"kind":"resource","p":1,"targets":[12],"amount":1,"parent":10}
+{"t":"set","e":12,"zone":"resource","a":{"exhausted":true}}
+{"t":"set","e":"p1","a":{"handCount":1}}
+{"t":"step","seq":6}
+```
 
 ---
 

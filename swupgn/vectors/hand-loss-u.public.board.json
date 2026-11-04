@@ -1,0 +1,32 @@
+{
+  "seq": 20,
+  "entities": {
+    "g": {"a":{"round":1,"phase":"action","active":1,"initiative":1,"initiativeTaken":false}},
+    "p1": {"a":{"deckCount":35,"handCount":2,"credits":0,"force":false}},
+    "p2": {"a":{"deckCount":22,"handCount":1,"credits":0,"force":false}},
+    "1": {"zone":"base","owner":1,"card":"SOR#026","to":"all","a":{"kind":"base","damage":0,"hp":30}},
+    "2": {"zone":"base","owner":1,"card":"SOR#017","to":"all","a":{"kind":"leader","exhausted":true,"deployed":false,"epicActionUsed":false}},
+    "3": {"zone":"base","owner":2,"card":"SOR#029","to":"all","a":{"kind":"base","damage":0,"hp":28}},
+    "4": {"zone":"ground","owner":2,"card":"LOF#013","to":"all","a":{"kind":"leader","exhausted":true,"damage":5,"power":5,"hp":8,"deployed":true,"epicActionUsed":true}},
+    "5": {"zone":"resource","owner":1,"to":[1],"a":{"exhausted":false}},
+    "6": {"zone":"resource","owner":1,"to":[1],"a":{"exhausted":false}},
+    "7": {"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}},
+    "8": {"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}},
+    "9": {"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}},
+    "11": {"zone":"discard","owner":1,"card":"HMW#044","to":"all","a":{"kind":"unit"}},
+    "12": {"zone":"ground","owner":2,"parent":4,"rel":"attached","card":"SEC#210","to":"all","a":{"kind":"upgrade"}},
+    "21": {"zone":"resource","owner":1,"to":[1],"a":{"exhausted":true}},
+    "22": {"zone":"discard","owner":1,"card":"TS26#039","to":"all","a":{"kind":"unit"}},
+    "23": {"zone":"discard","owner":2,"card":"TWI#226","to":"all","a":{"kind":"event"}},
+    "24": {"zone":"discard","owner":1,"card":"SOR#219","to":"all","a":{"kind":"event"}},
+    "27": {"zone":"discard","owner":2,"card":"HMW#102","to":"all","a":{"kind":"event"}},
+    "28": {"zone":"ground","owner":1,"card":"SHD#200","to":"all","a":{"kind":"unit","exhausted":true,"damage":0,"power":5,"hp":7}},
+    "29": {"zone":"discard","owner":2,"card":"TWI#226","to":"all","a":{"kind":"event"}},
+    "30": {"owner":1,"to":"all","a":{"kind":"effect","targets":[28],"duration":"phase"}},
+    "31": {"zone":"resource","owner":1,"to":[1],"a":{"exhausted":false}},
+    "32": {"owner":1,"to":"all","a":{"kind":"effect","src":2,"targets":["p1"],"duration":"delayed","text":"At the start of the next action phase, defeat a resource you control."}},
+    "33": {"zone":"ground","owner":1,"card":"SEC#093","to":"all","a":{"kind":"unit","exhausted":true,"damage":0,"power":1,"hp":3}},
+    "34": {"zone":"ground","owner":1,"card":"SHD#148","to":"all","a":{"kind":"unit","exhausted":false,"damage":0,"power":3,"hp":5}},
+    "35": {"zone":"resource","owner":1,"to":[1],"a":{"exhausted":true}}
+  }
+}
