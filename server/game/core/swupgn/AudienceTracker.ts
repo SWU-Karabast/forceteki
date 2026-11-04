@@ -13,22 +13,20 @@ import type { SearchDeckEvent } from '../../gameSystems/SearchDeckSystem';
 import type { ViewCardEvent } from '../../gameSystems/ViewCardSystem';
 import { seatIn, swuPgnZoneOf } from './projectCards';
 import { SwuPgnEvents } from './SwuPgnEvents';
-import type { SwuPgnWriterState } from './SwuPgnWriterState';
+import type { ISwuPgnLook, SwuPgnWriterState } from './SwuPgnWriterState';
+
+/** Selects the looks that end (true) at a flush. */
+export type LookFilter = (look: ISwuPgnLook) => boolean;
 
 const publicZones: ReadonlySet<string> = new Set(ZONES.filter((zone) => zone.opponentSees === 'public').map((zone) => zone.name));
 
 /**
  * Who knows each card's identity (SPEC §10.2), and which deck cards are temporary entities (W-24).
  *
- * The seats a reveal, look or search widens a card to are kept in the writer state per card key, so they roll back
- * with the game, and a card that re-enters a deck (a new generation) starts unknown again (W-22).
+ * The seats a reveal, look or search widens a card to, and the looks in progress, are kept in the writer state per
+ * card key, so they roll back with the game, and a card that re-enters a deck (a new generation) starts unknown again (W-22).
  */
 export class AudienceTracker {
-    /**
-     * Deck cards someone saw since the last `endLooks()`, each with its card key when seen. Not rollback state:
-     * the writer ends the looks after every flush, so this is empty at every decision point a snapshot is taken at.
-     */
-    private readonly viewed = new Map<Card, string>();
     private _errors = 0;
 
     public constructor(
@@ -91,17 +89,28 @@ export class AudienceTracker {
         }
     }
 
-    /** Forgets the looks in progress and the failures counted, for a writer that restarts its baseline. */
+    /** Forgets the failures counted, for a writer that restarts its baseline (its state reset clears the looks). */
     public reset(): void {
-        this.viewed.clear();
         this._errors = 0;
     }
 
-    /** The deck cards someone saw since the last `endLooks()` that are still the same cards in a deck. */
-    public viewedDeckCards(): readonly Card[] {
+    /**
+     * The deck cards in a look that are still the same cards in a deck: the temporary deck entities.
+     * A look `ending` selects is left out, since it ends with the board being projected.
+     */
+    public viewedDeckCards(ending: LookFilter | null = null): readonly Card[] {
         const cards: Card[] = [];
-        for (const [card, key] of this.viewed) {
-            if (this.isStillViewed(card, key)) {
+        if (!this.state.hasLooks()) {
+            return cards;
+        }
+        for (const card of this.game.allCards) {
+            if (card.zoneName !== ZoneName.Deck) {
+                continue;
+            }
+            const key = this.state.cardKey(card);
+            const look = this.state.lookAt(key);
+            // a rollback can restore a state in which the key was never widened: such a card is no temporary entity
+            if (look !== undefined && this.state.audienceOf(key).length > 0 && !(ending?.(look) ?? false)) {
                 cards.push(card);
             }
         }
@@ -109,16 +118,35 @@ export class AudienceTracker {
     }
 
     /**
-     * The looks are over: each viewed card still in a deck goes back unseen, so it stops being an entity
-     * and forgets who saw it (W-24); it comes back as a new entity (W-22). A card that left the deck keeps both.
+     * Ends the looks `ending` selects (all by default). A viewed card still in a deck goes back unseen, so it stops
+     * being an entity and forgets who saw it (W-24); it comes back as a new entity (W-22). A card that left the deck
+     * keeps both.
      */
-    public endLooks(): void {
-        for (const [card, key] of this.viewed) {
-            if (card.zoneName === ZoneName.Deck || this.state.cardKey(card) !== key) {
+    public endLooks(ending: LookFilter = () => true): void {
+        if (!this.state.hasLooks()) {
+            return;
+        }
+        const keys = this.state.lookKeys();
+        const current = new Map<string, Card>();
+        for (const card of this.game.allCards) {
+            const key = this.state.cardKey(card);
+            if (keys.includes(key)) {
+                current.set(key, card);
+            }
+        }
+        for (const key of keys) {
+            const look = this.state.lookAt(key);
+            if (look === undefined || !ending(look)) {
+                continue;
+            }
+            const card = current.get(key);
+            if (card !== undefined && card.zoneName !== ZoneName.Deck) {
+                this.state.endLook(key);
+            } else {
+                // still in a deck, or back in one as a new generation
                 this.state.retire(key);
             }
         }
-        this.viewed.clear();
     }
 
     private listen<TEvent>(eventName: string, handler: (event: TEvent) => void): void {
@@ -139,14 +167,9 @@ export class AudienceTracker {
             const key = this.state.cardKey(card);
             this.state.widen(key, seats);
             if (card.zoneName === ZoneName.Deck) {
-                this.viewed.set(card, key);
+                this.state.addLook(key, seats);
             }
         }
-    }
-
-    private isStillViewed(card: Card, key: string): boolean {
-        // a rollback can restore a state in which the key was never widened: such a card is no temporary entity
-        return card.zoneName === ZoneName.Deck && this.state.cardKey(card) === key && this.state.audienceOf(key).length > 0;
     }
 
     private seatOf(player: Player): Seat {

@@ -267,6 +267,90 @@ describe('SwuPgnWriter', function() {
             expect(apply([...writer.records])).toEqual(writer.currentBoard());
         });
 
+        describe('a deck search', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['mon-mothma#voice-of-the-rebellion'],
+                        deck: ['cell-block-guard', 'pyke-sentinel', 'volunteer-soldier', 'cartel-spacer', 'battlefield-marine', 'wampa', 'viper-probe-droid']
+                    }
+                });
+            });
+
+            it('shows the viewed deck cards at the step of its prompt, then moves the chosen one to hand as the same entity and removes the others', function () {
+                const { context } = contextRef;
+                const writer = writerOf();
+                const unchosen = [context.cellBlockGuard, context.pykeSentinel, context.volunteerSoldier, context.cartelSpacer];
+
+                context.player1.clickCard(context.monMothma);
+
+                // the search prompt is open, and the step just written shows the top 5 as deck entities only the searcher knows
+                const promptSeq = writer.currentBoard().seq;
+                expect(writer.records[writer.records.length - 1]).toEqual({ t: 'step', seq: promptSeq });
+                const searching = writer.currentBoard();
+                for (const card of [...unchosen, context.battlefieldMarine]) {
+                    expect(entityOf(card, searching)).withContext(card.internalName)
+                        .toEqual(jasmine.objectContaining({ zone: 'deck', owner: 1, to: [1] }));
+                }
+                expect(idsOf(context.wampa, searching)).toEqual([]);
+                const marine = idOf(context.battlefieldMarine, searching);
+                const unchosenIds = unchosen.map((card) => idOf(card, searching));
+
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
+                context.player2.clickDone();
+                expect(context.battlefieldMarine).toBeInZone('hand');
+
+                const after = writer.currentBoard();
+                expect(idOf(context.battlefieldMarine, after)).toBe(marine);
+                const group = groupAfter(writer.records, promptSeq);
+                expect(group).toContain(jasmine.objectContaining({ t: 'set', e: marine, zone: 'hand' }));
+                for (const id of unchosenIds) {
+                    expect(group).toContain({ t: 'remove', e: id });
+                }
+                for (const card of unchosen) {
+                    expect(idsOf(card, after)).withContext(card.internalName)
+                        .toEqual([]);
+                }
+                expect(apply([...writer.records])).toEqual(after);
+            });
+        });
+
+        it('shows the cards of a top-or-bottom look at the step of its prompt and removes them in the next step group', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['inferno-four#unforgetting'],
+                    deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'wampa']
+                }
+            });
+            const { context } = contextRef;
+            const writer = writerOf();
+
+            context.player1.clickCard(context.infernoFour);
+            expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.foundling, context.pykeSentinel]);
+
+            const promptSeq = writer.currentBoard().seq;
+            expect(writer.records[writer.records.length - 1]).toEqual({ t: 'step', seq: promptSeq });
+            const looking = writer.currentBoard();
+            const viewed = [context.foundling, context.pykeSentinel].map((card) => {
+                expect(entityOf(card, looking)).withContext(card.internalName)
+                    .toEqual(jasmine.objectContaining({ zone: 'deck', to: [1] }));
+                return idOf(card, looking);
+            });
+            expect(idsOf(context.atst, looking)).toEqual([]);
+
+            context.player1.clickDisplayCardPromptButton(context.foundling.uuid, 'bottom');
+            context.player1.clickDisplayCardPromptButton(context.pykeSentinel.uuid, 'top');
+            expect(context.player2).toBeActivePlayer();
+
+            const group = groupAfter(writer.records, promptSeq);
+            for (const id of viewed) {
+                expect(group).toContain({ t: 'remove', e: id });
+            }
+            expect(apply([...writer.records])).toEqual(writer.currentBoard());
+        });
+
         it('makes a mulligan a new hand of new entities and writes no step before setup is done (W-22, W-39)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'setup',
@@ -309,6 +393,37 @@ describe('SwuPgnWriter', function() {
             expect(steps(writer.records)).toEqual([0]);
             expect(writer.records[writer.records.length - 1]).toEqual({ t: 'step', seq: 0 });
             expect(apply([...writer.records])).toEqual(writer.currentBoard());
+        });
+    });
+
+    undoIntegration(function(contextRef) {
+        it('writes the same records when a search is undone and redone with the same choice', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['mon-mothma#voice-of-the-rebellion'],
+                    deck: ['cell-block-guard', 'pyke-sentinel', 'volunteer-soldier', 'cartel-spacer', 'battlefield-marine', 'wampa', 'viper-probe-droid']
+                }
+            });
+            const { context } = contextRef;
+            const writer = context.game.swuPgnWriter;
+            const search = () => {
+                context.player1.clickCard(context.monMothma);
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
+                context.player2.clickDone();
+                expect(context.battlefieldMarine).toBeInZone('hand');
+            };
+
+            search();
+            const firstRun = [...writer.records];
+
+            expect(contextRef.snapshot.rollbackToSnapshot({ type: 'action', playerId: context.player1.id })).toBeTrue();
+            expect(context.monMothma).toBeInZone('hand');
+            search();
+
+            expect(writer.records).toEqual(firstRun);
+            expect(writer.undos).toBe(1);
+            expect(writer.errors).toBe(0);
         });
     });
 });

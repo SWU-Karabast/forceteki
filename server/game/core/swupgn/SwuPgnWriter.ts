@@ -7,6 +7,7 @@ import { EventName, PhaseName } from '../Constants';
 import type { Game } from '../Game';
 import type { UiPrompt } from '../gameSteps/prompts/UiPrompt';
 import type { Player } from '../Player';
+import type { LookFilter } from './AudienceTracker';
 import { AudienceTracker } from './AudienceTracker';
 import { BoardProjector } from './BoardProjector';
 import { diffBoards } from './diffBoards';
@@ -20,15 +21,23 @@ import { SwuPgnWriterState } from './SwuPgnWriterState';
  */
 export type SwuPgnWriterMode = 'off' | 'decision' | 'flush' | 'event';
 
-/** Events after which a mid-resolution board must be written: something appeared, or a hidden card was seen (W-37). */
-const flushEvents: readonly EventName[] = [
-    EventName.OnCardsDrawn,
-    EventName.OnTokensCreated,
-    EventName.OnDeckShuffled,
-    EventName.OnDeckSearch,
-    EventName.OnLookAtCard,
-    EventName.OnCardRevealed
-];
+/** Every look ends: the look or search is over, or its deck was shuffled (W-24). */
+const allLooks: LookFilter = () => true;
+
+/**
+ * Events after which a mid-resolution board must be written: something appeared, or a hidden card was seen (W-37),
+ * each with the looks that end at that flush (null: none).
+ * OnLookMoveDeckCardsTopOrBottom is not listed: that system raises no GameEvent, so it has no `:postResolve`; its
+ * flush point is the writer-only `SwuPgnEvents.DeckCardsViewed` emit, which ends no look.
+ */
+const flushEvents: ReadonlyMap<EventName, LookFilter | null> = new Map([
+    [EventName.OnCardsDrawn, null],
+    [EventName.OnTokensCreated, null],
+    [EventName.OnDeckShuffled, allLooks],
+    [EventName.OnDeckSearch, allLooks],
+    [EventName.OnLookAtCard, allLooks],
+    [EventName.OnCardRevealed, null]
+]);
 
 const maxLoggedErrors = 5;
 
@@ -87,23 +96,9 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         return board;
     }
 
-    /** Projects the board and appends the records that turn the previous board into it. Never throws. */
+    /** Projects the board and appends the records that turn the previous board into it. Ends no look. Never throws. */
     public flush(): void {
-        try {
-            this.resyncAfterRestore();
-            const next = this.projector.project();
-            const records = diffBoards(this.prev, next);
-            for (const record of records) {
-                this._records.push(record);
-            }
-            this.prev = next;
-            this.state.recordsLength = this._records.length;
-        } catch (error) {
-            // keep `prev`, so the next flush retries from the last board written
-            this.reportError('flush', error);
-        } finally {
-            this.endLooks();
-        }
+        this.flushEnding(null);
     }
 
     /** The game paused for a decision (end of `Game.continue()`). */
@@ -157,8 +152,34 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         this.decide(false);
     }
 
+    /**
+     * `flush()`, where the looks `ending` selects end with this board: their deck cards are left out of it, and once
+     * the records are written they go back unseen. A failed flush keeps `prev` and ends no look, so the retry sees them.
+     */
+    private flushEnding(ending: LookFilter | null): void {
+        let flushed = false;
+        try {
+            this.resyncAfterRestore();
+            const next = this.projector.project(ending);
+            const records = diffBoards(this.prev, next);
+            for (const record of records) {
+                this._records.push(record);
+            }
+            this.prev = next;
+            this.state.recordsLength = this._records.length;
+            flushed = true;
+        } catch (error) {
+            this.reportError('flush', error);
+        }
+        if (flushed && ending !== null) {
+            this.guard('end of looks', () => this.audiences.endLooks(ending));
+        }
+    }
+
     private decide(afterRollback: boolean): void {
-        this.flush();
+        // a look shown at an earlier step ends now: it is visible at exactly the step of its prompt
+        const seq = this.state.stepSeq;
+        this.flushEnding((look) => look.seenAtSeq < seq);
         this.guard('step', () => {
             const phase = this.game.currentPhase;
             if (this.state.inSetup && (phase === PhaseName.Setup || phase == null)) {
@@ -191,8 +212,13 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
 
     /** After a snapshot restore the state holds fewer records than were written: cut them back and rebuild the board. */
     private resyncAfterRestore(): void {
-        if (this.state.recordsLength !== this._records.length) {
-            this._records.length = Math.min(this.state.recordsLength, this._records.length);
+        if (this.state.recordsLength > this._records.length) {
+            // a state can only hold fewer records than were written: count the impossible case, keep the records
+            const held = this.state.recordsLength;
+            this.state.recordsLength = this._records.length;
+            this.reportError('resync', new Error(`SWU-PGN: writer state holds ${held} records but only ${this._records.length} were written`));
+        } else if (this.state.recordsLength < this._records.length) {
+            this._records.length = this.state.recordsLength;
             this.prev = apply(this._records);
         }
     }
@@ -207,19 +233,16 @@ export class SwuPgnWriter implements ISwuPgnWriterHooks {
         return null;
     }
 
-    private endLooks(): void {
-        this.guard('end of looks', () => this.audiences.endLooks());
-    }
-
     private registerFlushPoints(mode: Exclude<SwuPgnWriterMode, 'off'>): void {
         if (mode === 'decision') {
             return;
         }
-        const names = mode === 'event' ? Object.values(EventName) : flushEvents;
+        const names = mode === 'event' ? Object.values(EventName) : [...flushEvents.keys()];
         for (const name of names) {
-            this.game.on(name + ':postResolve', () => this.flush());
+            const ending = flushEvents.get(name) ?? null;
+            this.game.on(name + ':postResolve', () => this.flushEnding(ending));
         }
-        // a plain writer-only emit, with no `:postResolve`
+        // a plain writer-only emit, with no `:postResolve`: the look-move prompt opens after it, so no look ends
         this.game.on(SwuPgnEvents.DeckCardsViewed, () => this.flush());
     }
 

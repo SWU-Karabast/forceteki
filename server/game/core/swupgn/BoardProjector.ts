@@ -2,7 +2,7 @@ import type { Attrs, Board, Entity, Seat } from '@swupgn/format';
 import type { Game } from '../Game';
 import type { Player } from '../Player';
 import { PhaseName } from '../Constants';
-import type { AudienceTracker } from './AudienceTracker';
+import type { AudienceTracker, LookFilter } from './AudienceTracker';
 import type { SwuPgnWriterState } from './SwuPgnWriterState';
 import type { ICardAudiences } from './projectCards';
 import { cardAudience, projectCards, projectedCardId, seatIn } from './projectCards';
@@ -19,7 +19,8 @@ export class BoardProjector {
         private readonly audiences: AudienceTracker
     ) {}
 
-    public project(): Board {
+    /** `ending` selects the looks that end with this board: their deck cards are left out. */
+    public project(ending: LookFilter | null = null): Board {
         const entities: Board['entities'] = {
             g: this.projectGame(),
             p1: this.projectSeat(1),
@@ -28,7 +29,7 @@ export class BoardProjector {
         const seatOf = (player: Player) => this.seatOf(player);
         const audiences: ICardAudiences = {
             audienceFor: (card, zone) => this.audiences.audienceFor(card, zone),
-            viewedDeckCards: new Set(this.audiences.viewedDeckCards())
+            viewedDeckCards: new Set(this.audiences.viewedDeckCards(ending))
         };
         projectCards(this.game.allCards, this.state, seatOf, (card) => abilityUsesOf(card, this.game), audiences, entities);
         Object.assign(entities, projectEffects(
