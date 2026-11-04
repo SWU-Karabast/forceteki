@@ -104,7 +104,7 @@
 {"t":"reveal","e":10,"card":"HMW#218","to":"all"}
 {"t":"set","e":10,"zone":"discard","a":{"kind":"event"}}
 {"t":"block","id":10,"kind":"play","p":1,"src":10,"targets":[5]}
-{"t":"block","id":11,"kind":"choice","p":2,"src":10,"parent":10,"text":"Top of the deck"}
+{"t":"block","id":11,"kind":"choice","p":2,"src":10,"parent":10}
 {"t":"block","id":12,"kind":"defeat","p":1,"src":10,"targets":[12],"parent":10}
 {"t":"remove","e":12}
 {"t":"remove","e":5}

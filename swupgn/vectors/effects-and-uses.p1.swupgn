@@ -16,7 +16,6 @@
 [P2Leader "SOR#010"]
 [P1Base "LOF#022"]
 [P2Base "SOR#029"]
-[XExamplewriterTable "casual"]
 
 %%% DECKS
 {"p":1,"leaders":["LOF#003","SOR#017"],"base":"LOF#022","complete":true,"main":[["SHD#200",3],["SOR#046",3],["SOR#048",3],["SOR#050",3],["SOR#095",3],["SOR#097",3],["SOR#099",3],["SOR#101",3],["SOR#103",3],["SOR#219",3]],"sideboard":[["SOR#210",1]]}
@@ -48,12 +47,12 @@
 {"t":"create","e":1,"zone":"base","owner":1,"card":"LOF#022","a":{"kind":"base","damage":0,"hp":25}}
 {"t":"create","e":2,"zone":"base","owner":1,"card":"LOF#003","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
 {"t":"create","e":3,"zone":"base","owner":1,"card":"SOR#017","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
-{"t":"create","e":4,"zone":"base","owner":2,"card":"SOR#029","a":{"kind":"base","damage":0,"hp":28,"x_examplewriter_art":"alternate"}}
+{"t":"create","e":4,"zone":"base","owner":2,"card":"SOR#029","a":{"kind":"base","damage":0,"hp":28}}
 {"t":"create","e":5,"zone":"base","owner":2,"card":"SOR#010","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
 {"t":"create","e":6,"zone":"hand","owner":1,"card":"SOR#219","to":[1]}
 {"t":"create","e":7,"zone":"hand","owner":1,"card":"SHD#200","to":[1]}
 {"t":"create","e":8,"zone":"hand","owner":1,"card":"SOR#046","to":[1]}
-{"t":"create","e":9,"zone":"resource","owner":1,"card":"SOR#048","to":[1],"a":{"exhausted":false,"x_examplewriter_foil":true}}
+{"t":"create","e":9,"zone":"resource","owner":1,"card":"SOR#048","to":[1],"a":{"exhausted":false}}
 {"t":"create","e":10,"zone":"resource","owner":1,"card":"SOR#050","to":[1],"a":{"exhausted":false}}
 {"t":"create","e":11,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}}
 {"t":"create","e":12,"zone":"resource","owner":2,"to":[2],"a":{"exhausted":false}}

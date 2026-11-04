@@ -1,16 +1,13 @@
 import { SwuPgnError } from './errors.js';
 import type { SwuPgnFile } from './generated/types.js';
 import { canonicalAttrNames, compareCodePoints } from './attrOrder.js';
+import { HEADER_TAGS } from './registry.js';
 
 /** The version a file with no `Game` tag is written as. */
 const DEFAULT_GAME = 'SWU-PGN/0.1';
 
 /** Header tags after `Game`, `Visibility` and `Steps`, in the order of SPEC 5.4. */
-const TAG_ORDER: readonly string[] = [
-    'GameId', 'Date', 'EndDate', 'CardPool', 'Engine', 'P1Id', 'P2Id', 'P1', 'P2', 'Result', 'Reason',
-    'Rounds', 'Format', 'Match', 'GameNumber', 'Undos', 'P1Leader', 'P2Leader', 'P1Base', 'P2Base',
-    'Seed', 'WriterRevision', 'WriterErrors',
-];
+const TAG_ORDER: readonly string[] = HEADER_TAGS.slice(3);
 
 const LEADING_TAGS: readonly string[] = ['Game', 'Visibility', 'Steps'];
 

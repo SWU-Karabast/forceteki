@@ -79,7 +79,7 @@
 {"t":"create","e":12,"zone":"hand","owner":1,"card":"HMW#218","to":"all"}
 {"t":"set","e":12,"zone":"discard","a":{"kind":"event"}}
 {"t":"block","id":10,"kind":"play","p":1,"src":12,"targets":[8]}
-{"t":"block","id":11,"kind":"choice","p":2,"src":12,"parent":10,"text":"Top of the deck"}
+{"t":"block","id":11,"kind":"choice","p":2,"src":12,"parent":10}
 {"t":"block","id":12,"kind":"defeat","p":1,"src":12,"targets":[11],"parent":10}
 {"t":"remove","e":11}
 {"t":"remove","e":8}

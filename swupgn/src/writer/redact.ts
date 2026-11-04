@@ -2,7 +2,7 @@ import { SwuPgnError } from '../errors.js';
 import { applyRecord, emptyBoard } from '../apply.js';
 import { canonicalAttrs } from '../attrOrder.js';
 import { lineOf } from '../parse.js';
-import { ATTRIBUTES, ZONES, isFaceDownAttribute } from '../registry.js';
+import { ATTRIBUTES, ZONES, isFaceDownAttribute, isRegisteredAttribute, isRegisteredHeaderTag } from '../registry.js';
 import type {
     Attrs, AttrValue, Audience, BlockRecord, Board, CardLine, CreateRecord, DeckLine, Entity, EntityId, RevealRecord, Seat, SetRecord,
     SwuPgnFile, SwuRecord,
@@ -122,8 +122,9 @@ class Redactor {
      * §11.1 Mapping: a `ref` attribute keeps only a reference V may follow, mapped; a `ref[]`
      * attribute keeps its referable elements, even when none is left. Any dropped reference takes
      * `text`, `untilText` and `ability` with it. In a `create` a dropped attribute is left out; in a
-     * `set` it is written `null`, so the viewer's board deletes the stale value. On an effect, only
-     * `kind` and the attributes registered for effects are kept (§10.4).
+     * `set` it is written `null`, so the viewer's board deletes the stale value. An attribute the
+     * registry does not list (every `x_` extension) is left out on every entity, `g`, `p1` and `p2`
+     * included ([W-67]). On an effect, only `kind` and the attributes registered for effects are kept (§10.4).
      */
     private mapAttrs(a: Attrs, entity: Entity, inSet: boolean): Attrs {
         const effect = entity.a.kind === 'effect';
@@ -131,7 +132,7 @@ class Redactor {
         const gone: string[] = [];
         let dropped = false;
         for (const [k, v] of Object.entries(a)) {
-            if (effect && k !== 'kind' && !EFFECT_ATTRIBUTES.has(k)) {
+            if (!isRegisteredAttribute(k) || (effect && k !== 'kind' && !EFFECT_ATTRIBUTES.has(k))) {
                 continue;
             }
             if (REF_ATTRIBUTES.has(k) && v !== null) {
@@ -394,7 +395,7 @@ class Redactor {
         }
     }
 
-    /** [R-09] Step 9: every block is kept, with only the references V may follow, mapped. */
+    /** [R-09] Step 9: every block is kept, with only the references V may follow, mapped, and no `text` unless it is a `name` block's chosen name. */
     private block(r: BlockRecord): void {
         const out: BlockRecord = { ...r };
         const gone = new Set<string>();
@@ -408,12 +409,10 @@ class Redactor {
                 }
             }
         }
-        let dropped = gone.size > 0;
         for (const f of BLOCK_LIST_REFS) {
             const v = r[f];
             if (v !== undefined) {
                 const kept = v.filter((x) => this.referable(x));
-                dropped = dropped || kept.length !== v.length;
                 if (kept.length > 0) {
                     out[f] = kept.map((x) => this.mapped(x));
                 } else {
@@ -421,7 +420,7 @@ class Redactor {
                 }
             }
         }
-        if (dropped && r.kind !== 'name') {
+        if (r.kind !== 'name') {
             gone.add('text');
         }
         this.emit(Object.fromEntries(Object.entries(out).filter(([k]) => !gone.has(k))) as BlockRecord);
@@ -494,10 +493,10 @@ export function redact(file: SwuPgnFile, view: View): SwuPgnFile {
         redactor.handle(record);
     }
 
-    // [R-11] Step 11: the header, DECKS and CARDS.
+    // [R-11] Step 11: the header, DECKS and CARDS. Only registered tags are kept: an extension tag never survives ([W-67]).
     const header: Record<string, string> = {};
     for (const [tag, value] of Object.entries(file.header)) {
-        if (tag !== 'Seed') {
+        if (tag !== 'Seed' && isRegisteredHeaderTag(tag)) {
             header[tag] = value;
         }
     }

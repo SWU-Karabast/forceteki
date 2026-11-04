@@ -16,7 +16,6 @@
 [P2Leader "SOR#010"]
 [P1Base "LOF#022"]
 [P2Base "SOR#029"]
-[XExamplewriterTable "casual"]
 
 %%% DECKS
 {"p":1,"leaders":["LOF#003","SOR#017"],"base":"LOF#022","complete":false,"main":[["SOR#219"],["SHD#200"]]}
@@ -39,7 +38,7 @@
 {"t":"create","e":1,"zone":"base","owner":1,"card":"LOF#022","a":{"kind":"base","damage":0,"hp":25}}
 {"t":"create","e":2,"zone":"base","owner":1,"card":"LOF#003","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
 {"t":"create","e":3,"zone":"base","owner":1,"card":"SOR#017","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
-{"t":"create","e":4,"zone":"base","owner":2,"card":"SOR#029","a":{"kind":"base","damage":0,"hp":28,"x_examplewriter_art":"alternate"}}
+{"t":"create","e":4,"zone":"base","owner":2,"card":"SOR#029","a":{"kind":"base","damage":0,"hp":28}}
 {"t":"create","e":5,"zone":"base","owner":2,"card":"SOR#010","a":{"kind":"leader","exhausted":false,"deployed":false,"epicActionUsed":false}}
 {"t":"create","e":6,"zone":"resource","owner":1,"to":[1],"a":{"exhausted":false}}
 {"t":"create","e":7,"zone":"resource","owner":1,"to":[1],"a":{"exhausted":false}}

@@ -26,11 +26,12 @@ The worked example of the specification: SPEC Appendix A reproduces the `RECORDS
 - Step 2, `public`: the reveals to [2] emit nothing. Rebel Assault appears only on its reveal to everyone.
 - Step 4: P2's search cards are `to` [2]. In `p1` and `public` they are unmaterialized: the `search` and `draw` blocks lose `targets` and `options` (R-09), and their `remove` emits nothing (R-08).
 - Step 5: in `p2`, New Tactics was known in P1's hand since step 2, so its `reveal` is emitted with the mapped id (R-03, known branch). Bodhi Rook going into the deck is a `remove` of a card in play, not in a hand, so step 0 does not apply.
+- Step 5: the `choice` block keeps its `src` but loses its `text` ("Top of the deck"), as every block but a `name` block does in a redacted file (R-09). The `full` file keeps it.
 - Step 8: P1's regroup resource is a hand-to-resource move of a card the viewer never knew. In `p2` and `public`, step 0 applies but finds no known card in that hand, so it emits no `remove`; step 5 then creates an anonymous resource.
 
 ## Readings used by every vector
 
-- **Header, `DECKS`, `CARDS` (R-11).** Every tag is kept except `Seed`, and `Visibility` is rewritten. The viewer's own `DECKS` line is kept without `order`. The other line (both lines in `public`) keeps `p`, `leaders` and `base`, sets `complete` to `false`, and lists one `[id]` per distinct card id that this file's `create` and `reveal` records give to an entity of that seat, in the order this file first gives each, leaving out `TOKEN:` ids and the line's own leaders and base. `CARDS` keeps the `full` lines, in their order, whose id appears in this file's header, `DECKS` or `RECORDS`.
+- **Header, `DECKS`, `CARDS` (R-11).** Every tag that SPEC §5.1 or §5.2 defines is kept except `Seed`, any other tag is dropped (W-67), and `Visibility` is rewritten. The viewer's own `DECKS` line is kept without `order`. The other line (both lines in `public`) keeps `p`, `leaders` and `base`, sets `complete` to `false`, and lists one `[id]` per distinct card id that this file's `create` and `reveal` records give to an entity of that seat, in the order this file first gives each, leaving out `TOKEN:` ids and the line's own leaders and base. `CARDS` keeps the `full` lines, in their order, whose id appears in this file's header, `DECKS` or `RECORDS`.
 - **Empty `a`.** A `create` made by step 3 or step 5 for an entity that has no attributes (a hand card) carries no `a` key, rather than `"a":{}`.
 - **Fresh ids (R-14).** Output ids are handed out 1, 2, 3, … in the order the output first uses them. An id removed by step 0, 3, 6 or 8 is never used again.
 - **The game itself is illustrative.** Costs and resource payments are not modelled, decks are short, and some timing is simplified. The records, and what each profile may know, are what the vector tests.
@@ -89,7 +90,7 @@ Each line of `RECORDS` in `tiny.p1.swupgn`, with the step of SPEC §11.2 that pr
 | 96 | `{"t":"reveal","e":6,"card":"HMW#218","to":"all"}` | R-03 reveal of a known entity (full 6) | 122 |
 | 97 | `{"t":"set","e":6,"zone":"discard","a":{"kind":"event"}}` | R-07 set of a known entity (full 6) | 123 |
 | 98 | `{"t":"block","id":10,"kind":"play","p":1,"src":6,"targets":[10]}` | R-09 block 10 (play), every reference kept | 124 |
-| 99 | `{"t":"block","id":11,"kind":"choice","p":2,"src":6,"parent":10,"text":"Top of the deck"}` | R-09 block 11 (choice), every reference kept | 125 |
+| 99 | `{"t":"block","id":11,"kind":"choice","p":2,"src":6,"parent":10}` | R-09 block 11 (choice), every reference kept; `text` removed (not a `name` block) | 125 |
 | 100 | `{"t":"block","id":12,"kind":"defeat","p":1,"src":6,"targets":[12],"parent":10}` | R-09 block 12 (defeat), every reference kept | 126 |
 | 101 | `{"t":"remove","e":12}` | R-08 remove (full 12) | 127 |
 | 102 | `{"t":"remove","e":10}` | R-08 remove (full 8) | 128 |

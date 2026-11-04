@@ -340,6 +340,37 @@ describe('validate', function () {
         expect(validate(text).issues.map((i) => [i.code, i.line])).toEqual([['profile', at(text, '"e":1')], ['profile', at(text, '"cost":2')]]);
     });
 
+    it('profile: an unregistered header tag or attribute in a perspective or public file is a profile error', function () {
+        const partial = DECKS.replace('"complete":true,"main":[["SOR#130",3]]', '"complete":false,"main":[]');
+        const recs = [
+            '{"t":"set","e":"p2","a":{"handCount":3,"x_examplewriter_deckName":"Wampa Rush"}}',
+            '{"t":"create","e":1,"zone":"base","owner":1,"card":"SOR#026","a":{"kind":"base","zzz":1}}',
+            '{"t":"set","e":1,"a":{"damage":2}}',
+        ];
+        const text = file(recs, { head: HEADER('[XExamplewriterTable "casual"]\n', 'perspective:1'), decks: partial });
+        expect(validate(text).issues.map((i) => [i.code, i.line])).toEqual([
+            ['profile', at(text, 'XExamplewriterTable')], ['profile', at(text, 'x_examplewriter_deckName')], ['profile', at(text, '"zzz"')],
+        ]);
+        const both = DECKS.replace(/"complete":true,"main":\[\["SOR#\d+",3\]\]/g, '"complete":false,"main":[]');
+        const pubText = file(recs, { head: HEADER('[XExamplewriterTable "casual"]\n', 'public'), decks: both });
+        expect(validate(pubText).issues.map((i) => [i.code, i.line])).toEqual([
+            ['profile', at(pubText, 'XExamplewriterTable')], ['profile', at(pubText, 'x_examplewriter_deckName')], ['profile', at(pubText, '"zzz"')],
+        ]);
+        expect(validate(file(recs, { extra: '[XExamplewriterTable "casual"]\n' })).issues).toEqual([], 'a full file may carry extensions');
+    });
+
+    it('profile: a block other than a name block carries no text in a perspective or public file', function () {
+        const partial = DECKS.replace('"complete":true,"main":[["SOR#130",3]]', '"complete":false,"main":[]');
+        const recs = [
+            '{"t":"create","e":1,"zone":"base","owner":1,"card":"SOR#026","a":{"kind":"base"}}',
+            '{"t":"block","id":1,"kind":"pass","p":2,"text":"Passed, holding Wampa"}',
+            '{"t":"block","id":2,"kind":"name","p":1,"src":1,"text":"Wampa"}',
+        ];
+        const text = file(recs, { head: HEADER('', 'perspective:1'), decks: partial });
+        expect(validate(text).issues.map((i) => [i.code, i.line])).toEqual([['profile', at(text, '"kind":"pass"')]]);
+        expect(validate(file(recs)).issues).toEqual([], 'a full file keeps block text');
+    });
+
     it('parent without rel is parent-rel even when the parent is unknown, with no schema error besides', function () {
         const text = file(['{"t":"create","e":1,"zone":"ground","owner":1,"parent":99}']);
         expect(validate(text).issues.map((i) => [i.code, i.line])).toEqual([['parent-rel', 25], ['unknown-entity', 25]]);

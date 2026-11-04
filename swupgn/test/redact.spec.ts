@@ -156,14 +156,32 @@ describe('redact', function () {
         }
     });
 
-    it('drops unknown and x_ attributes on anonymous entities, keeps them on known ones', function () {
+    it('drops unknown and x_ attributes on anonymous entities and on known ones alike', function () {
         const full = fullCase('anonymousAttrs');
         const p2 = redact(full, 2);
         expect(p2.records[2] as unknown).toEqual({ t: 'create', e: 3, zone: 'resource', owner: 1, to: [1], a: { exhausted: false } });
         expect(p2.records[4] as unknown).toEqual({ t: 'set', e: 3, a: { exhausted: true } });
         const p1 = redact(full, 1);
-        expect(p1.records[2] as unknown).toEqual(full.records[2]);
-        expect(p1.records[4] as unknown).toEqual(full.records[4]);
+        expect(p1.records[2] as unknown).toEqual({ t: 'create', e: 3, zone: 'resource', owner: 1, card: 'SOR#046', to: [1], a: { exhausted: false, cost: 2, power: 3 } });
+        expect(p1.records[4] as unknown).toEqual({ t: 'set', e: 3, a: { exhausted: true, cost: 3 } });
+    });
+
+    it('[R-11] keeps only registered header tags, and drops x_ attributes of g, p1 and p2 (an extension never survives redaction)', function () {
+        let text = read('tiny.full.swupgn');
+        text = text.replace('[Seed', '[XExamplewriterDeckId "deck-p2-SOR#201-HMW#101"]\n[Seed');
+        text = text.replace('{"t":"set","e":"p2","a":{"deckCount":45', '{"t":"set","e":"p2","a":{"x_examplewriter_deckName":"p2 holds Bodhi","deckCount":45');
+        text = text.replace('{"t":"set","e":"g","a":{', '{"t":"set","e":"g","a":{"x_examplewriter_table":"t1",');
+        const full = parse(text);
+        expect(validate(text).level).toBe('valid');
+        for (const view of [1, 2, 'public'] as View[]) {
+            const out = redact(full, view);
+            const written = serialize(out);
+            expect(written).not.toContain('deck-p2', `view ${view}`);
+            expect(written).not.toContain('p2 holds Bodhi', `view ${view}`);
+            expect(written).not.toContain('x_examplewriter', `view ${view}`);
+            expect(Object.keys(out.header).filter((t) => t.startsWith('X'))).toEqual([], `view ${view}`);
+            expect(validate(written).level).toBe('valid', `view ${view}`);
+        }
     });
 
     it('a known card bounced to the opponent hand keeps its id; after it goes on top of the deck the viewer has no entity', function () {
@@ -216,18 +234,31 @@ describe('redact', function () {
         ]);
     });
 
-    it('drops a block\'s text with a dropped reference, except the chosen name of a name block', function () {
+    it('[R-09] drops the text of every block except the chosen name of a name block, whatever references are kept', function () {
         const full = fullCase('blockText');
         expect(redact(full, 2).records.slice(BOARD.length) as unknown).toEqual([
             { t: 'block', id: 1, kind: 'look', p: 1, targets: ['p1'] },
             { t: 'block', id: 2, kind: 'name', p: 1, text: 'Wampa' },
-            { t: 'block', id: 3, kind: 'look', p: 1, targets: [1], text: 'kept' },
+            { t: 'block', id: 3, kind: 'look', p: 1, targets: [1] },
             { t: 'step', seq: 0 },
         ]);
         expect(redact(full, 1).records.slice(BOARD.length + 1, BOARD.length + 3) as unknown).toEqual([
-            { t: 'block', id: 1, kind: 'look', p: 1, targets: [3, 'p1'], text: 'Consular Security Force' },
+            { t: 'block', id: 1, kind: 'look', p: 1, targets: [3, 'p1'] },
             { t: 'block', id: 2, kind: 'name', p: 1, src: 3, text: 'Wampa' },
         ]);
+    });
+
+    it('[R-09] drops the text of a block with no references (a pass block whose text names a hidden card)', function () {
+        const lines = read('tiny.full.swupgn').split('\n');
+        const i = lines.findIndex((l) => l.includes('"kind":"pass"'));
+        lines[i] = lines[i].replace(/}$/, ',"text":"Passed, holding Bodhi Rook"}');
+        const text = lines.join('\n');
+        expect(validate(text).level).toBe('valid');
+        for (const view of [1, 2, 'public'] as View[]) {
+            const written = serialize(redact(parse(text), view));
+            expect(written).not.toContain('Passed, holding Bodhi Rook', `view ${view}`);
+            expect(validate(written).level).toBe('valid', `view ${view}`);
+        }
     });
 
     it('refuses a parent it cannot map (parent-rel), never emitting the record without it', function () {

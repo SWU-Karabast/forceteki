@@ -20,7 +20,7 @@ each point where the board is consistent. A reader rebuilds the board at any of 
 applying the records in order. It needs no rules engine and no card database.
 
 One game can be written three ways. A `full` file holds everything. A `perspective` file holds
-only what one seat was allowed to know. A `public` file holds only what both seats knew. This
+only what one seat was allowed to know. A `public` file holds only what was shown to everyone. This
 document defines the syntax, the records, how to apply them, and the one algorithm that turns a
 `full` file into the other two.
 
@@ -553,7 +553,8 @@ registry row). A type written `seat|null` may also be `null` in a `set`, which d
   while that identity is public.
 - `identity`: shown only for an entity whose identity the viewer knows.
 - An attribute name that is not in the registry, including every `x_` extension
-  ([§17.2](#172-extensions)), is `identity`.
+  ([§17.2](#172-extensions)), is `identity` in a `full` file, and is never written to a
+  `perspective` or `public` file ([W-67]).
 
 **Face-down attributes.** Of an anonymous entity ([§10.3](#103-what-a-viewer-can-track)) a viewer
 sees only what a face-down card shows: the attributes whose registry row has `faceDown` `true`
@@ -561,8 +562,8 @@ sees only what a face-down card shows: the attributes whose registry row has `fa
 version. An attribute that is not in the registry is never face-down.
 
 > **Note (informative):** Treating an unregistered name as `identity` is an allow-list. An
-> attribute nobody classified fails safe: it is dropped from every entity the viewer does not
-> know.
+> attribute nobody classified fails safe: a redactor drops it from every entity, known or not,
+> because only a registry row says whether its value is something the viewer saw ([W-67]).
 
 > **Note (informative):** `power`, `hp`, `traits`, `keywords` and the like are `public` only while
 > the card's identity is: they describe a card the viewer can read. On a face-down card they would
@@ -880,7 +881,7 @@ A file whose `Visibility` is `public`:
 - has no `create` or `reveal` with a `card` whose `to` is not `"all"` (a `create` with `card` and no `to` is `"all"`);
 - has no `CARDS` line whose `id` does not appear in the file's header, `DECKS` or `RECORDS`.
 
-In both profiles, three further rules close leaks that the rules above leave open. Let a card id be
+In both profiles, further rules close leaks that the rules above leave open. Let a card id be
 **shown** when a `create` or `reveal` with that `card` has a `to` that holds N (for `public`: a `to`
 of `"all"`):
 
@@ -888,6 +889,9 @@ of `"all"`):
 - a `CARDS` line's `id` is the id of a header leader or base, a card id of a `DECKS` line of the profile's own complete deck, a `leaders` or `base` of any `DECKS` line, a shown card id, or the `copyOf` attribute of an entity whose card is shown ([W-51]). It is not justified by an `x_` record, a record of an unknown type, a `set`, or the text of an annotation;
 - a `create` or `set` of an effect (`a.kind` is `effect`, [W-31]) carries only `kind` and attributes the attribute registry ([§22.1](#221-attributes)) lists for effects;
 - a `create` with no `card` that is not an effect carries only attributes marked face-down in the attribute registry ([§22.1](#221-attributes)); and a `set` of such an entity, until a `reveal` gives it a `card`, writes only those attributes.
+- the header holds only tags that [§5.1](#51-required-tags) and [§5.2](#52-optional-tags) define ([W-67]);
+- a `create` or `set` carries in `a` only attributes the attribute registry ([§22.1](#221-attributes)) lists, on every entity, `"g"`, `"p1"` and `"p2"` included ([W-67]);
+- a `block` carries `text` only when its kind is `name` ([R-09]).
 
 A file whose `Visibility` is `full` has no profile rules beyond the rest of this document.
 
@@ -948,6 +952,11 @@ remaining elements.
 every `create` and `set` it emits, as the profile rules require ([§10.4](#104-profile-rules)).
 Any other attribute, every `x_` extension included, is left out.
 
+**Unregistered attributes.** In every `create` and `set` it emits, on every entity, `"g"`, `"p1"`
+and `"p2"` included, the redactor leaves out each attribute that the attribute registry
+([§22.1](#221-attributes)) does not list, every `x_` extension included ([W-67]). It is left out,
+never written `null`: the viewer's board never held it.
+
 **Face-down attributes** of an entity are its attributes whose registry row has `faceDown` `true`
 ([§7.3](#73-attributes)). They are the only attributes an anonymous entity carries. Unregistered
 attributes, including every `x_` extension, are not face-down.
@@ -960,18 +969,18 @@ because what it emits comes before the record's own output. Steps 1 to 10 see th
 leaves.
 
 - **[R-17]** Step 0, losing track in a hidden hand ([§10.3](#103-what-a-viewer-can-track)). Step 0 applies to a `set` that moves an entity out of zone `hand` into a zone whose opponent visibility is not `public` (or that is not in the zone registry), and to a `remove` of an entity that was in zone `hand` (it went into a deck, [W-24]), when that hand is not V's: the entity's seat (its `controller`, or its `owner` when it has none) before the record was not V. In a `public` file every hand is not V's. It applies even when the moving entity was revealed to V earlier in the same step group. When it applies, before anything else for this record, the redactor takes every entity in that hand that is known to V, the moving one included, in ascending order of output id; emits a `remove` of each one's output id; and marks each one forgotten and unmaterialized. Then the record goes on to steps 1 to 10 with the moving entity unmaterialized: step 5 makes a fresh anonymous entity of it when it lands in the resource row, and step 8 emits nothing for its `remove`.
-- **[R-01]** Step 1, a `create` whose audience holds V: emit it with a fresh id, its `card` included, its attributes mapped ([§11.1](#111-state): Mapping, effect attributes). The entity is known.
+- **[R-01]** Step 1, a `create` whose audience holds V: emit it with a fresh id, its `card` included, its attributes mapped ([§11.1](#111-state): Mapping, effect attributes, unregistered attributes). The entity is known.
 - **[R-02]** Step 2, a `create` whose audience does not hold V: if the entity would be anonymous for V ([§10.3](#103-what-a-viewer-can-track)), emit it with a fresh id, without `card`, with `to` set to the entity's own seat (its `controller`, or its `owner` when it has none) as a one-seat list, and with only its face-down attributes (no `a` when it has none); the entity is anonymous. Otherwise emit nothing; the entity is unmaterialized.
-- **[R-03]** Step 3, a `reveal` whose `to` holds V: if the entity is known, emit the `reveal` with the mapped id. If it is anonymous, emit a `remove` of its output id, then a `create` with a fresh id. If it is unmaterialized, emit only that `create` with a fresh id. That `create` carries the entity's current `zone`, `owner`, `controller`, `parent` and `rel`, its `card`, its current audience as `to`, and all its current attributes, mapped as [§11.1](#111-state) says (Mapping, effect attributes), in canonical key order ([W-07]), with no `a` when it has none. From then on the entity is known, and no longer forgotten.
+- **[R-03]** Step 3, a `reveal` whose `to` holds V: if the entity is known, emit the `reveal` with the mapped id. If it is anonymous, emit a `remove` of its output id, then a `create` with a fresh id. If it is unmaterialized, emit only that `create` with a fresh id. That `create` carries the entity's current `zone`, `owner`, `controller`, `parent` and `rel`, its `card`, its current audience as `to`, and all its current attributes, mapped as [§11.1](#111-state) says (Mapping, effect attributes, unregistered attributes), in canonical key order ([W-07]), with no `a` when it has none. From then on the entity is known, and no longer forgotten.
 - **[R-04]** Step 4, a `reveal` whose `to` does not hold V: emit nothing.
-- **[R-05]** Step 5, a `set` of an unmaterialized entity: if the entity is forgotten and, after the `set`, its audience holds V and it is in a zone whose opponent visibility is `public`, emit the `create` that step 3 emits for an unmaterialized entity; the entity is known, and no longer forgotten. Otherwise, if the entity, after the `set`, would be anonymous for V, emit a `create` with a fresh id, without `card`, with its current `zone`, `owner`, `controller`, `parent` and `rel`, `to` set to the entity's own seat as a one-seat list (as in step 2), and only its face-down attributes, in canonical key order ([W-07]); the entity is anonymous. Otherwise emit nothing.
+- **[R-05]** Step 5, a `set` of an unmaterialized entity: if the entity is forgotten and, after the `set`, its audience holds V and it is in a zone whose opponent visibility is `public`, emit the `create` that step 3 emits for an unmaterialized entity; the entity is known, and no longer forgotten. Otherwise, if the entity, after the `set`, would be anonymous for V, emit a `create` with a fresh id, without `card`, with its current `zone`, `owner`, `controller`, `parent` and `rel`, `to` set to the entity's own seat as a one-seat list (as in step 2), and only its face-down attributes (all registered, [§11.1](#111-state)), in canonical key order ([W-07]); the entity is anonymous. Otherwise emit nothing.
 - **[R-06]** Step 6, a `set` that changes the `zone` of an anonymous entity: emit a `remove` of its output id. The entity is then unmaterialized, and step 5 applies to the same `set`.
-- **[R-07]** Step 7, any other `set`: emit it with mapped ids and its attributes mapped as [§11.1](#111-state) says (a dropped reference and its words written `null`; on an effect, only effect attributes). For an anonymous entity, drop from `a` every attribute that is not face-down. If nothing is left but `t` and `e`, emit nothing.
+- **[R-07]** Step 7, any other `set`: emit it with mapped ids and its attributes mapped as [§11.1](#111-state) says (a dropped reference and its words written `null`; on an effect, only effect attributes; on every entity, `"g"`, `"p1"` and `"p2"` included, no unregistered attribute). For an anonymous entity, drop from `a` every attribute that is not face-down. If nothing is left but `t` and `e`, emit nothing.
 - **[R-08]** Step 8, a `remove`: for an unmaterialized entity, emit nothing. Otherwise emit it with the mapped id.
-- **[R-09]** Step 9, a `block`: keep a reference (`src`, `via`, and each element of `targets` and `options`) only when it names `"g"`, `"p1"`, `"p2"` or an entity known to V that is not, when the block applies, in a `hand` whose seat is not V, mapped. Remove `src` or `via` when it is dropped. Remove `targets` or `options` when no element is left. If any reference was dropped, also remove `text`, except the `text` of a `name` block, which is the chosen name ([W-54]). Emit the block, with its `id`, `kind`, `p`, `amount`, `parent` and `group` unchanged.
+- **[R-09]** Step 9, a `block`: keep a reference (`src`, `via`, and each element of `targets` and `options`) only when it names `"g"`, `"p1"`, `"p2"` or an entity known to V that is not, when the block applies, in a `hand` whose seat is not V, mapped. Remove `src` or `via` when it is dropped. Remove `targets` or `options` when no element is left. Remove `text` from every block, whether or not a reference was dropped, except the `text` of a `name` block, which is the chosen name ([W-54]). Emit the block, with its `id`, `kind`, `p`, `amount`, `parent` and `group` unchanged.
 - **[R-10]** Step 10, a `step`: emit it unchanged.
 - **[R-11]** Step 11, the rest of the file:
-  - **Header:** keep every tag of the `full` file except `Seed`, with every value unchanged except `Visibility`, which becomes `perspective:V` or `public`.
+  - **Header:** keep every tag of the `full` file that [§5.1](#51-required-tags) or [§5.2](#52-optional-tags) defines, except `Seed`, with every value unchanged except `Visibility`, which becomes `perspective:V` or `public`. Every other tag, an extension tag or an unknown one, is dropped ([W-67]).
   - **`DECKS`:** keep V's own line unchanged except that `order` is removed. Rewrite the opponent's line (in a `public` file, both lines) as partial: keep `p`, `leaders` and `base`; set `complete` to `false`; remove `sideboard` and `order`; and set `main` to one `[id]` entry for each distinct card id that the output's `create` and `reveal` records give to an entity whose `owner` is that seat, leaving out `TOKEN:` ids and the line's own `leaders` and `base`, in the order the output first gives each.
   - **`CARDS`:** keep the `full` file's lines, in their order, whose `id` appears in the output's header, `DECKS` or `RECORDS` (a `card` field or a `copyOf` attribute).
 
@@ -984,8 +993,10 @@ leaves.
 - **[W-63]** A writer that writes a `perspective` or `public` file some other way MUST lose track of known cards in a hidden hand as step 0 ([R-17]) does: the same `remove` records, at the same place, and fresh entities afterwards. A writer that keeps knowing a card the viewer lost track of breaks [W-46].
 
 > **Note (informative):** Step 9 keeps every block, because that something happened is public;
-> it drops only what the block says about cards the viewer cannot see. Block `text` goes with any
-> dropped reference because words can name the card the reference pointed at.
+> it drops only what the block says about cards the viewer cannot see. Block `text` is dropped from
+> every block but a `name` block, because words can name a card the viewer never saw, and nothing
+> in the file lets a redactor or a validator tell whether they do ([W-54] is a promise of the
+> writer, not a check).
 
 > **Note (informative):** If V's own `DECKS` line in the `full` file is not complete, the output
 > cannot meet the `perspective` profile ([§10.4](#104-profile-rules)). A writer that means to
@@ -1096,6 +1107,11 @@ A block is one point record. There are no open and close pairs: nesting is `pare
 > **Note (informative):** A played event therefore moves to `discard` before its `play` block, and
 > resolves from there. Only the boards at step boundaries are states a viewer sees ([§9.4](#94-the-board-at-a-step));
 > where a card sits between two records of one step is not.
+
+> **Note (informative):** Block `text` lives only in a `full` file. A redactor removes it from
+> every block except a `name` block, whose `text` is the chosen name ([R-09]), so a `perspective`
+> or `public` reader shows each block from its kind and fields. A writer still keeps [W-54], for
+> the `full` file and its readers.
 
 Blocks are never state. The board is whatever `create`, `set`, `remove` and `reveal` say.
 
@@ -1238,13 +1254,14 @@ Each way a game record could leak is closed by a rule of this document:
 - **Which card was resourced.** A card moved from a hand the viewer cannot see into the resource row appears as a fresh anonymous entity ([R-05]) whose `to` is always the owner's seat alone, whoever had seen the card, and which carries only face-down attributes such as `exhausted`, whatever the writer left on the card ([R-02], [R-05], [§7.3](#73-attributes)). The viewer sees that a resource arrived, not which card it was: resourcing a card the viewer knew and resourcing one it never saw give the same records.
 - **Moves between hidden zones.** An anonymous entity that changes zone is removed and, if still trackable, created afresh ([R-06]). An anonymous card can never be linked across a move.
 - **Searches and looks.** The cards a seat looks at are temporary deck entities whose `to` is the looking seat, so they are unmaterialized for the opponent ([R-02]); a private `reveal` is not emitted ([R-04]); and the narrative of the search keeps no reference to them ([R-09]).
-- **Blind choices.** A block's `options` that name cards the viewer does not know are dropped, and its `text` with them ([R-09]).
+- **Blind choices.** A block's `options` that name cards the viewer does not know are dropped ([R-09]).
 - **Effects that name hidden cards.** An effect is materialized for V only when V knows its source ([W-31], [R-02]). A reference attribute (`src`, `targets`) keeps only references to entities V knows, so it cannot name a hidden card or follow an anonymous one across re-ids ([§11.1](#111-state)).
-- **Words that name hidden cards.** When a reference is dropped, the record's `text`, `untilText` and `ability` attributes go with it ([§11.1](#111-state)), as a block's `text` does ([R-09]). `abilityUses` is `identity`-class, so its ability ids are dropped from every entity V does not know ([R-02], [R-05], [R-07]).
+- **Words that name hidden cards.** When a reference is dropped, the record's `text`, `untilText` and `ability` attributes go with it ([§11.1](#111-state)). A block's `text` is removed from every block but a `name` block, whether or not a reference was dropped, because a block with no reference at all (a `pass`) can still carry words that name a hidden card ([R-09]). `abilityUses` is `identity`-class, so its ability ids are dropped from every entity V does not know ([R-02], [R-05], [R-07]).
 - **How long a card sat in hand.** The opponent's hand is a count, not a list of entities ([§10.3](#103-what-a-viewer-can-track)). A viewer cannot follow one hidden card through the rounds. Only a card the viewer already knows stays an entity in the opponent's hand, and only until a card leaves that hand face down.
 - **Which known card left a hidden hand.** When any card leaves a hand the viewer cannot see face down (into the resource row or a deck), the viewer loses track of every card it knew in that hand, and each is removed from the file ([R-17], [W-63]). Removing only the card that left would name it. It applies even when the card was revealed to the viewer a moment before. No block or `ref` attribute names a card in a hidden hand ([R-09], [§11.1](#111-state)), so a block written before the move cannot name the card either ([W-66]). A forgotten card comes back, as a fresh entity, only once the viewer sees it again ([W-43], [W-44]).
 - **Ids that carry history.** Entity ids carry no information and are renumbered by order of first use ([R-14]); a card that comes back from the deck is a new entity ([W-22]). Ids are per file: an id in one profile's file says nothing about the same id in another's ([§6.2](#62-entity-ids)), so two players' files cannot be joined to rebuild both hands.
 - **The seed, the deck order, the opponent's deck list and sideboard, and names of unseen cards.** `Seed` is dropped, `order` is dropped, the opponent's `DECKS` line lists only cards the file reveals, and `CARDS` keeps only ids the file uses ([R-11]). A validator checks each of these against the file itself ([§10.4](#104-profile-rules)): a deck list that names an unrevealed card, a `CARDS` line justified only by a record the viewer cannot apply, and an attribute such as `copyOf` or `cost` on an entity the viewer knows only as a face-down card are `profile` errors.
+- **Extensions.** An extension header tag, an unregistered attribute (every `x_` attribute, on every entity, `"g"`, `"p1"` and `"p2"` included), an extension record and an extension section are never copied, whatever they hold ([W-67], [R-11], [R-13]). Their meaning is the writer's, so a redactor cannot tell whether a value was shown to the viewer. A validator reports an unregistered header tag or attribute in a `perspective` or `public` file as `profile` ([§10.4](#104-profile-rules)).
 - **Notes and prose.** `STORY` and `ANNOTATIONS` of a `full` file are not copied ([R-13]).
 
 A block of an unseen action is kept, without its references: that the opponent drew, searched or
@@ -1295,9 +1312,12 @@ A writer may carry data this document does not define, under a name that says wh
 - **[W-60]** An extension MUST NOT change the meaning of anything this document defines: a file stripped of every extension MUST apply to the same board, apart from the extension attributes themselves.
 - **[W-61]** A writer MUST NOT add fields to a record beyond those its schema definition lists. Data about an entity goes in `a`, as an `x_` attribute.
 
-An `x_` attribute is `identity`-class unless it is registered ([§7.3](#73-attributes)), so a
-redactor drops it from every entity the viewer does not know. A reader ignores an extension
-record type and an extension section without a warning.
+- **[W-67]** An extension in a `full` file (a header tag, an attribute, a record type or a section) MAY hold anything, but it never survives redaction: a `perspective` or `public` file holds no extension header tag, no unregistered attribute on any entity, no extension record and no extension section ([R-11], [R-13], [§11.1](#111-state)). A platform that needs a value in `perspective` or `public` files registers it ([§22](#22-registries)).
+
+An `x_` attribute is not in the registry, so a redactor always drops it, from every entity, known
+or not ([§7.3](#73-attributes), [§11.1](#111-state)); so does a redactor drop every extension
+header tag ([R-11]). A reader ignores an extension record type and an extension section without
+a warning.
 
 ---
 
@@ -1494,7 +1514,7 @@ row is a change to the registry file, made by a pull request to the package's so
 
 | Registry | File | Open or closed |
 |---|---|---|
-| Attributes | `registry/attributes.json` | open: unknown attributes are kept, and are `identity`-class |
+| Attributes | `registry/attributes.json` | open: a reader keeps unknown attributes; a redactor drops them ([W-67]) |
 | Zones | `registry/zones.json` | open: an applier keeps an unknown zone; a validator reports it |
 | Relations | `registry/relations.json` | open: an applier keeps an unknown relation; a validator reports it |
 | Block kinds | `registry/blockKinds.json` | open: an unknown kind is accepted |
@@ -1842,7 +1862,7 @@ it is revealed:
 {"t":"reveal","e":6,"card":"HMW#218","to":"all"}
 {"t":"set","e":6,"zone":"discard","a":{"kind":"event"}}
 {"t":"block","id":10,"kind":"play","p":1,"src":6,"targets":[10]}
-{"t":"block","id":11,"kind":"choice","p":2,"src":6,"parent":10,"text":"Top of the deck"}
+{"t":"block","id":11,"kind":"choice","p":2,"src":6,"parent":10}
 {"t":"block","id":12,"kind":"defeat","p":1,"src":6,"targets":[12],"parent":10}
 {"t":"remove","e":12}
 {"t":"remove","e":10}

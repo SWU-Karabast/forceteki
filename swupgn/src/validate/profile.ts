@@ -1,6 +1,6 @@
 import type { SwuPgnFile } from '../generated/types.js';
 import type { FileLines } from '../parse.js';
-import { ATTRIBUTES, isFaceDownAttribute } from '../registry.js';
+import { ATTRIBUTES, isFaceDownAttribute, isRegisteredAttribute, isRegisteredHeaderTag } from '../registry.js';
 import type { Collector } from './issues.js';
 
 function isObject(v: unknown): v is Record<string, unknown> {
@@ -41,6 +41,27 @@ export function checkProfile(file: SwuPgnFile, lines: FileLines, out: Collector)
     if (file.header.Seed !== undefined) {
         out.add('profile', lines.tags.get('Seed'), `a ${what} file has no Seed tag`);
     }
+
+    // An extension never survives redaction ([W-67]): only registered header tags and attributes, and block text only as a chosen name ([R-09]).
+    for (const tag of Object.keys(file.header)) {
+        if (!isRegisteredHeaderTag(tag)) {
+            out.add('profile', lines.tags.get(tag), `a ${what} file has no header tag ${tag}, which SPEC §5 does not define`);
+        }
+    }
+    file.records.forEach((r, i) => {
+        const rec = r as unknown;
+        if (!isObject(rec)) {
+            return;
+        }
+        if ((rec.t === 'create' || rec.t === 'set') && isObject(rec.a)) {
+            const unknown = Object.keys(rec.a).filter((k) => !isRegisteredAttribute(k));
+            if (unknown.length > 0) {
+                out.add('profile', lines.records[i], `a ${what} file carries no unregistered attribute (${unknown.join(', ')})`);
+            }
+        } else if (rec.t === 'block' && rec.text !== undefined && rec.kind !== 'name') {
+            out.add('profile', lines.records[i], `in a ${what} file only a name block carries text`);
+        }
+    });
 
     // The cards the viewer may see: those a create or reveal gives with an audience that holds it.
     const shown = new Set<string>();

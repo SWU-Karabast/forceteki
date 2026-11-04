@@ -61,7 +61,27 @@ export const RELATIONS: readonly RelationDef[] = relations;
 export const BLOCK_KINDS: readonly BlockKindDef[] = blockKinds as readonly BlockKindDef[];
 export const ERROR_CODES: readonly ErrorCodeDef[] = errorCodes as readonly ErrorCodeDef[];
 
+/** The header tags SPEC §5.1 and §5.2 define, in canonical order (§5.4). Every other tag is an extension or unknown. */
+export const HEADER_TAGS: readonly string[] = [
+    'Game', 'Visibility', 'Steps',
+    'GameId', 'Date', 'EndDate', 'CardPool', 'Engine', 'P1Id', 'P2Id', 'P1', 'P2', 'Result', 'Reason',
+    'Rounds', 'Format', 'Match', 'GameNumber', 'Undos', 'P1Leader', 'P2Leader', 'P1Base', 'P2Base',
+    'Seed', 'WriterRevision', 'WriterErrors',
+];
+
+const REGISTERED_TAGS: ReadonlySet<string> = new Set(HEADER_TAGS);
+
+/** Whether a header tag is one SPEC §5.1 or §5.2 defines. Extension (`X…`) and unknown tags are not. */
+export function isRegisteredHeaderTag(tag: string): boolean {
+    return REGISTERED_TAGS.has(tag);
+}
+
 const ATTRIBUTE_CLASSES: ReadonlyMap<string, 'public' | 'identity'> = new Map(ATTRIBUTES.map((a) => [a.name, a.class]));
+
+/** Whether an attribute name is in the attribute registry. Every `x_` extension and every unknown name is not. */
+export function isRegisteredAttribute(name: string): boolean {
+    return ATTRIBUTE_CLASSES.has(name);
+}
 
 const FACE_DOWN: ReadonlySet<string> = new Set(ATTRIBUTES.filter((a) => a.faceDown === true).map((a) => a.name));
 
