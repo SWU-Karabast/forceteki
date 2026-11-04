@@ -1,6 +1,6 @@
 import { SwuPgnError } from './errors.js';
 import type { SwuPgnFile } from './generated/types.js';
-import { ATTRIBUTES } from './registry.js';
+import { canonicalAttrNames, compareCodePoints } from './attrOrder.js';
 
 /** The version a file with no `Game` tag is written as. */
 const DEFAULT_GAME = 'SWU-PGN/0.1';
@@ -26,26 +26,6 @@ const RECORD_KEYS: Readonly<Record<string, readonly string[]>> = {
 const DECK_KEYS: readonly string[] = ['p', 'leaders', 'base', 'complete', 'main', 'sideboard', 'order'];
 const CARD_KEYS: readonly string[] = ['id', 'name', 'backSideName'];
 const ANNOTATION_KEYS: readonly string[] = ['seq', 'text', 'nag', 'by', 'id', 'parent'];
-
-const ATTRIBUTE_RANK: ReadonlyMap<string, number> = new Map(ATTRIBUTES.map((a, i) => [a.name, i]));
-
-/** Compare by code point, not by UTF-16 unit. */
-function compareCodePoints(a: string, b: string): number {
-    const ia = a[Symbol.iterator]();
-    const ib = b[Symbol.iterator]();
-    for (;;) {
-        const x = ia.next();
-        const y = ib.next();
-        if (x.done || y.done) {
-            return (x.done ? 0 : 1) - (y.done ? 0 : 1);
-        }
-        const cx = x.value.codePointAt(0) as number;
-        const cy = y.value.codePointAt(0) as number;
-        if (cx !== cy) {
-            return cx - cy;
-        }
-    }
-}
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -76,11 +56,8 @@ function writeAttrs(attrs: unknown): string {
     if (!isPlainObject(attrs)) {
         return writeValue(attrs);
     }
-    const names = Object.keys(attrs).filter((k) => attrs[k] !== undefined);
-    const registered = names.filter((k) => ATTRIBUTE_RANK.has(k))
-        .sort((x, y) => (ATTRIBUTE_RANK.get(x) as number) - (ATTRIBUTE_RANK.get(y) as number));
-    const others = names.filter((k) => !ATTRIBUTE_RANK.has(k)).sort(compareCodePoints);
-    return `{${[...registered, ...others].map((k) => `${JSON.stringify(k)}:${writeValue(attrs[k])}`).join(',')}}`;
+    const names = canonicalAttrNames(Object.keys(attrs).filter((k) => attrs[k] !== undefined));
+    return `{${names.map((k) => `${JSON.stringify(k)}:${writeValue(attrs[k])}`).join(',')}}`;
 }
 
 function writeRecord(rec: unknown): string {

@@ -6,4 +6,4 @@ export const VERSION = 'SWU-PGN/0.1';
 export { parse, DEFAULT_LIMITS } from './parse.js';
 export type { ParseLimits } from './parse.js';
 export { serialize } from './serialize.js';
-export { emptyBoard, applyRecord, apply, boardAt } from './apply.js';
+export { emptyBoard, cloneBoard, applyRecord, apply, boardAt } from './apply.js';

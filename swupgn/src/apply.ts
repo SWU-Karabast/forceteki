@@ -1,5 +1,6 @@
 import { SwuPgnError } from './errors.js';
-import { RECORD_LINES } from './parse.js';
+import { lineOf } from './parse.js';
+import { canonicalAttrs } from './attrOrder.js';
 import type { Attrs, Audience, Board, Entity, EntityId, Seat, SwuPgnFile, SwuRecord } from './generated/types.js';
 
 const FIXED_IDS = ['g', 'p1', 'p2'];
@@ -7,6 +8,13 @@ const FIXED_IDS = ['g', 'p1', 'p2'];
 /** The board before the first record ([A-04]). */
 export function emptyBoard(): Board {
     return { seq: null, entities: { g: { a: {} }, p1: { a: {} }, p2: { a: {} } } };
+}
+
+/** Copy a board, carrying its retired ids, so `applyRecord` can continue on the copy. */
+export function cloneBoard(board: Board): Board {
+    const copy: Board = JSON.parse(JSON.stringify(board));
+    RETIRED.set(copy, new Set(retiredOf(board)));
+    return copy;
 }
 
 /** Ids retired by `remove`, per board ([A-08], [A-15]). */
@@ -38,6 +46,9 @@ function setAttrs(entity: Entity, a: Attrs | undefined): void {
         return;
     }
     for (const [k, v] of Object.entries(a)) {
+        if (k === '__proto__') {
+            continue;   // never an attribute; assigning it would change the prototype
+        }
         if (v === null) {
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             delete entity.a[k];
@@ -45,6 +56,7 @@ function setAttrs(entity: Entity, a: Attrs | undefined): void {
             entity.a[k] = v;
         }
     }
+    entity.a = canonicalAttrs(entity.a);
 }
 
 function requireEntity(board: Board, id: EntityId | undefined, what: string, line?: number): Entity {
@@ -70,6 +82,10 @@ function ordered(e: Entity): Entity {
 }
 
 /**
+ * Apply one record to a board, in place. To continue from a board, keep using the same Board
+ * object (or `cloneBoard` it): the ids retired by `remove` live with that object, so a board
+ * rebuilt by hand or from JSON will not throw `reused-id`.
+ *
  * Apply one record to a board, in place (SPEC §9.2). Throws `unknown-entity`, `duplicate-entity` or
  * `reused-id` (SPEC §9.3). A record of a type this version does not know, or a line that is not an
  * object, changes nothing ([A-03]); the validator reports it.
@@ -78,7 +94,7 @@ export function applyRecord(board: Board, record: SwuRecord, line?: number): voi
     if (typeof record !== 'object' || record === null || Array.isArray(record)) {
         return;
     }
-    const at = line ?? RECORD_LINES.get(record);
+    const at = line ?? lineOf(record);
     switch (record.t) {
         case 'create': {
             const key = String(record.e);

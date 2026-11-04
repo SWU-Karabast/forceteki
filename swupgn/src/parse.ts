@@ -54,7 +54,12 @@ interface ScanResult {
 }
 
 /** The 1-based line each parsed record came from, for `apply`'s error reports. Not part of the parsed value. */
-export const RECORD_LINES = new WeakMap<object, number>();
+const RECORD_LINES = new WeakMap<object, number>();
+
+/** @internal The 1-based file line a parsed record came from, if it was parsed. Not re-exported from the entry. */
+export function lineOf(record: object): number | undefined {
+    return RECORD_LINES.get(record);
+}
 
 /**
  * One pass over a JSON line before `JSON.parse` sees it. It stops at `maxDepth`, finds the first

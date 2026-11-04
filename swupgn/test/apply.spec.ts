@@ -1,7 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { parse } from '../src/parse';
-import { apply, applyRecord, boardAt, emptyBoard } from '../src/apply';
+import { apply, cloneBoard, applyRecord, boardAt, emptyBoard } from '../src/apply';
+import { ATTRIBUTES } from '../src/registry';
+import { canonicalAttrNames } from '../src/attrOrder';
 import { SwuPgnError } from '../src/errors';
 import type { Board, CreateRecord, SwuRecord } from '../src/generated/types';
 
@@ -70,7 +72,7 @@ describe('apply', () => {
     it('keeps unknown and x_ attributes, and unknown zone and relation names', () => {
         const b = apply([create(1, { zone: 'x_zone', a: { x_foo: [1, { b: 2 }], mystery: 'm' } }), { t: 'set', e: 1, a: { x_foo: 3 } }]);
         expect(b.entities['1'].zone).toBe('x_zone');
-        expect(JSON.stringify(b.entities['1'].a)).toBe('{"x_foo":3,"mystery":"m"}');
+        expect(JSON.stringify(b.entities['1'].a)).toBe('{"mystery":"m","x_foo":3}');
     });
 
     it('ignores unknown record types and blocks', () => {
@@ -125,5 +127,28 @@ describe('apply', () => {
     it('boardAt a step past the end gives the last board', () => {
         const file = parse(fileOf(['{"t":"step","seq":0}']));
         expect(boardAt(file, 9).seq).toBe(0);
+    });
+
+    it('keeps attribute keys in registry order after every change', () => {
+        const b = apply([create(1, { a: { damage: 1, exhausted: true } }), { t: 'set', e: 1, a: { name: 'N', cost: 2 } }]);
+        const names = Object.keys(b.entities['1'].a);
+        expect(names).toEqual([...names].sort((x, y) => ATTRIBUTES.findIndex((d) => d.name === x) - ATTRIBUTES.findIndex((d) => d.name === y)));
+        expect(JSON.stringify(Object.keys(b.entities['1'].a))).toBe(JSON.stringify(canonicalAttrNames(['damage', 'exhausted', 'name', 'cost'])));
+    });
+
+    it('cloneBoard carries retired ids and is independent', () => {
+        const b = apply([create(1), { t: 'remove', e: 1 }, create(2)]);
+        const c = cloneBoard(b);
+        expect(codeOf(() => applyRecord(c, create(1))).code).toBe('reused-id');
+        applyRecord(c, { t: 'set', e: 2, a: { damage: 1 } });
+        expect(b.entities['2'].a.damage).toBeUndefined();
+    });
+
+    it('does not let a __proto__ attribute change the prototype', () => {
+        const attrs = JSON.parse('{"__proto__":{"polluted":1},"damage":1}');
+        const b = apply([create(1, { a: attrs })]);
+        expect(Object.keys(b.entities['1'].a)).toEqual(['damage']);
+        expect(Object.getPrototypeOf(b.entities['1'].a)).toBe(Object.prototype);
+        expect((b.entities['1'].a as { polluted?: number }).polluted).toBeUndefined();
     });
 });
