@@ -110,6 +110,7 @@ export = {
     cannotAttackBase: () => OngoingEffectBuilder.card.static(EffectName.CannotAttackBase),
     cannotAttack: () => OngoingEffectBuilder.card.static(EffectName.CannotAttack),
     dealsCombatDamageFirst: () => OngoingEffectBuilder.card.static(EffectName.DealsCombatDamageFirst),
+    dealsCombatDamageLast: () => OngoingEffectBuilder.card.static(EffectName.DealsCombatDamageLast),
     cardCannot,
     playerCannot,
     // changeContributionFunction: (func) => OngoingEffectBuilder.card.static(EffectName.ChangeContributionFunction, func),
