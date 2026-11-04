@@ -113,6 +113,8 @@ pointed at today's internals will not survive. Benchmarks are therefore tiered:
 | **Diagnostic** | `full/*` | Measures the current full-snapshot implementation directly. Expected to change meaning or disappear at Plan 3/4. Useful for attribution, not for the verdict. |
 | **Standalone** | card-allocation memory | Per-`Card` byte floor. Plan 5 moves this. |
 
+The four `payload/` entries added at P4-G (`deltaWindowBytes`, `deltaSizeDistribution`, `retainedActionChain`, `deltaIndexStreak`) are diagnostic, not headline, although the report schema files them under `payload`; their notes carry `tier: diagnostic, added at P4-G`.
+
 If a plan must change a headline benchmark's meaning, that is a plan-level
 decision to call out in its own doc — not something to quietly do in the spec.
 Same for the scenarios: **changing an existing scenario invalidates every prior
@@ -130,6 +132,16 @@ capture that used it.** Add a new one instead.
 | `full/createSnapshotForCurrentTimepoint` | Diagnostic | Full-snapshot anchor cost in isolation |
 | `full/buildGameStateForSnapshot` | Diagnostic | The GameObject-state serialization share of that cost |
 | `full/rollbackToSnapshot` | Diagnostic | Raw restore cost with no container bookkeeping |
+| `full/deltaTracker.startTracking` | Diagnostic | Cost of opening an empty delta window at an anchor (added at P4-G) |
+| `full/deltaTracker.checkpoint` | Diagnostic | Cost of closing a window that holds the scenario's mutations and opening the next; the notes give the changed field count |
+| `full/deltaTracker.mutations(capturing)` | Diagnostic | The scenario's mutations with a fresh empty window, so every write is a first-write capture |
+| `full/deltaTracker.mutations(stopped)` | Diagnostic | The same mutations with the tracker stopped, which leaves only the setter hook's cost; the capturing row minus this row is the first-write capture cost |
+| `full/rollbackTo(Action, pendingWindowOnly)` | Diagnostic | `SnapshotManager.rollbackTo(Action)` to the current hollow snapshot through the held window alone (stored chain length 0, one delta restore) |
+| `full/rollbackTo(Action, deltaChain(3))` | Diagnostic | The same rollback to the snapshot three Action windows back (stored chain length 3, one delta restore) |
+| `payload/deltaWindowBytes` | Diagnostic entry | `v8.serialize` size of the closed window after the scenario's mutation model, with object and field counts (a size estimate, not stored bytes) |
+| `payload/deltaSizeDistribution` | Diagnostic entry | Closed-window size for the scenario mutations, one deck draw, one `generateToken` and one hand-to-arena move, with the largest single recorded value (the collection-copy caveat) |
+| `payload/retainedActionChain(13 snapshots)` | Diagnostic entry | Memory pinned by 13 real Action snapshots taken the way the engine takes them; the notes give the live history and delta counts the engine's caps leave; `bytesPerSnapshot` divides by the 13 snapshots taken, and the caps (3 history snapshots and 3 delta entries per player) leave at most about 6 live |
+| `payload/deltaIndexStreak(20 actions)` | Diagnostic entry | Delta index size, eviction horizon and retained delta bytes after 5, 10 and 20 consecutive Action snapshots by one player, beside an alternating control |
 | card-memory | Standalone | Retained bytes per `Card` object across the full dataset |
 
 `retainedChain` uses 13 snapshots to match the README's ground-truth finding that
@@ -180,11 +192,13 @@ rather than left for the final diff to surface.
   pins the mode to `Free` via `setUndoConfirmationRequired(false)` so it measures
   the real undo-enabled path. **The underlying helper bug is not fixed here** —
   it belongs with Plan 1's housekeeping item.
-- **Private-field access.** `captureAnchorSnapshot` reads
-  `SnapshotFactory.currentActionSnapshot` directly so payload sizes and rollback
-  costs reflect the object the engine actually builds rather than a
-  reimplementation. It throws with a pointed message if the field disappears, per
-  Invariant 4 (no silent degradation).
+- **Private-field access.** `captureAnchorSnapshot` takes the snapshot the
+  factory just built through `SnapshotFactory.currentActionSnapshot`, then returns
+  `materializeCurrentSnapshot()` of it: since P4-F an Action snapshot is hollow, so
+  the anchor is a full copy of the current snapshot (the same records the old full
+  current snapshot held), or the snapshot itself when it is already full. It throws
+  with a pointed message if the field disappears, per Invariant 4 (no silent
+  degradation).
 
 ## Explicit non-goals
 

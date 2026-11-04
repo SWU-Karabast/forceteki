@@ -315,5 +315,116 @@ describe('Phase-boundary quick undo through the delta chain', function() {
                 console.log(`[PhaseBoundaryDeltaUndo] offeredUndos=${offeredUndos} releasedTargets=${releasedTargets} beyondHorizonTargets=${beyondHorizonTargets} evictedThroughId=${indexOf(game).evictedThroughId}`);
             });
         });
+
+        // The P4-0 and P4-0b boards of PhaseStartAndEnd.spec.ts, which pins ids and board state only. These undo through the manager
+        // (not contextRef.snapshot.rollbackToSnapshot, which resumes the pipeline and re-fires the boundary triggers) and compare each
+        // landing with a reference taken while that snapshot was current, under the restore kind the design gives it.
+        describe('decided boundary windows', function() {
+            it('p4-0-single-trigger-delta: after the prompted player answered the only boundary trigger, a quick undo lands on the full boundary snapshot', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['inferno-four#unforgetting', 'system-patrol-craft'],
+                        hand: ['sneak-attack', 'ruthless-raider']
+                    },
+                    player2: {
+                        spaceArena: ['green-squadron-awing'],
+                        groundArena: ['wampa']
+                    }
+                });
+                const { context } = contextRef;
+                const game = context.game;
+
+                context.player1.clickCard(context.sneakAttack);
+                context.player1.clickCard(context.ruthlessRaider);
+                context.player1.clickCard(context.greenSquadronAwing);
+                expect(context.p2Base.damage).toBe(2);
+
+                context.moveToRegroupPhase();
+                const boundary = reference(game);
+                expect(boundary.hollow).toBeUndefined();
+
+                // Defeating Ruthless Raider is the boundary decision.
+                context.player1.clickCard(context.greenSquadronAwing);
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.greenSquadronAwing).toBeInZone('discard');
+
+                const result = withDeltaRestoreLog((log) => {
+                    const rollback = game.snapshotManager.rollbackTo({ type: SnapshotType.Quick, playerId: context.player1.id });
+                    // The target is the full StartOfPhase snapshot, so this restore is a full one.
+                    expect(log.restores).toBe(0);
+                    return rollback;
+                });
+                expect(result.success).toBeTrue();
+                expectLandedOn(game, boundary);
+                expect(game.currentPhase).toBe('regroup');
+                if (result.success) {
+                    game.postRollbackOperations(result.entryPoint);
+                }
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.wampa]);
+            });
+
+            it('p4-0b-decided-delta: with both players\' triggers answered, the first quick undo lands on the boundary and the second crosses the bridges to the last action', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['inferno-four#unforgetting', 'system-patrol-craft'],
+                        hand: ['sneak-attack', 'ruthless-raider']
+                    },
+                    player2: {
+                        spaceArena: ['green-squadron-awing'],
+                        groundArena: ['wampa'],
+                        hand: ['sneak-attack', 'ruthless-raider']
+                    }
+                });
+                const { context } = contextRef;
+                const game = context.game;
+
+                context.player1.clickCard(context.player1.findCardByName('sneak-attack'));
+                context.player1.clickCard(context.player1.findCardByName('ruthless-raider'));
+                context.player1.clickCard(context.greenSquadronAwing);
+                context.player2.clickCard(context.player2.findCardByName('sneak-attack'));
+                context.player2.clickCard(context.player2.findCardByName('ruthless-raider'));
+                context.player2.clickCard(context.systemPatrolCraft);
+
+                const lastAction = reference(game);
+                context.moveToRegroupPhase();
+                const boundary = reference(game);
+                expect(boundary.hollow).toBeUndefined();
+
+                expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
+                context.player1.clickPrompt('You');
+                context.player1.clickCard(context.greenSquadronAwing);
+                context.player2.clickCard(context.systemPatrolCraft);
+                expect(context.greenSquadronAwing).toBeInZone('discard');
+                expect(context.systemPatrolCraft).toBeInZone('discard');
+
+                // First undo: the boundary window has decisions, so it lands on the boundary checkpoint (a full snapshot).
+                const first = withDeltaRestoreLog((log) => {
+                    const rollback = game.snapshotManager.rollbackTo({ type: SnapshotType.Quick, playerId: context.player1.id });
+                    expect(log.restores).toBe(0);
+                    return rollback;
+                });
+                expect(first.success).toBeTrue();
+                expectLandedOn(game, boundary);
+                expect(game.currentPhase).toBe('regroup');
+                if (first.success) {
+                    game.postRollbackOperations(first.entryPoint);
+                }
+
+                // Second undo: nothing is decided again, so it overshoots across the StartOfPhase and EndOfPhase bridges to the last action.
+                const second = withDeltaRestoreLog((log) => {
+                    const rollback = game.snapshotManager.rollbackTo({ type: SnapshotType.Quick, playerId: context.player1.id });
+                    expect(log.restores).toBe(1);
+                    return rollback;
+                });
+                expect(second.success).toBeTrue();
+                expectLandedOn(game, lastAction);
+                expect(game.currentPhase).toBe('action');
+                if (second.success) {
+                    game.postRollbackOperations(second.entryPoint);
+                }
+            });
+        });
     });
 });

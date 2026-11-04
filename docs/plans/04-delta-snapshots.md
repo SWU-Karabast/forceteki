@@ -1,6 +1,6 @@
 # Plan 4 — Delta Snapshots
 
-**Status:** Proposed (revised after adversarial review)
+**Status:** Landed (units P4-A to P4-G); the performance verdict is in "Performance capture"
 **Depends on:** Plan 3 (dirty-tracking hooks live in the retained decorator setter overrides and the `Undo*` collection wrappers — see Plan 3's "Decorator model after cutover", the pinned interface between these plans; the generator additionally emits the per-field serializers that delta values reuse)
 **Unblocks:** Cheaper per-action snapshots; smaller retained-snapshot memory
 **Shape:** One PR arc with an explicit mid-plan decision checkpoint (full deltas vs memoization fallback)
@@ -229,7 +229,68 @@ The bound on these two opt-outs and on `withExpectedRollbackFailure` and `withEx
 The `getQuickRollbackPoint` policy is unchanged: `Current` and `Previous` are array positions, and the restore of a delta entry crosses whatever bridges lie between a boundary prompt's window and the target (`PhaseBoundaryDeltaUndo.spec.ts`).
 Benchmark note for P4-G: `Performance.spec.ts` and `BenchmarkScenarios.ts` are unchanged and still compile, but `captureAnchorSnapshot` reads `currentActionSnapshot` after an Action checkpoint, which is now hollow, so the `payload/*` rows fed by `payloadSnapshot`, the raw-restore rows and the `restoreAnchor` helper fed by `anchorSnapshot` (`full/rollbackToSnapshot`, `sustained/snapshotAndUndoCycle`) cannot run until P4-G re-anchors them with its new rows, and the rows that read `currentActionSnapshot` directly see hollow snapshots.
 Until P4-G re-anchors `captureAnchorSnapshot`, a `RUN_PERF_BENCHMARKS` run aborts at `full/rollbackToSnapshot`, the first row that restores the hollow anchor (`GameStateManager.rollbackToSnapshot` refuses a snapshot with no `Game.state` record), so no later row (`manager/rollbackTo(Manual)`, `sustained/snapshotAndUndoCycle`, `full/moveToNextTimepoint(Action, memoized)`, `payload/*`) produces a value, and the scenario's `liveGameObjects`, read from the hollow anchor, is 0; of the rows before it, `manager/moveToNextTimepoint(Action)` still times a bridge-less full first snapshot after `clearAllSnapshots`, and `full/createSnapshotForCurrentTimepoint` times a hollow checkpoint after its first iteration; `manager/rollbackTo(Manual)` keeps its meaning (it clears all snapshots and bookmarks a full first snapshot) once the scenario reaches it again.
+P4-G re-anchored `captureAnchorSnapshot`, so this abort is gone (see "As landed in P4-G").
 No benchmark was run in this unit.
+
+**As landed in P4-G.**
+P4-G closes Plan 4 with no production change: `git diff` over `server/` is empty, `BenchmarkScenarios.ts`, `BenchmarkHarness.ts` and `BenchmarkReport.ts` are unchanged, and the report schema version stays 1, so every `--compare` keeps working.
+It adds five spec cases, re-anchors the benchmark on a materialized snapshot, appends ten diagnostic rows, captures `after-plan-04` with a six-run arm and a same-runtime pre-roadmap reference, and writes the verdict in "Performance capture".
+The sweep below maps every item of the "Verification" list to the case that proves it; a covered item gets no second test, and each of the five gaps got exactly one new case.
+
+| Verification item | Status | File and case |
+|---|---|---|
+| First-write-wins, scalar and per wrapper | covered | `DeltaTracker.spec.ts` "window content" and "wrapper kinds" |
+| Multi-delta chain, both players, across a bridge | covered | `DeltaChain.spec.ts` first case; `DeltaRestore.spec.ts` `cross-player-chain` |
+| Rollback across a delta-to-full boundary | partly covered, gap closed | `PhaseBoundaryDeltaUndo.spec.ts` Regroup Sneak Attack case (chain onto a full snapshot); new `DeltaRestore.spec.ts` `delta-to-full-boundary` |
+| Same delta target twice with mutation in between | gap, new | `DeltaRestore.spec.ts` `same-target-twice` |
+| Object created and destroyed within one window | covered | `DeltaRestore.spec.ts` `created-removed-culled-skipped` |
+| `-morph` `SnapshotTypes.spec.ts` regression (+43 lines) | covered at engine level, port new | `DeltaRestore.spec.ts` `morph-regression`; new `SnapshotTypes.spec.ts` `morph-port` |
+| Full manual rollback mid-window, delta checkpoint, delta rollback, clean values | covered | `DeltaRestore.spec.ts` `full-mid-window-then-delta` |
+| Corrupted chain: deleted intermediate delta fails loudly | covered | `DeltaSnapshotIndex.spec.ts` "fails naming the missing id"; `DeltaChain.spec.ts` "reports exactly one chain failure naming the hole" |
+| Organic registration during a delta rollback | covered | `DeltaRestore.spec.ts` `registration-guard` |
+| Mid-window manual snapshot (anchor rule) | covered | `DeltaRestore.spec.ts` `mid-window-manual`, `materialize-read-only` |
+| Boundary-adjacent confirmation policy | covered | `UndoConfirmation.spec.ts` "Boundary-adjacent confirmation policy (shared-id rule)" |
+| Phase-boundary prompts: Thrawn, Sneak Attack with nothing decided | covered | `PhaseBoundaryDeltaUndo.spec.ts` `boundary-prompt-chain` |
+| Phase-boundary prompts: P4-0 single trigger and the P4-0b decided requester under delta restore | gap, new | `PhaseBoundaryDeltaUndo.spec.ts` `p4-0-single-trigger-delta`, `p4-0b-decided-delta` |
+| Eviction end to end | covered | `DeltaChain.spec.ts` eviction cases; `PhaseBoundaryDeltaUndo.spec.ts` `availability-implies-restorable` |
+| Index size over a one-player action streak | measurement, not a spec | `payload/deltaIndexStreak(20 actions)`; the finding is under "Open issues inherited from `-morph`" |
+| Whole-suite delta-parity gate | covered | `test-parallel-undo` on the final subject |
+
+The five new cases and what each would catch:
+- `SnapshotTypes.spec.ts` `morph-port` (after "action snapshots can revert back to the first action of the phase") ports the `-morph` steps exactly and wraps the action rollback in a `rollbackToDeltaChain` counter asserting one delta restore; a bookmark built from stale or post-rollback state, or an unusable window after the manual restore, would show the discarded timeline's units or damage.
+- `DeltaRestore.spec.ts` `same-target-twice` rolls back to one snapshot after two different timelines (other attackers, a token each, a write on a unit the first timeline never touched), then once more through the pending window alone with a quick undo; after each landing it asserts the stored target is current, state equals its reference, the index head is the target with no id above it, and the window is anchored there and empty. A consumed window or stale delta re-applied, or an unpruned index, would leave a field of a discarded timeline in place.
+- `DeltaRestore.spec.ts` `delta-to-full-boundary` rolls back to the action phase's snapshot from a hollow current snapshot with a pending write, asserts zero delta restores and that live state equals the landed full snapshot, then asserts the resumed window's snapshot is anchored at the phase snapshot and numbered one after it, and that a delta rollback across the next action lands on its reference. A pending window or stored delta applied over a completed full restore, or a timepoint counter left on the discarded timeline, would fail it.
+- `PhaseBoundaryDeltaUndo.spec.ts` `p4-0-single-trigger-delta` and `p4-0b-decided-delta` (describe "decided boundary windows") undo through `game.snapshotManager.rollbackTo` (not `contextRef.snapshot.rollbackToSnapshot`, which resumes the pipeline and re-fires the boundary triggers) and compare each landing with a reference: the boundary undo is a full restore (zero delta restores) and the P4-0b second undo crosses the bridges as one delta chain restore, landing on the last action.
+
+Departure, recorded: the plan's reference for `delta-to-full-boundary` was a materialization of the new phase's first Action snapshot, on the assumption that its window start equals the StartOfPhase state.
+It does not: that snapshot is taken one game event after the phase snapshot (`lastGameEventId` differs by one), so the case compares live state with the landed full phase snapshot instead, says so in a comment, and weakens no other assertion.
+
+Controls: each of the two riskiest cases was run once against a temporary one-line `server/` edit and failed on its own expectation, not only on the `DeltaChainVerifier` afterEach.
+Skipping `clearNewerSnapshots` in `SnapshotManager.rollbackToInternal` failed `same-target-twice` at its index-head assertion ("Expected 11 to be 8."), and dropping `this.lastAssignedTimepointNumber = snapshot.timepointNumber` in `SnapshotFactory.updateCurrentActionSnapshot` failed `delta-to-full-boundary` at its timepoint assertion ("Expected 20 to be 17.").
+Both edits were reverted and `git diff --stat -- server` is empty.
+
+Benchmark re-anchor: `captureAnchorSnapshot` now calls `createSnapshotForCurrentTimepoint(Action)` through the factory and returns `SnapshotManager.materializeCurrentSnapshot()` of the result, which is the same records the old full current snapshot held (the checkpoint just opened an empty window), consumes no id and touches no window or index.
+An untimed assertion in every scenario checks that `anchorSnapshot.states` deep-equals `payloadSnapshot.states`, and the two `v8.serialize` byte lengths are in a note on `payload/deltaWindowBytes` (equal in all five scenarios).
+The reuse notes of the two P4-Cb rows read "not measured: Action snapshots are hollow since P4-F" instead of a zero.
+No timed region, iteration count, row name or category of an existing row changed, and the capture's `liveGameObjects` and the three `payload` byte rows equal `after-plan-04-memo`'s in every scenario (compact-board's payload sum is 0.2 percent high, inside the 0.3 percent payload spread).
+
+Row meanings after the re-anchor and the P4-E and P4-F changes, stated here because headline rows moved (the capture index and Plan 0 point to this table):
+
+| Row | Before (baseline or memo) | Now | Cause | Comparable with |
+|---|---|---|---|---|
+| `full/rollbackToSnapshot`, the restore legs of `sustained/*`, `payload/gameStateBuffer`, `payload/gameObjectStatesBuffer`, `payload/fullSnapshotTotal`, `liveGameObjects` | anchor is the factory's full current snapshot | anchor is a full materialization of it, identical records | none, by design (the re-anchor) | as before; the payload trio stays excluded from baseline comparisons by P3-PB2 |
+| `manager/moveToNextTimepoint(Action)` | first-snapshot full build per call | the same operation plus `startTracking`, `markTrackingAnchor` and a redundant cull scan | P4-A, P4-E | all captures, as a no-window control; blind to deltas because it clears all snapshots after each iteration |
+| `manager/rollbackTo(Manual)` | full restore of a bookmark | full restore plus pre-pass record reuse, window drop and restart | P4-A, P4-C, P4-F | all captures; blind to the delta path because manual snapshots are always full |
+| `full/createSnapshotForCurrentTimepoint` | memoized full build | hollow checkpoint of an empty window | P4-F | none |
+| `full/moveToNextTimepoint(Action, memoized)` | per-action build with a live window and real writes | hollow checkpoint with captured writes; reuse notes read "not measured" | P4-F | `p4-d-reference-pre-memo` and `after-plan-04-memo` as the per-action path; absent from baseline and `after-plan-03` |
+| `sustained/snapshotAndUndoCycle` | full build, mutate, raw restore | hollow checkpoint, mutate with capture, raw restore with hook cost; about 400 index deltas retained because the benchmark pushes no quick entry, so age eviction never runs | P4-A, P4-E, P4-F | same operation; contents shifted, read GC directionally |
+| `payload/retainedChain(13 snapshots)`, `payload/retainedChainWithWrites(13 snapshots)` | 13 full snapshots; from P4-C sharing unchanged records | 12 unshared full materializations plus 1 full snapshot and 12 index deltas | P4-E added the deltas, P4-F the unshared copies | not comparable with the P4-C, P4-D and P4-E captures; closest in meaning to `after-plan-03` (13 unshared full record snapshots), across a Node line; against baseline only as "13 held full bookmarks"; `WithWrites` has no baseline or `after-plan-03` value |
+
+New rows, all diagnostic and appended after the seven original rows by one helper (category `full` for timings; the report schema allows bytes only in the `payload` shape, so the four byte entries carry `tier: diagnostic, added at P4-G` in their notes): `full/deltaTracker.startTracking`, `full/deltaTracker.checkpoint`, `full/deltaTracker.mutations(capturing)`, `full/deltaTracker.mutations(stopped)`, `full/rollbackTo(Action, pendingWindowOnly)`, `full/rollbackTo(Action, deltaChain(3))`, `payload/deltaWindowBytes`, `payload/deltaSizeDistribution`, `payload/retainedActionChain(13 snapshots)` and `payload/deltaIndexStreak(20 actions)`.
+The `bytesPerSnapshot` of `payload/retainedActionChain(13 snapshots)` divides by the 13 snapshots taken; the caps (3 history snapshots and 3 delta entries per player) leave at most about 6 live.
+The two rollback rows go through `SnapshotManager.rollbackTo(Action)`, assert per iteration that the target is hollow, the stored chain length is 0 or 3 and exactly one `rollbackToDeltaChain` call ran, and carry the chain length as a note that only the JSON holds.
+These rows replace the `-morph` rows `delta/rollbackToDeltaChain` (raw restore, never called by production) and `delta/startTrackingAndCheckpoint` (split into the tracker rows), and `checkpointOnly` (the tracker checkpoint is O(1) now), which is the reimplementation on current APIs that Plan 0 allows.
+Freeze rule: after the capture `Performance.spec.ts` is frozen except comments; a later behavioral edit voids `after-plan-04` and the capture must be redone.
 
 ### Chain selection, contiguity, and eviction
 
@@ -530,6 +591,14 @@ remains covered by the phase/setup specs and the dedicated specs.
   `DeltaRestore.spec.ts`, `DeltaParityGate.spec.ts` and `PhaseBoundaryDeltaUndo.spec.ts` pass only because their header comments name `integration()`, so editing those comments later fails CI with no visible cause, and a comment could hide a spec that really lacks the harness.
   Action: add `PhaseBoundaryDeltaUndo` to `undoScenarioSpecsWithOwnHarness`, as for the other undo scenarios, and teach the check the cast form (or give the two engine specs exemption entries); then drop the header-comment workaround.
   Done when `npm run validate-specs` passes those three files with their header comments removed and still reports only the pre-existing `Undo.spec.ts` violation.
+- **Follow-up: the delta index grows without bound over a one-player action streak (raised by P4-G, measured in `payload/deltaIndexStreak(20 actions)`).**
+  Reason: the index must keep every delta from the oldest live delta entry of any container to the head, because a rollback to that entry replays them (`DeltaSnapshotIndex.buildChain`); a container only releases an entry when that player acts again, so with player 2's entry live and player 1 acting alone, nothing is evictable, `evictedThroughId` stays at player 2's delta id, and the index grows by one delta per action: index size 5, 10 and 20 after 5, 10 and 20 actions in all five scenarios and all six runs, against 6, 5 and 5 in the alternating control.
+  The retained delta bytes are small (2,180 to 20,900 bytes after 20 actions across the scenarios, linear in the streak), but nothing bounds the streak, so a long one-sided stretch of play (for example one player taking many actions while the other holds priority) keeps growing the index.
+  Action: bound it by deciding when a quiet player's live delta entry is released (for example once more than N newer snapshots exist).
+  That removes that player's quick undo to the entry, so it needs an owner decision that this unit does not make: whether bounding the index may take away the quiet player's quick-undo availability (no cheaper bound is known while that entry stays restorable), to be decided before the follow-up unit is designed.
+  Done when the streak row reads a bounded index size (at most the sum of the containers' live-entry caps plus the bridge deltas) after 20 and after 200 one-player actions, and the `availability-implies-restorable` and `DeltaChain.spec.ts` eviction cases still pass unchanged.
+  Trigger: before any plan raises a snapshot cap, adds a third consumer of the index, or measures long games (Plan 6 save/load), and in any case before the next performance capture that reads `payload/deltaIndexStreak`.
+  Fixed nowhere in P4-G: the unit adds a measurement and a record, not a mechanism.
 
 ## Known limitations (deferred)
 
@@ -786,3 +855,156 @@ checkpoint cost, delta payload bytes — belong in the diagnostic tier as **new
 rows**. The `-morph` branch's spec has all three and can be ported directly. Do
 not repurpose existing row names; that breaks the comparison against
 every prior capture.
+
+### Verdict (P4-G)
+
+The numbers below come from the analysis script's output for `after-plan-04` and its five replicates (`summary.txt`, retained with the run); the replicate files and `summary.txt` are not committed, so the six-run medians are inlined, the min-max bands are inlined for the two speed headline rows (avg and p95, five scenarios) and for the S2 and index-streak figures, per-run values are inlined only for S1, S2 and the index streak, and any other min-max band statement rests on the retained analysis output.
+Sections follow the order of the plan: Method, Speed, Memory and GC, Honest and not-honest rows, What got worse, Red flag, Sparsity, Index streak and hook cost, Residuals.
+
+#### Method
+
+`after-plan-04` is run 1 of a six-run arm: the committed capture plus five replicates (`p4-g-rep1` to `p4-g-rep5`, `--skip-build --skip-card-memory`), all on the same machine, Node v26.13.0, Ryzen 7 9850X3D, 2516 cards in the dataset, `ENABLE_PARITY_HARNESS`, `ENABLE_UNDO_ALL_TESTS`, `MEASURE_SAVE_DEGRADATION` and `RUN_PERF_BENCHMARKS` unset, one benchmark command at a time.
+The commit is `cdfc22c8e` with the P4-G `Performance.spec.ts` change and the user's two unrelated files under `docs/plans/` in the working tree; `server/` is identical to `cdfc22c8e`.
+Every `after-plan-04` value in this section is the six-run median, with the min-max band where a band matters.
+Every comparison value is one committed run and is labelled as a single run: `pre-roadmap-baseline` and `after-plan-03` (Node v24.13.0, 2386 cards), `p4-d-reference-pre-memo` and `after-plan-04-memo` (Node v26.13.0, 2516 cards), and `p4-g-reference-pre-roadmap` (C0, Node v26.13.0).
+The P4-D constants quoted below (0.249 and 0.163 ms, 0.699, 1.122, 0.986, 0.884 and 0.749 ms) are the six-run medians recorded in "Decision checkpoint verdict (P4-D)".
+Reading rule for timing (RR1): a change is stated only when the difference exceeds 20 percent, has the same sign in at least four of the five scenarios (counting only scenarios that also meet the next condition), and, against a single-run value, that value lies outside `after-plan-04`'s six-run min-max band for the row; otherwise the sentence is "not measurable at this sample size".
+Payload bytes are read at 2 percent, per-operation memory at 10 percent, and the heap-measured retained rows at 10 percent.
+Any comparison across the Node v24 and v26 line (`pre-roadmap-baseline` and `after-plan-03` against `after-plan-04`) is directional only (capture-index rule 2) and is printed beside its control rows; a roadmap-level speed sentence needs a same-runtime lens that agrees in direction.
+C0 is that lens: the `pre-roadmap-baseline` commit (`3dcaecdb0`) re-run on this checkpoint's runtime.
+Two caveats for weighing C0.
+First, its card dataset is the one that commit's own `npm run get-cards` generates (2479 card definition files, one fewer live object in compact-board) against 2516 cards for every other v26 capture, so it is same-runtime but not same-dataset.
+Second, its build needed one repair: `tsc` failed against the newer `@types/node` reached through this checkout's `node_modules` (a junction), so the build ran `tsc` and the test `tsc` directly (they emit despite the type errors), copied the card data by hand and wrote the card-data hash file with the build script's own function; the emitted JavaScript is the commit's own, only the type diagnostics were bypassed.
+C0 skipped the card-memory step (the Fortify fix `56e2579ab` came after that commit) and is a single run.
+The embedded `--compare pre-roadmap-baseline` section in `after-plan-04.md` crosses the Node line and is directional.
+
+#### Speed
+
+`manager/moveToNextTimepoint(Action)` and `manager/rollbackTo(Manual)`, avg then p95 in ms, six-run medians, each with its six-run min-max band in brackets:
+
+| Scenario | `moveToNextTimepoint(Action)` avg / p95 | `rollbackTo(Manual)` avg / p95 |
+|---|---|---|
+| compact-board | 0.1331 [0.1294-0.1471] / 0.1946 [0.1743-0.2923] | 0.3763 [0.3587-0.4018] / 0.4784 [0.4109-0.7550] |
+| large-board | 0.1792 [0.1629-0.1894] / 0.2998 [0.2034-0.3294] | 0.5815 [0.5652-0.6211] / 1.0109 [0.9342-1.1423] |
+| forty-cards-per-player | 0.2652 [0.2118-0.3755] / 0.9983 [0.6469-1.4732] | 0.6019 [0.5739-0.6624] / 1.0292 [0.9144-1.0994] |
+| forty-cards-sparse-mutations | 0.2089 [0.1746-0.2420] / 0.9494 [0.6126-1.2226] | 0.4961 [0.4771-0.5189] / 0.7939 [0.7858-0.9280] |
+| forty-cards-four-mutated | 0.1642 [0.1548-0.1806] / 0.6757 [0.5324-0.7532] | 0.4010 [0.3910-0.4655] / 0.7074 [0.6920-0.9868] |
+
+RR1 readings (single-run comparison against the six-run median, four rows in the order `moveToNextTimepoint` avg, `moveToNextTimepoint` p95, `rollbackTo(Manual)` avg, `rollbackTo(Manual)` p95):
+
+| Compared with | Readings |
+|---|---|
+| `pre-roadmap-baseline` (single run, Node v24, directional) | better; not measurable; better; better |
+| `after-plan-03` (single run, Node v24, directional) | not measurable; not measurable; better; not measurable (3 of 5 scenarios flagged better) |
+| `p4-d-reference-pre-memo` (single run) | not measurable; not measurable; better; not measurable (2 flagged better) |
+| `after-plan-04-memo` (single run) | not measurable in all four |
+| C0 `p4-g-reference-pre-roadmap` (single run, same runtime, 2479 cards) | not measurable (2 flagged worse); worse in at least 4 of 5 scenarios; better; better |
+
+`manager/rollbackTo(Manual)` is faster across the roadmap, with the same-runtime lens agreeing in direction: against C0 avg moved -37.2%, -39.2%, -39.0%, -48.8% and -51.1% and p95 -52.3%, -28.5%, -28.8%, -46.3% and -53.3% across the five scenarios, each with the C0 value outside the six-run band in the table above (C0 avg 0.5991, 0.9559, 0.9868, 0.9684 and 0.8198 ms; C0 p95 1.0033, 1.4132, 1.4456, 1.4790 and 1.5163 ms); against `pre-roadmap-baseline` (directional) avg -65.7%, -68.2%, -69.0%, -72.2% and -76.1% and p95 -66.2%, -54.5%, -58.4%, -63.1% and -69.8%.
+The control rows move with the runtime, which is why the baseline figure is directional: against `pre-roadmap-baseline` `full/rollbackToSnapshot` moved -58.7%, -63.4%, -54.6%, -64.4% and -68.6% (avg), and against C0 -18.5%, -26.5%, -24.2%, -26.7% and -36.2%.
+Against `after-plan-03` (Node v24, directional) the control rows moved: `full/rollbackToSnapshot` avg -25.8%, -13.3%, -18.9%, -13.9% and -29.1%, and `manager/moveToNextTimepoint(Action)` avg -15.3%, -1.8%, +15.1%, -12.8% and -20.4%, so part of the rollback gain against `after-plan-03` is runtime drift.
+No roadmap-level speed sentence is made for `manager/moveToNextTimepoint(Action)`: against `pre-roadmap-baseline` avg is better in four scenarios (-47.5%, -25.2%, -22.8%, -41.1%; forty-cards-per-player is +22.3% with the baseline value inside the band), against `after-plan-03` and the two v26 memo-era captures it is not measurable, and the same-runtime lens against C0 reads p95 worse (see "What got worse"), so the lenses disagree.
+That row clears all snapshots after each iteration, so every timed call is the first snapshot of a tracking run and the row cannot see a delta or a memo (it is a no-window control, as the row-meaning table says).
+The per-action path that deltas change is timed only by `full/moveToNextTimepoint(Action, memoized)`.
+Labelled cross-row reading, not a like-for-like comparison: the baseline `manager/moveToNextTimepoint(Action)` (a full serialize per action, single run, Node v24) was 0.2538, 0.2395, 0.2169, 0.2707 and 0.2789 ms, and `full/moveToNextTimepoint(Action, memoized)` now (a hollow checkpoint with captured writes, six-run median) is 0.0081, 0.0110, 0.0175, 0.0134 and 0.0110 ms, which is -96.8%, -95.4%, -91.9%, -95.1% and -96.1%.
+The definitional differences are that the baseline row includes the first-snapshot setup and clears afterwards, and the memoized row times a live window with the writes made outside the timer.
+
+#### Memory and GC
+
+`payload/retainedChain(13 snapshots)` bytes per snapshot, six-run medians (each band is within 1.5 percent of its median):
+
+| Scenario | Now | `pre-roadmap-baseline` | `after-plan-03` | `p4-d-reference-pre-memo` | `after-plan-04-memo` | C0 |
+|---|---|---|---|---|---|---|
+| compact-board | 37065 | 48921 (-24.2%) | 41465 (-10.6%) | 44569 (-16.8%) | 7339 (+405.0%) | 48710 (-23.9%) |
+| large-board | 57656 | 80276 (-28.2%) | 69846 (-17.5%) | 70291 (-18.0%) | 12930 (+345.9%) | 80530 (-28.4%) |
+| forty-cards-per-player | 65025 | 92692 (-29.8%) | 79924 (-18.6%) | 80164 (-18.9%) | 12524 (+419.2%) | 92886 (-30.0%) |
+| forty-cards-sparse-mutations | 61913 | 85853 (-27.9%) | 72564 (-14.7%) | 75854 (-18.4%) | 12578 (+392.2%) | 88959 (-30.4%) |
+| forty-cards-four-mutated | 58796 | 86437 (-32.0%) | 71392 (-17.6%) | 71952 (-18.3%) | 12574 (+367.6%) | 86149 (-31.8%) |
+
+This is a meaning change, not a regression and not a win: the row now holds 12 unshared full materializations (manual snapshots are always full since P4-F) plus 1 full snapshot plus 12 index deltas (P4-E), so it no longer measures the memoized chain that `after-plan-04-memo` measured (12524 bytes per snapshot in forty-cards-per-player against 65025 now), and the closest meaning among older captures is `after-plan-03`'s 13 unshared full record snapshots (79924 there, a directional comparison across the Node line).
+`payload/retainedChainWithWrites(13 snapshots)` has the same meaning change: 52467, 82883, 96889, 88264 and 80498 bytes per snapshot now against `p4-d-reference-pre-memo` 48885, 76941, 87857, 84526 and 79201 (+7.3%, +7.7%, +10.3%, +4.4% and +1.6%) and `after-plan-04-memo` 17993, 35255, 42638, 29946 and 22015 (+191.6%, +135.1%, +127.2%, +194.7% and +265.7%); it has no baseline or `after-plan-03` value.
+The production retained form is `payload/retainedActionChain(13 snapshots)`, 13 real Action snapshots taken through `moveToNextTimepoint(Action)` and `takeSnapshot(Action)` with alternating players and a real write before each: bytes per snapshot 3159, 3215, 4552, 1955 and 1139 across the five scenarios (totals 41066, 41796, 59176, 25412 and 14804).
+`bytesPerSnapshot` divides by the 13 snapshots taken; the engine's caps (3 history snapshots and 3 delta entries per player) leave at most about 6 live, and the live counts the note reports are 6 history snapshots, 6 live delta entries and 5 index deltas in every scenario, so the per-snapshot figure understates what each live snapshot costs by about two.
+Its heap-measured bands are wider than the other retained rows: 1064 to 1205 in forty-cards-four-mutated, and in large-board one run read a negative total from GC noise (band -16814 to 3319), so only the medians are used.
+The form production holds is a few kilobytes per snapshot taken (1139 to 4552 bytes), against tens of kilobytes for the 13-bookmark row; the two rows measure different things and are not subtracted.
+Allocation per operation (`timedMemoryAvg.totalBytes`, six-run medians): `manager/rollbackTo(Manual)` 294441, 371260, 399236, 368894 and 320500 bytes, which against `pre-roadmap-baseline` is -4.0%, -3.0%, -8.4%, -4.3% and -4.9% and against C0 is -17.3%, +1.4%, +8.6%, +2.8% and +0.2% (inside the 10 percent reading except compact-board).
+`manager/moveToNextTimepoint(Action)` allocation (132561, 174840, 203452, 178811 and 173495 bytes) cannot be read against the baseline or C0: their values for that row are negative in two scenarios and tiny in a third (a GC artifact of the method), so no allocation sentence is made for it.
+GC in `sustained/snapshotAndUndoCycle` (six-run medians): pause share 0.01331, 0.01076, 0.01473, 0.01622 and 0.01886; GC ms per iteration 0.00476, 0.00645, 0.00826, 0.00849 and 0.00850; GC count per iteration 0.00750, 0.01250, 0.01500, 0.01250 and 0.01250.
+Against `pre-roadmap-baseline` the pause share was 0.04210, 0.05040, 0.03585, 0.04703 and 0.03908 (GC ms per iteration 0.05966, 0.10732, 0.07687, 0.09604 and 0.07313, count per iteration 0.00250, 0.00750, 0.00500, 0.00750 and 0.00500), and against C0 0.04526, 0.04300, 0.04439, 0.04183 and 0.04381 (GC ms per iteration 0.02640, 0.04466, 0.04783, 0.04291 and 0.04102, count per iteration 0.00750, 0.01500, 0.01500, 0.01500 and 0.01250), so the pause share and the pause time per iteration are lower in every scenario against both; the collection count is higher than the baseline's and equal or lower than C0's (more frequent, much cheaper collections than the baseline's), as `after-plan-03` already showed (0.01885, 0.01624, 0.01873, 0.02275 and 0.01997).
+Read this directionally: the row now retains about 400 index deltas because the benchmark pushes no quick entry and age eviction never runs (disclosed, not corrected, because correcting would edit an existing row), and its allocation per operation is not stable against C0 (+4.4%, +57.8%, -73.4%, +37.9% and -66.0%).
+
+#### Honest and not-honest rows
+
+| Row | Reading |
+|---|---|
+| `payload/gameStateBuffer`, `payload/gameObjectStatesBuffer`, `payload/fullSnapshotTotal` | not honest across the whole roadmap (redefined at P3-PB2, excluded from every baseline comparison); honest as a series from P3-PB2 on, and unchanged by the P4-G re-anchor (equal to `after-plan-04-memo` in every scenario; compact-board's sum is 0.2 percent high) |
+| `payload/retainedChain(13 snapshots)`, `payload/retainedChainWithWrites(13 snapshots)` | not honest across the roadmap: meaning changed at P4-E and P4-F (see Memory and GC) |
+| `manager/moveToNextTimepoint(Action)`, `manager/rollbackTo(Manual)` | operation honest; blind to deltas by construction |
+| `sustained/snapshotAndUndoCycle` | seam honest, contents shifted (hollow checkpoint, hook cost, retained index deltas) |
+| every `full/*` row | diagnostic, meaning as in "As landed in P4-G" |
+| `payload/retainedChainWithWrites(13 snapshots)`, `full/moveToNextTimepoint(Action, memoized)` | no baseline or `after-plan-03` value; the same-runtime pre-memo and memo captures are the only comparisons |
+
+#### What got worse
+
+- `manager/moveToNextTimepoint(Action)` p95 against C0, the same-runtime lens: +18.6%, +57.3%, +68.8%, +110.0% and +36.4% (C0 values 0.1641, 0.1906, 0.5915, 0.4522 and 0.4953 ms against the six-run medians), worse by the rule in at least four of five scenarios (the compact-board difference is under 20 percent).
+  Its avg reads not measurable (two scenarios flagged worse: +37.4% in forty-cards-per-player and +20.0% in forty-cards-sparse-mutations, and -0.8%, +16.2% and -5.4% elsewhere).
+  Cause hypotheses, not confirmed: the extra tracker call and anchor bookkeeping in the first-snapshot path (`startTracking`, `markTrackingAnchor`) that P4-A and P4-E added to a row that is nothing but a first snapshot, the redundant cull scan, and run-to-run noise at p95 on 10 to 15 timed samples.
+  `full/buildGameStateForSnapshot` p95 is also flagged worse in three scenarios against C0 (+46.2%, +69.3% and +90.3% in forty-cards-per-player, forty-cards-sparse-mutations and forty-cards-four-mutated) and against the baseline (+73.4%, +56.7% and +70.4%, directional); that row is a diagnostic and is not measurable by the headline reading, but it points to the full build itself and not only the tracker calls.
+  The tail is also wide inside the arm (forty-cards-per-player p95 band 0.6469 to 1.4732).
+  The same row against `after-plan-04-memo`, the same runtime and dataset, is not measurable, so the rise is against the pre-roadmap commit and not against the pre-delta tree.
+- `payload/retainedChain(13 snapshots)` against `after-plan-04-memo` (the P4-D memoized head): +405.0%, +345.9%, +419.2%, +392.2% and +367.6%, and `payload/retainedChainWithWrites(13 snapshots)` against the same capture +191.6%, +135.1%, +127.2%, +194.7% and +265.7%.
+  Hypothesis, not confirmed: the rows hold unshared full manual bookmarks since P4-F where the memoized chain shared records, so the rows do not show the delta stage beating the memoized retention that P4-D set as the bar.
+  The production form is `payload/retainedActionChain(13 snapshots)`, which has no memo-era value.
+- `payload/retainedChainWithWrites(13 snapshots)` against `p4-d-reference-pre-memo`: +7.3%, +7.7%, +10.3% and +4.4% (and +1.6% in forty-cards-four-mutated), above the 2 percent payload reading and the 10 percent heap reading in one scenario; hypothesis: the P4-E index deltas added to the chain and the unshared copies P4-F made. It is also a meaning change, so it is listed here for visibility and not as a regression of the same quantity.
+- `sustained/snapshotAndUndoCycle` allocation per operation against C0 is mixed (+4.4%, +57.8%, -73.4%, +37.9% and -66.0%): not measurable, with index retention (F7) the leading hypothesis for the rises.
+  Against `after-plan-04-memo` and `p4-d-reference-pre-memo` (same runtime and dataset) it rises +124.4% and +104.6% in large-board and +44.2% and +39.6% in forty-cards-sparse-mutations, and falls in the other three; the forty-cards-per-player band is 20719 to 103873.
+- The delta index is unbounded over a one-player streak (below), which is a new retained-memory behavior and is recorded as a follow-up.
+
+#### Red flag
+
+Plan 4's red flag (a rise in `manager/rollbackTo(Manual)` p95) is not raised in any scenario.
+Six-run p95 medians against each comparison: `pre-roadmap-baseline` -66.2%, -54.5%, -58.4%, -63.1% and -69.8% (directional); `after-plan-03` -23.0% (the comparison value inside the band), -45.8%, -14.9% (inside the 20 percent), -27.9% and -30.4%; C0 -52.3%, -28.5%, -28.8%, -46.3% and -53.3%; `after-plan-04-memo` -19.2%, -0.4%, +11.3%, -6.5% and -7.1%; and against the P4-D memoized six-run medians (0.699, 1.122, 0.986, 0.884 and 0.749 ms) -31.6%, -9.9%, +4.4%, -10.2% and -5.6%.
+The `after-plan-03` p95 values behind the band statements are 0.6213, 1.8644, 1.2093, 1.1005 and 1.0158 ms, to be read against the p95 bands in the Speed table.
+This row times the full path (manual snapshots are always full), so it does not answer the plan's concern that delta replay costs more per undo.
+The concern is answered by the delta rollback rows in the same run: `full/rollbackTo(Action, pendingWindowOnly)` and `full/rollbackTo(Action, deltaChain(3))`, six-run p95 medians in ms, against `full/rollbackToSnapshot` and `manager/rollbackTo(Manual)`:
+
+| Scenario | `pendingWindowOnly` | `deltaChain(3)` | `full/rollbackToSnapshot` | `manager/rollbackTo(Manual)` |
+|---|---|---|---|---|
+| compact-board | 0.2283 | 0.2356 | 0.8746 | 0.4784 |
+| large-board | 0.4120 | 0.7512 | 1.3459 | 1.0109 |
+| forty-cards-per-player | 0.4166 | 0.4323 | 1.5122 | 1.0292 |
+| forty-cards-sparse-mutations | 0.3682 | 0.4585 | 1.3423 | 0.7939 |
+| forty-cards-four-mutated | 0.3412 | 0.3266 | 1.1511 | 0.7074 |
+
+The avg medians tell the same story (`pendingWindowOnly` 0.1752, 0.3349, 0.3042, 0.2613 and 0.2186 ms; `deltaChain(3)` 0.2039, 0.4019, 0.3498, 0.3040 and 0.2317 ms; `manager/rollbackTo(Manual)` 0.3763, 0.5815, 0.6019, 0.4961 and 0.4010 ms): a delta rollback through a stored chain of three costs less than a full manual rollback in every scenario at the median and p95, and a chain of three is not measurably slower than the pending window alone except at the large-board p95 (band 0.4373 to 0.9956).
+Limits: `p4-d-reference-pre-memo` already contains P4-A and P4-B, so the same-runtime bridge isolates P4-C to P4-F only; P4-A and P4-B's restore-leg costs are visible only in the directional comparison with `after-plan-03`.
+The rollback rows measure chains of 0 and 3 stored links with a small mutated set; a longer chain was not timed.
+
+#### Sparsity
+
+Legacy figure, reported whether or not it clears and never deciding the flag: the P4-D bound on `full/moveToNextTimepoint(Action, memoized)` (d[forty-cards-four-mutated] minus d[forty-cards-per-player], against the pre-memo reference's six-run medians 0.249 and 0.163 ms) read 19.3 points at P4-D.
+Now the memoized row is 0.0175 ms in forty-cards-per-player and 0.0110 ms in forty-cards-four-mutated, so d is 93.0 percent and 93.3 percent and the gap is 0.3 points: the figure saturates under a hollow checkpoint (the mutations run outside the timer and the checkpoint is O(1)), so a working delta path leaves a gap near zero, and it says nothing about sparsity.
+The decision rests on the rows that scale with the mutated count, read across forty-cards-four-mutated (4 mutated cards), forty-cards-sparse-mutations (12) and forty-cards-per-player (40):
+- S1 `payload/deltaWindowBytes` scales iff bytes(four) < bytes(sparse) < bytes(per-player) and bytes(four) is at most 0.5 times bytes(per-player): 109 < 317 < 1045 bytes, identical in all six runs, ratio 0.104, so S1 passes.
+- S2 `payload/retainedActionChain(13 snapshots)` `bytesPerSnapshot` scales iff it is non-decreasing from four to sparse to per-player (a step smaller than 10 percent, the tolerance for a heap-measured retained row, counts as equal) and bytes(four) is at most 0.75 times bytes(per-player): 1139 [1205, 1064, 1082, 1086, 1191, 1205], 1955 [1907, 2002, 1893, 1907, 2006, 2010] and 4552 [4555, 4550, 4446, 4545, 4554, 4569] bytes per snapshot (six-run medians, per-run values in brackets), ratio 0.250, so S2 passes.
+- S3 `full/deltaTracker.mutations(capturing)` six-run median avg, supporting only: 0.0078, 0.0153 and 0.0281 ms (ratio four to per-player 0.277).
+S1 and S2 hold, so the delta path exploits sparsity and the "chase that before landing" condition is not raised.
+The floor that does not shrink is the per-snapshot overhead of the retained form, as the P4-D scaling reading already said: forty-cards-four-mutated still holds 1139 bytes per snapshot taken (about 2470 per live snapshot) with 4 mutated cards.
+Window sizes by mutator, run 1 (bytes of the closed window, `v8.serialize` of `changedFields`; a size estimate, not stored bytes): the scenario mutations are 290, 733, 1045, 317 and 109 bytes in the five scenarios in order, one deck draw 444, 470, 506, 578 and 602, one hand-to-arena move 464, 636, 684, 588 and 564, and one `generateToken` 1446, 2281, 2607, 2591 and 2587, because a token creation records the whole `Player._decklist` once (740, 1146, 1290, 1274 and 1270 bytes), which is the collection-copy caveat in numbers.
+
+#### Index streak and hook cost
+
+Over 20 consecutive Action snapshots by player 1 with player 2's container holding one live delta entry, the index size is 5, 10 and 20 after 5, 10 and 20 actions in all five scenarios and all six runs, against 6, 5 and 5 in the alternating control from the same start; `evictedThroughId` stays at player 2's delta id while player 1's own container releases payloads.
+Retained delta bytes after 20 actions are 5800, 14660, 20900, 6340 and 2180 bytes (identical in all six runs) against 1450, 3665, 5225, 1585 and 545 bytes in the control.
+The index therefore grows with the streak; this is recorded as a follow-up under "Open issues inherited from `-morph`" and nothing is fixed here.
+First-write capture cost (`full/deltaTracker.mutations(capturing)` minus `mutations(stopped)`, avg ms, six-run medians): 0.0050, 0.0062, 0.0089, 0.0061 and 0.0020, which is 0.00046, 0.00022, 0.00022, 0.00051 and 0.00051 ms per mutated card; opening a window costs 0.0002 to 0.0005 ms and a checkpoint 0.0003 to 0.0004 ms.
+The repeated-write early return and the window-created-object lookup costs of P4-A residual 1 stay unmeasured.
+
+#### Residuals
+
+- Iteration counts are small (10 to 50 timed samples; forty-cards-per-player has 10 snapshot and 6 rollback iterations), so p95 is near the sample maximum; every p95 sentence above rests on six-run medians only.
+- The baseline and `after-plan-03` comparisons are single runs across the Node v24 and v26 line, directional by rule; C0 is a single run with a different card dataset and a repaired build.
+- Card memory ran only in run 1 and is not part of this verdict.
+- Rows that retain deltas or index entries (sustained, the new retention rows) inflate allocation slightly; disclosed, not corrected.
+- The delta rollback rows cover chains of 0 and 3 links on small mutated sets; nothing here times a long chain or a chain across a bridge.
+- The suites that gate this plan are `test-parallel` and `test-parallel-undo` on the final staged subject of P4-G; the captures above are not correctness evidence.

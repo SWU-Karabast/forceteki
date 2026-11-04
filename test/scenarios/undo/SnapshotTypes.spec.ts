@@ -1,3 +1,5 @@
+import { GameStateManager } from '../../../server/game/core/snapshot/GameStateManager';
+
 describe('Snapshot types', function() {
     undoIntegration(function(contextRef) {
         describe('During the setup phase,', function() {
@@ -2143,6 +2145,64 @@ describe('Snapshot types', function() {
                 expect(rollbackResult).toBeTrue();
 
                 expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(0);
+            });
+
+            // Invariant: a bookmark taken right after a delta-backed action rollback stores the state that rollback produced, and the window
+            // reopened by the later manual restore is usable. A bookmark materialized from stale or post-rollback state would bring back the
+            // discarded timeline's units or damage (port of the -morph regression, with the delta restore observed).
+            it('morph-port: manual snapshots taken after a delta-backed action rollback rematerialize the live state', function () {
+                const { context } = contextRef;
+
+                const original = GameStateManager.prototype.rollbackToDeltaChain;
+                let deltaRestores = 0;
+                GameStateManager.prototype.rollbackToDeltaChain = function(this: GameStateManager, ...args: Parameters<typeof original>) {
+                    deltaRestores++;
+                    return original.apply(this, args);
+                };
+                let rollbackResult: boolean;
+                try {
+                    rollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                        type: 'action',
+                        playerId: context.player1.id,
+                        actionOffset: -1
+                    });
+                } finally {
+                    GameStateManager.prototype.rollbackToDeltaChain = original;
+                }
+                expect(rollbackResult).toBeTrue();
+                expect(deltaRestores).toBe(1);
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p1Action1SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action1ActionId);
+                expect(context.player2.groundArena.length).toEqual(3);
+                expect(context.player2.groundArena.map((card) => card.internalName)).toContain('battlefield-marine');
+                expect(context.p1Base.damage).toEqual(0);
+                expect(context.p2Base.damage).toEqual(0);
+
+                const manualSnapshotId = contextRef.snapshot.takeManualSnapshot(context.player1Object);
+                expect(manualSnapshotId).toEqual(context.p1Action1SnapshotId);
+
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toEqual(2);
+
+                const manualRollbackResult = contextRef.snapshot.rollbackToSnapshot({
+                    type: 'manual',
+                    playerId: context.player1.id,
+                    snapshotId: manualSnapshotId
+                });
+                expect(manualRollbackResult).toBeTrue();
+
+                expect(contextRef.snapshot.getCurrentSnapshotId()).toEqual(context.p1Action1SnapshotId);
+                expect(contextRef.snapshot.getCurrentSnapshottedAction()).toEqual(context.p1Action1ActionId);
+                expect(context.player2.groundArena.length).toEqual(3);
+                expect(context.player2.groundArena.map((card) => card.internalName)).toContain('battlefield-marine');
+                expect(context.p1Base.damage).toEqual(0);
+                expect(context.p2Base.damage).toEqual(0);
+
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toEqual(2);
             });
         });
 

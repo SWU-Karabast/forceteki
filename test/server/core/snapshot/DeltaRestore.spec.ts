@@ -33,6 +33,7 @@ interface IHistoryInternals {
 interface IManagerInternals {
     snapshotFactory: IFactoryInternals;
     actionSnapshots: IHistoryInternals;
+    phaseSnapshots: { getSnapshotProperties(key: string): { snapshotId: number } };
     manualSnapshots: Map<string, { snapshots: Map<number, IGameSnapshot> }>;
 }
 interface IStateManagerInternals {
@@ -256,6 +257,149 @@ describe('Delta restore', function() {
             expect(game.snapshotManager.currentSnapshotId).toBe(target.id);
             expect(compareLiveWithSnapshot(game, reference)).toBeNull();
             settle(game, result);
+        });
+
+        // Invariant: restoring to one target again after a different timeline was played lands on the same stored snapshot, with the
+        // index pruned back to it and an empty window anchored there. A consumed window or a stale first-timeline delta re-applied, an
+        // unpruned index, or a mutated target would leave a field of timeline A or B in place.
+        it('same-target-twice: rolling back to one snapshot after two different timelines lands on it unchanged each time', async function() {
+            const context = await setupBoard();
+            const game = context.game;
+
+            attack(context.player1, context.wampa, context.p2Base);
+            const target = factoryOf(game).currentActionSnapshot;
+            const reference = liveState(game);
+
+            const expectLandedOnTarget = (tokens: object[]) => {
+                expect(game.snapshotManager.currentSnapshotId).toBe(target.id);
+                expect(factoryOf(game).currentActionSnapshot).toBe(target);
+                expect(compareLiveWithSnapshot(game, reference)).toBeNull();
+                expect(indexOf(game).headSnapshotId).toBe(target.id);
+                expect(indexOf(game).getIds()
+                    .every((id) => id <= target.id)).toBeTrue();
+                expect(tracker(game).pendingWindow.anchor.snapshotId).toBe(target.id);
+                expect(tracker(game).pendingWindow.changedFields.size).toBe(0);
+                for (const token of tokens) {
+                    expect(game.gameObjectManager.isRegistered(token)).toBeFalse();
+                }
+            };
+
+            // Timeline A.
+            attack(context.player2, context.frontierAtrt, context.p1Base);
+            const tokenA = game.generateToken(context.player1Object, TokenUnitName.BattleDroid);
+            attack(context.player1, context.atst, context.p2Base);
+            attack(context.player2, context.deathTrooper, context.p1Base);
+            expect(game.gameObjectManager.isRegistered(tokenA)).toBeTrue();
+            const resultA = withDeltaRestoreCount((count) => {
+                const rollback = game.snapshotManager.rollbackTo({ type: SnapshotType.Action, playerId: context.player2.id, actionOffset: -1 });
+                expect(count.restores).toBe(1);
+                return rollback;
+            });
+            expect(resultA.success).toBeTrue();
+            expectLandedOnTarget([tokenA]);
+            settle(game, resultA);
+
+            // Timeline B: other attackers, a write on a unit timeline A never touched, a second token.
+            attack(context.player2, context.deathTrooper, context.p1Base);
+            (context.consularSecurityForce as unknown as IDamageUnit).setDamageForStateInjection(2);
+            const tokenB = game.generateToken(context.player2Object, TokenUnitName.BattleDroid);
+            attack(context.player1, context.battlefieldMarine, context.p2Base);
+            attack(context.player2, context.cartelSpacer, context.p1Base);
+            expect(game.gameObjectManager.isRegistered(tokenB)).toBeTrue();
+            const resultB = withDeltaRestoreCount((count) => {
+                const rollback = game.snapshotManager.rollbackTo({ type: SnapshotType.Action, playerId: context.player2.id, actionOffset: -1 });
+                expect(count.restores).toBe(1);
+                return rollback;
+            });
+            expect(resultB.success).toBeTrue();
+            expectLandedOnTarget([tokenA, tokenB]);
+            settle(game, resultB);
+
+            // Pending-only leg: an open attack prompt and an injected write, reverted through the held window alone.
+            context.player2.clickCard(context.frontierAtrt);
+            (context.specforceSoldier as unknown as IDamageUnit).setDamageForStateInjection(3);
+            expect(indexOf(game).buildChain(target.id, target.timepointNumber).length).toBe(0);
+            const resultC = withDeltaRestoreCount((count) => {
+                const rollback = game.snapshotManager.rollbackTo({ type: SnapshotType.Quick, playerId: context.player2.id });
+                expect(count.restores).toBe(1);
+                return rollback;
+            });
+            expect(resultC.success).toBeTrue();
+            expectLandedOnTarget([tokenA, tokenB]);
+            settle(game, resultC);
+        });
+
+        // Invariant: a full restore to a phase snapshot, taken while the current snapshot is hollow and a window holds writes, leaves the
+        // completed full restore alone (no pending window or stored delta applied over it), prunes the later snapshots and leaves the
+        // timepoint counter on the restored timeline, so the next action's delta is anchored at the phase snapshot with the next number.
+        it('delta-to-full-boundary: a full phase rollback from a hollow current snapshot restores the phase start, and the next delta chain restores the window start', async function() {
+            const context = await setupBoard();
+            const game = context.game;
+            const units = {
+                [context.player1.id]: [context.battlefieldMarine, context.specforceSoldier, context.atst],
+                [context.player2.id]: [context.deathTrooper, context.cartelSpacer, context.frontierAtrt]
+            };
+            const act = (index: number) => {
+                const player = game.actionPhaseActivePlayer === context.player1Object ? context.player1 : context.player2;
+                const opponentBase = player === context.player1 ? context.p2Base : context.p1Base;
+                attack(player, units[player.id][index], opponentBase);
+            };
+
+            attack(context.player1, context.wampa, context.p2Base);
+            attack(context.player2, context.frontierAtrt, context.p1Base);
+            context.moveToNextActionPhase();
+            expect(game.currentPhase).toBe('action');
+
+            // The first Action snapshot of the new phase is hollow, but its window start is not the StartOfPhase state (it is taken one game
+            // event later: lastGameEventId differs), so the landed full phase snapshot is the reference for the full restore, not a materialization.
+            const firstAction = factoryOf(game).currentActionSnapshot;
+            expect(firstAction.hollow).toBeTrue();
+            const phaseId = managerOf(game).phaseSnapshots.getSnapshotProperties('action').snapshotId;
+            expect(phaseId).toBeLessThan(firstAction.id);
+
+            act(0);
+            act(1);
+            (context.consularSecurityForce as unknown as IDamageUnit).setDamageForStateInjection(2);
+
+            const result = withDeltaRestoreCount((count) => {
+                const rollback = game.snapshotManager.rollbackTo({ type: SnapshotType.Phase, phaseName: 'action' });
+                expect(count.restores).toBe(0);
+                return rollback;
+            });
+            expect(result.success).toBeTrue();
+
+            const landed = factoryOf(game).currentActionSnapshot;
+            expect(landed.id).toBe(phaseId);
+            expect(game.snapshotManager.currentSnapshotId).toBe(phaseId);
+            expect(landed.hollow).toBeUndefined();
+            expect(compareLiveWithSnapshot(game, landed)).toBeNull();
+            expect(indexOf(game).headSnapshotId).toBe(phaseId);
+            expect(indexOf(game).getIds()
+                .every((id) => id <= phaseId)).toBeTrue();
+            expect(managerOf(game).actionSnapshots.getAllSnapshots().every((snapshot) => snapshot.id <= phaseId)).toBeTrue();
+            expect(tracker(game).pendingWindow.anchor.snapshotId).toBe(phaseId);
+            expect(tracker(game).pendingWindow.changedFields.size).toBe(0);
+            settle(game, result);
+
+            // The Action snapshot the resumed window took: its delta is anchored at the phase snapshot and numbered after it.
+            const resumed = factoryOf(game).currentActionSnapshot;
+            expect(resumed.id).toBeGreaterThan(phaseId);
+            expect(resumed.timepointNumber).toBe(landed.timepointNumber + 1);
+            expect(indexOf(game).get(resumed.id).anchorSnapshotId).toBe(phaseId);
+
+            // A delta rollback across the next action lands on the reference.
+            const actingPlayer = game.actionPhaseActivePlayer === context.player1Object ? context.player1 : context.player2;
+            const resumedReference = game.snapshotManager.materializeCurrentSnapshot();
+            act(2);
+            const deltaResult = withDeltaRestoreCount((count) => {
+                const rollback = game.snapshotManager.rollbackTo({ type: SnapshotType.Action, playerId: actingPlayer.id });
+                expect(count.restores).toBe(1);
+                return rollback;
+            });
+            expect(deltaResult.success).toBeTrue();
+            expect(game.snapshotManager.currentSnapshotId).toBe(resumed.id);
+            expect(compareLiveWithSnapshot(game, resumedReference)).toBeNull();
+            settle(game, deltaResult);
         });
 
         it('recovery-delta: a restore that throws part-way recovers the pre-attempt state from the pre-pass, with one serialize per object before recovery', async function() {
