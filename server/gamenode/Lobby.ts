@@ -38,6 +38,7 @@ import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import type { IGameNodeConfig } from './GameNodeConfig';
 import { PlayerReportType, ReportType } from '../game/Interfaces';
 import type { IStatsMessageFormat } from '../utils/stats/statsMessages';
+import { ReportDimensionsSchema } from '../services/DynamoDBInterfaceSchemas';
 import {
     createStatsMessage,
     StatsMessageKey,
@@ -2611,11 +2612,12 @@ export class Lobby {
             let viewport = null;
 
             if (reportMessage && typeof reportMessage === 'object') {
-                parsedDescription = reportMessage.description || '';
-                screenResolution = reportMessage.screenResolution || null;
-                viewport = reportMessage.viewport || null;
+                parsedDescription = typeof reportMessage.description === 'string' ? reportMessage.description : '';
+                // Sent by the client as-is (bug reports only); anything that is not a plain size is dropped
+                screenResolution = ReportDimensionsSchema.safeParse(reportMessage.screenResolution).data ?? null;
+                viewport = ReportDimensionsSchema.safeParse(reportMessage.viewport).data ?? null;
             } else {
-                parsedDescription = reportMessage;
+                parsedDescription = typeof reportMessage === 'string' ? reportMessage : '';
             }
 
             const gameState = this.game
@@ -2628,7 +2630,8 @@ export class Lobby {
             if (this.game) {
                 const opponentObject = this.game.getPlayers().find((u) => u.id !== socket.user.getId());
                 opponent = { id: opponentObject.id, username: opponentObject.user.username };
-                gameMessages = reportType === ReportType.BugReport ? this.game.getLogMessages() : this.game.gameChat.messages;
+                // A player report keeps chat in its own log, so its game log leaves the chat out
+                gameMessages = reportType === ReportType.BugReport ? this.game.getLogMessages() : this.game.gameChat.getGameLogMessages();
                 if (reportType === ReportType.PlayerReport) {
                     chatMessages = this.game.gameChat.getPlayerChatMessages();
                 }
@@ -2640,14 +2643,39 @@ export class Lobby {
                 } else {
                     throw new Error(`${reportLabel} failed since opponent wasn't found`);
                 }
-                gameMessages = this.gameChat.messages;
+                gameMessages = reportType === ReportType.BugReport ? this.gameChat.messages : this.gameChat.getGameLogMessages();
                 chatMessages = this.gameChat.getPlayerChatMessages();
+            }
+
+            // Player reports are stored for the mod tools dashboard; only bug reports still go to Discord
+            if (reportType === ReportType.PlayerReport) {
+                await this.server.playerReportService.createReportAsync({
+                    reporter: { id: socket.user.getId(), username: socket.user.getUsername() },
+                    reportedPlayer: opponent,
+                    offense: playerReportType ?? PlayerReportType.Other,
+                    description: parsedDescription,
+                    lobbyId: this.id,
+                    gameId: this.game?.id,
+                    gameFormat: String(this.gameFormat),
+                    matchType: String(this.matchmakingType),
+                    gameStepsSinceLastUndo: this.game?.snapshotManager.gameStepsSinceLastUndo,
+                    // Screen and viewport size are only kept for bug reports; a player report does not need them
+                    gameMessages,
+                    chatMessages: chatMessages ?? [],
+                });
+
+                socket.send(resultEvent, {
+                    id: uuid(),
+                    success: true,
+                    message: `Successfully sent ${reportLabel}`
+                });
+                this.sendLobbyState();
+                return;
             }
 
             const report = this.discordDispatcher.formatReport(
                 parsedDescription,
                 gameState,
-                playerReportType,
                 socket.user,
                 opponent,
                 gameMessages,
@@ -2657,18 +2685,15 @@ export class Lobby {
                 this.game?.snapshotManager.gameStepsSinceLastUndo,
                 this.game?.id,
                 screenResolution,
-                viewport,
-                chatMessages
+                viewport
             );
 
-            const success = await this.discordDispatcher.formatAndSendReportAsync(report, reportType);
+            const success = await this.discordDispatcher.formatAndSendBugReportAsync(report);
             if (!success) {
                 throw new Error(`${reportLabel} failed to send to discord. See logs for details.`);
             }
             const existingUser = this.users.find((u) => u.id === socket.user.getId());
-            if (reportType === ReportType.BugReport) {
-                existingUser.reportedBugs += 1;
-            }
+            existingUser.reportedBugs += 1;
 
             socket.send(resultEvent, {
                 id: uuid(),
@@ -2676,14 +2701,11 @@ export class Lobby {
                 message: `Successfully sent ${reportLabel}`
             });
 
-            // we report the alert only if its a bug report
-            if (reportType === ReportType.BugReport) {
-                this.game.addAlert(
-                    AlertType.Notification,
-                    `{0} has submitted a ${reportLabel}`,
-                    existingUser.username
-                );
-            }
+            this.game.addAlert(
+                AlertType.Notification,
+                `{0} has submitted a ${reportLabel}`,
+                existingUser.username
+            );
 
             this.sendLobbyState();
         } catch (error) {
