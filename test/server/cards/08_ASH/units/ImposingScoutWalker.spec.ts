@@ -68,5 +68,27 @@ describe('Imposing Scout Walker', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('its When Played ability, when the damage is prevented', function() {
+            it('should not throw or give Advantage tokens when the damage is prevented (Umbaran Mobile Cannon)', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['imposing-scout-walker']
+                    },
+                    player2: {
+                        groundArena: ['umbaran-mobile-cannon']
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.imposingScoutWalker);
+                context.player1.clickCard(context.umbaranMobileCannon);
+
+                expect(context.umbaranMobileCannon.damage).toBe(0);
+                expect(context.imposingScoutWalker).toHaveExactUpgradeNames([]);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });

@@ -96,5 +96,27 @@ describe('Shoot Down', function () {
             expect(context.tielnFighter).toBeInZone('spaceArena');
             expect(context.p2Base.damage).toBe(0);
         });
+
+        describe('Shoot Down\'s ability, when the damage is prevented', function () {
+            it('should not throw or deal damage to a base when the damage is prevented (Lurking TIE Phantom)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['shoot-down']
+                    },
+                    player2: {
+                        spaceArena: ['lurking-tie-phantom']
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.shootDown);
+                context.player1.clickCard(context.lurkingTiePhantom);
+
+                expect(context.lurkingTiePhantom.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
