@@ -239,5 +239,5 @@ describe('Anonymous user identity', function () {
             expect(owner.socket.connected).toBeTrue();
             expect(owner.connectionErrors).toEqual([]);
         });
-    });
+    }, { database: true });
 });

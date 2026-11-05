@@ -5,7 +5,7 @@ import type { ITestClientOptions, TestClient } from '../../../../helpers/server/
 import { serverIntegration } from '../../../../helpers/server/ServerIntegrationHelper';
 import type { ServerTestHarness } from '../../../../helpers/server/ServerTestHarness';
 
-/** A logged-in player the way the real client presents itself after its first sync: with a profile of its own. */
+/** A logged-in player: an account of its own, which the server finds from the player's session token. */
 const loggedIn: ITestClientOptions = { authenticated: true };
 
 const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
@@ -20,12 +20,11 @@ function legacyMute(): IUserProfileDataEntity['moderation'] {
 }
 
 /**
- * A logged-in player whose account has `profile` stored in the database and who signs in the way the real
- * client does on its first request of a session, so the server derives the profile from storage. Mutes and
- * chat preferences belong to the account, so they are seeded there rather than on the client.
+ * A logged-in player whose account has `profile` stored in the database. Mutes and chat preferences belong
+ * to the account, so they are seeded there rather than sent by the client.
  */
 function accountWith(harness: ServerTestHarness, profile: Partial<IUserProfileDataEntity>): ITestClientOptions {
-    return { authenticated: true, auth: 'token-only', account: harness.db.seedAccount({ profile }) };
+    return { authenticated: true, account: harness.db.seedAccount({ profile }) };
 }
 
 const legacyMuted = (harness: ServerTestHarness) => accountWith(harness, { moderation: legacyMute() });
@@ -222,6 +221,6 @@ describe('Chat permissions', function () {
 
                 expect(lobbyChatContains(joiner, 'hello there')).toBeTrue();
             });
-        }, { config: { allowAnonymousChat: true } });
+        }, { database: true, config: { allowAnonymousChat: true } });
     });
 });

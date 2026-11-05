@@ -86,9 +86,17 @@ describe('Development user storage', function() {
         });
     }
 
-    it('rejects unknown dev identities', async function() {
-        await expectAsync(factory.createUserFromTokenAsync(mintSessionToken({ ...claims, providerId: 'unknown' }))).toBeRejectedWithError(/Unknown development test user/);
-    });
+    // 'constructor' would pass a check that looked the id up as a key of a plain object
+    for (const providerId of ['unknown', 'constructor']) {
+        it(`rejects the unknown dev identity '${providerId}' without creating an account for it`, async function() {
+            const token = mintSessionToken({ ...claims, providerId });
+
+            await expectAsync(factory.resolveUserFromTokenAsync(token)).toBeRejectedWithError(/Unknown development test user/);
+            await expectAsync(factory.createUserFromTokenAsync(token)).toBeRejectedWithError(/Unknown development test user/);
+            expect(await store.getUserIdByOAuthAsync('dev-user', providerId)).toBeUndefined();
+            expect(await store.getUserIdByEmailAsync('order66@local.karabast')).toBeUndefined();
+        });
+    }
 
     for (const invalid of badSessionTokens(claims)) {
         it(`rejects a development token ${invalid.description}`, async function() {
@@ -97,12 +105,53 @@ describe('Development user storage', function() {
     }
 
     it('rejects development authentication outside development even with a working store', async function() {
+        const lookup = spyOn(store, 'getUserIdByOAuthAsync').and.callThrough();
         const restore = overrideEnv({ ENVIRONMENT: 'production' });
         try {
+            await expectAsync(factory.resolveUserFromTokenAsync(mintSessionToken(claims))).toBeRejectedWithError(/only authenticate in development/);
             await expectAsync(factory.createUserFromTokenAsync(mintSessionToken(claims))).toBeRejectedWithError(/only authenticate in development/);
         } finally {
             restore();
         }
+        expect(lookup).not.toHaveBeenCalled();
+    });
+
+    describe('on the request path', function() {
+        const theWayClaims = signInClaims({ provider: 'dev-user', providerId: 'this-is-the-way', username: 'ThisIsTheWay', email: 'this-is-the-way@local.karabast' });
+
+        it('seeds the test accounts for the first session, with no earlier seeding', async function() {
+            const user = await factory.resolveUserFromTokenAsync(mintSessionToken(claims));
+
+            expect(user.getId()).toBe('exe66');
+            expect(await store.getUserIdByOAuthAsync('dev-user', 'this-is-the-way')).toBe('th3w4y');
+        });
+
+        it('seeds the test accounts only once per factory', async function() {
+            const seed = spyOn(factory, 'ensureDevelopmentTestUsersAsync').and.callThrough();
+
+            await factory.resolveUserFromTokenAsync(mintSessionToken(claims));
+            await factory.resolveUserFromTokenAsync(mintSessionToken(theWayClaims));
+            await factory.createUserFromTokenAsync(mintSessionToken(claims));
+
+            expect(seed).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not seed for a session from another provider', async function() {
+            const seed = spyOn(factory, 'ensureDevelopmentTestUsersAsync').and.callThrough();
+
+            await factory.createUserFromTokenAsync(mintSessionToken(signInClaims({ provider: 'google', providerId: 'oauth-account', username: 'OAuthUser', email: 'oauth@example.test' })));
+
+            expect(seed).not.toHaveBeenCalled();
+        });
+
+        it('retries the seeding for the next session after a failed attempt', async function() {
+            const save = spyOn(store, 'saveOAuthLinkAsync').and.rejectWith(new Error('store unavailable'));
+            await expectAsync(factory.resolveUserFromTokenAsync(mintSessionToken(claims))).toBeRejectedWithError(/store unavailable/);
+
+            save.and.callThrough();
+
+            expect((await factory.resolveUserFromTokenAsync(mintSessionToken(claims))).getId()).toBe('exe66');
+        });
     });
 });
 
