@@ -8,8 +8,10 @@ import {
     withoutClaim,
 } from '../../../../helpers/server/AuthTokens';
 import type { ISignInIdentity } from '../../../../helpers/server/AuthTokens';
+import { premierBestOfOne } from '../../../../helpers/server/MatchConfigs';
 import { serverIntegration } from '../../../../helpers/server/ServerIntegrationHelper';
 import type { ServerTestHarness } from '../../../../helpers/server/ServerTestHarness';
+import type { TestClient } from '../../../../helpers/server/TestClient';
 
 /**
  * An identity with no account yet, so that a token for it which is wrongly accepted shows up as an account
@@ -27,6 +29,25 @@ async function getUserAsync(harness: ServerTestHarness, token: string, body: Rec
 
 async function createUserAsync(harness: ServerTestHarness, token: string) {
     return await harness.requestAsync('post', '/api/create-user', { cookie: sessionCookie(token) });
+}
+
+/**
+ * An anonymous player's open lobby, for another client to join by its link. The socket path adds a
+ * joining user under the identity that socket resolved to, so the lobby state the joiner is sent shows
+ * who the server took it for.
+ */
+async function openLobbyToJoinAsync(harness: ServerTestHarness): Promise<TestClient> {
+    const owner = harness.createClient();
+    await owner.createLobbyAsync({ lobbyName: harness.uniqueLobbyName(), deck: harness.decklists.validDecklist(), ...premierBestOfOne });
+    await owner.connectAsync();
+    return owner;
+}
+
+/** The users in `client`'s lobby state other than `owner`, as id and username. */
+function joinersSeenBy(client: TestClient, owner: TestClient): { id: string; username: string }[] {
+    return client.lobbyState.users
+        .filter((user: { id: string }) => user.id !== owner.id)
+        .map((user: { id: string; username: string }) => ({ id: user.id, username: user.username }));
 }
 
 function expectNothingStored(harness: ServerTestHarness): void {
@@ -79,7 +100,7 @@ describe('Credential verification', function () {
                     expectNothingStored(harness);
                 });
             }
-        }, { database: true });
+        });
     });
 
     describe('a validly signed token that lacks a claim the server needs', function () {
@@ -125,7 +146,7 @@ describe('Credential verification', function () {
                 expect(response.body).toEqual(authenticationFailed);
                 expectNothingStored(harness);
             });
-        }, { database: true });
+        });
     });
 
     describe('the session cookie', function () {
@@ -166,7 +187,7 @@ describe('Credential verification', function () {
                 expect(secureIsValid.status).toBe(200);
                 expect(plainIsValid.status).toBe(401);
             });
-        }, { database: true });
+        });
     });
 
     describe('which account a request ends up with', function () {
@@ -213,13 +234,14 @@ describe('Credential verification', function () {
                 const account = harness.db.seedAccount({ username: 'StoredName' });
                 const other = harness.db.seedAccount();
                 const client = harness.createAccountClient(account);
+                const owner = await openLobbyToJoinAsync(harness);
 
                 await client.connectAsync({
+                    lobbyId: owner.lobbyId,
                     user: { id: other.id, username: 'ClaimedName', authenticated: true },
                 });
 
-                expect(client.socket.data.user.getId()).toBe(account.id);
-                expect(client.socket.data.user.getUsername()).toBe('StoredName');
+                expect(joinersSeenBy(client, owner)).toEqual([{ id: account.id, username: 'StoredName' }]);
             });
 
             it('does not record a login when a socket connects', async function () {
@@ -239,7 +261,7 @@ describe('Credential verification', function () {
 
                 expect(harness.db.loggedInUserIds).toEqual([account.id]);
             });
-        }, { database: true });
+        });
     });
 
     describe('a valid session whose identity has no account', function () {
@@ -277,7 +299,7 @@ describe('Credential verification', function () {
                 expect(result).toEqual({ connected: false, errorMessage: 'Authentication error' });
                 expectNothingStored(harness);
             });
-        }, { database: true });
+        });
     });
 
     describe('creating an account', function () {
@@ -311,10 +333,34 @@ describe('Credential verification', function () {
                 const { harness } = contextRef;
                 const token = mintSessionToken(signInClaims(newcomer));
 
-                const responses = await Promise.all([1, 2, 3].map(async () => await createUserAsync(harness, token)));
+                // Left alone, each request finishes creating the account before the next one reaches the
+                // server, so nothing overlaps. Holding the first creation after its profile write keeps it
+                // in progress until the other two have arrived. Their arrival is only visible as calls on
+                // the server's user factory, since a request sharing a creation touches nothing else.
+                let releaseCreation: () => void;
+                const creationHeld = new Promise<void>((resolve) => releaseCreation = resolve);
+                const saveProfileAsync = harness.db.saveUserProfileAsync.bind(harness.db);
+                const profileWrites = spyOn(harness.db, 'saveUserProfileAsync').and.callFake(async (profile) => {
+                    const written = await saveProfileAsync(profile);
+                    if (profileWrites.calls.count() === 1) {
+                        await creationHeld;
+                    }
+                    return written;
+                });
+                const creationRequests = spyOn(harness.server.getUserFactory(), 'createUserFromTokenAsync').and.callThrough();
+
+                const responsesArriving = Promise.all([1, 2, 3].map(async () => await createUserAsync(harness, token)));
+                for (let i = 0; i < 50 && creationRequests.calls.count() < 3; i++) {
+                    await harness.clock.settlePendingWorkAsync();
+                }
+                expect(creationRequests).withContext('requests in progress together')
+                    .toHaveBeenCalledTimes(3);
+                releaseCreation();
+                const responses = await responsesArriving;
 
                 expect(responses.map((response) => response.status)).toEqual([200, 200, 200]);
                 expect(new Set(responses.map((response) => response.body.user.id)).size).toBe(1);
+                expect(profileWrites).toHaveBeenCalledTimes(1);
                 expect(harness.db.profiles.size).toBe(1);
             });
 
@@ -368,6 +414,8 @@ describe('Credential verification', function () {
                 expect(response.body.user.id).toBe(winner.id);
                 expect(harness.db.emailLinks.get('mallory@example.test')).toBe(winner.id);
                 expect([...harness.db.usernameLinks].filter((link) => link.startsWith('mallory#'))).toEqual([]);
+                // TODO (open finding #10): the profile this request wrote is left behind, though the server
+                // means to drop it. Once it is deleted, also expect harness.db.profiles.size to be 1 (the winner).
             });
 
             it('refuses a request with no session', async function () {
@@ -388,7 +436,7 @@ describe('Credential verification', function () {
                 expect(harness.db.oauthLinks.get('google_222')).toBe(account.id);
                 expect(harness.db.profiles.size).toBe(1);
             });
-        }, { database: true });
+        });
     });
 
     describe('the local dev test users', function () {
@@ -422,12 +470,13 @@ describe('Credential verification', function () {
                 });
 
                 it('signs a dev-user session in to its test account on a socket', async function () {
-                    const client = contextRef.harness.createClient();
+                    const { harness } = contextRef;
+                    const client = harness.createClient();
+                    const owner = await openLobbyToJoinAsync(harness);
 
-                    await client.connectAsync({ token: devToken });
+                    await client.connectAsync({ lobbyId: owner.lobbyId, token: devToken });
 
-                    expect(client.socket.data.user.getId()).toBe('exe66');
-                    expect(client.socket.data.user.isAuthenticatedUser()).toBeTrue();
+                    expect(client.lobbyState.users).toContain(jasmine.objectContaining({ id: 'exe66', authenticated: true }));
                 });
 
                 it('refuses a session for an unknown dev identity, and creates nothing for it', async function () {
@@ -442,7 +491,7 @@ describe('Credential verification', function () {
                     expect(created.body).toEqual(authenticationFailed);
                     expectNothingStored(harness);
                 });
-            }, { database: true });
+            });
         });
 
         describe('on a production-like server', function () {
@@ -481,7 +530,7 @@ describe('Credential verification', function () {
                     expect(result).toEqual({ connected: false, errorMessage: 'Authentication error' });
                     expectNothingStored(harness);
                 });
-            }, { database: true, env: { ENVIRONMENT: 'production' } });
+            }, { env: { ENVIRONMENT: 'production' } });
         });
     });
 });
