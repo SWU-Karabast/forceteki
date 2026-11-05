@@ -437,4 +437,11 @@ export interface IPlayerReportIndexEntity {
     offense: string;
     status: PlayerReportStatus;
     outcome?: PlayerReportOutcome;
+
+    /**
+     * The match the report was filed in, copied from the report. Lets several reports from one match be grouped
+     * (e.g. counted once for a player) without reading every report record.
+     */
+    lobbyId: string;
+    gameId?: string;
 }

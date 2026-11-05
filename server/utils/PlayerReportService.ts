@@ -215,9 +215,17 @@ export class PlayerReportService {
             this.buildLog(report.id, PlayerReportLogKind.Game, input.gameMessages, input.reporter, input.reportedPlayer),
         ];
 
+        const sharedIndexFields = {
+            reportId: report.id,
+            createdAt: report.createdAt,
+            offense: report.offense,
+            status: report.status,
+            lobbyId: report.lobbyId,
+            gameId: report.gameId,
+        };
         const indexEntries: IPlayerReportIndexEntity[] = [
-            { reportId: report.id, playerId: report.reporterId, role: PlayerReportRole.ReportSubmitter, createdAt: report.createdAt, offense: report.offense, status: report.status },
-            { reportId: report.id, playerId: report.reportedPlayerId, role: PlayerReportRole.ReportedPlayer, createdAt: report.createdAt, offense: report.offense, status: report.status },
+            { ...sharedIndexFields, playerId: report.reporterId, role: PlayerReportRole.ReportSubmitter },
+            { ...sharedIndexFields, playerId: report.reportedPlayerId, role: PlayerReportRole.ReportedPlayer },
         ];
 
         await dbService.savePlayerReportAsync(report, logs, indexEntries);

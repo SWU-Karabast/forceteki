@@ -224,6 +224,8 @@ export const PlayerReportIndexEntitySchema = z.object({
     offense: z.string(),
     status: z.enum(PlayerReportStatus),
     outcome: z.enum(PlayerReportOutcome).optional(),
+    lobbyId: z.string(),
+    gameId: z.string().optional(),
 }) as z.ZodType<IPlayerReportIndexEntity>;
 
 // Mod tools: player report requests

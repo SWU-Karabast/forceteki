@@ -106,6 +106,17 @@ describe('PlayerReportService', function() {
                 [reporter.id, PlayerReportRole.ReportSubmitter],
                 [reportedPlayer.id, PlayerReportRole.ReportedPlayer],
             ]);
+            // Both entries name the match, so reports from one match can be grouped later
+            expect(db.playerReportIndex.every((entry) => entry.lobbyId === 'lobby-id' && entry.gameId === 'game-id')).toBeTrue();
+        });
+
+        it('indexes a report filed in a lobby without a game id', async function() {
+            const report = await service.createReportAsync(newReport({ gameId: undefined }));
+
+            const [entry] = await db.getPlayerReportIndexAsync(reportedPlayer.id);
+            expect(entry.reportId).toBe(report.id);
+            expect(entry.lobbyId).toBe('lobby-id');
+            expect(entry.gameId).toBeUndefined();
         });
 
         it('stores the game id as text even though the game holds it as a number', async function() {
@@ -206,6 +217,8 @@ describe('PlayerReportService', function() {
             expect(stored.report.reopenedByUsername).toBe('ModBob');
             expect(stored.gsiKey).toBe(DynamoDBServiceModule.OPEN_PLAYER_REPORT_GSI_KEY);
             expect(db.playerReportIndex.every((entry) => entry.status === PlayerReportStatus.Open && entry.outcome === undefined)).toBeTrue();
+            // Status changes keep the match the report was filed in
+            expect(db.playerReportIndex.every((entry) => entry.lobbyId === 'lobby-id' && entry.gameId === 'game-id')).toBeTrue();
         });
 
         it('retries a close once when the report changed underneath, then reports the new state', async function() {
