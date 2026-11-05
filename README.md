@@ -92,6 +92,36 @@ For testing on mobile devices connected to your local network:
 3. Update the Front-End with its instructions to allow mobile local connections
 4. Connect to your-local-ip:3000 on the web browser of your mobile device
 
+### Production Docker Image
+
+The deployed server runs from the multi-stage `Dockerfile` in this repo; [forceteki-infra](https://github.com/SWU-Karabast/forceteki-infra) builds it during `cdk deploy`. Dependencies are installed and the server is compiled inside Docker, and only production `dependencies` go into the final image, so your local `node_modules/` and `build/` are never used.
+
+Card data is the one local input. The build copies `test/json/` and fails if it is stale, so run `npm run get-cards` first if `card-data-version.txt`, `fetchdata.js` or `mockdata.js` changed since you last ran it.
+
+Anything the server imports at runtime must be listed in `dependencies`. The `import-x/no-extraneous-dependencies` lint rule enforces this for `server/`.
+
+To change the Node version, update `.tool-versions`, `engines` in `package.json` and `NODE_VERSION` at the top of the `Dockerfile` together. The image build fails if the Dockerfile disagrees with `.tool-versions`.
+
+#### Testing the image locally
+
+These need Docker Desktop running. Each one builds the image first (as `karabast-server:local`), which takes a few seconds when nothing has changed.
+
+```bash
+# build only; extra arguments go to `docker build`, e.g. `npm run docker-build -- --no-cache`
+npm run docker-build
+
+# check that the image runs as a non-root user, contains no dev-only packages, and starts up and
+# answers /api/health
+npm run docker-prod-test
+
+# run the server on http://localhost:9500 for testing with the client; stop it with Ctrl+C
+npm run docker-run
+```
+
+With `npm run docker-run` going, run `npm run dev` in forceteki-client (it targets `http://localhost:9500` by default) and open http://localhost:3000.
+
+The container runs in production mode, as in ECS, so expect action timers in public games and no anonymous spectating or best-of-three. It uses DynamoDB Local from `docker-compose.yml` instead of the real table, so signing in and playing are safe; the scripts start it and create the table. Other external services get placeholder values. `NEXTAUTH_SECRET` and `INTRASERVICE_SECRET` come from your `.env`, so signing in works when they match the client's `.env.local`. Lobby links the server hands out point at karabast.net, so join lobbies from the home page instead.
+
 ### FAQ
 Q. I ran into this error: Importing card class with repeated id!: <card id>
 A. Delete your build folder and try to build again, you might have some old card data.
