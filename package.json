@@ -32,7 +32,8 @@
     "lint-verbose": "eslint",
     "get-cards": "node ./scripts/fetchdata.js",
     "validate-cards": "ts-node scripts/validateCards.ts",
-    "validate-specs": "ts-node scripts/validateSpecs.ts"
+    "validate-specs": "ts-node scripts/validateSpecs.ts",
+    "lki-audit": "node scripts/lki-audit/run.js"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.758.0",
