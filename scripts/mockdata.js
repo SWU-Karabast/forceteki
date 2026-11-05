@@ -1290,6 +1290,136 @@ const mockCards = [
         unique: false,
         internalName: 'issue-a-command'
     }),
+    buildMockCard({
+        title: 'Negotiator',
+        subtitle: 'Prepare the Troops',
+        cost: 9,
+        power: 9,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        keywords: ['sentinel'],
+        traits: ['republic', 'vehicle', 'capital ship'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 84
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'negotiator#prepare-the-troops'
+    }),
+    buildMockCard({
+        title: 'Jyn Erso',
+        subtitle: 'Her Father\'s Revenge',
+        cost: 8,
+        power: 8,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: ['saboteur'],
+        traits: ['rebel'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 123
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'jyn-erso#her-fathers-revenge'
+    }),
+    buildMockCard({
+        title: 'K-2SO',
+        subtitle: 'Evacuate The Vault Door',
+        cost: 9,
+        power: 10,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        traits: ['rebel'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 124
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'k2so#evacuate-the-vault-door'
+    }),
+    buildMockCard({
+        title: 'Clone Commander Cody',
+        subtitle: 'Loyal to the Republic',
+        cost: 4,
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['republic', 'clone', 'trooper'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 76
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'clone-commander-cody#loyal-to-the-republic'
+    }),
+    buildMockCard({
+        title: 'Mon Mothma',
+        subtitle: 'Truth Is An Abyss',
+        cost: 4,
+        power: 3,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        traits: ['rebel', 'official'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 77
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'mon-mothma#truth-is-an-abyss'
+    }),
+    buildMockCard({
+        title: 'Mace Windu',
+        subtitle: 'Dropping By',
+        cost: 6,
+        power: 5,
+        hp: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        keywords: ['ambush'],
+        traits: ['force', 'jedi', 'republic'],
+        types: ['unit'],
+        setId: {
+            set: 'IC27',
+            number: 81
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'mace-windu#dropping-by'
+    }),
+    buildMockCard({
+        title: 'Mace Windu',
+        subtitle: 'Here With Backup',
+        cost: 6,
+        power: 4,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        keywords: ['restore 2'],
+        traits: ['force', 'jedi', 'republic'],
+        types: ['leader'],
+        setId: {
+            set: 'IC27',
+            number: 4
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'mace-windu#here-with-backup'
+    }),
     // -------- End Mock Cards --------
 ];
 
@@ -1315,9 +1445,11 @@ const mockReprints = [
     { internalName: 'dogfight', setId: { set: 'IC27', number: 94 } },
     { internalName: 'special-forces-tie-fighter', setId: { set: 'IC27', number: 100 } },
     { internalName: 'battle-fury', setId: { set: 'IC27', number: 111 } },
+    { internalName: 'jedi-knight', setId: { set: 'IC27', number: 118 } },
     { internalName: 'cham-syndulla#rallying-ryloth', setId: { set: 'IC27', number: 131 } },
     { internalName: 'infiltrators-skill', setId: { set: 'IC27', number: 133 } },
-    { internalName: 'frozen-in-carbonite', setId: { set: 'IC27', number: 150 } }
+    { internalName: 'frozen-in-carbonite', setId: { set: 'IC27', number: 150 } },
+    { internalName: 'breaking-in', setId: { set: 'IC27', number: 150 } }
 ];
 // -------- End Mock Reprints --------
 
