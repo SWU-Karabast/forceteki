@@ -1449,7 +1449,7 @@ const mockReprints = [
     { internalName: 'cham-syndulla#rallying-ryloth', setId: { set: 'IC27', number: 131 } },
     { internalName: 'infiltrators-skill', setId: { set: 'IC27', number: 133 } },
     { internalName: 'frozen-in-carbonite', setId: { set: 'IC27', number: 150 } },
-    { internalName: 'breaking-in', setId: { set: 'IC27', number: 150 } }
+    { internalName: 'breaking-in', setId: { set: 'IC27', number: 176 } }
 ];
 // -------- End Mock Reprints --------
 
