@@ -17,7 +17,7 @@ export default class MaceWindusLightsaber extends UpgradeCard {
         registrar.addWhenPlayedAbility({
             title: 'Draw 2 cards',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.parentCard?.title === 'Mace Windu',
+                condition: (context) => context.source.isAttached() && context.source.parentCard.title === 'Mace Windu',
                 onTrue: AbilityHelper.immediateEffects.draw({ amount: 2 }),
             })
         });

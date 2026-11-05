@@ -16,17 +16,17 @@ export default class BobaFettFearedBountyHunter extends NonLeaderUnitCard {
         registrar.addPilotingAbility({
             type: AbilityType.Triggered,
             title: `Deal 1 damage to a unit. If attached unit is a ${TextHelper.Trait.Transport}, deal 2 damage instead.`,
-            contextTitle: (context) => `Deal ${context.source.parentCard.hasSomeTrait(Trait.Transport) ? 2 : 1} damage to a unit`,
+            contextTitle: (context) => `Deal ${context.source.isAttached() && context.source.parentCard.hasSomeTrait(Trait.Transport) ? 2 : 1} damage to a unit`,
             when: {
                 whenPlayed: true,
             },
             optional: true,
             targetResolver: {
-                activePromptTitle: (context) => `Choose a unit to deal ${context.source.parentCard.hasSomeTrait(Trait.Transport) ? '2' : '1'} damage to`,
+                activePromptTitle: (context) => `Choose a unit to deal ${context.source.isAttached() && context.source.parentCard.hasSomeTrait(Trait.Transport) ? '2' : '1'} damage to`,
                 controller: WildcardRelativePlayer.Any,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                    amount: context.source.parentCard.hasSomeTrait(Trait.Transport) ? 2 : 1,
+                    amount: context.source.isAttached() && context.source.parentCard.hasSomeTrait(Trait.Transport) ? 2 : 1,
                 }))
             }
         });
