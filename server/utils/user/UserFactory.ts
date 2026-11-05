@@ -82,7 +82,16 @@ export class UserFactory {
     private readonly accountCreations = new Map<string, Promise<AuthenticatedUser>>();
     private developmentTestUsersReady?: Promise<void>;
 
-    public constructor(public readonly cache: UserProfileCache = new UserProfileCache()) {}
+    /**
+     * @param cache keeps resolved identities and profiles between requests
+     * @param now the clock, in milliseconds, behind every time this factory reads or stamps (moderation
+     * expiry, the username-change cooldown, created / login / seen timestamps); injectable so a test
+     * server can run account time on its virtual clock
+     */
+    public constructor(
+        public readonly cache: UserProfileCache = new UserProfileCache(),
+        private readonly now: () => number = () => Date.now()
+    ) {}
 
     /**
      * Resolves the account a session token belongs to. Identity comes only from the token's signed
@@ -209,7 +218,7 @@ export class UserFactory {
 
         let profile = await loadProfileAsync();
         // legacy moderation is only evaluated when a profile is loaded, so one that has run out since is reloaded
-        if (profile?.moderation?.endDate && new Date(profile.moderation.endDate).getTime() < Date.now()) {
+        if (profile?.moderation?.endDate && new Date(profile.moderation.endDate).getTime() < this.now()) {
             this.cache.invalidateProfile(userId);
             profile = await loadProfileAsync();
         }
@@ -279,7 +288,7 @@ export class UserFactory {
 
             const existingProfile = await dbService.getUserProfileAsync(userId);
             if (!existingProfile) {
-                const now = new Date().toISOString();
+                const now = new Date(this.now()).toISOString();
                 await dbService.saveUserProfileAsync({
                     id: userId,
                     username: testUser.username,
@@ -361,7 +370,7 @@ export class UserFactory {
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
             await this.updateProfileAsync(userId, {
-                undoPopupSeenDate: new Date().toISOString()
+                undoPopupSeenDate: new Date(this.now()).toISOString()
             });
             return true;
         } catch (error) {
@@ -376,7 +385,7 @@ export class UserFactory {
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
             await this.updateProfileAsync(userId, {
-                timerPopupSeenDate: new Date().toISOString()
+                timerPopupSeenDate: new Date(this.now()).toISOString()
             });
             return true;
         } catch (error) {
@@ -411,6 +420,7 @@ export class UserFactory {
                 usernameLastUpdatedAt: userProfile.usernameLastUpdatedAt,
                 isForcedRename: !!options.hasActiveForcedRename || !!userProfile.needsUsernameChange,
                 usernameChangesBlocked: !!options.usernameChangesBlocked,
+                now: this.now(),
             });
 
             switch (eligibility.reason) {
@@ -491,6 +501,7 @@ export class UserFactory {
                 usernameLastUpdatedAt: userProfile.usernameLastUpdatedAt,
                 isForcedRename,
                 usernameChangesBlocked: options?.usernameChangesBlocked ?? false,
+                now: this.now(),
             });
 
             if (eligibility.reason === 'usernameChangesBlocked') {
@@ -595,7 +606,7 @@ export class UserFactory {
         await this.updateProfileAsync(userId, {
             username: newUsername,
             needsUsernameChange: false,
-            ...(options.startCooldown ? { usernameLastUpdatedAt: new Date().toISOString() } : {}),
+            ...(options.startCooldown ? { usernameLastUpdatedAt: new Date(this.now()).toISOString() } : {}),
         });
         logger.info(`Username for ${userId} changed to ${newUsername}`);
 
@@ -665,9 +676,9 @@ export class UserFactory {
         const newUser: IUserProfileDataEntity = {
             id: linkedUserId ?? uuid(),
             username: cleanedUsername,
-            lastLogin: new Date().toISOString(),
-            createdAt: new Date().toISOString(),
-            usernameLastUpdatedAt: new Date().toISOString(),
+            lastLogin: new Date(this.now()).toISOString(),
+            createdAt: new Date(this.now()).toISOString(),
+            usernameLastUpdatedAt: new Date(this.now()).toISOString(),
             showWelcomeMessage: true,
             preferences: getDefaultPreferences(),
             needsUsernameChange: false,
@@ -796,7 +807,7 @@ export class UserFactory {
             if (!userData.moderation.endDate) {
                 userData.moderation = {
                     ...userData.moderation,
-                    endDate: new Date(Date.now() + userData.moderation.daysRemaining * this.MS_PER_DAY).toISOString(),
+                    endDate: new Date(this.now() + userData.moderation.daysRemaining * this.MS_PER_DAY).toISOString(),
                     hasSeen: false,
                     moderationType: ModerationType.Mute
                 };
@@ -813,7 +824,7 @@ export class UserFactory {
 
             // Check if moderation has expired
             const endDate = new Date(userData.moderation.endDate);
-            const now = new Date(Date.now());
+            const now = new Date(this.now());
 
             if (now > endDate) {
                 userData.moderation = null;
@@ -1003,7 +1014,7 @@ export class UserFactory {
                 newUsername,
                 source,
                 relatedModActionId,
-                createdAt: new Date().toISOString(),
+                createdAt: new Date(this.now()).toISOString(),
             };
             await dbService.saveUsernameChangeAsync(record);
         } catch (error) {

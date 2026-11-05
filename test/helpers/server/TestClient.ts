@@ -20,7 +20,9 @@ export interface ITestClientOptions {
 
     /**
      * If true, this client signs in with a signed JWT, like a logged-in real client. It presents only
-     * that token: the server finds the account from it, so the harness needs `{ database: true }`.
+     * that token: the server finds the account from it, so the harness needs its database (there by
+     * default, gone with `{ database: false }`). The server keeps the profile once it has read it, so
+     * seed what it owns (`profile`, or the `account`'s) before this client's first signed-in request.
      */
     authenticated?: boolean;
 

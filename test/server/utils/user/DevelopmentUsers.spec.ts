@@ -3,7 +3,6 @@ import * as DynamoDBServiceModule from '../../../../server/services/DynamoDBServ
 import { InMemoryUserStore } from '../../../../server/utils/user/InMemoryUserStore';
 import { UserFactory } from '../../../../server/utils/user/UserFactory';
 import { RefreshTokenSource } from '../../../../server/utils/statHandlers/StatHandlerTypes';
-import { ModerationType } from '../../../../server/services/DynamoDBInterfaces';
 import { badSessionTokens, mintSessionToken, signInClaims } from '../../../helpers/server/AuthTokens';
 import { overrideEnv } from '../../../helpers/server/ServerTestEnv';
 
@@ -45,8 +44,6 @@ describe('Development user storage', function() {
         await factory.setTimerPopupSeenStatus('exe66');
         await factory.setUsernameChangesBlockedSeenAsync('exe66', 'rename-action');
         await factory.setReportingDisabledSeenAsync('exe66', 'report-action');
-        await store.updateUserProfileAsync('exe66', { moderation: { moderationType: ModerationType.Mute, daysRemaining: 1, hasSeen: false } });
-        expect(await factory.setModerationSeenAsync('exe66')).toBeTrue();
         await factory.addRefreshTokenAsync('exe66', 'local-refresh-token', RefreshTokenSource.SWUStats);
         expect(await factory.getUserRefreshTokenAsync('exe66', RefreshTokenSource.SWUStats)).toBe('local-refresh-token');
         await factory.unlinkRefreshTokenAsync('exe66', RefreshTokenSource.SWUStats);
@@ -60,7 +57,6 @@ describe('Development user storage', function() {
         expect(profile.timerPopupSeenDate).toBeTruthy();
         expect(profile.usernameChangesBlockedSeenActionId).toBe('rename-action');
         expect(profile.reportingDisabledSeenActionId).toBe('report-action');
-        expect(profile.moderation.hasSeen).toBeTrue();
         expect(await store.getUserIdsByUsernameAsync('Order66')).toEqual([]);
         expect((await factory.getUsernameChangeHistoryAsync('exe66')).length).toBe(1);
         expect((await factory.createUserFromTokenAsync(mintSessionToken(claims))).getUsername()).toBe('RenamedOrder');

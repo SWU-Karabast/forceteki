@@ -96,7 +96,7 @@ describe('Account login', function () {
 
                 expect(harness.db.loggedInUserIds).toEqual([response.body.user.id]);
             });
-        }, { database: true });
+        });
     });
 
     describe('signing in again', function () {
@@ -152,7 +152,7 @@ describe('Account login', function () {
                     usernameChangesBlocked: null,
                 }));
             });
-        }, { database: true });
+        });
     });
 
     describe('signing in with a different provider but the same email', function () {
@@ -183,7 +183,7 @@ describe('Account login', function () {
                 expect(response.body.user.id).toBe(account.id);
                 expect(harness.db.profiles.size).toBe(1);
             });
-        }, { database: true });
+        });
     });
 
     describe('an identity linked to an account whose profile no longer exists', function () {
@@ -211,6 +211,6 @@ describe('Account login', function () {
 
                 expect(response.body.user.id).toBe('account-with-no-profile');
             });
-        }, { database: true });
+        });
     });
 });
