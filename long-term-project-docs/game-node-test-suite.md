@@ -1190,23 +1190,16 @@ numbering are expected.
    pruned (entries are replaced on next use, so the impact is a few small objects per linked user, but the
    existing cleanup spec cannot reveal it because it only exercises the SWUStats map).
 
-8. **An account whose profile is missing can never sign in — open, new (2026-10-15).** When a token's provider identity
-   (or, failing that, its email) is linked to a user id but no profile exists for it, `authenticateWithTokenAsync`
-   falls through to "recreate a userProfile with a new id" — but its first step re-saves the OAuth link with a
-   *conditional* put (`attribute_not_exists(pk)`), and the link is already there (or was just added from the email
-   match). The write throws `ConditionalCheckFailedException`, so every attempt answers 401 and the owner is locked out
-   until someone repairs the data by hand; in the email-only variant a stray OAuth link pointing at the missing account is
-   left behind. The comment in the code describes the intent, which the code cannot achieve. Found while writing
-   `AccountLogin`, whose plan wrongly assumed recreation works; marked with a `TODO` and a pending spec there. Whether
-   this ever happens in production is unknown; it needs a profile deleted while its links remain.
+8. **An account whose profile is missing can never sign in — fixed.** A token's provider identity linked to a user id
+   with no profile used to fall through to a recreate step whose conditional OAuth-link write always failed, so the
+   owner was refused on every attempt. `UserFactory.findOrCreateAccountAsync` now recreates the profile under the
+   linked id (which also reattaches the account's other stored data), keeps the existing link, and does not look the
+   account up by email. Covered in `AccountLogin`.
 
-9. **A first sign-in with no email claim half-creates the account — open, new (2026-10-15).** The account is created
-   in four writes (OAuth link, profile, username link, email link) and the email is only checked before the last. A token
-   without an `email` claim (the FE sets `token.email = user?.email || token.email`, so a provider that supplies none
-   yields none) is refused with a 401 *after* the first three writes; the next request finds the account by its OAuth
-   link and signs in, with no email link on file. A token missing `id` or `name` is refused before anything is written.
-   **Not fixed**; marked with a `TODO` in `CredentialVerification`. Which behaviour is wanted — refuse before writing, or accept an
-   account with no email — is a product decision, so there is no pending spec.
+9. **A first sign-in with no email claim half-creates the account — fixed.** A token with no `email` claim, like one
+   missing `provider`, `providerId` or `name`, is now refused before anything is written, and the OAuth link is
+   written last so a failed creation can be retried. Covered in `CredentialVerification`. Whether an account with no
+   email should instead be accepted remains a product decision.
 
 *Also noticed, not findings:* three responses spell the success field `succeess` (`toggle-welcome-message`, and
 `change-username`'s two success paths; the FE never reads it, so correcting it is free); and the three deck routes'
