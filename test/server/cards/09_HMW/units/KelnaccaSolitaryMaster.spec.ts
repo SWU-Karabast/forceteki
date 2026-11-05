@@ -275,5 +275,47 @@ describe('Kelnacca, Solitary Master', function () {
             expect(context.player1.exhaustedResourceCount).toBe(7);
             expect(context.player2).toBeActivePlayer();
         });
+
+        describe('when the copy that was just played is defeated by the uniqueness rule', function () {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'the-armorer#steel-shapes-us',
+                        hand: ['kelnacca#solitary-master'],
+                        groundArena: ['kelnacca#solitary-master'],
+                        resources: 12
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+                const copies = context.player1.findCardsByName('kelnacca#solitary-master');
+                context.copyInHand = copies.find((copy) => copy.zoneName === 'hand');
+                context.copyInPlay = copies.find((copy) => copy.zoneName === 'groundArena');
+            });
+
+            it('should not throw and should deal damage equal to the power it had in play', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.copyInHand);
+                expect(context.player1).toBeAbleToSelectExactly([context.copyInHand, context.copyInPlay]);
+                context.player1.clickCard(context.copyInHand);
+                expect(context.copyInHand).toBeInZone('discard');
+
+                // the When Played ability still resolves, using the last known information of the copy that left play
+                expect(context.player1).toHaveNumericPromptRange(0, 8);
+                context.player1.chooseListOption('3');
+
+                expect(context.player1).toHavePrompt('Deal 4 damage to an enemy unit (1/1)');
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa.damage).toBe(4);
+                expect(context.copyInPlay).toBeInZone('groundArena');
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
