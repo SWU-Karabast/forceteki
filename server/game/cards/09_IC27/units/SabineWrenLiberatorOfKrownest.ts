@@ -1,7 +1,7 @@
 import type { IAbilityHelper } from '../../../AbilityHelper';
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import {EventName, TargetMode, WildcardCardType} from '../../../core/Constants';
+import { EventName, TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class SabineWrenLiberatorOfKrownest extends NonLeaderUnitCard {
     protected override getImplementationId() {
