@@ -27,14 +27,15 @@ export interface IServerTestOptions {
     config?: TestConfigOverrides;
 
     /**
-     * Gives the server the database-backed services a deployed one has - roles, settings, cosmetics,
-     * mod actions and a user store - over an in-memory fake, readable and seedable as
-     * {@link ServerTestHarness.db}. Without it the server has no database, which is how a local dev
-     * box runs: no role can be granted, no account can be looked up.
+     * The database behind the server. By default the server has the database-backed services a
+     * deployed one has - roles, settings, cosmetics, mod actions and a user store - over an empty
+     * in-memory fake, readable and seedable as {@link ServerTestHarness.db}.
      *
-     * `true` is an empty fake; a function seeds a fresh one before the server starts (the services
-     * read roles, settings and mod actions once at startup, then only on their refresh interval); an
-     * instance is used as is, for a spec that builds a single harness and holds the fake itself.
+     * `true` (the default) is an empty fake; a function seeds a fresh one before the server starts (the
+     * services read roles, settings and mod actions once at startup, then only on their refresh
+     * interval); an instance is used as is, for a spec that builds a single harness and holds the fake
+     * itself. `false` gives the server no database, which is how a local dev box runs: no role can be
+     * granted, no account can be looked up, and so no client can be logged in.
      */
     database?: boolean | DatabaseSeeder | FakeDynamoDbService;
 
@@ -116,7 +117,8 @@ export class ServerTestHarness {
             // Outside development the real database service is no longer skipped, so a server built
             // without a stand-in would try to reach DynamoDB (and fail on missing credentials) from its
             // field initialisers, as unhandled rejections nobody can attribute to the spec.
-            if (process.env.ENVIRONMENT !== 'development' && !options.database) {
+            const database = options.database ?? true;
+            if (process.env.ENVIRONMENT !== 'development' && !database) {
                 throw new Error(`ServerTestHarness: ENVIRONMENT is '${process.env.ENVIRONMENT}', so the server would reach for the real DynamoDB service - give the harness a database to stand in for it`);
             }
 
@@ -125,7 +127,7 @@ export class ServerTestHarness {
             // routes are registered during construction, so recording has to start before it
             const routeRecording = options.recordRoutes ? recordRegisteredRoutes() : undefined;
 
-            const server = await TestGameServer.startAsync(setup, { config: options.config, database: options.database, clockStart: options.clockStart });
+            const server = await TestGameServer.startAsync(setup, { config: options.config, database, clockStart: options.clockStart });
 
             return new ServerTestHarness(
                 server,
@@ -146,13 +148,13 @@ export class ServerTestHarness {
 
     /**
      * The fake DynamoDB behind this harness's server: seed accounts, roles, settings and mod actions
-     * before acting, and read back what the server stored. Only available when the harness was created
-     * with `{ database: true }` (or an instance).
+     * before acting, and read back what the server stored. Not available when the harness was created
+     * with `{ database: false }`.
      */
     public get db(): FakeDynamoDbService {
         const db = this.server.testDatabase;
         if (!db) {
-            throw new Error('ServerTestHarness: this harness has no database - create it with { database: true }');
+            throw new Error('ServerTestHarness: this harness has no database - it was created with { database: false }');
         }
 
         return db;
@@ -193,6 +195,15 @@ export class ServerTestHarness {
     }
 
     /**
+     * Tasks on {@link clock} that belong to the database-backed services' refresh timers. They outlive
+     * the server's own shutdown until the harness stops them, so a spec that checks what the server
+     * left scheduled part-way through a shutdown expects this many rather than 0.
+     */
+    public get databaseTaskCount(): number {
+        return this.server.databaseTaskCount;
+    }
+
+    /**
      * A distinct anonymous identity. Ids are unique per harness so one spec's users can never
      * collide in the server's user/lobby bookkeeping.
      */
@@ -219,8 +230,8 @@ export class ServerTestHarness {
 
     /**
      * A client signed in as `account` the way the FE does: the session token alone, so the server looks
-     * the account up. Seeds a new account when none is given. Needs a harness created with a
-     * {@link IServerTestOptions.database}.
+     * the account up. Seeds a new account when none is given. Needs the harness's database (the
+     * default; see {@link IServerTestOptions.database}).
      */
     public createAccountClient(account: ISeededAccount = this.db.seedAccount()): TestClient {
         return this.createClient({ authenticated: true, account });

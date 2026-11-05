@@ -27,7 +27,7 @@ describe('ServerTestHarness', function () {
             it('cannot sign in a logged-in client, because no account can be looked up', function () {
                 expect(() => contextRef.harness.createClient({ authenticated: true })).toThrowError(/no database/);
             });
-        });
+        }, { database: false });
     });
 
     describe('with a database seeded before the server starts', function () {
@@ -67,7 +67,7 @@ describe('ServerTestHarness', function () {
         });
     });
 
-    describe('with an empty database', function () {
+    describe('with the default, empty database', function () {
         serverIntegration(function (contextRef) {
             it('gives each spec its own database', function () {
                 const { harness } = contextRef;
@@ -112,12 +112,12 @@ describe('ServerTestHarness', function () {
 
                 expect(harness.db.profiles.get(client.id)?.username).toBe('MadeForYou');
             });
-        }, { database: true });
+        });
     });
 
     describe('shutting down', function () {
         it('leaves nothing scheduled, including the database-backed services\' refresh timers', async function () {
-            const harness = await ServerTestHarness.createAsync({ database: true });
+            const harness = await ServerTestHarness.createAsync();
             expect(harness.clock.pendingTaskCount).toBeGreaterThan(0);
 
             await harness.shutdownAsync();
@@ -131,7 +131,6 @@ describe('ServerTestHarness', function () {
             const before = { environment: process.env.ENVIRONMENT, secret: process.env.INTRASERVICE_SECRET };
 
             const harness = await ServerTestHarness.createAsync({
-                database: true,
                 env: { ENVIRONMENT: 'production', INTRASERVICE_SECRET: undefined },
             });
             const during = { environment: process.env.ENVIRONMENT, secret: process.env.INTRASERVICE_SECRET };
@@ -145,7 +144,7 @@ describe('ServerTestHarness', function () {
         it('refuses a production-like server with no database, and still restores the environment', async function () {
             const before = process.env.ENVIRONMENT;
 
-            await expectAsync(ServerTestHarness.createAsync({ env: { ENVIRONMENT: 'production' } }))
+            await expectAsync(ServerTestHarness.createAsync({ database: false, env: { ENVIRONMENT: 'production' } }))
                 .toBeRejectedWithError(/give the harness a database/);
 
             expect(process.env.ENVIRONMENT).toBe(before);

@@ -2,6 +2,8 @@ import { GameServer } from '../../../server/gamenode/GameServer';
 import type { IGameNodeConfig } from '../../../server/gamenode/GameNodeConfig';
 import type { Lobby } from '../../../server/gamenode/Lobby';
 import type { DeckValidator } from '../../../server/utils/deck/DeckValidator';
+import { UserFactory } from '../../../server/utils/user/UserFactory';
+import { UserProfileCache } from '../../../server/utils/user/UserProfileCache';
 import { TestScheduler } from './TestScheduler';
 import { FakeDynamoDbService } from './FakeDynamoDbService';
 import { FakeHttpClient } from './FakeHttpClient';
@@ -35,7 +37,8 @@ export interface ITestGameServerOptions {
     /**
      * Gives the server the DynamoDB-backed services a deployed one has - server roles, settings,
      * cosmetics and mod actions, and a user store - over a {@link FakeDynamoDbService}. Without this the
-     * server has no database, the state a local dev box runs in.
+     * server has no database, the state a local dev box runs in. `ServerTestHarness` always passes
+     * one unless the spec asks for `{ database: false }`.
      *
      * - `true`: a fresh, empty fake.
      * - a function: a fresh fake, which the function seeds before the server starts. This is the way
@@ -85,7 +88,8 @@ export class TestGameServer extends GameServer {
         config: IGameNodeConfig,
         httpClient: FakeHttpClient,
         private readonly dbServices?: ITestDbServices,
-        private readonly fakeDatabase?: FakeDynamoDbService
+        private readonly fakeDatabase?: FakeDynamoDbService,
+        private readonly dbServiceTaskCount = 0
     ) {
         super(
             setup.testGameBuilder.cardDataGetter,
@@ -95,8 +99,18 @@ export class TestGameServer extends GameServer {
             dbServices?.cosmeticsService,
             dbServices?.modActionService,
             setup.testGameBuilder,
-            { listen: false, scheduler: clock, config, httpClient }
+            { listen: false, scheduler: clock, config, httpClient },
+            TestGameServer.buildUserFactory(clock)
         );
+    }
+
+    /**
+     * Account time - the profile cache's expiry, legacy moderation expiry, the username-change cooldown
+     * and the timestamps the factory stamps - runs on the spec's virtual clock, like everything else.
+     */
+    private static buildUserFactory(clock: TestScheduler): UserFactory {
+        const now = () => clock.now();
+        return new UserFactory(new UserProfileCache({ now }), now);
     }
 
     /**
@@ -119,6 +133,15 @@ export class TestGameServer extends GameServer {
      */
     public get testHttpClient(): FakeHttpClient {
         return this.httpClient as FakeHttpClient;
+    }
+
+    /**
+     * How many tasks on {@link testScheduler} belong to the database-backed services (their refresh
+     * timers) rather than to the server. The server's own shutdown does not stop them - this class does,
+     * once it is over - so a spec checking what the server left scheduled counts from this, not from 0.
+     */
+    public get databaseTaskCount(): number {
+        return this.dbServiceTaskCount;
     }
 
     /** The fake DynamoDB behind this server, or `undefined` if it was built without a database. */
@@ -165,14 +188,18 @@ export class TestGameServer extends GameServer {
 
         let fakeDatabase: FakeDynamoDbService | undefined;
         let dbServices: ITestDbServices | undefined;
+        let dbServiceTaskCount = 0;
         if (options.database) {
             fakeDatabase = TestGameServer.resolveDatabase(options.database, clock);
 
             // before the server exists: see routeDatabaseThrough
             dbServices = await createTestDbServicesAsync(fakeDatabase, clock);
+
+            // the clock is new and the server not yet built, so everything scheduled so far is theirs
+            dbServiceTaskCount = clock.pendingTaskCount;
         }
 
-        const server = new TestGameServer(setup, clock, buildTestConfig(options.config), new FakeHttpClient(), dbServices, fakeDatabase);
+        const server = new TestGameServer(setup, clock, buildTestConfig(options.config), new FakeHttpClient(), dbServices, fakeDatabase, dbServiceTaskCount);
         await server.listenOnEphemeralPortAsync();
         return server;
     }

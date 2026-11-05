@@ -117,21 +117,8 @@ describe('GameServer lobby API', function () {
                 expect(lobby.host).not.toBeNull();
             });
 
-            // Characterises current behaviour: `createLobbyUser` marks the owner 'connected' via
-            // `updateUserLastActivity` even though their socket is still null, so a lobby is advertised
-            // from the moment it is created over HTTP. That covers the gap while the client navigates,
-            // but it also means a lobby whose owner never connects stays listed as joinable.
-            it('advertises a lobby whose owner has not connected a socket', async function () {
-                const lobbyName = harness.uniqueLobbyName();
-
-                await harness.api
-                    .post('/api/create-lobby')
-                    .send(createLobbyBody({ lobbyName }));
-
-                const response = await harness.api.get('/api/available-lobbies');
-
-                expect(response.body.some((lobby) => lobby.name === lobbyName)).toBe(true);
-            });
+            // TODO: add a spec for how a lobby whose owner has not connected is listed and cleaned up, once
+            // Open finding #1 in long-term-project-docs/game-node-test-suite.md is fixed.
 
             it('does not advertise a private lobby', async function () {
                 const lobbyName = harness.uniqueLobbyName();

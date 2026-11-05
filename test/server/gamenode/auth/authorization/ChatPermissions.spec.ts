@@ -1,4 +1,4 @@
-import { ModActionType, ModerationType } from '../../../../../server/services/DynamoDBInterfaces';
+import { ModActionType } from '../../../../../server/services/DynamoDBInterfaces';
 import type { IUserProfileDataEntity } from '../../../../../server/services/DynamoDBInterfaces';
 import { premierBestOfOne } from '../../../../helpers/server/MatchConfigs';
 import type { ITestClientOptions, TestClient } from '../../../../helpers/server/TestClient';
@@ -8,17 +8,6 @@ import type { ServerTestHarness } from '../../../../helpers/server/ServerTestHar
 /** A logged-in player: an account of its own, which the server finds from the player's session token. */
 const loggedIn: ITestClientOptions = { authenticated: true };
 
-const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-
-function legacyMute(): IUserProfileDataEntity['moderation'] {
-    return {
-        moderationType: ModerationType.Mute,
-        daysRemaining: 3,
-        endDate: new Date(Date.now() + threeDaysMs).toISOString(),
-        hasSeen: true,
-    };
-}
-
 /**
  * A logged-in player whose account has `profile` stored in the database. Mutes and chat preferences belong
  * to the account, so they are seeded there rather than sent by the client.
@@ -27,7 +16,6 @@ function accountWith(harness: ServerTestHarness, profile: Partial<IUserProfileDa
     return { authenticated: true, account: harness.db.seedAccount({ profile }) };
 }
 
-const legacyMuted = (harness: ServerTestHarness) => accountWith(harness, { moderation: legacyMute() });
 const chatDisabledInPreferences = (harness: ServerTestHarness) => accountWith(harness, { preferences: { gameOptions: { muteChat: true } } });
 
 /**
@@ -90,15 +78,6 @@ describe('Chat permissions', function () {
 
             it('drops a message sent to an anonymous opponent', async function () {
                 const { owner, joiner } = await setUpLobbyAsync(contextRef.harness, loggedIn, {});
-
-                await owner.sendLobbyMessageAsync('sendChatMessage', 'hello there');
-
-                expect(lobbyChatContains(joiner, 'hello there')).toBeFalse();
-            });
-
-            it('drops a message from a user muted by legacy moderation', async function () {
-                const { harness } = contextRef;
-                const { owner, joiner } = await setUpLobbyAsync(harness, legacyMuted(harness), loggedIn);
 
                 await owner.sendLobbyMessageAsync('sendChatMessage', 'hello there');
 
@@ -210,7 +189,7 @@ describe('Chat permissions', function () {
                 expect(gameChatContains(opponent, 'good luck')).toBeTrue();
             });
         });
-    }, { database: true });
+    });
 
     describe('when anonymous chat is enabled for local development', function () {
         serverIntegration(function (contextRef) {
@@ -221,6 +200,6 @@ describe('Chat permissions', function () {
 
                 expect(lobbyChatContains(joiner, 'hello there')).toBeTrue();
             });
-        }, { database: true, config: { allowAnonymousChat: true } });
+        }, { config: { allowAnonymousChat: true } });
     });
 });

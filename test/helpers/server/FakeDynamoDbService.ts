@@ -178,8 +178,9 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     private readonly recordedLogins: string[] = [];
 
     /**
-     * @param currentDate Supplies the time recorded in `lastLogin` and `cancelledAt`. The harness passes
-     * its virtual clock so a spec controls these timestamps.
+     * @param currentDate Supplies the time recorded in `lastLogin` and `cancelledAt`, and the "now" a
+     * seeded profile's `createdAt` and `usernameLastUpdatedAt` are dated back from. The harness passes
+     * its virtual clock, which the server's account code also reads, so a spec controls these timestamps.
      */
     public constructor(private readonly currentDate: () => Date = () => new Date()) {}
 
@@ -209,7 +210,7 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     public addProfile(profile: Partial<IUserProfileDataEntity> & { id: string; username: string }): void {
         this.profiles.set(profile.id, {
             lastLogin: '2026-01-01T00:00:00.000Z',
-            createdAt: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000).toISOString(),
+            createdAt: new Date(this.currentDate().getTime() - 100 * 24 * 60 * 60 * 1000).toISOString(),
             showWelcomeMessage: false,
             ...profile,
         });
@@ -230,7 +231,7 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
         this.addProfile({
             id: account.id,
             username: account.username,
-            usernameLastUpdatedAt: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000).toISOString(),
+            usernameLastUpdatedAt: new Date(this.currentDate().getTime() - 100 * 24 * 60 * 60 * 1000).toISOString(),
             preferences: getDefaultPreferences(),
             needsUsernameChange: false,
             moderation: undefined,
