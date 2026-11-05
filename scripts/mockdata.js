@@ -1333,10 +1333,10 @@ const mockCards = [
         subtitle: 'Evacuate The Vault Door',
         cost: 9,
         power: 10,
-        hp: 7,
+        hp: 5,
         hasNonKeywordAbility: true,
         aspects: ['aggression', 'heroism'],
-        traits: ['rebel'],
+        traits: ['rebel', 'droid'],
         types: ['unit'],
         setId: {
             set: 'IC27',
