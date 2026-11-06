@@ -17,7 +17,7 @@ export default class EnfysNestNoMore extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addConstantAbility({
             title: `While attacking a unit that costs 3 or less, this unit gets +2/+0 and gains ${TextHelper.Overwhelm}`,
-            condition: (context) => context.source.isAttacking() && context.source.activeAttack?.targetIsUnit((card) => card.cost <= 3),
+            condition: (context) => context.source.isAttacking() && context.source.activeAttack?.targetIsUnit((card) => card.cost <= 3, true),
             ongoingEffect: [
                 abilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }),
                 abilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm)
