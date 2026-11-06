@@ -62,7 +62,6 @@ describe('Count Dooku, Silver-Tongued', function() {
                 context.player1.clickPrompt('Pass');
 
                 // Assert nothing was exhausted
-
                 expect(context.wampa.exhausted).toBeFalse();
                 expect(context.battlefieldMarine.exhausted).toBeFalse();
                 expect(context.cartelSpacer.exhausted).toBeFalse();
@@ -82,6 +81,11 @@ describe('Count Dooku, Silver-Tongued', function() {
                         spaceArena: [{ card: 'tieln-fighter', exhausted: true }],
                     },
                     player2: {
+                        leader: { card: 'han-solo#worth-the-risk', deployed: true, exhausted: true },
+                        resources: {
+                            exhaustedCount: 2,
+                            readyCount: 8
+                        },
                         groundArena: [
                             { card: 'battlefield-marine', exhausted: true },
                             { card: 'atst', exhausted: true },
@@ -90,11 +94,10 @@ describe('Count Dooku, Silver-Tongued', function() {
                             { card: 'cartel-spacer', exhausted: true },
                             { card: 'awing', exhausted: true },
                         ],
-                        leader: { card: 'han-solo#worth-the-risk', deployed: true, exhausted: true },
                     },
                 });
+
                 const { context } = contextRef;
-                context.player2.exhaustResources(2);
 
                 // Move to the regroup phase
                 context.moveToRegroupPhase();
@@ -114,7 +117,7 @@ describe('Count Dooku, Silver-Tongued', function() {
                 context.player2.clickCard(context.battlefieldMarine);
                 expect(context.player2).toHavePrompt(readyPrompt);
                 expect(context.player2).toBeAbleToSelectExactly([
-                    context.battlefieldMarine,
+                    context.battlefieldMarine,  // Selectable to be able to un-select
                     context.cartelSpacer,
                     context.awing
                 ]);
@@ -140,6 +143,82 @@ describe('Count Dooku, Silver-Tongued', function() {
                 // Assert Count Dooku's controller is unaffected
                 expect(context.wampa.exhausted).toBeFalse();
                 expect(context.tielnFighter.exhausted).toBeFalse();
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should limit the opponent to readying 1 ground unit and 1 space unit in each regroup phase when there is an additional regroup phase', async function() {
+                const readyPrompt = 'Choose a ground unit and a space unit to ready';
+
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['count-dooku#silvertongued', 'max-rebo#encore'],
+                    },
+                    player2: {
+                        groundArena: [
+                            { card: 'battlefield-marine', exhausted: true },
+                            { card: 'atst', exhausted: true },
+                            { card: 'wampa', exhausted: true },
+                        ],
+                        spaceArena: [
+                            { card: 'cartel-spacer', exhausted: true },
+                            { card: 'awing', exhausted: true },
+                            { card: 'tieln-fighter', exhausted: true },
+                        ],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Move to the first regroup phase
+                context.moveToRegroupPhase();
+                context.player1.clickDone();
+                context.player2.clickDone();
+
+                // Ready Battlefield Marine and Cartel Spacer
+                expect(context.player2).toHavePrompt(readyPrompt);
+                expect(context.player2).toBeAbleToSelectExactly([
+                    context.battlefieldMarine,
+                    context.atst,
+                    context.wampa,
+                    context.cartelSpacer,
+                    context.awing,
+                    context.tielnFighter,
+                ]);
+                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.cartelSpacer);
+                context.player2.clickDone();
+
+                expect(context.battlefieldMarine.exhausted).toBeFalse();
+                expect(context.cartelSpacer.exhausted).toBeFalse();
+                expect(context.atst.exhausted).toBeTrue();
+                expect(context.wampa.exhausted).toBeTrue();
+                expect(context.awing.exhausted).toBeTrue();
+                expect(context.tielnFighter.exhausted).toBeTrue();
+
+                // Max Rebo's additional regroup phase
+                expect(context.getChatLogs(3)).toContain('Round: 1 - Additional Regroup Phase (granted by Max Rebo)');
+                context.player1.clickDone();
+                context.player2.clickDone();
+
+                // Only the units still exhausted are candidates; ready AT-ST and A-Wing
+                expect(context.player2).toHavePrompt(readyPrompt);
+                expect(context.player2).toBeAbleToSelectExactly([
+                    context.atst,
+                    context.wampa,
+                    context.awing,
+                    context.tielnFighter,
+                ]);
+                context.player2.clickCard(context.atst);
+                context.player2.clickCard(context.awing);
+                context.player2.clickDone();
+
+                expect(context.battlefieldMarine.exhausted).toBeFalse();
+                expect(context.cartelSpacer.exhausted).toBeFalse();
+                expect(context.atst.exhausted).toBeFalse();
+                expect(context.awing.exhausted).toBeFalse();
+                expect(context.wampa.exhausted).toBeTrue();
+                expect(context.tielnFighter.exhausted).toBeTrue();
                 expect(context.player1).toBeActivePlayer();
             });
 
