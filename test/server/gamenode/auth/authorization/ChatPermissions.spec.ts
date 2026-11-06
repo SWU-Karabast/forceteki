@@ -152,13 +152,41 @@ describe('Chat permissions', function () {
                 expect(lobbyChatContains(joiner, 'hello there')).toBeTrue();
             });
 
-            it('still drops a message from a user who disabled chat in their preferences', async function () {
+            it('delivers a message from a user who disabled chat in their preferences, and does not flag their chat as disabled', async function () {
                 const { harness } = contextRef;
                 const { owner, joiner } = await setUpLobbyAsync(harness, chatDisabledInPreferences(harness), loggedIn, true);
 
                 await owner.sendLobbyMessageAsync('sendChatMessage', 'hello there');
 
-                expect(lobbyChatContains(joiner, 'hello there')).toBeFalse();
+                expect(lobbyChatContains(joiner, 'hello there')).toBeTrue();
+                expect(joiner.lobbyState.users.find((u: any) => u.id === owner.id).chatDisabled).toBeFalse();
+            });
+
+            it('delivers a message sent to an opponent who disabled chat in their preferences', async function () {
+                const { harness } = contextRef;
+                const { owner, joiner } = await setUpLobbyAsync(harness, loggedIn, chatDisabledInPreferences(harness), true);
+
+                await owner.sendLobbyMessageAsync('sendChatMessage', 'hello there');
+
+                expect(lobbyChatContains(joiner, 'hello there')).toBeTrue();
+            });
+
+            it('delivers a message from an anonymous user to an opponent who disabled chat in their preferences', async function () {
+                const { harness } = contextRef;
+                const { owner, joiner } = await setUpLobbyAsync(harness, {}, chatDisabledInPreferences(harness), true);
+
+                await owner.sendLobbyMessageAsync('sendChatMessage', 'hello there');
+
+                expect(lobbyChatContains(joiner, 'hello there')).toBeTrue();
+            });
+
+            it('shows the typing indicator from a user who disabled chat in their preferences', async function () {
+                const { harness } = contextRef;
+                const { owner, joiner } = await setUpLobbyAsync(harness, chatDisabledInPreferences(harness), loggedIn, true);
+
+                await owner.sendLobbyMessageAsync('typingState', true);
+
+                expect(joiner.lobbyState.gameChat.typingState[owner.id]).toBeTrue();
             });
         });
 
@@ -173,6 +201,15 @@ describe('Chat permissions', function () {
 
             it('drops a message from an anonymous player', async function () {
                 const { first: sender, second: opponent } = await contextRef.harness.startQuickGameAsync({}, loggedIn);
+
+                await sender.sendGameMessageAsync('chat', 'good luck');
+
+                expect(gameChatContains(opponent, 'good luck')).toBeFalse();
+            });
+
+            it('drops a message from a player who disabled chat in their preferences', async function () {
+                const { harness } = contextRef;
+                const { first: sender, second: opponent } = await harness.startQuickGameAsync(chatDisabledInPreferences(harness), loggedIn);
 
                 await sender.sendGameMessageAsync('chat', 'good luck');
 
