@@ -64,9 +64,6 @@ describe('The Ghost, Whale Watching', function () {
                         base: 'bright-tree-village',
                         hand: ['adamant-ewoks'],
                         spaceArena: ['the-ghost#whale-watching'],
-                    },
-                    player2: {
-                        base: 'shield-generator-complex'
                     }
                 });
 
@@ -80,7 +77,7 @@ describe('The Ghost, Whale Watching', function () {
 
                 expect(context.player1).toHavePrompt('Deal 1 damage to a base');
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
-                context.player1.clickCard(context.player2.base);
+                context.player1.clickCard(context.p2Base);
                 context.player1.clickPrompt('Trigger');
 
                 // Player 1 should draw a card since he has fewer than 7 cards in hand
@@ -177,6 +174,34 @@ describe('The Ghost, Whale Watching', function () {
                 expect(context.player2.hand.length).toBe(startingHandSizeP2);
                 expect(context.wampa).toBeInZone('deck', context.player1);
                 expect(context.player1).toBeActivePlayer();
+            });
+
+            it('shouldn\'t trigger if an event deals damage to an enemy base', async () => {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        deck: ['wampa'],
+                        hand: ['collateral-damage'],
+                        spaceArena: ['the-ghost#whale-watching'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const startingHandSize = context.player1.hand.length;
+
+                expect(context.collateralDamage).toBeInZone('hand');
+                context.player1.clickCard(context.collateralDamage);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
+
+                // Player 1 should draw a card since he has fewer than 7 cards in hand
+                expect(context.player1.hand.length).toBe(startingHandSize - 1); // because we just played one card
+                expect(context.wampa).toBeInZone('deck', context.player1);
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('shouldn\'t trigger if owner has 8 or more cards in his hand', async () => {
