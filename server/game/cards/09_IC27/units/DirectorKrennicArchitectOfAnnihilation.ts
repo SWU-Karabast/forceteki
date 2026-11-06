@@ -15,13 +15,13 @@ export default class DirectorKrennicArchitectOfAnnihilation extends NonLeaderUni
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addActionAbility({
-            title: `Play a unit that costs 7 or less from your hand. It costs ${TextHelper.resource(2)} less`,
+            title: `Play a unit that costs 7 or more from your hand. It costs ${TextHelper.resource(2)} less`,
             cost: [abilityHelper.costs.exhaustSelf()],
             cannotTargetFirst: true,
             targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
-                cardCondition: (card) => card.isUnit() && card.cost <= 7,
+                cardCondition: (card) => card.isUnit() && card.cost >= 7,
                 immediateEffect: abilityHelper.immediateEffects.playCardFromHand({
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 2 },
                     playAsType: WildcardCardType.Unit
