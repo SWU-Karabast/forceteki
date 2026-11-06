@@ -103,12 +103,3 @@ jobs:
 
       - run: npm run capture-states -- --check
 
-      # Non-blocking: a client that copies these snapshots will need to sync once this merges
-      - name: note changed state snapshots
-        if: github.event_name == 'pull_request'
-        run: |
-          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
-          changed=$(git diff --name-only FETCH_HEAD HEAD -- test/stateSnapshots | grep '\.json$' || true)
-          if [ -n "$changed" ]; then
-            echo "::warning title=State snapshots changed::This PR changes what the server sends ($(echo "$changed" | wc -l | tr -d ' ') snapshot files). Projects that copy test/stateSnapshots will need to sync after it merges."
-          fi

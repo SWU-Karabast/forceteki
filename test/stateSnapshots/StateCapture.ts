@@ -2,8 +2,8 @@
 // spec does, then calls `captureState` to save `game.getState()` for both players and a spectator.
 //
 // `npm run capture-states -- --update` writes the snapshots; `--check` (what CI runs) fails when
-// the engine no longer produces exactly what is committed. Clients copy these files to test their
-// board against; nothing here knows about any client.
+// the engine no longer produces exactly what is committed. Clients fetch these files at a given
+// commit to test their board against; nothing here knows about any client.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
