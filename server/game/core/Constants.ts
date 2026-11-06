@@ -124,6 +124,7 @@ export enum EffectName {
     GainTrait = 'gainTrait',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     IsLeader = 'isLeader',
+    LimitReadyDuringRegroup = 'limitReadyDuringRegroup',
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
     UnitsEnterPlayReady = 'unitsEnterPlayReady',
