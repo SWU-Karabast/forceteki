@@ -44,7 +44,7 @@ If you hit `Importing card class with repeated id!`, delete `build/` and rebuild
 
 ### CI gates (`.github/workflows/pullrequest.yml`)
 
-`npx eslint --quiet`, `npm run validate-cards`, `npm run validate-specs`, `npm run test-parallel`, `npm run test-parallel-undo`.
+`npx eslint --quiet`, `npm run validate-cards`, `npm run validate-specs`, `npm run test-parallel`, `npm run test-parallel-undo`, `npm run capture-states -- --check`.
 
 ## Architecture
 
@@ -147,6 +147,20 @@ Use the seams the harness provides rather than reaching into the server:
 - **Routes:** every HTTP route has a row in `test/server/gamenode/auth/authorization/RouteAuthManifest.ts`; adding a route fails `RouteAuthManifest.spec.ts` until you say who may call it.
 
 Do not cast to `any` to reach into `GameServer` or `Lobby` (ESLint errors on `as any` in `test/server/gamenode` and `test/helpers/server`, but it does not catch bracket access or `as unknown as`, which are the same smell, so keep them out in review) — add a seam to the server or the harness instead, and if a reach cannot be avoided yet, disable the rule on that line and say what removes the need. When a spec exposes behaviour that looks wrong, do not write a spec that asserts it (that makes the bug a requirement) and do not fix it inside a test change. If it could be exploited, do not describe it anywhere in the repository (specs, comments, the plan document): report it to the maintainers privately (security fixes are made separately, in dedicated commits). Otherwise leave a `TODO` where the spec belongs saying what to add, and record it in the plan document's open findings; the fix comes in that topic area's step d (see the plan's roadmap), as its own commit together with the spec.
+
+### State snapshots (what the server sends)
+
+`test/stateSnapshots/` holds the engine's committed record of the game states it sends, each exactly what `game.getState(id)` returns at that moment, with generated uuids made stable and chat left out. Clients fetch these files at a given commit to test against, rather than keeping their own copy, so treat them as the server's contract. They are written by **capture specs** (`*.capture.ts`, beside the files they write), which set up a board with the `integration()` harness like a card spec. There are two kinds, kept separate:
+
+- **Render** (`render/<name>.<participant>.json`): one board, for checking a client draws it correctly. `captureState(context.game, '<name>', ['player1', 'spectator'])` saves it for the participants named. Make boards mirrored, both players with the same cards, so one view shows every card both as the player's and as the opponent's, and put many card states on one board rather than adding boards.
+- **Controls** (`controls/<name>.json`): a short chain of states for one participant, for checking a client sends the right message when clicked. `captureChain(context.game, '<name>')` returns `step(participant)`, called at each state the participant receives, and `save()`. Every message the participant sends between steps is recorded as that step's `send`, exactly as the client emits it on the `game` socket event, so the next step is the server's reply to it. Keep the board to the cards the prompts need (`resources: 0` unless they cost something).
+
+Rules:
+
+- `npm run capture-states -- --check` (CI) fails when the engine no longer produces exactly the committed files, or when a committed file has no capture producing it. `--update` rewrites them; add `--fast-build` to skip the full rebuild.
+- A change to what `getState` returns, or to the messages a prompt accepts, must commit the regenerated snapshots in the same PR. Never edit them by hand; re-run `--update`, including to resolve a merge conflict in them.
+- A board situation no capture covers gets added in the PR that introduces it: a new card state goes on an existing render board, a new kind of prompt gets a control chain.
+- Capture specs are not run by `npm test` and are not part of either jasmine group; `jasmine-capture.json` runs them.
 
 ## Manual testing against the client
 
