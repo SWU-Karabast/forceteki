@@ -444,6 +444,60 @@ fixed while this branch was rewriting it); the non-game suite was run on a clean
   PR. `set-moderation-seen` keeps its row in the route manifest while the route exists.
 
 
+### Step 1 — scenario builders (2026-11-06)
+
+Roadmap step 1 (backlog I-4's remainder and I-6), built on `main` @ `c6c71e058`. Test-only: no production file changed.
+
+**Built.**
+
+- `harness.openLobbyAsync(owner?, { isPrivate?, config?, deck?, connect? })`: a custom lobby from `create-lobby`, with the
+  owner's socket connected unless `connect: false`. That leaves only the server's record of the HTTP call, the state the
+  seat-takeover specs in `AnonymousIdentity` start from.
+- `harness.createLobbyWithGuestAsync(owner?, guest?, options?)`, returning `{ owner, guest, lobbyId }`. The guest joins a
+  public lobby through `join-lobby` and then its socket, and a private one by its link, as the real client does. Two
+  departures from the plan's shape: the sides are positional, like `startQuickGameAsync`'s, each a client or the options to
+  make one; and a public lobby is joined by id rather than found by browsing, because after the list the lobby browser makes
+  the same `join-lobby` call, and `LobbyConnectionManagement` covers the browsing.
+- `harness.startLiveGameAsync(owner?, guest?, { ...lobby options, guestDeck? })`: the guest picks its deck with
+  `change-deck`, both players set ready, and the owner starts the game. A guest has no deck until then: `join-lobby` carries
+  none, and `change-deck` needs the guest seated. Before this, no spec had started a custom-lobby game.
+- The game-ending helper is `TestClient.concedeAsync()` rather than a harness method: conceding is one command, and the
+  opponent is then the winner in `gamestate.winners`.
+- Typed commands: one `TestClient` method per entry in `Lobby`'s lobby and game allowlists, plus `resetActionTimerAsync` and
+  `clickPromptButtonAsync` (a button taken from the game state). Each sends the arguments the real client sends, read from
+  forceteki-client `origin/main` @ `385539b`: for example, `concede` carries the player's name, which the server ignores,
+  and `reportScreenResolution` a `{ width, height }` object. Names follow the command (`setReadyStatusAsync` rather than the
+  plan's `setReadyAsync`), except where the command name alone is unclear: `sendGameChatAsync` (`chat`), `clickCardAsync`
+  (`cardClicked`), and `submitBugReportAsync` / `submitPlayerReportAsync` (`submitReport`). `updateSettingAsync` takes the
+  setting name as a string, since `Lobby`'s `LobbySettingKeys` is not exported. The raw `sendLobbyMessageAsync` and
+  `sendGameMessageAsync` stay, for payloads no real client sends.
+- Chat accessors: `lobbyChat` (the chat in the latest `lobbystate`) and `gameChat` (the `newMessages` of every `gamestate` on
+  the current socket), as `IChatEntry { senderId?, alertType?, text }` entries (`ChatEntries.ts`), plus `lobbyChatFrom(sender)`
+  and `gameChatFrom(sender)`. A player or card that a line names is shown by name.
+- 8 wiring specs in `ServerTestHarness.spec.ts` (*scenario builders*, *reading the chat*): 763 → 771 non-game specs.
+
+**Migrated.** `ChatPermissions` (its `setUpLobbyAsync` and three `JSON.stringify` search helpers), `SocketCommandAllowlist`
+(two hand-built lobbies and two searches), `AnonymousIdentity` (its `create-lobby` helper, now
+`openLobbyAsync(owner, { connect: false })`), `CredentialVerification` (`openLobbyToJoinAsync`) and `AccountResolution` (two
+inline lobbies); and every well-formed raw command send in `ChatPermissions`, `SocketCommandAllowlist`, `LobbyReports` and
+`GameServerMatchmaking`. `LobbyReports`' player report now carries a real report type (`chatHarrasment`) instead of
+`'Harassment'`, which no client sends; its subject, the refusal for an anonymous opponent, is decided before the type is
+read. Several "contains" checks became exact (`lobbyChatFrom(owner)` equals `['hello there']`, or `[]` for a dropped
+message), and the malformed-typing-state check now asserts that no typing state was recorded, rather than that the
+payload's text is absent.
+
+**Left as they are, deliberately.** The explicit create-and-join calls in `LobbyConnectionManagement` and
+`RoleAuthorization`, where the calls are the subject; the two in `ServerTestHarness.spec.ts` and the one in
+`SocketIoDriftGuard`, which prove the tooling and the real transport; `GameServerMatchmaking`'s `enterQueueAsync` and
+`queueClientAsync`, which are about matchmaking preferences and formats; `CredentialVerification`'s `joinersSeenBy`; and the
+raw sends whose payload is the point (`cleanLobby`, `changeStat`, a non-boolean typing state, a non-string chat message, a
+message on a disconnected socket).
+
+**Verified.** The non-game group passes serially and in three parallel random runs, lint and `validate-specs` pass, and no
+production file changed. The rewritten assertions were seen to fail when the behaviour they guard was broken: adding
+`cleanLobby` and `changeStat` to the allowlists fails both allowlist specs, and letting every user chat (`checkUserCanChat`
+returning true) fails all nine "drops" specs in `ChatPermissions`.
+
 ## The account-auth PR
 
 ### Account-auth guards and suite guardrails (merged in #3021, 2026-10-17)
@@ -951,6 +1005,36 @@ and retire most of the duplication and every `as any` except the DB-backed ones;
 order. Then I-2 and I-3, which are small seams. Start I-1 in parallel with its production prerequisite (the
 `TimedCache` scheduler), since it gates the most untested surface. I-10 should land with the first scenario
 builders so new specs use them.
+
+**I-4 — Scenario builders (test-only). ◐ `TestClient.lobbyId`, `harness.startQuickGameAsync` and the shared match config are done; `createLobbyWithGuestAsync` is not.** *Evidence:* the same setup is hand-written repeatedly.
+
+| Boilerplate | Occurrences |
+|---|---|
+| queue → connect → advance through the 6 s countdown → assert game started | 5 (two specs each define their own `setUpGameAsync`) |
+| `new URL(lobbyState.connectionLink).searchParams.get('lobbyId')` | 8 across 4 specs |
+| the three-field match config redefined locally | 6 of 14 gamenode specs |
+| local helper definitions (`setUp*`, `queue*`, `enterQueue*`) | 5 |
+
+*Shape:* `harness.startQuickGameAsync(a, b?, config?)` (waits `Lobby.QuickLobbyCountdownMs`); `TestClient.lobbyId`;
+`harness.createLobbyWithGuestAsync({ isPrivate?, ownerOptions?, guestOptions? })` returning `{ owner, guest,
+lobbyId }` and choosing browse-and-join or link by privacy; and one exported match config. Use the existing
+production `IQueueFormatKey` rather than a test-local type (done in #3021).
+
+*Remaining parts (2026-11-05), roadmap step 1.* Besides `createLobbyWithGuestAsync`: `harness.startLiveGameAsync(...)`,
+which takes two clients from a custom lobby to a started game (both ready, the owner starts it) and returns them with the
+lobby id, the lobby-game counterpart of `startQuickGameAsync`; and a game-ending helper (`harness.endGameAsync(first,
+second)`, or `concedeAsync` on `TestClient` from I-6) that ends a running game by conceding, so a spec reaches game-end
+behaviour (stats, best-of-three progression, the rematch cooldown) without playing a game out. Build them before the
+scenarios that need them, so the spectator, reconnect-mid-game, timer, best-of-three and stats specs share one setup.
+
+**I-6 — Typed client commands and chat accessors (test-only).** Specs send raw strings
+(`sendLobbyMessageAsync('proceedToNextBo3Game')`), which is now the allowlist contract spelled by hand. Add one
+named method per allowlisted command (`sendChatMessageAsync`, `concedeAsync`, `concedeBo3Async`,
+`setReadyAsync`, `startGameAsync`, `submitReportAsync`, …), which also makes the command surface greppable. Add
+`lobbyChat` / `gameChat` accessors (flattening `gameChat.messages` and `gamestate.newMessages`) to replace the
+`JSON.stringify(...).includes(...)` searches in `ChatPermissions` and `SocketCommandAllowlist`.
+
+I-4 and I-6 were done on 2026-11-06 (roadmap step 1); see *Step 1 — scenario builders* above.
 
 ### Interface migration (Phase 3)
 

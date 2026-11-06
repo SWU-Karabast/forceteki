@@ -22,11 +22,11 @@ register* · *CI structure* · *Open findings* · *Future test suites*.
 The connection layer (`GameServer`, `Lobby`, `QueueHandler`) has a working integration harness and a CI-gated suite. A spec
 starts a real `GameServer` in-process on a virtual clock, drives it through the same HTTP calls and socket handshake as
 `forceteki-client` (`TestClient`), and asserts on what the client receives and on what the fakes for the outside world
-(stats-site HTTP, DynamoDB) were called with. Measured on 2026-11-05 on `main` @ `c6c71e058` (#3117, Node 26.13):
+(stats-site HTTP, DynamoDB) were called with. Measured on 2026-11-06 on `main` @ `c6c71e058` (#3117) with roadmap step 1 applied (Node 26.13):
 
-- **763 non-game specs** (`jasmine-nongame.json`): 0 failures, 0 pending; about 2.4 s serial, and clean in three runs under
+- **771 non-game specs** (`jasmine-nongame.json`): 0 failures, 0 pending; about 2.6 s serial, and clean in three runs under
   `--parallel=4 --random=true`.
-- 9,137 game specs, so **9,900 in total**. The two configs partition the suite exactly (counted by loading each config with
+- 9,153 game specs, so **9,924 in total**. The two configs partition the suite exactly (counted by loading each config with
   every spec filtered out, so no spec body runs and the card suites are not executed). For reference, the figures were
   677 / 9,012 / 9,689 on 2026-11-01 and 404 / 8,971 / 9,375 before #3021: widening the non-game globs moved 28 specs
   (`DiscordDispatcher`, `usernameBlockMigration`, `DynamoDBInterfaceSchemas`) out of the game group, #3111 added most of
@@ -96,11 +96,9 @@ The order follows what the lobby / queue / connection refactor will move. Covera
 waits on, so it comes first, preceded by the builders it needs; everything else follows. Work that waits on a product
 decision runs alongside rather than holding up the line. *Remaining work* has the detail for each step.
 
-1. **Scenario builders** (backlog I-4's remainder and I-6). `createLobbyWithGuestAsync`; a live-game builder that takes two
-   clients from a lobby to a started game; a helper that ends a running game (conceding is the cheapest ending); typed client
-   commands (`sendChatMessageAsync`, `concedeAsync`, …) and chat accessors. The spectator, reconnect-mid-game, timer,
-   best-of-three and stats scenarios all need the first three; without them each spec author builds their own, as the
-   review behind I-10 found. Test-only.
+1. **Scenario builders — ✅ done (2026-11-06).** `harness.openLobbyAsync`, `createLobbyWithGuestAsync` and
+   `startLiveGameAsync`; `TestClient.concedeAsync` to end a game; one typed `TestClient` method per command the real client
+   sends; and the `lobbyChat` / `gameChat` accessors (backlog I-4 and I-6). The history document records what was built.
 2. **Refactor-gate scenarios.** Every row the *Refactor readiness* checklist marks as a gap: reconnecting inside the grace
    window and grace expiry mid-game; the inactivity kick and `resetActionTimer`; ownership and empty-lobby cleanup; the
    full-lobby race and joining while already in a lobby; the matchmaking-disconnect penalty; the quick-lobby countdown;
@@ -114,7 +112,7 @@ decision runs alongside rather than holding up the line. *Remaining work* has th
    consistency check, an FE-contract manifest that covers the HTTP sign-in sequence as well as the socket commands, and a
    positive spec per command. Neither blocks the refactor.
 5. **Stats.** Deck tables in the fake DB for `DeckService`, then the SWUStats / SWUBase game-result payloads through
-   `FakeHttpClient` and the internal `statsSubmitNotification` payloads. Needs step 1's game-ending helper.
+   `FakeHttpClient` and the internal `statsSubmitNotification` payloads. A game ends with `TestClient.concedeAsync`.
 6. **Seams: I-2 (Discord) and I-3 (deck fetchers).** I-2 unblocks the report scenarios and retires the last `as any`; I-3,
    with the deck tables from step 5, unblocks the deck suite.
 7. **Tier 2 remainder:** spectator flows beyond the connection, deck gates, discovery filtering, lobby-name validation,
@@ -151,6 +149,8 @@ npx tsc -p ./test/tsconfig.json --noEmit
 - **Stale build output.** `build/` is never cleaned, so a `.spec.js` left behind by another branch still runs and fails. On
   2026-11-01, right after a branch switch, three compiled specs from an unmerged branch produced 19 failures. If a failing
   spec has no `.ts` source, delete its compiled file (or `build/`) and rebuild.
+- **After pulling `main`.** If `tsc` fails in a file nobody touched, `node_modules` may be behind `package.json` (`npm ci`
+  reinstalls from the lockfile); if the jasmine run stops on a card data hash mismatch, run `npm run get-cards`.
 - **Counting specs without running them.** Load a config through Jasmine's API with `specFilter: () => false` and read
   `totalSpecsDefined` from the `jasmineStarted` event; nothing executes, so the card suites cost seconds.
 
@@ -196,7 +196,7 @@ sparsely documented, and it is the part we most want to restructure.
 When this project started we could not safely restructure it, because **there was no test coverage of
 any of it**: the card suite (~8,700 specs at the time) constructs a `Game` directly with a stub
 router and never touches `Lobby` or `GameServer`. That is no longer true — the connection layer now
-has its own 763-spec suite — but coverage is uneven (deep on matchmaking, chat, identity and authentication;
+has its own 771-spec suite — but coverage is uneven (deep on matchmaking, chat, identity and authentication;
 absent on stats, spectating, timers and decks), which the plan below tracks.
 
 This project builds the test suite first, so the refactor that follows has a safety net. The suite is
@@ -325,11 +325,12 @@ earlier, in that middleware, and is a gap too (it belongs with C1).
 The detail behind each roadmap step. Each item notes the production behaviour verified when it was planned (mostly on
 2026-10-15), so the spec author knows what to look for, and any infrastructure it needs.
 
-### Step 1 — scenario builders
+### Step 1 — scenario builders ✅
 
-Backlog items I-4 (the remaining parts, including the live-game and game-ending helpers) and I-6; their write-ups are in the
-backlog. Done when the setups the later steps need are one call each and the hand-written copies I-4 counts are migrated to
-them.
+Done on 2026-11-06; *Step 1 — scenario builders* in the history document records what was built and migrated. For a new
+spec: `harness.openLobbyAsync`, `createLobbyWithGuestAsync`, `startLiveGameAsync` and `startQuickGameAsync` build the
+setups; `TestClient` has one method per command the real client sends, and `concedeAsync` ends a game; `lobbyChat`,
+`gameChat`, `lobbyChatFrom` and `gameChatFrom` read the chat.
 
 ### Step 2 — refactor-gate scenarios
 
@@ -357,10 +358,10 @@ document). The checklist rows each group closes are given with it.
   `join-lobby` and `enter-queue` for 20 s (`playerMatchmakingDisconnectedTime`). Untested.
 - **Bo3 gating, remaining call sites:** `join-lobby` and join-via-link.
 
-These close C11, C13 (in game), C15–C17, D1, D3, D4, D6, B2–B4, L1 and L3. The mid-game halves need step 1's live-game
-builder.
+These close C11, C13 (in game), C15–C17, D1, D3, D4, D6, B2–B4, L1 and L3. The mid-game halves start from
+`harness.startLiveGameAsync`.
 
-**Quick-lobby countdown as the subject** — needs I-4 for tidy setup:
+**Quick-lobby countdown as the subject** — no new infrastructure:
 
 - the countdown text sequence (`Starts in 5` … `Starts in 0`, then `Waiting for opponent to connect...`);
 - the game starts only when both players are `connected`;
@@ -386,8 +387,8 @@ These close L4.
 - **Multi-tab beyond lobbies.** A second connection for a spectator, a queued player and an in-game player (the
   lobby case is covered through `TestClient.previousSocket`) (C8, C13, C19).
 - **The spectator branches:** the anonymous-spectator gate on the *socket* path (the HTTP gate is covered), a spectator
-  who is not registered, one whose lobby is gone or has no game, `allowSpectators: false`, and admission (C4–C8). Needs
-  step 1's live-game builder.
+  who is not registered, one whose lobby is gone or has no game, `allowSpectators: false`, and admission (C4–C8). Start from
+  `harness.startLiveGameAsync`.
 - **The remaining edges:** a mapped user whose role is not Player or whose lobby is gone (C9, C10), `addLobbyUserAsync`
   failing (C12), a queued user who makes a lobby or queue call and is taken out of the queue (B5), and `requeueUser`'s two
   refusals (B6).
@@ -435,11 +436,11 @@ backward-compat spec for omitted fields the way the preference work does (`defau
   assertion per command (a parameterised spec over the exported sets, using typed `TestClient` commands — I-6),
   plus the spectator allowlist (`retransmitGameMessages` accepted; everything else ignored). Since #3110 the game accepts an
   action-window menu command only while a matching button is offered, so each positive spec needs a game state in which its
-  command is offered (step 1's live-game builder).
+  command is offered (`harness.startLiveGameAsync`).
 
 ### Step 5 — stats
 
-**Stats** — needs a harness helper that plays a game to completion (I-4):
+**Stats** — a game is ended with `TestClient.concedeAsync`:
 
 - External: SWUStats / SWUBase game-result payloads through `FakeHttpClient` (handler-level token flows
   are covered); `LoggedInOnly` / `SavedDecksOnly` skips. `DeckService` is DB-backed, so it also needs I-1.
@@ -462,8 +463,8 @@ Since the reorder, the handshake-failure, multi-tab and spectator-connection ite
 - **HTTP smoke coverage — no dependencies.** `GET /api/health`, `/api/ongoing-games`, `/api/all-leaders`,
   `/api/get-unimplemented` and `/api/test-game-setups` need no database. Only the route manifest requests them (to check who
   is let in); no spec asserts what they return. `/api/ongoing-games` is the substantive one (private games must be hidden).
-- **Spectator flows** beyond the connection: the state a spectator joining mid-game receives, and retransmission. Needs
-  step 1's live-game builder.
+- **Spectator flows** beyond the connection: the state a spectator joining mid-game receives, and retransmission. Start from
+  `harness.startLiveGameAsync`.
 - **Deck gates.** `change-deck` legality and the start-time deck-size check. (The identity gate on `change-deck`
   is covered by `AnonymousIdentity`; `TestClient.changeDeckAsync` already exists.)
 - **Maintenance mode.** `create-lobby`, `join-lobby` and `enter-queue` return `503` with the maintenance message (covered by
@@ -499,9 +500,9 @@ day, M ≈ a few days.
 | I-1 | DB-backed services seam | scheduler into `TimedCache` and its 4 users | M | 32 untested routes, maintenance mode, mute enforcement, reports, account/settings, cosmetics, decks | ✅ slice done (decks not yet) |
 | I-2 | Discord dispatcher seam | one `IGameServerOptions` field | S | report scenarios, server-error reporting | open |
 | I-3 | Deck-fetcher HTTP seam | fetchers take `IHttpClient` + `IScheduler` | S | `resolve-deck-link`, `swudbLink` flows, deck management | open |
-| I-4 | Scenario builders | none | S | removes 5 copies of game setup and 8 of link parsing; the live-game and game-ending setups roadmap steps 2, 4, 5 and 7 need | ◐ `lobbyId`, quick game and match config done; guest lobby, live game and game ending remain |
+| I-4 | Scenario builders | none | S | removes the hand-written lobby and game setups; the live-game and game-ending setups roadmap steps 2, 4, 5 and 7 need | ✅ done (2026-11-06) |
 | I-5 | Typed inspection surface | `lobbies` `private` → `protected` | XS | retires 2 `as any` touches | ✅ done |
-| I-6 | Typed client commands and chat accessors | none | S | Phase 3 positive coverage; retires `JSON.stringify` searches | open |
+| I-6 | Typed client commands and chat accessors | none | S | Phase 3 positive coverage; retires `JSON.stringify` searches | ✅ done (2026-11-06) |
 | I-7 | Time helpers | none | XS | readability of ~40 boundary assertions | open |
 | I-8 | Shared test config | none | XS | stops config drift between helpers and specs | ✅ done |
 | I-9 | Helper hygiene | none | XS | dead code; one inconsistent spec | ✅ done |
@@ -509,7 +510,7 @@ day, M ≈ a few days.
 | I-11 | Fast loop script | `package.json` only | XS | server spec iteration without the card build | ✅ done (`test-nongame`) |
 | I-12 | Per-harness user store for the no-database server | none (a test-side spy) | XS | order-independent specs for development without DynamoDB | open, narrowed to the `database: false` specs |
 
-The write-ups of the finished items (I-1, I-5 and I-8 to I-11) and the backlog's original suggested order are in the history
+The write-ups of the finished items (I-1, I-4, I-5, I-6 and I-8 to I-11) and the backlog's original suggested order are in the history
 document. The write-ups below are the open items.
 
 **I-2 — Discord dispatcher seam.** *Evidence:* `LobbyReports.spec.ts` pulls the `Lobby` out of
@@ -521,34 +522,6 @@ document. The write-ups below are the open items.
 **I-3 — Deck-fetcher HTTP seam.** `SwuDbDeckFetcher` and `MeleeDeckFetcher` still call the global `fetch` and use
 a raw `setTimeout` to abort. Route both through `IHttpClient` and `IScheduler`, as Phase 2.5 anticipated. It is now
 the largest remaining raw network path.
-
-**I-4 — Scenario builders (test-only). ◐ `TestClient.lobbyId`, `harness.startQuickGameAsync` and the shared match config are done; `createLobbyWithGuestAsync` is not.** *Evidence:* the same setup is hand-written repeatedly.
-
-| Boilerplate | Occurrences |
-|---|---|
-| queue → connect → advance through the 6 s countdown → assert game started | 5 (two specs each define their own `setUpGameAsync`) |
-| `new URL(lobbyState.connectionLink).searchParams.get('lobbyId')` | 8 across 4 specs |
-| the three-field match config redefined locally | 6 of 14 gamenode specs |
-| local helper definitions (`setUp*`, `queue*`, `enterQueue*`) | 5 |
-
-*Shape:* `harness.startQuickGameAsync(a, b?, config?)` (waits `Lobby.QuickLobbyCountdownMs`); `TestClient.lobbyId`;
-`harness.createLobbyWithGuestAsync({ isPrivate?, ownerOptions?, guestOptions? })` returning `{ owner, guest,
-lobbyId }` and choosing browse-and-join or link by privacy; and one exported match config. Use the existing
-production `IQueueFormatKey` rather than a test-local type (done in #3021).
-
-*Remaining parts (2026-11-05), roadmap step 1.* Besides `createLobbyWithGuestAsync`: `harness.startLiveGameAsync(...)`,
-which takes two clients from a custom lobby to a started game (both ready, the owner starts it) and returns them with the
-lobby id, the lobby-game counterpart of `startQuickGameAsync`; and a game-ending helper (`harness.endGameAsync(first,
-second)`, or `concedeAsync` on `TestClient` from I-6) that ends a running game by conceding, so a spec reaches game-end
-behaviour (stats, best-of-three progression, the rematch cooldown) without playing a game out. Build them before the
-scenarios that need them, so the spectator, reconnect-mid-game, timer, best-of-three and stats specs share one setup.
-
-**I-6 — Typed client commands and chat accessors (test-only).** Specs send raw strings
-(`sendLobbyMessageAsync('proceedToNextBo3Game')`), which is now the allowlist contract spelled by hand. Add one
-named method per allowlisted command (`sendChatMessageAsync`, `concedeAsync`, `concedeBo3Async`,
-`setReadyAsync`, `startGameAsync`, `submitReportAsync`, …), which also makes the command surface greppable. Add
-`lobbyChat` / `gameChat` accessors (flattening `gameChat.messages` and `gamestate.newMessages`) to replace the
-`JSON.stringify(...).includes(...)` searches in `ChatPermissions` and `SocketCommandAllowlist`.
 
 **I-7 — Time helpers.** 40 assertions use the "advance to T−1, assert not yet, advance 1, assert now" idiom
 (`GameServerMatchmaking` 24, `QueueHandler` 16), and the same literals recur. Two optional improvements: a
@@ -605,13 +578,13 @@ mid-shutdown `pendingTaskCount` assertion counts from `harness.databaseTaskCount
 The suite is partitioned by a single property: **does the spec drive a `Game` through the
 `integration()` harness?** That is what determines whether the undo suite is meaningful for it.
 
-| Group | Config | Contents | Specs (2026-11-05) |
+| Group | Config | Contents | Specs (2026-11-06) |
 |---|---|---|---|
-| Game | `jasmine-game.json` | cards, core, actions, gameSystems, scenarios | 9,137 |
-| Non-game | `jasmine-nongame.json` | `server/{utils,gamenode,services,scripts}/**` | 763 |
-| Everything | `jasmine.json` (what CI runs) | | 9,900 |
+| Game | `jasmine-game.json` | cards, core, actions, gameSystems, scenarios | 9,153 |
+| Non-game | `jasmine-nongame.json` | `server/{utils,gamenode,services,scripts}/**` | 771 |
+| Everything | `jasmine.json` (what CI runs) | | 9,924 |
 
-The two configs partition the suite exactly: 9,137 + 763 = 9,900, no spec lost or double-run. (Counted
+The two configs partition the suite exactly: 9,153 + 771 = 9,924, no spec lost or double-run. (Counted
 by loading each config's specs through Jasmine's API with every spec filtered out, so no spec body executed and
 the card suite was not run.)
 
@@ -730,7 +703,7 @@ is left. Dependencies refer to the infrastructure backlog.
   per-account game options (card image locale, timer visibility) and welcome / undo / timer popup acknowledgement.
 - **Best-of-three flow.** *Done:* only that `concedeBo3` and `proceedToNextBo3Game` are allowlisted and take
   effect. *Left:* set progression, the sideboarding window, ready timer, timeout paths, and `winHistory` as
-  sent to the client. Needs I-4 for game setup.
+  sent to the client. Start from `harness.startQuickGameAsync` or `startLiveGameAsync` with `premierBestOfThree`.
 - **Game timer behaviour.** The inactivity kick and `resetActionTimer` moved into roadmap step 2 (*Timers*). *Left
   here:* the byoyomi main/turn countdown, warning and danger thresholds, and `timeRemainingStatus` as sent to
   the client. Unblocked by the scheduler work in Phase 1.
