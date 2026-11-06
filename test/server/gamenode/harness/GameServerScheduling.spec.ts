@@ -64,6 +64,25 @@ describe('GameServer scheduling', function () {
                 expect(harness.server.swuStatsTokenMapping.has('valid-user')).toBe(true);
             });
 
+            it('drops expired SWUBase tokens as well', async function () {
+                harness.server.swuBaseTokenMapping.set('expired-user', buildToken(60));
+                harness.server.swuBaseTokenMapping.set('valid-user', buildToken(24 * 60 * 60));
+
+                await harness.clock.advanceAsync(60 * 60 * 1000);
+
+                expect(harness.server.swuBaseTokenMapping.has('expired-user')).toBe(false);
+                expect(harness.server.swuBaseTokenMapping.has('valid-user')).toBe(true);
+            });
+
+            it('lets the scheduler report a failure, rather than swallowing it', async function () {
+                spyOn(harness.server.swuStatsHandler, 'isTokenValid').and.throwError('token check failed');
+
+                await harness.clock.advanceAsync(60 * 60 * 1000);
+
+                expect(() => harness.assertNoScheduledErrors()).toThrowError(/error during token cleanup/);
+                harness.clock.clearCapturedErrors();
+            });
+
             it('repeats every hour rather than running only once', async function () {
                 await harness.clock.advanceAsync(60 * 60 * 1000);
                 expect(harness.server.swuStatsTokenMapping.has('expired-user')).toBe(false);

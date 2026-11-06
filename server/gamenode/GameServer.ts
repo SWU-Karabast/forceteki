@@ -2872,15 +2872,6 @@ export class GameServer {
                 return Promise.resolve();
             }
 
-            // anonymous user joining existing game
-            /* if (!user.username) {
-                const newUser = { username: 'Player2', id: user.id };
-                await lobby.addLobbyUserAsync(newUser, socket);
-                this.userLobbyMap.set(newUser.id, { lobbyId: lobby.id, role: UserRole.Player });
-                this.registerDisconnect(socket, user.id);
-                return Promise.resolve();
-           }*/
-
             await lobby.addLobbyUserAsync(user, socket);
             this.setUserLobbyMapping(user, lobby.id, UserRole.Player);
             this.registerDisconnect(socket, user.getId());
@@ -3057,8 +3048,8 @@ export class GameServer {
         this.setUserLobbyMapping(p2.user, lobby.id, UserRole.Player);
 
         // Attach their sockets to the lobby (if they exist)
-        await this.setupQueueSocketAsync(p1, lobby, format);
-        await this.setupQueueSocketAsync(p2, lobby, format);
+        await this.setupQueueSocketAsync(p1, lobby);
+        await this.setupQueueSocketAsync(p2, lobby);
 
         // this needs to be here since we only send start game via the LobbyOwner.
         lobby.setLobbyOwner(p1.user.getId());
@@ -3069,17 +3060,15 @@ export class GameServer {
         return Promise.resolve();
     }
 
-    private async setupQueueSocketAsync(player: QueuedPlayer, lobby: Lobby, format: IQueueFormatKey): Promise<void> {
+    private async setupQueueSocketAsync(player: QueuedPlayer, lobby: Lobby): Promise<void> {
         const socket = player?.socket;
         if (!socket) {
             return Promise.resolve();
         }
 
+        // adding the user to a quick lobby also registers their `requeue` listener
         await lobby.addLobbyUserAsync(player.user, socket);
         socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket, player));
-        if (!socket.eventContainsListener('requeue')) {
-            socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck, player.matchmakingPreference));
-        }
 
         return Promise.resolve();
     }
@@ -3358,22 +3347,17 @@ export class GameServer {
     /**
      * Clean up invalid/expired tokens from the user token map
      */
+    /**
+     * Drops the expired stat-site tokens. Runs on the scheduler, whose guard logs anything this throws, so it does not
+     * catch its own errors.
+     */
     private cleanupInvalidTokens(): void {
-        try {
-            const newTokenMapping = new Map<string, IToken>();
-            // Create new map with only valid tokens
-            for (const [userId, token] of this.swuStatsTokenMapping.entries()) {
-                if (this.swuStatsHandler.isTokenValid(token)) {
-                    newTokenMapping.set(userId, token);
-                }
-            }
-            // Replace the old map with the new one
-            this.swuStatsTokenMapping = newTokenMapping;
-        } catch (error) {
-            logger.error('GameServer: Error during token cleanup:', {
-                error: { message: error.message, stack: error.stack }
-            });
-        }
+        this.swuStatsTokenMapping = GameServer.validTokensOnly(this.swuStatsTokenMapping, (token) => this.swuStatsHandler.isTokenValid(token));
+        this.swuBaseTokenMapping = GameServer.validTokensOnly(this.swuBaseTokenMapping, (token) => this.swuBaseHandler.isTokenValid(token));
+    }
+
+    private static validTokensOnly(tokens: Map<string, IToken>, isValid: (token: IToken) => boolean): Map<string, IToken> {
+        return new Map(Array.from(tokens.entries()).filter(([, token]) => isValid(token)));
     }
 
     private setupGCMonitoring(): void {

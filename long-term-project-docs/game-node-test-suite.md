@@ -22,11 +22,11 @@ register* · *CI structure* · *Open findings*.
 The connection layer (`GameServer`, `Lobby`, `QueueHandler`) has a working integration harness and a CI-gated suite. A spec
 starts a real `GameServer` in-process on a virtual clock, drives it through the same HTTP calls and socket handshake as
 `forceteki-client` (`TestClient`), and asserts on what the client receives and on what the fakes for the outside world
-(stats-site HTTP, DynamoDB) were called with. Measured on 2026-11-06 on `main` @ `c6c71e058` (#3117) with core's steps a to c applied (Node 26.13):
+(stats-site HTTP, DynamoDB) were called with. Measured on 2026-11-06 on `main` @ `7fe6c797a` with core's step d applied (Node 26.13):
 
-- **819 non-game specs** (`jasmine-nongame.json`): 0 failures, 0 pending; about 3.0 s serial, and clean in three runs under
+- **823 non-game specs** (`jasmine-nongame.json`): 0 failures, 0 pending; about 3.0 s serial, and clean in three runs under
   `--parallel=4 --random=true`.
-- 9,153 game specs, so **9,972 in total**. The two configs partition the suite exactly (counted by loading each config with
+- 9,193 game specs, so **10,016 in total**. The two configs partition the suite exactly (counted by loading each config with
   every spec filtered out, so no spec body runs and the card suites are not executed). For reference, the figures were
   677 / 9,012 / 9,689 on 2026-11-01 and 404 / 8,971 / 9,375 before #3021: widening the non-game globs moved 28 specs
   (`DiscordDispatcher`, `usernameBlockMigration`, `DynamoDBInterfaceSchemas`) out of the game group, #3111 added most of
@@ -81,7 +81,7 @@ the profile cache), evaluated under [Account resolution and the profile cache](g
 | Refactor start | When every row of the *Refactor readiness* checklist is covered, or waived there with a reason, and a coverage run of the non-game group finds no unlisted gap in those paths | *Refactor readiness* |
 | Topic areas | Since 2026-11-06 the remaining work is split by topic area, each taken through five steps: plan, set up, fill out the suite, resolve what it found, and finalise with an independent review. Areas follow their dependencies; game timers come straight after core | *Roadmap* |
 | Fixing what the specs find | A production issue an area's specs find is fixed in that area's step d, as its own commit with the spec that was waiting on it, unless the owner says otherwise; never inside a test change. Security fixes are not part of step d: the owner makes them in dedicated commits, and each one found is called out to the owner for an acknowledgement | *Roadmap*, `CLAUDE.md` |
-| Dead and unreachable code | Removed in the step d of the area it belongs to. A checklist row the API cannot reach is waived and goes on that area's list. The inactivity kick is a dead feature to remove (decided 2026-11-06, game-timer area) | *Topic areas* |
+| Dead and unreachable code | Removed in the step d of the area it belongs to. A checklist row the API cannot reach is waived and goes on that area's list. An unreachable check that rejects or repairs a state other code maintains is kept as a safety net (core's step d, 2026-11-06); only code with no such purpose is removed. The inactivity kick is a dead feature to remove (decided 2026-11-06, game-timer area) | *Topic areas* |
 | Plan and record | This document holds only what is current. The record of finished work is the history document, which gains a section for each merge evaluated and each area step finished, and is otherwise not edited | the history document |
 | CI | No path-based filtering. A game / non-game job split is wanted eventually (undo mode is meaningless for the non-game group) but is not urgent; `validate-specs` keeps the two groups honest | *CI structure* |
 | Account-auth PR shape | One PR, a vertical slice of the auth suite, the scheduler seam included. Findings were to be characterised rather than fixed; the next two rows replaced that | history, the account-auth PR |
@@ -98,7 +98,10 @@ the profile cache), evaluated under [Account resolution and the profile cache](g
 The remaining work is split by topic area, and each area goes through the same five steps:
 
 - **a. Plan.** Investigate the area and write its plan under *Topic areas*: what it covers, what it depends on, and its
-  definition of done (for core, the *Refactor readiness* checklist).
+  definition of done (for core, the *Refactor readiness* checklist). Start by reading the maintainers' local security
+  documents (the untracked `long-term-project-docs/*.local.md` files; a clone without them should ask the owner) for the
+  findings and audit notes that touch the area, so its plan accounts for them. Tracked files refer to those only by `V-`
+  number.
 - **b. Set up.** The behaviour-neutral production seams the area needs to be testable, the test infrastructure for it, and a
   minimal set of "hello world" specs that prove the set-up works.
 - **c. Fill out the suite**, as close to complete as the area allows, ending with a coverage run over the area's code.
@@ -116,7 +119,7 @@ product decision can run alongside the others.
 
 | # | Area | Depends on | Status |
 |---|---|---|---|
-| 1 | **Core server logic:** connections, lobbies, the queue and matchmaking, spectators, and the harness itself | - | step d |
+| 1 | **Core server logic:** connections, lobbies, the queue and matchmaking, spectators, and the harness itself | - | step e |
 | 2 | **Game timers:** the action timer, its warnings and timeouts, and what a player's activity does to it | core | next: step a |
 | 3 | **Protocol surface:** the command allowlists and game-mode validation | core | step a; its step d waits on open finding #3 |
 | 4 | **Decks:** deck routes, deck-link resolution, and deck checks in lobbies and at game start | core | step a |
@@ -130,7 +133,7 @@ product decision can run alongside the others.
 Suite work that no single area owns (I-12, the CI split, the formal parallel-safety review) is listed under *Suite
 infrastructure* and goes with the first area that needs it.
 
-Open findings that still need a production fix are #1, #3, #6, #10, #12 and the open half of #11; each belongs to an area.
+Open findings that still need a production fix are #1, #3, #10 and the open half of #11; each belongs to an area.
 Anything exploitable is tracked privately with the maintainers, not here.
 
 ### Working agreements
@@ -205,7 +208,7 @@ sparsely documented, and it is the part we most want to restructure.
 When this project started we could not safely restructure it, because **there was no test coverage of
 any of it**: the card suite (~8,700 specs at the time) constructs a `Game` directly with a stub
 router and never touches `Lobby` or `GameServer`. That is no longer true — the connection layer now
-has its own 819-spec suite — but coverage is uneven (deep on matchmaking, chat, identity and authentication;
+has its own 823-spec suite — but coverage is uneven (deep on matchmaking, chat, identity and authentication;
 absent on stats, spectating, timers and decks), which the plan below tracks.
 
 This project builds the test suite first, so the refactor that follows has a safety net. The suite is
@@ -291,6 +294,12 @@ sorted:
 C22 (open finding #12). The refactor waits on those production fixes, each landing with its spec, or on the maintainers
 waiving a row; then the run is repeated.
 
+**Repeated after core's step d (2026-11-06,** `main` @ `7fe6c797a` with step d applied**).** `GameServer.ts` 2,646 of 3,510
+statement lines covered (it lost the removed dead code), `Lobby.ts` 1,909 of 2,703 (the rematch spec for C22 runs the rematch
+path), `QueueHandler.ts` 508 of 520. The only uncovered lines left in the methods step d changed are the defensive checks it
+kept and the cooldown-entry pruning, which no client can see. C22 is covered; C1, C11, L2 and C21 are still held, so the
+result stands: not yet met.
+
 *Status as of 2026-11-06, at the end of core's step c: from the specs that cover each row, checked against the coverage run
 above.* Besides **covered**, a row is **waived**, with the reason given, or **held**: it waits on a production
 change being decided with the maintainers, and closes when that change lands with its spec (the `V-` reference is to
@@ -321,9 +330,9 @@ their private tracking). A row waived as unreachable also goes on its area's dea
 | C19 | queued player connects, replacing any older socket | matchmaking runs | covered (`GameServerMatchmaking`, search lifecycle) |
 | C20 | none of the above | `connection_error: 'Connection error, please try again'` | covered (`GameServerMatchmaking`, `SocketIoDriftGuard`) |
 | C21 | an event the `Socket` wrapper (`server/socket.js`) handles itself rather than passing to the lobby | - | held (V-4) |
-| C22 | spectator admitted between the games of a rematch | `lobbystate` | gap: open finding #12 (a `TODO` in `SpectatorConnections`) |
+| C22 | spectator admitted between the games of a rematch | `lobbystate` | covered (`SpectatorConnections`; fixed in core's step d, finding #12) |
 
-The branch for a socket with no user is left out: the auth middleware never lets one through, so it is on core's dead-code list. A non-JSON `query.user`
+The branch for a socket with no user is left out: the auth middleware never lets one through; core's step d kept it as a defensive check. A non-JSON `query.user`
 fails earlier, in that middleware, with `Authentication error` (covered, `SocketConnectionRouting`).
 
 **Disconnects (`onSocketDisconnected`, `handleIntentionalDisconnect`).**
@@ -348,7 +357,7 @@ fails earlier, in that middleware, with `Authentication error` (covered, `Socket
 | B3 | still a Player in another lobby and active within 60 s: refused | covered (`GameServerLobbyApi` for `create-lobby`, `LobbyLifecycle` for `join-lobby` and `enter-queue`, `SpectatorConnections` for `spectate-game`). A link does not reach this check for a mapped user (C13) |
 | B4 | stale (60 s or more, or never active): evicted from the old lobby, which is cleaned up if empty | covered (`LobbyLifecycle`, both cases and the boundary) |
 | B5 | already queued: removed from the queue | covered (`LobbyLifecycle`) |
-| B6 | `requeueUser`: refused in maintenance mode or without a deck; otherwise leaves the old lobby and queues | covered for maintenance mode (`QuickLobbyCountdown`) and the success path (`GameServerMatchmaking`). The refusal without a deck is waived: every queued and matched player has a deck, so it cannot be reached through the API (to be removed in step d) |
+| B6 | `requeueUser`: refused in maintenance mode or without a deck; otherwise leaves the old lobby and queues | covered for maintenance mode (`QuickLobbyCountdown`) and the success path (`GameServerMatchmaking`). The refusal without a deck is waived: every queued and matched player has a deck, so it cannot be reached through the API (kept as a defensive check in core's step d) |
 | B7 | down for a lobby that no longer exists: the entry is dropped and the call goes ahead | covered (`LobbyLifecycle`) |
 | B8 | `join-lobby` for a lobby whose two seats are taken: `400 Lobby is full` | covered (`GameServerLobbyApi`) |
 | B9 | `change-deck` for a lobby that has closed: `404 Lobby not found` | covered (`LobbyLifecycle`) |
@@ -357,7 +366,7 @@ fails earlier, in that middleware, with `Authentication error` (covered, `Socket
 
 | # | Behaviour | Status |
 |---|---|---|
-| L1 | ownership: the creator owns the lobby, it passes to the remaining user, and the fallback in `addLobbyUserAsync` | covered for the creator and the hand-over (`LobbyLifecycle`). The fallback is waived: the server only drops an owner's lobby entry together with their seat, and dropping the seat hands ownership over, so no API sequence reaches it (to be removed in step d) |
+| L1 | ownership: the creator owns the lobby, it passes to the remaining user, and the fallback in `addLobbyUserAsync` | covered for the creator and the hand-over (`LobbyLifecycle`). The fallback is waived: the server only drops an owner's lobby entry together with their seat, and dropping the seat hands ownership over, so no API sequence reaches it (kept as a defensive check in core's step d) |
 | L2 | the quick-lobby countdown: the text sequence, a start only when both players are connected, and `removeLobby` with a requeue when neither connects | covered for the sequence and for waiting until both are connected (`QuickLobbyCountdown`); the removal branch is held (V-3) |
 | L3 | the `Lobby timed out` path after 5 users have left and 5 minutes have passed | covered (`LobbyLifecycle`) |
 | L4 | the inactivity kick (`inactiveDisconnect`, then a forced disconnect that the disconnect handler skips) and `resetActionTimer` | waived: nothing reaches the kick any more, and it is a dead feature to remove (the game-timer area's step d). `resetActionTimer` does not reach the action timer either (open finding #11); a `TODO` in `InGameConnections` marks the specs to add if the timer is made to read player activity again |
@@ -368,7 +377,7 @@ fails earlier, in that middleware, with `Authentication error` (covered, `Socket
 Each area's plan and status, in roadmap order. An item notes the production behaviour verified when it was planned (mostly
 on 2026-10-15), so a spec author knows what to look for, and any infrastructure it needs.
 
-### 1. Core server logic — step d
+### 1. Core server logic — step e
 
 Connections, lobbies, the queue and matchmaking, spectators, and the test harness itself.
 
@@ -377,44 +386,39 @@ Connections, lobbies, the queue and matchmaking, spectators, and the test harnes
   [Refactor readiness](#refactor-readiness). For a new spec, `harness.openLobbyAsync`, `createLobbyWithGuestAsync`,
   `startLiveGameAsync` and `startQuickGameAsync` build the set-ups; `TestClient` has one method per command the real client
   sends, `concedeAsync` ends a game, and `lobbyChat`, `gameChat`, `lobbyChatFrom` and `gameChatFrom` read the chat.
-- **d: resolve what it found (now).**
-  - *Open findings:* #12 (a spectator admitted between rematch games is never sent the lobby; checklist row C22) and #6
-    (three scheduled callbacks that swallow their own errors). Each comes with the spec its `TODO` describes, where it has
-    one.
-  - *Held rows* C1, C11, L2 and C21 wait on security fixes, which are not part of this step; their specs go in when those
-    fixes land.
-  - *Dead code.* Confirm each item is unreachable (the coverage run, a search for callers, and forceteki-client for anything
-    on the wire), then remove it with the checks that only guarded it:
-    - the ownership fallback in `Lobby.addLobbyUserAsync` (checklist row L1);
-    - `requeueUser`'s refusal without a deck (row B6), and the matching deck checks in `Lobby`'s requeue paths;
-    - `onConnectionAsync`'s branch for a socket with no user, which the auth middleware never lets through;
-    - the commented-out anonymous-join block in `onConnectionAsync`'s link branch;
-    - `GameServer.createLobby`'s two throws for a missing user (every route passes one);
-    - `authenticateSocketAsync`'s refusal of a user that is neither anonymous nor logged in;
-    - `setupQueueSocketAsync`'s early return for a matched player with no socket, and its `requeue` registration (the
-      listener `addLobbyUserAsync` registers is always there first);
-    - `Lobby.createLobbyUser`'s branch for a user already in the lobby (it is only called on new lobbies);
-    - `Lobby.addSpectator`'s branches for a player who connects as a spectator and for a socket already listening, and
-      `addLobbyUserAsync`'s for a spectator who connects as a player (`onConnectionAsync` and `canUserJoinNewLobby` keep the
-      two roles apart before either is reached);
-    - `Lobby.setUserDisconnected`'s returns for a socket that is not the user's current one (a replaced socket loses its
-      disconnect listener first);
-    - `Lobby.handleMatchmakingDisconnect`'s returns for a lobby that is not a quick lobby, or that has a game;
-    - the `Socket` wrapper's unused `joinChannel` and `leaveChannel`.
-  - *Then* run the coverage check again.
-- **c, still open:** smaller items outside the refactor's gate, which can go alongside d.
-- **HTTP smoke coverage — no dependencies.** `GET /api/health`, `/api/ongoing-games`, `/api/all-leaders`,
-  `/api/get-unimplemented` and `/api/test-game-setups` need no database. Only the route manifest requests them (to check who
-  is let in); no spec asserts what they return. `/api/ongoing-games` is the substantive one (private games must be hidden).
-- **Spectator flows** beyond the connection: the state a spectator joining mid-game receives, and retransmission. Start from
-  `harness.startLiveGameAsync`.
-- **Maintenance mode on `spectate-game`**, which is **not** gated. `create-lobby`, `join-lobby`, `enter-queue`,
-  `start-test-game` and `requeueUser` are covered (`RoleAuthorization`, `GameServerTestGameSetups`, `QuickLobbyCountdown`).
-- **Discovery filtering.** The remaining `lobbiesWithOpenSeat` filters (quick lobbies, in-game lobbies) and the listing of a
-  lobby whose owner has not connected (Open finding #1; a `TODO` in `GameServerLobbyApi` marks the spec).
-- **Lobby name validation.** Profanity and length rejections in `create-lobby`. No spec currently asserts that a
-  name is *rejected* — the one profanity-related spec only checks that harness-generated names are accepted.
-- **e:** after d.
+- **d: ✅ done (2026-11-06)**; the history document records it.
+  - *Fixed*, each with the spec that was waiting on it: open finding #12 (a spectator admitted between rematch games is now
+    sent the lobby state; checklist row C22 is covered), #6 (the three scheduled callbacks no longer catch their own errors,
+    so the scheduler's guard logs them and the harness sees them; the hourly cleanup now prunes expired SWUBase tokens too),
+    and #13, found during the step (a spectator was listed under their id rather than their username).
+  - *Dead code removed:* the commented-out anonymous-join block in `onConnectionAsync`, `setupQueueSocketAsync`'s `requeue`
+    registration (the listener `addLobbyUserAsync` registers was always there first), and the `Socket` wrapper's unused
+    `joinChannel` and `leaveChannel`.
+  - *Kept on purpose:* the unreachable branches that reject or repair a state other code maintains. These are the ownership
+    fallback in `Lobby.addLobbyUserAsync` (row L1), the refusals without a deck in `requeueUser` and `Lobby`'s requeue paths
+    (B6), `onConnectionAsync`'s branch for a socket with no user, `authenticateSocketAsync`'s refusal of a user that is
+    neither anonymous nor logged in, `GameServer.createLobby`'s throws for a missing user, `setupQueueSocketAsync`'s return
+    for a matched player with no socket, `Lobby.createLobbyUser`'s branch for a user already in the lobby, the role checks in
+    `Lobby.addSpectator` and `addLobbyUserAsync`, `Lobby.setUserDisconnected`'s returns for a replaced socket, and
+    `Lobby.handleMatchmakingDisconnect`'s early returns. Removing them would gain nothing and drop a safety net.
+  - *Still held:* rows C1, C11, L2 and C21 wait on security fixes, which are not part of this step; their specs go in when
+    those fixes land.
+  - *The coverage run*, repeated: under *Refactor readiness*.
+- **c, still open:** smaller items outside the refactor's gate.
+  - **HTTP smoke coverage — no dependencies.** `GET /api/health`, `/api/ongoing-games`, `/api/all-leaders`,
+    `/api/get-unimplemented` and `/api/test-game-setups` need no database. Only the route manifest requests them (to check
+    who is let in); no spec asserts what they return. `/api/ongoing-games` is the substantive one (private games must be
+    hidden).
+  - **Spectator flows** beyond the connection: the state a spectator joining mid-game receives, and retransmission. Start
+    from `harness.startLiveGameAsync`.
+  - **Maintenance mode on `spectate-game`**, which is **not** gated (a product question: should it be?). `create-lobby`,
+    `join-lobby`, `enter-queue`, `start-test-game` and `requeueUser` are covered (`RoleAuthorization`,
+    `GameServerTestGameSetups`, `QuickLobbyCountdown`).
+  - **Discovery filtering.** The remaining `lobbiesWithOpenSeat` filters (quick lobbies, in-game lobbies) and the listing of
+    a lobby whose owner has not connected (Open finding #1; a `TODO` in `GameServerLobbyApi` marks the spec).
+  - **Lobby name validation.** Profanity and length rejections in `create-lobby`. No spec currently asserts that a name is
+    *rejected*; the one profanity-related spec only checks that harness-generated names are accepted.
+- **e: in progress** (2026-11-06): the independent review.
 
 ### 2. Game timers — next: step a
 
@@ -638,6 +642,7 @@ list exists so none is mistaken for a stable contract when the refactor starts.
 | `CredentialVerification`: *makes a single account when asked more than once at the same time* | Holds `saveUserProfileAsync` and spies `getUserFactory().createUserFromTokenAsync` to see the requests arrive; depends on the profile being written before the link and on creation going through that method | rewrite against whatever owns account creation |
 | `SocketConnectionRouting`: `spyOn(Lobby.prototype, 'addLobbyUserAsync').and.rejectWith(...)` | Forces a seat set-up failure (checklist row C12); depends on `onConnectionAsync` seating a mapped user through that method | rewrite against whatever replaces `Lobby` set-up |
 | `LobbyLifecycle`, `GameServerTestGameSetups`, `GameServerMatchmaking`: reads of `testLobbies`, `lobbyCount`, `testLobbyFor` and `getUserLobbyId` | Check that the server let a closed lobby go, or find the lobbies `start-test-game` made, through the server's own lobby map (see the *Inspection surface* decision) | re-wire `TestGameServer`'s accessors to whatever holds lobbies after the refactor |
+| `GameServerScheduling`: `spyOn(harness.server.swuStatsHandler, 'isTokenValid').and.throwError(...)` | Forces the hourly token cleanup to fail, to show the scheduler reports it; depends on the cleanup calling the handler's `isTokenValid` | rewrite if the token cleanup moves |
 | `TestGameServer`, `TestClient` and `FakeIoSocket`: `GameServer`'s `protected` constructor, `lobbies`, `httpServer`, `authenticateSocketAsync` and `handleSocketConnectionAsync` | The harness itself is the main consumer of these members (see *What the harness depends on in production* in the Handoff) | re-wire the three helpers to whatever replaces them; the behaviour specs should not change |
 
 *Retired by the account-auth PR:* `ChatPermissions`'s legacy-mute and chat-disabled fixtures no longer seed their state
@@ -652,11 +657,11 @@ The suite is partitioned by a single property: **does the spec drive a `Game` th
 
 | Group | Config | Contents | Specs (2026-11-06) |
 |---|---|---|---|
-| Game | `jasmine-game.json` | cards, core, actions, gameSystems, scenarios | 9,153 |
-| Non-game | `jasmine-nongame.json` | `server/{utils,gamenode,services,scripts}/**` | 819 |
-| Everything | `jasmine.json` (what CI runs) | | 9,972 |
+| Game | `jasmine-game.json` | cards, core, actions, gameSystems, scenarios | 9,193 |
+| Non-game | `jasmine-nongame.json` | `server/{utils,gamenode,services,scripts}/**` | 823 |
+| Everything | `jasmine.json` (what CI runs) | | 10,016 |
 
-The two configs partition the suite exactly: 9,153 + 819 = 9,972, no spec lost or double-run. (Counted
+The two configs partition the suite exactly: 9,193 + 823 = 10,016, no spec lost or double-run. (Counted
 by loading each config's specs through Jasmine's API with every spec filtered out, so no spec body executed and
 the card suite was not run.)
 
@@ -695,7 +700,7 @@ splitting by *what changed* is not.
 
 Behaviours found while building the suite that are still open. Open items are **not fixed**; where a spec would belong, a
 `TODO` marks it. Numbers are never reused or renumbered, so gaps in the numbering are expected. Statuses were last
-re-verified against `main` on 2026-11-01 (by re-reading the code paths); #10 was added on 2026-11-05, and #11 and #12 on 2026-11-06.
+re-verified against `main` on 2026-11-01 (by re-reading the code paths); #10 was added on 2026-11-05, #11 and #12 on 2026-11-06, and #13 was found and fixed on 2026-11-06.
 
 1. **Lobby listing and cleanup around an owner who has not connected — open, needs a fix.** What `lobbiesWithOpenSeat()`
    and `hasConnectedPlayer()` treat as a connected player needs correcting for a lobby whose owner has not connected a
@@ -714,16 +719,6 @@ re-verified against `main` on 2026-11-01 (by re-reading the code paths); #10 was
    `JSON.stringify`-based (`JSON.parse(queueKey)` in `QueueHandler`); they are built in a fixed order in
    production, so the property-order sensitivity is latent rather than live. Re-verified on 2026-11-01: `gamesToWinMode` is
    still not enum-checked on either route.
-
-6. **Three scheduled callbacks still swallow their own errors — open, unchanged** (`cleanupInvalidTokens`,
-   `QueueHandler.cleanupPreviousMatchEntries`, `QueueHandler.sendHeartbeat`; re-read after #3001's heavy
-   `QueueHandler` changes, and again on 2026-11-01 after #3031, which only added logging), so the scheduler's guard — and
-   therefore `assertNoScheduledErrors()` — cannot see
-   them. These are defensive at the method level and reachable from non-timer callers, so removing the inner
-   catches is a behaviour change rather than a simplification; revisit when those paths get direct coverage.
-   Related observation: the hourly cleanup only prunes `swuStatsTokenMapping`; `swuBaseTokenMapping` is never
-   pruned (entries are replaced on next use, so the impact is a few small objects per linked user, but the
-   existing cleanup spec cannot reveal it because it only exercises the SWUStats map).
 
 10. **A lost account-creation race leaves the losing request's profile behind — open, new (2026-11-05).** When two
     processes create an account for one identity at the same moment, the one whose conditional OAuth-link write fails
@@ -745,18 +740,12 @@ re-verified against `main` on 2026-11-01 (by re-reading the code paths); #10 was
     read player activity again (restoring the check, which would make `resetActionTimer` work) or `resetActionTimer`
     should go with the kick. A `TODO` in `InGameConnections` marks the specs to add if the check is restored.
 
-12. **A spectator admitted between the games of a rematch is never sent the lobby — open, new (2026-11-06).** After a
-    rematch is accepted the lobby has no game, so `Lobby.addSpectator` sends the spectator the lobby state through
-    `sendLobbyStateToSpectator`, which calls the raw socket.io socket's `send` (`socket.socket.send('lobbystate', …)`) rather
-    than the wrapper's. socket.io's `send` emits a `message` event carrying the arguments, so the client, which listens for
-    `lobbystate`, receives nothing; under the fake transport, whose `IRawGameSocket` has no `send`, the call throws. The fix
-    is the wrapper's `socket.send(...)`, which `sendGameStateToSpectator` already uses. Found by the step 3 coverage run; a
-    `TODO` in `SpectatorConnections` describes the spec to add.
-
 **Resolved** (the full entries are in the history document): #4, `this[command]` dispatch, resolved by #3014; #5, timers
 nothing could cancel, resolved by #3001 (its regression lock is checklist row L5); #8, an account whose profile was missing
 could never sign in, fixed by #3111; #9, a first sign-in with no email claim half-created the account, fixed by #3111
-(whether an account with no email should be accepted is still a product decision).
+(whether an account with no email should be accepted is still a product decision); #6, three scheduled callbacks that
+swallowed their own errors, #12, a spectator admitted between rematch games never sent the lobby, and #13, a spectator
+listed under their id, all fixed in core's step d (2026-11-06).
 
 *Also noticed, not findings:* three responses spell the success field `succeess` (`toggle-welcome-message`, and
 `change-username`'s two success paths; the FE never reads it, so correcting it is free); and the three deck routes'

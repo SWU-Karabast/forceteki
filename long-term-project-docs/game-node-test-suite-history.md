@@ -660,6 +660,28 @@ inactivity kick to game timers, legacy moderation to accounts); housekeeping (ol
 the I-7 time helpers moving to game timers; and the old *Future test suites* entries to their areas. Game timers were moved
 up to follow core. Production fixes now belong to each area's step d; security fixes stay separate, in dedicated commits.
 
+### Core step d — resolve what it found (2026-11-06)
+
+On branch `ammayberry1/gameserver-lobby-tests-6`, after #3129 merged steps a to c. Production changes, each made with the
+spec that was waiting on it and checked by running those specs against the code before the change (all four failed):
+
+- *Open finding #12*: `Lobby.sendLobbyStateToSpectator` sends through the `Socket` wrapper, so a spectator admitted
+  between the games of a rematch receives `lobbystate` (`SpectatorConnections`; checklist row C22).
+- *Open finding #6*: `GameServer.cleanupInvalidTokens`, `QueueHandler.cleanupPreviousMatchEntries` and
+  `QueueHandler.sendHeartbeat` no longer catch their own errors. All three run only on the scheduler, whose guard logs a
+  failure under the task's own message, so the logging is unchanged and the harness now sees the failure. The preference
+  announcement still schedules the next one if a heartbeat throws (`try` / `finally`). The hourly cleanup prunes
+  expired SWUBase tokens as well as SWUStats ones (`GameServerScheduling`).
+- *Open finding #13*, found during the step: `Lobby.addSpectator` listed a spectator under their id as the username; it
+  now uses their username. forceteki-client does not read the field, so the change shows only on the wire and in server
+  logs (`SpectatorConnections`).
+- *Dead code removed:* the commented-out anonymous-join block in `onConnectionAsync`, the `requeue` registration in
+  `setupQueueSocketAsync` (with the parameter only it used), and the `Socket` wrapper's `joinChannel` and
+  `leaveChannel`. The other candidates the coverage run listed are checks that reject or repair a state other code
+  maintains, and were kept as a safety net; the plan lists them.
+
+The coverage run, repeated, is recorded under *Refactor readiness* in the plan. 823 non-game specs (819 → 823).
+
 ## The account-auth PR
 
 ### Account-auth guards and suite guardrails (merged in #3021, 2026-10-17)
@@ -1241,3 +1263,28 @@ The numbers are the plan's *Open findings* numbers.
    missing `provider`, `providerId` or `name`, is now refused before anything is written, and the OAuth link is
    written last so a failed creation can be retried. Covered in `CredentialVerification`. Whether an account with no
    email should instead be accepted remains a product decision.
+
+6. **Three scheduled callbacks swallowed their own errors — fixed in core's step d (2026-11-06)** (`cleanupInvalidTokens`,
+   `QueueHandler.cleanupPreviousMatchEntries`, `QueueHandler.sendHeartbeat`; re-read after #3001's heavy
+   `QueueHandler` changes, and again on 2026-11-01 after #3031, which only added logging), so the scheduler's guard — and
+   therefore `assertNoScheduledErrors()` — cannot see
+   them. These are defensive at the method level and reachable from non-timer callers, so removing the inner
+   catches is a behaviour change rather than a simplification; revisit when those paths get direct coverage.
+   Related observation: the hourly cleanup only prunes `swuStatsTokenMapping`; `swuBaseTokenMapping` is never
+   pruned (entries are replaced on next use, so the impact is a few small objects per linked user, but the
+   existing cleanup spec cannot reveal it because it only exercises the SWUStats map).
+   *Fixed:* all three turned out to run only on the scheduler (the other caller of `sendHeartbeat` is the scheduler's own
+   preference announcement), so the inner catches went without changing what is logged, and the cleanup prunes both maps.
+   Covered in `GameServerScheduling`.
+
+12. **A spectator admitted between the games of a rematch is never sent the lobby — fixed in core's step d (2026-11-06).** After a
+    rematch is accepted the lobby has no game, so `Lobby.addSpectator` sends the spectator the lobby state through
+    `sendLobbyStateToSpectator`, which calls the raw socket.io socket's `send` (`socket.socket.send('lobbystate', …)`) rather
+    than the wrapper's. socket.io's `send` emits a `message` event carrying the arguments, so the client, which listens for
+    `lobbystate`, receives nothing; under the fake transport, whose `IRawGameSocket` has no `send`, the call throws. The fix
+    is the wrapper's `socket.send(...)`, which `sendGameStateToSpectator` already uses. Found by the step 3 coverage run.
+    *Fixed* with that change; covered in `SpectatorConnections`.
+
+13. **A spectator was listed under their id rather than their username — fixed (2026-11-06).** `Lobby.addSpectator` stored
+    `user.getId()` as the spectator's username, so the lobby state's `spectators` list (and the server's logs) showed the id.
+    forceteki-client does not read that field. Found and fixed in core's step d; covered in `SpectatorConnections`.
