@@ -48,6 +48,13 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
                 Contract.assertFalse(events.length === 0, `Replacement effect ${replacementImmediateEffect} for ${event.name} did not generate any events`);
 
                 events.forEach((replacementEvent) => {
+                    // a sequential replacement resolves all but its last step in nested windows while generating its events,
+                    // so only the events that have not resolved yet still need to be added to the window being replaced
+                    if (!replacementEvent.canResolve) {
+                        eventBeingReplaced.setReplacementEvent(replacementEvent);
+                        return;
+                    }
+
                     replacementEvent.order = eventBeingReplaced.order;
                     event.context.game.queueSimpleStep(() => {
                         eventBeingReplaced.setReplacementEvent(replacementEvent);

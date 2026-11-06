@@ -57,12 +57,23 @@ export class PlayerInteractionWrapper {
         // Combine all cards into one list
         const allCards = [...arenaCards, ...resourceCards, ...discardCards, ...handCards, ...deckCards];
 
+        const previousZones: ZoneName[] = allCards.map((card) => card.zoneName);
+
         // Update zone references and add to outsideTheGame in batch
         const outsideZone = this.player.outsideTheGameZone;
         for (let i = 0; i < allCards.length; i++) {
             allCards[i].zone = outsideZone;
         }
         outsideZone.addCards(allCards);
+
+        // Record each move so the refresh below updates the abilities that depend on the card's zone
+        // (e.g. unregisters a hand-zone trigger of a card that was in the opening hand)
+        for (let i = 0; i < allCards.length; i++) {
+            const card = allCards[i];
+            if (card.canBeInPlay()) {
+                (card as InPlayCard).registerMove(previousZones[i]);
+            }
+        }
 
         Util.refreshGameState(this.game);
     }
