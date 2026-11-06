@@ -121,7 +121,7 @@ describe('Tarkintown', function() {
 
 ### Writing a server spec (the HTTP / socket connection layer)
 
-Specs for `server/gamenode/`, `server/services/`, `server/utils/` and `server/scripts/` are the **non-game** group (`jasmine-nongame.json`); everything else is the **game** group (`jasmine-game.json`). `npm run validate-specs` fails CI if a spec's harness does not match its group, so an `integration()` spec cannot sit in a non-game directory or the reverse. `npm run test-nongame` runs the non-game group in seconds. The plan, the backlog and the list of known findings are in `long-term-project-docs/game-node-test-suite.md`.
+Specs for `server/gamenode/`, `server/services/`, `server/utils/` and `server/scripts/` are the **non-game** group (`jasmine-nongame.json`); everything else is the **game** group (`jasmine-game.json`). `npm run validate-specs` fails CI if a spec's harness does not match its group, so an `integration()` spec cannot sit in a non-game directory or the reverse. `npm run test-nongame` runs the non-game group in seconds. The plan, the backlog and the list of known findings are in `long-term-project-docs/game-node-test-suite.md`; the record of finished work is `game-node-test-suite-history.md` beside it.
 
 Pick the harness by what the spec drives: `integration()` for the rules engine; `serverIntegration()` (`test/helpers/server/`) for the connection layer — it builds a real `GameServer` in-process on a virtual clock, and `harness.createClient()` makes the same HTTP calls and socket handshake `forceteki-client` does; plain jasmine with spies only for a pure unit (as `UserFactory.spec.ts` does).
 
