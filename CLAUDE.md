@@ -150,11 +150,16 @@ Do not cast to `any` to reach into `GameServer` or `Lobby` (ESLint errors on `as
 
 ### State snapshots (what the server sends)
 
-`test/stateSnapshots/` holds the engine's committed record of the game states it sends: `<scenario>/<step>.<player1|player2|spectator>.json`, each exactly what `game.getState(id)` returns at that moment, with generated uuids made stable and chat left out. They are written by **capture specs** (`*.capture.ts` in the same directory), which set up a board with the `integration()` harness like a card spec and call `captureState(context.game, '<scenario>/<step>')` at each moment a client would receive a state. Clients fetch these files at a given commit to test their board against, rather than keeping their own copy, so treat them as the server's output contract.
+`test/stateSnapshots/` holds the engine's committed record of the game states it sends, each exactly what `game.getState(id)` returns at that moment, with generated uuids made stable and chat left out. Clients fetch these files at a given commit to test against, rather than keeping their own copy, so treat them as the server's contract. They are written by **capture specs** (`*.capture.ts`, beside the files they write), which set up a board with the `integration()` harness like a card spec. There are two kinds, kept separate:
+
+- **Render** (`render/<name>.<participant>.json`): one board, for checking a client draws it correctly. `captureState(context.game, '<name>', ['player1', 'spectator'])` saves it for the participants named. Make boards mirrored, both players with the same cards, so one view shows every card both as the player's and as the opponent's, and put many card states on one board rather than adding boards.
+- **Controls** (`controls/<name>.json`): a short chain of states for one participant, for checking a client sends the right message when clicked. `captureChain(context.game, '<name>')` returns `step(participant)`, called at each state the participant receives, and `save()`. Every message the participant sends between steps is recorded as that step's `send`, exactly as the client emits it on the `game` socket event, so the next step is the server's reply to it. Keep the board to the cards the prompts need (`resources: 0` unless they cost something).
+
+Rules:
 
 - `npm run capture-states -- --check` (CI) fails when the engine no longer produces exactly the committed files, or when a committed file has no capture producing it. `--update` rewrites them; add `--fast-build` to skip the full rebuild.
-- A change to what `getState` returns must commit the regenerated snapshots in the same PR. Never edit them by hand; re-run `--update`, including to resolve a merge conflict in them.
-- A board situation no capture covers (a new prompt, a new zone, an error state) gets a new capture spec in the PR that introduces it.
+- A change to what `getState` returns, or to the messages a prompt accepts, must commit the regenerated snapshots in the same PR. Never edit them by hand; re-run `--update`, including to resolve a merge conflict in them.
+- A board situation no capture covers gets added in the PR that introduces it: a new card state goes on an existing render board, a new kind of prompt gets a control chain.
 - Capture specs are not run by `npm test` and are not part of either jasmine group; `jasmine-capture.json` runs them.
 
 ## Manual testing against the client

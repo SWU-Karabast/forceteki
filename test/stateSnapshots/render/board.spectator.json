@@ -6,7 +6,18 @@
   "players": {
     "111": {
       "cardPiles": {
-        "hand": [],
+        "hand": [
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "hand"
+          },
+          {
+            "controllerId": "111",
+            "ownerId": "111",
+            "zone": "hand"
+          }
+        ],
         "outsideTheGame": [
           {
             "id": "4571900905",
@@ -19,7 +30,7 @@
             "zone": "outsideTheGame",
             "name": "The Force",
             "type": "tokenCard",
-            "uuid": "Card_165",
+            "uuid": "Card_124",
             "printedType": "tokenCard",
             "isBlanked": false
           }
@@ -43,90 +54,6 @@
             "ownerId": "111",
             "zone": "resource",
             "exhausted": true
-          },
-          {
-            "controllerId": "111",
-            "ownerId": "111",
-            "zone": "resource",
-            "exhausted": true
-          },
-          {
-            "controllerId": "111",
-            "ownerId": "111",
-            "zone": "resource",
-            "exhausted": true
-          },
-          {
-            "controllerId": "111",
-            "ownerId": "111",
-            "zone": "resource",
-            "exhausted": true
-          },
-          {
-            "controllerId": "111",
-            "ownerId": "111",
-            "zone": "resource",
-            "exhausted": true
-          },
-          {
-            "controllerId": "111",
-            "ownerId": "111",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "111",
-            "ownerId": "111",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "111",
-            "ownerId": "111",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "111",
-            "ownerId": "111",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "111",
-            "ownerId": "111",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "111",
-            "ownerId": "111",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "111",
-            "ownerId": "111",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "111",
-            "ownerId": "111",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "111",
-            "ownerId": "111",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "111",
-            "ownerId": "111",
-            "zone": "resource",
-            "exhausted": false
           },
           {
             "controllerId": "111",
@@ -161,10 +88,129 @@
             ],
             "zone": "groundArena",
             "name": "Wampa",
-            "power": 6,
-            "hp": 7,
+            "power": 5,
+            "hp": 6,
             "type": "basicUnit",
-            "uuid": "Card_139",
+            "uuid": "Card_90",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "exhausted": false,
+            "damage": 2,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": false,
+            "isDefender": false
+          },
+          {
+            "id": "2007868442",
+            "setId": {
+              "set": "SOR"
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "groundArena",
+            "name": "Experience",
+            "power": 1,
+            "hp": 1,
+            "type": "tokenUpgrade",
+            "uuid": "Card_204",
+            "printedType": "tokenUpgrade",
+            "isBlanked": false,
+            "parentCardId": "Card_90"
+          },
+          {
+            "id": "8752877738",
+            "setId": {
+              "set": "SOR"
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [],
+            "zone": "groundArena",
+            "name": "Shield",
+            "power": 0,
+            "hp": 0,
+            "type": "tokenUpgrade",
+            "uuid": "Card_206",
+            "printedType": "tokenUpgrade",
+            "isBlanked": false,
+            "parentCardId": "Card_90"
+          },
+          {
+            "id": "4317911650",
+            "setId": {
+              "set": "SOR",
+              "number": 95
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [
+              "command",
+              "heroism"
+            ],
+            "zone": "groundArena",
+            "name": "Battlefield Marine",
+            "power": 3,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_94",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "exhausted": true,
+            "damage": 0,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": false,
+            "isDefender": false
+          },
+          {
+            "id": "6514927936",
+            "setId": {
+              "set": "SOR",
+              "number": 9
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [
+              "heroism",
+              "command"
+            ],
+            "zone": "groundArena",
+            "name": "Leia Organa",
+            "power": 3,
+            "hp": 6,
+            "type": "nonTokenLeaderUnit",
+            "uuid": "Card_104",
+            "printedType": "leader",
+            "isBlanked": false,
+            "exhausted": false,
+            "damage": 0,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": false,
+            "isDefender": false,
+            "epicDeployActionSpent": true
+          }
+        ],
+        "spaceArena": [
+          {
+            "id": "5562575456",
+            "setId": {
+              "set": "IC27",
+              "number": 178
+            },
+            "controllerId": "111",
+            "ownerId": "111",
+            "aspects": [
+              "villainy"
+            ],
+            "zone": "spaceArena",
+            "name": "TIE/ln Fighter",
+            "power": 2,
+            "hp": 1,
+            "type": "basicUnit",
+            "uuid": "Card_98",
             "printedType": "basicUnit",
             "isBlanked": false,
             "exhausted": false,
@@ -175,77 +221,61 @@
             "isDefender": false
           }
         ],
-        "spaceArena": [],
-        "discard": [
-          {
-            "id": "1900571801",
-            "setId": {
-              "set": "SOR",
-              "number": 92
-            },
-            "controllerId": "111",
-            "ownerId": "111",
-            "aspects": [
-              "command",
-              "villainy"
-            ],
-            "zone": "discard",
-            "name": "Overwhelming Barrage",
-            "type": "event",
-            "uuid": "Card_134",
-            "printedType": "event",
-            "isBlanked": false
-          }
-        ],
+        "discard": [],
         "credits": []
       },
       "disconnected": false,
       "hasInitiative": true,
-      "availableResources": 13,
+      "availableResources": 3,
       "leaders": [
         {
-          "id": "6088773439",
+          "id": "6514927936",
           "setId": {
             "set": "SOR",
-            "number": 10
+            "number": 9
           },
           "controllerId": "111",
           "ownerId": "111",
           "aspects": [
-            "aggression",
-            "villainy"
+            "heroism",
+            "command"
           ],
-          "zone": "base",
-          "name": "Darth Vader",
-          "power": 5,
-          "hp": 8,
-          "type": "leader",
-          "uuid": "Card_146",
+          "zone": "groundArena",
+          "name": "Leia Organa",
+          "power": 3,
+          "hp": 6,
+          "type": "nonTokenLeaderUnit",
+          "uuid": "Card_104",
           "printedType": "leader",
           "isBlanked": false,
           "exhausted": false,
-          "epicDeployActionSpent": false
+          "damage": 0,
+          "sentinel": false,
+          "cannotBeAttacked": false,
+          "isAttacker": false,
+          "isDefender": false,
+          "epicDeployActionSpent": true
         }
       ],
       "base": {
-        "id": "0461841375",
+        "id": "5662039114",
         "setId": {
-          "set": "SOR",
-          "number": 27
+          "set": "SHD",
+          "number": 22
         },
         "controllerId": "111",
         "ownerId": "111",
         "aspects": [
-          "aggression"
+          "command"
         ],
         "zone": "base",
-        "name": "Kestro City",
+        "name": "Nevarro City",
         "hp": 30,
         "type": "base",
-        "uuid": "Card_143",
+        "uuid": "Card_102",
         "printedType": "base",
         "isBlanked": false,
-        "damage": 0,
+        "damage": 7,
         "epicActionSpent": false,
         "isDefender": false,
         "upgrades": []
@@ -277,9 +307,9 @@
       "promptState": {},
       "isActionPhaseActivePlayer": true,
       "aspects": [
-        "aggression",
-        "villainy",
-        "aggression"
+        "heroism",
+        "command",
+        "command"
       ],
       "forceToken": {
         "active": false
@@ -292,7 +322,18 @@
     },
     "222": {
       "cardPiles": {
-        "hand": [],
+        "hand": [
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "hand"
+          },
+          {
+            "controllerId": "222",
+            "ownerId": "222",
+            "zone": "hand"
+          }
+        ],
         "outsideTheGame": [
           {
             "id": "4571900905",
@@ -305,7 +346,7 @@
             "zone": "outsideTheGame",
             "name": "The Force",
             "type": "tokenCard",
-            "uuid": "Card_168",
+            "uuid": "Card_125",
             "printedType": "tokenCard",
             "isBlanked": false
           }
@@ -316,103 +357,19 @@
             "controllerId": "222",
             "ownerId": "222",
             "zone": "resource",
-            "exhausted": false
+            "exhausted": true
           },
           {
             "controllerId": "222",
             "ownerId": "222",
             "zone": "resource",
-            "exhausted": false
+            "exhausted": true
           },
           {
             "controllerId": "222",
             "ownerId": "222",
             "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "222",
-            "ownerId": "222",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "222",
-            "ownerId": "222",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "222",
-            "ownerId": "222",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "222",
-            "ownerId": "222",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "222",
-            "ownerId": "222",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "222",
-            "ownerId": "222",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "222",
-            "ownerId": "222",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "222",
-            "ownerId": "222",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "222",
-            "ownerId": "222",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "222",
-            "ownerId": "222",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "222",
-            "ownerId": "222",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "222",
-            "ownerId": "222",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "222",
-            "ownerId": "222",
-            "zone": "resource",
-            "exhausted": false
-          },
-          {
-            "controllerId": "222",
-            "ownerId": "222",
-            "zone": "resource",
-            "exhausted": false
+            "exhausted": true
           },
           {
             "controllerId": "222",
@@ -435,25 +392,88 @@
         ],
         "groundArena": [
           {
-            "id": "6072239164",
+            "id": "6577517407",
             "setId": {
-              "set": "IC27",
-              "number": 183
+              "set": "LOF",
+              "number": 164
             },
             "controllerId": "222",
             "ownerId": "222",
             "aspects": [
-              "villainy"
+              "aggression"
             ],
             "zone": "groundArena",
-            "name": "AT-ST",
-            "power": 6,
-            "hp": 7,
+            "name": "Wampa",
+            "power": 5,
+            "hp": 6,
             "type": "basicUnit",
-            "uuid": "Card_137",
+            "uuid": "Card_92",
             "printedType": "basicUnit",
             "isBlanked": false,
             "exhausted": false,
+            "damage": 2,
+            "sentinel": false,
+            "cannotBeAttacked": false,
+            "isAttacker": false,
+            "isDefender": false
+          },
+          {
+            "id": "2007868442",
+            "setId": {
+              "set": "SOR"
+            },
+            "controllerId": "222",
+            "ownerId": "222",
+            "aspects": [],
+            "zone": "groundArena",
+            "name": "Experience",
+            "power": 1,
+            "hp": 1,
+            "type": "tokenUpgrade",
+            "uuid": "Card_214",
+            "printedType": "tokenUpgrade",
+            "isBlanked": false,
+            "parentCardId": "Card_92"
+          },
+          {
+            "id": "8752877738",
+            "setId": {
+              "set": "SOR"
+            },
+            "controllerId": "222",
+            "ownerId": "222",
+            "aspects": [],
+            "zone": "groundArena",
+            "name": "Shield",
+            "power": 0,
+            "hp": 0,
+            "type": "tokenUpgrade",
+            "uuid": "Card_216",
+            "printedType": "tokenUpgrade",
+            "isBlanked": false,
+            "parentCardId": "Card_92"
+          },
+          {
+            "id": "4317911650",
+            "setId": {
+              "set": "SOR",
+              "number": 95
+            },
+            "controllerId": "222",
+            "ownerId": "222",
+            "aspects": [
+              "command",
+              "heroism"
+            ],
+            "zone": "groundArena",
+            "name": "Battlefield Marine",
+            "power": 3,
+            "hp": 3,
+            "type": "basicUnit",
+            "uuid": "Card_96",
+            "printedType": "basicUnit",
+            "isBlanked": false,
+            "exhausted": true,
             "damage": 0,
             "sentinel": false,
             "cannotBeAttacked": false,
@@ -461,31 +481,32 @@
             "isDefender": false
           },
           {
-            "id": "8184790799",
+            "id": "6514927936",
             "setId": {
               "set": "SOR",
-              "number": 46
+              "number": 9
             },
             "controllerId": "222",
             "ownerId": "222",
             "aspects": [
-              "vigilance",
-              "heroism"
+              "heroism",
+              "command"
             ],
             "zone": "groundArena",
-            "name": "Consular Security Force",
+            "name": "Leia Organa",
             "power": 3,
-            "hp": 7,
-            "type": "basicUnit",
-            "uuid": "Card_141",
-            "printedType": "basicUnit",
+            "hp": 6,
+            "type": "nonTokenLeaderUnit",
+            "uuid": "Card_112",
+            "printedType": "leader",
             "isBlanked": false,
             "exhausted": false,
             "damage": 0,
             "sentinel": false,
             "cannotBeAttacked": false,
             "isAttacker": false,
-            "isDefender": false
+            "isDefender": false,
+            "epicDeployActionSpent": true
           }
         ],
         "spaceArena": [
@@ -505,7 +526,7 @@
             "power": 2,
             "hp": 1,
             "type": "basicUnit",
-            "uuid": "Card_144",
+            "uuid": "Card_100",
             "printedType": "basicUnit",
             "isBlanked": false,
             "exhausted": false,
@@ -521,51 +542,56 @@
       },
       "disconnected": false,
       "hasInitiative": false,
-      "availableResources": 20,
+      "availableResources": 3,
       "leaders": [
         {
-          "id": "2579145458",
+          "id": "6514927936",
           "setId": {
             "set": "SOR",
-            "number": 5
+            "number": 9
           },
           "controllerId": "222",
           "ownerId": "222",
           "aspects": [
-            "vigilance",
-            "heroism"
+            "heroism",
+            "command"
           ],
-          "zone": "base",
-          "name": "Luke Skywalker",
-          "power": 4,
-          "hp": 7,
-          "type": "leader",
-          "uuid": "Card_157",
+          "zone": "groundArena",
+          "name": "Leia Organa",
+          "power": 3,
+          "hp": 6,
+          "type": "nonTokenLeaderUnit",
+          "uuid": "Card_112",
           "printedType": "leader",
           "isBlanked": false,
           "exhausted": false,
-          "epicDeployActionSpent": false
+          "damage": 0,
+          "sentinel": false,
+          "cannotBeAttacked": false,
+          "isAttacker": false,
+          "isDefender": false,
+          "epicDeployActionSpent": true
         }
       ],
       "base": {
-        "id": "8129465864",
+        "id": "5662039114",
         "setId": {
-          "set": "SOR",
-          "number": 29
+          "set": "SHD",
+          "number": 22
         },
         "controllerId": "222",
         "ownerId": "222",
         "aspects": [
-          "cunning"
+          "command"
         ],
         "zone": "base",
-        "name": "Administrator's Tower",
+        "name": "Nevarro City",
         "hp": 30,
         "type": "base",
-        "uuid": "Card_154",
+        "uuid": "Card_103",
         "printedType": "base",
         "isBlanked": false,
-        "damage": 0,
+        "damage": 7,
         "epicActionSpent": false,
         "isDefender": false,
         "upgrades": []
@@ -597,9 +623,9 @@
       "promptState": {},
       "isActionPhaseActivePlayer": false,
       "aspects": [
-        "vigilance",
         "heroism",
-        "cunning"
+        "command",
+        "command"
       ],
       "forceToken": {
         "active": false
@@ -613,37 +639,13 @@
   },
   "phase": "action",
   "initiativeClaimed": false,
-  "clientUIProperties": {
-    "lastPlayedCard": {
-      "set": "SOR",
-      "number": 92
-    }
-  },
+  "clientUIProperties": {},
   "spectators": [],
   "started": true,
   "format": "premier",
   "winners": [],
   "undoEnabled": false,
-  "ongoingEffects": [
-    {
-      "sourceCardUuid": "Card_134",
-      "source": {
-        "type": "event",
-        "setId": {
-          "set": "SOR",
-          "number": 92
-        },
-        "controllerId": "111",
-        "sourceZone": "discard",
-        "sourceTitle": "Overwhelming Barrage",
-        "effectDescription": "Give a friendly unit +2/+2 for this phase"
-      },
-      "hiddenFromOpponent": false,
-      "targets": [
-        "Card_139"
-      ]
-    }
-  ],
+  "ongoingEffects": [],
   "newAnimations": [],
   "animationOffset": 0,
   "totalAnimations": 0,
