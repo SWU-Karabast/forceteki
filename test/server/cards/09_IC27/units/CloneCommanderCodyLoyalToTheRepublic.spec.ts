@@ -88,5 +88,46 @@ describe('Clone Commander Cody, Loyal to the Republic', function() {
             expect(context._41stEliteCorps).toHaveExactUpgradeNames([]);
             expect(context.player1).toBeActivePlayer();
         });
+
+        it('should give an Experience token to a friendly Republic leader when it is deployed', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'obiwan-kenobi#patient-mentor',
+                    groundArena: ['clone-commander-cody#loyal-to-the-republic'],
+                    resources: 10,
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.obiwanKenobi);
+            context.player1.clickPrompt('Deploy Obi-Wan Kenobi');
+
+            expect(context.obiwanKenobi).toBeInZone('groundArena');
+            expect(context.obiwanKenobi).toHaveExactUpgradeNames(['experience']);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('should give an Experience token to each friendly Clone Trooper token that enters play', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['drop-in'],
+                    groundArena: ['clone-commander-cody#loyal-to-the-republic'],
+                    resources: 6,
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.dropIn);
+            context.player1.clickPrompt('Resolve all (2)');
+
+            const cloneTroopers = context.player1.findCardsByName('clone-trooper');
+            expect(cloneTroopers.length).toBe(2);
+            for (const cloneTrooper of cloneTroopers) {
+                expect(cloneTrooper).toHaveExactUpgradeNames(['experience']);
+            }
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
