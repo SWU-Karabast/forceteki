@@ -498,6 +498,119 @@ production file changed. The rewritten assertions were seen to fail when the beh
 `cleanLobby` and `changeStat` to the allowlists fails both allowlist specs, and letting every user chat (`checkUserCanChat`
 returning true) fails all nine "drops" specs in `ChatPermissions`.
 
+### Step 2 — refactor-gate scenarios (2026-11-06)
+
+Roadmap step 2: the gaps the *Refactor readiness* checklist listed after step 1. Test-only: no production file changed.
+40 specs, 771 → 811 non-game.
+
+**New spec files**, each in its area folder:
+
+| File | Covers |
+|---|---|
+| `lobby/SocketConnectionRouting` (10) | where `onConnectionAsync` sends a socket and what one it cannot place is told: a non-JSON user query; a spectator connecting as a player; a joiner whose lobby has closed; the `join-lobby` race; a seat that fails to set up; a link to a lobby that is gone, full or in game; a mapped user carrying another lobby's link; an anonymous link to a public best-of-three lobby |
+| `lobby/SpectatorConnections` (6) | the spectator branches: admission and a second tab, an anonymous or unregistered socket, a spectator whose game has gone, a lobby that stops allowing spectators |
+| `lobby/LobbyLifecycle` (11) | ownership and its hand-over; closing when the last player leaves or stays away; the `Lobby timed out` path and its five-minute boundary; a player making for another lobby or the queue (refused within 60 s, let go after it, never connected, taken out of the queue) |
+| `lobby/InGameConnections` (4) | a reconnect inside the grace window; a drop mid-game and back; grace expiry ending the game with `PlayerLeft`; an in-game second tab |
+| `matchmaking/QuickLobbyCountdown` (6) | the countdown's sequence; waiting for a player who dropped as it ended; the 20 s penalty at its boundary, over HTTP and by a link; the opponent's requeue; a requeue refused in maintenance mode |
+
+Also: two shutdown checks in `GameServerScheduling` (a pending grace timer, and a live game's action timers, each
+counted from a baseline), and the `join-lobby` call site of the best-of-three gate in `GameServerAnonymousRestrictions`.
+
+**What the specs found.**
+
+- *The fake socket shared the server's objects.* `FakeIoSocket` recorded each emit's arguments by reference, so a
+  payload a spec had already received could change afterwards: the game state's `winners` is the server's own array,
+  and a spec that kept an earlier `gamestate` saw it fill in. A real socket serializes what it sends, so the fake now
+  records a JSON copy, as socket.io's encoder would (an `undefined` argument arrives as `null`). No existing spec
+  depended on the shared references.
+- *A lobby link does not reach `canUserJoinNewLobby` for a user the server has down for a lobby.* `onConnectionAsync`
+  takes such a user back to their own lobby before it reads the link, so the planned "link while still playing elsewhere"
+  case is the mapped-user branch instead (now a spec), and the only user a link can refuse is one with no lobby, such as
+  a player under the matchmaking penalty.
+- *The inactivity kick is gone, and `resetActionTimer` does nothing to the action timer* (open finding #11). The plan's
+  timer items described behaviour from before the byoyomi timer (#2056). Checklist row L4 is waived for the refactor,
+  and a `TODO` in `InGameConnections` marks the specs to add.
+- *Two items the checklist expected cannot be reached through the API* and are waived with the reason in the checklist:
+  the ownership fallback in `addLobbyUserAsync`, and `requeueUser`'s refusal for a player without a deck.
+- *Some behaviour is held.* Parts of rows C1, C11 and L2 wait on production changes being decided with the maintainers;
+  no spec asserts the current behaviour there.
+- *Also noticed:* a player under the matchmaking penalty is refused with 403 `User is already in a lobby`, which says why
+  only for the stale-lobby case. The specs assert the status, not the message.
+
+**Verified.** The non-game group passes serially and in three parallel random runs, and lint and `validate-specs`
+pass. The specs that passed on their first run were checked against deliberately broken behaviour: a spectator
+registration kept after spectators are switched off, a 19-second penalty, a 59-second stale-lobby window, a six-departure
+time-out, a player leaving without ending the game, the `Lobby does not exist` branch keeping the user's lobby entry, and
+the `join-lobby` race check removed. Each failed the spec written for it.
+
+**The plan this step followed**, as written on 2026-11-05:
+
+Everything already covered has been removed from this list (see the table in *Merged since Phase 2.5* above). The checklist rows each group closes are given with it.
+
+**Lobby lifecycle** — no new infrastructure:
+
+- **Ownership.** `lobbystate.lobbyOwnerId` is on the wire. Assert the creator owns the lobby; that ownership
+  moves to the remaining user when the owner leaves (`Lobby.removeUser`); and the fallback in
+  `addLobbyUserAsync` (owner missing from `userLobbyMap` → the joiner becomes owner).
+- **Full lobby, two branches.** `join-lobby` on a filled lobby returns `400 Lobby is full`. But seats are
+  only taken at socket connect, so two users can both pass that check, and the second then receives
+  `connection_error: 'Lobby is full'` (the race the code comments on). Also: connecting via link to a
+  nonexistent, full, or in-game lobby (silent disconnect).
+- **Join while already in a lobby.** `canUserJoinNewLobby` blocks for 60 s of lobby inactivity, then
+  *evicts* the stale mapping and removes the user from the old lobby. Only the `403` side is tested, and only
+  for `create-lobby`. Add `join-lobby` / `enter-queue` variants and the ≥ 60 s eviction on the virtual clock.
+- **Empty-lobby cleanup.** Last user leaves → the lobby is removed from the server and from discovery; also the
+  5-users-left-and-5-minutes `Lobby timed out` path (`checkIncrementUsersLeftCount`).
+- **Reconnect inside the grace window.** Abrupt drop, then reconnect within 20 s: the seat is kept and the
+  timer does not remove them. In a live game: `lobbystate` and `gamestate` are re-sent, and grace expiry
+  mid-game ends the game with `PlayerLeft`. (The queued-player equivalent is covered.)
+- **Matchmaking-disconnect penalty.** A player who drops during the countdown is refused `create-lobby`,
+  `join-lobby` and `enter-queue` for 20 s (`playerMatchmakingDisconnectedTime`). Untested.
+- **Bo3 gating, remaining call sites:** `join-lobby` and join-via-link.
+
+These close C11, C13 (in game), C15–C17, D1, D3, D4, D6, B2–B4, L1 and L3. The mid-game halves start from
+`harness.startLiveGameAsync`.
+
+**Quick-lobby countdown as the subject** — no new infrastructure:
+
+- the countdown text sequence (`Starts in 5` … `Starts in 0`, then `Waiting for opponent to connect...`);
+- the game starts only when both players are `connected`;
+- neither connects within the window → `removeLobby` and requeue (`remainingSeconds ≤ -4`).
+
+(A player dropping *mid-countdown* → `matchmakingFailed` is already covered.)
+
+This closes L2.
+
+**Timers** — no new infrastructure; set `actionTimersEnabled: true` and use the public `ByoyomiTimer.*`
+constants rather than literals:
+
+- Inactivity kick → `inactiveDisconnect` + `forceDisconnect`, then `handleIntentionalDisconnect`; no re-entry.
+- `resetActionTimer` actually extends the timer (the FE sends it when opening the bug-report dialog), and
+  every lobby/game message refreshes it via `updateUserLastActivity`.
+
+These close L4.
+
+**The connection path.** Moved here from the Tier 2 list, because they all sit inside `onConnectionAsync`:
+
+- **Socket handshake failures** beyond an invalid JWT: missing or non-JSON `query.lobby` (`JSON.parse` /
+  `Helpers.getSingleOrThrow` in `onConnectionAsync`) and non-JSON `query.user` (C1).
+- **Multi-tab beyond lobbies.** A second connection for a spectator, a queued player and an in-game player (the
+  lobby case is covered through `TestClient.previousSocket`) (C8, C13, C19).
+- **The spectator branches:** the anonymous-spectator gate on the *socket* path (the HTTP gate is covered), a spectator
+  who is not registered, one whose lobby is gone or has no game, `allowSpectators: false`, and admission (C4–C8). Start from
+  `harness.startLiveGameAsync`.
+- **The remaining edges:** a mapped user whose role is not Player or whose lobby is gone (C9, C10), `addLobbyUserAsync`
+  failing (C12), a queued user who makes a lobby or queue call and is taken out of the queue (B5), and `requeueUser`'s two
+  refusals (B6).
+
+**Permanent regression locks** (cheap — each is a single `pendingTaskCount` assertion in
+`GameServerScheduling.spec.ts`): abrupt disconnect → shutdown with the grace timer still pending; live
+game with action timers → shutdown. Count from a baseline taken before the disconnect or the game, as
+`GameServerMatchmaking` does, not from fixed numbers: the server's own background tasks (#3111 added one) and the
+database services' refresh timers share the clock, and `harness.databaseTaskCount` is the latter's share.
+
+This closes L5.
+
 ## The account-auth PR
 
 ### Account-auth guards and suite guardrails (merged in #3021, 2026-10-17)

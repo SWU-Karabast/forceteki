@@ -51,8 +51,11 @@ export interface IConnectOptions {
     /** Presents this token in the handshake instead of the client's own. For a bad-credential scenario. */
     token?: string;
 
-    /** Presents this `user` in the handshake query instead of the client's own. */
-    user?: Record<string, unknown>;
+    /**
+     * Presents this `user` in the handshake query instead of the client's own: an object is sent as JSON, as
+     * the real client sends it, and a string exactly as given, for a malformed query.
+     */
+    user?: Record<string, unknown> | string;
 }
 
 /** Result of {@link TestClient.attemptConnectAsync}. */
@@ -274,7 +277,7 @@ export class TestClient {
         const fakeSocket = new FakeIoSocket({
             auth: token ? { token } : {},
             query: {
-                ...(handshakeUser ? { user: JSON.stringify(handshakeUser) } : {}),
+                ...(handshakeUser ? { user: typeof handshakeUser === 'string' ? handshakeUser : JSON.stringify(handshakeUser) } : {}),
                 lobby: JSON.stringify({ lobbyId: options.lobbyId ?? null }),
                 spectator: options.spectator ? 'true' : 'false',
             },
