@@ -811,9 +811,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             this._attackKeywordAbilities = [];
 
-            // getNumericKeywordTotal is null when the total is 0 (e.g. Raid 0 replaced by Restore 0): Restore 0 heals nothing, so there is no ability to register
-            const restoreAmount = hasRestore ? this.getNumericKeywordTotal(KeywordName.Restore) : null;
-            if (restoreAmount != null) {
+            if (hasRestore) {
+                const restoreAmount = this.getNumericKeywordTotal(KeywordName.Restore);
                 const restoreProps = Object.assign(this.buildGeneralAbilityProps('keyword_restore'), RestoreAbility.buildRestoreAbilityProperties(restoreAmount));
                 const restoreAbility = this.createTriggeredAbility(restoreProps);
                 restoreAbility.registerEvents();

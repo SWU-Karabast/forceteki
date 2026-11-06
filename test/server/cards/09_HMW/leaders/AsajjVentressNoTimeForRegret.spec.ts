@@ -319,5 +319,52 @@ describe('Asajj Ventress, No Time for Regret', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('Asajj Ventress\'s leader side ability, when the attacker gains Raid for each of something', function() {
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'asajj-ventress#no-time-for-regret',
+                        resources: 4,
+                        base: { card: 'kestro-city', damage: 5 },
+                        groundArena: ['chewbacca#resourceful-wookiee']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+            });
+
+            it('should not offer a Restore trigger when there is nothing to count (Chewbacca with no exhausted resource has no Raid)', function() {
+                const { context } = contextRef;
+
+                expect(context.chewbacca.hasSomeKeyword('raid')).toBeFalse();
+
+                context.player1.clickCard(context.asajjVentress);
+                context.player1.clickCard(context.chewbacca);
+                context.player1.clickPrompt(raidToRestore);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.p1Base.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should turn the gained Raid into Restore with the counted amount (2 exhausted resources)', function() {
+                const { context } = contextRef;
+
+                context.player1.exhaustResources(2);
+
+                context.player1.clickCard(context.asajjVentress);
+                context.player1.clickCard(context.chewbacca);
+                context.player1.clickPrompt(raidToRestore);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(0);
+                expect(context.p1Base.damage).toBe(3);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
