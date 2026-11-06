@@ -690,7 +690,7 @@ describe('GameServer matchmaking preferences', function () {
                     if (reconnectBeforeRequeue) {
                         await player.connectAsync();
                     }
-                    await player.sendGameMessageAsync('concede');
+                    await player.concedeAsync();
                     expect(player.gameState.winners).toHaveSize(1);
                     await harness.clock.advanceAsync(1_000);
                     await player.requeueAsync();

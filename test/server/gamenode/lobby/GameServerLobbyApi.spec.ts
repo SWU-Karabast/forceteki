@@ -143,6 +143,16 @@ describe('GameServer lobby API', function () {
                 expect(response.status).toBe(404);
                 expect(response.body.success).toBe(false);
             });
+
+            it('refuses a lobby whose two seats are taken', async function () {
+                const { lobbyId } = await harness.createLobbyWithGuestAsync();
+                const latecomer = harness.createClient();
+
+                const response = await latecomer.joinLobbyAsync(lobbyId);
+
+                expect(response.status).toBe(400);
+                expect(response.body).toEqual({ success: false, message: 'Lobby is full' });
+            });
         });
     });
 });

@@ -1,10 +1,15 @@
 import type { Response as SupertestResponse } from 'supertest';
 
-import type { CardPool, GamesToWinMode, MatchmakingCompetitivenessPreference, SwuGameFormat } from '../../../server/game/core/Constants';
+import type { CardPool, GamesToWinMode, MatchmakingCompetitivenessPreference, RematchMode, SwuGameFormat } from '../../../server/game/core/Constants';
+import type { IStatefulPromptResults } from '../../../server/game/core/gameSteps/PromptInterfaces';
+import type { IGetSnapshotSettings } from '../../../server/game/core/snapshot/SnapshotInterfaces';
+import type { PlayerReportType } from '../../../server/game/Interfaces';
 import type { IQueueMatchmakingStatus } from '../../../server/gamenode/MatchmakingRules';
 import type { IUserProfileDataEntity } from '../../../server/services/DynamoDBInterfaces';
 import type { ISwuDbFormatDecklist } from '../../../server/utils/deck/DeckInterfaces';
 import { mintSessionToken, sessionCookie, signInClaims } from './AuthTokens';
+import type { IChatEntry } from './ChatEntries';
+import { toChatEntries } from './ChatEntries';
 import type { ISeededAccount } from './FakeDynamoDbService';
 import { FakeIoSocket } from './FakeIoSocket';
 import type { RouteMethod } from './RouteRecorder';
@@ -46,8 +51,11 @@ export interface IConnectOptions {
     /** Presents this token in the handshake instead of the client's own. For a bad-credential scenario. */
     token?: string;
 
-    /** Presents this `user` in the handshake query instead of the client's own. */
-    user?: Record<string, unknown>;
+    /**
+     * Presents this `user` in the handshake query instead of the client's own: an object is sent as JSON, as
+     * the real client sends it, and a string exactly as given, for a malformed query.
+     */
+    user?: Record<string, unknown> | string;
 }
 
 /** Result of {@link TestClient.attemptConnectAsync}. */
@@ -269,7 +277,7 @@ export class TestClient {
         const fakeSocket = new FakeIoSocket({
             auth: token ? { token } : {},
             query: {
-                ...(handshakeUser ? { user: JSON.stringify(handshakeUser) } : {}),
+                ...(handshakeUser ? { user: typeof handshakeUser === 'string' ? handshakeUser : JSON.stringify(handshakeUser) } : {}),
                 lobby: JSON.stringify({ lobbyId: options.lobbyId ?? null }),
                 spectator: options.spectator ? 'true' : 'false',
             },
@@ -289,14 +297,171 @@ export class TestClient {
         return { connected: true };
     }
 
+    /**
+     * Whether the server has this user down for nothing - no lobby seat, spectator seat or queue entry - found out
+     * the way a client would: a socket connecting with no lobby link is refused with the server's catch-all error,
+     * where a user it still has down for something is routed there or told something else. Connects a new socket
+     * to find out, so use it at the end of a spec.
+     */
+    public async hasNoPlaceAsync(): Promise<boolean> {
+        await this.connectAsync();
+        return !this.isConnected && this.connectionErrors.length === 1 && this.connectionErrors[0] === 'Connection error, please try again';
+    }
+
     // ---- Messaging (mirroring `sendMessage`/the `game`/`lobby` channels in `Game.context.tsx`) ----
 
+    /**
+     * Any command on the `lobby` channel, with exactly these arguments. Prefer the typed commands below,
+     * which send what the real client sends; this is for a command or payload no real client would send.
+     */
     public async sendLobbyMessageAsync(command: string, ...args: any[]): Promise<void> {
         await this.socket.simulateClientEmit('lobby', command, ...args);
     }
 
+    /** Any command on the `game` channel, with exactly these arguments. See {@link sendLobbyMessageAsync}. */
     public async sendGameMessageAsync(command: string, ...args: any[]): Promise<void> {
         await this.socket.simulateClientEmit('game', command, ...args);
+    }
+
+    // ---- Lobby commands: one per entry in `Lobby`'s lobby allowlist, sent as the real client sends it ----
+
+    /** `sendChatMessage`: a message in the lobby chat (`SetUp`). */
+    public async sendChatMessageAsync(message: string): Promise<void> {
+        await this.sendLobbyMessageAsync('sendChatMessage', message);
+    }
+
+    /** `typingState`: whether this player is typing in the chat (`useChatTypingState`). */
+    public async typingStateAsync(isTyping: boolean): Promise<void> {
+        await this.sendLobbyMessageAsync('typingState', isTyping);
+    }
+
+    /** `muteChat`: hides the chat in both directions for this lobby (`ChatDrawer`, `PlayerReportDialog`). */
+    public async muteChatAsync(): Promise<void> {
+        await this.sendLobbyMessageAsync('muteChat');
+    }
+
+    /** `setReadyStatus`: this player's ready toggle (`LobbyReadyButtons`). */
+    public async setReadyStatusAsync(ready: boolean): Promise<void> {
+        await this.sendLobbyMessageAsync('setReadyStatus', ready);
+    }
+
+    /** `startGameAsync`: the owner's start button (`LobbyReadyButtons`), and a quick rematch (`EndGameOptions`). */
+    public async startGameAsync(): Promise<void> {
+        await this.sendLobbyMessageAsync('startGameAsync');
+    }
+
+    /** `updateDeck`: moves a card between the deck and the sideboard, from game 2 of a set (`Deck`). */
+    public async updateDeckAsync(list: 'Deck' | 'Sideboard', cardId: string): Promise<void> {
+        await this.sendLobbyMessageAsync('updateDeck', list, cardId);
+    }
+
+    /** `updateSetting`: one of the owner's lobby settings, `requestUndo` or `allowSpectators` (`DeckSelectionCard`). */
+    public async updateSettingAsync(settingName: string, value: boolean): Promise<void> {
+        await this.sendLobbyMessageAsync('updateSetting', settingName, value);
+    }
+
+    /** `requestRematch`: asks the opponent for a rematch of this kind (`EndGameOptions`, `LobbyConcededPopup`). */
+    public async requestRematchAsync(mode: RematchMode): Promise<void> {
+        await this.sendLobbyMessageAsync('requestRematch', mode);
+    }
+
+    /** `rematch`: accepts the requested rematch (`EndGameOptions`, `LobbyConcededPopup`). */
+    public async rematchAsync(): Promise<void> {
+        await this.sendLobbyMessageAsync('rematch');
+    }
+
+    /** `concedeBo3`: concedes the whole best-of-three set (`LobbyReadyButtons`, `EndGameOptions`). */
+    public async concedeBo3Async(): Promise<void> {
+        await this.sendLobbyMessageAsync('concedeBo3');
+    }
+
+    /** `proceedToNextBo3Game`: confirms moving on to the next game of the set (`EndGameOptions`). */
+    public async proceedToNextBo3GameAsync(): Promise<void> {
+        await this.sendLobbyMessageAsync('proceedToNextBo3Game');
+    }
+
+    /** `submitReport` for a bug report (`BugReportDialog`). */
+    public async submitBugReportAsync(description: string): Promise<void> {
+        await this.sendLobbyMessageAsync('submitReport', 'bugReport', description);
+    }
+
+    /** `submitReport` for a report against the opponent (`PlayerReportDialog`). */
+    public async submitPlayerReportAsync(description: string, reportType: PlayerReportType): Promise<void> {
+        await this.sendLobbyMessageAsync('submitReport', 'playerReport', description, reportType);
+    }
+
+    /** `reportScreenResolution`: the reply to the server's `requestScreenResolution` at game start (`Game.context`). */
+    public async reportScreenResolutionAsync(width: number, height: number): Promise<void> {
+        await this.sendLobbyMessageAsync('reportScreenResolution', { width, height });
+    }
+
+    /**
+     * `retransmitGameMessages`: asks again for game messages this client missed (`Game.context`). Also the
+     * one command a spectator may send.
+     */
+    public async retransmitGameMessagesAsync(startIndex: number, endIndex: number): Promise<void> {
+        await this.sendLobbyMessageAsync('retransmitGameMessages', startIndex, endIndex);
+    }
+
+    // ---- Game commands: one per entry in `Lobby`'s game allowlist, plus `resetActionTimer` ----
+
+    /** `chat`: a message in the game chat (`ChatDrawer`). */
+    public async sendGameChatAsync(message: string): Promise<void> {
+        await this.sendGameMessageAsync('chat', message);
+    }
+
+    /**
+     * `concede`: concedes the game (`ChatDrawer`, `CurrentGameTab`). The real client sends the player's name
+     * as well, which the server ignores. Also the quickest way for a spec to end a game.
+     */
+    public async concedeAsync(): Promise<void> {
+        await this.sendGameMessageAsync('concede', this.username);
+    }
+
+    /** `cardClicked`: a click on a card, by its uuid in the game state (`GameCard`, `LeaderBaseCard`). */
+    public async clickCardAsync(cardUuid: string): Promise<void> {
+        await this.sendGameMessageAsync('cardClicked', cardUuid);
+    }
+
+    /**
+     * A prompt button from the game state, sent the way the real client's popups send one:
+     * `[button.command, button.arg, button.uuid]` (`DefaultPopup`, `CardActionTray` and others).
+     */
+    public async clickPromptButtonAsync(button: { command: string; arg: unknown; uuid: string }): Promise<void> {
+        await this.sendGameMessageAsync(button.command, button.arg, button.uuid);
+    }
+
+    /** `menuButton` with an argument the real client builds itself (`DropdownPopup`, `NumberPopup`, `SelectCardsPopup`). */
+    public async menuButtonAsync(arg: string | number, promptUuid: string): Promise<void> {
+        await this.sendGameMessageAsync('menuButton', arg, promptUuid);
+    }
+
+    /** `perCardMenuButton`: a button shown against one card of a card-selection prompt (`SelectCardsPopup`). */
+    public async perCardMenuButtonAsync(arg: string, cardUuid: string, promptUuid: string): Promise<void> {
+        await this.sendGameMessageAsync('perCardMenuButton', arg, cardUuid, promptUuid);
+    }
+
+    /** `statefulPromptResults`: the result of a distribution prompt (`Game.context`'s `sendGameMessage`). */
+    public async statefulPromptResultsAsync(results: IStatefulPromptResults, promptUuid: string): Promise<void> {
+        await this.sendGameMessageAsync('statefulPromptResults', results, promptUuid);
+    }
+
+    /** `rollbackToSnapshot`: an undo (`ChatDrawer`, `CurrentGameTab`). */
+    public async rollbackToSnapshotAsync(settings: IGetSnapshotSettings): Promise<void> {
+        await this.sendGameMessageAsync('rollbackToSnapshot', settings);
+    }
+
+    /** `toggleOptionSetting`: an in-game option, such as `autoSingleTarget` (`GameOptionsTab`). */
+    public async toggleOptionSettingAsync(settingName: string, enabled: boolean): Promise<void> {
+        await this.sendGameMessageAsync('toggleOptionSetting', settingName, enabled);
+    }
+
+    /**
+     * `resetActionTimer`: activity that keeps the action timer from expiring, sent when the bug-report dialog
+     * opens (`CurrentGameTab`). Not on the allowlist: `Lobby.onGameMessage` handles it before checking.
+     */
+    public async resetActionTimerAsync(): Promise<void> {
+        await this.sendGameMessageAsync('resetActionTimer');
     }
 
     public async requeueAsync(): Promise<void> {
@@ -364,6 +529,34 @@ export class TestClient {
     /** Every `connection_error` message received so far. */
     public get connectionErrors(): string[] {
         return this.receivedEvents('connection_error').map((e) => e.args[0]);
+    }
+
+    /** The lobby chat as of this client's latest `lobbystate`, oldest line first: chat messages, alerts and log lines. */
+    public get lobbyChat(): IChatEntry[] {
+        return toChatEntries(this.lobbyState?.gameChat?.messages);
+    }
+
+    /**
+     * The game chat this client has been sent on its current socket, oldest line first. Each `gamestate`
+     * carries only the lines that are new since the last one, so these are all of them in the order they
+     * arrived; a line the server sends again (after a reconnect, or on request) appears again.
+     */
+    public get gameChat(): IChatEntry[] {
+        return this.receivedEvents('gamestate').flatMap((e) => toChatEntries(e.args[0]?.newMessages));
+    }
+
+    /** What `sender` has said in the lobby chat, as this client sees it. */
+    public lobbyChatFrom(sender: TestClient): string[] {
+        return TestClient.messagesFrom(this.lobbyChat, sender);
+    }
+
+    /** What `sender` has said in the game chat, as this client has been sent it. */
+    public gameChatFrom(sender: TestClient): string[] {
+        return TestClient.messagesFrom(this.gameChat, sender);
+    }
+
+    private static messagesFrom(chat: IChatEntry[], sender: TestClient): string[] {
+        return chat.filter((entry) => entry.senderId === sender.id).map((entry) => entry.text);
     }
 
     private lastPayload(event: string): any | undefined {

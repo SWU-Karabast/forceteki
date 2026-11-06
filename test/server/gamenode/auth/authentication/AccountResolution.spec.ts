@@ -1,5 +1,4 @@
 import { mintSessionToken, sessionCookie, signInClaims } from '../../../../helpers/server/AuthTokens';
-import { premierBestOfOne } from '../../../../helpers/server/MatchConfigs';
 import { serverIntegration } from '../../../../helpers/server/ServerIntegrationHelper';
 import type { ServerTestHarness } from '../../../../helpers/server/ServerTestHarness';
 import type { ISeededAccount } from '../../../../helpers/server/FakeDynamoDbService';
@@ -26,12 +25,7 @@ describe('Account resolution', function () {
 
                 await getUserAsync(harness, account);
                 await getUserAsync(harness, account);
-                await client.createLobbyAsync({
-                    lobbyName: harness.uniqueLobbyName(),
-                    deck: harness.decklists.validDecklist(),
-                    ...premierBestOfOne,
-                });
-                await client.connectAsync();
+                await harness.openLobbyAsync(client);
 
                 expect(identityReads).toHaveBeenCalledTimes(1);
                 expect(profileReads).toHaveBeenCalledTimes(1);
@@ -118,9 +112,7 @@ describe('Account resolution', function () {
                 });
                 const response = await getUserAsync(harness, account);
                 // joining an open lobby by its link adds the user under the name its socket resolved to
-                const owner = harness.createClient();
-                await owner.createLobbyAsync({ lobbyName: harness.uniqueLobbyName(), deck: harness.decklists.validDecklist(), ...premierBestOfOne });
-                await owner.connectAsync();
+                const owner = await harness.openLobbyAsync();
                 const client = harness.createAccountClient(account);
                 await client.connectAsync({ lobbyId: owner.lobbyId });
 

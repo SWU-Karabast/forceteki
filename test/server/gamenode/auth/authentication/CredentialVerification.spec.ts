@@ -8,7 +8,6 @@ import {
     withoutClaim,
 } from '../../../../helpers/server/AuthTokens';
 import type { ISignInIdentity } from '../../../../helpers/server/AuthTokens';
-import { premierBestOfOne } from '../../../../helpers/server/MatchConfigs';
 import { serverIntegration } from '../../../../helpers/server/ServerIntegrationHelper';
 import type { ServerTestHarness } from '../../../../helpers/server/ServerTestHarness';
 import type { TestClient } from '../../../../helpers/server/TestClient';
@@ -32,18 +31,9 @@ async function createUserAsync(harness: ServerTestHarness, token: string) {
 }
 
 /**
- * An anonymous player's open lobby, for another client to join by its link. The socket path adds a
- * joining user under the identity that socket resolved to, so the lobby state the joiner is sent shows
- * who the server took it for.
+ * The users in `client`'s lobby state other than `owner`, as id and username. A client that joins an open lobby by
+ * its link is added under the identity its socket resolved to, so this shows who the server took it for.
  */
-async function openLobbyToJoinAsync(harness: ServerTestHarness): Promise<TestClient> {
-    const owner = harness.createClient();
-    await owner.createLobbyAsync({ lobbyName: harness.uniqueLobbyName(), deck: harness.decklists.validDecklist(), ...premierBestOfOne });
-    await owner.connectAsync();
-    return owner;
-}
-
-/** The users in `client`'s lobby state other than `owner`, as id and username. */
 function joinersSeenBy(client: TestClient, owner: TestClient): { id: string; username: string }[] {
     return client.lobbyState.users
         .filter((user: { id: string }) => user.id !== owner.id)
@@ -234,7 +224,7 @@ describe('Credential verification', function () {
                 const account = harness.db.seedAccount({ username: 'StoredName' });
                 const other = harness.db.seedAccount();
                 const client = harness.createAccountClient(account);
-                const owner = await openLobbyToJoinAsync(harness);
+                const owner = await harness.openLobbyAsync();
 
                 await client.connectAsync({
                     lobbyId: owner.lobbyId,
@@ -472,7 +462,7 @@ describe('Credential verification', function () {
                 it('signs a dev-user session in to its test account on a socket', async function () {
                     const { harness } = contextRef;
                     const client = harness.createClient();
-                    const owner = await openLobbyToJoinAsync(harness);
+                    const owner = await harness.openLobbyAsync();
 
                     await client.connectAsync({ lobbyId: owner.lobbyId, token: devToken });
 

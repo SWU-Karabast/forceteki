@@ -59,7 +59,11 @@ export class FakeIoSocket implements IRawGameSocket {
             return false;
         }
 
-        this._emittedEvents.push({ event, args });
+        // A real socket serializes what it sends, so the client holds a copy taken at that moment. Recording
+        // the server's own objects instead would let a later change to them rewrite what a spec already
+        // received. JSON is what socket.io's encoder uses for these payloads (an `undefined` argument
+        // arrives as `null`).
+        this._emittedEvents.push({ event, args: JSON.parse(JSON.stringify(args)) });
         return true;
     }
 

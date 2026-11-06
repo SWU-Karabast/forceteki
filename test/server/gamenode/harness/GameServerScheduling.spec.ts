@@ -84,6 +84,18 @@ describe('GameServer scheduling', function () {
             expect(harness.clock.pendingTaskCount).toBe(0);
         });
 
+        it('cancels a pending disconnect grace timer on shutdown', async function () {
+            const { owner } = await harness.createLobbyWithGuestAsync();
+            const before = harness.clock.pendingTaskCount;
+            await owner.disconnectTransportAsync();
+            const withGraceTimer = harness.clock.pendingTaskCount;
+
+            await harness.shutdownAsync();
+
+            expect(withGraceTimer).toBe(before + 1);
+            expect(harness.clock.pendingTaskCount).toBe(0);
+        });
+
         it('fails a spec whose background work threw, rather than passing silently', async function () {
             harness.clock.setTimeout(() => {
                 throw new Error('boom');
@@ -96,6 +108,22 @@ describe('GameServer scheduling', function () {
             // acknowledged, so teardown's own check does not fail this spec
             harness.clock.clearCapturedErrors();
         });
+    });
+
+    describe('with action timers on', function () {
+        serverIntegration(function (contextRef) {
+            it('cancels a live game\'s action timers on shutdown', async function () {
+                const { harness } = contextRef;
+                const before = harness.clock.pendingTaskCount;
+                await harness.startLiveGameAsync();
+                const duringGame = harness.clock.pendingTaskCount;
+
+                await harness.shutdownAsync();
+
+                expect(duringGame).toBeGreaterThan(before);
+                expect(harness.clock.pendingTaskCount).toBe(0);
+            });
+        }, { config: { actionTimersEnabled: true } });
     });
 });
 
