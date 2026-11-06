@@ -1,7 +1,7 @@
-import type {IAbilityHelper} from '../../../AbilityHelper';
-import {NonLeaderUnitCard} from '../../../core/card/NonLeaderUnitCard';
-import type {INonLeaderUnitAbilityRegistrar} from '../../../core/card/AbilityRegistrationInterfaces';
-import {DamageSourceType} from '../../../IDamageOrDefeatSource';
+import type { IAbilityHelper } from '../../../AbilityHelper';
+import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
+import { DamageSourceType } from '../../../IDamageOrDefeatSource';
 
 export default class TheGhostWhaleWatching extends NonLeaderUnitCard {
     protected override getImplementationId() {
