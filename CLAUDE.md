@@ -13,6 +13,7 @@ Node 22.x. TypeScript, CommonJS, compiled with `tsc` into `build/` and run from 
 ```bash
 npm install
 npm run get-cards          # downloads card data into test/json/ (gitignored); required before build/test
+npm run check-card-data    # offline: is test/json/ current for this checkout? exit 1 = run get-cards
 npm run build              # tsc -> build/server
 npm run dev                # builds (server + tests) and starts the game node on port 9500
 npm run lint               # eslint --quiet   (lint-fix / lint-verbose also available)
@@ -24,6 +25,8 @@ npm run test-nongame       # fast build + only the connection-layer / services /
 npm run test-parallel      # 4 workers; on failure it may only name the suite — re-run with `npm test` for details
 npm run test-undo          # runs every test twice with a snapshot rollback in between (see Undo below)
 ```
+
+**Check the card data before you build, test or start the server, and again after switching branches or pulling.** The cached `test/json/` belongs to whichever branch last ran `get-cards`, and a branch that changes `card-data-version.txt`, `scripts/fetchdata.js` or `scripts/mockdata.js` expects different data. `npm run check-card-data` compares the two without downloading anything; when it exits 1, run `npm run get-cards` first. Otherwise the run stops partway with `Card data hash mismatch ... please run 'npm run get-cards'`.
 
 ### Running a single test
 
@@ -88,7 +91,7 @@ Every engine object extends `GameObjectBase` and must carry `@registerState()` /
 
 ### Card data pipeline
 
-`npm run get-cards` (`scripts/fetchdata.js`) downloads FFG card JSON into `test/json/` (gitignored) and generates `_cardMap.json` and friends. Cards FFG hasn't published yet are hand-defined in `scripts/mockdata.js`. `card-data-version.txt` + `fetchdata.js` + `mockdata.js` hash into `card-data-hash.txt`, which busts the CI cache and is checked at server startup — bump `card-data-version.txt` to force a refresh.
+`npm run get-cards` (`scripts/fetchdata.js`) downloads FFG card JSON into `test/json/` (gitignored) and generates `_cardMap.json` and friends. Cards FFG hasn't published yet are hand-defined in `scripts/mockdata.js`. `card-data-version.txt` + `fetchdata.js` + `mockdata.js` hash into `card-data-hash.txt`, which busts the CI cache and is checked at server startup — bump `card-data-version.txt` to force a refresh. `npm run check-card-data` (`scripts/checkCardData.js`) makes the same comparison on demand.
 
 ## Testing
 
