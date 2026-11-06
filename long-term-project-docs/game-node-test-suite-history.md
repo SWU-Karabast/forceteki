@@ -649,6 +649,17 @@ script listed each file's uncovered statement lines by method.
   class; see the checklist's *Coverage run*.
 - *Result:* not yet met. Five rows wait on production fixes (C1, C11, L2 and C21 held; C22 on #12).
 
+### Plan split by topic area (2026-11-06)
+
+The roadmap of numbered steps was replaced by topic areas, each taken through five steps (plan, set up, fill out the suite,
+resolve what it found, finalise with an independent review). Roadmap steps 1 to 3 became the core area's steps a to c.
+The rest went to areas: the protocol surface (old step 4) to its own area; stats (old step 5) to stats; the Discord and
+deck-fetcher seams (old step 6) to reports and moderation, and decks; the Tier 2 remainder (old step 7) to core's open
+step c items, apart from deck checks (decks); the dead-code pass (old step 8) to each area's step d (core's list, the
+inactivity kick to game timers, legacy moderation to accounts); housekeeping (old step 9) to *Suite infrastructure*, with
+the I-7 time helpers moving to game timers; and the old *Future test suites* entries to their areas. Game timers were moved
+up to follow core. Production fixes now belong to each area's step d; security fixes stay separate, in dedicated commits.
+
 ## The account-auth PR
 
 ### Account-auth guards and suite guardrails (merged in #3021, 2026-10-17)
