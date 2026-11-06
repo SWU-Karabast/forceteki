@@ -6,10 +6,10 @@ import type { INonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import type { CardsPlayedThisRoundWatcher } from '../../../stateWatchers/CardsPlayedThisRoundWatcher';
 
 export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
-    private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
+    private cardsPlayedThisRoundWatcher: CardsPlayedThisRoundWatcher;
 
     protected override getImplementationId() {
         return {
@@ -19,7 +19,7 @@ export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase();
+        this.cardsPlayedThisRoundWatcher = AbilityHelper.stateWatchers.cardsPlayedThisRound();
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -36,7 +36,7 @@ export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
     private isFirstEventPlayedByThisOpponentThisPhase(card: Card, context: AbilityContext<INonLeaderUnitCard>) {
         return card.controller !== context.source.controller &&
           card.type === CardType.Event &&
-          !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
+          !this.cardsPlayedThisRoundWatcher.someCardPlayed((playedCardEntry) =>
               playedCardEntry.playedBy === card.controller &&
               playedCardEntry.card.type === CardType.Event &&
               playedCardEntry.card !== card

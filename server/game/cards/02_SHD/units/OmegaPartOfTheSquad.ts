@@ -4,10 +4,10 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import { TextHelper } from '../../../core/utils/TextHelper';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import type { CardsPlayedThisRoundWatcher } from '../../../stateWatchers/CardsPlayedThisRoundWatcher';
 
 export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
-    private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
+    private cardsPlayedThisRoundWatcher: CardsPlayedThisRoundWatcher;
 
     protected override getImplementationId() {
         return {
@@ -17,7 +17,7 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
     }
 
     protected override setupStateWatchers(registrar: StateWatcherRegistrar, AbilityHelper: IAbilityHelper): void {
-        this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase();
+        this.cardsPlayedThisRoundWatcher = AbilityHelper.stateWatchers.cardsPlayedThisRound();
     }
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, AbilityHelper: IAbilityHelper) {
@@ -47,7 +47,7 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
     }
 
     private isFirstClonePlayedByControllerThisPhase(card) {
-        return card.hasSomeTrait(Trait.Clone) && !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
+        return card.hasSomeTrait(Trait.Clone) && !this.cardsPlayedThisRoundWatcher.someCardPlayed((playedCardEntry) =>
             playedCardEntry.playedBy === card.controller &&
             playedCardEntry.card.hasSomeTrait(Trait.Clone) &&
             playedCardEntry.card !== card
