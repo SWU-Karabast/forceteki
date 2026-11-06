@@ -8,7 +8,9 @@ const loggedIn: ITestClientOptions = { authenticated: true };
 /**
  * The spectator branch of the socket path (`GameServer.onConnectionAsync`). A spectator registers over HTTP
  * (`spectate-game`, whose rules `GameServerAnonymousRestrictions` covers) while a game is running, then
- * connects with the spectator flag; these are the refactor-readiness checklist's rows C4 to C8.
+ * connects with the spectator flag. The refactor-readiness checklist's rows C4 to C8 and C22 (admission), and D7 and D8
+ * (leaving). A lobby counts as having a game running once its first game has started, including between the games of a
+ * rematch (`Lobby.hasOngoingGame`), which is why a spectator can be admitted then.
  */
 describe('Spectator connections', function () {
     /** A logged-in user registered to spectate the game in `lobbyId`. */
@@ -120,7 +122,7 @@ describe('Spectator connections', function () {
             expect(spectator.gameState.winners).toEqual([owner.username]);
         });
 
-        it('admits a spectator between the games of a rematch, sending them the lobby', async function () {
+        it('admits a spectator between the games of a rematch, sending them the lobby and then the next game', async function () {
             const { harness } = contextRef;
             const { owner, guest, lobbyId } = await harness.startLiveGameAsync();
             await guest.concedeAsync();
@@ -129,10 +131,17 @@ describe('Spectator connections', function () {
             const spectator = await registeredSpectatorAsync(harness, lobbyId);
 
             await spectator.connectAsync({ spectator: true });
+            const lobbyIdBetweenGames = spectator.lobbyState?.id;
+            const gameBetweenGames = spectator.gameState;
+            await owner.setReadyStatusAsync(true);
+            await guest.setReadyStatusAsync(true);
+            await owner.startGameAsync();
 
             expect(spectator.isConnected).toBeTrue();
-            expect(spectator.lobbyState?.id).toBe(lobbyId);
-            expect(spectator.gameState).toBeUndefined();
+            expect(lobbyIdBetweenGames).toBe(lobbyId);
+            expect(gameBetweenGames).toBeUndefined();
+            expect(spectator.gameState).withContext('the next game reaches the spectator')
+                .toBeDefined();
         });
 
         describe('in the players\' lobby state', function () {
