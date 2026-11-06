@@ -56,6 +56,39 @@ describe('The Ghost, Whale Watching', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should trigger if a friendly unit deals damage to an enemy base by ability', async () => {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        deck: ['wampa'],
+                        base: 'bright-tree-village',
+                        hand: ['adamant-ewoks'],
+                        spaceArena: ['the-ghost#whale-watching'],
+                    },
+                    player2: {
+                        base: 'shield-generator-complex'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const startingHandSize = context.player1.hand.length;
+
+                expect(context.adamantEwoks).toBeInZone('hand');
+                context.player1.clickCard(context.adamantEwoks);
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1).toHavePrompt('Deal 1 damage to a base');
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+                context.player1.clickCard(context.player2.base);
+                context.player1.clickPrompt('Trigger');
+
+                // Player 1 should draw a card since he has fewer than 7 cards in hand
+                expect(context.player1.hand.length).toBe(startingHandSize); // because we play and draw a card
+                expect(context.wampa).toBeInZone('hand', context.player1);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('shouldn\'t trigger if a friendly unit deals damage to an enemy unit', async () => {
                 await contextRef.setupTestAsync({
                     phase: 'action',
