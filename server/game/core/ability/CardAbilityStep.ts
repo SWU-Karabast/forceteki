@@ -24,6 +24,7 @@ import { registerState, registerStateBase } from '../GameObjectUtils';
 @registerStateBase()
 export abstract class CardAbilityStep extends PlayerOrCardAbility {
     private handler: (context: AbilityContext) => void;
+    private readonly subStepIdentifier?: string;
 
     /** @param card The card this ability is attached to. */
     public constructor(game: Game, card: Card, properties, type = AbilityType.Action) {
@@ -38,6 +39,15 @@ export abstract class CardAbilityStep extends PlayerOrCardAbility {
         super(game, card, properties, type);
 
         this.handler = properties.handler || this.executeGameActions;
+        this.subStepIdentifier = properties.subStepIdentifier;
+    }
+
+    /**
+     * Identifies this step within its card's abilities, and stays the same across resolutions even though sub-steps
+     * are rebuilt each time. A sub-step's identifier is its parent's identifier plus the kind of sub-step.
+     */
+    public get stepIdentifier(): string {
+        return this.subStepIdentifier ?? `${this.card.internalName}_anonymous`;
     }
 
     public override executeHandler(context: AbilityContext) {
@@ -79,7 +89,7 @@ export abstract class CardAbilityStep extends PlayerOrCardAbility {
         } else if (this.immediateEffect.isOptional(context) && this.properties.then) {
             const then =
                 typeof this.properties.then === 'function' ? this.properties.then(context) : this.properties.then;
-            const cardAbilityStep = this.buildSubAbilityStep(then);
+            const cardAbilityStep = this.buildSubAbilityStep(this.withSubStepIdentifier(then, 'then'));
             return cardAbilityStep.meetsRequirements(cardAbilityStep.createContext(context.player)) === '';
         }
         return false;
@@ -221,7 +231,7 @@ export abstract class CardAbilityStep extends PlayerOrCardAbility {
             return null;
         }
 
-        const then = this.getConcreteThenIfYouDoProperties(this.properties.then, context);
+        const then = this.getConcreteThenIfYouDoProperties(this.properties.then, 'then', context);
         const canBeTriggeredBy = this.getCanBeTriggeredBy(then, context);
         if (!then.thenCondition || then.thenCondition(context)) {
             return this.buildSubAbilityStepContext(then, canBeTriggeredBy, context);
@@ -249,7 +259,7 @@ export abstract class CardAbilityStep extends PlayerOrCardAbility {
         const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
 
         if (this.properties.ifYouDo) {
-            const concreteIfAbility = this.getConcreteThenIfYouDoProperties(this.properties.ifYouDo, context);
+            const concreteIfAbility = this.getConcreteThenIfYouDoProperties(this.properties.ifYouDo, 'ifYouDo', context);
             const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
 
             if (conditionalEvent.isResolvedOrReplacementResolved && (!concreteIfAbility.ifYouDoCondition || concreteIfAbility.ifYouDoCondition(context))) {
@@ -269,18 +279,22 @@ export abstract class CardAbilityStep extends PlayerOrCardAbility {
         return null;
     }
 
-    private getConcreteThenIfYouDoProperties<TContext extends AbilityContext, TAbility extends IAbilityPropsWithSystems<TContext>>(subAbilityStep: ((context?: TContext) => TAbility) | TAbility, context: TContext) {
+    private getConcreteThenIfYouDoProperties<TContext extends AbilityContext, TAbility extends IAbilityPropsWithSystems<TContext>>(subAbilityStep: ((context?: TContext) => TAbility) | TAbility, kind: 'then' | 'ifYouDo', context: TContext) {
         const properties = typeof subAbilityStep === 'function' ? subAbilityStep(context) : subAbilityStep;
 
         // sub-steps will always pass to a parent window
-        return { ...properties, triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow };
+        return { ...this.withSubStepIdentifier(properties, kind), triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow };
     }
 
     private getConcreteIfYouDoNotProperties<TContext extends AbilityContext, TAbility extends IAbilityPropsWithSystems<TContext>>(subAbilityStep: ((context?: TContext) => TAbility) | TAbility, context: TContext) {
         const properties = typeof subAbilityStep === 'function' ? subAbilityStep(context) : subAbilityStep;
 
         // "if you do not" requires its own window to check for triggers
-        return { ...properties, triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers };
+        return { ...this.withSubStepIdentifier(properties, 'ifYouDoNot'), triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers };
+    }
+
+    private withSubStepIdentifier<TProps extends object>(properties: TProps, kind: 'then' | 'ifYouDo' | 'ifYouDoNot'): TProps & { subStepIdentifier: string } {
+        return { ...properties, subStepIdentifier: `${this.stepIdentifier}_${kind}` };
     }
 
     protected buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy: Player, parentContex: AbilityContext) {

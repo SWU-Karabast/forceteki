@@ -2042,6 +2042,58 @@ describe('Undo', function() {
             });
         });
 
+        describe('General Grievous, Four-Armed Menace\'s per-choice limit', function() {
+            undoIt('offers an option again if the action that chose it is rolled back', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['general-grievous#fourarmed-menace'],
+                        hand: ['entrenched', 'devotion'],
+                        base: { card: 'echo-base', damage: 5 }
+                    }
+                });
+
+                const { context } = contextRef;
+                const effectPrompt = 'Choose an effect for General Grievous';
+                const experienceChoice = 'Give an Experience token to General Grievous';
+                const healChoice = 'Heal 3 damage from your base';
+
+                // Play first upgrade on Grievous, choose draw
+                context.player1.clickCard(context.entrenched);
+                context.player1.clickCard(context.generalGrievous);
+
+                expect(context.player1).toHavePrompt(effectPrompt);
+                context.player1.clickPrompt('Draw a card');
+                context.player2.passAction();
+
+                // Play second upgrade on Grievous, choose heal
+                context.player1.clickCard(context.devotion);
+                context.player1.clickCard(context.generalGrievous);
+
+                expect(context.player1).toHavePrompt(effectPrompt);
+                context.player1.clickPrompt(healChoice);
+                expect(context.p1Base.damage).toBe(2);
+
+                // Roll back the second upgrade
+                contextRef.snapshot.quickRollback(context.player1.id);
+
+                expect(context.p1Base.damage).toBe(5);
+                expect(context.devotion).toBeInZone('hand');
+                expect(context.player1).toBeActivePlayer();
+
+                // Heal was chosen in the rolled back action so it is offered again, but draw is still used up
+                context.player1.clickCard(context.devotion);
+                context.player1.clickCard(context.generalGrievous);
+
+                expect(context.player1).toHavePrompt(effectPrompt);
+                expect(context.player1).toHaveExactPromptButtons([experienceChoice, healChoice]);
+                context.player1.clickPrompt(healChoice);
+
+                expect(context.p1Base.damage).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
         describe('Card stats', function() {
             undoIt('should log card stats', async function() {
                 await contextRef.setupTestAsync({
