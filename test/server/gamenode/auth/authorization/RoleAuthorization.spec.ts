@@ -1,6 +1,7 @@
 import { GameServer } from '../../../../../server/gamenode/GameServer';
 import { RegisteredCosmeticType } from '../../../../../server/utils/cosmetics/CosmeticsInterfaces';
 import type { ICosmeticEntity } from '../../../../../server/utils/cosmetics/CosmeticsInterfaces';
+import { uploadedCosmetic } from '../../../../helpers/server/CosmeticFixtures';
 import { premierBestOfOne } from '../../../../helpers/server/MatchConfigs';
 import type { RoleHolder } from '../../../../helpers/server/RoleHolders';
 import { roleHolders, seedRoleHolders } from '../../../../helpers/server/RoleHolders';
@@ -23,9 +24,9 @@ const satisfies: Record<RoleHolder, { admin: boolean; developer: boolean; modera
 const cardback: ICosmeticEntity = { id: 'cardback-1', title: 'Test Cardback', type: RegisteredCosmeticType.Cardback, path: 'https://example.test/cardback.webp' };
 const background: ICosmeticEntity = { id: 'background-1', title: 'Test Background', type: RegisteredCosmeticType.Background, path: 'https://example.test/background.webp' };
 
-/** Cosmetics for the specs that add one, under ids the database does not already hold. */
-const newCardback: ICosmeticEntity = { ...cardback, id: 'cardback-2' };
-const newBackground: ICosmeticEntity = { ...background, id: 'background-2' };
+/** Cosmetics for the specs that add one, as the client's upload route registers them. */
+const newCardback = uploadedCosmetic(RegisteredCosmeticType.Cardback);
+const newBackground = uploadedCosmetic(RegisteredCosmeticType.Background);
 
 const oneMinuteMs = 60 * 1000;
 
