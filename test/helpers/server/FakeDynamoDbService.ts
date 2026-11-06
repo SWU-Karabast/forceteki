@@ -19,11 +19,11 @@ import { getDefaultPreferences } from '../../../server/utils/user/UserFactory';
 /**
  * The slice of {@link DynamoDBService} this fake supplies. Typing the class against exactly these
  * methods means a signature change in the real service fails the build here, instead of the fake
- * silently drifting from it. Of the deck methods, only the two that saving a deck uses are here so far.
+ * silently drifting from it. Of the deck methods, only those that saving and renaming a deck use are here so far.
  */
 type FakedMethod =
   | 'getUserProfileAsync' | 'getAllUserProfilesAsync' | 'saveUserProfileAsync' | 'updateUserProfileAsync'
-  | 'saveDeckAsync' | 'getDeckByLinkAsync'
+  | 'saveDeckAsync' | 'getDeckByLinkAsync' | 'updateDeckNameAsync'
   | 'removeUserProfileAttributeAsync' | 'recordNewLoginAsync' | 'saveUserSettingsAsync' | 'updateUserPreferencesAsync'
   | 'saveOAuthLinkAsync' | 'getUserIdByOAuthAsync' | 'saveEmailLinkAsync' | 'getUserIdByEmailAsync'
   | 'saveUsernameLinkAsync' | 'deleteUsernameLinkAsync' | 'getUserIdsByUsernameAsync'
@@ -299,6 +299,17 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     public getDeckByLinkAsync(userId: string, deckLinkID: string): Promise<IDeckDataEntity | undefined> {
         const deck = this.decksOf(userId).find((candidate) => candidate.deck.deckLinkID === deckLinkID);
         return Promise.resolve(deck ? IDeckDataEntitySchema.parse(deck) : undefined);
+    }
+
+    public updateDeckNameAsync(userId: string, deckId: string, newName: string): Promise<UpdateCommandOutput> {
+        // setting a nested attribute of an item that does not exist fails in DynamoDB rather than creating it
+        const deck = this.decks.get(`${userId}#${deckId}`);
+        if (!deck) {
+            return Promise.reject(Object.assign(new Error('The document path provided in the update expression is invalid for update'), { name: 'ValidationException' }));
+        }
+
+        deck.deck = { ...deck.deck, name: newName };
+        return Promise.resolve(updateResult);
     }
 
     // ---- Identity links ----

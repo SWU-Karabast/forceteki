@@ -253,6 +253,14 @@ export class TestClient {
         });
     }
 
+    /** Renames one of the caller's decks, as the real client's `updateDeckName` does. */
+    public async renameDeckAsync(deckId: string, newName: string): Promise<SupertestResponse> {
+        return await this.withAuthCookie(this.harness.api.put(`/api/get-deck/${deckId}/rename`)).send({
+            newName,
+            ...this.identityFields(),
+        });
+    }
+
     /**
      * Finds a public lobby via `/api/available-lobbies`, the same discovery endpoint the real
      * client's lobby browser uses. Returns `undefined` if no entry matches.

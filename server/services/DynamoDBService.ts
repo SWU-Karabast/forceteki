@@ -35,7 +35,9 @@ let dynamoDbService: DynamoDBService;
 
 /**
  * The key of an item: its table key (`pk`, `sk`) and, for item types in the `GSI_PK_INDEX`, the index key.
- * These are always computed by the save method that writes the item, never read from the data it stores.
+ * The save methods always compute these themselves and pass them to {@link DynamoDBService.putItemAsync}, which takes
+ * none from the data it stores. (`batchWriteItemsAsync`, used only by one-off migration scripts, writes whole items
+ * as it is given them.)
  */
 export interface IItemKey {
     pk: string;
@@ -381,27 +383,39 @@ export class DynamoDBService {
         }, 'Error getting user profile');
     }
 
+    /**
+     * Sets the given profile fields. `id` is skipped, as the profile's key already holds it. Field names go into the
+     * update expression only as `#name` placeholders.
+     * @throws if `updates` has a `pk`, `sk` or `GSI_PK` field
+     */
     public updateUserProfileAsync(userId: string, updates: Partial<IUserProfileDataEntity>) {
+        const keyField = itemKeyAttributes.find((name) => Object.prototype.hasOwnProperty.call(updates, name));
+        if (keyField !== undefined) {
+            return Promise.reject(new Error(`Profile updates must not include the key field '${keyField}'`));
+        }
+
         return this.executeDbOperationAsync(() => {
-            // Build update expression and expression attribute values
-            let updateExpression = 'SET';
+            const assignments: string[] = [];
+            const expressionAttributeNames: Record<string, string> = {};
             const expressionAttributeValues: Record<string, any> = {};
 
             for (const [key, value] of Object.entries(updates)) {
-                if (key !== 'id') { // Don't update primary key
-                    updateExpression += ` ${key} = :${key},`;
-                    expressionAttributeValues[`:${key}`] = value;
+                if (key === 'id') {
+                    continue;
                 }
-            }
 
-            // Remove trailing comma
-            updateExpression = updateExpression.slice(0, -1);
+                const index = assignments.length;
+                assignments.push(`#field${index} = :value${index}`);
+                expressionAttributeNames[`#field${index}`] = key;
+                expressionAttributeValues[`:value${index}`] = value;
+            }
 
             return this.updateItemAsync(
                 `USER#${userId}`,
                 'PROFILE',
-                updateExpression,
-                expressionAttributeValues
+                `SET ${assignments.join(', ')}`,
+                expressionAttributeValues,
+                expressionAttributeNames
             );
         }, 'Error updating user profile');
     }
@@ -468,9 +482,25 @@ export class DynamoDBService {
         }, 'Error saving deck');
     }
 
+    /**
+     * Whether a stored deck item sits under the key its own owner and id give it. {@link saveDeckAsync} only ever writes
+     * a deck there, so the deck reads leave out any item that does not, rather than let its stored owner or id decide
+     * where a later save of it goes.
+     */
+    private isStoredUnderOwnKey(item: Record<string, unknown>): boolean {
+        const isOwnKey = item.pk === `USER#${item.userId}` && item.sk === `DECK#${item.id}`;
+        if (!isOwnKey) {
+            logger.error(`DynamoDBService: ignoring a deck item whose owner or id does not match its key (${item.pk} / ${item.sk})`);
+        }
+        return isOwnKey;
+    }
+
     public getDeckAsync(userId: string, deckId: string) {
         return this.executeDbOperationAsync(async () => {
             const result = await this.getItemAsync(`USER#${userId}`, `DECK#${deckId}`);
+            if (result.Item && !this.isStoredUnderOwnKey(result.Item)) {
+                return undefined;
+            }
             return this.validateAndHandleAsync<IDeckDataEntity>(
                 IDeckDataEntitySchema,
                 result.Item,
@@ -519,7 +549,7 @@ export class DynamoDBService {
 
             // Find the deck with matching deckLink
             const foundDeck = result.Items.find((item: any) =>
-                item.deck && item.deck.deckLinkID === deckLinkID
+                item.deck && item.deck.deckLinkID === deckLinkID && this.isStoredUnderOwnKey(item)
             );
 
             if (!foundDeck) {
@@ -546,6 +576,10 @@ export class DynamoDBService {
             const validDecks: IDeckDataEntity[] = [];
 
             for (const item of result.Items) {
+                if (!this.isStoredUnderOwnKey(item)) {
+                    continue;
+                }
+
                 try {
                     const validDeck = await this.validateAndHandleAsync<IDeckDataEntity>(
                         IDeckDataEntitySchema,

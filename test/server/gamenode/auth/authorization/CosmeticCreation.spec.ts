@@ -38,6 +38,17 @@ describe('Cosmetic creation', function () {
                 expect(harness.db.cosmetics.get(cosmetic.id)).toEqual(cosmetic);
             });
 
+            it('reports a stored cosmetic as created even when the cosmetics list cannot be re-read straight away', async function () {
+                const { harness } = contextRef;
+                const cosmetic = uploadedCosmetic(RegisteredCosmeticType.Cardback);
+                spyOn(harness.db, 'getCosmeticsAsync').and.rejectWith(new Error('read failed'));
+
+                const response = await postCosmeticAsync(harness, 'moderator', cosmetic);
+
+                expect(response.status).toBe(201);
+                expect(harness.db.cosmetics.get(cosmetic.id)).toEqual(cosmetic);
+            });
+
             it('refuses an id that is already taken, and leaves that cosmetic as it was', async function () {
                 const { harness } = contextRef;
 
@@ -91,8 +102,30 @@ describe('Cosmetic creation', function () {
                 expect(harness.db.cosmetics.get(cosmetic.id)).toEqual({ ...cosmetic, path: localPath });
             });
 
+            // the image path is built from the id itself, so only the id's own format can be what is refused
+            const otherIds: { description: string; id: string }[] = [
+                { description: 'is not a UUID', id: 'cardback-2' },
+                { description: 'is made of path segments', id: `x/../../backgrounds/${existingBackground.id}` },
+                { description: 'is a UUID with more after it', id: `${existingCardback.id}/x` },
+            ];
+            for (const { description, id } of otherIds) {
+                it(`refuses a card back whose id ${description}, even with the image path for that id`, async function () {
+                    const { harness } = contextRef;
+                    const cosmetic: ICosmeticEntity = {
+                        id,
+                        title: 'Other Id',
+                        type: RegisteredCosmeticType.Cardback,
+                        path: uploadedImagePath(RegisteredCosmeticType.Cardback, id),
+                    };
+
+                    const response = await postCosmeticAsync(harness, 'moderator', cosmetic);
+
+                    expect(response.status).toBe(400);
+                    expectStoredCosmetics(harness, [existingCardback, existingBackground]);
+                });
+            }
+
             const malformed: { description: string; change: Partial<Record<keyof ICosmeticEntity, unknown>> }[] = [
-                { description: 'an id that is not a UUID', change: { id: 'cardback-2' } },
                 { description: 'an empty title', change: { title: '   ' } },
                 { description: 'a title over 100 characters', change: { title: 'x'.repeat(101) } },
                 { description: 'no path', change: { path: undefined } },

@@ -72,6 +72,7 @@ import { ModActionService } from '../utils/ModActionService';
 import { ModActionSubmissionHandler } from '../utils/ModActionSubmissionHandler';
 import {
     CosmeticCreateRequestSchema,
+    DeckNameSchema,
     FindUserSchema,
     ModActionCancelSchema,
     ModActionSubmitSchema,
@@ -1312,7 +1313,6 @@ export class GameServer {
             try {
                 const user = req.user as User;
                 const { deckId } = req.params;
-                const { newName } = req.body;
 
                 if (user.isAnonymousUser()) {
                     logger.error(`GameServer (rename-deck): Authentication error for anonymous user ${user.getId()}`);
@@ -1320,8 +1320,14 @@ export class GameServer {
                         message: 'Server error'
                     });
                 }
+
+                const newName = DeckNameSchema.safeParse(req.body?.newName);
+                if (!newName.success) {
+                    return res.status(400).json({ message: 'The new name must be a string' });
+                }
+
                 try {
-                    const renameResponse = await this.deckService.updateDeckNameAsync(user.getId(), deckId, newName);
+                    const renameResponse = await this.deckService.updateDeckNameAsync(user.getId(), deckId, newName.data);
                     if (renameResponse) {
                         return res.status(200).json({});
                     }

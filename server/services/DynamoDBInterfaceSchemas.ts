@@ -51,6 +51,15 @@ const deckCardReferenceSchema = z.object({
     id: z.string().max(100),
 });
 
+/** The longest deck name stored. */
+export const MaxDeckNameLength = 200;
+
+/**
+ * A deck name from a request: any string, cut to {@link MaxDeckNameLength} characters. Names often come from other
+ * deckbuilding sites, so a long one is shortened rather than refused.
+ */
+export const DeckNameSchema = z.string().transform((name) => name.slice(0, MaxDeckNameLength));
+
 /**
  * The deck a client asks `POST /api/save-deck` to store: the inner `deck` of the entity. The server supplies
  * everything else (id, owner, favourite flag, stats). Fields the schema does not name are dropped.
@@ -59,7 +68,7 @@ export const SaveDeckRequestSchema = z.object({
     leader: deckCardReferenceSchema,
     secondLeader: deckCardReferenceSchema.optional(),
     base: deckCardReferenceSchema,
-    name: z.string().max(200),
+    name: DeckNameSchema,
     deckLink: z.string().max(2000),
     deckLinkID: z.string().max(200),
     source: z.string().max(100)

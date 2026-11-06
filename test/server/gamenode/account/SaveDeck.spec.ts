@@ -43,6 +43,8 @@ describe('Saving a deck', function () {
             const { harness } = contextRef;
             const user = harness.createAccountClient();
             const other = harness.createAccountClient();
+            // what the server hands the database, before the database's own validation can tidy it
+            const save = spyOn(harness.db, 'saveDeckAsync').and.callThrough();
 
             const response = await user.requestAsync('post', '/api/save-deck', {
                 deck: {
@@ -55,10 +57,22 @@ describe('Saving a deck', function () {
             });
 
             expect(response.status).toBe(200);
+            const expected = { id: jasmine.any(String), userId: user.id, deck: sampleDeck, stats: noResults };
+            expect(save.calls.allArgs()).toEqual([[expected]]);
             expect(harness.db.decksOf(other.id)).toEqual([]);
             const [stored] = harness.db.decksOf(user.id);
-            expect(stored).toEqual({ id: jasmine.any(String), userId: user.id, deck: sampleDeck, stats: noResults });
+            expect(stored).toEqual(expected);
             expect(stored.id).not.toBe('chosen-id');
+        });
+
+        it('cuts a name over 200 characters to its first 200', async function () {
+            const { harness } = contextRef;
+            const user = harness.createAccountClient();
+
+            const response = await user.saveDeckAsync({ ...sampleDeck, name: 'x'.repeat(150) + 'y'.repeat(100) });
+
+            expect(response.status).toBe(200);
+            expect(harness.db.decksOf(user.id)[0].deck.name).toBe('x'.repeat(150) + 'y'.repeat(50));
         });
 
         it('returns the deck already saved with the same link instead of saving it again', async function () {
@@ -77,7 +91,7 @@ describe('Saving a deck', function () {
             { description: 'with no base', deck: { ...sampleDeck, base: undefined } },
             { description: 'whose leader is not a card reference', deck: { ...sampleDeck, leader: 'SOR_005' } },
             { description: 'whose name is not a string', deck: { ...sampleDeck, name: 42 } },
-            { description: 'whose name is over 200 characters', deck: { ...sampleDeck, name: 'x'.repeat(201) } },
+            { description: 'whose link is over 2000 characters', deck: { ...sampleDeck, deckLink: `https://swudb.com/deck/${'x'.repeat(2000)}` } },
             { description: 'with no link id', deck: { ...sampleDeck, deckLinkID: undefined } },
         ];
         for (const { description, deck } of malformed) {

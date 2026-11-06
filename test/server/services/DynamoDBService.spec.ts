@@ -1,5 +1,5 @@
 import type { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import { PutCommand } from '@aws-sdk/lib-dynamodb';
+import { DeleteCommand, GetCommand, PutCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 import type { IDeckDataEntity, IModActionEntity, IUserProfileDataEntity } from '../../../server/services/DynamoDBInterfaces';
 import { ModActionType, UsernameChangeSource } from '../../../server/services/DynamoDBInterfaces';
@@ -189,5 +189,71 @@ describe('DynamoDBService', function () {
 
             expect(sentPuts().map((put) => put.ConditionExpression)).toEqual([undefined, 'attribute_not_exists(pk)']);
         });
+    });
+
+    describe('reading decks', function () {
+        /** `deck` as stored under its own owner and id. */
+        const storedDeck = { pk: 'USER#user-1', sk: 'DECK#deck-1', ...deck };
+
+        /** A deck item in user-1's partition whose stored owner and id are another user's deck. */
+        const misplacedDeck = { ...deck, pk: 'USER#user-1', sk: 'DECK#deck-2', userId: 'user-2', id: 'deck-9' };
+
+        function storeItems(items: Record<string, unknown>[]): void {
+            (client.send as jasmine.Spy).and.callFake((command: unknown) => Promise.resolve(
+                command instanceof GetCommand
+                    ? { Item: items.find((item) => item.pk === command.input.Key?.pk && item.sk === command.input.Key?.sk) }
+                    : command instanceof QueryCommand
+                        ? { Items: items }
+                        : {}
+            ));
+        }
+
+        it('finds a deck stored under its own owner and id', async function () {
+            storeItems([storedDeck]);
+
+            expect(await service.getDeckAsync('user-1', 'deck-1')).toEqual(deck);
+            expect(await service.getUserDecksAsync('user-1')).toEqual([deck]);
+            expect(await service.getDeckByLinkAsync('user-1', 'abc123')).toEqual(deck);
+        });
+
+        it('leaves out a deck item whose stored owner or id is not the one its key gives, and deletes nothing', async function () {
+            storeItems([misplacedDeck]);
+
+            expect(await service.getDeckAsync('user-1', 'deck-2')).toBeUndefined();
+            expect(await service.getUserDecksAsync('user-1')).toEqual([]);
+            expect(await service.getDeckByLinkAsync('user-1', 'abc123')).toBeUndefined();
+            expect((client.send as jasmine.Spy).calls.allArgs().some(([command]: [unknown]) => command instanceof DeleteCommand)).toBeFalse();
+        });
+    });
+
+    describe('updateUserProfileAsync', function () {
+        function sentUpdate(): UpdateCommand['input'] {
+            const updates = (client.send as jasmine.Spy).calls.allArgs()
+                .map(([command]: [unknown]) => command)
+                .filter((command): command is UpdateCommand => command instanceof UpdateCommand);
+            expect(updates.length).withContext('update commands sent')
+                .toBe(1);
+            return updates[0].input;
+        }
+
+        it('sets each field through a name placeholder, under the profile\'s key, and leaves out the id', async function () {
+            await service.updateUserProfileAsync('user-1', { id: 'user-1', username: 'Renamed', showWelcomeMessage: false });
+
+            const input = sentUpdate();
+            expect(input.Key).toEqual({ pk: 'USER#user-1', sk: 'PROFILE' });
+            expect(input.UpdateExpression).toBe('SET #field0 = :value0, #field1 = :value1');
+            expect(input.ExpressionAttributeNames).toEqual({ '#field0': 'username', '#field1': 'showWelcomeMessage' });
+            expect(input.ExpressionAttributeValues).toEqual({ ':value0': 'Renamed', ':value1': false });
+        });
+
+        for (const field of ['pk', 'sk', 'GSI_PK']) {
+            it(`refuses an update with a ${field} field, and sends nothing`, async function () {
+                const updates: Record<string, unknown> = { username: 'Renamed', [field]: 'OTHER' };
+
+                await expectAsync(service.updateUserProfileAsync('user-1', updates as Partial<IUserProfileDataEntity>)).toBeRejectedWithError(/key field/);
+
+                expect(client.send).not.toHaveBeenCalled();
+            });
+        }
     });
 });

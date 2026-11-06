@@ -1,4 +1,5 @@
 import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
+import { logger } from '../../logger';
 import type { IScheduler } from '../IScheduler';
 import { type IActiveCosmetics, type ICosmeticEntity, RegisteredCosmeticType } from './CosmeticsInterfaces';
 import { CosmeticsCache } from './CosmeticsCache';
@@ -149,7 +150,8 @@ export class CosmeticsService {
     }
 
     /**
-     * Adds a new cosmetic. Never replaces one: an id that is already taken is refused.
+     * Adds a new cosmetic. Never replaces one: an id that is already taken is refused. Once the cosmetic is stored it
+     * counts as created, even if the cached list cannot be re-read straight away; the periodic refresh picks it up.
      * @throws CosmeticAlreadyExistsError if a cosmetic with this id exists
      */
     public async createCosmeticAsync(cosmeticData: ICosmeticEntity) {
@@ -163,7 +165,12 @@ export class CosmeticsService {
             }
             throw error;
         }
-        await this.cosmeticsCache.forceRefreshAsync();
+
+        try {
+            await this.cosmeticsCache.forceRefreshAsync();
+        } catch (error) {
+            logger.warn(`CosmeticsService: cosmetic ${cosmeticData.id} was created, but the cosmetics list could not be refreshed`, { error: { message: error.message } });
+        }
         return result;
     }
 
