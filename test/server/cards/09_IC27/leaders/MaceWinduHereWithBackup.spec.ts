@@ -70,11 +70,12 @@ describe('Mace Windu, Here With Backup', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should have no effect and not be used when there are no ready units', async function() {
+            it('can be used to no effect when there are no ready units', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'mace-windu#here-with-backup',
+                        base: { card: 'chopper-base', damage: 5 },
                         groundArena: [{ card: 'wampa', exhausted: true }]
                     }
                 });
@@ -86,12 +87,13 @@ describe('Mace Windu, Here With Backup', function() {
                 expect(context.player1).toHavePrompt('Choose an action for Mace Windu');
                 context.player1.clickPrompt(`(No effect) ${actionTitle}`);
                 expect(context.player1).toHavePrompt(`The ability "${actionTitle}" will have no effect. Are you sure you want to use it?`);
-                context.player1.clickPrompt('Cancel');
+                context.player1.clickPrompt('Use it anyway');
 
-                // Ability was not used
-                expect(context.maceWindu.exhausted).toBeFalse();
-                expect(context.player1.exhaustedResourceCount).toBe(0);
-                expect(context.player1).toBeActivePlayer();
+                // Ability was used but nothing happened other than costs paid
+                expect(context.maceWindu.exhausted).toBeTrue();
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+                expect(context.p1Base.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
             });
         });
 
