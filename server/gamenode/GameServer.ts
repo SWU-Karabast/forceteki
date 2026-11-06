@@ -41,7 +41,7 @@ import { Helpers } from '../game/core/utils/Helpers';
 import { authMiddleware, getSessionToken } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
 import { ServerSettingsCache } from '../utils/ServerSettingsCache';
-import { UserFactory } from '../utils/user/UserFactory';
+import { signInRefusalCode, UserFactory } from '../utils/user/UserFactory';
 import { validateUsernameFormat } from '../utils/user/UsernameRules';
 import { DeckService } from '../utils/deck/DeckService';
 import { userOrLobbyNameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
@@ -603,6 +603,11 @@ export class GameServer {
                 try {
                     user = await this.userFactory.createUserFromTokenAsync(token);
                 } catch (error) {
+                    const code = signInRefusalCode(error);
+                    if (code) {
+                        logger.info(`GameServer (create-user): valid session refused (${code})`);
+                        return res.status(401).json({ success: false, message: 'Authentication failed', code });
+                    }
                     logger.error('GameServer (create-user): could not establish the account from the session', { error: { message: error.message, stack: error.stack } });
                     return res.status(401).json({ success: false, message: 'Authentication failed' });
                 }
