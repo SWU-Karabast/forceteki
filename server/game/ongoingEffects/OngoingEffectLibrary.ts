@@ -24,6 +24,7 @@ import { playerCannot } from './PlayerCannot';
 import type { PilotLimitModifier } from '../core/ongoingEffect/effectImpl/PilotLimitModifier';
 import type { StartingHandSizeModifier } from '../core/ongoingEffect/effectImpl/StartingHandSizeModifier';
 import type { IndirectDamageModifier } from '../core/ongoingEffect/effectImpl/IndirectDamageModifier';
+import type { IRegroupReadyLimitProperties } from '../core/ongoingEffect/effectImpl/RegroupReadyLimit';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { IPlayPermissionProperties } from '../core/ongoingEffect/effectImpl/PlayPermission';
 import { PlayPermissionHelpers } from '../core/ongoingEffect/effectImpl/PlayPermission';
@@ -318,6 +319,11 @@ export = {
     canLookAtTopOfDeck: (player: RelativePlayerFilter = RelativePlayer.Self) => OngoingEffectBuilder.player.static(EffectName.ShowTopCard, player),
     doubleDeckSearchCount: () => OngoingEffectBuilder.player.static(EffectName.DoubleDeckSearchCount, true),
     drawAdditionalCardsInRegroup: (amount: number) => OngoingEffectBuilder.player.static(EffectName.DrawAdditionalCardsInRegroup, amount),
+    limitReadyDuringRegroup: (properties: IRegroupReadyLimitProperties) =>
+        OngoingEffectBuilder.player.static(
+            EffectName.LimitReadyDuringRegroup,
+            (game) => new OngoingEffectValueWrapper(game, properties, 'limit readying during the regroup phase')
+        ),
     // playerCannot: (properties) =>
     //     OngoingEffectBuilder.player.static(
     //         EffectName.AbilityRestrictions,
