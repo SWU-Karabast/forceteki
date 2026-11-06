@@ -78,7 +78,8 @@ describe('Spectator connections', function () {
 
             expect(spectator.isConnected).toBeFalse();
             expect(spectator.gameState).toBeUndefined();
-            expect(harness.server.getUserLobbyId(spectator.id)).toBeUndefined();
+            expect(await spectator.hasNoPlaceAsync()).withContext('the registration is forgotten')
+                .toBeTrue();
         });
 
         it('disconnects a registered spectator once the lobby stops allowing spectators, and forgets the registration', async function () {
@@ -92,7 +93,85 @@ describe('Spectator connections', function () {
 
             expect(spectator.isConnected).toBeFalse();
             expect(spectator.gameState).toBeUndefined();
-            expect(harness.server.getUserLobbyId(spectator.id)).toBeUndefined();
+            expect(await spectator.hasNoPlaceAsync()).withContext('the registration is forgotten')
+                .toBeTrue();
+        });
+
+        it('refuses to register a spectator who is still playing in a lobby', async function () {
+            const { harness } = contextRef;
+            const { lobbyId } = await harness.startLiveGameAsync();
+            const { owner: player } = await harness.createLobbyWithGuestAsync(loggedIn);
+
+            const response = await player.spectateGameAsync(lobbyId);
+
+            expect(response.status).toBe(403);
+            expect(response.body).toEqual({ success: false, message: 'User is already in a game' });
+        });
+
+        it('keeps an admitted spectator up to date as the game goes on', async function () {
+            const { harness } = contextRef;
+            const { owner, guest, lobbyId } = await harness.startLiveGameAsync();
+            const spectator = await registeredSpectatorAsync(harness, lobbyId);
+            await spectator.connectAsync({ spectator: true });
+
+            await guest.concedeAsync();
+
+            expect(spectator.gameState.winners).toEqual([owner.username]);
+        });
+
+        // TODO (open finding #12): add a spec that a spectator admitted between the games of a rematch (guest concedes,
+        // owner `requestRematchAsync(RematchMode.Regular)`, guest `rematchAsync()`, then register and connect) is sent the
+        // lobby state, once `Lobby.sendLobbyStateToSpectator` sends it as a `lobbystate` event.
+
+        describe('in the players\' lobby state', function () {
+            /** The ids of the spectators the lobby lists, as of a fresh lobby state for `player`. */
+            async function listedSpectatorsAsync(player: TestClient): Promise<string[]> {
+                // any lobby command makes the lobby send its state again
+                await player.typingStateAsync(false);
+                return player.lobbyState.spectators.map((spectator: { id: string }) => spectator.id);
+            }
+
+            it('lists an admitted spectator, and stops listing them when they leave', async function () {
+                const { harness } = contextRef;
+                const { owner, lobbyId } = await harness.startLiveGameAsync();
+                const spectator = await registeredSpectatorAsync(harness, lobbyId);
+                await spectator.connectAsync({ spectator: true });
+                const listedWhileWatching = await listedSpectatorsAsync(owner);
+
+                await spectator.manualDisconnectAsync();
+
+                expect(listedWhileWatching).toEqual([spectator.id]);
+                expect(owner.lobbyState.spectators).toEqual([]);
+            });
+
+            it('keeps listing a spectator who drops and comes back inside the grace window', async function () {
+                const { harness } = contextRef;
+                const { owner, lobbyId } = await harness.startLiveGameAsync();
+                const spectator = await registeredSpectatorAsync(harness, lobbyId);
+                await spectator.connectAsync({ spectator: true });
+
+                await spectator.disconnectTransportAsync();
+                await harness.clock.advanceAsync(10_000);
+                await spectator.connectAsync({ spectator: true });
+                await harness.clock.advanceAsync(20_000);
+
+                expect(await listedSpectatorsAsync(owner)).toEqual([spectator.id]);
+            });
+
+            it('stops listing a spectator who drops and stays away past the grace window', async function () {
+                const { harness } = contextRef;
+                const { owner, lobbyId } = await harness.startLiveGameAsync();
+                const spectator = await registeredSpectatorAsync(harness, lobbyId);
+                await spectator.connectAsync({ spectator: true });
+
+                await spectator.disconnectTransportAsync();
+                await harness.clock.advanceAsync(20_000 - 1);
+                const listedJustBefore = await listedSpectatorsAsync(owner);
+                await harness.clock.advanceAsync(1);
+
+                expect(listedJustBefore).toEqual([spectator.id]);
+                expect(owner.lobbyState.spectators).toEqual([]);
+            });
         });
     });
 });

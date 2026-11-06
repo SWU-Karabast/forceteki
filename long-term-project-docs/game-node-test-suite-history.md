@@ -611,6 +611,44 @@ database services' refresh timers share the clock, and `harness.databaseTaskCoun
 
 This closes L5.
 
+### Coupling clean-up (2026-11-06)
+
+Before step 3, the assertions steps 1 and 2 had made against the server's own state (`getUserLobbyId`, `testLobbies`,
+`lobbyCount`) were moved onto what a client sees, as design goal 2 asks.
+
+- *Whether the server forgot a user* is now `TestClient.hasNoPlaceAsync()`: a socket connecting with no link gets the
+  catch-all refusal only when the server has the user down for nothing, where a user it still has down for a lobby is
+  routed there or told something else. Converted in `SocketConnectionRouting` (four), `SpectatorConnections` (two) and
+  `GameServerAnonymousRestrictions` (one).
+- *Where a user is seated* is read from the lobby state after a reconnect (`LobbyLifecycle`, `QuickLobbyCountdown`,
+  `ServerTestHarness`), *whether a lobby has gone* from a link that no longer seats a newcomer, and *whether a dropped
+  player's opponent was requeued* from a newcomer being matched with them.
+- *Kept on purpose:* five `testLobbies` checks in `LobbyLifecycle` that the server let a closed lobby go. With the line that
+  deletes it removed, every wire check still passed (a cleaned-up lobby refuses links anyway), so a leaked lobby is
+  invisible to clients; only a resource check finds it, as `pendingTaskCount` does for timers. The pre-existing reads were
+  left: `GameServerTestGameSetups` (`start-test-game` never gives a client the lobby's id), `GameServerMatchmaking`'s two
+  after a shutdown, and `LobbyReports`' `as any` (I-2).
+- *Verified* by breaking the behaviour each converted check guards: keeping a user's entry after `Lobby does not exist`, or a
+  spectator's after spectators are switched off, fails the reconnect checks.
+
+### Step 3 — readiness check (2026-11-06)
+
+The coverage run the *Refactor readiness* checklist describes, on `main` @ `c6c71e058` with steps 1 and 2 (and the
+clean-up above) applied. `c8` was fetched by `npx`; its JSON report mapped back to the `.ts` sources, and a throwaway
+script listed each file's uncovered statement lines by method.
+
+- *What it measured:* `GameServer.ts` 2,644 of 3,526 statement lines covered before the new specs and 2,656 after,
+  `Lobby.ts` 1,821 and then 1,836 of 2,703, `QueueHandler.ts` 504 of 520, and `MatchmakingRules.ts` all 197.
+- *Gaps it found, now covered* (8 specs, 811 → 819): spectators leaving (manually, and by a drop past the grace window
+  versus a reconnect inside it), a spectator in the players' lobby state, a spectator kept up to date, `spectate-game`
+  refusing a player still in a lobby, `join-lobby` refusing a full lobby, and a player whose lobby closed before their
+  socket arrived (`change-deck` answers 404, and they may create a lobby at once).
+- *Gaps it found that wait on a fix:* open finding #12, and an item held with the maintainers (V-4), found by reading a
+  handler the run showed never runs.
+- *Unreachable code* it found went onto the step 8 list as candidates, and the defensive catch blocks were waived as a
+  class; see the checklist's *Coverage run*.
+- *Result:* not yet met. Five rows wait on production fixes (C1, C11, L2 and C21 held; C22 on #12).
+
 ## The account-auth PR
 
 ### Account-auth guards and suite guardrails (merged in #3021, 2026-10-17)

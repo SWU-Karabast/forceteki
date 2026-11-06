@@ -110,8 +110,13 @@ describe('Quick-lobby countdown', function () {
 
                 await harness.clock.advanceAsync(2000);
 
+                const newcomer = harness.createClient();
+                expect((await newcomer.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...premierBestOfOne })).status).toBe(200);
+                await newcomer.connectAsync();
+
                 expect(opponent.receivedEvents('matchmakingFailed').map((event) => event.args[0])).toEqual(['Player disconnected']);
-                expect(harness.server.getUserLobbyId(opponent.id)).toBeUndefined();
+                expect(opponent.lobbyState.users.map((user: { id: string }) => user.id)).withContext('matched again from the queue')
+                    .toEqual([opponent.id, newcomer.id]);
             });
         });
     });
@@ -124,7 +129,7 @@ describe('Quick-lobby countdown', function () {
                 const { harness } = contextRef;
                 const { first: player } = await harness.startQuickGameAsync();
                 await player.concedeAsync();
-                const lobbyId = harness.server.getUserLobbyId(player.id);
+                const lobbyId = player.lobbyState.id;
                 const admin = harness.createAccountClient(roles.accounts.admin);
                 const switchedOff = await admin.requestAsync('post', '/api/mod/server-settings', { gamesEnabled: false, maintenanceMessage: 'Back at noon' });
                 expect(switchedOff.status).toBe(200);
@@ -132,7 +137,9 @@ describe('Quick-lobby countdown', function () {
                 await player.requeueAsync();
 
                 expect(player.connectionErrors).toEqual(['Back at noon']);
-                expect(harness.server.getUserLobbyId(player.id)).toBe(lobbyId);
+                await player.connectAsync();
+                expect(player.lobbyState.id).withContext('still seated in the same lobby')
+                    .toBe(lobbyId);
             });
         }, { database: roles.seed });
     });

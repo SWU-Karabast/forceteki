@@ -297,6 +297,17 @@ export class TestClient {
         return { connected: true };
     }
 
+    /**
+     * Whether the server has this user down for nothing - no lobby seat, spectator seat or queue entry - found out
+     * the way a client would: a socket connecting with no lobby link is refused with the server's catch-all error,
+     * where a user it still has down for something is routed there or told something else. Connects a new socket
+     * to find out, so use it at the end of a spec.
+     */
+    public async hasNoPlaceAsync(): Promise<boolean> {
+        await this.connectAsync();
+        return !this.isConnected && this.connectionErrors.length === 1 && this.connectionErrors[0] === 'Connection error, please try again';
+    }
+
     // ---- Messaging (mirroring `sendMessage`/the `game`/`lobby` channels in `Game.context.tsx`) ----
 
     /**

@@ -48,7 +48,8 @@ describe('Socket connection routing', function () {
 
                 expect(joiner.connectionErrors).toEqual(['Lobby does not exist']);
                 expect(joiner.isConnected).toBeFalse();
-                expect(harness.server.getUserLobbyId(joiner.id)).toBeUndefined();
+                expect(await joiner.hasNoPlaceAsync()).withContext('the seat is forgotten')
+                    .toBeTrue();
             });
 
             it('tells the second of two joiners who raced for the last seat that the lobby is full', async function () {
@@ -64,8 +65,9 @@ describe('Socket connection routing', function () {
                 await second.connectAsync();
 
                 expect(second.connectionErrors).toEqual(['Lobby is full']);
-                expect(harness.server.getUserLobbyId(second.id)).toBeUndefined();
                 expect(owner.lobbyState.users.map((user: { id: string }) => user.id)).toEqual([owner.id, first.id]);
+                expect(await second.hasNoPlaceAsync()).withContext('the seat is forgotten')
+                    .toBeTrue();
             });
 
             it('tells a player whose seat could not be set up, and disconnects them', async function () {
@@ -79,7 +81,8 @@ describe('Socket connection routing', function () {
 
                 expect(joiner.connectionErrors).toEqual(['Error connecting to lobby']);
                 expect(joiner.isConnected).toBeFalse();
-                expect(harness.server.getUserLobbyId(joiner.id)).toBeUndefined();
+                expect(await joiner.hasNoPlaceAsync()).withContext('the seat is forgotten')
+                    .toBeTrue();
             });
         });
 
@@ -115,7 +118,8 @@ describe('Socket connection routing', function () {
 
                 expect(latecomer.isConnected).toBeFalse();
                 expect(latecomer.receivedEvents()).toEqual([]);
-                expect(harness.server.getUserLobbyId(latecomer.id)).toBeUndefined();
+                expect(await latecomer.hasNoPlaceAsync()).withContext('the link gave no seat')
+                    .toBeTrue();
             });
 
             it('takes a user the server has down for another lobby back to that lobby, ignoring the link', async function () {

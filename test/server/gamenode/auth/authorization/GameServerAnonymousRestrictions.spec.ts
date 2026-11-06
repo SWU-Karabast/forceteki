@@ -62,7 +62,8 @@ describe('GameServer anonymous user restrictions', function () {
 
                 expect(response.status).toBe(400);
                 expect(response.body).toEqual({ success: false, message: 'You must be logged in to join a public best of three lobby' });
-                expect(harness.server.getUserLobbyId(anonymous.id)).toBeUndefined();
+                expect(await anonymous.hasNoPlaceAsync()).withContext('the refusal gave no seat')
+                    .toBeTrue();
             });
 
             it('still allows an anonymous user to create a private best-of-three lobby', async function () {

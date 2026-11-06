@@ -192,13 +192,15 @@ describe('ServerTestHarness', function () {
                 expect(joiner.lobbyState.users.map((user: { id: string }) => user.id)).toEqual([owner.id, joiner.id]);
             });
 
-            it('can open a lobby without seating the owner, leaving only the create-lobby call made', async function () {
+            it('can open a lobby without connecting the owner, who is seated in it once their socket connects', async function () {
                 const { harness } = contextRef;
 
                 const owner = await harness.openLobbyAsync({}, { connect: false });
+                const connectedBefore = owner.isConnected;
+                await owner.connectAsync();
 
-                expect(owner.isConnected).toBeFalse();
-                expect(harness.server.getUserLobbyId(owner.id)).toBeDefined();
+                expect(connectedBefore).toBeFalse();
+                expect(owner.lobbyState.users.map((user: { id: string }) => user.id)).toEqual([owner.id]);
             });
 
             for (const isPrivate of [false, true]) {

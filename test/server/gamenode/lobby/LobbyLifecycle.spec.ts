@@ -1,6 +1,7 @@
 import { premierBestOfOne } from '../../../helpers/server/MatchConfigs';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 import type { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
+import type { TestClient } from '../../../helpers/server/TestClient';
 
 const oneMinuteMs = 60 * 1000;
 
@@ -10,6 +11,16 @@ const oneMinuteMs = 60 * 1000;
  * checklist's rows L1, L3, D1 and B3 to B5.
  */
 describe('Lobby lifecycle', function () {
+    /**
+     * Whether a newcomer following the lobby's link is seated - the link is refused once the lobby has gone. Only
+     * meaningful for a lobby with a free seat and no game, the only other reasons a link is refused.
+     */
+    async function linkSeatsNewcomerAsync(harness: ServerTestHarness, lobbyId: string): Promise<boolean> {
+        const newcomer = harness.createClient();
+        await newcomer.connectAsync({ lobbyId });
+        return newcomer.isConnected && newcomer.lobbyState?.users?.some((user: { id: string }) => user.id === newcomer.id);
+    }
+
     async function isListedAsync(harness: ServerTestHarness, lobbyId: string): Promise<boolean> {
         const response = await harness.api.get('/api/available-lobbies');
         return (response.body as { id: string }[]).some((lobby) => lobby.id === lobbyId);
@@ -43,20 +54,24 @@ describe('Lobby lifecycle', function () {
 
                 expect(listedBefore).toBeTrue();
                 expect(await isListedAsync(harness, lobbyId)).toBeFalse();
-                expect(harness.server.lobbyCount).toBe(0);
+                expect(await linkSeatsNewcomerAsync(harness, lobbyId)).toBeFalse();
+                expect(harness.server.testLobbies.has(lobbyId)).withContext('the server no longer holds it')
+                    .toBeFalse();
             });
 
             it('removes a lobby when its last player drops and does not come back within the grace window', async function () {
                 const { harness } = contextRef;
                 const owner = await harness.openLobbyAsync();
+                const lobbyId = owner.lobbyId;
 
                 await owner.disconnectTransportAsync();
-                await harness.clock.advanceAsync(20_000 - 1);
-                const countBefore = harness.server.lobbyCount;
-                await harness.clock.advanceAsync(1);
+                await harness.clock.advanceAsync(20_000);
 
-                expect(countBefore).toBe(1);
-                expect(harness.server.lobbyCount).toBe(0);
+                expect(await linkSeatsNewcomerAsync(harness, lobbyId)).toBeFalse();
+                expect(harness.server.testLobbies.has(lobbyId)).withContext('the server no longer holds it')
+                    .toBeFalse();
+                expect(await owner.hasNoPlaceAsync()).withContext('the owner\'s seat went with it')
+                    .toBeTrue();
             });
 
             describe('after five players have come and gone', function () {
@@ -79,7 +94,9 @@ describe('Lobby lifecycle', function () {
                     await cycleGuestsAsync(harness, lobbyId, 1);
 
                     expect(owner.connectionErrors).toEqual(['Lobby timed out']);
-                    expect(harness.server.lobbyCount).toBe(0);
+                    expect(await linkSeatsNewcomerAsync(harness, lobbyId)).toBeFalse();
+                    expect(harness.server.testLobbies.has(lobbyId)).withContext('the server no longer holds it')
+                        .toBeFalse();
                 });
 
                 it('keeps a lobby younger than five minutes, and times it out at the next departure after that', async function () {
@@ -90,14 +107,46 @@ describe('Lobby lifecycle', function () {
                     await cycleGuestsAsync(harness, lobbyId, 5);
                     await harness.clock.advanceAsync(5 * oneMinuteMs - 1);
                     await cycleGuestsAsync(harness, lobbyId, 1);
-                    const keptAtFirst = harness.server.lobbyCount;
+                    const errorsAtFirst = [...owner.connectionErrors];
                     await harness.clock.advanceAsync(1);
                     await cycleGuestsAsync(harness, lobbyId, 1);
 
-                    expect(keptAtFirst).toBe(1);
+                    expect(errorsAtFirst).toEqual([]);
                     expect(owner.connectionErrors).toEqual(['Lobby timed out']);
-                    expect(harness.server.lobbyCount).toBe(0);
+                    expect(await linkSeatsNewcomerAsync(harness, lobbyId)).toBeFalse();
+                    expect(harness.server.testLobbies.has(lobbyId)).withContext('the server no longer holds it')
+                        .toBeFalse();
                 });
+            });
+        });
+
+        describe('a player whose lobby closed before their socket arrived', function () {
+            async function strandedJoinerAsync(harness: ServerTestHarness): Promise<{ joiner: TestClient; lobbyId: string }> {
+                const owner = await harness.openLobbyAsync();
+                const lobbyId = owner.lobbyId;
+                const joiner = harness.createClient();
+                expect((await joiner.joinLobbyAsync(lobbyId)).status).toBe(200);
+                await owner.manualDisconnectAsync();
+                return { joiner, lobbyId };
+            }
+
+            it('is told the lobby was not found when choosing a deck for it', async function () {
+                const { harness } = contextRef;
+                const { joiner, lobbyId } = await strandedJoinerAsync(harness);
+
+                const response = await joiner.changeDeckAsync(lobbyId, harness.decklists.validDecklist());
+
+                expect(response.status).toBe(404);
+                expect(response.body).toEqual({ success: false, error: 'Lobby not found' });
+            });
+
+            it('may create another lobby at once', async function () {
+                const { harness } = contextRef;
+                const { joiner } = await strandedJoinerAsync(harness);
+
+                const owned = await harness.openLobbyAsync(joiner);
+
+                expect(owned.lobbyState.lobbyOwnerId).toBe(joiner.id);
             });
         });
 
@@ -128,8 +177,11 @@ describe('Lobby lifecycle', function () {
                 expect(joined.status).toBe(200);
                 expect(guest.lobbyState.users.map((user: { id: string }) => user.id)).toEqual([guest.id]);
                 expect(guest.lobbyState.lobbyOwnerId).toBe(guest.id);
-                expect(harness.server.getUserLobbyId(owner.id)).toBe(elsewhere.lobbyId);
-                expect(harness.server.testLobbies.has(lobbyId)).toBeTrue();
+                await owner.connectAsync();
+                expect(owner.lobbyId).withContext('the owner is seated in the lobby they joined')
+                    .toBe(elsewhere.lobbyId);
+                expect(guest.lobbyId).withContext('the old lobby stays, with the guest in it')
+                    .toBe(lobbyId);
             });
 
             it('takes the old lobby away when the player who left it idle was its only player', async function () {
@@ -138,10 +190,11 @@ describe('Lobby lifecycle', function () {
                 const oldLobbyId = owner.lobbyId;
                 await harness.clock.advanceAsync(oneMinuteMs);
 
-                const created = await harness.openLobbyAsync(owner, { connect: false });
+                await harness.openLobbyAsync(owner, { connect: false });
 
-                expect(created).toBe(owner);
-                expect(harness.server.testLobbies.has(oldLobbyId)).toBeFalse();
+                expect(await linkSeatsNewcomerAsync(harness, oldLobbyId)).toBeFalse();
+                expect(harness.server.testLobbies.has(oldLobbyId)).withContext('the server no longer holds it')
+                    .toBeFalse();
             });
 
             it('may join somewhere else at once if they never connected to the lobby they joined', async function () {
