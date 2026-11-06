@@ -107,6 +107,60 @@ describe('Punishing One, Takes No Prisoners', function() {
             expect(context.p2Base.damage).toBe(5);
         });
 
+        it('Punishing One\'s should not have Raid while no enemy unit is damaged, and gain it as enemy units get damaged', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['punishing-one#takes-no-prisoners']
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    spaceArena: ['green-squadron-awing']
+                }
+            });
+            const { context } = contextRef;
+
+            // no damaged enemy unit: no Raid at all (not "Raid 0")
+            expect(context.punishingOne.hasSomeKeyword('raid')).toBeFalse();
+            expect(context.punishingOne.getNumericKeywordTotal('raid')).toBeNull();
+
+            context.player1.clickCard(context.punishingOne);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickPrompt('Pass');
+
+            expect(context.p2Base.damage).toBe(3);
+
+            context.player2.passAction();
+            context.readyCard(context.punishingOne);
+            context.setDamage(context.p2Base, 0);
+
+            // one damaged enemy unit: Raid 1
+            context.setDamage(context.wampa, 1);
+            expect(context.punishingOne.hasSomeKeyword('raid')).toBeTrue();
+            expect(context.punishingOne.getNumericKeywordTotal('raid')).toBe(1);
+
+            context.player1.clickCard(context.punishingOne);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickPrompt('Pass');
+
+            expect(context.p2Base.damage).toBe(4);
+
+            context.player2.passAction();
+            context.readyCard(context.punishingOne);
+            context.setDamage(context.p2Base, 0);
+
+            // the damage is gone again: back to no Raid
+            context.setDamage(context.wampa, 0);
+            expect(context.punishingOne.hasSomeKeyword('raid')).toBeFalse();
+            expect(context.punishingOne.getNumericKeywordTotal('raid')).toBeNull();
+
+            context.player1.clickCard(context.punishingOne);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickPrompt('Pass');
+
+            expect(context.p2Base.damage).toBe(3);
+        });
+
         it('Punishing One\'s should gain Raid 1 for each damaged enemy unit (with Marchion Ro)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
