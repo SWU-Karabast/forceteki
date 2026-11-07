@@ -128,6 +128,7 @@ export enum EffectName {
     LimitReadyDuringRegroup = 'limitReadyDuringRegroup',
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
+    LoseWhenDefeatedAbilities = 'loseWhenDefeatedAbilities',
     UnitsEnterPlayReady = 'unitsEnterPlayReady',
     ModifyHp = 'modifyHp',
     ModifyIndirectDamage = 'modifyIndirectDamage',

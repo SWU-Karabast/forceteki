@@ -162,6 +162,7 @@ export = {
     loseAllAbilitiesExceptFromSource: () => OngoingEffectBuilder.card.static(EffectName.BlankExceptFromSourceCard),
     loseKeyword: (keywordOrKeywords: KeywordName | KeywordName[]) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keywordOrKeywords),
     loseAllKeywords: () => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, Object.values(KeywordName)),
+    loseAllWhenDefeatedAbilities: () => OngoingEffectBuilder.card.static(EffectName.LoseWhenDefeatedAbilities),
     overridePrintedAttributes: (printedAttributesOverride: PrintedAttributesOverride) => OngoingEffectBuilder.card.static(EffectName.PrintedAttributesOverride, printedAttributesOverride),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
