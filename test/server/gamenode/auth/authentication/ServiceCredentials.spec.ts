@@ -2,7 +2,6 @@ import { mintSessionToken, sessionCookie, signInClaims } from '../../../../helpe
 import type { ISeededAccount } from '../../../../helpers/server/FakeDynamoDbService';
 import { serverIntegration } from '../../../../helpers/server/ServerIntegrationHelper';
 import { testIntraserviceSecret, testProfileCaptureSecret } from '../../../../helpers/server/ServerTestEnv';
-import type { IServerTestOptions } from '../../../../helpers/server/ServerTestHarness';
 
 const rotatedTokens = { access_token: 'new-access-token', refresh_token: 'rotated-refresh-token', expires_in: 3600 };
 
@@ -52,8 +51,6 @@ const sessionOf = (account: ISeededAccount) => sessionCookie(mintSessionToken(si
 describe('Service credentials', function () {
     for (const route of linkRoutes) {
         describe(`${route.path}, used by the FE server to link a ${route.site} account`, function () {
-            const options: IServerTestOptions = { database: true };
-
             serverIntegration(function (contextRef) {
                 it('refuses a request with the wrong key, and neither calls the site nor stores anything', async function () {
                     const { harness } = contextRef;
@@ -125,7 +122,7 @@ describe('Service credentials', function () {
                     expect(route.storedToken(harness.db.profiles.get(account.id))).toBe('rotated-refresh-token');
                     expect(route.storedToken(harness.db.profiles.get(other.id))).toBeUndefined();
                 });
-            }, options);
+            });
 
             describe('with the secret unset on a development server', function () {
                 serverIntegration(function (contextRef) {
@@ -139,7 +136,7 @@ describe('Service credentials', function () {
                         expect(response.body.error).toBe('Environment variable INTRASERVICE_SECRET not set');
                         expect(harness.statsHttpClient.requests).toEqual([]);
                     });
-                }, { database: true, env: { INTRASERVICE_SECRET: undefined } });
+                }, { env: { INTRASERVICE_SECRET: undefined } });
             });
         });
     }
@@ -161,7 +158,7 @@ describe('Service credentials', function () {
                 expect(harness.db.profiles.get(account.id).swubaseRefreshToken).toBeUndefined();
                 expect(harness.db.profiles.get(starter.id).swubaseRefreshToken).toBeUndefined();
             });
-        }, { database: true });
+        });
     });
 
     // `PROFILE_CAPTURE_SECRET` is read once, when `server/env.ts` is first imported, so unlike the secret above
@@ -213,6 +210,6 @@ describe('Service credentials', function () {
                 expect(response.status).toBe(400);
                 expect(response.body.message).toBe('Invalid type parameter. Must be "cpu" or "heap"');
             });
-        }, { database: true });
+        });
     });
 });

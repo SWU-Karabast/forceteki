@@ -31,6 +31,7 @@
     "lint-fix": "eslint --quiet --fix",
     "lint-verbose": "eslint",
     "get-cards": "node ./scripts/fetchdata.js",
+    "check-card-data": "node ./scripts/checkCardData.js",
     "validate-cards": "ts-node scripts/validateCards.ts",
     "validate-specs": "ts-node scripts/validateSpecs.ts"
   },

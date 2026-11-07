@@ -1,8 +1,8 @@
 import { mintSessionToken, sessionCookie, signInClaims } from '../../../../helpers/server/AuthTokens';
-import { premierBestOfOne } from '../../../../helpers/server/MatchConfigs';
 import { serverIntegration } from '../../../../helpers/server/ServerIntegrationHelper';
 import type { ServerTestHarness } from '../../../../helpers/server/ServerTestHarness';
 import type { ISeededAccount } from '../../../../helpers/server/FakeDynamoDbService';
+import { defaultProfileTtlMs } from '../../../../../server/utils/user/UserProfileCache';
 
 /**
  * That the account behind a session is read from the database once and then held by the server, and that
@@ -25,12 +25,7 @@ describe('Account resolution', function () {
 
                 await getUserAsync(harness, account);
                 await getUserAsync(harness, account);
-                await client.createLobbyAsync({
-                    lobbyName: harness.uniqueLobbyName(),
-                    deck: harness.decklists.validDecklist(),
-                    ...premierBestOfOne,
-                });
-                await client.connectAsync();
+                await harness.openLobbyAsync(client);
 
                 expect(identityReads).toHaveBeenCalledTimes(1);
                 expect(profileReads).toHaveBeenCalledTimes(1);
@@ -61,7 +56,23 @@ describe('Account resolution', function () {
                 expect(first.body.user.username).toBe('PlayerOne');
                 expect(second.body.user.username).toBe('PlayerTwo');
             });
-        }, { database: true });
+
+            it('sees a change made outside the server once the profile it holds has expired on the virtual clock', async function () {
+                const { harness } = contextRef;
+                const account = harness.db.seedAccount({ username: 'BeforeEdit' });
+                await getUserAsync(harness, account);
+
+                // written straight to the database, as another node or an admin edit would
+                harness.db.profiles.set(account.id, { ...harness.db.profiles.get(account.id), username: 'AfterEdit' });
+                await harness.clock.advanceAsync(defaultProfileTtlMs - 1);
+                const whileHeld = await getUserAsync(harness, account);
+                await harness.clock.advanceAsync(1);
+                const afterExpiry = await getUserAsync(harness, account);
+
+                expect(whileHeld.body.user.username).toBe('BeforeEdit');
+                expect(afterExpiry.body.user.username).toBe('AfterEdit');
+            });
+        });
     });
 
     describe('after the server changes the account', function () {
@@ -100,12 +111,14 @@ describe('Account resolution', function () {
                     body: { newUsername: 'NewName' },
                 });
                 const response = await getUserAsync(harness, account);
+                // joining an open lobby by its link adds the user under the name its socket resolved to
+                const owner = await harness.openLobbyAsync();
                 const client = harness.createAccountClient(account);
-                await client.connectAsync();
+                await client.connectAsync({ lobbyId: owner.lobbyId });
 
                 expect(changed.status).toBe(200);
                 expect(response.body.user.username).toBe('NewName');
-                expect(client.socket.data.user.getUsername()).toBe('NewName');
+                expect(client.lobbyState.users).toContain(jasmine.objectContaining({ id: account.id, username: 'NewName' }));
             });
 
             it('reads the profile again after a save, so a later request never sees the old values', async function () {
@@ -133,6 +146,6 @@ describe('Account resolution', function () {
                 expect(saved.status).toBe(500);
                 expect(response.body.user.preferences.gameOptions.muteChat).toBeFalse();
             });
-        }, { database: true });
+        });
     });
 });

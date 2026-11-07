@@ -50,10 +50,10 @@ import { GameServerMetrics } from '../utils/GameServerMetrics';
 import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 import { DiscordDispatcher } from './DiscordDispatcher';
 import { checkServerRoleUserPrivileges } from '../utils/authUtils';
-import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
+import { CosmeticAlreadyExistsError, CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import { RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
+import type { ICosmeticEntity } from '../utils/cosmetics/CosmeticsInterfaces';
 import type { IActiveModActionCacheEntry,
-    IDeckDataEntity,
     IModerationAction,
     IReportingDisabledState,
     IUsernameChangesBlockedState } from '../services/DynamoDBInterfaces';
@@ -70,7 +70,15 @@ import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 import { ModActionService } from '../utils/ModActionService';
 import { ModActionSubmissionHandler } from '../utils/ModActionSubmissionHandler';
-import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema, ServerSettingsUpdateSchema } from '../services/DynamoDBInterfaceSchemas';
+import {
+    CosmeticCreateRequestSchema,
+    DeckNameSchema,
+    FindUserSchema,
+    ModActionCancelSchema,
+    ModActionSubmitSchema,
+    SaveDeckRequestSchema,
+    ServerSettingsUpdateSchema
+} from '../services/DynamoDBInterfaceSchemas';
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import { minimumSchedulerDelayMs } from '../utils/IScheduler';
 import { RealScheduler } from '../utils/RealScheduler';
@@ -1305,7 +1313,6 @@ export class GameServer {
             try {
                 const user = req.user as User;
                 const { deckId } = req.params;
-                const { newName } = req.body;
 
                 if (user.isAnonymousUser()) {
                     logger.error(`GameServer (rename-deck): Authentication error for anonymous user ${user.getId()}`);
@@ -1313,8 +1320,14 @@ export class GameServer {
                         message: 'Server error'
                     });
                 }
+
+                const newName = DeckNameSchema.safeParse(req.body?.newName);
+                if (!newName.success) {
+                    return res.status(400).json({ message: 'The new name must be a string' });
+                }
+
                 try {
-                    const renameResponse = await this.deckService.updateDeckNameAsync(user.getId(), deckId, newName);
+                    const renameResponse = await this.deckService.updateDeckNameAsync(user.getId(), deckId, newName.data);
                     if (renameResponse) {
                         return res.status(200).json({});
                     }
@@ -1390,7 +1403,7 @@ export class GameServer {
                     });
                 }
 
-                let deckEntity: IDeckDataEntity;
+                let requestedDeck: unknown;
                 if (typeof swudbLink === 'string' && swudbLink.trim().length > 0) {
                     let resolved;
                     try {
@@ -1402,28 +1415,29 @@ export class GameServer {
                         logger.error('GameServer (save-deck): unexpected error resolving deck link', err);
                         return res.status(500).json({ success: false, error: 'Failed to resolve deck link' });
                     }
-                    deckEntity = {
-                        id: '',
-                        userId: user.getId(),
-                        deck: {
-                            leader: { id: resolved.leader?.id ?? '' },
-                            ...(resolved.secondleader?.id ? { secondLeader: { id: resolved.secondleader.id } } : {}),
-                            base: { id: resolved.base?.id ?? '' },
-                            name: resolved.metadata?.name || 'Untitled Deck',
-                            favourite: false,
-                            deckLink: swudbLink,
-                            deckLinkID: resolved.deckID ?? '',
-                            source: DeckLinkResolver.getDeckSource(swudbLink) === DeckSource.Melee ? 'Melee' : 'SWUDB',
-                        },
+                    requestedDeck = {
+                        leader: { id: resolved.leader?.id ?? '' },
+                        ...(resolved.secondleader?.id ? { secondLeader: { id: resolved.secondleader.id } } : {}),
+                        base: { id: resolved.base?.id ?? '' },
+                        name: resolved.metadata?.name || 'Untitled Deck',
+                        deckLink: swudbLink,
+                        deckLinkID: resolved.deckID ?? '',
+                        source: DeckLinkResolver.getDeckSource(swudbLink) === DeckSource.Melee ? 'Melee' : 'SWUDB',
                     };
                 } else if (deck) {
-                    deckEntity = deck;
+                    // the client sends a whole deck entity; only the inner deck is taken from it
+                    requestedDeck = deck.deck;
                 } else {
                     return res.status(400).json({ success: false, error: 'No deck or swudbLink provided' });
                 }
 
+                const parsedDeck = SaveDeckRequestSchema.safeParse(requestedDeck);
+                if (!parsedDeck.success) {
+                    return res.status(400).json({ success: false, error: 'Invalid deck' });
+                }
+
                 // we save the deck
-                const newDeck = await this.deckService.saveDeckAsync(deckEntity, user);
+                const newDeck = await this.deckService.saveDeckAsync(parsedDeck.data, user);
                 return res.status(200).json({
                     success: true,
                     message: 'Deck saved successfully',
@@ -1849,13 +1863,31 @@ export class GameServer {
                 if (!this.cosmeticsService) {
                     return res.status(503).json({ success: false, message: 'Cosmetics service unavailable' });
                 }
-                const { cosmetic } = req.body;
-
-                if (!this.canManageCosmeticType(req.path, req.user.getId(), cosmetic?.type)) {
+                const requested = req.body?.cosmetic;
+                if (!this.canManageCosmeticType(req.path, req.user.getId(), requested?.type)) {
                     return res.status(403).json({ success: false, message: 'Admin privileges are required to upload this cosmetic type' });
                 }
 
-                await this.cosmeticsService.saveCosmeticAsync(cosmetic);
+                // only the fields of a cosmetic are taken from the request; the type checked above is the one parsed here
+                const parsed = CosmeticCreateRequestSchema.safeParse(requested);
+                if (!parsed.success) {
+                    return res.status(400).json({ success: false, message: 'Invalid cosmetic' });
+                }
+
+                const cosmetic: ICosmeticEntity = parsed.data;
+                if (!CosmeticsService.isUploadedImagePath(cosmetic.type, cosmetic.id, cosmetic.path)) {
+                    return res.status(400).json({ success: false, message: 'Cosmetic path must be its uploaded image' });
+                }
+
+                try {
+                    await this.cosmeticsService.createCosmeticAsync(cosmetic);
+                } catch (error) {
+                    if (error instanceof CosmeticAlreadyExistsError) {
+                        return res.status(409).json({ success: false, message: 'A cosmetic with this id already exists' });
+                    }
+                    throw error;
+                }
+
                 return res.status(201).json({
                     success: true,
                     message: 'Cosmetic saved successfully',

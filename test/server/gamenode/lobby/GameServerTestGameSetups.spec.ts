@@ -9,6 +9,7 @@ const devCookie = sessionCookie(mintSessionToken(signInClaims({ provider: 'dev-u
 
 const gameSetupsDir = path.resolve(__dirname, '../../../../../test/gameSetups');
 
+/** A local dev box: no DynamoDB, so the dev test accounts live in the in-memory user store. */
 describe('GameServer test game setups', function () {
     serverIntegration(function (contextRef) {
         function lobbyCount(): number {
@@ -92,7 +93,7 @@ describe('GameServer test game setups', function () {
                 expect(lobbyCount()).toBe(0);
             });
         });
-    });
+    }, { database: false });
 });
 
 describe('Database-backed development test games', function () {

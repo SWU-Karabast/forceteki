@@ -17,7 +17,7 @@ describe('socketio drift guard', function () {
     let clientSockets: ClientSocket[];
 
     beforeEach(async function () {
-        harness = await ServerTestHarness.createAsync({ database: true });
+        harness = await ServerTestHarness.createAsync();
         clientSockets = [];
     });
 

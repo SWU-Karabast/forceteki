@@ -451,7 +451,8 @@ describe('GameServer matchmaking preferences', function () {
                 try {
                     await harness.clock.settlePendingWorkAsync();
                     expect(shutdownFinished).toBeFalse();
-                    expect(harness.clock.pendingTaskCount).toBe(0);
+                    // the server has cancelled its own timers; only the database services' remain until shutdown ends
+                    expect(harness.clock.pendingTaskCount).toBe(harness.databaseTaskCount);
                 } finally {
                     resumeSetup();
                 }
@@ -689,7 +690,7 @@ describe('GameServer matchmaking preferences', function () {
                     if (reconnectBeforeRequeue) {
                         await player.connectAsync();
                     }
-                    await player.sendGameMessageAsync('concede');
+                    await player.concedeAsync();
                     expect(player.gameState.winners).toHaveSize(1);
                     await harness.clock.advanceAsync(1_000);
                     await player.requeueAsync();
@@ -756,7 +757,7 @@ describe('GameServer matchmaking preferences', function () {
 
                 expectMatched(anonymous, authenticated);
             });
-        }, { database: true });
+        });
     });
 
     describe('a custom timing policy', function () {

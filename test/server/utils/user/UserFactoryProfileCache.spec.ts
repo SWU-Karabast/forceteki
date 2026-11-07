@@ -1,4 +1,3 @@
-import { ModerationType } from '../../../../server/services/DynamoDBInterfaces';
 import type { IUserDataEntity, IUserProfileDataEntity } from '../../../../server/services/DynamoDBInterfaces';
 import { RefreshTokenSource } from '../../../../server/utils/statHandlers/StatHandlerTypes';
 import { UserFactory } from '../../../../server/utils/user/UserFactory';
@@ -12,8 +11,6 @@ import { routeDatabaseThrough } from '../../../helpers/server/TestDatabase';
  * changes the stored profile - every write in `UserFactory` has to be followed by a fresh read.
  */
 describe('UserFactory profile cache', function() {
-    const HOUR_MS = 60 * 60 * 1000;
-
     let fakeDb: FakeDynamoDbService;
     let userFactory: UserFactory;
     let account: ISeededAccount;
@@ -82,12 +79,6 @@ describe('UserFactory profile cache', function() {
                 expected: { usernameChangesBlockedSeenActionId: 'action-2' },
             },
             {
-                description: 'a legacy moderation notice being seen',
-                seed: { moderation: { moderationType: ModerationType.Mute, daysRemaining: 3, endDate: new Date(Date.now() + 24 * HOUR_MS).toISOString(), hasSeen: false } },
-                change: (id) => userFactory.setModerationSeenAsync(id),
-                expected: { moderation: jasmine.objectContaining({ hasSeen: true }) as any },
-            },
-            {
                 description: 'a username change',
                 change: (id) => userFactory.changeUsernameAsync(id, 'RenamedPlayer'),
                 expected: { username: 'RenamedPlayer' },
@@ -120,36 +111,6 @@ describe('UserFactory profile cache', function() {
             await resolveProfileAsync();
 
             expect(reads).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe('legacy moderation', function() {
-        const mute = (endsInMs: number): IUserProfileDataEntity['moderation'] => ({
-            moderationType: ModerationType.Mute,
-            daysRemaining: 3,
-            endDate: new Date(Date.now() + endsInMs).toISOString(),
-            hasSeen: true,
-        });
-
-        it('is active while its end date has not passed', async function() {
-            seed({ moderation: mute(2 * HOUR_MS) });
-
-            await resolveProfileAsync();
-            const user = await userFactory.resolveUserFromTokenAsync(token);
-
-            expect(user.getModeration()?.moderationType).toBe(ModerationType.Mute);
-        });
-
-        it('is cleared when its end date passes while the profile is cached', async function() {
-            seed({ moderation: mute(2 * HOUR_MS) });
-            await resolveProfileAsync();
-            const realNow = Date.now();
-            spyOn(Date, 'now').and.returnValue(realNow + 3 * HOUR_MS);
-
-            const user = await userFactory.resolveUserFromTokenAsync(token);
-
-            expect(user.getModeration()).toBeNull();
-            expect(fakeDb.profiles.get(account.id).moderation).toBeNull();
         });
     });
 

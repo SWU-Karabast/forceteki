@@ -1,3 +1,4 @@
+import { PlayerReportType } from '../../../../server/game/Interfaces';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 import type { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
 import type { ITestClientOptions, TestClient } from '../../../helpers/server/TestClient';
@@ -34,7 +35,7 @@ describe('Lobby reports', function () {
             const { first: reporter } = await harness.startQuickGameAsync(loggedIn, loggedIn);
             const sent = captureDiscordReports(harness, reporter);
 
-            await reporter.sendLobbyMessageAsync('submitReport', 'bugReport', 'a real bug');
+            await reporter.submitBugReportAsync('a real bug');
 
             expect(sent.length).toBe(1);
         });
@@ -44,7 +45,7 @@ describe('Lobby reports', function () {
             const { first: reporter } = await harness.startQuickGameAsync({}, loggedIn);
             const sent = captureDiscordReports(harness, reporter);
 
-            await reporter.sendLobbyMessageAsync('submitReport', 'bugReport', 'spam');
+            await reporter.submitBugReportAsync('spam');
 
             expect(sent.length).toBe(0);
             expect(reporter.receivedEvents('bugReportResult').map((e) => e.args[0].success)).toEqual([false]);
@@ -55,10 +56,10 @@ describe('Lobby reports', function () {
             const { first: reporter } = await harness.startQuickGameAsync(loggedIn, {});
             const sent = captureDiscordReports(harness, reporter);
 
-            await reporter.sendLobbyMessageAsync('submitReport', 'playerReport', 'they were rude', 'Harassment');
+            await reporter.submitPlayerReportAsync('they were rude', PlayerReportType.ChatHarrasment);
 
             expect(sent.length).toBe(0);
             expect(reporter.receivedEvents('playerReportResult').map((e) => e.args[0].success)).toEqual([false]);
         });
-    }, { database: true });
+    });
 });
