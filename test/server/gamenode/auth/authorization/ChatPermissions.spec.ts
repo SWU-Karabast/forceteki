@@ -122,7 +122,35 @@ describe('Chat permissions', function () {
 
                 await owner.sendChatMessageAsync('hello there');
 
-                expect(guest.lobbyChatFrom(owner)).toEqual([]);
+                expect(guest.lobbyChatFrom(owner)).toEqual(['hello there']);
+                expect(guest.lobbyState.users.find((u: any) => u.id === owner.id).chatDisabled).toBeFalse();
+            });
+
+            it('delivers a message sent to an opponent who disabled chat in their preferences', async function () {
+                const { harness } = contextRef;
+                const { owner, guest } = await harness.createLobbyWithGuestAsync(loggedIn, chatDisabledInPreferences(harness), { isPrivate: true });
+
+                await owner.sendChatMessageAsync('hello there');
+
+                expect(guest.lobbyChatFrom(owner)).toEqual(['hello there']);
+            });
+
+            it('delivers a message from an anonymous user to an opponent who disabled chat in their preferences', async function () {
+                const { harness } = contextRef;
+                const { owner, guest } = await harness.createLobbyWithGuestAsync({}, chatDisabledInPreferences(harness), { isPrivate: true });
+
+                await owner.sendChatMessageAsync('hello there');
+
+                expect(guest.lobbyChatFrom(owner)).toEqual(['hello there']);
+            });
+
+            it('shows the typing indicator from a user who disabled chat in their preferences', async function () {
+                const { harness } = contextRef;
+                const { owner, guest } = await harness.createLobbyWithGuestAsync(chatDisabledInPreferences(harness), loggedIn, { isPrivate: true });
+
+                await owner.typingStateAsync(true);
+
+                expect(guest.lobbyState.gameChat.typingState[owner.id]).toBeTrue();
             });
         });
 
@@ -147,9 +175,9 @@ describe('Chat permissions', function () {
                 const { harness } = contextRef;
                 const { first: sender, second: opponent } = await harness.startQuickGameAsync(chatDisabledInPreferences(harness), loggedIn);
 
-                await sender.sendGameMessageAsync('chat', 'good luck');
+                await sender.sendGameChatAsync('good luck');
 
-                expect(gameChatContains(opponent, 'good luck')).toBeFalse();
+                expect(opponent.gameChatFrom(sender)).toEqual([]);
             });
 
             it('drops a message that is not a string', async function () {
