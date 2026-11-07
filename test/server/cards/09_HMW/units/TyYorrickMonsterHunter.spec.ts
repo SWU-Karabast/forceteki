@@ -374,4 +374,49 @@ describe('Ty Yorrick, Monster Hunter', function() {
             });
         });
     });
+
+    integration(function(contextRef) {
+        describe('Ty Yorrick, Monster Hunter\'s damage modification with excess damage', function() {
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['ty-yorrick#monster-hunter', 'blizzard-assault-atat']
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'atst']
+                    }
+                });
+            });
+
+            it('should increase the excess damage dealt by Blizzard Assault AT-AT by 1', function() {
+                const { context } = contextRef;
+
+                // Blizzard Assault AT-AT deals 9 damage to Wampa, 4 of it is excess damage
+                context.player1.clickCard(context.blizzardAssaultAtat);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.atst);
+
+                expect(context.player1).toHavePassAbilityPrompt('Increase damage by 1');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.atst.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not change the excess damage if the increase is passed', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.blizzardAssaultAtat);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.atst);
+
+                expect(context.player1).toHavePassAbilityPrompt('Increase damage by 1');
+                context.player1.clickPrompt('Pass');
+
+                expect(context.atst.damage).toBe(4);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+    });
 });
