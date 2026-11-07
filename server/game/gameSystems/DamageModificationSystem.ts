@@ -85,13 +85,7 @@ export class DamageModificationSystem<
         switch (properties.modificationType) {
             case DamageModificationType.Cap:
                 Contract.assertPositiveNonZero(properties.amount, `capAmount must be a positive non-zero number for DamageModificationType.Cap. Found: ${properties.amount}`);
-                return new DamageSystem((context) => ({
-                    target: context.event.card,
-                    amount: properties.amount,
-                    source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
-                    type: context.event.type,
-                    sourceAttack: context.event.damageSource.attack,
-                }));
+                return this.buildModifiedDamage(() => properties.amount);
             case DamageModificationType.PreventAll:
                 return null;
             case DamageModificationType.Reduce:
@@ -99,39 +93,17 @@ export class DamageModificationSystem<
 
                 // if the damage is fully prevented there is nothing to replace it with - the event is
                 // simply marked as replaced, which still counts as resolved for "if you do" effects
-                if (context.event.amount != null && context.event.amount - properties.amount <= 0) {
+                if (DamageSystem.getDamageAmountFromEvent(context.event) - properties.amount <= 0) {
                     return null;
                 }
 
-                return new DamageSystem((context) => ({
-                    target: context.event.card,
-                    amount: Math.max(context.event.amount - properties.amount, 0),
-                    source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
-                    type: context.event.type,
-                    sourceAttack: context.event.damageSource.attack,
-                }));
+                return this.buildModifiedDamage((originalAmount) => Math.max(originalAmount - properties.amount, 0));
             case DamageModificationType.Increase:
                 Contract.assertPositiveNonZero(properties.amount, `amount must be a positive non-zero number for DamageModificationType.Increase. Found: ${properties.amount}`);
-                return new DamageSystem((context) => ({
-                    target: context.event.card,
-                    amount: context.event.amount + properties.amount,
-                    source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
-                    type: context.event.type,
-                    isIndirect: context.event.isIndirect,
-                    isUnpreventable: context.event.isUnpreventable,
-                    sourceAttack: context.event.damageSource.attack,
-                }));
+                return this.buildModifiedDamage((originalAmount) => originalAmount + properties.amount, true);
             case DamageModificationType.Multiply:
                 Contract.assertPositiveNonZero(properties.amount, `amount must be a positive non-zero number for DamageModificationType.Multiply. Found: ${properties.amount}`);
-                return new DamageSystem((context) => ({
-                    target: context.event.card,
-                    amount: context.event.amount * properties.amount,
-                    source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
-                    type: context.event.type,
-                    isIndirect: context.event.isIndirect,
-                    isUnpreventable: context.event.isUnpreventable,
-                    sourceAttack: context.event.damageSource.attack,
-                }));
+                return this.buildModifiedDamage((originalAmount) => originalAmount * properties.amount, true);
             case DamageModificationType.Replace:
                 const replaceWith = properties.replaceWithEffect;
                 Contract.assertNotNullLike(replaceWith, 'replaceWith must be defined for DamageModificationType.Replace');
@@ -153,9 +125,40 @@ export class DamageModificationSystem<
         }
 
         if (properties.modificationType === DamageModificationType.Cap) {
-            return context.event.amount > properties.amount;
+            return DamageSystem.getDamageAmountFromEvent(context.event) > properties.amount;
         }
         return true;
+    }
+
+    /**
+     * Builds the damage that replaces the original damage event, keeping its type and source. Excess and Overwhelm damage
+     * may not have an amount of their own (see {@link DamageSystem.getDamageAmountFromEvent}), so the new amount is derived
+     * from the amount the original event would have dealt.
+     */
+    private buildModifiedDamage(getAmount: (originalAmount: number) => number, copyDamageFlags = false): GameSystem<TContext> {
+        return new DamageSystem<TContext, any>((context) => {
+            const event = context.event;
+            const properties: Record<string, unknown> = {
+                target: event.card,
+                amount: getAmount(DamageSystem.getDamageAmountFromEvent(event)),
+                source: event.damageSource.type === DamageType.Ability ? event.damageSource.card : event.damageSource.damageDealtBy,
+                type: event.type,
+                sourceAttack: event.damageSource.attack,
+            };
+
+            if (copyDamageFlags) {
+                properties.isIndirect = event.isIndirect;
+                properties.isUnpreventable = event.isUnpreventable;
+            }
+
+            // keep the link to the event the excess damage came from, so that the excess counts as used up once dealt.
+            // only set when present, since DamageSystem checks whether the key exists at all
+            if (event.type === DamageType.Excess && event.sourceEventForExcessDamage != null) {
+                properties.sourceEventForExcessDamage = event.sourceEventForExcessDamage;
+            }
+
+            return properties;
+        });
     }
 
     /**
