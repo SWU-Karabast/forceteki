@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class FinnStandAndFight extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'finn#stand-and-fight-id',
+            id: '9947579372',
             internalName: 'finn#stand-and-fight',
         };
     }

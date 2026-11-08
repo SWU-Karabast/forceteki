@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class EzraBridgerDownWithTheFreedom extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'ezra-bridger#down-with-the-freedom-id',
+            id: '7270673616',
             internalName: 'ezra-bridger#down-with-the-freedom',
         };
     }

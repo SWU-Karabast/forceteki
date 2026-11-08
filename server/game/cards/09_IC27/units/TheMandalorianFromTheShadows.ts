@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class TheMandalorianFromTheShadows extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-mandalorian#from-the-shadows-id',
+            id: '6675670985',
             internalName: 'the-mandalorian#from-the-shadows',
         };
     }

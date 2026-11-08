@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../cor
 export default class SawGerreraForTheCause extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'saw-gerrera#for-the-cause-id',
+            id: '4213870054',
             internalName: 'saw-gerrera#for-the-cause',
         };
     }

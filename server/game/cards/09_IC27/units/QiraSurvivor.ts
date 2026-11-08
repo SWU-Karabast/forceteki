@@ -8,7 +8,7 @@ import { Helpers } from '../../../core/utils/Helpers';
 export default class QiraSurvivor extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'qira#survivor-id',
+            id: '6888483740',
             internalName: 'qira#survivor',
         };
     }

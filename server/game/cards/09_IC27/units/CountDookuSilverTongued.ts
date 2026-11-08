@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType, WildcardZoneName, ZoneName } from '..
 export default class CountDookuSilverTongued extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'count-dooku#silvertongued-id',
+            id: '5815548376',
             internalName: 'count-dooku#silvertongued',
         };
     }

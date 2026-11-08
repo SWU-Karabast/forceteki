@@ -6,7 +6,7 @@ import { RelativePlayer, ZoneName } from '../../../core/Constants';
 export default class KylosTieSilencerFollowMyLead extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'kylos-tie-silencer#follow-my-lead-id',
+            id: '7011917463',
             internalName: 'kylos-tie-silencer#follow-my-lead',
         };
     }

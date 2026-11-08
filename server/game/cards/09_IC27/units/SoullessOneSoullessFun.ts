@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Consta
 export default class SoullessOneSoullessFun extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'soulless-one#soulless-fun-id',
+            id: '6445430167',
             internalName: 'soulless-one#soulless-fun',
         };
     }

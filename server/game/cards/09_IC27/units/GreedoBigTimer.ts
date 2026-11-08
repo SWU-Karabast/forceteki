@@ -5,7 +5,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class GreedoBigTimer extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'greedo#bigtimer-id',
+            id: '6318254463',
             internalName: 'greedo#bigtimer',
         };
     }

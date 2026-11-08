@@ -9,7 +9,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class GrandMoffTarkinCrackingDownOnLothal extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'grand-moff-tarkin#cracking-down-on-lothal-id',
+            id: '0001065356',
             internalName: 'grand-moff-tarkin#cracking-down-on-lothal',
         };
     }

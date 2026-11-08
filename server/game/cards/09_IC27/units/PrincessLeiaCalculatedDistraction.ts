@@ -7,7 +7,7 @@ import { TargetMode, WildcardCardType } from '../../../core/Constants';
 export default class PrincessLeiaCalculatedDistraction extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'princess-leia#calculated-distraction-id',
+            id: '8471993239',
             internalName: 'princess-leia#calculated-distraction',
         };
     }
