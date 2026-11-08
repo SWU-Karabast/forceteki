@@ -3,7 +3,7 @@
 Status: **in progress.** Phases 0–2.5 and the account-auth guards are merged to `main` and CI-gated (PRs #2934, #2961,
 #2950, #3021, #3117 and #3129). The remaining work is split by topic area (core server logic, game timers, stats and so on),
 each taken through the same five steps, from planning to an independent review. The core area, which gates the lobby /
-queue / connection refactor, is finished apart from four checklist rows held for security fixes; game timers are next.
+queue / connection refactor, is finished apart from four checklist rows held for security fixes. Game timers are at step b.
 
 This document is the plan: the current state, the decisions in force, the roadmap, and the reference material for working
 on the suite. The working record (what each phase built, what the reviews found, how each merge by other contributors was
@@ -121,7 +121,7 @@ product decision can run alongside the others.
 | # | Area | Depends on | Status |
 |---|---|---|---|
 | 1 | **Core server logic:** connections, lobbies, the queue and matchmaking, spectators, and the harness itself | - | ✅ done (2026-11-06), apart from the held rows |
-| 2 | **Game timers:** the action timer, its warnings and timeouts, and what a player's activity does to it | core | next: step a |
+| 2 | **Game timers:** the action timer, its warnings and timeouts, and what a player's activity does to it | core | next: step b |
 | 3 | **Protocol surface:** the command allowlists and game-mode validation | core | step a; its step d waits on open finding #3 |
 | 4 | **Decks:** deck routes, deck-link resolution, and deck checks in lobbies and at game start | core | step a |
 | 5 | **Stats:** game results reported to Karabast, SWUStats and SWUBase | core; decks (the fake's deck tables) | step a |
@@ -134,7 +134,8 @@ product decision can run alongside the others.
 Suite work that no single area owns (I-12, the CI split, the formal parallel-safety review) is listed under *Suite
 infrastructure* and goes with the first area that needs it.
 
-Open findings that still need a production fix are #1, #3, #10 and the open half of #11; each belongs to an area.
+Open findings that still need a production fix or a decision are #1, #3, #10, #11 and #15 to #17; each belongs to an
+area.
 Anything exploitable is tracked privately with the maintainers, not here.
 
 ### Working agreements
@@ -350,7 +351,7 @@ fails earlier, in that middleware, with `Authentication error` (covered, `Socket
 | L1 | ownership: the creator owns the lobby, it passes to the remaining user, and the fallback in `addLobbyUserAsync` | covered for the creator and the hand-over (`LobbyLifecycle`). The fallback is waived: the server only drops an owner's lobby entry together with their seat, and dropping the seat hands ownership over, so no API sequence reaches it (kept as a defensive check in core's step d) |
 | L2 | the quick-lobby countdown: the text sequence, a start only when both players are connected, and `removeLobby` with a requeue when neither connects | covered for the sequence and for waiting until both are connected (`QuickLobbyCountdown`); the removal branch is held (V-3) |
 | L3 | the `Lobby timed out` path after 5 users have left and 5 minutes have passed | covered (`LobbyLifecycle`) |
-| L4 | the inactivity kick (`inactiveDisconnect`, then a forced disconnect that the disconnect handler skips) and `resetActionTimer` | waived: nothing reaches the kick any more, and it is a dead feature to remove (the game-timer area's step d). `resetActionTimer` does not reach the action timer either (open finding #11); a `TODO` in `InGameConnections` marks the specs to add if the timer is made to read player activity again |
+| L4 | the inactivity kick (`inactiveDisconnect`, then a forced disconnect that the disconnect handler skips) and `resetActionTimer` | waived: nothing reaches the kick any more, and it is a dead feature to remove (the game-timer area's step d). `resetActionTimer` does not reach the action timer either, by design (open finding #11, decided 2026-11-08); the game-timer area's row T12 covers it |
 | L5 | shutdown with a grace timer pending, and with a live game's action timers, counted from a baseline | covered (`GameServerScheduling`) |
 
 ## Topic areas
@@ -407,23 +408,106 @@ Connections, lobbies, the queue and matchmaking, spectators, and the test harnes
 - **What remains:** the held rows (C1, C11, L2, C21), whose specs go in with their security fixes; the smaller step c items
   above; and, when the refactor starts, the specs the fragility register lists.
 
-### 2. Game timers — next: step a
+### 2. Game timers — next: step b
 
-The action timer during a game: the byoyomi turn and main countdowns, the warning and danger thresholds, the timeout that
-ends a game (a draw when both players are nearly out), and `timeRemainingStatus` as sent to the client; and what a player's
-activity does to the timer. Depends only on core: `harness.startLiveGameAsync` in a public lobby with
-`{ config: { actionTimersEnabled: true } }` gives a game with timers, and `ByoyomiTimer`'s public constants give the limits.
+The action timer during a game: the turn and main countdowns, the warning and danger thresholds, the timeout that ends a
+game (a draw when both players are nearly out), the pauses, and what the client is sent; and what a player's activity
+does to the timer. Depends only on core.
 
-- Open finding #11 belongs here. The inactivity kick is a dead feature and goes in this area's step d (with
-  `Lobby.userTimeoutDisconnect`, the `userTimeoutDisconnect` field of the game configuration and its contract check
-  (`GameInterfaces`, `Game`), the `inactiveDisconnect` event, and the `forceDisconnect` socket flag with
-  `onSocketDisconnected`'s check for it; forceteki-client still listens for `inactiveDisconnect` in `Game.context.tsx`, so
-  that handler goes with it). Step a
-  settles the open half: whether the timer should read player activity again, which would make `resetActionTimer` work, or
-  `resetActionTimer` goes too. A `TODO` in `InGameConnections` marks the specs to add if it comes back.
-- The I-7 time helpers (a boundary helper on `TestScheduler`) fit here, since this area's specs need the "advance to T−1,
-  assert not yet, advance 1, assert now" idiom most.
-- The best-of-three ready and transition timers belong to the best-of-three area.
+**What the code does** (read on 2026-11-08, with two throwaway probes, since deleted):
+
+- *Which games have timers.* Each player gets a `ByoyomiTimer` (`server/game/core/actionTimer/`) when the lobby's
+  `useActionTimers` holds: a quick-match or public-lobby game, on a node with `actionTimersEnabled` on (off in development
+  unless `USE_LOCAL_ACTION_TIMER` is set). Otherwise a `NoopActionTimer`, which reports no turn time, the full 120 s of
+  main time and no running timer. Scripted test games (`start-test-game`) never have timers: `GameStateBuilder` builds them
+  with a `NoopScheduler` and no timer option.
+- *The two countdowns.* A `ByoyomiTimer` is two `GameActionTimer`s on the lobby's scheduler: a 20 s turn timer that starts
+  again with each prompt, and a 120 s main timer, one budget for the whole game, which runs only once the turn time is
+  spent. `UiPrompt.setPrompt` starts (or, if paused, resumes) the timer of each player a prompt waits on and stops the
+  others'. `ActionWindow` stops the active player's timer as each action starts, so it starts again at full turn time.
+  Prompts built with `resetActionTimerOnComplete` (the initiative choice and the setup resource prompt) stop it when they
+  complete.
+- *What the client is sent.* The game state is pushed when the turn time runs out and at 30 s and 10 s of main time left;
+  the two thresholds also add a chat alert. The client counts down between pushes. It reads `turnTimeRemainingSeconds`,
+  `mainTimeRemainingSeconds` and `timerIsRunning` (`GameTimer.tsx`) and `timeRemainingStatus` (`TimerWarningIcon.tsx`)
+  from each player's entry. `timeRemainingStatus` is derived: Warning or Danger only while main time is running and at or
+  under the threshold.
+- *Running out.* `Game.onGameTimerExpired` stops the opponent's timer, adds "Game ended due to … timing out", and ends the
+  game for the opponent (`GameEndReason.Timeout`), or as a draw if the opponent has under 3 s left. In a best-of-three it
+  first forfeits the set (`onBo3SetForfeit`), which is the best-of-three area's.
+- *Pauses.* An undo request pauses the requester's timer while the opponent decides (`UndoConfirmationPrompt`), so the
+  request gives no time back; the opponent can block requests after denying two. A cost-payment recovery rollback pauses
+  the timer and resumes it (`Game.rollbackForCostPaymentRecovery`).
+- *After the end.* `endGame` stops both timers. If the players play on, prompts start them again, and
+  `onGameTimerExpired` and `sendTimerUpdatedGameStateToPlayers` do nothing once the game has ended.
+
+**The local security documents** (read 2026-11-08): V-29 touches this area, and one row below is held for it. V-34's
+investigation could use the game driver this area builds. Nothing else in them concerns timers.
+
+**Definition of done.** Every row below is covered, waived with a reason, or held; and a coverage run over
+`server/game/core/actionTimer/` and the timer paths in `Game.ts`, `Player.ts`, `UiPrompt.ts`, `ActionWindow.ts`,
+`UndoConfirmationPrompt.js` and `Lobby.ts` finds no unlisted gap. Every row is asserted on the wire: the timer fields in
+each player's game state, the chat, and the winners.
+
+| Row | Behaviour | Status |
+|---|---|---|
+| T1 | which games have timers: quick-match and public-lobby games with `actionTimersEnabled` on; not a private lobby, nor with the setting off (no running timer, full main time) | to do |
+| T2 | a prompt starts the timer of each player it waits on, and a player it does not wait on has a stopped timer: the initiative choice (one player), then the mulligan and resource prompts (both) | to do |
+| T3 | the turn time running out starts the main time, and the game state is sent at that moment | to do |
+| T4 | each new prompt starts the turn time again; the main time keeps what is left, across actions, phases and rounds | to do |
+| T5 | the warnings at 30 s and 10 s of main time: the status, the chat alert and a state push; the status clears once the player is no longer spending main time | to do |
+| T6 | the main time running out: the opponent wins, with the timeout alert, and the opponent's timer stops | to do |
+| T7 | the draw rule (decided 2026-11-08): when a player's main time runs out, the game is a draw if the opponent's timer is running and the opponent is 3 s or less from running out too, counting turn and main time; otherwise the opponent wins, however little time a waiting opponent has, or an opponent still in their turn time has | the cases the code already gets right (an opponent with more than 3 s left wins) in step c; the rest with #16's fix |
+| T8 | both players running out at the same moment is a draw, and a timer that has run out shows no main time left | with #16's fix |
+| T9 | an undo request pauses the requester's timer while the opponent's runs; the requester resumes where they were, whether the opponent allows or denies it | to do |
+| T10 | a cost-payment recovery rollback pauses and resumes the timer | waived unless the scripted-game seam below is added: it needs a board on which a cost cannot be paid |
+| T11 | the end of a game (won, conceded, or a draw on time) stops both timers; a game that has ended sends no timer updates and times no one out, even if the players play on | to do |
+| T12 | a player's messages do not change their timer (by design, decided 2026-11-08): chat, a click the prompt does not take, an option toggle, the client's automatic messages, a reconnect, and `resetActionTimer` while the client still sends it | to do |
+| T13 | a reconnect does not reset the timer; a spectator is sent the same timer fields | to do |
+| T14 | shutdown cancels a live game's timers | covered (`GameServerScheduling`, row L5) |
+| T15 | timers when the lobby drops a game | held (V-29) |
+
+**Steps.**
+
+- **a: ✅ done (2026-11-08).** The owner decided the open half of #11 (a player's messages do not affect the timer, so the
+  check and `resetActionTimer` go) and the draw rule for #16 (row T7).
+- **b: set up.** No production seam is needed: `startLiveGameAsync` (a public lobby by default) and `startQuickGameAsync`
+  give timed games under `{ config: { actionTimersEnabled: true } }`, and `ByoyomiTimer`'s public constants give the limits.
+  The test side:
+  - a game driver on `TestClient`: the player's own prompt, a prompt button by its text, and each player's timer fields as
+    the client reads them, so that specs do not dig through raw game state;
+  - a builder that plays a live game through setup to its first action (the initiative choice, both players keeping their
+    hands, two resources each) and returns the active and the waiting player, and a way to pass into the regroup phase;
+  - I-7's boundary helper on `TestScheduler`, since these specs need the "advance to T−1, assert not yet, advance 1, assert
+    now" idiom most;
+  - a new `test/server/gamenode/timers/` area (with its bullet in `CLAUDE.md`): `ActionTimer` for T2 to T8,
+    `ActionTimerPauses` for T9, T10 and T12, and `TimedGames` for T1, T11 and T13, starting with "hello world" specs for
+    the driver and the builder;
+  - the fragility register's rows for the driver, which depends on the setup prompts' button texts.
+
+  Considered, not planned: a seam that lets a scripted test game run on the lobby's scheduler with real timers. It would
+  cover T10 and help V-34; add it in step c only if a row needs it.
+- **c:** the rows, then the coverage run.
+- **d:** each with its spec:
+  - #16: the draw rule as decided (row T7), read before the opponent's timer is stopped and from the time left in
+    milliseconds rather than the rounded-up seconds the client is shown; an opponent whose main time runs out at the same
+    instant counts as running; and a timer that has run out reports no main time left;
+  - #11: the inactivity kick (below), and the activity check with what only it uses: `GameActionTimer`'s
+    `checkLiveStatus`, its prompt and action tracking and its `shouldFireHandler` override, the `checkLiveStatus` parameter
+    of `ByoyomiTimer`, `Player.checkPlayerTimeoutConditions`, `lastActionId` and `incrementActionId`, and `Game.onPlayerAction`
+    with the lobby's call to it (`updateUserLastActivity` still records the time of a player's last message, which the
+    60 s stale-lobby rule reads). Removing the tracking also resolves #17;
+  - `resetActionTimer`: forceteki-client stops sending it (the bug-report and player-report dialogs in
+    `CurrentGameTab.tsx`) in the same change that removes its `inactiveDisconnect` handler, and the server's no-op branch in
+    `Lobby.onGameMessage` goes once that has shipped (until then, removing it would log an unknown-command warning for each
+    one an older client sends);
+  - the dead code: `Game.restartAllActionTimers`, which nothing calls, and the `restartIfRunning` methods only it reaches.
+- **Not this area's:** the best-of-three ready and transition timers, and the set forfeit on a timeout (the best-of-three
+  area).
+- **Open finding #11.** The inactivity kick is a dead feature and goes in step d, with `Lobby.userTimeoutDisconnect`, the
+  `userTimeoutDisconnect` field of the game configuration and its contract check (`GameInterfaces`, `Game`), the
+  `inactiveDisconnect` event, and the `forceDisconnect` socket flag with `onSocketDisconnected`'s check for it.
+  forceteki-client still listens for `inactiveDisconnect` in `Game.context.tsx`, so that handler goes with it.
 
 ### 3. Protocol surface — step a
 
@@ -693,7 +777,7 @@ splitting by *what changed* is not.
 
 Behaviours found while building the suite that are still open. Open items are **not fixed**; where a spec would belong, a
 `TODO` marks it. Numbers are never reused or renumbered, so gaps in the numbering are expected. Statuses were last
-re-verified against `main` on 2026-11-01 (by re-reading the code paths); #10 was added on 2026-11-05, #11 and #12 on 2026-11-06, and #13 to #15 on 2026-11-06 (#13 and #14 were fixed the same day).
+re-verified against `main` on 2026-11-01 (by re-reading the code paths); #10 was added on 2026-11-05, #11 and #12 on 2026-11-06, and #13 to #15 on 2026-11-06 (#13 and #14 were fixed the same day); #16 and #17 on 2026-11-08.
 
 1. **Lobby listing and cleanup around an owner who has not connected — open, needs a fix.** What `lobbiesWithOpenSeat()`
    and `hasConnectedPlayer()` treat as a connected player needs correcting for a lobby whose owner has not connected a
@@ -721,17 +805,20 @@ re-verified against `main` on 2026-11-01 (by re-reading the code paths); #10 was
     race. Within one process the race cannot happen, since #3111 shares concurrent creations. A `TODO` in
     `CredentialVerification`'s race spec says what to add once the profile is deleted.
 
-11. **The inactivity kick and `resetActionTimer` no longer reach the action timer — open, new (2026-11-06).** Since the
-    byoyomi timer (#2056), nothing calls the `userTimeoutDisconnect` callback a lobby hands its game, so
+11. **The inactivity kick and `resetActionTimer` no longer reach the action timer — open, decided (2026-11-06,
+    2026-11-08).** Since the byoyomi timer (#2056), nothing calls the `userTimeoutDisconnect` callback a lobby hands its game, so
     `Lobby.userTimeoutDisconnect`, the `inactiveDisconnect` event, the `forceDisconnect` flag and the disconnect handler's
     check for it are unreachable; a player whose time runs out loses the game on timeout instead. And
     `GameActionTimer.shouldFireHandler` always returns true (the check that the player has not acted since the timer
     started is commented out, with a `TODO` about the initiative prompt), so a player's messages no longer hold the timer
     off. That includes `resetActionTimer`, which the client sends when the bug-report dialog opens and which
     `Lobby.onGameMessage` treats as having reset the timer. Established by reading the code. **Decided on 2026-11-06:**
-    the inactivity kick is a dead feature, to be removed in the game-timer area's step d. Still open: whether the action timer should
-    read player activity again (restoring the check, which would make `resetActionTimer` work) or `resetActionTimer`
-    should go with the kick. A `TODO` in `InGameConnections` marks the specs to add if the check is restored.
+    the inactivity kick is a dead feature, to be removed in the game-timer area's step d. **Decided on 2026-11-08:** a
+    player's messages are meant not to affect the action timer, so the commented-out check, the tracking only it uses and
+    `resetActionTimer` are removed too, in the same step (the area's plan lists them). The game-timer area's step a found
+    that the check, as written, could not simply be restored in any case: when it fails it stops the timer outright rather
+    than starting it again, and it fails once the player has sent any message since the timer started, chat included.
+    The tracking it relies on is also what logs #17. Row T12 covers the decided behaviour.
 
 15. **`Lobby.hasOngoingGame()` means "a game has ever started" — open, new (2026-11-06).** It is `game !== undefined`, and
     `rematch()` and the best-of-three transition set `game = null`, so between the games of a rematch or a set the lobby
@@ -739,6 +826,30 @@ re-verified against `main` on 2026-11-01 (by re-reading the code paths); #10 was
     registered and admitted (who is then sent `gameOngoing: false`). Whether that is the meaning wanted is for the
     best-of-three and rematch area's step a. Checklist rows C6 and C22 depend on it, and the fragility register lists them.
     Found by the independent review of core.
+
+16. **A timeout's draw does not follow the intended rule — open, decided (2026-11-08).** The rule, as the owner set it:
+    when a player's main time runs out, the game is a draw if the opponent's timer is running and the opponent is 3 s or
+    less from running out too, counting turn and main time; otherwise the opponent wins. `Game.onGameTimerExpired` instead
+    stops the opponent's timer and then calls it a draw if what is left is under 3 s, which differs in three ways:
+    - it counts an opponent whose timer is not running (a waiting opponent with under 3 s of main time draws);
+    - having stopped the timer first, it reads the opponent's main time alone and loses their turn time;
+    - `ByoyomiTimer.mainTimeRemainingSeconds` falls back to `MainTimeLimitSeconds` when the main timer's
+      `timeRemainingSeconds` is `null`, which it is both before the main timer has run and once it has run out. So when
+      both players run out at the same moment (both idle at a prompt that waits on both, such as the mulligan or a
+      resource prompt, whose timers start together), the first expiry finds the opponent with 120 s rather than none,
+      and the opponent is declared the winner instead of a draw; and the final game state shows a timed-out player with
+      120 s of main time.
+
+    The last was established by a probe (both players idle at the mulligan: at 140 s the first-listed player lost, and
+    both showed 120 s), since deleted. Real timers schedule both expiries in the same tick, so the same is expected in
+    production. For the game-timer area's step d (rows T7 and T8).
+
+17. **Every timed game logs two errors as it starts — open, new (2026-11-08).** The `ByoyomiTimer` constructor primes its
+    main timer by starting and pausing it before any prompt exists, and `GameActionTimer.start` logs "Attempting to start
+    action timer for player … when there is no active prompt" at error level, once per player. Prompt-driven starts log
+    nothing. The tracking that logs it serves only the activity check #11 found commented out. Established by a probe (a
+    logger spy across a timed game's start, initiative choice and mulligan: two errors, both at construction), since
+    deleted. Resolved by removing that tracking in the game-timer area's step d (#11).
 
 **Resolved** (the full entries are in the history document): #4, `this[command]` dispatch, resolved by #3014; #5, timers
 nothing could cancel, resolved by #3001 (its regression lock is checklist row L5); #8, an account whose profile was missing
