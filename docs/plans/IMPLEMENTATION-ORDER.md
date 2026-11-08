@@ -1128,9 +1128,13 @@ The chain: `P8-S0 → P8-R0 → [P8-R1]`; `P8-R2` may run at any time after `P8-
 
 ### `P8-S0` — Catch the branch up with `main`
 
+**Status:** done — landed in `9f650b6dd` (`B`; merge `b98ea4fa9`, test-only fix `43cddc751`, record `0dad9360f`).
+
 ```bash
 /orchestrate Implement unit S-0 of docs/plans/08-performance-regressions.md: merge origin/main into experimental/rollback-saves-optimizations. Read the S-0 section in full first. Every conflict in a state-decorated class (at the time of writing AbilityLimit.ts, CloneUnitEffect.ts, CopyStandardTriggeredAbilitiesEffect.ts, GainAbility.ts and GainNonKeywordAbilitiesFromUnitEffect.ts, plus package-lock.json) resolves to the branch's decorator (@stateMap, never main's @stateValue) with main's initializer style; taking main's side compiles and passes most tests while silently moving snapshot-tracked fields back, so verify each resolution field by field. Any non-merge edit needed to pass lint goes in a commit separate from the merge. Gates on the final commit: npm run lint, validate-cards, validate-specs, test-parallel, test-parallel-undo, test-parity and test-parity-undo. Record in the plan doc the conflict list, `git show --cc` of the merge, the synced main commit M, the gate-passing commit B, and that `git diff M B -- server/` contains only roadmap work; M is frozen once recorded. Scope fence: no engine change beyond conflict resolution and lint fixes; do NOT run any benchmark or probe; do NOT touch docs/plans/README.md or docs/plans/07-replay-recording.md. Do NOT push. task_id: p8-s0
 ```
+
+**Actually delivered (landed in `9f650b6dd`):** `main` merged at `M` = `d5e4d1cac` (60 commits, not the 32 planned; nine conflicts, not six, plus a `UserFactory.ts` import the auto-merge dropped), the five state-decorated classes on `@stateMap` with `main`'s initializer style, and a separate lint-fix commit `B`; at the owner's choice, a test-only commit before `B` also fixed `validate-specs` and the parity suites, red at the pre-merge tip, and `DevMatchLoad` and `ManifestSweep`, red after the merge, so all seven gates are green on `B` with no baseline exception; `08-performance-regressions.md`'s "As landed in S-0" is the authoritative record.
 
 ### `P8-R0` ⏱ — Confirm, then locate, the first-snapshot regression
 
