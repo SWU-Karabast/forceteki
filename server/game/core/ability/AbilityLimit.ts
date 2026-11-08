@@ -87,7 +87,7 @@ export class UnlimitedAbilityLimit extends AbilityLimit {
     }
 
     public increment(player: Player): void {
-        const key = this.getKey(player.name);
+        const key = this.getKey(player.id);
         this.useCount.set(key, this.currentForPlayer(player) + 1);
     }
 
@@ -96,11 +96,11 @@ export class UnlimitedAbilityLimit extends AbilityLimit {
     }
 
     public currentForPlayer(player: Player) {
-        return this.useCount.get(this.getKey(player.name)) ?? 0;
+        return this.useCount.get(this.getKey(player.id)) ?? 0;
     }
 
-    private getKey(player: string): string {
-        return player;
+    private getKey(playerId: string): string {
+        return playerId;
     }
 }
 
@@ -165,7 +165,7 @@ export abstract class PerPlayerPerGameAbilityLimitBase extends AbilityLimit {
     }
 
     public increment(player: Player): void {
-        const key = this.getKey(player.name);
+        const key = this.getKey(player.id);
         this.useCount.set(key, this.currentForPlayer(player) + 1);
     }
 
@@ -174,11 +174,11 @@ export abstract class PerPlayerPerGameAbilityLimitBase extends AbilityLimit {
     }
 
     public currentForPlayer(player: Player) {
-        return this.useCount.get(this.getKey(player.name)) ?? 0;
+        return this.useCount.get(this.getKey(player.id)) ?? 0;
     }
 
-    private getKey(player: string): string {
-        return player;
+    private getKey(playerId: string): string {
+        return playerId;
     }
 
     private getModifiedMax(player: Player): number {

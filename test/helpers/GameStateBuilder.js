@@ -79,8 +79,8 @@ class GameStateBuilder {
         const game = gameFlowWrapper.game;
 
         toObj.game = game;
-        toObj.player1Object = game.getPlayerByName(player1Name);
-        toObj.player2Object = game.getPlayerByName(player2Name);
+        toObj.player1Object = game.getPlayerById(gameFlowWrapper.player1Id);
+        toObj.player2Object = game.getPlayerById(gameFlowWrapper.player2Id);
         toObj.player1 = gameFlowWrapper.player1;
         toObj.player2 = gameFlowWrapper.player2;
         toObj.player1Name = player1Name;

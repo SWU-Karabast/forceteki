@@ -24,13 +24,13 @@ export class ResourcePrompt extends AllPlayerPrompt {
         this.nCardsToResource = nCardsToResource;
 
         for (const player of game.getPlayers()) {
-            this.selectedCards[player.name] = [];
-            this.playersDone[player.name] = false;
+            this.selectedCards[player.id] = [];
+            this.playersDone[player.id] = false;
         }
     }
 
     public override completionCondition(player: Player) {
-        return this.playersDone[player.name];
+        return this.playersDone[player.id];
     }
 
     public override continue() {
@@ -46,18 +46,18 @@ export class ResourcePrompt extends AllPlayerPrompt {
     protected override highlightSelectableCards() {
         this.game.getPlayers().forEach((player) => {
             // cards are only selectable until we've selected as many as allowed
-            if (!this.selectableCards[player.name] && !this.completionCondition(player)) {
-                this.selectableCards[player.name] = player.hand;
+            if (!this.selectableCards[player.id] && !this.completionCondition(player)) {
+                this.selectableCards[player.id] = player.hand;
             } else if (this.completionCondition(player)) {
-                this.selectableCards[player.name] = [];
+                this.selectableCards[player.id] = [];
             }
-            player.setSelectableCards(this.selectableCards[player.name]);
+            player.setSelectableCards(this.selectableCards[player.id]);
         });
     }
 
     public override activePromptInternal(player: Player): IPlayerPromptStateProperties {
         let promptText = null;
-        const selectedCount = this.selectedCards[player.name].length;
+        const selectedCount = this.selectedCards[player.id].length;
         const selectCardMode = this.nCardsToResource === 1 ? SelectCardMode.Single : SelectCardMode.Multiple;
 
         if (this.nCardsToResource !== 1) {
@@ -92,17 +92,17 @@ export class ResourcePrompt extends AllPlayerPrompt {
             return false;
         }
 
-        if (!this.selectedCards[player.name].includes(card)) {
-            if (this.selectedCards[player.name].length === this.nCardsToResource) {
+        if (!this.selectedCards[player.id].includes(card)) {
+            if (this.selectedCards[player.id].length === this.nCardsToResource) {
                 return false;
             }
 
-            this.selectedCards[player.name].push(card);
+            this.selectedCards[player.id].push(card);
         } else {
-            this.selectedCards[player.name] = this.selectedCards[player.name].filter((c) => c !== card);
+            this.selectedCards[player.id] = this.selectedCards[player.id].filter((c) => c !== card);
         }
 
-        player.setSelectedCards(this.selectedCards[player.name]);
+        player.setSelectedCards(this.selectedCards[player.id]);
         return true;
     }
 
@@ -121,7 +121,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
             if (!this.hasEnoughSelected(player)) {
                 return false;
             }
-            this.playersDone[player.name] = true;
+            this.playersDone[player.id] = true;
             return true;
         }
         // in the case the command comes as an invalid one
@@ -129,16 +129,16 @@ export class ResourcePrompt extends AllPlayerPrompt {
     }
 
     protected hasEnoughSelected(player: Player): boolean {
-        return this.selectedCards[player.name].length === this.nCardsToResource;
+        return this.selectedCards[player.id].length === this.nCardsToResource;
     }
 
     protected resourceSelectedCards(player: Player) {
-        if (this.selectedCards[player.name].length > 0) {
-            for (const card of this.selectedCards[player.name]) {
+        if (this.selectedCards[player.id].length > 0) {
+            for (const card of this.selectedCards[player.id]) {
                 player.resourceCard(card, false);
                 this.game.statsTracker.trackCardMetric(GameCardMetric.Resourced, card, player);
             }
-            this.game.addMessage('{0} has resourced {1} {2} from hand', player, this.selectedCards[player.name].length, this.selectedCards[player.name].length === 1 ? 'card' : 'cards');
+            this.game.addMessage('{0} has resourced {1} {2} from hand', player, this.selectedCards[player.id].length, this.selectedCards[player.id].length === 1 ? 'card' : 'cards');
         } else {
             this.game.addMessage('{0} has not resourced any cards', player);
         }

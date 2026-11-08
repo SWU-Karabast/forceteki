@@ -994,25 +994,21 @@ export class Lobby {
 
     /**
      * Records the result of the current game into win history.
-     * Reads winner from game.winnerNames (server-authoritative).
+     * Reads winner from game.winnerIds (server-authoritative).
      * @param gamesToWinMode The game mode to record the result for
      */
     private recordGameResult(gamesToWinMode: GamesToWinMode): void {
         Contract.assertNotNullLike(this.game, 'Cannot record game result when no game exists');
         Contract.assertTrue(this.winHistory.gamesToWinMode === gamesToWinMode, `recordGameResult called with ${gamesToWinMode} but winHistory is ${this.winHistory.gamesToWinMode}`);
 
-        const winnerNames = this.game.winnerNames;
+        const winnerIds = this.game.winnerIds;
         let winnerId: string | 'draw' | null = null;
 
-        if (winnerNames.length > 1) {
-            // Draw - both players' names are in winnerNames
+        if (winnerIds.length > 1) {
+            // Draw - both players' ids are in winnerIds
             winnerId = 'draw';
-        } else if (winnerNames.length === 1) {
-            // Single winner - find the player ID by name
-            const winnerName = winnerNames[0];
-            const winner = this.game.getPlayers().find((p) => p.name === winnerName);
-            Contract.assertNotNullLike(winner, `Could not find player with name ${winnerName}`);
-            winnerId = winner.id;
+        } else if (winnerIds.length === 1) {
+            winnerId = winnerIds[0];
         }
 
         switch (gamesToWinMode) {
@@ -2037,16 +2033,16 @@ export class Lobby {
         try {
             // Determine the winner and loser
             let winner, loser;
-            if (game.winnerNames.includes(player1.name)) {
+            if (game.winnerIds.includes(player1.id)) {
                 winner = player1;
                 loser = player2;
-            } else if (game.winnerNames.includes(player2.name)) {
+            } else if (game.winnerIds.includes(player2.id)) {
                 winner = player2;
                 loser = player1;
             }
 
             // If we have a draw (or couldn't determine winner/loser), set as draw
-            const isDraw = !winner || !loser || game.winnerNames.length > 1;
+            const isDraw = !winner || !loser || game.winnerIds.length > 1;
 
             // set winner/loser state
             const player1Score = isDraw ? ScoreType.Draw : winner === player1 ? ScoreType.Win : ScoreType.Lose;
@@ -2055,7 +2051,7 @@ export class Lobby {
             // Only update stats if the game has a winner and made it into the second round at least
             if (!game.isEnded || !game.finishedAt) {
                 throw new Error(`Lobby ${this.id}: Cannot update stats for game with: ${!game.isEnded
-                    ? `winnerNames length being ${game.winnerNames.length}` : ''}
+                    ? `winnerIds length being ${game.winnerIds.length}` : ''}
                     ${!game.finishedAt ? 'game finishedAt missing' : ''} `);
             }
 

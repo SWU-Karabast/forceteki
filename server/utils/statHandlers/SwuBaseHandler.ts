@@ -138,7 +138,7 @@ export class SwuBaseHandler {
                 leader,
                 deckSource,
             },
-            isWinner: player.game.winnerNames.includes(player.name)
+            isWinner: player.game.winnerIds.includes(player.id)
         };
     }
 

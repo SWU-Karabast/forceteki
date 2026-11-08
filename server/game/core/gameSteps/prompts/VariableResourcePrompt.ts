@@ -24,7 +24,7 @@ export class VariableResourcePrompt extends ResourcePrompt {
         const promptText = `Select between ${this.minCardsToResource} and ${this.maxCardsToResource} cards to resource`;
 
         const hasEnoughSelected = this.hasEnoughSelected(player);
-        const selectedCount = this.selectedCards[player.name].length;
+        const selectedCount = this.selectedCards[player.id].length;
 
         return {
             selectCardMode: SelectCardMode.Multiple,
@@ -41,6 +41,6 @@ export class VariableResourcePrompt extends ResourcePrompt {
     }
 
     protected override hasEnoughSelected(player: Player): boolean {
-        return this.selectedCards[player.name].length >= this.minCardsToResource;
+        return this.selectedCards[player.id].length >= this.minCardsToResource;
     }
 }

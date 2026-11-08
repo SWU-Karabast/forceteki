@@ -116,7 +116,6 @@ import type {
 } from './gameSteps/PromptInterfaces';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
 import type { ITokenCardsData } from '../../utils/cardData/CardDataGetter';
-import type { IUser } from '../../Settings';
 import type { Deck } from '../../utils/deck/Deck';
 import { ClaimCounterSystem } from '../gameSystems/ClaimCounterSystem';
 import type { IGameObjectRegistrar } from './snapshot/GameStateManager';
@@ -247,12 +246,18 @@ export class Game extends EventEmitter {
         this.state.actionNumber = value;
     }
 
+    /** Ids of the players who won (both players for a draw). Compare players by these, never by name: usernames are not unique. */
+    public get winnerIds(): readonly string[] {
+        return this.state.winnerIds;
+    }
+
+    /** Display names of the winners, in the same order as {@link winnerIds}. For display only. */
     public get winnerNames(): readonly string[] {
-        return this.state.winnerNames;
+        return this.state.winnerIds.map((id) => this.getPlayerById(id).name);
     }
 
     public get isEnded(): boolean {
-        return this.state.winnerNames.length > 0;
+        return this.state.winnerIds.length > 0;
     }
 
     public get currentPhase() {
@@ -509,7 +514,7 @@ export class Game extends EventEmitter {
             blastCounterClaimedByPlayer: null,
             allCards: [],
             actionNumber: 0,
-            winnerNames: [],
+            winnerIds: [],
             lastGameEventId: 0,
             currentPhase: null,
             prevActionPhasePlayerPassed: null,
@@ -658,18 +663,6 @@ export class Game extends EventEmitter {
     }
 
     /**
-     * Checks whether a player/spectator is still in the game
-     */
-    public hasPlayerNotInactive(playerName: string): boolean {
-        const player = this.playersAndSpectators[playerName];
-        if (!player) {
-            return false;
-        }
-
-        return !this.isPlayer(player) || !player.left;
-    }
-
-    /**
      * Get all cards captured by a player's units and base
      */
     public getAllCapturedCards(player: Player) {
@@ -685,18 +678,6 @@ export class Game extends EventEmitter {
      */
     public getPlayers(): Player[] {
         return Object.values(this.playersAndSpectators).filter((player): player is Player => this.isPlayer(player));
-    }
-
-    /**
-     * Returns the Player object (not spectator) for a name
-     */
-    public getPlayerByName(playerName: string): Player {
-        const player = this.getPlayers().find((player) => player.name === playerName);
-        if (player) {
-            return player;
-        }
-
-        throw new Error(`Player with name ${playerName} not found`);
     }
 
     /**
@@ -748,11 +729,11 @@ export class Game extends EventEmitter {
     }
 
     /**
-     * Gets a player other than the one passed (usually their opponent)
+     * Gets a player other than the one passed (usually their opponent). Matches by id: usernames are not unique.
      */
     public getOtherPlayer(player: Player): Player | undefined {
         return this.getPlayers().find((p) => {
-            return p.name !== player.name;
+            return p.id !== player.id;
         });
     }
 
@@ -971,10 +952,10 @@ export class Game extends EventEmitter {
          */
         const winners = Helpers.asArray(winnerPlayers);
         if (winners.length > 1) {
-            winners.forEach((w) => this.state.winnerNames.push(w.name));
+            winners.forEach((w) => this.state.winnerIds.push(w.id));
             this.addMessage('The game ends in a draw');
         } else {
-            this.state.winnerNames.push(winners[0].name);
+            this.state.winnerIds.push(winners[0].id);
             this.addMessage('{0} has won the game', winnerPlayers as any);
         }
         this.finishedAt = new Date();
@@ -1575,100 +1556,6 @@ export class Game extends EventEmitter {
 
     public getFrameworkContext(player: Player | null = null): AbilityContext {
         return new AbilityContext({ game: this, player: player });
-    }
-
-    public watch(socketId: string, user: IUser): boolean {
-        if (!this.allowSpectators) {
-            return false;
-        }
-
-        this.playersAndSpectators[user.username] = new Spectator(socketId, user);
-        this.addMessage('{0} has joined the game as a spectator', user.username);
-
-        return true;
-    }
-
-    public join(socketId: string, user: IUser): boolean {
-        if (this.started || this.getPlayers().length === 2) {
-            return false;
-        }
-
-        this.playersAndSpectators[user.username] = new Player(socketId, user, this);
-
-        return true;
-    }
-
-    public leave(playerName: string): void {
-        const player = this.playersAndSpectators[playerName];
-
-        if (!player) {
-            return;
-        }
-
-        this.addMessage('{0} has left the game', playerName);
-
-        if (this.isSpectator(player) || !this.started) {
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete this.playersAndSpectators[playerName];
-        } else {
-            player.left = true;
-
-            if (!this.finishedAt) {
-                this.finishedAt = new Date();
-            }
-        }
-    }
-
-    public disconnect(playerName: string): void {
-        const player = this.playersAndSpectators[playerName];
-
-        if (!player) {
-            return;
-        }
-
-        this.addMessage('{0} has disconnected', player);
-
-        if (this.isSpectator(player)) {
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete this.playersAndSpectators[playerName];
-        } else {
-            player.disconnected = true;
-            player.socket = undefined;
-        }
-    }
-
-    public failedConnect(playerName: string): void {
-        const player = this.playersAndSpectators[playerName];
-
-        if (!player) {
-            return;
-        }
-
-        if (this.isSpectator(player) || !this.started) {
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete this.playersAndSpectators[playerName];
-        } else {
-            this.addMessage('{0} has failed to connect to the game', player);
-
-            player.disconnected = true;
-
-            if (!this.finishedAt) {
-                this.finishedAt = new Date();
-            }
-        }
-    }
-
-    public reconnect(socket: any, playerName: string): void {
-        const player = this.getPlayerByName(playerName);
-        if (!player) {
-            return;
-        }
-
-        player.id = socket.id;
-        player.socket = socket;
-        player.disconnected = false;
-
-        this.addMessage('{0} has reconnected', player);
     }
 
     public removeCostAdjusterFromAll(costAdjuster: CostAdjuster): void {

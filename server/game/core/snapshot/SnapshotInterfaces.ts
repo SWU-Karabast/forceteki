@@ -146,7 +146,7 @@ export interface IGameState {
     allCards: GameObjectId<Card>[];
     actionNumber: number;
     lastGameEventId: number;
-    readonly winnerNames: string[];
+    readonly winnerIds: string[];
     currentPhase: PhaseName | null;
     prevActionPhasePlayerPassed: boolean | null;
     movedCards: GameObjectId<Card>[];

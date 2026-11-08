@@ -3,7 +3,7 @@ const { AllPlayerPrompt } = require('./AllPlayerPrompt');
 class GameOverPrompt extends AllPlayerPrompt {
     constructor(game) {
         super(game);
-        if (game.winnerNames.length === 0) {
+        if (game.winnerIds.length === 0) {
             throw new Error('GameOverPrompt cannot be created when there is no winner');
         }
         this.clickedButton = {};
@@ -11,12 +11,12 @@ class GameOverPrompt extends AllPlayerPrompt {
 
     /** @override */
     completionCondition(player) {
-        return !!this.clickedButton[player.name];
+        return !!this.clickedButton[player.id];
     }
 
     /** @override */
     activePromptInternal() {
-        if (this.game.winnerNames.length > 1) {
+        if (this.game.winnerIds.length > 1) {
             return {
                 promptTitle: 'Tie Game',
                 menuTitle: 'The game ended in a draw!',
@@ -41,7 +41,7 @@ class GameOverPrompt extends AllPlayerPrompt {
     menuCommand(player) {
         this.game.addMessage('{0} wants to continue', player);
 
-        this.clickedButton[player.name] = true;
+        this.clickedButton[player.id] = true;
 
         return true;
     }

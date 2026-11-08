@@ -13,9 +13,19 @@ type SnapshotManager = import('../../server/game/core/snapshot/SnapshotManager')
 type SnapshotType = import('../../server/game/core/Constants').SnapshotType;
 type QuickUndoAvailableState = import('../../server/game/core/snapshot/SnapshotInterfaces').QuickUndoAvailableState;
 
-declare let integration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void)) => void;
+interface IIntegrationOptions {
 
-declare let undoIntegration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void)) => void;
+    /**
+     * The players' usernames, by default `player1` and `player2`. Usernames are not unique, so a spec about two
+     * players who share one can give both the same name; the players' ids stay distinct.
+     */
+    player1Username?: string;
+    player2Username?: string;
+}
+
+declare let integration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void), options?: IIntegrationOptions) => void;
+
+declare let undoIntegration: (definitions: ((contextRef: SwuTestContextRef) => void) | (() => void), options?: IIntegrationOptions) => void;
 
 type SnapshotTypeValue = `${SnapshotType}`;
 

@@ -16,16 +16,16 @@ export class MulliganPrompt extends AllPlayerPrompt {
         super(game, true);
 
         for (const player of game.getPlayers()) {
-            this.playersDone[player.name] = false;
-            this.playerMulligan[player.name] = false;
+            this.playersDone[player.id] = false;
+            this.playerMulligan[player.id] = false;
         }
     }
 
     public override completionCondition(player): boolean {
         if (player.base.hasOngoingEffect(EffectName.NoMulligan)) {
-            this.playersDone[player.name] = true;
+            this.playersDone[player.id] = true;
         }
-        return this.playersDone[player.name];
+        return this.playersDone[player.id];
     }
 
     public override activePromptInternal(): IPlayerPromptStateProperties {
@@ -56,12 +56,12 @@ export class MulliganPrompt extends AllPlayerPrompt {
                 return false;
             }
             this.game.addMessage('{0} will mulligan', player);
-            this.playersDone[player.name] = true;
-            this.playerMulligan[player.name] = true;
+            this.playersDone[player.id] = true;
+            this.playerMulligan[player.id] = true;
             return true;
         } else if (arg === 'keep') {
             this.game.addMessage('{0} will keep their hand', player);
-            this.playersDone[player.name] = true;
+            this.playersDone[player.id] = true;
             return true;
         }
         // in the case the command comes as an invalid one
@@ -70,7 +70,7 @@ export class MulliganPrompt extends AllPlayerPrompt {
 
     public override complete() {
         for (const player of this.game.getPlayers()) {
-            if (this.playerMulligan[player.name]) {
+            if (this.playerMulligan[player.id]) {
                 // Move the first hand to the bottom of the deck
                 new MoveCardSystem({
                     target: player.hand,

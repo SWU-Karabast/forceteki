@@ -1315,7 +1315,7 @@ var customMatchers = {
             compare: function (game) {
                 var result = {};
 
-                result.pass = game.finishedAt != null && game.winnerNames.length > 0;
+                result.pass = game.finishedAt != null && game.winnerIds.length > 0;
 
                 if (result.pass) {
                     result.message = 'Expected game not to be over but it is';
@@ -1332,13 +1332,13 @@ var customMatchers = {
             compare: function (player) {
                 var result = {};
 
-                if (player.game.finishedAt == null || player.game.winnerNames.length === 0) {
+                if (player.game.finishedAt == null || player.game.winnerIds.length === 0) {
                     result.pass = false;
                     result.message = 'Expected game to be over to check for a winner but it is not';
                     return result;
                 }
 
-                result.pass = player.game.winnerNames.includes(player.name);
+                result.pass = player.game.winnerIds.includes(player.id);
 
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to be a game winner but they are`;

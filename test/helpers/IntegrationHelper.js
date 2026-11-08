@@ -51,7 +51,13 @@ function buildStartOfTestSnapshot(game) {
     };
 }
 
-global.integration = function (definitions, enableUndo = false) {
+/**
+ * @param {(contextRef: SwuTestContextRef) => void} definitions
+ * @param {IIntegrationOptions & { enableUndo?: boolean }} [options] `enableUndo` is set by {@link undoIntegration}
+ */
+global.integration = function (definitions, options = {}) {
+    const { enableUndo = false, player1Username = 'player1', player2Username = 'player2' } = options;
+
     describe('- integration -', function () {
         /**
          * @type {SwuTestContextRef}
@@ -73,8 +79,8 @@ global.integration = function (definitions, enableUndo = false) {
             const gameFlowWrapper = new GameFlowWrapper(
                 gameStateBuilder.cardDataGetter,
                 gameRouter,
-                { id: '111', username: 'player1', settings: { optionSettings: { autoSingleTarget: false } } },
-                { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } },
+                { id: '111', username: player1Username, settings: { optionSettings: { autoSingleTarget: false } } },
+                { id: '222', username: player2Username, settings: { optionSettings: { autoSingleTarget: false } } },
                 enableUndo ? UndoMode.Full : UndoMode.Disabled
             );
 
@@ -115,8 +121,8 @@ global.integration = function (definitions, enableUndo = false) {
                 }
             };
 
-            gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');
-            gameStateBuilder.attachTestInfoToObj(newContext, gameFlowWrapper, 'player1', 'player2');
+            gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, player1Username, player2Username);
+            gameStateBuilder.attachTestInfoToObj(newContext, gameFlowWrapper, player1Username, player2Username);
 
             /**
              * @param {SwuSetupTestOptions} options
@@ -210,8 +216,8 @@ global.integration = function (definitions, enableUndo = false) {
 };
 
 const originalIntegration = global.integration;
-global.undoIntegration = function (definitions) {
-    originalIntegration(definitions, true);
+global.undoIntegration = function (definitions, options = {}) {
+    originalIntegration(definitions, { ...options, enableUndo: true });
 };
 
 const jit = it;
@@ -340,8 +346,8 @@ global.rollback = function(contextRef, assertion, altAssertion) {
 
 if (ENABLE_UNDO_ALL_TESTS) {
     // Run every normal integration suite in undo mode (each test runs, rolls back, then runs again).
-    global.integration = function (definitions) {
-        originalIntegration(definitions, true);
+    global.integration = function (definitions, options = {}) {
+        originalIntegration(definitions, { ...options, enableUndo: true });
     };
     global.it = global.undoIt;
 

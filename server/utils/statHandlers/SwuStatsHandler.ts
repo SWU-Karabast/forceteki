@@ -185,12 +185,12 @@ export class SwuStatsHandler {
      * Determine which player won (1 or 2), or 0 for draw
      */
     private determineWinner(game: Game, player1: Player, player2: Player): number {
-        if (game.winnerNames.length > 1) {
+        if (game.winnerIds.length > 1) {
             return 0;
         }
-        if (game.winnerNames.includes(player1.name)) {
+        if (game.winnerIds.includes(player1.id)) {
             return 1;
-        } else if (game.winnerNames.includes(player2.name)) {
+        } else if (game.winnerIds.includes(player2.id)) {
             return 2;
         }
         throw new Error(`(SWUStats handler): There was an error when determining winner between ${player1.name} and ${player2.name}`);
