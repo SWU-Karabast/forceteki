@@ -7,7 +7,7 @@ import { DamageSourceType } from '../../../IDamageOrDefeatSource';
 export default class YodaADisturbingPuzzle extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'yoda#a-disturbing-puzzle-id',
+            id: '6032765584',
             internalName: 'yoda#a-disturbing-puzzle',
         };
     }

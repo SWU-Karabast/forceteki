@@ -6,7 +6,7 @@ import { CardType, RelativePlayer, WildcardCardType, ZoneName } from '../../../c
 export default class KyloRenSupremeLeader extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'kylo-ren#supreme-leader-id',
+            id: '4299826378',
             internalName: 'kylo-ren#supreme-leader',
         };
     }

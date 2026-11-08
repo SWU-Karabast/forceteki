@@ -9,7 +9,7 @@ import { RelativePlayer, ZoneName } from '../../../core/Constants';
 export default class LukeSkywalkerIHaveToFaceHim extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'luke-skywalker#i-have-to-face-him-id',
+            id: '9304999994',
             internalName: 'luke-skywalker#i-have-to-face-him',
         };
     }

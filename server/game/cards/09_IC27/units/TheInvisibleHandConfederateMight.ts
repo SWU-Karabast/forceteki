@@ -7,7 +7,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class TheInvisibleHandConfederateMight extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-invisible-hand#confederate-might-id',
+            id: '9343717289',
             internalName: 'the-invisible-hand#confederate-might',
         };
     }

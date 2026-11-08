@@ -8,7 +8,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class JynErsoHerFathersRevenge extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'jyn-erso#her-fathers-revenge-id',
+            id: '6456752301',
             internalName: 'jyn-erso#her-fathers-revenge',
         };
     }

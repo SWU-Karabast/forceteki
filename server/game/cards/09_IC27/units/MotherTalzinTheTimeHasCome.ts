@@ -8,7 +8,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class MotherTalzinTheTimeHasCome extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'mother-talzin#the-time-has-come-id',
+            id: '7414147681',
             internalName: 'mother-talzin#the-time-has-come',
         };
     }

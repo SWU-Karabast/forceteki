@@ -8,7 +8,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class DirectorKrennicArchitectOfAnnihilation extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'director-krennic#architect-of-annihilation-id',
+            id: '3516825740',
             internalName: 'director-krennic#architect-of-annihilation',
         };
     }

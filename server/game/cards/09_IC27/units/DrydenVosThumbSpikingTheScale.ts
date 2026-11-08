@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class DrydenVosThumbSpikingTheScale extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'dryden-vos#thumbspiking-the-scale-id',
+            id: '9423640680',
             internalName: 'dryden-vos#thumbspiking-the-scale',
         };
     }

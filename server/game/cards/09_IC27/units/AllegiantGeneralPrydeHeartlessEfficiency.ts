@@ -8,7 +8,7 @@ import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbi
 export default class AllegiantGeneralPrydeHeartlessEfficiency extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'allegiant-general-pryde#heartless-efficiency-id',
+            id: '4904273447',
             internalName: 'allegiant-general-pryde#heartless-efficiency',
         };
     }

@@ -7,7 +7,7 @@ import { TextHelper } from '../../../core/utils/TextHelper';
 export default class MonMothmaTruthIsAnAbyss extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'mon-mothma#truth-is-an-abyss-id',
+            id: '2478948732',
             internalName: 'mon-mothma#truth-is-an-abyss',
         };
     }
