@@ -98,6 +98,10 @@ describe('GameServer dev-only saved-match load', function() {
             getMaintenanceMessage: () => 'Karabast is currently under maintenance. Be back soon!',
             sendGamesDisabledResponse: (GameServer.prototype as any).sendGamesDisabledResponse,
             buildAuthMiddleware: () => (req: unknown, res: unknown, next: () => void) => next(),
+
+            // The routes that call the module-level `authMiddleware(this, …)` resolve the user factory when the middleware is built;
+            // no handler in this spec runs it.
+            getUserFactory: () => null,
             cosmeticsService: null,
         };
 

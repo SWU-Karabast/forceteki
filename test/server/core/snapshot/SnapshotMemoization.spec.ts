@@ -9,6 +9,7 @@ import type { IGameSnapshot, IRollbackResult } from '../../../../server/game/cor
 import { SnapshotTimepoint } from '../../../../server/game/core/snapshot/SnapshotInterfaces';
 import { exemptGameFromDeltaChainVerification } from '../../../helpers/DeltaChainVerifier';
 import { exemptGameFromDeltaParity, withDeltaParitySuspended } from '../../../helpers/DeltaParityGate';
+import { getParityHarnessStats, withParityHarnessSuspended } from '../../../helpers/ParityHarness';
 import {
     getSnapshotMemoVerifierStats,
     isSnapshotMemoVerifierInstalled,
@@ -164,6 +165,17 @@ function withPatch<T>(target: object, name: string, replacement: unknown, body: 
             Reflect.deleteProperty(target, name);
         }
     }
+}
+
+/**
+ * For the pre-pass cases that count, or inject a failure into, the `serialize` calls of one rollback: neither the memoization verifier
+ * nor the parity harness (whose own round-trip serializes every restored object) may add serialize traffic of its own.
+ */
+function withRollbackTrafficSuspended<T>(fn: () => T): T {
+    const parityInstalledBefore = getParityHarnessStats().installedAtExit;
+    const result = withParityHarnessSuspended(() => withSnapshotMemoVerifierSuspended(fn));
+    expect(getParityHarnessStats().installedAtExit).toBe(parityInstalledBefore);
+    return result;
 }
 
 /** Records the uuid of every object `serialize` is called on, in order, across every registered serializer entry. */
@@ -745,7 +757,7 @@ describe('Snapshot memoization', function() {
 
                 const serialized: string[] = [];
                 let result: IRollbackResult;
-                withSnapshotMemoVerifierSuspended(() => withSerializeLog(serialized, () => {
+                withRollbackTrafficSuspended(() => withSerializeLog(serialized, () => {
                     result = rollbackManual(context, snapshotId);
                 }));
 
@@ -786,12 +798,13 @@ describe('Snapshot memoization', function() {
                 expect(tracker(game).pendingWindow.changedFields.has(ability.uuid)).toBeFalse();
 
                 const stateEntry = StateSerializers.getStateSerializerFor(game.state);
-                const originalDeserialize = stateEntry.serializer.deserialize;
                 const marker = '--restore failed--';
                 const serialized: string[] = [];
                 let failed = false;
 
-                withSnapshotMemoVerifierSuspended(() => withSerializeLog(serialized, () => {
+                withRollbackTrafficSuspended(() => withSerializeLog(serialized, () => {
+                    // Read inside the suspension: before it, this is the parity harness's wrapper, which would still compare Game.state.
+                    const originalDeserialize = stateEntry.serializer.deserialize;
                     withPatch(stateEntry.serializer, 'deserialize', (gameArg, instance, record) => {
                         if (!failed && instance === game.state) {
                             failed = true;
@@ -852,7 +865,7 @@ describe('Snapshot memoization', function() {
                 // The router spy rethrows every severity, where the lobby returns normally for SevereGameMessageOnly, so the report is stubbed.
                 const reportedSeverities: unknown[] = [];
                 let aborted: number | null | undefined;
-                withSnapshotMemoVerifierSuspended(() => withPatch(game, 'reportError', (_error: Error, severity: unknown) => {
+                withRollbackTrafficSuspended(() => withPatch(game, 'reportError', (_error: Error, severity: unknown) => {
                     reportedSeverities.push(severity);
                 }, () => injectEncodeFailure(wampa as unknown as GameObjectBase, () => {
                     aborted = managerOf(game).manualSnapshots.get(playerId).rollbackToSnapshot(snapshotId);
@@ -863,7 +876,7 @@ describe('Snapshot memoization', function() {
 
                 // On a clean object the pre-pass never serializes it, so the rollback succeeds.
                 let result: IRollbackResult;
-                withSnapshotMemoVerifierSuspended(() => injectEncodeFailure(spacer, () => {
+                withRollbackTrafficSuspended(() => injectEncodeFailure(spacer, () => {
                     result = rollbackManual(context, snapshotId);
                 }));
                 expect(result.success).toBeTrue();

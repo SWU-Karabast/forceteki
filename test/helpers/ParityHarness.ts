@@ -1073,6 +1073,26 @@ export function withParityHarnessInstalled<T>(fn: () => T): T {
 }
 
 /**
+ * The inverse of {@link withParityHarnessInstalled}: runs `fn` with the harness uninstalled and re-installs it on exit only if it
+ * was installed on entry. For a spec that counts, or injects a failure into, the `serialize` calls of one rollback: the harness's own
+ * round-trip of every restored object would otherwise be counted and hit as well. Rollbacks inside `fn` are not compared. A
+ * deserializer read from a serializer entry before the suspension is still the harness's wrapper and keeps its check; read it inside `fn`.
+ */
+export function withParityHarnessSuspended<T>(fn: () => T): T {
+    const priorInstalled = installed;
+    if (priorInstalled) {
+        uninstallParityHarness();
+    }
+    try {
+        return fn();
+    } finally {
+        if (priorInstalled) {
+            installParityHarness();
+        }
+    }
+}
+
+/**
  * Installs a `deserialize` patch that is guaranteed to run **inside** the harness's own per-object check,
  * in both flag modes, and removes it again on exit. A spec that assigns `entry.serializer.deserialize`
  * directly gets mode-dependent layering (see `IWrappedEntry`), which silently changes whether the harness

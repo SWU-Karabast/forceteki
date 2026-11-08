@@ -210,6 +210,18 @@ describe('ManifestSweep (AC11) — the manifest invariant holds across a seeded 
                         phase: 'action',
                         player1: { leader: pair[0].internalName },
                         player2: { leader: pair[1].internalName },
+
+                        // A leader whose ability triggers as the Action phase starts (Grand Admiral Thrawn looks at each deck) opens a
+                        // view-only prompt during setup; dismiss it there, as that leader's own spec does, so the board is at rest.
+                        phaseTransitionHandler: (phase) => {
+                            if (phase === 'action') {
+                                for (const player of [contextRef.context.player1, contextRef.context.player2]) {
+                                    if (String(player.currentPrompt().menuTitle).startsWith('View cards for')) {
+                                        player.clickDone();
+                                    }
+                                }
+                            }
+                        }
                     });
 
                     expect(() => assertInvariant(contextRef.context.game, `leader pair ${pairIndex}`, [])).not.toThrow();
