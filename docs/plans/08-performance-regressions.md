@@ -1,6 +1,6 @@
 # Plan 8 — Performance Regressions After Plan 4
 
-**Status:** proposed, not started.
+**Status:** S-0 has landed (merge, test-only fix and lint fix; `M` and `B` are recorded in "As landed in S-0"); R-0 is next.
 Plans 5 to 7 are on hold pending team discussion; this plan depends only on landed work (Plans 0 to 4) and does not touch their scope.
 
 ## Goal
@@ -34,6 +34,43 @@ At the time of writing `origin/main` is 32 commits past the merge base `445792e6
 - `M` is frozen once recorded: no further `main` merge lands on the branch until R-0 Stage 1 and any R-1 before-and-after run are complete. If one becomes unavoidable, record a new pair (`M'`, `B'`) and redo Stage 1 on it; no comparison mixes points from two pairs.
 
 Done when: `B` is committed with every gate green, and `M` and `B` are recorded in this plan.
+
+#### As landed in S-0
+
+- **Synced `main` commit `M`:** `d5e4d1cac81f2e46260dcc4476d18621256621d2`, 60 commits past the merge base `445792e61`; the branch was 84 commits past that base. `M` is frozen: no further `main` merge lands until R-0 Stage 1 and any R-1 before-and-after run are complete.
+- **Commits:** merge `b98ea4fa9` (parents `1ebb15aa5` and `M`); test-only fix `43cddc751`; **gate-passing commit `B`:** `9f650b6dd` (the lint-fix commit on top of the test-fix commit).
+- **Conflicts (nine) and one adaptation:**
+
+  | Path | Kind | Resolution |
+  |---|---|---|
+  | `package-lock.json` | lock | `main`'s lock plus exactly the `ts-morph` 28.0.0 closure the branch's `package.json` adds (77 inserted lines against `main`, no deletion, `name` still `forceteki`); `npm ci` installs from it (679 packages, exit 0) |
+  | `server/game/core/ability/AbilityLimit.ts` | state-decorated | the branch's `@stateMap` with `main`'s inferred `= new Map<string, number>()` initializer (2 fields; the two `@statePrimitive` fields (`isRegistered`, `useCount`) take `main`'s `= false` and `= 0`) |
+  | `server/game/core/ongoingEffect/effectImpl/CloneUnitEffect.ts` | state-decorated | `@stateMap` with `main`'s initializer style (4 fields) |
+  | `server/game/core/ongoingEffect/effectImpl/CopyStandardTriggeredAbilitiesEffect.ts` | state-decorated | `@stateMap` with `main`'s initializer style (1 field) |
+  | `server/game/core/ongoingEffect/effectImpl/GainAbility.ts` | state-decorated | `@stateMap` with `main`'s initializer style (1 field; the `@statePrimitive` `_abilityIdentifier` takes `main`'s `= ''`) |
+  | `server/game/core/ongoingEffect/effectImpl/GainNonKeywordAbilitiesFromUnitEffect.ts` | state-decorated | `@stateMap` with `main`'s initializer style (3 fields) |
+  | `server/game/core/gameSteps/ActionWindow.ts` | not decorated | union: the branch's `isPlayerDecisionPrompt` override and `PromptButtonArg` signature plus `main`'s menu-command availability assertion |
+  | `server/gamenode/GameServer.ts` | not decorated | union: `main`'s expanded schema import list plus the branch's `MatchLoadError`, `ISavedMatch`/`IEngineOnlyFact` and `getUserWithDefaultsSet` imports |
+  | `test/server/gamenode/auth/authorization/RouteAuthManifest.ts` | not decorated | union: both `session-token` and `developer` in the `RouteAccess` type and doc list; both the `/api/create-user` and `/api/dev/load-saved-match` rows |
+
+  One adaptation the plan did not list: `server/utils/user/UserFactory.ts` merged cleanly but no longer compiled (`main` dropped `import type { User }`, the branch's `getExistingUserByIdAsync` uses it); the import is restored in the merge commit. `git show --remerge-diff` shows it, `--cc` does not.
+- **Field check:** the eleven `@stateMap` fields are `@stateMap() … = new Map<K, V>()`; the staged diff of the five files against `main` is exactly 22 `@state` lines, the eleven `@stateValue` removals match the eleven `@stateMap` additions after normalization (empty diff); the `@stateValue` file/count list over `server/` equals the pre-merge list; the normalized decorator inventory of `server/` and `test/` is identical to the tip's (366 lines); the generated serializer body is byte-identical to the pre-merge copy and `GENERATED_SCHEMA_SURFACE_HASH` is still `95ebd3141d807f70e15164d3397eb92f589454c7958927cdc8625dd77a7fe037`.
+- **`git diff M B -- server/` contains only roadmap work:** the paths that differ between `M` and `B` equal the paths the branch changed since the merge base (245 over the whole tree, 113 under `server/`; both difference lists empty), and the changed-line residue under `server/` is exactly: the eleven `@stateMap … = new Map<K, V>()` lines against the branch's annotated form and their eleven `@stateValue` partners, the `isMenuCommandAvailable` signature pair, the `import type { User } from './User';` line, and the lint-fix lines of `StateWatcherDeserializer.ts` and `WatcherEntryEncoding.ts` (type aliases rewritten as `Record`). Every residue line is type-level and erased in emitted JavaScript, so `M` and `B` run the same server code outside the roadmap's own changes.
+- **Red gates fixed, test-only (the owner's choices at the plan gate and after the first implementation attempt):** `validate-specs` and the two parity suites were red on the pre-merge tip, and `DevMatchLoad` and `ManifestSweep` leaders pair 4 turned red on the merge; the control run on the merged tree reproduced all of them before the fix. Fixes: `'Undo'` added to `undoScenarioSpecsWithOwnHarness` in `scripts/validateSpecs.ts` (the spec reaches the harness only through `undoIntegration`); `withParityHarnessSuspended` added to `test/helpers/ParityHarness.ts` and used, through a local `withRollbackTrafficSuspended`, around the four rollbacks of the three `SnapshotMemoization` pre-pass AC10 cases whose `serialize` traffic they count or hit (the harness's own round-trip had added to it); a `getUserFactory: () => null` stub member in the `DevMatchLoad` gamesEnabled case (main's `authMiddleware` resolves it when built); a `phaseTransitionHandler` in `ManifestSweep`'s leader-pair setup that dismisses the view-only "View cards for" prompt Grand Admiral Thrawn opens as the Action phase starts. No assertion was removed or weakened; one assertion was added (the harness is installed after the suspension exactly as before it). The `ManifestSweep` failure is spec-side: the leader sample is seeded over the whole implemented leader pool, the tip baseline `test-parity.log` reports a pool of 175 and the merged tree's run 178, so the sample changed; neither the Thrawn card nor `test/helpers/IntegrationHelper.js` changed on `main`.
+- **Gates on `B`:**
+
+  | Command | Result | Specs | Against the tip |
+  |---|---|---|---|
+  | `npm run lint` | exit 0 | none | tip: exit 0 (this merge's lint-fix commit repairs 29 errors that `main`'s newer typescript-eslint reports in seven branch files) |
+  | `npm run validate-cards` | exit 0 | 2121 card files, 2098 test files | tip: exit 0 |
+  | `npm run validate-specs` | exit 0, 25 exempt | 2238 game-group and 55 non-game files | tip: 1 violation (`Undo.spec.ts`) |
+  | `npm run test-parallel` | exit 0, 0 failures | 10857 | tip: 10394, 0 failures |
+  | `npm run test-parallel-undo` | exit 0, 0 failures | 9736 | tip: 9475, 0 failures |
+  | `npm run test-parity` | exit 0, 0 failures; zone and delta-zone counters 0; `rollbacksFailed` 1, `harnessRestoreErrors` 0 | 10857 | tip: 3 failures (the AC10 cases) |
+  | `npm run test-parity-undo` | exit 0, 0 failures; zone and delta-zone counters 0; `rollbacksFailed` 2, `harnessRestoreErrors` 0 | 9736 | tip: 3 failures (the AC10 cases) |
+
+  All seven exit 0. Counters are read from the four per-worker `pid-*.delta.log` files of each run's directory, not from the stdout exit lines (which carry three of four workers). The S-0 record commit after `B` changes only this plan document and the docs named in D and E, which no gate reads, so these results hold for the branch head.
+- **`git show --cc`:** the verbatim output for the non-lock files is in "Appendix: S-0 merge record". `package-lock.json` is summarized there with the command that reproduces it. `git show --remerge-diff --name-only` of the merge lists the ten hand-touched paths.
 
 ### R-0 — Confirm, then locate, the first-snapshot regression (measurement only)
 
@@ -121,3 +158,275 @@ Done when: the plan doc records the option chosen with its measured window bytes
 - R-0 and R-2 are measurement units: their evidence is the committed runs and the reading rule above, and they change no engine file.
 - R-1 and R-3 change engine code and are gated on lint, the full suite in both modes, and a replicated probe run, as every engine change in this roadmap is.
 - Every claim rests on a same-machine, same-runtime comparison (capture-index rule 2); the Node v24 series is read only against itself, and a cross-runtime figure, where one is quoted for context, is labelled directional.
+
+## Appendix: S-0 merge record
+
+Commands that reproduce this record on the merge commit `b98ea4fa9`:
+
+- `git show --cc --format= b98ea4fa9 -- . ':!package-lock.json'`
+- `git show --cc --format= b98ea4fa9 -- package-lock.json`
+- `git show --remerge-diff --format= b98ea4fa9 -- server/utils/user/UserFactory.ts`
+
+`package-lock.json` (`--cc` against both parents): four combined hunks (`@@@ -42,14 -34,21 +34,22 @@@`, `@@@ -2355,178 -2478,19 +2479,70 @@@`, `@@@ -3701,23 -3793,6 +3845,13 @@@`, `@@@ -8025,28 -8103,18 +8169,29 @@@`); against `main` the lock adds 77 lines and deletes none, the added package entries being `@ts-morph/common` (with its nested `balanced-match`, `brace-expansion` and `minimatch`), `code-block-writer`, `path-browserify` and `ts-morph`, and the root `"ts-morph": "28.0.0"` devDependency line.
+
+`server/utils/user/UserFactory.ts` (`--remerge-diff`, which `--cc` omits because that hunk equals the branch's side):
+
+```diff
+@@ -1,3 +1,4 @@
++import type { User } from './User';
+ import { AnonymousUser, AuthenticatedUser } from './User';
+ import { logger } from '../../logger';
+ import { v4 as uuid, validate as isUuid } from 'uuid';
+```
+
+`git show --cc --format=` of the ten non-lock files (the `package-lock.json` block, the first 307 lines of the full `--cc` output, is summarized above). `package.json` and `DynamicOngoingEffectImpl.ts` appear in `--cc` because both sides touched nearby lines; they merged without a conflict or hand edit.
+
+```diff
+diff --cc package.json
+index 2f92a8359,8761eb00e..e990e291c
+--- a/package.json
++++ b/package.json
+@@@ -35,12 -31,9 +35,13 @@@
+      "lint-fix": "eslint --quiet --fix",
+      "lint-verbose": "eslint",
+      "get-cards": "node ./scripts/fetchdata.js",
++     "check-card-data": "node ./scripts/checkCardData.js",
+      "validate-cards": "ts-node scripts/validateCards.ts",
+ -    "validate-specs": "ts-node scripts/validateSpecs.ts"
+ +    "validate-specs": "ts-node scripts/validateSpecs.ts",
+ +    "generate-serializers": "node scripts/generate-state-serializers.js",
+ +    "benchmark": "node scripts/run-performance-benchmarks.js",
+ +    "benchmark-card-memory": "cross-env NODE_ENV=test node --expose-gc scripts/card-memory-benchmark.js",
+ +    "measure-degradation": "node scripts/measure-save-degradation.js"
+    },
+    "dependencies": {
+      "@aws-sdk/client-dynamodb": "^3.758.0",
+@@@ -80,13 -65,20 +73,21 @@@
+      "concurrently": "^9.1.0",
+      "cpy-cli": "^5.0.0",
+      "cross-env": "^10.0.0",
++     "eslint": "^9.8.0",
+      "eslint-import-resolver-typescript": "^3.7.0",
+      "eslint-plugin-import-x": "^4.6.1",
++     "eslint-plugin-jasmine": "^4.2.0",
+      "eslint-plugin-unused-imports": "^4.1.4",
++     "glob": "^14.0.3",
++     "globals": "^15.9.0",
++     "jasmine": "^5.1.0",
++     "mkdirp": "^3.0.1",
+      "socket.io-client": "^4.8.4",
+      "supertest": "^7.3.0",
+ +    "ts-morph": "28.0.0",
+      "ts-node": "^10.9.2",
+-     "ts-to-zod": "^3.15.0"
++     "ts-to-zod": "^5.1.0",
++     "typescript": "^5.5.4",
++     "typescript-eslint": "^8.0.1"
+    }
+  }
+diff --cc server/game/core/ability/AbilityLimit.ts
+index 7af25b45e,edc043db0..62b154894
+--- a/server/game/core/ability/AbilityLimit.ts
++++ b/server/game/core/ability/AbilityLimit.ts
+@@@ -68,7 -72,7 +68,7 @@@ export abstract class AbilityLimit exte
+  
+  @registerState()
+  export class UnlimitedAbilityLimit extends AbilityLimit {
+-     @stateMap() private accessor useCount: Map<string, number> = new Map();
+ -    @stateValue() private accessor useCount = new Map<string, number>();
+++    @stateMap() private accessor useCount = new Map<string, number>();
+  
+      public clone() {
+          return new UnlimitedAbilityLimit(this.game);
+@@@ -141,7 -145,7 +141,7 @@@ export class PerGameAbilityLimit extend
+  export abstract class PerPlayerPerGameAbilityLimitBase extends AbilityLimit {
+      public readonly max: number;
+  
+-     @stateMap() private accessor useCount: Map<string, number> = new Map();
+ -    @stateValue() private accessor useCount = new Map<string, number>();
+++    @stateMap() private accessor useCount = new Map<string, number>();
+  
+      public constructor(game: Game, max: number) {
+          super(game);
+diff --cc server/game/core/gameSteps/ActionWindow.ts
+index 213732a88,82e9fc7f9..ca99383b1
+--- a/server/game/core/gameSteps/ActionWindow.ts
++++ b/server/game/core/gameSteps/ActionWindow.ts
+@@@ -180,24 -174,22 +190,26 @@@ export class ActionWindow extends UiPro
+          if (this.game.manualMode) {
+              buttons.unshift({ text: 'Manual Action', arg: 'manual', disabled: mustTakeCardAction });
+          }
+-         return {
+-             menuTitle: overrideActionPromptTitle ?? 'Choose an action',
+-             buttons: buttons,
+-             promptTitle: ActionWindow.title,
+-             promptUuid: this.uuid,
+-             promptType: PromptType.ActionWindow
+-         };
++         return buttons;
++     }
++ 
++     /** A menu command is only accepted if the matching button is currently offered to the player and enabled */
+ -    private isMenuCommandAvailable(choice: string): boolean {
+++    private isMenuCommandAvailable(choice: PromptButtonArg): boolean {
++         const { mustTakeCardAction } = this.getSelectableCards();
++         return this.getActionButtons(mustTakeCardAction).some((button) => button.arg === choice && !button.disabled);
+      }
+  
+      public override waitingPrompt() {
+          return { menuTitle: 'Waiting for opponent to take an action or pass' };
+      }
+  
+ -    public override menuCommand(player: Player, choice: string, uuid: string) {
+ +    public override isPlayerDecisionPrompt(): boolean {
+ +        return true;
+ +    }
+ +
+ +    public override menuCommand(player: Player, choice: PromptButtonArg, uuid: string) {
++         Contract.assertTrue(this.isMenuCommandAvailable(choice), () => `Menu command '${choice}' is not available to player ${player.name} in the current action window`);
++ 
+          switch (choice) {
+              // case 'manual':
+              //     this.game.promptForSelect(this.activePlayer, {
+diff --cc server/game/core/ongoingEffect/effectImpl/CloneUnitEffect.ts
+index 05acad306,a60e00b9f..c4251c679
+--- a/server/game/core/ongoingEffect/effectImpl/CloneUnitEffect.ts
++++ b/server/game/core/ongoingEffect/effectImpl/CloneUnitEffect.ts
+@@@ -11,10 -11,10 +11,10 @@@ import { registerState, stateMap } fro
+  
+  @registerState()
+  export class CloneUnitEffect extends OngoingEffectValueWrapperBase<ICardWithStandardAbilitySetup<Card>> {
+-     @stateMap() private accessor _preCloneActionAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+-     @stateMap() private accessor _preCloneTriggeredAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+-     @stateMap() private accessor _preCloneConstantAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+-     @stateMap() private accessor _preClonePreEnterPlayAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+ -    @stateValue() private accessor _preCloneActionAbilityUuidsByTargetCard = new Map<string, string[]>();
+ -    @stateValue() private accessor _preCloneTriggeredAbilityUuidsByTargetCard = new Map<string, string[]>();
+ -    @stateValue() private accessor _preCloneConstantAbilityUuidsByTargetCard = new Map<string, string[]>();
+ -    @stateValue() private accessor _preClonePreEnterPlayAbilityUuidsByTargetCard = new Map<string, string[]>();
+++    @stateMap() private accessor _preCloneActionAbilityUuidsByTargetCard = new Map<string, string[]>();
+++    @stateMap() private accessor _preCloneTriggeredAbilityUuidsByTargetCard = new Map<string, string[]>();
+++    @stateMap() private accessor _preCloneConstantAbilityUuidsByTargetCard = new Map<string, string[]>();
+++    @stateMap() private accessor _preClonePreEnterPlayAbilityUuidsByTargetCard = new Map<string, string[]>();
+  
+      public constructor(game: Game, clonedUnit: Card) {
+          // If we are cloning a unit that is itself a clone, we need to find the original unit
+diff --cc server/game/core/ongoingEffect/effectImpl/CopyStandardTriggeredAbilitiesEffect.ts
+index f102ab30e,014e44090..b22c4618d
+--- a/server/game/core/ongoingEffect/effectImpl/CopyStandardTriggeredAbilitiesEffect.ts
++++ b/server/game/core/ongoingEffect/effectImpl/CopyStandardTriggeredAbilitiesEffect.ts
+@@@ -28,7 -28,7 +28,7 @@@ const abilityTypeDisplayName: Record<St
+  
+  @registerState()
+  export class CopyStandardTriggeredAbilitiesEffect extends OngoingEffectValueWrapperBase<ICardWithStandardAbilitySetup<Card>[]> {
+-     @stateMap() private accessor _preCopyTriggeredAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+ -    @stateValue() private accessor _preCopyTriggeredAbilityUuidsByTargetCard = new Map<string, string[]>();
+++    @stateMap() private accessor _preCopyTriggeredAbilityUuidsByTargetCard = new Map<string, string[]>();
+      private readonly abilityType: StandardTriggeredAbilityType;
+  
+      public constructor(game: Game, sourceUnits: Card | Card[], abilityType: StandardTriggeredAbilityType) {
+diff --cc server/game/core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl.ts
+index 28823134c,edc227023..2f26678d6
+--- a/server/game/core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl.ts
++++ b/server/game/core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl.ts
+@@@ -15,10 -13,9 +15,10 @@@ export type WrapOngoingEffectValue<TVal
+  @registerState()
+  export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffectImplBase<TValue> {
+      private readonly calculate: CalculateOngoingEffectValueWrapper<TValue>;
+ +    private readonly wrapValue?: WrapOngoingEffectValue<TValue>;
+  
+      @stateRefMap()
+-     private accessor values: Map<string, OngoingEffectValueWrapperBase<TValue>> = new Map();
++     private accessor values = new Map<string, OngoingEffectValueWrapperBase<TValue>>();
+  
+      public constructor(game: Game,
+          type: EffectName,
+diff --cc server/game/core/ongoingEffect/effectImpl/GainAbility.ts
+index 259f3d988,49f17a246..308d3656e
+--- a/server/game/core/ongoingEffect/effectImpl/GainAbility.ts
++++ b/server/game/core/ongoingEffect/effectImpl/GainAbility.ts
+@@@ -16,8 -24,8 +16,8 @@@ export class GainAbility extends Ongoin
+  
+      @stateRef() private accessor _gainAbilitySource: Card | null = null;
+      @stateRef() private accessor _source: Card | null = null;
+-     @statePrimitive() private accessor _abilityIdentifier: string = '';
+-     @stateMap() private accessor _abilityUuidByTargetCard: Map<string, string> = new Map();
++     @statePrimitive() private accessor _abilityIdentifier = '';
+ -    @stateValue() private accessor _abilityUuidByTargetCard = new Map<string, string>();
+++    @stateMap() private accessor _abilityUuidByTargetCard = new Map<string, string>();
+  
+      public get gainAbilitySource() {
+          return this._gainAbilitySource;
+diff --cc server/game/core/ongoingEffect/effectImpl/GainNonKeywordAbilitiesFromUnitEffect.ts
+index fed6e4936,57210e712..c9ec89efd
+--- a/server/game/core/ongoingEffect/effectImpl/GainNonKeywordAbilitiesFromUnitEffect.ts
++++ b/server/game/core/ongoingEffect/effectImpl/GainNonKeywordAbilitiesFromUnitEffect.ts
+@@@ -15,9 -15,9 +15,9 @@@ import type { InPlayCard } from '../../
+   */
+  @registerState()
+  export class GainNonKeywordAbilitiesFromUnitEffect extends OngoingEffectValueWrapperBase<IUnitCard> {
+-     @stateMap() private accessor _triggeredAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+-     @stateMap() private accessor _actionAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+-     @stateMap() private accessor _constantAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+ -    @stateValue() private accessor _triggeredAbilityUuidsByTargetCard = new Map<string, string[]>();
+ -    @stateValue() private accessor _actionAbilityUuidsByTargetCard = new Map<string, string[]>();
+ -    @stateValue() private accessor _constantAbilityUuidsByTargetCard = new Map<string, string[]>();
+++    @stateMap() private accessor _triggeredAbilityUuidsByTargetCard = new Map<string, string[]>();
+++    @stateMap() private accessor _actionAbilityUuidsByTargetCard = new Map<string, string[]>();
+++    @stateMap() private accessor _constantAbilityUuidsByTargetCard = new Map<string, string[]>();
+  
+      private get sourceUnit(): IUnitCard {
+          return this.getValue();
+diff --cc server/gamenode/GameServer.ts
+index 08b16c46b,ce84703b4..ffbb88c5d
+--- a/server/gamenode/GameServer.ts
++++ b/server/gamenode/GameServer.ts
+@@@ -70,10 -70,15 +70,18 @@@ import { SwuBaseHandler } from '../util
+  import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
+  import { ModActionService } from '../utils/ModActionService';
+  import { ModActionSubmissionHandler } from '../utils/ModActionSubmissionHandler';
+- import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema, ServerSettingsUpdateSchema } from '../services/DynamoDBInterfaceSchemas';
++ import {
++     CosmeticCreateRequestSchema,
++     DeckNameSchema,
++     FindUserSchema,
++     ModActionCancelSchema,
++     ModActionSubmitSchema,
++     SaveDeckRequestSchema,
++     ServerSettingsUpdateSchema
++ } from '../services/DynamoDBInterfaceSchemas';
+ +import { MatchLoadError } from '../game/core/stateSerialization/MatchLoadError';
+ +import type { IEngineOnlyFact, ISavedMatch } from '../game/core/stateSerialization/SavedMatchInterfaces';
+ +import { getUserWithDefaultsSet } from '../Settings';
+  import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
+  import { minimumSchedulerDelayMs } from '../utils/IScheduler';
+  import { RealScheduler } from '../utils/RealScheduler';
+diff --cc test/server/gamenode/auth/authorization/RouteAuthManifest.ts
+index 0dbe391fc,92149e48e..261aad0c7
+--- a/test/server/gamenode/auth/authorization/RouteAuthManifest.ts
++++ b/test/server/gamenode/auth/authorization/RouteAuthManifest.ts
+@@@ -7,14 -7,18 +7,18 @@@ import type { RouteMethod } from '../..
+   * - `anonymous-ok`: `authMiddleware` identifies the caller (an anonymous one gets a throwaway identity) and
+   *   the handler serves anonymous and signed-in callers alike.
+   * - `signed-in`: `authMiddleware`, and the handler refuses an anonymous caller.
++  * - `session-token`: no middleware; the handler reads the session token itself, to make or find the account
++  *   that identity has. Refuses a request with no session, and serves one that has a session whether or not
++  *   its account exists yet.
+ - * - `moderator` / `admin`: `authMiddleware` refuses a caller who lacks the role. An admin passes every
+ + * - `developer` / `moderator` / `admin`: `authMiddleware` refuses a caller who lacks the role. An admin passes every
+   *   role check; a moderator does not pass an admin one.
+-  * - `shared-secret`: no middleware; the handler compares a key the FE server puts in the body with
+-  *   `INTRASERVICE_SECRET`.
++  * - `shared-secret`: the handler compares a key the FE server puts in the body with `INTRASERVICE_SECRET`.
++  *   Where the route acts on a user's account it also sits behind `authMiddleware`, for the session the FE
++  *   server forwards.
+   * - `api-key`: no middleware; the handler compares an `Authorization: api-key <key>` header with
+   *   `PROFILE_CAPTURE_SECRET`.
+   */
+- export type RouteAccess = 'public' | 'anonymous-ok' | 'signed-in' | 'developer' | 'moderator' | 'admin' | 'shared-secret' | 'api-key';
+ -export type RouteAccess = 'public' | 'anonymous-ok' | 'signed-in' | 'session-token' | 'moderator' | 'admin' | 'shared-secret' | 'api-key';
+++export type RouteAccess = 'public' | 'anonymous-ok' | 'signed-in' | 'session-token' | 'developer' | 'moderator' | 'admin' | 'shared-secret' | 'api-key';
+  
+  export interface IRouteAuthRow {
+      method: RouteMethod;
+```
