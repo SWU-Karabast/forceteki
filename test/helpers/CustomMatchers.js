@@ -536,7 +536,7 @@ var customMatchers = {
                     result.message = `Expected ${player.name} not to have pass-ability prompt for '${abilityText}' but it did.`;
                 } else {
                     result.message = `Expected ${player.name} to have pass-ability prompt for '${abilityText}' ` +
-                    `(header '${headerText}' with a 'Trigger' button labeled '${abilityText}') but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                      `(header '${headerText}' with a 'Trigger' button labeled '${abilityText}') but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
                 }
 
                 return result;
@@ -574,7 +574,7 @@ var customMatchers = {
                     result.message = `Expected ${player.name} not to have a passable trigger for ${described} but it did.`;
                 } else {
                     result.message = `Expected ${player.name} to have a passable (optional) trigger for ${described} ` +
-                    `but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                      `but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
                 }
 
                 return result;
@@ -594,7 +594,7 @@ var customMatchers = {
                 if (prompt.promptType !== 'triggerWindow') {
                     result.pass = false;
                     result.message = `Expected ${player.name} to have a simultaneous-trigger resolution prompt ` +
-                    `but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
+                      `but it has prompt:\n${generatePromptHelpMessage(player.testContext)}`;
                     return result;
                 }
 
@@ -613,7 +613,7 @@ var customMatchers = {
                     result.message = `Expected ${player.name} not to have this exact trigger resolution prompt but it did.`;
                 } else {
                     result.message = `Expected ${player.name} to have trigger resolution prompt:\n${formatTriggerDescriptors(expected)}\n` +
-                    `but the actual prompt was:\n${formatTriggerDescriptors(actual)}\n\n${generatePromptHelpMessage(player.testContext)}`;
+                      `but the actual prompt was:\n${formatTriggerDescriptors(actual)}\n\n${generatePromptHelpMessage(player.testContext)}`;
                 }
 
                 return result;

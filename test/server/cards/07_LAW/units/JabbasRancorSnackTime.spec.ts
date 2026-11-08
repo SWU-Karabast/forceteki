@@ -27,5 +27,26 @@ describe('Jabba\'s Rancor, Snack Time', function() {
             context.player1.clickPrompt('Trigger');
             expect(context.jabbaTheHutt.damage).toEqual(7);
         });
+
+        it('Jabba\'s Rancor\'s on attack ability does nothing (and does not throw) if the opponent controls no ground unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['jabbas-rancor#snack-time'],
+                },
+                player2: {
+                    spaceArena: ['lurking-tie-phantom'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.jabbasRancor);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.p2Base.damage).toBe(7);
+            expect(context.lurkingTiePhantom.damage).toBe(0);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

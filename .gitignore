@@ -23,6 +23,7 @@ Dockerfile.test
 .claude/worktrees/
 .claude/agent-memory/
 CLAUDE.local.md
+docs/superpowers/
 
 # Local agent memory vaults (e.g. ECC), personal and never shared
 .ecc/

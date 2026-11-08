@@ -16,8 +16,8 @@ export class GainAbility extends OngoingEffectValueWrapperBase<IAbilityPropsWith
 
     @stateRef() private accessor _gainAbilitySource: Card | null = null;
     @stateRef() private accessor _source: Card | null = null;
-    @statePrimitive() private accessor _abilityIdentifier: string = '';
-    @stateMap() private accessor _abilityUuidByTargetCard: Map<string, string> = new Map();
+    @statePrimitive() private accessor _abilityIdentifier = '';
+    @stateMap() private accessor _abilityUuidByTargetCard = new Map<string, string>();
 
     public get gainAbilitySource() {
         return this._gainAbilitySource;

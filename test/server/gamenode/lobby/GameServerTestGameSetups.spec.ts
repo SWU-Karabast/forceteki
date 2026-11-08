@@ -9,6 +9,7 @@ const devCookie = sessionCookie(mintSessionToken(signInClaims({ provider: 'dev-u
 
 const gameSetupsDir = path.resolve(__dirname, '../../../../../test/gameSetups');
 
+/** A local dev box: no DynamoDB, so the dev test accounts live in the in-memory user store. */
 describe('GameServer test game setups', function () {
     serverIntegration(function (contextRef) {
         function lobbyCount(): number {
@@ -37,6 +38,11 @@ describe('GameServer test game setups', function () {
                 ...signInClaims({ provider: 'google', providerId: 'attacker', username: 'Order66', email: 'attacker@example.test' }),
                 userId: 'exe66',
             }));
+            // the attacker has an account of their own, so the request gets past authentication to the test-account check
+            const created = await contextRef.harness.api.post('/api/create-user').set('Cookie', cookie)
+                .send({});
+            expect(created.status).toBe(200);
+
             const response = await contextRef.harness.api.post('/api/start-test-game').set('Cookie', cookie)
                 .send({ filename: 'testGameTemplate.json', user: { id: 'exe66', username: 'Order66', authenticated: true } });
             expect(response.status).toBe(500);
@@ -87,7 +93,7 @@ describe('GameServer test game setups', function () {
                 expect(lobbyCount()).toBe(0);
             });
         });
-    });
+    }, { database: false });
 });
 
 describe('Database-backed development test games', function () {

@@ -24,7 +24,7 @@ export interface IAbilityLimit {
 export abstract class AbilityLimit extends GameObjectBase implements IAbilityLimit {
     public ability: CardAbility | null = null;
 
-    @statePrimitive() private accessor isRegistered: boolean = false;
+    @statePrimitive() private accessor isRegistered = false;
 
     // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public override get alwaysTrackState(): boolean {
@@ -68,7 +68,7 @@ export abstract class AbilityLimit extends GameObjectBase implements IAbilityLim
 
 @registerState()
 export class UnlimitedAbilityLimit extends AbilityLimit {
-    @stateMap() private accessor useCount: Map<string, number> = new Map();
+    @stateMap() private accessor useCount = new Map<string, number>();
 
     public clone() {
         return new UnlimitedAbilityLimit(this.game);
@@ -105,7 +105,7 @@ export class PerGameAbilityLimit extends AbilityLimit {
     public currentUser: null | string = null;
     public readonly max: number;
 
-    @statePrimitive() private accessor useCount: number = 0;
+    @statePrimitive() private accessor useCount = 0;
 
     public constructor(game: Game, max: number) {
         super(game);
@@ -141,7 +141,7 @@ export class PerGameAbilityLimit extends AbilityLimit {
 export abstract class PerPlayerPerGameAbilityLimitBase extends AbilityLimit {
     public readonly max: number;
 
-    @stateMap() private accessor useCount: Map<string, number> = new Map();
+    @stateMap() private accessor useCount = new Map<string, number>();
 
     public constructor(game: Game, max: number) {
         super(game);

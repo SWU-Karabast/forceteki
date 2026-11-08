@@ -252,14 +252,6 @@ describe('GameServer matchmaking preferences', function () {
                 expectMatched(competitive, noPreference);
             });
 
-            it('applies the same preference policy to anonymous and authenticated users', async function () {
-                const { harness } = contextRef;
-                const anonymous = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual);
-                const authenticated = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual, { authenticated: true });
-
-                expectMatched(anonymous, authenticated);
-            });
-
             it('matches simultaneous arrivals into distinct pairs without duplicating or stranding players', async function () {
                 const { harness } = contextRef;
                 const players = await Promise.all(Array.from({ length: 4 }, () =>
@@ -459,7 +451,8 @@ describe('GameServer matchmaking preferences', function () {
                 try {
                     await harness.clock.settlePendingWorkAsync();
                     expect(shutdownFinished).toBeFalse();
-                    expect(harness.clock.pendingTaskCount).toBe(0);
+                    // the server has cancelled its own timers; only the database services' remain until shutdown ends
+                    expect(harness.clock.pendingTaskCount).toBe(harness.databaseTaskCount);
                 } finally {
                     resumeSetup();
                 }
@@ -697,7 +690,7 @@ describe('GameServer matchmaking preferences', function () {
                     if (reconnectBeforeRequeue) {
                         await player.connectAsync();
                     }
-                    await player.sendGameMessageAsync('concede');
+                    await player.concedeAsync();
                     expect(player.gameState.winners).toHaveSize(1);
                     await harness.clock.advanceAsync(1_000);
                     await player.requeueAsync();
@@ -752,6 +745,18 @@ describe('GameServer matchmaking preferences', function () {
                     expectMatched(player, replacement);
                 });
             }
+        });
+    });
+
+    describe('with logged-in users', function () {
+        serverIntegration(function (contextRef) {
+            it('applies the same preference policy to anonymous and authenticated users', async function () {
+                const { harness } = contextRef;
+                const anonymous = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual);
+                const authenticated = await queueClientAsync(harness, MatchmakingCompetitivenessPreference.Casual, { authenticated: true });
+
+                expectMatched(anonymous, authenticated);
+            });
         });
     });
 

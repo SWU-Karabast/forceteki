@@ -359,7 +359,7 @@ export class Card extends OngoingEffectSourceBase implements IGameStatisticsTrac
     }
 
     @statePrimitive()
-    private accessor nextAbilityIdx: number = 0;
+    private accessor nextAbilityIdx = 0;
 
     public get isImplemented(): boolean {
         // We consider a card "implemented" if it doesn't require any implementation

@@ -11,10 +11,10 @@ import { registerState, stateMap } from '../../GameObjectUtils';
 
 @registerState()
 export class CloneUnitEffect extends OngoingEffectValueWrapperBase<ICardWithStandardAbilitySetup<Card>> {
-    @stateMap() private accessor _preCloneActionAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
-    @stateMap() private accessor _preCloneTriggeredAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
-    @stateMap() private accessor _preCloneConstantAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
-    @stateMap() private accessor _preClonePreEnterPlayAbilityUuidsByTargetCard: Map<string, string[]> = new Map();
+    @stateMap() private accessor _preCloneActionAbilityUuidsByTargetCard = new Map<string, string[]>();
+    @stateMap() private accessor _preCloneTriggeredAbilityUuidsByTargetCard = new Map<string, string[]>();
+    @stateMap() private accessor _preCloneConstantAbilityUuidsByTargetCard = new Map<string, string[]>();
+    @stateMap() private accessor _preClonePreEnterPlayAbilityUuidsByTargetCard = new Map<string, string[]>();
 
     public constructor(game: Game, clonedUnit: Card) {
         // If we are cloning a unit that is itself a clone, we need to find the original unit

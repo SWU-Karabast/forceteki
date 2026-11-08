@@ -18,7 +18,7 @@ let _isDevelopment: boolean | undefined;
 
 const defaultFilterCallback = (item) => item != null;
 
-function mergeProperty<TPropertySet extends { [key in TPropName]?: TMergeProperty }, TMergeProperty, TPropName extends string>(
+function mergeProperty<TPropertySet extends Partial<Record<TPropName, TMergeProperty>>, TMergeProperty, TPropName extends string>(
     propertySet: TPropertySet,
     newPropName: TPropName,
     newPropValue: TMergeProperty,
@@ -329,7 +329,7 @@ export namespace Helpers {
         return result;
     }
 
-    export function mergeNumericProperty<TPropertySet extends { [key in TPropName]?: number }, TPropName extends string>(
+    export function mergeNumericProperty<TPropertySet extends Partial<Record<TPropName, number>>, TPropName extends string>(
         propertySet: TPropertySet,
         newPropName: TPropName,
         newPropValue: number
@@ -337,7 +337,7 @@ export namespace Helpers {
         return mergeProperty(propertySet, newPropName, newPropValue, (oldValue, newValue) => oldValue + newValue);
     }
 
-    export function mergeArrayProperty<TPropertySet extends { [key in TPropName]?: any[] }, TPropName extends string>(
+    export function mergeArrayProperty<TPropertySet extends Partial<Record<TPropName, any[]>>, TPropName extends string>(
         propertySet: TPropertySet,
         newPropName: TPropName,
         newPropValue: any[]

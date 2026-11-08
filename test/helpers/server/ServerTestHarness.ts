@@ -5,6 +5,7 @@ import { v4 as uuid } from 'uuid';
 
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
 import type { IQueueFormatKey } from '../../../server/gamenode/QueueHandler';
+import type { ISwuDbFormatDecklist } from '../../../server/utils/deck/DeckInterfaces';
 import { Lobby } from '../../../server/gamenode/Lobby';
 import { AnonymousUser } from '../../../server/utils/user/User';
 import { DecklistFixtures } from './DecklistFixtures';
@@ -27,14 +28,15 @@ export interface IServerTestOptions {
     config?: TestConfigOverrides;
 
     /**
-     * Gives the server the database-backed services a deployed one has - roles, settings, cosmetics,
-     * mod actions and a user store - over an in-memory fake, readable and seedable as
-     * {@link ServerTestHarness.db}. Without it the server has no database, which is how a local dev
-     * box runs: no role can be granted, no account can be looked up.
+     * The database behind the server. By default the server has the database-backed services a
+     * deployed one has - roles, settings, cosmetics, mod actions and a user store - over an empty
+     * in-memory fake, readable and seedable as {@link ServerTestHarness.db}.
      *
-     * `true` is an empty fake; a function seeds a fresh one before the server starts (the services
-     * read roles, settings and mod actions once at startup, then only on their refresh interval); an
-     * instance is used as is, for a spec that builds a single harness and holds the fake itself.
+     * `true` (the default) is an empty fake; a function seeds a fresh one before the server starts (the
+     * services read roles, settings and mod actions once at startup, then only on their refresh
+     * interval); an instance is used as is, for a spec that builds a single harness and holds the fake
+     * itself. `false` gives the server no database, which is how a local dev box runs: no role can be
+     * granted, no account can be looked up, and so no client can be logged in.
      */
     database?: boolean | DatabaseSeeder | FakeDynamoDbService;
 
@@ -48,6 +50,33 @@ export interface IServerTestOptions {
 
     /** Record every route the server registers, readable as {@link ServerTestHarness.routes}. */
     recordRoutes?: boolean;
+}
+
+/** How {@link ServerTestHarness.openLobbyAsync} and the builders on top of it set a custom lobby up. */
+export interface ILobbyOptions {
+
+    /** A private lobby is joined by its link; a public one through `join-lobby`, as the lobby browser does. Default public. */
+    isPrivate?: boolean;
+
+    /** Format, card pool and games to win. Default premier best-of-one. */
+    config?: Readonly<IQueueFormatKey>;
+
+    /** The owner's deck. Default {@link DecklistFixtures.validDecklist}. */
+    deck?: ISwuDbFormatDecklist;
+}
+
+/** What {@link ServerTestHarness.startLiveGameAsync} can be asked for beyond {@link ILobbyOptions}. */
+export interface ILiveGameOptions extends ILobbyOptions {
+
+    /** The guest's deck, which it picks once it is in the lobby. Default {@link DecklistFixtures.validDecklist}. */
+    guestDeck?: ISwuDbFormatDecklist;
+}
+
+/** A custom lobby with its two players, both connected. */
+export interface ILobbyWithGuest {
+    owner: TestClient;
+    guest: TestClient;
+    lobbyId: string;
 }
 
 /**
@@ -110,7 +139,8 @@ export class ServerTestHarness {
             // Outside development the real database service is no longer skipped, so a server built
             // without a stand-in would try to reach DynamoDB (and fail on missing credentials) from its
             // field initialisers, as unhandled rejections nobody can attribute to the spec.
-            if (process.env.ENVIRONMENT !== 'development' && !options.database) {
+            const database = options.database ?? true;
+            if (process.env.ENVIRONMENT !== 'development' && !database) {
                 throw new Error(`ServerTestHarness: ENVIRONMENT is '${process.env.ENVIRONMENT}', so the server would reach for the real DynamoDB service - give the harness a database to stand in for it`);
             }
 
@@ -119,7 +149,7 @@ export class ServerTestHarness {
             // routes are registered during construction, so recording has to start before it
             const routeRecording = options.recordRoutes ? recordRegisteredRoutes() : undefined;
 
-            const server = await TestGameServer.startAsync(setup, { config: options.config, database: options.database });
+            const server = await TestGameServer.startAsync(setup, { config: options.config, database });
 
             return new ServerTestHarness(
                 server,
@@ -140,13 +170,13 @@ export class ServerTestHarness {
 
     /**
      * The fake DynamoDB behind this harness's server: seed accounts, roles, settings and mod actions
-     * before acting, and read back what the server stored. Only available when the harness was created
-     * with `{ database: true }` (or an instance).
+     * before acting, and read back what the server stored. Not available when the harness was created
+     * with `{ database: false }`.
      */
     public get db(): FakeDynamoDbService {
         const db = this.server.testDatabase;
         if (!db) {
-            throw new Error('ServerTestHarness: this harness has no database - create it with { database: true }');
+            throw new Error('ServerTestHarness: this harness has no database - it was created with { database: false }');
         }
 
         return db;
@@ -187,6 +217,15 @@ export class ServerTestHarness {
     }
 
     /**
+     * Tasks on {@link clock} that belong to the database-backed services' refresh timers. They outlive
+     * the server's own shutdown until the harness stops them, so a spec that checks what the server
+     * left scheduled part-way through a shutdown expects this many rather than 0.
+     */
+    public get databaseTaskCount(): number {
+        return this.server.databaseTaskCount;
+    }
+
+    /**
      * A distinct anonymous identity. Ids are unique per harness so one spec's users can never
      * collide in the server's user/lobby bookkeeping.
      */
@@ -212,12 +251,12 @@ export class ServerTestHarness {
     }
 
     /**
-     * A client signed in as `account` the way the FE does on its first request of a session: the session
-     * token alone, so the server looks the account up. Seeds a new account when none is given. Needs a
-     * harness created with a {@link IServerTestOptions.database}.
+     * A client signed in as `account` the way the FE does: the session token alone, so the server looks
+     * the account up. Seeds a new account when none is given. Needs the harness's database (the
+     * default; see {@link IServerTestOptions.database}).
      */
     public createAccountClient(account: ISeededAccount = this.db.seedAccount()): TestClient {
-        return this.createClient({ authenticated: true, auth: 'token-only', account });
+        return this.createClient({ authenticated: true, account });
     }
 
     /**
@@ -274,6 +313,103 @@ export class ServerTestHarness {
         }
 
         return { first: clients[0], second: clients[1] };
+    }
+
+    /**
+     * Has `owner` (a client already made with {@link createClient}, or the options to make one with) create a
+     * custom lobby and, unless `connect` is false, connect its socket to it. Returns the owner, whose
+     * {@link TestClient.lobbyId} is then the lobby's link for someone else to join by. With `connect: false`
+     * the lobby exists only as the server's record of the `create-lobby` call: the owner has no seat yet.
+     *
+     * Throws, rather than failing an expectation, if the server refuses the lobby.
+     */
+    public async openLobbyAsync(
+        owner: ITestClientOptions | TestClient = {},
+        options: ILobbyOptions & { connect?: boolean } = {}
+    ): Promise<TestClient> {
+        const client = owner instanceof TestClient ? owner : this.createClient(owner);
+
+        const response = await client.createLobbyAsync({
+            lobbyName: this.uniqueLobbyName(),
+            deck: options.deck ?? this.decklists.validDecklist(),
+            isPrivate: options.isPrivate ?? false,
+            ...(options.config ?? premierBestOfOne),
+        });
+        if (response.status !== 200) {
+            throw new Error(`openLobbyAsync: user ${client.id} was refused a lobby: ${response.status} ${JSON.stringify(response.body)}`);
+        }
+
+        if (options.connect ?? true) {
+            await client.connectAsync();
+        }
+
+        return client;
+    }
+
+    /**
+     * A custom lobby with two players in it, both connected: `owner` opens it, and `guest` joins the way the
+     * real client would for that kind of lobby - `join-lobby` and then a socket for a public one, a socket
+     * carrying the link for a private one. Each side is a client already made with {@link createClient} or
+     * the options to make one with.
+     *
+     * Throws, rather than failing an expectation, if either step is refused or the guest is not seated.
+     */
+    public async createLobbyWithGuestAsync(
+        owner: ITestClientOptions | TestClient = {},
+        guest: ITestClientOptions | TestClient = {},
+        options: ILobbyOptions = {}
+    ): Promise<ILobbyWithGuest> {
+        const ownerClient = await this.openLobbyAsync(owner, options);
+        const guestClient = guest instanceof TestClient ? guest : this.createClient(guest);
+        const lobbyId = ownerClient.lobbyId;
+
+        if (options.isPrivate) {
+            await guestClient.connectAsync({ lobbyId });
+        } else {
+            const joined = await guestClient.joinLobbyAsync(lobbyId);
+            if (joined.status !== 200) {
+                throw new Error(`createLobbyWithGuestAsync: user ${guestClient.id} was refused the lobby: ${joined.status} ${JSON.stringify(joined.body)}`);
+            }
+            await guestClient.connectAsync();
+        }
+
+        if (!guestClient.lobbyState?.users?.some((user: { id: string }) => user.id === guestClient.id)) {
+            throw new Error(`createLobbyWithGuestAsync: user ${guestClient.id} connected but was not seated in lobby ${lobbyId}`);
+        }
+
+        return { owner: ownerClient, guest: guestClient, lobbyId };
+    }
+
+    /**
+     * A custom-lobby game in progress, reached the way two players reach one: {@link createLobbyWithGuestAsync},
+     * then the guest picks its deck (`change-deck`), both mark themselves ready, and the owner starts the game.
+     * The counterpart of {@link startQuickGameAsync} for a lobby game. End it with {@link TestClient.concedeAsync}.
+     *
+     * Throws, rather than failing an expectation, if any step is refused or no game starts.
+     */
+    public async startLiveGameAsync(
+        owner: ITestClientOptions | TestClient = {},
+        guest: ITestClientOptions | TestClient = {},
+        options: ILiveGameOptions = {}
+    ): Promise<ILobbyWithGuest> {
+        const lobby = await this.createLobbyWithGuestAsync(owner, guest, options);
+
+        const deckChanged = await lobby.guest.changeDeckAsync(lobby.lobbyId, options.guestDeck ?? this.decklists.validDecklist());
+        if (deckChanged.status !== 200) {
+            throw new Error(`startLiveGameAsync: user ${lobby.guest.id} was refused its deck: ${deckChanged.status} ${JSON.stringify(deckChanged.body)}`);
+        }
+
+        await lobby.owner.setReadyStatusAsync(true);
+        await lobby.guest.setReadyStatusAsync(true);
+        await lobby.owner.startGameAsync();
+
+        for (const client of [lobby.owner, lobby.guest]) {
+            if (!client.gameState) {
+                throw new Error(`startLiveGameAsync: no game had started for user ${client.id} in lobby ${lobby.lobbyId}`);
+            }
+        }
+
+        return lobby;
     }
 
     public async shutdownAsync(): Promise<void> {

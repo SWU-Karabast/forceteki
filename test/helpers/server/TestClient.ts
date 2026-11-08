@@ -1,10 +1,16 @@
+import { randomUUID } from 'crypto';
 import type { Response as SupertestResponse } from 'supertest';
 
-import type { CardPool, GamesToWinMode, MatchmakingCompetitivenessPreference, SwuGameFormat } from '../../../server/game/core/Constants';
+import type { CardPool, GamesToWinMode, MatchmakingCompetitivenessPreference, RematchMode, SwuGameFormat } from '../../../server/game/core/Constants';
+import type { IStatefulPromptResults } from '../../../server/game/core/gameSteps/PromptInterfaces';
+import type { IGetSnapshotSettings } from '../../../server/game/core/snapshot/SnapshotInterfaces';
+import type { PlayerReportType } from '../../../server/game/Interfaces';
 import type { IQueueMatchmakingStatus } from '../../../server/gamenode/MatchmakingRules';
-import type { IUserDataEntity } from '../../../server/services/DynamoDBInterfaces';
+import type { IUserProfileDataEntity } from '../../../server/services/DynamoDBInterfaces';
 import type { ISwuDbFormatDecklist } from '../../../server/utils/deck/DeckInterfaces';
 import { mintSessionToken, sessionCookie, signInClaims } from './AuthTokens';
+import type { IChatEntry } from './ChatEntries';
+import { toChatEntries } from './ChatEntries';
 import type { ISeededAccount } from './FakeDynamoDbService';
 import { FakeIoSocket } from './FakeIoSocket';
 import type { RouteMethod } from './RouteRecorder';
@@ -12,38 +18,28 @@ import type { ITestUserPayload, ServerTestHarness } from './ServerTestHarness';
 import { isSuccessfulSocketAuth } from '../../../server/gamenode/GameServer';
 import { AnonymousUser } from '../../../server/utils/user/User';
 
-/**
- * How an authenticated client presents itself to the server - the two ways the real FE does.
- *
- * - `synced-profile`: what the FE does for every request after its first sync. A token carrying
- *   `userId`, plus the FE's own copy of the profile marked `authenticated: true`. Needs no database.
- * - `token-only`: what the FE does on its first `/api/get-user` of a session. The token alone, with no
- *   profile and no `authenticated` flag, so the server looks the account up (or creates it) from the
- *   token's claims. Needs a harness with `{ database: true }`.
- */
-export type TestClientAuthMode = 'synced-profile' | 'token-only';
-
 /** Options for {@link TestClient.create}. */
 export interface ITestClientOptions {
 
     /** Only for authenticated clients: the server derives an anonymous user's name from their id. */
     username?: string;
 
-    /** If true, this client authenticates with a signed JWT, like a logged-in real client. */
+    /**
+     * If true, this client signs in with a signed JWT, like a logged-in real client. It presents only
+     * that token: the server finds the account from it, so the harness needs its database (there by
+     * default, gone with `{ database: false }`). The server keeps the profile once it has read it, so
+     * seed what it owns (`profile`, or the `account`'s) before this client's first signed-in request.
+     */
     authenticated?: boolean;
 
-    /** Extra fields merged into the authenticated user's data (e.g. `preferences`, `moderation`). Ignored for anonymous users and for `token-only`. */
-    userDataOverrides?: Partial<IUserDataEntity>;
-
-    /** How an authenticated client presents itself. Defaults to `synced-profile`. */
-    auth?: TestClientAuthMode;
-
     /**
-     * A seeded account (`harness.db.seedAccount()`) this client is. The client takes the account's id
-     * and username, and a `token-only` client's token is built from its identity. Required for
-     * `token-only`, optional for `synced-profile`.
+     * The seeded account (`harness.db.seedAccount()`) this client signs in as. The client takes the
+     * account's id and username. When omitted, an authenticated client gets a new account.
      */
     account?: ISeededAccount;
+
+    /** Extra profile fields (e.g. `preferences`, `moderation`) for the account created for an authenticated client without an `account`. */
+    profile?: Partial<IUserProfileDataEntity>;
 }
 
 /** Options for {@link TestClient.connectAsync}. */
@@ -56,8 +52,11 @@ export interface IConnectOptions {
     /** Presents this token in the handshake instead of the client's own. For a bad-credential scenario. */
     token?: string;
 
-    /** Presents this `user` in the handshake query instead of the client's own. */
-    user?: Record<string, unknown>;
+    /**
+     * Presents this `user` in the handshake query instead of the client's own: an object is sent as JSON, as
+     * the real client sends it, and a string exactly as given, for a malformed query.
+     */
+    user?: Record<string, unknown> | string;
 }
 
 /** Result of {@link TestClient.attemptConnectAsync}. */
@@ -93,8 +92,7 @@ export class TestClient {
         private readonly harness: ServerTestHarness,
         public readonly id: string,
         public readonly username: string,
-        private readonly authToken: string | null,
-        private readonly userData: Partial<IUserDataEntity> | null
+        private readonly authToken: string | null
     ) {}
 
     public static create(harness: ServerTestHarness, id: string, options: ITestClientOptions = {}): TestClient {
@@ -102,33 +100,13 @@ export class TestClient {
             if (options.username) {
                 throw new Error('TestClient: an anonymous client cannot choose its username - the server derives it from the id');
             }
-            return new TestClient(harness, id, AnonymousUser.usernameForId(id), null, null);
+            return new TestClient(harness, id, AnonymousUser.usernameForId(id), null);
         }
 
-        const username = options.account?.username ?? options.username ?? `test-user-${id.slice(0, 6)}`;
+        const account = options.account ?? harness.db.seedAccount({ id, username: options.username, profile: options.profile });
 
-        if (options.auth === 'token-only') {
-            if (!options.account) {
-                throw new Error('TestClient: a token-only client needs the seeded `account` its token is for');
-            }
-
-            // no profile at all: the server has to find the account from the token's claims
-            return new TestClient(harness, id, username, mintSessionToken(signInClaims(options.account)), null);
-        }
-
-        // `verifyTokenAndCreateAuthenticatedUser` (the no-DB-access path the real client's logged-in
-        // flow takes) overwrites `userData.id` with this claim regardless of what is sent alongside
-        // it, so the token - not the query/body payload - is the actual source of truth for identity.
-        const token = mintSessionToken({ userId: id });
-
-        const userData: Partial<IUserDataEntity> = {
-            id,
-            username,
-            showWelcomeMessage: false,
-            ...options.userDataOverrides,
-        };
-
-        return new TestClient(harness, id, username, token, userData);
+        // the token is all a logged-in client presents: the server finds the account from its claims
+        return new TestClient(harness, account.id, account.username, mintSessionToken(signInClaims(account)));
     }
 
     public get isAuthenticated(): boolean {
@@ -160,18 +138,17 @@ export class TestClient {
 
     // ---- Identity payloads ----
 
-    /**
-     * The `user` payload this client sends over HTTP and in the socket handshake query, mirroring
-     * the real client's `getUserPayload`: a bare `{ id, username }` for anonymous users, or the fuller
-     * user data (plus `authenticated: true`) for a logged-in one. A `token-only` client has no profile
-     * to send, so it sends the bare form like an anonymous one - the token is what identifies it.
-     */
-    public userPayload(): ITestUserPayload | (Partial<IUserDataEntity> & { authenticated: true }) {
-        if (!this.isAuthenticated || this.userData === null) {
-            return { id: this.id, username: this.username };
-        }
+    /** The bare `{ id, username }` an anonymous client sends, which is all the real client's `getUserPayload` builds for one. */
+    public userPayload(): ITestUserPayload {
+        return { id: this.id, username: this.username };
+    }
 
-        return { ...this.userData, authenticated: true };
+    /**
+     * What this client adds to a request body or handshake query to identify itself: the bare `user`
+     * payload for an anonymous client, nothing for a logged-in one, whose session token does it.
+     */
+    private identityFields(): { user?: ITestUserPayload } {
+        return this.isAuthenticated ? {} : { user: this.userPayload() };
     }
 
     /** `Cookie` header carrying this client's NextAuth session token, for authenticated HTTP calls. */
@@ -193,7 +170,7 @@ export class TestClient {
     public async requestAsync(method: RouteMethod, path: string, body: Record<string, unknown> = {}): Promise<SupertestResponse> {
         const request = this.withAuthCookie(this.harness.api[method](path));
 
-        return method === 'get' ? await request : await request.send({ user: this.userPayload(), ...body });
+        return method === 'get' ? await request : await request.send({ ...this.identityFields(), ...body });
     }
 
     public async createLobbyAsync(options: {
@@ -205,7 +182,7 @@ export class TestClient {
         isPrivate?: boolean;
     }): Promise<SupertestResponse> {
         return await this.withAuthCookie(this.harness.api.post('/api/create-lobby')).send({
-            user: this.userPayload(),
+            ...this.identityFields(),
             deck: options.deck,
             lobbyName: options.lobbyName,
             format: options.format,
@@ -218,7 +195,7 @@ export class TestClient {
     public async joinLobbyAsync(lobbyId: string): Promise<SupertestResponse> {
         return await this.withAuthCookie(this.harness.api.post('/api/join-lobby')).send({
             lobbyId,
-            user: this.userPayload(),
+            ...this.identityFields(),
         });
     }
 
@@ -230,7 +207,7 @@ export class TestClient {
         matchmakingCompetitivenessPreference?: MatchmakingCompetitivenessPreference;
     }): Promise<SupertestResponse> {
         return await this.withAuthCookie(this.harness.api.post('/api/enter-queue')).send({
-            user: this.userPayload(),
+            ...this.identityFields(),
             deck: options.deck,
             format: options.format,
             cardPool: options.cardPool,
@@ -243,29 +220,45 @@ export class TestClient {
         // the API's own body field is misleadingly named `gameId`, but it is actually the lobby id
         return await this.withAuthCookie(this.harness.api.post('/api/spectate-game')).send({
             gameId: lobbyId,
-            user: this.userPayload(),
+            ...this.identityFields(),
         });
     }
 
     public async changeDeckAsync(lobbyId: string, deck: ISwuDbFormatDecklist): Promise<SupertestResponse> {
         return await this.withAuthCookie(this.harness.api.post(`/api/lobby/${lobbyId}/change-deck`)).send({
             deck,
-            user: this.userPayload(),
+            ...this.identityFields(),
         });
     }
 
     /**
      * Saves preferences for the authenticated caller. Like the real client, a
-     * `token-only` client sends just the preferences and its session, so the server looks the account up.
-     * Any other logged-in client also sends its user payload, which is how it authenticates when the
-     * server has no database to look it up in.
+     * logged-in client sends just the preferences and its session, so the server looks the account up.
      */
     public async savePreferencesAsync(preferences: Record<string, unknown>): Promise<SupertestResponse> {
-        const isTokenOnly = this.authToken !== null && this.userData === null;
+        return await this.withAuthCookie(this.harness.api.put('/api/user/preferences')).send({
+            preferences,
+            ...this.identityFields(),
+        });
+    }
 
-        return await this.withAuthCookie(this.harness.api.put('/api/user/preferences')).send(
-            isTokenOnly ? { preferences } : { preferences, user: this.userPayload() }
-        );
+    /**
+     * Saves a deck to the caller's account with the body the real client's `saveDeckToServer` sends: a deck
+     * entity carrying a client-made id and the caller's id, wrapped around the deck itself.
+     */
+    public async saveDeckAsync(deck: Record<string, unknown>): Promise<SupertestResponse> {
+        return await this.withAuthCookie(this.harness.api.post('/api/save-deck')).send({
+            deck: { id: randomUUID(), userId: this.id, deck },
+            ...this.identityFields(),
+        });
+    }
+
+    /** Renames one of the caller's decks, as the real client's `updateDeckName` does. */
+    public async renameDeckAsync(deckId: string, newName: string): Promise<SupertestResponse> {
+        return await this.withAuthCookie(this.harness.api.put(`/api/get-deck/${deckId}/rename`)).send({
+            newName,
+            ...this.identityFields(),
+        });
     }
 
     /**
@@ -299,11 +292,12 @@ export class TestClient {
      */
     public async attemptConnectAsync(options: IConnectOptions = {}): Promise<IConnectResult> {
         const token = options.token ?? this.authToken;
+        const handshakeUser = options.user ?? (this.isAuthenticated ? undefined : this.userPayload());
 
         const fakeSocket = new FakeIoSocket({
             auth: token ? { token } : {},
             query: {
-                user: JSON.stringify(options.user ?? this.userPayload()),
+                ...(handshakeUser ? { user: typeof handshakeUser === 'string' ? handshakeUser : JSON.stringify(handshakeUser) } : {}),
                 lobby: JSON.stringify({ lobbyId: options.lobbyId ?? null }),
                 spectator: options.spectator ? 'true' : 'false',
             },
@@ -323,14 +317,171 @@ export class TestClient {
         return { connected: true };
     }
 
+    /**
+     * Whether the server has this user down for nothing - no lobby seat, spectator seat or queue entry - found out
+     * the way a client would: a socket connecting with no lobby link is refused with the server's catch-all error,
+     * where a user it still has down for something is routed there or told something else. Connects a new socket
+     * to find out, so use it at the end of a spec.
+     */
+    public async hasNoPlaceAsync(): Promise<boolean> {
+        await this.connectAsync();
+        return !this.isConnected && this.connectionErrors.length === 1 && this.connectionErrors[0] === 'Connection error, please try again';
+    }
+
     // ---- Messaging (mirroring `sendMessage`/the `game`/`lobby` channels in `Game.context.tsx`) ----
 
+    /**
+     * Any command on the `lobby` channel, with exactly these arguments. Prefer the typed commands below,
+     * which send what the real client sends; this is for a command or payload no real client would send.
+     */
     public async sendLobbyMessageAsync(command: string, ...args: any[]): Promise<void> {
         await this.socket.simulateClientEmit('lobby', command, ...args);
     }
 
+    /** Any command on the `game` channel, with exactly these arguments. See {@link sendLobbyMessageAsync}. */
     public async sendGameMessageAsync(command: string, ...args: any[]): Promise<void> {
         await this.socket.simulateClientEmit('game', command, ...args);
+    }
+
+    // ---- Lobby commands: one per entry in `Lobby`'s lobby allowlist, sent as the real client sends it ----
+
+    /** `sendChatMessage`: a message in the lobby chat (`SetUp`). */
+    public async sendChatMessageAsync(message: string): Promise<void> {
+        await this.sendLobbyMessageAsync('sendChatMessage', message);
+    }
+
+    /** `typingState`: whether this player is typing in the chat (`useChatTypingState`). */
+    public async typingStateAsync(isTyping: boolean): Promise<void> {
+        await this.sendLobbyMessageAsync('typingState', isTyping);
+    }
+
+    /** `muteChat`: hides the chat in both directions for this lobby (`ChatDrawer`, `PlayerReportDialog`). */
+    public async muteChatAsync(): Promise<void> {
+        await this.sendLobbyMessageAsync('muteChat');
+    }
+
+    /** `setReadyStatus`: this player's ready toggle (`LobbyReadyButtons`). */
+    public async setReadyStatusAsync(ready: boolean): Promise<void> {
+        await this.sendLobbyMessageAsync('setReadyStatus', ready);
+    }
+
+    /** `startGameAsync`: the owner's start button (`LobbyReadyButtons`), and a quick rematch (`EndGameOptions`). */
+    public async startGameAsync(): Promise<void> {
+        await this.sendLobbyMessageAsync('startGameAsync');
+    }
+
+    /** `updateDeck`: moves a card between the deck and the sideboard, from game 2 of a set (`Deck`). */
+    public async updateDeckAsync(list: 'Deck' | 'Sideboard', cardId: string): Promise<void> {
+        await this.sendLobbyMessageAsync('updateDeck', list, cardId);
+    }
+
+    /** `updateSetting`: one of the owner's lobby settings, `requestUndo` or `allowSpectators` (`DeckSelectionCard`). */
+    public async updateSettingAsync(settingName: string, value: boolean): Promise<void> {
+        await this.sendLobbyMessageAsync('updateSetting', settingName, value);
+    }
+
+    /** `requestRematch`: asks the opponent for a rematch of this kind (`EndGameOptions`, `LobbyConcededPopup`). */
+    public async requestRematchAsync(mode: RematchMode): Promise<void> {
+        await this.sendLobbyMessageAsync('requestRematch', mode);
+    }
+
+    /** `rematch`: accepts the requested rematch (`EndGameOptions`, `LobbyConcededPopup`). */
+    public async rematchAsync(): Promise<void> {
+        await this.sendLobbyMessageAsync('rematch');
+    }
+
+    /** `concedeBo3`: concedes the whole best-of-three set (`LobbyReadyButtons`, `EndGameOptions`). */
+    public async concedeBo3Async(): Promise<void> {
+        await this.sendLobbyMessageAsync('concedeBo3');
+    }
+
+    /** `proceedToNextBo3Game`: confirms moving on to the next game of the set (`EndGameOptions`). */
+    public async proceedToNextBo3GameAsync(): Promise<void> {
+        await this.sendLobbyMessageAsync('proceedToNextBo3Game');
+    }
+
+    /** `submitReport` for a bug report (`BugReportDialog`). */
+    public async submitBugReportAsync(description: string): Promise<void> {
+        await this.sendLobbyMessageAsync('submitReport', 'bugReport', description);
+    }
+
+    /** `submitReport` for a report against the opponent (`PlayerReportDialog`). */
+    public async submitPlayerReportAsync(description: string, reportType: PlayerReportType): Promise<void> {
+        await this.sendLobbyMessageAsync('submitReport', 'playerReport', description, reportType);
+    }
+
+    /** `reportScreenResolution`: the reply to the server's `requestScreenResolution` at game start (`Game.context`). */
+    public async reportScreenResolutionAsync(width: number, height: number): Promise<void> {
+        await this.sendLobbyMessageAsync('reportScreenResolution', { width, height });
+    }
+
+    /**
+     * `retransmitGameMessages`: asks again for game messages this client missed (`Game.context`). Also the
+     * one command a spectator may send.
+     */
+    public async retransmitGameMessagesAsync(startIndex: number, endIndex: number): Promise<void> {
+        await this.sendLobbyMessageAsync('retransmitGameMessages', startIndex, endIndex);
+    }
+
+    // ---- Game commands: one per entry in `Lobby`'s game allowlist, plus `resetActionTimer` ----
+
+    /** `chat`: a message in the game chat (`ChatDrawer`). */
+    public async sendGameChatAsync(message: string): Promise<void> {
+        await this.sendGameMessageAsync('chat', message);
+    }
+
+    /**
+     * `concede`: concedes the game (`ChatDrawer`, `CurrentGameTab`). The real client sends the player's name
+     * as well, which the server ignores. Also the quickest way for a spec to end a game.
+     */
+    public async concedeAsync(): Promise<void> {
+        await this.sendGameMessageAsync('concede', this.username);
+    }
+
+    /** `cardClicked`: a click on a card, by its uuid in the game state (`GameCard`, `LeaderBaseCard`). */
+    public async clickCardAsync(cardUuid: string): Promise<void> {
+        await this.sendGameMessageAsync('cardClicked', cardUuid);
+    }
+
+    /**
+     * A prompt button from the game state, sent the way the real client's popups send one:
+     * `[button.command, button.arg, button.uuid]` (`DefaultPopup`, `CardActionTray` and others).
+     */
+    public async clickPromptButtonAsync(button: { command: string; arg: unknown; uuid: string }): Promise<void> {
+        await this.sendGameMessageAsync(button.command, button.arg, button.uuid);
+    }
+
+    /** `menuButton` with an argument the real client builds itself (`DropdownPopup`, `NumberPopup`, `SelectCardsPopup`). */
+    public async menuButtonAsync(arg: string | number, promptUuid: string): Promise<void> {
+        await this.sendGameMessageAsync('menuButton', arg, promptUuid);
+    }
+
+    /** `perCardMenuButton`: a button shown against one card of a card-selection prompt (`SelectCardsPopup`). */
+    public async perCardMenuButtonAsync(arg: string, cardUuid: string, promptUuid: string): Promise<void> {
+        await this.sendGameMessageAsync('perCardMenuButton', arg, cardUuid, promptUuid);
+    }
+
+    /** `statefulPromptResults`: the result of a distribution prompt (`Game.context`'s `sendGameMessage`). */
+    public async statefulPromptResultsAsync(results: IStatefulPromptResults, promptUuid: string): Promise<void> {
+        await this.sendGameMessageAsync('statefulPromptResults', results, promptUuid);
+    }
+
+    /** `rollbackToSnapshot`: an undo (`ChatDrawer`, `CurrentGameTab`). */
+    public async rollbackToSnapshotAsync(settings: IGetSnapshotSettings): Promise<void> {
+        await this.sendGameMessageAsync('rollbackToSnapshot', settings);
+    }
+
+    /** `toggleOptionSetting`: an in-game option, such as `autoSingleTarget` (`GameOptionsTab`). */
+    public async toggleOptionSettingAsync(settingName: string, enabled: boolean): Promise<void> {
+        await this.sendGameMessageAsync('toggleOptionSetting', settingName, enabled);
+    }
+
+    /**
+     * `resetActionTimer`: activity that keeps the action timer from expiring, sent when the bug-report dialog
+     * opens (`CurrentGameTab`). Not on the allowlist: `Lobby.onGameMessage` handles it before checking.
+     */
+    public async resetActionTimerAsync(): Promise<void> {
+        await this.sendGameMessageAsync('resetActionTimer');
     }
 
     public async requeueAsync(): Promise<void> {
@@ -398,6 +549,34 @@ export class TestClient {
     /** Every `connection_error` message received so far. */
     public get connectionErrors(): string[] {
         return this.receivedEvents('connection_error').map((e) => e.args[0]);
+    }
+
+    /** The lobby chat as of this client's latest `lobbystate`, oldest line first: chat messages, alerts and log lines. */
+    public get lobbyChat(): IChatEntry[] {
+        return toChatEntries(this.lobbyState?.gameChat?.messages);
+    }
+
+    /**
+     * The game chat this client has been sent on its current socket, oldest line first. Each `gamestate`
+     * carries only the lines that are new since the last one, so these are all of them in the order they
+     * arrived; a line the server sends again (after a reconnect, or on request) appears again.
+     */
+    public get gameChat(): IChatEntry[] {
+        return this.receivedEvents('gamestate').flatMap((e) => toChatEntries(e.args[0]?.newMessages));
+    }
+
+    /** What `sender` has said in the lobby chat, as this client sees it. */
+    public lobbyChatFrom(sender: TestClient): string[] {
+        return TestClient.messagesFrom(this.lobbyChat, sender);
+    }
+
+    /** What `sender` has said in the game chat, as this client has been sent it. */
+    public gameChatFrom(sender: TestClient): string[] {
+        return TestClient.messagesFrom(this.gameChat, sender);
+    }
+
+    private static messagesFrom(chat: IChatEntry[], sender: TestClient): string[] {
+        return chat.filter((entry) => entry.senderId === sender.id).map((entry) => entry.text);
     }
 
     private lastPayload(event: string): any | undefined {

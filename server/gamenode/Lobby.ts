@@ -430,7 +430,7 @@ export class Lobby {
     }
 
     private hasUserDisabledChatInPreferences(user: LobbyUserWrapper): boolean {
-        return this.getLobbyUserAccount(user)?.getPreferences()?.gameOptions?.muteChat === true;
+        return !this.isPrivate && this.getLobbyUserAccount(user)?.getPreferences()?.gameOptions?.muteChat === true;
     }
 
     /** The user's account, or `undefined` for a user created ahead of their first socket connection. */
@@ -450,7 +450,7 @@ export class Lobby {
      */
     private getChatBlockedReason(sender: LobbyUserWrapper): string | null {
         if (this.isPrivate) {
-            return this.hasUserDisabledChatInPreferences(sender) ? 'sender disabled chat in preferences' : null;
+            return null;
         }
 
         const opponent = this.users.find((u) => u.id !== sender.id);

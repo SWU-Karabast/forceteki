@@ -673,8 +673,8 @@ export class Player extends GameObject implements IGameStatisticsTrackable {
 
     public getStartingHandSize() {
         let startingHandSize = 6;
-        if (this.base.hasOngoingEffect(EffectName.ModifyStartingHandSize)) {
-            this.base.getOngoingEffectValues(EffectName.ModifyStartingHandSize).forEach((value) => {
+        if (this.hasOngoingEffect(EffectName.ModifyStartingHandSize)) {
+            this.getOngoingEffectValues(EffectName.ModifyStartingHandSize).forEach((value) => {
                 startingHandSize += value.amount;
             });
         }
