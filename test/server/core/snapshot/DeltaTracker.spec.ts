@@ -80,14 +80,14 @@ const undoReplayEnabled = process.env.ENABLE_UNDO_ALL_TESTS === 'true';
 // to be serialized and captured like a real object. One field per wrapper kind the tracker has a hook for.
 @registerState()
 class DeltaTrackerWrapperFixture extends GameObjectBase {
-    @statePrimitive() public accessor count: number = 0;
+    @statePrimitive() public accessor count = 0;
     @stateRef() public accessor refField: GameObjectBase | null = null;
     @stateRefArray(false) public accessor undoArray: IStateArray<GameObjectBase> = [] as unknown as IStateArray<GameObjectBase>;
-    @stateRefMap() public accessor undoMap: Map<string, GameObjectBase> = new Map();
-    @stateRefSet() public accessor undoSet: Set<GameObjectBase> = new Set();
+    @stateRefMap() public accessor undoMap = new Map<string, GameObjectBase>();
+    @stateRefSet() public accessor undoSet = new Set<GameObjectBase>();
     @stateRefRecord() public accessor undoRecord: Record<string, GameObjectBase> = {};
-    @stateMap() public accessor valueMap: Map<string, number> = new Map();
-    @stateSet() public accessor valueSet: Set<number> = new Set();
+    @stateMap() public accessor valueMap = new Map<string, number>();
+    @stateSet() public accessor valueSet = new Set<number>();
     @stateArray() public accessor valueArray: number[] = [];
 }
 
@@ -173,7 +173,7 @@ StateSerializers.registerStateSerializers([buildFixtureEntry('DeltaTrackerWrappe
 // Deliberately given no registry entry, so a capture of its field finds nothing to encode with.
 @registerState()
 class DeltaTrackerUnregisteredFixture extends GameObjectBase {
-    @statePrimitive() public accessor count: number = 0;
+    @statePrimitive() public accessor count = 0;
 }
 
 function snapshotInternals(game): ISnapshotManagerInternals {

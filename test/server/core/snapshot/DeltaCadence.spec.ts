@@ -46,7 +46,7 @@ const undoReplayEnabled = process.env.ENABLE_UNDO_ALL_TESTS === 'true';
 // Spec-local fixture, as in SnapshotMemoization.spec.ts: the generator only scans the server tree, so it needs the registry entry below.
 @registerState()
 class DeltaCadenceFixture extends GameObjectBase {
-    @statePrimitive() public accessor value: number = 0;
+    @statePrimitive() public accessor value = 0;
 }
 
 const fixtureFields = getRuntimeStateFieldModelByClassName('DeltaCadenceFixture');

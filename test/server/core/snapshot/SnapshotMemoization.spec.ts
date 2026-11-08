@@ -67,7 +67,7 @@ const undoReplayEnabled = process.env.ENABLE_UNDO_ALL_TESTS === 'true';
 // like a real object. One primitive field is enough to tell two instances' records apart.
 @registerState()
 class SnapshotMemoFixture extends GameObjectBase {
-    @statePrimitive() public accessor value: number = 0;
+    @statePrimitive() public accessor value = 0;
 }
 
 const fixtureFields = getRuntimeStateFieldModelByClassName('SnapshotMemoFixture');

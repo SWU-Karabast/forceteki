@@ -42,9 +42,7 @@ export type EntryOf<TName extends StateWatcherName> = Extract<ISavedStateWatcher
  * `actionNumber` and `amount` also satisfy. Presence is what {@link spaceOf}'s throw enforces.
  */
 type CounterSpaceTable = {
-    readonly [TName in StateWatcherName]?: {
-        readonly [TKey in CounterMemberOf<EntryOf<TName>> & string]?: CounterSpaceName;
-    };
+    readonly [TName in StateWatcherName]?: Readonly<Partial<Record<CounterMemberOf<EntryOf<TName>> & string, CounterSpaceName>>>;
 };
 
 const counterSpaceMembers: CounterSpaceTable = {

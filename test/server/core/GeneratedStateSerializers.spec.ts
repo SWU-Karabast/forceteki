@@ -17,7 +17,7 @@ import type { SerializedStateRecord } from '../../../server/game/core/StateEncod
  */
 @registerState()
 class RefSetWorkaroundFixture extends GameObjectBase {
-    @stateRefSet() public accessor members: Set<GameObjectBase> = new Set();
+    @stateRefSet() public accessor members = new Set<GameObjectBase>();
 
     public override getGameObjectName(): string {
         return 'RefSetWorkaroundFixture';

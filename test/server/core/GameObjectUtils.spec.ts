@@ -45,12 +45,12 @@ class InvalidInitJsonStateValueFixture extends GameObjectBase {
  */
 @registerState()
 class AllFieldKindsFixture extends GameObjectBase {
-    @statePrimitive() public accessor primitiveField: string = 'a';
+    @statePrimitive() public accessor primitiveField = 'a';
     @stateValue() public accessor valueField: unknown = null;
     @stateRef() public accessor refField: GameObjectBase | null = null;
     @stateRefArray() public accessor refArrayField: readonly GameObjectBase[] = [];
-    @stateRefMap() public accessor refMapField: Map<string, GameObjectBase> = new Map();
-    @stateRefSet() public accessor refSetField: Set<GameObjectBase> = new Set();
+    @stateRefMap() public accessor refMapField = new Map<string, GameObjectBase>();
+    @stateRefSet() public accessor refSetField = new Set<GameObjectBase>();
     @stateRefRecord() public accessor refRecordField: Record<string, GameObjectBase> = {};
 }
 
@@ -61,7 +61,7 @@ class AllFieldKindsFixture extends GameObjectBase {
  */
 @registerState()
 class CutoverMarkingFixture extends GameObjectBase {
-    @statePrimitive() public accessor numberField: number = 0;
+    @statePrimitive() public accessor numberField = 0;
     @stateRefArray(false) public accessor mutableRefArrayField: IStateArray<GameObjectBase> = [] as unknown as IStateArray<GameObjectBase>;
 }
 
@@ -76,8 +76,8 @@ class CutoverMarkingFixture extends GameObjectBase {
  */
 @registerState()
 class ValueCollectionFieldsFixture extends GameObjectBase {
-    @stateMap() public accessor mapField: Map<string, number> = new Map();
-    @stateSet() public accessor setField: Set<number> = new Set();
+    @stateMap() public accessor mapField = new Map<string, number>();
+    @stateSet() public accessor setField = new Set<number>();
     @stateArray() public accessor arrayField: string[] = [];
 }
 
@@ -110,25 +110,25 @@ export class NegativeStateMapOnArrayFixture extends GameObjectBase {
 @registerState()
 export class NegativeStateSetOnMapFixture extends GameObjectBase {
     // @ts-expect-error P3-PB1 AC2: @stateSet() requires a Set<TValue>-typed accessor, not a Map.
-    @stateSet() public accessor value: Map<string, number> = new Map();
+    @stateSet() public accessor value = new Map<string, number>();
 }
 
 @registerState()
 export class NegativeStateArrayOnMapFixture extends GameObjectBase {
     // @ts-expect-error P3-PB1 AC2: @stateArray() requires an array-typed accessor, not a Map.
-    @stateArray() public accessor value: Map<string, number> = new Map();
+    @stateArray() public accessor value = new Map<string, number>();
 }
 
 @registerState()
 export class NegativeStateValueOnMapFixture extends GameObjectBase {
     // @ts-expect-error P3-PB1 AC2: bare @stateValue() rejects a concrete Map-typed accessor; use @stateMap().
-    @stateValue() public accessor value: Map<string, number> = new Map();
+    @stateValue() public accessor value = new Map<string, number>();
 }
 
 @registerState()
 export class NegativeStateValueOnSetFixture extends GameObjectBase {
     // @ts-expect-error P3-PB1 AC2: bare @stateValue() rejects a concrete Set-typed accessor; use @stateSet().
-    @stateValue() public accessor value: Set<number> = new Set();
+    @stateValue() public accessor value = new Set<number>();
 }
 
 @registerState()
@@ -147,14 +147,14 @@ export class NegativeStateValueOnArrayFixture extends GameObjectBase {
 function WithFactoryDeclaredFragment<TBase extends abstract new (...args: any[]) => GameObjectBase>(BaseClass: TBase) {
     @registerStateBase()
     abstract class FactoryDeclaredFragment extends BaseClass {
-        @statePrimitive() public accessor fragmentField: string = 'fragment';
+        @statePrimitive() public accessor fragmentField = 'fragment';
     }
     return FactoryDeclaredFragment;
 }
 
 @registerState()
 class ConcreteFragmentDescendantFixture extends WithFactoryDeclaredFragment(GameObjectBase) {
-    @statePrimitive() public accessor concreteField: string = 'concrete';
+    @statePrimitive() public accessor concreteField = 'concrete';
 }
 
 /**
@@ -165,7 +165,7 @@ class ConcreteFragmentDescendantFixture extends WithFactoryDeclaredFragment(Game
  */
 @registerStateBase()
 abstract class TopLevelBaseFixture extends GameObjectBase {
-    @statePrimitive() public accessor topLevelField: string = 'a';
+    @statePrimitive() public accessor topLevelField = 'a';
 }
 
 /**
@@ -176,12 +176,12 @@ abstract class TopLevelBaseFixture extends GameObjectBase {
  */
 @registerStateBase()
 abstract class BaseVariantAFixture extends GameObjectBase {
-    @statePrimitive() public accessor variantAField: string = 'a';
+    @statePrimitive() public accessor variantAField = 'a';
 }
 
 @registerStateBase()
 abstract class BaseVariantBFixture extends GameObjectBase {
-    @statePrimitive() public accessor variantBField: string = 'b';
+    @statePrimitive() public accessor variantBField = 'b';
 }
 
 /**
@@ -193,7 +193,7 @@ abstract class BaseVariantBFixture extends GameObjectBase {
 function WithRepeatableFragment<TBase extends abstract new (...args: any[]) => GameObjectBase>(BaseClass: TBase) {
     @registerStateBase()
     abstract class RepeatableFragment extends BaseClass {
-        @statePrimitive() public accessor repeatableField: string = 'repeatable';
+        @statePrimitive() public accessor repeatableField = 'repeatable';
     }
     return RepeatableFragment;
 }
@@ -618,7 +618,7 @@ describe('the @registerState duplicate class name guard', function() {
         const declareDuplicate = () => {
             @registerState()
             class JsonSafeStateValueFixture extends GameObjectBase {
-                @statePrimitive() public accessor other: string = 'x';
+                @statePrimitive() public accessor other = 'x';
             }
             return JsonSafeStateValueFixture;
         };
@@ -641,7 +641,7 @@ describe('the @registerState duplicate class name guard', function() {
         const declareDuplicate = () => {
             @registerStateBase()
             abstract class TopLevelBaseFixture extends GameObjectBase {
-                @statePrimitive() public accessor differentField: string = 'x';
+                @statePrimitive() public accessor differentField = 'x';
             }
             return TopLevelBaseFixture;
         };

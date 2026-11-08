@@ -237,9 +237,7 @@ function decodeHealedUnit(saved: ISavedHealedUnitEntry, context: IWatcherDecodeC
  * One decoder per watcher, mirroring `StateWatcherSerializer.watcherEncoders`'s exhaustiveness trick: the
  * mapped type over `StateWatcherName` makes a watcher added to the enum without a decoder fail to build.
  */
-type WatcherDecoderRegistry = {
-    [TName in StateWatcherName]: WatcherDecoder<any, any>;
-};
+type WatcherDecoderRegistry = Record<StateWatcherName, WatcherDecoder<any, any>>;
 
 const watcherDecoders: WatcherDecoderRegistry = {
     [StateWatcherName.ActionsThisPhase]: decodeAction,
