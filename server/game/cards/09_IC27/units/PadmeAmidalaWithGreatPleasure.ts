@@ -4,7 +4,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, RelativePlayer } from '../../../core/Constants';
 import { TextHelper } from '../../../core/utils/TextHelper';
 
-export default class PadméAmidalaWithGreatPleasure extends NonLeaderUnitCard {
+export default class PadmeAmidalaWithGreatPleasure extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '4366601154',
