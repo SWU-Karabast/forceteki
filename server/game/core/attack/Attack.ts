@@ -7,10 +7,10 @@ import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { Player } from '../Player';
 import type { AbilityContext } from '../ability/AbilityContext';
 
-export enum DefenderDamageTiming {
-    BeforeAttacker = 'beforeAttacker',
-    WithAttacker = 'withAttacker',
-    AfterAttacker = 'afterAttacker',
+export enum RelativeDamageTiming {
+    AttackerBeforeDefender = 'attackerBeforeDefender',
+    DefenderBeforeAttacker = 'defenderBeforeAttacker',
+    Simultaneous = 'simultaneous',
     Conflict = 'conflict'
 }
 
@@ -124,7 +124,7 @@ export class Attack {
         targets: IAttackableCard[] = this.targets
     ): number {
         // If we ever need to override the combat damage for the defender, we can follow the same pattern as attackerCombatDamageOverride
-        return targets.reduce((totalDamage, target) => {
+        return targets.reduce((totalDamage: number, target: IAttackableCard): number => {
             if (target.isBase() || target.hasRestriction(AbilityRestriction.DealCombatDamage)) {
                 return totalDamage;
             }
@@ -142,15 +142,15 @@ export class Attack {
 
     /**
      * Determines when the given target deals its combat damage relative to the attacker, based on the
-     * "deals combat damage first / last" effects on both units. Returns {@link DefenderDamageTiming.Conflict}
+     * "deals combat damage first / last" effects on both units. Returns {@link RelativeDamageTiming.Conflict}
      * if one effect has the attacker deal damage first and another has the target deal damage first, in which
      * case the active player chooses the order.
      */
-    public getDefenderDamageTiming(attackTarget: IAttackableCard): DefenderDamageTiming {
+    public getRelativeDamageTiming(attackTarget: IAttackableCard): RelativeDamageTiming {
         Contract.assertTrue(this.targets.includes(attackTarget), `${attackTarget.internalName} is not a target of this attack`);
 
         if (attackTarget.isBase()) {
-            return DefenderDamageTiming.WithAttacker;
+            return RelativeDamageTiming.Simultaneous;
         }
 
         const attackerDealsFirst =
@@ -162,15 +162,15 @@ export class Attack {
             this.attacker.hasOngoingEffect(EffectName.DealsCombatDamageLast);
 
         if (attackerDealsFirst && targetDealsFirst) {
-            return DefenderDamageTiming.Conflict;
+            return RelativeDamageTiming.Conflict;
         }
         if (attackerDealsFirst) {
-            return DefenderDamageTiming.AfterAttacker;
+            return RelativeDamageTiming.AttackerBeforeDefender;
         }
         if (targetDealsFirst) {
-            return DefenderDamageTiming.BeforeAttacker;
+            return RelativeDamageTiming.DefenderBeforeAttacker;
         }
-        return DefenderDamageTiming.WithAttacker;
+        return RelativeDamageTiming.Simultaneous;
     }
 
     public getLegalTargets(): IAttackableCard[] {

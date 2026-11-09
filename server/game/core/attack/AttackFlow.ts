@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { DamageType, EventName } from '../Constants';
-import { DefenderDamageTiming, type Attack } from './Attack';
+import { RelativeDamageTiming, type Attack } from './Attack';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
 import { EnumHelpers } from '../utils/EnumHelpers';
@@ -13,8 +13,8 @@ import type { IAttackableCard } from '../card/CardInterfaces';
 import { Contract } from '../utils/Contract';
 import type { Player } from '../Player';
 
-interface IResolvedDefenderDamageTiming {
-    timing: DefenderDamageTiming;
+interface IResolvedRelativeDamageTiming {
+    timing: RelativeDamageTiming;
 
     /** The player who chose this timing, if effects conflicted on which unit deals combat damage first */
     choosingPlayer?: Player;
@@ -142,11 +142,11 @@ export class AttackFlow extends BaseStepWithPipeline {
             : null;
 
         if (inPlayTargets.length > 0) {
-            const defenderDamageTimings = this.resolveDefenderDamageTimings(inPlayTargets);
+            const relativeDamageTimings = this.resolveRelativeDamageTimings(inPlayTargets);
 
             this.context.game.queueSimpleStep(() => {
-                this.logCombatDamageOrder(inPlayTargets, defenderDamageTimings);
-                this.queueCombatDamageWindows(inPlayTargets, defenderDamageTimings, directOverwhelmDamageEvent, attackCompleteEvent);
+                this.logCombatDamageOrder(inPlayTargets, relativeDamageTimings);
+                this.queueCombatDamageWindows(inPlayTargets, relativeDamageTimings, directOverwhelmDamageEvent, attackCompleteEvent);
             }, 'queue combat damage windows');
         } else if (directOverwhelmDamageEvent !== null) {
             this.context.game.openEventWindow([directOverwhelmDamageEvent, attackCompleteEvent]);
@@ -164,13 +164,13 @@ export class AttackFlow extends BaseStepWithPipeline {
      * deals damage first (e.g. both units have "deals combat damage after the other unit"), the active player
      * is prompted to choose. The returned map is populated by the time the next queued step runs.
      */
-    private resolveDefenderDamageTimings(targets: IAttackableCard[]): Map<IAttackableCard, IResolvedDefenderDamageTiming> {
-        const timings = new Map<IAttackableCard, IResolvedDefenderDamageTiming>();
+    private resolveRelativeDamageTimings(targets: IAttackableCard[]): Map<IAttackableCard, IResolvedRelativeDamageTiming> {
+        const timings = new Map<IAttackableCard, IResolvedRelativeDamageTiming>();
 
         for (const target of targets) {
-            const timing = this.attack.getDefenderDamageTiming(target);
+            const timing = this.attack.getRelativeDamageTiming(target);
 
-            if (timing === DefenderDamageTiming.Conflict) {
+            if (timing === RelativeDamageTiming.Conflict) {
                 this.promptForDamageOrder(target, (chosenTiming, choosingPlayer) => timings.set(target, { timing: chosenTiming, choosingPlayer }));
             } else {
                 timings.set(target, { timing });
@@ -180,7 +180,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         return timings;
     }
 
-    private promptForDamageOrder(target: IAttackableCard, onChosen: (timing: DefenderDamageTiming, choosingPlayer: Player) => void): void {
+    private promptForDamageOrder(target: IAttackableCard, onChosen: (timing: RelativeDamageTiming, choosingPlayer: Player) => void): void {
         const choosingPlayer = this.game.getActivePlayer();
 
         this.game.promptWithHandlerMenu(choosingPlayer, {
@@ -188,8 +188,8 @@ export class AttackFlow extends BaseStepWithPipeline {
             waitingPromptTitle: 'Waiting for opponent to choose which unit deals combat damage first',
             choices: [`${this.attack.attacker.title} (attacker)`, `${target.title} (defender)`],
             handlers: [
-                () => onChosen(DefenderDamageTiming.AfterAttacker, choosingPlayer),
-                () => onChosen(DefenderDamageTiming.BeforeAttacker, choosingPlayer)
+                () => onChosen(RelativeDamageTiming.AttackerBeforeDefender, choosingPlayer),
+                () => onChosen(RelativeDamageTiming.DefenderBeforeAttacker, choosingPlayer)
             ]
         });
     }
@@ -198,17 +198,17 @@ export class AttackFlow extends BaseStepWithPipeline {
      * Logs the combat damage order for each defender that does not deal damage at the same time as the attacker,
      * including the player who chose the order if it was chosen.
      */
-    private logCombatDamageOrder(targets: IAttackableCard[], timings: Map<IAttackableCard, IResolvedDefenderDamageTiming>): void {
+    private logCombatDamageOrder(targets: IAttackableCard[], timings: Map<IAttackableCard, IResolvedRelativeDamageTiming>): void {
         const attacker = this.attack.attacker;
 
         for (const target of targets) {
             const { timing, choosingPlayer } = timings.get(target);
 
-            if (timing === DefenderDamageTiming.WithAttacker) {
+            if (timing === RelativeDamageTiming.Simultaneous) {
                 continue;
             }
 
-            const [firstUnit, secondUnit] = timing === DefenderDamageTiming.AfterAttacker
+            const [firstUnit, secondUnit] = timing === RelativeDamageTiming.AttackerBeforeDefender
                 ? [{ card: attacker, role: 'attacker' }, { card: target, role: 'defender' }]
                 : [{ card: target, role: 'defender' }, { card: attacker, role: 'attacker' }];
 
@@ -236,16 +236,16 @@ export class AttackFlow extends BaseStepWithPipeline {
      */
     private queueCombatDamageWindows(
         inPlayTargets: IAttackableCard[],
-        defenderDamageTimings: Map<IAttackableCard, IResolvedDefenderDamageTiming>,
+        relativeDamageTimings: Map<IAttackableCard, IResolvedRelativeDamageTiming>,
         directOverwhelmDamageEvent: GameEvent | null,
         attackCompleteEvent: GameEvent
     ): void {
-        const defendersWithTiming = (timing: DefenderDamageTiming) =>
-            inPlayTargets.filter((target) => defenderDamageTimings.get(target)?.timing === timing);
+        const defendersWithTiming = (timing: RelativeDamageTiming) =>
+            inPlayTargets.filter((target) => relativeDamageTimings.get(target)?.timing === timing);
 
-        const defendersBeforeAttacker = defendersWithTiming(DefenderDamageTiming.BeforeAttacker);
-        const defendersWithAttacker = defendersWithTiming(DefenderDamageTiming.WithAttacker);
-        const defendersAfterAttacker = defendersWithTiming(DefenderDamageTiming.AfterAttacker);
+        const defendersBeforeAttacker = defendersWithTiming(RelativeDamageTiming.DefenderBeforeAttacker);
+        const defendersWithAttacker = defendersWithTiming(RelativeDamageTiming.Simultaneous);
+        const defendersAfterAttacker = defendersWithTiming(RelativeDamageTiming.AttackerBeforeDefender);
 
         Contract.assertTrue(
             defendersBeforeAttacker.length + defendersWithAttacker.length + defendersAfterAttacker.length === inPlayTargets.length,
