@@ -183,8 +183,13 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
             event.player = context.player.opponent;
         }
 
+        // resolved amount per target card, so replacement effects (e.g. Moff Jerjerrod) can adjust each
+        // unit's amount individually rather than misreading a summed total as a per-card amount
+        event.amountPerCard = new Map<Card, number>(cardsArray.map((card) => [
+            card, card.isUnit() ? this.resolveAmount(properties.amount, card) : 0
+        ]));
         event.amount = typeof properties.amount === 'function'
-            ? cardsArray.reduce((sum: number, card: Card) => sum + (card.isUnit() ? this.resolveAmount(properties.amount, card) : 0), 0)
+            ? [...event.amountPerCard.values()].reduce((sum, amount) => sum + amount, 0)
             : properties.amount;
         event.tokenType = properties.tokenType;
     }

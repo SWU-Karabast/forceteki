@@ -95,6 +95,51 @@ describe('Chimaera, Grand Admiral\'s Might', function() {
                 expect(context.p1Base.damage).toBe(3);
             });
 
+            it('doubles each unit\'s token count individually when Moff Jerjerrod replaces the token creation', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: { card: 'tarkintown', damage: 20 },
+                        hand: ['chimaera#grand-admirals-might'],
+                        groundArena: [
+                            'moff-jerjerrod#we-shall-redouble-our-efforts',
+                            { card: 'wampa', upgrades: ['experience', 'shield'] },
+                            { card: 'battlefield-marine', upgrades: ['academy-training'] }
+                        ]
+                    },
+                    player2: {}
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chimaera);
+                context.player1.clickPrompt('Shielded');
+
+                // Jerjerrod first prompts on the Shielded token creation — decline it
+                expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 2 Shield tokens instead');
+                context.player1.clickPrompt('Pass');
+
+                // The Experience creation event carries 2 + 1 + 1 = 4 tokens; doubling creates 8 total
+                expect(context.player1).toHavePassAbilityPrompt('Defeat Moff Jerjerrod to create 8 Experience tokens instead');
+                context.player1.clickPrompt('Trigger');
+
+                // Each unit gets twice its own amount (4/2/2), not the doubled total (8) each
+                expect(context.moffJerjerrod).toBeInZone('discard');
+                expect(context.wampa).toHaveExactUpgradeNames(['experience', 'shield', 'experience', 'experience', 'experience', 'experience']);
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['academy-training', 'experience', 'experience']);
+                expect(context.chimaera).toHaveExactUpgradeNames(['shield', 'experience', 'experience']);
+
+                // Heal counts friendly upgrades after doubling: 6 (wampa) + 3 (marine) + 3 (chimaera) = 12
+                expect(context.p1Base.damage).toBe(8);
+
+                // The log calls out the original per-unit amounts and the doubled replacement
+                expect(context.getChatLogs(8)).toEqual(jasmine.arrayContaining([
+                    'player1 uses Chimaera to give 2 Experience tokens to Wampa, an Experience token to Battlefield Marine, and an Experience token to Chimaera',
+                    'player1 uses Moff Jerjerrod to defeat Moff Jerjerrod',
+                    'player1 uses Moff Jerjerrod to create 8 Experience tokens instead',
+                ]));
+            });
+
             it('does not give itself an Experience if the When Played resolves before Shielded', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
