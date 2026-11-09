@@ -9,7 +9,7 @@ import { TargetMode } from '../../../core/Constants';
 export default class AsajjVentressBaldAndBeautiful extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'asajj-ventress#bald-and-beautiful-id',
+            id: '4854582613',
             internalName: 'asajj-ventress#bald-and-beautiful',
         };
     }
@@ -18,8 +18,8 @@ export default class AsajjVentressBaldAndBeautiful extends LeaderUnitCard {
         registrar.addActionAbility({
             title: 'Attack with a unit. After completing this attack, if the attacker survived, you may ready a resource.',
             cost: [abilityHelper.costs.exhaustSelf()],
-            initiateAttack: {
-                attackerCondition: (card) => card.isUnit(),
+            targetResolver: {
+                immediateEffect: abilityHelper.immediateEffects.attack()
             },
             then: () => ({
                 title: 'Ready a resource',
