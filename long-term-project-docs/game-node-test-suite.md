@@ -119,20 +119,24 @@ The remaining work is split by topic area, and each area goes through the same f
   document records the area.
 
 The areas, in order. An area starts once the areas it depends on have finished step c; an area whose next step waits on a
-product decision can run alongside the others.
+product decision can run alongside the others. Areas 4, 5 and 13 were added on 2026-11-09, after a sweep of the server
+code for anything the plan did not cover; the areas after protocol surface were renumbered.
 
 | # | Area | Depends on | Status |
 |---|---|---|---|
 | 1 | **Core server logic:** connections, lobbies, the queue and matchmaking, spectators, and the harness itself | - | ✅ done (2026-11-06), apart from the held rows |
 | 2 | **Game timers:** the action timer, its warnings and timeouts, and what a player's activity does to it | core | ✅ done (2026-11-09), apart from #11's client part |
 | 3 | **Protocol surface:** the command allowlists and game-mode validation | core | step a; its step d waits on open finding #3 |
-| 4 | **Decks:** deck routes, deck-link resolution, and deck checks in lobbies and at game start | core | step a |
-| 5 | **Stats:** game results reported to Karabast, SWUStats and SWUBase | core; decks (the fake's deck tables) | step a |
-| 6 | **Reports and moderation** | core | step a |
-| 7 | **Best-of-three and rematch** | core; game timers | step a |
-| 8 | **Accounts and settings** | core | step a; much is covered by the account-auth work |
-| 9 | **Cosmetics** | core | step a |
-| 10 | **Resilience:** error handling and reporting, retransmission, serialization failures | reports and moderation | step a |
+| 4 | **Undo in live games:** the undo policy each lobby runs, its limits, the confirmation flow over the wire, and undo past the end of a game | core; game timers | step a |
+| 5 | **The database layer:** the real `DynamoDBService` against the fake every other spec uses, and the data migrations | core | step a |
+| 6 | **Decks:** deck routes, deck-link resolution, and deck checks in lobbies and at game start | core; the database layer | step a |
+| 7 | **Stats:** game results reported to Karabast, SWUStats and SWUBase | core; decks (the fake's deck tables) | step a |
+| 8 | **Reports and moderation** | core | step a |
+| 9 | **Best-of-three and rematch** | core; game timers | step a |
+| 10 | **Accounts and settings** | core | step a; much is covered by the account-auth work |
+| 11 | **Cosmetics** | core | step a |
+| 12 | **Resilience:** error handling and reporting, retransmission, serialization failures | reports and moderation | step a |
+| 13 | **Operations:** startup and configuration, metrics, the profiler, and the log format | core | step a |
 
 Suite work that no single area owns (I-12, the CI split, the formal parallel-safety review) is listed under *Suite
 infrastructure* and goes with the first area that needs it.
@@ -402,6 +406,8 @@ Connections, lobbies, the queue and matchmaking, spectators, and the test harnes
     `GameServerTestGameSetups`, `QuickLobbyCountdown`).
   - **Discovery filtering.** The remaining `lobbiesWithOpenSeat` filters (quick lobbies, in-game lobbies) and the listing of
     a lobby whose owner has not connected (Open finding #1; a `TODO` in `GameServerLobbyApi` marks the spec).
+  - **Lobby settings.** `updateSetting`'s `allowSpectators` (the owner only, private lobbies only, announced in the chat)
+    and its effect on `spectate-game`. The `requestUndo` setting is the undo area's.
   - **Lobby name validation.** Profanity and length rejections in `create-lobby`. No spec currently asserts that a name is
     *rejected*; the one profanity-related spec only checks that harness-generated names are accepted.
 - **e: ✅ done (2026-11-06).** The independent review and the follow-up it led to are recorded in the history document: open
@@ -587,7 +593,41 @@ backward-compat spec for omitted fields the way the preference work does (`defau
   action-window menu command only while a matching button is offered, so each positive spec needs a game state in which its
   command is offered (`harness.startLiveGameAsync`).
 
-### 4. Decks — step a
+### 4. Undo in live games — step a
+
+How undo works through the server, as opposed to the engine's rules for which rollbacks need the opponent's approval
+(`test/scenarios/undo`, on the engine harness). Starts from the game-timer area's driver (`playThroughSetupAsync`,
+`quickUndoAsync`).
+
+- **The policy each lobby runs:** request mode (`UndoMode.Request`) in public and quick lobbies, free undo in private
+  ones; and the owner's `requestUndo` lobby setting (`Lobby.updateSetting`: the owner only, a boolean, announced in the
+  chat).
+- **Limits:** one free undo per game in request mode (`PerGameUndoLimit`), the "Deny and Block Requests" choice after two
+  denials, and a blocked player's requests.
+- **The confirmation flow over the wire:** the request, the opponent's prompt, allowing and denying, the chat lines, and
+  what each client is shown of the undo it can make (`availableSnapshots`, the lobby state's `requestUndo`).
+- **Undo past the end of a game:** the result recorded and then reverted (`Lobby.handleUndoGameEnd`), and the timers (the
+  game-timer area's row T11). Open finding #21 is the best-of-three area's.
+- The local security documents touch this area (V-7, V-34); step a starts from them.
+
+### 5. The database layer — step a
+
+Every server spec runs over `FakeDynamoDbService`, which re-implements each `DynamoDBService` method rather than wrapping
+it. So nothing exercises the real service's item construction, keys, conditional writes, queries or paging, and nothing
+would notice the fake drifting from it. On the real side only `DynamoDBInterfaceSchemas` has specs.
+
+- **A contract suite:** one set of specs per service method, run against both the fake and the real `DynamoDBService`, as
+  the socket.io drift guard does for the transport. Step a decides how the real one runs: with its document client
+  replaced by a stub that answers from in-memory tables and records each command (no network), or against DynamoDB Local
+  in CI.
+- **Migrations:** the scripts in `scripts/migration` rewrite production data, and only `usernameBlockMigration` has a
+  spec. Each gets one over the same set-up: what it changes, what it leaves alone, and that running it again changes
+  nothing.
+- The decks area builds on it (the deck tables it adds to the fake should match the real service); stats, accounts and
+  settings, cosmetics, and reports and moderation, all database-backed, gain from it too.
+- The local security documents touch this area (V-19, V-23, both fixed); step a starts from them.
+
+### 6. Decks — step a
 
 - **Deck tables in the fake DB** for `DeckService`. Until they exist, the deck routes' signed-in path answers 500 in the
   suite. The stats area needs them too.
@@ -599,7 +639,7 @@ backward-compat spec for omitted fields the way the preference work does (`defau
 - The deck checks found by core's coverage run: `change-deck` refusing a deck that cannot be resolved or applied, and the
   deck resolution in `create-lobby` and `enter-queue`.
 
-### 5. Stats — step a
+### 7. Stats — step a
 
 **Stats** — a game is ended with `TestClient.concedeAsync`:
 
@@ -607,10 +647,12 @@ backward-compat spec for omitted fields the way the preference work does (`defau
   are covered); `LoggedInOnly` / `SavedDecksOnly` skips. `DeckService` is DB-backed, so it also needs I-1.
 - Internal: `statsSubmitNotification` payloads, including the repeated-send path
   (`Lobby.sendStatsMessageToUser`).
+- SWUBase card metrics: the per-card play and attack statistics sent with each result (`GameStatisticsTracker`,
+  `SwuBaseHandler.buildCardMetricsForPlayer`).
 
 Deck tables in the fake DB come first (the deck routes' signed-in path answers 500 in the suite until they exist).
 
-### 6. Reports and moderation — step a
+### 8. Reports and moderation — step a
 
 - **I-2, the Discord dispatcher seam** (see the backlog), which unblocks the report scenarios and retires the suite's last
   `as any`.
@@ -626,7 +668,7 @@ Deck tables in the fake DB come first (the deck routes' signed-in path answers 5
   evaluates the restriction (see *Merged since Phase 2.5* in the history document); Discord delivery failure → `success: false`; and the
   `reportedBugs` counter and in-game alert after a successful bug report. Needs I-1 and I-2.
 
-### 7. Best-of-three and rematch — step a
+### 9. Best-of-three and rematch — step a
 
 - **Best-of-three flow.** *Done:* only that `concedeBo3` and `proceedToNextBo3Game` are allowlisted and take
   effect. *Left:* set progression, the sideboarding window, ready timer, timeout paths, and `winHistory` as
@@ -634,12 +676,14 @@ Deck tables in the fake DB come first (the deck routes' signed-in path answers 5
 - **Rematch:** `requestRematch` and `rematch` in each mode, who chooses who goes first in the next game, and a quick lobby
   becoming a public one. Open finding #15 (what `hasOngoingGame` means between games) belongs here.
 
-### 8. Accounts and settings — step a
+### 10. Accounts and settings — step a
 
 - **User account management.** *Done:* username-change eligibility, rate limiting, forced rename, the
   block-username-changes flow, `UsernameRules` (service level). *Left:* `change-username` and
   `get-change-username-info` routes, the profanity check on the route (`GameServer`), and
   `mustRequestUsernameChange` over HTTP. Needs I-1.
+- **The profanity filter** (`server/utils/profanityFilter/`: the term lists and the matcher) as a unit, beyond the
+  username and lobby-name routes that call it (`userOrLobbyNameContainsProfanity`).
 - **Linked stat-site accounts** *(new)*. SWUStats / SWUBase link and unlink: six routes. *Done:* who may call the
   two link routes (the shared secret and, since #3111, the session the FE server forwards) and that a right key refreshes the token
   with the site and stores it on the account (`ServiceCredentials`, over `FakeHttpClient` and the fake DB); the anonymous
@@ -654,16 +698,31 @@ Deck tables in the fake DB come first (the deck routes' signed-in path answers 5
   its `set-moderation-seen` route, which then also leaves the route manifest) has had no specs since #3117.
 - Open finding #10 (a lost account-creation race leaves a profile behind) belongs here.
 
-### 9. Cosmetics — step a
+### 11. Cosmetics — step a
 
 - **Cosmetics.** Entitlement checks and moderator/admin-gated management endpoints (five routes, none
   referenced). Needs I-1.
 
-### 10. Resilience — step a
+### 12. Resilience — step a
 
 - **Reconnect and resilience.** Message retransmission gaps (`retransmitGameMessages`, allowlisted but
   untested), serialization failure handling, and error reporting to Discord. Needs I-2.
 - Fault-injection specs for the defensive catch blocks that matter; core's coverage run waived them as a class.
+
+### 13. Operations — step a
+
+Startup, configuration and observability: what fails quietly in production when it breaks.
+
+- **Startup and configuration:** `server/env.ts` (the environment's checks and defaults) and `GameNodeConfig` (the
+  per-environment switches, such as `actionTimersEnabled`), and the card-data hash check at startup. None has specs beyond
+  what the harness sets up.
+- **Metrics:** the periodic metrics `GameServer` logs as CloudWatch EMF lines when `metricsLoggingEnabled` is on
+  (`GameServerMetrics`: event-loop delay, and game, player and spectator counts). The scheduler drives them, so the
+  virtual clock can.
+- **The profiler:** `POST /api/run-profile` (`server/utils/profiler.ts`), gated by `PROFILE_CAPTURE_SECRET`. Only the route
+  manifest's entry covers it. The local security documents touch it (V-26).
+- **The log format:** the structured logging (`server/logger.ts`, `LoggingConstants`) that alerts and dashboards read.
+- Lower priority: the seeding scripts and `syncS3.ts`.
 
 ### Suite infrastructure
 

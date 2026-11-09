@@ -830,6 +830,15 @@ each failed the specs meant to catch them. What it raised, all addressed on the 
 
 It also flagged wording that could point at unfixed security items, which was changed. 861 → 868 non-game specs.
 
+### Topic areas added (2026-11-09)
+
+A sweep of the server code outside the rules engine, comparing each module and route with the plan's areas, found three
+that no area covered: undo in live games (the policy each lobby runs, through the server), the database layer (the real
+`DynamoDBService`, which no spec constructs, and the data migrations), and operations (startup and configuration, metrics,
+the profiler and the log format). They were added as areas 4, 5 and 13, and the areas after protocol surface were
+renumbered. Smaller items went into existing areas: lobby settings into core's remaining step c, SWUBase card metrics into
+stats, and the profanity filter into accounts and settings.
+
 ## The account-auth PR
 
 ### Account-auth guards and suite guardrails (merged in #3021, 2026-10-17)
