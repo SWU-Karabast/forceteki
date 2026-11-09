@@ -82,6 +82,19 @@ export interface ILobbyWithGuest {
     lobbyId: string;
 }
 
+/**
+ * The two players of a game that has just started: the one its first prompt waits on, choosing the initiative (the
+ * winner of the flip), and the other. Throws if neither has that choice.
+ */
+export function initiativeChooserOf(player1: TestClient, player2: TestClient): { chooser: TestClient; other: TestClient } {
+    const chooser = [player1, player2].find((player) => player.prompt.promptType === 'initiative');
+    if (!chooser) {
+        throw new Error(`neither user ${player1.id} nor user ${player2.id} has the initiative choice`);
+    }
+
+    return { chooser, other: chooser === player1 ? player2 : player1 };
+}
+
 /** The two players of a game at its first action, from {@link ServerTestHarness.playThroughSetupAsync}. */
 export interface IPlayersAtFirstAction {
 
@@ -434,11 +447,7 @@ export class ServerTestHarness {
      * Throws, rather than failing an expectation, if a prompt is not the one expected.
      */
     public async playThroughSetupAsync(player1: TestClient, player2: TestClient): Promise<IPlayersAtFirstAction> {
-        const active = [player1, player2].find((player) => player.prompt.promptType === 'initiative');
-        if (!active) {
-            throw new Error(`playThroughSetupAsync: neither user ${player1.id} nor user ${player2.id} has the initiative choice`);
-        }
-        const waiting = active === player1 ? player2 : player1;
+        const { chooser: active, other: waiting } = initiativeChooserOf(player1, player2);
 
         await active.clickButtonAsync('Yourself');
         for (const player of [active, waiting]) {

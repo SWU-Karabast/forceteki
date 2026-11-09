@@ -73,6 +73,12 @@ export class RegroupPhase extends Phase {
     }
 
     private resourcePrompt() {
+        // the resource step starts both players' turn time afresh, including the player whose timer was still running from
+        // the last action of the action phase; what they have left of their main time is kept
+        for (const player of this.game.getPlayers()) {
+            player.actionTimer.stop();
+        }
+
         this.game.queueStep(new VariableResourcePrompt(this.game, 0, 1));
     }
 

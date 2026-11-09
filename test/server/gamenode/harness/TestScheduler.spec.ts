@@ -148,18 +148,20 @@ describe('TestScheduler', function () {
 
         it('waits for an async check before moving on', async function () {
             const order: string[] = [];
+            const startMs = clock.now();
 
             await clock.advanceToDeadlineAsync(10, {
                 justBefore: async () => {
                     await Promise.resolve();
-                    order.push('justBefore');
+                    order.push(`justBefore at ${clock.now() - startMs}`);
                 },
                 atDeadline: () => {
                     order.push('atDeadline');
                 },
             });
 
-            expect(order).toEqual(['justBefore', 'atDeadline']);
+            expect(order).withContext('the clock does not move on while the check is still running')
+                .toEqual(['justBefore at 9', 'atDeadline']);
         });
 
         it('refuses a deadline with no millisecond before it', async function () {

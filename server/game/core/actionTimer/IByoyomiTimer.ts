@@ -21,9 +21,16 @@ export interface IByoyomiTimer extends IActionTimer {
     get mainTimeRemainingSeconds(): number;
 
     /**
-     * Total seconds remaining across both timers (turn time if active + main time).
+     * Whether the player is on the clock: their time running, or running out at this very moment. False while stopped
+     * (including once their timeout has been handled and the timer stopped) or paused.
      */
-    get totalTimeRemainingSeconds(): number;
+    get isCountingDown(): boolean;
+
+    /**
+     * Milliseconds until the player times out if their timer keeps running: the turn time left (unless it is spent) and
+     * the main time left.
+     */
+    get msUntilTimeout(): number;
 
     /**
      * Current warning status of the main timer. NoAlert while the player isn't actively

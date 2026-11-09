@@ -54,36 +54,39 @@ describe('Action timer pauses', function () {
                 await waiting.clickButtonAsync('Allow');
 
                 expect(waiting.gameChat.map((entry) => entry.text)).toContain(`${active.username} has rolled back to their previous action`);
-                expect(waiting.timerOf(active).mainSeconds).withContext('the 30 s of main time spent stay spent')
-                    .toBe(90);
+                expect(waiting.timerOf(active)).withContext('on the main time it had, with the 30 s spent still spent')
+                    .toEqual({ turnSeconds: null, mainSeconds: 90, status: PlayerTimeRemainingStatus.NoAlert, isRunning: true });
             });
         });
 
-        it('leaves a player\'s timer alone when they send anything that does not answer their prompt', async function () {
-            const { harness } = contextRef;
-            const { owner, guest } = await harness.startLiveGameAsync({ authenticated: true }, { authenticated: true });
-            const { active, waiting } = await harness.playThroughSetupAsync(owner, guest);
-            await harness.clock.advanceAsync(10_000);
+        describe('a player\'s messages', function () {
+            it('leaves a player\'s timer alone when they send anything that does not answer their prompt', async function () {
+                const { harness } = contextRef;
+                const { owner, guest } = await harness.startLiveGameAsync({ authenticated: true }, { authenticated: true });
+                const { active, waiting } = await harness.playThroughSetupAsync(owner, guest);
+                await harness.clock.advanceAsync(10_000);
 
-            await active.sendGameChatAsync('one moment');
-            await active.sendChatMessageAsync('still here');
-            await active.typingStateAsync(true);
-            await active.toggleOptionSettingAsync('autoSingleTarget', true);
-            await active.reportScreenResolutionAsync(1920, 1080);
-            await active.retransmitGameMessagesAsync(0, 1);
-            await active.resetActionTimerAsync();
+                await active.sendGameChatAsync('one moment');
+                await active.sendChatMessageAsync('still here');
+                await active.typingStateAsync(true);
+                await active.toggleOptionSettingAsync('autoSingleTarget', true);
+                await active.reportScreenResolutionAsync(1920, 1080);
+                await active.retransmitGameMessagesAsync(0, 1);
+                await active.resetActionTimerAsync();
+                await active.clickCardAsync(active.gameState.players[waiting.id].base.uuid);
 
-            expect(waiting.gameChatFrom(active)).withContext('the messages arrived')
-                .toContain('one moment');
-            expect(waiting.timerOf(active).turnSeconds).toBe(10);
-            await harness.clock.advanceToDeadlineAsync(10_000, {
-                justBefore: () => {
-                    expect(waiting.timerOf(active).turnSeconds).toBe(10);
-                },
-                atDeadline: () => {
-                    expect(waiting.timerOf(active).turnSeconds).withContext('main time starts 20 s after the action did')
-                        .toBeNull();
-                },
+                expect(waiting.gameChatFrom(active)).withContext('the messages arrived')
+                    .toContain('one moment');
+                expect(waiting.timerOf(active).turnSeconds).toBe(10);
+                await harness.clock.advanceToDeadlineAsync(10_000, {
+                    justBefore: () => {
+                        expect(waiting.timerOf(active).turnSeconds).toBe(10);
+                    },
+                    atDeadline: () => {
+                        expect(waiting.timerOf(active).turnSeconds).withContext('main time starts 20 s after the action did')
+                            .toBeNull();
+                    },
+                });
             });
         });
     }, { config: { actionTimersEnabled: true } });

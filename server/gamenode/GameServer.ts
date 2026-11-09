@@ -86,7 +86,6 @@ import { buildGameNodeConfigFromEnvironment } from './GameNodeConfig';
 
 export interface SocketData {
     manualDisconnect?: boolean;
-    forceDisconnect?: boolean;
     user?: User;
 }
 
@@ -3162,10 +3161,6 @@ export class GameServer {
         isMatchmaking = false
     ) {
         try {
-            if (!!socket?.data?.forceDisconnect) {
-                return;
-            }
-
             const lobbyEntry = this.userLobbyMap.get(id);
             let lobby = null;
 

@@ -2,9 +2,10 @@ import { PlayerTimeRemainingStatus } from '../../../../server/game/core/actionTi
 import { actionTimerLimits } from '../../../helpers/server/ActionTimerLimits';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 import type { IPlayersAtFirstAction, ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
+import { initiativeChooserOf } from '../../../helpers/server/ServerTestHarness';
 import type { IActionTimerView, TestClient } from '../../../helpers/server/TestClient';
 
-const { turnTimeMs, mainTimeMs, warningSeconds, dangerSeconds } = actionTimerLimits;
+const { turnTimeMs, mainTimeMs, warningSeconds, dangerSeconds, drawMarginMs } = actionTimerLimits;
 
 /** A timer counting down its turn time, with all its main time left. */
 function onTurnTime(turnSeconds: number, mainSeconds = mainTimeMs / 1000): IActionTimerView {
@@ -29,7 +30,7 @@ describe('Action timer', function () {
             return harness.playThroughSetupAsync(owner, guest);
         }
 
-        /** Has `player` spend all their turn time and `mainSeconds` of their main time on the prompt they have. */
+        /** Moves the clock through a whole turn time and then `mainSeconds` of main time, which the player on the clock spends. */
         async function spendAsync(harness: ServerTestHarness, mainSeconds: number): Promise<void> {
             await harness.clock.advanceAsync(turnTimeMs + mainSeconds * 1000);
         }
@@ -42,8 +43,7 @@ describe('Action timer', function () {
             it('starts the turn time of the player the first prompt waits on, and leaves the other player\'s timer stopped', async function () {
                 const { harness } = contextRef;
                 const { owner, guest } = await harness.startLiveGameAsync();
-                const chooser = owner.prompt.promptType === 'initiative' ? owner : guest;
-                const other = chooser === owner ? guest : owner;
+                const { chooser, other } = initiativeChooserOf(owner, guest);
 
                 for (const viewer of [owner, guest]) {
                     expect(viewer.timerOf(chooser)).withContext(`the player choosing the initiative, as ${viewer.username} sees it`)
@@ -56,7 +56,7 @@ describe('Action timer', function () {
             it('starts both players\' turn time for a prompt that waits on both, such as the mulligan', async function () {
                 const { harness } = contextRef;
                 const { owner, guest } = await harness.startLiveGameAsync();
-                const chooser = owner.prompt.promptType === 'initiative' ? owner : guest;
+                const { chooser } = initiativeChooserOf(owner, guest);
                 await harness.clock.advanceAsync(5_000);
 
                 await chooser.clickButtonAsync('Yourself');
@@ -83,6 +83,36 @@ describe('Action timer', function () {
                     expect(viewer.timerOf(waiting)).withContext(`the player now acting, as ${viewer.username} sees it`)
                         .toEqual(onTurnTime(20));
                 }
+            });
+
+            it('starts every action with a full turn time, even when the player\'s timer is still running from the step before', async function () {
+                const { harness } = contextRef;
+                const { active, waiting } = await startAtFirstActionAsync(harness);
+                await active.clickButtonAsync('Pass');
+                await waiting.clickButtonAsync('Pass');
+                await waiting.clickButtonAsync('Skip Resourcing');
+                await harness.clock.advanceAsync(5_000);
+
+                // the player with the initiative leaves the regroup phase's resource step last, their timer still running
+                await active.clickButtonAsync('Skip Resourcing');
+
+                expect(active.prompt.promptType).withContext('the first action of round 2')
+                    .toBe('actionWindow');
+                expect(waiting.timerOf(active)).toEqual(onTurnTime(20));
+            });
+
+            it('starts both players\' turn time afresh for the regroup phase\'s resource step, even the player who passed last', async function () {
+                const { harness } = contextRef;
+                const { active, waiting } = await startAtFirstActionAsync(harness);
+                await active.clickButtonAsync('Pass');
+                await spendAsync(harness, 10);
+
+                await waiting.clickButtonAsync('Pass');
+
+                expect(waiting.prompt.promptType).toBe('resource');
+                expect(active.timerOf(waiting)).withContext('the player who passed last, with the main time they spent')
+                    .toEqual(onTurnTime(20, 110));
+                expect(active.timerOf(active)).toEqual(onTurnTime(20));
             });
         });
 
@@ -210,7 +240,8 @@ describe('Action timer', function () {
                             ]));
                         }
                         expect(waiting.timerOf(waiting).isRunning).toBeFalse();
-                        expect(waiting.timerOf(active).isRunning).toBeFalse();
+                        expect(waiting.timerOf(active)).withContext('no main time left')
+                            .toEqual(stopped(0));
                     },
                 });
             });
@@ -238,13 +269,78 @@ describe('Action timer', function () {
                 });
             });
 
-            // TODO (open finding #16): when a player's main time runs out, it should be a draw only if the opponent's
-            // timer is running and they are 3 s or less from running out too, counting turn and main time. Add specs for:
-            // - a waiting opponent with under 3 s of main time left wins (today it is a draw);
-            // - a running opponent 3 s or less from running out draws, either side of the 3 s boundary, including one
-            //   still in their turn time (row T7);
-            // - both players running out at the same moment, at a prompt that waits on both, is a draw, and neither is
-            //   then shown with main time left (row T8; today the first player loses and both show 120 s).
+            it('lets a waiting opponent win, however little main time they have left', async function () {
+                const { harness } = contextRef;
+                const { active, waiting } = await startAtFirstActionAsync(harness);
+                await spendAsync(harness, 118);
+                await active.clickButtonAsync('Pass');
+
+                expect(active.timerOf(active)).withContext('waiting, with 2 s of main time')
+                    .toEqual(stopped(2));
+                await harness.clock.advanceAsync(turnTimeMs + mainTimeMs);
+
+                expect(active.gameState.winners).toEqual([active.username]);
+            });
+
+            describe('when the opponent\'s timer is running too', function () {
+                /**
+                 * Starts a game in which the player choosing the initiative first spends `chooserMainSpentMs` of their main
+                 * time, then picks; the mulligan waits on both players, so both timers start again together. The chooser
+                 * runs out first, at which point the other player is `chooserMainSpentMs` from timing out.
+                 */
+                async function chooserBehindByAsync(chooserMainSpentMs: number): Promise<{ chooser: TestClient; other: TestClient }> {
+                    const { harness } = contextRef;
+                    const { owner, guest } = await harness.startLiveGameAsync();
+                    const { chooser, other } = initiativeChooserOf(owner, guest);
+                    await harness.clock.advanceAsync(turnTimeMs + chooserMainSpentMs);
+                    await chooser.clickButtonAsync('Yourself');
+                    expect(chooser.prompt.buttons.map((button) => button.text)).toContain('Keep');
+                    return { chooser, other };
+                }
+
+                it('is a draw when the opponent is 3 s or less from timing out as well', async function () {
+                    const { harness } = contextRef;
+                    const { chooser, other } = await chooserBehindByAsync(drawMarginMs);
+
+                    await harness.clock.advanceAsync(turnTimeMs + mainTimeMs - drawMarginMs);
+
+                    expect(other.gameState.winners).toEqual(jasmine.arrayWithExactContents([chooser.username, other.username]));
+                    expect(chatOf(other)).toEqual(jasmine.arrayContaining([
+                        `Game ended due to ${chooser.username} timing out.`,
+                        'The game ends in a draw',
+                    ]));
+                });
+
+                it('lets the opponent win with more than 3 s left', async function () {
+                    const { harness } = contextRef;
+                    const { chooser, other } = await chooserBehindByAsync(drawMarginMs + 1);
+
+                    await harness.clock.advanceAsync(turnTimeMs + mainTimeMs - drawMarginMs - 1);
+
+                    expect(chatOf(other)).toContain(`Game ended due to ${chooser.username} timing out.`);
+                    expect(other.gameState.winners).toEqual([other.username]);
+                });
+
+                it('is a draw when both run out at the same moment, and neither is shown with main time left', async function () {
+                    const { harness } = contextRef;
+                    const { owner, guest } = await harness.startLiveGameAsync();
+                    await initiativeChooserOf(owner, guest).chooser.clickButtonAsync('Yourself');
+                    expect(owner.prompt.buttons.map((button) => button.text)).withContext('the mulligan, which waits on both')
+                        .toContain('Keep');
+
+                    await harness.clock.advanceAsync(turnTimeMs + mainTimeMs);
+
+                    expect(owner.gameState.winners).toEqual(jasmine.arrayWithExactContents([owner.username, guest.username]));
+                    expect(chatOf(owner).filter((text) => text.includes('timing out')).length).withContext('one timeout ends the game')
+                        .toBe(1);
+                    expect(owner.timerOf(owner)).toEqual(stopped(0));
+                    expect(owner.timerOf(guest)).toEqual(stopped(0));
+                });
+
+                // That the rule counts an opponent's turn time as well as their main time is pinned in `ByoyomiTimer`'s unit
+                // spec: in a game without cards, both players' timers always start together, so an opponent is never still in
+                // their turn time when the other runs out.
+            });
         });
     }, { config: { actionTimersEnabled: true } });
 });

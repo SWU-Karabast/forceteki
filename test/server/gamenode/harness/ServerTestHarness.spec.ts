@@ -1,6 +1,6 @@
 import { FakeDynamoDbService } from '../../../helpers/server/FakeDynamoDbService';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
-import { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
+import { initiativeChooserOf, ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
 import { premierBestOfOne, premierBestOfThree } from '../../../helpers/server/MatchConfigs';
 
 const moderatorId = 'moderator-1';
@@ -267,6 +267,18 @@ describe('ServerTestHarness', function () {
                 const { active } = await harness.playThroughSetupAsync(owner, guest);
 
                 await expectAsync(active.clickButtonAsync('Keep')).toBeRejectedWithError(/no enabled 'Keep' button.*"Pass"/);
+            });
+
+            it('refuses to click a disabled button, naming it as disabled', async function () {
+                const { harness } = contextRef;
+                const { owner, guest } = await harness.startLiveGameAsync();
+                await initiativeChooserOf(owner, guest).chooser.clickButtonAsync('Yourself');
+                await owner.clickButtonAsync('Keep');
+                await guest.clickButtonAsync('Keep');
+
+                // the resource step's button is disabled until two cards are chosen
+                await expectAsync(owner.clickButtonAsync('Confirm Resources'))
+                    .toBeRejectedWithError(/no enabled 'Confirm Resources' button.*Confirm Resources \(disabled\)/);
             });
         });
     });

@@ -95,7 +95,10 @@ export interface IHandCard {
 /** A player's action timer as a client is sent it: the fields forceteki-client shows (`GameTimer`, `TimerWarningIcon`). */
 export interface IActionTimerView {
 
-    /** Turn time left in whole seconds, rounded up; `null` while no turn time is counting (not started, or spent). */
+    /**
+     * Turn time left in whole seconds, rounded up; `null` before the turn time has started, once it is spent, and while the
+     * timer is stopped. A paused timer still shows what it has left.
+     */
     turnSeconds: number | null;
 
     /** Main time left in whole seconds, rounded up. */
@@ -516,7 +519,9 @@ export class TestClient {
 
     /**
      * `rollbackToSnapshot` as the undo button sends it (`ChatDrawer`): a quick undo of this player's current or previous
-     * action. In a public or quick lobby it asks the opponent unless it is the player's one free undo of the game.
+     * action. In a public or quick lobby it asks the opponent, except for the player's one free undo of the game; even
+     * that one asks when it would undo something the opponent has seen, as an undo at the first action does (it reaches
+     * back into the setup) and as any undo after the end of the game does.
      */
     public async quickUndoAsync(): Promise<void> {
         const settings: IQuickSnapshotSettings & { actionOffset: number } = { type: SnapshotType.Quick, playerId: this.id, actionOffset: 0 };
