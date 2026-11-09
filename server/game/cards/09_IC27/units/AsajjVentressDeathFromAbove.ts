@@ -6,6 +6,7 @@ import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, DamageType, EntryType, ZoneName } from '../../../core/Constants';
 import { TextHelper } from '../../../core/utils/TextHelper';
+import type { ICombatDamageProperties } from '../../../gameSystems/DamageSystem';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 import type { IDamagedOrDefeatedByAttack } from '../../../IDamageOrDefeatSource';
 
@@ -45,7 +46,7 @@ export default class AsajjVentressDeathFromAbove extends NonLeaderUnitCard {
                     AbilityHelper.immediateEffects.returnToHand({ target: this.getAttacker(context.event) }),
                     AbilityHelper.immediateEffects.putIntoPlay({ target: context.source, entryType: EntryType.PutIntoPlay }),
                     AbilityHelper.immediateEffects.replaceAttacker({ target: context.source, attack: this.getAttack(context.event) }),
-                    AbilityHelper.immediateEffects.attackerCombatDamage({ target: context.event.card, attack: this.getAttack(context.event) })
+                    AbilityHelper.immediateEffects.combatDamage((damageContext) => this.getCombatDamageProperties(damageContext))
                 ])
             })
         });
@@ -61,6 +62,24 @@ export default class AsajjVentressDeathFromAbove extends NonLeaderUnitCard {
         return attacker.controller === context.player &&
           attacker.isNonLeaderUnit() &&
           attacker.zoneName === ZoneName.GroundArena;
+    }
+
+    /**
+     * Built when the damage step resolves, after the swap, so it reads her combat damage. Has no target if she
+     * didn't become the attacker or can't deal combat damage (e.g. the unique rule defeated her).
+     */
+    private getCombatDamageProperties(context: TriggeredAbilityContext): Omit<ICombatDamageProperties, 'type'> {
+        const attack = this.getAttack(context.event);
+        const base = context.event.card;
+        const amount = attack.attacker === context.source && attack.getLegalTargets().includes(base)
+            ? attack.getAttackerCombatDamage(context)
+            : null;
+
+        return {
+            target: amount === null ? [] : base,
+            amount: amount ?? 0,
+            sourceAttack: attack
+        };
     }
 
     private getAttack(event): Attack {

@@ -4,8 +4,6 @@ import { ZoneName, DeckZoneDestination, PlayType, RelativePlayer, DamageType, To
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import type { IAttachUpgradeProperties } from './AttachUpgradeSystem';
 import { AttachUpgradeSystem } from './AttachUpgradeSystem';
-import type { IAttackerCombatDamageProperties } from './AttackerCombatDamageSystem';
-import { AttackerCombatDamageSystem } from './AttackerCombatDamageSystem';
 import type { ICaptureProperties } from './CaptureSystem';
 import { CaptureSystem } from './CaptureSystem';
 import type { ICardAttackLastingEffectProperties } from './CardAttackLastingEffectSystem';
@@ -186,12 +184,6 @@ export function attachUpgrade<TContext extends AbilityContext = AbilityContext>(
 }
 export function attack<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IInitiateAttackProperties, TContext> = {}) {
     return new InitiateAttackSystem<TContext>(propertyFactory);
-}
-/**
- * The current attacker deals its combat damage to the target, which must be a target of the attack
- */
-export function attackerCombatDamage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IAttackerCombatDamageProperties, TContext> = {}) {
-    return new AttackerCombatDamageSystem<TContext>(propertyFactory);
 }
 export function capture<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICaptureProperties, TContext> = {}) {
     return new CaptureSystem<TContext>(propertyFactory);
