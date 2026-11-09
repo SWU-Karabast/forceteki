@@ -142,7 +142,11 @@ describe('Asajj Ventress, Bald and Beautiful', function () {
                 context.player1.clickCard(context.asajjVentress);
                 context.player1.clickPrompt('(No effect) Attack with a unit. After completing this attack, if the attacker survived, you may ready a resource.');
                 context.player1.clickPrompt('Use it anyway');
+
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+                expect(context.player2.exhaustedResourceCount).toBe(1);
                 expect(context.player2).toBeActivePlayer();
+                expect(context.asajjVentress.exhausted).toBeTrue();
             });
         });
 
