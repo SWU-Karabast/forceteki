@@ -132,7 +132,13 @@ describe('Asajj Ventress, Bald and Beautiful', function () {
                             readyCount: 9,
                             exhaustedCount: 1
                         }
-                    }
+                    },
+                    player2: {
+                        resources: {
+                            readyCount: 9,
+                            exhaustedCount: 1
+                        }
+                    },
                 });
             });
 
