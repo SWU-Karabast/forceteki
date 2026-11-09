@@ -12,10 +12,13 @@ import { ChatHelpers } from '../core/chat/ChatHelpers';
 import { EnumHelpers } from '../core/utils/EnumHelpers';
 import { AttachUpgradeSystem } from './AttachUpgradeSystem';
 import type { Player } from '../core/Player';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 
 export interface IGiveTokenUpgradeProperties extends ICardTargetSystemProperties {
     tokenType: TokenUpgradeName;
-    amount?: number;
+
+    /** Number of tokens to give each target. May also be a function evaluated per target card (e.g. one token per upgrade on that unit). */
+    amount?: number | ((card: IUnitCard) => number);
 
     /** The player considered to have created (given) the token(s). Defaults to `RelativePlayer.Self`. */
     createdBy?: RelativePlayer;
@@ -44,7 +47,11 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
         const indefiniteArticle = new Set([TokenUpgradeName.Experience, TokenUpgradeName.Advantage])
             .has(properties.tokenType) ? 'an' : 'a';
 
-        return ['give {0} to {1}', [ChatHelpers.pluralize(properties.amount, `${indefiniteArticle} ${tokenTitle} token`, `${tokenTitle} tokens`), this.getTargetMessage(properties.target, context)]];
+        const amount = typeof properties.amount === 'function'
+            ? Helpers.asArray(properties.target).reduce((sum: number, card: Card) => sum + (card.isUnit() ? this.resolveAmount(properties.amount, card) : 0), 0)
+            : properties.amount;
+
+        return ['give {0} to {1}', [ChatHelpers.pluralize(amount, `${indefiniteArticle} ${tokenTitle} token`, `${tokenTitle} tokens`), this.getTargetMessage(properties.target, context)]];
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties> = {}): boolean {
@@ -57,7 +64,7 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
         if (
             !card.isUnit() ||
             !card.isInPlay() ||
-            properties.amount === 0
+            this.resolveAmount(properties.amount, card) === 0
         ) {
             return false;
         }
@@ -111,7 +118,8 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
         const generatedTokensByCard = new Map<Card, any[]>();
         for (const card of Helpers.asArray(cards)) {
             const tokensForCard = [];
-            for (let i = 0; i < properties.amount; i++) {
+            const amountForCard = this.resolveAmount(properties.amount, card as IUnitCard);
+            for (let i = 0; i < amountForCard; i++) {
                 const token = this.generateToken(context, card.controller);
                 tokensForCard.push(token);
                 event.generatedTokens.push(token);
@@ -164,7 +172,16 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
             event.player = context.player.opponent;
         }
 
-        event.amount = properties.amount;
+        event.amount = typeof properties.amount === 'function'
+            ? cardsArray.reduce((sum: number, card: Card) => sum + (card.isUnit() ? this.resolveAmount(properties.amount, card) : 0), 0)
+            : properties.amount;
         event.tokenType = properties.tokenType;
+    }
+
+    private resolveAmount(amount: IGiveTokenUpgradeProperties['amount'], card: IUnitCard): number {
+        if (typeof amount === 'function') {
+            return amount(card);
+        }
+        return amount ?? 0;
     }
 }
