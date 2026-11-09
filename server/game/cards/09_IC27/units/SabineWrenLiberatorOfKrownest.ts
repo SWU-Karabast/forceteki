@@ -6,7 +6,7 @@ import { EventName, TargetMode, WildcardCardType } from '../../../core/Constants
 export default class SabineWrenLiberatorOfKrownest extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'sabine-wren#liberator-of-krownest-id',
+            id: '9636502171',
             internalName: 'sabine-wren#liberator-of-krownest',
         };
     }
