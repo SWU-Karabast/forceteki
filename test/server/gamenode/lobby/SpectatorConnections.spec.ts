@@ -1,3 +1,4 @@
+import { RematchMode } from '../../../../server/game/core/Constants';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 import type { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
 import type { ITestClientOptions, TestClient } from '../../../helpers/server/TestClient';
@@ -7,7 +8,9 @@ const loggedIn: ITestClientOptions = { authenticated: true };
 /**
  * The spectator branch of the socket path (`GameServer.onConnectionAsync`). A spectator registers over HTTP
  * (`spectate-game`, whose rules `GameServerAnonymousRestrictions` covers) while a game is running, then
- * connects with the spectator flag; these are the refactor-readiness checklist's rows C4 to C8.
+ * connects with the spectator flag. The refactor-readiness checklist's rows C4 to C8 and C22 (admission), and D7 and D8
+ * (leaving). A lobby counts as having a game running once its first game has started, including between the games of a
+ * rematch (`Lobby.hasOngoingGame`), which is why a spectator can be admitted then.
  */
 describe('Spectator connections', function () {
     /** A logged-in user registered to spectate the game in `lobbyId`. */
@@ -119,9 +122,27 @@ describe('Spectator connections', function () {
             expect(spectator.gameState.winners).toEqual([owner.username]);
         });
 
-        // TODO (open finding #12): add a spec that a spectator admitted between the games of a rematch (guest concedes,
-        // owner `requestRematchAsync(RematchMode.Regular)`, guest `rematchAsync()`, then register and connect) is sent the
-        // lobby state, once `Lobby.sendLobbyStateToSpectator` sends it as a `lobbystate` event.
+        it('admits a spectator between the games of a rematch, sending them the lobby and then the next game', async function () {
+            const { harness } = contextRef;
+            const { owner, guest, lobbyId } = await harness.startLiveGameAsync();
+            await guest.concedeAsync();
+            await owner.requestRematchAsync(RematchMode.Regular);
+            await guest.rematchAsync();
+            const spectator = await registeredSpectatorAsync(harness, lobbyId);
+
+            await spectator.connectAsync({ spectator: true });
+            const lobbyIdBetweenGames = spectator.lobbyState?.id;
+            const gameBetweenGames = spectator.gameState;
+            await owner.setReadyStatusAsync(true);
+            await guest.setReadyStatusAsync(true);
+            await owner.startGameAsync();
+
+            expect(spectator.isConnected).toBeTrue();
+            expect(lobbyIdBetweenGames).toBe(lobbyId);
+            expect(gameBetweenGames).toBeUndefined();
+            expect(spectator.gameState).withContext('the next game reaches the spectator')
+                .toBeDefined();
+        });
 
         describe('in the players\' lobby state', function () {
             /** The ids of the spectators the lobby lists, as of a fresh lobby state for `player`. */
@@ -142,6 +163,17 @@ describe('Spectator connections', function () {
 
                 expect(listedWhileWatching).toEqual([spectator.id]);
                 expect(owner.lobbyState.spectators).toEqual([]);
+            });
+
+            it('lists a spectator under their username', async function () {
+                const { harness } = contextRef;
+                const { owner, lobbyId } = await harness.startLiveGameAsync();
+                const spectator = await registeredSpectatorAsync(harness, lobbyId);
+                await spectator.connectAsync({ spectator: true });
+
+                await listedSpectatorsAsync(owner);
+
+                expect(owner.lobbyState.spectators).toEqual([{ id: spectator.id, username: spectator.username }]);
             });
 
             it('keeps listing a spectator who drops and comes back inside the grace window', async function () {

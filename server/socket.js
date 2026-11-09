@@ -38,14 +38,6 @@ class Socket extends EventEmitter {
         return this.socket.eventNames().indexOf(event) !== -1;
     }
 
-    joinChannel(channelName) {
-        this.socket.join(channelName);
-    }
-
-    leaveChannel(channelName) {
-        this.socket.leave(channelName);
-    }
-
     send(message, ...args) {
         this.socket.emit(message, ...args);
     }

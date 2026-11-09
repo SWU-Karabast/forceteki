@@ -119,8 +119,6 @@ export interface IRawGameSocket {
     on(event: string, listener: (...args: any[]) => void): this;
     removeAllListeners(event?: string): this;
     eventNames(): (string | symbol)[];
-    join(room: string): any;
-    leave(room: string): any;
     disconnect(close?: boolean): this;
 }
 
@@ -2350,7 +2348,8 @@ export class GameServer {
             this.playerMatchmakingDisconnectedTime.delete(userId);
         }
 
-        // check if user is already in a lobby and if their last activity was within 30s, just in case the lobby entry is stale somehow
+        // a player still active in another lobby within the last 60s is refused; one who has gone quiet there, or who joined
+        // it and never connected, is let go and taken out of it
         const previousLobbyForUser = this.userLobbyMap.get(userId)?.lobbyId;
         if (previousLobbyForUser) {
             const previousRole = this.userLobbyMap.get(userId)?.role;
@@ -2358,11 +2357,7 @@ export class GameServer {
             if (previousLobby) {
                 const userLastActivity = previousLobby.getLastActivityForUser(userId);
 
-                if (previousRole === UserRole.Player) {
-                    if (userLastActivity == null) {
-                        return true;
-                    }
-
+                if (previousRole === UserRole.Player && userLastActivity != null) {
                     const elapsedSeconds = Math.floor((this.scheduler.now() - userLastActivity.getTime()) / 1000);
                     if (elapsedSeconds < 60) {
                         logger.info(`GameServer: user ${userId} blocked from joining due to still being in lobby ${previousLobby.id}`);
@@ -2546,13 +2541,11 @@ export class GameServer {
     }
 
     /**
-     * Creates a new lobby for the given user. If no user is provided and
-     * the lobby is private, a default user is created.
+     * Creates a new custom lobby owned by `user`, with `user` in it and mapped to it.
      *
-     * @param {User | string} user - The user creating the lobby. If string(id) is passed in for a private lobby, a default user is created with that id.
-     * @param {Deck} deck - The deck used by this user.
-     * @param {boolean} isPrivate - Whether or not this lobby is private.
-     * @returns {string} The ID of the user who owns and created the newly created lobby.
+     * @param user - The user creating the lobby, who becomes its owner.
+     * @param deck - The deck that user brings.
+     * @param isPrivate - Whether the lobby is joined only by its link.
      */
     private createLobby(
         lobbyName: string,
@@ -2566,11 +2559,7 @@ export class GameServer {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
         }
-        if (!isPrivate && typeof user === 'string') {
-            throw new Error('User must be provided for public lobbies');
-        }
 
-        // set default user if anonymous user is supplied for private lobbies
         const lobby = new Lobby(
             lobbyName,
             isPrivate ? MatchmakingType.PrivateLobby : MatchmakingType.PublicLobby,
@@ -2660,20 +2649,6 @@ export class GameServer {
         });
     }
 
-    // handshake(socket: socketio.Socket, next: () => void) {
-    //     // if (socket.handshake.query.token && socket.handshake.query.token !== 'undefined') {
-    //     //     jwt.verify(socket.handshake.query.token, env.secret, function (err, user) {
-    //     //         if (err) {
-    //     //             logger.info(err);
-    //     //             return;
-    //     //         }
-
-    //     //         socket.request.user = user;
-    //     //     });
-    //     // }
-    //     next();
-    // }
-
     public registerDisconnect(socket: Socket, userId: string) {
         if (socket.eventContainsListener('disconnect')) {
             socket.removeEventsListeners(['disconnect']);
@@ -2760,7 +2735,7 @@ export class GameServer {
         const isSpectator = ioSocket.handshake.query.spectator === 'true';
 
         if (!ioSocket.data.user) {
-            logger.warn(`GameServer: socket connected with no user${!!ioSocket.data.user ? ' id' : ''}, disconnecting`);
+            logger.warn('GameServer: socket connected with no user, disconnecting');
             ioSocket.disconnect();
             return Promise.resolve();
         }
@@ -2849,8 +2824,6 @@ export class GameServer {
                 throw err;
             }
 
-            socket.send('connectedUser', user.getId());
-
             // If a user refreshes while they are matched with another player in the queue they lose the requeue listener
             // this is why we reinitialize the requeue listener
             if (lobby.matchmakingType === MatchmakingType.Quick) {
@@ -2903,15 +2876,6 @@ export class GameServer {
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
-
-            // anonymous user joining existing game
-            /* if (!user.username) {
-                const newUser = { username: 'Player2', id: user.id };
-                await lobby.addLobbyUserAsync(newUser, socket);
-                this.userLobbyMap.set(newUser.id, { lobbyId: lobby.id, role: UserRole.Player });
-                this.registerDisconnect(socket, user.id);
-                return Promise.resolve();
-           }*/
 
             await lobby.addLobbyUserAsync(user, socket);
             this.setUserLobbyMapping(user, lobby.id, UserRole.Player);
@@ -3089,8 +3053,8 @@ export class GameServer {
         this.setUserLobbyMapping(p2.user, lobby.id, UserRole.Player);
 
         // Attach their sockets to the lobby (if they exist)
-        await this.setupQueueSocketAsync(p1, lobby, format);
-        await this.setupQueueSocketAsync(p2, lobby, format);
+        await this.setupQueueSocketAsync(p1, lobby);
+        await this.setupQueueSocketAsync(p2, lobby);
 
         // this needs to be here since we only send start game via the LobbyOwner.
         lobby.setLobbyOwner(p1.user.getId());
@@ -3101,17 +3065,15 @@ export class GameServer {
         return Promise.resolve();
     }
 
-    private async setupQueueSocketAsync(player: QueuedPlayer, lobby: Lobby, format: IQueueFormatKey): Promise<void> {
+    private async setupQueueSocketAsync(player: QueuedPlayer, lobby: Lobby): Promise<void> {
         const socket = player?.socket;
         if (!socket) {
             return Promise.resolve();
         }
 
+        // adding the user to a quick lobby also registers their `requeue` listener
         await lobby.addLobbyUserAsync(player.user, socket);
         socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket, player));
-        if (!socket.eventContainsListener('requeue')) {
-            socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck, player.matchmakingPreference));
-        }
 
         return Promise.resolve();
     }
@@ -3388,24 +3350,17 @@ export class GameServer {
     }
 
     /**
-     * Clean up invalid/expired tokens from the user token map
+     * Drops the expired stat-site tokens. Runs on the scheduler, whose guard logs anything this throws, so it does not
+     * catch its own errors.
      */
     private cleanupInvalidTokens(): void {
-        try {
-            const newTokenMapping = new Map<string, IToken>();
-            // Create new map with only valid tokens
-            for (const [userId, token] of this.swuStatsTokenMapping.entries()) {
-                if (this.swuStatsHandler.isTokenValid(token)) {
-                    newTokenMapping.set(userId, token);
-                }
-            }
-            // Replace the old map with the new one
-            this.swuStatsTokenMapping = newTokenMapping;
-        } catch (error) {
-            logger.error('GameServer: Error during token cleanup:', {
-                error: { message: error.message, stack: error.stack }
-            });
-        }
+        this.swuStatsTokenMapping = GameServer.validTokensOnly(this.swuStatsTokenMapping, (token) => this.swuStatsHandler.isTokenValid(token));
+        this.swuBaseTokenMapping = GameServer.validTokensOnly(this.swuBaseTokenMapping, (token) => this.swuBaseHandler.isTokenValid(token));
+    }
+
+    /** The entries whose token is valid. An entry with no token (a refresh that failed stores null) is dropped. */
+    private static validTokensOnly(tokens: Map<string, IToken>, isValid: (token: IToken) => boolean): Map<string, IToken> {
+        return new Map(Array.from(tokens.entries()).filter(([, token]) => token != null && isValid(token)));
     }
 
     private setupGCMonitoring(): void {

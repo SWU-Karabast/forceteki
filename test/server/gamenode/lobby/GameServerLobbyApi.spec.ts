@@ -4,12 +4,9 @@ import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelp
 import type { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
 
 /**
- * Phase 0 vertical slice for the gamenode test suite.
- *
- * These specs prove the foundation the rest of the suite is built on: a `GameServer` can be stood up
- * in-process on a port it owns, without needing AWS credentials or the deployed card data, its API
- * can be driven over HTTP, and it can be torn down cleanly. The assertions deliberately stay on
- * observable API behaviour rather than the server's internal maps.
+ * The lobby routes over HTTP: creating a custom lobby, listing the open ones, and joining one. These were the suite's
+ * first specs; they assert on the API's responses rather than on the server's internal maps. Where a socket connects is
+ * covered by `SocketConnectionRouting`, and a lobby's life after that by `LobbyLifecycle`.
  */
 describe('GameServer lobby API', function () {
     serverIntegration(function (contextRef) {
@@ -45,14 +42,9 @@ describe('GameServer lobby API', function () {
 
                 expect(lobbyNames).toEqual(['test-lobby-1', 'test-lobby-2']);
 
+                // each owner connects, as a real one does, so the lobby is open for others to find
                 for (const lobbyName of lobbyNames) {
-                    const response = await harness.api
-                        .post('/api/create-lobby')
-                        .send(createLobbyBody({ lobbyName }));
-
-                    expect(response.status).withContext(JSON.stringify(response.body))
-                        .toBe(200);
-                    expect(response.body.success).toBe(true);
+                    await harness.openLobbyAsync({}, { lobbyName });
                 }
 
                 const response = await harness.api.get('/api/available-lobbies');
@@ -100,11 +92,7 @@ describe('GameServer lobby API', function () {
         describe('GET /api/available-lobbies', function () {
             it('advertises a newly created public lobby with its configuration and host', async function () {
                 const lobbyName = harness.uniqueLobbyName();
-
-                const created = await harness.api
-                    .post('/api/create-lobby')
-                    .send(createLobbyBody({ lobbyName }));
-                expect(created.status).toBe(200);
+                await harness.openLobbyAsync({}, { lobbyName });
 
                 const response = await harness.api.get('/api/available-lobbies');
                 expect(response.status).toBe(200);

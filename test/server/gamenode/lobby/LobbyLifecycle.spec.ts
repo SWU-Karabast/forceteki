@@ -8,7 +8,7 @@ const oneMinuteMs = 60 * 1000;
 /**
  * What the server does with a custom lobby over its life: who owns it, when it goes away, and what happens to
  * a player in it who makes for another lobby or the queue (`GameServer.canUserJoinNewLobby`). The refactor-readiness
- * checklist's rows L1, L3, D1 and B3 to B5.
+ * checklist's rows L1, L3, D1, D2 (for the last player) and B3 to B9.
  */
 describe('Lobby lifecycle', function () {
     /**
@@ -209,6 +209,23 @@ describe('Lobby lifecycle', function () {
 
                 expect(switched.status).toBe(200);
                 expect(joiner.lobbyId).toBe(second.lobbyId);
+            });
+
+            it('is taken out of a lobby they joined but never connected to when they enter the queue', async function () {
+                const { harness } = contextRef;
+                const owner = await harness.openLobbyAsync();
+                const joiner = harness.createClient();
+                expect((await joiner.joinLobbyAsync(owner.lobbyId)).status).toBe(200);
+
+                expect((await joiner.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...premierBestOfOne })).status).toBe(200);
+                await joiner.connectAsync();
+                const opponent = harness.createClient();
+                expect((await opponent.enterQueueAsync({ deck: harness.decklists.validDecklist(), ...premierBestOfOne })).status).toBe(200);
+                await opponent.connectAsync();
+
+                expect(joiner.lobbyState.users.map((user: { id: string }) => user.id).sort()).withContext('matched from the queue')
+                    .toEqual([joiner.id, opponent.id].sort());
+                expect(owner.lobbyState.users.map((user: { id: string }) => user.id)).toEqual([owner.id]);
             });
 
             it('is taken out of the queue when they create a lobby', async function () {

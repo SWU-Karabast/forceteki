@@ -569,7 +569,7 @@ export class Lobby {
         if (!existingSpectator) {
             this.spectators.push({
                 id: user.getId(),
-                username: user.getId(),
+                username: user.getUsername(),
                 socket,
                 user: socket.user,
                 state: 'connected'
@@ -2174,7 +2174,7 @@ export class Lobby {
     }
 
     private sendLobbyStateToSpectator(socket: Socket): void {
-        socket.socket.send('lobbystate', this.getLobbyState());
+        socket.send('lobbystate', this.getLobbyState());
     }
 
     public handleGameEnd(): void {
