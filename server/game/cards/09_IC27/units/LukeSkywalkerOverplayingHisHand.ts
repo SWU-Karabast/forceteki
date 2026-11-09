@@ -20,10 +20,9 @@ export default class LukeSkywalkerOverplayingHisHand extends NonLeaderUnitCard {
                 controller: RelativePlayer.Opponent,
                 immediateEffect: abilityHelper.immediateEffects.moveToBottomOfDeck()
             },
-            then: (thenContext) => ({
+            ifYouDo: (ifYouDoContext) => ({
                 title: 'Its owner draws 2 cards',
-                thenCondition: (context) => context.target != null,
-                immediateEffect: abilityHelper.immediateEffects.draw({ amount: 2, target: thenContext.target?.owner })
+                immediateEffect: abilityHelper.immediateEffects.draw({ amount: 2, target: ifYouDoContext.target?.owner })
             })
         });
     }
