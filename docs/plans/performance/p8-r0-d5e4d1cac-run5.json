@@ -1,0 +1,213 @@
+{
+  "schemaVersion": 1,
+  "probe": "p8-r0-first-snapshot",
+  "environment": {
+    "capturedAt": "2026-11-09T01:47:25.402Z",
+    "gitCommit": "d5e4d1cac81f2e46260dcc4476d18621256621d2",
+    "nodeVersion": "v26.13.0",
+    "v8Version": "14.6.202.34-node.40",
+    "platform": "win32",
+    "arch": "x64",
+    "cpuModel": "AMD Ryzen 7 9850X3D 8-Core Processor           ",
+    "cpuCount": 16,
+    "totalMemoryBytes": 33913405440,
+    "exposeGc": true,
+    "cardFileCount": 2560,
+    "cardDataHash": "15f6b2aaf05dcfe2cfaabd3dcd913c015ea38d54cb63998ff97627a5d07acc75",
+    "heapUsedBytesAtStart": 368634904,
+    "flags": {
+      "ENABLE_PARITY_HARNESS": false,
+      "ENABLE_UNDO_ALL_TESTS": false,
+      "MEASURE_SAVE_DEGRADATION": false,
+      "FIRST_SNAPSHOT_PROBE_ALLOW_VERIFIERS": false,
+      "RUN_PERF_BENCHMARKS": true
+    }
+  },
+  "scenarios": [
+    {
+      "scenario": "forty-cards-per-player",
+      "firstSnapshot": {
+        "benchmark": "moveToNextTimepoint(Action)",
+        "iterations": 400,
+        "warmupIterations": 20,
+        "avgMs": 0.2944414999999999,
+        "p50Ms": 0.2607,
+        "p95Ms": 0.3792,
+        "minMs": 0.2032,
+        "maxMs": 6.8466,
+        "gcCount": 1,
+        "gcMs": 6.511299999430776
+      },
+      "withWrites": {
+        "benchmark": "moveToNextTimepoint(Action, withWrites)",
+        "iterations": 400,
+        "warmupIterations": 20,
+        "avgMs": 0.28745725000000005,
+        "p50Ms": 0.258,
+        "p95Ms": 0.3659,
+        "minMs": 0.193,
+        "maxMs": 6.3944,
+        "gcCount": 1,
+        "gcMs": 5.991400001570582,
+        "hollowSnapshots": 0,
+        "snapshotsTaken": 420
+      },
+      "objectsAfterSetup": {
+        "liveObjectCount": 275,
+        "lastGameObjectId": 518
+      },
+      "objectsAfterFirstTimedCall": {
+        "liveObjectCount": 275,
+        "lastGameObjectId": 518
+      },
+      "violations": {
+        "undoDisabled": 0,
+        "nullSnapshotId": 0,
+        "hollowFirstSnapshot": 0
+      }
+    },
+    {
+      "scenario": "forty-cards-sparse-mutations",
+      "firstSnapshot": {
+        "benchmark": "moveToNextTimepoint(Action)",
+        "iterations": 400,
+        "warmupIterations": 20,
+        "avgMs": 0.25607524999999987,
+        "p50Ms": 0.2151,
+        "p95Ms": 0.3328,
+        "minMs": 0.1756,
+        "maxMs": 7.3134,
+        "gcCount": 1,
+        "gcMs": 7.030799999833107
+      },
+      "withWrites": {
+        "benchmark": "moveToNextTimepoint(Action, withWrites)",
+        "iterations": 400,
+        "warmupIterations": 20,
+        "avgMs": 0.27085349999999997,
+        "p50Ms": 0.2387,
+        "p95Ms": 0.341,
+        "minMs": 0.1824,
+        "maxMs": 6.8253,
+        "gcCount": 1,
+        "gcMs": 6.462899999693036,
+        "hollowSnapshots": 0,
+        "snapshotsTaken": 420
+      },
+      "objectsAfterSetup": {
+        "liveObjectCount": 249,
+        "lastGameObjectId": 493
+      },
+      "objectsAfterFirstTimedCall": {
+        "liveObjectCount": 249,
+        "lastGameObjectId": 493
+      },
+      "violations": {
+        "undoDisabled": 0,
+        "nullSnapshotId": 0,
+        "hollowFirstSnapshot": 0
+      }
+    },
+    {
+      "scenario": "forty-cards-four-mutated",
+      "firstSnapshot": {
+        "benchmark": "moveToNextTimepoint(Action)",
+        "iterations": 400,
+        "warmupIterations": 20,
+        "avgMs": 0.24319,
+        "p50Ms": 0.2018,
+        "p95Ms": 0.3163,
+        "minMs": 0.1756,
+        "maxMs": 7.3442,
+        "gcCount": 1,
+        "gcMs": 7.066700000315905
+      },
+      "withWrites": {
+        "benchmark": "moveToNextTimepoint(Action, withWrites)",
+        "iterations": 400,
+        "warmupIterations": 20,
+        "avgMs": 0.27976875,
+        "p50Ms": 0.2671,
+        "p95Ms": 0.3315,
+        "minMs": 0.1753,
+        "maxMs": 7.5059,
+        "gcCount": 1,
+        "gcMs": 7.15849999897182,
+        "hollowSnapshots": 0,
+        "snapshotsTaken": 420
+      },
+      "objectsAfterSetup": {
+        "liveObjectCount": 233,
+        "lastGameObjectId": 474
+      },
+      "objectsAfterFirstTimedCall": {
+        "liveObjectCount": 233,
+        "lastGameObjectId": 474
+      },
+      "violations": {
+        "undoDisabled": 0,
+        "nullSnapshotId": 0,
+        "hollowFirstSnapshot": 0
+      }
+    }
+  ],
+  "scriptedGame": {
+    "snapshotsTaken": 29,
+    "fullBuilds": 29,
+    "hollowSnapshots": 0,
+    "byTimepointAndPhase": {
+      "action/action": 17,
+      "endOfPhase/action": 2,
+      "startOfPhase/regroup": 2,
+      "regroupResource/regroup": 2,
+      "regroupReadyCards/regroup": 2,
+      "endOfPhase/regroup": 2,
+      "startOfPhase/action": 2
+    },
+    "finalPhase": "action",
+    "p1BaseDamage": 6,
+    "p2BaseDamage": 12
+  },
+  "runner": {
+    "name": "p8-r0-d5e4d1cac-run5",
+    "round": 5,
+    "position": 1,
+    "worktreeHead": "d5e4d1cac81f2e46260dcc4476d18621256621d2",
+    "worktreeStatus": [
+      "?? .p8-r0-raw/",
+      "?? test/scenarios/undo/FirstSnapshotProbe.spec.ts",
+      "?? test/scenarios/undo/benchmark/"
+    ],
+    "files": {
+      "spec": {
+        "path": "test/scenarios/undo/FirstSnapshotProbe.spec.ts",
+        "sha256": "edc4df1f1407cfbe275cf3c4e4a4b4a8a3bd1fb3dc23a8dcc7e426728938bd93"
+      },
+      "benchmarkHarness": {
+        "path": "test/scenarios/undo/benchmark/BenchmarkHarness.ts",
+        "sha256": "f49ae42035bf9f9575b1eef3a31c54dbf43104f039fb73cbf78cd260fc44bac1"
+      },
+      "benchmarkScenarios": {
+        "path": "test/scenarios/undo/benchmark/BenchmarkScenarios.ts",
+        "sha256": "d568433c5958b38b4ac7097402288a4a4158026ccb4439a9e85528b27bbbd59e"
+      },
+      "runner": {
+        "path": "scripts/run-first-snapshot-probe.js",
+        "sha256": "3470ea519264176924fc923c50c053cef7dc22f7f967e160915b562e3c40c2d6"
+      }
+    },
+    "node": "v26.13.0",
+    "command": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "--expose-gc",
+      "--enable-source-maps",
+      "node_modules\\jasmine\\bin\\jasmine",
+      "--config=./jasmine.json",
+      "--random=false",
+      "--filter=FirstSnapshotProbe"
+    ],
+    "jasmineExit": 0,
+    "wallSeconds": 7.6137946,
+    "specsLine": "4 specs, 0 failures"
+  }
+}

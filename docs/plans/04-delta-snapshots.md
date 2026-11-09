@@ -599,6 +599,7 @@ remains covered by the phase/setup specs and the dedicated specs.
   That removes that player's quick undo to the entry, so it needs an owner decision that this unit does not make: whether bounding the index may take away the quiet player's quick-undo availability (whether a cheaper bound exists, for example materializing the quiet player's oldest live delta entry as a full snapshot, which would stop it pinning the index, is not yet checked; the follow-up unit should weigh it before the owner decides), to be decided before the follow-up unit is designed.
   Done when the streak row reads a bounded index size (at most the sum of the containers' live-entry caps plus the bridge deltas) after 20 and after 200 one-player actions, and the `availability-implies-restorable` and `DeltaChain.spec.ts` eviction cases still pass unchanged.
   Trigger: before any plan raises a snapshot cap, adds a third consumer of the index, or measures long games (Plan 6 save/load), and in any case before the next performance capture that reads `payload/deltaIndexStreak`.
+  Reading of that trigger (recorded by [Plan 8](08-performance-regressions.md) R-0): Plan 8 reads "reads" as "relies on for a claim"; no Plan 8 capture relies on `payload/deltaIndexStreak` for any claim, and R-0's probe writes no payload rows, so Plan 8 does not reach this trigger.
   Fixed nowhere in P4-G: the unit adds a measurement and a record, not a mechanism.
 
 ## Known limitations (deferred)

@@ -1,6 +1,6 @@
 # Plan 8 — Performance Regressions After Plan 4
 
-**Status:** S-0 has landed (merge, test-only fix and lint fix; `M` and `B` are recorded in "As landed in S-0"); R-0 is next.
+**Status:** S-0 has landed (merge, test-only fix and lint fix; `M` and `B` are recorded in "As landed in S-0"); R-0's Stage 1 has run and reads improvement (`B`'s first snapshot of a tracking run is 24 to 33 percent faster on avg than `M`'s in all three 40-card scenarios, so no regression against `main` at this resolution), and R-0's Stage 2 is not run (see "As landed in R-0").
 Plans 5 to 7 are on hold pending team discussion; this plan depends only on landed work (Plans 0 to 4) and does not touch their scope.
 
 ## Goal
@@ -111,6 +111,92 @@ If the difference does not clear the reading rule, item 1 is recorded as "no reg
 
 Done when: the plan doc records the Stage 1 result and, if Stage 2 ran, the located boundary or boundaries, or "not located at this sample size", or "cumulative", with the per-point medians and bands inlined; and, for each located step, (i) whether the changed code runs on a production full snapshot inside a tracking run or only at tracking-run start, and (ii) the step in ms multiplied by the number of full snapshots a scripted game takes at the located commit.
 Does not change: any engine file, any existing spec, or `Performance.spec.ts`.
+
+#### As landed in R-0
+
+R-0 ran Stage 1 only.
+Against `main`, the branch's first snapshot of a tracking run is not slower: the reading rule's verdict is **improvement**, so Item 1 is closed for `M` against `B`, and no Stage 2 runs.
+Nothing was committed to the engine, to an existing spec, or to `Performance.spec.ts`.
+
+**Settled at the plan gate.**
+- **Entry point.** The card harness `integration(...)`, with the undo mode pinned by `setUndoConfirmationRequired(false)` straight after `setupTestAsync` and before any timed call.
+  The correction to the probe paragraph above: `integration()` passes `UndoMode.Disabled`; `undoIntegration` passes `UndoMode.Full`, which does not exist on `main`, so its value is `undefined` and `GameFlowWrapper`'s default parameter (`undoMode = UndoMode.Free`) turns it into `Free` by accident; the branch's helper passes `Free` explicitly.
+  `integration()` needs no new exemption in `scripts/validateSpecs.ts`, and the pin makes every harness path run the same call.
+  The spec counts, on every timed iteration, how often `game.isUndoEnabled` is false, `currentSnapshotId` is null and the current Action snapshot is hollow, and expects each count to be 0.
+- **Runner.** A new script, `scripts/run-first-snapshot-probe.js`, run from the repository against a built worktree (`--worktree`), never copied into a worktree, and not a flag on `scripts/run-performance-benchmarks.js`.
+  It builds nothing, runs jasmine with `--filter=FirstSnapshotProbe` under `--expose-gc`, forces `RUN_PERF_BENCHMARKS=1`, `NODE_ENV=test` and a raw-report path, removes `ENABLE_PARITY_HARNESS`, `ENABLE_UNDO_ALL_TESTS`, `MEASURE_SAVE_DEGRADATION` and `FIRST_SNAPSHOT_PROBE_ALLOW_VERIFIERS` from the environment, and refuses a report when the log lacks `Ran 4 of` and `4 specs, 0 failures` or shows any `[...Verifier]`, `[...Gate]` or `[...Harness]` banner, or when the compiled spec is older than its source.
+  It stamps provenance (worktree HEAD and status, sha256 of the spec, both harness files and itself, Node, run round and position, jasmine exit, wall time) and never overwrites a report.
+- **Gate variables.** The spec is pending unless `RUN_FIRST_SNAPSHOT_PROBE=1`, and then throws unless `RUN_PERF_BENCHMARKS=1` (or the control-only `FIRST_SNAPSHOT_PROBE_ALLOW_VERIFIERS=1`) is set, `global.gc` exists, and the three scrubbed variables are unset.
+- **Samples.** 400 timed iterations and 20 warm-ups per row.
+- **Scripted game and delta-row source.** The `forty-cards-per-player` board; two rounds in which each player makes three space-unit attacks (the opposing base when it is a legal target, otherwise the first legal target), each round followed by `moveToNextActionPhase()`.
+  Counts come from wrapping `SnapshotFactory.prototype.createSnapshotForCurrentTimepoint` (snapshots taken and hollow snapshots) and `GameStateManager.prototype.buildGameStateForSnapshot` (full builds), restored in a `finally`, with the same code on both sides.
+  The delta-row cost is a companion row in the same probe, `moveToNextTimepoint(Action, withWrites)`: clear, one untimed first snapshot, then per iteration an untimed toggle of the scenario's exhaustible arena units and a timed Action snapshot.
+  The scripted game is the last `it` and the only one that wraps a prototype, so no timed loop runs after a prototype swap.
+  Each report also records, per scenario, `lastGameObjectId` and the live `GameObject` count after setup and after the first snapshot call (a warm-up call), and `heapUsedBytesAtStart` (after a forced GC) in its environment block.
+
+**The points.**
+- `M` is `d5e4d1cac81f2e46260dcc4476d18621256621d2` and `B` is `9f650b6dd70816f73c317b0cb211e0bb5ac1273d`, each in its own scratch worktree outside the repository with the checkout's `node_modules` linked in and its own `npm run get-cards`.
+- Both `get-cards` runs wrote 2560 card definition files with `card-data-hash.txt` `15f6b2aaf05dcfe2cfaabd3dcd913c015ea38d54cb63998ff97627a5d07acc75`, and `diff -rq` of the two `test/json` trees reported no difference (the checkout's own `test/json/Card` holds 2564 entries, so the scratch count is the one that applies).
+- Each worktree was built once with `node scripts/build-test.js` after the final spec was copied in (and, at `M`, the repository's `BenchmarkHarness.ts` and `BenchmarkScenarios.ts`, which `M` lacks); both builds exited 0 with no `tsc` diagnostic, so the probe spec and the copied harness compile against `main`'s `SnapshotManager` unchanged.
+- Machine and runtime: Node v26.13.0 (V8 14.6.202.34-node.40), AMD Ryzen 7 9850X3D 8-core (16 logical), win32 x64, 33,913,405,440 bytes of memory.
+- All twelve reports carry the same sha256 for the spec (`edc4df1f…`), `BenchmarkHarness.ts` (`f49ae420…`), `BenchmarkScenarios.ts` (`d568433c…`) and the runner (`3470ea51…`); the process order was `M B B M M B B M M B B M` (odd rounds `M` first, even rounds `B` first), one process at a time, with only Context7 MCP node processes present beside it.
+
+**The confound.**
+On the branch, the verifier hooks (`SnapshotMemoVerifier`, `DeltaChainVerifier`, `DeltaParityGate`) wrap `GameStateManager.prototype.buildGameStateForSnapshot` in every jasmine process unless `RUN_PERF_BENCHMARKS` is set, and `main` has none of them.
+The control run at `B` with the hooks on (`FIRST_SNAPSHOT_PROBE_ALLOW_VERIFIERS=1`, `RUN_PERF_BENCHMARKS` unset) printed the verifier banners (the log is retained and the runner's log guard rejects it) and read about 3.5 to 4.4 times the benchmark-mode first-build avg in the same session (0.78, 0.70 and 0.70 ms against 0.22, 0.16 and 0.17 ms, taken from the control run's console report; the raw report was not kept).
+Every number below was taken in benchmark mode with the hooks off.
+
+**Stage 1 result** (`first snapshot of a tracking run`, `moveToNextTimepoint(Action)` then an untimed `clearAllSnapshots`; six runs per point; median of six is the mean of the third and fourth sorted values; band is min to max; change is later over earlier).
+
+| Scenario | avgMs `M` median (band) | avgMs `B` median (band) | Change | Bands overlap | Counts |
+|---|---|---|---|---|---|
+| forty-cards-per-player | 0.3012 (0.2468 to 0.3128) | 0.2300 (0.2235 to 0.2406) | -23.6% | no | faster |
+| forty-cards-sparse-mutations | 0.2595 (0.2222 to 0.2842) | 0.1871 (0.1776 to 0.2068) | -27.9% | no | faster |
+| forty-cards-four-mutated | 0.2614 (0.2156 to 0.2794) | 0.1756 (0.1706 to 0.1905) | -32.8% | no | faster |
+
+| Scenario | p50Ms `M` median (band) | p50Ms `B` median (band) | Change | Bands overlap | Counts |
+|---|---|---|---|---|---|
+| forty-cards-per-player | 0.2696 (0.2205 to 0.2864) | 0.2244 (0.2132 to 0.2490) | -16.7% | yes | no |
+| forty-cards-sparse-mutations | 0.2180 (0.1980 to 0.2557) | 0.1656 (0.1502 to 0.2068) | -24.1% | yes | no |
+| forty-cards-four-mutated | 0.2299 (0.1916 to 0.2583) | 0.1513 (0.1388 to 0.1951) | -34.2% | yes | no |
+
+Object counts (lastGameObjectId / live count) agree to within one live object between the sides (forty-cards-per-player 518 / 275 on `M`, 515 / 276 on `B`; the analyzer prints all six scenario-point pairs), and the process heap at start is about 369 MB on `M` and 423 MB on `B`; neither is large enough to account for the difference.
+
+Scenarios counting as slower: 0; as faster: 3 (all three on avg, none on p50).
+**Verdict: improvement.**
+There is no regression against `main` at this resolution: no scenario is slower on either statistic, so the rule for Item 1 does not fire and R-0 stops after Stage 1.
+The improvement is a statement about the call, not about a game: on `B` the call builds a full snapshot and starts tracking, on `M` it builds a full snapshot.
+Limit on the size of the improvement: it shrinks across the rounds in forty-cards-per-player (per-round avg change -28.5%, -25.7%, -24.4%, -22.8%, -18.3% and -2.7% for runs 1 to 6, with `M`'s avg falling from 0.3128 to 0.2468 ms and `B`'s rising from 0.2235 to 0.2402 ms), so the six-run medians are the rule's reading, not a stable size, and no cause is claimed for the drift.
+The verdict does not rest on that scenario: forty-cards-sparse-mutations and forty-cards-four-mutated show no such trend across runs and each counts as faster on avg, which is the two scenarios the rule needs.
+On avg the sign is the same in all six rounds in every scenario, but the size is not, and the 20 percent line is crossed on avg and not on p50; on p50 `B` reads slower than `M` in single rounds (forty-cards-per-player run 6, 0.2490 against 0.2205 ms; forty-cards-sparse-mutations run 4, 0.2068 against 0.1980 ms), which the overlapping p50 bands already show.
+`companion avg` (`moveToNextTimepoint(Action, withWrites)`, median of six): `M` 0.2784, 0.2555 and 0.2585 ms (full builds); `B` 0.0080, 0.0077 and 0.0077 ms, hollow in all 420 snapshots in every scenario and run, which is why it is used as the delta-row cost.
+The hand derivation of forty-cards-per-player from the committed reports (medians, bands, change and overlap, avg and p50) equals the analyzer's output.
+
+**Per-game product** (scripted game on forty-cards-per-player, identical across all six runs of each point; the counts are in the reports' `scriptedGame` blocks).
+
+| Side | Snapshots taken | Full builds | Hollow snapshots | Final phase | Base damage (p1, p2) |
+|---|---|---|---|---|---|
+| `M` | 29 | 29 | 0 | action | 6, 12 |
+| `B` | 29 | 13 | 16 | action | 6, 12 |
+
+Both sides take the same 29 snapshots with the same per-timepoint counts (17 `action/action`, and 2 each of `endOfPhase/action`, `startOfPhase/regroup`, `regroupResource/regroup`, `regroupReadyCards/regroup`, `endOfPhase/regroup` and `startOfPhase/action`).
+Unit costs (forty-cards-per-player six-run medians): `M` first build 0.3012 ms avg (0.2696 p50); `B` first build 0.2300 ms avg (0.2244 p50); `B` companion 0.0080 ms avg (0.0057 p50).
+`M` side: 29 x 0.3012 = 8.73 ms (7.82 ms with p50).
+`B` side: 13 x 0.2300 + 16 x 0.0080 = 3.12 ms (3.01 ms with p50).
+The break-even full-build fraction is 1.32 on avg (1.21 on p50): above 1, so no mix of full builds and hollow snapshots makes `B` cost more than `M` on these unit costs.
+Cross-check against P4-G's `full/moveToNextTimepoint(Action, memoized)` (a hollow checkpoint with captured writes; six-run medians 0.0175, 0.0134 and 0.0110 ms for forty-cards-per-player, sparse-mutations and four-mutated at `cdfc22c8e`, a different session): the probe's companion row reads 0.0080, 0.0077 and 0.0077 ms, the same order of magnitude and about 30 to 40 times below a full build, but not equal; the cross-session reading is directional only.
+Limits: the game is short, so its phase mix is not a real game's; the product excludes the per-write capture cost (0.002 to 0.009 ms per window, P4-G "Index streak and hook cost") and everything outside the snapshot call, so it is not a game-level timing; and `B`'s 13 full builds are priced at the tracking-run-start cost (no memo, with `startTracking`), which makes `B`'s product an upper bound.
+The counts and unit costs are reported so a reader can rescale them.
+
+**Stage 2 and the other items.**
+Stage 2 did not run: the verdict is an improvement, which the reading rule says does not start it, and the owner had also deferred it at the plan gate.
+No probe or benchmark report exists for any commit other than `d5e4d1cac` and `9f650b6dd`.
+Triage item 6 (`full/rollbackToSnapshot` allocation per operation) was not read, because it is read only by Stage 2's full benchmarks.
+Item 1 therefore reads: not a regression against `main` at this resolution, and not located because there is nothing to locate; R-1 has no input from this unit.
+
+**Reports.**
+`docs/plans/performance/p8-r0-d5e4d1cac-run1.json` to `-run6.json` (`M`), `p8-r0-9f650b6dd-run1.json` to `-run6.json` (`B`) and `p8-r0-stage1-reading.json` (the analyzer's output on them, from `scripts/analyze-first-snapshot-probe.js --earlier d5e4d1cac --later 9f650b6dd`); the spec, the runner and the analyzer are `test/scenarios/undo/FirstSnapshotProbe.spec.ts`, `scripts/run-first-snapshot-probe.js` and `scripts/analyze-first-snapshot-probe.js`.
+The reports are JSON only, with no generated Markdown, and are decision evidence for this plan, not plan captures.
 
 ### R-1 — Profile and fix the located cause
 
