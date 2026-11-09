@@ -235,6 +235,42 @@ describe('ServerTestHarness', function () {
         });
     });
 
+    describe('playing a game', function () {
+        serverIntegration(function (contextRef) {
+            it('plays a lobby game through setup to its first action, which the player with the initiative takes', async function () {
+                const { harness } = contextRef;
+                const { owner, guest } = await harness.startLiveGameAsync();
+
+                const { active, waiting } = await harness.playThroughSetupAsync(owner, guest);
+
+                expect([active, waiting]).toEqual(jasmine.arrayWithExactContents([owner, guest]));
+                expect(active.prompt.promptType).toBe('actionWindow');
+                expect(active.prompt.buttons.map((button) => button.text)).toContain('Pass');
+                expect(waiting.prompt.buttons).toEqual([]);
+                expect(active.hand.length).withContext('six drawn, two resourced')
+                    .toBe(4);
+                expect(waiting.hand.length).toBe(4);
+            });
+
+            it('plays a quick-match game through setup as well', async function () {
+                const { harness } = contextRef;
+                const { first, second } = await harness.startQuickGameAsync();
+
+                const { active } = await harness.playThroughSetupAsync(first, second);
+
+                expect(active.prompt.promptType).toBe('actionWindow');
+            });
+
+            it('names the buttons a prompt has when asked to click one it does not', async function () {
+                const { harness } = contextRef;
+                const { owner, guest } = await harness.startLiveGameAsync();
+                const { active } = await harness.playThroughSetupAsync(owner, guest);
+
+                await expectAsync(active.clickButtonAsync('Keep')).toBeRejectedWithError(/no enabled 'Keep' button.*"Pass"/);
+            });
+        });
+    });
+
     describe('reading the chat', function () {
         serverIntegration(function (contextRef) {
             it('reads the lobby chat line by line, with each player\'s messages by sender and alerts as text', async function () {

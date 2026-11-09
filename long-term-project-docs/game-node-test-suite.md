@@ -3,7 +3,7 @@
 Status: **in progress.** Phases 0–2.5 and the account-auth guards are merged to `main` and CI-gated (PRs #2934, #2961,
 #2950, #3021, #3117 and #3129). The remaining work is split by topic area (core server logic, game timers, stats and so on),
 each taken through the same five steps, from planning to an independent review. The core area, which gates the lobby /
-queue / connection refactor, is finished apart from four checklist rows held for security fixes. Game timers are at step b.
+queue / connection refactor, is finished apart from four checklist rows held for security fixes. Game timers are at step d.
 
 This document is the plan: the current state, the decisions in force, the roadmap, and the reference material for working
 on the suite. The working record (what each phase built, what the reviews found, how each merge by other contributors was
@@ -22,11 +22,12 @@ register* · *CI structure* · *Open findings*.
 The connection layer (`GameServer`, `Lobby`, `QueueHandler`) has a working integration harness and a CI-gated suite. A spec
 starts a real `GameServer` in-process on a virtual clock, drives it through the same HTTP calls and socket handshake as
 `forceteki-client` (`TestClient`), and asserts on what the client receives and on what the fakes for the outside world
-(stats-site HTTP, DynamoDB) were called with. Measured on 2026-11-06 on `ammayberry1/gameserver-lobby-tests-6` with core's steps d and e applied (Node 26.13):
+(stats-site HTTP, DynamoDB) were called with. Measured on 2026-11-09 on `ammayberry1/gameserver-timer-tests` with the game-timer area's steps a to c applied (Node
+26.13):
 
-- **827 non-game specs** (`jasmine-nongame.json`): 0 failures, 0 pending; about 3.0 s serial, and clean in three runs under
+- **854 non-game specs** (`jasmine-nongame.json`): 0 failures, 0 pending; about 3.0 s serial, and clean in three runs under
   `--parallel=4 --random=true`.
-- 9,193 game specs, so **10,020 in total**. The two configs partition the suite exactly (counted by loading each config with
+- 9,193 game specs, so **10,047 in total**. The two configs partition the suite exactly (counted by loading each config with
   every spec filtered out, so no spec body runs and the card suites are not executed). For reference, the figures were
   677 / 9,012 / 9,689 on 2026-11-01 and 404 / 8,971 / 9,375 before #3021: widening the non-game globs moved 28 specs
   (`DiscordDispatcher`, `usernameBlockMigration`, `DynamoDBInterfaceSchemas`) out of the game group, #3111 added most of
@@ -36,12 +37,14 @@ starts a real `GameServer` in-process on a virtual clock, drives it through the 
 
 *Covered:* the connection layer the refactor will move, branch by branch (see [Refactor readiness](#refactor-readiness)):
 where a socket is routed, lobbies and their life, the queue and matchmaking, reconnects and grace windows in a lobby and in
-a game, spectators, and shutdown; the anonymous-versus-logged-in rules (chat, reports, best-of-three and spectator gating);
+a game, spectators, and shutdown; the action timer during a game (see [Game timers](#2-game-timers--next-step-d)); the
+anonymous-versus-logged-in rules (chat, reports, best-of-three and spectator gating);
 the command allowlist; stats-site token flows at handler level; and authentication and authorisation for logged-in accounts
 (credential verification, account creation and login, account resolution and the server's profile cache, roles, service
 secrets, and a manifest that forces every HTTP route to declare who may call it). *Not covered:* the game-mode
-legal/illegal matrix (production does not validate it yet), stats payloads, the action timer, the best-of-three and rematch
-flows, spectator flows beyond the connection, decks, and most moderation and account routes beyond who may call them. The [Roadmap](#roadmap) says where to begin.
+legal/illegal matrix (production does not validate it yet), stats payloads, the best-of-three and rematch flows,
+spectator flows beyond the connection, decks, and most moderation and account routes beyond who may call them. The
+[Roadmap](#roadmap) says where to begin.
 
 ### Core merges
 
@@ -92,7 +95,7 @@ the profile cache), evaluated under [Account resolution and the profile cache](g
 | Harness database | **On by default** (since 2026-11-05). `{ database: false }` is the local-dev configuration, used only by specs whose subject it is: the no-database block of `ServerTestHarness`, `Development preferences without DynamoDB` and the local-dev describe of `GameServerTestGameSetups` | *Hazards*, I-12 |
 | Account time | On the virtual clock. `TestGameServer` hands the server a `UserFactory` whose profile cache and own time reads use `TestScheduler.now()`; production's defaults read `Date.now()`. JWT expiry stays on the wall clock | history, the 2026-11-05 evaluation |
 | Profile cache staleness | Recorded as #3111's design: a profile written outside this process (another node, an admin edit, a migration) is seen within the 4 h lifetime; identity links are held until evicted, so re-pointing one needs a restart; every writer in this process discards the cached copy (only the login timestamp is left stale, and nothing reads it from the cache) | history, the 2026-11-05 evaluation |
-| Quick-lobby countdown | Imported from production (`Lobby.QuickLobbyCountdownMs`), not copied; the 20 s grace, 60 s stale-lobby and 20 s matchmaking-penalty values stay literal in specs so that changing one fails a test | I-7 |
+| Quick-lobby countdown | Imported from production (`Lobby.QuickLobbyCountdownMs`), not copied; the 20 s grace, 60 s stale-lobby and 20 s matchmaking-penalty values stay literal in specs so that changing one fails a test, and so do the action timer's limits (`ActionTimerLimits`, since 2026-11-09) | I-7 |
 
 ### Roadmap
 
@@ -121,7 +124,7 @@ product decision can run alongside the others.
 | # | Area | Depends on | Status |
 |---|---|---|---|
 | 1 | **Core server logic:** connections, lobbies, the queue and matchmaking, spectators, and the harness itself | - | ✅ done (2026-11-06), apart from the held rows |
-| 2 | **Game timers:** the action timer, its warnings and timeouts, and what a player's activity does to it | core | next: step b |
+| 2 | **Game timers:** the action timer, its warnings and timeouts, and what a player's activity does to it | core | next: step d |
 | 3 | **Protocol surface:** the command allowlists and game-mode validation | core | step a; its step d waits on open finding #3 |
 | 4 | **Decks:** deck routes, deck-link resolution, and deck checks in lobbies and at game start | core | step a |
 | 5 | **Stats:** game results reported to Karabast, SWUStats and SWUBase | core; decks (the fake's deck tables) | step a |
@@ -134,7 +137,7 @@ product decision can run alongside the others.
 Suite work that no single area owns (I-12, the CI split, the formal parallel-safety review) is listed under *Suite
 infrastructure* and goes with the first area that needs it.
 
-Open findings that still need a production fix or a decision are #1, #3, #10, #11 and #15 to #17; each belongs to an
+Open findings that still need a production fix or a decision are #1, #3, #10, #11 and #15 to #18; each belongs to an
 area.
 Anything exploitable is tracked privately with the maintainers, not here.
 
@@ -210,7 +213,7 @@ sparsely documented, and it is the part we most want to restructure.
 When this project started we could not safely restructure it, because **there was no test coverage of
 any of it**: the card suite (~8,700 specs at the time) constructs a `Game` directly with a stub
 router and never touches `Lobby` or `GameServer`. That is no longer true — the connection layer now
-has its own 827-spec suite — but coverage is uneven (deep on matchmaking, chat, identity and authentication;
+has its own 854-spec suite — but coverage is uneven (deep on matchmaking, chat, identity and authentication;
 absent on stats, spectating, timers and decks), which the plan below tracks.
 
 This project builds the test suite first, so the refactor that follows has a safety net. The suite is
@@ -408,7 +411,7 @@ Connections, lobbies, the queue and matchmaking, spectators, and the test harnes
 - **What remains:** the held rows (C1, C11, L2, C21), whose specs go in with their security fixes; the smaller step c items
   above; and, when the refactor starts, the specs the fragility register lists.
 
-### 2. Game timers — next: step b
+### 2. Game timers — next: step d
 
 The action timer during a game: the turn and main countdowns, the warning and danger thresholds, the timeout that ends a
 game (a draw when both players are nearly out), the pauses, and what the client is sent; and what a player's activity
@@ -421,12 +424,13 @@ does to the timer. Depends only on core.
   unless `USE_LOCAL_ACTION_TIMER` is set). Otherwise a `NoopActionTimer`, which reports no turn time, the full 120 s of
   main time and no running timer. Scripted test games (`start-test-game`) never have timers: `GameStateBuilder` builds them
   with a `NoopScheduler` and no timer option.
-- *The two countdowns.* A `ByoyomiTimer` is two `GameActionTimer`s on the lobby's scheduler: a 20 s turn timer that starts
-  again with each prompt, and a 120 s main timer, one budget for the whole game, which runs only once the turn time is
-  spent. `UiPrompt.setPrompt` starts (or, if paused, resumes) the timer of each player a prompt waits on and stops the
-  others'. `ActionWindow` stops the active player's timer as each action starts, so it starts again at full turn time.
-  Prompts built with `resetActionTimerOnComplete` (the initiative choice and the setup resource prompt) stop it when they
-  complete.
+- *The two countdowns.* A `ByoyomiTimer` is two `GameActionTimer`s on the lobby's scheduler: a 20 s turn timer, and a
+  120 s main timer, one budget for the whole game, which runs only once the turn time is spent. `UiPrompt.setPrompt`
+  stops the timer of each player a prompt does not wait on, and starts (or, if paused, resumes) the timer of each player
+  it does wait on whose timer is not running. So the turn time starts again when a player becomes active again, while
+  consecutive prompts for a player who stays active share it. `ActionWindow` stops the active player's timer as each
+  action starts, so every action starts with full turn time. Prompts built with `resetActionTimerOnComplete` (the
+  initiative choice and the setup resource prompt) stop it when they complete.
 - *What the client is sent.* The game state is pushed when the turn time runs out and at 30 s and 10 s of main time left;
   the two thresholds also add a chat alert. The client counts down between pushes. It reads `turnTimeRemainingSeconds`,
   `mainTimeRemainingSeconds` and `timerIsRunning` (`GameTimer.tsx`) and `timeRemainingStatus` (`TimerWarningIcon.tsx`)
@@ -451,43 +455,62 @@ each player's game state, the chat, and the winners.
 
 | Row | Behaviour | Status |
 |---|---|---|
-| T1 | which games have timers: quick-match and public-lobby games with `actionTimersEnabled` on; not a private lobby, nor with the setting off (no running timer, full main time) | to do |
-| T2 | a prompt starts the timer of each player it waits on, and a player it does not wait on has a stopped timer: the initiative choice (one player), then the mulligan and resource prompts (both) | to do |
-| T3 | the turn time running out starts the main time, and the game state is sent at that moment | to do |
-| T4 | each new prompt starts the turn time again; the main time keeps what is left, across actions, phases and rounds | to do |
-| T5 | the warnings at 30 s and 10 s of main time: the status, the chat alert and a state push; the status clears once the player is no longer spending main time | to do |
-| T6 | the main time running out: the opponent wins, with the timeout alert, and the opponent's timer stops | to do |
-| T7 | the draw rule (decided 2026-11-08): when a player's main time runs out, the game is a draw if the opponent's timer is running and the opponent is 3 s or less from running out too, counting turn and main time; otherwise the opponent wins, however little time a waiting opponent has, or an opponent still in their turn time has | the cases the code already gets right (an opponent with more than 3 s left wins) in step c; the rest with #16's fix |
-| T8 | both players running out at the same moment is a draw, and a timer that has run out shows no main time left | with #16's fix |
-| T9 | an undo request pauses the requester's timer while the opponent's runs; the requester resumes where they were, whether the opponent allows or denies it | to do |
+| T1 | which games have timers: quick-match and public-lobby games with `actionTimersEnabled` on; not a private lobby, nor with the setting off (no running timer, full main time) | covered (`TimedGames`) |
+| T2 | a player's turn time starts when a prompt starts waiting on them, and at each action; a player a prompt does not wait on has a stopped timer: the initiative choice (one player), the mulligan (both), an action, and a pass handing the timer over | covered (`ActionTimer`, *starting and stopping*) |
+| T3 | the turn time running out starts the main time, and the game state is sent at that moment | covered (`ActionTimer`) |
+| T4 | each new turn starts with full turn time; the main time keeps what is left, across actions, phases and rounds | covered (`ActionTimer`) |
+| T5 | the warnings at 30 s and 10 s of main time: the status, the chat alert and a state push; the status clears once the player is no longer spending main time | covered (`ActionTimer`, *warnings*) |
+| T6 | the main time running out: the opponent wins, with the timeout alert, and both timers stop | covered (`ActionTimer`, *running out*), for a waiting opponent and for one whose timer is running |
+| T7 | the draw rule (decided 2026-11-08): when a player's main time runs out, the game is a draw if the opponent's timer is running and the opponent is 3 s or less from running out too, counting turn and main time; otherwise the opponent wins, however little time a waiting opponent has, or an opponent still in their turn time has | covered for an opponent with more than 3 s left, waiting or running (`ActionTimer`, *running out*); the rest waits on #16's fix (a `TODO` there) |
+| T8 | both players running out at the same moment is a draw, and a timer that has run out shows no main time left | waits on #16's fix (a `TODO` in `ActionTimer`) |
+| T9 | an undo request pauses the requester's timer while the opponent's runs; if the opponent denies it the requester resumes where they were, and if they allow it no time comes back (the main time spent stays spent) | covered (`ActionTimerPauses`) |
 | T10 | a cost-payment recovery rollback pauses and resumes the timer | waived unless the scripted-game seam below is added: it needs a board on which a cost cannot be paid |
-| T11 | the end of a game (won, conceded, or a draw on time) stops both timers; a game that has ended sends no timer updates and times no one out, even if the players play on | to do |
-| T12 | a player's messages do not change their timer (by design, decided 2026-11-08): chat, a click the prompt does not take, an option toggle, the client's automatic messages, a reconnect, and `resetActionTimer` while the client still sends it | to do |
-| T13 | a reconnect does not reset the timer; a spectator is sent the same timer fields | to do |
+| T11 | the end of a game (won, conceded, or a draw on time) stops both timers; a game that has ended sends no timer updates and times no one out, even if the players play on; and if an undo takes the game back before its end, the timers pick back up (decided 2026-11-09) | covered for running out (`ActionTimer`); for timing no one out, and sending nothing when the turn time runs out, after a concession; and for the timers picking back up after an undo past a concession (`TimedGames`). The rest waits on open finding #18 (a `TODO` in `TimedGames`) |
+| T12 | a player's messages do not change their timer (by design, decided 2026-11-08): chat, a click the prompt does not take, an option toggle, the client's automatic messages, a reconnect, and `resetActionTimer` while the client still sends it | covered (`ActionTimerPauses`; the reconnect in `TimedGames`) |
+| T13 | a reconnect does not reset the timer; a spectator is sent the same timer fields, as they stand when the spectator joins | covered (`TimedGames`) |
 | T14 | shutdown cancels a live game's timers | covered (`GameServerScheduling`, row L5) |
-| T15 | timers when the lobby drops a game | held (V-29) |
+| T15 | timers when the lobby drops a game | held (V-29): fixed in step d, with no spec, by the owner's decision (2026-11-09) |
 
 **Steps.**
 
 - **a: ✅ done (2026-11-08).** The owner decided the open half of #11 (a player's messages do not affect the timer, so the
   check and `resetActionTimer` go) and the draw rule for #16 (row T7).
-- **b: set up.** No production seam is needed: `startLiveGameAsync` (a public lobby by default) and `startQuickGameAsync`
-  give timed games under `{ config: { actionTimersEnabled: true } }`, and `ByoyomiTimer`'s public constants give the limits.
-  The test side:
-  - a game driver on `TestClient`: the player's own prompt, a prompt button by its text, and each player's timer fields as
-    the client reads them, so that specs do not dig through raw game state;
-  - a builder that plays a live game through setup to its first action (the initiative choice, both players keeping their
-    hands, two resources each) and returns the active and the waiting player, and a way to pass into the regroup phase;
-  - I-7's boundary helper on `TestScheduler`, since these specs need the "advance to T−1, assert not yet, advance 1, assert
-    now" idiom most;
-  - a new `test/server/gamenode/timers/` area (with its bullet in `CLAUDE.md`): `ActionTimer` for T2 to T8,
-    `ActionTimerPauses` for T9, T10 and T12, and `TimedGames` for T1, T11 and T13, starting with "hello world" specs for
-    the driver and the builder;
-  - the fragility register's rows for the driver, which depends on the setup prompts' button texts.
+- **b: ✅ done (2026-11-09).** No production seam was needed: `startLiveGameAsync` (a public lobby by default) and
+  `startQuickGameAsync` give timed games under `{ config: { actionTimersEnabled: true } }`. The test side:
+  - a game driver on `TestClient`: `prompt` (the player's own prompt), `hand`, `clickButtonAsync(text)` (which names the
+    buttons a prompt does have when the one asked for is missing or disabled), and `timerOf(player)` (a player's timer
+    fields as the client reads them), so that specs do not dig through raw game state;
+  - `harness.playThroughSetupAsync(player1, player2)`: plays a started game through setup to its first action (the flip's
+    winner takes the initiative, both keep their hands, each resources the first two cards in hand) and returns the
+    active and the waiting player. Passing into the regroup phase is `clickButtonAsync('Pass')` from each;
+  - I-7's boundary helper, `TestScheduler.advanceToDeadlineAsync(ms, { justBefore, atDeadline })`;
+  - `test/helpers/server/ActionTimerLimits.ts`: the 20 s turn time, the 120 s main time and the 30 s and 10 s warnings,
+    written out rather than imported from `ByoyomiTimer`, so that changing one fails a spec (as the grace windows are;
+    see *Decisions taken*);
+  - the new `test/server/gamenode/timers/` area (with its bullet in `CLAUDE.md`). `ActionTimer` has its first two specs
+    (rows T2 and T3, in part); `ActionTimerPauses` (T9, T10, T12) and `TimedGames` (T1, T11, T13) come with step c. The
+    builder's and the driver's own specs are in `ServerTestHarness` (*playing a game*), and the clock helper's in
+    `TestScheduler`;
+  - a fragility-register row for the driver.
 
   Considered, not planned: a seam that lets a scripted test game run on the lobby's scheduler with real timers. It would
   cover T10 and help V-34; add it in step c only if a row needs it.
-- **c:** the rows, then the coverage run.
+- **c: ✅ done (2026-11-09).** 19 specs (835 → 854): `ActionTimer` filled out, and `ActionTimerPauses` and `TimedGames`
+  added. Rows T7 (in part), T8 and T11 (in part) wait on open findings #16 and #18, each with a `TODO` where its specs
+  belong. Each spec was checked against a deliberate break of the behaviour it pins (the state push when the turn time runs
+  out, the pause on an undo request, the guard on a game that has ended). The step found open finding #18.
+  *The coverage run* (2026-11-09, the same `c8` run as core's, over `server/game/core/actionTimer/` and the timer paths in
+  `Game.ts`, `Player.ts`, `UiPrompt.ts`, `ActionWindow.ts`, `UndoConfirmationPrompt.js` and `Lobby.ts`) finds no
+  unlisted gap. Every timer path in `UiPrompt` and `ActionWindow` runs. What does not:
+  - *dead code* for step d: `Game.restartAllActionTimers` and the `restartIfRunning` methods; `timeRemainingSeconds` on
+    `ByoyomiTimer` and `NoopActionTimer`, which nothing reads; and, with #11, `Player.checkPlayerTimeoutConditions`,
+    `SimpleActionTimer`'s stop when `shouldFireHandler` refuses, and `Lobby.userTimeoutDisconnect`;
+  - *waiting on a fix:* the draw in `onGameTimerExpired` and `endGame` (#16, rows T7 and T8);
+  - *waived:* the pause in `rollbackForCostPaymentRecovery` (row T10); defensive returns (`SimpleActionTimer.pause` when
+    not running and `resume` when not paused or already out, `ByoyomiTimer.start` pausing a main timer still running,
+    `Player.onMainTimerWarning` given no alert, `NoopActionTimer`'s `pause` and `resume`);
+  - *the best-of-three area's:* the set forfeit (`onBo3SetForfeit`) and what only the ready timer uses
+    (`SimpleActionTimer.timeRemainingStatus` and its base `shouldFireHandler`).
 - **d:** each with its spec:
   - #16: the draw rule as decided (row T7), read before the opponent's timer is stopped and from the time left in
     milliseconds rather than the rounded-up seconds the client is shown; an opponent whose main time runs out at the same
@@ -501,7 +524,13 @@ each player's game state, the chat, and the winners.
     `CurrentGameTab.tsx`) in the same change that removes its `inactiveDisconnect` handler, and the server's no-op branch in
     `Lobby.onGameMessage` goes once that has shipped (until then, removing it would log an unknown-command warning for each
     one an older client sends);
-  - the dead code: `Game.restartAllActionTimers`, which nothing calls, and the `restartIfRunning` methods only it reaches.
+  - V-29 and V-37, which the owner chose to fix in this step, on this branch (2026-11-09), unlike other security fixes:
+    each its own neutrally worded commit; V-37 with its spec, V-29 with none (row T15);
+  - #18: once a game has ended, no prompt starts a timer, and if an undo takes it back before its end the timers pick
+    back up (row T11). `isEnded` is derived from the game state, which a rollback restores, so checking it whenever a
+    prompt would start a timer, rather than setting a one-way flag at the end, gives both;
+  - the dead code: `Game.restartAllActionTimers`, which nothing calls, and the `restartIfRunning` methods only it reaches;
+    and `timeRemainingSeconds` on `ByoyomiTimer` and `NoopActionTimer` (and on `IActionTimer`, if nothing else needs it).
 - **Not this area's:** the best-of-three ready and transition timers, and the set forfeit on a timeout (the best-of-three
   area).
 - **Open finding #11.** The inactivity kick is a dead feature and goes in step d, with `Lobby.userTimeoutDisconnect`, the
@@ -649,7 +678,7 @@ day, M ≈ a few days.
 | I-4 | Scenario builders | none | S | removes the hand-written lobby and game setups; the live-game and game-ending setups the later areas need | ✅ done (2026-11-06) |
 | I-5 | Typed inspection surface | `lobbies` `private` → `protected` | XS | retires 2 `as any` touches | ✅ done |
 | I-6 | Typed client commands and chat accessors | none | S | Phase 3 positive coverage; retires `JSON.stringify` searches | ✅ done (2026-11-06) |
-| I-7 | Time helpers | none | XS | readability of ~40 boundary assertions | open |
+| I-7 | Time helpers | none | XS | readability of ~40 boundary assertions | the helper is done (2026-11-09, game timers' step b); converting the existing assertions is open |
 | I-8 | Shared test config | none | XS | stops config drift between helpers and specs | ✅ done |
 | I-9 | Helper hygiene | none | XS | dead code; one inconsistent spec | ✅ done |
 | I-10 | Contributor guide | none | S | stops the reinvention seen below | ✅ done (`CLAUDE.md`) |
@@ -677,7 +706,9 @@ grace, the 60 s stale-lobby rule, the 20 s matchmaking-disconnect penalty. Keep 
 importing them from production: if someone changes 20 s to 30 s, that is a behaviour change and the test *should*
 fail. (Matchmaking's own literals are the behaviour spec and should stay literal.) The 6 s quick-lobby countdown is
 the exception and is imported (`Lobby.QuickLobbyCountdownMs`): it is pacing rather than policy, and the maintainers
-decided it is not worth gating changes on.
+decided it is not worth gating changes on. *Status (2026-11-09):* the boundary helper exists
+(`TestScheduler.advanceToDeadlineAsync`, added in the game-timer area's step b, which uses it first), and so do the action
+timer's named constants (`ActionTimerLimits`). The existing 40 assertions have not been converted.
 
 **I-12 — Isolate the no-database account store (new, from #2655).** *Evidence:* `server/utils/user/UserStore.ts` holds the
 development `InMemoryUserStore` in a module-level variable that nothing resets, and every `UserFactory` asks
@@ -720,6 +751,8 @@ list exists so none is mistaken for a stable contract when the refactor starts.
 | `GameServerUserApi`, `ChatPermissions`: `harness.server.modActionService.onActionSubmitted(...)` | Applies a mod-action mute through the service rather than the `/api/mod/submit-action` route | use the route once the reports and moderation area covers it |
 | `TestClient.hasNoPlaceAsync` (used across the core specs) | Recognises "the server has this user down for nothing" by the catch-all `connection_error` text (checklist row C20) | update the helper if that message or branch changes |
 | `SpectatorConnections` (C22) and the C6 note: `Lobby.hasOngoingGame()` staying true between games | The rematch spectator spec reaches `spectate-game` only because a lobby between games counts as having one (open finding #15) | rewrite with #15's decision |
+| `ServerTestHarness.playThroughSetupAsync` and `TestClient.clickButtonAsync` (the timer specs) | Plays setup by its prompts' types and button texts (`initiative`, 'Yourself', 'Keep', 'Confirm Resources', `actionWindow`), and resources the first two cards in hand | update the builder if setup changes; it throws, naming the prompt it found, rather than failing a spec obscurely |
+| `ActionTimerPauses` and `TimedGames`: the undo request | Raises the request with the client's quick undo (`TestClient.quickUndoAsync`) at the first action, which needs the opponent's approval because it would undo the setup; depends on the snapshot rules for when a quick undo needs approval | make the request another way if those rules change; the spec checks the opponent was asked before anything else |
 | `TestGameServer`, `TestClient` and `FakeIoSocket`: `GameServer`'s `protected` constructor, `lobbies`, `httpServer`, `authenticateSocketAsync` and `handleSocketConnectionAsync` | The harness itself is the main consumer of these members (see *What the harness depends on in production* in the Handoff) | re-wire the three helpers to whatever replaces them; the behaviour specs should not change |
 
 *Retired by the account-auth PR:* `ChatPermissions`'s legacy-mute and chat-disabled fixtures no longer seed their state
@@ -735,10 +768,10 @@ The suite is partitioned by a single property: **does the spec drive a `Game` th
 | Group | Config | Contents | Specs (2026-11-06) |
 |---|---|---|---|
 | Game | `jasmine-game.json` | cards, core, actions, gameSystems, scenarios | 9,193 |
-| Non-game | `jasmine-nongame.json` | `server/{utils,gamenode,services,scripts}/**` | 827 |
-| Everything | `jasmine.json` (what CI runs) | | 10,020 |
+| Non-game | `jasmine-nongame.json` | `server/{utils,gamenode,services,scripts}/**` | 854 |
+| Everything | `jasmine.json` (what CI runs) | | 10,047 |
 
-The two configs partition the suite exactly: 9,193 + 827 = 10,020, no spec lost or double-run. (Counted
+The two configs partition the suite exactly: 9,193 + 854 = 10,047, no spec lost or double-run. (Counted
 by loading each config's specs through Jasmine's API with every spec filtered out, so no spec body executed and
 the card suite was not run.)
 
@@ -777,7 +810,7 @@ splitting by *what changed* is not.
 
 Behaviours found while building the suite that are still open. Open items are **not fixed**; where a spec would belong, a
 `TODO` marks it. Numbers are never reused or renumbered, so gaps in the numbering are expected. Statuses were last
-re-verified against `main` on 2026-11-01 (by re-reading the code paths); #10 was added on 2026-11-05, #11 and #12 on 2026-11-06, and #13 to #15 on 2026-11-06 (#13 and #14 were fixed the same day); #16 and #17 on 2026-11-08.
+re-verified against `main` on 2026-11-01 (by re-reading the code paths); #10 was added on 2026-11-05, #11 and #12 on 2026-11-06, and #13 to #15 on 2026-11-06 (#13 and #14 were fixed the same day); #16 and #17 on 2026-11-08, and #18 on 2026-11-09.
 
 1. **Lobby listing and cleanup around an owner who has not connected — open, needs a fix.** What `lobbiesWithOpenSeat()`
    and `hasConnectedPlayer()` treat as a connected player needs correcting for a lobby whose owner has not connected a
@@ -850,6 +883,17 @@ re-verified against `main` on 2026-11-01 (by re-reading the code paths); #10 was
     nothing. The tracking that logs it serves only the activity check #11 found commented out. Established by a probe (a
     logger spy across a timed game's start, initiative choice and mulligan: two errors, both at construction), since
     deleted. Resolved by removing that tracking in the game-timer area's step d (#11).
+
+18. **A game that has ended starts its timers again — open, new (2026-11-09).** `Game.endGame` stops both players' timers,
+    but players may play on after the end, and the next prompt starts the timer again: `UiPrompt.setPrompt` starts any
+    stopped timer for a player it waits on. After a concession that is at once, since `Lobby.onGameMessage` continues the
+    game after every command. The guards in `Game` keep the timer from ending the game again, or from sending the state
+    when the turn time runs out, but the client is shown a running timer, and at 30 s and 10 s of main time the chat gets
+    the warnings, with a state push each. Intended (row T11): no timer while the game has ended, and if an undo takes the
+    game back before its end, the timers pick back up (the owner, 2026-11-09; that part already works, and `TimedGames`
+    covers it). Established by a probe (a
+    concession at the first action, then idling: the winner's timer running at once, and both warnings in the chat at
+    110 s and 130 s), since deleted. For the game-timer area's step d.
 
 **Resolved** (the full entries are in the history document): #4, `this[command]` dispatch, resolved by #3014; #5, timers
 nothing could cancel, resolved by #3001 (its regression lock is checklist row L5); #8, an account whose profile was missing

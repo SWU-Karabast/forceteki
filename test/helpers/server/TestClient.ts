@@ -1,8 +1,10 @@
 import type { Response as SupertestResponse } from 'supertest';
 
+import type { PlayerTimeRemainingStatus } from '../../../server/game/core/actionTimer/IActionTimer';
 import type { CardPool, GamesToWinMode, MatchmakingCompetitivenessPreference, RematchMode, SwuGameFormat } from '../../../server/game/core/Constants';
+import { SnapshotType } from '../../../server/game/core/Constants';
 import type { IStatefulPromptResults } from '../../../server/game/core/gameSteps/PromptInterfaces';
-import type { IGetSnapshotSettings } from '../../../server/game/core/snapshot/SnapshotInterfaces';
+import type { IGetSnapshotSettings, IQuickSnapshotSettings } from '../../../server/game/core/snapshot/SnapshotInterfaces';
 import type { PlayerReportType } from '../../../server/game/Interfaces';
 import type { IQueueMatchmakingStatus } from '../../../server/gamenode/MatchmakingRules';
 import type { IUserProfileDataEntity } from '../../../server/services/DynamoDBInterfaces';
@@ -62,6 +64,45 @@ export interface IConnectOptions {
 export type IConnectResult =
   | { connected: true }
   | { connected: false; errorMessage: string };
+
+/** A button on a player's prompt, as the game state carries it. */
+export interface IPromptButton {
+    text: string;
+    arg: unknown;
+    command: string;
+    uuid: string;
+    disabled?: boolean;
+}
+
+/** The parts of a player's prompt a spec reads, as the game state carries it (`PlayerPromptState`). */
+export interface IPromptState {
+    menuTitle?: string;
+    promptTitle?: string;
+
+    /** The kind of prompt, such as `initiative`, `resource` or `actionWindow`; absent while the player is waiting. */
+    promptType?: string;
+    buttons: IPromptButton[];
+}
+
+/** The parts of a card in a player's hand a spec reads, as the game state carries it. */
+export interface IHandCard {
+
+    /** What {@link TestClient.clickCardAsync} takes. */
+    uuid: string;
+    name: string;
+}
+
+/** A player's action timer as a client is sent it: the fields forceteki-client shows (`GameTimer`, `TimerWarningIcon`). */
+export interface IActionTimerView {
+
+    /** Turn time left in whole seconds, rounded up; `null` while no turn time is counting (not started, or spent). */
+    turnSeconds: number | null;
+
+    /** Main time left in whole seconds, rounded up. */
+    mainSeconds: number;
+    status: PlayerTimeRemainingStatus;
+    isRunning: boolean;
+}
 
 /**
  * Type guard for {@link IConnectResult}. See `GameServer.isSuccessfulSocketAuth` for why a predicate
@@ -436,6 +477,23 @@ export class TestClient {
         await this.sendGameMessageAsync(button.command, button.arg, button.uuid);
     }
 
+    /**
+     * Clicks the button showing `text` on this player's current {@link prompt}, as a player would. Throws, naming the
+     * buttons the prompt does have, if there is no such button or it is disabled.
+     */
+    public async clickButtonAsync(text: string): Promise<void> {
+        const buttons = this.prompt.buttons;
+        const button = buttons.find((candidate) => candidate.text === text);
+        if (!button || button.disabled) {
+            throw new Error(
+                `TestClient: user ${this.id} has no enabled '${text}' button; their prompt ('${this.prompt.menuTitle}') has ` +
+                JSON.stringify(buttons.map((candidate) => (candidate.disabled ? `${candidate.text} (disabled)` : candidate.text)))
+            );
+        }
+
+        await this.clickPromptButtonAsync(button);
+    }
+
     /** `menuButton` with an argument the real client builds itself (`DropdownPopup`, `NumberPopup`, `SelectCardsPopup`). */
     public async menuButtonAsync(arg: string | number, promptUuid: string): Promise<void> {
         await this.sendGameMessageAsync('menuButton', arg, promptUuid);
@@ -456,14 +514,24 @@ export class TestClient {
         await this.sendGameMessageAsync('rollbackToSnapshot', settings);
     }
 
+    /**
+     * `rollbackToSnapshot` as the undo button sends it (`ChatDrawer`): a quick undo of this player's current or previous
+     * action. In a public or quick lobby it asks the opponent unless it is the player's one free undo of the game.
+     */
+    public async quickUndoAsync(): Promise<void> {
+        const settings: IQuickSnapshotSettings & { actionOffset: number } = { type: SnapshotType.Quick, playerId: this.id, actionOffset: 0 };
+        await this.rollbackToSnapshotAsync(settings);
+    }
+
     /** `toggleOptionSetting`: an in-game option, such as `autoSingleTarget` (`GameOptionsTab`). */
     public async toggleOptionSettingAsync(settingName: string, enabled: boolean): Promise<void> {
         await this.sendGameMessageAsync('toggleOptionSetting', settingName, enabled);
     }
 
     /**
-     * `resetActionTimer`: activity that keeps the action timer from expiring, sent when the bug-report dialog
-     * opens (`CurrentGameTab`). Not on the allowlist: `Lobby.onGameMessage` handles it before checking.
+     * `resetActionTimer`: sent when the bug-report or player-report dialog opens (`CurrentGameTab`). The server ignores it,
+     * as a player's messages do not affect their action timer (open finding #11). Not on the allowlist:
+     * `Lobby.onGameMessage` returns before checking.
      */
     public async resetActionTimerAsync(): Promise<void> {
         await this.sendGameMessageAsync('resetActionTimer');
@@ -511,6 +579,39 @@ export class TestClient {
     /** The most recent `gamestate` payload received, or `undefined` if none yet. */
     public get gameState(): any | undefined {
         return this.lastPayload('gamestate');
+    }
+
+    /** This player's own prompt, from their latest `gamestate`. Throws if they have not been sent one. */
+    public get prompt(): IPromptState {
+        const prompt = this.gameState?.players?.[this.id]?.promptState;
+        if (!prompt) {
+            throw new Error(`TestClient: user ${this.id} has not been sent a game state with their prompt in it`);
+        }
+
+        return prompt;
+    }
+
+    /** The cards in this player's hand, from their latest `gamestate`. */
+    public get hand(): IHandCard[] {
+        return this.gameState?.players?.[this.id]?.cardPiles?.hand ?? [];
+    }
+
+    /**
+     * `player`'s action timer as this client was last sent it. `player` is this client, its opponent, or a player it
+     * is watching. The client counts down between game states, so this is the time left as of the latest one.
+     */
+    public timerOf(player: TestClient): IActionTimerView {
+        const playerState = this.gameState?.players?.[player.id];
+        if (!playerState) {
+            throw new Error(`TestClient: user ${this.id} has not been sent a game state with player ${player.id} in it`);
+        }
+
+        return {
+            turnSeconds: playerState.turnTimeRemainingSeconds ?? null,
+            mainSeconds: playerState.mainTimeRemainingSeconds,
+            status: playerState.timeRemainingStatus,
+            isRunning: playerState.timerIsRunning,
+        };
     }
 
     /**
