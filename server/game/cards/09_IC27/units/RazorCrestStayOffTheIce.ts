@@ -6,7 +6,7 @@ import { WildcardCardType, WildcardRelativePlayer, WildcardZoneName } from '../.
 export default class RazorCrestStayOffTheIce extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'razor-crest#stay-off-the-ice-id',
+            id: '0299359158',
             internalName: 'razor-crest#stay-off-the-ice'
         };
     }
