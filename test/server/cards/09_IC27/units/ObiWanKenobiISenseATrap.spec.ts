@@ -26,6 +26,7 @@ describe('Obi-Wan Kenobi, I Sense a Trap', function() {
 
                 context.player1.clickCard(context.obiwanKenobi);
 
+                expect(context.player1).toHavePrompt('Choose an effect for Obi-Wan Kenobi');
                 context.player1.clickPrompt('Play a unit that was defeated this phase from your discard pile. It costs 5 resources less');
 
                 expect(context.player1).toHavePrompt('Choose a unit that was defeated this phase');
@@ -56,6 +57,7 @@ describe('Obi-Wan Kenobi, I Sense a Trap', function() {
                 context.player2.clickCard(context.atst);
                 context.player1.clickCard(context.obiwanKenobi);
 
+                expect(context.player1).toHavePrompt('Choose an effect for Obi-Wan Kenobi');
                 context.player1.clickPrompt('Choose a unit that entered play this phase. It gets -5/-5 for this phase');
                 expect(context.player1).toBeAbleToSelectExactly([context.obiwanKenobi, context.atst, context.wampa]);
                 expect(context.player1).not.toHavePassAbilityButton();
@@ -88,8 +90,8 @@ describe('Obi-Wan Kenobi, I Sense a Trap', function() {
 
                 context.player1.clickCard(context.obiwanKenobi);
 
-                expect(context.player1).toHavePassAbilityButton();
-                context.player1.clickPrompt('Pass');
+                expect(context.player1).toHavePrompt('Choose an effect for Obi-Wan Kenobi');
+                context.player1.clickPrompt('Do nothing');
 
                 expect(context.wampa.getPower()).toBe(4);
                 expect(context.obiwanKenobi).toBeInZone('groundArena');

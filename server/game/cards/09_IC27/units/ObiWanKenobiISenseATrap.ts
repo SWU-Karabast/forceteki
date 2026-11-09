@@ -1,7 +1,7 @@
 import type { INonLeaderUnitAbilityRegistrar } from '../../../core/card/AbilityRegistrationInterfaces';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import type { IAbilityHelper } from '../../../AbilityHelper';
-import { RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsDefeatedThisPhaseWatcher } from '../../../stateWatchers/CardsDefeatedThisPhaseWatcher';
@@ -26,9 +26,8 @@ export default class ObiWanKenobiISenseATrap extends NonLeaderUnitCard {
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
             title: 'Choose one',
-            optional: true,
-            targetResolver: {
-                mode: TargetMode.Select,
+            immediateEffect: abilityHelper.immediateEffects.chooseModalEffects({
+                amountOfChoices: 1,
                 choices: {
                     [`Play a unit that was defeated this phase from your discard pile. It costs ${TextHelper.resource(5)} less`]: abilityHelper.immediateEffects.selectCard({
                         activePromptTitle: 'Choose a unit that was defeated this phase',
@@ -51,9 +50,10 @@ export default class ObiWanKenobiISenseATrap extends NonLeaderUnitCard {
                         immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect({
                             effect: abilityHelper.ongoingEffects.modifyStats({ power: -5, hp: -5 })
                         })
-                    })
+                    }),
+                    ['Do nothing']: abilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
                 }
-            }
+            })
         });
     }
 }
