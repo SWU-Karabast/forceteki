@@ -160,7 +160,7 @@ Every number below was taken in benchmark mode with the hooks off.
 | forty-cards-sparse-mutations | 0.2180 (0.1980 to 0.2557) | 0.1656 (0.1502 to 0.2068) | -24.1% | yes | no |
 | forty-cards-four-mutated | 0.2299 (0.1916 to 0.2583) | 0.1513 (0.1388 to 0.1951) | -34.2% | yes | no |
 
-Object counts (lastGameObjectId / live count) agree to within one live object between the sides (forty-cards-per-player 518 / 275 on `M`, 515 / 276 on `B`; the analyzer prints all six scenario-point pairs), and the process heap at start is about 369 MB on `M` and 423 MB on `B`; neither is large enough to account for the difference.
+Object counts (lastGameObjectId / live count) agree to within one live object (live count) and within four ids (lastGameObjectId) between the sides (forty-cards-per-player 518 / 275 on `M`, 515 / 276 on `B`; the analyzer prints all six scenario-point pairs), and the process heap at start is about 369 MB on `M` and 423 MB on `B`; neither is large enough to account for the difference.
 
 Scenarios counting as slower: 0; as faster: 3 (all three on avg, none on p50).
 **Verdict: improvement.**
