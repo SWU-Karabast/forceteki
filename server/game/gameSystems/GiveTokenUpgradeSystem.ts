@@ -47,11 +47,22 @@ export class GiveTokenUpgradeSystem<TContext extends AbilityContext = AbilityCon
         const indefiniteArticle = new Set([TokenUpgradeName.Experience, TokenUpgradeName.Advantage])
             .has(properties.tokenType) ? 'an' : 'a';
 
-        const amount = typeof properties.amount === 'function'
-            ? Helpers.asArray(properties.target).reduce((sum: number, card: Card) => sum + (card.isUnit() ? this.resolveAmount(properties.amount, card) : 0), 0)
-            : properties.amount;
+        const tokenName = (count: number) =>
+            ChatHelpers.pluralize(count, `${indefiniteArticle} ${tokenTitle} token`, `${tokenTitle} tokens`);
 
-        return ['give {0} to {1}', [ChatHelpers.pluralize(amount, `${indefiniteArticle} ${tokenTitle} token`, `${tokenTitle} tokens`), this.getTargetMessage(properties.target, context)]];
+        // when the amount is computed per target, call out each unit's amount so the message isn't ambiguous
+        if (typeof properties.amount === 'function') {
+            const perTargetMessages = Helpers.asArray(properties.target)
+                .filter((card): card is IUnitCard => card.isUnit() && this.canAffect(card, context))
+                .map((card) => ({
+                    format: '{0} to {1}',
+                    args: [tokenName(this.resolveAmount(properties.amount, card)), card]
+                }));
+
+            return ['give {0}', [perTargetMessages]];
+        }
+
+        return ['give {0} to {1}', [tokenName(properties.amount), this.getTargetMessage(properties.target, context)]];
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties> = {}): boolean {

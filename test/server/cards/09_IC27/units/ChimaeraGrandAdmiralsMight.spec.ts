@@ -36,6 +36,9 @@ describe('Chimaera, Grand Admiral\'s Might', function() {
                 // Enemy units with upgrades are unaffected
                 expect(context.deathStarStormtrooper).toHaveExactUpgradeNames(['experience']);
 
+                // The log calls out the per-unit amounts
+                expect(context.getChatLogs(6)).toContain('player1 uses Chimaera to give 2 Experience tokens to Wampa, an Experience token to Battlefield Marine, and an Experience token to Chimaera');
+
                 // Heal counts friendly upgrades after the tokens were granted: 4 (wampa) + 2 (marine) + 2 (chimaera) = 8
                 expect(context.p1Base.damage).toBe(2);
             });
@@ -60,6 +63,35 @@ describe('Chimaera, Grand Admiral\'s Might', function() {
                 expect(context.chimaera).toHaveExactUpgradeNames(['shield', 'experience']);
 
                 // Shield + newly granted Experience = 2 friendly upgrades
+                expect(context.p1Base.damage).toBe(3);
+            });
+
+            it('counts a Fortify upgrade on the base for the heal without granting Experience for it', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: { card: 'tarkintown', damage: 10, upgrades: ['alliance-shield-generator'] },
+                        hand: ['chimaera#grand-admirals-might'],
+                        groundArena: [
+                            { card: 'wampa', upgrades: ['experience', 'shield'] }
+                        ]
+                    },
+                    player2: {}
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chimaera);
+
+                // Resolve Shielded first so Chimaera's Shield token counts as an upgrade for its own When Played
+                context.player1.clickPrompt('Shielded');
+
+                expect(context.wampa).toHaveExactUpgradeNames(['experience', 'shield', 'experience', 'experience']);
+                expect(context.chimaera).toHaveExactUpgradeNames(['shield', 'experience']);
+                expect(context.p1Base).toHaveExactUpgradeNames(['alliance-shield-generator']);
+
+                // Heal counts all friendly upgrades in play, including the Fortify upgrade on the base:
+                // 4 (wampa) + 2 (chimaera) + 1 (alliance-shield-generator) = 7
                 expect(context.p1Base.damage).toBe(3);
             });
 

@@ -22,7 +22,7 @@ export default class ChimaeraGrandAdmiralsMight extends NonLeaderUnitCard {
                 title: 'Heal 1 damage from your base for each friendly upgrade',
                 immediateEffect: abilityHelper.immediateEffects.heal((context) => ({
                     target: context.player.base,
-                    amount: context.player.getArenaCards({ type: WildcardCardType.Upgrade }).length
+                    amount: context.player.getInPlayCards({ type: WildcardCardType.Upgrade }).length
                 }))
             }
         });
