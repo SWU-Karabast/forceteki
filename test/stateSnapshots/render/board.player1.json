@@ -10,8 +10,8 @@
           {
             "id": "8148673131",
             "setId": {
-              "set": "IC27",
-              "number": 136
+              "set": "SOR",
+              "number": 172
             },
             "controllerId": "111",
             "ownerId": "111",
@@ -32,8 +32,8 @@
           {
             "id": "2703877689",
             "setId": {
-              "set": "TWI",
-              "number": 127
+              "set": "SOR",
+              "number": 126
             },
             "controllerId": "111",
             "ownerId": "111",
@@ -73,8 +73,8 @@
           {
             "id": "1598425314",
             "setId": {
-              "set": "SHD",
-              "number": 257
+              "set": "SOR",
+              "number": 247
             },
             "controllerId": "111",
             "ownerId": "111",
@@ -93,8 +93,8 @@
           {
             "id": "1598425314",
             "setId": {
-              "set": "SHD",
-              "number": 257
+              "set": "SOR",
+              "number": 247
             },
             "controllerId": "111",
             "ownerId": "111",
@@ -113,8 +113,8 @@
           {
             "id": "1598425314",
             "setId": {
-              "set": "SHD",
-              "number": 257
+              "set": "SOR",
+              "number": 247
             },
             "controllerId": "111",
             "ownerId": "111",
@@ -133,8 +133,8 @@
           {
             "id": "1598425314",
             "setId": {
-              "set": "SHD",
-              "number": 257
+              "set": "SOR",
+              "number": 247
             },
             "controllerId": "111",
             "ownerId": "111",
@@ -153,8 +153,8 @@
           {
             "id": "1598425314",
             "setId": {
-              "set": "SHD",
-              "number": 257
+              "set": "SOR",
+              "number": 247
             },
             "controllerId": "111",
             "ownerId": "111",
@@ -173,8 +173,8 @@
           {
             "id": "1598425314",
             "setId": {
-              "set": "SHD",
-              "number": 257
+              "set": "SOR",
+              "number": 247
             },
             "controllerId": "111",
             "ownerId": "111",
@@ -195,7 +195,7 @@
           {
             "id": "6577517407",
             "setId": {
-              "set": "LOF",
+              "set": "SOR",
               "number": 164
             },
             "controllerId": "111",
@@ -321,8 +321,8 @@
           {
             "id": "5562575456",
             "setId": {
-              "set": "IC27",
-              "number": 178
+              "set": "SOR",
+              "number": 225
             },
             "controllerId": "111",
             "ownerId": "111",
@@ -558,7 +558,7 @@
           {
             "id": "6577517407",
             "setId": {
-              "set": "LOF",
+              "set": "SOR",
               "number": 164
             },
             "controllerId": "222",
@@ -682,8 +682,8 @@
           {
             "id": "5562575456",
             "setId": {
-              "set": "IC27",
-              "number": 178
+              "set": "SOR",
+              "number": 225
             },
             "controllerId": "222",
             "ownerId": "222",

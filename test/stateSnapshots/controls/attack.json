@@ -35,7 +35,7 @@
                 {
                   "id": "6577517407",
                   "setId": {
-                    "set": "LOF",
+                    "set": "SOR",
                     "number": 164
                   },
                   "controllerId": "111",
@@ -420,7 +420,7 @@
                 {
                   "id": "6577517407",
                   "setId": {
-                    "set": "LOF",
+                    "set": "SOR",
                     "number": 164
                   },
                   "controllerId": "111",
@@ -803,7 +803,7 @@
                 {
                   "id": "6577517407",
                   "setId": {
-                    "set": "LOF",
+                    "set": "SOR",
                     "number": 164
                   },
                   "controllerId": "111",

@@ -11,16 +11,9 @@
 // the engine no longer produces exactly what is committed. Clients fetch these files at a given
 // commit to test their board against; nothing here knows about any client.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { dirname, join } from 'path';
-
-export enum CaptureMode {
-    Check = 'check',
-    Update = 'update',
-}
-
-/** Where the committed snapshots live, relative to the repo root (capture runs from there). */
-export const SnapshotRoot = join(process.cwd(), 'test', 'stateSnapshots');
+import { readdirSync, readFileSync } from 'fs';
+import { join } from 'path';
+import { SnapshotRun } from './SnapshotRun';
 
 /** The participants a state can be captured for, and the id each is read with. */
 const Participants = {
@@ -31,8 +24,19 @@ const Participants = {
 
 export type Participant = keyof typeof Participants;
 
-/** The game commands a client sends on the `game` socket event that drive a prompt forward. */
-const RecordedCommands = ['cardClicked', 'menuButton', 'perCardMenuButton', 'statefulPromptResults'] as const;
+/**
+ * The commands `Lobby` accepts on the `game` socket event (its `allowedGameCommands`), apart from
+ * chat. A chain records every one of them, so no move between steps goes unrecorded.
+ */
+const RecordedCommands = [
+    'cardClicked',
+    'concede',
+    'menuButton',
+    'perCardMenuButton',
+    'rollbackToSnapshot',
+    'statefulPromptResults',
+    'toggleOptionSetting',
+] as const;
 
 type RecordedCommand = typeof RecordedCommands[number];
 
@@ -47,21 +51,34 @@ const UuidPattern = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 /** Fields left out because they change between runs without the board changing, or are chat. */
 const DroppedKeys = new Set(['newMessages', 'messageOffset', 'totalMessages']);
 
-export const captureMode = (): CaptureMode | null => {
-    const mode = process.env.CAPTURE_STATES;
-    return mode === CaptureMode.Check || mode === CaptureMode.Update ? mode : null;
-};
-
-/** Every snapshot file written or checked in this run, so the report can find stale ones. */
-export const capturedFiles = new Set<string>();
-
-/** Mismatches found in check mode, reported together at the end of the run. */
-export const mismatches: string[] = [];
+let firstPrintings: Map<string, unknown>;
 
 /**
- * Replaces values that differ between runs with stable ones. Generated uuids become `uuid-1`,
- * `uuid-2`, … in order of first appearance, so a uuid has the same name throughout a file: a
- * message in a chain names the same prompt as the state it answers.
+ * Each card's first printing, by card id. The engine sends a card's newest printing as its
+ * `setId`, which changes whenever a card is reprinted; its first printing never does. `get-cards`
+ * lists a card's printings in `setCodes` with the first printing first.
+ */
+const firstPrinting = (cardId: string): unknown => {
+    if (!firstPrintings) {
+        const cardDir = join(process.cwd(), 'test', 'json', 'Card');
+        firstPrintings = new Map();
+        for (const file of readdirSync(cardDir)) {
+            const card = JSON.parse(readFileSync(join(cardDir, file), 'utf8'));
+            if (card.setCodes?.length > 0) {
+                firstPrintings.set(card.id, card.setCodes[0]);
+            }
+        }
+    }
+    return firstPrintings.get(cardId);
+};
+
+/**
+ * Makes a state the same on every run and every machine:
+ * - generated uuids become `uuid-1`, `uuid-2`, … in order of first appearance, so a uuid has the
+ *   same name throughout a file, and a message in a chain names the same prompt as the state it
+ *   answers;
+ * - a card's `setId` becomes its first printing, so a reprint doesn't change the snapshot;
+ * - chat is left out.
  */
 const normalize = (value: unknown): unknown => {
     const uuids = new Map<string, string>();
@@ -86,6 +103,9 @@ const normalize = (value: unknown): unknown => {
                     result[key.replace(UuidPattern, stableUuid)] = visit(grandchild);
                 }
             }
+            if ('setId' in result && typeof result.id === 'string') {
+                result.setId = firstPrinting(result.id) ?? result.setId;
+            }
             return result;
         }
         return child;
@@ -94,32 +114,8 @@ const normalize = (value: unknown): unknown => {
     return visit(value);
 };
 
-const assertCapturing = (): CaptureMode => {
-    const mode = captureMode();
-    if (!mode) {
-        throw new Error('state capture runs only under `npm run capture-states`');
-    }
-    return mode;
-};
-
-/** Writes or checks one snapshot file, at `relativePath` under the snapshot root. */
-const recordSnapshot = (mode: CaptureMode, relativePath: string, content: unknown) => {
-    if (capturedFiles.has(relativePath)) {
-        throw new Error(`state snapshot ${relativePath} is captured twice; give each capture its own name`);
-    }
-    capturedFiles.add(relativePath);
-
-    const path = join(SnapshotRoot, relativePath);
-    const actual = JSON.stringify(normalize(content), null, 2) + '\n';
-    if (mode === CaptureMode.Update) {
-        mkdirSync(dirname(path), { recursive: true });
-        writeFileSync(path, actual);
-    } else if (!existsSync(path)) {
-        mismatches.push(`${relativePath}: missing`);
-    } else if (readFileSync(path, 'utf8') !== actual) {
-        mismatches.push(`${relativePath}: differs from what the engine sends`);
-    }
-};
+/** A snapshot's file contents. Round-tripped through JSON first, as the socket does to a state. */
+const serialize = (value: unknown) => JSON.stringify(normalize(JSON.parse(JSON.stringify(value))), null, 2) + '\n';
 
 /**
  * Saves the state each named participant would be sent right now, as
@@ -129,9 +125,9 @@ const recordSnapshot = (mode: CaptureMode, relativePath: string, content: unknow
  * does, so call this at the moments a client would actually receive a state.
  */
 export const captureState = (game: CapturedGame, name: string, participants: Participant[]) => {
-    const mode = assertCapturing();
+    const run = SnapshotRun.get();
     for (const participant of participants) {
-        recordSnapshot(mode, `render/${name}.${participant}.json`, game.getState(Participants[participant]));
+        run.record(`render/${name}.${participant}.json`, serialize(game.getState(Participants[participant])));
     }
 };
 
@@ -141,17 +137,25 @@ interface IChainStep {
     send: GameMessage[];
 }
 
+/** Games with a chain recording, since a second chain would replace the first one's recorders. */
+const gamesWithChain = new WeakSet<CapturedGame>();
+
 /**
  * Starts a chain saved as `test/stateSnapshots/controls/<name>.json`. Call `step(participant)` at
  * each moment that participant receives a state; every message they send before the next step is
- * recorded as that step's `send`. Call `save()` after the last step.
+ * recorded as that step's `send`. Call `save()` after the last step, which sends nothing.
  *
  * The messages are recorded from the game commands the test harness calls, which are the ones
  * `Lobby` calls for a client's `game` socket message, so each `send` is exactly what moved the
  * engine on to the next state.
  */
 export const captureChain = (game: CapturedGame, name: string) => {
-    const mode = assertCapturing();
+    const run = SnapshotRun.get();
+    if (gamesWithChain.has(game)) {
+        throw new Error(`chain ${name}: this game already has a chain recording; save it first`);
+    }
+    gamesWithChain.add(game);
+
     const steps: IChainStep[] = [];
     const originals = RecordedCommands.map((command) => [command, game[command]] as const);
 
@@ -164,7 +168,14 @@ export const captureChain = (game: CapturedGame, name: string) => {
             if (Participants[step.participant] !== playerId) {
                 throw new Error(`chain ${name}: '${command}' was sent by ${playerId}, but the step is ${step.participant}'s`);
             }
-            step.send.push([command, ...args]);
+
+            // the harness passes arguments a client leaves off as undefined
+            const sent = [...args];
+            while (sent.length > 0 && sent[sent.length - 1] === undefined) {
+                sent.pop();
+            }
+            step.send.push([command, ...sent]);
+
             return original.call(game, playerId, ...args);
         };
     }
@@ -179,7 +190,15 @@ export const captureChain = (game: CapturedGame, name: string) => {
             for (const [command, original] of originals) {
                 game[command] = original;
             }
-            recordSnapshot(mode, `controls/${name}.json`, { steps });
+            gamesWithChain.delete(game);
+
+            if (steps.length < 2) {
+                throw new Error(`chain ${name}: a chain needs at least two steps, a state and the state its messages lead to`);
+            }
+            if (steps[steps.length - 1].send.length > 0) {
+                throw new Error(`chain ${name}: messages were sent after the last step; take a step for the state they lead to`);
+            }
+            run.record(`controls/${name}.json`, serialize({ steps }));
         },
     };
 };

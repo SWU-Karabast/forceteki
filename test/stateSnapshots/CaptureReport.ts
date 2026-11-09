@@ -1,38 +1,35 @@
-// Jasmine helper for `npm run capture-states`: after every capture spec has run, fails the run on
-// any snapshot that differs from the engine's output, and finds snapshots no spec produces anymore.
+// Jasmine helper for `npm run capture-states`: once every capture spec has run, fails the run on any
+// snapshot that is out of date, and in update mode deletes snapshots no spec produces anymore.
 
-import { readdirSync, rmSync, statSync } from 'fs';
-import { join, relative } from 'path';
-import { CaptureMode, captureMode, capturedFiles, mismatches, SnapshotRoot } from './StateCapture';
+import { SnapshotRun } from './SnapshotRun';
 
-const committedSnapshots = (dir: string): string[] => readdirSync(dir).flatMap((entry) => {
-    const path = join(dir, entry);
-    if (statSync(path).isDirectory()) {
-        return committedSnapshots(path);
-    }
-    return entry.endsWith('.json') ? [relative(SnapshotRoot, path)] : [];
-});
+// Specs that were skipped (`xit`, `pending()`) or left out by a focused one never reached their
+// captures, so their files look stale and the run can't say whether the snapshots are current
+const specsNotRun: string[] = [];
 
-// A capture spec that fails partway never reaches its later captures, so its files would look stale
-let anySpecFailed = false;
 jasmine.getEnv().addReporter({
     specDone: (result) => {
-        anySpecFailed ||= result.status === 'failed';
+        if (result.status === 'pending' || result.status === 'excluded') {
+            specsNotRun.push(result.fullName);
+        }
+    },
+
+    // Deleting waits for the whole run to have passed: a spec that failed partway, or a suite that
+    // failed to load, never reached its captures either
+    jasmineDone: (result) => {
+        if (result.overallStatus === 'passed') {
+            SnapshotRun.get().deleteStaleFiles();
+        }
     },
 });
 
 afterAll(function () {
-    const mode = captureMode();
-    const stale = committedSnapshots(SnapshotRoot).filter((file) => !capturedFiles.has(file));
-
-    if (mode === CaptureMode.Update) {
-        if (!anySpecFailed) {
-            stale.forEach((file) => rmSync(join(SnapshotRoot, file)));
-        }
+    if (specsNotRun.length > 0) {
+        fail(`Every capture spec must run, but these did not:\n  ${specsNotRun.join('\n  ')}`);
         return;
     }
 
-    const problems = [...mismatches, ...stale.map((file) => `${file}: no capture spec produces it anymore`)];
+    const problems = SnapshotRun.get().problems();
     if (problems.length > 0) {
         fail(`State snapshots are out of date. If the change is intended, run \`npm run capture-states -- --update\` and commit the result.\n  ${problems.join('\n  ')}`);
     }
