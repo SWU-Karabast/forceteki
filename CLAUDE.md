@@ -157,7 +157,7 @@ Do not cast to `any` to reach into `GameServer` or `Lobby` (ESLint errors on `as
 
 Rules:
 
-- `npm run capture-states -- --check` (CI) fails when the engine no longer produces exactly the committed files, or when a committed file has no capture producing it. `--update` rewrites them; add `--fast-build` to skip the full rebuild.
+- `npm run capture-states -- --check` (CI) fails when the engine no longer produces exactly the committed files, or when a committed file has no capture producing it. `--update` rewrites them.
 - A change to what `getState` returns, or to the messages a prompt accepts, must commit the regenerated snapshots in the same PR. Never edit them by hand; re-run `--update`, including to resolve a merge conflict in them.
 - A board situation no capture covers gets added in the PR that introduces it: a new card state goes on an existing render board, a new kind of prompt gets a control chain.
 - Capture specs are not run by `npm test` and are not part of either jasmine group; `jasmine-capture.json` runs them.
