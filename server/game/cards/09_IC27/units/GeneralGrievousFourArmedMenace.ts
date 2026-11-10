@@ -6,7 +6,7 @@ import { CardType, WildcardCardType } from '../../../core/Constants';
 export default class GeneralGrievousFourArmedMenace extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'general-grievous#fourarmed-menace-id',
+            id: '6610690494',
             internalName: 'general-grievous#fourarmed-menace',
         };
     }
