@@ -5,7 +5,7 @@ import type { IAbilityHelper } from '../../../AbilityHelper';
 export default class TheInquisitorsTIEWouldRatherWin extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'the-inquisitors-tie#would-rather-win-id',
+            id: '6795762729',
             internalName: 'the-inquisitors-tie#would-rather-win',
         };
     }

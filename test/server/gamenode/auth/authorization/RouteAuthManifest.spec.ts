@@ -52,7 +52,7 @@ describe('Route authentication manifest', function () {
 
                 expect(listed.filter((route, index) => listed.indexOf(route) !== index)).toEqual([]);
             });
-        }, { recordRoutes: true, database: true });
+        }, { recordRoutes: true });
     });
 
     describe('a caller with no credentials', function () {
@@ -83,7 +83,7 @@ describe('Route authentication manifest', function () {
                     }
                 });
             }
-        }, { database: true });
+        });
     });
 
     describe('a signed-in caller', function () {
@@ -101,7 +101,7 @@ describe('Route authentication manifest', function () {
                         .not.toContain(response.status);
                 });
             }
-        }, { database: true });
+        });
     });
 
     describe('role-gated routes', function () {
@@ -155,6 +155,6 @@ describe('Route authentication manifest', function () {
                     expect(response.status).toBe(404);
                 });
             }
-        }, { database: true, recordRoutes: true, env: { ENVIRONMENT: 'production' } });
+        }, { recordRoutes: true, env: { ENVIRONMENT: 'production' } });
     });
 });

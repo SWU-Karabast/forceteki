@@ -3,9 +3,7 @@ import { TokenCardName, TokenUnitName, TokenUpgradeName } from '../../game/core/
 import { Contract } from '../../game/core/utils/Contract';
 import type { ICardDataJson, ICardMap, ICardMapEntry, ICardMapJson } from './CardDataInterfaces';
 
-export type ITokenCardsData = {
-    [TokenNameValue in TokenName]: ICardDataJson;
-};
+export type ITokenCardsData = Record<TokenName, ICardDataJson>;
 
 export abstract class CardDataGetter {
     public readonly cardMap: ICardMap;

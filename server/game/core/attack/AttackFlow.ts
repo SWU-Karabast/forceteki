@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { DamageType, EventName } from '../Constants';
-import type { Attack } from './Attack';
+import { RelativeDamageTiming, type Attack } from './Attack';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
 import { EnumHelpers } from '../utils/EnumHelpers';
@@ -11,6 +11,14 @@ import { TriggerHandlingMode } from '../event/EventWindow';
 import { DamageSystem } from '../../gameSystems/DamageSystem';
 import type { IAttackableCard } from '../card/CardInterfaces';
 import { Contract } from '../utils/Contract';
+import type { Player } from '../Player';
+
+interface IResolvedRelativeDamageTiming {
+    timing: RelativeDamageTiming;
+
+    /** The player who chose this timing, if effects conflicted on which unit deals combat damage first */
+    choosingPlayer?: Player;
+}
 
 export class AttackFlow extends BaseStepWithPipeline {
     private context: AbilityContext;
@@ -121,97 +129,27 @@ export class AttackFlow extends BaseStepWithPipeline {
             }
         }
 
-        const damageEvents: GameEvent[] = [];
-
         // TSTODO: This will need to be updated to account for attacking units owned by different opponents
         const targetControllerBase = this.attack.getDefendingPlayer().base;
 
-        if (directOverwhelmDamage > 0) {
-            damageEvents.push(new DamageSystem({
+        const directOverwhelmDamageEvent = directOverwhelmDamage > 0
+            ? new DamageSystem({
                 type: DamageType.Overwhelm,
                 amount: directOverwhelmDamage,
                 sourceAttack: this.attack,
                 target: targetControllerBase
-            }).generateEvent(this.context));
-        }
+            }).generateEvent(this.context)
+            : null;
 
         if (inPlayTargets.length > 0) {
-            const attackerDealsDamageFirst = this.attack.attackerDealsCombatDamageFirst();
-            const anyDefenderDealsDamageFirst = this.attack.anyTargetDealsCombatDamageFirst();
+            const relativeDamageTimings = this.resolveRelativeDamageTimings(inPlayTargets);
 
-            Contract.assertFalse(attackerDealsDamageFirst && anyDefenderDealsDamageFirst, 'Attack cannot have both attacker and defender(s) dealing damage first');
-
-            if (attackerDealsDamageFirst) {
-                // Attacker deals damage first
-                const attackerDamageEvents = inPlayTargets
-                    .map((target) => this.createAttackerDamageEvent(target))
-                    .filter((event) => event !== null);
-                damageEvents.push(...attackerDamageEvents);
-
-                this.context.game.openEventWindow(damageEvents);
-                this.context.game.queueSimpleStep(() => {
-                    const events: GameEvent[] = [attackCompleteEvent];
-
-                    if (inPlayTargets.some((target) => !target.isBase() && target.isInPlay())) {
-                        const defenderDamageEvent = this.createDefenderDamageEvent(false);
-                        if (defenderDamageEvent !== null) {
-                            events.push(defenderDamageEvent);
-                        }
-                    }
-
-                    this.context.game.openEventWindow(events);
-                }, 'defender damage after attacker');
-            } else if (anyDefenderDealsDamageFirst) {
-                // Some/all defenders deal damage first
-                const earlyDefenderDamageEvent = this.createDefenderDamageEvent(true);
-                if (earlyDefenderDamageEvent !== null) {
-                    damageEvents.push(earlyDefenderDamageEvent);
-                }
-
-                this.context.game.openEventWindow(damageEvents);
-                this.context.game.queueSimpleStep(() => {
-                    const normalDamageEvents: GameEvent[] = [attackCompleteEvent];
-
-                    // Attacker damages all targets if still alive
-                    if (this.attack.isAttackerLegal()) {
-                        const attackerDamageEvents = inPlayTargets
-                            .filter((target) => target.isBase() || target.isInPlay())
-                            .map((target) => this.createAttackerDamageEvent(target))
-                            .filter((event) => event !== null);
-                        normalDamageEvents.push(...attackerDamageEvents);
-                    }
-
-                    // Normal defenders deal damage if any are still alive
-                    if (inPlayTargets.some((target) => !target.isBase() && target.isInPlay() && !this.attack.targetDealsCombatDamageFirst(target))) {
-                        const normalDefenderDamageEvent = this.createDefenderDamageEvent();
-                        if (normalDefenderDamageEvent !== null) {
-                            normalDamageEvents.push(normalDefenderDamageEvent);
-                        }
-                    }
-
-                    this.context.game.openEventWindow(normalDamageEvents);
-                }, 'attacker and normal defender damage');
-            } else {
-                // Normal attack - all damage simultaneous
-                const attackerDamageEvents = inPlayTargets
-                    .map((target) => this.createAttackerDamageEvent(target))
-                    .filter((event) => event !== null);
-                damageEvents.push(...attackerDamageEvents);
-
-                damageEvents.push(attackCompleteEvent);
-
-                if (inPlayTargets.some((target) => !target.isBase())) {
-                    const defenderDamageEvent = this.createDefenderDamageEvent();
-                    if (defenderDamageEvent !== null) {
-                        damageEvents.push(defenderDamageEvent);
-                    }
-                }
-                this.context.game.openEventWindow(damageEvents);
-            }
-        } else if (directOverwhelmDamage > 0) {
-            damageEvents.push(attackCompleteEvent);
-
-            this.context.game.openEventWindow(damageEvents);
+            this.context.game.queueSimpleStep(() => {
+                this.logCombatDamageOrder(inPlayTargets, relativeDamageTimings);
+                this.queueCombatDamageWindows(inPlayTargets, relativeDamageTimings, directOverwhelmDamageEvent, attackCompleteEvent);
+            }, 'queue combat damage windows');
+        } else if (directOverwhelmDamageEvent !== null) {
+            this.context.game.openEventWindow([directOverwhelmDamageEvent, attackCompleteEvent]);
         } else {
             // Every legal target has left play (e.g. defeated by a debuff from "While this unit
             // is attacking..." abilities) and the attacker has no Overwhelm to redirect damage
@@ -219,6 +157,134 @@ export class AttackFlow extends BaseStepWithPipeline {
             this.context.game.addMessage('The attack does not resolve because there is no longer a legal target');
             this.context.game.openEventWindow(attackCompleteEvent);
         }
+    }
+
+    /**
+     * Determines when each target deals combat damage relative to the attacker. If effects conflict on who
+     * deals damage first (e.g. both units have "deals combat damage after the other unit"), the active player
+     * is prompted to choose. The returned map is populated by the time the next queued step runs.
+     */
+    private resolveRelativeDamageTimings(targets: IAttackableCard[]): Map<IAttackableCard, IResolvedRelativeDamageTiming> {
+        const timings = new Map<IAttackableCard, IResolvedRelativeDamageTiming>();
+
+        for (const target of targets) {
+            const timing = this.attack.getRelativeDamageTiming(target);
+
+            if (timing === RelativeDamageTiming.Conflict) {
+                this.promptForDamageOrder(target, (chosenTiming, choosingPlayer) => timings.set(target, { timing: chosenTiming, choosingPlayer }));
+            } else {
+                timings.set(target, { timing });
+            }
+        }
+
+        return timings;
+    }
+
+    private promptForDamageOrder(target: IAttackableCard, onChosen: (timing: RelativeDamageTiming, choosingPlayer: Player) => void): void {
+        const choosingPlayer = this.game.getActivePlayer();
+
+        this.game.promptWithHandlerMenu(choosingPlayer, {
+            activePromptTitle: 'Multiple abilities conflict over combat damage timing. Choose which unit deals combat damage first:',
+            waitingPromptTitle: 'Waiting for opponent to choose which unit deals combat damage first',
+            choices: [`${this.attack.attacker.title} (attacker)`, `${target.title} (defender)`],
+            handlers: [
+                () => onChosen(RelativeDamageTiming.AttackerBeforeDefender, choosingPlayer),
+                () => onChosen(RelativeDamageTiming.DefenderBeforeAttacker, choosingPlayer)
+            ]
+        });
+    }
+
+    /**
+     * Logs the combat damage order for each defender that does not deal damage at the same time as the attacker,
+     * including the player who chose the order if it was chosen.
+     */
+    private logCombatDamageOrder(targets: IAttackableCard[], timings: Map<IAttackableCard, IResolvedRelativeDamageTiming>): void {
+        const attacker = this.attack.attacker;
+
+        for (const target of targets) {
+            const { timing, choosingPlayer } = timings.get(target);
+
+            if (timing === RelativeDamageTiming.Simultaneous) {
+                continue;
+            }
+
+            const [firstUnit, secondUnit] = timing === RelativeDamageTiming.AttackerBeforeDefender
+                ? [{ card: attacker, role: 'attacker' }, { card: target, role: 'defender' }]
+                : [{ card: target, role: 'defender' }, { card: attacker, role: 'attacker' }];
+
+            if (choosingPlayer) {
+                this.game.addMessage(
+                    `{0} chooses for {1} (${firstUnit.role}) to deal combat damage before {2} (${secondUnit.role})`,
+                    choosingPlayer,
+                    firstUnit.card,
+                    secondUnit.card
+                );
+            } else {
+                this.game.addMessage(
+                    `{0} (${firstUnit.role}) deals combat damage before {1} (${secondUnit.role})`,
+                    firstUnit.card,
+                    secondUnit.card
+                );
+            }
+        }
+    }
+
+    /**
+     * Queues up to three windows of combat damage: defenders that deal damage before the attacker, then the attacker
+     * along with any defenders dealing damage at the same time, then defenders that deal damage after the attacker.
+     * The attack ends in the same window as the final combat damage.
+     */
+    private queueCombatDamageWindows(
+        inPlayTargets: IAttackableCard[],
+        relativeDamageTimings: Map<IAttackableCard, IResolvedRelativeDamageTiming>,
+        directOverwhelmDamageEvent: GameEvent | null,
+        attackCompleteEvent: GameEvent
+    ): void {
+        const defendersWithTiming = (timing: RelativeDamageTiming) =>
+            inPlayTargets.filter((target) => relativeDamageTimings.get(target)?.timing === timing);
+
+        const defendersBeforeAttacker = defendersWithTiming(RelativeDamageTiming.DefenderBeforeAttacker);
+        const defendersWithAttacker = defendersWithTiming(RelativeDamageTiming.Simultaneous);
+        const defendersAfterAttacker = defendersWithTiming(RelativeDamageTiming.AttackerBeforeDefender);
+
+        Contract.assertTrue(
+            defendersBeforeAttacker.length + defendersWithAttacker.length + defendersAfterAttacker.length === inPlayTargets.length,
+            'Combat damage timing was not resolved for every attack target'
+        );
+
+        const damageWindows: (() => GameEvent[])[] = [];
+
+        if (defendersBeforeAttacker.length > 0) {
+            damageWindows.push(() => this.createDefenderDamageEvents(defendersBeforeAttacker));
+        }
+
+        damageWindows.push(() => {
+            const events = this.attack.isAttackerLegal()
+                ? [
+                    ...(directOverwhelmDamageEvent === null ? [] : [directOverwhelmDamageEvent]),
+                    ...inPlayTargets
+                        .filter((target) => this.attack.isTargetStillInPlay(target))
+                        .map((target) => this.createAttackerDamageEvent(target))
+                        .filter((event) => event !== null)
+                ]
+                : [];
+
+            return [...events, ...this.createDefenderDamageEvents(defendersWithAttacker)];
+        });
+
+        if (defendersAfterAttacker.length > 0) {
+            damageWindows.push(() => this.createDefenderDamageEvents(defendersAfterAttacker));
+        }
+
+        damageWindows.forEach((createEvents, index) => {
+            this.context.game.queueSimpleStep(() => {
+                const events = createEvents();
+                if (index === damageWindows.length - 1) {
+                    events.push(attackCompleteEvent);
+                }
+                this.context.game.openEventWindow(events);
+            }, `combat damage window ${index + 1}`);
+        });
     }
 
     private createAttackerDamageEvent(target: IAttackableCard): GameEvent | null {
@@ -258,22 +324,29 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     /**
-     * Create a damage event for defenders dealing damage to the attacker.
-     * @param earlyCombatDamageOnly - `true`: only include damage for defenders that deal damage first, `false`: only include damage for defenders that don't deal damage first
+     * Create the damage event for the given defenders dealing their combat damage to the attacker, skipping any
+     * defenders that have left play. Returns an empty list if there is no damage to deal.
      */
-    private createDefenderDamageEvent(earlyCombatDamageOnly: boolean = false): GameEvent | null {
-        const combatDamage = this.attack.getTargetCombatDamage(this.context, earlyCombatDamageOnly);
-
-        if (combatDamage === null || combatDamage === 0) {
-            return null;
+    private createDefenderDamageEvents(defenders: IAttackableCard[]): GameEvent[] {
+        if (!this.attack.isAttackerLegal()) {
+            return [];
         }
 
-        return new DamageSystem({
-            type: DamageType.Combat,
-            amount: combatDamage,
-            sourceAttack: this.attack,
-            target: this.attack.attacker
-        }).generateEvent(this.context);
+        const defendersInPlay = defenders.filter((target) => !target.isBase() && this.attack.isTargetStillInPlay(target));
+        const combatDamage = this.attack.getTargetCombatDamage(this.context, defendersInPlay);
+
+        if (combatDamage === 0) {
+            return [];
+        }
+
+        return [
+            new DamageSystem({
+                type: DamageType.Combat,
+                amount: combatDamage,
+                sourceAttack: this.attack,
+                target: this.attack.attacker
+            }).generateEvent(this.context)
+        ];
     }
 
     private cleanUpAttack() {

@@ -14,7 +14,7 @@ export default class DetachedOngoingEffectValueWrapper<TValue> extends OngoingEf
     public readonly unapplyFunc: any;
 
     @stateRefMap()
-    private accessor _targetStates: Map<string, GameObjectBase> = new Map();
+    private accessor _targetStates = new Map<string, GameObjectBase>();
 
     public get targetStates(): ReadonlyMap<string, GameObjectBase> {
         return this._targetStates;

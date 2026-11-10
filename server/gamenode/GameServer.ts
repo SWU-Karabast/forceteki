@@ -12,7 +12,7 @@ import { cpus, freemem } from 'os';
 import {
     constants as NodePerfConstants,
     type EventLoopUtilization,
-    type IntervalHistogram,
+    type ELDHistogram,
     monitorEventLoopDelay,
     performance,
     PerformanceObserver
@@ -20,7 +20,7 @@ import {
 import { jsonOnlyLogger, logger } from '../logger';
 import { Lobby, MatchmakingType } from './Lobby';
 import Socket from '../socket';
-import type { User } from '../utils/user/User';
+import type { AuthenticatedUser, User } from '../utils/user/User';
 import * as env from '../env';
 import { requireEnvVars } from '../env';
 import type { Deck } from '../utils/deck/Deck';
@@ -38,7 +38,7 @@ import { QueueHandler } from './QueueHandler';
 import { getMatchmakingSearchContext } from './MatchmakingRules';
 import type { IMatchmakingSearchContext } from './MatchmakingRules';
 import { Helpers } from '../game/core/utils/Helpers';
-import { authMiddleware } from '../middleware/AuthMiddleWare';
+import { authMiddleware, getSessionToken } from '../middleware/AuthMiddleWare';
 import { ServerRoleUsersCache } from '../utils/ServerRoleUsersCache';
 import { ServerSettingsCache } from '../utils/ServerSettingsCache';
 import { UserFactory } from '../utils/user/UserFactory';
@@ -50,10 +50,10 @@ import { GameServerMetrics } from '../utils/GameServerMetrics';
 import { EnumHelpers } from '../game/core/utils/EnumHelpers';
 import { DiscordDispatcher } from './DiscordDispatcher';
 import { checkServerRoleUserPrivileges } from '../utils/authUtils';
-import { CosmeticsService } from '../utils/cosmetics/CosmeticsService';
+import { CosmeticAlreadyExistsError, CosmeticsService } from '../utils/cosmetics/CosmeticsService';
 import { RegisteredCosmeticType } from '../utils/cosmetics/CosmeticsInterfaces';
+import type { ICosmeticEntity } from '../utils/cosmetics/CosmeticsInterfaces';
 import type { IActiveModActionCacheEntry,
-    IDeckDataEntity,
     IModerationAction,
     IReportingDisabledState,
     IUsernameChangesBlockedState } from '../services/DynamoDBInterfaces';
@@ -70,7 +70,15 @@ import { SwuBaseHandler } from '../utils/statHandlers/SwuBaseHandler';
 import { RefreshTokenSource } from '../utils/statHandlers/StatHandlerTypes';
 import { ModActionService } from '../utils/ModActionService';
 import { ModActionSubmissionHandler } from '../utils/ModActionSubmissionHandler';
-import { ModActionSubmitSchema, ModActionCancelSchema, FindUserSchema, ServerSettingsUpdateSchema } from '../services/DynamoDBInterfaceSchemas';
+import {
+    CosmeticCreateRequestSchema,
+    DeckNameSchema,
+    FindUserSchema,
+    ModActionCancelSchema,
+    ModActionSubmitSchema,
+    SaveDeckRequestSchema,
+    ServerSettingsUpdateSchema
+} from '../services/DynamoDBInterfaceSchemas';
 import type { IScheduledTask, IScheduler } from '../utils/IScheduler';
 import { minimumSchedulerDelayMs } from '../utils/IScheduler';
 import { RealScheduler } from '../utils/RealScheduler';
@@ -111,8 +119,6 @@ export interface IRawGameSocket {
     on(event: string, listener: (...args: any[]) => void): this;
     removeAllListeners(event?: string): this;
     eventNames(): (string | symbol)[];
-    join(room: string): any;
-    leave(room: string): any;
     disconnect(close?: boolean): this;
 }
 
@@ -254,6 +260,13 @@ export class GameServer {
         // increase stack trace limit for better error logging
         Error.stackTraceLimit = 50;
 
+        const userFactory = new UserFactory();
+        if (process.env.ENVIRONMENT === 'development') {
+            console.log('SETUP: Initializing development test users.');
+            await userFactory.ensureDevelopmentTestUsersAsync();
+            console.log('SETUP: Development test users initialized.');
+        }
+
         return new GameServer(
             cardDataGetter,
             deckValidator,
@@ -261,7 +274,9 @@ export class GameServer {
             serverSettingsCache,
             cosmeticsService,
             modActionCache,
-            testGameBuilder
+            testGameBuilder,
+            {},
+            userFactory
         );
     }
 
@@ -294,7 +309,7 @@ export class GameServer {
     private readonly queue: QueueHandler;
     private lastCpuUsage: NodeJS.CpuUsage;
     private lastCpuUsageTime: bigint;
-    private loopDelayHistogram: IntervalHistogram;
+    private loopDelayHistogram: ELDHistogram;
     private lastLoopUtilization: EventLoopUtilization;
     private matchmakingRetryTask?: IScheduledTask;
     private matchmakingInProgress = false;
@@ -318,7 +333,7 @@ export class GameServer {
         intervalStartTime: 0
     };
 
-    private readonly userFactory: UserFactory = new UserFactory();
+    private readonly userFactory: UserFactory;
     public readonly deckService: DeckService = new DeckService();
     public readonly cosmeticsService?: CosmeticsService;
     public readonly swuStatsHandler: SwuStatsHandler;
@@ -340,12 +355,14 @@ export class GameServer {
 
     /**
      * Moderation state lives in the mod action cache; if it is missing we cannot evaluate restrictions
-     * at all. Callers degrade to "unrestricted", so log loudly to make a misconfiguration visible
-     * rather than silently permissive.
+     * at all. Only local development without DynamoDB may run without this service.
      */
     private getModActionService(context: string): ModActionService | null {
         if (!this.modActionService) {
-            logger.error(`GameServer (${context}): mod action service unavailable, moderation state cannot be evaluated`);
+            Contract.assertTrue(
+                process.env.ENVIRONMENT === 'development' && process.env.USE_LOCAL_DYNAMODB !== 'true',
+                `GameServer (${context}): mod action service unavailable`
+            );
             return null;
         }
         return this.modActionService;
@@ -359,7 +376,8 @@ export class GameServer {
         cosmeticsService?: CosmeticsService,
         modActionCache?: ModActionService,
         testGameBuilder?: any,
-        options: IGameServerOptions = {}
+        options: IGameServerOptions = {},
+        userFactory?: UserFactory
     ) {
         const {
             listen = true,
@@ -387,6 +405,7 @@ export class GameServer {
         this.serverSettingsCache = serverSettingsCache;
         this.cosmeticsService = cosmeticsService;
         this.modActionService = modActionCache;
+        this.userFactory = userFactory ?? new UserFactory();
         this.modActionSubmissionHandler = modActionCache ? new ModActionSubmissionHandler(modActionCache, this.userFactory) : undefined;
 
         const corsOptions = {
@@ -449,6 +468,13 @@ export class GameServer {
             () => this.cleanupInvalidTokens(),
             3600000, // 1 hour
             { message: 'GameServer: error during token cleanup' }
+        );
+
+        // report how the account cache is doing, to judge its sizing
+        this.scheduler.setInterval(
+            () => logger.info('GameServer: user cache stats', this.userFactory.cache.consumeStats()),
+            3600000, // 1 hour
+            { message: 'GameServer: error logging user cache stats' }
         );
 
         // Setup socket server
@@ -570,9 +596,42 @@ export class GameServer {
 
         // *** Start of User Object calls ***
 
+        // Establishes the account for a signed-in session that does not have one yet. Safe to call again:
+        // an existing account is simply returned.
+        app.post('/api/create-user', async (req, res, next) => {
+            try {
+                const token = getSessionToken(req);
+                if (!token) {
+                    return res.status(401).json({ success: false, message: 'Authentication required' });
+                }
+
+                let user: AuthenticatedUser;
+                try {
+                    user = await this.userFactory.createUserFromTokenAsync(token);
+                } catch (error) {
+                    logger.error('GameServer (create-user): could not establish the account from the session', { error: { message: error.message, stack: error.stack } });
+                    return res.status(401).json({ success: false, message: 'Authentication failed' });
+                }
+
+                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername() } });
+            } catch (err) {
+                logger.error('GameServer (create-user) Server error:', err);
+                next(err);
+            }
+        });
+
         app.post('/api/get-user', this.buildAuthMiddleware('get-user'), async (req, res, next) => {
             try {
                 const user = req.user as User;
+
+                // get-user is the call the client makes when it syncs a session, so this is where a sign-in is recorded
+                if (user.isAuthenticatedUser()) {
+                    try {
+                        await this.userFactory.recordLoginAsync(user.getId());
+                    } catch (error) {
+                        logger.error('GameServer (get-user): could not record login', { error: { message: error.message, stack: error.stack }, userId: user.getId() });
+                    }
+                }
 
                 // Start with legacy values (backwards compatibility)
                 let moderation = user.getModeration();
@@ -989,10 +1048,11 @@ export class GameServer {
         });
 
         // SWUSTATS
-        // This endpoint is being called by the FE server and not the client which is why we are authenticating the server.
-        app.post('/api/link-swustats', async (req, res, next) => {
+        // This endpoint is called by the FE server, which forwards the user's session token. The account is the one
+        // that token belongs to, and the shared secret additionally shows the call came from the FE server.
+        app.post('/api/link-swustats', this.buildAuthMiddleware('link-swustats'), async (req, res, next) => {
             try {
-                const { userId, swuStatsToken, internalApiKey } = req.body;
+                const { swuStatsToken, internalApiKey } = req.body;
                 if (process.env.ENVIRONMENT === 'development' && !process.env.INTRASERVICE_SECRET) {
                     throw new Error('Environment variable INTRASERVICE_SECRET not set');
                 }
@@ -1002,6 +1062,11 @@ export class GameServer {
                         message: 'Forbidden'
                     });
                 }
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    return res.status(401).json({ success: false, message: 'Authentication required' });
+                }
+                const userId = user.getId();
                 // We test the refresh token if it correctly returns a new access token.
                 const newRefreshToken = await this.swuStatsHandler.refreshTokensAsync(swuStatsToken.refreshToken);
                 await this.userFactory.addRefreshTokenAsync(userId, newRefreshToken.refreshToken, RefreshTokenSource.SWUStats);
@@ -1040,10 +1105,11 @@ export class GameServer {
         });
 
         // SWUBASE
-        // This endpoint is being called by the FE server and not the client which is why we are authenticating the server.
-        app.post('/api/link-swubase', async (req, res, next) => {
+        // This endpoint is called by the FE server, which forwards the user's session token. The account is the one
+        // that token belongs to, and the shared secret additionally shows the call came from the FE server.
+        app.post('/api/link-swubase', this.buildAuthMiddleware('link-swubase'), async (req, res, next) => {
             try {
-                const { userId, linkToken, internalApiKey } = req.body;
+                const { linkToken, expectedUserId, internalApiKey } = req.body;
                 if (process.env.ENVIRONMENT === 'development' && !process.env.INTRASERVICE_SECRET) {
                     throw new Error('Environment variable INTRASERVICE_SECRET not set');
                 }
@@ -1052,6 +1118,16 @@ export class GameServer {
                         success: false,
                         message: 'Forbidden'
                     });
+                }
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    return res.status(401).json({ success: false, message: 'Authentication required' });
+                }
+                const userId = user.getId();
+                // The id comes from the callback URL, so this only catches a mismatch with the signed-in account;
+                // it does not show where the link was started.
+                if (expectedUserId !== userId) {
+                    return res.status(403).json({ success: false, message: 'Forbidden' });
                 }
                 // We test the refresh token if it correctly returns a new access token.
                 const newRefreshToken = await this.swuBaseHandler.linkAccountAsync(linkToken, userId);
@@ -1091,19 +1167,17 @@ export class GameServer {
             }
         });
 
-        app.put('/api/user/:userId/preferences', this.buildAuthMiddleware('PUT-preferences'), async (req, res, next) => {
+        app.put('/api/user/preferences', this.buildAuthMiddleware('PUT-preferences'), async (req, res, next) => {
             try {
                 const { preferences } = req.body;
-                const { userId } = req.params;
                 const user = req.user as User;
-                if (user.isAnonymousUser() || userId !== user.getId()) {
-                    logger.error(`GameServer (PUT-preferences): User ${user.getId()} attempted to save preferences for user ${userId}`);
-                    return res.status(user.isAnonymousUser() ? 401 : 403).json({
+                if (user.isAnonymousUser()) {
+                    return res.status(401).json({
                         success: false,
                         message: 'Error attempting to save preferences'
                     });
                 }
-                await this.userFactory.updateUserPreferencesAsync(userId, preferences);
+                await this.userFactory.updateUserPreferencesAsync(user.getId(), preferences);
                 return res.status(200).json({
                     success: true,
                     message: 'Preferences saved successfully',
@@ -1237,7 +1311,6 @@ export class GameServer {
             try {
                 const user = req.user as User;
                 const { deckId } = req.params;
-                const { newName } = req.body;
 
                 if (user.isAnonymousUser()) {
                     logger.error(`GameServer (rename-deck): Authentication error for anonymous user ${user.getId()}`);
@@ -1245,8 +1318,14 @@ export class GameServer {
                         message: 'Server error'
                     });
                 }
+
+                const newName = DeckNameSchema.safeParse(req.body?.newName);
+                if (!newName.success) {
+                    return res.status(400).json({ message: 'The new name must be a string' });
+                }
+
                 try {
-                    const renameResponse = await this.deckService.updateDeckNameAsync(user.getId(), deckId, newName);
+                    const renameResponse = await this.deckService.updateDeckNameAsync(user.getId(), deckId, newName.data);
                     if (renameResponse) {
                         return res.status(200).json({});
                     }
@@ -1322,7 +1401,7 @@ export class GameServer {
                     });
                 }
 
-                let deckEntity: IDeckDataEntity;
+                let requestedDeck: unknown;
                 if (typeof swudbLink === 'string' && swudbLink.trim().length > 0) {
                     let resolved;
                     try {
@@ -1334,28 +1413,29 @@ export class GameServer {
                         logger.error('GameServer (save-deck): unexpected error resolving deck link', err);
                         return res.status(500).json({ success: false, error: 'Failed to resolve deck link' });
                     }
-                    deckEntity = {
-                        id: '',
-                        userId: user.getId(),
-                        deck: {
-                            leader: { id: resolved.leader?.id ?? '' },
-                            ...(resolved.secondleader?.id ? { secondLeader: { id: resolved.secondleader.id } } : {}),
-                            base: { id: resolved.base?.id ?? '' },
-                            name: resolved.metadata?.name || 'Untitled Deck',
-                            favourite: false,
-                            deckLink: swudbLink,
-                            deckLinkID: resolved.deckID ?? '',
-                            source: DeckLinkResolver.getDeckSource(swudbLink) === DeckSource.Melee ? 'Melee' : 'SWUDB',
-                        },
+                    requestedDeck = {
+                        leader: { id: resolved.leader?.id ?? '' },
+                        ...(resolved.secondleader?.id ? { secondLeader: { id: resolved.secondleader.id } } : {}),
+                        base: { id: resolved.base?.id ?? '' },
+                        name: resolved.metadata?.name || 'Untitled Deck',
+                        deckLink: swudbLink,
+                        deckLinkID: resolved.deckID ?? '',
+                        source: DeckLinkResolver.getDeckSource(swudbLink) === DeckSource.Melee ? 'Melee' : 'SWUDB',
                     };
                 } else if (deck) {
-                    deckEntity = deck;
+                    // the client sends a whole deck entity; only the inner deck is taken from it
+                    requestedDeck = deck.deck;
                 } else {
                     return res.status(400).json({ success: false, error: 'No deck or swudbLink provided' });
                 }
 
+                const parsedDeck = SaveDeckRequestSchema.safeParse(requestedDeck);
+                if (!parsedDeck.success) {
+                    return res.status(400).json({ success: false, error: 'Invalid deck' });
+                }
+
                 // we save the deck
-                const newDeck = await this.deckService.saveDeckAsync(deckEntity, user);
+                const newDeck = await this.deckService.saveDeckAsync(parsedDeck.data, user);
                 return res.status(200).json({
                     success: true,
                     message: 'Deck saved successfully',
@@ -1781,13 +1861,31 @@ export class GameServer {
                 if (!this.cosmeticsService) {
                     return res.status(503).json({ success: false, message: 'Cosmetics service unavailable' });
                 }
-                const { cosmetic } = req.body;
-
-                if (!this.canManageCosmeticType(req.path, req.user.getId(), cosmetic?.type)) {
+                const requested = req.body?.cosmetic;
+                if (!this.canManageCosmeticType(req.path, req.user.getId(), requested?.type)) {
                     return res.status(403).json({ success: false, message: 'Admin privileges are required to upload this cosmetic type' });
                 }
 
-                await this.cosmeticsService.saveCosmeticAsync(cosmetic);
+                // only the fields of a cosmetic are taken from the request; the type checked above is the one parsed here
+                const parsed = CosmeticCreateRequestSchema.safeParse(requested);
+                if (!parsed.success) {
+                    return res.status(400).json({ success: false, message: 'Invalid cosmetic' });
+                }
+
+                const cosmetic: ICosmeticEntity = parsed.data;
+                if (!CosmeticsService.isUploadedImagePath(cosmetic.type, cosmetic.id, cosmetic.path)) {
+                    return res.status(400).json({ success: false, message: 'Cosmetic path must be its uploaded image' });
+                }
+
+                try {
+                    await this.cosmeticsService.createCosmeticAsync(cosmetic);
+                } catch (error) {
+                    if (error instanceof CosmeticAlreadyExistsError) {
+                        return res.status(409).json({ success: false, message: 'A cosmetic with this id already exists' });
+                    }
+                    throw error;
+                }
+
                 return res.status(201).json({
                     success: true,
                     message: 'Cosmetic saved successfully',
@@ -2088,6 +2186,11 @@ export class GameServer {
         return authMiddleware(this, routeName, serverRoleRequired);
     }
 
+    /** The factory (and so the account and profile cache) every request and socket is authenticated through. */
+    public getUserFactory(): UserFactory {
+        return this.userFactory;
+    }
+
     /**
      * Builds a ModerationAction suitable for the FE from the CacheEntry
      * @param entry - The Cache ActiveModAction object
@@ -2119,14 +2222,14 @@ export class GameServer {
             }
         });
 
-        app.post('/api/start-test-game', async (req, res, next) => {
+        app.post('/api/start-test-game', authMiddleware(this, 'start-test-game', undefined, true), async (req, res, next) => {
             const { filename } = req.body;
             try {
                 if (!this.areGamesEnabled()) {
                     return this.sendGamesDisabledResponse(res);
                 }
 
-                await this.startTestGame(filename);
+                await this.startTestGame(filename, req.user as User);
                 return res.status(200).json({ success: true });
             } catch (err) {
                 logger.error('GameServer: Error in start-test=game:', err);
@@ -2246,6 +2349,7 @@ export class GameServer {
         }
 
         // Active lobbies retain the 60s activity guard. Completed matches can be left immediately.
+        // Stale memberships, including users who never connected, fall through to cleanup.
         const previousLobbyForUser = this.userLobbyMap.get(userId)?.lobbyId;
         if (previousLobbyForUser) {
             const previousRole = this.userLobbyMap.get(userId)?.role;
@@ -2253,11 +2357,7 @@ export class GameServer {
             if (previousLobby) {
                 const userLastActivity = previousLobby.getLastActivityForUser(userId);
 
-                if (previousRole === UserRole.Player && !previousLobby.isMatchComplete) {
-                    if (userLastActivity == null) {
-                        return true;
-                    }
-
+                if (previousRole === UserRole.Player && !previousLobby.isMatchComplete && userLastActivity != null) {
                     const elapsedSeconds = Math.floor((this.scheduler.now() - userLastActivity.getTime()) / 1000);
                     if (elapsedSeconds < 60) {
                         logger.info(`GameServer: user ${userId} blocked from joining due to still being in lobby ${previousLobby.id}`);
@@ -2449,13 +2549,11 @@ export class GameServer {
     }
 
     /**
-     * Creates a new lobby for the given user. If no user is provided and
-     * the lobby is private, a default user is created.
+     * Creates a new custom lobby owned by `user`, with `user` in it and mapped to it.
      *
-     * @param {User | string} user - The user creating the lobby. If string(id) is passed in for a private lobby, a default user is created with that id.
-     * @param {Deck} deck - The deck used by this user.
-     * @param {boolean} isPrivate - Whether or not this lobby is private.
-     * @returns {string} The ID of the user who owns and created the newly created lobby.
+     * @param user - The user creating the lobby, who becomes its owner.
+     * @param deck - The deck that user brings.
+     * @param isPrivate - Whether the lobby is joined only by its link.
      */
     private createLobby(
         lobbyName: string,
@@ -2469,11 +2567,7 @@ export class GameServer {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
         }
-        if (!isPrivate && typeof user === 'string') {
-            throw new Error('User must be provided for public lobbies');
-        }
 
-        // set default user if anonymous user is supplied for private lobbies
         const lobby = new Lobby(
             lobbyName,
             isPrivate ? MatchmakingType.PrivateLobby : MatchmakingType.PublicLobby,
@@ -2494,7 +2588,18 @@ export class GameServer {
         this.setUserLobbyMapping(user, lobby.id, UserRole.Player);
     }
 
-    private async startTestGame(filename: string) {
+    private async startTestGame(filename: string, requestingUser: User) {
+        Contract.assertEqual(process.env.ENVIRONMENT, 'development', 'Test games are only available in development');
+        Contract.assertTrue(requestingUser.isAuthenticatedUser(), 'Test games require authentication');
+        const order66 = await this.userFactory.createDevelopmentTestUserAsync('order66');
+        const theWay = await this.userFactory.createDevelopmentTestUserAsync('this-is-the-way');
+        Contract.assertNotNullLike(order66, 'Development test account Order66 is unavailable');
+        Contract.assertNotNullLike(theWay, 'Development test account ThisIsTheWay is unavailable');
+        Contract.assertTrue(
+            requestingUser.getId() === order66.getId() || requestingUser.getId() === theWay.getId(),
+            `User ${requestingUser.getId()} is not a development test account`
+        );
+        Contract.assertTrue(typeof filename === 'string' && filename.length > 0, 'A test setup filename is required');
         // only files directly in test/gameSetups may be loaded
         const testJSONPath = path.resolve(__dirname, '../../../test/gameSetups', path.basename(filename));
         Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
@@ -2523,14 +2628,21 @@ export class GameServer {
             this.config,
             this.testGameBuilder
         );
+        try {
+            lobby.createLobbyUser(order66);
+            lobby.createLobbyUser(theWay);
+            await lobby.startTestGameAsync(
+                setupData,
+                { id: order66.getId(), username: order66.getUsername() },
+                { id: theWay.getId(), username: theWay.getUsername() }
+            );
+        } catch (error) {
+            lobby.cleanLobby();
+            throw error;
+        }
         this.lobbies.set(lobby.id, lobby);
-        const order66 = this.userFactory.createAnonymousUser('exe66', 'Order66');
-        const theWay = this.userFactory.createAnonymousUser('th3w4y', 'ThisIsTheWay');
-        lobby.createLobbyUser(order66);
-        lobby.createLobbyUser(theWay);
         this.setUserLobbyMapping(order66, lobby.id, UserRole.Player);
         this.setUserLobbyMapping(theWay, lobby.id, UserRole.Player);
-        await lobby.startTestGameAsync(setupData);
     }
 
     private getTestSetupGames() {
@@ -2544,20 +2656,6 @@ export class GameServer {
             return fs.lstatSync(filePath).isFile();
         });
     }
-
-    // handshake(socket: socketio.Socket, next: () => void) {
-    //     // if (socket.handshake.query.token && socket.handshake.query.token !== 'undefined') {
-    //     //     jwt.verify(socket.handshake.query.token, env.secret, function (err, user) {
-    //     //         if (err) {
-    //     //             logger.info(err);
-    //     //             return;
-    //     //         }
-
-    //     //         socket.request.user = user;
-    //     //     });
-    //     // }
-    //     next();
-    // }
 
     public registerDisconnect(socket: Socket, userId: string) {
         if (socket.eventContainsListener('disconnect')) {
@@ -2589,9 +2687,9 @@ export class GameServer {
     }
 
     /**
-     * Authenticates a newly connecting socket, deriving a {@link User} from its handshake: a NextAuth
-     * JWT plus pre-authenticated user data (no DB access), a JWT alone (requires a DB lookup), or -
-     * with no token - anonymous query data.
+     * Authenticates a newly connecting socket, deriving a {@link User} from its handshake: with a NextAuth
+     * JWT, the account that token belongs to (identity and profile come from server-side records only);
+     * with no token, anonymous query data.
      */
     public async authenticateSocketAsync(socket: IRawGameSocket): Promise<ISocketAuthResult> {
         try {
@@ -2599,27 +2697,9 @@ export class GameServer {
             const token = socket.handshake.auth.token;
             let user: User;
 
-            // Case 1: Token is present - attempt authenticated user flow
+            // Case 1: Token is present - authenticated user flow
             if (token) {
-                const queryUser = socket.handshake.query.user;
-                if (queryUser) {
-                    // Parse user data from query parameter
-                    const userData = typeof queryUser === 'string'
-                        ? JSON.parse(queryUser)
-                        : queryUser;
-
-                    // If client sent pre-authenticated user data, use it directly
-                    if (userData.authenticated) {
-                        user = this.userFactory.verifyTokenAndCreateAuthenticatedUser(token, userData);
-                    } else {
-                        // User data exists but not marked as authenticated
-                        // Verify with token instead
-                        user = await this.userFactory.createUserFromTokenAsync(token);
-                    }
-                } else {
-                    // No user data in query, authenticate using token only
-                    user = await this.userFactory.createUserFromTokenAsync(token);
-                }
+                user = await this.userFactory.resolveUserFromTokenAsync(token);
             // Case 2: No token - create anonymous user
             } else {
                 user = this.userFactory.createAnonymousUserFromQuery(socket.handshake.query);
@@ -2663,7 +2743,7 @@ export class GameServer {
         const isSpectator = ioSocket.handshake.query.spectator === 'true';
 
         if (!ioSocket.data.user) {
-            logger.warn(`GameServer: socket connected with no user${!!ioSocket.data.user ? ' id' : ''}, disconnecting`);
+            logger.warn('GameServer: socket connected with no user, disconnecting');
             ioSocket.disconnect();
             return Promise.resolve();
         }
@@ -2752,8 +2832,6 @@ export class GameServer {
                 throw err;
             }
 
-            socket.send('connectedUser', user.getId());
-
             // If a user refreshes while they are matched with another player in the queue they lose the requeue listener
             // this is why we reinitialize the requeue listener
             if (lobby.matchmakingType === MatchmakingType.Quick) {
@@ -2806,15 +2884,6 @@ export class GameServer {
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
-
-            // anonymous user joining existing game
-            /* if (!user.username) {
-                const newUser = { username: 'Player2', id: user.id };
-                await lobby.addLobbyUserAsync(newUser, socket);
-                this.userLobbyMap.set(newUser.id, { lobbyId: lobby.id, role: UserRole.Player });
-                this.registerDisconnect(socket, user.id);
-                return Promise.resolve();
-           }*/
 
             await lobby.addLobbyUserAsync(user, socket);
             this.setUserLobbyMapping(user, lobby.id, UserRole.Player);
@@ -2992,8 +3061,8 @@ export class GameServer {
         this.setUserLobbyMapping(p2.user, lobby.id, UserRole.Player);
 
         // Attach their sockets to the lobby (if they exist)
-        await this.setupQueueSocketAsync(p1, lobby, format);
-        await this.setupQueueSocketAsync(p2, lobby, format);
+        await this.setupQueueSocketAsync(p1, lobby);
+        await this.setupQueueSocketAsync(p2, lobby);
 
         // this needs to be here since we only send start game via the LobbyOwner.
         lobby.setLobbyOwner(p1.user.getId());
@@ -3004,17 +3073,15 @@ export class GameServer {
         return Promise.resolve();
     }
 
-    private async setupQueueSocketAsync(player: QueuedPlayer, lobby: Lobby, format: IQueueFormatKey): Promise<void> {
+    private async setupQueueSocketAsync(player: QueuedPlayer, lobby: Lobby): Promise<void> {
         const socket = player?.socket;
         if (!socket) {
             return Promise.resolve();
         }
 
+        // adding the user to a quick lobby also registers their `requeue` listener
         await lobby.addLobbyUserAsync(player.user, socket);
         socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket, player));
-        if (!socket.eventContainsListener('requeue')) {
-            socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck, player.matchmakingPreference));
-        }
 
         return Promise.resolve();
     }
@@ -3291,24 +3358,17 @@ export class GameServer {
     }
 
     /**
-     * Clean up invalid/expired tokens from the user token map
+     * Drops the expired stat-site tokens. Runs on the scheduler, whose guard logs anything this throws, so it does not
+     * catch its own errors.
      */
     private cleanupInvalidTokens(): void {
-        try {
-            const newTokenMapping = new Map<string, IToken>();
-            // Create new map with only valid tokens
-            for (const [userId, token] of this.swuStatsTokenMapping.entries()) {
-                if (this.swuStatsHandler.isTokenValid(token)) {
-                    newTokenMapping.set(userId, token);
-                }
-            }
-            // Replace the old map with the new one
-            this.swuStatsTokenMapping = newTokenMapping;
-        } catch (error) {
-            logger.error('GameServer: Error during token cleanup:', {
-                error: { message: error.message, stack: error.stack }
-            });
-        }
+        this.swuStatsTokenMapping = GameServer.validTokensOnly(this.swuStatsTokenMapping, (token) => this.swuStatsHandler.isTokenValid(token));
+        this.swuBaseTokenMapping = GameServer.validTokensOnly(this.swuBaseTokenMapping, (token) => this.swuBaseHandler.isTokenValid(token));
+    }
+
+    /** The entries whose token is valid. An entry with no token (a refresh that failed stores null) is dropped. */
+    private static validTokensOnly(tokens: Map<string, IToken>, isValid: (token: IToken) => boolean): Map<string, IToken> {
+        return new Map(Array.from(tokens.entries()).filter(([, token]) => token != null && isValid(token)));
     }
 
     private setupGCMonitoring(): void {

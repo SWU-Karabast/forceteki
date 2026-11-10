@@ -2,6 +2,7 @@ import type { DeleteCommandOutput, PutCommandOutput, UpdateCommandOutput } from 
 import { v4 as uuid } from 'uuid';
 
 import type {
+    IDeckDataEntity,
     IModActionEntity,
     IServerRoleUsersListsEntity,
     IServerSettingsEntity,
@@ -10,7 +11,7 @@ import type {
     IUserProfileDataEntity
 } from '../../../server/services/DynamoDBInterfaces';
 import { isTrackedModAction } from '../../../server/services/DynamoDBInterfaces';
-import { ModActionEntitySchema, UsernameChangeEntitySchema } from '../../../server/services/DynamoDBInterfaceSchemas';
+import { IDeckDataEntitySchema, ModActionEntitySchema, UsernameChangeEntitySchema } from '../../../server/services/DynamoDBInterfaceSchemas';
 import type { DynamoDBService } from '../../../server/services/DynamoDBService';
 import type { ICosmeticEntity } from '../../../server/utils/cosmetics/CosmeticsInterfaces';
 import { getDefaultPreferences } from '../../../server/utils/user/UserFactory';
@@ -18,10 +19,11 @@ import { getDefaultPreferences } from '../../../server/utils/user/UserFactory';
 /**
  * The slice of {@link DynamoDBService} this fake supplies. Typing the class against exactly these
  * methods means a signature change in the real service fails the build here, instead of the fake
- * silently drifting from it. Deck methods are deliberately absent until the deck suite needs them.
+ * silently drifting from it. Of the deck methods, only those that saving and renaming a deck use are here so far.
  */
 type FakedMethod =
   | 'getUserProfileAsync' | 'getAllUserProfilesAsync' | 'saveUserProfileAsync' | 'updateUserProfileAsync'
+  | 'saveDeckAsync' | 'getDeckByLinkAsync' | 'updateDeckNameAsync'
   | 'removeUserProfileAttributeAsync' | 'recordNewLoginAsync' | 'saveUserSettingsAsync' | 'updateUserPreferencesAsync'
   | 'saveOAuthLinkAsync' | 'getUserIdByOAuthAsync' | 'saveEmailLinkAsync' | 'getUserIdByEmailAsync'
   | 'saveUsernameLinkAsync' | 'deleteUsernameLinkAsync' | 'getUserIdsByUsernameAsync'
@@ -104,6 +106,8 @@ function deepMerge(target: Record<string, unknown>, source: Record<string, unkno
  * - `getUserProfileAsync` returns `undefined` for an unknown user, while `updateUserProfileAsync` and
  *   `recordNewLoginAsync` upsert, as DynamoDB's `UpdateItem` does;
  * - only tracked, uncancelled mod actions are in the active index, and cancelling is conditional;
+ * - a deck is stored as its schema parses it, so only a deck's own fields are kept;
+ * - creating a cosmetic with an id that is already taken fails with a `ConditionalCheckFailedException`;
  * - missing role lists read as four empty lists and missing settings as `{ gamesEnabled: true }`;
  * - everything read back through a zod schema in production goes through the same schema here.
  *
@@ -126,6 +130,9 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     public readonly usernameLinks = new Set<string>();
     public readonly usernameChanges: IUsernameChangeEntity[] = [];
     public readonly modActions = new Map<string, StoredModAction>();
+
+    /** `<user id>#<deck id>` -> deck. */
+    public readonly decks = new Map<string, IDeckDataEntity>();
     public readonly cosmetics = new Map<string, ICosmeticEntity>();
     public roleUsers: IServerRoleUsersListsEntity = { admins: [], developers: [], moderators: [], contributors: [] };
     public serverSettings?: IServerSettingsEntity;
@@ -133,8 +140,9 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     private readonly recordedLogins: string[] = [];
 
     /**
-     * @param currentDate Supplies the time recorded in `lastLogin` and `cancelledAt`. The harness passes
-     * its virtual clock so a spec controls these timestamps.
+     * @param currentDate Supplies the time recorded in `lastLogin` and `cancelledAt`, and the "now" a
+     * seeded profile's `createdAt` and `usernameLastUpdatedAt` are dated back from. The harness passes
+     * its virtual clock, which the server's account code also reads, so a spec controls these timestamps.
      */
     public constructor(private readonly currentDate: () => Date = () => new Date()) {}
 
@@ -164,7 +172,7 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     public addProfile(profile: Partial<IUserProfileDataEntity> & { id: string; username: string }): void {
         this.profiles.set(profile.id, {
             lastLogin: '2026-01-01T00:00:00.000Z',
-            createdAt: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000).toISOString(),
+            createdAt: new Date(this.currentDate().getTime() - 100 * 24 * 60 * 60 * 1000).toISOString(),
             showWelcomeMessage: false,
             ...profile,
         });
@@ -185,7 +193,7 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
         this.addProfile({
             id: account.id,
             username: account.username,
-            usernameLastUpdatedAt: new Date(Date.now() - 100 * 24 * 60 * 60 * 1000).toISOString(),
+            usernameLastUpdatedAt: new Date(this.currentDate().getTime() - 100 * 24 * 60 * 60 * 1000).toISOString(),
             preferences: getDefaultPreferences(),
             needsUsernameChange: false,
             moderation: undefined,
@@ -217,6 +225,11 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
 
     public actionsOfType(actionType: IModActionEntity['actionType']): StoredModAction[] {
         return [...this.modActions.values()].filter((item) => item.actionType === actionType);
+    }
+
+    /** The decks stored for a user, in the order they were saved. */
+    public decksOf(userId: string): IDeckDataEntity[] {
+        return [...this.decks.values()].filter((deck) => deck.userId === userId);
     }
 
     /** User ids that have had a login recorded through `recordNewLoginAsync`, in order. */
@@ -272,6 +285,31 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
         const merged = deepMerge(deepMerge({ ...getDefaultPreferences() }, { ...stored }), { ...preferences });
         this.profiles.set(userId, { ...this.profiles.get(userId), preferences: merged as IUserPreferences });
         return Promise.resolve();
+    }
+
+    // ---- Decks ----
+
+    public saveDeckAsync(deckData: IDeckDataEntity): Promise<PutCommandOutput> {
+        // as in production, the deck is stored as the schema parses it, and an invalid one is refused
+        const deck = IDeckDataEntitySchema.parse(deckData);
+        this.decks.set(`${deck.userId}#${deck.id}`, { ...deck, stats: deck.stats || { wins: 0, losses: 0, draws: 0 } });
+        return Promise.resolve(putResult);
+    }
+
+    public getDeckByLinkAsync(userId: string, deckLinkID: string): Promise<IDeckDataEntity | undefined> {
+        const deck = this.decksOf(userId).find((candidate) => candidate.deck.deckLinkID === deckLinkID);
+        return Promise.resolve(deck ? IDeckDataEntitySchema.parse(deck) : undefined);
+    }
+
+    public updateDeckNameAsync(userId: string, deckId: string, newName: string): Promise<UpdateCommandOutput> {
+        // setting a nested attribute of an item that does not exist fails in DynamoDB rather than creating it
+        const deck = this.decks.get(`${userId}#${deckId}`);
+        if (!deck) {
+            return Promise.reject(Object.assign(new Error('The document path provided in the update expression is invalid for update'), { name: 'ValidationException' }));
+        }
+
+        deck.deck = { ...deck.deck, name: newName };
+        return Promise.resolve(updateResult);
     }
 
     // ---- Identity links ----
@@ -411,8 +449,14 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
         return Promise.resolve([...this.cosmetics.values()].map(({ id, title, type, path }) => ({ id, title, type, path })));
     }
 
-    public saveCosmeticAsync(cosmeticData: ICosmeticEntity): Promise<PutCommandOutput> {
-        this.cosmetics.set(cosmeticData.id, { ...cosmeticData });
+    public saveCosmeticAsync(cosmeticData: ICosmeticEntity, options: { createOnly?: boolean } = {}): Promise<PutCommandOutput> {
+        if (options.createOnly && this.cosmetics.has(cosmeticData.id)) {
+            return Promise.reject(conditionalCheckFailed());
+        }
+
+        // like the real service, only the cosmetic's own fields are stored
+        const { id, title, type, path } = cosmeticData;
+        this.cosmetics.set(id, { id, title, type, path });
         return Promise.resolve(putResult);
     }
 
