@@ -6,7 +6,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class AhsokaTanoNotOnMyDeathWatch extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'ahsoka-tano#not-on-my-death-watch-id',
+            id: '5141629783',
             internalName: 'ahsoka-tano#not-on-my-death-watch',
         };
     }

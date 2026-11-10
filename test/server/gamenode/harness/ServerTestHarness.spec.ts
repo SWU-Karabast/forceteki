@@ -1,7 +1,7 @@
 import { FakeDynamoDbService } from '../../../helpers/server/FakeDynamoDbService';
 import { serverIntegration } from '../../../helpers/server/ServerIntegrationHelper';
 import { ServerTestHarness } from '../../../helpers/server/ServerTestHarness';
-import { premierBestOfOne } from '../../../helpers/server/MatchConfigs';
+import { premierBestOfOne, premierBestOfThree } from '../../../helpers/server/MatchConfigs';
 
 const moderatorId = 'moderator-1';
 
@@ -176,6 +176,87 @@ describe('ServerTestHarness', function () {
         serverIntegration(function (contextRef) {
             it('is not available unless it was asked for', function () {
                 expect(() => contextRef.harness.routes).toThrowError(/routes were not recorded/);
+            });
+        });
+    });
+
+    describe('scenario builders', function () {
+        serverIntegration(function (contextRef) {
+            it('opens a lobby whose link another client can join by', async function () {
+                const { harness } = contextRef;
+                const owner = await harness.openLobbyAsync();
+                const joiner = harness.createClient();
+
+                await joiner.connectAsync({ lobbyId: owner.lobbyId });
+
+                expect(joiner.lobbyState.users.map((user: { id: string }) => user.id)).toEqual([owner.id, joiner.id]);
+            });
+
+            it('can open a lobby without connecting the owner, who is seated in it once their socket connects', async function () {
+                const { harness } = contextRef;
+
+                const owner = await harness.openLobbyAsync({}, { connect: false });
+                const connectedBefore = owner.isConnected;
+                await owner.connectAsync();
+
+                expect(connectedBefore).toBeFalse();
+                expect(owner.lobbyState.users.map((user: { id: string }) => user.id)).toEqual([owner.id]);
+            });
+
+            for (const isPrivate of [false, true]) {
+                it(`seats a guest in a ${isPrivate ? 'private' : 'public'} lobby`, async function () {
+                    const { harness } = contextRef;
+
+                    const { owner, guest, lobbyId } = await harness.createLobbyWithGuestAsync({}, {}, { isPrivate });
+
+                    expect(owner.lobbyState.users.map((user: { id: string }) => user.id)).toEqual([owner.id, guest.id]);
+                    expect(guest.lobbyId).toBe(lobbyId);
+                });
+            }
+
+            it('throws, naming the guest, when the guest is refused the lobby', async function () {
+                const { harness } = contextRef;
+                const guest = harness.createClient();
+
+                // anonymous players may not join a public best-of-three lobby
+                await expectAsync(harness.createLobbyWithGuestAsync({ authenticated: true }, guest, { config: premierBestOfThree }))
+                    .toBeRejectedWithError(new RegExp(`user ${guest.id} was refused the lobby`));
+            });
+
+            it('starts a lobby game for both players, which a concession ends', async function () {
+                const { harness } = contextRef;
+
+                const { owner, guest } = await harness.startLiveGameAsync();
+                await guest.concedeAsync();
+
+                expect(owner.gameState.winners).toEqual([owner.username]);
+                expect(guest.gameState.winners).toEqual([owner.username]);
+            });
+        });
+    });
+
+    describe('reading the chat', function () {
+        serverIntegration(function (contextRef) {
+            it('reads the lobby chat line by line, with each player\'s messages by sender and alerts as text', async function () {
+                const { owner, guest } = await contextRef.harness.createLobbyWithGuestAsync({}, {}, { isPrivate: true });
+
+                await owner.sendChatMessageAsync('hello');
+                await guest.sendChatMessageAsync('hi back');
+                await owner.setReadyStatusAsync(true);
+
+                expect(guest.lobbyChatFrom(owner)).toEqual(['hello']);
+                expect(owner.lobbyChatFrom(guest)).toEqual(['hi back']);
+                expect(guest.lobbyChat).toContain(jasmine.objectContaining({ alertType: jasmine.any(String), text: `${owner.username} is ready to start` }));
+            });
+
+            it('collects the game chat from every game state, including the game log', async function () {
+                const { owner, guest } = await contextRef.harness.startLiveGameAsync({ authenticated: true }, { authenticated: true });
+
+                await owner.sendGameChatAsync('good luck');
+                await guest.concedeAsync();
+
+                expect(guest.gameChatFrom(owner)).toEqual(['good luck']);
+                expect(owner.gameChat.map((entry) => entry.text)).toContain(`${guest.username} concedes the game`);
             });
         });
     });

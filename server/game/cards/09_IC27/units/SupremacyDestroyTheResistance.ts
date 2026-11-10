@@ -6,7 +6,7 @@ import { CardType } from '../../../core/Constants';
 export default class SupremacyDestroyTheResistance extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'supremacy#destroy-the-resistance-id',
+            id: '9197227181',
             internalName: 'supremacy#destroy-the-resistance',
         };
     }

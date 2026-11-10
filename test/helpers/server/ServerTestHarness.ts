@@ -5,6 +5,7 @@ import { v4 as uuid } from 'uuid';
 
 import { DeckValidator } from '../../../server/utils/deck/DeckValidator';
 import type { IQueueFormatKey } from '../../../server/gamenode/QueueHandler';
+import type { ISwuDbFormatDecklist } from '../../../server/utils/deck/DeckInterfaces';
 import { Lobby } from '../../../server/gamenode/Lobby';
 import { AnonymousUser } from '../../../server/utils/user/User';
 import { DecklistFixtures } from './DecklistFixtures';
@@ -55,6 +56,36 @@ export interface IServerTestOptions {
      * only exist from a given month). Defaults to the {@link TestScheduler} default.
      */
     clockStart?: Date;
+}
+
+/** How {@link ServerTestHarness.openLobbyAsync} and the builders on top of it set a custom lobby up. */
+export interface ILobbyOptions {
+
+    /** A private lobby is joined by its link; a public one through `join-lobby`, as the lobby browser does. Default public. */
+    isPrivate?: boolean;
+
+    /** Format, card pool and games to win. Default premier best-of-one. */
+    config?: Readonly<IQueueFormatKey>;
+
+    /** The owner's deck. Default {@link DecklistFixtures.validDecklist}. */
+    deck?: ISwuDbFormatDecklist;
+
+    /** The lobby's name. Default {@link ServerTestHarness.uniqueLobbyName}. */
+    lobbyName?: string;
+}
+
+/** What {@link ServerTestHarness.startLiveGameAsync} can be asked for beyond {@link ILobbyOptions}. */
+export interface ILiveGameOptions extends ILobbyOptions {
+
+    /** The guest's deck, which it picks once it is in the lobby. Default {@link DecklistFixtures.validDecklist}. */
+    guestDeck?: ISwuDbFormatDecklist;
+}
+
+/** A custom lobby with its two players, both connected. */
+export interface ILobbyWithGuest {
+    owner: TestClient;
+    guest: TestClient;
+    lobbyId: string;
 }
 
 /**
@@ -195,9 +226,10 @@ export class ServerTestHarness {
     }
 
     /**
-     * Tasks on {@link clock} that belong to the database-backed services' refresh timers. They outlive
-     * the server's own shutdown until the harness stops them, so a spec that checks what the server
-     * left scheduled part-way through a shutdown expects this many rather than 0.
+     * Tasks on {@link clock} that belong to the database-backed services' refresh timers, counted once, when the
+     * harness started (each service keeps one timer, so the count does not change). They outlive the server's own
+     * shutdown until the harness stops them, so a spec that checks what the server left scheduled part-way through a
+     * shutdown expects this many rather than 0.
      */
     public get databaseTaskCount(): number {
         return this.server.databaseTaskCount;
@@ -261,7 +293,7 @@ export class ServerTestHarness {
     /**
      * Takes two clients through a quick match: both enter the queue, connect their sockets and wait out
      * the quick-lobby countdown, leaving a started game. Each side is either a client already made
-     * with {@link createClient} or the options to make one with.
+     * with {@link createClient} or the options to make one with. Returns them with the quick lobby's id.
      *
      * Throws, rather than failing an expectation, if either side is refused by the queue or no game
      * starts, so the cause shows up in the spec that asked for the game.
@@ -270,7 +302,7 @@ export class ServerTestHarness {
         first: ITestClientOptions | TestClient = {},
         second: ITestClientOptions | TestClient = {},
         config: Readonly<IQueueFormatKey> = premierBestOfOne
-    ): Promise<{ first: TestClient; second: TestClient }> {
+    ): Promise<{ first: TestClient; second: TestClient; lobbyId: string }> {
         const clients = [first, second].map((side) => (side instanceof TestClient ? side : this.createClient(side)));
 
         for (const client of clients) {
@@ -290,7 +322,104 @@ export class ServerTestHarness {
             }
         }
 
-        return { first: clients[0], second: clients[1] };
+        return { first: clients[0], second: clients[1], lobbyId: clients[0].lobbyId };
+    }
+
+    /**
+     * Has `owner` (a client already made with {@link createClient}, or the options to make one with) create a
+     * custom lobby and, unless `connect` is false, connect its socket to it. Returns the owner, whose
+     * {@link TestClient.lobbyId} is then the lobby's link for someone else to join by. With `connect: false`
+     * the lobby exists only as the server's record of the `create-lobby` call: the owner has no seat yet.
+     *
+     * Throws, rather than failing an expectation, if the server refuses the lobby.
+     */
+    public async openLobbyAsync(
+        owner: ITestClientOptions | TestClient = {},
+        options: ILobbyOptions & { connect?: boolean } = {}
+    ): Promise<TestClient> {
+        const client = owner instanceof TestClient ? owner : this.createClient(owner);
+
+        const response = await client.createLobbyAsync({
+            lobbyName: options.lobbyName ?? this.uniqueLobbyName(),
+            deck: options.deck ?? this.decklists.validDecklist(),
+            isPrivate: options.isPrivate ?? false,
+            ...(options.config ?? premierBestOfOne),
+        });
+        if (response.status !== 200) {
+            throw new Error(`openLobbyAsync: user ${client.id} was refused a lobby: ${response.status} ${JSON.stringify(response.body)}`);
+        }
+
+        if (options.connect ?? true) {
+            await client.connectAsync();
+        }
+
+        return client;
+    }
+
+    /**
+     * A custom lobby with two players in it, both connected: `owner` opens it, and `guest` joins the way the
+     * real client would for that kind of lobby - `join-lobby` and then a socket for a public one, a socket
+     * carrying the link for a private one. Each side is a client already made with {@link createClient} or
+     * the options to make one with.
+     *
+     * Throws, rather than failing an expectation, if either step is refused or the guest is not seated.
+     */
+    public async createLobbyWithGuestAsync(
+        owner: ITestClientOptions | TestClient = {},
+        guest: ITestClientOptions | TestClient = {},
+        options: ILobbyOptions = {}
+    ): Promise<ILobbyWithGuest> {
+        const ownerClient = await this.openLobbyAsync(owner, options);
+        const guestClient = guest instanceof TestClient ? guest : this.createClient(guest);
+        const lobbyId = ownerClient.lobbyId;
+
+        if (options.isPrivate) {
+            await guestClient.connectAsync({ lobbyId });
+        } else {
+            const joined = await guestClient.joinLobbyAsync(lobbyId);
+            if (joined.status !== 200) {
+                throw new Error(`createLobbyWithGuestAsync: user ${guestClient.id} was refused the lobby: ${joined.status} ${JSON.stringify(joined.body)}`);
+            }
+            await guestClient.connectAsync();
+        }
+
+        if (!guestClient.lobbyState?.users?.some((user: { id: string }) => user.id === guestClient.id)) {
+            throw new Error(`createLobbyWithGuestAsync: user ${guestClient.id} connected but was not seated in lobby ${lobbyId}`);
+        }
+
+        return { owner: ownerClient, guest: guestClient, lobbyId };
+    }
+
+    /**
+     * A custom-lobby game in progress, reached the way two players reach one: {@link createLobbyWithGuestAsync},
+     * then the guest picks its deck (`change-deck`), both mark themselves ready, and the owner starts the game.
+     * The counterpart of {@link startQuickGameAsync} for a lobby game. End it with {@link TestClient.concedeAsync}.
+     *
+     * Throws, rather than failing an expectation, if any step is refused or no game starts.
+     */
+    public async startLiveGameAsync(
+        owner: ITestClientOptions | TestClient = {},
+        guest: ITestClientOptions | TestClient = {},
+        options: ILiveGameOptions = {}
+    ): Promise<ILobbyWithGuest> {
+        const lobby = await this.createLobbyWithGuestAsync(owner, guest, options);
+
+        const deckChanged = await lobby.guest.changeDeckAsync(lobby.lobbyId, options.guestDeck ?? this.decklists.validDecklist());
+        if (deckChanged.status !== 200) {
+            throw new Error(`startLiveGameAsync: user ${lobby.guest.id} was refused its deck: ${deckChanged.status} ${JSON.stringify(deckChanged.body)}`);
+        }
+
+        await lobby.owner.setReadyStatusAsync(true);
+        await lobby.guest.setReadyStatusAsync(true);
+        await lobby.owner.startGameAsync();
+
+        for (const client of [lobby.owner, lobby.guest]) {
+            if (!client.gameState) {
+                throw new Error(`startLiveGameAsync: no game had started for user ${client.id} in lobby ${lobby.lobbyId}`);
+            }
+        }
+
+        return lobby;
     }
 
     public async shutdownAsync(): Promise<void> {
@@ -310,9 +439,9 @@ export class ServerTestHarness {
         // background work was failing on every tick
         this.assertNoScheduledErrors();
 
-        // the database-backed services keep refresh timers on this clock; a task still pending here
-        // means one of them was not stopped, and would leak into whatever runs next
-        if (this.server.testDatabase && this.clock.pendingTaskCount !== 0) {
+        // the server, its lobbies and the database-backed services all keep timers on this clock; a task still
+        // pending here means one of them was not stopped, and would leak into whatever runs next
+        if (this.clock.pendingTaskCount !== 0) {
             throw new Error(`ServerTestHarness: ${this.clock.pendingTaskCount} scheduled task(s) were still pending after shutdown`);
         }
     }

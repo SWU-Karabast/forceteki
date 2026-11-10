@@ -49,6 +49,20 @@ import { type ICosmeticEntity, type RegisteredCosmeticType } from '../utils/cosm
 let dynamoDbService: DynamoDBService;
 
 /**
+ * The key of an item: its table key (`pk`, `sk`) and, for item types in the `GSI_PK_INDEX`, the index key.
+ * The save methods always compute these themselves and pass them to {@link DynamoDBService.putItemAsync}, which takes
+ * none from the data it stores. (`batchWriteItemsAsync`, used only by one-off migration scripts, writes whole items
+ * as it is given them.)
+ */
+export interface IItemKey {
+    pk: string;
+    sk: string;
+    GSI_PK?: string;
+}
+
+const itemKeyAttributes: readonly (keyof IItemKey)[] = ['pk', 'sk', 'GSI_PK'];
+
+/**
  * Get a properly initialized DynamoDB service
  * This ensures the service is only created once and properly initialized
  */
@@ -107,9 +121,17 @@ export class DynamoDBService {
     private tableName: string;
     public isLocalMode: boolean;
 
-    public constructor() {
+    /**
+     * @param client the document client every command is sent through; by default one is built from the environment
+     */
+    public constructor(client?: DynamoDBDocumentClient) {
         this.isLocalMode = process.env.ENVIRONMENT === 'development';
         this.tableName = 'KarabastGlobalTable';
+        if (client) {
+            this.client = client;
+            return;
+        }
+
         // Configure the DynamoDB client
         let dbClientConfig: any = {
             region: process.env.AWS_REGION || 'us-east-1',
@@ -283,11 +305,26 @@ export class DynamoDBService {
         }, 'DynamoDB getItem error');
     }
 
-    public putItemAsync(item: Record<string, any>) {
+    /**
+     * Writes one item: `key` is its key and `attributes` everything else stored on it. The key is only ever taken
+     * from `key`, so attributes that name a key field are refused rather than written.
+     * @param conditionExpression if given, the write only happens when this holds for the item already stored
+     * @throws if `attributes` has a `pk`, `sk` or `GSI_PK` field
+     */
+    public putItemAsync(key: IItemKey, attributes: Record<string, unknown> = {}, conditionExpression?: string) {
+        const keyField = itemKeyAttributes.find((name) => Object.prototype.hasOwnProperty.call(attributes, name));
+        if (keyField !== undefined) {
+            return Promise.reject(new Error(`Item attributes must not include the key field '${keyField}'`));
+        }
+
+        // the document client is not configured with removeUndefinedValues, so an unset index key is left out
+        const item = { ...attributes, pk: key.pk, sk: key.sk, ...(key.GSI_PK !== undefined ? { GSI_PK: key.GSI_PK } : {}) };
+
         return this.executeDbOperationAsync(() => {
             const command = new PutCommand({
                 TableName: this.tableName,
-                Item: item
+                Item: item,
+                ...(conditionExpression ? { ConditionExpression: conditionExpression } : {})
             });
             return this.client.send(command);
         }, 'DynamoDB putItem error');
@@ -396,13 +433,10 @@ export class DynamoDBService {
     // User Profile Methods
 
     public saveUserProfileAsync(userData: IUserProfileDataEntity) {
-        const item = {
-            pk: `USER#${userData.id}`,
-            sk: 'PROFILE',
-            ...userData,
-            preferences: userData.preferences || getDefaultPreferences(),
-        };
-        return this.putItemAsync(item);
+        return this.putItemAsync(
+            { pk: `USER#${userData.id}`, sk: 'PROFILE' },
+            { ...userData, preferences: userData.preferences || getDefaultPreferences() }
+        );
     }
 
     public getUserProfileAsync(userId: string) {
@@ -413,27 +447,39 @@ export class DynamoDBService {
         }, 'Error getting user profile');
     }
 
+    /**
+     * Sets the given profile fields. `id` is skipped, as the profile's key already holds it. Field names go into the
+     * update expression only as `#name` placeholders.
+     * @throws if `updates` has a `pk`, `sk` or `GSI_PK` field
+     */
     public updateUserProfileAsync(userId: string, updates: Partial<IUserProfileDataEntity>) {
+        const keyField = itemKeyAttributes.find((name) => Object.prototype.hasOwnProperty.call(updates, name));
+        if (keyField !== undefined) {
+            return Promise.reject(new Error(`Profile updates must not include the key field '${keyField}'`));
+        }
+
         return this.executeDbOperationAsync(() => {
-            // Build update expression and expression attribute values
-            let updateExpression = 'SET';
+            const assignments: string[] = [];
+            const expressionAttributeNames: Record<string, string> = {};
             const expressionAttributeValues: Record<string, any> = {};
 
             for (const [key, value] of Object.entries(updates)) {
-                if (key !== 'id') { // Don't update primary key
-                    updateExpression += ` ${key} = :${key},`;
-                    expressionAttributeValues[`:${key}`] = value;
+                if (key === 'id') {
+                    continue;
                 }
-            }
 
-            // Remove trailing comma
-            updateExpression = updateExpression.slice(0, -1);
+                const index = assignments.length;
+                assignments.push(`#field${index} = :value${index}`);
+                expressionAttributeNames[`#field${index}`] = key;
+                expressionAttributeValues[`:value${index}`] = value;
+            }
 
             return this.updateItemAsync(
                 `USER#${userId}`,
                 'PROFILE',
-                updateExpression,
-                expressionAttributeValues
+                `SET ${assignments.join(', ')}`,
+                expressionAttributeValues,
+                expressionAttributeNames
             );
         }, 'Error updating user profile');
     }
@@ -450,28 +496,11 @@ export class DynamoDBService {
         }, 'Error removing user profile attribute');
     }
 
-    /**
-     * Put an item with a condition expression
-     */
-    public putItemWithConditionAsync(item: Record<string, any>, conditionExpression: string) {
-        return this.executeDbOperationAsync(() => {
-            const command = new PutCommand({
-                TableName: this.tableName,
-                Item: item,
-                ConditionExpression: conditionExpression
-            });
-            return this.client.send(command);
-        }, 'DynamoDB putItemWithCondition error');
-    }
-
     // OAuth Link Methods
     public saveOAuthLinkAsync(provider: string, providerId: string, userId: string) {
-        return this.putItemWithConditionAsync(
-            {
-                pk: `OAUTH#${provider}_${providerId}`,
-                sk: 'LINK',
-                GSI_PK: userId,
-            },
+        return this.putItemAsync(
+            { pk: `OAUTH#${provider}_${providerId}`, sk: 'LINK', GSI_PK: userId },
+            {},
             'attribute_not_exists(pk)'
         );
     }
@@ -486,14 +515,10 @@ export class DynamoDBService {
     // Email Link Methods
     public saveEmailLinkAsync(email: string, userId: string) {
         return this.executeDbOperationAsync(() => {
-            const item = {
-                pk: `EMAIL#${email.toLowerCase()}`,
-                sk: 'LINK',
-                GSI_PK: userId,
-                email: email.toLowerCase()
-            };
-
-            return this.putItemAsync(item);
+            return this.putItemAsync(
+                { pk: `EMAIL#${email.toLowerCase()}`, sk: 'LINK', GSI_PK: userId },
+                { email: email.toLowerCase() }
+            );
         }, 'Error saving email link');
     }
 
@@ -505,27 +530,41 @@ export class DynamoDBService {
     }
 
     // User Deck Methods
+    /** Saves a deck under its owner. Only the fields of a deck are stored: anything else on `deckData` is left out. */
     public saveDeckAsync(deckData: IDeckDataEntity) {
         return this.executeDbOperationAsync(async () => {
-            await this.validateAndHandleAsync(
+            const deck = await this.validateAndHandleAsync(
                 IDeckDataEntitySchema,
                 deckData,
                 'Save deck'
             );
-            const item = {
-                pk: `USER#${deckData.userId}`,
-                sk: `DECK#${deckData.id}`,
-                ...deckData,
-                stats: deckData.stats || { wins: 0, losses: 0, draws: 0 }
-            };
 
-            return this.putItemAsync(item);
+            return this.putItemAsync(
+                { pk: `USER#${deck.userId}`, sk: `DECK#${deck.id}` },
+                { ...deck, stats: deck.stats || { wins: 0, losses: 0, draws: 0 } }
+            );
         }, 'Error saving deck');
+    }
+
+    /**
+     * Whether a stored deck item sits under the key its own owner and id give it. {@link saveDeckAsync} only ever writes
+     * a deck there, so the deck reads leave out any item that does not, rather than let its stored owner or id decide
+     * where a later save of it goes.
+     */
+    private isStoredUnderOwnKey(item: Record<string, unknown>): boolean {
+        const isOwnKey = item.pk === `USER#${item.userId}` && item.sk === `DECK#${item.id}`;
+        if (!isOwnKey) {
+            logger.error(`DynamoDBService: ignoring a deck item whose owner or id does not match its key (${item.pk} / ${item.sk})`);
+        }
+        return isOwnKey;
     }
 
     public getDeckAsync(userId: string, deckId: string) {
         return this.executeDbOperationAsync(async () => {
             const result = await this.getItemAsync(`USER#${userId}`, `DECK#${deckId}`);
+            if (result.Item && !this.isStoredUnderOwnKey(result.Item)) {
+                return undefined;
+            }
             return this.validateAndHandleAsync<IDeckDataEntity>(
                 IDeckDataEntitySchema,
                 result.Item,
@@ -574,7 +613,7 @@ export class DynamoDBService {
 
             // Find the deck with matching deckLink
             const foundDeck = result.Items.find((item: any) =>
-                item.deck && item.deck.deckLinkID === deckLinkID
+                item.deck && item.deck.deckLinkID === deckLinkID && this.isStoredUnderOwnKey(item)
             );
 
             if (!foundDeck) {
@@ -601,6 +640,10 @@ export class DynamoDBService {
             const validDecks: IDeckDataEntity[] = [];
 
             for (const item of result.Items) {
+                if (!this.isStoredUnderOwnKey(item)) {
+                    continue;
+                }
+
                 try {
                     const validDeck = await this.validateAndHandleAsync<IDeckDataEntity>(
                         IDeckDataEntitySchema,
@@ -726,16 +769,26 @@ export class DynamoDBService {
         }, 'Error getting cosmetics data');
     }
 
-    public saveCosmeticAsync(cosmeticData: ICosmeticEntity) {
+    /**
+     * Saves a cosmetic's id, title, type and path.
+     * @param options.createOnly refuse to replace a cosmetic that already has this id: the write then fails with a
+     * `ConditionalCheckFailedException`
+     */
+    public saveCosmeticAsync(cosmeticData: ICosmeticEntity, options: { createOnly?: boolean } = {}) {
         return this.executeDbOperationAsync(() => {
-            const item = {
-                pk: 'COSMETICS',
-                sk: `ITEM#${cosmeticData.id}`,
-                ...cosmeticData,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            return this.putItemAsync(item);
+            const now = new Date().toISOString();
+            return this.putItemAsync(
+                { pk: 'COSMETICS', sk: `ITEM#${cosmeticData.id}` },
+                {
+                    id: cosmeticData.id,
+                    title: cosmeticData.title,
+                    type: cosmeticData.type,
+                    path: cosmeticData.path,
+                    createdAt: now,
+                    updatedAt: now
+                },
+                options.createOnly ? 'attribute_not_exists(pk)' : undefined
+            );
         }, 'Error saving cosmetic item');
     }
 
@@ -816,9 +869,7 @@ export class DynamoDBService {
 
     public saveServerSettingsAsync(settings: IServerSettingsEntity) {
         return this.executeDbOperationAsync(() => {
-            const item: Record<string, any> = {
-                pk: 'SERVER_SETTINGS',
-                sk: 'GLOBAL',
+            const attributes: Record<string, unknown> = {
                 gamesEnabled: settings.gamesEnabled
             };
 
@@ -826,11 +877,11 @@ export class DynamoDBService {
             // fields have to be omitted rather than written.
             for (const key of ['maintenanceMessage', 'updatedBy', 'updatedAt'] as const) {
                 if (settings[key] !== undefined) {
-                    item[key] = settings[key];
+                    attributes[key] = settings[key];
                 }
             }
 
-            return this.putItemAsync(item);
+            return this.putItemAsync({ pk: 'SERVER_SETTINGS', sk: 'GLOBAL' }, attributes);
         }, 'Error saving server settings');
     }
 
@@ -917,13 +968,7 @@ export class DynamoDBService {
      */
     public saveUsernameChangeAsync(record: IUsernameChangeEntity) {
         return this.executeDbOperationAsync(() => {
-            const item: Record<string, any> = {
-                pk: `USER#${record.playerId}`,
-                sk: `NAMECHANGE#${record.id}`,
-                ...record,
-            };
-
-            return this.putItemAsync(item);
+            return this.putItemAsync({ pk: `USER#${record.playerId}`, sk: `NAMECHANGE#${record.id}` }, { ...record });
         }, 'Error saving username change');
     }
 
@@ -933,17 +978,12 @@ export class DynamoDBService {
      */
     public saveModActionAsync(modAction: IModActionEntity) {
         return this.executeDbOperationAsync(() => {
-            const item: Record<string, any> = withoutUndefined({
-                pk: `USER#${modAction.playerId}`,
-                sk: `MODACTION#${modAction.id}`,
-                ...modAction,
-            });
-
+            const key: IItemKey = { pk: `USER#${modAction.playerId}`, sk: `MODACTION#${modAction.id}` };
             if (isTrackedModAction(modAction.actionType) && !modAction.cancelledAt) {
-                item.GSI_PK = 'ACTIVE_MODACTION';
+                key.GSI_PK = 'ACTIVE_MODACTION';
             }
 
-            return this.putItemAsync(item);
+            return this.putItemAsync(key, withoutUndefined({ ...modAction }));
         }, 'Error saving mod action');
     }
 
@@ -1362,12 +1402,7 @@ export class DynamoDBService {
      */
     public saveUsernameLinkAsync(username: string, userId: string) {
         return this.executeDbOperationAsync(() => {
-            const item = {
-                pk: `USERNAME#${username.toLowerCase()}`,
-                sk: `USER#${userId}`,
-                GSI_PK: userId,
-            };
-            return this.putItemAsync(item);
+            return this.putItemAsync({ pk: `USERNAME#${username.toLowerCase()}`, sk: `USER#${userId}`, GSI_PK: userId });
         }, 'Error saving username link');
     }
 

@@ -265,6 +265,55 @@ describe('Rex, Outserved His Purpose', function() {
                 expect(context.battlefieldMarine.getPower()).toBe(3);
                 expect(context.battlefieldMarine.getHp()).toBe(3);
             });
+
+            it('should buff a unit whose only ability is a When Defeated it lost to Razor Crest, until Razor Crest leaves play', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['rex#outserved-his-purpose', 'imperial-door-technician'],
+                        spaceArena: ['razor-crest#stay-off-the-ice']
+                    },
+                    player2: {
+                        hand: ['vanquish'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Imperial Door Technician is printed 2/2 and has lost its only ability, so Rex buffs it to 3/3
+                expect(context.imperialDoorTechnician.getPower()).toBe(3);
+                expect(context.imperialDoorTechnician.getHp()).toBe(3);
+
+                // Razor Crest still has its own constant ability, so it is not buffed
+                expect(context.razorCrest.getPower()).toBe(2);
+                expect(context.razorCrest.getHp()).toBe(5);
+
+                // Remove Razor Crest from play
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.razorCrest);
+                expect(context.razorCrest).toBeInZone('discard', context.player1);
+
+                // Imperial Door Technician has its When Defeated back, so Rex's bonus no longer applies
+                expect(context.imperialDoorTechnician.getPower()).toBe(2);
+                expect(context.imperialDoorTechnician.getHp()).toBe(2);
+            });
+
+            it('should not buff a unit with a When Played/When Defeated ability under Razor Crest, since it keeps the When Played half', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['rex#outserved-his-purpose', 'dhani-pilgrim'],
+                        spaceArena: ['razor-crest#stay-off-the-ice']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Dhani Pilgrim is printed 1/3 and still has an ability, so Rex's bonus does not apply
+                expect(context.dhaniPilgrim.getPower()).toBe(1);
+                expect(context.dhaniPilgrim.getHp()).toBe(3);
+            });
         });
     });
 });

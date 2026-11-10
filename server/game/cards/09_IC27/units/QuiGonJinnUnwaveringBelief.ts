@@ -6,7 +6,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class QuiGonJinnUnwaveringBelief extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'quigon-jinn#unwavering-belief-id',
+            id: '6150462824',
             internalName: 'quigon-jinn#unwavering-belief',
         };
     }

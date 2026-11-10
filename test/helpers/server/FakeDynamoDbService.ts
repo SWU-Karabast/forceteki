@@ -2,6 +2,7 @@ import type { DeleteCommandOutput, PutCommandOutput, TransactWriteCommandOutput,
 import { v4 as uuid } from 'uuid';
 
 import type {
+    IDeckDataEntity,
     IModActionEntity,
     IPlayerReportCleanupCursor,
     IPlayerReportEntity,
@@ -15,6 +16,7 @@ import type {
 } from '../../../server/services/DynamoDBInterfaces';
 import { isTrackedModAction, PlayerReportStatus } from '../../../server/services/DynamoDBInterfaces';
 import {
+    IDeckDataEntitySchema,
     ModActionEntitySchema,
     PlayerReportEntitySchema,
     PlayerReportIndexEntitySchema,
@@ -29,10 +31,11 @@ import { getDefaultPreferences } from '../../../server/utils/user/UserFactory';
 /**
  * The slice of {@link DynamoDBService} this fake supplies. Typing the class against exactly these
  * methods means a signature change in the real service fails the build here, instead of the fake
- * silently drifting from it. Deck methods are deliberately absent until the deck suite needs them.
+ * silently drifting from it. Of the deck methods, only those that saving and renaming a deck use are here so far.
  */
 type FakedMethod =
   | 'getUserProfileAsync' | 'getAllUserProfilesAsync' | 'saveUserProfileAsync' | 'updateUserProfileAsync'
+  | 'saveDeckAsync' | 'getDeckByLinkAsync' | 'updateDeckNameAsync'
   | 'removeUserProfileAttributeAsync' | 'recordNewLoginAsync' | 'saveUserSettingsAsync' | 'updateUserPreferencesAsync'
   | 'saveOAuthLinkAsync' | 'getUserIdByOAuthAsync' | 'saveEmailLinkAsync' | 'getUserIdByEmailAsync'
   | 'saveUsernameLinkAsync' | 'deleteUsernameLinkAsync' | 'getUserIdsByUsernameAsync'
@@ -126,6 +129,8 @@ function deepMerge(target: Record<string, unknown>, source: Record<string, unkno
  * - only tracked, uncancelled mod actions are in the active index, and cancelling is conditional;
  * - a player report's status transition only applies while it is still in the expected status, and the
  *   retention deletes only while it is still closed and was closed before the cutoff, as their conditions do;
+ * - a deck is stored as its schema parses it, so only a deck's own fields are kept;
+ * - creating a cosmetic with an id that is already taken fails with a `ConditionalCheckFailedException`;
  * - missing role lists read as four empty lists and missing settings as `{ gamesEnabled: true }`;
  * - everything read back through a zod schema in production goes through the same schema here.
  *
@@ -148,6 +153,9 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
     public readonly usernameLinks = new Set<string>();
     public readonly usernameChanges: IUsernameChangeEntity[] = [];
     public readonly modActions = new Map<string, StoredModAction>();
+
+    /** `<user id>#<deck id>` -> deck. */
+    public readonly decks = new Map<string, IDeckDataEntity>();
     public readonly cosmetics = new Map<string, ICosmeticEntity>();
 
     /** Report id -> record and its GSI bucket. */
@@ -265,6 +273,11 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
         return [...this.modActions.values()].filter((item) => item.actionType === actionType);
     }
 
+    /** The decks stored for a user, in the order they were saved. */
+    public decksOf(userId: string): IDeckDataEntity[] {
+        return [...this.decks.values()].filter((deck) => deck.userId === userId);
+    }
+
     /** User ids that have had a login recorded through `recordNewLoginAsync`, in order. */
     public get loggedInUserIds(): readonly string[] {
         return this.recordedLogins;
@@ -318,6 +331,31 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
         const merged = deepMerge(deepMerge({ ...getDefaultPreferences() }, { ...stored }), { ...preferences });
         this.profiles.set(userId, { ...this.profiles.get(userId), preferences: merged as IUserPreferences });
         return Promise.resolve();
+    }
+
+    // ---- Decks ----
+
+    public saveDeckAsync(deckData: IDeckDataEntity): Promise<PutCommandOutput> {
+        // as in production, the deck is stored as the schema parses it, and an invalid one is refused
+        const deck = IDeckDataEntitySchema.parse(deckData);
+        this.decks.set(`${deck.userId}#${deck.id}`, { ...deck, stats: deck.stats || { wins: 0, losses: 0, draws: 0 } });
+        return Promise.resolve(putResult);
+    }
+
+    public getDeckByLinkAsync(userId: string, deckLinkID: string): Promise<IDeckDataEntity | undefined> {
+        const deck = this.decksOf(userId).find((candidate) => candidate.deck.deckLinkID === deckLinkID);
+        return Promise.resolve(deck ? IDeckDataEntitySchema.parse(deck) : undefined);
+    }
+
+    public updateDeckNameAsync(userId: string, deckId: string, newName: string): Promise<UpdateCommandOutput> {
+        // setting a nested attribute of an item that does not exist fails in DynamoDB rather than creating it
+        const deck = this.decks.get(`${userId}#${deckId}`);
+        if (!deck) {
+            return Promise.reject(Object.assign(new Error('The document path provided in the update expression is invalid for update'), { name: 'ValidationException' }));
+        }
+
+        deck.deck = { ...deck.deck, name: newName };
+        return Promise.resolve(updateResult);
     }
 
     // ---- Identity links ----
@@ -585,8 +623,14 @@ export class FakeDynamoDbService implements Pick<DynamoDBService, FakedMethod> {
         return Promise.resolve([...this.cosmetics.values()].map(({ id, title, type, path }) => ({ id, title, type, path })));
     }
 
-    public saveCosmeticAsync(cosmeticData: ICosmeticEntity): Promise<PutCommandOutput> {
-        this.cosmetics.set(cosmeticData.id, { ...cosmeticData });
+    public saveCosmeticAsync(cosmeticData: ICosmeticEntity, options: { createOnly?: boolean } = {}): Promise<PutCommandOutput> {
+        if (options.createOnly && this.cosmetics.has(cosmeticData.id)) {
+            return Promise.reject(conditionalCheckFailed());
+        }
+
+        // like the real service, only the cosmetic's own fields are stored
+        const { id, title, type, path } = cosmeticData;
+        this.cosmetics.set(id, { id, title, type, path });
         return Promise.resolve(putResult);
     }
 
