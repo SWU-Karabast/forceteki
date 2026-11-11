@@ -48,6 +48,14 @@ type CapturedGame = { getState: (participantId: string) => unknown } & Record<Re
 
 const UuidPattern = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 
+/**
+ * A game object's id: `<getGameObjectName()>_<n>`, numbered by one counter shared by every object
+ * the game registers (`GameStateManager.register`). Lists the names the `getGameObjectName()`
+ * overrides return; add one here if a new override's objects reach the state. Matching only these
+ * names leaves look-alikes such as set codes (`SOR_210`) alone.
+ */
+const GameObjectIdPattern = /\b(?:Card|Player|Zone|GameObject|StateWatcherRegistrar|StateWatcher_[A-Za-z0-9]+)_\d+\b/g;
+
 /** Fields left out because they change between runs without the board changing, or are chat. */
 const DroppedKeys = new Set(['newMessages', 'messageOffset', 'totalMessages']);
 
@@ -77,6 +85,10 @@ const firstPrinting = (cardId: string): unknown => {
  * - generated uuids become `uuid-1`, `uuid-2`, … in order of first appearance, so a uuid has the
  *   same name throughout a file, and a message in a chain names the same prompt as the state it
  *   answers;
+ * - game object ids become `Card-1`, `Card-2`, … the same way. The engine numbers them by creation
+ *   order across every object it registers, most of which never reach the state, so an engine
+ *   change that creates one more object would otherwise renumber the snapshot without the board
+ *   changing. The hyphen marks a name as the snapshot's, never an id the engine made;
  * - a card's `setId` becomes its first printing, so a reprint doesn't change the snapshot;
  * - chat is left out.
  */
@@ -89,9 +101,19 @@ const normalize = (value: unknown): unknown => {
         return uuids.get(uuid);
     };
 
+    const objectIds = new Map<string, string>();
+    const stableObjectId = (id: string) => {
+        if (!objectIds.has(id)) {
+            objectIds.set(id, `${id.replace(/_\d+$/, '')}-${objectIds.size + 1}`);
+        }
+        return objectIds.get(id);
+    };
+
+    const stabilize = (text: string) => text.replace(UuidPattern, stableUuid).replace(GameObjectIdPattern, stableObjectId);
+
     const visit = (child: unknown): unknown => {
         if (typeof child === 'string') {
-            return child.replace(UuidPattern, stableUuid);
+            return stabilize(child);
         }
         if (Array.isArray(child)) {
             return child.map(visit);
@@ -100,7 +122,7 @@ const normalize = (value: unknown): unknown => {
             const result: Record<string, unknown> = {};
             for (const [key, grandchild] of Object.entries(child)) {
                 if (!DroppedKeys.has(key)) {
-                    result[key.replace(UuidPattern, stableUuid)] = visit(grandchild);
+                    result[stabilize(key)] = visit(grandchild);
                 }
             }
             if ('setId' in result && typeof result.id === 'string') {
