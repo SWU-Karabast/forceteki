@@ -17,7 +17,10 @@ export default class R2D2TheFirstProtagonist extends NonLeaderUnitCard {
             immediateEffect: abilityHelper.immediateEffects.chooseModalEffects(() => ({
                 amountOfChoices: 1,
                 choices: {
-                    ['Ready a resource']: abilityHelper.immediateEffects.readyResources({ amount: 1 }),
+                    ['Ready a resource']: abilityHelper.immediateEffects.selectPlayer({
+                        activePromptTitle: 'Choose a player to ready a resource',
+                        immediateEffect: abilityHelper.immediateEffects.readyResources({ amount: 1 }),
+                    }),
                     ['Deal 1 damage to a ground unit']: abilityHelper.immediateEffects.selectCard({
                         activePromptTitle: 'Deal 1 damage to a ground unit',
                         cardTypeFilter: WildcardCardType.Unit,
@@ -36,7 +39,7 @@ export default class R2D2TheFirstProtagonist extends NonLeaderUnitCard {
                                     immediateEffect: abilityHelper.immediateEffects.discardSpecificCard({ target: topCardOfDeck })
                                 },
                                 {
-                                    text: 'Leave it on top of your deck',
+                                    text: 'Leave on top',
                                     arg: 'leave',
                                     immediateEffect: abilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
                                 }

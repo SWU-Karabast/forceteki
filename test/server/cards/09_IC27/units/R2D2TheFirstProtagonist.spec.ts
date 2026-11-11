@@ -27,6 +27,10 @@ describe('R2-D2, The First Protagonist', function() {
                 ]);
                 context.player1.clickPrompt('Ready a resource');
 
+                expect(context.player1).toHavePrompt('Choose a player to ready a resource');
+                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+                context.player1.clickPrompt('You');
+
                 expect(context.player1.exhaustedResourceCount).toBe(2);
                 expect(context.player2).toBeActivePlayer();
             });
@@ -80,7 +84,7 @@ describe('R2-D2, The First Protagonist', function() {
                 context.player1.clickPrompt('Look at the top card of your deck. You may discard it');
 
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.wampa]);
-                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Discard it', 'Leave it on top of your deck']);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Discard it', 'Leave on top']);
 
                 context.player1.clickDisplayCardPromptButton(context.wampa.uuid, 'discard');
 
