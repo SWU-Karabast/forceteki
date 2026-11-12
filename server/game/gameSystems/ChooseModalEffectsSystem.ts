@@ -1,4 +1,4 @@
-import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { AbilityContext, IAbilityPassOption } from '../core/ability/AbilityContext';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import { MetaEventName, RelativePlayer } from '../core/Constants';
@@ -50,13 +50,15 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
             .some(([label, system]) => this.isChoiceWithinLimit(properties, choiceIds, label, context) && this.modalChoiceHasAnyLegalEffect(system, context));
     }
 
+    public override canShowAbilityPassOption(context: TContext, passingPlayer: Player): boolean {
+        return this.getChoosingPlayer(this.generatePropertiesFromContext(context), context) === passingPlayer;
+    }
+
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext): void {
         const properties = this.generatePropertiesFromContext(context);
         const listOfAvailableEffects = this.getChoices(properties, context);
         const choiceIds = this.getChoiceIds(properties, listOfAvailableEffects, context);
-        const choosingPlayer = properties.choosingPlayer === RelativePlayer.Opponent
-            ? context.player.opponent
-            : context.player;
+        const choosingPlayer = this.getChoosingPlayer(properties, context);
 
         // recursively calls the function and removes handlers from the list until the player can't make anymore choices.
         const choiceHandler = (
@@ -72,6 +74,7 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
             }
 
             const effectsToChoose = this.getEffectsToChooseText(properties, amountOfRemainingChoices);
+            const passOption = this.takeAbilityPassOption(player, context);
 
             context.game.promptWithModalEffectSelection(player, {
                 title: `Choose ${effectsToChoose} for ${context.source.title}`,
@@ -95,7 +98,8 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
                             !!properties.canChooseSameOptionMoreThanOnce
                         );
                     }
-                }))
+                })),
+                passButtonText: passOption?.buttonText
             });
         };
         choiceHandler(choosingPlayer, listOfAvailableEffects, properties.amountOfChoices);
@@ -152,6 +156,23 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
 
         const messageArgs: MsgArg[] = [context.player, ' uses ', context.source, ' to ', { format: effectMessage, args: effectArgs }];
         context.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
+    }
+
+    /** The optional ability's Pass option, offered with the first choice only (see {@link GameSystem.canShowAbilityPassOption}). */
+    private takeAbilityPassOption(player: Player, context: TContext): IAbilityPassOption | undefined {
+        const passOption = context.abilityPassOption;
+        if (!passOption || passOption.shown || passOption.player !== player) {
+            return undefined;
+        }
+
+        passOption.shown = true;
+        return passOption;
+    }
+
+    private getChoosingPlayer(properties: IPlayModalCardProperties, context: TContext): Player {
+        return properties.choosingPlayer === RelativePlayer.Opponent
+            ? context.player.opponent
+            : context.player;
     }
 
     private getChoices(properties: IPlayModalCardProperties, context: TContext): IChoicesInterface {

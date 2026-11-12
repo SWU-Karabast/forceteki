@@ -11,6 +11,18 @@ import type { IOngoingEffectProps } from '../../Interfaces';
 import type { ReplacementEffectContext } from './ReplacementEffectContext';
 import type { AbilityLimit } from './AbilityLimit';
 
+/**
+ * The Pass option of an optional ability whose immediate effect shows Pass in its own prompt (see
+ * {@link GameSystem.canShowAbilityPassOption}) instead of the "You may trigger this ability" prompt.
+ */
+export interface IAbilityPassOption {
+    buttonText: string;
+    player: Player;
+
+    /** Set once a prompt has shown the option, so that it is offered only once per resolution. */
+    shown: boolean;
+}
+
 export interface IAbilityContextProperties {
     game: Game;
     source?: any;
@@ -66,6 +78,9 @@ export class AbilityContext<TSource extends Card = Card> {
      * and consumed by damage-generating systems when their damage events are created.
      */
     public pendingAbilityDamageIncrease = 0;
+
+    /** Set when this optional ability's Pass option is shown by its immediate effect's prompt; see {@link IAbilityPassOption}. */
+    public abilityPassOption?: IAbilityPassOption;
 
     // Capture the limit for this resolution. A card leaving and returning can
     // replace its live limit while existing contexts still share the old one.
@@ -127,6 +142,7 @@ export class AbilityContext<TSource extends Card = Card> {
         copy.playType = this.playType;
         copy.events = this.events;
         copy.activeAttackId = this.activeAttackId;
+        copy.abilityPassOption = this.abilityPassOption;
         return copy;
     }
 

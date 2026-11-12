@@ -25,15 +25,18 @@ export default class ObiWanKenobiISenseATrap extends NonLeaderUnitCard {
 
     public override setupCardAbilities(registrar: INonLeaderUnitAbilityRegistrar, abilityHelper: IAbilityHelper) {
         registrar.addWhenPlayedAbility({
-            title: 'Choose one',
+            title: 'Choose one: play a unit from discard or give a unit -5/-5 for this phase',
+            optional: true,
             immediateEffect: abilityHelper.immediateEffects.chooseModalEffects({
                 amountOfChoices: 1,
                 choices: {
                     [`Play a unit that was defeated this phase from your discard pile. It costs ${TextHelper.resource(5)} less`]: abilityHelper.immediateEffects.selectCard({
-                        activePromptTitle: 'Choose a unit that was defeated this phase',
+                        activePromptTitle: `Play a unit that was defeated this phase for ${TextHelper.resource(5)} less`,
                         cardTypeFilter: WildcardCardType.Unit,
                         zoneFilter: ZoneName.Discard,
                         controller: RelativePlayer.Self,
+                        // Since the overall ability is optional, pass the optionality down to the card selection
+                        canChooseNoCards: true,
                         cardCondition: (card) => card.isUnit() && this.cardsDefeatedThisPhaseWatcher.wasDefeatedThisPhase(card),
                         immediateEffect: abilityHelper.immediateEffects.playCardFromOutOfPlay({
                             playAsType: WildcardCardType.Unit,
@@ -41,8 +44,10 @@ export default class ObiWanKenobiISenseATrap extends NonLeaderUnitCard {
                         })
                     }),
                     ['Choose a unit that entered play this phase. It gets -5/-5 for this phase']: abilityHelper.immediateEffects.selectCard({
-                        activePromptTitle: 'Choose a unit that entered play this phase',
+                        activePromptTitle: 'Give -5/-5 to a unit that entered play this phase',
                         cardTypeFilter: WildcardCardType.Unit,
+                        // Since the overall ability is optional, pass the optionality down to the card selection
+                        canChooseNoCards: true,
                         cardCondition: (card) =>
                             this.cardsEnteredPlayThisPhaseWatcher
                                 .getCardsEnteredPlay((entry) => entry.card === card)
@@ -50,8 +55,7 @@ export default class ObiWanKenobiISenseATrap extends NonLeaderUnitCard {
                         immediateEffect: abilityHelper.immediateEffects.forThisPhaseCardEffect({
                             effect: abilityHelper.ongoingEffects.modifyStats({ power: -5, hp: -5 })
                         })
-                    }),
-                    ['Do nothing']: abilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
+                    })
                 }
             })
         });
