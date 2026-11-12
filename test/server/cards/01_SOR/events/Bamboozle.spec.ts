@@ -247,11 +247,11 @@ describe('Bamboozle', function () {
         // Ruling (JTL): a pilot leader attached as an upgrade is bounced by Bamboozle (it is treated
         // as an upgrade, so Bamboozle's "return to hand" affects it like any other upgrade and the
         // leader returns to the base, undeployed).
-        it('should return a pilot leader attached as an upgrade to base undeployed (Luke Skywalker, Hero of Yavin)', async function () {
+        it('should return a pilot leader attached as an upgrade to base undeployed', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    leader: 'luke-skywalker#hero-of-yavin',
+                    leader: 'han-solo#never-tell-me-the-odds',
                     spaceArena: ['cartel-spacer'],
                     resources: 10
                 },
@@ -262,12 +262,12 @@ describe('Bamboozle', function () {
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.lukeSkywalker);
-            context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
+            context.player1.clickCard(context.hanSolo);
+            context.player1.clickPrompt('Deploy Han Solo as a Pilot');
             context.player1.clickCard(context.cartelSpacer);
 
-            expect(context.lukeSkywalker).toBeInZone('spaceArena');
-            expect(context.cartelSpacer).toHaveExactUpgradeNames(['luke-skywalker#hero-of-yavin']);
+            expect(context.hanSolo).toBeInZone('spaceArena');
+            expect(context.cartelSpacer).toHaveExactUpgradeNames(['han-solo#never-tell-me-the-odds']);
 
             context.player2.clickCard(context.bamboozle);
             expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer]);
@@ -275,17 +275,20 @@ describe('Bamboozle', function () {
             expect(context.cartelSpacer.exhausted).toBeTrue();
             expect(context.cartelSpacer.isUpgraded()).toBeFalse();
 
-            // Luke's "can't be defeated by enemy card abilities" replacement doesn't apply: Bamboozle
-            // returns upgrades to hand rather than defeating them, so Luke flips back to base undeployed
-            expect(context.lukeSkywalker).toBeInZone('base');
-            expect(context.lukeSkywalker.deployed).toBeFalse();
+            // Bamboozle returns the upgrade rather than defeating it, so Han flips back to base undeployed
+            expect(context.hanSolo).toBeInZone('base');
+            expect(context.hanSolo.deployed).toBeFalse();
 
-            // Ensure Luke cannot re-deploy: clicking him only offers his no-effect leader ability
-            // (no Deploy / Deploy as Pilot buttons)
+            // Ensure Han cannot re-deploy: clicking him auto-fires his exhaust action rather than
+            // offering Deploy / Deploy as Pilot buttons (it's his only remaining action)
             context.moveToNextActionPhase();
-            context.player1.clickCard(context.lukeSkywalker);
-            expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Use it anyway']);
-            context.player1.clickPrompt('Cancel');
+            context.player1.clickCard(context.hanSolo);
+            expect(context.player1).toHavePrompt('View cards for Han Solo ability');
+            context.player1.clickDone();
+
+            // resolve the 'then' attack (cartel spacer is ready again in the new phase)
+            context.player1.clickCard(context.cartelSpacer);
+            context.player1.clickCard(context.p2Base);
         });
     });
 });

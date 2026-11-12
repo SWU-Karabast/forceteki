@@ -110,6 +110,8 @@ describe('Third Sister, Seething With Ambition', function () {
 
                 context.moveToNextActionPhase();
 
+                // Ruling 2025-09-29 (erratum): Third Sister does not grant Hidden permanently — the keyword
+                // is gone after the phase, including for abilities that check for the existence of keywords.
                 expect(context.battlefieldMarine.hasSomeKeyword('hidden')).toBeFalse();
             });
 
@@ -232,15 +234,6 @@ describe('Third Sister, Seething With Ambition', function () {
                 expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
                 expect(context.stolenAthauler.hasSomeKeyword('hidden')).toBeTrue();
                 expect(context.player2).toBeActivePlayer();
-            });
-
-            // Ruling 2025-09-29 (erratum): Third Sister does not grant Hidden permanently — the keyword
-            // is gone after the phase, including for abilities that check for the existence of keywords.
-            xit('the granted Hidden keyword no longer exists in the following phase', function () {
-                pending('Not yet implemented');
-                // Use Third Sister's On Attack to give the next unit played Hidden this phase. In the
-                // next phase, that unit should no longer have the Hidden keyword (hasSomeKeyword('hidden')
-                // is false), so abilities that check for the existence of Hidden do not see it.
             });
         });
     });
